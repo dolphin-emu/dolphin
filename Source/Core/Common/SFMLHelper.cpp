@@ -6,24 +6,34 @@
 
 #include <SFML/Network/Packet.hpp>
 
-namespace Common
-{
-// This only exists as a helper for BigEndianValue
-u16 PacketReadU16(sf::Packet& packet)
+sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u16>& data)
 {
   u16 tmp;
   packet >> tmp;
-  return tmp;
+  data = tmp;
+  return packet;
 }
 
-// This only exists as a helper for BigEndianValue
-u32 PacketReadU32(sf::Packet& packet)
+sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u32>& data)
 {
   u32 tmp;
   packet >> tmp;
-  return tmp;
+  data = tmp;
+  return packet;
 }
 
+sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u64>& data)
+{
+  sf::Uint64 tmp;
+  packet >> tmp;
+  data = tmp;
+  return packet;
+}
+
+namespace Common
+{
+// SFML's Uint64 type is different depending on platform,
+// so we have this for cleaner code.
 u64 PacketReadU64(sf::Packet& packet)
 {
   sf::Uint64 value;

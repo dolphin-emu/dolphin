@@ -41,6 +41,7 @@
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
+    <string name="input_rumble_description">Press or move any input to set rumble.</string>
 
     <!-- Generic buttons (Shared with lots of stuff) -->
     <string name="generic_buttons">Buttons</string>
@@ -297,6 +298,9 @@
     <!-- Wii Remote Input Menu-->
     <string name="header_wiimote_general">General</string>
     <string name="header_controllers">Controllers</string>
+
+    <!-- Rumble -->
+    <string name="rumble_not_found">Device rumble not found</string>
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
     <string name="load_settings">Loading Settings...</string>

@@ -69,8 +69,8 @@
 
     <!--  -->
     <Button
-        android:text="@string/preferences_game_settings"
-        android:id="@+id/button_game_setting"
+        android:text="@string/grid_menu_wiimote_settings"
+        android:id="@+id/button_wiimote_settings"
         style="@style/Widget.AppCompat.Button.Colored"
         android:textAllCaps="false"
         android:layout_width="match_parent"
@@ -80,13 +80,36 @@
         android:stateListAnimator="@null"/>
 
     <Button
+        android:text="@string/grid_menu_gcpad_settings"
+        android:id="@+id/button_gcpad_settings"
+        android:layout_width="match_parent"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button_cheat_code"
+        android:layout_toEndOf="@id/dummy_view"
+        android:stateListAnimator="@null"/>
+
+    <!--  -->
+    <Button
+        android:text="@string/preferences_game_settings"
+        android:id="@+id/button_game_setting"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/dummy_view"
+        android:layout_below="@id/button_wiimote_settings"
+        android:stateListAnimator="@null"/>
+
+    <Button
         android:text="@string/emulation_quickload"
         android:id="@+id/button_quick_load"
         android:layout_width="match_parent"
         style="@style/Widget.AppCompat.Button.Colored"
         android:textAllCaps="false"
         android:layout_height="wrap_content"
-        android:layout_below="@id/button_cheat_code"
+        android:layout_below="@id/button_gcpad_settings"
         android:layout_toEndOf="@id/dummy_view"
         android:stateListAnimator="@null"/>
 

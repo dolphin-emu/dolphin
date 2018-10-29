@@ -87,7 +87,7 @@ void SWVertexLoader::vFlush()
   for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++)
   {
     const u16 index = m_local_index_buffer[i];
-    memset(&m_vertex, 0, sizeof(m_vertex));
+    memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
 
     // Super Mario Sunshine requires those to be zero for those debug boxes.
     m_vertex.color = {};

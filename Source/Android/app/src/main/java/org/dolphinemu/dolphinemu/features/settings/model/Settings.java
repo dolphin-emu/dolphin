@@ -3,7 +3,6 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.util.Arrays;
@@ -26,23 +25,21 @@ public class Settings
   public static final String SECTION_WIIMOTE = "Wiimote";
 
   public static final String SECTION_BINDINGS = "Android";
+  public static final String SECTION_CONTROLS = "Controls";
+  public static final String SECTION_PROFILE = "Profile";
 
   public static final String SECTION_SYSCONF = "Wii";
-
-  private String gameId;
 
   private static final Map<String, List<String>> configFileSectionsMap = new HashMap<>();
 
   static
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
-      Arrays.asList(SECTION_INI_CORE, SECTION_INI_DSP, SECTION_INI_INTERFACE,
-        SECTION_BINDINGS));
+      Arrays.asList(SECTION_INI_CORE, SECTION_INI_DSP, SECTION_INI_INTERFACE, SECTION_BINDINGS));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
       Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_WIIMOTE,
-      Arrays.asList(SECTION_WIIMOTE + 1, SECTION_WIIMOTE + 2, SECTION_WIIMOTE + 3,
-        SECTION_WIIMOTE + 4));
+      Arrays.asList(SECTION_WIIMOTE + 1, SECTION_WIIMOTE + 2, SECTION_WIIMOTE + 3, SECTION_WIIMOTE + 4));
   }
 
   /**
@@ -88,9 +85,9 @@ public class Settings
     return sections;
   }
 
-  public void loadSettings(SettingsActivityView view)
+  public void loadSettings(String gameId)
   {
-    sections = new Settings.SettingsSectionMap();
+    this.sections = new Settings.SettingsSectionMap();
 
     HashSet<String> filesToExclude = new HashSet<>();
     if (!TextUtils.isEmpty(gameId))
@@ -98,26 +95,28 @@ public class Settings
       // for per-game settings, don't load the WiiMoteNew.ini settings
       filesToExclude.add(SettingsFile.FILE_NAME_WIIMOTE);
     }
+    else
+		{
+			loadWiiSysconf();
+		}
 
-    loadDolphinSettings(view, filesToExclude);
+    loadDolphinSettings(filesToExclude);
 
     if (!TextUtils.isEmpty(gameId))
     {
-      loadGenericGameSettings(gameId, view);
-      loadCustomGameSettings(gameId, view);
+      loadGenericGameSettings(gameId);
+      loadCustomGameSettings(gameId);
     }
-
-    loadWiiSysconf();
   }
 
-  private void loadDolphinSettings(SettingsActivityView view, HashSet<String> filesToExclude)
+  private void loadDolphinSettings(HashSet<String> filesToExclude)
   {
     for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
     {
       String fileName = entry.getKey();
       if (filesToExclude == null || !filesToExclude.contains(fileName))
       {
-        sections.putAll(SettingsFile.readFile(fileName, view));
+        sections.putAll(SettingsFile.readFile(fileName));
       }
     }
   }
@@ -206,17 +205,22 @@ public class Settings
     NativeLibrary.setSysconfSettings(sysconf);
   }
 
-  private void loadGenericGameSettings(String gameId, SettingsActivityView view)
+  private void loadGenericGameSettings(String gameId)
   {
     // generic game settings
-    mergeSections(SettingsFile.readGenericGameSettings(gameId, view));
-    mergeSections(SettingsFile.readGenericGameSettingsForAllRegions(gameId, view));
+    mergeSections(SettingsFile.readGenericGameSettings(gameId));
+    mergeSections(SettingsFile.readGenericGameSettingsForAllRegions(gameId));
   }
 
-  private void loadCustomGameSettings(String gameId, SettingsActivityView view)
+  private void loadCustomGameSettings(String gameId)
   {
     // custom game settings
-    mergeSections(SettingsFile.readCustomGameSettings(gameId, view));
+    mergeSections(SettingsFile.readCustomGameSettings(gameId));
+  }
+
+  public void loadWiimoteProfile(String gameId, String padId)
+  {
+    mergeSections(SettingsFile.readWiimoteProfile(gameId, padId));
   }
 
   private void mergeSections(HashMap<String, SettingSection> updatedSections)
@@ -236,39 +240,26 @@ public class Settings
     }
   }
 
-  public void loadSettings(String gameId, SettingsActivityView view)
+  public void saveSettings()
   {
-    this.gameId = gameId;
-    loadSettings(view);
+		for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
+		{
+			String fileName = entry.getKey();
+			List<String> sectionNames = entry.getValue();
+			TreeMap<String, SettingSection> iniSections = new TreeMap<>();
+			for (String section : sectionNames)
+			{
+				iniSections.put(section, sections.get(section));
+			}
+
+			SettingsFile.saveFile(fileName, iniSections);
+		}
+
+		saveWiiSysconf();
   }
 
-  public void saveSettings(SettingsActivityView view)
-  {
-    if (TextUtils.isEmpty(gameId))
-    {
-      view.showToastMessage("Saved settings to INI files");
-
-      for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
-      {
-        String fileName = entry.getKey();
-        List<String> sectionNames = entry.getValue();
-        TreeMap<String, SettingSection> iniSections = new TreeMap<>();
-        for (String section : sectionNames)
-        {
-          iniSections.put(section, sections.get(section));
-        }
-
-        SettingsFile.saveFile(fileName, iniSections, view);
-      }
-
-      saveWiiSysconf();
-    }
-    else
-    {
-      // custom game settings
-      view.showToastMessage("Saved settings for " + gameId);
-      SettingsFile.saveCustomGameSettings(gameId, sections);
-    }
-
-  }
+  public void saveCustomGameSettings(String gameId)
+	{
+		SettingsFile.saveCustomGameSettings(gameId, sections);
+	}
 }

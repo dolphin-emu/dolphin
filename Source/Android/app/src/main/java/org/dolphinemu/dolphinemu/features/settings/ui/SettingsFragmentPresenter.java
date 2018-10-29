@@ -14,6 +14,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
@@ -28,46 +29,33 @@ import java.util.ArrayList;
 
 public final class SettingsFragmentPresenter
 {
-  private SettingsFragmentView mView;
-
-  public static final String ARG_CONTROLLER_TYPE = "controller_type";
   private MenuTag mMenuTag;
   private String mGameID;
-
   private Settings mSettings;
-  private ArrayList<SettingsItem> mSettingsList;
+	private SettingsActivity mActivity;
 
   private int mControllerNumber;
   private int mControllerType;
 
-  public SettingsFragmentPresenter(SettingsFragmentView view)
+  public SettingsFragmentPresenter(SettingsActivity activity)
   {
-    mView = view;
+		mActivity = activity;
   }
 
   public void onCreate(MenuTag menuTag, String gameId, Bundle extras)
   {
     mGameID = gameId;
+    mMenuTag = menuTag;
 
-    this.mMenuTag = menuTag;
     if (menuTag.isGCPadMenu() || menuTag.isWiimoteExtensionMenu())
     {
       mControllerNumber = menuTag.getSubType();
-      mControllerType = extras.getInt(ARG_CONTROLLER_TYPE);
+      mControllerType = extras.getInt(SettingsActivity.ARG_CONTROLLER_TYPE);
     }
     else if (menuTag.isWiimoteMenu())
     {
       mControllerNumber = menuTag.getSubType();
     }
-    else
-    {
-      mMenuTag = menuTag;
-    }
-  }
-
-  public void onViewCreated(Settings settings)
-  {
-    setSettings(settings);
   }
 
   /**
@@ -79,42 +67,14 @@ public final class SettingsFragmentPresenter
   {
     if (mSettings != null)
     {
-      mView.passSettingsToActivity(mSettings);
+			mActivity.setSettings(mSettings);
     }
   }
 
-  public void putSetting(Setting setting)
+  public ArrayList<SettingsItem> loadSettingsList(Settings settings)
   {
-    mSettings.getSection(setting.getSection()).putSetting(setting);
-  }
-
-  public void loadDefaultSettings()
-  {
-    loadSettingsList();
-  }
-
-  public void setSettings(Settings settings)
-  {
-    if (mSettingsList == null && settings != null)
-    {
-      mSettings = settings;
-
-      loadSettingsList();
-    }
-    else
-    {
-      mView.showSettingsList(mSettingsList);
-    }
-  }
-
-  private void loadSettingsList()
-  {
-    if (!TextUtils.isEmpty(mGameID))
-    {
-      mView.getActivity().setTitle("Game Settings: " + mGameID);
-    }
     ArrayList<SettingsItem> sl = new ArrayList<>();
-
+		mSettings = settings;
     switch (mMenuTag)
     {
       case CONFIG:
@@ -179,12 +139,9 @@ public final class SettingsFragmentPresenter
         break;
 
       default:
-        mView.showToastMessage("Unimplemented menu");
-        return;
+        return null;
     }
-
-    mSettingsList = sl;
-    mView.showSettingsList(mSettingsList);
+    return sl;
   }
 
   private void addConfigSettings(ArrayList<SettingsItem> sl)
@@ -202,33 +159,20 @@ public final class SettingsFragmentPresenter
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
   {
-    Setting cpuCore = null;
-    Setting dualCore = null;
-    Setting overclockEnable = null;
-    Setting overclock = null;
-    Setting speedLimit = null;
-    Setting syncOnSkipIdle = null;
-    //Setting mmuEmulation = null;
-    //Setting fastDiscSpeed = null;
-    Setting followBranch = null;
-    Setting audioStretch = null;
-    Setting audioBackend = null;
-    Setting enableCheats = null;
-
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-    cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
-    dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
-    overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
-    overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
-    speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
-    syncOnSkipIdle = coreSection.getSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE);
-    //mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
-    //fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
-    followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
-    audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
-    audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP)
+		Setting cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
+		Setting dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
+		Setting overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
+		Setting overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
+		Setting speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
+		Setting syncOnSkipIdle = coreSection.getSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE);
+    //Setting mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
+    //Setting fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
+		Setting followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
+		Setting audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+		Setting audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP)
       .getSetting(SettingsFile.KEY_AUDIO_BACKEND);
-    enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
+		Setting enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
 
     // TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
     // The proper solution would be to have one emuCoresEntries and one emuCoresValues
@@ -287,18 +231,13 @@ public final class SettingsFragmentPresenter
 
   private void addInterfaceSettings(ArrayList<SettingsItem> sl)
   {
-    Setting usePanicHandlers = null;
-    Setting onScreenDisplayMessages = null;
-    Setting useBuiltinTitleDatabase = null;
-    Setting showDebugInfo = null;
-
-    usePanicHandlers = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+		Setting usePanicHandlers = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
-    onScreenDisplayMessages = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+		Setting onScreenDisplayMessages = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_OSD_MESSAGES);
-    useBuiltinTitleDatabase = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+		Setting useBuiltinTitleDatabase = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_BUILTIN_TITLE_DATABASE);
-    showDebugInfo = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+		Setting showDebugInfo = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_SHOW_DEBUG_INFO);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, Settings.SECTION_INI_INTERFACE,
@@ -315,16 +254,11 @@ public final class SettingsFragmentPresenter
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
   {
-    Setting systemLanguage = null;
-    Setting overrideGCLanguage = null;
-    Setting slotADevice = null;
-    Setting slotBDevice = null;
-
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-    systemLanguage = coreSection.getSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE);
-    overrideGCLanguage = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE);
-    slotADevice = coreSection.getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
-    slotBDevice = coreSection.getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
+		Setting systemLanguage = coreSection.getSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE);
+		Setting overrideGCLanguage = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE);
+		Setting slotADevice = coreSection.getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
+		Setting slotBDevice = coreSection.getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE, Settings.SECTION_INI_CORE,
       R.string.gamecube_system_language, 0, R.array.gameCubeSystemLanguageEntries,
@@ -342,23 +276,9 @@ public final class SettingsFragmentPresenter
 
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
-    Setting continuousScan = null;
-    Setting wiimoteSpeaker = null;
-
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-    continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
-    wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
-
-    SettingSection sysconfSection = mSettings.getSection(Settings.SECTION_SYSCONF);
-    Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
-    Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
-    Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
-    //Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
-    Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
-    //Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
-    //Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
-    //Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
-    //Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
+		Setting continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
+		Setting wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE,
       R.string.wiimote_scanning, R.string.wiimote_scanning_description, true,
@@ -366,32 +286,57 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, Settings.SECTION_INI_CORE,
       R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_SYSCONF,
-      R.string.sysconf_screensaver, 0, true, screensaver));
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_SYSCONF,
-      R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries,
-      R.array.wiiSystemLanguageValues, 7, language));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_SYSCONF,
-      R.string.sysconf_widescreen, 0, true, widescreen));
-    //sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_SYSCONF,
-      R.string.sysconf_pal60, 0, true, pal60));
-    //sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
-    //sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
-    //sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
-    //sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
+    if(TextUtils.isEmpty(mGameID))
+		{
+			SettingSection sysconfSection = mSettings.getSection(Settings.SECTION_SYSCONF);
+			Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
+			Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
+			Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
+			//Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
+			Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
+			//Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
+			//Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
+			//Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
+			//Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
+
+			sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_SYSCONF,
+				R.string.sysconf_screensaver, 0, true, screensaver));
+			sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_SYSCONF,
+				R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries,
+				R.array.wiiSystemLanguageValues, 7, language));
+			sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_SYSCONF,
+				R.string.sysconf_widescreen, 0, true, widescreen));
+			//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
+			sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_SYSCONF,
+				R.string.sysconf_pal60, 0, true, pal60));
+			//sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
+			//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
+			//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
+			//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
+		}
   }
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
   {
     for (int i = 0; i < 4; i++)
     {
-      // TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
-      Setting gcPadSetting = mSettings.getSection(Settings.SECTION_INI_CORE)
-        .getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
-      sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, Settings.SECTION_INI_CORE,
-        R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0,
-        gcPadSetting, MenuTag.getGCPadMenuTag(i)));
+      if (TextUtils.isEmpty(mGameID))
+      {
+        // TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
+        Setting gcPadSetting = mSettings.getSection(Settings.SECTION_INI_CORE)
+                .getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
+        sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, Settings.SECTION_INI_CORE,
+                R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0,
+                gcPadSetting, MenuTag.getGCPadMenuTag(i)));
+      }
+      else
+      {
+        Setting gcPadSetting = mSettings.getSection(Settings.SECTION_CONTROLS)
+                .getSetting(SettingsFile.KEY_GCPAD_G_TYPE + i);
+        sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_G_TYPE + i, Settings.SECTION_CONTROLS,
+                R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0,
+                gcPadSetting, MenuTag.getGCPadMenuTag(i)));
+      }
     }
   }
 
@@ -400,11 +345,23 @@ public final class SettingsFragmentPresenter
     for (int i = 0; i < 4; i++)
     {
       // TODO This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
-      Setting wiimoteSetting = mSettings.getSection(Settings.SECTION_WIIMOTE + (i + 1))
-        .getSetting(SettingsFile.KEY_WIIMOTE_TYPE);
-      sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_TYPE, Settings.SECTION_WIIMOTE + i,
-        R.string.wiimote_4 + i, 0, R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, 0,
-        wiimoteSetting, MenuTag.getWiimoteMenuTag(i + 4)));
+      if (TextUtils.isEmpty(mGameID))
+      {
+        Setting wiimoteSetting = mSettings.getSection(Settings.SECTION_WIIMOTE + (i + 1))
+                .getSetting(SettingsFile.KEY_WIIMOTE_TYPE);
+        sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_TYPE,
+                Settings.SECTION_WIIMOTE + (i + 1), R.string.wiimote_4 + i, 0,
+                R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, 0, wiimoteSetting,
+                MenuTag.getWiimoteMenuTag(i + 4)));
+      }
+      else
+      {
+        Setting wiimoteSetting = mSettings.getSection(Settings.SECTION_CONTROLS)
+                .getSetting(SettingsFile.KEY_WIIMOTE_G_TYPE + i);
+        sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_G_TYPE + i,
+                Settings.SECTION_CONTROLS, R.string.wiimote_4 + i, 0, R.array.wiimoteTypeEntries,
+                R.array.wiimoteTypeValues, 0, wiimoteSetting, MenuTag.getWiimoteMenuTag(i + 4)));
+      }
     }
   }
 
@@ -413,16 +370,12 @@ public final class SettingsFragmentPresenter
     IntSetting videoBackend =
       new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
         getVideoBackendValue());
-    Setting showFps = null;
-    Setting shaderCompilationMode = null;
-    Setting waitForShaders = null;
-    Setting aspectRatio = null;
 
     SettingSection gfxSection = mSettings.getSection(Settings.SECTION_GFX_SETTINGS);
-    showFps = gfxSection.getSetting(SettingsFile.KEY_SHOW_FPS);
-    shaderCompilationMode = gfxSection.getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
-    waitForShaders = gfxSection.getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
-    aspectRatio = gfxSection.getSetting(SettingsFile.KEY_ASPECT_RATIO);
+		Setting showFps = gfxSection.getSetting(SettingsFile.KEY_SHOW_FPS);
+		Setting shaderCompilationMode = gfxSection.getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
+		Setting waitForShaders = gfxSection.getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
+		Setting aspectRatio = gfxSection.getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
       R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries,
@@ -631,57 +584,64 @@ public final class SettingsFragmentPresenter
       Setting bindDPadLeft =
         bindingsSection.getSetting(SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber);
       Setting bindDPadRight =
-        bindingsSection.getSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber);
+              bindingsSection.getSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber);
+      Setting gcEmuRumble =
+              bindingsSection.getSetting(SettingsFile.KEY_EMU_RUMBLE + gcPadNumber);
 
       sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_A + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.button_a, bindA));
+              Settings.SECTION_BINDINGS, R.string.button_a, bindA));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_B + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.button_b, bindB));
+              Settings.SECTION_BINDINGS, R.string.button_b, bindB));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_X + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.button_x, bindX));
+              Settings.SECTION_BINDINGS, R.string.button_x, bindX));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_Y + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.button_y, bindY));
+              Settings.SECTION_BINDINGS, R.string.button_y, bindY));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_Z + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.button_z, bindZ));
+              Settings.SECTION_BINDINGS, R.string.button_z, bindZ));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_START + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.button_start, bindStart));
+              Settings.SECTION_BINDINGS, R.string.button_start, bindStart));
 
       sl.add(new HeaderSetting(null, null, R.string.controller_control, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_CONTROL_UP + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_up, bindControlUp));
+              Settings.SECTION_BINDINGS, R.string.generic_up, bindControlUp));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_CONTROL_DOWN + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_down, bindControlDown));
+              Settings.SECTION_BINDINGS, R.string.generic_down, bindControlDown));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_CONTROL_LEFT + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_left, bindControlLeft));
+              Settings.SECTION_BINDINGS, R.string.generic_left, bindControlLeft));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_CONTROL_RIGHT + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_right, bindControlRight));
+              Settings.SECTION_BINDINGS, R.string.generic_right, bindControlRight));
 
       sl.add(new HeaderSetting(null, null, R.string.controller_c, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_C_UP + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_up, bindCUp));
+              Settings.SECTION_BINDINGS, R.string.generic_up, bindCUp));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_C_DOWN + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_down, bindCDown));
+              Settings.SECTION_BINDINGS, R.string.generic_down, bindCDown));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_C_LEFT + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_left, bindCLeft));
+              Settings.SECTION_BINDINGS, R.string.generic_left, bindCLeft));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_C_RIGHT + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_right, bindCRight));
+              Settings.SECTION_BINDINGS, R.string.generic_right, bindCRight));
 
       sl.add(new HeaderSetting(null, null, R.string.controller_trig, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_TRIGGER_L + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.trigger_left, bindTriggerL));
+              Settings.SECTION_BINDINGS, R.string.trigger_left, bindTriggerL));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.trigger_right, bindTriggerR));
+              Settings.SECTION_BINDINGS, R.string.trigger_right, bindTriggerR));
 
       sl.add(new HeaderSetting(null, null, R.string.controller_dpad, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_up, bindDPadUp));
+              Settings.SECTION_BINDINGS, R.string.generic_up, bindDPadUp));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_DPAD_DOWN + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_down, bindDPadDown));
+              Settings.SECTION_BINDINGS, R.string.generic_down, bindDPadDown));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_left, bindDPadLeft));
+              Settings.SECTION_BINDINGS, R.string.generic_left, bindDPadLeft));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.generic_right, bindDPadRight));
+              Settings.SECTION_BINDINGS, R.string.generic_right, bindDPadRight));
+
+
+      sl.add(new HeaderSetting(null, null, R.string.emulation_control_rumble, 0));
+      sl.add(new RumbleBindingSetting(SettingsFile.KEY_EMU_RUMBLE + gcPadNumber,
+              Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, gcEmuRumble));
     }
     else // Adapter
     {
@@ -701,10 +661,6 @@ public final class SettingsFragmentPresenter
   {
     SettingSection bindingsSection = mSettings.getSection(Settings.SECTION_BINDINGS);
 
-    // Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
-    IntSetting extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
-      Settings.SECTION_WIIMOTE + wiimoteNumber, getExtensionValue(wiimoteNumber - 3),
-      MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
     Setting bindA = bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber);
     Setting bindB = bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_B + wiimoteNumber);
     Setting bind1 = bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_1 + wiimoteNumber);
@@ -760,89 +716,119 @@ public final class SettingsFragmentPresenter
     Setting bindDPadLeft =
       bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber);
     Setting bindDPadRight =
-      bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
+            bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
+    Setting wiiEmuRumble =
+            bindingsSection.getSetting(SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber);
 
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
-      Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), R.string.wiimote_extensions,
-      R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
-      R.array.wiimoteExtensionsValues, 0, extension,
-      MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
+    // Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
+    // But game game specific extension settings are saved in their own profile. These profiles
+    // do not have any way to specify the controller that is loaded outside of knowing the filename
+    // of the profile that was loaded.
+    IntSetting extension;
+    if (TextUtils.isEmpty(mGameID))
+    {
+      extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
+              Settings.SECTION_WIIMOTE + wiimoteNumber, getExtensionValue(wiimoteNumber - 3),
+              MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
+      sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
+              Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), R.string.wiimote_extensions,
+              R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
+              R.array.wiimoteExtensionsValues, 0, extension,
+              MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
+    }
+    else
+    {
+      mSettings.loadWiimoteProfile(mGameID, String.valueOf(wiimoteNumber - 4));
+      extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
+              Settings.SECTION_CONTROLS, getExtensionValue(wiimoteNumber - 4),
+              MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
+      sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
+              Settings.SECTION_CONTROLS, R.string.wiimote_extensions,
+              R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
+              R.array.wiimoteExtensionsValues, 0, extension,
+              MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
+    }
 
     sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_a, bindA));
+            Settings.SECTION_BINDINGS, R.string.button_a, bindA));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_B + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_b, bindB));
+            Settings.SECTION_BINDINGS, R.string.button_b, bindB));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_1 + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_one, bind1));
+            Settings.SECTION_BINDINGS, R.string.button_one, bind1));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_2 + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_two, bind2));
+            Settings.SECTION_BINDINGS, R.string.button_two, bind2));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_MINUS + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_minus, bindMinus));
+            Settings.SECTION_BINDINGS, R.string.button_minus, bindMinus));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_PLUS + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_plus, bindPlus));
+            Settings.SECTION_BINDINGS, R.string.button_plus, bindPlus));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_HOME + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.button_home, bindHome));
+            Settings.SECTION_BINDINGS, R.string.button_home, bindHome));
 
     sl.add(new HeaderSetting(null, null, R.string.wiimote_ir, 0));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_UP + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_up, bindIRUp));
+            Settings.SECTION_BINDINGS, R.string.generic_up, bindIRUp));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_DOWN + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_down, bindIRDown));
+            Settings.SECTION_BINDINGS, R.string.generic_down, bindIRDown));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_LEFT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_left, bindIRLeft));
+            Settings.SECTION_BINDINGS, R.string.generic_left, bindIRLeft));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_RIGHT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_right, bindIRRight));
+            Settings.SECTION_BINDINGS, R.string.generic_right, bindIRRight));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_FORWARD + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_forward, bindIRForward));
+            Settings.SECTION_BINDINGS, R.string.generic_forward, bindIRForward));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_BACKWARD + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_backward, bindIRBackward));
+            Settings.SECTION_BINDINGS, R.string.generic_backward, bindIRBackward));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_IR_HIDE + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.ir_hide, bindIRHide));
+            Settings.SECTION_BINDINGS, R.string.ir_hide, bindIRHide));
 
     sl.add(new HeaderSetting(null, null, R.string.wiimote_swing, 0));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SWING_UP + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_up, bindSwingUp));
+            Settings.SECTION_BINDINGS, R.string.generic_up, bindSwingUp));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SWING_DOWN + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_down, bindSwingDown));
+            Settings.SECTION_BINDINGS, R.string.generic_down, bindSwingDown));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SWING_LEFT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_left, bindSwingLeft));
+            Settings.SECTION_BINDINGS, R.string.generic_left, bindSwingLeft));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SWING_RIGHT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_right, bindSwingRight));
+            Settings.SECTION_BINDINGS, R.string.generic_right, bindSwingRight));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SWING_FORWARD + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_forward, bindSwingForward));
+            Settings.SECTION_BINDINGS, R.string.generic_forward, bindSwingForward));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SWING_BACKWARD + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_backward, bindSwingBackward));
+            Settings.SECTION_BINDINGS, R.string.generic_backward, bindSwingBackward));
 
     sl.add(new HeaderSetting(null, null, R.string.wiimote_tilt, 0));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TILT_FORWARD + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_forward, bindTiltForward));
+            Settings.SECTION_BINDINGS, R.string.generic_forward, bindTiltForward));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TILT_BACKWARD + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_backward, bindTiltBackward));
+            Settings.SECTION_BINDINGS, R.string.generic_backward, bindTiltBackward));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TILT_LEFT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_left, bindTiltLeft));
+            Settings.SECTION_BINDINGS, R.string.generic_left, bindTiltLeft));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TILT_RIGHT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_right, bindTiltRight));
+            Settings.SECTION_BINDINGS, R.string.generic_right, bindTiltRight));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TILT_MODIFIER + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.tilt_modifier, bindTiltModifier));
+            Settings.SECTION_BINDINGS, R.string.tilt_modifier, bindTiltModifier));
 
     sl.add(new HeaderSetting(null, null, R.string.wiimote_shake, 0));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SHAKE_X + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.shake_x, bindShakeX));
+            Settings.SECTION_BINDINGS, R.string.shake_x, bindShakeX));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SHAKE_Y + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.shake_y, bindShakeY));
+            Settings.SECTION_BINDINGS, R.string.shake_y, bindShakeY));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_SHAKE_Z + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.shake_z, bindShakeZ));
+            Settings.SECTION_BINDINGS, R.string.shake_z, bindShakeZ));
 
     sl.add(new HeaderSetting(null, null, R.string.controller_dpad, 0));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DPAD_UP + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_up, bindDPadUp));
+            Settings.SECTION_BINDINGS, R.string.generic_up, bindDPadUp));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DPAD_DOWN + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_down, bindDPadDown));
+            Settings.SECTION_BINDINGS, R.string.generic_down, bindDPadDown));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_left, bindDPadLeft));
+            Settings.SECTION_BINDINGS, R.string.generic_left, bindDPadLeft));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber,
-      Settings.SECTION_BINDINGS, R.string.generic_right, bindDPadRight));
+            Settings.SECTION_BINDINGS, R.string.generic_right, bindDPadRight));
+
+
+    sl.add(new HeaderSetting(null, null, R.string.emulation_control_rumble, 0));
+    sl.add(new RumbleBindingSetting(SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber,
+            Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, wiiEmuRumble));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
@@ -896,58 +882,58 @@ public final class SettingsFragmentPresenter
 
         sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_C + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.nunchuk_button_c, bindC));
+                Settings.SECTION_BINDINGS, R.string.nunchuk_button_c, bindC));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_Z + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_z, bindZ));
+                Settings.SECTION_BINDINGS, R.string.button_z, bindZ));
 
         sl.add(new HeaderSetting(null, null, R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindRight));
 
         sl.add(new HeaderSetting(null, null, R.string.wiimote_swing, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindSwingUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindSwingUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindSwingDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindSwingDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindSwingLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindSwingLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindSwingRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindSwingRight));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_FORWARD + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_forward, bindSwingForward));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_FORWARD + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_forward, bindSwingForward));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_BACKWARD + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_backward, bindSwingBackward));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_BACKWARD + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_backward, bindSwingBackward));
 
         sl.add(new HeaderSetting(null, null, R.string.wiimote_tilt, 0));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_FORWARD + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_forward, bindTiltForward));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_FORWARD + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_forward, bindTiltForward));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_BACKWARD + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_backward, bindTiltBackward));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_BACKWARD + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_backward, bindTiltBackward));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindTiltLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindTiltLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindTiltRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindTiltRight));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_MODIFIER + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.tilt_modifier, bindTiltModifier));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_MODIFIER + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.tilt_modifier, bindTiltModifier));
 
         sl.add(new HeaderSetting(null, null, R.string.wiimote_shake, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_X + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.shake_x, bindShakeX));
+                Settings.SECTION_BINDINGS, R.string.shake_x, bindShakeX));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Y + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.shake_y, bindShakeY));
+                Settings.SECTION_BINDINGS, R.string.shake_y, bindShakeY));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Z + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.shake_z, bindShakeZ));
+                Settings.SECTION_BINDINGS, R.string.shake_z, bindShakeZ));
         break;
       case 2: // Classic
         Setting bindA =
@@ -999,59 +985,59 @@ public final class SettingsFragmentPresenter
 
         sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_A + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_a, bindA));
+                Settings.SECTION_BINDINGS, R.string.button_a, bindA));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_B + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_b, bindB));
+                Settings.SECTION_BINDINGS, R.string.button_b, bindB));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_X + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_x, bindX));
+                Settings.SECTION_BINDINGS, R.string.button_x, bindX));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_Y + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_y, bindY));
+                Settings.SECTION_BINDINGS, R.string.button_y, bindY));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_ZL + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.classic_button_zl, bindZL));
+                Settings.SECTION_BINDINGS, R.string.classic_button_zl, bindZL));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_ZR + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.classic_button_zr, bindZR));
+                Settings.SECTION_BINDINGS, R.string.classic_button_zr, bindZR));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_MINUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_minus, bindMinus));
+                Settings.SECTION_BINDINGS, R.string.button_minus, bindMinus));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_PLUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_plus, bindPlus));
+                Settings.SECTION_BINDINGS, R.string.button_plus, bindPlus));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_HOME + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_home, bindHome));
+                Settings.SECTION_BINDINGS, R.string.button_home, bindHome));
 
         sl.add(new HeaderSetting(null, null, R.string.classic_leftstick, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindLeftUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindLeftUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindLeftDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindLeftDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindLeftLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindLeftLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindLeftRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindLeftRight));
 
         sl.add(new HeaderSetting(null, null, R.string.classic_rightstick, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindRightUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindRightUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindRightDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindRightDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindRightLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindRightLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindRightRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindRightRight));
 
         sl.add(new HeaderSetting(null, null, R.string.controller_trig, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_L + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.trigger_left, bindR));
+                Settings.SECTION_BINDINGS, R.string.trigger_left, bindR));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_R + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.trigger_right, bindL));
+                Settings.SECTION_BINDINGS, R.string.trigger_right, bindL));
 
         sl.add(new HeaderSetting(null, null, R.string.controller_dpad, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindDpadUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindDpadUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindDpadDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindDpadDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindDpadLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindDpadLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindDpadRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindDpadRight));
         break;
       case 3: // Guitar
         Setting bindFretGreen = bindingsSection
@@ -1085,41 +1071,41 @@ public final class SettingsFragmentPresenter
 
         sl.add(new HeaderSetting(null, null, R.string.guitar_frets, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_FRET_GREEN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_green, bindFretGreen));
+                Settings.SECTION_BINDINGS, R.string.generic_green, bindFretGreen));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_FRET_RED + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_red, bindFretRed));
+                Settings.SECTION_BINDINGS, R.string.generic_red, bindFretRed));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_FRET_YELLOW + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_yellow, bindFretYellow));
+                Settings.SECTION_BINDINGS, R.string.generic_yellow, bindFretYellow));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_FRET_BLUE + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_blue, bindFretBlue));
+                Settings.SECTION_BINDINGS, R.string.generic_blue, bindFretBlue));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_FRET_ORANGE + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_orange, bindFretOrange));
+                Settings.SECTION_BINDINGS, R.string.generic_orange, bindFretOrange));
 
         sl.add(new HeaderSetting(null, null, R.string.guitar_strum, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_STRUM_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindStrumUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindStrumUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_STRUM_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindStrumDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindStrumDown));
 
         sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_MINUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_minus, bindGuitarMinus));
+                Settings.SECTION_BINDINGS, R.string.button_minus, bindGuitarMinus));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_PLUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_plus, bindGuitarPlus));
+                Settings.SECTION_BINDINGS, R.string.button_plus, bindGuitarPlus));
 
         sl.add(new HeaderSetting(null, null, R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_STICK_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindGuitarUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindGuitarUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_STICK_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindGuitarDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindGuitarDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_STICK_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindGuitarLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindGuitarLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_STICK_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindGuitarRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindGuitarRight));
 
         sl.add(new HeaderSetting(null, null, R.string.guitar_whammy, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_GUITAR_WHAMMY_BAR + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindWhammyBar));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindWhammyBar));
         break;
       case 4: // Drums
         Setting bindPadRed =
@@ -1149,33 +1135,33 @@ public final class SettingsFragmentPresenter
 
         sl.add(new HeaderSetting(null, null, R.string.drums_pads, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PAD_RED + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_red, bindPadRed));
+                Settings.SECTION_BINDINGS, R.string.generic_red, bindPadRed));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PAD_YELLOW + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_yellow, bindPadYellow));
+                Settings.SECTION_BINDINGS, R.string.generic_yellow, bindPadYellow));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PAD_BLUE + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_blue, bindPadBlue));
+                Settings.SECTION_BINDINGS, R.string.generic_blue, bindPadBlue));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PAD_GREEN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_green, bindPadGreen));
+                Settings.SECTION_BINDINGS, R.string.generic_green, bindPadGreen));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PAD_ORANGE + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_orange, bindPadOrange));
+                Settings.SECTION_BINDINGS, R.string.generic_orange, bindPadOrange));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PAD_BASS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.drums_pad_bass, bindPadBass));
+                Settings.SECTION_BINDINGS, R.string.drums_pad_bass, bindPadBass));
 
         sl.add(new HeaderSetting(null, null, R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_STICK_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindDrumsUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindDrumsUp));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_STICK_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindDrumsDown));
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindDrumsDown));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_STICK_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindDrumsLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindDrumsLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_STICK_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindDrumsRight));
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindDrumsRight));
 
         sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_MINUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_minus, bindDrumsMinus));
+                Settings.SECTION_BINDINGS, R.string.button_minus, bindDrumsMinus));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DRUMS_PLUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_plus, bindDrumsPlus));
+                Settings.SECTION_BINDINGS, R.string.button_plus, bindDrumsPlus));
         break;
       case 5: // Turntable
         Setting bindGreenLeft = bindingsSection
@@ -1221,67 +1207,67 @@ public final class SettingsFragmentPresenter
 
         sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_green_left, bindGreenLeft));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_LEFT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.turntable_button_green_left, bindGreenLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_RED_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_red_left, bindRedLeft));
+                Settings.SECTION_BINDINGS, R.string.turntable_button_red_left, bindRedLeft));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_BLUE_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_blue_left, bindBlueLeft));
+                Settings.SECTION_BINDINGS, R.string.turntable_button_blue_left, bindBlueLeft));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_green_right, bindGreenRight));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_RIGHT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.turntable_button_green_right, bindGreenRight));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_RED_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_red_right, bindRedRight));
+                Settings.SECTION_BINDINGS, R.string.turntable_button_red_right, bindRedRight));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_BLUE_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_blue_right, bindBlueRight));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_BLUE_RIGHT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.turntable_button_blue_right, bindBlueRight));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_MINUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_minus, bindTurntableMinus));
+                Settings.SECTION_BINDINGS, R.string.button_minus, bindTurntableMinus));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_PLUS + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.button_plus, bindTurntablePlus));
+                Settings.SECTION_BINDINGS, R.string.button_plus, bindTurntablePlus));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_EUPHORIA + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_button_euphoria, bindEuphoria));
+                Settings.SECTION_BINDINGS, R.string.turntable_button_euphoria, bindEuphoria));
 
         sl.add(new HeaderSetting(null, null, R.string.turntable_table_left, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_LEFT_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindTurntableLeftLeft));
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindTurntableLeftLeft));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_LEFT_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindTurntableLeftRight));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_LEFT_RIGHT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindTurntableLeftRight));
 
         sl.add(new HeaderSetting(null, null, R.string.turntable_table_right, 0));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_RIGHT_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindTurntableRightLeft));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_RIGHT_LEFT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindTurntableRightLeft));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_RIGHT_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindTurntableRightRight));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_RIGHT_RIGHT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindTurntableRightRight));
 
         sl.add(new HeaderSetting(null, null, R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_UP + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_up, bindTurntableUp));
+                Settings.SECTION_BINDINGS, R.string.generic_up, bindTurntableUp));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_DOWN + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_down, bindTurntableDown));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_DOWN + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_down, bindTurntableDown));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindTurntableLeft));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_LEFT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindTurntableLeft));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindTurntableRight));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_RIGHT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindTurntableRight));
 
         sl.add(new HeaderSetting(null, null, R.string.turntable_effect, 0));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_EFFECT_DIAL + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.turntable_effect_dial, bindEffectDial));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_EFFECT_DIAL + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.turntable_effect_dial, bindEffectDial));
 
         sl.add(new HeaderSetting(null, null, R.string.turntable_crossfade, 0));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_left, bindCrossfadeLeft));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_left, bindCrossfadeLeft));
         sl.add(new InputBindingSetting(
-          SettingsFile.KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT + wiimoteNumber,
-          Settings.SECTION_BINDINGS, R.string.generic_right, bindCrossfadeRight));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT + wiimoteNumber,
+                Settings.SECTION_BINDINGS, R.string.generic_right, bindCrossfadeRight));
         break;
     }
   }
@@ -1343,9 +1329,19 @@ public final class SettingsFragmentPresenter
 
     try
     {
-      String extension =
-        ((StringSetting) mSettings.getSection(Settings.SECTION_WIIMOTE + wiimoteNumber)
-          .getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION)).getValue();
+      String extension;
+      if (TextUtils.isEmpty(mGameID)) // Main settings
+      {
+        extension =
+                ((StringSetting) mSettings.getSection(Settings.SECTION_WIIMOTE + wiimoteNumber)
+                        .getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION)).getValue();
+      }
+      else // Game settings
+      {
+        extension = ((StringSetting) mSettings.getSection(Settings.SECTION_PROFILE)
+                .getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION)).getValue();
+      }
+
       if (extension.equals("None"))
       {
         extensionValue = 0;

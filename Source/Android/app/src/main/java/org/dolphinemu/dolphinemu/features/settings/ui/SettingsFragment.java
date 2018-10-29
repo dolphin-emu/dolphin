@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -15,7 +14,7 @@ import android.view.ViewGroup;
 import com.nononsenseapps.filepicker.DividerItemDecoration;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 
 import java.util.ArrayList;
@@ -25,9 +24,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   private static final String ARGUMENT_MENU_TAG = "menu_tag";
   private static final String ARGUMENT_GAME_ID = "game_id";
 
-  private SettingsFragmentPresenter mPresenter = new SettingsFragmentPresenter(this);
-  private SettingsActivityView mActivity;
-
+  private SettingsFragmentPresenter mPresenter;
+	private ArrayList<SettingsItem> mSettingsList;
+  private SettingsActivity mActivity;
   private SettingsAdapter mAdapter;
 
   public static Fragment newInstance(MenuTag menuTag, String gameId, Bundle extras)
@@ -52,21 +51,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   {
     super.onAttach(context);
 
-    mActivity = (SettingsActivityView) context;
-    mPresenter.onAttach();
-  }
-
-  /**
-   * This version of onAttach is needed for versions below Marshmallow.
-   *
-   * @param activity
-   */
-  @Override
-  public void onAttach(Activity activity)
-  {
-    super.onAttach(activity);
-
-    mActivity = (SettingsActivityView) activity;
+    mActivity = (SettingsActivity) context;
+    if(mPresenter == null)
+			mPresenter = new SettingsFragmentPresenter(mActivity);
     mPresenter.onAttach();
   }
 
@@ -80,8 +67,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     MenuTag menuTag = (MenuTag) args.getSerializable(ARGUMENT_MENU_TAG);
     String gameId = getArguments().getString(ARGUMENT_GAME_ID);
 
-    mAdapter = new SettingsAdapter(this, getActivity());
-
+    mAdapter = new SettingsAdapter(mActivity);
     mPresenter.onCreate(menuTag, gameId, args);
   }
 
@@ -96,16 +82,15 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
   {
-    LinearLayoutManager manager = new LinearLayoutManager(getActivity());
-    Drawable lineDivider = getActivity().getDrawable(R.drawable.line_divider);
-    RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list_settings);
+    LinearLayoutManager manager = new LinearLayoutManager(mActivity);
+    Drawable lineDivider = mActivity.getDrawable(R.drawable.line_divider);
+    RecyclerView recyclerView = view.findViewById(R.id.list_settings);
 
     recyclerView.setAdapter(mAdapter);
     recyclerView.setLayoutManager(manager);
     recyclerView.addItemDecoration(new DividerItemDecoration(lineDivider));
 
-    SettingsActivityView activity = (SettingsActivityView) getActivity();
-    mPresenter.onViewCreated(activity.getSettings());
+		showSettingsList(mActivity.getSettings());
   }
 
   @Override
@@ -120,75 +105,16 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     }
   }
 
-  @Override
-  public void onSettingsFileLoaded(
-    org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
+  public void showSettingsList(Settings settings)
   {
-    mPresenter.setSettings(settings);
-  }
+		if(mSettingsList == null && settings != null)
+		{
+			mSettingsList = mPresenter.loadSettingsList(settings);
+		}
 
-  @Override
-  public void passSettingsToActivity(
-    org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-  {
-    if (mActivity != null)
-    {
-      mActivity.setSettings(settings);
-    }
+    if(mSettingsList != null)
+		{
+			mAdapter.setSettings(mSettingsList);
+		}
   }
-
-  @Override
-  public void showSettingsList(ArrayList<SettingsItem> settingsList)
-  {
-    mAdapter.setSettings(settingsList);
-  }
-
-  @Override
-  public void loadDefaultSettings()
-  {
-    mPresenter.loadDefaultSettings();
-  }
-
-  @Override
-  public void loadSubMenu(MenuTag menuKey)
-  {
-    mActivity.showSettingsFragment(menuKey, null, true, getArguments().getString(ARGUMENT_GAME_ID));
-  }
-
-  @Override
-  public void showToastMessage(String message)
-  {
-    mActivity.showToastMessage(message);
-  }
-
-  @Override
-  public void putSetting(Setting setting)
-  {
-    mPresenter.putSetting(setting);
-  }
-
-  @Override
-  public void onSettingChanged()
-  {
-    mActivity.onSettingChanged();
-  }
-
-  @Override
-  public void onGcPadSettingChanged(MenuTag menuTag, int value)
-  {
-    mActivity.onGcPadSettingChanged(menuTag, value);
-  }
-
-  @Override
-  public void onWiimoteSettingChanged(MenuTag menuTag, int value)
-  {
-    mActivity.onWiimoteSettingChanged(menuTag, value);
-  }
-
-  @Override
-  public void onExtensionSettingChanged(MenuTag menuTag, int value)
-  {
-    mActivity.onExtensionSettingChanged(menuTag, value);
-  }
-
 }

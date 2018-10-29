@@ -4,18 +4,18 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public final class InputBindingSettingViewHolder extends SettingViewHolder
+public class RumbleBindingViewHolder extends SettingViewHolder
 {
-  private InputBindingSetting mItem;
+  private RumbleBindingSetting mItem;
 
   private TextView mTextSettingName;
   private TextView mTextSettingDescription;
 
-  public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter)
+  public RumbleBindingViewHolder(View itemView, SettingsAdapter adapter)
   {
     super(itemView, adapter);
   }
@@ -30,9 +30,9 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
   @Override
   public void bind(SettingsItem item)
   {
-    mItem = (InputBindingSetting) item;
-    mTextSettingName.setText(mItem.getNameId());
-    mTextSettingDescription.setText(mItem.getSettingText());
+    mItem = (RumbleBindingSetting) item;
+    mTextSettingName.setText(item.getNameId());
+		mTextSettingDescription.setText(mItem.getSettingText());
   }
 
   @Override

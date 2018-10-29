@@ -41,6 +41,8 @@ public:
 
   void resizeEvent(QResizeEvent* event) override;
 
+  void PurgeCache();
+
 signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);

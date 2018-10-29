@@ -362,3 +362,8 @@ void GameListModel::DeleteTag(const QString& name)
 
   Settings::GetQSettings().setValue(QStringLiteral("gamelist/tags"), m_tag_list);
 }
+
+void GameListModel::PurgeCache()
+{
+  m_tracker.PurgeCache();
+}

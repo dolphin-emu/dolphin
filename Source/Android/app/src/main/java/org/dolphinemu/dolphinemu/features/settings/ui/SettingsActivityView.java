@@ -18,15 +18,6 @@ public interface SettingsActivityView
   void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameId);
 
   /**
-   * Called by a contained Fragment to get access to the Setting HashMap
-   * loaded from disk, so that each Fragment doesn't need to perform its own
-   * read operation.
-   *
-   * @return A possibly null HashMap of Settings.
-   */
-  Settings getSettings();
-
-  /**
    * Used to provide the Activity with Settings HashMaps if a Fragment already
    * has one; for example, if a rotation occurs, the Fragment will not be killed,
    * but the Activity will, so the Activity needs to have its HashMaps resupplied.
@@ -36,39 +27,11 @@ public interface SettingsActivityView
   void setSettings(Settings settings);
 
   /**
-   * Called when an asynchronous load operation completes.
-   *
-   * @param settings The (possibly null) result of the ini load operation.
-   */
-  void onSettingsFileLoaded(Settings settings);
-
-  /**
-   * Called when an asynchronous load operation fails.
-   */
-  void onSettingsFileNotFound();
-
-  /**
    * Display a popup text message on screen.
    *
    * @param message The contents of the onscreen message.
    */
   void showToastMessage(String message);
-
-  /**
-   * Show the previous fragment.
-   */
-  void popBackStack();
-
-  /**
-   * End the activity.
-   */
-  void finish();
-
-  /**
-   * Called by a containing Fragment to tell the Activity that a setting was changed;
-   * unless this has been called, the Activity will not save to disk.
-   */
-  void onSettingChanged();
 
   /**
    * Called by a containing Fragment to tell the containing Activity that a GCPad's setting
@@ -96,16 +59,6 @@ public interface SettingsActivityView
    * @param value   New setting for the extension.
    */
   void onExtensionSettingChanged(MenuTag menuTag, int value);
-
-  /**
-   * Show loading dialog while loading the settings
-   */
-  void showLoading();
-
-  /**
-   * Hide the loading the dialog
-   */
-  void hideLoading();
 
   /**
    * Show a hint to the user that the app needs write to external storage access

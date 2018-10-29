@@ -10,7 +10,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -88,6 +87,7 @@ public final class SettingsFile
   public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
 
   public static final String KEY_GCPAD_TYPE = "SIDevice";
+  public static final String KEY_GCPAD_G_TYPE = "PadType";
 
   public static final String KEY_GCBIND_A = "InputA_";
   public static final String KEY_GCBIND_B = "InputB_";
@@ -113,8 +113,14 @@ public final class SettingsFile
   public static final String KEY_GCADAPTER_RUMBLE = "AdapterRumble";
   public static final String KEY_GCADAPTER_BONGOS = "SimulateKonga";
 
+  public static final String KEY_EMU_RUMBLE = "EmuRumble";
+
   public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
+
+  // Controller keys for game specific settings
+  public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
+  public static final String KEY_WIIMOTE_PROFILE = "WiimoteProfile";
 
   public static final String KEY_WIIBIND_A = "WiimoteA_";
   public static final String KEY_WIIBIND_B = "WiimoteB_";
@@ -279,10 +285,8 @@ public final class SettingsFile
    * failed.
    *
    * @param ini  The ini file to load the settings from
-   * @param view The current view.
    */
-  static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame,
-    SettingsActivityView view)
+  static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame)
   {
     HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
 
@@ -313,14 +317,10 @@ public final class SettingsFile
     catch (FileNotFoundException e)
     {
       Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
-      if (view != null)
-        view.onSettingsFileNotFound();
     }
     catch (IOException e)
     {
       Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath() + e.getMessage());
-      if (view != null)
-        view.onSettingsFileNotFound();
     }
     finally
     {
@@ -340,10 +340,9 @@ public final class SettingsFile
     return sections;
   }
 
-  public static HashMap<String, SettingSection> readFile(final String fileName,
-    SettingsActivityView view)
+  public static HashMap<String, SettingSection> readFile(final String fileName)
   {
-    HashMap<String, SettingSection> sections = readFile(getSettingsFile(fileName), false, view);
+    HashMap<String, SettingSection> sections = readFile(getSettingsFile(fileName), false);
 
     if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
     {
@@ -359,26 +358,27 @@ public final class SettingsFile
    * failed.
    *
    * @param gameId the id of the game to load it's settings.
-   * @param view   The current view.
    */
-  public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId,
-    SettingsActivityView view)
+  public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId)
   {
-    return readFile(getCustomGameSettingsFile(gameId), true, view);
+    return readFile(getCustomGameSettingsFile(gameId), true);
   }
 
-  public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId,
-    SettingsActivityView view)
+  public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId)
   {
-    return readFile(getGenericGameSettingsFile(gameId), true, view);
+    return readFile(getGenericGameSettingsFile(gameId), true);
   }
 
-  public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(
-    final String gameId, SettingsActivityView view)
+  public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(final String gameId)
   {
-    return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
+    return readFile(getGenericGameSettingsForAllRegions(gameId), true);
   }
 
+  public static HashMap<String, SettingSection> readWiimoteProfile(final String gameId, final String padId)
+  {
+    String profile = gameId + "_Wii" + padId;
+    return readFile(getWiiProfile(profile, padId), true);
+  }
 
   /**
    * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
@@ -386,10 +386,8 @@ public final class SettingsFile
    *
    * @param fileName The target filename without a path or extension.
    * @param sections The HashMap containing the Settings we want to serialize.
-   * @param view     The current view.
    */
-  public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections,
-    SettingsActivityView view)
+  public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections)
   {
     File ini = getSettingsFile(fileName);
 
@@ -410,15 +408,11 @@ public final class SettingsFile
     catch (FileNotFoundException e)
     {
       Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
-      if (view != null)
-        view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
     }
     catch (UnsupportedEncodingException e)
     {
       Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " +
         e.getMessage());
-      if (view != null)
-        view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
     }
     finally
     {
@@ -441,14 +435,85 @@ public final class SettingsFile
       HashMap<String, Setting> settings = section.getSettings();
       Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
 
+      // Profile options(wii extension) are not saved, only used to properly display values
+      if (sectionKey.contains(Settings.SECTION_PROFILE))
+      {
+        continue;
+      }
+      else
+      {
+        NativeLibrary.LoadGameIniFile(gameId);
+      }
       for (String settingKey : sortedKeySet)
       {
         Setting setting = settings.get(settingKey);
-        NativeLibrary
-          .SetUserSetting(gameId, mapSectionNameFromIni(section.getName()), setting.getKey(),
-            setting.getValueAsString());
+        // Special case. Extension gets saved into a controller profile
+        if (settingKey.contains(SettingsFile.KEY_WIIMOTE_EXTENSION))
+        {
+          String padId =
+                  setting.getKey()
+                          .substring(setting.getKey().length() - 1, setting.getKey().length());
+
+          saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, setting.getValueAsString(),
+                  padId);
+        }
+        else
+        {
+          NativeLibrary.SetUserSetting(gameId, mapSectionNameFromIni(section.getName()),
+                  setting.getKey(), setting.getValueAsString());
+        }
       }
+      NativeLibrary.SaveGameIniFile(gameId);
     }
+  }
+
+  public static void saveSingleCustomSetting(final String gameId, final String section,
+          final String key,
+          final String value)
+  {
+    NativeLibrary.LoadGameIniFile(gameId);
+    NativeLibrary.SetUserSetting(gameId, section,
+            key, value);
+    NativeLibrary.SaveGameIniFile(gameId);
+  }
+
+  /**
+   * Saves the wiimote setting in a profile and enables that profile.
+   *
+   * @param gameId
+   * @param key
+   * @param value
+   * @param padId
+   */
+  public static void saveCustomWiimoteSetting(final String gameId, final String key,
+          final String value,
+          final String padId)
+  {
+    String profile = gameId + "_Wii" + padId;
+
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+    File wiiProfile = new File(wiiConfigPath);
+    // If it doesn't exist, create it
+    if (!wiiProfile.exists())
+    {
+      String defautlWiiProfilePath =
+              DirectoryInitialization.getUserDirectory() +
+                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
+      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
+
+      NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
+              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
+    }
+
+    NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key, value);
+
+    // Enable the profile
+    NativeLibrary.LoadGameIniFile(gameId);
+    NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
+            KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
+    NativeLibrary.SaveGameIniFile(gameId);
   }
 
   private static String mapSectionNameFromIni(String generalSectionName)
@@ -495,8 +560,18 @@ public final class SettingsFile
 
   private static File getCustomGameSettingsFile(String gameId)
   {
+
     return new File(
       DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
+  }
+
+  private static File getWiiProfile(String profile, String padId)
+  {
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+
+    return new File(wiiConfigPath);
   }
 
   private static SettingSection sectionFromLine(String line, boolean isCustomGame)
@@ -561,7 +636,6 @@ public final class SettingsFile
     try
     {
       float valueAsFloat = Float.valueOf(value);
-
       return new FloatSetting(key, current.getName(), valueAsFloat);
     }
     catch (NumberFormatException ex)
@@ -613,5 +687,11 @@ public final class SettingsFile
   private static String settingAsString(Setting setting)
   {
     return setting.getKey() + " = " + setting.getValueAsString();
+  }
+
+  private static String customWiimoteExtSettingAsString(Setting setting)
+  {
+    return setting.getKey().substring(0, setting.getKey().length() - 1) + " = " +
+            setting.getValueAsString();
   }
 }

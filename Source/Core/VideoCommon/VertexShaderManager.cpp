@@ -118,7 +118,7 @@ void VertexShaderManager::Init()
   bTexMtxInfoChanged = false;
   bLightingConfigChanged = false;
 
-  std::memset(&xfmem, 0, sizeof(xfmem));
+  std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
   constants = {};
   ResetView();
 

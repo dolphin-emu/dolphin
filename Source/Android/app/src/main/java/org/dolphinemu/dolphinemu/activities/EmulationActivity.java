@@ -7,10 +7,8 @@ import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.hardware.usb.UsbManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
@@ -29,9 +27,6 @@ import android.widget.TextView;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.RunningSettingDialog;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -42,6 +37,7 @@ import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
+import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.io.File;
 import java.util.List;
@@ -70,8 +66,6 @@ public final class EmulationActivity extends AppCompatActivity
   private String mSavedState;
 
   public static final String RUMBLE_PREF_KEY = "phoneRumble";
-  private Vibrator mVibrator;
-
   public static final String EXTRA_SELECTED_GAME = "SelectedGame";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
   public static final String EXTRA_PLATFORM = "Platform";
@@ -140,6 +134,7 @@ public final class EmulationActivity extends AppCompatActivity
 
     Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
     Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		Rumble.initDeviceRumble();
 
     setContentView(R.layout.activity_emulation);
 
@@ -157,7 +152,7 @@ public final class EmulationActivity extends AppCompatActivity
     setTitle(mSelectedTitle);
 
     mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    setRumbeState(mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
+		Rumble.setPhoneRumble(this, mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
   }
 
   @Override
@@ -692,40 +687,6 @@ public final class EmulationActivity extends AppCompatActivity
     }
 
     return true;
-  }
-
-  public void setRumbeState(boolean rumble)
-  {
-    if(rumble)
-    {
-      if(mVibrator == null)
-      {
-        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if (mVibrator != null && !mVibrator.hasVibrator())
-        {
-          mVibrator = null;
-        }
-      }
-    }
-    else
-    {
-      mVibrator = null;
-    }
-  }
-
-  public void rumble(int padID, double state)
-  {
-    if (mVibrator != null)
-    {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      {
-        mVibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
-      }
-      else
-      {
-        mVibrator.vibrate(100);
-      }
-    }
   }
 
   public static boolean isGameCubeGame()

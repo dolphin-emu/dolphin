@@ -25,6 +25,7 @@ import com.nononsenseapps.filepicker.DividerItemDecoration;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.util.ArrayList;
 
@@ -372,7 +373,7 @@ public class RunningSettingDialog extends DialogFragment
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
         editor.putBoolean(EmulationActivity.RUMBLE_PREF_KEY, rumble > 0);
         editor.apply();
-        NativeLibrary.sEmulationActivity.get().setRumbeState(rumble > 0);
+				Rumble.setPhoneRumble(getActivity(), rumble > 0);
       }
       mSettings.remove(0);
 

@@ -56,6 +56,7 @@ public final class GameDetailsDialog extends DialogFragment
     TextView textGameFilename = contents.findViewById(R.id.text_game_filename);
     textGameFilename.setText(gamePath.substring(gamePath.lastIndexOf("/") + 1));
 
+    //
     Button buttonDeleteSetting = contents.findViewById(R.id.button_delete_setting);
     buttonDeleteSetting.setOnClickListener(view ->
     {
@@ -71,6 +72,23 @@ public final class GameDetailsDialog extends DialogFragment
       CheatCodeDialog.newInstance(gamePath).show(getFragmentManager(), "CheatCodeDialog");
     });
 
+    //
+		Button buttonWiimote = contents.findViewById(R.id.button_wiimote_settings);
+		buttonWiimote.setOnClickListener(view ->
+		{
+			this.dismiss();
+			SettingsActivity.launch(getContext(), MenuTag.WIIMOTE, gameFile.getGameId());
+		});
+		buttonWiimote.setEnabled(gameFile.getPlatform() > 0);
+
+		Button buttonGCPad = contents.findViewById(R.id.button_gcpad_settings);
+		buttonGCPad.setOnClickListener(view ->
+		{
+			this.dismiss();
+			SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameFile.getGameId());
+		});
+
+    //
     Button buttonGameSetting = contents.findViewById(R.id.button_game_setting);
     buttonGameSetting.setOnClickListener(view ->
     {
