@@ -572,6 +572,7 @@ public final class EmulationActivity extends AppCompatActivity
         if (TvUtil.isLeanback(getApplicationContext()))
           toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
         mEmulationFragment.stopEmulation();
+        finish();
         return;
     }
   }
