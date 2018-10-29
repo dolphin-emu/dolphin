@@ -712,7 +712,7 @@ public final class SettingsFragmentPresenter
 
       sl.add(new HeaderSetting(null, null, R.string.emulation_control_rumble, 0));
       sl.add(new RumbleBindingSetting(SettingsFile.KEY_EMU_RUMBLE + gcPadNumber,
-              Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, gcEmuRumble));
+              Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, gcEmuRumble, mGameID));
     }
     else // Adapter
     {
@@ -900,7 +900,7 @@ public final class SettingsFragmentPresenter
 
     sl.add(new HeaderSetting(null, null, R.string.emulation_control_rumble, 0));
     sl.add(new RumbleBindingSetting(SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber,
-            Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, wiiEmuRumble));
+            Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, wiiEmuRumble, mGameID));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
