@@ -314,6 +314,7 @@ void NetPlayDialog::ConnectWidgets()
     {
       auto unique_id = gld.GetSelectedUniqueID();
       Settings::Instance().GetNetPlayServer()->ChangeGame(unique_id.toStdString());
+      Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"), unique_id);
     }
   });
 

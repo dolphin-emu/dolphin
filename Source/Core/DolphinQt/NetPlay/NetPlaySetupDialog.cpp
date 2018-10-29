@@ -13,6 +13,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>
 
@@ -50,13 +51,6 @@ NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
   m_host_force_port_box->setEnabled(false);
 
   OnConnectionTypeChanged(m_connection_type->currentIndex());
-
-  int selected_game = Settings::GetQSettings().value(QStringLiteral("netplay/hostgame"), 0).toInt();
-
-  if (selected_game >= m_host_games->count())
-    selected_game = 0;
-
-  m_host_games->setCurrentItem(m_host_games->item(selected_game));
 
   ConnectWidgets();
 }
@@ -161,8 +155,9 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_port_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
           &NetPlaySetupDialog::SaveSettings);
   connect(m_host_games, static_cast<void (QListWidget::*)(int)>(&QListWidget::currentRowChanged),
-          [](int index) {
-            Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"), index);
+          [this](int index) {
+            Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
+                                              m_host_games->item(index)->text());
           });
 
   connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
@@ -251,6 +246,8 @@ void NetPlaySetupDialog::accept()
 
 void NetPlaySetupDialog::PopulateGameList()
 {
+  QSignalBlocker blocker(m_host_games);
+
   m_host_games->clear();
   for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
   {
@@ -263,6 +260,14 @@ void NetPlaySetupDialog::PopulateGameList()
   }
 
   m_host_games->sortItems();
+
+  QString selected_game = Settings::GetQSettings()
+                              .value(QStringLiteral("netplay/hostgame"), QStringLiteral(""))
+                              .toString();
+  auto find_list = m_host_games->findItems(selected_game, Qt::MatchFlag::MatchExactly);
+
+  if (find_list.count() > 0)
+    m_host_games->setCurrentItem(find_list[0]);
 }
 
 void NetPlaySetupDialog::ResetTraversalHost()
