@@ -42,7 +42,8 @@ public class RumbleBindingViewHolder extends SettingViewHolder
     mItem = (RumbleBindingSetting) item;
 
     mTextSettingName.setText(item.getNameId());
-    mTextSettingDescription.setText(sharedPreferences.getString(mItem.getKey(), ""));
+    mTextSettingDescription
+            .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
   }
 
   @Override
