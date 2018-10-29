@@ -75,7 +75,7 @@ public class InputBindingSetting extends SettingsItem
             preferences =
             PreferenceManager.getDefaultSharedPreferences(DolphinApplication.getAppContext());
     SharedPreferences.Editor editor = preferences.edit();
-    editor.putString(getKey(), ui);
+    editor.putString(getKey() + gameId, ui);
     editor.apply();
 
     if (getSetting() == null)
