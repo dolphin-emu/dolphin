@@ -15,9 +15,10 @@ import org.dolphinemu.dolphinemu.utils.Rumble;
 public class RumbleBindingSetting extends InputBindingSetting
 {
 
-  public RumbleBindingSetting(String key, String section, int titleId, Setting setting)
+  public RumbleBindingSetting(String key, String section, int titleId, Setting setting,
+          String gameId)
   {
-    super(key, section, titleId, setting);
+    super(key, section, titleId, setting, gameId);
   }
 
   @Override

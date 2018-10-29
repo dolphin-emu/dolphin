@@ -90,6 +90,7 @@ public final class SettingsFile
   public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
 
   public static final String KEY_GCPAD_TYPE = "SIDevice";
+  public static final String KEY_GCPAD_G_TYPE = "PadType";
 
   public static final String KEY_GCBIND_A = "InputA_";
   public static final String KEY_GCBIND_B = "InputB_";
@@ -119,6 +120,10 @@ public final class SettingsFile
 
   public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
+
+  // Controller keys for game specific settings
+  public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
+  public static final String KEY_WIIMOTE_PROFILE = "WiimoteProfile";
 
   public static final String KEY_WIIBIND_A = "WiimoteA_";
   public static final String KEY_WIIBIND_B = "WiimoteB_";
@@ -370,6 +375,12 @@ public final class SettingsFile
     return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
   }
 
+  public static HashMap<String, SettingSection> readWiimoteProfile(final String gameId,
+          final String padId)
+  {
+    String profile = gameId + "_Wii" + padId;
+    return readFile(getWiiProfile(profile, padId), true, null);
+  }
 
   /**
    * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
@@ -432,14 +443,86 @@ public final class SettingsFile
       HashMap<String, Setting> settings = section.getSettings();
       Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
 
+      // Profile options(wii extension) are not saved, only used to properly display values
+      if (sectionKey.contains(Settings.SECTION_PROFILE))
+      {
+        continue;
+      }
+      else
+      {
+        NativeLibrary.LoadGameIniFile(gameId);
+      }
       for (String settingKey : sortedKeySet)
       {
         Setting setting = settings.get(settingKey);
-        NativeLibrary
-                .SetUserSetting(gameId, mapSectionNameFromIni(section.getName()), setting.getKey(),
-                        setting.getValueAsString());
+        // Special case. Extension gets saved into a controller profile
+        if (settingKey.contains(SettingsFile.KEY_WIIMOTE_EXTENSION))
+        {
+          String padId =
+                  setting.getKey()
+                          .substring(setting.getKey().length() - 1, setting.getKey().length());
+
+          saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, setting.getValueAsString(),
+                  padId);
+        }
+        else
+        {
+          NativeLibrary.SetUserSetting(gameId, mapSectionNameFromIni(section.getName()),
+                  setting.getKey(), setting.getValueAsString());
+        }
       }
+      NativeLibrary.SaveGameIniFile(gameId);
     }
+  }
+
+  public static void saveSingleCustomSetting(final String gameId, final String section,
+          final String key,
+          final String value)
+  {
+    NativeLibrary.LoadGameIniFile(gameId);
+    NativeLibrary.SetUserSetting(gameId, section,
+            key, value);
+    NativeLibrary.SaveGameIniFile(gameId);
+  }
+
+  /**
+   * Saves the wiimote setting in a profile and enables that profile.
+   *
+   * @param gameId
+   * @param key
+   * @param value
+   * @param padId
+   */
+  public static void saveCustomWiimoteSetting(final String gameId, final String key,
+          final String value,
+          final String padId)
+  {
+    String profile = gameId + "_Wii" + padId;
+
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+    File wiiProfile = new File(wiiConfigPath);
+    // If it doesn't exist, create it
+    if (!wiiProfile.exists())
+    {
+      String defautlWiiProfilePath =
+              DirectoryInitialization.getUserDirectory() +
+                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
+      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
+
+      NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
+              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
+    }
+
+    NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key,
+            value);
+
+    // Enable the profile
+    NativeLibrary.LoadGameIniFile(gameId);
+    NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
+            KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
+    NativeLibrary.SaveGameIniFile(gameId);
   }
 
   private static String mapSectionNameFromIni(String generalSectionName)
@@ -487,8 +570,18 @@ public final class SettingsFile
 
   private static File getCustomGameSettingsFile(String gameId)
   {
+
     return new File(
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
+  }
+
+  private static File getWiiProfile(String profile, String padId)
+  {
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+
+    return new File(wiiConfigPath);
   }
 
   private static SettingSection sectionFromLine(String line, boolean isCustomGame)
@@ -625,5 +718,11 @@ public final class SettingsFile
   private static String settingAsString(Setting setting)
   {
     return setting.getKey() + " = " + setting.getValueAsString();
+  }
+
+  private static String customWiimoteExtSettingAsString(Setting setting)
+  {
+    return setting.getKey().substring(0, setting.getKey().length() - 1) + " = " +
+            setting.getValueAsString();
   }
 }

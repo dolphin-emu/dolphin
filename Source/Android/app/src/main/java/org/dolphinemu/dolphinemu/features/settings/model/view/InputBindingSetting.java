@@ -11,9 +11,13 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 
 public class InputBindingSetting extends SettingsItem
 {
-  public InputBindingSetting(String key, String section, int titleId, Setting setting)
+  private String gameId;
+
+  public InputBindingSetting(String key, String section, int titleId, Setting setting,
+          String gameId)
   {
     super(key, section, setting, titleId, 0);
+    this.gameId = gameId;
   }
 
   public String getValue()
@@ -97,5 +101,10 @@ public class InputBindingSetting extends SettingsItem
   public int getType()
   {
     return TYPE_INPUT_BINDING;
+  }
+
+  public String getGameId()
+  {
+    return gameId;
   }
 }

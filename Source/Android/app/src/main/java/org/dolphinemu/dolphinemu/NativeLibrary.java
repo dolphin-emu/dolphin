@@ -244,9 +244,16 @@ public final class NativeLibrary
     Rumble.checkRumble(padID, state);
   }
 
+  public static native void LoadGameIniFile(String gameId);
+
+  public static native void SaveGameIniFile(String gameId);
+
   public static native String GetUserSetting(String gameID, String Section, String Key);
 
   public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
+
+  public static native void SetProfileSetting(String profile, String Section, String Key,
+          String Value);
 
   public static native void InitGameIni(String gameID);
 
