@@ -65,7 +65,7 @@ public class InputBindingSetting extends SettingsItem
    */
   public void setValue(String bind, String ui)
   {
-		mSettingText = ui;
+    mSettingText = ui;
     if (getSetting() == null)
     {
       StringSetting setting = new StringSetting(getKey(), getSection(), bind);

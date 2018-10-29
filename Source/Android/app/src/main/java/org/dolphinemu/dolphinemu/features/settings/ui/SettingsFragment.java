@@ -25,7 +25,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   private static final String ARGUMENT_GAME_ID = "game_id";
 
   private SettingsFragmentPresenter mPresenter;
-	private ArrayList<SettingsItem> mSettingsList;
+  private ArrayList<SettingsItem> mSettingsList;
   private SettingsActivity mActivity;
   private SettingsAdapter mAdapter;
 
@@ -53,7 +53,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
     mActivity = (SettingsActivity) context;
     if(mPresenter == null)
-			mPresenter = new SettingsFragmentPresenter(mActivity);
+      mPresenter = new SettingsFragmentPresenter(mActivity);
     mPresenter.onAttach();
   }
 
@@ -90,7 +90,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     recyclerView.setLayoutManager(manager);
     recyclerView.addItemDecoration(new DividerItemDecoration(lineDivider));
 
-		showSettingsList(mActivity.getSettings());
+    showSettingsList(mActivity.getSettings());
   }
 
   @Override
@@ -107,14 +107,14 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
   public void showSettingsList(Settings settings)
   {
-		if(mSettingsList == null && settings != null)
-		{
-			mSettingsList = mPresenter.loadSettingsList(settings);
-		}
+    if(mSettingsList == null && settings != null)
+    {
+      mSettingsList = mPresenter.loadSettingsList(settings);
+    }
 
     if(mSettingsList != null)
-		{
-			mAdapter.setSettings(mSettingsList);
-		}
+    {
+      mAdapter.setSettings(mSettingsList);
+    }
   }
 }

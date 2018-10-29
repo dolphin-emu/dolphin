@@ -53,7 +53,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public SettingsAdapter(SettingsActivity activity)
   {
-		mActivity = activity;
+    mActivity = activity;
   }
 
   @Override
@@ -142,13 +142,13 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     if (setting != null)
     {
-			mActivity.putSetting(setting);
+      mActivity.putSetting(setting);
     }
 
     if (item.getKey().equals(SettingsFile.KEY_SKIP_EFB) ||
       item.getKey().equals(SettingsFile.KEY_IGNORE_FORMAT))
     {
-			mActivity.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
+      mActivity.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
     }
   }
 
@@ -210,7 +210,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public void onSubmenuClick(SubmenuSetting item)
   {
-		mActivity.loadSubMenu(item.getMenuKey());
+    mActivity.loadSubMenu(item.getMenuKey());
   }
 
   public void onInputBindingClick(final InputBindingSetting item, final int position)
@@ -220,7 +220,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.setMessage(String.format(mActivity.getString(
             item instanceof RumbleBindingSetting ?
                     R.string.input_rumble_description : R.string.input_binding_description),
-			mActivity.getString(item.getNameId())));
+      mActivity.getString(item.getNameId())));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mActivity.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mActivity.getString(R.string.clear),
             (dialogInterface, i) ->
@@ -236,7 +236,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       if (setting != null)
       {
-				mActivity.putSetting(setting);
+        mActivity.putSetting(setting);
       }
     });
     dialog.setCanceledOnTouchOutside(false);
@@ -256,17 +256,17 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       {
         if (menuTag.isGCPadMenu())
         {
-					mActivity.onGcPadSettingChanged(menuTag, value);
+          mActivity.onGcPadSettingChanged(menuTag, value);
         }
 
         if (menuTag.isWiimoteMenu())
         {
-					mActivity.onWiimoteSettingChanged(menuTag, value);
+          mActivity.onWiimoteSettingChanged(menuTag, value);
         }
 
         if (menuTag.isWiimoteExtensionMenu())
         {
-					mActivity.onExtensionSettingChanged(menuTag, value);
+          mActivity.onExtensionSettingChanged(menuTag, value);
         }
       }
 
@@ -274,7 +274,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       IntSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
       {
-				mActivity.putSetting(setting);
+        mActivity.putSetting(setting);
       }
       else
       {
@@ -305,7 +305,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       StringSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
       {
-				mActivity.putSetting(setting);
+        mActivity.putSetting(setting);
       }
 
       closeDialog();
@@ -328,7 +328,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         FloatSetting setting = sliderSetting.setSelectedValue(value);
         if (setting != null)
         {
-					mActivity.putSetting(setting);
+          mActivity.putSetting(setting);
         }
       }
       else
@@ -336,7 +336,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         IntSetting setting = sliderSetting.setSelectedValue(mSeekbarProgress);
         if (setting != null)
         {
-					mActivity.putSetting(setting);
+          mActivity.putSetting(setting);
         }
       }
     }
@@ -437,7 +437,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         break;
     }
 
-		mActivity.putSetting(gfxBackend);
+    mActivity.putSetting(gfxBackend);
   }
 
   private void putExtensionSetting(int which, int wiimoteNumber, boolean isGame)
@@ -447,7 +447,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
               Settings.SECTION_WIIMOTE + wiimoteNumber,
               mActivity.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-			mActivity.putSetting(extension);
+      mActivity.putSetting(extension);
     }
     else
     {
@@ -455,7 +455,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
               new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + wiimoteNumber,
                       Settings.SECTION_CONTROLS, mActivity.getResources()
                       .getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-			mActivity.putSetting(extension);
+      mActivity.putSetting(extension);
     }
   }
 }

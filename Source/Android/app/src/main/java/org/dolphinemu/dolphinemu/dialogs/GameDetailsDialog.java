@@ -73,20 +73,20 @@ public final class GameDetailsDialog extends DialogFragment
     });
 
     //
-		Button buttonWiimote = contents.findViewById(R.id.button_wiimote_settings);
-		buttonWiimote.setOnClickListener(view ->
-		{
-			this.dismiss();
-			SettingsActivity.launch(getContext(), MenuTag.WIIMOTE, gameFile.getGameId());
-		});
-		buttonWiimote.setEnabled(gameFile.getPlatform() > 0);
+    Button buttonWiimote = contents.findViewById(R.id.button_wiimote_settings);
+    buttonWiimote.setOnClickListener(view ->
+    {
+      this.dismiss();
+      SettingsActivity.launch(getContext(), MenuTag.WIIMOTE, gameFile.getGameId());
+    });
+    buttonWiimote.setEnabled(gameFile.getPlatform() > 0);
 
-		Button buttonGCPad = contents.findViewById(R.id.button_gcpad_settings);
-		buttonGCPad.setOnClickListener(view ->
-		{
-			this.dismiss();
-			SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameFile.getGameId());
-		});
+    Button buttonGCPad = contents.findViewById(R.id.button_gcpad_settings);
+    buttonGCPad.setOnClickListener(view ->
+    {
+      this.dismiss();
+      SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameFile.getGameId());
+    });
 
     //
     Button buttonGameSetting = contents.findViewById(R.id.button_game_setting);

@@ -256,7 +256,7 @@ public final class NativeLibrary
    */
   public static void rumble(int padID, double state)
   {
-		Rumble.checkRumble(padID, state);
+    Rumble.checkRumble(padID, state);
   }
 
   public static native void LoadGameIniFile(String gameId);

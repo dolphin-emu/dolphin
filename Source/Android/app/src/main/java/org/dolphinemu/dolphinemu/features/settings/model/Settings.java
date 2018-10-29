@@ -96,9 +96,9 @@ public class Settings
       filesToExclude.add(SettingsFile.FILE_NAME_WIIMOTE);
     }
     else
-		{
-			loadWiiSysconf();
-		}
+    {
+      loadWiiSysconf();
+    }
 
     loadDolphinSettings(filesToExclude);
 
@@ -242,24 +242,24 @@ public class Settings
 
   public void saveSettings()
   {
-		for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
-		{
-			String fileName = entry.getKey();
-			List<String> sectionNames = entry.getValue();
-			TreeMap<String, SettingSection> iniSections = new TreeMap<>();
-			for (String section : sectionNames)
-			{
-				iniSections.put(section, sections.get(section));
-			}
+    for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
+    {
+      String fileName = entry.getKey();
+      List<String> sectionNames = entry.getValue();
+      TreeMap<String, SettingSection> iniSections = new TreeMap<>();
+      for (String section : sectionNames)
+      {
+        iniSections.put(section, sections.get(section));
+      }
 
-			SettingsFile.saveFile(fileName, iniSections);
-		}
+      SettingsFile.saveFile(fileName, iniSections);
+    }
 
-		saveWiiSysconf();
+    saveWiiSysconf();
   }
 
   public void saveCustomGameSettings(String gameId)
-	{
-		SettingsFile.saveCustomGameSettings(gameId, sections);
-	}
+  {
+    SettingsFile.saveCustomGameSettings(gameId, sections);
+  }
 }

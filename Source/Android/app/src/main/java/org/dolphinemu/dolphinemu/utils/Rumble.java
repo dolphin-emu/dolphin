@@ -20,9 +20,9 @@ public class Rumble
 
   public static void initDeviceRumble()
   {
-		Settings settings = new Settings();
-		settings.loadSettings(null);
-		SettingSection section = settings.getSection(Settings.SECTION_BINDINGS);
+    Settings settings = new Settings();
+    settings.loadSettings(null);
+    SettingSection section = settings.getSection(Settings.SECTION_BINDINGS);
 
     emuVibrators = new SparseArray<>();
     for (int i = 0; i < 8; i++)
@@ -45,22 +45,22 @@ public class Rumble
     }
   }
 
-	public static void setPhoneRumble(Activity activity, boolean enable)
-	{
-		if (enable)
-		{
-			if(phoneVibrator != null)
-				return;
+  public static void setPhoneRumble(Activity activity, boolean enable)
+  {
+    if (enable)
+    {
+      if(phoneVibrator != null)
+        return;
 
-			Vibrator vib = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
-			if (vib != null && vib.hasVibrator())
-				phoneVibrator = vib;
-		}
-		else
-		{
-			phoneVibrator = null;
-		}
-	}
+      Vibrator vib = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
+      if (vib != null && vib.hasVibrator())
+        phoneVibrator = vib;
+    }
+    else
+    {
+      phoneVibrator = null;
+    }
+  }
 
   public static void checkRumble(int padId, double state)
   {

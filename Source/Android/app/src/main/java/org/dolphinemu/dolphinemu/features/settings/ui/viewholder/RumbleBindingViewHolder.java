@@ -32,7 +32,7 @@ public class RumbleBindingViewHolder extends SettingViewHolder
   {
     mItem = (RumbleBindingSetting) item;
     mTextSettingName.setText(item.getNameId());
-		mTextSettingDescription.setText(mItem.getSettingText());
+    mTextSettingDescription.setText(mItem.getSettingText());
   }
 
   @Override

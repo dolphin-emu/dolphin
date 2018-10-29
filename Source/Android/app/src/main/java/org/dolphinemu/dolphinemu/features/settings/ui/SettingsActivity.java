@@ -18,21 +18,21 @@ import org.dolphinemu.dolphinemu.R;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
-	public static final String ARG_CONTROLLER_TYPE = "controller_type";
+  public static final String ARG_CONTROLLER_TYPE = "controller_type";
 
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
   private static final String FRAGMENT_TAG = "settings";
 
-	private static final String KEY_SHOULD_SAVE = "should_save";
-	private static final String KEY_MENU_TAG = "menu_tag";
-	private static final String KEY_GAME_ID = "game_id";
+  private static final String KEY_SHOULD_SAVE = "should_save";
+  private static final String KEY_MENU_TAG = "menu_tag";
+  private static final String KEY_GAME_ID = "game_id";
 
-	private Settings mSettings = new Settings();
-	private int mStackCount;
-	private boolean mShouldSave;
-	private MenuTag mMenuTag;
-	private String mGameId;
+  private Settings mSettings = new Settings();
+  private int mStackCount;
+  private boolean mShouldSave;
+  private MenuTag mMenuTag;
+  private String mGameId;
 
   public static void launch(Context context, MenuTag menuTag, String gameId)
   {
@@ -53,23 +53,23 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     String gameId = launcher.getStringExtra(ARG_GAME_ID);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
 
-		if (savedInstanceState == null)
-		{
-			mMenuTag = menuTag;
-			mGameId = gameId;
-		}
-		else
-		{
-			String menuTagStr = savedInstanceState.getString(KEY_MENU_TAG);
-			mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
-			mMenuTag = MenuTag.getMenuTag(menuTagStr);
-			mGameId = savedInstanceState.getString(KEY_GAME_ID);
-		}
+    if (savedInstanceState == null)
+    {
+      mMenuTag = menuTag;
+      mGameId = gameId;
+    }
+    else
+    {
+      String menuTagStr = savedInstanceState.getString(KEY_MENU_TAG);
+      mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+      mMenuTag = MenuTag.getMenuTag(menuTagStr);
+      mGameId = savedInstanceState.getString(KEY_GAME_ID);
+    }
 
-		if (!TextUtils.isEmpty(mGameId))
-		{
-			setTitle("Game Settings: " + mGameId);
-		}
+    if (!TextUtils.isEmpty(mGameId))
+    {
+      setTitle("Game Settings: " + mGameId);
+    }
   }
 
   @Override
@@ -83,13 +83,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public boolean onOptionsItemSelected(MenuItem item)
   {
-		switch (item.getItemId())
-		{
-			case R.id.menu_save_exit:
-				finish();
-				return true;
-		}
-		return false;
+    switch (item.getItemId())
+    {
+      case R.id.menu_save_exit:
+        finish();
+        return true;
+    }
+    return false;
   }
 
   @Override
@@ -98,34 +98,34 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // Critical: If super method is not called, rotations will be busted.
     super.onSaveInstanceState(outState);
 
-		outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
-		outState.putString(KEY_MENU_TAG, mMenuTag.toString());
-		outState.putString(KEY_GAME_ID, mGameId);
+    outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
+    outState.putString(KEY_MENU_TAG, mMenuTag.toString());
+    outState.putString(KEY_GAME_ID, mGameId);
   }
 
   @Override
   protected void onStart()
   {
     super.onStart();
-		loadSettingsUI();
+    loadSettingsUI();
   }
 
-	private void loadSettingsUI()
-	{
-		if (mSettings.isEmpty())
-		{
-			if (!TextUtils.isEmpty(mGameId))
-			{
-				mSettings.loadSettings(mGameId);
-			}
-			else
-			{
-				mSettings.loadSettings(null);
-			}
-		}
+  private void loadSettingsUI()
+  {
+    if (mSettings.isEmpty())
+    {
+      if (!TextUtils.isEmpty(mGameId))
+      {
+        mSettings.loadSettings(mGameId);
+      }
+      else
+      {
+        mSettings.loadSettings(null);
+      }
+    }
 
-		showSettingsFragment(mMenuTag, null, false, mGameId);
-	}
+    showSettingsFragment(mMenuTag, null, false, mGameId);
+  }
 
   /**
    * If this is called, the user has left the settings screen (potentially through the
@@ -137,35 +137,35 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onStop();
 
-		if (mSettings != null && isFinishing() && mShouldSave)
-		{
-			if (TextUtils.isEmpty(mGameId))
-			{
-				showToastMessage("Saved settings to INI files");
-				mSettings.saveSettings();
-			}
-			else
-			{
-				// custom game settings
-				showToastMessage("Saved settings for " + mGameId);
-				mSettings.saveCustomGameSettings(mGameId);
-			}
-			mShouldSave = false;
-		}
+    if (mSettings != null && isFinishing() && mShouldSave)
+    {
+      if (TextUtils.isEmpty(mGameId))
+      {
+        showToastMessage("Saved settings to INI files");
+        mSettings.saveSettings();
+      }
+      else
+      {
+        // custom game settings
+        showToastMessage("Saved settings for " + mGameId);
+        mSettings.saveCustomGameSettings(mGameId);
+      }
+      mShouldSave = false;
+    }
   }
 
   @Override
   public void onBackPressed()
   {
-		if (mStackCount > 0)
-		{
-			getSupportFragmentManager().popBackStackImmediate();
-			mStackCount--;
-		}
-		else
-		{
-			finish();
-		}
+    if (mStackCount > 0)
+    {
+      getSupportFragmentManager().popBackStackImmediate();
+      mStackCount--;
+    }
+    else
+    {
+      finish();
+    }
   }
 
   @Override
@@ -185,28 +185,28 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       }
 
       transaction.addToBackStack(null);
-			mStackCount++;
+      mStackCount++;
     }
     transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID, extras), FRAGMENT_TAG);
     transaction.commit();
 
     // show settings
-		SettingsFragmentView fragment = getFragment();
-		if (fragment != null)
-		{
-			fragment.showSettingsList(mSettings);
-		}
+    SettingsFragmentView fragment = getFragment();
+    if (fragment != null)
+    {
+      fragment.showSettingsList(mSettings);
+    }
   }
 
   private boolean areSystemAnimationsEnabled()
   {
     float duration = android.provider.Settings.Global.getFloat(
       getContentResolver(),
-			android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+      android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1);
 
     float transition = android.provider.Settings.Global.getFloat(
       getContentResolver(),
-			android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
+      android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
 
     return duration != 0 && transition != 0;
   }
@@ -226,30 +226,30 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   public String getGameId()
-	{
-		return mGameId;
-	}
+  {
+    return mGameId;
+  }
 
   public Settings getSettings()
-	{
-		return mSettings;
-	}
+  {
+    return mSettings;
+  }
 
   public void setSettings(Settings settings)
   {
-		mSettings = settings;
+    mSettings = settings;
   }
 
-	public void putSetting(Setting setting)
-	{
-		mSettings.getSection(setting.getSection()).putSetting(setting);
-		mShouldSave = true;
-	}
+  public void putSetting(Setting setting)
+  {
+    mSettings.getSection(setting.getSection()).putSetting(setting);
+    mShouldSave = true;
+  }
 
-	public void loadSubMenu(MenuTag menuKey)
-	{
-		showSettingsFragment(menuKey, null, true, mGameId);
-	}
+  public void loadSubMenu(MenuTag menuKey)
+  {
+    showSettingsFragment(menuKey, null, true, mGameId);
+  }
 
   @Override
   public void showToastMessage(String message)
@@ -260,38 +260,38 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public void onGcPadSettingChanged(MenuTag key, int value)
   {
-		if (value != 0) // Not disabled
-		{
-			Bundle bundle = new Bundle();
-			bundle.putInt(ARG_CONTROLLER_TYPE, value / 6);
-			showSettingsFragment(key, bundle, true, mGameId);
-		}
+    if (value != 0) // Not disabled
+    {
+      Bundle bundle = new Bundle();
+      bundle.putInt(ARG_CONTROLLER_TYPE, value / 6);
+      showSettingsFragment(key, bundle, true, mGameId);
+    }
   }
 
   @Override
   public void onWiimoteSettingChanged(MenuTag menuTag, int value)
   {
-		switch (value)
-		{
-			case 1:
-				showSettingsFragment(menuTag, null, true, mGameId);
-				break;
+    switch (value)
+    {
+      case 1:
+        showSettingsFragment(menuTag, null, true, mGameId);
+        break;
 
-			case 2:
-				showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
-				break;
-		}
+      case 2:
+        showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
+        break;
+    }
   }
 
   @Override
   public void onExtensionSettingChanged(MenuTag menuTag, int value)
   {
-		if (value != 0) // None
-		{
-			Bundle bundle = new Bundle();
-			bundle.putInt(ARG_CONTROLLER_TYPE, value);
-			showSettingsFragment(menuTag, bundle, true, mGameId);
-		}
+    if (value != 0) // None
+    {
+      Bundle bundle = new Bundle();
+      bundle.putInt(ARG_CONTROLLER_TYPE, value);
+      showSettingsFragment(menuTag, bundle, true, mGameId);
+    }
   }
 
   private SettingsFragment getFragment()

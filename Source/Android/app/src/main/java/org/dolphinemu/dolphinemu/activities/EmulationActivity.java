@@ -134,7 +134,7 @@ public final class EmulationActivity extends AppCompatActivity
 
     Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
     Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-		Rumble.initDeviceRumble();
+    Rumble.initDeviceRumble();
 
     setContentView(R.layout.activity_emulation);
 
@@ -152,7 +152,7 @@ public final class EmulationActivity extends AppCompatActivity
     setTitle(mSelectedTitle);
 
     mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		Rumble.setPhoneRumble(this, mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
+    Rumble.setPhoneRumble(this, mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
   }
 
   @Override

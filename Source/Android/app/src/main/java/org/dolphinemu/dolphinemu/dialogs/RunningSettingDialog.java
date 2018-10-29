@@ -373,7 +373,7 @@ public class RunningSettingDialog extends DialogFragment
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
         editor.putBoolean(EmulationActivity.RUMBLE_PREF_KEY, rumble > 0);
         editor.apply();
-				Rumble.setPhoneRumble(getActivity(), rumble > 0);
+        Rumble.setPhoneRumble(getActivity(), rumble > 0);
       }
       mSettings.remove(0);
 

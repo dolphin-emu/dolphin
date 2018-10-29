@@ -32,14 +32,14 @@ public final class SettingsFragmentPresenter
   private MenuTag mMenuTag;
   private String mGameID;
   private Settings mSettings;
-	private SettingsActivity mActivity;
+  private SettingsActivity mActivity;
 
   private int mControllerNumber;
   private int mControllerType;
 
   public SettingsFragmentPresenter(SettingsActivity activity)
   {
-		mActivity = activity;
+    mActivity = activity;
   }
 
   public void onCreate(MenuTag menuTag, String gameId, Bundle extras)
@@ -67,14 +67,14 @@ public final class SettingsFragmentPresenter
   {
     if (mSettings != null)
     {
-			mActivity.setSettings(mSettings);
+      mActivity.setSettings(mSettings);
     }
   }
 
   public ArrayList<SettingsItem> loadSettingsList(Settings settings)
   {
     ArrayList<SettingsItem> sl = new ArrayList<>();
-		mSettings = settings;
+    mSettings = settings;
     switch (mMenuTag)
     {
       case CONFIG:
@@ -160,19 +160,19 @@ public final class SettingsFragmentPresenter
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
   {
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-		Setting cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
-		Setting dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
-		Setting overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
-		Setting overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
-		Setting speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
-		Setting syncOnSkipIdle = coreSection.getSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE);
+    Setting cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
+    Setting dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
+    Setting overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
+    Setting overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
+    Setting speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
+    Setting syncOnSkipIdle = coreSection.getSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE);
     //Setting mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
     //Setting fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
-		Setting followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
-		Setting audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
-		Setting audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP)
+    Setting followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
+    Setting audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+    Setting audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP)
       .getSetting(SettingsFile.KEY_AUDIO_BACKEND);
-		Setting enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
+    Setting enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
 
     // TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
     // The proper solution would be to have one emuCoresEntries and one emuCoresValues
@@ -231,13 +231,13 @@ public final class SettingsFragmentPresenter
 
   private void addInterfaceSettings(ArrayList<SettingsItem> sl)
   {
-		Setting usePanicHandlers = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+    Setting usePanicHandlers = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
-		Setting onScreenDisplayMessages = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+    Setting onScreenDisplayMessages = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_OSD_MESSAGES);
-		Setting useBuiltinTitleDatabase = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+    Setting useBuiltinTitleDatabase = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_BUILTIN_TITLE_DATABASE);
-		Setting showDebugInfo = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
+    Setting showDebugInfo = mSettings.getSection(Settings.SECTION_INI_INTERFACE)
       .getSetting(SettingsFile.KEY_SHOW_DEBUG_INFO);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, Settings.SECTION_INI_INTERFACE,
@@ -255,10 +255,10 @@ public final class SettingsFragmentPresenter
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
   {
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-		Setting systemLanguage = coreSection.getSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE);
-		Setting overrideGCLanguage = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE);
-		Setting slotADevice = coreSection.getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
-		Setting slotBDevice = coreSection.getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
+    Setting systemLanguage = coreSection.getSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE);
+    Setting overrideGCLanguage = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE);
+    Setting slotADevice = coreSection.getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
+    Setting slotBDevice = coreSection.getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE, Settings.SECTION_INI_CORE,
       R.string.gamecube_system_language, 0, R.array.gameCubeSystemLanguageEntries,
@@ -277,8 +277,8 @@ public final class SettingsFragmentPresenter
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-		Setting continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
-		Setting wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
+    Setting continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
+    Setting wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE,
       R.string.wiimote_scanning, R.string.wiimote_scanning_description, true,
@@ -287,33 +287,33 @@ public final class SettingsFragmentPresenter
       R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 
     if(TextUtils.isEmpty(mGameID))
-		{
-			SettingSection sysconfSection = mSettings.getSection(Settings.SECTION_SYSCONF);
-			Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
-			Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
-			Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
-			//Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
-			Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
-			//Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
-			//Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
-			//Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
-			//Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
+    {
+      SettingSection sysconfSection = mSettings.getSection(Settings.SECTION_SYSCONF);
+      Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
+      Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
+      Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
+      //Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
+      Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
+      //Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
+      //Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
+      //Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
+      //Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
 
-			sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_SYSCONF,
-				R.string.sysconf_screensaver, 0, true, screensaver));
-			sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_SYSCONF,
-				R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries,
-				R.array.wiiSystemLanguageValues, 7, language));
-			sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_SYSCONF,
-				R.string.sysconf_widescreen, 0, true, widescreen));
-			//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
-			sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_SYSCONF,
-				R.string.sysconf_pal60, 0, true, pal60));
-			//sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
-			//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
-			//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
-			//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
-		}
+      sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_SYSCONF,
+        R.string.sysconf_screensaver, 0, true, screensaver));
+      sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_SYSCONF,
+        R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries,
+        R.array.wiiSystemLanguageValues, 7, language));
+      sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_SYSCONF,
+        R.string.sysconf_widescreen, 0, true, widescreen));
+      //sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
+      sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_SYSCONF,
+        R.string.sysconf_pal60, 0, true, pal60));
+      //sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
+      //sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
+      //sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
+      //sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
+    }
   }
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
@@ -372,10 +372,10 @@ public final class SettingsFragmentPresenter
         getVideoBackendValue());
 
     SettingSection gfxSection = mSettings.getSection(Settings.SECTION_GFX_SETTINGS);
-		Setting showFps = gfxSection.getSetting(SettingsFile.KEY_SHOW_FPS);
-		Setting shaderCompilationMode = gfxSection.getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
-		Setting waitForShaders = gfxSection.getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
-		Setting aspectRatio = gfxSection.getSetting(SettingsFile.KEY_ASPECT_RATIO);
+    Setting showFps = gfxSection.getSetting(SettingsFile.KEY_SHOW_FPS);
+    Setting shaderCompilationMode = gfxSection.getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
+    Setting waitForShaders = gfxSection.getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
+    Setting aspectRatio = gfxSection.getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
       R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries,
