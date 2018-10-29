@@ -243,6 +243,10 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void putSetting(Setting setting)
   {
     mSettings.getSection(setting.getSection()).putSetting(setting);
+  }
+
+  public void setSettingChanged()
+  {
     mShouldSave = true;
   }
 

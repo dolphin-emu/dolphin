@@ -150,6 +150,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       mActivity.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
     }
+
+    mActivity.setSettingChanged();
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item)
@@ -238,6 +240,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       {
         mActivity.putSetting(setting);
       }
+
+      mActivity.setSettingChanged();
     });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
@@ -341,6 +345,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       }
     }
 
+    mActivity.setSettingChanged();
     mClickedItem = null;
     mSeekbarProgress = -1;
   }
