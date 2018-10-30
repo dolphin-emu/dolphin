@@ -212,17 +212,13 @@ public final class EmulationActivity extends AppCompatActivity
     int themeId;
     if (mDeviceHasTouchScreen)
     {
-      // Force landscape
-      if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-      {
-        BooleanSetting lockLandscape =
-                (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
-                        .getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
-        if (lockLandscape == null || lockLandscape.getValue())
-          new Handler().postDelayed(
-                  () -> setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE),
-                  100);
-      }
+      BooleanSetting lockLandscape =
+              (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
+                      .getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
+      // Force landscape if set
+      if (lockLandscape == null || lockLandscape.getValue())
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+
       themeId = R.style.DolphinEmulationBase;
 
       // Get a handle to the Window containing the UI.
