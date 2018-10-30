@@ -100,7 +100,7 @@ def getVersion() {
         logger.error('Cannot find git, defaulting to dummy version number')
     }
 
-    return versionNumber
+    return versionNumber + "-mmj"
 }
 
 

@@ -536,7 +536,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSystemLan
   if(SConfig::GetInstance().m_use_builtin_title_database)
   {
     std::string language = GetJString(env, jFile);
-    __android_log_print(ANDROID_LOG_INFO, "zhangwei", "setSystemLanguage: %s", language.c_str());
     s_title_database = std::make_unique<Core::TitleDatabase>(language);
   }
   else
