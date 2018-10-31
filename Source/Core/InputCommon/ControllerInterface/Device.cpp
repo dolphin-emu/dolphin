@@ -7,7 +7,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <tuple>
 
 #include "Common/StringUtil.h"
 
@@ -121,12 +120,7 @@ void DeviceQualifier::FromDevice(const Device* const dev)
 
 bool DeviceQualifier::operator==(const Device* const dev) const
 {
-  if (dev->GetId() == cid)
-    if (dev->GetName() == name)
-      if (dev->GetSource() == source)
-        return true;
-
-  return false;
+  return dev->GetId() == cid && dev->GetName() == name && dev->GetSource() == source;
 }
 
 bool DeviceQualifier::operator!=(const Device* const dev) const
@@ -136,7 +130,7 @@ bool DeviceQualifier::operator!=(const Device* const dev) const
 
 bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
 {
-  return std::tie(cid, name, source) == std::tie(devq.cid, devq.name, devq.source);
+  return devq.cid == cid && devq.name == name && devq.source == source;
 }
 
 bool DeviceQualifier::operator!=(const DeviceQualifier& devq) const

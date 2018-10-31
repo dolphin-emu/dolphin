@@ -43,6 +43,8 @@ cheatdata:
 .long frozenvalue
 .space 39*4
 
+# Warning, _strip_and_align expects cheat codes to start on 0x0 or 0x8.
+# Properly compiling it will add a nop if needed.
 _start:
   stwu r1,-172(r1)  # stores sp
   stw r0,8(r1)  # stores r0
@@ -150,7 +152,7 @@ _readcodes:
 
   andis. r11,r3,0x1000  #test pointer
   rlwinm r3,r3,0,7,31  #r3  = extract address in r3 (code type 0/1/2) #0x01FFFFFF
-
+ 
   bne +12   #jump lf the pointer is used
 
   rlwinm r12,r6,0,0,6  #lf pointer is not used, address = base address
@@ -178,6 +180,33 @@ _readcodes:
 
   b _terminator_onoff_ #code type 7 : End of code list
 
+ _Write_32:
+	lwz r18, 0(r12)	#Load data from registry that will be written to
+	cmpw r18, r5 	#Is data to be written equal to the data in memory
+	beq+ +72 		#Skip if yes
+	stw r5, 0(r12) 	#store opcode
+	li r9, 0 		#safe, check r9 if more write_32's are linked.
+    b +48
+    
+_Write_08x:
+	lbzx r18, r9, r12
+	rlwinm r0, r4, 0, 24,31	#Clears any other data with r4's byte, for compare
+	cmpw r0, r18
+	beq+ +44
+	stbx r4,r9,r12
+	b +24 
+
+_Write_16x:
+	lhzx r18, r9, r12
+	rlwinm r0, r4, 0, 16,31	#Makes sure r4 is just a halfword for compare
+	cmpw r0, r18
+	beq+ +20
+	sthx r4,r9,r12
+	icbi r9, r12 #branch target. Clears cache. Need dcbf?
+	sync
+	isync
+	blr
+
 #CT0=============================================================================
 #write  8bits (0): 00XXXXXX YYYY00ZZ
 #write 16bits (1): 02XXXXXX YYYYZZZZ
@@ -201,45 +230,34 @@ _write:
   rlwinm r10,r4,16,16,31  #r10 = extract number of times to write (16bits value)
 
 _write816:
-  beq cr4,+32   #lf r5 = 1 then 16 bits write
-  stbx r4,r9,r12  #write byte
-  add r21, r9, r12
-  icbi r0, r21
-  sync
-  isync
+  beq cr4,+16   #lf r5 = 1 then 16 bits write
+  bl _Write_08x
   addi r9,r9,1
-  b +28
-  sthx r4,r9,r12  #write halfword
-  add r21, r9, r12 #Get Real Memory Offset
-  icbi r0, r21 #Invalidate Icache around real memory offset
-  sync
-  isync
-  addi r9,r9,2
+  b +12
+  bl _Write_16x
+  addi r9, r9, 2
   subic. r10,r10,1  #number of times to write -1
   bge- _write816
   b _readcodes
 
 _write32:
   rlwinm r12,r12,0,0,29  #32bits align adress
-  stw r4,0(r12)  #write word to address
-  icbi r0, r12 #Invalidate icache around address
-  sync
-  isync
+  mr r5, r4
+  bl _Write_32
   b _readcodes
 
 _write_string:    #endianess ?
   mr r9,r4
+  mr r22, r4
   bne- cr7,_skip_and_align #lf code execution is false, skip string code data
 
 _stb:
   subic. r9,r9,1   #r9 -= 1 (and compares r9 with 0)
   blt- _skip_and_align  #lf r9 < 0 then exit
   lbzx r5,r9,r15
-  stbx r5,r9,r12  #loop until all the data has been written
-  add r21, r9, r12 #Get Real Memory Offset
-  icbi r0, r21 #Invalidate Icache around real memory offset
-  sync
-  isync
+  mr r4, r5
+  bl _Write_08x  #loop until all the data has been written
+  mr r4, r22
   b _stb
 
 _write_serial:
@@ -259,15 +277,17 @@ _loop_serial:
   beq- cr5,+16   #lf 16bits
   bgt+ cr5,+20   #lf 32bits
 
-  stbx r4,r9,r12  #write serial byte (CT04,T=0)
-  b +16
+  bl _Write_08x
+  b +40
 
-  sthx r4,r9,r12  #write serial halfword (CT04,T=1)
-  b +8
-
+  bl _Write_16x  #write serial halfword (CT04,T=1)
+  b +32
+  
+  lwzx r18, r9, r12
+  cmpw r4, r18
+  beq+ +20
   stwx r4,r9,r12  #write serial word (CT04,T>=2)
-  add r21, r9, r12 #Get Real Memory Offset
-  icbi r0, r21 #Invalidate Icache around real memory offset
+  icbi r9, r12 #Invalidate Icache around real memory offset
   sync
   isync
   add r4,r4,r11  #value +=VVVVVVVV
@@ -560,35 +580,36 @@ _load:
   bgt+ cr6,+24
   beq- cr6,+12
 
-  lbz r4,0(r4)  #load byte at address
+  lbz r4,0(r12)  #load byte at address
   b _store_reg
 
-  lhz r4,0(r4)  #load halfword at address
+  lhz r4,0(r12)  #load halfword at address
   b _store_reg
 
-  lwz r4,0(r4)  #load word at address
+  lwz r4,0(r12)  #load word at address
   b _store_reg
 
 _store:
   rlwinm r19,r3,28,20,31  #r9=r3 ror 12 (N84UYZZZ)
-
+  
+  mr r12, r4
+  mr r4, r9
+  mr r5, r9
+  li r9, 0
 _storeloop:
   bgt+ cr6,+32
   beq- cr6,+16
 
-  stb r9,0(r4)  #store byte at address
-  addi r4,r4,1
+  bl _Write_08x  #store byte at address
+  addi r12,r12,1
   b _storeloopend
 
-  sth r9,0(r4)  #store byte at address
-  addi r4,r4,2
+  bl _Write_16x  #store byte at address
+  addi r12,r12,2
   b _storeloopend
 
-  stw r9,0(r4)  #store byte at address
-  icbi r0, r4 #Invalidate at offset given by storing gecko register
-  sync
-  isync
-  addi r4,r4,4
+  bl _Write_32
+  addi r12,r12,4
 _storeloopend:
   subic. r19,r19,1
   bge  _storeloop
@@ -793,14 +814,14 @@ _compare16_counter:
   b _conditional
 
 #===============================================================================
-#execute     (0) : C0000000 NNNNNNNN = execute
-#hook1       (2) : C4XXXXXX NNNNNNNN = insert instructions at XXXXXX
+#execute     (0) : C0000000 NNNNNNNN = execute. End with 4E800020 00000000.
+#hook1       (2) : C4XXXXXX NNNNNNNN = insert instructions at XXXXXX. Same as C2.
 #hook2       (3) : C6XXXXXX YYYYYYYY = branch from XXXXXX to YYYYYY
 #on/off      (6) : CC000000 00000000 = on/off switch
 #range check (7) : CE000000 XXXXYYYY = is ba/po in XXXX0000-YYYY0000
 
 _hook_execute:
-  mr r26,r4   #r18 = 0YYYYYYY
+  mr r26,r4   #r26 = 0YYYYYYY
   rlwinm r4,r4,3,0,28  #r4  = NNNNNNNN*8 = number of lines (and not number of bytes)
   bne- cr4,_hook_addresscheck #lf sub code type != 0
   bne- cr7,_skip_and_align
@@ -814,7 +835,6 @@ _skip_and_align:
   addi r15,r15,7
   rlwinm r15,r15,0,0,28  #align 64-bit
   b _readcodes
-
 
 _hook_addresscheck:
 
@@ -834,10 +854,7 @@ _hook2:
   sub r4,r4,r12  #r4 = to-from
   rlwimi r5,r4,0,6,29  #r5  = (r4 AND 0x03FFFFFC) OR 0x48000000
   rlwimi r5,r3,0,31,31  #restore lr bit
-  stw r5,0(r12)  #store opcode
-  icbi r0, r12 #Invalidate at branch
-  sync
-  isync
+  bl _Write_32
   b _readcodes
 
 _hook1:
@@ -845,19 +862,14 @@ _hook1:
 
   sub r9,r15,r12  #r9 = to-from
   rlwimi r5,r9,0,6,29  #r5  = (r9 AND 0x03FFFFFC) OR 0x48000000
-  stw r5,0(r12)  #stores b at the hook place (over original instruction)
-  icbi r0, r12 #Invalidate at hook location
-  sync
-  isync
+  bl _Write_32
   addi r12,r12,4
   add r11,r15,r4
   subi r11,r11,4  #r11 = address of the last word of the hook1 code
   sub r9,r12,r11
   rlwimi r5,r9,0,6,29  #r5  = (r9 AND 0x03FFFFFC) OR 0x48000000
-  stw r5,0(r11)  #stores b at the last word of the hook1 code
-  icbi r0, r12 #Invalidate at last instruction of hook
-  sync
-  isync
+  mr r12, r11
+  bl _Write_32
   b _skip_and_align
 
 _addresscheck1:

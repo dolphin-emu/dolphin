@@ -1403,11 +1403,9 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
     return;
   }
 
-  const float base_value = uid_data->rgba6_format ? 252.0f : 255.0f;
-
   // Use dual-source color blending to perform dst alpha in a single pass
   if (use_dual_source)
-    out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / %.01f);\n", base_value);
+    out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
@@ -1416,7 +1414,11 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
     out.Write("\tprev.a = " I_ALPHA ".a;\n");
   }
-  out.Write("\tocol0 = float4(prev) / %.01f;\n", base_value);
+
+  if(uid_data->rgba6_format)
+    out.Write("\tocol0 = float4(prev >> 2) / 63.0;\n");
+  else
+    out.Write("\tocol0 = float4(prev) / 255.0;\n");
 }
 
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)

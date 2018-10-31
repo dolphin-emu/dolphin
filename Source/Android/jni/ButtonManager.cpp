@@ -2,11 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "Common/StringUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Thread.h"
@@ -14,9 +14,9 @@
 
 namespace ButtonManager
 {
-const std::string touchScreenKey = "Touchscreen";
-std::unordered_map<std::string, InputDevice*> m_controllers;
-std::vector<std::string> configStrings = {
+static const std::string touchScreenKey = "Touchscreen";
+static std::unordered_map<std::string, InputDevice*> m_controllers;
+static char configStrings[][32] = {
     // GC
     "InputA",
     "InputB",
@@ -169,7 +169,7 @@ std::vector<std::string> configStrings = {
     // Rumble
     "Rumble",
 };
-std::vector<ButtonType> configTypes = {
+static ButtonType configTypes[] = {
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -560,20 +560,18 @@ void Init(const std::string& gameId)
   // Init our controller bindings
   IniFile ini;
   ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
-  for (u32 a = 0; a < configStrings.size(); ++a)
+  for (u32 a = 0; a < ArraySize(configStrings); ++a)
   {
     for (int padID = 0; padID < 8; ++padID)
     {
-      std::ostringstream config;
-      config << configStrings[a] << "_" << padID;
       BindType type;
       int bindnum;
       char dev[128];
       bool hasbind = false;
       char modifier = '+';
       std::string value;
-      ini.GetOrCreateSection("Android")->Get(config.str(), &value, "None");
-      if (value == "None")
+      ini.GetOrCreateSection("Android")->Get(StringFromFormat("%s_%d", configStrings[a], padID), &value, "");
+      if (value.empty())
         continue;
       if (std::string::npos != value.find("Axis"))
       {
@@ -594,20 +592,18 @@ void Init(const std::string& gameId)
   }
 
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"));
-  for (u32 a = 0; a < configStrings.size(); ++a)
+  for (u32 a = 0; a < ArraySize(configStrings); ++a)
   {
     for (int padID = 0; padID < 8; ++padID)
     {
-      std::ostringstream config;
-      config << configStrings[a] << "_" << padID;
       BindType type;
       int bindnum;
       char dev[128];
       bool hasbind = false;
       char modifier = '+';
       std::string value;
-      ini.GetOrCreateSection("Android")->Get(config.str(), &value, "None");
-      if (value == "None")
+      ini.GetOrCreateSection("Android")->Get(StringFromFormat("%s_%d", configStrings[a], padID), &value, "");
+      if (value.empty())
         continue;
       if (std::string::npos != value.find("Axis"))
       {
