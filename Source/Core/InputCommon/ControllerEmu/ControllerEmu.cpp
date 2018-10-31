@@ -89,7 +89,7 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
   std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
   {
-    sec->Get(base + "Device", &defdev, "");
+    sec->Get("Device", &defdev, "");
     SetDefaultDevice(defdev);
   }
 
@@ -101,7 +101,7 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
 {
   const std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
-    sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+    sec->Set("Device", defdev, "");
 
   for (auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);

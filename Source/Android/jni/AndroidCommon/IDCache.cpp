@@ -14,6 +14,7 @@ static JavaVM* s_java_vm;
 
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
+static jmethodID s_rumble_output_method;
 
 static jclass s_game_file_class;
 static jfieldID s_game_file_pointer;
@@ -37,6 +38,11 @@ jclass GetNativeLibraryClass()
 jmethodID GetDisplayAlertMsg()
 {
   return s_display_alert_msg;
+}
+
+jmethodID GetRumbleOutputMethod()
+{
+  return s_rumble_output_method;
 }
 
 jclass GetGameFileClass()
@@ -82,6 +88,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
   s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
                                                "(Ljava/lang/String;Ljava/lang/String;Z)Z");
+  s_rumble_output_method = env->GetStaticMethodID(s_native_library_class, "rumble", "(ID)V");
 
   const jclass game_file_class = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");
   s_game_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_class));

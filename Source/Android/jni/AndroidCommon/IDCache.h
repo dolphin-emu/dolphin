@@ -12,6 +12,7 @@ JavaVM* GetJavaVM();
 
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
+jmethodID GetRumbleOutputMethod();
 
 jclass GetGameFileClass();
 jfieldID GetGameFilePointer();
