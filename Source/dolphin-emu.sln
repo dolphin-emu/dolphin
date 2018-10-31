@@ -25,7 +25,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bochs_disasm", "..\External
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Languages", "..\Languages\Languages.vcxproj", "{0E033BE3-2E08-428E-9AE9-BC673EFA12B5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dolphin Core", "Dolphin Core", "{15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dolphin Base", "Dolphin Base", "{15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LZO", "..\Externals\LZO\LZO.vcxproj", "{AB993F38-C31D-4897-B139-A620C42BC565}"
 EndProject
