@@ -266,7 +266,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
         StringFromFormat("/Contents/Resources/%s.lproj/dolphin-emu.mo", lang.c_str())
 #elif defined LINUX_LOCAL_DEV
         File::GetExeDirectory() +
-        StringFromFormat("/../Source/Core/DolphinQt/%s/dolphin-emu.mo", lang.c_str())
+        StringFromFormat("/../Source/Main/DolphinQt/%s/dolphin-emu.mo", lang.c_str())
 #else
         StringFromFormat(DATA_DIR "/../locale/%s/LC_MESSAGES/dolphin-emu.mo", lang.c_str())
 #endif

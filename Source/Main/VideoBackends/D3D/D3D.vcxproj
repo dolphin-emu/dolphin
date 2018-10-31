@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A4C423AA-F57C-46C7-A172-D1A777017D29}</ProjectGuid>
+    <ProjectGuid>{96020103-4BA5-4FD2-B4AA-5B6D24492D4E}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -36,48 +36,52 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="Clipper.cpp" />
-    <ClCompile Include="DebugUtil.cpp" />
-    <ClCompile Include="EfbCopy.cpp" />
-    <ClCompile Include="EfbInterface.cpp" />
-    <ClCompile Include="Rasterizer.cpp" />
-    <ClCompile Include="SetupUnit.cpp" />
-    <ClCompile Include="SWmain.cpp" />
-    <ClCompile Include="SWOGLWindow.cpp" />
-    <ClCompile Include="SWRenderer.cpp" />
-    <ClCompile Include="SWTexture.cpp" />
-    <ClCompile Include="SWVertexLoader.cpp" />
-    <ClCompile Include="Tev.cpp" />
-    <ClCompile Include="TextureEncoder.cpp" />
-    <ClCompile Include="TextureSampler.cpp" />
-    <ClCompile Include="TransformUnit.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="D3DBase.cpp" />
+    <ClCompile Include="D3DBlob.cpp" />
+    <ClCompile Include="D3DShader.cpp" />
+    <ClCompile Include="D3DState.cpp" />
+    <ClCompile Include="D3DTexture.cpp" />
+    <ClCompile Include="D3DUtil.cpp" />
+    <ClCompile Include="DXPipeline.cpp" />
+    <ClCompile Include="DXShader.cpp" />
+    <ClCompile Include="DXTexture.cpp" />
+    <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="GeometryShaderCache.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NativeVertexFormat.cpp" />
+    <ClCompile Include="PerfQuery.cpp" />
+    <ClCompile Include="PixelShaderCache.cpp" />
+    <ClCompile Include="PSTextureEncoder.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="TextureCache.cpp" />
+    <ClCompile Include="VertexManager.cpp" />
+    <ClCompile Include="VertexShaderCache.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Clipper.h" />
-    <ClInclude Include="CopyRegion.h" />
-    <ClInclude Include="DebugUtil.h" />
-    <ClInclude Include="EfbCopy.h" />
-    <ClInclude Include="EfbInterface.h" />
-    <ClInclude Include="NativeVertexFormat.h" />
-    <ClInclude Include="Rasterizer.h" />
-    <ClInclude Include="SetupUnit.h" />
-    <ClInclude Include="SWOGLWindow.h" />
-    <ClInclude Include="SWRenderer.h" />
-    <ClInclude Include="SWTexture.h" />
-    <ClInclude Include="SWVertexLoader.h" />
-    <ClInclude Include="Tev.h" />
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="D3DBase.h" />
+    <ClInclude Include="D3DBlob.h" />
+    <ClInclude Include="D3DShader.h" />
+    <ClInclude Include="D3DState.h" />
+    <ClInclude Include="D3DTexture.h" />
+    <ClInclude Include="D3DUtil.h" />
+    <ClInclude Include="DXPipeline.h" />
+    <ClInclude Include="DXShader.h" />
+    <ClInclude Include="DXTexture.h" />
+    <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="GeometryShaderCache.h" />
+    <ClInclude Include="PerfQuery.h" />
+    <ClInclude Include="PixelShaderCache.h" />
+    <ClInclude Include="PSTextureEncoder.h" />
+    <ClInclude Include="Render.h" />
     <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="TextureEncoder.h" />
-    <ClInclude Include="TextureSampler.h" />
-    <ClInclude Include="TransformUnit.h" />
-    <ClInclude Include="Vec3.h" />
+    <ClInclude Include="VertexManager.h" />
+    <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
   </ItemGroup>

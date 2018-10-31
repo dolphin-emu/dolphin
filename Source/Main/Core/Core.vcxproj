@@ -574,22 +574,22 @@
     <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
       <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)AudioCommon\AudioCommon.vcxproj">
+    <ProjectReference Include="$(MainDir)AudioCommon\AudioCommon.vcxproj">
       <Project>{54aa7840-5beb-4a0c-9452-74ba4cc7fd44}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+    <ProjectReference Include="$(MainDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+    <ProjectReference Include="$(MainDir)Common\SCMRevGen.vcxproj">
       <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)DiscIO\DiscIO.vcxproj">
+    <ProjectReference Include="$(MainDir)DiscIO\DiscIO.vcxproj">
       <Project>{160bdc25-5626-4b0d-bdd8-2953d9777fb5}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)InputCommon\InputCommon.vcxproj">
+    <ProjectReference Include="$(MainDir)InputCommon\InputCommon.vcxproj">
       <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)cubeb\msvc\cubeb.vcxproj">

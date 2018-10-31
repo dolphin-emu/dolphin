@@ -39,7 +39,7 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
+    <ProjectReference Include="$(MainDir)Core\Core.vcxproj">
       <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">

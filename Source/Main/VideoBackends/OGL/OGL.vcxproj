@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{29F29A19-F141-45AD-9679-5A2923B49DA3}</ProjectGuid>
+    <ProjectGuid>{EC1A314C-5588-4506-9C1E-2E58E5817F75}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -36,75 +36,53 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="OGLPipeline.cpp" />
+    <ClCompile Include="OGLShader.cpp" />
+    <ClCompile Include="OGLTexture.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="CommandBufferManager.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PostProcessing.cpp" />
-    <ClCompile Include="ShaderCache.cpp" />
-    <ClCompile Include="TextureConverter.cpp" />
+    <ClCompile Include="NativeVertexFormat.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
+    <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="ProgramShaderCache.cpp" />
     <ClCompile Include="RasterFont.cpp" />
-    <ClCompile Include="StagingBuffer.cpp" />
-    <ClCompile Include="Util.cpp" />
-    <ClCompile Include="VertexFormat.cpp" />
-    <ClCompile Include="ObjectCache.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="ShaderCompiler.cpp" />
-    <ClCompile Include="StateTracker.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="SamplerCache.cpp" />
     <ClCompile Include="StreamBuffer.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="TextureCache.cpp" />
+    <ClCompile Include="TextureConverter.cpp" />
     <ClCompile Include="VertexManager.cpp" />
-    <ClCompile Include="VKPipeline.cpp" />
-    <ClCompile Include="VKShader.cpp" />
-    <ClCompile Include="VKTexture.cpp" />
-    <ClCompile Include="VulkanContext.cpp" />
-    <ClCompile Include="VulkanLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OGLPipeline.h" />
+    <ClInclude Include="OGLShader.h" />
+    <ClInclude Include="OGLTexture.h" />
     <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="CommandBufferManager.h" />
     <ClInclude Include="FramebufferManager.h" />
-    <ClInclude Include="Constants.h" />
-    <ClInclude Include="PostProcessing.h" />
-    <ClInclude Include="ShaderCache.h" />
-    <ClInclude Include="TextureConverter.h" />
-    <ClInclude Include="RasterFont.h" />
-    <ClInclude Include="StagingBuffer.h" />
-    <ClInclude Include="Util.h" />
-    <ClInclude Include="VertexFormat.h" />
+    <ClInclude Include="GPUTimer.h" />
     <ClInclude Include="PerfQuery.h" />
-    <ClInclude Include="ObjectCache.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="ShaderCompiler.h" />
-    <ClInclude Include="StateTracker.h" />
+    <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="ProgramShaderCache.h" />
+    <ClInclude Include="RasterFont.h" />
+    <ClInclude Include="Render.h" />
+    <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="StreamBuffer.h" />
-    <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="Texture2D.h" />
     <ClInclude Include="TextureCache.h" />
+    <ClInclude Include="TextureConverter.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="VKPipeline.h" />
-    <ClInclude Include="VKShader.h" />
-    <ClInclude Include="VKTexture.h" />
-    <ClInclude Include="VulkanContext.h" />
-    <ClInclude Include="VulkanLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(MainDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Externals\glslang\glslang.vcxproj">
-      <Project>{d178061b-84d3-44f9-beed-efd18d9033f0}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="VulkanEntryPoints.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
