@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 '''
-Run this script from Source/Core/ to find all the #include cycles.
+Run this script from Source/Main/ to find all the #include cycles.
 '''
 
 import subprocess

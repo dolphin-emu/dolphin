@@ -27,7 +27,7 @@ else()
 
   # These compat headers must not be in the include path when building with MSVC,
   # because it currently does not support __has_include_next / #include_next.
-  include_directories(SYSTEM Core/Common/Compat)
+  include_directories(SYSTEM Main/Common/Compat)
 endif()
 
 # These aren't actually needed for C11/C++11
@@ -35,7 +35,7 @@ endif()
 add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 
-add_subdirectory(Core)
+add_subdirectory(Main)
 if (ANDROID)
   add_subdirectory(Android/jni)
 endif()

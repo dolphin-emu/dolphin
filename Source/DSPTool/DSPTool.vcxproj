@@ -55,10 +55,10 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
+    <ProjectReference Include="$(MainDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
+    <ProjectReference Include="$(MainDir)Core\Core.vcxproj">
       <Project>{e54cf649-140e-4255-81a5-30a673c1fb36}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -3,21 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinQt\DolphinQt.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Main\DolphinQt\DolphinQt.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcxproj", "{E54CF649-140E-4255-81A5-30A673C1FB36}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Main\Core\Core.vcxproj", "{E54CF649-140E-4255-81A5-30A673C1FB36}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AudioCommon", "Core\AudioCommon\AudioCommon.vcxproj", "{54AA7840-5BEB-4A0C-9452-74BA4CC7FD44}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AudioCommon", "Main\AudioCommon\AudioCommon.vcxproj", "{54AA7840-5BEB-4A0C-9452-74BA4CC7FD44}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Core\Common\Common.vcxproj", "{2E6C348C-C75C-4D94-8D1E-9C1FCBF3EFE4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Main\Common\Common.vcxproj", "{2E6C348C-C75C-4D94-8D1E-9C1FCBF3EFE4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DiscIO", "Core\DiscIO\DiscIO.vcxproj", "{160BDC25-5626-4B0D-BDD8-2953D9777FB5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DiscIO", "Main\DiscIO\DiscIO.vcxproj", "{160BDC25-5626-4B0D-BDD8-2953D9777FB5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputCommon", "Core\InputCommon\InputCommon.vcxproj", "{6BBD47CF-91FD-4077-B676-8B76980178A9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputCommon", "Main\InputCommon\InputCommon.vcxproj", "{6BBD47CF-91FD-4077-B676-8B76980178A9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UICommon", "Core\UICommon\UICommon.vcxproj", "{604C8368-F34A-4D55-82C8-CC92A0C13254}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UICommon", "Main\UICommon\UICommon.vcxproj", "{604C8368-F34A-4D55-82C8-CC92A0C13254}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoCommon", "Core\VideoCommon\VideoCommon.vcxproj", "{3DE9EE35-3E91-4F27-A014-2866AD8C3FE3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoCommon", "Main\VideoCommon\VideoCommon.vcxproj", "{3DE9EE35-3E91-4F27-A014-2866AD8C3FE3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Externals", "Externals", "{87ADDFF9-5768-4DA2-A33B-2477593D6677}"
 EndProject
@@ -41,7 +41,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "..\Externals\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mbedTLS", "..\Externals\mbedtls\mbedTLS.vcxproj", "{BDB6578B-0691-4E80-A46C-DF21639FD3B8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SCMRevGen.vcxproj", "{41279555-F94F-4EBC-99DE-AF863C10C5C4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Main\Common\SCMRevGen.vcxproj", "{41279555-F94F-4EBC-99DE-AF863C10C5C4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_Network", "..\Externals\SFML\build\vc2010\SFML_Network.vcxproj", "{93D73454-2512-424E-9CDA-4BB357FE13DD}"
 EndProject
@@ -49,15 +49,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0", "..\Externals\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSPTool", "DSPTool\DSPTool.vcxproj", "{1970D175-3DE8-4738-942A-4D98D1CDBF64}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D", "Core\VideoBackends\D3D\D3D.vcxproj", "{96020103-4BA5-4FD2-B4AA-5B6D24492D4E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D", "Main\VideoBackends\D3D\D3D.vcxproj", "{96020103-4BA5-4FD2-B4AA-5B6D24492D4E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGL", "Core\VideoBackends\OGL\OGL.vcxproj", "{EC1A314C-5588-4506-9C1E-2E58E5817F75}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGL", "Main\VideoBackends\OGL\OGL.vcxproj", "{EC1A314C-5588-4506-9C1E-2E58E5817F75}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Software", "Core\VideoBackends\Software\Software.vcxproj", "{A4C423AA-F57C-46C7-A172-D1A777017D29}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Software", "Main\VideoBackends\Software\Software.vcxproj", "{A4C423AA-F57C-46C7-A172-D1A777017D29}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Null", "Core\VideoBackends\Null\Null.vcxproj", "{53A5391B-737E-49A8-BC8F-312ADA00736F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Null", "Main\VideoBackends\Null\Null.vcxproj", "{53A5391B-737E-49A8-BC8F-312ADA00736F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Vulkan", "Core\VideoBackends\Vulkan\Vulkan.vcxproj", "{29F29A19-F141-45AD-9679-5A2923B49DA3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Vulkan", "Main\VideoBackends\Vulkan\Vulkan.vcxproj", "{29F29A19-F141-45AD-9679-5A2923B49DA3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Video Backends", "Video Backends", "{AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}"
 EndProject
@@ -81,7 +81,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "picojson", "..\Externals\pi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ed25519", "..\externals\ed25519\ed25519.vcxproj", "{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Core\Updater\Updater.vcxproj", "{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Main\Updater\Updater.vcxproj", "{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discord-rpc", "..\Externals\discord-rpc\src\discord-rpc.vcxproj", "{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}"
 EndProject

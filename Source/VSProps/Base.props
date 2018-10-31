@@ -11,7 +11,7 @@
     <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
     <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
     <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
-    <CoreDir>$(SolutionDir)Core\</CoreDir>
+    <MainDir>$(SolutionDir)Main\</MainDir>
   </PropertyGroup>
   <PropertyGroup>
     <!--
@@ -32,7 +32,7 @@
       Order matters! (first hit, first use).
         Note: Directory containing source file being compiled is always searched first.
       -->
-      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MainDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

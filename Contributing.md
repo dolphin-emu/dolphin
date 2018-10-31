@@ -46,9 +46,9 @@ In most cases, clang-format can and **should** be used to automatically reformat
   ```
   git config filter.clang_format.smudge 'cat'
   git config filter.clang_format.clean 'clang-format %f'
-  echo '/Source/Core/**/*.cpp filter=clang_format' >> .git/info/attributes
-  echo '/Source/Core/**/*.h filter=clang_format' >> .git/info/attributes
-  echo '/Source/Core/**/*.mm filter=clang_format' >> .git/info/attributes
+  echo '/Source/Main/**/*.cpp filter=clang_format' >> .git/info/attributes
+  echo '/Source/Main/**/*.h filter=clang_format' >> .git/info/attributes
+  echo '/Source/Main/**/*.mm filter=clang_format' >> .git/info/attributes
   ```
 
 # <a name="cpp-coding-style-and-formatting"></a>C++ coding style and formatting
@@ -190,7 +190,7 @@ Summary:
   - System-specific headers (these should also likely be in an `#ifdef` block unless the source file itself is system-specific).
   - Other Dolphin source file headers
 - Each of the above header sections should also be in alphabetical order
-- Project source file headers should be included in a way that is relative to the `[Dolphin Root]/Source/Core` directory.
+- Project source file headers should be included in a way that is relative to the `[Dolphin Root]/Source/Main` directory.
 - This project uses `#pragma once` as header guards.
 
 ## <a name="cpp-code-loops"></a>Loops

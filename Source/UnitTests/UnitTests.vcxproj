@@ -63,25 +63,25 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
+    <ProjectReference Include="$(MainDir)Core\Core.vcxproj">
       <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoBackends\D3D\D3D.vcxproj">
       <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoBackends\OGL\OGL.vcxproj">
       <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoBackends\Software\Software.vcxproj">
       <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoBackends\Null\Null.vcxproj">
       <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
+    <ProjectReference Include="$(MainDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29F29A19-F141-45AD-9679-5A2923B49DA3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
+    <ProjectReference Include="$(MainDir)UICommon\UICommon.vcxproj">
       <Project>{604c8368-f34a-4d55-82c8-cc92a0c13254}</Project>
     </ProjectReference>
   </ItemGroup>

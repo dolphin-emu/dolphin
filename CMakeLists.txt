@@ -490,7 +490,7 @@ endif()
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
-include_directories(Source/Core)
+include_directories(Source/Main)
 if(ANDROID)
   include_directories(Source/Android)
 endif()
@@ -708,10 +708,10 @@ else()
 endif()
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h.in"
-  "${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h"
+  "${PROJECT_SOURCE_DIR}/Source/Main/Common/scmrev.h.in"
+  "${PROJECT_BINARY_DIR}/Source/Main/Common/scmrev.h"
 )
-include_directories("${PROJECT_BINARY_DIR}/Source/Core")
+include_directories("${PROJECT_BINARY_DIR}/Source/Main")
 
 ########################################
 # Unit testing.
