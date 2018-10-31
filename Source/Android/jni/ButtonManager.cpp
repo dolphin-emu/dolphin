@@ -16,7 +16,7 @@ namespace ButtonManager
 {
 static const std::string touchScreenKey = "Touchscreen";
 static std::unordered_map<std::string, InputDevice*> m_controllers;
-static char configStrings[][32] = {
+static const char configStrings[][32] = {
     // GC
     "InputA",
     "InputB",
@@ -169,7 +169,7 @@ static char configStrings[][32] = {
     // Rumble
     "Rumble",
 };
-static ButtonType configTypes[] = {
+static const ButtonType configTypes[] = {
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -337,8 +337,9 @@ static void AddBind(const std::string& dev, sBind* bind)
 
 void Init(const std::string& gameId)
 {
+  const int MAX_PAD_NUM = 4;
   // Initialize our touchScreenKey buttons
-  for (int a = 0; a < 8; ++a)
+  for (int a = 0; a < MAX_PAD_NUM; ++a)
   {
     // GC
     AddBind(touchScreenKey, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
@@ -562,7 +563,7 @@ void Init(const std::string& gameId)
   ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
   for (u32 a = 0; a < ArraySize(configStrings); ++a)
   {
-    for (int padID = 0; padID < 8; ++padID)
+    for (int padID = 0; padID < MAX_PAD_NUM; ++padID)
     {
       BindType type;
       int bindnum;
@@ -594,7 +595,7 @@ void Init(const std::string& gameId)
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"));
   for (u32 a = 0; a < ArraySize(configStrings); ++a)
   {
-    for (int padID = 0; padID < 8; ++padID)
+    for (int padID = 0; padID < MAX_PAD_NUM; ++padID)
     {
       BindType type;
       int bindnum;

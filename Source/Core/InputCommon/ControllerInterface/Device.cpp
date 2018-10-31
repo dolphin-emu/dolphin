@@ -2,13 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/Device.h"
-
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
@@ -63,7 +61,6 @@ Device::Output* Device::FindOutput(const std::string& name) const
     if (output->GetName() == name)
       return output;
   }
-
   return nullptr;
 }
 
@@ -76,14 +73,10 @@ std::string DeviceQualifier::ToString() const
 {
   if (source.empty() && (cid < 0) && name.empty())
     return "";
-
-  std::ostringstream ss;
-  ss << source << '/';
-  if (cid > -1)
-    ss << cid;
-  ss << '/' << name;
-
-  return ss.str();
+  else if (cid > -1)
+    return StringFromFormat("%s/%i/%s", source.c_str(), cid, name.c_str());
+  else
+    return StringFromFormat("%s//%s", source.c_str(), name.c_str());
 }
 
 //
@@ -95,15 +88,22 @@ void DeviceQualifier::FromString(const std::string& str)
 {
   *this = {};
 
-  std::istringstream ss(str);
+  // source
+  size_t start = 0;
+  size_t offset = str.find('/', start);
+  if(offset != std::string::npos)
+  {
+    source = str.substr(start, offset - start);
 
-  std::getline(ss, source, '/');
+    // cid
+    start = offset + 1;
+    offset = str.find('/', start);
+    if(offset != std::string::npos && offset - start > 0)
+      cid = std::stoi(str.substr(start, offset - start)) % 4;
 
-  // silly
-  std::getline(ss, name, '/');
-  std::istringstream(name) >> cid;
-
-  std::getline(ss, name);
+    // name
+    name = str.substr(offset + 1);
+  }
 }
 
 //
