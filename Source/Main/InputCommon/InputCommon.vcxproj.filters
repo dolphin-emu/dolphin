@@ -25,6 +25,9 @@
     <Filter Include="ControllerEmu\Setting">
       <UniqueIdentifier>{ce661cb4-f23f-4ab2-952d-402d381735e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControlReference">
+      <UniqueIdentifier>{b4110bb7-4c87-48ef-975c-7c34e496e46c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GCAdapter.cpp" />
@@ -104,13 +107,13 @@
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
+    <ClCompile Include="InputProfile.cpp" />
     <ClCompile Include="ControlReference\ExpressionParser.cpp">
-      <Filter>ControllerInterface</Filter>
+      <Filter>ControlReference</Filter>
     </ClCompile>
     <ClCompile Include="ControlReference\ControlReference.cpp">
-      <Filter>ControllerInterface</Filter>
+      <Filter>ControlReference</Filter>
     </ClCompile>
-    <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -197,13 +200,13 @@
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h">
       <Filter>ControllerInterface\DInput</Filter>
     </ClInclude>
+    <ClInclude Include="InputProfile.h" />
     <ClInclude Include="ControlReference\ExpressionParser.h">
-      <Filter>ControllerInterface</Filter>
+      <Filter>ControlReference</Filter>
     </ClInclude>
     <ClInclude Include="ControlReference\ControlReference.h">
-      <Filter>ControllerInterface</Filter>
+      <Filter>ControlReference</Filter>
     </ClInclude>
-    <ClInclude Include="InputProfile.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
