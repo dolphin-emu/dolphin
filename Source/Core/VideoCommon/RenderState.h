@@ -60,10 +60,6 @@ union BlendingState
     return dstalpha && (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA);
   }
 
-  bool IsPremultipliedAlpha() const {
-    return false && !dstalpha && (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA);
-  }
-
   BlendingState& operator=(const BlendingState& rhs);
 
   bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }

@@ -355,11 +355,6 @@ PixelShaderUid GetPixelShaderUid()
       uid_data->useDstAlpha = false;
     }
   }
-  else if (state.IsPremultipliedAlpha())
-  {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-  }
 
   return out;
 }
@@ -1381,18 +1376,6 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source)
 {
-  // Premultiply color by alpha if the source factor is SRCALPHA.
-  // This works around precision/rounding differences between the console GPU and the hardware
-  // backends, reducing the chance of off-by-one errors. Fortune Street is one case of where
-  // this can make a difference, leaving a feint white box around characters.
-  if (!use_dual_source && uid_data->blend_enable)
-  {
-    if (uid_data->blend_src_factor == BlendMode::SRCALPHA)
-      out.Write("\tprev.rgb = (prev.rgb * (prev.a + (prev.a >> 7))) >> 8;\n");
-    else if (uid_data->blend_src_factor == BlendMode::INVSRCALPHA)
-      out.Write("\tprev.rgb = (prev.rgb * ((255 - prev.a) + ((255 - prev.a) >> 7))) >> 8;\n");
-  }
-
   // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
   if (api_type == APIType::D3D && uid_data->uint_output)
   {
