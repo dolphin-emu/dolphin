@@ -13,6 +13,8 @@ class QCheckBox;
 class QComboBox;
 class QSpinBox;
 class ToolTipCheckBox;
+class GraphicsSlider;
+class QLabel;
 
 class AdvancedWidget final : public GraphicsWidget
 {
@@ -63,4 +65,9 @@ private:
   // Experimental
   GraphicsBool* m_defer_efb_access_invalidation;
   GraphicsBool* m_manual_texture_sampling;
+
+  // EFB exclusions
+  GraphicsBool* m_scaled_efb_exclude_enable;
+  GraphicsSlider* m_scaled_efb_exclude_slider;
+  QLabel* m_scaled_efb_exclude_label;
 };

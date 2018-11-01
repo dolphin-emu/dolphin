@@ -136,6 +136,8 @@ struct VideoConfig final
   int iSaveTargetId = 0;  // TODO: Should be dropped
   u32 iMissingColorValue = 0;
   bool bFastTextureSampling = false;
+  unsigned int iEFBExclude = 630;
+  bool iEFBExcludeEnabled = false;
 
   // Stereoscopy
   StereoMode stereo_mode{};

@@ -2079,6 +2079,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   u32 scaled_tex_w = g_renderer->EFBToScaledX(width);
   u32 scaled_tex_h = g_renderer->EFBToScaledY(height);
 
+  if (width < g_ActiveConfig.iEFBExclude && g_ActiveConfig.iEFBExcludeEnabled && !is_xfb_copy)
+  {
+    scaled_tex_w = tex_w;
+    scaled_tex_h = tex_h;
+  }
+
   if (scaleByHalf)
   {
     tex_w /= 2;

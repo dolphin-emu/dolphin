@@ -125,6 +125,8 @@ extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const Info<bool> GFX_HACK_VERTEX_ROUDING;
 extern const Info<u32> GFX_HACK_MISSING_COLOR_VALUE;
 extern const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING;
+extern const Info<int> GFX_EFB_SCALE_EXCLUDE;
+extern const Info<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED;
 
 // Graphics.GameSpecific
 

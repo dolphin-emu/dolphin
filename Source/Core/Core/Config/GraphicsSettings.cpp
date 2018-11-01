@@ -89,6 +89,9 @@ const Info<int> GFX_SHADER_PRECOMPILER_THREADS{
     {System::GFX, "Settings", "ShaderPrecompilerThreads"}, -1};
 const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
+const Info<int> GFX_EFB_SCALE_EXCLUDE{{System::GFX, "Settings", "EFBScaledExclude"}, 630};
+const Info<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED{{System::GFX, "Settings", "EFBScaledExcludeEnabled"},
+                                               false};
 
 const Info<bool> GFX_SW_ZCOMPLOC{{System::GFX, "Settings", "SWZComploc"}, true};
 const Info<bool> GFX_SW_ZFREEZE{{System::GFX, "Settings", "SWZFreeze"}, true};
