@@ -42,8 +42,11 @@ private:
   QCheckBox* m_fast_depth_calculation;
   QCheckBox* m_disable_bounding_box;
   QCheckBox* m_vertex_rounding;
+  QCheckBox* m_defer_efb_copies;
 
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+
+  void UpdateDeferEFBCopiesEnabled();
 };

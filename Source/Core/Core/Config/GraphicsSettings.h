@@ -107,6 +107,7 @@ extern const ConfigInfo<bool> GFX_HACK_FORCE_PROGRESSIVE;
 extern const ConfigInfo<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM;
 extern const ConfigInfo<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM;
 extern const ConfigInfo<bool> GFX_HACK_DISABLE_COPY_TO_VRAM;
+extern const ConfigInfo<bool> GFX_HACK_DEFER_EFB_COPIES;
 extern const ConfigInfo<bool> GFX_HACK_IMMEDIATE_XFB;
 extern const ConfigInfo<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const ConfigInfo<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;

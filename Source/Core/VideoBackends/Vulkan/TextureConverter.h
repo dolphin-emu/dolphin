@@ -21,7 +21,6 @@ class AbstractStagingTexture;
 
 namespace Vulkan
 {
-class StagingTexture2D;
 class Texture2D;
 class VKTexture;
 
@@ -38,14 +37,12 @@ public:
                       TextureCache::TCacheEntry* src_entry, const void* palette,
                       TLUTFormat palette_format);
 
-  // Uses an encoding shader to copy src_texture to dest_ptr.
-  // NOTE: Executes the current command buffer.
-  void
-  EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params,
-                        u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                        const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
-                        float gamma, bool clamp_top, bool clamp_bottom,
-                        const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients);
+  // Uses an encoding shader to copy src_texture to dest.
+  void EncodeTextureToMemory(
+      VkImageView src_texture, AbstractStagingTexture* dest, const EFBCopyParams& params,
+      u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+      const EFBRectangle& src_rect, bool scale_by_half, float y_scale, float gamma, bool clamp_top,
+      bool clamp_bottom, const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients);
 
   bool SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,
@@ -54,9 +51,6 @@ public:
                      const u8* palette, TLUTFormat palette_format);
 
 private:
-  static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
-  static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
-  static const AbstractTextureFormat ENCODING_TEXTURE_FORMAT = AbstractTextureFormat::BGRA8;
   static const size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
 
   // Maximum size of a texture based on BP registers.
@@ -100,7 +94,6 @@ private:
   // Texture encoding - RGBA8->GX format in memory
   std::map<EFBCopyParams, VkShaderModule> m_encoding_shaders;
   std::unique_ptr<AbstractTexture> m_encoding_render_texture;
-  std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
 
   // Texture decoding - GX format in memory->RGBA8
   struct TextureDecodingPipeline

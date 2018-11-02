@@ -38,9 +38,9 @@ public:
 
   void Init();
   void Shutdown();
-  void Encode(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
-              u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half,
-              float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
+  void Encode(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
+              u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+              bool scale_by_half, float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
               const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients);
 
 private:
@@ -48,7 +48,6 @@ private:
 
   ID3D11Buffer* m_encode_params = nullptr;
   std::unique_ptr<AbstractTexture> m_encoding_render_texture;
-  std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
   std::map<EFBCopyParams, ID3D11PixelShader*> m_encoding_shaders;
 };
 }

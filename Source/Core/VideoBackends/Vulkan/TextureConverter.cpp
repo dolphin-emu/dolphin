@@ -207,10 +207,10 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
 }
 
 void TextureConverter::EncodeTextureToMemory(
-    VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
-    u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
-    bool scale_by_half, float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
-    const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients)
+    VkImageView src_texture, AbstractStagingTexture* dest, const EFBCopyParams& params,
+    u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+    const EFBRectangle& src_rect, bool scale_by_half, float y_scale, float gamma, bool clamp_top,
+    bool clamp_bottom, const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients)
 {
   VkShaderModule shader = GetEncodingShader(params);
   if (shader == VK_NULL_HANDLE)
@@ -273,9 +273,7 @@ void TextureConverter::EncodeTextureToMemory(
   draw.EndRenderPass();
 
   MathUtil::Rectangle<int> copy_rect(0, 0, render_width, render_height);
-  m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
-                                               copy_rect);
-  m_encoding_readback_texture->ReadTexels(copy_rect, dest_ptr, memory_stride);
+  dest->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0, copy_rect);
 }
 
 bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format)
@@ -610,14 +608,8 @@ VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyParams& params)
 
 bool TextureConverter::CreateEncodingTexture()
 {
-  TextureConfig config(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1, 1,
-                       ENCODING_TEXTURE_FORMAT, true);
-
-  m_encoding_render_texture = g_renderer->CreateTexture(config);
-  m_encoding_readback_texture =
-      g_renderer->CreateStagingTexture(StagingTextureType::Readback, config);
-
-  return m_encoding_render_texture && m_encoding_readback_texture;
+  m_encoding_render_texture = g_renderer->CreateTexture(TextureCache::GetEncodingTextureConfig());
+  return m_encoding_render_texture != nullptr;
 }
 
 bool TextureConverter::CreateDecodingTexture()
