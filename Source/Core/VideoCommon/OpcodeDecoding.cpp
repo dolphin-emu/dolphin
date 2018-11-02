@@ -221,17 +221,27 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         if (src.size() < 2)
           goto end;
         u16 num_vertices = src.Read<u16>();
-        int bytes = VertexLoaderManager::RunVertices(
-            cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-            (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src, is_preprocess);
+        if(num_vertices > 0)
+        {
+          int bytes;
 
-        if (bytes < 0)
-          goto end;
+          if(is_preprocess)
+            bytes = VertexLoaderManager::RunVerticesPreprocess(
+              cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
+              (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src);
+          else
+            bytes = VertexLoaderManager::RunVertices(
+              cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
+              (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src);
 
-        src.Skip(bytes);
+          if (bytes < 0)
+            goto end;
 
-        // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
-        totalCycles += num_vertices * 4 * 3 + 6;
+          src.Skip(bytes);
+
+          // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
+          totalCycles += num_vertices * 4 * 3 + 6;
+        }
       }
       else
       {
@@ -244,13 +254,14 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       }
       break;
     }
-
+#ifndef ANDROID
     // Display lists get added directly into the FIFO stream
     if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
     {
       u8* opcodeEnd = src.GetPointer();
       FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(opcodeEnd - opcodeStart));
     }
+#endif
   }
 
 end:
