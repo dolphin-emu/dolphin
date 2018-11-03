@@ -197,6 +197,9 @@ public class TvUtil
    */
   public static void scheduleSyncingChannel(Context context)
   {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+      return;
+
     ComponentName componentName = new ComponentName(context, SyncChannelJobService.class);
     JobInfo.Builder builder = new JobInfo.Builder(1, componentName);
     builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
