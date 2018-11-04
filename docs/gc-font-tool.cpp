@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 
 // Compile with:
-//  g++ -O2 -std=c++11 $(freetype-config --cflags --libs) gc-font-tool.cpp
+//  g++ -O2 -std=c++17 $(pkg-config --cflags --libs freetype2) gc-font-tool.cpp
 
 // Yay0
 // ===============
@@ -79,6 +79,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -110,6 +111,17 @@ enum class font_type
 #define SEQUENCE_32(x) SEQUENCE_16(x), SEQUENCE_16((x)+16)
 #define SEQUENCE_64(x) SEQUENCE_32(x), SEQUENCE_32((x)+32)
 
+#define REPEAT_4(x) (x), (x), (x), (x)
+#define REPEAT_8(x) REPEAT_4(x), REPEAT_4(x)
+#define REPEAT_16(x) REPEAT_8(x), REPEAT_8(x)
+#define REPEAT_32(x) REPEAT_16(x), REPEAT_16(x)
+#define REPEAT_64(x) REPEAT_32(x), REPEAT_32(x)
+#define REPEAT_128(x) REPEAT_64(x), REPEAT_64(x)
+#define REPEAT_256(x) REPEAT_128(x), REPEAT_128(x)
+#define REPEAT_512(x) REPEAT_256(x), REPEAT_256(x)
+#define REPEAT_1024(x) REPEAT_512(x), REPEAT_512(x)
+#define REPEAT_2048(x) REPEAT_1024(x), REPEAT_1024(x)
+
 // List of unicode codepoints appearing in the Windows-1252 font
 const uint16_t windows_1252_font_table[] =
 {
@@ -123,6 +135,22 @@ const uint16_t windows_1252_font_table[] =
 	SEQUENCE_32(0xA0),
 	SEQUENCE_64(0xC0),
 };
+static_assert(std::size(windows_1252_font_table) == 224);
+
+// List of horizontal glyph widths
+const uint8_t windows_1252_widths_table[] =
+{
+	12, 6, 11, 18, 16, 22, 19, 6, 10, 10, 15, 19, 7, 17, 7, 23, 18, 10, 17, 17, 19, 18, 18, 17, 17,
+	17, 7, 7, 17, 19, 17, 15, 20, 18, 16, 17, 17, 14, 14, 17, 17, 7, 11, 16, 14, 19, 16, 18, 15, 18,
+	17, 16, 16, 16, 17, 22, 17, 17, 15, 10, 23, 9, 13, 24, 7, 15, 15, 14, 15, 15, 10, 15, 14, 7, 9,
+	14, 7, 19, 14, 15, 15, 15, 10, 13, 11, 14, 15, 19, 15, 14, 13, 10, 5, 10, 21, 24, 20, 24, 6, 15,
+	11, 21, 14, 14, 13, 23, 15, 11, 21, 24, 15, 24, 24, 7, 7, 11, 11, 10, 21, 24, 15, 18, 14, 11, 19,
+	24, 13, 17, 24, 6, 15, 17, 17, 17, 6, 15, 12, 23, 11, 14, 18, 10, 23, 24, 11, 18, 10, 11, 10, 14,
+	14, 8, 8, 7, 11, 14, 20, 20, 21, 16, 18, 18, 18, 18, 19, 19, 20, 16, 15, 15, 15, 15, 6, 6, 6, 6,
+	20, 16, 17, 18, 18, 18, 18, 17, 18, 16, 16, 16, 16, 17, 15, 15, 15, 15, 15, 15, 15, 15, 19, 14,
+	14, 14, 14, 14, 6, 6, 6, 6, 16, 14, 15, 15, 15, 15, 15, 19, 15, 15, 15, 14, 14, 15, 16, 14
+};
+static_assert(std::size(windows_1252_widths_table) == 224);
 
 // List of unicode codepoints appearing in the Shift JIS font
 const uint16_t shift_jis_font_table[] =
@@ -597,6 +625,41 @@ const uint16_t shift_jis_font_table[] =
 	// Padding to ensure size is 4-byte aligned
 	0, 0, 0,
 };
+static_assert(std::size(shift_jis_font_table) == 3764);
+
+const uint8_t shift_jis_widths_table[] =
+{
+	23, 24, 24,
+	REPEAT_16(24),
+	REPEAT_128(24),
+	19, 11, 17, 18, 19, 17, 19, 18, 19, 19, 20, 17, 18, 19, 17, 15, 19, 18, 7, 12, 18, 16, 20, 18, 20,
+	17, 20, 18, 16, 17, 18, 20, 23, 18, 18, 17, 16, 16, 16, 16, 16, 12, 16, 16, 7, 10, 15, 7, 20, 16,
+	16, 16, 16, 11, 14, 12, 16, 16, 19, 16, 16, 14, 24,
+	REPEAT_8(24),
+	REPEAT_32(24),
+	REPEAT_128(24),
+	20, 17, 15, 18, 16, 16, 16, 20, 7, 17, 18, 20, 16, 18, 20, 20, 17, 18, 17, 18, 20, 18, 19, 20, 18,
+	17, 18, 16, 15, 18, 16, 16, 9, 16, 17, 17, 15, 16, 16, 17, 16, 18, 13, 16, 18, 15, 18, 20, 18, 16,
+	17, 15, 19, 16, 15, 23, 17, 16, 16, 17, 18, 20, 16, 20, 16, 17, 18, 17, 18, 20, 18, 19, 18, 21,
+	22, 22, 22, 17, 18, 22, 17, 16, 16, 15, 13, 18, 16, 16, 20, 14, 15, 15, 15, 15, 16, 15, 16, 16,
+	15, 15, 14, 16, 23, 16, 17, 14, 18, 19, 18, 18, 15, 15, 19, 15,
+	REPEAT_32(24),
+	14,
+	REPEAT_4(14),
+	REPEAT_8(14),
+	REPEAT_16(14),
+	REPEAT_32(14),
+	REPEAT_128(14),
+	REPEAT_8(24),
+	REPEAT_32(24),
+	REPEAT_64(24),
+	REPEAT_128(24),
+	REPEAT_256(24),
+	REPEAT_512(24),
+	REPEAT_2048(24),
+	0, 0, 0
+};
+static_assert(std::size(shift_jis_widths_table) == 3764);
 
 // Font conversion error
 class font_error : public std::runtime_error
@@ -1147,13 +1210,11 @@ static std::vector<uint8_t> generate_fnt(
 //  font_buf = input font data
 //  font_table = list of unicode codepoints appearing in the font
 //  font_table_size = number of characters in font_table
-//  out_widths = output vector to store advance widths of each character
 //  out_pixmap = output vector to store pixmap (unscrambled)
 static void freetype_to_fnt_data(
 	const std::vector<uint8_t>& font_buf,
 	const uint16_t* font_table,
 	unsigned font_table_size,
-	std::vector<uint8_t>& out_widths,
 	image8& out_pixmap)
 {
 	// Initialize freetype
@@ -1175,8 +1236,6 @@ static void freetype_to_fnt_data(
 	const unsigned cpr_squared = FNT_CELLS_PER_ROW * FNT_CELLS_PER_ROW;
 	const unsigned pages = (font_table_size + cpr_squared - 1) / cpr_squared;
 
-	out_widths.clear();
-	out_widths.resize(font_table_size);
 	out_pixmap.data.clear();
 	out_pixmap.data.resize(FNT_PIXMAP_WIDTH * FNT_PIXMAP_WIDTH * pages);
 	out_pixmap.width = FNT_PIXMAP_WIDTH;
@@ -1193,9 +1252,6 @@ static void freetype_to_fnt_data(
 		// Load glyph data
 		if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER) != 0)
 			throw font_error("error loading glyph");
-
-		// Record width
-		out_widths[i] = clamp(face->glyph->metrics.horiAdvance >> 6, 0, FNT_CELL_SIZE);
 
 		// Calculate cell offset within final image
 		const unsigned cell_page = i / cpr_squared;
@@ -1249,13 +1305,28 @@ static std::vector<uint8_t> freetype_to_fnt(const std::vector<uint8_t>& font_buf
 	}
 
 	// Generate pixmap
-	std::vector<uint8_t> widths;
 	image8 pixmap;
-	freetype_to_fnt_data(font_buf, font_table, font_table_size, widths, pixmap);
+	freetype_to_fnt_data(font_buf, font_table, font_table_size, pixmap);
 
 	// Dither image
 	if (dither)
 		dither_4colour(pixmap);
+
+	// Many games using the embedded fonts depend on the original glyph widths,
+	// e.g. for correct positioning of button images in prompts like
+	// "Press (A) to continue", so we can't just use the widths from our font.
+	// Unfortunately, this means some of our glyphs may be cut off.
+	std::vector<uint8_t> widths;
+	if (type == font_type::windows_1252)
+	{
+		widths = {std::begin(windows_1252_widths_table),
+		          std::end(windows_1252_widths_table)};
+	}
+	else
+	{
+		widths = {std::begin(shift_jis_widths_table),
+		          std::end(shift_jis_widths_table)};
+	}
 
 	// Scramble pixmap, generate fnt header and compress
 	return yay0_compress(generate_fnt(type, widths, i2encode(pixmap)));
