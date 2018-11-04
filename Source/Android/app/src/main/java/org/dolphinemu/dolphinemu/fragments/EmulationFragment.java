@@ -144,7 +144,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       directoryStateReceiver = null;
     }
 
-    mEmulationState.pause();
+    if (mEmulationState.isRunning())
+      mEmulationState.pause();
     super.onPause();
   }
 
