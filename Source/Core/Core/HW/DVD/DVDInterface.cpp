@@ -16,8 +16,10 @@
 #include "Common/Align.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
@@ -35,6 +37,8 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
 
 // The minimum time it takes for the DVD drive to process a command (in
 // microseconds)
@@ -231,6 +235,8 @@ static u64 s_read_buffer_end_offset;
 
 // Disc changing
 static std::string s_disc_path_to_insert;
+static std::vector<std::string> s_auto_disc_change_paths;
+static size_t s_auto_disc_change_index;
 
 // Events
 static CoreTiming::EventType* s_finish_executing_command;
@@ -441,10 +447,20 @@ void Shutdown()
   DVDThread::Stop();
 }
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
+void SetDisc(std::unique_ptr<DiscIO::Volume> disc,
+             std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
   if (disc)
     s_current_partition = disc->GetGamePartition();
+
+  if (auto_disc_change_paths)
+  {
+    ASSERT_MSG(DISCIO, (*auto_disc_change_paths).size() != 1,
+               "Cannot automatically change between one disc");
+
+    s_auto_disc_change_paths = *auto_disc_change_paths;
+    s_auto_disc_change_index = 0;
+  }
 
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
@@ -457,7 +473,7 @@ bool IsDiscInside()
 
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  SetDisc(nullptr);
+  SetDisc(nullptr, {});
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
@@ -466,7 +482,7 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
       DiscIO::CreateVolumeFromFilename(s_disc_path_to_insert);
 
   if (new_volume)
-    SetDisc(std::move(new_volume));
+    SetDisc(std::move(new_volume), {});
   else
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
 
@@ -477,6 +493,20 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 void EjectDisc()
 {
   CoreTiming::ScheduleEvent(0, s_eject_disc);
+}
+
+// Must only be called on the CPU thread
+void ChangeDisc(const std::vector<std::string>& paths)
+{
+  ASSERT_MSG(DISCIO, !paths.empty(), "Trying to insert an empty list of discs");
+
+  if (paths.size() > 1)
+  {
+    s_auto_disc_change_paths = paths;
+    s_auto_disc_change_index = 0;
+  }
+
+  ChangeDisc(paths[0]);
 }
 
 // Must only be called on the CPU thread
@@ -493,6 +523,28 @@ void ChangeDisc(const std::string& new_path)
   s_disc_path_to_insert = new_path;
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
   Movie::SignalDiscChange(new_path);
+
+  for (size_t i = 0; i < s_auto_disc_change_paths.size(); ++i)
+  {
+    if (s_auto_disc_change_paths[i] == new_path)
+    {
+      s_auto_disc_change_index = i;
+      return;
+    }
+  }
+
+  s_auto_disc_change_paths.clear();
+}
+
+// Must only be called on the CPU thread
+bool AutoChangeDisc()
+{
+  if (s_auto_disc_change_paths.empty())
+    return false;
+
+  s_auto_disc_change_index = (s_auto_disc_change_index + 1) % s_auto_disc_change_paths.size();
+  ChangeDisc(s_auto_disc_change_paths[s_auto_disc_change_index]);
+  return true;
 }
 
 void SetLidOpen()
@@ -983,12 +1035,20 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   break;
 
   case DVDLowStopMotor:
+  {
     INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", command_1 ? "eject" : "",
              command_2 ? "kill!" : "");
 
-    if (command_1 && !command_2)
+    bool auto_disc_change = Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput();
+    if (auto_disc_change)
+      auto_disc_change = AutoChangeDisc();
+    if (auto_disc_change)
+      OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
+
+    if (!auto_disc_change && command_1 && !command_2)
       EjectDiscCallback(0, 0);
     break;
+  }
 
   // DVD Audio Enable/Disable (Immediate). GC uses this, and apparently Wii also does...?
   case DVDLowAudioBufferConfig:
