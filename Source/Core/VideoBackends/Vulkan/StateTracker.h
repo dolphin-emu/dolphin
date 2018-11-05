@@ -86,8 +86,10 @@ public:
   void OnDraw();
 
   // Call after CPU access is requested.
-  // This can be via EFBCache or EFB2RAM.
-  void OnReadback();
+  void OnCPUEFBAccess();
+
+  // Call after an EFB copy to RAM. If true, the current command buffer should be executed.
+  void OnEFBCopyToRAM();
 
   // Call at the end of a frame.
   void OnEndFrame();
@@ -182,6 +184,7 @@ private:
 
   // CPU access tracking
   u32 m_draw_counter = 0;
+  u32 m_last_efb_copy_draw_counter = 0;
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
