@@ -185,6 +185,10 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
 
+    // Find the EmulationFragment
+    mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
+            .findFragmentById(R.id.frame_emulation_fragment);
+
     if (savedInstanceState == null)
     {
       // Get params we were passed
@@ -196,7 +200,9 @@ public final class EmulationActivity extends AppCompatActivity
     }
     else
     {
-      activityRecreated = true;
+      // Could have recreated the activity(rotate) before creating the fragment. If the fragment
+      // doesn't exist, treat this as a new start. 
+      activityRecreated = mEmulationFragment != null;
       restoreState(savedInstanceState);
     }
 
@@ -212,13 +218,6 @@ public final class EmulationActivity extends AppCompatActivity
     int themeId;
     if (mDeviceHasTouchScreen)
     {
-      BooleanSetting lockLandscape =
-              (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
-                      .getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
-      // Force landscape if set
-      if (lockLandscape == null || lockLandscape.getValue())
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-
       themeId = R.style.DolphinEmulationBase;
 
       // Get a handle to the Window containing the UI.
@@ -250,10 +249,20 @@ public final class EmulationActivity extends AppCompatActivity
 
     setContentView(R.layout.activity_emulation);
 
-    // Find or create the EmulationFragment
-    mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
-            .findFragmentById(R.id.frame_emulation_fragment);
-    if (mEmulationFragment == null)
+
+    BooleanSetting lockLandscapeSetting =
+            (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
+                    .getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
+    boolean lockLandscape = lockLandscapeSetting == null || lockLandscapeSetting.getValue();
+    // Force landscape if set
+    if (mDeviceHasTouchScreen && lockLandscape)
+    {
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+    }
+
+    if (!(mDeviceHasTouchScreen && lockLandscape &&
+            getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) &&
+            mEmulationFragment == null)
     {
       mEmulationFragment = EmulationFragment.newInstance(mPath);
       getSupportFragmentManager().beginTransaction()
