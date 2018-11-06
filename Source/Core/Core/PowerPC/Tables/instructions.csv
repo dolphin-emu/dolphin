@@ -1,0 +1,637 @@
+;This file describes the opcodes used in the Dolphin CPU emulation
+;It can be edited with a text editor or anything that supports csv files using semicola as delimiters
+;Rows like these, which have an empty first cell, are treated as empty lines
+;A table begins with a row that has '===' as the first cell
+;The second cell defines the table name (will be used as the name of the OpID range in PPCTables.h)
+;The third cell is the amount of shifting right that has to be done to have the opcode field for this table in the least-significant digits
+;The fourth cell is the length of the opcode field in bits. Due to technical restrictions (64-bit operations) it is limited to 6.
+;The fifth cell is description field, and will be added as a comment in the generated OpID range definition
+;After the table header, each line defines the next opcode value
+;Empty lines (this includes comment lines!) define unknown/invalid instructions. They are ignored at the end of the table.
+;Lines with '->' in the first cell define that the instruction has to be decoded by examining another table (with the name in the second cell)
+;Other lines define a valid instruction
+;Currently, the first cell is special to the table generator: it can be used as a default value for empty cells in other columns
+;The cells after that are not used for the OpInfo table but can be used to generate other tables
+;The current use of the columns is as follows:
+;OpType;flags;Interpreter function (instruction name if empty);Estimated cycle count (1 if empty)
+===;Primary;26;6;Primary opcodes
+
+
+
+twi;System;FL_ENDBLOCK
+->;OpId4
+
+
+mulli;Integer;FL_OUT_D | FL_IN_A;;3
+subfic;Integer;FL_OUT_D | FL_IN_A | FL_SET_CA
+
+cmpli;Integer;FL_IN_A | FL_SET_CRn
+cmpi;Integer;FL_IN_A | FL_SET_CRn
+addic;Integer;FL_OUT_D | FL_IN_A | FL_SET_CA
+addic.;Integer;FL_OUT_D | FL_IN_A | FL_SET_CA | FL_SET_CR0;addic_rc
+addi;Integer;FL_OUT_D | FL_IN_A0
+addis;Integer;FL_OUT_D | FL_IN_A0
+bcx;System;FL_ENDBLOCK
+sc;System;FL_ENDBLOCK;;2
+bx;System;FL_ENDBLOCK
+->;OpId19
+rlwimix;Integer;FL_OUT_A | FL_IN_A | FL_IN_S | FL_RC_BIT
+rlwinmx;Integer;FL_OUT_A | FL_IN_S | FL_RC_BIT
+
+rlwnmx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+ori;Integer;FL_OUT_A | FL_IN_S
+oris;Integer;FL_OUT_A | FL_IN_S
+xori;Integer;FL_OUT_A | FL_IN_S
+xoris;Integer;FL_OUT_A | FL_IN_S
+andi.;Integer;FL_OUT_A | FL_IN_S | FL_SET_CR0;andi_rc
+andis.;Integer;FL_OUT_A | FL_IN_S | FL_SET_CR0;andis_rc
+
+->;OpId31
+lwz;Load;FL_OUT_D | FL_IN_A0 | FL_LOADSTORE
+lwzu;Load;FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE
+lbz;Load;FL_OUT_D | FL_IN_A0 | FL_LOADSTORE
+lbzu;Load;FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE
+stw;Store;FL_IN_A0 | FL_IN_S | FL_LOADSTORE
+stwu;Store;FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE
+stb;Store;FL_IN_A0 | FL_IN_S | FL_LOADSTORE
+stbu;Store;FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE
+lhz;Load;FL_OUT_D | FL_IN_A0 | FL_LOADSTORE
+lhzu;Load;FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE
+lha;Load;FL_OUT_D | FL_IN_A0 | FL_LOADSTORE
+lhau;Load;FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE
+sth;Store;FL_IN_A0 | FL_IN_S | FL_LOADSTORE
+sthu;Store;FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE
+lmw;System;FL_EVIL | FL_IN_A0 | FL_LOADSTORE;;11
+stmw;System;FL_EVIL | FL_IN_A0 | FL_LOADSTORE;;11
+lfs;LoadFP;FL_OUT_FLOAT_D | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+lfsu;LoadFP;FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+lfd;LoadFP;FL_INOUT_FLOAT_D | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+lfdu;LoadFP;FL_INOUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+stfs;StoreFP;FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE
+stfsu;StoreFP;FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+stfd;StoreFP;FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE
+stfdu;StoreFP;FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+psq_l;LoadPS;FL_OUT_FLOAT_D | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE
+psq_lu;LoadPS;FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+
+->;OpId59
+psq_st;StorePS;FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE
+psq_stu;StorePS;FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE
+
+->;OpId63
+
+===;OpId4;1;5;OPCD4 SubOps
+->;PSCompare
+
+
+
+
+
+->;PSLoad
+->;PSStore
+->;PSSign
+
+ps_sum0;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_sum1;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_muls0;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_muls1;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_madds0;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_madds1;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+->;PSMerge
+
+ps_div;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF;;17
+
+ps_sub;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_add;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+dcbz_l;System;FL_IN_A0B | FL_LOADSTORE
+ps_sel;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU
+ps_res;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_mul;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_rsqrte;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF;;2
+
+ps_msub;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_madd;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_nmsub;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+ps_nmadd;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+===;PSCompare;6;5;Paired single compare
+ps_cmpu0;PS;FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF
+ps_cmpo0;PS;FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF
+ps_cmpu1;PS;FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF
+ps_cmpo1;PS;FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF
+
+===;PSLoad;6;1;Paired single load
+psq_lx;LoadPS;FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+psq_lux;LoadPS;FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE
+===;PSStore;6;1;Paired single store
+psq_stx;StorePS;FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+psq_stux;StorePS;FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE
+
+===;PSSign;6;5;Paired single sign manipulation
+
+ps_neg;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+ps_mr;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+
+
+
+ps_nabs;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+
+ps_abs;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+
+===;PSMerge;6;5;Paired single merge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ps_merge00;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU
+ps_merge01;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU
+ps_merge10;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU
+ps_merge11;PS;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU
+
+===;OpId19;1;5;OPCD19 SubOps (pretty empty here, isn't it? even with omitting all the empty lines at the end …)
+mcrf;System;FL_EVIL | FL_SET_CRn
+->;CRBitOps
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->;BranchReg
+
+rfi;System;FL_ENDBLOCK | FL_CHECKEXCEPTIONS;;2
+
+
+
+isync;InstructionCache;FL_EVIL
+
+===;CRBitOps;6;5;CR bitops (fun fact: the four bits used for indexing into this subtable actually form their truth tables)
+
+crnor;CR;FL_EVIL
+
+
+crandc;CR;FL_EVIL
+
+crxor;CR;FL_EVIL
+crnand;CR;FL_EVIL
+crand;CR;FL_EVIL
+creqv;CR;FL_EVIL
+
+
+
+crorc;CR;FL_EVIL
+cror;CR;FL_EVIL
+
+===;BranchReg;6;5;Branch to Register
+bclrx;Branch;FL_ENDBLOCK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bcctrx;Branch;FL_ENDBLOCK
+
+===;OpId31;1;5;OPCD31 SubOps
+->;IntCR
+
+
+
+tw;System;FL_IN_AB | FL_ENDBLOCK;;2
+
+
+
+->;IntSub
+
+->;IntAdd
+->;IntMulDiv
+
+
+
+
+->;Mtcrf
+
+->;SysReg
+->;SPR
+lwarx;Load;FL_EVIL | FL_OUT_D | FL_IN_A0B | FL_SET_CR0 | FL_LOADSTORE
+->;MoveAssist
+->;ComplexMem
+->;LoadStore
+->;Shift
+
+->;LeadingBits
+
+->;BitOps
+
+===;IntCR;6;5;Integer / CR
+cmp;Integer;FL_IN_AB | FL_SET_CRn
+cmpl;Integer;FL_IN_AB | FL_SET_CRn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mcrxr;System;FL_SET_CRn | FL_READ_CA | FL_SET_CA
+
+===;IntSub;6;5;Integer Subtract
+subfcx;Integer;FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT
+subfx;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT
+
+negx;Integer;FL_OUT_D | FL_IN_A | FL_RC_BIT
+subfex;Integer;FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT
+
+subfzex;Integer;FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT
+subfmex;Integer;FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT
+
+===;IntAdd;6;5;Integer Add
+addcx;Integer;FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT
+
+
+
+addex;Integer;FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT
+
+addzex;Integer;FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT
+addmex;Integer;FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT
+addx;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT
+
+===;IntMulDiv;6;5;Integer Multiply / Divide
+mulhwux;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT;;5
+
+mulhwx;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT;;5
+
+
+
+
+mullwx;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT;;5
+
+
+
+
+
+
+divwux;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT;;40
+divwx;Integer;FL_OUT_D | FL_IN_AB | FL_RC_BIT;;40
+
+===;Mtcrf;6;5;mtcrf instruction
+
+
+
+
+mtcrf;System;FL_IN_S | FL_SET_CRn
+
+===;SysReg;6;5;System Registers
+
+
+
+
+mtmsr;System;FL_IN_S | FL_ENDBLOCK
+
+mtsr;System;FL_IN_S
+mtsrin;System;FL_IN_SB
+
+tlbie;System;FL_IN_B
+
+===;SPR;6;5;SPRs
+mfcr;System;FL_OUT_D
+
+mfmsr;System;FL_OUT_D
+
+
+
+
+
+
+
+mfspr;SPR;FL_OUT_D
+mftb;System;FL_OUT_D | FL_TIMER
+
+
+mtspr;SPR;FL_IN_S;;2
+
+
+
+mfsr;System;FL_OUT_D;;3
+
+mfsrin;System;FL_OUT_D | FL_IN_B;;3
+
+===;MoveAssist;6;5;Move Assist instructions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lswx;Load;FL_EVIL | FL_IN_A0B | FL_OUT_D | FL_LOADSTORE
+
+lswi;Load;FL_EVIL | FL_IN_A0 | FL_OUT_D | FL_LOADSTORE
+
+stswx;Store;FL_EVIL | FL_IN_A0B | FL_LOADSTORE
+
+stswi;Store;FL_EVIL | FL_IN_A0 | FL_LOADSTORE
+
+===;ComplexMem;6;5;Complex memory instructions (caches, byte reversal, synchronization)
+
+dcbst;DataCache;FL_IN_A0B | FL_LOADSTORE;;5
+dcbf;DataCache;FL_IN_A0B | FL_LOADSTORE;;5
+
+stwcxd;Store;FL_EVIL | FL_IN_S | FL_IN_A0B | FL_SET_CR0 | FL_LOADSTORE
+
+
+dcbtst;DataCache;0;;2
+dcbt;DataCache;0;;2
+eciwx;System;FL_IN_A0B | FL_OUT_D | FL_LOADSTORE
+
+
+
+ecowx;System;FL_IN_A0B | FL_IN_S | FL_LOADSTORE
+dcbi;DataCache;FL_IN_A0B | FL_LOADSTORE;;5
+
+lwbrx;Load;FL_OUT_D | FL_IN_A0B | FL_LOADSTORE
+tlbsync;System;0
+sync;System;0;;3
+
+stwbrx;Store;FL_IN_S | FL_IN_A0B | FL_LOADSTORE
+
+
+dcba;DataCache;0;;5
+lhbrx;Load;FL_OUT_D | FL_IN_A0B | FL_LOADSTORE
+
+eieio;System;0
+
+sthbrx;Store;FL_IN_S | FL_IN_A0B | FL_LOADSTORE
+
+icbi;System;FL_IN_A0B | FL_ENDBLOCK | FL_LOADSTORE;;4
+dcbz;DataCache;FL_IN_A0B | FL_LOADSTORE;;5
+
+===;LoadStore;6;5;Load/Store instructions
+lwzx;Load;FL_OUT_D | FL_IN_A0B | FL_LOADSTORE
+lwzux;Load;FL_OUT_D | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+lbzx;Load;FL_OUT_D | FL_IN_A0B | FL_LOADSTORE
+lbzux;Load;FL_OUT_D | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+stwx;Store;FL_IN_S | FL_IN_A0B | FL_LOADSTORE
+stwux;Store;FL_IN_S | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+stbx;Store;FL_IN_S | FL_IN_A0B | FL_LOADSTORE
+stbux;Store;FL_IN_S | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+lhzx;Load;FL_OUT_D | FL_IN_A0B | FL_LOADSTORE
+lhzux;Load;FL_OUT_D | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+lhax;Load;FL_OUT_D | FL_IN_A0B | FL_LOADSTORE
+lhaux;Load;FL_OUT_D | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+sthx;Store;FL_IN_S | FL_IN_A0B | FL_LOADSTORE
+sthux;Store;FL_IN_S | FL_OUT_A | FL_IN_AB | FL_LOADSTORE
+
+
+lfsx;LoadFP;FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+lfsux;LoadFP;FL_OUT_FLOAT_D | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE
+lfdx;LoadFP;FL_INOUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+lfdux;LoadFP;FL_INOUT_FLOAT_D | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE
+stfsx;StoreFP;FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+stfsux;StoreFP;FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE
+stfdx;StoreFP;FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+stfdux;StoreFP;FL_IN_FLOAT_S | FL_IN_AB | FL_OUT_A | FL_USE_FPU | FL_LOADSTORE
+
+
+
+
+
+
+stfiwx;StoreFP;FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE
+===;Shift;6;5;Bit shift
+slwx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+srwx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+
+
+
+
+
+
+
+srawx;Integer;FL_OUT_A | FL_IN_SB | FL_SET_CA | FL_RC_BIT
+srawix;Integer;FL_OUT_A | FL_IN_S | FL_SET_CA | FL_RC_BIT
+
+===;LeadingBits;6;5;Leading bits operations (count leading zeroes, sign extend)
+cntlzwx;Integer;FL_OUT_A | FL_IN_S | FL_RC_BIT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+extshx;Integer;FL_OUT_A | FL_IN_S | FL_RC_BIT
+extsbx;Integer;FL_OUT_A | FL_IN_S | FL_RC_BIT
+
+===;BitOps;6;5;Bitwise boolean operations
+andx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+andcx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+
+norx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+
+
+
+
+eqvx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+xorx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+
+
+orcx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+orx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+nandx;Integer;FL_OUT_A | FL_IN_SB | FL_RC_BIT
+
+===;OpId59;1;5;OPCD59 SubOps
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fdivsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF;;17
+
+fsubsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+faddsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+
+fresx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fmulsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+
+fmsubsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fmaddsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fnmsubsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fnmaddsx;SingleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+===;OpId63;1;5;OPCD63 SubOps
+->;FCompare
+
+
+
+
+
+->;Fpscr
+->;Fpscr2
+->;FSign
+
+
+
+frspx;DoubleFP;FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+fctiwx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+fctiwzx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+
+
+fdivx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF;;31
+
+fsubx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+faddx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+fselx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU
+
+fmulx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_AC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+frsqrtex;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+fmsubx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fmaddx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fnmsubx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+fnmaddx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF
+
+===;FCompare;6;5;float compare
+fcmpu;DoubleFP;FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF
+fcmpo;DoubleFP;FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF
+mcrfs;SystemFP;FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF
+
+===;Fpscr;6;5;FPSCR manipulation (1) (lowercase to not cause trouble with FPSCR macro in PowerPC.h)
+
+mtfsb1x;SystemFP;FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF;;3
+mtfsb0x;SystemFP;FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF;;3
+
+mtfsfix;SystemFP;FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF;;3
+
+===;Fpscr2;6;5;FPSCR manipulation (2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mffsx;SystemFP;FL_RC_BIT_F | FL_INOUT_FLOAT_D | FL_USE_FPU | FL_READ_FPRF
+
+
+
+mtfsfx;SystemFP;FL_RC_BIT_F | FL_IN_FLOAT_B | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF;;3
+
+===;FSign;6;5;float sign manipulation
+
+fnegx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+fmrx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+
+fnabsx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU
+
+
+
+fabsx;DoubleFP;FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU

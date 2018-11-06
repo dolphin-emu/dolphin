@@ -12,6 +12,13 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+// hack to allow accessing PowerPC::s_interpreter.m_end_block.
+// will disappear together with the elimination of global CPU state
+namespace PowerPC
+{
+extern Interpreter s_interpreter;
+}
+
 void Interpreter::bx(UGeckoInstruction inst)
 {
   if (inst.LK)
@@ -22,7 +29,7 @@ void Interpreter::bx(UGeckoInstruction inst)
   else
     NPC = PC + SignExt26(inst.LI << 2);
 
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 
   if (NPC == PC)
   {
@@ -54,7 +61,7 @@ void Interpreter::bcx(UGeckoInstruction inst)
       NPC = PC + SignExt16(inst.BD << 2);
   }
 
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 
   // this code trys to detect the most common idle loop:
   // lwz r0, XXXX(r13)
@@ -90,7 +97,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
       LR = PC + 4;
   }
 
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 }
 
 void Interpreter::bclrx(UGeckoInstruction inst)
@@ -109,12 +116,12 @@ void Interpreter::bclrx(UGeckoInstruction inst)
       LR = PC + 4;
   }
 
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 }
 
 void Interpreter::HLEFunction(UGeckoInstruction inst)
 {
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
   HLE::Execute(PC, inst.hex);
 }
 
@@ -139,7 +146,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
   // else
   // set NPC to saved offset and resume
   NPC = SRR0;
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 }
 
 // sc isn't really used for anything important in GameCube games (just for a write barrier) so we
@@ -149,5 +156,5 @@ void Interpreter::sc(UGeckoInstruction inst)
 {
   PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
   PowerPC::CheckExceptions();
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 }

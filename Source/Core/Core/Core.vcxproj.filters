@@ -348,9 +348,6 @@
     <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp">
       <Filter>PowerPC\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\Jit.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>

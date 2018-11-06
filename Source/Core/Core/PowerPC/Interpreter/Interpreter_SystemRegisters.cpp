@@ -172,6 +172,13 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
   rGPR[inst.RD] = PowerPC::ppcState.sr[index];
 }
 
+// hack to allow accessing m_end_block from mtmsr.
+// will disappear together with the elimination of global CPU state
+namespace PowerPC
+{
+extern Interpreter s_interpreter;
+}
+
 void Interpreter::mtmsr(UGeckoInstruction inst)
 {
   if (MSR.PR)
@@ -182,7 +189,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 
   MSR.Hex = rGPR[inst.RS];
   PowerPC::CheckExceptions();
-  m_end_block = true;
+  PowerPC::s_interpreter.m_end_block = true;
 }
 
 // Segment registers. MMU control.

@@ -9,12 +9,13 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCTables.h"
 
 class Interpreter : public CPUCoreBase
 {
 public:
-  void Init() override;
-  void Shutdown() override;
+  void Init() override {}
+  void Shutdown() override {}
   void SingleStep() override;
   int SingleStepInner();
 
@@ -263,27 +264,11 @@ public:
   static void isync(UGeckoInstruction inst);
 
   using Instruction = void (*)(UGeckoInstruction inst);
-  static std::array<Instruction, 64> m_op_table;
-  static std::array<Instruction, 1024> m_op_table4;
-  static std::array<Instruction, 1024> m_op_table19;
-  static std::array<Instruction, 1024> m_op_table31;
-  static std::array<Instruction, 32> m_op_table59;
-  static std::array<Instruction, 1024> m_op_table63;
-
-  // singleton
-  static Interpreter* getInstance();
-
-  static void RunTable4(UGeckoInstruction inst);
-  static void RunTable19(UGeckoInstruction inst);
-  static void RunTable31(UGeckoInstruction inst);
-  static void RunTable59(UGeckoInstruction inst);
-  static void RunTable63(UGeckoInstruction inst);
+  static Instruction GetOpFunction(OpID opid) { return m_op_table[static_cast<int>(opid)]; }
 
   static u32 Helper_Carry(u32 value1, u32 value2);
 
 private:
-  static void InitializeInstructionTables();
-
   static bool HandleFunctionHooking(u32 address);
 
   // flag helper
@@ -302,12 +287,15 @@ private:
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
 
+  static const std::array<Instruction, static_cast<size_t>(OpID::End)> m_op_table;
+
+  u32 last_pc;
   UGeckoInstruction m_prev_inst{};
 
-  static bool m_end_block;
+  bool m_end_block = false;
 
   // TODO: These should really be in the save state, although it's unlikely to matter much.
   // They are for lwarx and its friend stwcxd.
-  static bool m_reserve;
-  static u32 m_reserve_address;
+  bool m_reserve = false;
+  u32 m_reserve_address;
 };

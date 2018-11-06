@@ -11,6 +11,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -230,7 +231,7 @@ void CachedInterpreter::Jit(u32 address)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
-    js.downcountAmount += op.opinfo->numCycles;
+    js.downcountAmount += PPCTables::Cycles(op.opid);
 
     if (HandleFunctionHooking(op.address))
       break;
@@ -239,9 +240,10 @@ void CachedInterpreter::Jit(u32 address)
     {
       const bool breakpoint = SConfig::GetInstance().bEnableDebugging &&
                               PowerPC::breakpoints.IsAddressBreakPoint(op.address);
-      const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
-      const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
-      const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;
+      const auto flags = PPCTables::Flags(op.opid);
+      const bool check_fpu = (flags & FL_USE_FPU) && !js.firstFPInstructionFound;
+      const bool endblock = (flags & FL_ENDBLOCK) != 0;
+      const bool memcheck = (flags & FL_LOADSTORE) && jo.memcheck;
 
       if (breakpoint)
       {
@@ -258,7 +260,7 @@ void CachedInterpreter::Jit(u32 address)
 
       if (endblock || memcheck)
         m_code.emplace_back(WritePC, op.address);
-      m_code.emplace_back(PPCTables::GetInterpreterOp(op.inst), op.inst);
+      m_code.emplace_back(Interpreter::GetOpFunction(op.opid), op.inst);
       if (memcheck)
         m_code.emplace_back(CheckDSI, js.downcountAmount);
       if (endblock)

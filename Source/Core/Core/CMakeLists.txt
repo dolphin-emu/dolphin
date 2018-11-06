@@ -217,11 +217,40 @@ add_library(core
   PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp
   PowerPC/Interpreter/Interpreter_Paired.cpp
   PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
-  PowerPC/Interpreter/Interpreter_Tables.cpp
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitBase.cpp
   PowerPC/JitCommon/JitCache.cpp
 )
+
+add_executable(tablegen PowerPC/Tables/TableGen.cpp)
+target_link_libraries(tablegen PRIVATE cpp-optparse)
+add_custom_command(
+  OUTPUT
+    Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h
+    Generated/Core/PowerPC/Tables/OpID_DecodingTable.gen.cpp
+    Generated/Core/PowerPC/Tables/OpInfo.gen.cpp
+    Generated/Core/PowerPC/Tables/Interpreter_Table.gen.cpp
+  COMMAND mkdir -p Generated/Core/PowerPC/Tables
+  COMMAND $<TARGET_FILE:tablegen> -i ${CMAKE_CURRENT_SOURCE_DIR}/PowerPC/Tables/instructions.csv
+    -ro Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h
+    -Do Generated/Core/PowerPC/Tables/OpID_DecodingTable.gen.cpp
+    -c0 -p "\"" -s "\""  -c2 -c1 -p OpType:: -c4 -d1 -o Generated/Core/PowerPC/Tables/OpInfo.gen.cpp
+    -c3 -d* -p Interpreter:: -o Generated/Core/PowerPC/Tables/Interpreter_Table.gen.cpp
+    -rc0 -p "\"" -s "\""  -c2 -c1 -p OpType:: -c4 -d1
+  DEPENDS tablegen
+  MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/PowerPC/Tables/instructions.csv
+  VERBATIM
+)
+target_include_directories(core PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}/Generated
+)
+add_custom_target(ppctables DEPENDS
+  Generated/Core/PowerPC/Tables/OpID_DecodingTable.gen.cpp
+  Generated/Core/PowerPC/Tables/OpInfo.gen.cpp
+  Generated/Core/PowerPC/Tables/Interpreter_Table.gen.cpp
+  Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h
+)
+add_dependencies(core ppctables)
 
 if(_M_X86)
   target_sources(core PRIVATE
