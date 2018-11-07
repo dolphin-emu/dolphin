@@ -608,7 +608,7 @@ bool FramebufferManager::PopulateColorReadbackTexture()
 {
   // Can't be in our normal render pass.
   StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->OnReadback();
+  StateTracker::GetInstance()->OnCPUEFBAccess();
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0}, {GetEFBWidth(), GetEFBHeight()}};
@@ -680,7 +680,7 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
 {
   // Can't be in our normal render pass.
   StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->OnReadback();
+  StateTracker::GetInstance()->OnCPUEFBAccess();
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0}, {GetEFBWidth(), GetEFBHeight()}};

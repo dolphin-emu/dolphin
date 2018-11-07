@@ -125,6 +125,7 @@ const ConfigInfo<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM{{System::GFX, "Hacks", "XFB
                                                      true};
 const ConfigInfo<bool> GFX_HACK_DISABLE_COPY_TO_VRAM{{System::GFX, "Hacks", "DisableCopyToVRAM"},
                                                      false};
+const ConfigInfo<bool> GFX_HACK_DEFER_EFB_COPIES{{System::GFX, "Hacks", "DeferEFBCopies"}, true};
 const ConfigInfo<bool> GFX_HACK_IMMEDIATE_XFB{{System::GFX, "Hacks", "ImmediateXFBEnable"}, false};
 const ConfigInfo<bool> GFX_HACK_COPY_EFB_SCALED{{System::GFX, "Hacks", "EFBScaledCopy"}, true};
 const ConfigInfo<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{

@@ -77,6 +77,7 @@ public final class SettingsFile
   public static final String KEY_SKIP_EFB = "EFBAccessEnable";
   public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
   public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
+  public static final String KEY_DEFER_EFB_COPIES = "DeferEFBCopies";
   public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
   public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
   public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";

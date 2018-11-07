@@ -313,6 +313,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-efb-copy-format-changes", g_Config.bEFBEmulateFormatChanges);
   builder.AddData("cfg-gfx-efb-copy-ram", !g_Config.bSkipEFBCopyToRam);
   builder.AddData("cfg-gfx-xfb-copy-ram", !g_Config.bSkipXFBCopyToRam);
+  builder.AddData("cfg-gfx-defer-efb-copies", g_Config.bDeferEFBCopies);
   builder.AddData("cfg-gfx-immediate-xfb", !g_Config.bImmediateXFB);
   builder.AddData("cfg-gfx-efb-copy-scaled", g_Config.bCopyEFBScaled);
   builder.AddData("cfg-gfx-internal-resolution", g_Config.iEFBScale);

@@ -31,8 +31,8 @@ namespace DX11
 {
 static std::unique_ptr<PSTextureEncoder> g_encoder;
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void TextureCache::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params,
+                           u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                            const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
                            float gamma, bool clamp_top, bool clamp_bottom,
                            const CopyFilterCoefficientArray& filter_coefficients)

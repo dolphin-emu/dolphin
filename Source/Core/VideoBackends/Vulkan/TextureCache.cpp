@@ -98,8 +98,8 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void TextureCache::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params,
+                           u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                            const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
                            float gamma, bool clamp_top, bool clamp_bottom,
                            const CopyFilterCoefficientArray& filter_coefficients)
@@ -126,7 +126,6 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_widt
   // The barrier has to happen after the render pass, not inside it, as we are going to be
   // reading from the texture immediately afterwards.
   StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->OnReadback();
 
   // Transition to shader resource before reading.
   VkImageLayout original_layout = src_texture->GetLayout();
@@ -139,6 +138,8 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_widt
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
+
+  StateTracker::GetInstance()->OnEFBCopyToRAM();
 }
 
 bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat palette_format)

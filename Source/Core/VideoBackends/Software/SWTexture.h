@@ -57,6 +57,8 @@ public:
   void Unmap() override;
   void Flush() override;
 
+  void SetMapStride(size_t stride) { m_map_stride = stride; }
+
 private:
   std::vector<u8> m_data;
 };

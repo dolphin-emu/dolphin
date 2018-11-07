@@ -28,6 +28,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
@@ -89,6 +90,7 @@ TextureCacheBase::TextureCacheBase()
 
 void TextureCacheBase::Invalidate()
 {
+  FlushEFBCopies();
   InvalidateAllBindPoints();
   for (size_t i = 0; i < bound_textures.size(); ++i)
   {
@@ -1683,35 +1685,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
 
-  if (copy_to_ram)
-  {
-    CopyFilterCoefficientArray coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
-    PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
-                         NeedsCopyFilterInShader(coefficients));
-    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf,
-            y_scale, gamma, clamp_top, clamp_bottom, coefficients);
-  }
-  else
-  {
-    if (is_xfb_copy)
-    {
-      UninitializeXFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
-    }
-    else
-    {
-      // Hack: Most games don't actually need the correct texture data in RAM
-      //       and we can just keep a copy in VRAM. We zero the memory so we
-      //       can check it hasn't changed before using our copy in VRAM.
-      u8* ptr = dst;
-      for (u32 i = 0; i < num_blocks_y; i++)
-      {
-        memset(ptr, 0, bytes_per_row);
-        ptr += dstStride;
-      }
-    }
-  }
-
   if (g_bRecordFifoData)
   {
     // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
@@ -1765,7 +1738,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(
           (!strided_efb_copy && entry->size_in_bytes == overlap_range) ||
           (strided_efb_copy && entry->size_in_bytes == overlap_range && entry->addr == dstAddr))
       {
-        iter.first = InvalidateTexture(iter.first);
+        // Pending EFB copies which are completely covered by this new copy can simply be tossed,
+        // instead of having to flush them later on, since this copy will write over everything.
+        iter.first = InvalidateTexture(iter.first, true);
         continue;
       }
       entry->may_have_overlapping_textures = true;
@@ -1794,6 +1769,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     ++iter.first;
   }
 
+  TCacheEntry* entry = nullptr;
   if (copy_to_vram)
   {
     // create the texture
@@ -1803,8 +1779,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     config.height = scaled_tex_h;
     config.layers = FramebufferManagerBase::GetEFBLayers();
 
-    TCacheEntry* entry = AllocateCacheEntry(config);
-
+    entry = AllocateCacheEntry(config);
     if (entry)
     {
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
@@ -1825,9 +1800,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity, gamma,
                           clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
-
-      u64 hash = entry->CalculateHash();
-      entry->SetHashes(hash, hash);
 
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
@@ -1850,6 +1822,134 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       textures_by_address.emplace(dstAddr, entry);
     }
   }
+
+  if (copy_to_ram)
+  {
+    CopyFilterCoefficientArray coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
+    PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
+                         NeedsCopyFilterInShader(coefficients));
+
+    std::unique_ptr<AbstractStagingTexture> staging_texture = GetEFBCopyStagingTexture();
+    if (staging_texture)
+    {
+      CopyEFB(staging_texture.get(), format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect,
+              scaleByHalf, y_scale, gamma, clamp_top, clamp_bottom, coefficients);
+
+      // We can't defer if there is no VRAM copy (since we need to update the hash).
+      if (!copy_to_vram || !g_ActiveConfig.bDeferEFBCopies)
+      {
+        // Immediately flush it.
+        WriteEFBCopyToRAM(dst, bytes_per_row / sizeof(u32), num_blocks_y, dstStride,
+                          std::move(staging_texture));
+      }
+      else
+      {
+        // Defer the flush until later.
+        entry->pending_efb_copy = std::move(staging_texture);
+        entry->pending_efb_copy_width = bytes_per_row / sizeof(u32);
+        entry->pending_efb_copy_height = num_blocks_y;
+        entry->pending_efb_copy_invalidated = false;
+        m_pending_efb_copies.push_back(entry);
+      }
+    }
+  }
+  else
+  {
+    if (is_xfb_copy)
+    {
+      UninitializeXFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
+    }
+    else
+    {
+      // Hack: Most games don't actually need the correct texture data in RAM
+      //       and we can just keep a copy in VRAM. We zero the memory so we
+      //       can check it hasn't changed before using our copy in VRAM.
+      u8* ptr = dst;
+      for (u32 i = 0; i < num_blocks_y; i++)
+      {
+        std::memset(ptr, 0, bytes_per_row);
+        ptr += dstStride;
+      }
+    }
+  }
+
+  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
+  // in a subsequent draw before it is flushed, it will have the same hash.
+  if (entry)
+  {
+    const u64 hash = entry->CalculateHash();
+    entry->SetHashes(hash, hash);
+  }
+}
+
+void TextureCacheBase::FlushEFBCopies()
+{
+  if (m_pending_efb_copies.empty())
+    return;
+
+  for (TCacheEntry* entry : m_pending_efb_copies)
+    FlushEFBCopy(entry);
+  m_pending_efb_copies.clear();
+}
+
+TextureConfig TextureCacheBase::GetEncodingTextureConfig()
+{
+  return TextureConfig(EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, true);
+}
+
+void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32 stride,
+                                         std::unique_ptr<AbstractStagingTexture> staging_texture)
+{
+  MathUtil::Rectangle<int> copy_rect(0, 0, static_cast<int>(width), static_cast<int>(height));
+  staging_texture->ReadTexels(copy_rect, dst_ptr, stride);
+  ReleaseEFBCopyStagingTexture(std::move(staging_texture));
+}
+
+void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
+{
+  // Copy from texture -> guest memory.
+  u8* const dst = Memory::GetPointer(entry->addr);
+  WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
+                    entry->memory_stride, std::move(entry->pending_efb_copy));
+
+  // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture),
+  // now is the time to clean up the TCacheEntry. In which case, we don't need to compute
+  // the new hash of the RAM copy.
+  if (entry->pending_efb_copy_invalidated)
+  {
+    auto config = entry->texture->GetConfig();
+    texture_pool.emplace(config, TexPoolEntry(std::move(entry->texture)));
+    return;
+  }
+
+  // Re-hash the texture now that the guest memory is populated.
+  // This should be safe because we'll catch any writes before the game can modify it.
+  const u64 hash = entry->CalculateHash();
+  entry->SetHashes(hash, hash);
+}
+
+std::unique_ptr<AbstractStagingTexture> TextureCacheBase::GetEFBCopyStagingTexture()
+{
+  // Pull off the back first to re-use the most frequently used textures.
+  if (!m_efb_copy_staging_texture_pool.empty())
+  {
+    auto ptr = std::move(m_efb_copy_staging_texture_pool.back());
+    m_efb_copy_staging_texture_pool.pop_back();
+    return ptr;
+  }
+
+  std::unique_ptr<AbstractStagingTexture> tex =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, GetEncodingTextureConfig());
+  if (!tex)
+    WARN_LOG(VIDEO, "Failed to create EFB copy staging texture");
+
+  return tex;
+}
+
+void TextureCacheBase::ReleaseEFBCopyStagingTexture(std::unique_ptr<AbstractStagingTexture> tex)
+{
+  m_efb_copy_staging_texture_pool.push_back(std::move(tex));
 }
 
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
@@ -1979,7 +2079,7 @@ TextureCacheBase::FindOverlappingTextures(u32 addr, u32 size_in_bytes)
 }
 
 TextureCacheBase::TexAddrCache::iterator
-TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
+TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pending_efb_copy)
 {
   if (iter == textures_by_address.end())
     return textures_by_address.end();
@@ -2001,6 +2101,33 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
     {
       bound_textures[i]->tmem_only = true;
       return ++iter;
+    }
+  }
+
+  // If this is a pending EFB copy, we don't want to flush it here.
+  // Why? Because let's say a game is rendering a bloom-type effect, using EFB copies to essentially
+  // downscale the framebuffer. Copy from EFB->Texture, draw texture to EFB, copy EFB->Texture,
+  // draw, repeat. The second copy will invalidate the first, forcing a flush. Which means we lose
+  // any benefit of EFB copy batching. So instead, let's just leave the EFB copy pending, but remove
+  // it from the texture cache. This way we don't use the old VRAM copy. When the EFB copies are
+  // eventually flushed, they will overwrite each other, and the end result should be the same.
+  if (entry->pending_efb_copy)
+  {
+    if (discard_pending_efb_copy)
+    {
+      // If the RAM copy is being completely overwritten by a new EFB copy, we can discard the
+      // existing pending copy, and not bother waiting for it in the future. This happens in
+      // Xenoblade's sunset scene, where 35 copies are done per frame, and 25 of them are
+      // copied to the same address, and can be skipped.
+      ReleaseEFBCopyStagingTexture(std::move(entry->pending_efb_copy));
+      auto pending_it = std::find(m_pending_efb_copies.begin(), m_pending_efb_copies.end(), entry);
+      if (pending_it != m_pending_efb_copies.end())
+        m_pending_efb_copies.erase(pending_it);
+    }
+    else
+    {
+      entry->pending_efb_copy_invalidated = true;
+      return textures_by_address.erase(iter);
     }
   }
 

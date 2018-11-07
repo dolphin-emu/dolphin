@@ -711,6 +711,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // state changes the specialized shader will not take over.
       g_vertex_manager->InvalidatePipelineObject();
 
+      // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+      // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
+      g_texture_cache->FlushEFBCopies();
+
       Core::Callback_VideoCopiedToXFB(true);
     }
 

@@ -46,10 +46,13 @@ void HacksWidget::CreateWidgets()
                                              Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, true);
   m_store_efb_copies = new GraphicsBool(tr("Store EFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  m_defer_efb_copies =
+      new GraphicsBool(tr("Defer EFB Copies to RAM"), Config::GFX_HACK_DEFER_EFB_COPIES);
 
   efb_layout->addWidget(m_skip_efb_cpu, 0, 0);
   efb_layout->addWidget(m_ignore_format_changes, 0, 1);
   efb_layout->addWidget(m_store_efb_copies, 1, 0);
+  efb_layout->addWidget(m_defer_efb_copies, 1, 1);
 
   // Texture Cache
   auto* texture_cache_box = new QGroupBox(tr("Texture Cache"));
@@ -109,6 +112,8 @@ void HacksWidget::CreateWidgets()
   main_layout->addStretch();
 
   setLayout(main_layout);
+
+  UpdateDeferEFBCopiesEnabled();
 }
 
 void HacksWidget::OnBackendChanged(const QString& backend_name)
@@ -129,6 +134,10 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
 void HacksWidget::ConnectWidgets()
 {
   connect(m_accuracy, &QSlider::valueChanged, [this](int) { SaveSettings(); });
+  connect(m_store_efb_copies, &QCheckBox::stateChanged,
+          [this](int) { UpdateDeferEFBCopiesEnabled(); });
+  connect(m_store_xfb_copies, &QCheckBox::stateChanged,
+          [this](int) { UpdateDeferEFBCopiesEnabled(); });
 }
 
 void HacksWidget::LoadSettings()
@@ -202,6 +211,11 @@ void HacksWidget::AddDescriptions()
       "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to "
       "RAM "
       "(and Texture)\n\nIf unsure, leave this checked.");
+  static const char TR_DEFER_EFB_COPIES_DESCRIPTION[] = QT_TR_NOOP(
+      "Waits until the game synchronizes with the emulated GPU before writing the contents of EFB "
+      "copies to RAM. Reduces the overhead of EFB RAM copies, provides a performance boost in many "
+      "games, at the risk of breaking those which do not safely synchronize with the emulated "
+      "GPU.\n\nIf unsure, leave this checked.");
   static const char TR_ACCUARCY_DESCRIPTION[] = QT_TR_NOOP(
       "The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
       "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
@@ -240,6 +254,7 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_skip_efb_cpu, TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION);
   AddDescription(m_ignore_format_changes, TR_IGNORE_FORMAT_CHANGE_DESCRIPTION);
   AddDescription(m_store_efb_copies, TR_STORE_EFB_TO_TEXTURE_DESCRIPTION);
+  AddDescription(m_defer_efb_copies, TR_DEFER_EFB_COPIES_DESCRIPTION);
   AddDescription(m_accuracy, TR_ACCUARCY_DESCRIPTION);
   AddDescription(m_store_xfb_copies, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
   AddDescription(m_immediate_xfb, TR_IMMEDIATE_XFB_DESCRIPTION);
@@ -247,4 +262,12 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
   AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);
   AddDescription(m_vertex_rounding, TR_VERTEX_ROUNDING_DESCRIPTION);
+}
+
+void HacksWidget::UpdateDeferEFBCopiesEnabled()
+{
+  // We disable the checkbox for defer EFB copies when both EFB and XFB copies to texture are
+  // enabled.
+  const bool can_defer = m_store_efb_copies->isChecked() && m_store_xfb_copies->isChecked();
+  m_defer_efb_copies->setEnabled(!can_defer);
 }
