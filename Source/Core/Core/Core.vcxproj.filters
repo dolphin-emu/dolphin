@@ -564,9 +564,6 @@
     <ClCompile Include="HW\Memmap.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="HW\MMIO.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
     <ClCompile Include="HW\SystemTimers.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>

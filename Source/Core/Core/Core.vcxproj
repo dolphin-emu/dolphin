@@ -155,7 +155,6 @@
     <ClCompile Include="HW\HW.cpp" />
     <ClCompile Include="HW\Memmap.cpp" />
     <ClCompile Include="HW\MemoryInterface.cpp" />
-    <ClCompile Include="HW\MMIO.cpp" />
     <ClCompile Include="HW\ProcessorInterface.cpp" />
     <ClCompile Include="HW\SI\SI.cpp" />
     <ClCompile Include="HW\SI\SI_Device.cpp" />

@@ -83,17 +83,16 @@ void Init()
 template <bool is_preprocess>
 u8* Run(DataReader src, u32* cycles, bool in_display_list)
 {
+  int refarray;
   u32 totalCycles = 0;
   u8* opcodeStart;
   while (true)
   {
     opcodeStart = src.GetPointer();
-
     if (!src.size())
       goto end;
 
     u8 cmd_byte = src.Read<u8>();
-    int refarray;
     switch (cmd_byte)
     {
     case GX_NOP:
@@ -223,19 +222,16 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         u16 num_vertices = src.Read<u16>();
         if(num_vertices > 0)
         {
-          int bytes;
+          int vtx_attr_group = cmd_byte & GX_VAT_MASK;  // Vertex loader index (0 - 7)
+          int primitive = (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT;
+          int bytes =
+              VertexLoaderManager::GetVertexSize(vtx_attr_group, is_preprocess) * num_vertices;
 
-          if(is_preprocess)
-            bytes = VertexLoaderManager::RunVerticesPreprocess(
-              cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-              (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src);
-          else
-            bytes = VertexLoaderManager::RunVertices(
-              cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-              (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src);
-
-          if (bytes < 0)
+          if (bytes > src.size())
             goto end;
+
+          if(!is_preprocess)
+            VertexLoaderManager::RunVertices(vtx_attr_group, primitive, num_vertices, src);
 
           src.Skip(bytes);
 
