@@ -18,7 +18,9 @@ public:
     U16,
     U32,
     ASCII,
-    Float32
+    U32xASCII,
+    Float32,
+    U32xFloat32
   };
 
   enum class BPType
@@ -49,6 +51,8 @@ public:
 
 signals:
   void BreakpointsChanged();
+  void SendSearchValue(const QString);
+  void SendDataValue(const QString);
 
 private:
   void OnContextMenu();

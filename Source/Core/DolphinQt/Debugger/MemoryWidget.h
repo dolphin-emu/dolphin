@@ -61,6 +61,7 @@ private:
   QSplitter* m_splitter;
   QLineEdit* m_search_address;
   QLineEdit* m_data_edit;
+  QLabel* m_data_preview;
   QPushButton* m_set_value;
   QPushButton* m_dump_mram;
   QPushButton* m_dump_exram;
@@ -79,7 +80,7 @@ private:
   QRadioButton* m_type_u32;
   QRadioButton* m_type_ascii;
   QRadioButton* m_type_float;
-
+  QCheckBox* m_mem_view_style;
   // Breakpoint options
   QRadioButton* m_bp_read_write;
   QRadioButton* m_bp_read_only;

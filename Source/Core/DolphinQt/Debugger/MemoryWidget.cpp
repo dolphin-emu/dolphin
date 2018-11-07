@@ -85,6 +85,11 @@ void MemoryWidget::CreateWidgets()
   m_search_address = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
+  m_data_preview = new QLabel;
+
+  m_search_address->setMaxLength(8);
+  m_data_preview->setBackgroundRole(QPalette::Base);
+  m_data_preview->setAutoFillBackground(true);
 
   m_search_address->setPlaceholderText(tr("Search Address"));
   m_data_edit->setPlaceholderText(tr("Value"));
@@ -120,12 +125,14 @@ void MemoryWidget::CreateWidgets()
   m_type_u32 = new QRadioButton(tr("U&32"));
   m_type_ascii = new QRadioButton(tr("ASCII"));
   m_type_float = new QRadioButton(tr("Float"));
+  m_mem_view_style = new QCheckBox(tr("Alternate View"));
 
   datatype_layout->addWidget(m_type_u8);
   datatype_layout->addWidget(m_type_u16);
   datatype_layout->addWidget(m_type_u32);
   datatype_layout->addWidget(m_type_ascii);
   datatype_layout->addWidget(m_type_float);
+  datatype_layout->addWidget(m_mem_view_style);
   datatype_layout->setSpacing(1);
 
   // MBP options
@@ -162,6 +169,7 @@ void MemoryWidget::CreateWidgets()
 
   sidebar_layout->addWidget(m_search_address);
   sidebar_layout->addWidget(m_data_edit);
+  sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_find_ascii);
   sidebar_layout->addWidget(m_find_hex);
   sidebar_layout->addWidget(m_set_value);
@@ -214,12 +222,16 @@ void MemoryWidget::ConnectWidgets()
   for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
 
+  connect(m_mem_view_style, &QCheckBox::toggled, this, &MemoryWidget::OnTypeChanged);
+
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
+  connect(m_memory_view, &MemoryViewWidget::SendSearchValue, m_search_address, &QLineEdit::setText);
+  connect(m_memory_view, &MemoryViewWidget::SendDataValue, m_data_edit, &QLineEdit::setText);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -286,6 +298,7 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/typeu32"), m_type_u32->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeascii"), m_type_ascii->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typefloat"), m_type_float->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/memviewstyle"), m_mem_view_style->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
@@ -296,8 +309,11 @@ void MemoryWidget::SaveSettings()
 void MemoryWidget::OnTypeChanged()
 {
   MemoryViewWidget::Type type;
-
-  if (m_type_u8->isChecked())
+  if (m_mem_view_style->isChecked() && m_type_ascii->isChecked())
+    type = MemoryViewWidget::Type::U32xASCII;
+  else if (m_mem_view_style->isChecked() && m_type_float->isChecked())
+    type = MemoryViewWidget::Type::U32xFloat32;
+  else if (m_type_u8->isChecked())
     type = MemoryViewWidget::Type::U8;
   else if (m_type_u16->isChecked())
     type = MemoryViewWidget::Type::U16;
@@ -365,16 +381,42 @@ void MemoryWidget::ValidateSearchValue()
 {
   QFont font;
   QPalette palette;
+  m_data_preview->clear();
 
   if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
   {
     bool good;
-    m_data_edit->text().toULongLong(&good, 16);
+    u64 value = m_data_edit->text().toULongLong(&good, 16);
 
     if (!good)
     {
       font.setBold(true);
       palette.setColor(QPalette::Text, Qt::red);
+    }
+    else
+    {
+      const int data_length = m_data_edit->text().size();
+      int field_width = 8;
+
+      if (data_length > 8)
+      {
+        field_width = 16;
+      }
+      else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+      {
+        field_width = data_length > 2 ? 4 : 2;
+      }
+      else if (m_type_u16->isChecked() && data_length <= 4)
+      {
+        field_width = 4;
+      }
+
+      QString hex_string =
+          QStringLiteral("%1").arg(value, field_width, 16, QLatin1Char('0')).toUpper();
+      int hsize = hex_string.size();
+      for (int i = 2; i < hsize; i += 2)
+        hex_string.insert(hsize - i, QLatin1Char{' '});
+      m_data_preview->setText(hex_string);
     }
   }
 
@@ -417,20 +459,27 @@ void MemoryWidget::OnSetValue()
       return;
     }
 
-    if (value == static_cast<u8>(value))
+    const int data_length = m_data_edit->text().size();
+
+    if (data_length > 8)
     {
-      PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      PowerPC::HostWrite_U64(value, addr);
     }
-    else if (value == static_cast<u16>(value))
+    else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+    {
+      if (data_length > 2)
+        PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      else
+        PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+    }
+    else if (m_type_u16->isChecked() && data_length <= 4)
     {
       PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
     }
-    else if (value == static_cast<u32>(value))
+    else
     {
       PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
     }
-    else
-      PowerPC::HostWrite_U64(value, addr);
   }
 
   Update();
@@ -518,6 +567,8 @@ std::vector<u8> MemoryWidget::GetValueData() const
 
 void MemoryWidget::FindValue(bool next)
 {
+  // TODO: GetValueData is a very poor method, ignoring leading zeroes. hexstring from
+  // ValidateSearchValue might be usable here.
   std::vector<u8> search_for = GetValueData();
 
   if (search_for.empty())
@@ -572,7 +623,7 @@ void MemoryWidget::FindValue(bool next)
   }
   else
   {
-    end = &ram_ptr[addr + search_for.size() - 1];
+    end = &ram_ptr[addr - 1];
     ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
   }
 
