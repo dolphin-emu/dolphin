@@ -28,22 +28,17 @@ public class CustomFilePickerFragment extends FilePickerFragment
                     file);
   }
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+  @Override public void onActivityCreated(Bundle savedInstanceState)
   {
-    View view = super.onCreateView(inflater, container, savedInstanceState);
-    if (view == null)
-      return null;
+    super.onActivityCreated(savedInstanceState);
 
-    TextView ok = view.findViewById(R.id.nnf_button_ok);
-    TextView cancel = view.findViewById(R.id.nnf_button_cancel);
+    if (mode == MODE_DIR)
+    {
+      TextView ok = getActivity().findViewById(R.id.nnf_button_ok);
+      ok.setText(R.string.select_dir);
 
-    ok.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-    cancel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-
-    ok.setAllCaps(false);
-    cancel.setAllCaps(false);
-    ok.setText(R.string.select_dir);
-    return view;
+      TextView cancel = getActivity().findViewById(R.id.nnf_button_cancel);
+      cancel.setVisibility(View.GONE);
+    }
   }
 }
