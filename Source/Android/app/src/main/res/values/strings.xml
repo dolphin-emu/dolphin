@@ -217,7 +217,7 @@
     <string name="efb_copy_method">Store EFB Copies to Texture Only</string>
     <string name="efb_copy_method_description">Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games. If unsure, leave this checked.</string>
     <string name="defer_efb_copies">Defer EFB Copies to RAM</string>
-    <string name="defer_efb_copies_description">Waits until the game synchronizes with the emulated GPU before writing the contents of EFB copies to RAM. May result in faster performance. If unsure, leave this unchecked.</string>
+    <string name="defer_efb_copies_description">Waits until the game synchronizes with the emulated GPU before writing the contents of EFB copies to RAM. May result in faster performance.</string>
     <string name="texture_cache">Texture Cache</string>
     <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
     <string name="texture_cache_accuracy_description">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>

@@ -329,6 +329,7 @@ void RunGpuLoop()
 
           CommandProcessor::SetCPStatusFromGPU();
 
+          u32 needSize = 0;
           // check if we are able to run this buffer
           while (!CommandProcessor::IsInterruptWaiting() && fifo.bFF_GPReadEnable &&
                  fifo.CPReadWriteDistance && !AtBreakpoint())
@@ -336,7 +337,6 @@ void RunGpuLoop()
             if (param.bSyncGPU && s_sync_ticks.load() < param.iSyncGpuMinDistance)
               break;
 
-            u32 cyclesExecuted = 0;
             u32 readPtr = fifo.CPReadPointer;
             u32 readSize = ReadDataFromFifo(readPtr);
 
@@ -344,31 +344,35 @@ void RunGpuLoop()
             if (readPtr == fifo.CPEnd + 32)
               readPtr = fifo.CPBase;
 
+            Common::AtomicStore(fifo.CPReadPointer, readPtr);
+            Common::AtomicAdd(fifo.CPReadWriteDistance, -(s32)readSize);
+
             ASSERT_MSG(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - readSize >= 0,
                        "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
                        "instability in the game. Please report it.",
                        fifo.CPReadWriteDistance - readSize);
 
             u8* write_ptr = s_video_buffer_write_ptr;
-            s_video_buffer_read_ptr = OpcodeDecoder::Run(
-                DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
-
-            Common::AtomicStore(fifo.CPReadPointer, readPtr);
-            Common::AtomicAdd(fifo.CPReadWriteDistance, -(s32)readSize);
-            if ((write_ptr - s_video_buffer_read_ptr) == 0)
-              Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
-
-            CommandProcessor::SetCPStatusFromGPU();
-
-            if (param.bSyncGPU)
+            if (write_ptr - s_video_buffer_read_ptr > needSize)
             {
-              cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
-              int old = s_sync_ticks.fetch_sub(cyclesExecuted);
-              if (old >= param.iSyncGpuMaxDistance &&
-                  old - (int)cyclesExecuted < param.iSyncGpuMaxDistance)
-                s_sync_wakeup_event.Set();
-            }
+              u32 cyclesExecuted = 0;
+              needSize = 0;
+              s_video_buffer_read_ptr = OpcodeDecoder::Run(
+                  DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false, &needSize);
 
+              if ((write_ptr - s_video_buffer_read_ptr) == 0)
+                Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
+              CommandProcessor::SetCPStatusFromGPU();
+
+              if (param.bSyncGPU)
+              {
+                cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
+                int old = s_sync_ticks.fetch_sub(cyclesExecuted);
+                if (old >= param.iSyncGpuMaxDistance &&
+                    old - (int)cyclesExecuted < param.iSyncGpuMaxDistance)
+                  s_sync_wakeup_event.Set();
+              }
+            }
             // This call is pretty important in DualCore mode and must be called in the FIFO Loop.
             // If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
             // leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing
@@ -440,11 +444,11 @@ void RunGpu()
 
 static int RunGpuOnCpu(int ticks)
 {
-  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
+  u32 need_size = 0;
   int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
-  while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() &&
-         available_ticks >= 0)
+  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
+  while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && available_ticks >= 0)
   {
     u32 read_size;
     if (s_use_deterministic_gpu_thread)
@@ -461,16 +465,20 @@ static int RunGpuOnCpu(int ticks)
         reset_simd_state = true;
       }
       read_size = ReadDataFromFifo(fifo.CPReadPointer);
-      u32 cycles = 0;
-      s_video_buffer_read_ptr = OpcodeDecoder::Run(
-          DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), &cycles, false);
-      available_ticks -= cycles;
+      u8* write_ptr = s_video_buffer_write_ptr;
+      if (write_ptr - s_video_buffer_read_ptr > need_size)
+      {
+        u32 cycles = 0;
+        need_size = 0;
+        s_video_buffer_read_ptr = OpcodeDecoder::Run(
+          DataReader(s_video_buffer_read_ptr, write_ptr), &cycles, false, &need_size);
+        available_ticks -= cycles;
+      }
     }
 
     fifo.CPReadPointer += read_size;
     if (fifo.CPReadPointer == fifo.CPEnd + 32)
       fifo.CPReadPointer = fifo.CPBase;
-
     fifo.CPReadWriteDistance -= read_size;
   }
 
