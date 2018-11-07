@@ -466,6 +466,7 @@ void VKStagingTexture::CopyFromTexture(Texture2D* src, const MathUtil::Rectangle
                                                 m_needs_flush = false;
                                                 g_command_buffer_mgr->RemoveFencePointCallback(
                                                     this);
+                                                m_staging_buffer->InvalidateCPUCache();
                                               });
 }
 

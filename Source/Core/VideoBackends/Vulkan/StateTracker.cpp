@@ -513,7 +513,7 @@ void StateTracker::OnDraw()
   }
 }
 
-void StateTracker::OnReadback()
+void StateTracker::OnCPUEFBAccess()
 {
   // Check this isn't another access without any draws inbetween.
   if (!m_cpu_accesses_this_frame.empty() && m_cpu_accesses_this_frame.back() == m_draw_counter)
@@ -523,9 +523,28 @@ void StateTracker::OnReadback()
   m_cpu_accesses_this_frame.emplace_back(m_draw_counter);
 }
 
+void StateTracker::OnEFBCopyToRAM()
+{
+  // If we're not deferring, try to preempt it next frame.
+  if (!g_ActiveConfig.bDeferEFBCopies)
+  {
+    OnCPUEFBAccess();
+    return;
+  }
+
+  // Otherwise, only execute if we have at least 10 objects between us and the last copy.
+  const u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
+  m_last_efb_copy_draw_counter = m_draw_counter;
+  if (diff < MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
+    return;
+
+  Util::ExecuteCurrentCommandsAndRestoreState(true);
+}
+
 void StateTracker::OnEndFrame()
 {
   m_draw_counter = 0;
+  m_last_efb_copy_draw_counter = 0;
   m_scheduled_command_buffer_kicks.clear();
 
   // If we have no CPU access at all, leave everything in the one command buffer for maximum
