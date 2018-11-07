@@ -85,6 +85,8 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   UpdateDrawRectangle();
   CalculateTargetSize();
 
+  m_aspect_wide = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
+
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
   m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
 }
