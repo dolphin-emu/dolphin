@@ -470,6 +470,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
   g_Config.backend_info.bSupportsDynamicSamplerIndexing =
       GLExtensions::Supports("GL_ARB_gpu_shader5");
 
+  g_ogl_config.bIsES = m_main_gl_context->IsGLES();
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");

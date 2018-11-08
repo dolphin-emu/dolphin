@@ -48,6 +48,7 @@ enum class EsFbFetchType
 // ogl-only config, so not in VideoConfig.h
 struct VideoConfig
 {
+  bool bIsES;
   bool bSupportsGLSLCache;
   bool bSupportsGLPinnedMemory;
   bool bSupportsGLSync;

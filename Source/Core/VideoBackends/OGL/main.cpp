@@ -68,7 +68,7 @@ std::string VideoBackend::GetName() const
 
 std::string VideoBackend::GetDisplayName() const
 {
-  if (g_renderer && static_cast<Renderer*>(g_renderer.get())->IsGLES())
+  if (g_ogl_config.bIsES)
     return _trans("OpenGL ES");
   else
     return _trans("OpenGL");
