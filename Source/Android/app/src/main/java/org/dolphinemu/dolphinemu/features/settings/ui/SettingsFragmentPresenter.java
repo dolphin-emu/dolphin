@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -24,6 +25,7 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -265,9 +267,12 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_SAVE_STATES, Settings.SECTION_INI_CORE,
             R.string.enable_save_states, R.string.enable_save_states_description, false,
             enableSaveState));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_LOCK_LANDSCAPE, Settings.SECTION_INI_CORE,
-            R.string.lock_emulation_landscape, R.string.lock_emulation_landscape_desc, true,
-            lockToLandscape));
+    if (!TvUtil.isLeanback(DolphinApplication.getAppContext()))
+    {
+      sl.add(new CheckBoxSetting(SettingsFile.KEY_LOCK_LANDSCAPE, Settings.SECTION_INI_CORE,
+              R.string.lock_emulation_landscape, R.string.lock_emulation_landscape_desc, true,
+              lockToLandscape));
+    }
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS,
             R.string.analytics, 0, false, analytics));
   }
