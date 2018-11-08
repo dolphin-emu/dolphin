@@ -656,14 +656,9 @@ bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
 
 void FatalError(const std::string& message)
 {
-  auto wide_message = UTF8ToUTF16(message);
-
-  MessageBox(nullptr,
-             (L"A fatal error occured and the updater cannot continue:\n " + wide_message).c_str(),
-             L"Error", MB_ICONERROR);
-
   fprintf(log_fp, "%s\n", message.c_str());
 
+  UI::Error(message);
   UI::Stop();
 }
 }  // namespace

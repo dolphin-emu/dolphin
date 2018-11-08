@@ -5,6 +5,7 @@
 #include "Updater/UI.h"
 
 #include <CommCtrl.h>
+#include <ShObjIdl.h>
 
 #include <string>
 
@@ -16,6 +17,7 @@ namespace
 HWND window_handle = nullptr;
 HWND label_handle = nullptr;
 HWND progressbar_handle = nullptr;
+ITaskbarList3* taskbar_list = nullptr;
 
 Common::Flag running;
 Common::Flag request_stop;
@@ -43,6 +45,8 @@ bool Init()
 
   if (!window_handle)
     return false;
+
+  CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&taskbar_list));
 
   label_handle = CreateWindow(L"STATIC", NULL, WS_VISIBLE | WS_CHILD, 5, 5, 500, 25, window_handle,
                               nullptr, nullptr, 0);
@@ -80,6 +84,7 @@ void SetMarquee(bool marquee)
 {
   SetWindowLong(progressbar_handle, GWL_STYLE, PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
   SendMessage(progressbar_handle, PBM_SETMARQUEE, marquee, 0);
+  taskbar_list->SetProgressState(window_handle, marquee ? TBPF_INDETERMINATE : TBPF_NORMAL);
 }
 
 void ResetProgress()
@@ -88,15 +93,22 @@ void ResetProgress()
   SetMarquee(true);
 }
 
+void Error(const std::string& text)
+{
+  auto wide_text = UTF8ToUTF16(text);
+
+  MessageBox(nullptr,
+             (L"A fatal error occured and the updater cannot continue:\n " + wide_text).c_str(),
+             L"Error", MB_ICONERROR);
+
+  taskbar_list->SetProgressState(window_handle, TBPF_ERROR);
+}
+
 void SetProgress(int current, int total)
 {
   SendMessage(progressbar_handle, PBM_SETRANGE32, 0, total);
   SendMessage(progressbar_handle, PBM_SETPOS, current, 0);
-}
-
-void IncrementProgress(int amount)
-{
-  SendMessage(progressbar_handle, PBM_DELTAPOS, amount, 0);
+  taskbar_list->SetProgressValue(window_handle, current, total);
 }
 
 void SetDescription(const std::string& text)
