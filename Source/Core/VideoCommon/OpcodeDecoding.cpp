@@ -290,13 +290,9 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
 
 end:
   if (cycles)
-  {
     *cycles = totalCycles;
-  }
   if (need_size)
-  {
     *need_size = needSize;
-  }
   return opcodeStart;
 }
 

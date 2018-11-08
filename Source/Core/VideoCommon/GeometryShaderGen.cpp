@@ -14,9 +14,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-constexpr std::array<const char*, 4> primitives_ogl = {
-    {"points", "lines", "triangles", "triangles"}};
-constexpr std::array<const char*, 4> primitives_d3d = {{"point", "line", "triangle", "triangle"}};
+static constexpr std::array<const char*, 3> primitives_ogl = {{"points", "lines", "triangles"}};
+static constexpr std::array<const char*, 3> primitives_d3d = {{"point", "line", "triangle"}};
 
 bool geometry_shader_uid_data::IsPassthrough() const
 {

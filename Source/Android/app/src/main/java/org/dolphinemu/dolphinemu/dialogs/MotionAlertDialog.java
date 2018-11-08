@@ -2,16 +2,11 @@ package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Vibrator;
-import android.preference.PreferenceManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 

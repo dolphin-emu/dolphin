@@ -29,7 +29,6 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "VideoCommon/Statistics.h"
 namespace Fifo
 {
 static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
@@ -226,10 +225,10 @@ static u32 ReadDataFromFifo(u32 readPtr)
 {
   u32 len = 32;
   u8* write_ptr = s_video_buffer_write_ptr;
-  if (len > (size_t)(s_video_buffer + FIFO_SIZE - write_ptr))
+  if (len > (s_video_buffer + FIFO_SIZE - write_ptr))
   {
     size_t existing_len = write_ptr - s_video_buffer_read_ptr;
-    if (len > (size_t)(FIFO_SIZE - existing_len))
+    if (len > (FIFO_SIZE - existing_len))
     {
       PanicAlert("FIFO out of bounds (existing %zu + new %u > %u)", existing_len, len, FIFO_SIZE);
       return 0;
@@ -245,11 +244,11 @@ static u32 ReadDataFromFifo(u32 readPtr)
 }
 
 // The deterministic_gpu_thread version.
-static u32 ReadDataFromFifoOnCPU(u32 readPtr)
+static u32 ReadDataFromFifoOnCPU(u32 readPtr, u32* needSize)
 {
   u32 len = 32;
   u8* write_ptr = s_video_buffer_write_ptr;
-  if (len > (size_t)(s_video_buffer + FIFO_SIZE - write_ptr))
+  if (len > (s_video_buffer + FIFO_SIZE - write_ptr))
   {
     // We can't wrap around while the GPU is working on the data.
     // This should be very rare due to the reset in SyncGPU.
@@ -267,17 +266,22 @@ static u32 ReadDataFromFifoOnCPU(u32 readPtr)
     }
     write_ptr = s_video_buffer_write_ptr;
     size_t existing_len = write_ptr - s_video_buffer_pp_read_ptr;
-    if (len > (size_t)(FIFO_SIZE - existing_len))
+    if (len > (FIFO_SIZE - existing_len))
     {
-      PanicAlert("FIFO out of bounds (existing %zu + new %zu > %u)", existing_len, len, FIFO_SIZE);
+      PanicAlert("FIFO out of bounds (existing %zu + new %u > %u)", existing_len, len, FIFO_SIZE);
       return 0;
     }
   }
   Memory::CopyFromEmu(write_ptr, readPtr, len);
-  s_video_buffer_pp_read_ptr = OpcodeDecoder::Run<true>(
-      DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr, false);
+  write_ptr += len;
+  if(write_ptr - s_video_buffer_pp_read_ptr > *needSize)
+  {
+    *needSize = 0;
+    s_video_buffer_pp_read_ptr = OpcodeDecoder::Run<true>(
+      DataReader(s_video_buffer_pp_read_ptr, write_ptr), nullptr, false, needSize);
+  }
   // This would have to be locked if the GPU thread didn't spin.
-  s_video_buffer_write_ptr = write_ptr + len;
+  s_video_buffer_write_ptr = write_ptr;
   return len;
 }
 
@@ -453,7 +457,7 @@ static int RunGpuOnCpu(int ticks)
     u32 read_size;
     if (s_use_deterministic_gpu_thread)
     {
-      read_size = ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+      read_size = ReadDataFromFifoOnCPU(fifo.CPReadPointer, &need_size);
       s_gpu_mainloop.Wakeup();
     }
     else

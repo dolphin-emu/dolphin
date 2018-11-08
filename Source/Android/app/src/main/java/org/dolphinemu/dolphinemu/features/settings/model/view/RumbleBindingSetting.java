@@ -41,9 +41,7 @@ public class RumbleBindingSetting extends InputBindingSetting
    * Just need the device when saving rumble.
    */
   @Override
-  public void onMotionInput(InputDevice device,
-          InputDevice.MotionRange motionRange,
-          char axisDir)
+  public void onMotionInput(InputDevice device, InputDevice.MotionRange motionRange, char axisDir)
   {
     saveRumble(device);
   }
@@ -53,12 +51,12 @@ public class RumbleBindingSetting extends InputBindingSetting
     Vibrator vibrator = device.getVibrator();
     if (vibrator != null && vibrator.hasVibrator())
     {
-      setValue(device.getDescriptor(), device.getName());
+      setValue(device.getDescriptor());
       Rumble.doRumble(vibrator);
     }
     else
     {
-      setValue("", "Device rumble not found");
+      setValue("");
     }
   }
 

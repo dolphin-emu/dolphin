@@ -8,8 +8,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 
 public class InputBindingSetting extends SettingsItem
 {
-  private String mSettingText;
-
   public InputBindingSetting(String key, String section, int titleId, Setting setting)
   {
     super(key, section, setting, titleId, 0);
@@ -36,8 +34,7 @@ public class InputBindingSetting extends SettingsItem
   {
     InputDevice device = keyEvent.getDevice();
     String bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
-    String uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
-    setValue(bindStr, uiString);
+    setValue(bindStr);
   }
 
   /**
@@ -48,13 +45,11 @@ public class InputBindingSetting extends SettingsItem
    * @param motionRange MotionRange of the movement
    * @param axisDir     Either '-' or '+'
    */
-  public void onMotionInput(InputDevice device, InputDevice.MotionRange motionRange,
-          char axisDir)
+  public void onMotionInput(InputDevice device, InputDevice.MotionRange motionRange, char axisDir)
   {
     String bindStr =
             "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + axisDir;
-    String uiString = device.getName() + ": Axis " + motionRange.getAxis() + axisDir;
-    setValue(bindStr, uiString);
+    setValue(bindStr);
   }
 
   /**
@@ -63,9 +58,8 @@ public class InputBindingSetting extends SettingsItem
    *
    * @param bind The input that will be bound
    */
-  public void setValue(String bind, String ui)
+  public void setValue(String bind)
   {
-    mSettingText = ui;
     if (getSetting() == null)
     {
       StringSetting setting = new StringSetting(getKey(), getSection(), bind);
@@ -80,7 +74,7 @@ public class InputBindingSetting extends SettingsItem
 
   public void clearValue()
   {
-    setValue("", "");
+    setValue("");
   }
 
   @Override
@@ -91,6 +85,20 @@ public class InputBindingSetting extends SettingsItem
 
   public String getSettingText()
   {
-    return mSettingText;
+    String uiText = null;
+    if(getSetting() != null)
+    {
+      String bindStr = getSetting().getValueAsString();
+      int index = bindStr.indexOf('-');
+      if(index > 0)
+      {
+        uiText = bindStr.substring(index + 1);
+      }
+      else
+      {
+        uiText = bindStr;
+      }
+    }
+    return uiText;
   }
 }
