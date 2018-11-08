@@ -9,11 +9,11 @@
 namespace UI
 {
 void MessageLoop();
+void Error(const std::string& text);
 void Stop();
 
 void SetDescription(const std::string& text);
 void SetMarquee(bool marquee);
 void ResetProgress();
 void SetProgress(int current, int total);
-void IncrementProgress(int amount);
 }  // namespace UI
