@@ -29,8 +29,6 @@ const ConfigInfo<u16> NETPLAY_LISTEN_PORT{{System::Main, "NetPlay", "ListenPort"
                                           DEFAULT_LISTEN_PORT};
 
 const ConfigInfo<std::string> NETPLAY_NICKNAME{{System::Main, "NetPlay", "Nickname"}, "Player"};
-const ConfigInfo<std::string> NETPLAY_SELECTED_HOST_GAME{
-    {System::Main, "NetPlay", "SelectedHostGame"}, ""};
 const ConfigInfo<bool> NETPLAY_USE_UPNP{{System::Main, "NetPlay", "UseUPNP"}, false};
 
 const ConfigInfo<bool> NETPLAY_ENABLE_QOS{{System::Main, "NetPlay", "EnableQoS"}, true};
