@@ -439,7 +439,31 @@ std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
 
   // If there's no directory with the region-specific ID, look for a 3-character region-free one
   if (!File::Exists(texture_directory))
+  {
+    // First try looking if a text file exists with either the region-specific ID or 3-character
+    // region-free ID and check if it contains a referral to texture pack directory
+    if (File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id + ".txt") ||
+        File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3) + ".txt"))
+    {
+      std::string texture_text_file = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id + ".txt";
+      if (File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3) + ".txt"))
+        texture_text_file = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3) + ".txt";
+
+      std::string refer_game_id;
+
+      std::ifstream stream;
+      File::OpenFStream(stream, texture_text_file, std::ios_base::out);
+      if (stream.good())
+        std::getline(stream, refer_game_id);
+
+      const std::string refer_texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + refer_game_id;
+      if (!File::Exists(refer_texture_directory))
+        return File::GetUserPath(D_HIRESTEXTURES_IDX) + refer_game_id.substr(0, 3);
+      return refer_texture_directory;
+    }
+
     return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+  }
 
   return texture_directory;
 }
