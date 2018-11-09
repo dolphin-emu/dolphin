@@ -1923,13 +1923,12 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
                     entry->memory_stride, std::move(entry->pending_efb_copy));
 
-  // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture),
-  // now is the time to clean up the TCacheEntry. In which case, we don't need to compute
-  // the new hash of the RAM copy.
+  // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture), now is
+  // the time to clean up the TCacheEntry. In which case, we don't need to compute the new hash of
+  // the RAM copy. But we need to clean up the TCacheEntry, as InvalidateTexture doesn't free it.
   if (entry->pending_efb_copy_invalidated)
   {
-    auto config = entry->texture->GetConfig();
-    texture_pool.emplace(config, TexPoolEntry(std::move(entry->texture)));
+    delete entry;
     return;
   }
 
@@ -2137,12 +2136,15 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     else
     {
       entry->pending_efb_copy_invalidated = true;
-      return textures_by_address.erase(iter);
     }
   }
 
   auto config = entry->texture->GetConfig();
   texture_pool.emplace(config, TexPoolEntry(std::move(entry->texture)));
+
+  // Don't delete if there's a pending EFB copy, as we need the TCacheEntry alive.
+  if (!entry->pending_efb_copy)
+    delete entry;
 
   return textures_by_address.erase(iter);
 }
