@@ -85,8 +85,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   UpdateDrawRectangle();
   CalculateTargetSize();
 
-  if (SConfig::GetInstance().bWii)
-    m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
+  m_aspect_wide = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
 
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
   m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
@@ -639,9 +638,19 @@ void Renderer::RecordVideoMemory()
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     u64 ticks)
 {
-  // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-  if (!SConfig::GetInstance().bWii)
+  const AspectMode suggested = g_ActiveConfig.suggested_aspect_mode;
+  if (suggested == AspectMode::Analog || suggested == AspectMode::AnalogWide)
   {
+    m_aspect_wide = suggested == AspectMode::AnalogWide;
+  }
+  else if (SConfig::GetInstance().bWii)
+  {
+    m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
+  }
+  else
+  {
+    // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+
     size_t flush_count_4_3, flush_count_anamorphic;
     std::tie(flush_count_4_3, flush_count_anamorphic) =
         g_vertex_manager->ResetFlushAspectRatioCount();
