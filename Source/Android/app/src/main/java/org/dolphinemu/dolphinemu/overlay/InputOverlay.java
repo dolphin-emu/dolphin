@@ -180,15 +180,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
 
     int pointerIndex = event.getActionIndex();
+    int actionType = event.getAction() & MotionEvent.ACTION_MASK;
+    boolean isProcessed = false;
 
-    for (InputOverlayDrawableButton button : overlayButtons)
+    // Determine the button state to apply based on the MotionEvent action flag.
+    switch (actionType)
     {
-      // Determine the button state to apply based on the MotionEvent action flag.
-      switch (event.getAction() & MotionEvent.ACTION_MASK)
-      {
-        case MotionEvent.ACTION_DOWN:
-        case MotionEvent.ACTION_POINTER_DOWN:
-          // If a pointer enters the bounds of a button, press that button.
+      case MotionEvent.ACTION_DOWN:
+      case MotionEvent.ACTION_POINTER_DOWN:
+        // If a pointer enters the bounds of a button, press that button.
+        for (InputOverlayDrawableButton button : overlayButtons)
+        {
           if (button.getBounds()
             .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
           {
@@ -196,29 +198,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             button.setTrackId(event.getPointerId(pointerIndex));
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
               ButtonState.PRESSED);
+            isProcessed = true;
+            break;
           }
+        }
+        if(isProcessed)
           break;
-        case MotionEvent.ACTION_UP:
-        case MotionEvent.ACTION_POINTER_UP:
-          // If a pointer ends, release the button it was pressing.
-          if (button.getTrackId() == event.getPointerId(pointerIndex))
-          {
-            button.setPressedState(false);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-              ButtonState.RELEASED);
-          }
-          break;
-      }
-    }
-
-    for (InputOverlayDrawableDpad dpad : overlayDpads)
-    {
-      // Determine the button state to apply based on the MotionEvent action flag.
-      switch (event.getAction() & MotionEvent.ACTION_MASK)
-      {
-        case MotionEvent.ACTION_DOWN:
-        case MotionEvent.ACTION_POINTER_DOWN:
-        case MotionEvent.ACTION_MOVE:
+      case MotionEvent.ACTION_MOVE:
+        for (InputOverlayDrawableDpad dpad : overlayDpads)
+        {
+          if(actionType == MotionEvent.ACTION_MOVE &&
+            dpad.getTrackId() != event.getPointerId(pointerIndex))
+            continue;
           // Up, Down, Left, Right
           boolean[] pressed = {false, false, false, false};
           // If a pointer enters the bounds of a button, press that button.
@@ -247,22 +238,46 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
             setDpadState(dpad, pressed[0], pressed[1], pressed[2], pressed[3]);
             dpad.setTrackId(event.getPointerId(pointerIndex));
+            isProcessed = true;
+            break;
           }
+        }
+        break;
+      case MotionEvent.ACTION_UP:
+      case MotionEvent.ACTION_POINTER_UP:
+        // If a pointer ends, release the button it was pressing.
+        for (InputOverlayDrawableButton button : overlayButtons)
+        {
+          if (button.getTrackId() == event.getPointerId(pointerIndex))
+          {
+            button.setTrackId(-1);
+            button.setPressedState(false);
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+              ButtonState.RELEASED);
+            isProcessed = true;
+            break;
+          }
+        }
+        if(isProcessed)
           break;
-        case MotionEvent.ACTION_UP:
-        case MotionEvent.ACTION_POINTER_UP:
-          // If a pointer ends, release the buttons.
+
+        // If a pointer ends, release the buttons.
+        for (InputOverlayDrawableDpad dpad : overlayDpads)
+        {
           if (dpad.getTrackId() == event.getPointerId(pointerIndex))
           {
             for (int i = 0; i < 4; i++)
             {
+              dpad.setTrackId(-1);
               dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
               NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
                 ButtonState.RELEASED);
             }
+            isProcessed = true;
+            break;
           }
-          break;
-      }
+        }
+        break;
     }
 
     for (InputOverlayDrawableJoystick joystick : overlayJoysticks)

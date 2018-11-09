@@ -71,6 +71,8 @@ public final class InputOverlayDrawableDpad
     mButtonType[1] = buttonDown;
     mButtonType[2] = buttonLeft;
     mButtonType[3] = buttonRight;
+
+    mTrackId = -1;
   }
 
   public void draw(Canvas canvas)
