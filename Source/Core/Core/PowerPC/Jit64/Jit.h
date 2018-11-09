@@ -21,10 +21,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/FPURegCache.h"
-#include "Core/PowerPC/Jit64/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/FPURegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
@@ -88,10 +88,8 @@ public:
   void FinalizeCarryOverflow(bool oe, bool inv = false);
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
-  void ComputeRC(const Gen::OpArg& arg, bool needs_test = true, bool needs_sext = true);
+  void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
 
-  // Use to extract bytes from a register using the regcache. offset is in bytes.
-  Gen::OpArg ExtractFromReg(int reg, int offset);
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   bool CheckMergedBranch(u32 crf) const;
   void DoMergedBranch();

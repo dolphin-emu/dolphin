@@ -6,7 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 using namespace Gen;
@@ -30,25 +30,27 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
   FALLBACK_IF(!indexed && !a);
 
-  gpr.BindToRegister(a, true, update);
-
   s32 offset = 0;
-  OpArg addr = gpr.R(a);
+  RCOpArg addr = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+  RegCache::Realize(addr);
+
   if (update && jo.memcheck)
   {
-    addr = R(RSCRATCH2);
-    MOV(32, addr, gpr.R(a));
+    MOV(32, R(RSCRATCH2), addr);
+    addr = RCOpArg::R(RSCRATCH2);
   }
   if (indexed)
   {
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RegCache::Realize(Rb);
     if (update)
     {
-      ADD(32, addr, gpr.R(b));
+      ADD(32, addr, Rb);
     }
     else
     {
-      addr = R(RSCRATCH2);
-      MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
+      MOV_sum(32, RSCRATCH2, a ? addr.Location() : Imm32(0), Rb);
+      addr = RCOpArg::R(RSCRATCH2);
     }
   }
   else
@@ -59,13 +61,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
       offset = (s16)inst.SIMM_16;
   }
 
-  fpr.Lock(d);
-  if (jo.memcheck && single)
-  {
-    fpr.StoreFromRegister(d);
-    js.revertFprLoad = d;
-  }
-  fpr.BindToRegister(d, !single);
+  RCMode Rd_mode = !single ? RCMode::ReadWrite : RCMode::Write;
+  RCX64Reg Rd = jo.memcheck && single ? fpr.RevertableBind(d, Rd_mode) : fpr.Bind(d, Rd_mode);
+  RegCache::Realize(Rd);
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   if (update && jo.memcheck)
     registersInUse[RSCRATCH2] = true;
@@ -73,17 +71,19 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
+    ConvertSingleToDouble(Rd, RSCRATCH, true);
   }
   else
   {
     MOVQ_xmm(XMM0, R(RSCRATCH));
-    MOVSD(fpr.RX(d), R(XMM0));
+    MOVSD(Rd, R(XMM0));
   }
   if (update && jo.memcheck)
-    MOV(32, gpr.R(a), addr);
-  fpr.UnlockAll();
-  gpr.UnlockAll();
+  {
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RegCache::Realize(Ra);
+    MOV(32, Ra, addr);
+  }
 }
 
 void Jit64::stfXXX(UGeckoInstruction inst)
@@ -107,26 +107,31 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   {
     if (js.op->fprIsStoreSafe[s])
     {
-      CVTSD2SS(XMM0, fpr.R(s));
+      RCOpArg Rs = fpr.Use(s, RCMode::Read);
+      RegCache::Realize(Rs);
+      CVTSD2SS(XMM0, Rs);
     }
     else
     {
-      fpr.BindToRegister(s, true, false);
-      ConvertDoubleToSingle(XMM0, fpr.RX(s));
+      RCX64Reg Rs = fpr.Bind(s, RCMode::Read);
+      RegCache::Realize(Rs);
+      ConvertDoubleToSingle(XMM0, Rs);
     }
     MOVD_xmm(R(RSCRATCH), XMM0);
   }
   else
   {
-    if (fpr.R(s).IsSimpleReg())
-      MOVQ_xmm(R(RSCRATCH), fpr.RX(s));
+    RCOpArg Rs = fpr.Use(s, RCMode::Read);
+    RegCache::Realize(Rs);
+    if (Rs.IsSimpleReg())
+      MOVQ_xmm(R(RSCRATCH), Rs.GetSimpleReg());
     else
-      MOV(64, R(RSCRATCH), fpr.R(s));
+      MOV(64, R(RSCRATCH), Rs);
   }
 
-  if (!indexed && (!a || gpr.R(a).IsImm()))
+  if (!indexed && (!a || gpr.IsImm(a)))
   {
-    u32 addr = (a ? gpr.R(a).Imm32() : 0) + imm;
+    u32 addr = (a ? gpr.Imm32(a) : 0) + imm;
     bool exception =
         WriteToConstAddress(accessSize, R(RSCRATCH), addr, CallerSavedRegistersInUse());
 
@@ -138,33 +143,34 @@ void Jit64::stfXXX(UGeckoInstruction inst)
       }
       else
       {
-        gpr.KillImmediate(a, true, true);
+        RCOpArg Ra = gpr.UseNoImm(a, RCMode::ReadWrite);
+        RegCache::Realize(Ra);
         MemoryExceptionCheck();
-        ADD(32, gpr.R(a), Imm32((u32)imm));
+        ADD(32, Ra, Imm32((u32)imm));
       }
     }
-    fpr.UnlockAll();
-    gpr.UnlockAll();
     return;
   }
 
   s32 offset = 0;
-  if (update)
-    gpr.BindToRegister(a, true, true);
+  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RegCache::Realize(Ra);
   if (indexed)
   {
-    MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RegCache::Realize(Rb);
+    MOV_sum(32, RSCRATCH2, a ? Ra.Location() : Imm32(0), Rb);
   }
   else
   {
     if (update)
     {
-      LEA(32, RSCRATCH2, MDisp(gpr.RX(a), imm));
+      MOV_sum(32, RSCRATCH2, Ra, Imm32(imm));
     }
     else
     {
       offset = imm;
-      MOV(32, R(RSCRATCH2), gpr.R(a));
+      MOV(32, R(RSCRATCH2), Ra);
     }
   }
 
@@ -176,11 +182,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
   SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, registersInUse);
 
   if (update)
-    MOV(32, gpr.R(a), R(RSCRATCH2));
-
-  fpr.UnlockAll();
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    MOV(32, Ra, R(RSCRATCH2));
 }
 
 // This one is a little bit weird; it stores the low 32 bits of a double without converting it
@@ -193,12 +195,16 @@ void Jit64::stfiwx(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
-  MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
+  RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
+  RCOpArg Rb = gpr.Use(b, RCMode::Read);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RegCache::Realize(Ra, Rb, Rs);
 
-  if (fpr.R(s).IsSimpleReg())
-    MOVD_xmm(R(RSCRATCH), fpr.RX(s));
+  MOV_sum(32, RSCRATCH2, Ra, Rb);
+
+  if (Rs.IsSimpleReg())
+    MOVD_xmm(R(RSCRATCH), Rs.GetSimpleReg());
   else
-    MOV(32, R(RSCRATCH), fpr.R(s));
+    MOV(32, R(RSCRATCH), Rs);
   SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, CallerSavedRegistersInUse());
-  gpr.UnlockAllX();
 }

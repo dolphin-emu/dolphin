@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/GPRRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
