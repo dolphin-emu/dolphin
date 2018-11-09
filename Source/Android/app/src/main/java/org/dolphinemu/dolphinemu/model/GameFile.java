@@ -21,10 +21,18 @@ public class GameFile
 {
   // Do not rename or move without editing the native code
   private long mPointer;
+  private String mName;
 
   private GameFile(long pointer)
   {
     mPointer = pointer;
+  }
+
+  public String getTitle()
+  {
+    if(mName == null)
+      mName = getName();
+    return mName;
   }
 
   @Override
@@ -34,7 +42,7 @@ public class GameFile
 
   public native int getDiscNumber();
 
-  public native String getTitle();
+  public native String getName();
 
   public native String getDescription();
 

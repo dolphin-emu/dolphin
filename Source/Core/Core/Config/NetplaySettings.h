@@ -26,7 +26,6 @@ extern const ConfigInfo<u16> NETPLAY_CONNECT_PORT;
 extern const ConfigInfo<u16> NETPLAY_LISTEN_PORT;
 
 extern const ConfigInfo<std::string> NETPLAY_NICKNAME;
-extern const ConfigInfo<std::string> NETPLAY_SELECTED_HOST_GAME;
 extern const ConfigInfo<bool> NETPLAY_USE_UPNP;
 
 extern const ConfigInfo<bool> NETPLAY_ENABLE_QOS;

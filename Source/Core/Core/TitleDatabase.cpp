@@ -113,47 +113,42 @@ static bool IsNonJapaneseGCTitle(const std::string& game_id)
          DiscIO::Country::Japan;
 }
 
-// Note that this function will not overwrite entries that already are in the maps
-static bool LoadMap(const std::string& file_path, Map& gc_map, Map& wii_map)
-{
-  Map map;
-  if (!LoadMap(file_path, map, [](const auto& game_id) { return true; }))
-    return false;
-
-  for (auto& entry : map)
-  {
-    auto& destination_map = IsGCTitle(entry.first) ? gc_map : wii_map;
-    destination_map.emplace(std::move(entry));
-  }
-  return true;
-}
-
 TitleDatabase::TitleDatabase()
 {
+  Map titleMap;
+  auto predicateFunc = [](const auto& game_id) { return true; };
+
   // Load the user databases.
   const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
-  if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
-    LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
+  if (!LoadMap(load_directory + "wiitdb.txt", titleMap, predicateFunc))
+    LoadMap(load_directory + "titles.txt", titleMap, predicateFunc);
 
   if (!SConfig::GetInstance().m_use_builtin_title_database)
     return;
 
   // Load the database in the console language.
-  // Note: The GameCube language setting can't be set to Japanese,
-  // so instead, we use Japanese names iff the games are NTSC-J.
   const std::string gc_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(false));
   const std::string wii_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(true));
-  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
+
   if (gc_code != "en")
-  {
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + gc_code + ".txt", m_gc_title_map,
-            IsNonJapaneseGCTitle);
-  }
+    LoadMap(File::GetSysDirectory() + "wiitdb-" + gc_code + ".txt", m_gc_title_map, IsGCTitle);
+
   if (wii_code != "en")
     LoadMap(File::GetSysDirectory() + "wiitdb-" + wii_code + ".txt", m_wii_title_map, IsWiiTitle);
 
+  // Note: The GameCube language setting can't be set to Japanese,
+  // so instead, we use Japanese names iff the games are NTSC-J.
+  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
+
   // Load the English database as the base database.
-  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
+  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", titleMap, predicateFunc);
+
+  //
+  for (auto& entry : titleMap)
+  {
+    auto& destination_map = IsGCTitle(entry.first) ? m_gc_title_map : m_wii_title_map;
+    destination_map.emplace(std::move(entry));
+  }
 
   // Titles that cannot be part of the Wii TDB,
   // but common enough to justify having entries for them.
@@ -167,28 +162,34 @@ TitleDatabase::TitleDatabase()
 
 TitleDatabase::TitleDatabase(const std::string& language)
 {
+  Map titleMap;
+  auto predicateFunc = [](const auto& game_id) { return true; };
+
   // Load the user databases.
   const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
-  if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
-    LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
+  if (!LoadMap(load_directory + "wiitdb.txt", titleMap, predicateFunc))
+    LoadMap(load_directory + "titles.txt", titleMap, predicateFunc);
 
   if (!SConfig::GetInstance().m_use_builtin_title_database)
     return;
 
   // Load the database in the console language.
+  if (language != "en")
+    LoadMap(File::GetSysDirectory() + "wiitdb-" + language + ".txt", titleMap, predicateFunc);
+
   // Note: The GameCube language setting can't be set to Japanese,
   // so instead, we use Japanese names iff the games are NTSC-J.
-  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
-  if (language != "en")
-  {
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + language + ".txt", m_gc_title_map,
-            IsNonJapaneseGCTitle);
-
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + language + ".txt", m_wii_title_map, IsWiiTitle);
-  }
+  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", titleMap, IsJapaneseGCTitle);
 
   // Load the English database as the base database.
-  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
+  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", titleMap, predicateFunc);
+
+  //
+  for (auto& entry : titleMap)
+  {
+    auto& destination_map = IsGCTitle(entry.first) ? m_gc_title_map : m_wii_title_map;
+    destination_map.emplace(std::move(entry));
+  }
 
   // Titles that cannot be part of the Wii TDB,
   // but common enough to justify having entries for them.

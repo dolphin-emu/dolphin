@@ -66,7 +66,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDiscNumb
   return static_cast<jint>(GetRef(env, obj)->GetDiscNumber());
 }
 
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getTitle(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getName(JNIEnv* env,
                                                                                  jobject obj)
 {
   const Core::TitleDatabase* db = Host_GetTitleDatabase();
