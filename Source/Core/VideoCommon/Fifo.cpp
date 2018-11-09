@@ -274,7 +274,7 @@ static u32 ReadDataFromFifoOnCPU(u32 readPtr, u32* needSize)
   }
   Memory::CopyFromEmu(write_ptr, readPtr, len);
   write_ptr += len;
-  if(write_ptr - s_video_buffer_pp_read_ptr > *needSize)
+  if(write_ptr - s_video_buffer_pp_read_ptr >= *needSize)
   {
     *needSize = 0;
     s_video_buffer_pp_read_ptr = OpcodeDecoder::Run<true>(
@@ -357,7 +357,7 @@ void RunGpuLoop()
                        fifo.CPReadWriteDistance - readSize);
 
             u8* write_ptr = s_video_buffer_write_ptr;
-            if (write_ptr - s_video_buffer_read_ptr > needSize)
+            if (write_ptr - s_video_buffer_read_ptr >= needSize)
             {
               u32 cyclesExecuted = 0;
               needSize = 0;
@@ -370,7 +370,7 @@ void RunGpuLoop()
 
               if (param.bSyncGPU)
               {
-                cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
+                cyclesExecuted = (u32)(cyclesExecuted / param.fSyncGpuOverclock);
                 int old = s_sync_ticks.fetch_sub(cyclesExecuted);
                 if (old >= param.iSyncGpuMaxDistance &&
                     old - (int)cyclesExecuted < param.iSyncGpuMaxDistance)
@@ -420,8 +420,12 @@ void GpuMaySleep()
 
 bool AtBreakpoint()
 {
+#ifndef ANDROID
   CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   return fifo.bFF_BPEnable && (fifo.CPReadPointer == fifo.CPBreakpoint);
+#else
+  return false;
+#endif
 }
 
 void RunGpu()
@@ -470,7 +474,7 @@ static int RunGpuOnCpu(int ticks)
       }
       read_size = ReadDataFromFifo(fifo.CPReadPointer);
       u8* write_ptr = s_video_buffer_write_ptr;
-      if (write_ptr - s_video_buffer_read_ptr > need_size)
+      if (write_ptr - s_video_buffer_read_ptr >= need_size)
       {
         u32 cycles = 0;
         need_size = 0;

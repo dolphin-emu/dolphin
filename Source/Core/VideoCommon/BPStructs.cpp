@@ -162,8 +162,8 @@ static void BPWritten(const BPCmd& bp)
              bpmem.dstalpha.enable.Value());
     if (bp.changes)
     {
-      if(bpmem.dstalpha.alpha > 0)
-        bpmem.dstalpha.enable = false;
+      //if(bpmem.dstalpha.alpha > 0)
+      //  bpmem.dstalpha.enable = false;
 
       PixelShaderManager::SetAlpha();
       PixelShaderManager::SetDestAlphaChanged();

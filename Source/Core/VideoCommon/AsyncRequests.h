@@ -73,7 +73,7 @@ public:
   {
     if (!m_empty.IsSet())
     {
-      DoFlush();
+      //DoFlush();
       PullEventsInternal();
     }
   }
