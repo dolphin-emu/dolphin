@@ -118,6 +118,7 @@ struct VideoConfig final
   bool bForceProgressive;
 
   bool bEFBEmulateFormatChanges;
+  bool bTMEMCacheEmulation;
   bool bSkipEFBCopyToRam;
   bool bSkipXFBCopyToRam;
   bool bDisableCopyToVRAM;

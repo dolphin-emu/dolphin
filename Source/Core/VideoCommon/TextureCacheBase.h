@@ -384,6 +384,7 @@ private:
     bool gpu_texture_decoding;
     bool disable_vram_copies;
     bool arbitrary_mipmap_detection;
+    bool tmem_cache_emulation;
   };
   BackupConfig backup_config = {};
 

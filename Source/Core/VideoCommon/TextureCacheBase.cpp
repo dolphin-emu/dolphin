@@ -130,7 +130,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
       config.bHiresTextures != backup_config.hires_textures ||
       config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding ||
       config.bDisableCopyToVRAM != backup_config.disable_vram_copies ||
-      config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection)
+      config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection ||
+      config.bTMEMCacheEmulation != backup_config.tmem_cache_emulation)
   {
     Invalidate();
 
@@ -235,6 +236,7 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
   backup_config.disable_vram_copies = config.bDisableCopyToVRAM;
   backup_config.arbitrary_mipmap_detection = config.bArbitraryMipmapDetection;
+  backup_config.tmem_cache_emulation = config.bTMEMCacheEmulation;
 }
 
 TextureCacheBase::TCacheEntry*
@@ -635,7 +637,7 @@ private:
 TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (IsValidBindPoint(stage) && bound_textures[stage])
+  if (g_ActiveConfig.bTMEMCacheEmulation && IsValidBindPoint(stage) && bound_textures[stage])
   {
     return bound_textures[stage];
   }
