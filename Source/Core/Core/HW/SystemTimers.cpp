@@ -253,7 +253,7 @@ double GetEstimatedEmulationPerformance()
   u64 ts_now, ts_before;  // In microseconds
   {
     std::lock_guard<std::mutex> lk(s_emu_to_real_time_mutex);
-    size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() :
+    size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() - 1 :
                                                        s_emu_to_real_time_index - 1;
     size_t index_before = s_emu_to_real_time_index;
 
