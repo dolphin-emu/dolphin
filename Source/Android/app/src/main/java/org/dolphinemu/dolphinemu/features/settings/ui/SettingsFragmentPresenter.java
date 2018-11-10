@@ -196,6 +196,10 @@ public final class SettingsFragmentPresenter
   private void addConfigSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, MenuTag.CONFIG_GENERAL));
+    sl.add(new SubmenuSetting(null, null, R.string.grid_menu_graphics_settings, 0,
+            MenuTag.GRAPHICS));
+    sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, MenuTag.ENHANCEMENTS));
+    sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, MenuTag.HACKS));
     sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, MenuTag.CONFIG_INTERFACE));
 
     sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
@@ -397,7 +401,6 @@ public final class SettingsFragmentPresenter
     waitForShaders = gfxSection.getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
     aspectRatio = gfxSection.getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
-    sl.add(new HeaderSetting(null, null, R.string.graphics_general, 0));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
             R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries,
             R.array.videoBackendValues, 0, videoBackend));
@@ -414,9 +417,20 @@ public final class SettingsFragmentPresenter
             R.string.aspect_ratio, R.string.aspect_ratio_description, R.array.aspectRatioEntries,
             R.array.aspectRatioValues, 0, aspectRatio));
 
-    sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
-    sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, MenuTag.ENHANCEMENTS));
-    sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, MenuTag.HACKS));
+    /*
+		 Check if we support stereo
+		 If we support desktop GL then we must support at least OpenGL 3.2
+		 If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
+		 */
+    EGLHelper helper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
+
+    if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
+            (helper.supportsGLES3() && helper.GetVersion() >= 310 &&
+                    helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
+    {
+      sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu,
+              R.string.stereoscopy_submenu_description, MenuTag.STEREOSCOPY));
+    }
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -485,21 +499,6 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_ENHANCEMENTS,
             R.string.wide_screen_hack, R.string.wide_screen_hack_description, false,
             wideScreenHack));
-
-		 /*
-		 Check if we support stereo
-		 If we support desktop GL then we must support at least OpenGL 3.2
-		 If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
-		 */
-    EGLHelper helper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
-
-    if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
-            (helper.supportsGLES3() && helper.GetVersion() >= 310 &&
-                    helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
-    {
-      sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu,
-              R.string.stereoscopy_submenu_description, MenuTag.STEREOSCOPY));
-    }
   }
 
   private String[] getShaderList(String subDir)

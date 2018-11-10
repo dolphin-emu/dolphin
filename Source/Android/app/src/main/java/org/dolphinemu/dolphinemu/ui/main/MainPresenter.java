@@ -67,10 +67,6 @@ public final class MainPresenter
         mView.launchSettingsActivity(MenuTag.CONFIG);
         return true;
 
-      case R.id.menu_settings_graphics:
-        mView.launchSettingsActivity(MenuTag.GRAPHICS);
-        return true;
-
       case R.id.menu_settings_gcpad:
         mView.launchSettingsActivity(MenuTag.GCPAD_TYPE);
         return true;
