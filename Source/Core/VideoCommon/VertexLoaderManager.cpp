@@ -90,7 +90,7 @@ struct entry
   u64 num_verts;
   bool operator<(const entry& other) const { return num_verts > other.num_verts; }
 };
-}
+}  // namespace
 
 std::string VertexLoadersToString()
 {
@@ -248,19 +248,14 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
   return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess)
+int GetVertexSize(int vtx_attr_group, bool is_preprocess)
 {
-  if (!count)
-    return 0;
+  return RefreshLoader(vtx_attr_group, is_preprocess)->m_VertexSize;
+}
 
-  VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
-
-  int size = count * loader->m_VertexSize;
-  if ((int)src.size() < size)
-    return -1;
-
-  if (is_preprocess)
-    return size;
+void RunVertices(int vtx_attr_group, int primitive, int count, const DataReader& src)
+{
+  VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, false);
 
   // If the native vertex format changed, force a flush.
   if (loader->m_native_vertex_format != s_current_vtx_fmt ||
@@ -288,7 +283,6 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
   ADDSTAT(stats.thisFrame.numPrims, count);
   INCSTAT(stats.thisFrame.numPrimitiveJoins);
-  return size;
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()
@@ -296,7 +290,7 @@ NativeVertexFormat* GetCurrentVertexFormat()
   return s_current_vtx_fmt;
 }
 
-}  // namespace
+}  // namespace VertexLoaderManager
 
 void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 {

@@ -81,14 +81,14 @@ void Init()
 }
 
 template <bool is_preprocess>
-u8* Run(DataReader src, u32* cycles, bool in_display_list)
+u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
 {
   u32 totalCycles = 0;
   u8* opcodeStart;
+  u32 needSize = 0;
   while (true)
   {
     opcodeStart = src.GetPointer();
-
     if (!src.size())
       goto end;
 
@@ -125,7 +125,10 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       u32 Cmd2 = src.Read<u32>();
       int transfer_size = ((Cmd2 >> 16) & 15) + 1;
       if (src.size() < transfer_size * sizeof(u32))
+      {
+        needSize = transfer_size * sizeof(u32);
         goto end;
+      }
       totalCycles += 18 + 6 * transfer_size;
       if (!is_preprocess)
       {
@@ -221,17 +224,27 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         if (src.size() < 2)
           goto end;
         u16 num_vertices = src.Read<u16>();
-        int bytes = VertexLoaderManager::RunVertices(
-            cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-            (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src, is_preprocess);
+        if(num_vertices > 0)
+        {
+          int vtx_attr_group = cmd_byte & GX_VAT_MASK;  // Vertex loader index (0 - 7)
+          int primitive = (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT;
+          int bytes =
+              VertexLoaderManager::GetVertexSize(vtx_attr_group, is_preprocess) * num_vertices;
 
-        if (bytes < 0)
-          goto end;
+          if (src.size() < bytes)
+          {
+            needSize = bytes;
+            goto end;
+          }
 
-        src.Skip(bytes);
+          if(!is_preprocess)
+            VertexLoaderManager::RunVertices(vtx_attr_group, primitive, num_vertices, src);
 
-        // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
-        totalCycles += num_vertices * 4 * 3 + 6;
+          src.Skip(bytes);
+
+          // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
+          totalCycles += num_vertices * 4 * 3 + 6;
+        }
       }
       else
       {
@@ -248,21 +261,20 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     // Display lists get added directly into the FIFO stream
     if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
     {
-      u8* opcodeEnd;
-      opcodeEnd = src.GetPointer();
+      u8* opcodeEnd = src.GetPointer();
       FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(opcodeEnd - opcodeStart));
     }
   }
 
 end:
   if (cycles)
-  {
     *cycles = totalCycles;
-  }
+  if (need_size)
+    *need_size = needSize;
   return opcodeStart;
 }
 
-template u8* Run<true>(DataReader src, u32* cycles, bool in_display_list);
-template u8* Run<false>(DataReader src, u32* cycles, bool in_display_list);
+template u8* Run<true>(DataReader src, u32* cycles, bool in_display_list, u32* need_size);
+template u8* Run<false>(DataReader src, u32* cycles, bool in_display_list, u32* need_size);
 
 }  // namespace OpcodeDecoder
