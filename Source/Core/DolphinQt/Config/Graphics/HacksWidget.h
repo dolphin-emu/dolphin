@@ -33,6 +33,7 @@ private:
   QLabel* m_accuracy_label;
   QSlider* m_accuracy;
   QCheckBox* m_gpu_texture_decoding;
+  QCheckBox* m_tmem_cache_emulation;
 
   // External Framebuffer
   QCheckBox* m_store_xfb_copies;
