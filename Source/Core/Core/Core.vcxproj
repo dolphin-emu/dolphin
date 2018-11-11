@@ -240,8 +240,8 @@
     </ClCompile>
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
-    <ClCompile Include="IOS\WFS\WFSSRV.cpp" />
     <ClCompile Include="IOS\WFS\WFSI.cpp" />
+    <ClCompile Include="IOS\WFS\WFSSRV.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
@@ -259,13 +259,8 @@
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Paired.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp" />
-    <ClCompile Include="PowerPC\Jit64\FPURegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\GPRRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp" />
-    <ClCompile Include="PowerPC\Jit64\JitAsm.cpp" />
-    <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_FloatingPoint.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Integer.cpp" />
@@ -274,7 +269,12 @@
     <ClCompile Include="PowerPC\Jit64\Jit_LoadStorePaired.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Paired.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_SystemRegisters.cpp" />
+    <ClCompile Include="PowerPC\Jit64\JitAsm.cpp" />
+    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp" />
+    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
+    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\BlockCache.cpp" />
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
@@ -283,10 +283,6 @@
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
@@ -294,6 +290,10 @@
     <ClCompile Include="PowerPC\PPCCache.cpp" />
     <ClCompile Include="PowerPC\PPCSymbolDB.cpp" />
     <ClCompile Include="PowerPC\PPCTables.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />

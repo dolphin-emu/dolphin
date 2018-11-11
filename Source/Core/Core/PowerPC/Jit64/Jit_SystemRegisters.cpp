@@ -9,7 +9,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -219,26 +219,32 @@ void Jit64::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-    MOV(32, R(RSCRATCH), gpr.R(d));
+  {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Read);
+    RegCache::Realize(Rd);
+
+    MOV(32, R(RSCRATCH), Rd);
     AND(32, R(RSCRATCH), Imm32(0xff7f));
     MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
 
-    MOV(32, R(RSCRATCH), gpr.R(d));
+    MOV(32, R(RSCRATCH), Rd);
     SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
     AND(8, R(RSCRATCH), Imm8(1));
     MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
 
-    MOV(32, R(RSCRATCH), gpr.R(d));
+    MOV(32, R(RSCRATCH), Rd);
     SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
     MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
-    gpr.UnlockAll();
+
     return;
+  }
 
   case SPR_HID0:
   {
-    MOV(32, R(RSCRATCH), gpr.R(d));
+    RCOpArg Rd = gpr.Use(d, RCMode::Read);
+    RegCache::Realize(Rd);
+
+    MOV(32, R(RSCRATCH), Rd);
     BTR(32, R(RSCRATCH), Imm8(31 - 20));  // ICFI
     MOV(32, PPCSTATE(spr[iIndex]), R(RSCRATCH));
     FixupBranch dont_reset_icache = J_CC(CC_NC);
@@ -255,13 +261,9 @@ void Jit64::mtspr(UGeckoInstruction inst)
   }
 
   // OK, this is easy.
-  if (!gpr.R(d).IsImm())
-  {
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-  }
-  MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
-  gpr.UnlockAll();
+  RCOpArg Rd = gpr.BindOrImm(d, RCMode::Read);
+  RegCache::Realize(Rd);
+  MOV(32, PPCSTATE(spr[iIndex]), Rd);
 }
 
 void Jit64::mfspr(UGeckoInstruction inst)
@@ -281,22 +283,23 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // redundant for the JIT.
     // no register choice
 
-    gpr.FlushLockX(RDX, RAX);
-    gpr.FlushLockX(RCX);
+    RCX64Reg rdx = gpr.Scratch(RDX);
+    RCX64Reg rax = gpr.Scratch(RAX);
+    RCX64Reg rcx = gpr.Scratch(RCX);
 
-    MOV(64, R(RCX), ImmPtr(&CoreTiming::g));
+    MOV(64, rcx, ImmPtr(&CoreTiming::g));
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
     // Scale downcount by the CPU overclocking factor.
     CVTSI2SS(XMM0, PPCSTATE(downcount));
-    MULSS(XMM0, MDisp(RCX, offsetof(CoreTiming::Globals, last_OC_factor_inverted)));
-    CVTSS2SI(RDX, R(XMM0));  // RDX is downcount scaled by the overclocking factor
-    MOV(32, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, slice_length)));
-    SUB(64, R(RAX), R(RDX));  // cycles since the last CoreTiming::Advance() event is (slicelength -
-                              // Scaled_downcount)
-    ADD(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, global_timer)));
-    SUB(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, fake_TB_start_ticks)));
+    MULSS(XMM0, MDisp(rcx, offsetof(CoreTiming::Globals, last_OC_factor_inverted)));
+    CVTSS2SI(rdx, R(XMM0));  // RDX is downcount scaled by the overclocking factor
+    MOV(32, rax, MDisp(rcx, offsetof(CoreTiming::Globals, slice_length)));
+    SUB(64, rax, rdx);  // cycles since the last CoreTiming::Advance() event is (slicelength -
+                        // Scaled_downcount)
+    ADD(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, global_timer)));
+    SUB(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, fake_TB_start_ticks)));
     // It might seem convenient to correct the timer for the block position here for even more
     // accurate
     // timing, but as of currently, this can break games. If we end up reading a time *after* the
@@ -307,15 +310,15 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // Revolution,
     // which won't get past the loading screen.
     // if (js.downcountAmount)
-    //	ADD(64, R(RAX), Imm32(js.downcountAmount));
+    //	ADD(64, rax, Imm32(js.downcountAmount));
 
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
-    MUL(64, R(RDX));
-    MOV(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, fake_TB_start_value)));
-    SHR(64, R(RDX), Imm8(3));
-    ADD(64, R(RAX), R(RDX));
-    MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
+    MOV(64, rdx, Imm64(0xAAAAAAAAAAAAAAABULL));
+    MUL(64, rdx);
+    MOV(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, fake_TB_start_value)));
+    SHR(64, rdx, Imm8(3));
+    ADD(64, rax, rdx);
+    MOV(64, PPCSTATE(spr[SPR_TL]), rax);
 
     if (CanMergeNextInstructions(1))
     {
@@ -330,40 +333,42 @@ void Jit64::mfspr(UGeckoInstruction inst)
       {
         js.downcountAmount++;
         js.skipInstructions = 1;
-        gpr.Lock(d, n);
-        gpr.BindToRegister(d, false);
-        gpr.BindToRegister(n, false);
+        RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+        RCX64Reg Rn = gpr.Bind(n, RCMode::Write);
+        RegCache::Realize(Rd, Rn);
         if (iIndex == SPR_TL)
-          MOV(32, gpr.R(d), R(RAX));
+          MOV(32, Rd, rax);
         if (nextIndex == SPR_TL)
-          MOV(32, gpr.R(n), R(RAX));
-        SHR(64, R(RAX), Imm8(32));
+          MOV(32, Rn, rax);
+        SHR(64, rax, Imm8(32));
         if (iIndex == SPR_TU)
-          MOV(32, gpr.R(d), R(RAX));
+          MOV(32, Rd, rax);
         if (nextIndex == SPR_TU)
-          MOV(32, gpr.R(n), R(RAX));
+          MOV(32, Rn, rax);
         break;
       }
     }
-    gpr.Lock(d);
-    gpr.BindToRegister(d, false);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
     if (iIndex == SPR_TU)
-      SHR(64, R(RAX), Imm8(32));
-    MOV(32, gpr.R(d), R(RAX));
+      SHR(64, rax, Imm8(32));
+    MOV(32, Rd, rax);
     break;
   }
   case SPR_XER:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, false);
-    MOVZX(32, 16, gpr.RX(d), PPCSTATE(xer_stringctrl));
+  {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
+    MOVZX(32, 16, Rd, PPCSTATE(xer_stringctrl));
     MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
     SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-    OR(32, gpr.R(d), R(RSCRATCH));
+    OR(32, Rd, R(RSCRATCH));
 
     MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
     SHL(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-    OR(32, gpr.R(d), R(RSCRATCH));
+    OR(32, Rd, R(RSCRATCH));
     break;
+  }
   case SPR_WPAR:
   case SPR_DEC:
   case SPR_PMC1:
@@ -372,26 +377,25 @@ void Jit64::mfspr(UGeckoInstruction inst)
   case SPR_PMC4:
     FALLBACK_IF(true);
   default:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, false);
-    MOV(32, gpr.R(d), PPCSTATE(spr[iIndex]));
+  {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
+    MOV(32, Rd, PPCSTATE(spr[iIndex]));
     break;
   }
-  gpr.UnlockAllX();
-  gpr.UnlockAll();
+  }
 }
 
 void Jit64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  if (!gpr.R(inst.RS).IsImm())
+
   {
-    gpr.Lock(inst.RS);
-    gpr.BindToRegister(inst.RS, true, false);
+    RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
+    RegCache::Realize(Rs);
+    MOV(32, PPCSTATE(msr), Rs);
   }
-  MOV(32, PPCSTATE(msr), gpr.R(inst.RS));
-  gpr.UnlockAll();
   gpr.Flush();
   fpr.Flush();
 
@@ -430,10 +434,9 @@ void Jit64::mfmsr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   // Privileged?
-  gpr.Lock(inst.RD);
-  gpr.BindToRegister(inst.RD, false, true);
-  MOV(32, gpr.R(inst.RD), PPCSTATE(msr));
-  gpr.UnlockAll();
+  RCX64Reg Rd = gpr.Bind(inst.RD, RCMode::Write);
+  RegCache::Realize(Rd);
+  MOV(32, Rd, PPCSTATE(msr));
 }
 
 void Jit64::mftb(UGeckoInstruction inst)
@@ -448,13 +451,13 @@ void Jit64::mfcr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   int d = inst.RD;
-  gpr.FlushLockX(RSCRATCH_EXTRA);
+
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   CALL(asm_routines.mfcr);
-  gpr.Lock(d);
-  gpr.BindToRegister(d, false, true);
-  MOV(32, gpr.R(d), R(RSCRATCH));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+
+  RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rd);
+  MOV(32, Rd, R(RSCRATCH));
 }
 
 void Jit64::mtcrf(UGeckoInstruction inst)
@@ -466,13 +469,13 @@ void Jit64::mtcrf(UGeckoInstruction inst)
   u32 crm = inst.CRM;
   if (crm != 0)
   {
-    if (gpr.R(inst.RS).IsImm())
+    if (gpr.IsImm(inst.RS))
     {
       for (int i = 0; i < 8; i++)
       {
         if ((crm & (0x80 >> i)) != 0)
         {
-          u8 newcr = (gpr.R(inst.RS).Imm32() >> (28 - (i * 4))) & 0xF;
+          u8 newcr = (gpr.Imm32(inst.RS) >> (28 - (i * 4))) & 0xF;
           u64 newcrval = PowerPC::PPCCRToInternal(newcr);
           if ((s64)newcrval == (s32)newcrval)
           {
@@ -489,13 +492,13 @@ void Jit64::mtcrf(UGeckoInstruction inst)
     else
     {
       MOV(64, R(RSCRATCH2), ImmPtr(PowerPC::m_crTable.data()));
-      gpr.Lock(inst.RS);
-      gpr.BindToRegister(inst.RS, true, false);
+      RCX64Reg Rs = gpr.Bind(inst.RS, RCMode::Read);
+      RegCache::Realize(Rs);
       for (int i = 0; i < 8; i++)
       {
         if ((crm & (0x80 >> i)) != 0)
         {
-          MOV(32, R(RSCRATCH), gpr.R(inst.RS));
+          MOV(32, R(RSCRATCH), Rs);
           if (i != 7)
             SHR(32, R(RSCRATCH), Imm8(28 - (i * 4)));
           if (i != 0)
@@ -504,7 +507,6 @@ void Jit64::mtcrf(UGeckoInstruction inst)
           MOV(64, PPCSTATE(cr_val[i]), R(RSCRATCH));
         }
       }
-      gpr.UnlockAll();
     }
   }
 }
@@ -653,11 +655,12 @@ void Jit64::mffsx(UGeckoInstruction inst)
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
   int d = inst.FD;
-  fpr.BindToRegister(d, false, true);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rd);
   MOV(64, R(RSCRATCH2), Imm64(0xFFF8000000000000));
   OR(64, R(RSCRATCH), R(RSCRATCH2));
   MOVQ_xmm(XMM0, R(RSCRATCH));
-  MOVSD(fpr.RX(d), R(XMM0));
+  MOVSD(Rd, R(XMM0));
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
@@ -751,10 +754,14 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   }
 
   int b = inst.FB;
-  if (fpr.R(b).IsSimpleReg())
-    MOVQ_xmm(R(RSCRATCH), fpr.RX(b));
+
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RegCache::Realize(Rb);
+
+  if (Rb.IsSimpleReg())
+    MOVQ_xmm(R(RSCRATCH), Rb.GetSimpleReg());
   else
-    MOV(32, R(RSCRATCH), fpr.R(b));
+    MOV(32, R(RSCRATCH), Rb);
 
   MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
   AND(32, R(RSCRATCH), Imm32(mask));

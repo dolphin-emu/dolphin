@@ -159,6 +159,7 @@
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="UPnP.h" />
+    <ClInclude Include="VariantUtil.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WorkQueueThread.h" />
     <ClInclude Include="x64ABI.h" />
