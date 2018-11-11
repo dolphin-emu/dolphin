@@ -110,8 +110,7 @@ public final class GameFileCacheService extends IntentService
     // Load the game list cache if it isn't already loaded, otherwise do nothing
     if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null)
     {
-      GameFileCache temp = new GameFileCache(
-        DirectoryInitialization.getCacheDirectory() + File.separator + "gamelist.cache");
+      GameFileCache temp = new GameFileCache();
       synchronized (temp)
       {
         gameFileCache = temp;

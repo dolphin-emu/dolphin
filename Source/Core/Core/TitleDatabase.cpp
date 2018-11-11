@@ -104,14 +104,14 @@ static bool IsJapaneseGCTitle(const std::string& game_id)
          DiscIO::Country::Japan;
 }
 
-static bool IsNonJapaneseGCTitle(const std::string& game_id)
+/*static bool IsNonJapaneseGCTitle(const std::string& game_id)
 {
   if (!IsGCTitle(game_id))
     return false;
 
   return DiscIO::CountryCodeToCountry(game_id[3], DiscIO::Platform::GameCubeDisc) !=
          DiscIO::Country::Japan;
-}
+}*/
 
 TitleDatabase::TitleDatabase()
 {

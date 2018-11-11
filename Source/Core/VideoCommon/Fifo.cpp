@@ -349,6 +349,7 @@ void RunGpuLoop()
               readPtr = fifo.CPBase;
 
             Common::AtomicStore(fifo.CPReadPointer, readPtr);
+            Common::AtomicStore(fifo.SafeCPReadPointer, readPtr);
             Common::AtomicAdd(fifo.CPReadWriteDistance, -(s32)readSize);
 
             ASSERT_MSG(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - readSize >= 0,
@@ -364,10 +365,6 @@ void RunGpuLoop()
               s_video_buffer_read_ptr = OpcodeDecoder::Run(
                   DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false, &needSize);
 
-              if ((write_ptr - s_video_buffer_read_ptr) == 0)
-                Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
-              CommandProcessor::SetCPStatusFromGPU();
-
               if (param.bSyncGPU)
               {
                 cyclesExecuted = (u32)(cyclesExecuted / param.fSyncGpuOverclock);
@@ -377,6 +374,8 @@ void RunGpuLoop()
                   s_sync_wakeup_event.Set();
               }
             }
+
+            CommandProcessor::SetCPStatusFromGPU();
             // This call is pretty important in DualCore mode and must be called in the FIFO Loop.
             // If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
             // leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing

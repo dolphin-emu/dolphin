@@ -91,10 +91,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
   {
     opcodeStart = src.GetPointer();
     if (!src.size())
-    {
-      needSize = 1;
       goto end;
-    }
 
     u8 cmd_byte = *opcodeStart; src.Skip();
     switch (cmd_byte)
@@ -111,10 +108,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
     case GX_LOAD_CP_REG:
     {
       if (src.size() < 1 + 4)
-      {
-        needSize = 5;
         goto end;
-      }
       totalCycles += 12;
       u8 sub_cmd = src.Read<u8>();
       u32 value = src.Read<u32>();
@@ -127,10 +121,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
     case GX_LOAD_XF_REG:
     {
       if (src.size() < 4)
-      {
-        needSize = 4;
         goto end;
-      }
       u32 Cmd2 = src.Read<u32>();
       int transfer_size = ((Cmd2 >> 16) & 15) + 1;
       if (src.size() < transfer_size * sizeof(u32))
@@ -164,10 +155,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
       goto load_indx;
     load_indx:
       if (src.size() < 4)
-      {
-        needSize = 4;
         goto end;
-      }
       totalCycles += 6;
       if (is_preprocess)
         PreprocessIndexedXF(src.Read<u32>(), refarray);
@@ -178,10 +166,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
     case GX_CMD_CALL_DL:
     {
       if (src.size() < 8)
-      {
-        needSize = 8;
         goto end;
-      }
       u32 address = src.Read<u32>();
       u32 count = src.Read<u32>();
 
@@ -216,10 +201,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
       // tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
       {
         if (src.size() < 4)
-        {
-          needSize = 4;
           goto end;
-        }
         totalCycles += 12;
         u32 bp_cmd = src.Read<u32>();
         if (is_preprocess)
@@ -240,10 +222,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, u32* need_size)
       {
         // load vertices
         if (src.size() < 2)
-        {
-          needSize = 2;
           goto end;
-        }
         u16 num_vertices = src.Read<u16>();
         if(num_vertices > 0)
         {
