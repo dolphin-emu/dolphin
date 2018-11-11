@@ -743,6 +743,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_POWER_BUTTON:
+  {
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
+    SendToClients(spac, player.pid);
+  }
+  break;
+
   case NP_MSG_TIMEBASE:
   {
     u64 timebase = Common::PacketReadU64(packet);

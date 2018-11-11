@@ -568,6 +568,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_POWER_BUTTON:
+  {
+    m_dialog->OnMsgPowerButton();
+  }
+  break;
+
   case NP_MSG_PING:
   {
     u32 ping_key = 0;
@@ -1701,6 +1707,13 @@ void NetPlayClient::RequestStopGame()
     SendStopGamePacket();
 }
 
+void NetPlayClient::SendPowerButtonEvent()
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
+  SendAsync(std::move(packet));
+}
+
 // called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
@@ -1881,6 +1894,12 @@ void ClearWiiSyncFS()
 void SetSIPollBatching(bool state)
 {
   s_si_poll_batching = state;
+}
+
+void SendPowerButtonEvent()
+{
+  ASSERT(IsNetPlayRunning());
+  netplay_client->SendPowerButtonEvent();
 }
 
 void NetPlay_Enable(NetPlayClient* const np)

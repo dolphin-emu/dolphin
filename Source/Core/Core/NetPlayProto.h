@@ -124,6 +124,7 @@ enum
   NP_MSG_GAME_STATUS = 0xA4,
   NP_MSG_IPL_STATUS = 0xA5,
   NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
+  NP_MSG_POWER_BUTTON = 0xA7,
 
   NP_MSG_TIMEBASE = 0xB0,
   NP_MSG_DESYNC_DETECTED = 0xB1,
@@ -180,4 +181,5 @@ IOS::HLE::FS::FileSystem* GetWiiSyncFS();
 void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
 void ClearWiiSyncFS();
 void SetSIPollBatching(bool state);
+void SendPowerButtonEvent();
 }  // namespace NetPlay
