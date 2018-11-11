@@ -307,36 +307,8 @@ void VertexShaderManager::SetConstants()
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
     constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 
-    // By default we don't change the depth value at all in the vertex shader.
-    constants.pixelcentercorrection[2] = 1.0f;
-    constants.pixelcentercorrection[3] = 0.0f;
-
     constants.viewport[0] = (2.f * xfmem.viewport.wd);
     constants.viewport[1] = (2.f * xfmem.viewport.ht);
-
-    if (g_renderer->UseVertexDepthRange())
-    {
-      // Oversized depth ranges are handled in the vertex shader. We need to reverse
-      // the far value to use the reversed-Z trick.
-      if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-      {
-        // Sometimes the console also tries to use the reversed-Z trick. We can only do
-        // that with the expected accuracy if the backend can reverse the depth range.
-        constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
-        if (xfmem.viewport.zRange < 0.0f)
-          constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
-        else
-          constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
-      }
-      else
-      {
-        // For backends that don't support reversing the depth range we can still render
-        // cases where the console uses the reversed-Z trick. But we simply can't provide
-        // the expected accuracy, which might result in z-fighting.
-        constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
-        constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
-      }
-    }
 
     dirty = true;
     BPFunctions::SetViewport();
@@ -377,7 +349,9 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
 
-      g_fProjectionMatrix[14] = -1.0f;
+      // We adjust our depth value for clipping purposes to match the perspective projection in the
+      // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
+      g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
       g_fProjectionMatrix[15] = 0.0f;
 
       SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);

@@ -175,7 +175,6 @@ union ShaderHostConfig
     u32 backend_clip_control : 1;
     u32 backend_ssaa : 1;
     u32 backend_atomics : 1;
-    u32 backend_depth_clamp : 1;
     u32 backend_reversed_depth_range : 1;
     u32 backend_bitfield : 1;
     u32 backend_dynamic_sampler_indexing : 1;
@@ -232,9 +231,6 @@ inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
     DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
                        texgens + 2);
   }
-
-  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
-  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
 }
 
 template <class T>
@@ -255,9 +251,6 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 t
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
   }
-
-  object.Write("\t%s.clipDist0 = %s.clipDist0;\n", a, b);
-  object.Write("\t%s.clipDist1 = %s.clipDist1;\n", a, b);
 }
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
@@ -333,7 +326,7 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tfloat4 " I_TRANSFORMMATRICES "[64];\n"
                                         "\tfloat4 " I_NORMALMATRICES "[32];\n"
                                         "\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_PIXELCENTERCORRECTION ";\n"
+                                        "\tfloat2 " I_PIXELCENTERCORRECTION ";\n"
                                         "\tfloat2 " I_VIEWPORT_SIZE ";\n"
                                         "\tuint4   xfmem_pack1[8];\n"
                                         "\t#define xfmem_texMtxInfo(i) (xfmem_pack1[(i)].x)\n"

@@ -27,7 +27,6 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_clip_control = g_ActiveConfig.backend_info.bSupportsClipControl;
   bits.backend_ssaa = g_ActiveConfig.backend_info.bSupportsSSAA;
   bits.backend_atomics = g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
-  bits.backend_depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
   bits.backend_reversed_depth_range = g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
   bits.backend_bitfield = g_ActiveConfig.backend_info.bSupportsBitfield;
   bits.backend_dynamic_sampler_indexing =

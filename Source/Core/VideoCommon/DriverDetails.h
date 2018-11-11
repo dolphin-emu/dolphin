@@ -210,15 +210,6 @@ enum Bug
   // everywhere else.
   BUG_SLOW_GETBUFFERSUBDATA,
 
-  // Bug: Broken lines in geometry shaders when writing to gl_ClipDistance in the vertex shader
-  // Affected Devices: Mesa i965
-  // Started Version: -1
-  // Ended Version: -1
-  // Writing to gl_ClipDistance in both the vertex shader and the geometry shader will break
-  // the geometry shader. Current workaround is to make sure the geometry shader always consumes
-  // the gl_ClipDistance inputs from the vertex shader.
-  BUG_BROKEN_CLIP_DISTANCE,
-
   // Bug: Dual-source outputs from fragment shaders are broken on AMD Vulkan drivers
   // Started Version: -1
   // Ended Version: -1

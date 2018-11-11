@@ -94,7 +94,7 @@ constexpr size_t TOTAL_PIPELINE_BINDING_POINTS =
 
 // Format of EFB textures
 constexpr VkFormat EFB_COLOR_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
-constexpr VkFormat EFB_DEPTH_TEXTURE_FORMAT = VK_FORMAT_D32_SFLOAT;
+constexpr VkFormat EFB_DEPTH_TEXTURE_FORMAT = VK_FORMAT_D24_UNORM_S8_UINT;
 constexpr VkFormat EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT = VK_FORMAT_R32_SFLOAT;
 
 // Format of texturecache textures

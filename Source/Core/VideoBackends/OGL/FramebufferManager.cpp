@@ -137,7 +137,7 @@ void main(void) {
   gl_PointSize = %d.0 / 640.0;
 
   v_c = rawcolor0.bgra;
-  v_z = float(rawcolor1 & 0xFFFFFF) / 16777216.0;
+  v_z = float(rawcolor1 & 0xFFFFFF) / 16777215.0;
 })GLSL";
 
 constexpr const char* GLSL_EFB_POKE_PIXEL_FS = R"GLSL(
@@ -283,15 +283,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   m_efbFramebuffer.resize(m_EFBLayers);
   m_resolvedFramebuffer.resize(m_EFBLayers);
 
-  GLenum depth_internal_format = GL_DEPTH_COMPONENT32F;
-  GLenum depth_pixel_format = GL_DEPTH_COMPONENT;
-  GLenum depth_data_type = GL_FLOAT;
-  if (m_enable_stencil_buffer)
-  {
-    depth_internal_format = GL_DEPTH32F_STENCIL8;
-    depth_pixel_format = GL_DEPTH_STENCIL;
-    depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
-  }
+  GLenum depth_internal_format = GL_DEPTH24_STENCIL8;
+  GLenum depth_pixel_format = GL_DEPTH_STENCIL;
+  GLenum depth_data_type = GL_UNSIGNED_INT_24_8;
 
   const bool multilayer = m_EFBLayers > 1;
 

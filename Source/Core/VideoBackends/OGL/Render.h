@@ -71,6 +71,7 @@ struct VideoConfig
   bool bSupportsBitfield;
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
+  bool bSupportsUnrestrictedDepthRange;
 
   const char* gl_vendor;
   const char* gl_renderer;
@@ -151,7 +152,7 @@ public:
 
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
-                      const TargetRectangle& targetPixelRc, const void* data);
+                      const TargetRectangle& targetPixelRc, const u32* data);
 
   void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
                const TargetRectangle& source_rc);

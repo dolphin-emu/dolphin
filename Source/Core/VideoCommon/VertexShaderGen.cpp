@@ -412,20 +412,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.colors_1 = rawcolor1;\n");
   }
 
-  // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
-  // our own depth clipping and calculate the depth range before the perspective divide if
-  // necessary.
-  if (host_config.backend_depth_clamp)
-  {
-    // Since we're adjusting z for the depth range before the perspective divide, we have to do our
-    // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
-    // We adjust our depth value for clipping purposes to match the perspective projection in the
-    // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
-    out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
-    out.Write("o.clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
-    out.Write("o.clipDist1 = -clipDepth;\n");           // Far: z > 0
-  }
-
   // Write the true depth value. If the game uses depth textures, then the pixel shader will
   // override it with the correct values if not then early z culling will improve speed.
   // There are two different ways to do this, when the depth range is oversized, we process
@@ -437,8 +423,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // divide, because some games will use a depth range larger than what is allowed by the
   // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
   // games effectively add a depth bias to the values written to the depth buffer.
-  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
-            "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+  out.Write("o.pos.z = -o.pos.z;\n");
 
   if (!host_config.backend_clip_control)
   {
@@ -503,12 +488,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       out.Write("colors_0 = o.colors_0;\n");
       out.Write("colors_1 = o.colors_1;\n");
-    }
-
-    if (host_config.backend_depth_clamp)
-    {
-      out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
-      out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
     }
 
     // Vulkan NDC space has Y pointing down (right-handed NDC space).

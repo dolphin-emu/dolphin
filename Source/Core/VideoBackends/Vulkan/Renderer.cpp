@@ -435,18 +435,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   }
   else  // if (type == EFBAccessType::PeekZ)
   {
-    // Depth buffer is inverted for improved precision near far plane
-    float depth = 1.0f - FramebufferManager::GetInstance()->PeekEFBDepth(x, y);
+    u32 depth = FramebufferManager::GetInstance()->PeekEFBDepth(x, y) * 16777215.0f;
     u32 ret = 0;
 
+    // Depth buffer is inverted for improved precision near far plane
     if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
     {
       // if Z is in 16 bit format you must return a 16 bit integer
-      ret = MathUtil::Clamp<u32>(static_cast<u32>(depth * 65536.0f), 0, 0xFFFF);
+      ret = depth >> 8;
     }
     else
     {
-      ret = MathUtil::Clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+      ret = depth;
     }
 
     return ret;
@@ -473,7 +473,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     {
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
-      float depth = (1.0f - float(point.data & 0xFFFFFF) / 16777216.0f);
+      float depth = float(point.data & 0xFFFFFF) / 16777215.0f;
       FramebufferManager::GetInstance()->PokeEFBDepth(point.x, point.y, depth);
     }
   }
@@ -581,7 +581,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-  clear_depth_value.depthStencil.depth = (1.0f - (static_cast<float>(z & 0xFFFFFF) / 16777216.0f));
+  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777215.0f;
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.

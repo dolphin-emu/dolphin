@@ -64,8 +64,8 @@ void SetViewport()
 
   float width = g_renderer->EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float height = g_renderer->EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
+  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777215.0f;
+  float max_depth = xfmem.viewport.farZ / 16777215.0f;
   if (width < 0.f)
   {
     x += width;
@@ -75,35 +75,6 @@ void SetViewport()
   {
     y += height;
     height *= -1;
-  }
-
-  // The maximum depth that is written to the depth buffer should never exceed this value.
-  // This is necessary because we use a 2^24 divisor for all our depth values to prevent
-  // floating-point round-trip errors. However the console GPU doesn't ever write a value
-  // to the depth buffer that exceeds 2^24 - 1.
-  constexpr float GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    // There's no way to support oversized depth ranges in this situation. Let's just clamp the
-    // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-    max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
-  }
-
-  if (g_renderer->UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    // Taking into account whether the depth range is inverted or not.
-    if (xfmem.viewport.zRange < 0.0f && g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    {
-      min_depth = GX_MAX_DEPTH;
-      max_depth = 0.0f;
-    }
-    else
-    {
-      min_depth = 0.0f;
-      max_depth = GX_MAX_DEPTH;
-    }
   }
 
   float near_depth, far_depth;

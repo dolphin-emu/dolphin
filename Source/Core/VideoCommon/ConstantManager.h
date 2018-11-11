@@ -76,9 +76,8 @@ struct VertexShaderConstants
   std::array<float4, 64> transformmatrices;
   std::array<float4, 32> normalmatrices;
   std::array<float4, 64> posttransformmatrices;
-  float4 pixelcentercorrection;
-  std::array<float, 2> viewport;  // .xy
-  std::array<float, 2> pad2;      // .zw
+  std::array<float, 2> pixelcentercorrection;  // .xy
+  std::array<float, 2> viewport;               // .zw
 
   // .x - texMtxInfo, .y - postMtxInfo, [0..1].z = color, [0..1].w = alpha
   std::array<uint4, 8> xfmem_pack1;

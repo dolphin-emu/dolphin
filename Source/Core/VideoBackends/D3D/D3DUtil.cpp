@@ -760,7 +760,7 @@ void DrawEFBPokeQuads(EFBAccessType type, const EfbPokeData* points, size_t num_
 
       if (type == EFBAccessType::PokeZ)
       {
-        z = 1.0f - static_cast<float>(point->data & 0xFFFFFF) / 16777216.0f;
+        z = 1.0f - static_cast<float>(point->data & 0xFFFFFF) / 16777215.0f;
       }
       else
       {

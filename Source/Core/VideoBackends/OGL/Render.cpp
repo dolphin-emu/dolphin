@@ -465,9 +465,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
   g_Config.backend_info.bSupportsBindingLayout =
       GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
-  // Clip distance support is useless without a method to clamp the depth range
-  g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
-
   // Desktop OpenGL supports bitfield manulipation and dynamic sampler indexing if it supports
   // shader5. OpenGL ES 3.1 supports it implicitly without an extension
   g_Config.backend_info.bSupportsBitfield = GLExtensions::Supports("GL_ARB_gpu_shader5");
@@ -501,6 +498,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
       GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
   g_Config.backend_info.bSupportsBPTCTextures =
       GLExtensions::Supports("GL_ARB_texture_compression_bptc");
+  g_ogl_config.bSupportsUnrestrictedDepthRange = GLExtensions::Supports("GL_NV_depth_buffer_float");
 
   if (m_main_gl_context->IsGLES())
   {
@@ -518,10 +516,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
 
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
-
-    // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for
-    // depth clamping.
-    g_Config.backend_info.bSupportsDepthClamp = false;
+    g_ogl_config.bSupportsUnrestrictedDepthRange = false;
 
     // GLES does not support logic op.
     g_Config.backend_info.bSupportsLogicOp = false;
@@ -752,7 +747,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
            g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
            g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
            g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
-           g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+           g_ogl_config.bSupportsUnrestrictedDepthRange ? "" : "UnrestrictedDepth ");
 
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
@@ -781,12 +776,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
   glClearDepthf(1.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    glEnable(GL_CLIP_DISTANCE0);
-    glEnable(GL_CLIP_DISTANCE1);
-    glEnable(GL_DEPTH_CLAMP);
-  }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
@@ -910,7 +899,7 @@ void ClearEFBCache()
 }
 
 void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
-                              const TargetRectangle& targetPixelRc, const void* data)
+                              const TargetRectangle& targetPixelRc, const u32* data)
 {
   const u32 cacheType = (type == EFBAccessType::PeekZ ? 0 : 1);
 
@@ -932,18 +921,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
       u32 xEFB = efbPixelRc.left + xCache;
       u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
       u32 xData = xPixel - targetPixelRc.left;
-      u32 value;
-      if (type == EFBAccessType::PeekZ)
-      {
-        float* ptr = (float*)data;
-        value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f),
-                                     0, 0xFFFFFF);
-      }
-      else
-      {
-        u32* ptr = (u32*)data;
-        value = ptr[yData * targetPixelRcWidth + xData];
-      }
+      u32 value = data[yData * targetPixelRcWidth + xData];
       s_efbCache[cacheType][cacheRectIdx][yCache * EFB_CACHE_RECT_SIZE + xCache] = value;
     }
   }
@@ -1008,10 +986,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
       }
 
-      std::unique_ptr<float[]> depthMap(new float[targetPixelRcWidth * targetPixelRcHeight]);
+      std::unique_ptr<u32[]> depthMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
 
       glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth,
-                   targetPixelRcHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depthMap.get());
+                   targetPixelRcHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap.get());
 
       UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap.get());
 
@@ -1025,6 +1003,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
     // if Z is in 16 bit format you must return a 16 bit integer
     if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+      z = z >> 16;
+    else
       z = z >> 8;
 
     return z;
@@ -1175,7 +1155,10 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
     glViewport(iceilf(x), iceilf(y), iceilf(width), iceilf(height));
   }
 
-  glDepthRangef(near_depth, far_depth);
+  if (g_ogl_config.bSupportsUnrestrictedDepthRange)
+    glDepthRangedNV(near_depth, far_depth);
+  else
+    glDepthRangef(near_depth, far_depth);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -1194,7 +1177,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   // depth
   glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-  glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+  if (g_ogl_config.bSupportsUnrestrictedDepthRange)
+    glClearDepthdNV(float(z & 0xFFFFFF) / 16777215.0f);
+  else
+    glClearDepthf(float(z & 0xFFFFFF) / 16777215.0f);
 
   // Update rect for clearing the picture
   glEnable(GL_SCISSOR_TEST);
@@ -1544,11 +1530,6 @@ void Renderer::ResetAPIState()
   glDisable(GL_BLEND);
   if (!IsGLES())
     glDisable(GL_COLOR_LOGIC_OP);
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    glDisable(GL_CLIP_DISTANCE0);
-    glDisable(GL_CLIP_DISTANCE1);
-  }
   glDepthMask(GL_FALSE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
@@ -1562,11 +1543,6 @@ void Renderer::RestoreAPIState()
 
   // Gets us back into a more game-like state.
   glEnable(GL_SCISSOR_TEST);
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    glEnable(GL_CLIP_DISTANCE0);
-    glEnable(GL_CLIP_DISTANCE1);
-  }
   BPFunctions::SetScissor();
   BPFunctions::SetViewport();
 
