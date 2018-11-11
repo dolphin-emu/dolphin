@@ -34,6 +34,11 @@ public final class GameFileCacheService extends IntentService
     super("GameFileCacheService");
   }
 
+  public static List<GameFile> getAllGameFiles()
+  {
+    return Arrays.asList(gameFiles.get());
+  }
+
   public static List<GameFile> getGameFilesForPlatform(Platform platform)
   {
     GameFile[] allGames = gameFiles.get();
@@ -104,7 +109,7 @@ public final class GameFileCacheService extends IntentService
     // Load the game list cache if it isn't already loaded, otherwise do nothing
     if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null)
     {
-      GameFileCache temp = new GameFileCache(getCacheDir() + File.separator + "gamelist.cache");
+      GameFileCache temp = new GameFileCache();
       synchronized (temp)
       {
         gameFileCache = temp;
