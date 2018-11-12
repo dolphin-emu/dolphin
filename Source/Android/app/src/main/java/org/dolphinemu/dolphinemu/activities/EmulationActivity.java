@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -277,6 +278,10 @@ public final class EmulationActivity extends AppCompatActivity
 
     mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+    if (Build.VERSION.SDK_INT >= 24)
+    {
+      getWindow().setSustainedPerformanceMode(true);
+    }
   }
 
   @Override
