@@ -99,7 +99,7 @@ void DeviceQualifier::FromString(const std::string& str)
     start = offset + 1;
     offset = str.find('/', start);
     if(offset != std::string::npos && offset - start > 0)
-      cid = std::stoi(str.substr(start, offset - start)) % 4;
+      cid = std::stoi(str.substr(start, offset - start));
 
     // name
     name = str.substr(offset + 1);

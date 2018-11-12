@@ -17,7 +17,7 @@ void PopulateDevices()
 {
   // 0 - 3: GCPadNew.ini
   // 4 - 7: WiimoteNew.ini
-  const int MAX_PAD_NUM = 4;
+  const int MAX_PAD_NUM = 8;
   for (int i = 0; i < MAX_PAD_NUM; ++i)
     g_controller_interface.AddDevice(std::make_shared<Touchscreen>(i));
 }

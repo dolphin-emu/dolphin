@@ -337,7 +337,7 @@ static void AddBind(const std::string& dev, sBind* bind)
 
 void Init(const std::string& gameId)
 {
-  const int MAX_PAD_NUM = 4;
+  const int MAX_PAD_NUM = 8;
   // Initialize our touchScreenKey buttons
   for (int a = 0; a < MAX_PAD_NUM; ++a)
   {
