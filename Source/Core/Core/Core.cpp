@@ -456,10 +456,14 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     return;
   }
 
+  // The frontend will likely have initialized the controller interface, as it needs
+  // it to provide the configuration dialogs. In this case, instead of re-initializing
+  // entirely, we switch the window used for inputs to the render window. This way, the
+  // cursor position is relative to the render window, instead of the main window.
   bool init_controllers = false;
   if (!g_controller_interface.IsInit())
   {
-    g_controller_interface.Initialize(wsi.render_surface);
+    g_controller_interface.Initialize(wsi);
     Pad::Initialize();
     Keyboard::Initialize();
     init_controllers = true;
@@ -467,6 +471,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   else
   {
     // Update references in case controllers were refreshed
+    g_controller_interface.ChangeWindow(wsi.render_surface);
     Pad::LoadConfig();
     Keyboard::LoadConfig();
   }

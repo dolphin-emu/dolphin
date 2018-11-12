@@ -169,6 +169,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
+  setAttribute(Qt::WA_NativeWindow);
 
   InitControllers();
 
@@ -237,7 +238,7 @@ void MainWindow::InitControllers()
   if (g_controller_interface.IsInit())
     return;
 
-  g_controller_interface.Initialize(reinterpret_cast<void*>(winId()));
+  g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
   Pad::Initialize();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
@@ -874,7 +875,8 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
   // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
   ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-  m_xrr_config->ToggleDisplayMode(fullscreen);
+  if (m_xrr_config)
+    m_xrr_config->ToggleDisplayMode(fullscreen);
 #endif
 }
 
@@ -938,6 +940,11 @@ void MainWindow::HideRenderWidget(bool reinit)
       if (m_render_widget->isFullScreen())
         SetFullScreenResolution(focus);
     });
+
+    // The controller interface will still be registered to the old render widget, if the core
+    // has booted. Therefore, we should re-bind it to the main window for now. When the core
+    // is next started, it will be swapped back to the new render widget.
+    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_surface);
   }
 }
 
@@ -1003,14 +1010,18 @@ void MainWindow::ShowGraphicsWindow()
   if (!m_graphics_window)
   {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-    m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
-        static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-            "display", windowHandle())),
-        winId());
+    if (GetWindowSystemType() == WindowSystemType::X11)
+    {
+      m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+              "display", windowHandle())),
+          winId());
+    }
     m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
 #else
     m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
+    InstallHotkeyFilter(m_graphics_window);
   }
 
   m_graphics_window->show();
@@ -1273,7 +1284,8 @@ void MainWindow::NetPlayQuit()
 void MainWindow::EnableScreenSaver(bool enable)
 {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  UICommon::EnableScreenSaver(winId(), enable);
+  if (GetWindowSystemType() == WindowSystemType::X11)
+    UICommon::EnableScreenSaver(winId(), enable);
 #else
   UICommon::EnableScreenSaver(enable);
 #endif
