@@ -29,6 +29,7 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+
 namespace Fifo
 {
 static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
@@ -419,12 +420,8 @@ void GpuMaySleep()
 
 bool AtBreakpoint()
 {
-#ifndef ANDROID
   CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   return fifo.bFF_BPEnable && (fifo.CPReadPointer == fifo.CPBreakpoint);
-#else
-  return false;
-#endif
 }
 
 void RunGpu()
@@ -451,11 +448,12 @@ void RunGpu()
 
 static int RunGpuOnCpu(int ticks)
 {
+  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
   u32 need_size = 0;
   int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
-  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
-  while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && available_ticks >= 0)
+  while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() &&
+         available_ticks >= 0)
   {
     u32 read_size;
     if (s_use_deterministic_gpu_thread)
