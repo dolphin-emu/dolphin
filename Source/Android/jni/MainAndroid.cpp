@@ -488,7 +488,6 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getRunn
 {
   int i = 0;
   int settings[9];
-  jintArray array = env->NewIntArray(9);
 
   settings[i++] = Config::Get(Config::GFX_SHOW_FPS);
   settings[i++] = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE) == false;
@@ -501,7 +500,8 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getRunn
   settings[i++] = static_cast<int>(SConfig::GetInstance().m_OCFactor * 100.0f);
   settings[i++] = SConfig::GetInstance().bJITFollowBranch;
 
-  env->SetIntArrayRegion(array, 0, 9, settings);
+  jintArray array = env->NewIntArray(i);
+  env->SetIntArrayRegion(array, 0, i, settings);
   return array;
 }
 

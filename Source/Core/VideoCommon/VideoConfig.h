@@ -105,6 +105,8 @@ struct VideoConfig final
   bool bBBoxPreferStencilImplementation;  // OpenGL-only, to see how slow it is compared to SSBOs
   bool bForceProgressive;
 
+  bool bAlphaPassShadowHack; // Vulkan-only and need alpha pass
+
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
   bool bSkipXFBCopyToRam;
