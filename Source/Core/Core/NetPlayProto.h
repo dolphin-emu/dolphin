@@ -77,6 +77,7 @@ struct NetSettings
   bool m_DeferEFBCopies;
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
+  bool m_SyncCodes;
   std::string m_SaveDataRegion;
   bool m_IsHosting;
   bool m_HostInputAuthority;
@@ -145,6 +146,7 @@ enum
 
   NP_MSG_SYNC_GC_SRAM = 0xF0,
   NP_MSG_SYNC_SAVE_DATA = 0xF1,
+  NP_MSG_SYNC_CODES = 0xF2,
 };
 
 enum
@@ -162,6 +164,17 @@ enum
   SYNC_SAVE_DATA_RAW = 3,
   SYNC_SAVE_DATA_GCI = 4,
   SYNC_SAVE_DATA_WII = 5
+};
+
+enum
+{
+  SYNC_CODES_NOTIFY = 0,
+  SYNC_CODES_NOTIFY_GECKO = 1,
+  SYNC_CODES_NOTIFY_AR = 2,
+  SYNC_CODES_DATA_GECKO = 3,
+  SYNC_CODES_DATA_AR = 4,
+  SYNC_CODES_SUCCESS = 5,
+  SYNC_CODES_FAILURE = 6,
 };
 
 constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;

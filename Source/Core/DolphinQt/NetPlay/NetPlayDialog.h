@@ -110,6 +110,7 @@ private:
   QCheckBox* m_save_sd_box;
   QCheckBox* m_load_wii_box;
   QCheckBox* m_sync_save_data_box;
+  QCheckBox* m_sync_codes_box;
   QCheckBox* m_record_input_box;
   QCheckBox* m_reduce_polling_rate_box;
   QCheckBox* m_strict_settings_sync_box;

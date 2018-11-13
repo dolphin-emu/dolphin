@@ -77,6 +77,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   const bool write_save_sdcard_data = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
   const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
+  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
   const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
   const bool reduce_polling_rate = Config::Get(Config::NETPLAY_REDUCE_POLLING_RATE);
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
@@ -86,6 +87,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   m_save_sd_box->setChecked(write_save_sdcard_data);
   m_load_wii_box->setChecked(load_wii_save);
   m_sync_save_data_box->setChecked(sync_saves);
+  m_sync_codes_box->setChecked(sync_codes);
   m_record_input_box->setChecked(record_inputs);
   m_reduce_polling_rate_box->setChecked(reduce_polling_rate);
   m_strict_settings_sync_box->setChecked(strict_settings_sync);
@@ -121,6 +123,7 @@ void NetPlayDialog::CreateMainLayout()
   m_reduce_polling_rate_box = new QCheckBox(tr("Reduce Polling Rate"));
   m_strict_settings_sync_box = new QCheckBox(tr("Strict Settings Sync"));
   m_host_input_authority_box = new QCheckBox(tr("Host Input Authority"));
+  m_sync_codes_box = new QCheckBox(tr("Sync Codes"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -129,6 +132,7 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button->setAutoDefault(false);
 
   m_sync_save_data_box->setChecked(true);
+  m_sync_codes_box->setChecked(true);
 
   auto* default_button = new QAction(tr("Calculate MD5 hash"), m_md5_button);
 
@@ -164,6 +168,9 @@ void NetPlayDialog::CreateMainLayout()
       tr("This will sync additional graphics settings, and force everyone to the same internal "
          "resolution.\nMay prevent desync in some games that use EFB reads. Please ensure everyone "
          "uses the same video backend."));
+  m_sync_codes_box->setToolTip(tr("This will sync the client's AR and Gecko Codes with the host's. "
+                                  "The client will be sent the codes regardless "
+                                  "\nof whether or not the client has them."));
   m_host_input_authority_box->setToolTip(
       tr("This gives the host control over when inputs are sent to the game, effectively "
          "decoupling players from each other in terms of buffering.\nThis allows players to have "
@@ -190,6 +197,7 @@ void NetPlayDialog::CreateMainLayout()
   options_boxes->addWidget(m_save_sd_box);
   options_boxes->addWidget(m_load_wii_box);
   options_boxes->addWidget(m_sync_save_data_box);
+  options_boxes->addWidget(m_sync_codes_box);
   options_boxes->addWidget(m_record_input_box);
   options_boxes->addWidget(m_reduce_polling_rate_box);
   options_boxes->addWidget(m_strict_settings_sync_box);
@@ -335,6 +343,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_save_sd_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_load_wii_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_save_data_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_sync_codes_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_record_input_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_reduce_polling_rate_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_strict_settings_sync_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
@@ -451,6 +460,7 @@ void NetPlayDialog::OnStart()
   settings.m_DeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
   settings.m_StrictSettingsSync = m_strict_settings_sync_box->isChecked();
   settings.m_SyncSaveData = m_sync_save_data_box->isChecked();
+  settings.m_SyncCodes = m_sync_codes_box->isChecked();
 
   // Unload GameINI to restore things to normal
   Config::RemoveLayer(Config::LayerType::GlobalGame);
@@ -499,6 +509,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_save_sd_box->setHidden(!is_hosting);
   m_load_wii_box->setHidden(!is_hosting);
   m_sync_save_data_box->setHidden(!is_hosting);
+  m_sync_codes_box->setHidden(!is_hosting);
   m_reduce_polling_rate_box->setHidden(!is_hosting);
   m_strict_settings_sync_box->setHidden(!is_hosting);
   m_host_input_authority_box->setHidden(!is_hosting);
@@ -772,6 +783,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_load_wii_box->setEnabled(enabled);
     m_save_sd_box->setEnabled(enabled);
     m_sync_save_data_box->setEnabled(enabled);
+    m_sync_codes_box->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_reduce_polling_rate_box->setEnabled(enabled);
     m_strict_settings_sync_box->setEnabled(enabled);
@@ -965,6 +977,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA, m_save_sd_box->isChecked());
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_box->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_box->isChecked());
+  Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_box->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_box->isChecked());
   Config::SetBase(Config::NETPLAY_REDUCE_POLLING_RATE, m_reduce_polling_rate_box->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_box->isChecked());
