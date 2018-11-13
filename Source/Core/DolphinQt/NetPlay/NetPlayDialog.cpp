@@ -447,6 +447,7 @@ void NetPlayDialog::OnStart()
   settings.m_ArbitraryMipmapDetectionThreshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
   settings.m_EnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  settings.m_DeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
   settings.m_StrictSettingsSync = m_strict_settings_sync_box->isChecked();
   settings.m_SyncSaveData = m_sync_save_data_box->isChecked();
 
