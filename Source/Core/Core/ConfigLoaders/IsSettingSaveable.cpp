@@ -68,6 +68,8 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_MSAA.location,
       Config::GFX_SSAA.location,
       Config::GFX_EFB_SCALE.location,
+      Config::GFX_EFB_SCALE_EXCLUDE.location,
+      Config::GFX_EFB_SCALE_EXCLUDE_ENABLED.location,
       Config::GFX_TEXFMT_OVERLAY_ENABLE.location,
       Config::GFX_TEXFMT_OVERLAY_CENTER.location,
       Config::GFX_ENABLE_WIREFRAME.location,

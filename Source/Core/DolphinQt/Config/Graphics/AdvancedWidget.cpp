@@ -7,6 +7,8 @@
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
+#include <QSlider>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -16,6 +18,7 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Settings.h"
 
@@ -103,9 +106,33 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 1, 0);
 #endif
 
+  auto* efb_box = new QGroupBox(tr("Scaled EFB Copy Exclusions"));
+  auto* efb_layout = new QHBoxLayout();
+  auto* efb_layoutright = new QHBoxLayout();
+  efb_box->setLayout(efb_layout);
+  m_scaled_efb_exclude_enable =
+      new GraphicsBool(tr("Don't scale EFB copy if:"), Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
+  m_scaled_efb_exclude_slider = new GraphicsSlider(0, 630, Config::GFX_EFB_SCALE_EXCLUDE, 100);
+  m_scaled_efb_exclude_label = new QLabel();
+
+  if (!m_scaled_efb_exclude_enable->isChecked())
+  {
+    m_scaled_efb_exclude_slider->setEnabled(false);
+    m_scaled_efb_exclude_label->setEnabled(false);
+  }
+
+  m_scaled_efb_exclude_label->setContentsMargins(40, 0, 0, 0);
+  m_scaled_efb_exclude_slider->setFixedWidth(250);
+
+  efb_layoutright->addWidget(m_scaled_efb_exclude_label);
+  efb_layoutright->addWidget(m_scaled_efb_exclude_slider);
+  efb_layout->addWidget(m_scaled_efb_exclude_enable);
+  efb_layout->addLayout(efb_layoutright);
+
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(misc_box);
+  main_layout->addWidget(efb_box);
   main_layout->addStretch();
 
   setLayout(main_layout);
@@ -115,12 +142,25 @@ void AdvancedWidget::ConnectWidgets()
 {
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_scaled_efb_exclude_enable, &QCheckBox::toggled, [=](bool checked) {
+    m_scaled_efb_exclude_slider->setEnabled(checked);
+    m_scaled_efb_exclude_label->setEnabled(checked);
+  });
+
+  // A &QSlider signal won't fire when game ini's trigger a change, due to a signalblock in
+  // GraphicsSlider
+  connect(m_scaled_efb_exclude_slider, &GraphicsSlider::valueChanged, [=] {
+    m_scaled_efb_exclude_label->setText(tr("Size  <  ") +
+                                        QString::number(m_scaled_efb_exclude_slider->value()));
+  });
 }
 
 void AdvancedWidget::LoadSettings()
 {
   m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
+  m_scaled_efb_exclude_label->setText(tr("Size  <  ") +
+                                      QString::number(m_scaled_efb_exclude_slider->value()));
 }
 
 void AdvancedWidget::SaveSettings()
@@ -191,6 +231,14 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software.\nMost games don't "
       "care about this.\n\nIf unsure, leave this unchecked.");
+  static const char TR_SCALED_EFB_EXCLUDE_DESCRIPTION[] = QT_TR_NOOP(
+      "EFB copies can have different sizes. Scaling up small efb copies can create graphical "
+      "issues, like poor bloom. This slider will exclude efb copies from scaling based on their "
+      "width in pixels. \n\n630 = "
+      "exclude the minimum amount. 0 = exclude everything, the same as Scaled EFB Copy = off.\n\n"
+      "Start on the right and slowly move the slider to the left until the graphical issue "
+      "improves. Values of 630 or 300 may "
+      "be good. \n\nIf unsure, leave this unchecked.");
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implement fullscreen mode with a borderless window spanning the whole screen instead of "
@@ -211,6 +259,9 @@ void AdvancedWidget::AddDescriptions()
   AddDescription(m_dump_efb_target, TR_DUMP_EFB_DESCRIPTION);
   AddDescription(m_disable_vram_copies, TR_DISABLE_VRAM_COPIES_DESCRIPTION);
   AddDescription(m_use_fullres_framedumps, TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION);
+  AddDescription(m_scaled_efb_exclude_slider, TR_SCALED_EFB_EXCLUDE_DESCRIPTION);
+  AddDescription(m_scaled_efb_exclude_enable, TR_SCALED_EFB_EXCLUDE_DESCRIPTION);
+  AddDescription(m_scaled_efb_exclude_label, TR_SCALED_EFB_EXCLUDE_DESCRIPTION);
 #ifdef HAVE_FFMPEG
   AddDescription(m_dump_use_ffv1, TR_USE_FFV1_DESCRIPTION);
 #endif

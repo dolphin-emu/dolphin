@@ -1661,6 +1661,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   u32 scaled_tex_w = g_renderer->EFBToScaledX(srcRect.GetWidth());
   u32 scaled_tex_h = g_renderer->EFBToScaledY(srcRect.GetHeight());
 
+  if (width < g_ActiveConfig.iEFBExclude && g_ActiveConfig.iEFBExcludeEnabled && !is_xfb_copy)
+  {
+    scaled_tex_w = tex_w;
+    scaled_tex_h = tex_h;
+  }
+
   if (scaleByHalf)
   {
     tex_w /= 2;
@@ -1814,7 +1820,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
         static int efb_count = 0;
-        entry->texture->Save(StringFromFormat("%sefb_frame_%i.png",
+        entry->texture->Save(StringFromFormat("%sefb_frame_%04d.png",
                                               File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
                                               efb_count++),
                              0);
@@ -1823,7 +1829,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
       {
         static int xfb_count = 0;
-        entry->texture->Save(StringFromFormat("%sxfb_copy_%i.png",
+        entry->texture->Save(StringFromFormat("%sxfb_copy_%04d.png",
                                               File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
                                               xfb_count++),
                              0);
@@ -1971,8 +1977,6 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
 // which is why we still set uninitialized xfb memory to fuchsia
 // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
 // like is done in the EFB path.
-// This comment is indented wrong because of the silly linter, btw.
-
 #if defined(_M_X86) || defined(_M_X86_64)
   __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
 #endif

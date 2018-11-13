@@ -84,6 +84,9 @@ const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
     {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{
     {System::GFX, "Settings", "ShaderPrecompilerThreads"}, 1};
+const ConfigInfo<int> GFX_EFB_SCALE_EXCLUDE{{System::GFX, "Settings", "EFBScaledExclude"}, 630};
+const ConfigInfo<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED{
+    {System::GFX, "Settings", "EFBScaledExcludeEnabled"}, false};
 
 const ConfigInfo<bool> GFX_SW_ZCOMPLOC{{System::GFX, "Settings", "SWZComploc"}, true};
 const ConfigInfo<bool> GFX_SW_ZFREEZE{{System::GFX, "Settings", "SWZFreeze"}, true};
