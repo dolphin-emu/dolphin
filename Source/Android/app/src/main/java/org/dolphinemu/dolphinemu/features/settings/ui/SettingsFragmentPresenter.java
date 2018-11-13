@@ -438,11 +438,11 @@ public final class SettingsFragmentPresenter
     Setting perPixel = gfxSection.getSetting(SettingsFile.KEY_PER_PIXEL);
     Setting forceFilter = enhancementSection.getSetting(SettingsFile.KEY_FORCE_FILTERING);
     Setting disableFog = gfxSection.getSetting(SettingsFile.KEY_DISABLE_FOG);
-    Setting disableCopyFilter = gfxSection.getSetting(SettingsFile.KEY_DISABLE_COPY_FILTER);
+    Setting disableCopyFilter = enhancementSection.getSetting(SettingsFile.KEY_DISABLE_COPY_FILTER);
     Setting arbitraryMipmapDetection =
-            gfxSection.getSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION);
-    Setting wideScreenHack = enhancementSection.getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
-    Setting force24BitColor = gfxSection.getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
+            enhancementSection.getSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION);
+    Setting wideScreenHack = gfxSection.getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
+    Setting force24BitColor = enhancementSection.getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, Settings.SECTION_GFX_SETTINGS,
             R.string.internal_resolution, R.string.internal_resolution_description,
@@ -476,18 +476,20 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, Settings.SECTION_GFX_ENHANCEMENTS,
             R.string.force_texture_filtering, R.string.force_texture_filtering_description, false,
             forceFilter));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, Settings.SECTION_GFX_SETTINGS,
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR,
+            Settings.SECTION_GFX_ENHANCEMENTS,
             R.string.force_24bit_color, R.string.force_24bit_color_description, true,
             force24BitColor));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, Settings.SECTION_GFX_SETTINGS,
             R.string.disable_fog, R.string.disable_fog_description, false, disableFog));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, Settings.SECTION_GFX_SETTINGS,
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER,
+            Settings.SECTION_GFX_ENHANCEMENTS,
             R.string.disable_copy_filter, R.string.disable_copy_filter_description, false,
             disableCopyFilter));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION,
-            Settings.SECTION_GFX_SETTINGS, R.string.arbitrary_mipmap_detection,
+            Settings.SECTION_GFX_ENHANCEMENTS, R.string.arbitrary_mipmap_detection,
             R.string.arbitrary_mipmap_detection_description, true, arbitraryMipmapDetection));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_ENHANCEMENTS,
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_SETTINGS,
             R.string.wide_screen_hack, R.string.wide_screen_hack_description, false,
             wideScreenHack));
 
@@ -569,7 +571,7 @@ public final class SettingsFragmentPresenter
     Setting gpuTextureDecoding = gfxSection.getSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING);
     Setting xfbToTexture = hacksSection.getSetting(SettingsFile.KEY_XFB_TEXTURE);
     Setting immediateXfb = hacksSection.getSetting(SettingsFile.KEY_IMMEDIATE_XFB);
-    Setting fastDepth = hacksSection.getSetting(SettingsFile.KEY_FAST_DEPTH);
+    Setting fastDepth = gfxSection.getSetting(SettingsFile.KEY_FAST_DEPTH);
 
     sl.add(new HeaderSetting(null, null, R.string.embedded_frame_buffer, 0));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_EFB, Settings.SECTION_GFX_HACKS,
@@ -599,7 +601,7 @@ public final class SettingsFragmentPresenter
             R.string.immediate_xfb, R.string.immediate_xfb_description, false, immediateXfb));
 
     sl.add(new HeaderSetting(null, null, R.string.other, 0));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, Settings.SECTION_GFX_HACKS,
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, Settings.SECTION_GFX_SETTINGS,
             R.string.fast_depth_calculation, R.string.fast_depth_calculation_description, true,
             fastDepth));
   }
