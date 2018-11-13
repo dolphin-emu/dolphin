@@ -54,6 +54,7 @@
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
+#include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -795,6 +796,13 @@ void NetPlayDialog::OnMsgStartGame()
 void NetPlayDialog::OnMsgStopGame()
 {
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
+}
+
+void NetPlayDialog::OnMsgPowerButton()
+{
+  if (!Core::IsRunning())
+    return;
+  QueueOnObject(this, [] { UICommon::TriggerSTMPowerEvent(); });
 }
 
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)

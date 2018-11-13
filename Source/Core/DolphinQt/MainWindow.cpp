@@ -744,6 +744,10 @@ bool MainWindow::RequestStop()
     if (Core::GetState() == Core::State::Paused)
       Core::SetState(Core::State::Running);
 
+    // Tell NetPlay about the power event
+    if (NetPlay::IsNetPlayRunning())
+      NetPlay::SendPowerButtonEvent();
+
     return true;
   }
 
