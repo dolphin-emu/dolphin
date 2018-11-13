@@ -41,12 +41,12 @@ ControllerInterface g_controller_interface;
 //
 // Detect devices and inputs outputs / will make refresh function later
 //
-void ControllerInterface::Initialize(void* const hwnd)
+void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 {
   if (m_is_init)
     return;
 
-  m_hwnd = hwnd;
+  m_wsi = wsi;
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_DINPUT
@@ -59,7 +59,8 @@ void ControllerInterface::Initialize(void* const hwnd)
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
-  ciface::OSX::Init(hwnd);
+  if (m_wsi.type == WindowSystemType::MacOS)
+    ciface::OSX::Init(wsi.render_surface);
 // nothing needed for Quartz
 #endif
 #ifdef CIFACE_USE_SDL
@@ -79,6 +80,15 @@ void ControllerInterface::Initialize(void* const hwnd)
   RefreshDevices();
 }
 
+void ControllerInterface::ChangeWindow(void* hwnd)
+{
+  if (!m_is_init)
+    return;
+
+  m_wsi.render_surface = hwnd;
+  RefreshDevices();
+}
+
 void ControllerInterface::RefreshDevices()
 {
   if (!m_is_init)
@@ -92,17 +102,22 @@ void ControllerInterface::RefreshDevices()
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_DINPUT
-  ciface::DInput::PopulateDevices(reinterpret_cast<HWND>(m_hwnd));
+  if (m_wsi.type == WindowSystemType::Windows)
+    ciface::DInput::PopulateDevices(reinterpret_cast<HWND>(m_wsi.render_surface));
 #endif
 #ifdef CIFACE_USE_XINPUT
   ciface::XInput::PopulateDevices();
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::XInput2::PopulateDevices(m_hwnd);
+  if (m_wsi.type == WindowSystemType::X11)
+    ciface::XInput2::PopulateDevices(m_wsi.render_surface);
 #endif
 #ifdef CIFACE_USE_OSX
-  ciface::OSX::PopulateDevices(m_hwnd);
-  ciface::Quartz::PopulateDevices(m_hwnd);
+  if (m_wsi.type == WindowSystemType::MacOS)
+  {
+    ciface::OSX::PopulateDevices(m_wsi.render_surface);
+    ciface::Quartz::PopulateDevices(m_wsi.render_surface);
+  }
 #endif
 #ifdef CIFACE_USE_SDL
   ciface::SDL::PopulateDevices();

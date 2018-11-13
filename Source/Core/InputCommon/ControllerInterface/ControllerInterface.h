@@ -10,6 +10,7 @@
 #include <mutex>
 #include <vector>
 
+#include "Common/WindowSystemInfo.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // enable disable sources
@@ -39,8 +40,9 @@
 class ControllerInterface : public ciface::Core::DeviceContainer
 {
 public:
-  ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
-  void Initialize(void* const hwnd);
+  ControllerInterface() : m_is_init(false) {}
+  void Initialize(const WindowSystemInfo& wsi);
+  void ChangeWindow(void* hwnd);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
@@ -56,7 +58,7 @@ private:
   mutable std::mutex m_callbacks_mutex;
   bool m_is_init;
   std::atomic<bool> m_is_populating_devices{false};
-  void* m_hwnd;
+  WindowSystemInfo m_wsi;
 };
 
 extern ControllerInterface g_controller_interface;
