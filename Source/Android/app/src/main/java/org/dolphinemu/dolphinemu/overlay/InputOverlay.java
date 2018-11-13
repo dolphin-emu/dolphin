@@ -166,13 +166,22 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       {
         case MotionEvent.ACTION_DOWN:
         case MotionEvent.ACTION_POINTER_DOWN:
-        case MotionEvent.ACTION_MOVE:
-          // Up, Down, Left, Right
-          boolean[] pressed = {false, false, false, false};
           // If a pointer enters the bounds of a button, press that button.
           if (dpad.getBounds()
                   .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
           {
+            dpad.setTrackId(event.getPointerId(pointerIndex));
+          }
+          else
+          {
+            break;
+          }
+        case MotionEvent.ACTION_MOVE:
+          if (dpad.getTrackId() == event.getPointerId(pointerIndex))
+          {
+            // Up, Down, Left, Right
+            boolean[] pressed = {false, false, false, false};
+
             if (dpad.getBounds().top + (dpad.getHeight() / 3) > (int) event.getY(pointerIndex))
               pressed[0] = true;
             if (dpad.getBounds().bottom - (dpad.getHeight() / 3) < (int) event.getY(pointerIndex))

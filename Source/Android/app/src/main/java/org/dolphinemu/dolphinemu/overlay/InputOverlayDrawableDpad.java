@@ -71,6 +71,8 @@ public final class InputOverlayDrawableDpad
     mButtonType[1] = buttonDown;
     mButtonType[2] = buttonLeft;
     mButtonType[3] = buttonRight;
+
+    mTrackId = -1;
   }
 
   public void draw(Canvas canvas)
@@ -202,5 +204,7 @@ public final class InputOverlayDrawableDpad
   public void setState(int pressState)
   {
     mPressState = pressState;
+    if (InputOverlayDrawableDpad.STATE_DEFAULT == pressState)
+      mTrackId = -1;
   }
 }

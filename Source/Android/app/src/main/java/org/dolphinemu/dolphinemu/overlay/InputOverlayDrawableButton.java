@@ -47,6 +47,8 @@ public final class InputOverlayDrawableButton
 
     mWidth = mDefaultStateBitmap.getIntrinsicWidth();
     mHeight = mDefaultStateBitmap.getIntrinsicHeight();
+
+    mTrackId = -1;
   }
 
   /**
@@ -133,5 +135,7 @@ public final class InputOverlayDrawableButton
   public void setPressedState(boolean isPressed)
   {
     mPressedState = isPressed;
+    if (!isPressed)
+      mTrackId = -1;
   }
 }
