@@ -74,6 +74,7 @@ struct NetSettings
   bool m_ArbitraryMipmapDetection;
   float m_ArbitraryMipmapDetectionThreshold;
   bool m_EnableGPUTextureDecoding;
+  bool m_DeferEFBCopies;
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
   std::string m_SaveDataRegion;

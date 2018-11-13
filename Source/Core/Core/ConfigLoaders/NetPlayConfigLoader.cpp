@@ -64,6 +64,7 @@ public:
     layer->Set(Config::MAIN_FASTMEM, m_settings.m_Fastmem);
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
     layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
+    layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
 
     if (m_settings.m_StrictSettingsSync)
     {

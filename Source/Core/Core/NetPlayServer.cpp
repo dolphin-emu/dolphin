@@ -1052,6 +1052,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ArbitraryMipmapDetection;
   spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
   spac << m_settings.m_EnableGPUTextureDecoding;
+  spac << m_settings.m_DeferEFBCopies;
   spac << m_settings.m_StrictSettingsSync;
   spac << initial_rtc;
   spac << m_settings.m_SyncSaveData;
