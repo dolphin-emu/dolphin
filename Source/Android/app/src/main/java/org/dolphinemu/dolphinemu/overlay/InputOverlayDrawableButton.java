@@ -135,5 +135,7 @@ public final class InputOverlayDrawableButton
   public void setPressedState(boolean isPressed)
   {
     mPressedState = isPressed;
+    if(!isPressed)
+      mTrackId = -1;
   }
 }

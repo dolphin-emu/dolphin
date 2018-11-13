@@ -204,5 +204,7 @@ public final class InputOverlayDrawableDpad
   public void setState(int pressState)
   {
     mPressState = pressState;
+    if(InputOverlayDrawableDpad.STATE_DEFAULT == pressState)
+      mTrackId = -1;
   }
 }
