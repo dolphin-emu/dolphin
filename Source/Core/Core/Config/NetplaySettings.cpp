@@ -40,6 +40,7 @@ const ConfigInfo<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA{
     {System::Main, "NetPlay", "WriteSaveSDCardData"}, false};
 const ConfigInfo<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiSave"}, false};
 const ConfigInfo<bool> NETPLAY_SYNC_SAVES{{System::Main, "NetPlay", "SyncSaves"}, true};
+const ConfigInfo<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};
 const ConfigInfo<bool> NETPLAY_RECORD_INPUTS{{System::Main, "NetPlay", "RecordInputs"}, false};
 const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE{{System::Main, "NetPlay", "ReducePollingRate"},
                                                    false};

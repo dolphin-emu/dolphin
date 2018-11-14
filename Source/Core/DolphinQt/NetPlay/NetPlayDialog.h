@@ -46,6 +46,7 @@ public:
   void OnMsgChangeGame(const std::string& filename) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
+  void OnMsgPowerButton() override;
   void OnPadBufferChanged(u32 buffer) override;
   void OnHostInputAuthorityChanged(bool enabled) override;
   void OnDesync(u32 frame, const std::string& player) override;
@@ -109,6 +110,7 @@ private:
   QCheckBox* m_save_sd_box;
   QCheckBox* m_load_wii_box;
   QCheckBox* m_sync_save_data_box;
+  QCheckBox* m_sync_codes_box;
   QCheckBox* m_record_input_box;
   QCheckBox* m_reduce_polling_rate_box;
   QCheckBox* m_strict_settings_sync_box;

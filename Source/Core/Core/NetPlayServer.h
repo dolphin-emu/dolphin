@@ -85,6 +85,8 @@ private:
   };
 
   bool SyncSaveData();
+  bool SyncCodes();
+  void CheckSyncAndStartGame();
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
   void SendFirstReceivedToHost(PadMapping map, bool state);
@@ -116,6 +118,9 @@ private:
   PadMappingArray m_pad_map;
   PadMappingArray m_wiimote_map;
   unsigned int m_save_data_synced_players = 0;
+  unsigned int m_codes_synced_players = 0;
+  bool m_saves_synced = true;
+  bool m_codes_synced = true;
   bool m_start_pending = false;
   bool m_host_input_authority = false;
 

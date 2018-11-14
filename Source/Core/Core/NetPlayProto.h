@@ -77,6 +77,7 @@ struct NetSettings
   bool m_DeferEFBCopies;
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
+  bool m_SyncCodes;
   std::string m_SaveDataRegion;
   bool m_IsHosting;
   bool m_HostInputAuthority;
@@ -125,6 +126,7 @@ enum
   NP_MSG_GAME_STATUS = 0xA4,
   NP_MSG_IPL_STATUS = 0xA5,
   NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
+  NP_MSG_POWER_BUTTON = 0xA7,
 
   NP_MSG_TIMEBASE = 0xB0,
   NP_MSG_DESYNC_DETECTED = 0xB1,
@@ -144,6 +146,7 @@ enum
 
   NP_MSG_SYNC_GC_SRAM = 0xF0,
   NP_MSG_SYNC_SAVE_DATA = 0xF1,
+  NP_MSG_SYNC_CODES = 0xF2,
 };
 
 enum
@@ -161,6 +164,17 @@ enum
   SYNC_SAVE_DATA_RAW = 3,
   SYNC_SAVE_DATA_GCI = 4,
   SYNC_SAVE_DATA_WII = 5
+};
+
+enum
+{
+  SYNC_CODES_NOTIFY = 0,
+  SYNC_CODES_NOTIFY_GECKO = 1,
+  SYNC_CODES_NOTIFY_AR = 2,
+  SYNC_CODES_DATA_GECKO = 3,
+  SYNC_CODES_DATA_AR = 4,
+  SYNC_CODES_SUCCESS = 5,
+  SYNC_CODES_FAILURE = 6,
 };
 
 constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
@@ -181,4 +195,5 @@ IOS::HLE::FS::FileSystem* GetWiiSyncFS();
 void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
 void ClearWiiSyncFS();
 void SetSIPollBatching(bool state);
+void SendPowerButtonEvent();
 }  // namespace NetPlay
