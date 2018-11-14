@@ -36,6 +36,7 @@ extern const ConfigInfo<u32> NETPLAY_CLIENT_BUFFER_SIZE;
 extern const ConfigInfo<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA;
 extern const ConfigInfo<bool> NETPLAY_LOAD_WII_SAVE;
 extern const ConfigInfo<bool> NETPLAY_SYNC_SAVES;
+extern const ConfigInfo<bool> NETPLAY_SYNC_CODES;
 extern const ConfigInfo<bool> NETPLAY_RECORD_INPUTS;
 extern const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE;
 extern const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC;

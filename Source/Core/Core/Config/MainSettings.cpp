@@ -44,6 +44,7 @@ const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
 const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
     {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
+const ConfigInfo<bool> MAIN_CODE_SYNC_OVERRIDE{{System::Main, "Core", "CheatSyncOverride"}, false};
 const ConfigInfo<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                                   ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const ConfigInfo<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},

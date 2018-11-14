@@ -21,6 +21,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
@@ -164,9 +165,18 @@ void LoadPatches()
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
 
-  Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+  // Check if I'm syncing Codes
+  if (Config::Get(Config::MAIN_CODE_SYNC_OVERRIDE))
+  {
+    Gecko::SetSyncedCodesAsActive();
+    ActionReplay::SetSyncedCodesAsActive();
+  }
+  else
+  {
+    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  }
 
   LoadSpeedhacks("Speedhacks", merged);
 }

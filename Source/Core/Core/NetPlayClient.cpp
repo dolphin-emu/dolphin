@@ -33,8 +33,10 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
+#include "Core/ActionReplay.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
@@ -550,6 +552,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       packet >> m_net_settings.m_SyncSaveData;
       packet >> m_net_settings.m_SaveDataRegion;
+      packet >> m_net_settings.m_SyncCodes;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
@@ -566,6 +569,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     StopGame();
     m_dialog->OnMsgStopGame();
+  }
+  break;
+
+  case NP_MSG_POWER_BUTTON:
+  {
+    m_dialog->OnMsgPowerButton();
   }
   break;
 
@@ -645,6 +654,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     {
     case SYNC_SAVE_DATA_NOTIFY:
     {
+      if (m_local_player->IsHost())
+        return 0;
+
       packet >> m_sync_save_data_count;
       m_sync_save_data_success_count = 0;
 
@@ -820,6 +832,163 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     default:
       PanicAlertT("Unknown SYNC_SAVE_DATA message received with id: %d", sub_id);
       break;
+    }
+  }
+  break;
+
+  case NP_MSG_SYNC_CODES:
+  {
+    // Recieve Data Packet
+    MessageId sub_id;
+    packet >> sub_id;
+
+    // Check Which Operation to Perform with This Packet
+    switch (sub_id)
+    {
+    case SYNC_CODES_NOTIFY:
+    {
+      // Set both codes as unsynced
+      m_sync_gecko_codes_complete = false;
+      m_sync_ar_codes_complete = false;
+    }
+    break;
+
+    case SYNC_CODES_NOTIFY_GECKO:
+    {
+      // Return if this is the host
+      if (m_local_player->IsHost())
+        return 0;
+
+      // Receive Number of Codelines to Receive
+      packet >> m_sync_gecko_codes_count;
+
+      m_sync_gecko_codes_success_count = 0;
+
+      NOTICE_LOG(ACTIONREPLAY, "Receiving %d Gecko codelines", m_sync_gecko_codes_count);
+
+      // Check if no codes to sync, if so return as finished
+      if (m_sync_gecko_codes_count == 0)
+      {
+        m_sync_gecko_codes_complete = true;
+        SyncCodeResponse(true);
+      }
+      else
+        m_dialog->AppendChat(GetStringT("Synchronizing gecko codes..."));
+    }
+    break;
+
+    case SYNC_CODES_DATA_GECKO:
+    {
+      // Return if this is the host
+      if (m_local_player->IsHost())
+        return 0;
+
+      // Create a synced code vector
+      std::vector<Gecko::GeckoCode> synced_codes;
+      // Create a GeckoCode
+      Gecko::GeckoCode gcode;
+      gcode = Gecko::GeckoCode();
+      // Initialize gcode
+      gcode.name = "Synced Codes";
+      gcode.enabled = true;
+
+      // Receive code contents from packet
+      for (int i = 0; i < m_sync_gecko_codes_count; i++)
+      {
+        Gecko::GeckoCode::Code new_code;
+        packet >> new_code.address;
+        packet >> new_code.data;
+
+        NOTICE_LOG(ACTIONREPLAY, "Received %08x %08x", new_code.address, new_code.data);
+
+        gcode.codes.push_back(std::move(new_code));
+
+        if (++m_sync_gecko_codes_success_count >= m_sync_gecko_codes_count)
+        {
+          m_sync_gecko_codes_complete = true;
+          SyncCodeResponse(true);
+        }
+      }
+
+      // Add gcode containing all codes to Gecko Code vector
+      synced_codes.push_back(std::move(gcode));
+
+      // Clear Vector if received 0 codes (match host's end when using no codes)
+      if (m_sync_gecko_codes_count == 0)
+        synced_codes.clear();
+
+      // Copy this to the vector located in GeckoCode.cpp
+      Gecko::UpdateSyncedCodes(synced_codes);
+    }
+    break;
+
+    case SYNC_CODES_NOTIFY_AR:
+    {
+      // Return if this is the host
+      if (m_local_player->IsHost())
+        return 0;
+
+      // Receive Number of Codelines to Receive
+      packet >> m_sync_ar_codes_count;
+
+      m_sync_ar_codes_success_count = 0;
+
+      NOTICE_LOG(ACTIONREPLAY, "Receiving %d AR codelines", m_sync_ar_codes_count);
+
+      // Check if no codes to sync, if so return as finished
+      if (m_sync_ar_codes_count == 0)
+      {
+        m_sync_ar_codes_complete = true;
+        SyncCodeResponse(true);
+      }
+      else
+        m_dialog->AppendChat(GetStringT("Synchronizing AR codes..."));
+    }
+    break;
+
+    case SYNC_CODES_DATA_AR:
+    {
+      // Return if this is the host
+      if (m_local_player->IsHost())
+        return 0;
+
+      // Create a synced code vector
+      std::vector<ActionReplay::ARCode> synced_codes;
+      // Create an ARCode
+      ActionReplay::ARCode arcode;
+      arcode = ActionReplay::ARCode();
+      // Initialize arcode
+      arcode.name = "Synced Codes";
+      arcode.active = true;
+
+      // Receive code contents from packet
+      for (int i = 0; i < m_sync_ar_codes_count; i++)
+      {
+        ActionReplay::AREntry new_code;
+        packet >> new_code.cmd_addr;
+        packet >> new_code.value;
+
+        NOTICE_LOG(ACTIONREPLAY, "Received %08x %08x", new_code.cmd_addr, new_code.value);
+        arcode.ops.push_back(new_code);
+
+        if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
+        {
+          m_sync_ar_codes_complete = true;
+          SyncCodeResponse(true);
+        }
+      }
+
+      // Add arcode containing all codes to AR Code vector
+      synced_codes.push_back(std::move(arcode));
+
+      // Clear Vector if received 0 codes (match host's end when using no codes)
+      if (m_sync_ar_codes_count == 0)
+        synced_codes.clear();
+
+      // Copy this to the vector located in ActionReplay.cpp
+      ActionReplay::UpdateSyncedCodes(synced_codes);
+    }
+    break;
     }
   }
   break;
@@ -1189,6 +1358,34 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
     sf::Packet response_packet;
     response_packet << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
     response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_FAILURE);
+
+    Send(response_packet);
+  }
+}
+
+void NetPlayClient::SyncCodeResponse(const bool success)
+{
+  // If something failed, immediately report back that code sync failed
+  if (!success)
+  {
+    m_dialog->AppendChat(GetStringT("Error processing Codes."));
+
+    sf::Packet response_packet;
+    response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+    response_packet << static_cast<MessageId>(SYNC_CODES_FAILURE);
+
+    Send(response_packet);
+    return;
+  }
+
+  // If both gecko and AR codes have completely finished transferring, report back as successful
+  if (m_sync_gecko_codes_complete && m_sync_ar_codes_complete)
+  {
+    m_dialog->AppendChat(GetStringT("Codes received!"));
+
+    sf::Packet response_packet;
+    response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+    response_packet << static_cast<MessageId>(SYNC_CODES_SUCCESS);
 
     Send(response_packet);
   }
@@ -1702,6 +1899,13 @@ void NetPlayClient::RequestStopGame()
     SendStopGamePacket();
 }
 
+void NetPlayClient::SendPowerButtonEvent()
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
+  SendAsync(std::move(packet));
+}
+
 // called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
@@ -1882,6 +2086,12 @@ void ClearWiiSyncFS()
 void SetSIPollBatching(bool state)
 {
   s_si_poll_batching = state;
+}
+
+void SendPowerButtonEvent()
+{
+  ASSERT(IsNetPlayRunning());
+  netplay_client->SendPowerButtonEvent();
 }
 
 void NetPlay_Enable(NetPlayClient* const np)
