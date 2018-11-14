@@ -98,6 +98,10 @@ constexpr std::array<u8, 32> s_root_ca_hash = {{0xc5, 0xb0, 0xf8, 0xdf, 0xce, 0x
                                                 0x2a, 0xc3, 0x8b, 0x8b, 0xc6, 0x9a, 0x4d, 0xb7,
                                                 0xc2, 0x09, 0xdc, 0x17, 0x7d, 0x24, 0x3c, 0x8d,
                                                 0xf2, 0xbd, 0xdf, 0x9e, 0x39, 0x17, 0x1e, 0x5f}};
+constexpr std::array<u8, 32> s_wiimmfi_root_ca_hash = {
+    {0xe2, 0xb9, 0x94, 0x94, 0xa4, 0x9f, 0x4f, 0xca, 0x56, 0xb2, 0xb2,
+     0x92, 0x33, 0x15, 0xe4, 0x72, 0x7e, 0x0b, 0xb4, 0x3e, 0x11, 0x35,
+     0xdf, 0x73, 0x03, 0xb9, 0x19, 0x2f, 0xa1, 0x72, 0xfc, 0x1f}};
 
 static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash,
                                     bool silent)
@@ -404,7 +408,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
       const std::vector<u8> root_ca =
-          ReadCertFile(cert_base_path + "/rootca.pem", s_root_ca_hash, m_cert_error_shown);
+          ReadCertFile(cert_base_path + "/rootca.pem", s_wiimmfi_root_ca_hash, m_cert_error_shown);
       if (root_ca.empty())
         m_cert_error_shown = true;
 
