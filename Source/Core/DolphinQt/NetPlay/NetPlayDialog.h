@@ -6,6 +6,7 @@
 
 #include <QDialog>
 
+#include "Common/Lazy.h"
 #include "Core/NetPlayClient.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
@@ -79,6 +80,7 @@ private:
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
+  void ResetExternalIP();
   void UpdateDiscordPresence();
   void UpdateGUI();
   void GameStatusChanged(bool running);
@@ -122,7 +124,7 @@ private:
   MD5Dialog* m_md5_dialog;
   PadMappingDialog* m_pad_mapping;
   std::string m_current_game;
-  std::string m_external_ip_address;
+  Common::Lazy<std::string> m_external_ip_address;
   std::string m_nickname;
   GameListModel* m_game_list_model = nullptr;
   bool m_use_traversal = false;
