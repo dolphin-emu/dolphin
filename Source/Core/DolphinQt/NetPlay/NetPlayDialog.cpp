@@ -69,6 +69,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   m_pad_mapping = new PadMappingDialog(this);
   m_md5_dialog = new MD5Dialog(this);
 
+  ResetExternalIP();
   CreateChatLayout();
   CreatePlayersLayout();
   CreateMainLayout();
@@ -497,6 +498,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   {
     if (use_traversal)
       m_room_box->addItem(tr("Room ID"));
+    m_room_box->addItem(tr("External"));
 
     for (const auto& iface : Settings::Instance().GetNetPlayServer()->GetInterfaceSet())
     {
@@ -528,6 +530,21 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   UpdateGUI();
 }
 
+void NetPlayDialog::ResetExternalIP()
+{
+  m_external_ip_address = Common::Lazy<std::string>([]() -> std::string {
+    Common::HttpRequest request;
+    // ENet does not support IPv6, so IPv4 has to be used
+    request.UseIPv4();
+    Common::HttpRequest::Response response =
+        request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+    if (response.has_value())
+      return std::string(response->begin(), response->end());
+    return "";
+  });
+}
+
 void NetPlayDialog::UpdateDiscordPresence()
 {
 #ifdef USE_DISCORD_PRESENCE
@@ -555,23 +572,13 @@ void NetPlayDialog::UpdateDiscordPresence()
     }
     else
     {
-      if (m_external_ip_address.empty())
-      {
-        Common::HttpRequest request;
-        // ENet does not support IPv6, so IPv4 has to be used
-        request.UseIPv4();
-        Common::HttpRequest::Response response =
-            request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
-
-        if (!response.has_value())
-          return use_default();
-        m_external_ip_address = std::string(response->begin(), response->end());
-      }
+      if (m_external_ip_address->empty())
+        return use_default();
       const int port = Settings::Instance().GetNetPlayServer()->GetPort();
 
       Discord::UpdateDiscordPresence(
           m_player_count, Discord::SecretType::IPAddress,
-          Discord::CreateSecretFromIPAddress(m_external_ip_address, port), m_current_game);
+          Discord::CreateSecretFromIPAddress(*m_external_ip_address, port), m_current_game);
     }
   }
   else
@@ -683,10 +690,30 @@ void NetPlayDialog::UpdateGUI()
   }
   else if (server)
   {
-    m_hostcode_label->setText(QString::fromStdString(
-        server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
+    if (m_room_box->currentIndex() == (m_use_traversal ? 1 : 0))
+    {
+      if (!m_external_ip_address->empty())
+      {
+        const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+        m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
+            QString::fromStdString(*m_external_ip_address), QString::number(port)));
+        m_hostcode_action_button->setEnabled(true);
+      }
+      else
+      {
+        m_hostcode_label->setText(tr("Unknown"));
+        m_hostcode_action_button->setEnabled(false);
+      }
+    }
+    else
+    {
+      m_hostcode_label->setText(QString::fromStdString(
+          server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
+      m_hostcode_action_button->setEnabled(true);
+    }
+
     m_hostcode_action_button->setText(tr("Copy"));
-    m_hostcode_action_button->setEnabled(true);
+    m_is_copy_button_retry = false;
   }
 
   if (m_old_player_count != m_player_count)
