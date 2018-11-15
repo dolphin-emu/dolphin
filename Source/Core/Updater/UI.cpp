@@ -16,7 +16,8 @@ namespace
 {
 HWND window_handle = nullptr;
 HWND label_handle = nullptr;
-HWND progressbar_handle = nullptr;
+HWND total_progressbar_handle = nullptr;
+HWND current_progressbar_handle = nullptr;
 ITaskbarList3* taskbar_list = nullptr;
 
 Common::Flag running;
@@ -64,10 +65,16 @@ bool Init()
   SendMessage(label_handle, WM_SETFONT,
               reinterpret_cast<WPARAM>(CreateFontIndirect(&metrics.lfMessageFont)), 0);
 
-  progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, 25, 470, 25,
-                                    window_handle, nullptr, nullptr, 0);
+  total_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, 25, 470, 25,
+                                          window_handle, nullptr, nullptr, 0);
 
-  if (!progressbar_handle)
+  if (!total_progressbar_handle)
+    return false;
+
+  current_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, 30, 470, 25,
+                                            window_handle, nullptr, nullptr, 0);
+
+  if (!current_progressbar_handle)
     return false;
 
   return true;
@@ -77,20 +84,42 @@ void Destroy()
 {
   DestroyWindow(window_handle);
   DestroyWindow(label_handle);
-  DestroyWindow(progressbar_handle);
+  DestroyWindow(total_progressbar_handle);
+  DestroyWindow(current_progressbar_handle);
 }
 
-void SetMarquee(bool marquee)
+void SetTotalMarquee(bool marquee)
 {
-  SetWindowLong(progressbar_handle, GWL_STYLE, PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
-  SendMessage(progressbar_handle, PBM_SETMARQUEE, marquee, 0);
+  SetWindowLong(total_progressbar_handle, GWL_STYLE,
+                PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
+  SendMessage(total_progressbar_handle, PBM_SETMARQUEE, marquee, 0);
   taskbar_list->SetProgressState(window_handle, marquee ? TBPF_INDETERMINATE : TBPF_NORMAL);
 }
 
-void ResetProgress()
+void ResetTotalProgress()
 {
-  SendMessage(progressbar_handle, PBM_SETPOS, 0, 0);
-  SetMarquee(true);
+  SendMessage(total_progressbar_handle, PBM_SETPOS, 0, 0);
+  SetCurrentMarquee(true);
+}
+
+void SetTotalProgress(int current, int total)
+{
+  SendMessage(total_progressbar_handle, PBM_SETRANGE32, 0, total);
+  SendMessage(total_progressbar_handle, PBM_SETPOS, current, 0);
+  taskbar_list->SetProgressValue(window_handle, current, total);
+}
+
+void SetCurrentMarquee(bool marquee)
+{
+  SetWindowLong(current_progressbar_handle, GWL_STYLE,
+                PROGRESSBAR_FLAGS | (marquee ? PBS_MARQUEE : 0));
+  SendMessage(current_progressbar_handle, PBM_SETMARQUEE, marquee, 0);
+}
+
+void ResetCurrentProgress()
+{
+  SendMessage(current_progressbar_handle, PBM_SETPOS, 0, 0);
+  SetCurrentMarquee(true);
 }
 
 void Error(const std::string& text)
@@ -104,11 +133,10 @@ void Error(const std::string& text)
   taskbar_list->SetProgressState(window_handle, TBPF_ERROR);
 }
 
-void SetProgress(int current, int total)
+void SetCurrentProgress(int current, int total)
 {
-  SendMessage(progressbar_handle, PBM_SETRANGE32, 0, total);
-  SendMessage(progressbar_handle, PBM_SETPOS, current, 0);
-  taskbar_list->SetProgressValue(window_handle, current, total);
+  SendMessage(current_progressbar_handle, PBM_SETRANGE32, 0, total);
+  SendMessage(current_progressbar_handle, PBM_SETPOS, current, 0);
 }
 
 void SetDescription(const std::string& text)
@@ -127,7 +155,8 @@ void MessageLoop()
     MessageBox(nullptr, L"Window init failed!", L"", MB_ICONERROR);
   }
 
-  SetMarquee(true);
+  SetTotalMarquee(true);
+  SetCurrentMarquee(true);
 
   while (!request_stop.IsSet())
   {
