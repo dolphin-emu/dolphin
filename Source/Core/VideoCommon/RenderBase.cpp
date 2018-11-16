@@ -698,12 +698,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // Due to depending on guest state, we need to call this every frame.
       SetWindowSize(texture_config.width, texture_config.height);
 
-      m_fps_counter.Update();
-
-#ifndef ANDROID
       if (IsFrameDumping())
         DumpCurrentFrame();
-#endif
 
       frameCount++;
       GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);

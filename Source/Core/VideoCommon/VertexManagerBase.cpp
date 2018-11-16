@@ -361,7 +361,7 @@ void VertexManagerBase::Flush()
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
     ERROR_LOG(VIDEO,
               "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.",
-              xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
+              xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens);
 
   m_is_flushed = true;
   m_cull_all = false;

@@ -891,11 +891,14 @@ union AlphaTest
     XNOR = 3
   };
 
-  BitField<0, 8, u32> ref0;
-  BitField<8, 8, u32> ref1;
-  BitField<16, 3, CompareMode> comp0;
-  BitField<19, 3, CompareMode> comp1;
-  BitField<22, 2, Op> logic;
+  struct
+  {
+    u32 ref0:8;
+    u32 ref1:8;
+    CompareMode comp0:3;
+    CompareMode comp1:3;
+    Op logic:2;
+  };
 
   u32 hex;
 
@@ -1025,9 +1028,9 @@ struct BPS_TmemConfig
 
 struct BPCmd
 {
-  int address;
-  int changes;
-  int newvalue;
+  u32 address;
+  u32 changes;
+  u32 newvalue;
 };
 
 struct BPMemory

@@ -690,10 +690,10 @@ static void BPWritten(const BPCmd& bp)
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 void LoadBPReg(u32 value0)
 {
-  int regNum = value0 >> 24;
-  int oldval = ((u32*)&bpmem)[regNum];
-  int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
-  int changes = (oldval ^ newval) & 0xFFFFFF;
+  u32 regNum = value0 >> 24;
+  u32 oldval = ((u32*)&bpmem)[regNum];
+  u32 newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+  u32 changes = (oldval ^ newval) & 0xFFFFFF;
 
   BPCmd bp = {regNum, changes, newval};
 

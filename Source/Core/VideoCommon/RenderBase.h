@@ -232,8 +232,6 @@ protected:
   int m_backbuffer_height = 0;
   TargetRectangle m_target_rectangle = {};
 
-  FPSCounter m_fps_counter;
-
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
   void* m_new_surface_handle = nullptr;

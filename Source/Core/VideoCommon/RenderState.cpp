@@ -19,7 +19,7 @@ void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_ty
   }
   else if (cullmode == GenMode::CULL_FRONT)
   {
-	cullmode = GenMode::CULL_BACK;
+    cullmode = GenMode::CULL_BACK;
   }
 }
 
