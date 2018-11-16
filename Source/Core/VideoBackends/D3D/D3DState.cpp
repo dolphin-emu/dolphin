@@ -318,7 +318,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (state.alphaupdate)
     tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
-  const bool use_dual_source = true;
+  const bool use_dual_source = state.IsDualSourceBlend();
   const std::array<D3D11_BLEND, 8> src_factors = {
       {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
        use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,

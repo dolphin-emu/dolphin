@@ -667,7 +667,7 @@ std::string ShaderCache::GetUtilityShaderHeader() const
       ss << "#define SSAA_ENABLED 1" << std::endl;
   }
 
-  ss << "#define EFB_LAYERS " << (1) << std::endl;
+  ss << "#define EFB_LAYERS 1" << std::endl;
 
   return ss.str();
 }

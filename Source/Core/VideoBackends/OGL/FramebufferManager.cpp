@@ -293,7 +293,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     depth_data_type = GL_UNSIGNED_INT_24_8;
   }
 
-  const bool multilayer = false;//m_EFBLayers > 1;
+  const bool multilayer = false;
 
   if (m_msaaSamples <= 1)
   {

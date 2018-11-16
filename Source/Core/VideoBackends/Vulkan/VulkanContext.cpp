@@ -232,7 +232,6 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsComputeShaders = true;        // Assumed support.
   config->backend_info.bSupportsGPUTextureDecoding = true;    // Assumed support.
   config->backend_info.bSupportsBitfield = true;              // Assumed support.
-  config->backend_info.bSupportsReversedDepthRange = true;    // Assumed support.
   config->backend_info.bSupportsDynamicSamplerIndexing = true;     // Assumed support.
   config->backend_info.bSupportsPostProcessing = true;             // Assumed support.
   config->backend_info.bSupportsBackgroundCompiling = true;        // Assumed support.
@@ -245,8 +244,9 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsDepthClamp = false;                // Dependent on features.
   config->backend_info.bSupportsST3CTextures = false;              // Dependent on features.
   config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
-  config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
-  config->backend_info.bSupportsCopyToVram = true;                 // Assumed support.
+  config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
+  config->backend_info.bSupportsLogicOp = false;             // Dependent on features.
+  config->backend_info.bSupportsCopyToVram = true;           // Assumed support.
   config->backend_info.bSupportsFramebufferFetch = false;
 }
 
@@ -291,10 +291,6 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsST3CTextures = supports_bc;
   config->backend_info.bSupportsBPTCTextures = supports_bc;
 
-  // Reversed depth range is broken on some drivers, or is broken when used in combination
-  // with depth clamping. Fall back to inverted depth range for these.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_REVERSED_DEPTH_RANGE))
-    config->backend_info.bSupportsReversedDepthRange = false;
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(

@@ -112,38 +112,10 @@ GetVulkanMultisampleState(const MultisamplingState& state)
 static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const DepthState& state)
 {
   // Less/greater are swapped due to inverted depth.
-  VkCompareOp compare_op;
-  bool inverted_depth = !g_ActiveConfig.backend_info.bSupportsReversedDepthRange;
-  switch (state.func)
-  {
-  case ZMode::NEVER:
-    compare_op = VK_COMPARE_OP_NEVER;
-    break;
-  case ZMode::LESS:
-    compare_op = inverted_depth ? VK_COMPARE_OP_GREATER : VK_COMPARE_OP_LESS;
-    break;
-  case ZMode::EQUAL:
-    compare_op = VK_COMPARE_OP_EQUAL;
-    break;
-  case ZMode::LEQUAL:
-    compare_op = inverted_depth ? VK_COMPARE_OP_GREATER_OR_EQUAL : VK_COMPARE_OP_LESS_OR_EQUAL;
-    break;
-  case ZMode::GREATER:
-    compare_op = inverted_depth ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_GREATER;
-    break;
-  case ZMode::NEQUAL:
-    compare_op = VK_COMPARE_OP_NOT_EQUAL;
-    break;
-  case ZMode::GEQUAL:
-    compare_op = inverted_depth ? VK_COMPARE_OP_LESS_OR_EQUAL : VK_COMPARE_OP_GREATER_OR_EQUAL;
-    break;
-  case ZMode::ALWAYS:
-    compare_op = VK_COMPARE_OP_ALWAYS;
-    break;
-  default:
-    compare_op = VK_COMPARE_OP_ALWAYS;
-    break;
-  }
+  static constexpr std::array<VkCompareOp, 8> funcs = {
+      {VK_COMPARE_OP_NEVER, VK_COMPARE_OP_GREATER, VK_COMPARE_OP_EQUAL,
+       VK_COMPARE_OP_GREATER_OR_EQUAL, VK_COMPARE_OP_LESS, VK_COMPARE_OP_NOT_EQUAL,
+       VK_COMPARE_OP_LESS_OR_EQUAL, VK_COMPARE_OP_ALWAYS}};
 
   return {
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,  // VkStructureType sType
@@ -151,7 +123,7 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
       0,                   // VkPipelineDepthStencilStateCreateFlags    flags
       state.testenable,    // VkBool32                                  depthTestEnable
       state.updateenable,  // VkBool32                                  depthWriteEnable
-      compare_op,          // VkCompareOp                               depthCompareOp
+      funcs[state.func],   // VkCompareOp                               depthCompareOp
       VK_FALSE,            // VkBool32                                  depthBoundsTestEnable
       VK_FALSE,            // VkBool32                                  stencilTestEnable
       {},                  // VkStencilOpState                          front
