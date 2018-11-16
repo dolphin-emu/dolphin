@@ -101,7 +101,8 @@ void MemoryViewWidget::Update()
     if (addr == m_address)
       addr_item->setSelected(true);
 
-    if (Core::GetState() != Core::State::Paused || !PowerPC::HostIsRAMAddress(addr))
+    if (Core::GetState() != Core::State::Paused && Core::GetState() != Core::State::Running ||
+        !PowerPC::HostIsRAMAddress(addr))
     {
       for (int c = 2; c < columnCount(); c++)
       {
