@@ -131,16 +131,16 @@ ciface::Core::Device::Control* InputReference::Detect(const unsigned int ms,
 
   // get starting state of all inputs,
   // so we can ignore those that were activated at time of Detect start
-  auto i = device->Inputs().begin();
-  auto e = device->Inputs().end();
-  for (auto state = states.begin(); i != e; ++i, ++state)
-    *state = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
+  std::vector<ciface::Core::Device::Input*>::const_iterator i = device->Inputs().begin(),
+                                                            e = device->Inputs().end();
+  for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
+    *state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
 
   while (time < ms)
   {
     device->UpdateInput();
     i = device->Inputs().begin();
-    for (auto state = states.begin(); i != e; ++i, ++state)
+    for (std::vector<bool>::iterator state = states.begin(); i != e; ++i, ++state)
     {
       // detected an input
       if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)

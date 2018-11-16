@@ -9,10 +9,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/TextureConfig.h"
 
-/*inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
-{
-  return !((aLower >= bUpper) || (bLower >= aUpper));
-}*/
 
 class FramebufferManagerBase
 {
