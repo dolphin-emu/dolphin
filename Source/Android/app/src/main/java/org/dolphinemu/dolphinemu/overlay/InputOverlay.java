@@ -179,98 +179,105 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       return onTouchWhileEditing(event);
     }
 
-    int pointerIndex = event.getActionIndex();
-
-    for (InputOverlayDrawableButton button : overlayButtons)
+    switch (event.getAction() & MotionEvent.ACTION_MASK)
     {
-      // Determine the button state to apply based on the MotionEvent action flag.
-      switch (event.getAction() & MotionEvent.ACTION_MASK)
+      case MotionEvent.ACTION_DOWN:
+      case MotionEvent.ACTION_POINTER_DOWN:
       {
-        case MotionEvent.ACTION_DOWN:
-        case MotionEvent.ACTION_POINTER_DOWN:
-          // If a pointer enters the bounds of a button, press that button.
-          if (button.getBounds()
-            .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+        int pointerIndex = event.getActionIndex();
+        int pointerId = event.getPointerId(pointerIndex);
+        int pointerX = (int) event.getX(pointerIndex);
+        int pointerY = (int) event.getY(pointerIndex);
+
+        for (InputOverlayDrawableButton button : overlayButtons)
+        {
+          if (button.getBounds().contains(pointerX, pointerY))
           {
             button.setPressedState(true);
-            button.setTrackId(event.getPointerId(pointerIndex));
+            button.setTrackId(pointerId);
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-              ButtonState.PRESSED);
+                    ButtonState.PRESSED);
           }
-          break;
-        case MotionEvent.ACTION_UP:
-        case MotionEvent.ACTION_POINTER_UP:
-          // If a pointer ends, release the button it was pressing.
-          if (button.getTrackId() == event.getPointerId(pointerIndex))
+        }
+
+        for (InputOverlayDrawableDpad dpad : overlayDpads)
+        {
+          if (dpad.getBounds().contains(pointerX, pointerY))
+          {
+            dpad.setTrackId(pointerId);
+            setDpadState(dpad, pointerX, pointerY);
+          }
+        }
+        break;
+      }
+      case MotionEvent.ACTION_MOVE:
+      {
+        int pointerCount = event.getPointerCount();
+        for (int i = 0; i < pointerCount; ++i)
+        {
+          int pointerId = event.getPointerId(i);
+          int pointerX = (int) event.getX(i);
+          int pointerY = (int) event.getY(i);
+
+          for (InputOverlayDrawableButton button : overlayButtons)
+          {
+            if (button.getBounds().contains(pointerX, pointerY))
+            {
+              if(!button.getPressedState())
+              {
+                button.setPressedState(true);
+                button.setTrackId(pointerId);
+                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+                        ButtonState.PRESSED);
+              }
+            }
+            else if(button.getTrackId() == pointerId)
+            {
+              button.setPressedState(false);
+              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+                      ButtonState.RELEASED);
+            }
+          }
+
+          for (InputOverlayDrawableDpad dpad : overlayDpads)
+          {
+            if(dpad.getTrackId() == pointerId)
+            {
+              setDpadState(dpad, pointerX, pointerY);
+            }
+          }
+        }
+        break;
+      }
+
+      case MotionEvent.ACTION_UP:
+      case MotionEvent.ACTION_POINTER_UP:
+      {
+        int pointerIndex = event.getActionIndex();
+        int pointerId = event.getPointerId(pointerIndex);
+        for (InputOverlayDrawableButton button : overlayButtons)
+        {
+          if(button.getTrackId() == pointerId)
           {
             button.setPressedState(false);
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-              ButtonState.RELEASED);
+                    ButtonState.RELEASED);
           }
-          break;
-      }
-    }
+        }
 
-    for (InputOverlayDrawableDpad dpad : overlayDpads)
-    {
-      // Determine the button state to apply based on the MotionEvent action flag.
-      switch (event.getAction() & MotionEvent.ACTION_MASK)
-      {
-        case MotionEvent.ACTION_DOWN:
-        case MotionEvent.ACTION_POINTER_DOWN:
-          // If a pointer enters the bounds of a button, press that button.
-          if (dpad.getBounds()
-            .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+        for (InputOverlayDrawableDpad dpad : overlayDpads)
+        {
+          if (dpad.getTrackId() == pointerId)
           {
-            dpad.setTrackId(event.getPointerId(pointerIndex));
-          }
-          else
-          {
-            break;
-          }
-        case MotionEvent.ACTION_MOVE:
-          if(dpad.getTrackId() == event.getPointerId(pointerIndex))
-          {
-            // Up, Down, Left, Right
-            boolean[] pressed = {false, false, false, false};
-
-            if (dpad.getBounds().top + (dpad.getHeight() / 3) > (int) event.getY(pointerIndex))
-              pressed[0] = true;
-            if (dpad.getBounds().bottom - (dpad.getHeight() / 3) < (int) event.getY(pointerIndex))
-              pressed[1] = true;
-            if (dpad.getBounds().left + (dpad.getWidth() / 3) > (int) event.getX(pointerIndex))
-              pressed[2] = true;
-            if (dpad.getBounds().right - (dpad.getWidth() / 3) < (int) event.getX(pointerIndex))
-              pressed[3] = true;
-
-            // Release the buttons first, then press
-            for (int i = 0; i < pressed.length; i++)
-              if (!pressed[i])
-                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
-                  ButtonState.RELEASED);
-            // Press buttons
-            for (int i = 0; i < pressed.length; i++)
-              if (pressed[i])
-                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
-                  ButtonState.PRESSED);
-
-            setDpadState(dpad, pressed[0], pressed[1], pressed[2], pressed[3]);
-            dpad.setTrackId(event.getPointerId(pointerIndex));
-          }
-          break;
-        case MotionEvent.ACTION_UP:
-        case MotionEvent.ACTION_POINTER_UP:
-          // If a pointer ends, release the buttons.
-          if (dpad.getTrackId() == event.getPointerId(pointerIndex))
-          {
+            dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
             for (int i = 0; i < 4; i++)
             {
-              dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
               NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
-                ButtonState.RELEASED);
+                      ButtonState.RELEASED);
             }
           }
-          break;
+        }
+        break;
       }
     }
 
@@ -648,9 +655,35 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     mBaseRoll = (float)Math.PI;
   }
 
-  private void setDpadState(InputOverlayDrawableDpad dpad, boolean up, boolean down, boolean left,
-    boolean right)
+  private void setDpadState(InputOverlayDrawableDpad dpad, int pointerX, int pointerY)
   {
+    // Up, Down, Left, Right
+    boolean[] pressed = {false, false, false, false};
+    Rect bounds = dpad.getBounds();
+
+    if (bounds.top + (dpad.getHeight() / 3) > pointerY)
+      pressed[0] = true;
+    if (bounds.bottom - (dpad.getHeight() / 3) < pointerY)
+      pressed[1] = true;
+    if (bounds.left + (dpad.getWidth() / 3) > pointerX)
+      pressed[2] = true;
+    if (bounds.right - (dpad.getWidth() / 3) < pointerX)
+      pressed[3] = true;
+
+    // Release the buttons first, then press
+    for (int i = 0; i < pressed.length; i++)
+      if (!pressed[i])
+        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
+    // Press buttons
+    for (int i = 0; i < pressed.length; i++)
+      if (pressed[i])
+        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.PRESSED);
+
+    boolean up = pressed[0];
+    boolean down = pressed[1];
+    boolean left = pressed[2];
+    boolean right = pressed[3];
+
     if (up)
     {
       if (left)

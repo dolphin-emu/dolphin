@@ -21,7 +21,7 @@ public final class InputOverlayDrawableJoystick
 {
   private final int[] axisIDs = {0, 0, 0, 0};
   private final float[] axises = {0f, 0f};
-  private int trackId = -1;
+  private int mTrackId = -1;
   private int mJoystickType;
   private int mControlPositionX, mControlPositionY;
   private int mPreviousTouchX, mPreviousTouchY;
@@ -110,12 +110,12 @@ public final class InputOverlayDrawableJoystick
               (int) event.getY(pointerIndex) - getVirtBounds().centerY());
           }
           mBoundsBoxBitmap.setBounds(getVirtBounds());
-          trackId = event.getPointerId(pointerIndex);
+          mTrackId = event.getPointerId(pointerIndex);
         }
         break;
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
-        if (trackId == event.getPointerId(pointerIndex))
+        if (mTrackId == event.getPointerId(pointerIndex))
         {
           mPressedState = false;
           axises[0] = axises[1] = 0.0f;
@@ -126,17 +126,17 @@ public final class InputOverlayDrawableJoystick
           setBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right,
             mOrigBounds.bottom));
           SetInnerBounds();
-          trackId = -1;
+          mTrackId = -1;
         }
         break;
     }
 
-    if (trackId == -1)
+    if (mTrackId == -1)
       return;
 
     for (int i = 0; i < event.getPointerCount(); i++)
     {
-      if (trackId == event.getPointerId(i))
+      if (mTrackId == event.getPointerId(i))
       {
         float touchX = event.getX(i);
         float touchY = event.getY(i);

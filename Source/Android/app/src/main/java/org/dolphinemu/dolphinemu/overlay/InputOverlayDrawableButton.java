@@ -132,6 +132,11 @@ public final class InputOverlayDrawableButton
     return mHeight;
   }
 
+  public boolean getPressedState()
+  {
+    return mPressedState;
+  }
+
   public void setPressedState(boolean isPressed)
   {
     mPressedState = isPressed;
