@@ -329,6 +329,7 @@
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
+    <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
     <ClCompile Include="TAS\TASInputWindow.cpp" />
@@ -390,6 +391,7 @@
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
     <ClInclude Include="QtUtils\WinIconHelper.h" />
+    <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />

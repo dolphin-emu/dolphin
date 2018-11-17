@@ -204,6 +204,9 @@ void MenuBar::AddToolsMenu()
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
+  tools_menu->addAction(tr("&Resource Pack Manager"), this,
+                        [this] { emit ShowResourcePackManager(); });
+
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
