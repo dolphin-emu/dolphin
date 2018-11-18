@@ -173,7 +173,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     // the backup should be copied?
     //	}
     //
-    //	if (BE16(dir_backup.m_update_counter) > BE16(dir.m_update_counter)) //check if the backup is newer
+    //	if (dir_backup.m_update_counter > dir.m_update_counter) //check if the backup is newer
     //	{
     //		dir = dir_backup;
     //		bat = bat_backup; // needed?
@@ -209,7 +209,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
 
 void GCMemcard::InitDirBatPointers()
 {
-  if (BE16(dir.m_update_counter) > (BE16(dir_backup.m_update_counter)))
+  if (dir.m_update_counter > dir_backup.m_update_counter)
   {
     CurrentDir = &dir;
     PreviousDir = &dir_backup;
@@ -694,7 +694,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
       break;
     }
   }
-  UpdatedDir.m_update_counter = BE16(BE16(UpdatedDir.m_update_counter) + 1);
+  UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   *PreviousDir = UpdatedDir;
   if (PreviousDir == &dir)
   {
@@ -797,7 +797,7 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   }
   */
   memset(&(UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
-  UpdatedDir.m_update_counter = BE16(BE16(UpdatedDir.m_update_counter) + 1);
+  UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   *PreviousDir = UpdatedDir;
   if (PreviousDir == &dir)
   {

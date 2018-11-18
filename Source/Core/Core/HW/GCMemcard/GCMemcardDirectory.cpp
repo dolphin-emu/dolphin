@@ -429,7 +429,7 @@ inline void GCMemcardDirectory::SyncSaves()
 {
   Directory* current = &m_dir2;
 
-  if (BE16(m_dir1.m_update_counter) > BE16(m_dir2.m_update_counter))
+  if (m_dir1.m_update_counter > m_dir2.m_update_counter)
   {
     current = &m_dir1;
   }

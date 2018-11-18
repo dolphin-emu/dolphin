@@ -232,9 +232,9 @@ struct Directory
 {
   std::array<DEntry, DIRLEN> m_dir_entries;  // 0x0000            Directory Entries (max 127)
   std::array<u8, 0x3a> m_padding;
-  u16 m_update_counter;  // 0x1ffa    2       Update Counter
-  u16 m_checksum;        // 0x1ffc    2       Additive Checksum
-  u16 m_checksum_inv;    // 0x1ffe    2       Inverse Checksum
+  Common::BigEndianValue<u16> m_update_counter;  // 0x1ffa    2       Update Counter
+  u16 m_checksum;                                // 0x1ffc    2       Additive Checksum
+  u16 m_checksum_inv;                            // 0x1ffe    2       Inverse Checksum
   Directory()
   {
     memset(this, 0xFF, BLOCK_SIZE);
