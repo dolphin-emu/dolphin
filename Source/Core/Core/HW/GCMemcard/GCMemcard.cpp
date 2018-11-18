@@ -1076,7 +1076,7 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     ByteSwap(&tmp[0], &tmp[1]);
     memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
 
-    ArrayByteSwap((tempDEntry.m_unused_2));
+    ByteSwap(&tempDEntry.m_unused_2[0], &tempDEntry.m_unused_2[1]);
 
     memcpy(tmp.data(), &tempDEntry.m_comments_address, 4);
     ByteSwap(&tmp[0], &tmp[1]);

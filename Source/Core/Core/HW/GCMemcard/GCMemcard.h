@@ -220,8 +220,8 @@ struct DEntry
   Common::BigEndianValue<u16>
       m_first_block;  // 0x36      0x02    Block no of first block of file (0 == offset 0)
   Common::BigEndianValue<u16>
-      m_block_count;  // 0x38      0x02    File-length (number of blocks in file)
-  u8 m_unused_2[2];   // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
+      m_block_count;             // 0x38      0x02    File-length (number of blocks in file)
+  std::array<u8, 2> m_unused_2;  // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
   Common::BigEndianValue<u32>
       m_comments_address;  // 0x3c      0x04    Address of the two comments within the file data
                            // (*3)
