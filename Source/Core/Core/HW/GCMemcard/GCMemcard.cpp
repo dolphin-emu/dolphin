@@ -359,7 +359,7 @@ u16 GCMemcard::GetFreeBlocks() const
   if (!m_valid)
     return 0;
 
-  return BE16(CurrentBat->m_free_blocks);
+  return CurrentBat->m_free_blocks;
 }
 
 u8 GCMemcard::TitlePresent(const DEntry& d) const
@@ -593,7 +593,7 @@ u16 BlockAlloc::GetNextBlock(u16 Block) const
 // not BAT index; that is, block 5 is the first file data block.
 u16 BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 {
-  if (m_free_blocks)
+  if (m_free_blocks > 0)
   {
     StartingBlock = MathUtil::Clamp<u16>(StartingBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
     MaxBlock = MathUtil::Clamp<u16>(MaxBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
@@ -625,7 +625,7 @@ bool BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
     }
     for (unsigned int i = 0; i < length; ++i)
       m_map[blocks.at(i) - MC_FST_BLOCKS] = 0;
-    m_free_blocks = BE16(BE16(m_free_blocks) + BlockCount);
+    m_free_blocks = m_free_blocks + BlockCount;
 
     return true;
   }
@@ -667,7 +667,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   {
     return OUTOFDIRENTRIES;
   }
-  if (BE16(CurrentBat->m_free_blocks) < direntry.m_block_count)
+  if (CurrentBat->m_free_blocks < direntry.m_block_count)
   {
     return OUTOFBLOCKS;
   }
@@ -729,7 +729,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     firstBlock = nextBlock;
   }
 
-  UpdatedBat.m_free_blocks = BE16(BE16(UpdatedBat.m_free_blocks) - fileBlocks);
+  UpdatedBat.m_free_blocks = UpdatedBat.m_free_blocks - fileBlocks;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   *PreviousBat = UpdatedBat;
   if (PreviousBat == &bat)

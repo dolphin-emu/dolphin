@@ -90,7 +90,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
         return NO_INDEX;
       }
       int total_blocks = m_hdr.m_size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
-      int free_blocks = BE16(m_bat1.m_free_blocks);
+      int free_blocks = m_bat1.m_free_blocks;
       if (total_blocks > free_blocks * 10)
       {
         PanicAlertT("%s\nwas not loaded because there is less than 10%% free blocks available on "
