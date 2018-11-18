@@ -429,16 +429,16 @@ inline void GCMemcardDirectory::SyncSaves()
 {
   Directory* current = &m_dir2;
 
-  if (BE16(m_dir1.UpdateCounter) > BE16(m_dir2.UpdateCounter))
+  if (BE16(m_dir1.m_update_counter) > BE16(m_dir2.m_update_counter))
   {
     current = &m_dir1;
   }
 
   for (u32 i = 0; i < DIRLEN; ++i)
   {
-    if (BE32(current->Dir[i].m_gamecode) != 0xFFFFFFFF)
+    if (BE32(current->m_dir_entries[i].m_gamecode) != 0xFFFFFFFF)
     {
-      INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x", *(u32*)&(current->Dir[i].m_gamecode));
+      INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x", *(u32*)&(current->m_dir_entries[i].m_gamecode));
       bool added = false;
       while (i >= m_saves.size())
       {
@@ -447,20 +447,20 @@ inline void GCMemcardDirectory::SyncSaves()
         added = true;
       }
 
-      if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->Dir[i]), DENTRY_SIZE))
+      if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
         u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode);
-        u32 new_gamecode = BE32(current->Dir[i].m_gamecode);
+        u32 new_gamecode = BE32(current->m_dir_entries[i].m_gamecode);
         u32 old_start = BE16(m_saves[i].m_gci_header.m_first_block);
-        u32 new_start = BE16(current->Dir[i].m_first_block);
+        u32 new_start = BE16(current->m_dir_entries[i].m_first_block);
 
         if ((gamecode != 0xFFFFFFFF) && (gamecode != new_gamecode))
         {
           PanicAlertT("Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x",
-                      BE32(m_saves[i].m_gci_header.m_gamecode), BE32(current->Dir[i].m_gamecode));
+                      BE32(m_saves[i].m_gci_header.m_gamecode), BE32(current->m_dir_entries[i].m_gamecode));
         }
-        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->Dir[i]), DENTRY_SIZE);
+        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE);
         if (old_start != new_start)
         {
           INFO_LOG(EXPANSIONINTERFACE, "Save moved from 0x%x to 0x%x", old_start, new_start);

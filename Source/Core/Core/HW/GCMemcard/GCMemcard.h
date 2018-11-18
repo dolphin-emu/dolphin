@@ -218,24 +218,24 @@ static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
 struct Directory
 {
-  DEntry Dir[DIRLEN];  // 0x0000            Directory Entries (max 127)
-  u8 Padding[0x3a];
-  u16 UpdateCounter;  // 0x1ffa    2       Update Counter
-  u16 Checksum;       // 0x1ffc    2       Additive Checksum
-  u16 Checksum_Inv;   // 0x1ffe    2       Inverse Checksum
+  DEntry m_dir_entries[DIRLEN];  // 0x0000            Directory Entries (max 127)
+  u8 m_padding[0x3a];
+  u16 m_update_counter;  // 0x1ffa    2       Update Counter
+  u16 m_checksum;        // 0x1ffc    2       Additive Checksum
+  u16 m_checksum_inv;    // 0x1ffe    2       Inverse Checksum
   Directory()
   {
     memset(this, 0xFF, BLOCK_SIZE);
-    UpdateCounter = 0;
-    Checksum = BE16(0xF003);
-    Checksum_Inv = 0;
+    m_update_counter = 0;
+    m_checksum = BE16(0xF003);
+    m_checksum_inv = 0;
   }
   void Replace(DEntry d, int idx)
   {
-    Dir[idx] = d;
+    m_dir_entries[idx] = d;
     fixChecksums();
   }
-  void fixChecksums() { calc_checksumsBE((u16*)this, 0xFFE, &Checksum, &Checksum_Inv); }
+  void fixChecksums() { calc_checksumsBE((u16*)this, 0xFFE, &m_checksum, &m_checksum_inv); }
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
