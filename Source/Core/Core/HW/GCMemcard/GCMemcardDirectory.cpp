@@ -549,7 +549,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 {
   BlockAlloc* current_bat;
-  if (BE16(m_bat2.m_update_counter) > BE16(m_bat1.m_update_counter))
+  if (m_bat2.m_update_counter > m_bat1.m_update_counter)
     current_bat = &m_bat2;
   else
     current_bat = &m_bat1;

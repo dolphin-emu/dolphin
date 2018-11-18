@@ -253,12 +253,12 @@ static_assert(sizeof(Directory) == BLOCK_SIZE);
 
 struct BlockAlloc
 {
-  u16 m_checksum;              // 0x0000    2       Additive Checksum
-  u16 m_checksum_inv;          // 0x0002    2       Inverse Checksum
-  u16 m_update_counter;        // 0x0004    2       Update Counter
-  u16 m_free_blocks;           // 0x0006    2       Free Blocks
-  u16 m_last_allocated_block;  // 0x0008    2       Last allocated Block
-  u16 m_map[BAT_SIZE];         // 0x000a    0x1ff8  Map of allocated Blocks
+  u16 m_checksum;                                // 0x0000    2       Additive Checksum
+  u16 m_checksum_inv;                            // 0x0002    2       Inverse Checksum
+  Common::BigEndianValue<u16> m_update_counter;  // 0x0004    2       Update Counter
+  u16 m_free_blocks;                             // 0x0006    2       Free Blocks
+  u16 m_last_allocated_block;                    // 0x0008    2       Last allocated Block
+  u16 m_map[BAT_SIZE];                           // 0x000a    0x1ff8  Map of allocated Blocks
   u16 GetNextBlock(u16 Block) const;
   u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
   bool ClearBlocks(u16 StartingBlock, u16 Length);

@@ -219,7 +219,7 @@ void GCMemcard::InitDirBatPointers()
     CurrentDir = &dir_backup;
     PreviousDir = &dir;
   }
-  if (BE16(bat.m_update_counter) > BE16(bat_backup.m_update_counter))
+  if (bat.m_update_counter > bat_backup.m_update_counter)
   {
     CurrentBat = &bat;
     PreviousBat = &bat_backup;
@@ -730,7 +730,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   }
 
   UpdatedBat.m_free_blocks = BE16(BE16(UpdatedBat.m_free_blocks) - fileBlocks);
-  UpdatedBat.m_update_counter = BE16(BE16(UpdatedBat.m_update_counter) + 1);
+  UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   *PreviousBat = UpdatedBat;
   if (PreviousBat == &bat)
   {
@@ -761,7 +761,7 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   BlockAlloc UpdatedBat = *CurrentBat;
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
     return DELETE_FAIL;
-  UpdatedBat.m_update_counter = BE16(BE16(UpdatedBat.m_update_counter) + 1);
+  UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   *PreviousBat = UpdatedBat;
   if (PreviousBat == &bat)
   {
