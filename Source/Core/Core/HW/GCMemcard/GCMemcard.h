@@ -164,15 +164,15 @@ struct DEntry
   DEntry() { memset(this, 0xFF, DENTRY_SIZE); }
   std::string GCI_FileName() const
   {
-    std::string filename = std::string((char*)Makercode, 2) + '-' +
-                           std::string((char*)Gamecode, 4) + '-' + (char*)Filename + ".gci";
+    std::string filename = std::string((char*)m_makercode, 2) + '-' +
+                           std::string((char*)m_gamecode, 4) + '-' + (char*)m_filename + ".gci";
     return Common::EscapeFileName(filename);
   }
 
-  u8 Gamecode[4];   // 0x00       0x04    Gamecode
-  u8 Makercode[2];  // 0x04      0x02    Makercode
-  u8 Unused1;       // 0x06      0x01    reserved/unused (always 0xff, has no effect)
-  u8 BIFlags;       // 0x07      0x01    banner gfx format and icon animation (Image Key)
+  u8 m_gamecode[4];            // 0x00      0x04    Gamecode
+  u8 m_makercode[2];           // 0x04      0x02    Makercode
+  u8 m_unused_1;               // 0x06      0x01    reserved/unused (always 0xff, has no effect)
+  u8 m_banner_and_icon_flags;  // 0x07      0x01    banner gfx format and icon animation (Image Key)
   //      Bit(s)  Description
   //      2       Icon Animation 0: forward 1: ping-pong
   //      1       [--0: No Banner 1: Banner present--] WRONG! YAGCD LIES!
@@ -183,35 +183,36 @@ struct DEntry
   //      10 RGB5A3 banner
   //      11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
   //
-  u8 Filename[DENTRY_STRLEN];  // 0x08      0x20     Filename
-  u8 ModTime[4];      // 0x28      0x04    Time of file's last modification in seconds since 12am,
-                      // January 1st, 2000
-  u8 ImageOffset[4];  // 0x2c      0x04    image data offset
-  u8 IconFmt[2];      // 0x30      0x02    icon gfx format (2bits per icon)
+  u8 m_filename[DENTRY_STRLEN];  // 0x08      0x20     Filename
+  u8 m_modification_time[4];  // 0x28      0x04    Time of file's last modification in seconds since
+                              // 12am, January 1st, 2000
+  u8 m_image_offset[4];       // 0x2c      0x04    image data offset
+  u8 m_icon_format[2];        // 0x30      0x02    icon gfx format (2bits per icon)
   //      Bits    Description
   //      00      No icon
   //      01      CI8 with a shared color palette after the last frame
   //      10      RGB5A3
   //      11      CI8 with a unique color palette after itself
   //
-  u8 AnimSpeed[2];  // 0x32      0x02    Animation speed (2bits per icon) (*1)
+  u8 m_animation_speed[2];  // 0x32      0x02    Animation speed (2bits per icon) (*1)
   //      Bits    Description
   //      00      No icon
   //      01      Icon lasts for 4 frames
   //      10      Icon lasts for 8 frames
   //      11      Icon lasts for 12 frames
   //
-  u8 Permissions;  // 0x34      0x01    File-permissions
+  u8 m_file_permissions;  // 0x34      0x01    File-permissions
   //      Bit Permission  Description
   //      4   no move     File cannot be moved by the IPL
   //      3   no copy     File cannot be copied by the IPL
   //      2   public      Can be read by any game
   //
-  u8 CopyCounter;      // 0x35      0x01    Copy counter (*2)
-  u8 FirstBlock[2];    // 0x36      0x02    Block no of first block of file (0 == offset 0)
-  u8 BlockCount[2];    // 0x38      0x02    File-length (number of blocks in file)
-  u8 Unused2[2];       // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
-  u8 CommentsAddr[4];  // 0x3c      0x04    Address of the two comments within the file data (*3)
+  u8 m_copy_counter;         // 0x35      0x01    Copy counter (*2)
+  u8 m_first_block[2];       // 0x36      0x02    Block no of first block of file (0 == offset 0)
+  u8 m_block_count[2];       // 0x38      0x02    File-length (number of blocks in file)
+  u8 m_unused_2[2];          // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
+  u8 m_comments_address[4];  // 0x3c      0x04    Address of the two comments within the file data
+                             // (*3)
 };
 static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
@@ -285,9 +286,9 @@ public:
   bool LoadSaveBlocks();
   bool HasCopyProtection() const
   {
-    if ((strcmp((char*)m_gci_header.Filename, "PSO_SYSTEM") == 0) ||
-        (strcmp((char*)m_gci_header.Filename, "PSO3_SYSTEM") == 0) ||
-        (strcmp((char*)m_gci_header.Filename, "f_zero.dat") == 0))
+    if ((strcmp((char*)m_gci_header.m_filename, "PSO_SYSTEM") == 0) ||
+        (strcmp((char*)m_gci_header.m_filename, "PSO3_SYSTEM") == 0) ||
+        (strcmp((char*)m_gci_header.m_filename, "f_zero.dat") == 0))
       return true;
     return false;
   }

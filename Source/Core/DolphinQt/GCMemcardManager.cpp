@@ -202,7 +202,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     DEntry d;
     memcard->GetDEntry(file_index, d);
 
-    const auto speed = ((d.AnimSpeed[0] & 1) << 2) + (d.AnimSpeed[1] & 1);
+    const auto speed = ((d.m_animation_speed[0] & 1) << 2) + (d.m_animation_speed[1] & 1);
 
     m_slot_active_icons[slot].push_back({speed, frames});
 
