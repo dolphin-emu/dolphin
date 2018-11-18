@@ -444,7 +444,7 @@ u32 GCMemcard::DEntry_ImageOffset(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFFFFFF;
 
-  return BE32(CurrentDir->m_dir_entries[index].m_image_offset);
+  return CurrentDir->m_dir_entries[index].m_image_offset;
 }
 
 std::string GCMemcard::DEntry_IconFmt(u8 index) const
@@ -1040,8 +1040,13 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     // 0x3C and 0x3D,0x3E and 0x3F.
     // It seems that sav files also swap the banner/icon flags...
     ByteSwap(&tempDEntry.m_unused_1, &tempDEntry.m_banner_and_icon_flags);
-    ArrayByteSwap((tempDEntry.m_image_offset));
-    ArrayByteSwap(&(tempDEntry.m_image_offset[2]));
+
+    std::array<u8, 4> tmp;
+    memcpy(tmp.data(), &tempDEntry.m_image_offset, 4);
+    ByteSwap(&tmp[0], &tmp[1]);
+    ByteSwap(&tmp[2], &tmp[3]);
+    memcpy(&tempDEntry.m_image_offset, tmp.data(), 4);
+
     ArrayByteSwap((tempDEntry.m_icon_format));
     ArrayByteSwap((tempDEntry.m_animation_speed));
     ByteSwap(&tempDEntry.m_file_permissions, &tempDEntry.m_copy_counter);
@@ -1072,7 +1077,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
   if (bnrFormat == 0)
     return false;
 
-  u32 DataOffset = BE32(CurrentDir->m_dir_entries[index].m_image_offset);
+  u32 DataOffset = CurrentDir->m_dir_entries[index].m_image_offset;
   u32 DataBlock = BE16(CurrentDir->m_dir_entries[index].m_first_block) - MC_FST_BLOCKS;
 
   if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
@@ -1119,7 +1124,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
 
   int bnrFormat = (flags & 3);
 
-  u32 DataOffset = BE32(CurrentDir->m_dir_entries[index].m_image_offset);
+  u32 DataOffset = CurrentDir->m_dir_entries[index].m_image_offset;
   u32 DataBlock = BE16(CurrentDir->m_dir_entries[index].m_first_block) - MC_FST_BLOCKS;
 
   if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
