@@ -436,7 +436,7 @@ u32 GCMemcard::DEntry_ModTime(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFFFFFF;
 
-  return BE32(CurrentDir->m_dir_entries[index].m_modification_time);
+  return CurrentDir->m_dir_entries[index].m_modification_time;
 }
 
 u32 GCMemcard::DEntry_ImageOffset(u8 index) const
