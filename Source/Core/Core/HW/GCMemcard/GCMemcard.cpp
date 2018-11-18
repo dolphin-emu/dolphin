@@ -677,8 +677,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   }
 
   // find first free data block
-  u16 firstBlock =
-      CurrentBat->NextFreeBlock(maxBlock, BE16(CurrentBat->m_last_allocated_block));
+  u16 firstBlock = CurrentBat->NextFreeBlock(maxBlock, CurrentBat->m_last_allocated_block);
   if (firstBlock == 0xFFFF)
     return OUTOFBLOCKS;
   Directory UpdatedDir = *CurrentDir;
@@ -725,7 +724,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     else
       nextBlock = UpdatedBat.NextFreeBlock(maxBlock, firstBlock + 1);
     UpdatedBat.m_map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
-    UpdatedBat.m_last_allocated_block = BE16(firstBlock);
+    UpdatedBat.m_last_allocated_block = firstBlock;
     firstBlock = nextBlock;
   }
 
