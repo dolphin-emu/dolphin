@@ -452,12 +452,14 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  int x = CurrentDir->m_dir_entries[index].m_icon_format[0];
+  std::array<u8, 2> tmp;
+  memcpy(tmp.data(), &CurrentDir->m_dir_entries[index].m_icon_format, 2);
+  int x = tmp[0];
   std::string format;
   for (int i = 0; i < 16; i++)
   {
     if (i == 8)
-      x = CurrentDir->m_dir_entries[index].m_icon_format[1];
+      x = tmp[1];
     format.push_back((x & 0x80) ? '1' : '0');
     x = x << 1;
   }
@@ -1047,7 +1049,10 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     ByteSwap(&tmp[2], &tmp[3]);
     memcpy(&tempDEntry.m_image_offset, tmp.data(), 4);
 
-    ArrayByteSwap((tempDEntry.m_icon_format));
+    memcpy(tmp.data(), &tempDEntry.m_icon_format, 2);
+    ByteSwap(&tmp[0], &tmp[1]);
+    memcpy(&tempDEntry.m_icon_format, tmp.data(), 2);
+
     ArrayByteSwap((tempDEntry.m_animation_speed));
     ByteSwap(&tempDEntry.m_file_permissions, &tempDEntry.m_copy_counter);
     ArrayByteSwap((tempDEntry.m_first_block));
@@ -1112,7 +1117,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
   // Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
   // int fmtCheck = 0;
 
-  int formats = BE16(CurrentDir->m_dir_entries[index].m_icon_format);
+  int formats = CurrentDir->m_dir_entries[index].m_icon_format;
   int fdelays = BE16(CurrentDir->m_dir_entries[index].m_animation_speed);
 
   int flags = CurrentDir->m_dir_entries[index].m_banner_and_icon_flags;
