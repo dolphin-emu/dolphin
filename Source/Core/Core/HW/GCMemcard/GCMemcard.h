@@ -198,7 +198,8 @@ struct DEntry
   //      10      RGB5A3
   //      11      CI8 with a unique color palette after itself
   //
-  u8 m_animation_speed[2];  // 0x32      0x02    Animation speed (2bits per icon) (*1)
+  Common::BigEndianValue<u16>
+      m_animation_speed;  // 0x32      0x02    Animation speed (2bits per icon) (*1)
   //      Bits    Description
   //      00      No icon
   //      01      Icon lasts for 4 frames

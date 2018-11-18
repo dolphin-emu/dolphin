@@ -471,12 +471,14 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  int x = CurrentDir->m_dir_entries[index].m_animation_speed[0];
+  std::array<u8, 2> tmp;
+  memcpy(tmp.data(), &CurrentDir->m_dir_entries[index].m_animation_speed, 2);
+  int x = tmp[0];
   std::string speed;
   for (int i = 0; i < 16; i++)
   {
     if (i == 8)
-      x = CurrentDir->m_dir_entries[index].m_animation_speed[1];
+      x = tmp[1];
     speed.push_back((x & 0x80) ? '1' : '0');
     x = x << 1;
   }
@@ -1053,7 +1055,10 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     ByteSwap(&tmp[0], &tmp[1]);
     memcpy(&tempDEntry.m_icon_format, tmp.data(), 2);
 
-    ArrayByteSwap((tempDEntry.m_animation_speed));
+    memcpy(tmp.data(), &tempDEntry.m_animation_speed, 2);
+    ByteSwap(&tmp[0], &tmp[1]);
+    memcpy(&tempDEntry.m_animation_speed, tmp.data(), 2);
+
     ByteSwap(&tempDEntry.m_file_permissions, &tempDEntry.m_copy_counter);
     ArrayByteSwap((tempDEntry.m_first_block));
     ArrayByteSwap((tempDEntry.m_block_count));
@@ -1118,7 +1123,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
   // int fmtCheck = 0;
 
   int formats = CurrentDir->m_dir_entries[index].m_icon_format;
-  int fdelays = BE16(CurrentDir->m_dir_entries[index].m_animation_speed);
+  int fdelays = CurrentDir->m_dir_entries[index].m_animation_speed;
 
   int flags = CurrentDir->m_dir_entries[index].m_banner_and_icon_flags;
   // Timesplitters 2 and 3 is the only game that I see this in
