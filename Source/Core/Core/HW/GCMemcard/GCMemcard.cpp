@@ -533,7 +533,7 @@ u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  return BE32(CurrentDir->m_dir_entries[index].m_comments_address);
+  return CurrentDir->m_dir_entries[index].m_comments_address;
 }
 
 std::string GCMemcard::GetSaveComment1(u8 index) const
@@ -541,7 +541,7 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  u32 Comment1 = BE32(CurrentDir->m_dir_entries[index].m_comments_address);
+  u32 Comment1 = CurrentDir->m_dir_entries[index].m_comments_address;
   u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
   if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
   {
@@ -555,7 +555,7 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  u32 Comment1 = BE32(CurrentDir->m_dir_entries[index].m_comments_address);
+  u32 Comment1 = CurrentDir->m_dir_entries[index].m_comments_address;
   u32 Comment2 = Comment1 + DENTRY_STRLEN;
   u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
   if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
@@ -1070,8 +1070,11 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
 
     ArrayByteSwap((tempDEntry.m_unused_2));
-    ArrayByteSwap((tempDEntry.m_comments_address));
-    ArrayByteSwap(&(tempDEntry.m_comments_address[2]));
+
+    memcpy(tmp.data(), &tempDEntry.m_comments_address, 4);
+    ByteSwap(&tmp[0], &tmp[1]);
+    ByteSwap(&tmp[2], &tmp[3]);
+    memcpy(&tempDEntry.m_comments_address, tmp.data(), 4);
     break;
   default:
     break;
