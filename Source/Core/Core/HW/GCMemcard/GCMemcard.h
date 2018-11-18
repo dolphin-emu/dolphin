@@ -258,7 +258,9 @@ struct BlockAlloc
   Common::BigEndianValue<u16> m_update_counter;        // 0x0004    2       Update Counter
   Common::BigEndianValue<u16> m_free_blocks;           // 0x0006    2       Free Blocks
   Common::BigEndianValue<u16> m_last_allocated_block;  // 0x0008    2       Last allocated Block
-  u16 m_map[BAT_SIZE];                                 // 0x000a    0x1ff8  Map of allocated Blocks
+  std::array<Common::BigEndianValue<u16>, BAT_SIZE>
+      m_map;  // 0x000a    0x1ff8  Map of allocated Blocks
+
   u16 GetNextBlock(u16 Block) const;
   u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
   bool ClearBlocks(u16 StartingBlock, u16 Length);
@@ -281,7 +283,7 @@ struct BlockAlloc
     u16 current = starting;
     while ((current - starting + 1) < length)
     {
-      m_map[current - 5] = BE16(current + 1);
+      m_map[current - 5] = current + 1;
       current++;
     }
     m_map[current - 5] = 0xFFFF;

@@ -586,7 +586,7 @@ u16 BlockAlloc::GetNextBlock(u16 Block) const
   if ((Block < MC_FST_BLOCKS) || (Block > 4091))
     return 0;
 
-  return Common::swap16(m_map[Block - MC_FST_BLOCKS]);
+  return m_map[Block - MC_FST_BLOCKS];
 }
 
 // Parameters and return value are expected as memory card block index,
@@ -723,7 +723,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
       nextBlock = 0xFFFF;
     else
       nextBlock = UpdatedBat.NextFreeBlock(maxBlock, firstBlock + 1);
-    UpdatedBat.m_map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
+    UpdatedBat.m_map[firstBlock - MC_FST_BLOCKS] = nextBlock;
     UpdatedBat.m_last_allocated_block = firstBlock;
     firstBlock = nextBlock;
   }
