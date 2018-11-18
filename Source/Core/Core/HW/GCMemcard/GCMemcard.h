@@ -108,7 +108,8 @@ struct Header  // Offset    Size    Description
   Common::BigEndianValue<u32> m_sram_language;  // 0x0018    4       SRAM language
   u8 m_unknown_2[4];                            // 0x001c    4       ? almost always 0
   // end Serial in libogc
-  u8 m_device_id[2];     // 0x0020    2       0 if formated in slot A 1 if formated in slot B
+  Common::BigEndianValue<u16>
+      m_device_id;       // 0x0020    2       0 if formated in slot A 1 if formated in slot B
   u8 m_size_mb[2];       // 0x0022    2       Size of memcard in Mbits
   u16 m_encoding;        // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
   u8 m_unused_1[468];    // 0x0026    468     Unused (0xff)
@@ -152,7 +153,7 @@ struct Header  // Offset    Size    Description
     // TODO: determine the purpose of m_unknown_2
     // 1 works for slot A, 0 works for both slot A and slot B
     *(u32*)&m_unknown_2 = 0;  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-    *(u16*)&m_device_id = 0;
+    m_device_id = 0;
     calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
   }
 };
