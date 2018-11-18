@@ -109,14 +109,14 @@ struct Header  // Offset    Size    Description
   u8 m_unknown_2[4];                            // 0x001c    4       ? almost always 0
   // end Serial in libogc
   Common::BigEndianValue<u16>
-      m_device_id;       // 0x0020    2       0 if formated in slot A 1 if formated in slot B
-  u8 m_size_mb[2];       // 0x0022    2       Size of memcard in Mbits
-  u16 m_encoding;        // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
-  u8 m_unused_1[468];    // 0x0026    468     Unused (0xff)
-  u16 m_update_counter;  // 0x01fa    2       Update Counter (?, probably unused)
-  u16 m_checksum;        // 0x01fc    2       Additive Checksum
-  u16 m_checksum_inv;    // 0x01fe    2       Inverse Checksum
-  u8 m_unused_2[7680];   // 0x0200    0x1e00  Unused (0xff)
+      m_device_id;  // 0x0020    2       0 if formated in slot A 1 if formated in slot B
+  Common::BigEndianValue<u16> m_size_mb;  // 0x0022    2       Size of memcard in Mbits
+  u16 m_encoding;                         // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
+  u8 m_unused_1[468];                     // 0x0026    468     Unused (0xff)
+  u16 m_update_counter;                   // 0x01fa    2       Update Counter (?, probably unused)
+  u16 m_checksum;                         // 0x01fc    2       Additive Checksum
+  u16 m_checksum_inv;                     // 0x01fe    2       Inverse Checksum
+  u8 m_unused_2[7680];                    // 0x0200    0x1e00  Unused (0xff)
 
   void CARD_GetSerialNo(u32* serial1, u32* serial2) const
   {
@@ -137,7 +137,7 @@ struct Header  // Offset    Size    Description
   explicit Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
   {
     memset(this, 0xFF, BLOCK_SIZE);
-    *(u16*)m_size_mb = BE16(sizeMb);
+    m_size_mb = sizeMb;
     m_encoding = BE16(shift_jis ? 1 : 0);
     u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
     m_format_time = rand;

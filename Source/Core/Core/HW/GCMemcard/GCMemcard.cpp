@@ -93,7 +93,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
     return;
   }
-  if (m_sizeMb != BE16(hdr.m_size_mb))
+  if (m_sizeMb != hdr.m_size_mb)
   {
     PanicAlertT("Memory card file size does not match the header size");
     return;
