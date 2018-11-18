@@ -102,11 +102,11 @@ void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 struct Header  // Offset    Size    Description
 {
   // Serial in libogc
-  u8 m_serial[12];      // 0x0000    12      ?
-  u64 m_format_time;    // 0x000c    8       Time of format (OSTime value)
-  u32 m_sram_bias;      // 0x0014    4       SRAM bias at time of format
-  u32 m_sram_language;  // 0x0018    4       SRAM language
-  u8 m_unknown_2[4];    // 0x001c    4       ? almost always 0
+  u8 m_serial[12];                            // 0x0000    12      ?
+  Common::BigEndianValue<u64> m_format_time;  // 0x000c    8       Time of format (OSTime value)
+  u32 m_sram_bias;                            // 0x0014    4       SRAM bias at time of format
+  u32 m_sram_language;                        // 0x0018    4       SRAM language
+  u8 m_unknown_2[4];                          // 0x001c    4       ? almost always 0
   // end Serial in libogc
   u8 m_device_id[2];     // 0x0020    2       0 if formated in slot A 1 if formated in slot B
   u8 m_size_mb[2];       // 0x0022    2       Size of memcard in Mbits
@@ -139,7 +139,7 @@ struct Header  // Offset    Size    Description
     *(u16*)m_size_mb = BE16(sizeMb);
     m_encoding = BE16(shift_jis ? 1 : 0);
     u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
-    m_format_time = Common::swap64(rand);
+    m_format_time = rand;
     for (int i = 0; i < 12; i++)
     {
       rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
