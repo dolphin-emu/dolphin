@@ -597,6 +597,9 @@
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
       <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)minizip\minizip.vcxproj">
+      <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

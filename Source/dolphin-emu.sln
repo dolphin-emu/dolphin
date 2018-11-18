@@ -87,6 +87,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreeSurround", "..\External
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discord-rpc", "..\Externals\discord-rpc\src\discord-rpc.vcxproj", "{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minizip", "..\Externals\minizip\minizip.vcxproj", "{23114507-079A-4418-9707-CFA81A03CA99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -253,6 +255,10 @@ Global
 		{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}.Debug|x64.Build.0 = Debug|x64
 		{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}.Release|x64.ActiveCfg = Release|x64
 		{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}.Release|x64.Build.0 = Release|x64
+		{23114507-079A-4418-9707-CFA81A03CA99}.Debug|x64.ActiveCfg = Debug|x64
+		{23114507-079A-4418-9707-CFA81A03CA99}.Debug|x64.Build.0 = Debug|x64
+		{23114507-079A-4418-9707-CFA81A03CA99}.Release|x64.ActiveCfg = Release|x64
+		{23114507-079A-4418-9707-CFA81A03CA99}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -292,5 +298,6 @@ Global
 		{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{8498F2FA-5CA6-4169-9971-DE5B1FE6132C} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{23114507-079A-4418-9707-CFA81A03CA99} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 	EndGlobalSection
 EndGlobal
