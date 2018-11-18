@@ -328,7 +328,7 @@ u8 GCMemcard::GetNumFiles() const
   u8 j = 0;
   for (int i = 0; i < DIRLEN; i++)
   {
-    if (BE32(CurrentDir->m_dir_entries[i].m_gamecode) != 0xFFFFFFFF)
+    if (CurrentDir->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       j++;
   }
   return j;
@@ -341,7 +341,7 @@ u8 GCMemcard::GetFileIndex(u8 fileNumber) const
     u8 j = 0;
     for (u8 i = 0; i < DIRLEN; i++)
     {
-      if (BE32(CurrentDir->m_dir_entries[i].m_gamecode) != 0xFFFFFFFF)
+      if (CurrentDir->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       {
         if (j == fileNumber)
         {
@@ -370,7 +370,7 @@ u8 GCMemcard::TitlePresent(const DEntry& d) const
   u8 i = 0;
   while (i < DIRLEN)
   {
-    if ((BE32(CurrentDir->m_dir_entries[i].m_gamecode) == BE32(d.m_gamecode)) &&
+    if (CurrentDir->m_dir_entries[i].m_gamecode == d.m_gamecode &&
         CurrentDir->m_dir_entries[i].m_filename == d.m_filename)
     {
       break;
@@ -382,7 +382,8 @@ u8 GCMemcard::TitlePresent(const DEntry& d) const
 
 bool GCMemcard::GCI_FileName(u8 index, std::string& filename) const
 {
-  if (!m_valid || index >= DIRLEN || (BE32(CurrentDir->m_dir_entries[index].m_gamecode) == 0xFFFFFFFF))
+  if (!m_valid || index >= DIRLEN ||
+      CurrentDir->m_dir_entries[index].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
     return false;
 
   filename = CurrentDir->m_dir_entries[index].GCI_FileName();
@@ -397,7 +398,9 @@ std::string GCMemcard::DEntry_GameCode(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  return std::string((const char*)CurrentDir->m_dir_entries[index].m_gamecode, 4);
+  return std::string(
+      reinterpret_cast<const char*>(CurrentDir->m_dir_entries[index].m_gamecode.data()),
+      CurrentDir->m_dir_entries[index].m_gamecode.size());
 }
 
 std::string GCMemcard::DEntry_Makercode(u8 index) const
@@ -681,7 +684,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   // find first free dir entry
   for (int i = 0; i < DIRLEN; i++)
   {
-    if (BE32(UpdatedDir.m_dir_entries[i].m_gamecode) == 0xFFFFFFFF)
+    if (UpdatedDir.m_dir_entries[i].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
     {
       UpdatedDir.m_dir_entries[i] = direntry;
       UpdatedDir.m_dir_entries[i].m_first_block = firstBlock;
