@@ -108,7 +108,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
           file_name.c_str());
       return NO_INDEX;
     }
-    *(u16*)&gci.m_gci_header.m_first_block = first_block;
+    gci.m_gci_header.m_first_block = first_block;
     if (gci.HasCopyProtection() && gci.LoadSaveBlocks())
     {
       GCMemcard::PSO_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
@@ -452,8 +452,8 @@ inline void GCMemcardDirectory::SyncSaves()
         m_saves[i].m_dirty = true;
         u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode);
         u32 new_gamecode = BE32(current->m_dir_entries[i].m_gamecode);
-        u32 old_start = BE16(m_saves[i].m_gci_header.m_first_block);
-        u32 new_start = BE16(current->m_dir_entries[i].m_first_block);
+        u32 old_start = m_saves[i].m_gci_header.m_first_block;
+        u32 new_start = current->m_dir_entries[i].m_first_block;
 
         if ((gamecode != 0xFFFFFFFF) && (gamecode != new_gamecode))
         {
@@ -551,7 +551,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
   else
     current_bat = &m_bat1;
 
-  u16 block = BE16(m_saves[save_index].m_gci_header.m_first_block);
+  u16 block = m_saves[save_index].m_gci_header.m_first_block;
   while (block != 0xFFFF)
   {
     m_saves[save_index].m_used_blocks.push_back(block);

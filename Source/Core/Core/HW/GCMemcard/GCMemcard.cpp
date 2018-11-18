@@ -511,7 +511,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  u16 block = BE16(CurrentDir->m_dir_entries[index].m_first_block);
+  u16 block = CurrentDir->m_dir_entries[index].m_first_block;
   if (block > (u16)maxBlock)
     return 0xFFFF;
   return block;
@@ -542,7 +542,7 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
     return "";
 
   u32 Comment1 = BE32(CurrentDir->m_dir_entries[index].m_comments_address);
-  u32 DataBlock = BE16(CurrentDir->m_dir_entries[index].m_first_block) - MC_FST_BLOCKS;
+  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
   if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
   {
     return "";
@@ -557,7 +557,7 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
 
   u32 Comment1 = BE32(CurrentDir->m_dir_entries[index].m_comments_address);
   u32 Comment2 = Comment1 + DENTRY_STRLEN;
-  u32 DataBlock = BE16(CurrentDir->m_dir_entries[index].m_first_block) - MC_FST_BLOCKS;
+  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
   if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
   {
     return "";
@@ -682,7 +682,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     if (BE32(UpdatedDir.m_dir_entries[i].m_gamecode) == 0xFFFFFFFF)
     {
       UpdatedDir.m_dir_entries[i] = direntry;
-      *(u16*)&UpdatedDir.m_dir_entries[i].m_first_block = BE16(firstBlock);
+      UpdatedDir.m_dir_entries[i].m_first_block = firstBlock;
       UpdatedDir.m_dir_entries[i].m_copy_counter = UpdatedDir.m_dir_entries[i].m_copy_counter + 1;
       break;
     }
@@ -748,7 +748,7 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   if (index >= DIRLEN)
     return DELETE_FAIL;
 
-  u16 startingblock = BE16(CurrentDir->m_dir_entries[index].m_first_block);
+  u16 startingblock = CurrentDir->m_dir_entries[index].m_first_block;
   u16 numberofblocks = BE16(CurrentDir->m_dir_entries[index].m_block_count);
 
   BlockAlloc UpdatedBat = *CurrentBat;
@@ -1060,7 +1060,11 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     memcpy(&tempDEntry.m_animation_speed, tmp.data(), 2);
 
     ByteSwap(&tempDEntry.m_file_permissions, &tempDEntry.m_copy_counter);
-    ArrayByteSwap((tempDEntry.m_first_block));
+
+    memcpy(tmp.data(), &tempDEntry.m_first_block, 2);
+    ByteSwap(&tmp[0], &tmp[1]);
+    memcpy(&tempDEntry.m_first_block, tmp.data(), 2);
+
     ArrayByteSwap((tempDEntry.m_block_count));
     ArrayByteSwap((tempDEntry.m_unused_2));
     ArrayByteSwap((tempDEntry.m_comments_address));
@@ -1088,7 +1092,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
     return false;
 
   u32 DataOffset = CurrentDir->m_dir_entries[index].m_image_offset;
-  u32 DataBlock = BE16(CurrentDir->m_dir_entries[index].m_first_block) - MC_FST_BLOCKS;
+  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
 
   if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
   {
@@ -1135,7 +1139,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
   int bnrFormat = (flags & 3);
 
   u32 DataOffset = CurrentDir->m_dir_entries[index].m_image_offset;
-  u32 DataBlock = BE16(CurrentDir->m_dir_entries[index].m_first_block) - MC_FST_BLOCKS;
+  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
 
   if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
   {

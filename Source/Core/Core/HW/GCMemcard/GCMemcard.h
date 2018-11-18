@@ -212,8 +212,9 @@ struct DEntry
   //      3   no copy     File cannot be copied by the IPL
   //      2   public      Can be read by any game
   //
-  u8 m_copy_counter;         // 0x35      0x01    Copy counter (*2)
-  u8 m_first_block[2];       // 0x36      0x02    Block no of first block of file (0 == offset 0)
+  u8 m_copy_counter;  // 0x35      0x01    Copy counter (*2)
+  Common::BigEndianValue<u16>
+      m_first_block;         // 0x36      0x02    Block no of first block of file (0 == offset 0)
   u8 m_block_count[2];       // 0x38      0x02    File-length (number of blocks in file)
   u8 m_unused_2[2];          // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
   u8 m_comments_address[4];  // 0x3c      0x04    Address of the two comments within the file data
@@ -281,7 +282,7 @@ struct BlockAlloc
     m_last_allocated_block = BE16(current);
     m_free_blocks = BE16(BE16(m_free_blocks) - length);
     fixChecksums();
-    return BE16(starting);
+    return starting;
   }
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
