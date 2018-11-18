@@ -184,28 +184,40 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_POINTER_DOWN:
       {
+        boolean isCaptured = false;
         int pointerIndex = event.getActionIndex();
         int pointerId = event.getPointerId(pointerIndex);
-        int pointerX = (int) event.getX(pointerIndex);
-        int pointerY = (int) event.getY(pointerIndex);
+        float pointerX = event.getX(pointerIndex);
+        float pointerY = event.getY(pointerIndex);
+
+        for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
+        {
+          if(joystick.getBounds().contains((int)pointerX, (int)pointerY))
+          {
+            joystick.onPointerDown(pointerId, pointerX, pointerY);
+            isCaptured = true;
+            break;
+          }
+        }
+        if(isCaptured)
+          break;
 
         for (InputOverlayDrawableButton button : overlayButtons)
         {
-          if (button.getBounds().contains(pointerX, pointerY))
+          if (button.getBounds().contains((int)pointerX, (int)pointerY))
           {
             button.setPressedState(true);
             button.setTrackId(pointerId);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-                    ButtonState.PRESSED);
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
           }
         }
 
         for (InputOverlayDrawableDpad dpad : overlayDpads)
         {
-          if (dpad.getBounds().contains(pointerX, pointerY))
+          if (dpad.getBounds().contains((int)pointerX, (int)pointerY))
           {
             dpad.setTrackId(pointerId);
-            setDpadState(dpad, pointerX, pointerY);
+            setDpadState(dpad, (int)pointerX, (int)pointerY);
           }
         }
         break;
@@ -215,27 +227,38 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         int pointerCount = event.getPointerCount();
         for (int i = 0; i < pointerCount; ++i)
         {
+          boolean isCaptured = false;
           int pointerId = event.getPointerId(i);
-          int pointerX = (int) event.getX(i);
-          int pointerY = (int) event.getY(i);
+          float pointerX = event.getX(i);
+          float pointerY = event.getY(i);
+
+          for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
+          {
+            if(joystick.getTrackId() == pointerId)
+            {
+              joystick.onPointerMove(pointerId, pointerX, pointerY);
+              isCaptured = true;
+              break;
+            }
+          }
+          if(isCaptured)
+            break;
 
           for (InputOverlayDrawableButton button : overlayButtons)
           {
-            if (button.getBounds().contains(pointerX, pointerY))
+            if (button.getBounds().contains((int)pointerX, (int)pointerY))
             {
               if(!button.getPressedState())
               {
                 button.setPressedState(true);
                 button.setTrackId(pointerId);
-                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-                        ButtonState.PRESSED);
+                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
               }
             }
             else if(button.getTrackId() == pointerId)
             {
               button.setPressedState(false);
-              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-                      ButtonState.RELEASED);
+              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
             }
           }
 
@@ -243,7 +266,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           {
             if(dpad.getTrackId() == pointerId)
             {
-              setDpadState(dpad, pointerX, pointerY);
+              setDpadState(dpad, (int)pointerX, (int)pointerY);
             }
           }
         }
@@ -253,15 +276,30 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
       {
+        boolean isCaptured = false;
         int pointerIndex = event.getActionIndex();
         int pointerId = event.getPointerId(pointerIndex);
+        float pointerX = event.getX(pointerIndex);
+        float pointerY = event.getY(pointerIndex);
+
+        for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
+        {
+          if(joystick.getTrackId() == pointerId)
+          {
+            joystick.onPointerUp(pointerId, pointerX, pointerY);
+            isCaptured = true;
+            break;
+          }
+        }
+        if(isCaptured)
+          break;
+
         for (InputOverlayDrawableButton button : overlayButtons)
         {
           if(button.getTrackId() == pointerId)
           {
             button.setPressedState(false);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-                    ButtonState.RELEASED);
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
           }
         }
 
@@ -272,8 +310,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
             for (int i = 0; i < 4; i++)
             {
-              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
-                      ButtonState.RELEASED);
+              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
             }
           }
         }
@@ -283,7 +320,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
     {
-      joystick.TrackEvent(event);
       float factor = 1.0f;
       int[] axisIDs = joystick.getAxisIDs();
       float[] axises = joystick.getAxisValues();
@@ -341,8 +377,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
       for (int i = 0; i < 4; i++)
       {
-        NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i],
-          factor * axises[i]);
+        NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], factor * axises[i]);
       }
     }
 
