@@ -219,7 +219,7 @@ void GCMemcard::InitDirBatPointers()
     CurrentDir = &dir_backup;
     PreviousDir = &dir;
   }
-  if (BE16(bat.UpdateCounter) > BE16(bat_backup.UpdateCounter))
+  if (BE16(bat.m_update_counter) > BE16(bat_backup.m_update_counter))
   {
     CurrentBat = &bat;
     PreviousBat = &bat_backup;
@@ -295,11 +295,11 @@ u32 GCMemcard::TestChecksums() const
     results |= 4;
 
   calc_checksumsBE((u16*)(((u8*)&bat) + 4), 0xFFE, &csum, &csum_inv);
-  if ((bat.Checksum != csum) || (bat.Checksum_Inv != csum_inv))
+  if ((bat.m_checksum != csum) || (bat.m_checksum_inv != csum_inv))
     results |= 8;
 
   calc_checksumsBE((u16*)(((u8*)&bat_backup) + 4), 0xFFE, &csum, &csum_inv);
-  if ((bat_backup.Checksum != csum) || (bat_backup.Checksum_Inv != csum_inv))
+  if ((bat_backup.m_checksum != csum) || (bat_backup.m_checksum_inv != csum_inv))
     results |= 16;
 
   return results;
@@ -313,8 +313,9 @@ bool GCMemcard::FixChecksums()
   calc_checksumsBE((u16*)&hdr, 0xFE, &hdr.m_checksum, &hdr.m_checksum_inv);
   calc_checksumsBE((u16*)&dir, 0xFFE, &dir.m_checksum, &dir.m_checksum_inv);
   calc_checksumsBE((u16*)&dir_backup, 0xFFE, &dir_backup.m_checksum, &dir_backup.m_checksum_inv);
-  calc_checksumsBE((u16*)&bat + 2, 0xFFE, &bat.Checksum, &bat.Checksum_Inv);
-  calc_checksumsBE((u16*)&bat_backup + 2, 0xFFE, &bat_backup.Checksum, &bat_backup.Checksum_Inv);
+  calc_checksumsBE((u16*)&bat + 2, 0xFFE, &bat.m_checksum, &bat.m_checksum_inv);
+  calc_checksumsBE((u16*)&bat_backup + 2, 0xFFE, &bat_backup.m_checksum,
+                   &bat_backup.m_checksum_inv);
 
   return true;
 }
@@ -358,7 +359,7 @@ u16 GCMemcard::GetFreeBlocks() const
   if (!m_valid)
     return 0;
 
-  return BE16(CurrentBat->FreeBlocks);
+  return BE16(CurrentBat->m_free_blocks);
 }
 
 u8 GCMemcard::TitlePresent(const DEntry& d) const
@@ -574,23 +575,23 @@ u16 BlockAlloc::GetNextBlock(u16 Block) const
   if ((Block < MC_FST_BLOCKS) || (Block > 4091))
     return 0;
 
-  return Common::swap16(Map[Block - MC_FST_BLOCKS]);
+  return Common::swap16(m_map[Block - MC_FST_BLOCKS]);
 }
 
 // Parameters and return value are expected as memory card block index,
 // not BAT index; that is, block 5 is the first file data block.
 u16 BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 {
-  if (FreeBlocks)
+  if (m_free_blocks)
   {
     StartingBlock = MathUtil::Clamp<u16>(StartingBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
     MaxBlock = MathUtil::Clamp<u16>(MaxBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
     for (u16 i = StartingBlock; i < MaxBlock; ++i)
-      if (Map[i - MC_FST_BLOCKS] == 0)
+      if (m_map[i - MC_FST_BLOCKS] == 0)
         return i;
 
     for (u16 i = MC_FST_BLOCKS; i < StartingBlock; ++i)
-      if (Map[i - MC_FST_BLOCKS] == 0)
+      if (m_map[i - MC_FST_BLOCKS] == 0)
         return i;
   }
   return 0xFFFF;
@@ -612,8 +613,8 @@ bool BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
       return false;
     }
     for (unsigned int i = 0; i < length; ++i)
-      Map[blocks.at(i) - MC_FST_BLOCKS] = 0;
-    FreeBlocks = BE16(BE16(FreeBlocks) + BlockCount);
+      m_map[blocks.at(i) - MC_FST_BLOCKS] = 0;
+    m_free_blocks = BE16(BE16(m_free_blocks) + BlockCount);
 
     return true;
   }
@@ -655,7 +656,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   {
     return OUTOFDIRENTRIES;
   }
-  if (BE16(CurrentBat->FreeBlocks) < BE16(direntry.m_block_count))
+  if (BE16(CurrentBat->m_free_blocks) < BE16(direntry.m_block_count))
   {
     return OUTOFBLOCKS;
   }
@@ -665,7 +666,8 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   }
 
   // find first free data block
-  u16 firstBlock = CurrentBat->NextFreeBlock(maxBlock, BE16(CurrentBat->LastAllocated));
+  u16 firstBlock =
+      CurrentBat->NextFreeBlock(maxBlock, BE16(CurrentBat->m_last_allocated_block));
   if (firstBlock == 0xFFFF)
     return OUTOFBLOCKS;
   Directory UpdatedDir = *CurrentDir;
@@ -711,13 +713,13 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
       nextBlock = 0xFFFF;
     else
       nextBlock = UpdatedBat.NextFreeBlock(maxBlock, firstBlock + 1);
-    UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
-    UpdatedBat.LastAllocated = BE16(firstBlock);
+    UpdatedBat.m_map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
+    UpdatedBat.m_last_allocated_block = BE16(firstBlock);
     firstBlock = nextBlock;
   }
 
-  UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks) - fileBlocks);
-  UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
+  UpdatedBat.m_free_blocks = BE16(BE16(UpdatedBat.m_free_blocks) - fileBlocks);
+  UpdatedBat.m_update_counter = BE16(BE16(UpdatedBat.m_update_counter) + 1);
   *PreviousBat = UpdatedBat;
   if (PreviousBat == &bat)
   {
@@ -748,7 +750,7 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   BlockAlloc UpdatedBat = *CurrentBat;
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
     return DELETE_FAIL;
-  UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
+  UpdatedBat.m_update_counter = BE16(BE16(UpdatedBat.m_update_counter) + 1);
   *PreviousBat = UpdatedBat;
   if (PreviousBat == &bat)
   {

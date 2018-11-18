@@ -90,7 +90,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
         return NO_INDEX;
       }
       int total_blocks = BE16(m_hdr.m_size_mb) * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
-      int free_blocks = BE16(m_bat1.FreeBlocks);
+      int free_blocks = BE16(m_bat1.m_free_blocks);
       if (total_blocks > free_blocks * 10)
       {
         PanicAlertT("%s\nwas not loaded because there is less than 10%% free blocks available on "
@@ -546,7 +546,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 {
   BlockAlloc* current_bat;
-  if (BE16(m_bat2.UpdateCounter) > BE16(m_bat1.UpdateCounter))
+  if (BE16(m_bat2.m_update_counter) > BE16(m_bat1.m_update_counter))
     current_bat = &m_bat2;
   else
     current_bat = &m_bat1;
