@@ -408,7 +408,9 @@ std::string GCMemcard::DEntry_Makercode(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  return std::string((const char*)CurrentDir->m_dir_entries[index].m_makercode, 2);
+  return std::string(
+      reinterpret_cast<const char*>(CurrentDir->m_dir_entries[index].m_makercode.data()),
+      CurrentDir->m_dir_entries[index].m_makercode.size());
 }
 
 std::string GCMemcard::DEntry_BIFlags(u8 index) const

@@ -168,7 +168,7 @@ struct DEntry
   std::string GCI_FileName() const
   {
     std::string filename =
-        std::string((char*)m_makercode, 2) + '-' +
+        std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
         std::string(reinterpret_cast<const char*>(m_gamecode.data()), m_gamecode.size()) + '-' +
         reinterpret_cast<const char*>(m_filename.data()) + ".gci";
     return Common::EscapeFileName(filename);
@@ -176,9 +176,9 @@ struct DEntry
 
   static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE = {0xFF, 0xFF, 0xFF, 0xFF};
 
-  std::array<u8, 4> m_gamecode;  // 0x00      0x04    Gamecode
-  u8 m_makercode[2];             // 0x04      0x02    Makercode
-  u8 m_unused_1;                 // 0x06      0x01    reserved/unused (always 0xff, has no effect)
+  std::array<u8, 4> m_gamecode;   // 0x00      0x04    Gamecode
+  std::array<u8, 2> m_makercode;  // 0x04      0x02    Makercode
+  u8 m_unused_1;                  // 0x06      0x01    reserved/unused (always 0xff, has no effect)
   u8 m_banner_and_icon_flags;  // 0x07      0x01    banner gfx format and icon animation (Image Key)
   //      Bit(s)  Description
   //      2       Icon Animation 0: forward 1: ping-pong
