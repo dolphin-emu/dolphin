@@ -371,7 +371,7 @@ u8 GCMemcard::TitlePresent(const DEntry& d) const
   while (i < DIRLEN)
   {
     if ((BE32(CurrentDir->m_dir_entries[i].m_gamecode) == BE32(d.m_gamecode)) &&
-        (!memcmp(CurrentDir->m_dir_entries[i].m_filename, d.m_filename, 32)))
+        CurrentDir->m_dir_entries[i].m_filename == d.m_filename)
     {
       break;
     }
@@ -428,7 +428,9 @@ std::string GCMemcard::DEntry_FileName(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  return std::string((const char*)CurrentDir->m_dir_entries[index].m_filename, DENTRY_STRLEN);
+  return std::string(
+      reinterpret_cast<const char*>(CurrentDir->m_dir_entries[index].m_filename.data()),
+      CurrentDir->m_dir_entries[index].m_filename.size());
 }
 
 u32 GCMemcard::DEntry_ModTime(u8 index) const
@@ -1317,7 +1319,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   int block = 0;
 
   // check for F-Zero GX system file
-  if (strcmp(reinterpret_cast<const char*>(direntry.m_filename), "f_zero.dat") != 0)
+  if (strcmp(reinterpret_cast<const char*>(direntry.m_filename.data()), "f_zero.dat") != 0)
     return 0;
 
   // get encrypted destination memory card serial numbers
@@ -1371,10 +1373,10 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   u32 pso3offset = 0x00;
 
   // check for PSO1&2 system file
-  if (strcmp(reinterpret_cast<const char*>(direntry.m_filename), "PSO_SYSTEM") != 0)
+  if (strcmp(reinterpret_cast<const char*>(direntry.m_filename.data()), "PSO_SYSTEM") != 0)
   {
     // check for PSO3 system file
-    if (strcmp(reinterpret_cast<const char*>(direntry.m_filename), "PSO3_SYSTEM") == 0)
+    if (strcmp(reinterpret_cast<const char*>(direntry.m_filename.data()), "PSO3_SYSTEM") == 0)
     {
       // PSO3 data block size adjustment
       pso3offset = 0x10;

@@ -168,7 +168,8 @@ struct DEntry
   std::string GCI_FileName() const
   {
     std::string filename = std::string((char*)m_makercode, 2) + '-' +
-                           std::string((char*)m_gamecode, 4) + '-' + (char*)m_filename + ".gci";
+                           std::string((char*)m_gamecode, 4) + '-' +
+                           reinterpret_cast<const char*>(m_filename.data()) + ".gci";
     return Common::EscapeFileName(filename);
   }
 
@@ -186,7 +187,7 @@ struct DEntry
   //      10 RGB5A3 banner
   //      11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
   //
-  u8 m_filename[DENTRY_STRLEN];  // 0x08      0x20     Filename
+  std::array<u8, DENTRY_STRLEN> m_filename;  // 0x08      0x20     Filename
   Common::BigEndianValue<u32>
       m_modification_time;  // 0x28      0x04    Time of file's last modification in seconds since
                             // 12am, January 1st, 2000
@@ -296,9 +297,11 @@ public:
   bool LoadSaveBlocks();
   bool HasCopyProtection() const
   {
-    if ((strcmp((char*)m_gci_header.m_filename, "PSO_SYSTEM") == 0) ||
-        (strcmp((char*)m_gci_header.m_filename, "PSO3_SYSTEM") == 0) ||
-        (strcmp((char*)m_gci_header.m_filename, "f_zero.dat") == 0))
+    if ((strcmp(reinterpret_cast<const char*>(m_gci_header.m_filename.data()), "PSO_SYSTEM") ==
+         0) ||
+        (strcmp(reinterpret_cast<const char*>(m_gci_header.m_filename.data()), "PSO3_SYSTEM") ==
+         0) ||
+        (strcmp(reinterpret_cast<const char*>(m_gci_header.m_filename.data()), "f_zero.dat") == 0))
       return true;
     return false;
   }
