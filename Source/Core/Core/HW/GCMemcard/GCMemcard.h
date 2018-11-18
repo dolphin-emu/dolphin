@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -102,21 +103,21 @@ void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 struct Header  // Offset    Size    Description
 {
   // Serial in libogc
-  u8 m_serial[12];                              // 0x0000    12      ?
+  std::array<u8, 12> m_serial;                  // 0x0000    12      ?
   Common::BigEndianValue<u64> m_format_time;    // 0x000c    8       Time of format (OSTime value)
   u32 m_sram_bias;                              // 0x0014    4       SRAM bias at time of format
   Common::BigEndianValue<u32> m_sram_language;  // 0x0018    4       SRAM language
-  u8 m_unknown_2[4];                            // 0x001c    4       ? almost always 0
+  std::array<u8, 4> m_unknown_2;                // 0x001c    4       ? almost always 0
   // end Serial in libogc
   Common::BigEndianValue<u16>
       m_device_id;  // 0x0020    2       0 if formated in slot A 1 if formated in slot B
   Common::BigEndianValue<u16> m_size_mb;   // 0x0022    2       Size of memcard in Mbits
   Common::BigEndianValue<u16> m_encoding;  // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
-  u8 m_unused_1[468];                      // 0x0026    468     Unused (0xff)
+  std::array<u8, 468> m_unused_1;          // 0x0026    468     Unused (0xff)
   u16 m_update_counter;                    // 0x01fa    2       Update Counter (?, probably unused)
   u16 m_checksum;                          // 0x01fc    2       Additive Checksum
   u16 m_checksum_inv;                      // 0x01fe    2       Inverse Checksum
-  u8 m_unused_2[7680];                     // 0x0200    0x1e00  Unused (0xff)
+  std::array<u8, 7680> m_unused_2;         // 0x0200    0x1e00  Unused (0xff)
 
   void CARD_GetSerialNo(u32* serial1, u32* serial2) const
   {
@@ -152,7 +153,8 @@ struct Header  // Offset    Size    Description
     m_sram_language = static_cast<u32>(g_SRAM.settings.language);
     // TODO: determine the purpose of m_unknown_2
     // 1 works for slot A, 0 works for both slot A and slot B
-    *(u32*)&m_unknown_2 = 0;  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+    memset(m_unknown_2.data(), 0,
+           m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
     m_device_id = 0;
     calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
   }
