@@ -155,6 +155,7 @@ struct Header  // Offset    Size    Description
     calc_checksumsBE((u16*)this, 0xFE, &Checksum, &Checksum_Inv);
   }
 };
+static_assert(sizeof(Header) == BLOCK_SIZE);
 
 struct DEntry
 {
@@ -211,6 +212,7 @@ struct DEntry
   u8 Unused2[2];       // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
   u8 CommentsAddr[4];  // 0x3c      0x04    Address of the two comments within the file data (*3)
 };
+static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
 struct Directory
 {
@@ -233,6 +235,7 @@ struct Directory
   }
   void fixChecksums() { calc_checksumsBE((u16*)this, 0xFFE, &Checksum, &Checksum_Inv); }
 };
+static_assert(sizeof(Directory) == BLOCK_SIZE);
 
 struct BlockAlloc
 {
@@ -272,6 +275,7 @@ struct BlockAlloc
     return BE16(starting);
   }
 };
+static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)
 
 class GCIFile
