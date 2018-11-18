@@ -522,7 +522,7 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  u16 blocks = BE16(CurrentDir->m_dir_entries[index].m_block_count);
+  u16 blocks = CurrentDir->m_dir_entries[index].m_block_count;
   if (blocks > (u16)maxBlock)
     return 0xFFFF;
   return blocks;
@@ -660,7 +660,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   {
     return OUTOFDIRENTRIES;
   }
-  if (BE16(CurrentBat->m_free_blocks) < BE16(direntry.m_block_count))
+  if (BE16(CurrentBat->m_free_blocks) < direntry.m_block_count)
   {
     return OUTOFBLOCKS;
   }
@@ -700,7 +700,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     PreviousDir = &dir;
   }
 
-  int fileBlocks = BE16(direntry.m_block_count);
+  int fileBlocks = direntry.m_block_count;
 
   FZEROGX_MakeSaveGameValid(hdr, direntry, saveBlocks);
   PSO_MakeSaveGameValid(hdr, direntry, saveBlocks);
@@ -749,7 +749,7 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
     return DELETE_FAIL;
 
   u16 startingblock = CurrentDir->m_dir_entries[index].m_first_block;
-  u16 numberofblocks = BE16(CurrentDir->m_dir_entries[index].m_block_count);
+  u16 numberofblocks = CurrentDir->m_dir_entries[index].m_block_count;
 
   BlockAlloc UpdatedBat = *CurrentBat;
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
@@ -888,12 +888,12 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
 
   Gcs_SavConvert(tempDEntry, offset, length);
 
-  if (length != BE16(tempDEntry.m_block_count) * BLOCK_SIZE)
+  if (length != tempDEntry.m_block_count * BLOCK_SIZE)
     return LENGTHFAIL;
   if (gci.Tell() != offset + DENTRY_SIZE)  // Verify correct file position
     return OPENFAIL;
 
-  u32 size = BE16((tempDEntry.m_block_count));
+  u32 size = tempDEntry.m_block_count;
   std::vector<GCMBlock> saveData;
   saveData.reserve(size);
 
@@ -916,7 +916,7 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
 
     if (!gci2.WriteBytes(&tempDEntry, DENTRY_SIZE))
       completeWrite = false;
-    int fileBlocks = BE16(tempDEntry.m_block_count);
+    int fileBlocks = tempDEntry.m_block_count;
     gci2.Seek(DENTRY_SIZE, SEEK_SET);
 
     for (int i = 0; i < fileBlocks; ++i)
@@ -1034,7 +1034,7 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     // It is stored only within the corresponding GSV file.
     // If the GCS file is added without using the GameSaves software,
     // the value stored is always "1"
-    *(u16*)&tempDEntry.m_block_count = BE16(length / BLOCK_SIZE);
+    tempDEntry.m_block_count = length / BLOCK_SIZE;
   }
   break;
   case SAV:
@@ -1065,7 +1065,10 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
     ByteSwap(&tmp[0], &tmp[1]);
     memcpy(&tempDEntry.m_first_block, tmp.data(), 2);
 
-    ArrayByteSwap((tempDEntry.m_block_count));
+    memcpy(tmp.data(), &tempDEntry.m_block_count, 2);
+    ByteSwap(&tmp[0], &tmp[1]);
+    memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
+
     ArrayByteSwap((tempDEntry.m_unused_2));
     ArrayByteSwap((tempDEntry.m_comments_address));
     ArrayByteSwap(&(tempDEntry.m_comments_address[2]));

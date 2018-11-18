@@ -58,7 +58,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
       }
     }
 
-    u16 num_blocks = BE16(gci.m_gci_header.m_block_count);
+    u16 num_blocks = gci.m_gci_header.m_block_count;
     // largest number of free blocks on a memory card
     // in reality, there are not likely any valid gci files > 251 blocks
     if (num_blocks > 2043)
@@ -151,7 +151,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     if (std::find(loaded_saves.begin(), loaded_saves.end(), gci_filename) != loaded_saves.end())
       continue;
 
-    const u16 num_blocks = BE16(gci.m_gci_header.m_block_count);
+    const u16 num_blocks = gci.m_gci_header.m_block_count;
     // largest number of free blocks on a memory card
     // in reality, there are not likely any valid gci files > 251 blocks
     if (num_blocks > 2043)
@@ -500,7 +500,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
       {
         if (!m_saves[i].LoadSaveBlocks())
         {
-          int num_blocks = BE16(m_saves[i].m_gci_header.m_block_count);
+          int num_blocks = m_saves[i].m_gci_header.m_block_count;
           while (num_blocks)
           {
             m_saves[i].m_save_data.emplace_back();
@@ -563,7 +563,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
     }
   }
 
-  u16 num_blocks = BE16(m_saves[save_index].m_gci_header.m_block_count);
+  u16 num_blocks = m_saves[save_index].m_gci_header.m_block_count;
   u16 blocks_from_bat = (u16)m_saves[save_index].m_used_blocks.size();
   if (blocks_from_bat != num_blocks)
   {
@@ -703,7 +703,7 @@ bool GCIFile::LoadSaveBlocks()
 
     INFO_LOG(EXPANSIONINTERFACE, "Reading savedata from disk for %s", m_filename.c_str());
     save_file.Seek(DENTRY_SIZE, SEEK_SET);
-    u16 num_blocks = BE16(m_gci_header.m_block_count);
+    u16 num_blocks = m_gci_header.m_block_count;
     m_save_data.resize(num_blocks);
     if (!save_file.ReadBytes(m_save_data.data(), num_blocks * BLOCK_SIZE))
     {
