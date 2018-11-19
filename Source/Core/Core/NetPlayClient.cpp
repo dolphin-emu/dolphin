@@ -873,7 +873,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         SyncCodeResponse(true);
       }
       else
-        m_dialog->AppendChat(GetStringT("Synchronizing gecko codes..."));
+        m_dialog->AppendChat(GetStringT("Synchronizing Gecko codes..."));
     }
     break;
 
