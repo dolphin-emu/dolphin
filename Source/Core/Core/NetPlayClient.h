@@ -197,7 +197,7 @@ private:
   std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet);
 
   bool PollLocalPad(int local_pad, sf::Packet& packet);
-  void SendPadHostPoll(PadMapping pad_num);
+  void SendPadHostPoll(PadIndex pad_num);
 
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);

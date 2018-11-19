@@ -89,7 +89,7 @@ private:
   void CheckSyncAndStartGame();
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
-  void SendFirstReceivedToHost(PadMapping map, bool state);
+  void SendFirstReceivedToHost(PadIndex map, bool state);
 
   u64 GetInitialNetPlayRTC() const;
 
