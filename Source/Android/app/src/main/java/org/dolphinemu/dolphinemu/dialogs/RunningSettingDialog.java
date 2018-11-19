@@ -25,6 +25,7 @@ import com.nononsenseapps.filepicker.DividerItemDecoration;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.util.ArrayList;
@@ -49,6 +50,8 @@ public class RunningSettingDialog extends DialogFragment
     public static final int SETTING_JIT_FOLLOW_BRANCH = 8;
     //
     public static final int SETTING_PHONE_RUMBLE = 9;
+    public static final int SEETING_TOUCH_POINTER = 10;
+    public static final int SEETING_JOYSTICK_RELATIVE = 11;
 
     // view type
     public static final int TYPE_CHECKBOX = 0;
@@ -62,7 +65,6 @@ public class RunningSettingDialog extends DialogFragment
 
     public SettingsItem(int setting, int nameId, int type, int value)
     {
-
       mSetting = setting;
       mName = getString(nameId);
       mType = type;
@@ -280,6 +282,8 @@ public class RunningSettingDialog extends DialogFragment
   public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
   {
     private int mRumble;
+    private int mTouchPointer;
+    private int mJoystickRelative;
     private int[] mRunningSettings;
     private ArrayList<SettingsItem> mSettings;
 
@@ -293,6 +297,19 @@ public class RunningSettingDialog extends DialogFragment
         .getBoolean(EmulationActivity.RUMBLE_PREF_KEY, true) ? 1 : 0;
       mSettings.add(new SettingsItem(SettingsItem.SETTING_PHONE_RUMBLE, R.string.emulation_control_rumble,
         SettingsItem.TYPE_CHECKBOX, mRumble));
+
+      if(!EmulationActivity.isGameCubeGame())
+      {
+        mTouchPointer = PreferenceManager.getDefaultSharedPreferences(getContext())
+          .getBoolean(InputOverlay.POINTER_PREF_KEY, false) ? 1 : 0;
+        mSettings.add(new SettingsItem(SettingsItem.SEETING_TOUCH_POINTER, R.string.touch_screen_pointer,
+          SettingsItem.TYPE_CHECKBOX, mTouchPointer));
+      }
+
+      mJoystickRelative = PreferenceManager.getDefaultSharedPreferences(getContext())
+        .getBoolean(InputOverlay.RELATIVE_PREF_KEY, false) ? 1 : 0;
+      mSettings.add(new SettingsItem(SettingsItem.SEETING_JOYSTICK_RELATIVE, R.string.joystick_relative_center,
+        SettingsItem.TYPE_CHECKBOX, mJoystickRelative));
 
       // gfx
       mSettings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps,
@@ -327,7 +344,7 @@ public class RunningSettingDialog extends DialogFragment
     @Override
     public SettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
     {
-      View itemView = null;
+      View itemView;
       LayoutInflater inflater = LayoutInflater.from(parent.getContext());
       switch (viewType)
       {
@@ -364,19 +381,42 @@ public class RunningSettingDialog extends DialogFragment
 
     public void saveSettings()
     {
-      boolean isChanged = false;
-      int[] newSettings = new int[mRunningSettings.length];
+      // prefs
+      SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
 
       int rumble = mSettings.get(0).getValue();
       if(mRumble != rumble)
       {
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
         editor.putBoolean(EmulationActivity.RUMBLE_PREF_KEY, rumble > 0);
-        editor.apply();
         Rumble.setPhoneRumble(getActivity(), rumble > 0);
       }
       mSettings.remove(0);
 
+      if(!EmulationActivity.isGameCubeGame())
+      {
+        int pointer = mSettings.get(0).getValue();
+        if(mTouchPointer != pointer)
+        {
+          editor.putBoolean(InputOverlay.POINTER_PREF_KEY, pointer > 0);
+          NativeLibrary.sEmulationActivity.get().setTouchPointerEnabled(pointer > 0);
+        }
+        mSettings.remove(0);
+      }
+
+      int relative = mSettings.get(0).getValue();
+      if(mJoystickRelative != relative)
+      {
+        editor.putBoolean(InputOverlay.RELATIVE_PREF_KEY, relative > 0);
+        InputOverlay.sJoystickRelative = relative > 0;
+      }
+      mSettings.remove(0);
+
+      editor.apply();
+
+
+      // settings
+      boolean isChanged = false;
+      int[] newSettings = new int[mRunningSettings.length];
       for (int i = 0; i < mRunningSettings.length; ++i)
       {
         newSettings[i] = mSettings.get(i).getValue();

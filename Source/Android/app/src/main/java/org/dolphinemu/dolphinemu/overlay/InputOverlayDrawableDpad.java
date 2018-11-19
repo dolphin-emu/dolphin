@@ -13,6 +13,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+
 /**
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
@@ -21,6 +23,7 @@ public final class InputOverlayDrawableDpad
 {
   // The ID identifying what type of button this Drawable represents.
   private int[] mButtonType = new int[4];
+  private boolean[] mPressStates = new boolean[4];
   private int mTrackId;
   private int mPreviousTouchX, mPreviousTouchY;
   private int mControlPositionX, mControlPositionY;
@@ -29,17 +32,6 @@ public final class InputOverlayDrawableDpad
   private BitmapDrawable mDefaultStateBitmap;
   private BitmapDrawable mPressedOneDirectionStateBitmap;
   private BitmapDrawable mPressedTwoDirectionsStateBitmap;
-  private int mPressState = STATE_DEFAULT;
-
-  public static final int STATE_DEFAULT = 0;
-  public static final int STATE_PRESSED_UP = 1;
-  public static final int STATE_PRESSED_DOWN = 2;
-  public static final int STATE_PRESSED_LEFT = 3;
-  public static final int STATE_PRESSED_RIGHT = 4;
-  public static final int STATE_PRESSED_UP_LEFT = 5;
-  public static final int STATE_PRESSED_UP_RIGHT = 6;
-  public static final int STATE_PRESSED_DOWN_LEFT = 7;
-  public static final int STATE_PRESSED_DOWN_RIGHT = 8;
 
   /**
    * Constructor
@@ -72,60 +64,79 @@ public final class InputOverlayDrawableDpad
     mButtonType[2] = buttonLeft;
     mButtonType[3] = buttonRight;
 
+    mPressStates[0] = false;
+    mPressStates[1] = false;
+    mPressStates[2] = false;
+    mPressStates[3] = false;
+
     mTrackId = -1;
   }
 
-  public void draw(Canvas canvas)
+  public void onDraw(Canvas canvas)
   {
-    int px = mControlPositionX + (getWidth() / 2);
-    int py = mControlPositionY + (getHeight() / 2);
-    switch (mPressState)
+    int px = mControlPositionX + (mWidth / 2);
+    int py = mControlPositionY + (mHeight / 2);
+
+    boolean up = mPressStates[0];
+    boolean down = mPressStates[1];
+    boolean left = mPressStates[2];
+    boolean right = mPressStates[3];
+
+    if (up)
     {
-      case STATE_DEFAULT:
-        mDefaultStateBitmap.draw(canvas);
-        break;
-      case STATE_PRESSED_UP:
-        mPressedOneDirectionStateBitmap.draw(canvas);
-        break;
-      case STATE_PRESSED_RIGHT:
-        canvas.save();
-        canvas.rotate(90, px, py);
-        mPressedOneDirectionStateBitmap.draw(canvas);
-        canvas.restore();
-        break;
-      case STATE_PRESSED_DOWN:
-        canvas.save();
-        canvas.rotate(180, px, py);
-        mPressedOneDirectionStateBitmap.draw(canvas);
-        canvas.restore();
-        break;
-      case STATE_PRESSED_LEFT:
-        canvas.save();
-        canvas.rotate(270, px, py);
-        mPressedOneDirectionStateBitmap.draw(canvas);
-        canvas.restore();
-        break;
-      case STATE_PRESSED_UP_LEFT:
+      if (left)
         mPressedTwoDirectionsStateBitmap.draw(canvas);
-        break;
-      case STATE_PRESSED_UP_RIGHT:
+      else if (right)
+      {
         canvas.save();
         canvas.rotate(90, px, py);
         mPressedTwoDirectionsStateBitmap.draw(canvas);
         canvas.restore();
-        break;
-      case STATE_PRESSED_DOWN_RIGHT:
-        canvas.save();
-        canvas.rotate(180, px, py);
-        mPressedTwoDirectionsStateBitmap.draw(canvas);
-        canvas.restore();
-        break;
-      case STATE_PRESSED_DOWN_LEFT:
+      }
+      else
+        mPressedOneDirectionStateBitmap.draw(canvas);
+    }
+    else if (down)
+    {
+      if (left)
+      {
         canvas.save();
         canvas.rotate(270, px, py);
         mPressedTwoDirectionsStateBitmap.draw(canvas);
         canvas.restore();
-        break;
+      }
+      else if (right)
+      {
+        canvas.save();
+        canvas.rotate(180, px, py);
+        mPressedTwoDirectionsStateBitmap.draw(canvas);
+        canvas.restore();
+      }
+      else
+      {
+        canvas.save();
+        canvas.rotate(180, px, py);
+        mPressedOneDirectionStateBitmap.draw(canvas);
+        canvas.restore();
+      }
+    }
+    else if (left)
+    {
+      canvas.save();
+      canvas.rotate(270, px, py);
+      mPressedOneDirectionStateBitmap.draw(canvas);
+      canvas.restore();
+    }
+    else if (right)
+    {
+      canvas.save();
+      canvas.rotate(90, px, py);
+      mPressedOneDirectionStateBitmap.draw(canvas);
+      canvas.restore();
+    }
+    else
+    {
+      mDefaultStateBitmap.draw(canvas);
     }
   }
 
@@ -137,11 +148,6 @@ public final class InputOverlayDrawableDpad
   public int getId(int direction)
   {
     return mButtonType[direction];
-  }
-
-  public void setTrackId(int trackId)
-  {
-    mTrackId = trackId;
   }
 
   public int getTrackId()
@@ -163,8 +169,8 @@ public final class InputOverlayDrawableDpad
       case MotionEvent.ACTION_MOVE:
         mControlPositionX += fingerPositionX - mPreviousTouchX;
         mControlPositionY += fingerPositionY - mPreviousTouchY;
-        setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX,
-          getHeight() + mControlPositionY);
+        setBounds(mControlPositionX, mControlPositionY, mWidth + mControlPositionX,
+          mHeight + mControlPositionY);
         mPreviousTouchX = fingerPositionX;
         mPreviousTouchY = fingerPositionY;
         break;
@@ -173,22 +179,27 @@ public final class InputOverlayDrawableDpad
     return true;
   }
 
+  public void onPointerDown(int id, float x, float y)
+  {
+    mTrackId = id;
+    setDpadState((int)x, (int)y);
+  }
+
+  public void onPointerMove(int id, float x, float y)
+  {
+    setDpadState((int)x, (int)y);
+  }
+
+  public void onPointerUp(int id, float x, float y)
+  {
+    mTrackId = -1;
+    setDpadState((int)x, (int)y);
+  }
+
   public void setPosition(int x, int y)
   {
     mControlPositionX = x;
     mControlPositionY = y;
-  }
-
-  public void setBounds(int left, int top, int right, int bottom)
-  {
-    mDefaultStateBitmap.setBounds(left, top, right, bottom);
-    mPressedOneDirectionStateBitmap.setBounds(left, top, right, bottom);
-    mPressedTwoDirectionsStateBitmap.setBounds(left, top, right, bottom);
-  }
-
-  public Rect getBounds()
-  {
-    return mDefaultStateBitmap.getBounds();
   }
 
   public int getWidth()
@@ -201,10 +212,50 @@ public final class InputOverlayDrawableDpad
     return mHeight;
   }
 
-  public void setState(int pressState)
+  public Rect getBounds()
   {
-    mPressState = pressState;
-    if(InputOverlayDrawableDpad.STATE_DEFAULT == pressState)
-      mTrackId = -1;
+    return mDefaultStateBitmap.getBounds();
+  }
+
+  public void setBounds(int left, int top, int right, int bottom)
+  {
+    mDefaultStateBitmap.setBounds(left, top, right, bottom);
+    mPressedOneDirectionStateBitmap.setBounds(left, top, right, bottom);
+    mPressedTwoDirectionsStateBitmap.setBounds(left, top, right, bottom);
+  }
+
+  private void setDpadState(int pointerX, int pointerY)
+  {
+    // Up, Down, Left, Right
+    boolean[] pressed = {false, false, false, false};
+
+    if(mTrackId != -1)
+    {
+      Rect bounds = mDefaultStateBitmap.getBounds();
+
+      if (bounds.top + (mHeight / 3) > pointerY)
+        pressed[0] = true;
+      if (bounds.bottom - (mHeight / 3) < pointerY)
+        pressed[1] = true;
+      if (bounds.left + (mWidth / 3) > pointerX)
+        pressed[2] = true;
+      if (bounds.right - (mWidth / 3) < pointerX)
+        pressed[3] = true;
+    }
+
+    for(int i = 0; i < pressed.length; ++i)
+    {
+      if(pressed[i] != mPressStates[i])
+      {
+        NativeLibrary
+          .onGamePadEvent(NativeLibrary.TouchScreenDevice, mButtonType[i],
+            pressed[i] ? NativeLibrary.ButtonState.PRESSED : NativeLibrary.ButtonState.RELEASED);
+      }
+    }
+
+    mPressStates[0] = pressed[0];
+    mPressStates[1] = pressed[1];
+    mPressStates[2] = pressed[2];
+    mPressStates[3] = pressed[3];
   }
 }

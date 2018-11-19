@@ -13,6 +13,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+
 /**
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
@@ -28,7 +30,6 @@ public final class InputOverlayDrawableButton
   private int mHeight;
   private BitmapDrawable mDefaultStateBitmap;
   private BitmapDrawable mPressedStateBitmap;
-  private boolean mPressedState = false;
 
   /**
    * Constructor
@@ -61,11 +62,6 @@ public final class InputOverlayDrawableButton
     return mButtonType;
   }
 
-  public void setTrackId(int trackId)
-  {
-    mTrackId = trackId;
-  }
-
   public int getTrackId()
   {
     return mTrackId;
@@ -95,20 +91,36 @@ public final class InputOverlayDrawableButton
     return true;
   }
 
+  public void onDraw(Canvas canvas)
+  {
+    getCurrentStateBitmapDrawable().draw(canvas);
+  }
+
+  public void onPointerDown(int id, float x, float y)
+  {
+    mTrackId = id;
+    NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, mButtonType, NativeLibrary.ButtonState.PRESSED);
+  }
+
+  public void onPointerMove(int id, float x, float y)
+  {
+  }
+
+  public void onPointerUp(int id, float x, float y)
+  {
+    mTrackId = -1;
+    NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, mButtonType, NativeLibrary.ButtonState.RELEASED);
+  }
+
   public void setPosition(int x, int y)
   {
     mControlPositionX = x;
     mControlPositionY = y;
   }
 
-  public void draw(Canvas canvas)
-  {
-    getCurrentStateBitmapDrawable().draw(canvas);
-  }
-
   private BitmapDrawable getCurrentStateBitmapDrawable()
   {
-    return mPressedState ? mPressedStateBitmap : mDefaultStateBitmap;
+    return mTrackId != -1 ? mPressedStateBitmap : mDefaultStateBitmap;
   }
 
   public void setBounds(int left, int top, int right, int bottom)
@@ -130,17 +142,5 @@ public final class InputOverlayDrawableButton
   public int getHeight()
   {
     return mHeight;
-  }
-
-  public boolean getPressedState()
-  {
-    return mPressedState;
-  }
-
-  public void setPressedState(boolean isPressed)
-  {
-    mPressedState = isPressed;
-    if(!isPressed)
-      mTrackId = -1;
   }
 }

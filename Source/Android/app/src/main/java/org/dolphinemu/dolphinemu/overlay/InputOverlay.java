@@ -28,8 +28,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 /**
  * Draws the interactive input overlay on top of the
@@ -41,6 +40,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final String CONTROL_SCALE_PREF_KEY = "ControlScale";
   public static int sControllerScale;
 
+  public static final String POINTER_PREF_KEY = "TouchPointer";
+  public static final String RELATIVE_PREF_KEY = "JoystickRelative";
+  public static boolean sJoystickRelative;
+
   public static final String CONTROL_TYPE_PREF_KEY = "WiiController";
   public static final int CONTROLLER_GAMECUBE = 0;
   public static final int COCONTROLLER_CLASSIC = 1;
@@ -48,13 +51,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int CONTROLLER_WIIREMOTE = 3;
   public static int sControllerType;
 
-  public static final String JOYSTICK_PREF_KEY = "JoystickSetting";
-  public static final int JOYSTICK_RELATIVE_CENTER = 0;
-  public static final int JOYSTICK_FIXED_CENTER = 1;
-  public static final int JOYSTICK_EMULATE_IR = 2;
-  public static final int JOYSTICK_EMULATE_SWING = 3;
-  public static final int JOYSTICK_EMULATE_TILT = 4;
-  public static final int JOYSTICK_EMULATE_SHAKE = 5;
+  public static final String JOYSTICK_PREF_KEY = "JoystickEmulate";
+  public static final int JOYSTICK_EMULATE_NONE = 0;
+  public static final int JOYSTICK_EMULATE_IR = 1;
+  public static final int JOYSTICK_EMULATE_SWING = 2;
+  public static final int JOYSTICK_EMULATE_TILT = 3;
+  public static final int JOYSTICK_EMULATE_SHAKE = 4;
   public static int sJoyStickSetting;
 
   public static final int SENSOR_GC_NONE = 0;
@@ -77,12 +79,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private float mBasePitch;
   private float mBaseRoll;
 
-  // axis to button
-  private int[] mShakeState = new int[4];
-
-  private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
-  private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
-  private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
+  private final ArrayList<InputOverlayDrawableButton> overlayButtons = new ArrayList<>();
+  private final ArrayList<InputOverlayDrawableDpad> overlayDpads = new ArrayList<>();
+  private final ArrayList<InputOverlayDrawableJoystick> overlayJoysticks = new ArrayList<>();
+  private InputOverlayPointer mOverlayPointer = null;
 
   private boolean mIsInEditMode = false;
   private InputOverlayDrawableButton mButtonBeingConfigured;
@@ -127,11 +127,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       defaultOverlay();
 
     sControllerScale = mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50);
+    sJoystickRelative = mPreferences.getBoolean(RELATIVE_PREF_KEY, false);
     sControllerType = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
-    sJoyStickSetting = mPreferences.getInt(JOYSTICK_PREF_KEY, JOYSTICK_RELATIVE_CENTER);
+    sJoyStickSetting = mPreferences.getInt(JOYSTICK_PREF_KEY, JOYSTICK_EMULATE_NONE);
 
-    if(EmulationActivity.isGameCubeGame() && sJoyStickSetting > JOYSTICK_FIXED_CENTER)
-      sJoyStickSetting = JOYSTICK_RELATIVE_CENTER;
+    if(EmulationActivity.isGameCubeGame())
+      sJoyStickSetting = JOYSTICK_EMULATE_NONE;
 
     sSensorGCSetting = SENSOR_GC_NONE;
     sSensorWiiSetting = SENSOR_WII_NONE;
@@ -157,17 +158,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     for (InputOverlayDrawableButton button : overlayButtons)
     {
-      button.draw(canvas);
+      button.onDraw(canvas);
     }
 
     for (InputOverlayDrawableDpad dpad : overlayDpads)
     {
-      dpad.draw(canvas);
+      dpad.onDraw(canvas);
     }
 
     for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
     {
-      joystick.draw(canvas);
+      joystick.onDraw(canvas);
     }
   }
 
@@ -179,6 +180,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       return onTouchWhileEditing(event);
     }
 
+    boolean isProcessed = false;
     switch (event.getAction() & MotionEvent.ACTION_MASK)
     {
       case MotionEvent.ACTION_DOWN:
@@ -196,6 +198,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           {
             joystick.onPointerDown(pointerId, pointerX, pointerY);
             isCaptured = true;
+            isProcessed = true;
             break;
           }
         }
@@ -206,9 +209,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         {
           if (button.getBounds().contains((int)pointerX, (int)pointerY))
           {
-            button.setPressedState(true);
-            button.setTrackId(pointerId);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
+            button.onPointerDown(pointerId, pointerX, pointerY);
+            isProcessed = true;
           }
         }
 
@@ -216,10 +218,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         {
           if (dpad.getBounds().contains((int)pointerX, (int)pointerY))
           {
-            dpad.setTrackId(pointerId);
-            setDpadState(dpad, (int)pointerX, (int)pointerY);
+            dpad.onPointerDown(pointerId, pointerX, pointerY);
+            isProcessed = true;
           }
         }
+
+        if(!isProcessed && mOverlayPointer != null)
+          mOverlayPointer.onPointerDown(pointerId, pointerX, pointerY);
         break;
       }
       case MotionEvent.ACTION_MOVE:
@@ -238,27 +243,27 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             {
               joystick.onPointerMove(pointerId, pointerX, pointerY);
               isCaptured = true;
+              isProcessed = true;
               break;
             }
           }
           if(isCaptured)
-            break;
+            continue;
 
           for (InputOverlayDrawableButton button : overlayButtons)
           {
             if (button.getBounds().contains((int)pointerX, (int)pointerY))
             {
-              if(!button.getPressedState())
+              if(button.getTrackId() == -1)
               {
-                button.setPressedState(true);
-                button.setTrackId(pointerId);
-                NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
+                button.onPointerDown(pointerId, pointerX, pointerY);
+                isProcessed = true;
               }
             }
             else if(button.getTrackId() == pointerId)
             {
-              button.setPressedState(false);
-              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
+              button.onPointerUp(pointerId, pointerX, pointerY);
+              isProcessed = true;
             }
           }
 
@@ -266,8 +271,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           {
             if(dpad.getTrackId() == pointerId)
             {
-              setDpadState(dpad, (int)pointerX, (int)pointerY);
+              dpad.onPointerMove(pointerId, pointerX, pointerY);
+              isProcessed = true;
             }
+          }
+
+          if(mOverlayPointer != null && mOverlayPointer.getTrackId() == pointerId)
+          {
+            if(isProcessed)
+              mOverlayPointer.onPointerUp(pointerId, pointerX, pointerY);
+            else
+              mOverlayPointer.onPointerMove(pointerId, pointerX, pointerY);
           }
         }
         break;
@@ -282,12 +296,19 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         float pointerX = event.getX(pointerIndex);
         float pointerY = event.getY(pointerIndex);
 
+        if(mOverlayPointer != null && mOverlayPointer.getTrackId() == pointerId)
+        {
+          mOverlayPointer.onPointerUp(pointerId, pointerX, pointerY);
+          break;
+        }
+
         for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
         {
           if(joystick.getTrackId() == pointerId)
           {
             joystick.onPointerUp(pointerId, pointerX, pointerY);
             isCaptured = true;
+            isProcessed = true;
             break;
           }
         }
@@ -298,8 +319,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         {
           if(button.getTrackId() == pointerId)
           {
-            button.setPressedState(false);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
+            button.onPointerUp(pointerId, pointerX, pointerY);
+            isProcessed = true;
           }
         }
 
@@ -307,81 +328,16 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         {
           if (dpad.getTrackId() == pointerId)
           {
-            dpad.setState(InputOverlayDrawableDpad.STATE_DEFAULT);
-            for (int i = 0; i < 4; i++)
-            {
-              NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
-            }
+            dpad.onPointerUp(pointerId, pointerX, pointerY);
+            isProcessed = true;
           }
         }
         break;
       }
     }
 
-    for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
-    {
-      float factor = 1.0f;
-      int[] axisIDs = joystick.getAxisIDs();
-      float[] axises = joystick.getAxisValues();
-
-      // fx wii classic
-      if(axisIDs[0] == ButtonType.CLASSIC_STICK_LEFT_UP && axises[0] > 0)
-      {
-        axises[1] = 0;
-      }
-
-      if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP ||
-        (sControllerType == COCONTROLLER_CLASSIC && axisIDs[0] == ButtonType.CLASSIC_STICK_LEFT_UP))
-      {
-        if (sJoyStickSetting == JOYSTICK_EMULATE_IR)
-        {
-          factor = -1.0f;
-          axisIDs[0] = ButtonType.WIIMOTE_IR + 1;
-          axisIDs[1] = ButtonType.WIIMOTE_IR + 2;
-          axisIDs[2] = ButtonType.WIIMOTE_IR + 3;
-          axisIDs[3] = ButtonType.WIIMOTE_IR + 4;
-        }
-        else if (sJoyStickSetting == JOYSTICK_EMULATE_SWING)
-        {
-          factor = -1.0f;
-          axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
-          axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
-          axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
-          axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
-        }
-        else if (sJoyStickSetting == JOYSTICK_EMULATE_TILT)
-        {
-          if(sControllerType == CONTROLLER_WIINUNCHUK)
-          {
-            axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
-            axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
-            axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
-            axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
-          }
-          else
-          {
-            axisIDs[0] = ButtonType.WIIMOTE_TILT + 4;
-            axisIDs[1] = ButtonType.WIIMOTE_TILT + 3;
-            axisIDs[2] = ButtonType.WIIMOTE_TILT + 1;
-            axisIDs[3] = ButtonType.WIIMOTE_TILT + 2;
-          }
-        }
-        else if (sJoyStickSetting == JOYSTICK_EMULATE_SHAKE)
-        {
-          axises[1] = -axises[1];
-          axises[3] = -axises[3];
-          handleShakeEvent(axises);
-          continue;
-        }
-      }
-
-      for (int i = 0; i < 4; i++)
-      {
-        NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], factor * axises[i]);
-      }
-    }
-
-    invalidate();
+    if(isProcessed)
+      invalidate();
 
     return true;
   }
@@ -656,6 +612,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
   }
 
+  // axis to button
+  private int[] mShakeState = new int[4];
   private void handleShakeEvent(float[] axises)
   {
     int[] axisIDs = new int[4];
@@ -688,63 +646,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     mBaseYaw = (float)Math.PI;
     mBasePitch = (float)Math.PI;
     mBaseRoll = (float)Math.PI;
-  }
-
-  private void setDpadState(InputOverlayDrawableDpad dpad, int pointerX, int pointerY)
-  {
-    // Up, Down, Left, Right
-    boolean[] pressed = {false, false, false, false};
-    Rect bounds = dpad.getBounds();
-
-    if (bounds.top + (dpad.getHeight() / 3) > pointerY)
-      pressed[0] = true;
-    if (bounds.bottom - (dpad.getHeight() / 3) < pointerY)
-      pressed[1] = true;
-    if (bounds.left + (dpad.getWidth() / 3) > pointerX)
-      pressed[2] = true;
-    if (bounds.right - (dpad.getWidth() / 3) < pointerX)
-      pressed[3] = true;
-
-    // Release the buttons first, then press
-    for (int i = 0; i < pressed.length; i++)
-      if (!pressed[i])
-        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
-    // Press buttons
-    for (int i = 0; i < pressed.length; i++)
-      if (pressed[i])
-        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.PRESSED);
-
-    boolean up = pressed[0];
-    boolean down = pressed[1];
-    boolean left = pressed[2];
-    boolean right = pressed[3];
-
-    if (up)
-    {
-      if (left)
-        dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_UP_LEFT);
-      else if (right)
-        dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_UP_RIGHT);
-      else
-        dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_UP);
-    }
-    else if (down)
-    {
-      if (left)
-        dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_DOWN_LEFT);
-      else if (right)
-        dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_DOWN_RIGHT);
-      else
-        dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_DOWN);
-    }
-    else if (left)
-    {
-      dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_LEFT);
-    }
-    else if (right)
-    {
-      dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_RIGHT);
-    }
   }
 
   private void addGameCubeOverlayControls()
@@ -869,8 +770,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           R.drawable.gcwii_dpad_pressed_two_directions,
           ButtonType.WIIMOTE_RIGHT, ButtonType.WIIMOTE_LEFT,
           ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN));
-        // emulate joystick
-        if (sJoyStickSetting != JOYSTICK_RELATIVE_CENTER && sJoyStickSetting != JOYSTICK_FIXED_CENTER)
+        // joystick emulate
+        if (sJoyStickSetting != JOYSTICK_EMULATE_NONE)
         {
           overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
             R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed,
@@ -985,14 +886,16 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   public void refreshControls()
   {
+  	boolean touchPointer = mPreferences.getBoolean(POINTER_PREF_KEY, false);
     // Remove all the overlay buttons from the HashSet.
-    overlayButtons.removeAll(overlayButtons);
-    overlayDpads.removeAll(overlayDpads);
-    overlayJoysticks.removeAll(overlayJoysticks);
+    overlayButtons.clear();
+    overlayDpads.clear();
+    overlayJoysticks.clear();
 
     // Add all the enabled overlay items back to the HashSet.
     if (EmulationActivity.isGameCubeGame() || sControllerType == CONTROLLER_GAMECUBE)
     {
+			touchPointer = false;
       addGameCubeOverlayControls();
     }
     else if (sControllerType == COCONTROLLER_CLASSIC)
@@ -1008,7 +911,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       }
     }
 
+		setTouchPointerEnabled(touchPointer);
     invalidate();
+  }
+
+  public void setTouchPointerEnabled(boolean enabled)
+  {
+    if(enabled)
+    {
+      if(mOverlayPointer == null)
+      {
+        final DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
+        mOverlayPointer = new InputOverlayPointer(dm.widthPixels / 3.0f, dm.heightPixels / 3.0f);
+      }
+    }
+    else
+    {
+      mOverlayPointer = null;
+    }
   }
 
   private void saveControlPosition(int buttonId, Rect bounds)

@@ -305,7 +305,7 @@
     <string name="rumble_not_found">Device rumble not found</string>
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
-    <string name="load_settings">Loading Settings...</string>
+    <string name="load_settings">Loading Settings&#8230;</string>
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
@@ -325,6 +325,8 @@
     <string name="save_code">Save</string>
     <string name="toast_save_code_ok">Code Saved!</string>
     <string name="toast_save_code_no">Save Failed!</string>
+    <string name="touch_screen_pointer">Touch Screen emulate IR</string>
+    <string name="joystick_relative_center">Joystick use relative center</string>
     <string name="interface_show_extended_fps">Show Extended FPS</string>
     <string name="use_builtin_title_database">Use Built-In Database of Game Names</string>
     <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>

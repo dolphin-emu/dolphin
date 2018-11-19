@@ -65,7 +65,8 @@ public final class EmulationActivity extends AppCompatActivity
   private String mPath;
   private String mSavedState;
 
-  public static final String RUMBLE_PREF_KEY = "phoneRumble";
+  public static final String RUMBLE_PREF_KEY = "PhoneRumble";
+
   public static final String EXTRA_SELECTED_GAME = "SelectedGame";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
   public static final String EXTRA_PLATFORM = "Platform";
@@ -363,11 +364,10 @@ public final class EmulationActivity extends AppCompatActivity
   private void showJoystickSettings()
   {
     final int joystick = InputOverlay.sJoyStickSetting;
-    final int itemsId = isGameCubeGame() ? R.array.gcJoystickSettings : R.array.wiiJoystickSettings;
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_joystick_settings);
 
-    builder.setSingleChoiceItems(itemsId, joystick,
+    builder.setSingleChoiceItems(R.array.wiiJoystickSettings, joystick,
       (dialog, indexSelected) ->
       {
         InputOverlay.sJoyStickSetting = indexSelected;
@@ -713,5 +713,10 @@ public final class EmulationActivity extends AppCompatActivity
   {
     mSavedState = getFilesDir() + File.separator + "temp.sav";
     NativeLibrary.SaveStateAs(mSavedState, true);
+  }
+
+  public void setTouchPointerEnabled(boolean enabled)
+  {
+    mEmulationFragment.setTouchPointerEnabled(enabled);
   }
 }

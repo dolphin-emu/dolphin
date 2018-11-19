@@ -258,6 +258,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     mInputOverlay.onAccuracyChanged(accuracy);
   }
 
+  public void setTouchPointerEnabled(boolean enabled)
+  {
+    mInputOverlay.setTouchPointerEnabled(enabled);
+  }
+
   public void stopEmulation()
   {
     mEmulationState.stop();
@@ -347,19 +352,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       else
       {
         Log.warning("[EmulationFragment] Pause called while already paused.");
-      }
-    }
-
-    private void deleteFile(String path)
-    {
-      try
-      {
-        File file = new File(path);
-        file.delete();
-      }
-      catch (Exception ex)
-      {
-        // fail safely
       }
     }
 
