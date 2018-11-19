@@ -93,7 +93,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
     return;
   }
-  if (m_sizeMb != BE16(hdr.SizeMb))
+  if (m_sizeMb != BE16(hdr.m_size_mb))
   {
     PanicAlertT("Memory card file size does not match the header size");
     return;
@@ -233,7 +233,7 @@ void GCMemcard::InitDirBatPointers()
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return hdr.Encoding != 0;
+  return hdr.m_encoding != 0;
 }
 
 bool GCMemcard::Save()
@@ -283,7 +283,7 @@ u32 GCMemcard::TestChecksums() const
   u32 results = 0;
 
   calc_checksumsBE((u16*)&hdr, 0xFE, &csum, &csum_inv);
-  if ((hdr.Checksum != csum) || (hdr.Checksum_Inv != csum_inv))
+  if ((hdr.m_checksum != csum) || (hdr.m_checksum_inv != csum_inv))
     results |= 1;
 
   calc_checksumsBE((u16*)&dir, 0xFFE, &csum, &csum_inv);
@@ -310,7 +310,7 @@ bool GCMemcard::FixChecksums()
   if (!m_valid)
     return false;
 
-  calc_checksumsBE((u16*)&hdr, 0xFE, &hdr.Checksum, &hdr.Checksum_Inv);
+  calc_checksumsBE((u16*)&hdr, 0xFE, &hdr.m_checksum, &hdr.m_checksum_inv);
   calc_checksumsBE((u16*)&dir, 0xFFE, &dir.Checksum, &dir.Checksum_Inv);
   calc_checksumsBE((u16*)&dir_backup, 0xFFE, &dir_backup.Checksum, &dir_backup.Checksum_Inv);
   calc_checksumsBE((u16*)&bat + 2, 0xFFE, &bat.Checksum, &bat.Checksum_Inv);
@@ -627,7 +627,7 @@ u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
 
   u16 block = DEntry_FirstBlock(index);
   u16 BlockCount = DEntry_BlockCount(index);
-  // u16 memcardSize = BE16(hdr.SizeMb) * MBIT_TO_BLOCKS;
+  // u16 memcardSize = BE16(hdr.m_size_mb) * MBIT_TO_BLOCKS;
 
   if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
   {

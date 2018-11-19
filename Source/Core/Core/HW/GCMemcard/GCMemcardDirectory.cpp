@@ -89,7 +89,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
       {
         return NO_INDEX;
       }
-      int total_blocks = BE16(m_hdr.SizeMb) * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+      int total_blocks = BE16(m_hdr.m_size_mb) * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
       int free_blocks = BE16(m_bat1.FreeBlocks);
       if (total_blocks > free_blocks * 10)
       {

@@ -102,32 +102,32 @@ void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 struct Header  // Offset    Size    Description
 {
   // Serial in libogc
-  u8 serial[12];   // 0x0000    12      ?
-  u64 formatTime;  // 0x000c    8       Time of format (OSTime value)
-  u32 SramBias;    // 0x0014    4       SRAM bias at time of format
-  u32 SramLang;    // 0x0018    4       SRAM language
-  u8 Unk2[4];      // 0x001c    4       ? almost always 0
+  u8 m_serial[12];      // 0x0000    12      ?
+  u64 m_format_time;    // 0x000c    8       Time of format (OSTime value)
+  u32 m_sram_bias;      // 0x0014    4       SRAM bias at time of format
+  u32 m_sram_language;  // 0x0018    4       SRAM language
+  u8 m_unknown_2[4];    // 0x001c    4       ? almost always 0
   // end Serial in libogc
-  u8 deviceID[2];     // 0x0020    2       0 if formated in slot A 1 if formated in slot B
-  u8 SizeMb[2];       // 0x0022    2       Size of memcard in Mbits
-  u16 Encoding;       // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
-  u8 Unused1[468];    // 0x0026    468     Unused (0xff)
-  u16 UpdateCounter;  // 0x01fa    2       Update Counter (?, probably unused)
-  u16 Checksum;       // 0x01fc    2       Additive Checksum
-  u16 Checksum_Inv;   // 0x01fe    2       Inverse Checksum
-  u8 Unused2[7680];   // 0x0200    0x1e00  Unused (0xff)
+  u8 m_device_id[2];     // 0x0020    2       0 if formated in slot A 1 if formated in slot B
+  u8 m_size_mb[2];       // 0x0022    2       Size of memcard in Mbits
+  u16 m_encoding;        // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
+  u8 m_unused_1[468];    // 0x0026    468     Unused (0xff)
+  u16 m_update_counter;  // 0x01fa    2       Update Counter (?, probably unused)
+  u16 m_checksum;        // 0x01fc    2       Additive Checksum
+  u16 m_checksum_inv;    // 0x01fe    2       Inverse Checksum
+  u8 m_unused_2[7680];   // 0x0200    0x1e00  Unused (0xff)
 
   void CARD_GetSerialNo(u32* serial1, u32* serial2) const
   {
-    u32 _serial[8];
+    u32 serial[8];
 
     for (int i = 0; i < 8; i++)
     {
-      memcpy(&_serial[i], (u8*)this + (i * 4), 4);
+      memcpy(&serial[i], (u8*)this + (i * 4), 4);
     }
 
-    *serial1 = _serial[0] ^ _serial[2] ^ _serial[4] ^ _serial[6];
-    *serial2 = _serial[1] ^ _serial[3] ^ _serial[5] ^ _serial[7];
+    *serial1 = serial[0] ^ serial[2] ^ serial[4] ^ serial[6];
+    *serial2 = serial[1] ^ serial[3] ^ serial[5] ^ serial[7];
   }
 
   // Nintendo format algorithm.
@@ -136,23 +136,24 @@ struct Header  // Offset    Size    Description
   explicit Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
   {
     memset(this, 0xFF, BLOCK_SIZE);
-    *(u16*)SizeMb = BE16(sizeMb);
-    Encoding = BE16(shift_jis ? 1 : 0);
+    *(u16*)m_size_mb = BE16(sizeMb);
+    m_encoding = BE16(shift_jis ? 1 : 0);
     u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
-    formatTime = Common::swap64(rand);
+    m_format_time = Common::swap64(rand);
     for (int i = 0; i < 12; i++)
     {
       rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-      serial[i] = (u8)(g_SRAM.settings_ex.flash_id[slot][i] + (u32)rand);
+      m_serial[i] = (u8)(g_SRAM.settings_ex.flash_id[slot][i] + (u32)rand);
       rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
       rand &= (u64)0x0000000000007fffULL;
     }
-    SramBias = g_SRAM.settings.rtc_bias;
-    SramLang = BE32(g_SRAM.settings.language);
-    // TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
-    *(u32*)&Unk2 = 0;  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-    *(u16*)&deviceID = 0;
-    calc_checksumsBE((u16*)this, 0xFE, &Checksum, &Checksum_Inv);
+    m_sram_bias = g_SRAM.settings.rtc_bias;
+    m_sram_language = BE32(g_SRAM.settings.language);
+    // TODO: determine the purpose of m_unknown_2
+    // 1 works for slot A, 0 works for both slot A and slot B
+    *(u32*)&m_unknown_2 = 0;  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+    *(u16*)&m_device_id = 0;
+    calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
   }
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
