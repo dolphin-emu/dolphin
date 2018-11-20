@@ -141,6 +141,7 @@
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
+    <QtMoc Include="NetPlay\ChunkedProgressDialog.h" />
     <QtMoc Include="NetPlay\GameListDialog.h" />
     <QtMoc Include="NetPlay\MD5Dialog.h" />
     <QtMoc Include="NetPlay\NetPlayDialog.h" />
@@ -174,6 +175,7 @@
     <ClCompile Include="$(QtMocOutPrefix)CheatCodeEditor.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatsManager.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ChunkedProgressDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
@@ -350,6 +352,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="NetPlay\ChunkedProgressDialog.cpp" />
     <ClCompile Include="NetPlay\GameListDialog.cpp" />
     <ClCompile Include="NetPlay\MD5Dialog.cpp" />
     <ClCompile Include="NetPlay\NetPlayDialog.cpp" />

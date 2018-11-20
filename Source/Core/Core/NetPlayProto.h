@@ -79,6 +79,7 @@ struct NetSettings
   bool m_SyncSaveData;
   bool m_SyncCodes;
   std::string m_SaveDataRegion;
+  bool m_SyncAllWiiSaves;
   bool m_IsHosting;
   bool m_HostInputAuthority;
 };
@@ -109,6 +110,12 @@ enum
   NP_MSG_PLAYER_LEAVE = 0x11,
 
   NP_MSG_CHAT_MESSAGE = 0x30,
+
+  NP_MSG_CHUNKED_DATA_START = 0x40,
+  NP_MSG_CHUNKED_DATA_END = 0x41,
+  NP_MSG_CHUNKED_DATA_PAYLOAD = 0x42,
+  NP_MSG_CHUNKED_DATA_PROGRESS = 0x43,
+  NP_MSG_CHUNKED_DATA_COMPLETE = 0x44,
 
   NP_MSG_PAD_DATA = 0x60,
   NP_MSG_PAD_MAPPING = 0x61,
@@ -179,6 +186,10 @@ enum
 
 constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
 constexpr u32 NETPLAY_LZO_OUT_LEN = NETPLAY_LZO_IN_LEN + (NETPLAY_LZO_IN_LEN / 16) + 64 + 3;
+constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
+constexpr u8 CHANNEL_COUNT = 2;
+constexpr u8 DEFAULT_CHANNEL = 0;
+constexpr u8 CHUNKED_DATA_CHANNEL = 1;
 
 using NetWiimote = std::vector<u8>;
 using MessageId = u8;
@@ -192,8 +203,10 @@ bool IsNetPlayRunning();
 //               IsNetPlayRunning() must be true before calling this.
 const NetSettings& GetNetSettings();
 IOS::HLE::FS::FileSystem* GetWiiSyncFS();
-void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
-void ClearWiiSyncFS();
+const std::vector<u64>& GetWiiSyncTitles();
+void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles);
+void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
+bool IsSyncingAllWiiSaves();
 }  // namespace NetPlay

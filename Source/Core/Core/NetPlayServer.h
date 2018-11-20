@@ -13,6 +13,8 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include "Common/Event.h"
 #include "Common/QoSSession.h"
 #include "Common/SPSCQueue.h"
 #include "Common/Timer.h"
@@ -29,7 +31,12 @@ class NetPlayServer : public TraversalClientClient
 {
 public:
   void ThreadFunc();
-  void SendAsyncToClients(sf::Packet&& packet);
+  void SendAsync(sf::Packet&& packet, PlayerId pid, u8 channel_id = DEFAULT_CHANNEL);
+  void SendAsyncToClients(sf::Packet&& packet, PlayerId skip_pid = 0,
+                          u8 channel_id = DEFAULT_CHANNEL);
+  void SendChunked(sf::Packet&& packet, PlayerId pid, const std::string& title = "");
+  void SendChunkedToClients(sf::Packet&& packet, PlayerId skip_pid = 0,
+                            const std::string& title = "");
 
   NetPlayServer(u16 port, bool forward_port, const NetTraversalConfig& traversal_config);
   ~NetPlayServer();
@@ -84,6 +91,28 @@ private:
     bool IsHost() const { return pid == 1; }
   };
 
+  enum class TargetMode
+  {
+    Only,
+    AllExcept
+  };
+
+  struct AsyncQueueEntry
+  {
+    sf::Packet packet;
+    PlayerId target_pid;
+    TargetMode target_mode;
+    u8 channel_id;
+  };
+
+  struct ChunkedDataQueueEntry
+  {
+    sf::Packet packet;
+    PlayerId target_pid;
+    TargetMode target_mode;
+    std::string title;
+  };
+
   bool SyncSaveData();
   bool SyncCodes();
   void CheckSyncAndStartGame();
@@ -93,8 +122,9 @@ private:
 
   u64 GetInitialNetPlayRTC() const;
 
-  void SendToClients(const sf::Packet& packet, const PlayerId skip_pid = 0);
-  void Send(ENetPeer* socket, const sf::Packet& packet);
+  void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
+                     u8 channel_id = DEFAULT_CHANNEL);
+  void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   unsigned int OnConnect(ENetPeer* socket);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
@@ -105,6 +135,8 @@ private:
   void UpdatePadMapping();
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
+  void ChunkedDataThreadFunc();
+  void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
 
   NetSettings m_settings;
 
@@ -138,11 +170,19 @@ private:
     // lock order
     std::recursive_mutex players;
     std::recursive_mutex async_queue_write;
+    std::recursive_mutex chunked_data_queue_write;
   } m_crit;
+
+  Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
+  Common::SPSCQueue<ChunkedDataQueueEntry, false> m_chunked_data_queue;
 
   std::string m_selected_game;
   std::thread m_thread;
-  Common::SPSCQueue<sf::Packet, false> m_async_queue;
+  Common::Event m_chunked_data_event;
+  Common::Event m_chunked_data_complete_event;
+  std::thread m_chunked_data_thread;
+  u32 m_next_chunked_data_id;
+  std::unordered_map<u32, unsigned int> m_chunked_data_complete_count;
 
   ENetHost* m_server = nullptr;
   TraversalClient* m_traversal_client = nullptr;

@@ -5,6 +5,7 @@
 #include "Core/NetPlayServer.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
@@ -41,7 +42,9 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "DiscIO/Enums.h"
 #include "InputCommon/GCPadStatus.h"
@@ -66,6 +69,10 @@ NetPlayServer::~NetPlayServer()
   if (is_connected)
   {
     m_do_loop = false;
+    m_chunked_data_event.Set();
+    m_chunked_data_complete_event.Set();
+    if (m_chunked_data_thread.joinable())
+      m_chunked_data_thread.join();
     m_thread.join();
     enet_host_destroy(m_server);
 
@@ -118,7 +125,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
     ENetAddress serverAddr;
     serverAddr.host = ENET_HOST_ANY;
     serverAddr.port = port;
-    m_server = enet_host_create(&serverAddr, 10, 3, 0, 0);
+    m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
       m_server->intercept = ENetUtil::InterceptCallback;
   }
@@ -128,6 +135,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
     m_do_loop = true;
     m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
     m_target_buffer_size = 5;
+    m_chunked_data_thread = std::thread(&NetPlayServer::ChunkedDataThreadFunc, this);
 
 #ifdef USE_UPNP
     if (forward_port)
@@ -164,7 +172,16 @@ void NetPlayServer::ThreadFunc()
     {
       {
         std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-        SendToClients(m_async_queue.Front());
+        auto& e = m_async_queue.Front();
+        if (e.target_mode == TargetMode::Only)
+        {
+          if (m_players.find(e.target_pid) != m_players.end())
+            Send(m_players.at(e.target_pid).socket, e.packet, e.channel_id);
+        }
+        else
+        {
+          SendToClients(e.packet, e.target_pid, e.channel_id);
+        }
       }
       m_async_queue.Pop();
     }
@@ -529,13 +546,45 @@ void NetPlayServer::SetHostInputAuthority(const bool enable)
     AdjustPadBufferSize(m_target_buffer_size);
 }
 
-void NetPlayServer::SendAsyncToClients(sf::Packet&& packet)
+void NetPlayServer::SendAsync(sf::Packet&& packet, const PlayerId pid, const u8 channel_id)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-    m_async_queue.Push(std::move(packet));
+    m_async_queue.Push(AsyncQueueEntry{std::move(packet), pid, TargetMode::Only, channel_id});
   }
   ENetUtil::WakeupThread(m_server);
+}
+
+void NetPlayServer::SendAsyncToClients(sf::Packet&& packet, const PlayerId skip_pid,
+                                       const u8 channel_id)
+{
+  {
+    std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+    m_async_queue.Push(
+        AsyncQueueEntry{std::move(packet), skip_pid, TargetMode::AllExcept, channel_id});
+  }
+  ENetUtil::WakeupThread(m_server);
+}
+
+void NetPlayServer::SendChunked(sf::Packet&& packet, const PlayerId pid, const std::string& title)
+{
+  {
+    std::lock_guard<std::recursive_mutex> lkq(m_crit.chunked_data_queue_write);
+    m_chunked_data_queue.Push(
+        ChunkedDataQueueEntry{std::move(packet), pid, TargetMode::Only, title});
+  }
+  m_chunked_data_event.Set();
+}
+
+void NetPlayServer::SendChunkedToClients(sf::Packet&& packet, const PlayerId skip_pid,
+                                         const std::string& title)
+{
+  {
+    std::lock_guard<std::recursive_mutex> lkq(m_crit.chunked_data_queue_write);
+    m_chunked_data_queue.Push(
+        ChunkedDataQueueEntry{std::move(packet), skip_pid, TargetMode::AllExcept, title});
+  }
+  m_chunked_data_event.Set();
 }
 
 // called from ---NETPLAY--- thread
@@ -563,6 +612,29 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     spac << msg;
 
     SendToClients(spac, player.pid);
+  }
+  break;
+
+  case NP_MSG_CHUNKED_DATA_PROGRESS:
+  {
+    u32 cid;
+    packet >> cid;
+    u64 progress = Common::PacketReadU64(packet);
+
+    m_dialog->SetChunkedProgress(player.pid, progress);
+  }
+  break;
+
+  case NP_MSG_CHUNKED_DATA_COMPLETE:
+  {
+    u32 cid;
+    packet >> cid;
+
+    if (m_chunked_data_complete_count.find(cid) != m_chunked_data_complete_count.end())
+    {
+      m_chunked_data_complete_count[cid]++;
+      m_chunked_data_complete_event.Set();
+    }
   }
   break;
 
@@ -1132,6 +1204,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_SyncSaveData;
   spac << region;
   spac << m_settings.m_SyncCodes;
+  spac << m_settings.m_SyncAllWiiSaves;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1170,7 +1243,8 @@ bool NetPlayServer::SyncSaveData()
 
   bool wii_save = false;
   if (m_settings.m_CopyWiiSave && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
-                                   game->GetPlatform() == DiscIO::Platform::WiiWAD))
+                                   game->GetPlatform() == DiscIO::Platform::WiiWAD ||
+                                   game->GetPlatform() == DiscIO::Platform::ELFOrDOL))
   {
     wii_save = true;
     save_count++;
@@ -1182,7 +1256,8 @@ bool NetPlayServer::SyncSaveData()
     pac << static_cast<MessageId>(SYNC_SAVE_DATA_NOTIFY);
     pac << save_count;
 
-    SendAsyncToClients(std::move(pac));
+    // send this on the chunked data channel to ensure it's sequenced properly
+    SendAsyncToClients(std::move(pac), 0, CHUNKED_DATA_CHANNEL);
   }
 
   if (save_count == 0)
@@ -1225,7 +1300,9 @@ bool NetPlayServer::SyncSaveData()
         pac << sf::Uint64{0};
       }
 
-      SendAsyncToClients(std::move(pac));
+      SendChunkedToClients(
+          std::move(pac), 1,
+          StringFromFormat("Memory Card %c Synchronization", is_slot_a ? 'A' : 'B'));
     }
     else if (SConfig::GetInstance().m_EXIDevice[i] ==
              ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
@@ -1257,67 +1334,98 @@ bool NetPlayServer::SyncSaveData()
         pac << static_cast<u8>(0);
       }
 
-      SendAsyncToClients(std::move(pac));
+      SendChunkedToClients(
+          std::move(pac), 1,
+          StringFromFormat("GCI Folder %c Synchronization", is_slot_a ? 'A' : 'B'));
     }
   }
 
   if (wii_save)
   {
     const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
-    const auto save = WiiSave::MakeNandStorage(configured_fs.get(), game->GetTitleID());
+
+    std::vector<std::pair<u64, WiiSave::StoragePointer>> saves;
+    if (m_settings.m_SyncAllWiiSaves)
+    {
+      IOS::HLE::Kernel ios;
+      for (const u64 title : ios.GetES()->GetInstalledTitles())
+      {
+        auto save = WiiSave::MakeNandStorage(configured_fs.get(), title);
+        saves.push_back(std::make_pair(title, std::move(save)));
+      }
+    }
+    else if (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
+             game->GetPlatform() == DiscIO::Platform::WiiWAD)
+    {
+      auto save = WiiSave::MakeNandStorage(configured_fs.get(), game->GetTitleID());
+      saves.push_back(std::make_pair(game->GetTitleID(), std::move(save)));
+    }
+
+    std::vector<u64> titles;
 
     sf::Packet pac;
     pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
     pac << static_cast<MessageId>(SYNC_SAVE_DATA_WII);
+    pac << static_cast<u32>(saves.size());
 
-    if (save->SaveExists())
+    for (const auto& pair : saves)
     {
-      const std::optional<WiiSave::Header> header = save->ReadHeader();
-      const std::optional<WiiSave::BkHeader> bk_header = save->ReadBkHeader();
-      const std::optional<std::vector<WiiSave::Storage::SaveFile>> files = save->ReadFiles();
-      if (!header || !bk_header || !files)
-        return false;
+      pac << sf::Uint64{pair.first};
+      titles.push_back(pair.first);
+      const auto& save = pair.second;
 
-      pac << true;  // save exists
-
-      // Header
-      pac << sf::Uint64{header->tid};
-      pac << header->banner_size << header->permissions << header->unk1;
-      for (size_t i = 0; i < header->md5.size(); i++)
-        pac << header->md5[i];
-      pac << header->unk2;
-      for (size_t i = 0; i < header->banner_size; i++)
-        pac << header->banner[i];
-
-      // BkHeader
-      pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
-          << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
-          << bk_header->total_size;
-      for (size_t i = 0; i < bk_header->unk3.size(); i++)
-        pac << bk_header->unk3[i];
-      pac << sf::Uint64{bk_header->tid};
-      for (size_t i = 0; i < bk_header->mac_address.size(); i++)
-        pac << bk_header->mac_address[i];
-
-      // Files
-      for (const WiiSave::Storage::SaveFile& file : *files)
+      if (save->SaveExists())
       {
-        pac << file.mode << file.attributes << static_cast<u8>(file.type) << file.path;
+        const std::optional<WiiSave::Header> header = save->ReadHeader();
+        const std::optional<WiiSave::BkHeader> bk_header = save->ReadBkHeader();
+        const std::optional<std::vector<WiiSave::Storage::SaveFile>> files = save->ReadFiles();
+        if (!header || !bk_header || !files)
+          return false;
 
-        if (file.type == WiiSave::Storage::SaveFile::Type::File)
+        pac << true;  // save exists
+
+        // Header
+        pac << sf::Uint64{header->tid};
+        pac << header->banner_size << header->permissions << header->unk1;
+        for (size_t i = 0; i < header->md5.size(); i++)
+          pac << header->md5[i];
+        pac << header->unk2;
+        for (size_t i = 0; i < header->banner_size; i++)
+          pac << header->banner[i];
+
+        // BkHeader
+        pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
+            << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
+            << bk_header->total_size;
+        for (size_t i = 0; i < bk_header->unk3.size(); i++)
+          pac << bk_header->unk3[i];
+        pac << sf::Uint64{bk_header->tid};
+        for (size_t i = 0; i < bk_header->mac_address.size(); i++)
+          pac << bk_header->mac_address[i];
+
+        // Files
+        for (const WiiSave::Storage::SaveFile& file : *files)
         {
-          const std::optional<std::vector<u8>>& data = *file.data;
-          if (!data || !CompressBufferIntoPacket(*data, pac))
-            return false;
+          pac << file.mode << file.attributes << static_cast<u8>(file.type) << file.path;
+
+          if (file.type == WiiSave::Storage::SaveFile::Type::File)
+          {
+            const std::optional<std::vector<u8>>& data = *file.data;
+            if (!data || !CompressBufferIntoPacket(*data, pac))
+              return false;
+          }
         }
       }
-    }
-    else
-    {
-      pac << false;  // save does not exist
+      else
+      {
+        pac << false;  // save does not exist
+      }
     }
 
-    SendAsyncToClients(std::move(pac));
+    // Set titles for host-side loading in WiiRoot
+    SetWiiSyncData(nullptr, titles);
+
+    SendChunkedToClients(std::move(pac), 1, "Wii Save Synchronization");
   }
 
   return true;
@@ -1611,22 +1719,23 @@ u64 NetPlayServer::GetInitialNetPlayRTC() const
 }
 
 // called from multiple threads
-void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid)
+void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid,
+                                  const u8 channel_id)
 {
   for (auto& p : m_players)
   {
     if (p.second.pid && p.second.pid != skip_pid)
     {
-      Send(p.second.socket, packet);
+      Send(p.second.socket, packet, channel_id);
     }
   }
 }
 
-void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet)
+void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet, const u8 channel_id)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
-  enet_peer_send(socket, 0, epac);
+  enet_peer_send(socket, channel_id, epac);
 }
 
 void NetPlayServer::KickPlayer(PlayerId player)
@@ -1713,5 +1822,111 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
   if (result.empty())
     result.emplace_back(std::make_pair("!local!", "127.0.0.1"));
   return result;
+}
+
+// called from ---Chunked Data--- thread
+void NetPlayServer::ChunkedDataThreadFunc()
+{
+  while (m_do_loop)
+  {
+    m_chunked_data_event.Wait();
+
+    while (!m_chunked_data_queue.Empty())
+    {
+      if (!m_do_loop)
+        return;
+      auto& e = m_chunked_data_queue.Front();
+      const u32 id = m_next_chunked_data_id++;
+
+      m_chunked_data_complete_count[id] = 0;
+      size_t player_count;
+      {
+        std::vector<int> players;
+        if (e.target_mode == TargetMode::Only)
+        {
+          players.push_back(e.target_pid);
+        }
+        else
+        {
+          for (auto& pl : m_players)
+          {
+            if (pl.second.pid != e.target_pid)
+              players.push_back(pl.second.pid);
+          }
+        }
+        player_count = players.size();
+
+        sf::Packet pac;
+        pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_START);
+        pac << id << e.title << sf::Uint64{e.packet.getDataSize()};
+
+        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+
+        if (e.target_mode == TargetMode::AllExcept && e.target_pid == 1)
+          m_dialog->ShowChunkedProgressDialog(e.title, e.packet.getDataSize(), players);
+      }
+
+      const bool enable_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+      const float bytes_per_second =
+          (std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
+      const std::chrono::duration<double> send_interval(CHUNKED_DATA_UNIT_SIZE / bytes_per_second);
+      size_t index = 0;
+      do
+      {
+        if (!m_do_loop)
+          return;
+        if (e.target_mode == TargetMode::Only)
+        {
+          if (m_players.find(e.target_pid) == m_players.end())
+            break;
+        }
+
+        auto start = std::chrono::steady_clock::now();
+
+        sf::Packet pac;
+        pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PAYLOAD);
+        pac << id;
+        size_t len = std::min(CHUNKED_DATA_UNIT_SIZE, e.packet.getDataSize() - index);
+        pac.append(static_cast<const u8*>(e.packet.getData()) + index, len);
+
+        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+        index += CHUNKED_DATA_UNIT_SIZE;
+
+        if (enable_limit)
+        {
+          std::chrono::duration<double> delta = std::chrono::steady_clock::now() - start;
+          std::this_thread::sleep_for(send_interval - delta);
+        }
+      } while (index < e.packet.getDataSize());
+
+      {
+        sf::Packet pac;
+        pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_END);
+        pac << id;
+        ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+      }
+
+      while (m_chunked_data_complete_count[id] < player_count && m_do_loop)
+        m_chunked_data_complete_event.Wait();
+      m_chunked_data_complete_count.erase(m_chunked_data_complete_count.find(id));
+      m_dialog->HideChunkedProgressDialog();
+
+      m_chunked_data_queue.Pop();
+    }
+  }
+}
+
+// called from ---Chunked Data--- thread
+void NetPlayServer::ChunkedDataSend(sf::Packet&& packet, const PlayerId pid,
+                                    const TargetMode target_mode)
+{
+  if (target_mode == TargetMode::Only)
+  {
+    SendAsync(std::move(packet), pid, CHUNKED_DATA_CHANNEL);
+  }
+  else
+  {
+    SendAsyncToClients(std::move(packet), pid, CHUNKED_DATA_CHANNEL);
+  }
 }
 }  // namespace NetPlay
