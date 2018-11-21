@@ -412,6 +412,12 @@ void StringPopBackIf(std::string* s, char c)
     s->pop_back();
 }
 
+size_t StringUTF8CodePointCount(const std::string& str)
+{
+  return str.size() -
+         std::count_if(str.begin(), str.end(), [](char c) -> bool { return (c & 0xC0) == 0x80; });
+}
+
 #ifdef _WIN32
 
 std::wstring CPToUTF16(u32 code_page, std::string_view input)

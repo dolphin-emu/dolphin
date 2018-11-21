@@ -252,6 +252,9 @@ bool NetPlayClient::Connect()
     case CON_ERR_GAME_RUNNING:
       m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
+    case CON_ERR_NAME_TOO_LONG:
+      m_dialog->OnConnectionError(_trans("Nickname is too long."));
+      break;
     default:
       m_dialog->OnConnectionError(_trans("The server sent an unknown error message."));
       break;

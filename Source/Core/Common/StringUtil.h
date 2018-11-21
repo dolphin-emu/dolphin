@@ -167,6 +167,7 @@ void BuildCompleteFilename(std::string& complete_filename, std::string_view path
 bool StringBeginsWith(std::string_view str, std::string_view begin);
 bool StringEndsWith(std::string_view str, std::string_view end);
 void StringPopBackIf(std::string* s, char c);
+size_t StringUTF8CodePointCount(const std::string& str);
 
 std::string CP1252ToUTF8(std::string_view str);
 std::string SHIFTJISToUTF8(std::string_view str);
