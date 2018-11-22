@@ -112,8 +112,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_REQUEST_STATUS:  // 0x15
-    if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-      RequestStatus(reinterpret_cast<const wm_request_status*>(sr->data));
+    RequestStatus(reinterpret_cast<const wm_request_status*>(sr->data));
     return;  // sends its own ack
     break;
 
@@ -122,13 +121,12 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_READ_DATA:  // 0x17
-    if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-      ReadData(reinterpret_cast<const wm_read_data*>(sr->data));
+    ReadData(reinterpret_cast<const wm_read_data*>(sr->data));
     return;  // sends its own ack
     break;
 
   case RT_WRITE_SPEAKER_DATA:  // 0x18
-    if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index] && !m_speaker_mute)
+    if (!m_speaker_mute)
       Wiimote::SpeakerData(reinterpret_cast<const wm_speaker_data*>(sr->data));
     return;  // no ack
     break;
@@ -154,9 +152,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
   }
 
-  // send ack
-  if (send_ack && WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-    SendAck(sr->wm);
+  SendAck(sr->wm);
 }
 
 /* This will generate the 0x22 acknowledgement for most Input reports.
@@ -214,22 +210,6 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 
   // status values
   *reinterpret_cast<wm_status_report*>(data + 2) = m_status;
-
-  // hybrid Wiimote stuff
-  if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && (m_extension->switch_extension <= 0))
-  {
-    using namespace WiimoteReal;
-
-    std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
-
-    if (g_wiimotes[m_index])
-    {
-      wm_request_status rpt = {};
-      g_wiimotes[m_index]->QueueReport(RT_REQUEST_STATUS, &rpt, sizeof(rpt));
-    }
-
-    return;
-  }
 
   // send report
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
@@ -358,18 +338,6 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 
   // ignore the 0x010000 bit
   address &= 0xFEFFFF;
-
-  // hybrid Wiimote stuff
-  // relay the read data request to real-Wiimote
-  if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] &&
-      ((0xA4 != (address >> 16)) || (m_extension->switch_extension <= 0)))
-  {
-    WiimoteReal::InterruptChannel(m_index, m_reporting_channel, ((u8*)rd) - 2,
-                                  sizeof(wm_read_data) + 2);  // hacky
-
-    // don't want emu-Wiimote to send reply
-    return;
-  }
 
   ReadRequest rr;
   u8* const block = new u8[size];

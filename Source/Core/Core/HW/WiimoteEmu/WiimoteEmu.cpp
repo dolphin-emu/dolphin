@@ -923,8 +923,6 @@ void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
     // Wii Remote disconnected
     // reset eeprom/register/reporting mode
     Reset();
-    if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
-      WiimoteReal::ControlChannel(m_index, channel_id, data, size);
     return;
   }
 
@@ -983,27 +981,7 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
     case HID_PARAM_OUTPUT:
     {
       const wm_report* sr = reinterpret_cast<const wm_report*>(hidp->data);
-
-      if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
-      {
-        switch (sr->wm)
-        {
-        // these two types are handled in RequestStatus() & ReadData()
-        case RT_REQUEST_STATUS:
-        case RT_READ_DATA:
-          if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-            WiimoteReal::InterruptChannel(m_index, channel_id, data, size);
-          break;
-
-        default:
-          WiimoteReal::InterruptChannel(m_index, channel_id, data, size);
-          break;
-        }
-
-        HidOutputReport(sr, m_extension->switch_extension > 0);
-      }
-      else
-        HidOutputReport(sr);
+      HidOutputReport(sr);
     }
     break;
 
