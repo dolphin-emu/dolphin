@@ -42,12 +42,16 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "DiscIO/Enums.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 
 #if !defined(_WIN32)
@@ -1159,8 +1163,10 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
   spac << m_settings.m_ReducePollingRate;
-  spac << m_settings.m_EXIDevice[0];
-  spac << m_settings.m_EXIDevice[1];
+
+  for (auto& device : m_settings.m_EXIDevice)
+    spac << device;
+
   spac << m_settings.m_EFBAccessEnable;
   spac << m_settings.m_BBoxEnable;
   spac << m_settings.m_ForceProgressive;
@@ -1205,6 +1211,16 @@ bool NetPlayServer::StartGame()
   spac << region;
   spac << m_settings.m_SyncCodes;
   spac << m_settings.m_SyncAllWiiSaves;
+
+  for (int i = 0; i < m_settings.m_WiimoteExtension.size(); i++)
+  {
+    const int extension =
+        static_cast<ControllerEmu::Extension*>(
+            static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(i))
+                ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Extension))
+            ->switch_extension;
+    spac << extension;
+  }
 
   SendAsyncToClients(std::move(spac));
 
