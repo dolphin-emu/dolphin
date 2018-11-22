@@ -12,6 +12,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "Common/Logging/Log.h"
 
 // Registry sizes
 #define WIIMOTE_EEPROM_SIZE (16 * 1024)
@@ -207,6 +208,84 @@ enum
   ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
 };
 
+class I2CSlave
+{
+public:
+  virtual int BusRead(u8 addr, int count, u8* data_out) = 0;
+  virtual int BusWrite(u8 addr, int count, const u8* data_in) = 0;
+
+  template <typename T>
+  static int raw_read(T* reg_data, u8 addr, int count, u8* data_out)
+  {
+    static_assert(std::is_pod<T>::value);
+
+    u8* src = reinterpret_cast<u8*>(reg_data) + addr;
+    count = std::min(count, int(reinterpret_cast<u8*>(reg_data + 1) - src));
+
+    std::copy_n(src, count, data_out);
+
+    return count;
+  }
+
+  template <typename T>
+  static int raw_write(T* reg_data, u8 addr, int count, const u8* data_in)
+  {
+    static_assert(std::is_pod<T>::value);
+
+    u8* dst = reinterpret_cast<u8*>(reg_data) + addr;
+    count = std::min(count, int(reinterpret_cast<u8*>(reg_data + 1) - dst));
+
+    std::copy_n(data_in, count, dst);
+
+    return count;
+  }
+};
+
+class I2CBus
+{
+public:
+  void AddSlave(u8 addr, I2CSlave* slave)
+  {
+    m_slaves.insert(std::make_pair(addr, slave));
+  }
+
+  void RemoveSlave(u8 addr)
+  {
+    m_slaves.erase(addr);
+  }
+
+  void Reset()
+  {
+    m_slaves.clear();
+  }
+
+  int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+  {
+    INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
+
+    auto it = m_slaves.find(slave_addr);
+    if (m_slaves.end() != it)
+      return it->second->BusRead(addr, count, data_out);
+    else
+      return 0;
+  }
+
+  int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+  {
+    INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
+
+    auto it = m_slaves.find(slave_addr);
+    if (m_slaves.end() != it)
+      return it->second->BusWrite(addr, count, data_in);
+    else
+      return 0;
+  }
+
+private:
+  // Organized by slave addr
+  std::map<u8, I2CSlave*> m_slaves;
+};
+
 class Wiimote : public ControllerEmu::EmulatedController
 {
   friend class WiimoteReal::Wiimote;
@@ -257,14 +336,41 @@ protected:
   void UpdateButtonsStatus();
 
   void GetButtonData(u8* data);
-  void GetAccelData(u8* data, const ReportFeatures& rptf);
-  void GetIRData(u8* data, bool use_accel);
+  void GetAccelData(u8* data);
+  void UpdateIRData(bool use_accel);
   void GetExtData(u8* data);
 
   bool HaveExtension() const;
   bool WantExtension() const;
 
 private:
+  struct IRCameraLogic : public I2CSlave
+  {
+    struct
+    {
+      // Contains sensitivity and other unknown data
+      u8 data[0x33];
+      u8 mode;
+      u8 unk[3];
+      // addr 0x37
+      u8 camera_data[36];
+      u8 unk2[165];
+    } reg_data;
+
+    static_assert(0x100 == sizeof(reg_data));
+
+    int BusRead(u8 addr, int count, u8* data_out) override
+    {
+      return raw_read(&reg_data, addr, count, data_out);
+    }
+
+    int BusWrite(u8 addr, int count, const u8* data_in) override
+    {
+      return raw_write(&reg_data, addr, count, data_in);
+    }
+
+  } m_camera_logic;
+
   struct ReadRequest
   {
     // u16 channel;
@@ -305,6 +411,8 @@ private:
 
   DynamicData m_swing_dynamic_data;
   DynamicData m_shake_dynamic_data;
+
+  I2CBus m_i2c_bus;
 
   // Wiimote accel data
   AccelData m_accel;
@@ -353,12 +461,6 @@ private:
     // address 0xFA
     u8 ext_identifier[6];
   } m_reg_motion_plus;
-
-  struct IrReg
-  {
-    u8 data[0x33];
-    u8 mode;
-  } m_reg_ir;
 
   ExtensionReg m_reg_ext;
 

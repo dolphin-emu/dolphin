@@ -261,66 +261,31 @@ void Wiimote::WriteData(const wm_write_data* const wd)
   {
     // Write to Control Register
 
-    // ignore second byte for extension area
-    if (0xA4 == (address >> 16))
-      address &= 0xFF00FF;
+    // TODO: generate a writedata error reply for wrong number of bytes written..
+    m_i2c_bus.BusWrite(address >> 17, address & 0xff, wd->size, wd->data);
 
-    const u8 region_offset = (u8)address;
-    void* region_ptr = nullptr;
-    int region_size = 0;
+    return;
 
-    switch (address >> 16)
-    {
-    // speaker
-    case 0xa2:
-      region_ptr = &m_reg_speaker;
-      region_size = WIIMOTE_REG_SPEAKER_SIZE;
-      break;
+    // TODO: extension register stuff..
 
-    // extension register
-    case 0xa4:
-      region_ptr = (void*)&m_reg_ext;
-      region_size = WIIMOTE_REG_EXT_SIZE;
-      break;
+    //if (false)//&m_reg_ext == region_ptr)
+    //{
+    //  // Run the key generation on all writes in the key area, it doesn't matter
+    //  // that we send it parts of a key, only the last full key will have an effect
+    //  if (address >= 0xa40040 && address <= 0xa4004c)
+    //    WiimoteGenerateKey(&m_ext_key, m_reg_ext.encryption_key);
+    //}
+    //else if (&m_reg_motion_plus == region_ptr)
+    //{
+    //  // activate/deactivate motion plus
+    //  if (0x55 == m_reg_motion_plus.activated)
+    //  {
+    //    // maybe hacky
+    //    m_reg_motion_plus.activated = 0;
 
-    // motion plus
-    case 0xa6:
-      region_ptr = &m_reg_motion_plus;
-      region_size = WIIMOTE_REG_EXT_SIZE;
-      break;
-
-    // ir
-    case 0xB0:
-      region_ptr = &m_reg_ir;
-      region_size = WIIMOTE_REG_IR_SIZE;
-      break;
-    }
-
-    if (region_ptr && (region_offset + wd->size <= region_size))
-    {
-      memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
-    }
-    else
-      return;  // TODO: generate a writedata error reply
-
-    if (&m_reg_ext == region_ptr)
-    {
-      // Run the key generation on all writes in the key area, it doesn't matter
-      // that we send it parts of a key, only the last full key will have an effect
-      if (address >= 0xa40040 && address <= 0xa4004c)
-        WiimoteGenerateKey(&m_ext_key, m_reg_ext.encryption_key);
-    }
-    else if (&m_reg_motion_plus == region_ptr)
-    {
-      // activate/deactivate motion plus
-      if (0x55 == m_reg_motion_plus.activated)
-      {
-        // maybe hacky
-        m_reg_motion_plus.activated = 0;
-
-        RequestStatus();
-      }
-    }
+    //    RequestStatus();
+    //  }
+    //}
   }
   break;
 
@@ -386,42 +351,11 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 
     const u8 region_offset = (u8)address;
     void* region_ptr = nullptr;
-    int region_size = 0;
+    //int region_size = 0;
 
-    switch (address >> 16)
-    {
-    // speaker
-    case 0xa2:
-      region_ptr = &m_reg_speaker;
-      region_size = WIIMOTE_REG_SPEAKER_SIZE;
-      break;
+    m_i2c_bus.BusRead(address >> 17, address & 0xff, rd->size, block);
 
-    // extension
-    case 0xa4:
-      region_ptr = (void*)&m_reg_ext;
-      region_size = WIIMOTE_REG_EXT_SIZE;
-      break;
-
-    // motion plus
-    case 0xa6:
-      // reading from 0xa6 returns error when mplus is activated
-      region_ptr = &m_reg_motion_plus;
-      region_size = WIIMOTE_REG_EXT_SIZE;
-      break;
-
-    // ir
-    case 0xb0:
-      region_ptr = &m_reg_ir;
-      region_size = WIIMOTE_REG_IR_SIZE;
-      break;
-    }
-
-    if (region_ptr && (region_offset + size <= region_size))
-    {
-      memcpy(block, (u8*)region_ptr + region_offset, size);
-    }
-    else
-      size = 0;  // generate read error
+    // TODO: generate read errors
 
     if (&m_reg_ext == region_ptr)
     {
@@ -527,7 +461,7 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_ext_key);
   p.DoArray(m_eeprom);
   p.Do(m_reg_motion_plus);
-  p.Do(m_reg_ir);
+  p.Do(m_camera_logic.reg_data);
   p.Do(m_reg_ext);
   p.Do(m_reg_speaker);
 
