@@ -76,27 +76,28 @@ static const u8 eeprom_data_16D0[] = {0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 
                                       0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99,
                                       0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
 
+// Counts are how many bytes of each feature are in a particular report
 static const ReportFeatures reporting_mode_features[] = {
     // 0x30: Core Buttons
     {2, 0, 0, 0, 4},
     // 0x31: Core Buttons and Accelerometer
-    {2, 4, 0, 0, 7},
+    {2, 3, 0, 0, 7},
     // 0x32: Core Buttons with 8 Extension bytes
-    {2, 0, 0, 4, 12},
+    {2, 0, 0, 8, 12},
     // 0x33: Core Buttons and Accelerometer with 12 IR bytes
-    {2, 4, 7, 0, 19},
+    {2, 3, 12, 0, 19},
     // 0x34: Core Buttons with 19 Extension bytes
-    {2, 0, 0, 4, 23},
+    {2, 0, 0, 19, 23},
     // 0x35: Core Buttons and Accelerometer with 16 Extension Bytes
-    {2, 4, 0, 7, 23},
+    {2, 3, 0, 16, 23},
     // 0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
-    {2, 0, 4, 14, 23},
+    {2, 0, 10, 9, 23},
     // 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
-    {2, 4, 7, 17, 23},
+    {2, 3, 10, 6, 23},
+    // 0x3d: 21 Extension Bytes
+    {0, 0, 0, 21, 23},
 
     // UNSUPPORTED:
-    // 0x3d: 21 Extension Bytes
-    {0, 0, 0, 2, 23},
     // 0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
     {0, 0, 0, 0, 23},
 };
@@ -318,7 +319,8 @@ void Wiimote::Reset()
 
   // set up the register
   memset(&m_reg_speaker, 0, sizeof(m_reg_speaker));
-  memset(&m_reg_ir, 0, sizeof(m_reg_ir));
+  // TODO: kill/move this
+  memset(&m_camera_logic.reg_data, 0, sizeof(m_camera_logic.reg_data));
   memset(&m_reg_ext, 0, sizeof(m_reg_ext));
   memset(&m_reg_motion_plus, 0, sizeof(m_reg_motion_plus));
 
@@ -349,6 +351,9 @@ void Wiimote::Reset()
   // Yamaha ADPCM state initialize
   m_adpcm_state.predictor = 0;
   m_adpcm_state.step = 127;
+
+  // Initialize i2c bus
+  m_i2c_bus.AddSlave(0x58, &m_camera_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
@@ -592,7 +597,7 @@ void Wiimote::GetButtonData(u8* const data)
   reinterpret_cast<wm_buttons*>(data)->hex |= m_status.buttons.hex;
 }
 
-void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
+void Wiimote::GetAccelData(u8* const data)
 {
   const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
   const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
@@ -643,8 +648,9 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   EmulateDynamicShake(&m_accel, m_shake_dynamic_data, m_shake_dynamic, shake_config,
                       m_shake_dynamic_step.data());
 
-  wm_accel& accel = *reinterpret_cast<wm_accel*>(data + rptf.accel);
-  wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + rptf.core);
+  // TODO: kill these ugly looking offsets
+  wm_accel& accel = *reinterpret_cast<wm_accel*>(data + 4);
+  wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + 2);
 
   // We now use 2 bits more precision, so multiply by 4 before converting to int
   s16 x = (s16)(4 * (m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
@@ -673,8 +679,11 @@ inline void LowPassFilter(double& var, double newval, double period)
   var = newval * alpha + var * (1.0 - alpha);
 }
 
-void Wiimote::GetIRData(u8* const data, bool use_accel)
+void Wiimote::UpdateIRData(bool use_accel)
 {
+  // IR data is stored at offset 0x37
+  u8* const data = m_camera_logic.reg_data.camera_data;
+
   u16 x[4], y[4];
   memset(x, 0xFF, sizeof(x));
 
@@ -760,9 +769,9 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   }
 
   // Fill report with valid data when full handshake was done
-  if (m_reg_ir.data[0x30])
+  if (m_camera_logic.reg_data.data[0x30])
     // ir mode
-    switch (m_reg_ir.mode)
+    switch (m_camera_logic.reg_data.mode)
     {
     // basic
     case 1:
@@ -867,21 +876,40 @@ void Wiimote::Update()
     // hotkey/settings modifier
     m_hotkeys->GetState();  // data is later accessed in UpdateButtonsStatus and GetAccelData
 
+    // Data starts at byte 2 in the report
+    u8* feature_ptr = data + 2;
+
     // core buttons
     if (rptf.core)
-      GetButtonData(data + rptf.core);
+    {
+      GetButtonData(feature_ptr);
+      feature_ptr += rptf.core;
+    }
 
     // acceleration
     if (rptf.accel)
-      GetAccelData(data, rptf);
+    {
+      // TODO: GetAccelData has hardcoded payload offsets..
+      GetAccelData(data);
+      feature_ptr += rptf.accel;
+    }
 
-    // IR
+    // IR Camera
+    // TODO: kill use_accel param
+    // TODO: call only if camera logic is enabled?
+    UpdateIRData(rptf.accel != 0);
     if (rptf.ir)
-      GetIRData(data + rptf.ir, (rptf.accel != 0));
+    {
+      m_i2c_bus.BusRead(0x58, 0x37, rptf.ir, feature_ptr);
+      feature_ptr += rptf.ir;
+    }
 
     // extension
     if (rptf.ext)
-      GetExtData(data + rptf.ext);
+    {
+      // GetExtData(feature_ptr, rptf.ext);
+      feature_ptr += rptf.ext;
+    }
 
     Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_key);
   }
@@ -1006,8 +1034,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "Click 1");  // A
   m_buttons->SetControlExpression(1, "Click 3");  // B
 #else
-  m_buttons->SetControlExpression(0, "Click 0");  // A
-  m_buttons->SetControlExpression(1, "Click 1");  // B
+  m_buttons->SetControlExpression(0, "Click 0");            // A
+  m_buttons->SetControlExpression(1, "Click 1");            // B
 #endif
   m_buttons->SetControlExpression(2, "1");  // 1
   m_buttons->SetControlExpression(3, "2");  // 2
