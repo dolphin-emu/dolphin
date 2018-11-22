@@ -739,8 +739,8 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   if (index >= DIRLEN)
     return DELETE_FAIL;
 
-  u16 startingblock = BE16(dir.Dir[index].FirstBlock);
-  u16 numberofblocks = BE16(dir.Dir[index].BlockCount);
+  u16 startingblock = BE16(CurrentDir->Dir[index].FirstBlock);
+  u16 numberofblocks = BE16(CurrentDir->Dir[index].BlockCount);
 
   BlockAlloc UpdatedBat = *CurrentBat;
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
