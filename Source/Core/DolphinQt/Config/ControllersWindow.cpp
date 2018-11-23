@@ -373,7 +373,7 @@ void ControllersWindow::OnWiimoteRefreshPressed()
 
 void ControllersWindow::OnEmulationStateChanged(bool running)
 {
-  if (!SConfig::GetInstance().bWii || NetPlay::IsNetPlayRunning())
+  if (!SConfig::GetInstance().bWii)
   {
     m_wiimote_sync->setEnabled(!running);
     m_wiimote_reset->setEnabled(!running);
