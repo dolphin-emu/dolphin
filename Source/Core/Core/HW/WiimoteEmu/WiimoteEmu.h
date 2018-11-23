@@ -255,6 +255,8 @@ public:
   {
     INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
 
+    // TODO: reads loop around at end of address space (0xff)
+
     auto it = m_slaves.find(slave_addr);
     if (m_slaves.end() != it)
       return it->second->BusRead(addr, count, data_out);
@@ -265,6 +267,8 @@ public:
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   {
     INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
+
+    // TODO: writes loop around at end of address space (0xff)
 
     auto it = m_slaves.find(slave_addr);
     if (m_slaves.end() != it)
@@ -396,10 +400,49 @@ private:
 
   } m_ext_logic;
 
+  struct SpeakerLogic : public I2CSlave 
+  {
+    struct
+    {
+      // Speaker reports result in a write of samples to addr 0x00 (which also plays sound)
+      u8 speaker_data;
+      u8 unk_1;
+      u8 format;
+      // seems to always play at 6khz no matter what this is set to?
+      // or maybe it only applies to pcm input
+      u16 sample_rate;
+      u8 volume;
+      u8 unk_6;
+      u8 unk_7;
+      u8 play;
+      u8 unk_9;
+    } reg_data;
+
+    ADPCMState adpcm_state;
+
+    void SpeakerData(const u8* data, int length);
+
+    int BusRead(u8 addr, int count, u8* data_out) override
+    {
+      return raw_read(&reg_data, addr, count, data_out);
+    }
+
+    int BusWrite(u8 addr, int count, const u8* data_in) override
+    {
+      if (0x00 == addr)
+      {
+        SpeakerData(data_in, count);
+        return count;
+      }
+      else
+        return raw_write(&reg_data, addr, count, data_in);
+    }
+
+  } m_speaker_logic;
+
   struct ReadRequest
   {
-    // u16 channel;
-    u32 address, size, position;
+    u16 address, size, position;
     u8* data;
   };
 
@@ -409,7 +452,6 @@ private:
   void ReadData(const wm_read_data* rd);
   void WriteData(const wm_write_data* wd);
   void SendReadDataReply(ReadRequest& request);
-  void SpeakerData(const wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // control groups
@@ -463,8 +505,6 @@ private:
 
   wm_status_report m_status;
 
-  ADPCMState m_adpcm_state;
-
   // read data request queue
   // maybe it isn't actually a queue
   // maybe read requests cancel any current requests
@@ -484,21 +524,6 @@ private:
     // address 0xFA
     u8 ext_identifier[6];
   } m_reg_motion_plus;
-
-  struct SpeakerReg
-  {
-    u8 unused_0;
-    u8 unk_1;
-    u8 format;
-    // seems to always play at 6khz no matter what this is set to?
-    // or maybe it only applies to pcm input
-    u16 sample_rate;
-    u8 volume;
-    u8 unk_6;
-    u8 unk_7;
-    u8 play;
-    u8 unk_9;
-  } m_reg_speaker;
 
 #pragma pack(pop)
 };

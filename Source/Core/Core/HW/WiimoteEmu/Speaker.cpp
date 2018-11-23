@@ -68,39 +68,40 @@ void stopdamnwav()
 }
 #endif
 
-void Wiimote::SpeakerData(const wm_speaker_data* sd)
+void Wiimote::SpeakerLogic::SpeakerData(const u8* data, int length)
 {
   if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
     return;
-  if (m_reg_speaker.volume == 0 || m_reg_speaker.sample_rate == 0 || sd->length == 0)
+  if (reg_data.volume == 0 || reg_data.sample_rate == 0 ||
+      length == 0)
     return;
 
   // TODO consider using static max size instead of new
-  std::unique_ptr<s16[]> samples(new s16[sd->length * 2]);
+  std::unique_ptr<s16[]> samples(new s16[length * 2]);
 
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
 
-  if (m_reg_speaker.format == 0x40)
+  if (reg_data.format == 0x40)
   {
     // 8 bit PCM
-    for (int i = 0; i < sd->length; ++i)
+    for (int i = 0; i < length; ++i)
     {
-      samples[i] = ((s16)(s8)sd->data[i]) << 8;
+      samples[i] = ((s16)(s8)data[i]) << 8;
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 12000000;
     volume_divisor = 0xff;
-    sample_length = (unsigned int)sd->length;
+    sample_length = (unsigned int)length;
   }
-  else if (m_reg_speaker.format == 0x00)
+  else if (reg_data.format == 0x00)
   {
     // 4 bit Yamaha ADPCM (same as dreamcast)
-    for (int i = 0; i < sd->length; ++i)
+    for (int i = 0; i < length; ++i)
     {
-      samples[i * 2] = adpcm_yamaha_expand_nibble(m_adpcm_state, (sd->data[i] >> 4) & 0xf);
-      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_adpcm_state, sd->data[i] & 0xf);
+      samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, (data[i] >> 4) & 0xf);
+      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
@@ -109,19 +110,20 @@ void Wiimote::SpeakerData(const wm_speaker_data* sd)
     // 0 - 127
     // TODO: does it go beyond 127 for format == 0x40?
     volume_divisor = 0x7F;
-    sample_length = (unsigned int)sd->length * 2;
+    sample_length = (unsigned int)length * 2;
   }
   else
   {
-    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", m_reg_speaker.format);
+    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", reg_data.format);
     return;
   }
 
   // Speaker Pan
-  unsigned int vol = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
+  // TODO: fix
+  unsigned int vol = 0;//(unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
 
-  unsigned int sample_rate = sample_rate_dividend / m_reg_speaker.sample_rate;
-  float speaker_volume_ratio = (float)m_reg_speaker.volume / volume_divisor;
+  unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
+  float speaker_volume_ratio = (float)reg_data.volume / volume_divisor;
   unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio);
   unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio);
 
@@ -147,12 +149,12 @@ void Wiimote::SpeakerData(const wm_speaker_data* sd)
     File::OpenFStream(ofile, "rmtdump.bin", ofile.binary | ofile.out);
     wav.Start("rmtdump.wav", 6000);
   }
-  wav.AddMonoSamples(samples.get(), sd->length * 2);
+  wav.AddMonoSamples(samples.get(), length * 2);
   if (ofile.good())
   {
-    for (int i = 0; i < sd->length; i++)
+    for (int i = 0; i < length; i++)
     {
-      ofile << sd->data[i];
+      ofile << data[i];
     }
   }
   num++;

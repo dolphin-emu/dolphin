@@ -44,8 +44,9 @@ void Wiimote::ReportMode(const wm_report_mode* const dr)
   // DEBUG_LOG(WIIMOTE, "  All The Time: %x", dr->all_the_time);
   // DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
+  // TODO: what does the 'all_the_time' bit really do?
   // m_reporting_auto = dr->all_the_time;
-  m_reporting_auto = dr->continuous;  // this right?
+  m_reporting_auto = dr->continuous;
   m_reporting_mode = dr->mode;
   // m_reporting_channel = _channelID;	// this is set in every Interrupt/Control Channel now
 
@@ -126,8 +127,14 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_WRITE_SPEAKER_DATA:  // 0x18
+    // Not sure if speaker mute stops the bus write on real hardware, but it's not that important
     if (!m_speaker_mute)
-      Wiimote::SpeakerData(reinterpret_cast<const wm_speaker_data*>(sr->data));
+    {
+      auto sd = reinterpret_cast<const wm_speaker_data*>(sr->data);
+      if (sd->length > 20)
+        PanicAlert("EmuWiimote: bad speaker data length!");
+      m_i2c_bus.BusWrite(0x51, 0x00, sd->length, sd->data);
+    }
     return;  // no ack
     break;
 
@@ -218,10 +225,9 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 /* Write data to Wiimote and Extensions registers. */
 void Wiimote::WriteData(const wm_write_data* const wd)
 {
-  u32 address = Common::swap24(wd->address);
+  u16 address = Common::swap16(wd->address);
 
-  // ignore the 0x010000 bit
-  address &= ~0x010000;
+  INFO_LOG(WIIMOTE, "Wiimote::WriteData: 0x%02x @ 0x%02x (%d)", wd->space, address, wd->size);
 
   if (wd->size > 16)
   {
@@ -261,8 +267,8 @@ void Wiimote::WriteData(const wm_write_data* const wd)
   {
     // Write to Control Register
 
-    // TODO: generate a writedata error reply for wrong number of bytes written..
-    m_i2c_bus.BusWrite(address >> 17, address & 0xff, wd->size, wd->data);
+    // TODO: generate a writedata error reply, 7 == no such slave (no ack)
+    m_i2c_bus.BusWrite(wd->slave_address >> 1, address & 0xff, wd->size, wd->data);
 
     return;
 
@@ -290,11 +296,10 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 /* Read data from Wiimote and Extensions registers. */
 void Wiimote::ReadData(const wm_read_data* const rd)
 {
-  u32 address = Common::swap24(rd->address);
+  u16 address = Common::swap16(rd->address);
   u16 size = Common::swap16(rd->size);
 
-  // ignore the 0x010000 bit
-  address &= 0xFEFFFF;
+  //INFO_LOG(WIIMOTE, "Wiimote::ReadData: %d @ 0x%02x @ 0x%02x (%d)", rd->space, rd->slave_address, address, size);
 
   ReadRequest rr;
   u8* const block = new u8[size];
@@ -312,7 +317,8 @@ void Wiimote::ReadData(const wm_read_data* const rd)
         delete[] block;
         return;
       }
-      // generate a read error
+
+      // generate a read error, even if the start of the block is readable a real wiimote just sends error code 8
       size = 0;
     }
 
@@ -337,22 +343,23 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   {
     // Read from Control Register
 
-    m_i2c_bus.BusRead(address >> 17, address & 0xff, rd->size, block);
-    // TODO: generate read errors
+    m_i2c_bus.BusRead(rd->slave_address >> 1, address & 0xff, size, block);
+    // TODO: generate read errors, 7 == no such slave (no ack)
   }
   break;
 
   default:
-    PanicAlert("WmReadData: unimplemented parameters (size: %i, address: 0x%x)!", size, rd->space);
+    PanicAlert("Wiimote::ReadData: unimplemented address space (space: 0x%x)!", rd->space);
     break;
   }
 
-  // want the requested address, not the above modified one
-  rr.address = Common::swap24(rd->address);
+  rr.address = address;
   rr.size = size;
-  // rr.channel = _channelID;
   rr.position = 0;
   rr.data = block;
+
+  // TODO: read requests suppress normal input reports
+  // TODO: if there is currently an active read request ignore new ones
 
   // send up to 16 bytes
   SendReadDataReply(rr);
@@ -391,7 +398,7 @@ void Wiimote::SendReadDataReply(ReadRequest& request)
   {
     // Limit the amt to 16 bytes
     // AyuanX: the MTU is 640B though... what a waste!
-    const int amt = std::min((unsigned int)16, request.size);
+    const int amt = std::min((u16)16, request.size);
 
     // no error
     reply->error = 0;
@@ -432,13 +439,13 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_shake_step);
   p.Do(m_sensor_bar_on_top);
   p.Do(m_status);
-  p.Do(m_adpcm_state);
+  p.Do(m_speaker_logic.adpcm_state);
   p.Do(m_ext_logic.ext_key);
   p.DoArray(m_eeprom);
   p.Do(m_reg_motion_plus);
   p.Do(m_camera_logic.reg_data);
   p.Do(m_ext_logic.reg_data);
-  p.Do(m_reg_speaker);
+  p.Do(m_speaker_logic.reg_data);
 
   // Do 'm_read_requests' queue
   {
