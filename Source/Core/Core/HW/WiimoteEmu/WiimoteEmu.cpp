@@ -318,9 +318,9 @@ void Wiimote::Reset()
   memcpy(m_eeprom + 0x16D0, eeprom_data_16D0, sizeof(eeprom_data_16D0));
 
   // set up the register
-  memset(&m_reg_speaker, 0, sizeof(m_reg_speaker));
 
   // TODO: kill/move these
+  memset(&m_speaker_logic.reg_data, 0, sizeof(m_speaker_logic.reg_data));
   memset(&m_camera_logic.reg_data, 0, sizeof(m_camera_logic.reg_data));
   memset(&m_ext_logic.reg_data, 0, sizeof(m_ext_logic.reg_data));
 
@@ -351,14 +351,15 @@ void Wiimote::Reset()
   }
 
   // Yamaha ADPCM state initialize
-  m_adpcm_state.predictor = 0;
-  m_adpcm_state.step = 127;
+  m_speaker_logic.adpcm_state.predictor = 0;
+  m_speaker_logic.adpcm_state.step = 127;
 
   // Initialize i2c bus
   // TODO: kill magic numbers
   m_i2c_bus.Reset();
   m_i2c_bus.AddSlave(0x58, &m_camera_logic);
   m_i2c_bus.AddSlave(0x52, &m_ext_logic);
+  m_i2c_bus.AddSlave(0x51, &m_speaker_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)

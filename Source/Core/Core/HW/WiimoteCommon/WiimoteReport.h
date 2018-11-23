@@ -405,7 +405,10 @@ struct wm_write_data
   u8 rumble : 1;
   u8 space : 2;  // see WM_SPACE_*
   u8 : 5;
-  u8 address[3];
+  // used only for register space (i2c bus)
+  u8 slave_address;
+  // big endian:
+  u8 address[2];
   u8 size;
   u8 data[16];
 };
@@ -424,8 +427,11 @@ struct wm_read_data
   u8 rumble : 1;
   u8 space : 2;  // see WM_SPACE_*
   u8 : 5;
-  u8 address[3];
-  u16 size;
+  // used only for register space (i2c bus)
+  u8 slave_address;
+  // big endian:
+  u8 address[2];
+  u8 size[2];
 };
 static_assert(sizeof(wm_read_data) == 6, "Wrong size");
 
