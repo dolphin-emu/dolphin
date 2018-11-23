@@ -8,11 +8,11 @@
 #include <queue>
 #include <string>
 
+#include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "Common/Logging/Log.h"
 
 // Registry sizes
 #define WIIMOTE_EEPROM_SIZE (16 * 1024)
@@ -159,11 +159,10 @@ struct ADPCMState
 
 struct ExtensionReg
 {
-  u8 unknown1[0x08];
+  // 16 bytes of possible extension data
+  u8 controller_data[0x10];
 
-  // address 0x08
-  u8 controller_data[0x06];
-  u8 unknown2[0x12];
+  u8 unknown2[0x10];
 
   // address 0x20
   u8 calibration[0x10];
@@ -181,6 +180,8 @@ struct ExtensionReg
   u8 constant_id[6];
 };
 #pragma pack(pop)
+
+static_assert(0x100 == sizeof(ExtensionReg));
 
 void EmulateShake(AccelData* accel, ControllerEmu::Buttons* buttons_group, double intensity,
                   u8* shake_step);
@@ -242,20 +243,11 @@ public:
 class I2CBus
 {
 public:
-  void AddSlave(u8 addr, I2CSlave* slave)
-  {
-    m_slaves.insert(std::make_pair(addr, slave));
-  }
+  void AddSlave(u8 addr, I2CSlave* slave) { m_slaves.insert(std::make_pair(addr, slave)); }
 
-  void RemoveSlave(u8 addr)
-  {
-    m_slaves.erase(addr);
-  }
+  void RemoveSlave(u8 addr) { m_slaves.erase(addr); }
 
-  void Reset()
-  {
-    m_slaves.clear();
-  }
+  void Reset() { m_slaves.clear(); }
 
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   {
@@ -336,7 +328,7 @@ protected:
   void GetButtonData(u8* data);
   void GetAccelData(u8* data);
   void UpdateIRData(bool use_accel);
-  void GetExtData(u8* data);
+  void UpdateExtData();
 
   bool HaveExtension() const;
   bool WantExtension() const;
@@ -368,6 +360,39 @@ private:
     }
 
   } m_camera_logic;
+
+  struct ExtensionLogic : public I2CSlave
+  {
+    ExtensionReg reg_data;
+    wiimote_key ext_key;
+
+    int BusRead(u8 addr, int count, u8* data_out) override
+    {
+      auto const result = raw_read(&reg_data, addr, count, data_out);
+
+      // Encrypt data read from extension register
+      // Check if encrypted reads is on
+      if (0xaa == reg_data.encryption)
+        WiimoteEncrypt(&ext_key, data_out, addr, (u8)count);
+
+      return result;
+    }
+
+    int BusWrite(u8 addr, int count, const u8* data_in) override
+    {
+      auto const result = raw_write(&reg_data, addr, count, data_in);
+
+      if (addr + count > 0x40 && addr < 0x50)
+      {
+        // Run the key generation on all writes in the key area, it doesn't matter
+        //  that we send it parts of a key, only the last full key will have an effect
+        WiimoteGenerateKey(&ext_key, reg_data.encryption_key);
+      }
+
+      return result;
+    }
+
+  } m_ext_logic;
 
   struct ReadRequest
   {
@@ -443,8 +468,6 @@ private:
   // maybe read requests cancel any current requests
   std::queue<ReadRequest> m_read_requests;
 
-  wiimote_key m_ext_key;
-
 #pragma pack(push, 1)
   u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
   struct MotionPlusReg
@@ -459,8 +482,6 @@ private:
     // address 0xFA
     u8 ext_identifier[6];
   } m_reg_motion_plus;
-
-  ExtensionReg m_reg_ext;
 
   struct SpeakerReg
   {

@@ -319,9 +319,11 @@ void Wiimote::Reset()
 
   // set up the register
   memset(&m_reg_speaker, 0, sizeof(m_reg_speaker));
-  // TODO: kill/move this
+
+  // TODO: kill/move these
   memset(&m_camera_logic.reg_data, 0, sizeof(m_camera_logic.reg_data));
-  memset(&m_reg_ext, 0, sizeof(m_reg_ext));
+  memset(&m_ext_logic.reg_data, 0, sizeof(m_ext_logic.reg_data));
+
   memset(&m_reg_motion_plus, 0, sizeof(m_reg_motion_plus));
 
   memcpy(&m_reg_motion_plus.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
@@ -353,7 +355,10 @@ void Wiimote::Reset()
   m_adpcm_state.step = 127;
 
   // Initialize i2c bus
+  // TODO: kill magic numbers
+  m_i2c_bus.Reset();
   m_i2c_bus.AddSlave(0x58, &m_camera_logic);
+  m_i2c_bus.AddSlave(0x52, &m_ext_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
@@ -411,12 +416,12 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
-  m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
-  m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_reg_ext));
-  m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
-  m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
-  m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
-  m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
+  m_extension->attachments.emplace_back(new WiimoteEmu::None(m_ext_logic.reg_data));
+  m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_ext_logic.reg_data));
+  m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_ext_logic.reg_data));
+  m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_ext_logic.reg_data));
+  m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_ext_logic.reg_data));
+  m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_ext_logic.reg_data));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
@@ -825,17 +830,10 @@ void Wiimote::UpdateIRData(bool use_accel)
     }
 }
 
-void Wiimote::GetExtData(u8* const data)
+void Wiimote::UpdateExtData()
 {
-  m_extension->GetState(data);
-
-  // i dont think anything accesses the extension data like this, but ill support it. Indeed,
-  // commercial games don't do this.
-  // i think it should be unencrpyted in the register, encrypted when read.
-  memcpy(m_reg_ext.controller_data, data, sizeof(wm_nc));  // TODO: Should it be nc specific?
-
-  if (0xAA == m_reg_ext.encryption)
-    WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_nc));
+  // Write extension data to addr 0x00 of extension register
+  m_extension->GetState(m_ext_logic.reg_data.controller_data);
 }
 
 void Wiimote::Update()
@@ -861,7 +859,7 @@ void Wiimote::Update()
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
   s8 rptf_size = rptf.size;
   if (Movie::IsPlayingInput() &&
-      Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_key))
+      Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_logic.ext_key))
   {
     if (rptf.core)
       m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core);
@@ -900,18 +898,21 @@ void Wiimote::Update()
     UpdateIRData(rptf.accel != 0);
     if (rptf.ir)
     {
+      // TODO: kill magic numbers
       m_i2c_bus.BusRead(0x58, 0x37, rptf.ir, feature_ptr);
       feature_ptr += rptf.ir;
     }
 
     // extension
+    UpdateExtData();
     if (rptf.ext)
     {
-      // GetExtData(feature_ptr, rptf.ext);
+      // TODO: kill magic numbers
+      m_i2c_bus.BusRead(0x52, 0x00, rptf.ext, feature_ptr);
       feature_ptr += rptf.ext;
     }
 
-    Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_key);
+    Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_logic.ext_key);
   }
   if (NetPlay::IsNetPlayRunning())
   {
@@ -920,7 +921,8 @@ void Wiimote::Update()
       m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core);
   }
 
-  Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
+  // TODO: need to fix usage of rptf probably
+  Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_logic.ext_key);
 
   // don't send a data report if auto reporting is off
   if (false == m_reporting_auto && data[1] >= RT_REPORT_CORE)
