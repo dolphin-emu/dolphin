@@ -8,6 +8,7 @@
 #include <QIcon>
 
 #include "Core/Core.h"
+#include "Core/NetPlayProto.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -54,6 +55,7 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   bool playing = running && state != Core::State::Paused;
   UpdatePausePlayButtonState(playing);

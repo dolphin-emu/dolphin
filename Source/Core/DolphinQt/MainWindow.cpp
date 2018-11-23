@@ -275,6 +275,8 @@ void MainWindow::InitCoreCallbacks()
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
     if (state == Core::State::Uninitialized)
       OnStopComplete();
+    if (state != Core::State::Uninitialized && NetPlay::IsNetPlayRunning() && m_controllers_window)
+      m_controllers_window->reject();
 
     if (state == Core::State::Running && m_fullscreen_requested)
     {
