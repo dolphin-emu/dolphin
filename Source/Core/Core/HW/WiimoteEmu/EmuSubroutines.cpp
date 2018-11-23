@@ -266,15 +266,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 
     return;
 
-    // TODO: extension register stuff..
 
-    //if (false)//&m_reg_ext == region_ptr)
-    //{
-    //  // Run the key generation on all writes in the key area, it doesn't matter
-    //  // that we send it parts of a key, only the last full key will have an effect
-    //  if (address >= 0xa40040 && address <= 0xa4004c)
-    //    WiimoteGenerateKey(&m_ext_key, m_reg_ext.encryption_key);
-    //}
     //else if (&m_reg_motion_plus == region_ptr)
     //{
     //  // activate/deactivate motion plus
@@ -345,25 +337,8 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   {
     // Read from Control Register
 
-    // ignore second byte for extension area
-    if (0xA4 == (address >> 16))
-      address &= 0xFF00FF;
-
-    const u8 region_offset = (u8)address;
-    void* region_ptr = nullptr;
-    //int region_size = 0;
-
     m_i2c_bus.BusRead(address >> 17, address & 0xff, rd->size, block);
-
     // TODO: generate read errors
-
-    if (&m_reg_ext == region_ptr)
-    {
-      // Encrypt data read from extension register
-      // Check if encrypted reads is on
-      if (0xaa == m_reg_ext.encryption)
-        WiimoteEncrypt(&m_ext_key, block, address & 0xffff, (u8)size);
-    }
   }
   break;
 
@@ -458,11 +433,11 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_sensor_bar_on_top);
   p.Do(m_status);
   p.Do(m_adpcm_state);
-  p.Do(m_ext_key);
+  p.Do(m_ext_logic.ext_key);
   p.DoArray(m_eeprom);
   p.Do(m_reg_motion_plus);
   p.Do(m_camera_logic.reg_data);
-  p.Do(m_reg_ext);
+  p.Do(m_ext_logic.reg_data);
   p.Do(m_reg_speaker);
 
   // Do 'm_read_requests' queue
