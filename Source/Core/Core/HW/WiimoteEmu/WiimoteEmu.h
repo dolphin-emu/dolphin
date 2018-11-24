@@ -16,9 +16,6 @@
 // Registry sizes
 #define WIIMOTE_EEPROM_SIZE (16 * 1024)
 #define WIIMOTE_EEPROM_FREE_SIZE 0x1700
-#define WIIMOTE_REG_SPEAKER_SIZE 10
-#define WIIMOTE_REG_EXT_SIZE 0x100
-#define WIIMOTE_REG_IR_SIZE 0x34
 
 class PointerWrap;
 
@@ -116,7 +113,14 @@ enum class TurntableGroup
 
 struct ReportFeatures
 {
-  u8 core, accel, ir, ext, size;
+  // Byte counts:
+  // Features are always in the following order in an input report:
+  u8 core_size, accel_size, ir_size, ext_size, total_size;
+
+  int GetCoreOffset() const { return 2; }
+  int GetAccelOffset() const { return GetCoreOffset() + core_size; }
+  int GetIROffset() const { return GetAccelOffset() + accel_size; }
+  int GetExtOffset() const { return GetIROffset() + ir_size; }
 };
 
 struct AccelData
@@ -403,7 +407,7 @@ private:
 
   } m_ext_logic;
 
-  struct SpeakerLogic : public I2CSlave 
+  struct SpeakerLogic : public I2CSlave
   {
     struct
     {

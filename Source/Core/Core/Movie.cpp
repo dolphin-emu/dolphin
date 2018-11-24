@@ -648,10 +648,10 @@ static void SetWiiInputDisplayString(int remoteID, const u8* const data,
 
   std::string display_str = StringFromFormat("R%d:", remoteID + 1);
 
-  const u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
-  const u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
-  const u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
-  const u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
+  const u8* const coreData = rptf.core_size ? (data + rptf.GetCoreOffset()) : nullptr;
+  const u8* const accelData = rptf.accel_size ? (data + rptf.GetAccelOffset()) : nullptr;
+  const u8* const irData = rptf.ir_size ? (data + rptf.GetIROffset()) : nullptr;
+  const u8* const extData = rptf.ext_size ? (data + rptf.GetExtOffset()) : nullptr;
 
   if (coreData)
   {
@@ -821,7 +821,7 @@ void CheckWiimoteStatus(int wiimote, const u8* data, const WiimoteEmu::ReportFea
   SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
 
   if (IsRecordingInput())
-    RecordWiimote(wiimote, data, rptf.size);
+    RecordWiimote(wiimote, data, rptf.total_size);
 }
 
 void RecordWiimote(int wiimote, const u8* data, u8 size)
@@ -1204,7 +1204,7 @@ bool PlayWiimote(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, 
     return false;
   }
 
-  u8 size = rptf.size;
+  u8 size = rptf.total_size;
 
   u8 sizeInMovie = s_temp_input[s_currentByte];
 

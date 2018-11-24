@@ -326,10 +326,10 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
 
   UpdateExt(ext);
 
-  u8* const buttons_data = rptf.core ? (report_data + rptf.core) : nullptr;
-  u8* const accel_data = rptf.accel ? (report_data + rptf.accel) : nullptr;
-  u8* const ir_data = rptf.ir ? (report_data + rptf.ir) : nullptr;
-  u8* const ext_data = rptf.ext ? (report_data + rptf.ext) : nullptr;
+  u8* const buttons_data = rptf.core_size ? (report_data + rptf.GetCoreOffset()) : nullptr;
+  u8* const accel_data = rptf.accel_size ? (report_data + rptf.GetAccelOffset()) : nullptr;
+  u8* const ir_data = rptf.ir_size ? (report_data + rptf.GetIROffset()) : nullptr;
+  u8* const ext_data = rptf.ext_size ? (report_data + rptf.GetExtOffset()) : nullptr;
 
   if (m_remote_buttons_box->isVisible() && buttons_data)
   {
@@ -380,10 +380,11 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
 
     u8 mode;
     // Mode 5 not supported in core anyway.
-    if (rptf.ext)
-      mode = (rptf.ext - rptf.ir) == 10 ? 1 : 3;
+    // TODO: Can just use ir_size to determine mode
+    if (rptf.ext_size)
+      mode = (rptf.GetExtOffset() - rptf.GetIROffset()) == 10 ? 1 : 3;
     else
-      mode = (rptf.size - rptf.ir) == 10 ? 1 : 3;
+      mode = (rptf.total_size - rptf.GetIROffset()) == 10 ? 1 : 3;
 
     if (mode == 1)
     {
