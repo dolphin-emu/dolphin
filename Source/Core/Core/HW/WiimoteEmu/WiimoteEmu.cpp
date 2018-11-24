@@ -307,7 +307,7 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
-  m_reporting_mode = RT_REPORT_CORE;
+  m_reporting_mode = RT_REPORT_DISABLED;
   m_reporting_channel = 0;
   m_reporting_auto = false;
 
@@ -566,8 +566,7 @@ bool Wiimote::Step()
     // WiiBrew: Following a connection or disconnection event on the Extension Port,
     // data reporting is disabled and the Data Reporting Mode must be reset before new data can
     // arrive.
-    m_reporting_mode = RT_REPORT_CORE;
-    m_reporting_auto = false;
+    m_reporting_mode = RT_REPORT_DISABLED;
 
     RequestStatus();
 
@@ -853,6 +852,13 @@ void Wiimote::Update()
 
   Movie::SetPolledDevice();
 
+  if (RT_REPORT_DISABLED == m_reporting_mode)
+  {
+    // The wiimote is in this disabled state on boot and after an extension change.
+    // Input reports are not sent, even on button change.
+    return;
+  }
+
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
   s8 rptf_size = rptf.total_size;
   if (Movie::IsPlayingInput() &&
@@ -863,7 +869,7 @@ void Wiimote::Update()
   }
   else
   {
-    data[0] = 0xA1;
+    data[0] = HID_TYPE_DATA << 4 | HID_PARAM_INPUT;
     data[1] = m_reporting_mode;
 
     const auto lock = GetStateLock();
@@ -895,24 +901,24 @@ void Wiimote::Update()
     UpdateIRData(rptf.accel_size != 0);
     if (rptf.ir_size)
     {
-      // TODO: kill magic numbers
-      m_i2c_bus.BusRead(0x58, 0x37, rptf.ir_size, feature_ptr);
+      m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR, offsetof(IRCameraLogic::RegData, camera_data),
+                        rptf.ir_size, feature_ptr);
       feature_ptr += rptf.ir_size;
     }
+
+    // motion plus
+    auto* mplus_data =
+        reinterpret_cast<wm_motionplus_data*>(m_motion_plus_logic.reg_data.controller_data);
+    *mplus_data = wm_motionplus_data();
+    mplus_data->is_mp_data = true;
 
     // extension
     UpdateExtData();
     if (rptf.ext_size)
     {
-      // TODO: kill magic numbers
-      m_i2c_bus.BusRead(0x52, 0x00, rptf.ext_size, feature_ptr);
+      m_i2c_bus.BusRead(ExtensionLogic::DEVICE_ADDR, 0x00, rptf.ext_size, feature_ptr);
       feature_ptr += rptf.ext_size;
     }
-
-    // motion plus
-    auto* mplus_data = reinterpret_cast<wm_motionplus_data*>(m_motion_plus_logic.reg_data.controller_data);
-    *mplus_data = wm_motionplus_data();
-    mplus_data->is_mp_data = true;
 
     if (feature_ptr != data + rptf_size)
     {
