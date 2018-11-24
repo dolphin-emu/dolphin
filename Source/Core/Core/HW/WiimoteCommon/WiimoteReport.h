@@ -439,7 +439,7 @@ struct wm_read_data_reply
 {
   wm_buttons buttons;
   u8 error : 4;  // see WM_RDERR_*
-  u8 size : 4;
+  u8 size_minus_one : 4;
   u16 address;
   u8 data[16];
 };

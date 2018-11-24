@@ -119,11 +119,12 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
   case RT_WRITE_DATA:  // 0x16
     WriteData(reinterpret_cast<const wm_write_data*>(sr->data));
+    return;  // sends its own ack
     break;
 
   case RT_READ_DATA:  // 0x17
     ReadData(reinterpret_cast<const wm_read_data*>(sr->data));
-    return;  // sends its own ack
+    return;  // sends its own ack/reply
     break;
 
   case RT_WRITE_SPEAKER_DATA:  // 0x18
@@ -167,7 +168,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
    The first two bytes are the core buttons data,
    00 00 means nothing is pressed.
    The last byte is the success code 00. */
-void Wiimote::SendAck(u8 report_id)
+void Wiimote::SendAck(u8 report_id, u8 error_code)
 {
   u8 data[6];
 
@@ -178,7 +179,7 @@ void Wiimote::SendAck(u8 report_id)
 
   ack->buttons = m_status.buttons;
   ack->reportID = report_id;
-  ack->errorID = 0;
+  ack->errorID = error_code;
 
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
@@ -235,6 +236,8 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     return;
   }
 
+  u8 error_code = 0;
+
   switch (wd->space)
   {
   case WS_EEPROM:
@@ -267,13 +270,15 @@ void Wiimote::WriteData(const wm_write_data* const wd)
   {
     // Write to Control Register
 
-    // TODO: generate a writedata error reply, 7 == no such slave (no ack)
-    m_i2c_bus.BusWrite(wd->slave_address >> 1, address & 0xff, wd->size, wd->data);
+    // Top byte of address is ignored on the bus.
+    auto const bytes_written = m_i2c_bus.BusWrite(wd->slave_address >> 1, (u8)address, wd->size, wd->data);
+    if (bytes_written != wd->size)
+    {
+      // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
+      error_code = 0x07;
+    }
 
-    return;
-
-
-    //else if (&m_reg_motion_plus == region_ptr)
+    // else if (&m_reg_motion_plus == region_ptr)
     //{
     //  // activate/deactivate motion plus
     //  if (0x55 == m_reg_motion_plus.activated)
@@ -291,50 +296,95 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     PanicAlert("WriteData: unimplemented parameters!");
     break;
   }
+
+  SendAck(RT_WRITE_DATA, error_code);
 }
 
 /* Read data from Wiimote and Extensions registers. */
 void Wiimote::ReadData(const wm_read_data* const rd)
 {
-  u16 address = Common::swap16(rd->address);
-  u16 size = Common::swap16(rd->size);
+  if (m_read_request.size)
+  {
+    // There is already an active read request.
+    // a real wiimote ignores the new one.
+    return;
+  }
 
-  //INFO_LOG(WIIMOTE, "Wiimote::ReadData: %d @ 0x%02x @ 0x%02x (%d)", rd->space, rd->slave_address, address, size);
+  // Save the request and process it on the next "Update()" calls
+  m_read_request.space = rd->space;
+  m_read_request.slave_address = rd->slave_address;
+  m_read_request.address = Common::swap16(rd->address);
+  // A zero size request is just ignored, like on the real wiimote.
+  m_read_request.size = Common::swap16(rd->size);
 
-  ReadRequest rr;
-  u8* const block = new u8[size];
+  INFO_LOG(WIIMOTE, "Wiimote::ReadData: %d @ 0x%02x @ 0x%02x (%d)", m_read_request.space,
+          m_read_request.slave_address, m_read_request.address, m_read_request.size);
 
-  switch (rd->space)
+  // Send up to one read-data-reply.
+  // If more data needs to be sent it will happen on the next "Update()"
+  ProcessReadDataRequest();
+}
+
+bool Wiimote::ProcessReadDataRequest()
+{
+  // Limit the amt to 16 bytes
+  // AyuanX: the MTU is 640B though... what a waste!
+  u16 const bytes_to_read = std::min((u16)16, m_read_request.size);
+
+  if (0 == bytes_to_read)
+  {
+    // No active request:
+    return false;
+  }
+
+  u8 data[23] = {};
+  data[0] = 0xA1;
+  data[1] = RT_READ_DATA_REPLY;
+
+  wm_read_data_reply* const reply = reinterpret_cast<wm_read_data_reply*>(data + 2);
+  reply->buttons = m_status.buttons;
+  reply->address = Common::swap16(m_read_request.address);
+
+  switch (m_read_request.space)
   {
   case WS_EEPROM:
   {
     // Read from EEPROM
-    if (address + size >= WIIMOTE_EEPROM_FREE_SIZE)
+    if (m_read_request.address + m_read_request.size >= WIIMOTE_EEPROM_FREE_SIZE)
     {
-      if (address + size > WIIMOTE_EEPROM_SIZE)
+      if (m_read_request.address + m_read_request.size > WIIMOTE_EEPROM_SIZE)
       {
         PanicAlert("ReadData: address + size out of bounds");
-        delete[] block;
-        return;
       }
 
-      // generate a read error, even if the start of the block is readable a real wiimote just sends error code 8
-      size = 0;
-    }
+      // generate a read error, even if the start of the block is readable a real wiimote just sends
+      // error code 8
 
-    // read mii data from file
-    if (address >= 0x0FCA && address < 0x12C0)
+      // The real Wiimote generate an error for the first
+      // request to 0x1770 if we dont't replicate that the game will never
+      // read the calibration data at the beginning of Eeprom. I think this
+      // error is supposed to occur when we try to read above the freely
+      // usable space that ends at 0x16ff.
+      reply->error = 0x08;
+    }
+    else
     {
-      // TODO Only read the Mii block parts required
-      std::ifstream file;
-      File::OpenFStream(file, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
-                        std::ios::binary | std::ios::in);
-      file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
-      file.close();
-    }
+      // Mii block handling:
+      // TODO: different filename for each wiimote?
+      if (m_read_request.address >= 0x0FCA && m_read_request.address < 0x12C0)
+      {
+        // TODO: Only read the Mii block parts required
+        std::ifstream file;
+        File::OpenFStream(file, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
+                          std::ios::binary | std::ios::in);
+        file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
+        file.close();
+      }
 
-    // read memory to be sent to Wii
-    memcpy(block, m_eeprom + address, size);
+      // read memory to be sent to Wii
+      std::copy_n(m_eeprom + m_read_request.address, bytes_to_read, reply->data);
+      reply->size_minus_one = bytes_to_read - 1;
+    }
   }
   break;
 
@@ -343,83 +393,33 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   {
     // Read from Control Register
 
-    m_i2c_bus.BusRead(rd->slave_address >> 1, address & 0xff, size, block);
-    // TODO: generate read errors, 7 == no such slave (no ack)
+    // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
+    auto const bytes_read = m_i2c_bus.BusRead(m_read_request.slave_address >> 1,
+                                        (u8)m_read_request.address, bytes_to_read, reply->data);
+
+    reply->size_minus_one = bytes_read - 1;
+
+    if (bytes_read != bytes_to_read)
+    {
+      // generate read error, 7 == no such slave (no ack)
+      reply->error = 0x07;
+    }
   }
   break;
 
   default:
-    PanicAlert("Wiimote::ReadData: unimplemented address space (space: 0x%x)!", rd->space);
+    PanicAlert("Wiimote::ReadData: unimplemented address space (space: 0x%x)!", m_read_request.space);
     break;
   }
 
-  rr.address = address;
-  rr.size = size;
-  rr.position = 0;
-  rr.data = block;
+  // Modify the read request, zero size == complete
+  m_read_request.address += bytes_to_read;
+  m_read_request.size -= bytes_to_read;
 
-  // TODO: read requests suppress normal input reports
-  // TODO: if there is currently an active read request ignore new ones
-
-  // send up to 16 bytes
-  SendReadDataReply(rr);
-
-  // if there is more data to be sent, add it to the queue
-  if (rr.size)
-    m_read_requests.push(rr);
-  else
-    delete[] rr.data;
-}
-
-void Wiimote::SendReadDataReply(ReadRequest& request)
-{
-  u8 data[23];
-  data[0] = 0xA1;
-  data[1] = RT_READ_DATA_REPLY;
-
-  wm_read_data_reply* const reply = reinterpret_cast<wm_read_data_reply*>(data + 2);
-  reply->buttons = m_status.buttons;
-  reply->address = Common::swap16(request.address);
-
-  // generate a read error
-  // Out of bounds. The real Wiimote generate an error for the first
-  // request to 0x1770 if we dont't replicate that the game will never
-  // read the calibration data at the beginning of Eeprom. I think this
-  // error is supposed to occur when we try to read above the freely
-  // usable space that ends at 0x16ff.
-  if (0 == request.size)
-  {
-    reply->size = 0x0f;
-    reply->error = 0x08;
-
-    memset(reply->data, 0, sizeof(reply->data));
-  }
-  else
-  {
-    // Limit the amt to 16 bytes
-    // AyuanX: the MTU is 640B though... what a waste!
-    const int amt = std::min((u16)16, request.size);
-
-    // no error
-    reply->error = 0;
-
-    // 0x1 means two bytes, 0xf means 16 bytes
-    reply->size = amt - 1;
-
-    // Clear the mem first
-    memset(reply->data, 0, sizeof(reply->data));
-
-    // copy piece of mem
-    memcpy(reply->data, request.data + request.position, amt);
-
-    // update request struct
-    request.size -= amt;
-    request.position += amt;
-    request.address += amt;
-  }
-
-  // Send a piece
+  // Send the data
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
+
+  return true;
 }
 
 void Wiimote::DoState(PointerWrap& p)
@@ -446,47 +446,7 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_camera_logic.reg_data);
   p.Do(m_ext_logic.reg_data);
   p.Do(m_speaker_logic.reg_data);
-
-  // Do 'm_read_requests' queue
-  {
-    u32 size = 0;
-    if (p.mode == PointerWrap::MODE_READ)
-    {
-      // clear
-      while (!m_read_requests.empty())
-      {
-        delete[] m_read_requests.front().data;
-        m_read_requests.pop();
-      }
-
-      p.Do(size);
-      while (size--)
-      {
-        ReadRequest tmp;
-        p.Do(tmp.address);
-        p.Do(tmp.position);
-        p.Do(tmp.size);
-        tmp.data = new u8[tmp.size];
-        p.DoArray(tmp.data, tmp.size);
-        m_read_requests.push(tmp);
-      }
-    }
-    else
-    {
-      std::queue<ReadRequest> tmp_queue(m_read_requests);
-      size = (u32)(m_read_requests.size());
-      p.Do(size);
-      while (!tmp_queue.empty())
-      {
-        ReadRequest tmp = tmp_queue.front();
-        p.Do(tmp.address);
-        p.Do(tmp.position);
-        p.Do(tmp.size);
-        p.DoArray(tmp.data, tmp.size);
-        tmp_queue.pop();
-      }
-    }
-  }
+  p.Do(m_read_request);
   p.DoMarker("Wiimote");
 
   if (p.GetMode() == PointerWrap::MODE_READ)
@@ -504,4 +464,4 @@ void Wiimote::RealState()
     g_wiimotes[m_index]->EnableDataReporting(m_reporting_mode);
   }
 }
-}
+}  // namespace WiimoteEmu
