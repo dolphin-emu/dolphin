@@ -33,6 +33,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 
 namespace WiimoteEmu
 {
@@ -146,9 +147,6 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_IR_LOGIC:  // 0x1a
-    // comment from old plugin:
-    // This enables or disables the IR lights, we update the global variable g_IR
-    // so that WmRequestStatus() knows about it
     m_status.ir = sr->enable;
     if (false == sr->ack)
       return;
@@ -206,10 +204,18 @@ void Wiimote::HandleExtensionSwap()
 
 void Wiimote::RequestStatus(const wm_request_status* const rs)
 {
-  HandleExtensionSwap();
+  INFO_LOG(WIIMOTE, "Wiimote::RequestStatus");
 
   // update status struct
-  m_status.extension = m_extension->active_extension ? 1 : 0;
+  m_status.extension = m_extension_port.IsDeviceConnected();
+  // Battery levels in voltage
+  //   0x00 - 0x32: level 1
+  //   0x33 - 0x43: level 2
+  //   0x33 - 0x54: level 3
+  //   0x55 - 0xff: level 4
+  m_status.battery = (u8)(m_battery_setting->GetValue() * 0xff);
+  // TODO: this right?
+  m_status.battery_low = m_status.battery < 0x33;
 
   // set up report
   u8 data[8];
@@ -228,7 +234,13 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 {
   u16 address = Common::swap16(wd->address);
 
-  INFO_LOG(WIIMOTE, "Wiimote::WriteData: 0x%02x @ 0x%02x (%d)", wd->space, address, wd->size);
+  if (0 == wd->size)
+  {
+    // Ignore requests of zero size
+    return;
+  }
+
+  INFO_LOG(WIIMOTE, "Wiimote::WriteData: 0x%02x @ 0x%02x @ 0x%02x (%d)", wd->space, wd->slave_address, address, wd->size);
 
   if (wd->size > 16)
   {
@@ -277,18 +289,6 @@ void Wiimote::WriteData(const wm_write_data* const wd)
       // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
       error_code = 0x07;
     }
-
-    // else if (&m_reg_motion_plus == region_ptr)
-    //{
-    //  // activate/deactivate motion plus
-    //  if (0x55 == m_reg_motion_plus.activated)
-    //  {
-    //    // maybe hacky
-    //    m_reg_motion_plus.activated = 0;
-
-    //    RequestStatus();
-    //  }
-    //}
   }
   break;
 
