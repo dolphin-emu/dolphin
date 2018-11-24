@@ -100,10 +100,9 @@ static const ReportFeatures reporting_mode_features[] = {
     {2, 0, 10, 9, 23},
     // 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
     {2, 3, 10, 6, 23},
+    // UNSUPPORTED (but should be easy enough to implement):
     // 0x3d: 21 Extension Bytes
     {0, 0, 0, 21, 23},
-
-    // UNSUPPORTED:
     // 0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
     {0, 0, 0, 0, 23},
 };
@@ -334,9 +333,8 @@ void Wiimote::Reset()
   memset(&m_camera_logic.reg_data, 0, sizeof(m_camera_logic.reg_data));
   memset(&m_ext_logic.reg_data, 0, sizeof(m_ext_logic.reg_data));
 
-  memset(&m_reg_motion_plus, 0, sizeof(m_reg_motion_plus));
-
-  memcpy(&m_reg_motion_plus.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
+  memset(&m_motion_plus_logic.reg_data, 0, sizeof(m_motion_plus_logic.reg_data));
+  memcpy(&m_motion_plus_logic.reg_data.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
 
   // status
   memset(&m_status, 0, sizeof(m_status));
@@ -362,9 +360,20 @@ void Wiimote::Reset()
   // Initialize i2c bus
   // TODO: kill magic numbers
   m_i2c_bus.Reset();
-  m_i2c_bus.AddSlave(0x58, &m_camera_logic);
-  m_i2c_bus.AddSlave(0x52, &m_ext_logic);
-  m_i2c_bus.AddSlave(0x51, &m_speaker_logic);
+  // Address 0x51
+  m_i2c_bus.AddSlave(&m_speaker_logic);
+
+  // TODO: only add to bus when enabled
+  // Address 0x53 (or 0x52 when activated)
+  m_i2c_bus.AddSlave(&m_motion_plus_logic);
+  // Address 0x58
+  m_i2c_bus.AddSlave(&m_camera_logic);
+
+  // TODO: add directly to wiimote bus when mplus is disabled
+  // TODO: only add to bus when connected:
+  // Address 0x52 (when motion plus is not activated)
+  // Connected to motion plus i2c_bus (with passthrough by default)
+  m_motion_plus_logic.i2c_bus.AddSlave(&m_ext_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
@@ -422,6 +431,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
+  m_ext_logic.extension = m_extension;
   m_extension->attachments.emplace_back(new WiimoteEmu::None(m_ext_logic.reg_data));
   m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_ext_logic.reg_data));
   m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_ext_logic.reg_data));
@@ -907,6 +917,11 @@ void Wiimote::Update()
       m_i2c_bus.BusRead(0x52, 0x00, rptf.ext_size, feature_ptr);
       feature_ptr += rptf.ext_size;
     }
+
+    // motion plus
+    auto* mplus_data = reinterpret_cast<wm_motionplus_data*>(m_motion_plus_logic.reg_data.controller_data);
+    *mplus_data = wm_motionplus_data();
+    mplus_data->is_mp_data = true;
 
     if (feature_ptr != data + rptf_size)
     {

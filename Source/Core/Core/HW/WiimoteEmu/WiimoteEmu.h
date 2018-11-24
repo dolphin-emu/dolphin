@@ -215,11 +215,14 @@ enum
 class I2CSlave
 {
 public:
-  virtual int BusRead(u8 addr, int count, u8* data_out) = 0;
-  virtual int BusWrite(u8 addr, int count, const u8* data_in) = 0;
+  // Kill MSVC warning:
+  virtual ~I2CSlave() = default;
+
+  virtual int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) = 0;
+  virtual int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) = 0;
 
   template <typename T>
-  static int raw_read(T* reg_data, u8 addr, int count, u8* data_out)
+  static int RawRead(T* reg_data, u8 addr, int count, u8* data_out)
   {
     static_assert(std::is_pod<T>::value);
 
@@ -234,7 +237,7 @@ public:
   }
 
   template <typename T>
-  static int raw_write(T* reg_data, u8 addr, int count, const u8* data_in)
+  static int RawWrite(T* reg_data, u8 addr, int count, const u8* data_in)
   {
     static_assert(std::is_pod<T>::value);
 
@@ -252,9 +255,15 @@ public:
 class I2CBus
 {
 public:
-  void AddSlave(u8 addr, I2CSlave* slave) { m_slaves.insert(std::make_pair(addr, slave)); }
+  void AddSlave(I2CSlave* slave)
+  {
+    m_slaves.emplace_back(slave);
+  }
 
-  void RemoveSlave(u8 addr) { m_slaves.erase(addr); }
+  void RemoveSlave(I2CSlave* slave)
+  {
+    m_slaves.erase(std::remove(m_slaves.begin(), m_slaves.end(), slave), m_slaves.end());
+  }
 
   void Reset() { m_slaves.clear(); }
 
@@ -262,31 +271,71 @@ public:
   {
     INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
 
-    // TODO: reads loop around at end of address space (0xff)
+    for (auto& slave : m_slaves)
+    {
+      auto const bytes_read = slave->BusRead(slave_addr, addr, count, data_out);
 
-    auto it = m_slaves.find(slave_addr);
-    if (m_slaves.end() != it)
-      return it->second->BusRead(addr, count, data_out);
-    else
-      return 0;
+      // A slave responded, we are done.
+      if (bytes_read)
+        return bytes_read;
+    }
+
+    return 0;
   }
 
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   {
     INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
 
-    // TODO: writes loop around at end of address space (0xff)
+    for (auto& slave : m_slaves)
+    {
+      auto const bytes_written = slave->BusWrite(slave_addr, addr, count, data_in);
 
-    auto it = m_slaves.find(slave_addr);
-    if (m_slaves.end() != it)
-      return it->second->BusWrite(addr, count, data_in);
-    else
-      return 0;
+      // A slave responded, we are done.
+      if (bytes_written)
+        return bytes_written;
+    }
+
+    return 0;
   }
 
 private:
-  // Organized by slave addr
-  std::map<u8, I2CSlave*> m_slaves;
+  std::vector<I2CSlave*> m_slaves;
+};
+
+class ExtensionAttachment : public I2CSlave
+{
+public:
+  virtual bool ReadDeviceDetectPin() = 0;
+};
+
+class ExtensionPort
+{
+public:
+  ExtensionPort(I2CBus& _i2c_bus)
+    : m_i2c_bus(_i2c_bus)
+  {}
+
+  // Simulates the "device-detect" pin.
+  // Wiimote uses this to detect extension change..
+  // and then send a status report..
+  bool IsDeviceConnected()
+  {
+    if (m_attachment)
+      return m_attachment->ReadDeviceDetectPin();
+    else
+      return false;
+  }
+
+  void SetAttachment(ExtensionAttachment* dev)
+  {
+    m_i2c_bus.RemoveSlave(m_attachment);
+    m_i2c_bus.AddSlave(m_attachment = dev);
+  }
+
+private:
+  ExtensionAttachment* m_attachment;
+  I2CBus& m_i2c_bus;
 };
 
 class Wiimote : public ControllerEmu::EmulatedController
@@ -347,6 +396,10 @@ protected:
   bool WantExtension() const;
 
 private:
+  I2CBus m_i2c_bus;
+
+  ExtensionPort m_extension_port{m_i2c_bus};
+
   struct IRCameraLogic : public I2CSlave
   {
     struct
@@ -362,26 +415,41 @@ private:
 
     static_assert(0x100 == sizeof(reg_data));
 
-    int BusRead(u8 addr, int count, u8* data_out) override
+    static const u8 DEVICE_ADDR = 0x58;
+
+    int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
-      return raw_read(&reg_data, addr, count, data_out);
+      if (DEVICE_ADDR != slave_addr)
+        return 0;
+
+      return RawRead(&reg_data, addr, count, data_out);
     }
 
-    int BusWrite(u8 addr, int count, const u8* data_in) override
+    int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override
     {
-      return raw_write(&reg_data, addr, count, data_in);
+      if (DEVICE_ADDR != slave_addr)
+        return 0;
+
+      return RawWrite(&reg_data, addr, count, data_in);
     }
 
   } m_camera_logic;
 
-  struct ExtensionLogic : public I2CSlave
+  struct ExtensionLogic : public ExtensionAttachment
   {
     ExtensionReg reg_data;
     wiimote_key ext_key;
 
-    int BusRead(u8 addr, int count, u8* data_out) override
+    ControllerEmu::Extension* extension;
+
+    static const u8 DEVICE_ADDR = 0x52;
+
+    int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
-      auto const result = raw_read(&reg_data, addr, count, data_out);
+      if (DEVICE_ADDR != slave_addr)
+        return 0;
+
+      auto const result = RawRead(&reg_data, addr, count, data_out);
 
       // Encrypt data read from extension register
       // Check if encrypted reads is on
@@ -391,9 +459,12 @@ private:
       return result;
     }
 
-    int BusWrite(u8 addr, int count, const u8* data_in) override
+    int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override
     {
-      auto const result = raw_write(&reg_data, addr, count, data_in);
+      if (DEVICE_ADDR != slave_addr)
+        return 0;
+
+      auto const result = RawWrite(&reg_data, addr, count, data_in);
 
       if (addr + count > 0x40 && addr < 0x50)
       {
@@ -403,6 +474,11 @@ private:
       }
 
       return result;
+    }
+
+    bool ReadDeviceDetectPin() override
+    {
+      return true;
     }
 
   } m_ext_logic;
@@ -427,25 +503,124 @@ private:
 
     ADPCMState adpcm_state;
 
+    static const u8 DEVICE_ADDR = 0x51;
+
     void SpeakerData(const u8* data, int length);
 
-    int BusRead(u8 addr, int count, u8* data_out) override
+    int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
-      return raw_read(&reg_data, addr, count, data_out);
+      if (DEVICE_ADDR != slave_addr)
+        return 0;
+
+      return RawRead(&reg_data, addr, count, data_out);
     }
 
-    int BusWrite(u8 addr, int count, const u8* data_in) override
+    int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override
     {
+      if (DEVICE_ADDR != slave_addr)
+        return 0;
+
       if (0x00 == addr)
       {
         SpeakerData(data_in, count);
         return count;
       }
       else
-        return raw_write(&reg_data, addr, count, data_in);
+        return RawWrite(&reg_data, addr, count, data_in);
     }
 
   } m_speaker_logic;
+
+  struct MotionPlusLogic : public ExtensionAttachment
+  {
+    // The bus on the end of the motion plus:
+    I2CBus i2c_bus;
+
+    // The port on the end of the motion plus:
+    ExtensionPort extension_port{i2c_bus};
+
+#pragma pack(push, 1)
+    struct MotionPlusRegister
+    {
+      u8 controller_data[0x10];
+      u8 unknown[0x10];
+      u8 calibration_data[0x20];
+      u8 unknown2[0xb0];
+
+      // address 0xF0
+      // TODO: bad name
+      u8 activated;
+
+      u8 unknown3[9];
+
+      // address 0xFA
+      u8 ext_identifier[6];
+    } reg_data;
+#pragma pack(pop)
+
+    static_assert(0x100 == sizeof(reg_data));
+
+    static const u8 DEVICE_ADDR = 0x53;
+    static const u8 EXT_DEVICE_ADDR = 0x52;
+
+    bool IsActive() const { return reg_data.activated; }
+
+    u8 GetPassthroughMode() const { return reg_data.ext_identifier[4]; }
+
+    // Return the status of the "device detect" pin
+    // used to product status reports on device change
+    bool GetDevicePresent() const
+    {
+      if (IsActive())
+      {
+        return true;
+      }
+      else
+      {
+        // TODO: passthrough other extension attachment status
+        return false;
+      }
+    }
+
+    int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
+    {
+      // if (DEVICE_ADDR != slave_addr)
+      // return 0;
+
+      return i2c_bus.BusRead(slave_addr, addr, count, data_out);
+
+      auto const result = RawRead(&reg_data, addr, count, data_out);
+
+      return result;
+    }
+
+    int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override
+    {
+      // if (DEVICE_ADDR != slave_addr)
+      // return 0;
+
+      return i2c_bus.BusWrite(slave_addr, addr, count, data_in);
+
+      auto const result = RawWrite(&reg_data, addr, count, data_in);
+
+      if (0xfe == addr)
+      {
+        if (true)  // 0x55 == reg_data.activated)
+        {
+          // i2c_bus.SetSlave(0x52, this);
+          // i2c_bus.RemoveSlave(0x53);
+        }
+      }
+
+      return result;
+    }
+
+    bool ReadDeviceDetectPin() override
+    {
+      return true;
+    }
+
+  } m_motion_plus_logic;
 
   void ReportMode(const wm_report_mode* dr);
   void SendAck(u8 report_id, u8 error_code = 0x0);
@@ -480,8 +655,6 @@ private:
   DynamicData m_swing_dynamic_data;
   DynamicData m_shake_dynamic_data;
 
-  I2CBus m_i2c_bus;
-
   // Wiimote accel data
   AccelData m_accel;
 
@@ -514,21 +687,6 @@ private:
     u16 size;
   } m_read_request;
 
-#pragma pack(push, 1)
   u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
-  struct MotionPlusReg
-  {
-    u8 unknown[0xF0];
-
-    // address 0xF0
-    u8 activated;
-
-    u8 unknown2[9];
-
-    // address 0xFA
-    u8 ext_identifier[6];
-  } m_reg_motion_plus;
-
-#pragma pack(pop)
 };
 }  // namespace WiimoteEmu

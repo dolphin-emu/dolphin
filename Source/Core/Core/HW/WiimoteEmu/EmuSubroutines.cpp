@@ -442,7 +442,7 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_speaker_logic.adpcm_state);
   p.Do(m_ext_logic.ext_key);
   p.DoArray(m_eeprom);
-  p.Do(m_reg_motion_plus);
+  p.Do(m_motion_plus_logic.reg_data);
   p.Do(m_camera_logic.reg_data);
   p.Do(m_ext_logic.reg_data);
   p.Do(m_speaker_logic.reg_data);
