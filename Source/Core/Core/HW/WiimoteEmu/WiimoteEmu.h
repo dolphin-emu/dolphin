@@ -5,7 +5,6 @@
 #pragma once
 
 #include <array>
-#include <queue>
 #include <string>
 
 #include "Common/Logging/Log.h"
@@ -218,6 +217,8 @@ public:
   {
     static_assert(std::is_pod<T>::value);
 
+    // TODO: addr wraps around after 0xff
+
     u8* src = reinterpret_cast<u8*>(reg_data) + addr;
     count = std::min(count, int(reinterpret_cast<u8*>(reg_data + 1) - src));
 
@@ -230,6 +231,8 @@ public:
   static int raw_write(T* reg_data, u8 addr, int count, const u8* data_in)
   {
     static_assert(std::is_pod<T>::value);
+
+    // TODO: addr wraps around after 0xff
 
     u8* dst = reinterpret_cast<u8*>(reg_data) + addr;
     count = std::min(count, int(reinterpret_cast<u8*>(reg_data + 1) - dst));
@@ -438,18 +441,12 @@ private:
 
   } m_speaker_logic;
 
-  struct ReadRequest
-  {
-    u16 address, size, position;
-    u8* data;
-  };
-
   void ReportMode(const wm_report_mode* dr);
-  void SendAck(u8 report_id);
+  void SendAck(u8 report_id, u8 error_code = 0x0);
   void RequestStatus(const wm_request_status* rs = nullptr);
   void ReadData(const wm_read_data* rd);
   void WriteData(const wm_write_data* wd);
-  void SendReadDataReply(ReadRequest& request);
+  bool ProcessReadDataRequest();
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // control groups
@@ -503,10 +500,13 @@ private:
 
   wm_status_report m_status;
 
-  // read data request queue
-  // maybe it isn't actually a queue
-  // maybe read requests cancel any current requests
-  std::queue<ReadRequest> m_read_requests;
+  struct ReadRequest
+  {
+    u8 space;
+    u8 slave_address;
+    u16 address;
+    u16 size;
+  } m_read_request;
 
 #pragma pack(push, 1)
   u8 m_eeprom[WIIMOTE_EEPROM_SIZE];

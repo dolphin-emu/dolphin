@@ -343,12 +343,7 @@ void Wiimote::Reset()
   m_swing_dynamic_data = {};
   m_shake_dynamic_data = {};
 
-  // clear read request queue
-  while (!m_read_requests.empty())
-  {
-    delete[] m_read_requests.front().data;
-    m_read_requests.pop();
-  }
+  m_read_request.size = 0;
 
   // Yamaha ADPCM state initialize
   m_speaker_logic.adpcm_state.predictor = 0;
@@ -542,21 +537,10 @@ bool Wiimote::Step()
     UpdateButtonsStatus();
   }
 
-  // check if there is a read data request
-  if (!m_read_requests.empty())
+  if (ProcessReadDataRequest())
   {
-    ReadRequest& rr = m_read_requests.front();
-    // send up to 16 bytes to the Wii
-    SendReadDataReply(rr);
-
-    // if there is no more data, remove from queue
-    if (0 == rr.size)
-    {
-      delete[] rr.data;
-      m_read_requests.pop();
-    }
-
-    // don't send any other reports
+    // Read requests suppress normal input reports
+    // Don't send any other reports
     return true;
   }
 
@@ -913,7 +897,8 @@ void Wiimote::Update()
       feature_ptr += rptf.ext;
     }
 
-    Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_logic.ext_key);
+    Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension,
+                             m_ext_logic.ext_key);
   }
   if (NetPlay::IsNetPlayRunning())
   {
@@ -923,7 +908,8 @@ void Wiimote::Update()
   }
 
   // TODO: need to fix usage of rptf probably
-  Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_logic.ext_key);
+  Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension,
+                            m_ext_logic.ext_key);
 
   // don't send a data report if auto reporting is off
   if (false == m_reporting_auto && data[1] >= RT_REPORT_CORE)
