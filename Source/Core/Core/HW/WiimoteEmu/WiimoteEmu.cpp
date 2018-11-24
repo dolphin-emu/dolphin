@@ -839,15 +839,16 @@ void Wiimote::Update()
 
   Movie::SetPolledDevice();
 
+  // TODO: Is max battery really 100 and not 0xff?
   m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
 
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
-  s8 rptf_size = rptf.size;
+  s8 rptf_size = rptf.total_size;
   if (Movie::IsPlayingInput() &&
       Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_logic.ext_key))
   {
-    if (rptf.core)
-      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core);
+    if (rptf.core_size)
+      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + 2);
   }
   else
   {
@@ -863,38 +864,43 @@ void Wiimote::Update()
     u8* feature_ptr = data + 2;
 
     // core buttons
-    if (rptf.core)
+    if (rptf.core_size)
     {
       GetButtonData(feature_ptr);
-      feature_ptr += rptf.core;
+      feature_ptr += rptf.core_size;
     }
 
     // acceleration
-    if (rptf.accel)
+    if (rptf.accel_size)
     {
       // TODO: GetAccelData has hardcoded payload offsets..
       GetAccelData(data);
-      feature_ptr += rptf.accel;
+      feature_ptr += rptf.accel_size;
     }
 
     // IR Camera
     // TODO: kill use_accel param
     // TODO: call only if camera logic is enabled?
-    UpdateIRData(rptf.accel != 0);
-    if (rptf.ir)
+    UpdateIRData(rptf.accel_size != 0);
+    if (rptf.ir_size)
     {
       // TODO: kill magic numbers
-      m_i2c_bus.BusRead(0x58, 0x37, rptf.ir, feature_ptr);
-      feature_ptr += rptf.ir;
+      m_i2c_bus.BusRead(0x58, 0x37, rptf.ir_size, feature_ptr);
+      feature_ptr += rptf.ir_size;
     }
 
     // extension
     UpdateExtData();
-    if (rptf.ext)
+    if (rptf.ext_size)
     {
       // TODO: kill magic numbers
-      m_i2c_bus.BusRead(0x52, 0x00, rptf.ext, feature_ptr);
-      feature_ptr += rptf.ext;
+      m_i2c_bus.BusRead(0x52, 0x00, rptf.ext_size, feature_ptr);
+      feature_ptr += rptf.ext_size;
+    }
+
+    if (feature_ptr != data + rptf_size)
+    {
+      PanicAlert("Wiimote input report is the wrong size!");
     }
 
     Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension,
@@ -902,9 +908,9 @@ void Wiimote::Update()
   }
   if (NetPlay::IsNetPlayRunning())
   {
-    NetPlay_GetWiimoteData(m_index, data, rptf.size, m_reporting_mode);
-    if (rptf.core)
-      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core);
+    NetPlay_GetWiimoteData(m_index, data, rptf.total_size, m_reporting_mode);
+    if (rptf.core_size)
+      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core_size);
   }
 
   // TODO: need to fix usage of rptf probably
