@@ -135,7 +135,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
       auto sd = reinterpret_cast<const wm_speaker_data*>(sr->data);
       if (sd->length > 20)
         PanicAlert("EmuWiimote: bad speaker data length!");
-      m_i2c_bus.BusWrite(0x51, 0x00, sd->length, sd->data);
+      SpeakerData(sd->data, sd->length);
     }
     return;  // no ack
     break;

@@ -68,11 +68,11 @@ void stopdamnwav()
 }
 #endif
 
-void Wiimote::SpeakerLogic::SpeakerData(const u8* data, int length)
+void Wiimote::SpeakerData(const u8* data, int length)
 {
   if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
     return;
-  if (reg_data.volume == 0 || reg_data.sample_rate == 0 ||
+  if (m_speaker_logic.reg_data.volume == 0 || m_speaker_logic.reg_data.sample_rate == 0 ||
       length == 0)
     return;
 
@@ -82,7 +82,7 @@ void Wiimote::SpeakerLogic::SpeakerData(const u8* data, int length)
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
 
-  if (reg_data.format == 0x40)
+  if (m_speaker_logic.reg_data.format == SpeakerLogic::DATA_FORMAT_PCM)
   {
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
@@ -95,13 +95,14 @@ void Wiimote::SpeakerLogic::SpeakerData(const u8* data, int length)
     volume_divisor = 0xff;
     sample_length = (unsigned int)length;
   }
-  else if (reg_data.format == 0x00)
+  else if (m_speaker_logic.reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
   {
     // 4 bit Yamaha ADPCM (same as dreamcast)
     for (int i = 0; i < length; ++i)
     {
-      samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, (data[i] >> 4) & 0xf);
-      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
+      samples[i * 2] =
+          adpcm_yamaha_expand_nibble(m_speaker_logic.adpcm_state, (data[i] >> 4) & 0xf);
+      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_speaker_logic.adpcm_state, data[i] & 0xf);
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
@@ -114,16 +115,16 @@ void Wiimote::SpeakerLogic::SpeakerData(const u8* data, int length)
   }
   else
   {
-    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", reg_data.format);
+    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", m_speaker_logic.reg_data.format);
     return;
   }
 
   // Speaker Pan
   // TODO: fix
-  unsigned int vol = 0;//(unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
+  unsigned int vol = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
 
-  unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
-  float speaker_volume_ratio = (float)reg_data.volume / volume_divisor;
+  unsigned int sample_rate = sample_rate_dividend / m_speaker_logic.reg_data.sample_rate;
+  float speaker_volume_ratio = (float)m_speaker_logic.reg_data.volume / volume_divisor;
   unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio);
   unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio);
 

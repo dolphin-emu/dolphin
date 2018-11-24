@@ -6,6 +6,7 @@
 
 #include <array>
 #include <string>
+#include <algorithm>
 
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -364,6 +365,7 @@ public:
   void Update();
   void InterruptChannel(u16 channel_id, const void* data, u32 size);
   void ControlChannel(u16 channel_id, const void* data, u32 size);
+  void SpeakerData(const u8* data, int length);
   bool CheckForButtonPress();
   void Reset();
 
@@ -392,7 +394,7 @@ private:
 
   struct IRCameraLogic : public I2CSlave
   {
-    struct
+    struct RegData
     {
       // Contains sensitivity and other unknown data
       u8 data[0x33];
@@ -433,8 +435,9 @@ private:
 
     ControllerEmu::Extension* extension;
 
-  private:
     static const u8 DEVICE_ADDR = 0x52;
+
+  private:
 
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
@@ -474,6 +477,9 @@ private:
 
   struct SpeakerLogic : public I2CSlave
   {
+    static const u8 DATA_FORMAT_ADPCM = 0x00;
+    static const u8 DATA_FORMAT_PCM = 0x40;
+
     struct
     {
       // Speaker reports result in a write of samples to addr 0x00 (which also plays sound)
@@ -497,8 +503,6 @@ private:
 
     static const u8 DEVICE_ADDR = 0x51;
 
-    void SpeakerData(const u8* data, int length);
-
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
       if (DEVICE_ADDR != slave_addr)
@@ -514,7 +518,7 @@ private:
 
       if (0x00 == addr)
       {
-        SpeakerData(data_in, count);
+        ERROR_LOG(WIIMOTE, "Writing of speaker data to address 0x00 is unimplemented!");
         return count;
       }
       else
@@ -602,7 +606,9 @@ private:
           }
         }
         else
+        {
           return 0;
+        }
       }
       else
       {
@@ -640,8 +646,7 @@ private:
         return extension_port.IsDeviceConnected();
       }
     }
-  }
-  m_motion_plus_logic;
+  } m_motion_plus_logic;
 
   void ReportMode(const wm_report_mode* dr);
   void SendAck(u8 report_id, u8 error_code = 0x0);

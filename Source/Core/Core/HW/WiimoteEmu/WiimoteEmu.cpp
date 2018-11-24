@@ -885,24 +885,25 @@ void Wiimote::Update()
     UpdateIRData(rptf.accel_size != 0);
     if (rptf.ir_size)
     {
-      // TODO: kill magic numbers
-      m_i2c_bus.BusRead(0x58, 0x37, rptf.ir_size, feature_ptr);
+      m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR,
+                        offsetof(IRCameraLogic::RegData, camera_data),
+                        rptf.ir_size, feature_ptr);
       feature_ptr += rptf.ir_size;
     }
+
+    // motion plus
+    auto* mplus_data =
+        reinterpret_cast<wm_motionplus_data*>(m_motion_plus_logic.reg_data.controller_data);
+    *mplus_data = wm_motionplus_data();
+    mplus_data->is_mp_data = true;
 
     // extension
     UpdateExtData();
     if (rptf.ext_size)
     {
-      // TODO: kill magic numbers
-      m_i2c_bus.BusRead(0x52, 0x00, rptf.ext_size, feature_ptr);
+      m_i2c_bus.BusRead(ExtensionLogic::DEVICE_ADDR, 0x00, rptf.ext_size, feature_ptr);
       feature_ptr += rptf.ext_size;
     }
-
-    // motion plus
-    auto* mplus_data = reinterpret_cast<wm_motionplus_data*>(m_motion_plus_logic.reg_data.controller_data);
-    *mplus_data = wm_motionplus_data();
-    mplus_data->is_mp_data = true;
 
     if (feature_ptr != data + rptf_size)
     {
