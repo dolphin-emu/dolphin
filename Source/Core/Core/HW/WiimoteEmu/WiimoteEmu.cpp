@@ -308,16 +308,13 @@ static const char* const named_buttons[] = {
 void Wiimote::Reset()
 {
   m_reporting_mode = RT_REPORT_CORE;
-  // i think these two are good
   m_reporting_channel = 0;
   m_reporting_auto = false;
 
   m_rumble_on = false;
   m_speaker_mute = false;
 
-  // will make the first Update() call send a status request
-  // the first call to RequestStatus() will then set up the status struct extension bit
-  m_extension->active_extension = -1;
+  m_extension->active_extension = 0;
 
   // eeprom
   memset(m_eeprom, 0, sizeof(m_eeprom));
@@ -338,12 +335,6 @@ void Wiimote::Reset()
 
   // status
   memset(&m_status, 0, sizeof(m_status));
-  // Battery levels in voltage
-  //   0x00 - 0x32: level 1
-  //   0x33 - 0x43: level 2
-  //   0x33 - 0x54: level 3
-  //   0x55 - 0xff: level 4
-  m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
 
   m_shake_step = {};
   m_shake_soft_step = {};
@@ -358,22 +349,22 @@ void Wiimote::Reset()
   m_speaker_logic.adpcm_state.step = 127;
 
   // Initialize i2c bus
-  // TODO: kill magic numbers
   m_i2c_bus.Reset();
   // Address 0x51
   m_i2c_bus.AddSlave(&m_speaker_logic);
-
-  // TODO: only add to bus when enabled
-  // Address 0x53 (or 0x52 when activated)
-  m_i2c_bus.AddSlave(&m_motion_plus_logic);
   // Address 0x58
   m_i2c_bus.AddSlave(&m_camera_logic);
+
+  // TODO: only add to bus when enabled
+  // This also adds the motion plus to the i2c bus
+  // Address 0x53 (or 0x52 when activated)
+  m_extension_port.SetAttachment(&m_motion_plus_logic);
 
   // TODO: add directly to wiimote bus when mplus is disabled
   // TODO: only add to bus when connected:
   // Address 0x52 (when motion plus is not activated)
   // Connected to motion plus i2c_bus (with passthrough by default)
-  m_motion_plus_logic.i2c_bus.AddSlave(&m_ext_logic);
+  m_motion_plus_logic.extension_port.SetAttachment(&m_ext_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
@@ -564,18 +555,21 @@ bool Wiimote::Step()
     return true;
   }
 
-  // check if a status report needs to be sent
-  // this happens on Wii Remote sync and when extensions are switched
-  if (m_extension->active_extension != m_extension->switch_extension)
-  {
-    RequestStatus();
+  // If an extension change is requested in the GUI it will first be disconnected here.
+  // causing IsDeviceConnected() to return false below:
+  HandleExtensionSwap();
 
+  // check if a status report needs to be sent
+  // this happens when extensions are switched
+  if (m_status.extension != m_extension_port.IsDeviceConnected())
+  {
     // WiiBrew: Following a connection or disconnection event on the Extension Port,
     // data reporting is disabled and the Data Reporting Mode must be reset before new data can
     // arrive.
-    // after a game receives an unrequested status report,
-    // it expects data reports to stop until it sets the reporting mode again
+    m_reporting_mode = RT_REPORT_CORE;
     m_reporting_auto = false;
+
+    RequestStatus();
 
     return true;
   }
@@ -859,9 +853,6 @@ void Wiimote::Update()
 
   Movie::SetPolledDevice();
 
-  // TODO: Is max battery really 100 and not 0xff?
-  m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
-
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
   s8 rptf_size = rptf.total_size;
   if (Movie::IsPlayingInput() &&
@@ -1113,13 +1104,9 @@ int Wiimote::CurrentExtension() const
   return m_extension->active_extension;
 }
 
-bool Wiimote::HaveExtension() const
+bool Wiimote::ExtensionLogic::ReadDeviceDetectPin()
 {
-  return m_extension->active_extension > 0;
+  return extension->active_extension ? true : false;
 }
 
-bool Wiimote::WantExtension() const
-{
-  return m_extension->switch_extension != 0;
-}
 }  // namespace WiimoteEmu

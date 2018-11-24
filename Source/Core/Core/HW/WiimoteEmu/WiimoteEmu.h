@@ -225,6 +225,7 @@ public:
   static int RawRead(T* reg_data, u8 addr, int count, u8* data_out)
   {
     static_assert(std::is_pod<T>::value);
+    static_assert(0x100 == sizeof(T));
 
     // TODO: addr wraps around after 0xff
 
@@ -240,6 +241,7 @@ public:
   static int RawWrite(T* reg_data, u8 addr, int count, const u8* data_in)
   {
     static_assert(std::is_pod<T>::value);
+    static_assert(0x100 == sizeof(T));
 
     // TODO: addr wraps around after 0xff
 
@@ -255,10 +257,7 @@ public:
 class I2CBus
 {
 public:
-  void AddSlave(I2CSlave* slave)
-  {
-    m_slaves.emplace_back(slave);
-  }
+  void AddSlave(I2CSlave* slave) { m_slaves.emplace_back(slave); }
 
   void RemoveSlave(I2CSlave* slave)
   {
@@ -270,7 +269,6 @@ public:
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   {
     INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
-
     for (auto& slave : m_slaves)
     {
       auto const bytes_read = slave->BusRead(slave_addr, addr, count, data_out);
@@ -286,7 +284,6 @@ public:
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   {
     INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
-
     for (auto& slave : m_slaves)
     {
       auto const bytes_written = slave->BusWrite(slave_addr, addr, count, data_in);
@@ -312,9 +309,7 @@ public:
 class ExtensionPort
 {
 public:
-  ExtensionPort(I2CBus& _i2c_bus)
-    : m_i2c_bus(_i2c_bus)
-  {}
+  ExtensionPort(I2CBus& _i2c_bus) : m_i2c_bus(_i2c_bus) {}
 
   // Simulates the "device-detect" pin.
   // Wiimote uses this to detect extension change..
@@ -392,9 +387,6 @@ protected:
   void UpdateIRData(bool use_accel);
   void UpdateExtData();
 
-  bool HaveExtension() const;
-  bool WantExtension() const;
-
 private:
   I2CBus m_i2c_bus;
 
@@ -435,13 +427,15 @@ private:
 
   } m_camera_logic;
 
-  struct ExtensionLogic : public ExtensionAttachment
+  class ExtensionLogic : public ExtensionAttachment
   {
+  public:
     ExtensionReg reg_data;
     wiimote_key ext_key;
 
     ControllerEmu::Extension* extension;
 
+  private:
     static const u8 DEVICE_ADDR = 0x52;
 
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
@@ -476,10 +470,7 @@ private:
       return result;
     }
 
-    bool ReadDeviceDetectPin() override
-    {
-      return true;
-    }
+    bool ReadDeviceDetectPin() override;
 
   } m_ext_logic;
 
@@ -499,7 +490,10 @@ private:
       u8 unk_7;
       u8 play;
       u8 unk_9;
+      u8 unknown[0xf4];
     } reg_data;
+
+    static_assert(0x100 == sizeof(reg_data));
 
     ADPCMState adpcm_state;
 
@@ -526,7 +520,10 @@ private:
         return count;
       }
       else
+      {
+        // TODO: should address wrap around after 0xff result in processing speaker data?
         return RawWrite(&reg_data, addr, count, data_in);
+      }
     }
 
   } m_speaker_logic;
@@ -560,67 +557,93 @@ private:
 
     static_assert(0x100 == sizeof(reg_data));
 
-    static const u8 DEVICE_ADDR = 0x53;
-    static const u8 EXT_DEVICE_ADDR = 0x52;
+    static const u8 INACTIVE_DEVICE_ADDR = 0x53;
+    static const u8 ACTIVE_DEVICE_ADDR = 0x52;
 
-    bool IsActive() const { return reg_data.activated; }
+    bool IsActive() const { return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2]; }
 
     u8 GetPassthroughMode() const { return reg_data.ext_identifier[4]; }
 
-    // Return the status of the "device detect" pin
-    // used to product status reports on device change
-    bool GetDevicePresent() const
+    int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
       if (IsActive())
       {
-        return true;
+        // TODO: does mplus respond to reads on 0xa6 when activated?
+        if (ACTIVE_DEVICE_ADDR == slave_addr || INACTIVE_DEVICE_ADDR == slave_addr)
+          return RawRead(&reg_data, addr, count, data_out);
+        else
+          return 0;
       }
       else
       {
-        // TODO: passthrough other extension attachment status
-        return false;
+        if (INACTIVE_DEVICE_ADDR == slave_addr)
+          return RawRead(&reg_data, addr, count, data_out);
+        else
+        {
+          // Passthrough to the connected extension (if any)
+          return i2c_bus.BusRead(slave_addr, addr, count, data_out);
+        }
       }
-    }
-
-    int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
-    {
-      // if (DEVICE_ADDR != slave_addr)
-      // return 0;
-
-      return i2c_bus.BusRead(slave_addr, addr, count, data_out);
-
-      auto const result = RawRead(&reg_data, addr, count, data_out);
-
-      return result;
     }
 
     int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override
     {
-      // if (DEVICE_ADDR != slave_addr)
-      // return 0;
-
-      return i2c_bus.BusWrite(slave_addr, addr, count, data_in);
-
-      auto const result = RawWrite(&reg_data, addr, count, data_in);
-
-      if (0xfe == addr)
+      if (IsActive())
       {
-        if (true)  // 0x55 == reg_data.activated)
+        // TODO: does mplus respond to reads on 0xa6 when activated?
+        if (ACTIVE_DEVICE_ADDR == slave_addr || INACTIVE_DEVICE_ADDR == slave_addr)
         {
-          // i2c_bus.SetSlave(0x52, this);
-          // i2c_bus.RemoveSlave(0x53);
+          auto const result = RawWrite(&reg_data, addr, count, data_in);
+          return result;
+
+          // TODO: Should any write (of any value) trigger activation?
+          if (0xf0 == addr)
+          {
+            // Deactivate motion plus:
+            reg_data.ext_identifier[2] = INACTIVE_DEVICE_ADDR << 1;
+          }
+        }
+        else
+          return 0;
+      }
+      else
+      {
+        if (INACTIVE_DEVICE_ADDR == slave_addr)
+        {
+          auto const result = RawWrite(&reg_data, addr, count, data_in);
+
+          // TODO: Should any write (of any value) trigger activation?
+          if (0xfe == addr)
+          {
+            // Activate motion plus:
+            reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
+          }
+
+          return result;
+        }
+        else
+        {
+          // Passthrough to the connected extension (if any)
+          return i2c_bus.BusWrite(slave_addr, addr, count, data_in);
         }
       }
-
-      return result;
     }
 
+  private:
     bool ReadDeviceDetectPin() override
     {
-      return true;
+      if (IsActive())
+      {
+        // TODO: logic for when motion plus deactivates
+        return true;
+      }
+      else
+      {
+        return extension_port.IsDeviceConnected();
+      }
     }
-
-  } m_motion_plus_logic;
+  }
+  m_motion_plus_logic;
 
   void ReportMode(const wm_report_mode* dr);
   void SendAck(u8 report_id, u8 error_code = 0x0);
