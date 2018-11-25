@@ -6,6 +6,8 @@
 
 #include <cmath>
 
+// TODO: kill this whole file, we have Matrix functions in MathUtil.h
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif

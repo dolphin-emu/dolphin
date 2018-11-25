@@ -281,6 +281,9 @@ public:
 
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   {
+    // TODO: write in blocks of 6 to simulate the real bus
+    // this might trigger activation writes more accurately
+
     INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
     for (auto& slave : m_slaves)
     {
@@ -384,7 +387,6 @@ protected:
   void GetButtonData(u8* data);
   void GetAccelData(u8* data);
   void UpdateIRData(bool use_accel);
-  void UpdateExtData();
 
 private:
   I2CBus m_i2c_bus;
@@ -436,11 +438,21 @@ private:
 
     static const u8 DEVICE_ADDR = 0x52;
 
+    void Update();
+
   private:
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
       if (DEVICE_ADDR != slave_addr)
         return 0;
+
+      if (0x00 == addr)
+      {
+        // Here we should sample user input and update controller data
+        // Moved into Update() function for TAS determinism
+        // TAS code fails to sync data reads and such..
+        //extension->GetState(reg_data.controller_data);
+      }
 
       auto const result = RawRead(&reg_data, addr, count, data_out);
 
@@ -536,6 +548,8 @@ private:
     // The port on the end of the motion plus:
     ExtensionPort extension_port{i2c_bus};
 
+    void Update();
+
 #pragma pack(push, 1)
     struct MotionPlusRegister
     {
@@ -548,7 +562,14 @@ private:
       // TODO: bad name
       u8 activated;
 
-      u8 unknown3[9];
+      u8 unknown3[6];
+
+      // Wiibrew: "While the Motion Plus is initialising, the value at 0x(4)a600f7 changes
+      // from 0x02 to 0x04 to 0x08 to 0x0C to 0x0E then stays at 0x0E"
+      // Wii Sports Resort reads this regularly and claims motion plus is disconnected if not to its liking
+      u8 initialization_status;
+
+      u8 unknown4[2];
 
       // address 0xFA
       u8 ext_identifier[6];
@@ -557,12 +578,27 @@ private:
 
     static_assert(0x100 == sizeof(reg_data));
 
+  private:
     static const u8 INACTIVE_DEVICE_ADDR = 0x53;
     static const u8 ACTIVE_DEVICE_ADDR = 0x52;
 
+    static const u8 INIT_STATUS_BEGIN = 0x00;
+    static const u8 INIT_STATUS_STEP = 0x02;
+    static const u8 INIT_STATUS_END = 0x0e;
+
+    enum class PassthroughMode : u8
+    {
+      PASSTHROUGH_DISABLED = 0x04,
+      PASSTHROUGH_NUNCHUK = 0x05,
+      PASSTHROUGH_CLASSIC = 0x07,
+    };
+
     bool IsActive() const { return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2]; }
 
-    u8 GetPassthroughMode() const { return reg_data.ext_identifier[4]; }
+    PassthroughMode GetPassthroughMode() const
+    {
+      return static_cast<PassthroughMode>(reg_data.ext_identifier[4]);
+    }
 
     // TODO: when activated it seems the motion plus continuously reads from the ext port even when not in passthrough mode
     // 16 bytes it seems
@@ -603,15 +639,17 @@ private:
           auto const result = RawWrite(&reg_data, addr, count, data_in);
           return result;
 
-          // TODO: Should any write (of any value) trigger activation?
+          // It seems a write of any value triggers deactivation.
           if (0xf0 == addr)
           {
             // Deactivate motion plus:
             reg_data.ext_identifier[2] = INACTIVE_DEVICE_ADDR << 1;
+            reg_data.initialization_status = INIT_STATUS_BEGIN;
           }
         }
         else
         {
+          // No i2c passthrough when activated.
           return 0;
         }
       }
@@ -621,7 +659,7 @@ private:
         {
           auto const result = RawWrite(&reg_data, addr, count, data_in);
 
-          // TODO: Should any write (of any value) trigger activation?
+          // It seems a write of any value triggers activation.
           if (0xfe == addr)
           {
             // Activate motion plus:

@@ -17,6 +17,7 @@
 #include "Common/Config/Config.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/BitUtils.h"
 
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteInputSettings.h"
@@ -818,12 +819,6 @@ void Wiimote::UpdateIRData(bool use_accel)
     }
 }
 
-void Wiimote::UpdateExtData()
-{
-  // Write extension data to addr 0x00 of extension register
-  m_extension->GetState(m_ext_logic.reg_data.controller_data);
-}
-
 void Wiimote::Update()
 {
   // no channel == not connected i guess
@@ -886,26 +881,27 @@ void Wiimote::Update()
     }
 
     // IR Camera
-    // TODO: kill use_accel param
-    // TODO: call only if camera logic is enabled?
-    UpdateIRData(rptf.accel_size != 0);
+    // TODO: kill use_accel param, I think it exists for TAS reasons..
+    if (m_status.ir)
+      UpdateIRData(rptf.accel_size != 0);
+
     if (rptf.ir_size)
     {
+      if (!m_status.ir)
+        WARN_LOG(WIIMOTE, "Game is reading IR data without enabling IR logic first.");
+
       m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR, offsetof(IRCameraLogic::RegData, camera_data),
                         rptf.ir_size, feature_ptr);
       feature_ptr += rptf.ir_size;
     }
 
-    // motion plus
-    auto* mplus_data =
-        reinterpret_cast<wm_motionplus_data*>(m_motion_plus_logic.reg_data.controller_data);
-    *mplus_data = wm_motionplus_data();
-    mplus_data->is_mp_data = true;
-
-    // extension
-    UpdateExtData();
+    // extension / motion-plus
     if (rptf.ext_size)
     {
+      // Update extension first as motion-plus will read from it.
+      m_ext_logic.Update();
+      m_motion_plus_logic.Update();
+
       m_i2c_bus.BusRead(ExtensionLogic::DEVICE_ADDR, 0x00, rptf.ext_size, feature_ptr);
       feature_ptr += rptf.ext_size;
     }
@@ -1041,8 +1037,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "Click 1");  // A
   m_buttons->SetControlExpression(1, "Click 3");  // B
 #else
-  m_buttons->SetControlExpression(0, "Click 0");  // A
-  m_buttons->SetControlExpression(1, "Click 1");  // B
+  m_buttons->SetControlExpression(0, "Click 0");            // A
+  m_buttons->SetControlExpression(1, "Click 1");            // B
 #endif
   m_buttons->SetControlExpression(2, "1");  // 1
   m_buttons->SetControlExpression(3, "2");  // 2
@@ -1099,6 +1095,111 @@ int Wiimote::CurrentExtension() const
 bool Wiimote::ExtensionLogic::ReadDeviceDetectPin()
 {
   return extension->active_extension ? true : false;
+}
+
+void Wiimote::ExtensionLogic::Update()
+{
+  // Update controller data from user input:
+  // Write data to addr 0x00 of extension register
+  extension->GetState(reg_data.controller_data);
+}
+
+// TODO: move this to Common if it doesn't exist already?
+template <typename T>
+void SetBit(T& value, u32 bit_number, bool bit_value)
+{
+  bit_value ? value |= (1 << bit_number) : value &= ~(1 << bit_number);
+}
+
+void Wiimote::MotionPlusLogic::Update()
+{
+  if (IsActive() && reg_data.initialization_status != INIT_STATUS_END)
+  {
+    reg_data.initialization_status += INIT_STATUS_STEP;
+  }
+
+  auto& mplus_data = *reinterpret_cast<wm_motionplus_data*>(reg_data.controller_data);
+  auto& data = reg_data.controller_data;
+
+  switch (GetPassthroughMode())
+  {
+  case PassthroughMode::PASSTHROUGH_DISABLED:
+  {
+    mplus_data.is_mp_data = true;
+    break;
+  }
+  case PassthroughMode::PASSTHROUGH_NUNCHUK:
+  {
+    // If we sent mplus data last time now we will send ext data.
+    mplus_data.is_mp_data ^= true;
+
+    if (!mplus_data.is_mp_data)
+    {
+      // The real mplus seems to read 16 bytes, even when not in passthrough mode.
+      // We'll just read 6 bytes
+      i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data);
+      // Passthrough data modifications via wiibrew.org
+      // Data passing through drops the least significant bit of the three accelerometer values
+      // Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
+      SetBit(data[5], 6, Common::ExtractBit(data[5], 7));
+      // Bit 0 of byte 4 is moved to bit 7 of byte 5
+      SetBit(data[5], 7, Common::ExtractBit(data[4], 0));
+      // Bit 3 of byte 5 is moved to  bit 4 of byte 5, overwriting it
+      SetBit(data[5], 4, Common::ExtractBit(data[5], 3));
+      // Bit 1 of byte 5 is moved to bit 3 of byte 5
+      SetBit(data[5], 3, Common::ExtractBit(data[5], 1));
+      // Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
+      SetBit(data[5], 2, Common::ExtractBit(data[5], 0));
+    }
+    break;
+  }
+  case PassthroughMode::PASSTHROUGH_CLASSIC:
+  {
+    // If we sent mplus data last time now we will send ext data.
+    mplus_data.is_mp_data ^= true;
+
+    if (!mplus_data.is_mp_data)
+    {
+      i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, reg_data.controller_data);
+      // Passthrough data modifications via wiibrew.org
+      // Data passing through drops the least significant bit of the axes of the left (or only) joystick
+      // Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag]
+      // Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
+      SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
+      SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
+    }
+    break;
+  }
+  default:
+    PanicAlert("MotionPlus unknown passthrough-mode %d", GetPassthroughMode());
+    break;
+  }
+
+  // If the above logic determined this should be mp data, update it here
+  if (mplus_data.is_mp_data)
+  {
+    // Wiibrew: "While the Wiimote is still, the values will be about 0x1F7F (8,063)"
+    u16 yaw_value = 0x1F7F;
+    u16 roll_value = 0x1F7F;
+    u16 pitch_value = 0x1F7F;
+
+    mplus_data.yaw_slow = 1;
+    mplus_data.roll_slow = 1;
+    mplus_data.pitch_slow = 1;
+
+    // Bits 0-7
+    mplus_data.yaw1 = yaw_value & 0xff;
+    mplus_data.roll1 = roll_value & 0xff;
+    mplus_data.pitch1 = pitch_value & 0xff;
+
+    // Bits 8-13
+    mplus_data.yaw1 = yaw_value >> 8;
+    mplus_data.roll1 = roll_value >> 8;
+    mplus_data.pitch1 = pitch_value >> 8;
+  }
+
+  mplus_data.extension_connected = extension_port.IsDeviceConnected();
+  mplus_data.zero = 0;
 }
 
 }  // namespace WiimoteEmu

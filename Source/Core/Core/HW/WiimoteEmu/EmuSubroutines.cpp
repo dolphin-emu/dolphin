@@ -464,6 +464,8 @@ void Wiimote::DoState(PointerWrap& p)
 
   if (p.GetMode() == PointerWrap::MODE_READ)
     RealState();
+
+  // TODO: rebuild i2c bus state after state-change
 }
 
 // load real Wiimote state
