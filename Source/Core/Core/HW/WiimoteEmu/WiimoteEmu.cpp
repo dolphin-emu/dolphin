@@ -966,7 +966,6 @@ void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
     return;
   }
 
-  // this all good?
   m_reporting_channel = channel_id;
 
   const hid_packet* hidp = reinterpret_cast<const hid_packet*>(data);
@@ -1008,7 +1007,6 @@ void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
 
 void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
 {
-  // this all good?
   m_reporting_channel = channel_id;
 
   const hid_packet* hidp = reinterpret_cast<const hid_packet*>(data);
@@ -1019,11 +1017,8 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
     switch (hidp->param)
     {
     case HID_PARAM_OUTPUT:
-    {
-      const wm_report* sr = reinterpret_cast<const wm_report*>(hidp->data);
-      HidOutputReport(sr);
-    }
-    break;
+      HidOutputReport(reinterpret_cast<const wm_report*>(hidp->data));
+      break;
 
     default:
       PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp->param);
