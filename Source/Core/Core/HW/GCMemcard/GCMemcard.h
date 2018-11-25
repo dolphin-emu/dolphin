@@ -334,14 +334,18 @@ private:
   std::array<BlockAlloc, 2> m_bat_blocks;
   std::vector<GCMBlock> m_data_blocks;
 
-  Directory* m_current_directory_block;
-  Directory* m_previous_directory_block;
-  BlockAlloc* m_current_bat_block;
-  BlockAlloc* m_previous_bat_block;
+  int m_active_directory;
+  int m_active_bat;
 
   u32 ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
                         const std::string& outputFile);
-  void InitDirBatPointers();
+  void InitActiveDirBat();
+
+  const Directory& GetActiveDirectory() const;
+  const BlockAlloc& GetActiveBat() const;
+
+  void UpdateDirectory(const Directory& directory);
+  void UpdateBat(const BlockAlloc& bat);
 
 public:
   explicit GCMemcard(const std::string& fileName, bool forceCreation = false,
