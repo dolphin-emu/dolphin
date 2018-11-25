@@ -214,7 +214,6 @@ enum
 class I2CSlave
 {
 public:
-  // Kill MSVC warning:
   virtual ~I2CSlave() = default;
 
   virtual int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) = 0;
@@ -438,7 +437,6 @@ private:
     static const u8 DEVICE_ADDR = 0x52;
 
   private:
-
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
       if (DEVICE_ADDR != slave_addr)
@@ -566,12 +564,19 @@ private:
 
     u8 GetPassthroughMode() const { return reg_data.ext_identifier[4]; }
 
+    // TODO: when activated it seems the motion plus continuously reads from the ext port even when not in passthrough mode
+    // 16 bytes it seems
+
+    // It also sends the 0x55 to 0xf0 activation
+    // It also writes 0x00 to slave:0x52 addr:0xfa for some reason
+    // And starts a write to 0xfa but never writes bytes..
+
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
       if (IsActive())
       {
-        // TODO: does mplus respond to reads on 0xa6 when activated?
-        if (ACTIVE_DEVICE_ADDR == slave_addr || INACTIVE_DEVICE_ADDR == slave_addr)
+        // Motion plus does not respond to 0x53 when activated
+        if (ACTIVE_DEVICE_ADDR == slave_addr)
           return RawRead(&reg_data, addr, count, data_out);
         else
           return 0;
@@ -592,8 +597,8 @@ private:
     {
       if (IsActive())
       {
-        // TODO: does mplus respond to reads on 0xa6 when activated?
-        if (ACTIVE_DEVICE_ADDR == slave_addr || INACTIVE_DEVICE_ADDR == slave_addr)
+        // Motion plus does not respond to 0x53 when activated
+        if (ACTIVE_DEVICE_ADDR == slave_addr)
         {
           auto const result = RawWrite(&reg_data, addr, count, data_in);
           return result;

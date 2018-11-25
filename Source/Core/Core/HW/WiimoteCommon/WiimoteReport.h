@@ -32,6 +32,10 @@ enum ReportType
   RT_STATUS_REPORT = 0x20,
   RT_READ_DATA_REPLY = 0x21,
   RT_ACK_DATA = 0x22,
+
+  // Not a real value on the wiimote, just a state to disable reports:
+  RT_REPORT_DISABLED = 0x00,
+
   RT_REPORT_CORE = 0x30,
   RT_REPORT_CORE_ACCEL = 0x31,
   RT_REPORT_CORE_EXT8 = 0x32,
@@ -40,7 +44,7 @@ enum ReportType
   RT_REPORT_CORE_ACCEL_EXT16 = 0x35,
   RT_REPORT_CORE_IR10_EXT9 = 0x36,
   RT_REPORT_CORE_ACCEL_IR10_EXT6 = 0x37,
-  RT_REPORT_EXT21 = 0x3d,  // never used?
+  RT_REPORT_EXT21 = 0x3d,
   RT_REPORT_INTERLEAVE1 = 0x3e,
   RT_REPORT_INTERLEAVE2 = 0x3f
 };

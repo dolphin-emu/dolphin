@@ -39,6 +39,21 @@ namespace WiimoteEmu
 {
 void Wiimote::ReportMode(const wm_report_mode* const dr)
 {
+  if (dr->mode < RT_REPORT_CORE || dr->mode > RT_REPORT_INTERLEAVE2 ||
+           (dr->mode > RT_REPORT_CORE_ACCEL_IR10_EXT6 && dr->mode < RT_REPORT_EXT21))
+  {
+    // A real wiimote ignores the entire message if the mode is invalid.
+    WARN_LOG(WIIMOTE, "Game requested invalid report mode: 0x%02x", dr->mode);
+    return;
+  }
+  else if (dr->mode > RT_REPORT_CORE_ACCEL_IR10_EXT6)
+  {
+    PanicAlert("Wiimote: Unsupported Reporting mode: 0x%02x", dr->mode);
+  }
+
+  // TODO: A real wiimote sends a report immediately.
+  // even on REPORT_CORE and continuous off when the buttons haven't changed.
+
   // INFO_LOG(WIIMOTE, "Set data report mode");
   // DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
   // DEBUG_LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
@@ -49,15 +64,6 @@ void Wiimote::ReportMode(const wm_report_mode* const dr)
   // m_reporting_auto = dr->all_the_time;
   m_reporting_auto = dr->continuous;
   m_reporting_mode = dr->mode;
-  // m_reporting_channel = _channelID;	// this is set in every Interrupt/Control Channel now
-
-  // reset IR camera
-  // memset(m_reg_ir, 0, sizeof(*m_reg_ir));  //ugly hack
-
-  if (dr->mode > 0x37)
-    PanicAlert("Wiimote: Unsupported Reporting mode.");
-  else if (dr->mode < RT_REPORT_CORE)
-    PanicAlert("Wiimote: Reporting mode < 0x30.");
 }
 
 /* Here we process the Output Reports that the Wii sends. Our response will be
@@ -100,6 +106,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
   case RT_IR_PIXEL_CLOCK:  // 0x13
     // INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
+    // Camera data is currently always updated. Ignoring pixel clock status.
     // m_ir_clock = sr->enable;
     if (false == sr->ack)
       return;
@@ -147,6 +154,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_IR_LOGIC:  // 0x1a
+    // Camera data is currently always updated. Just saving this for status requests.
     m_status.ir = sr->enable;
     if (false == sr->ack)
       return;
@@ -168,18 +176,19 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
    The last byte is the success code 00. */
 void Wiimote::SendAck(u8 report_id, u8 error_code)
 {
-  u8 data[6];
+  TypedHidPacket<wm_acknowledge> rpt;
+  rpt.type = HID_TYPE_DATA;
+  rpt.param = HID_PARAM_INPUT;
+  rpt.report_id = RT_ACK_DATA;
 
-  data[0] = 0xA1;
-  data[1] = RT_ACK_DATA;
-
-  wm_acknowledge* ack = reinterpret_cast<wm_acknowledge*>(data + 2);
+  auto ack = &rpt.data;
 
   ack->buttons = m_status.buttons;
   ack->reportID = report_id;
   ack->errorID = error_code;
 
-  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
+  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),
+                                         rpt.GetSize());
 }
 
 void Wiimote::HandleExtensionSwap()
@@ -218,15 +227,17 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
   m_status.battery_low = m_status.battery < 0x33;
 
   // set up report
-  u8 data[8];
-  data[0] = 0xA1;
-  data[1] = RT_STATUS_REPORT;
+  TypedHidPacket<wm_status_report> rpt;
+  rpt.type = HID_TYPE_DATA;
+  rpt.param = HID_PARAM_INPUT;
+  rpt.report_id = RT_STATUS_REPORT;
 
   // status values
-  *reinterpret_cast<wm_status_report*>(data + 2) = m_status;
+  rpt.data = m_status;
 
   // send report
-  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
+  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),
+                                         rpt.GetSize());
 }
 
 /* Write data to Wiimote and Extensions registers. */
@@ -337,11 +348,12 @@ bool Wiimote::ProcessReadDataRequest()
     return false;
   }
 
-  u8 data[23] = {};
-  data[0] = 0xA1;
-  data[1] = RT_READ_DATA_REPLY;
+  TypedHidPacket<wm_read_data_reply> rpt;
+  rpt.type = HID_TYPE_DATA;
+  rpt.param = HID_PARAM_INPUT;
+  rpt.report_id = RT_READ_DATA_REPLY;
 
-  wm_read_data_reply* const reply = reinterpret_cast<wm_read_data_reply*>(data + 2);
+  auto reply = &rpt.data;
   reply->buttons = m_status.buttons;
   reply->address = Common::swap16(m_read_request.address);
 
@@ -417,7 +429,8 @@ bool Wiimote::ProcessReadDataRequest()
   m_read_request.size -= bytes_to_read;
 
   // Send the data
-  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
+  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),
+                                         rpt.GetSize());
 
   return true;
 }

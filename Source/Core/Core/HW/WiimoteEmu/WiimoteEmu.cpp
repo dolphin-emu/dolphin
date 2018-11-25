@@ -297,7 +297,7 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
-  m_reporting_mode = RT_REPORT_CORE;
+  m_reporting_mode = RT_REPORT_DISABLED;
   m_reporting_channel = 0;
   m_reporting_auto = false;
 
@@ -556,8 +556,7 @@ bool Wiimote::Step()
     // WiiBrew: Following a connection or disconnection event on the Extension Port,
     // data reporting is disabled and the Data Reporting Mode must be reset before new data can
     // arrive.
-    m_reporting_mode = RT_REPORT_CORE;
-    m_reporting_auto = false;
+    m_reporting_mode = RT_REPORT_DISABLED;
 
     RequestStatus();
 
@@ -843,6 +842,13 @@ void Wiimote::Update()
 
   Movie::SetPolledDevice();
 
+  if (RT_REPORT_DISABLED == m_reporting_mode)
+  {
+    // The wiimote is in this disabled state on boot and after an extension change.
+    // Input reports are not sent, even on button change.
+    return;
+  }
+
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
   s8 rptf_size = rptf.total_size;
   if (Movie::IsPlayingInput() &&
@@ -853,7 +859,7 @@ void Wiimote::Update()
   }
   else
   {
-    data[0] = 0xA1;
+    data[0] = HID_TYPE_DATA << 4 | HID_PARAM_INPUT;
     data[1] = m_reporting_mode;
 
     const auto lock = GetStateLock();
@@ -885,8 +891,7 @@ void Wiimote::Update()
     UpdateIRData(rptf.accel_size != 0);
     if (rptf.ir_size)
     {
-      m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR,
-                        offsetof(IRCameraLogic::RegData, camera_data),
+      m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR, offsetof(IRCameraLogic::RegData, camera_data),
                         rptf.ir_size, feature_ptr);
       feature_ptr += rptf.ir_size;
     }
@@ -1036,8 +1041,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "Click 1");  // A
   m_buttons->SetControlExpression(1, "Click 3");  // B
 #else
-  m_buttons->SetControlExpression(0, "Click 0");            // A
-  m_buttons->SetControlExpression(1, "Click 1");            // B
+  m_buttons->SetControlExpression(0, "Click 0");  // A
+  m_buttons->SetControlExpression(1, "Click 1");  // B
 #endif
   m_buttons->SetControlExpression(2, "1");  // 1
   m_buttons->SetControlExpression(3, "2");  // 2
