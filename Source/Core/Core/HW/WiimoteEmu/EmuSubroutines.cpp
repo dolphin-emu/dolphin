@@ -354,6 +354,7 @@ bool Wiimote::ProcessReadDataRequest()
   rpt.report_id = RT_READ_DATA_REPLY;
 
   auto reply = &rpt.data;
+  reply->error = 0;
   reply->buttons = m_status.buttons;
   reply->address = Common::swap16(m_read_request.address);
 
@@ -377,6 +378,7 @@ bool Wiimote::ProcessReadDataRequest()
       // read the calibration data at the beginning of Eeprom. I think this
       // error is supposed to occur when we try to read above the freely
       // usable space that ends at 0x16ff.
+      INFO_LOG(WIIMOTE, "Responding with read error 8.");
       reply->error = 0x08;
     }
     else
@@ -414,6 +416,7 @@ bool Wiimote::ProcessReadDataRequest()
     if (bytes_read != bytes_to_read)
     {
       // generate read error, 7 == no such slave (no ack)
+      INFO_LOG(WIIMOTE, "Responding with read error 7.");
       reply->error = 0x07;
     }
   }
@@ -464,6 +467,8 @@ void Wiimote::DoState(PointerWrap& p)
 
   if (p.GetMode() == PointerWrap::MODE_READ)
     RealState();
+
+  // TODO: rebuild i2c bus state after state-change
 }
 
 // load real Wiimote state
