@@ -27,11 +27,11 @@ static void ByteSwap(u8* valueA, u8* valueB)
 }
 
 GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift_jis)
-    : m_valid(false), m_fileName(filename)
+    : m_valid(false), m_filename(filename)
 {
   // Currently there is a string freeze. instead of adding a new message about needing r/w
   // open file read only, if write is denied the error will be reported at that point
-  File::IOFile mcdFile(m_fileName, "rb");
+  File::IOFile mcdFile(m_filename, "rb");
   if (!mcdFile.IsOpen())
   {
     if (!forceCreation)
@@ -70,8 +70,8 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
       return;
     }
 
-    m_sizeMb = (u16)((size / BLOCK_SIZE) / MBIT_TO_BLOCKS);
-    switch (m_sizeMb)
+    m_size_mb = (u16)((size / BLOCK_SIZE) / MBIT_TO_BLOCKS);
+    switch (m_size_mb)
     {
     case MemCard59Mb:
     case MemCard123Mb:
@@ -88,36 +88,36 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
   }
 
   mcdFile.Seek(0, SEEK_SET);
-  if (!mcdFile.ReadBytes(&hdr, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_header_block, BLOCK_SIZE))
   {
     PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
     return;
   }
-  if (m_sizeMb != hdr.m_size_mb)
+  if (m_size_mb != m_header_block.m_size_mb)
   {
     PanicAlertT("Memory card file size does not match the header size");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&dir, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_directory_block, BLOCK_SIZE))
   {
     PanicAlertT("Failed to read directory correctly\n(0x2000-0x3FFF)");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&dir_backup, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_directory_backup_block, BLOCK_SIZE))
   {
     PanicAlertT("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&bat, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_bat_block, BLOCK_SIZE))
   {
     PanicAlertT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&bat_backup, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_bat_backup_block, BLOCK_SIZE))
   {
     PanicAlertT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
     return;
@@ -144,8 +144,8 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     else
     {
       // backup is correct, restore
-      dir = dir_backup;
-      bat = bat_backup;
+      m_directory_block = m_directory_backup_block;
+      m_bat_block = m_bat_backup_block;
 
       // update checksums
       csums = TestChecksums();
@@ -163,8 +163,8 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     else
     {
       // backup is correct, restore
-      dir = dir_backup;
-      bat = bat_backup;
+      m_directory_block = m_directory_backup_block;
+      m_bat_block = m_bat_backup_block;
 
       // update checksums
       csums = TestChecksums();
@@ -181,16 +181,16 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
 
   mcdFile.Seek(0xa000, SEEK_SET);
 
-  maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
-  mc_data_blocks.reserve(maxBlock - MC_FST_BLOCKS);
+  m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
+  m_data_blocks.reserve(m_size_blocks - MC_FST_BLOCKS);
 
   m_valid = true;
-  for (u32 i = MC_FST_BLOCKS; i < maxBlock; ++i)
+  for (u32 i = MC_FST_BLOCKS; i < m_size_blocks; ++i)
   {
     GCMBlock b;
     if (mcdFile.ReadBytes(b.block, BLOCK_SIZE))
     {
-      mc_data_blocks.push_back(b);
+      m_data_blocks.push_back(b);
     }
     else
     {
@@ -209,46 +209,46 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
 
 void GCMemcard::InitDirBatPointers()
 {
-  if (dir.m_update_counter > dir_backup.m_update_counter)
+  if (m_directory_block.m_update_counter > m_directory_backup_block.m_update_counter)
   {
-    CurrentDir = &dir;
-    PreviousDir = &dir_backup;
+    m_current_directory_block = &m_directory_block;
+    m_previous_directory_block = &m_directory_backup_block;
   }
   else
   {
-    CurrentDir = &dir_backup;
-    PreviousDir = &dir;
+    m_current_directory_block = &m_directory_backup_block;
+    m_previous_directory_block = &m_directory_block;
   }
-  if (bat.m_update_counter > bat_backup.m_update_counter)
+  if (m_bat_block.m_update_counter > m_bat_backup_block.m_update_counter)
   {
-    CurrentBat = &bat;
-    PreviousBat = &bat_backup;
+    m_current_bat_block = &m_bat_block;
+    m_previous_bat_block = &m_bat_backup_block;
   }
   else
   {
-    CurrentBat = &bat_backup;
-    PreviousBat = &bat;
+    m_current_bat_block = &m_bat_backup_block;
+    m_previous_bat_block = &m_bat_block;
   }
 }
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return hdr.m_encoding != 0;
+  return m_header_block.m_encoding != 0;
 }
 
 bool GCMemcard::Save()
 {
-  File::IOFile mcdFile(m_fileName, "wb");
+  File::IOFile mcdFile(m_filename, "wb");
   mcdFile.Seek(0, SEEK_SET);
 
-  mcdFile.WriteBytes(&hdr, BLOCK_SIZE);
-  mcdFile.WriteBytes(&dir, BLOCK_SIZE);
-  mcdFile.WriteBytes(&dir_backup, BLOCK_SIZE);
-  mcdFile.WriteBytes(&bat, BLOCK_SIZE);
-  mcdFile.WriteBytes(&bat_backup, BLOCK_SIZE);
-  for (unsigned int i = 0; i < maxBlock - MC_FST_BLOCKS; ++i)
+  mcdFile.WriteBytes(&m_header_block, BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_directory_block, BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_directory_backup_block, BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_bat_block, BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_bat_backup_block, BLOCK_SIZE);
+  for (unsigned int i = 0; i < m_size_blocks - MC_FST_BLOCKS; ++i)
   {
-    mcdFile.WriteBytes(mc_data_blocks[i].block, BLOCK_SIZE);
+    mcdFile.WriteBytes(m_data_blocks[i].block, BLOCK_SIZE);
   }
 
   return mcdFile.Close();
@@ -282,24 +282,25 @@ u32 GCMemcard::TestChecksums() const
 
   u32 results = 0;
 
-  calc_checksumsBE((u16*)&hdr, 0xFE, &csum, &csum_inv);
-  if ((hdr.m_checksum != csum) || (hdr.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)&m_header_block, 0xFE, &csum, &csum_inv);
+  if ((m_header_block.m_checksum != csum) || (m_header_block.m_checksum_inv != csum_inv))
     results |= 1;
 
-  calc_checksumsBE((u16*)&dir, 0xFFE, &csum, &csum_inv);
-  if ((dir.m_checksum != csum) || (dir.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)&m_directory_block, 0xFFE, &csum, &csum_inv);
+  if ((m_directory_block.m_checksum != csum) || (m_directory_block.m_checksum_inv != csum_inv))
     results |= 2;
 
-  calc_checksumsBE((u16*)&dir_backup, 0xFFE, &csum, &csum_inv);
-  if ((dir_backup.m_checksum != csum) || (dir_backup.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)&m_directory_backup_block, 0xFFE, &csum, &csum_inv);
+  if ((m_directory_backup_block.m_checksum != csum) ||
+      (m_directory_backup_block.m_checksum_inv != csum_inv))
     results |= 4;
 
-  calc_checksumsBE((u16*)(((u8*)&bat) + 4), 0xFFE, &csum, &csum_inv);
-  if ((bat.m_checksum != csum) || (bat.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)(((u8*)&m_bat_block) + 4), 0xFFE, &csum, &csum_inv);
+  if ((m_bat_block.m_checksum != csum) || (m_bat_block.m_checksum_inv != csum_inv))
     results |= 8;
 
-  calc_checksumsBE((u16*)(((u8*)&bat_backup) + 4), 0xFFE, &csum, &csum_inv);
-  if ((bat_backup.m_checksum != csum) || (bat_backup.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)(((u8*)&m_bat_backup_block) + 4), 0xFFE, &csum, &csum_inv);
+  if ((m_bat_backup_block.m_checksum != csum) || (m_bat_backup_block.m_checksum_inv != csum_inv))
     results |= 16;
 
   return results;
@@ -310,12 +311,16 @@ bool GCMemcard::FixChecksums()
   if (!m_valid)
     return false;
 
-  calc_checksumsBE((u16*)&hdr, 0xFE, &hdr.m_checksum, &hdr.m_checksum_inv);
-  calc_checksumsBE((u16*)&dir, 0xFFE, &dir.m_checksum, &dir.m_checksum_inv);
-  calc_checksumsBE((u16*)&dir_backup, 0xFFE, &dir_backup.m_checksum, &dir_backup.m_checksum_inv);
-  calc_checksumsBE((u16*)&bat + 2, 0xFFE, &bat.m_checksum, &bat.m_checksum_inv);
-  calc_checksumsBE((u16*)&bat_backup + 2, 0xFFE, &bat_backup.m_checksum,
-                   &bat_backup.m_checksum_inv);
+  calc_checksumsBE((u16*)&m_header_block, 0xFE, &m_header_block.m_checksum,
+                   &m_header_block.m_checksum_inv);
+  calc_checksumsBE((u16*)&m_directory_block, 0xFFE, &m_directory_block.m_checksum,
+                   &m_directory_block.m_checksum_inv);
+  calc_checksumsBE((u16*)&m_directory_backup_block, 0xFFE, &m_directory_backup_block.m_checksum,
+                   &m_directory_backup_block.m_checksum_inv);
+  calc_checksumsBE((u16*)&m_bat_block + 2, 0xFFE, &m_bat_block.m_checksum,
+                   &m_bat_block.m_checksum_inv);
+  calc_checksumsBE((u16*)&m_bat_backup_block + 2, 0xFFE, &m_bat_backup_block.m_checksum,
+                   &m_bat_backup_block.m_checksum_inv);
 
   return true;
 }
@@ -328,7 +333,7 @@ u8 GCMemcard::GetNumFiles() const
   u8 j = 0;
   for (int i = 0; i < DIRLEN; i++)
   {
-    if (CurrentDir->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (m_current_directory_block->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       j++;
   }
   return j;
@@ -341,7 +346,7 @@ u8 GCMemcard::GetFileIndex(u8 fileNumber) const
     u8 j = 0;
     for (u8 i = 0; i < DIRLEN; i++)
     {
-      if (CurrentDir->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+      if (m_current_directory_block->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       {
         if (j == fileNumber)
         {
@@ -359,7 +364,7 @@ u16 GCMemcard::GetFreeBlocks() const
   if (!m_valid)
     return 0;
 
-  return CurrentBat->m_free_blocks;
+  return m_current_bat_block->m_free_blocks;
 }
 
 u8 GCMemcard::TitlePresent(const DEntry& d) const
@@ -370,8 +375,8 @@ u8 GCMemcard::TitlePresent(const DEntry& d) const
   u8 i = 0;
   while (i < DIRLEN)
   {
-    if (CurrentDir->m_dir_entries[i].m_gamecode == d.m_gamecode &&
-        CurrentDir->m_dir_entries[i].m_filename == d.m_filename)
+    if (m_current_directory_block->m_dir_entries[i].m_gamecode == d.m_gamecode &&
+        m_current_directory_block->m_dir_entries[i].m_filename == d.m_filename)
     {
       break;
     }
@@ -383,10 +388,10 @@ u8 GCMemcard::TitlePresent(const DEntry& d) const
 bool GCMemcard::GCI_FileName(u8 index, std::string& filename) const
 {
   if (!m_valid || index >= DIRLEN ||
-      CurrentDir->m_dir_entries[index].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+      m_current_directory_block->m_dir_entries[index].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
     return false;
 
-  filename = CurrentDir->m_dir_entries[index].GCI_FileName();
+  filename = m_current_directory_block->m_dir_entries[index].GCI_FileName();
   return true;
 }
 
@@ -398,9 +403,9 @@ std::string GCMemcard::DEntry_GameCode(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  return std::string(
-      reinterpret_cast<const char*>(CurrentDir->m_dir_entries[index].m_gamecode.data()),
-      CurrentDir->m_dir_entries[index].m_gamecode.size());
+  return std::string(reinterpret_cast<const char*>(
+                         m_current_directory_block->m_dir_entries[index].m_gamecode.data()),
+                     m_current_directory_block->m_dir_entries[index].m_gamecode.size());
 }
 
 std::string GCMemcard::DEntry_Makercode(u8 index) const
@@ -408,9 +413,9 @@ std::string GCMemcard::DEntry_Makercode(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  return std::string(
-      reinterpret_cast<const char*>(CurrentDir->m_dir_entries[index].m_makercode.data()),
-      CurrentDir->m_dir_entries[index].m_makercode.size());
+  return std::string(reinterpret_cast<const char*>(
+                         m_current_directory_block->m_dir_entries[index].m_makercode.data()),
+                     m_current_directory_block->m_dir_entries[index].m_makercode.size());
 }
 
 std::string GCMemcard::DEntry_BIFlags(u8 index) const
@@ -419,7 +424,7 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
     return "";
 
   std::string flags;
-  int x = CurrentDir->m_dir_entries[index].m_banner_and_icon_flags;
+  int x = m_current_directory_block->m_dir_entries[index].m_banner_and_icon_flags;
   for (int i = 0; i < 8; i++)
   {
     flags.push_back((x & 0x80) ? '1' : '0');
@@ -433,9 +438,9 @@ std::string GCMemcard::DEntry_FileName(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  return std::string(
-      reinterpret_cast<const char*>(CurrentDir->m_dir_entries[index].m_filename.data()),
-      CurrentDir->m_dir_entries[index].m_filename.size());
+  return std::string(reinterpret_cast<const char*>(
+                         m_current_directory_block->m_dir_entries[index].m_filename.data()),
+                     m_current_directory_block->m_dir_entries[index].m_filename.size());
 }
 
 u32 GCMemcard::DEntry_ModTime(u8 index) const
@@ -443,7 +448,7 @@ u32 GCMemcard::DEntry_ModTime(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFFFFFF;
 
-  return CurrentDir->m_dir_entries[index].m_modification_time;
+  return m_current_directory_block->m_dir_entries[index].m_modification_time;
 }
 
 u32 GCMemcard::DEntry_ImageOffset(u8 index) const
@@ -451,7 +456,7 @@ u32 GCMemcard::DEntry_ImageOffset(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFFFFFF;
 
-  return CurrentDir->m_dir_entries[index].m_image_offset;
+  return m_current_directory_block->m_dir_entries[index].m_image_offset;
 }
 
 std::string GCMemcard::DEntry_IconFmt(u8 index) const
@@ -460,7 +465,7 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
     return "";
 
   std::array<u8, 2> tmp;
-  memcpy(tmp.data(), &CurrentDir->m_dir_entries[index].m_icon_format, 2);
+  memcpy(tmp.data(), &m_current_directory_block->m_dir_entries[index].m_icon_format, 2);
   int x = tmp[0];
   std::string format;
   for (int i = 0; i < 16; i++)
@@ -479,7 +484,7 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
     return "";
 
   std::array<u8, 2> tmp;
-  memcpy(tmp.data(), &CurrentDir->m_dir_entries[index].m_animation_speed, 2);
+  memcpy(tmp.data(), &m_current_directory_block->m_dir_entries[index].m_animation_speed, 2);
   int x = tmp[0];
   std::string speed;
   for (int i = 0; i < 16; i++)
@@ -497,7 +502,7 @@ std::string GCMemcard::DEntry_Permissions(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  u8 Permissions = CurrentDir->m_dir_entries[index].m_file_permissions;
+  u8 Permissions = m_current_directory_block->m_dir_entries[index].m_file_permissions;
   std::string permissionsString;
   permissionsString.push_back((Permissions & 16) ? 'x' : 'M');
   permissionsString.push_back((Permissions & 8) ? 'x' : 'C');
@@ -510,7 +515,7 @@ u8 GCMemcard::DEntry_CopyCounter(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFF;
 
-  return CurrentDir->m_dir_entries[index].m_copy_counter;
+  return m_current_directory_block->m_dir_entries[index].m_copy_counter;
 }
 
 u16 GCMemcard::DEntry_FirstBlock(u8 index) const
@@ -518,8 +523,8 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  u16 block = CurrentDir->m_dir_entries[index].m_first_block;
-  if (block > (u16)maxBlock)
+  u16 block = m_current_directory_block->m_dir_entries[index].m_first_block;
+  if (block > (u16)m_size_blocks)
     return 0xFFFF;
   return block;
 }
@@ -529,8 +534,8 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  u16 blocks = CurrentDir->m_dir_entries[index].m_block_count;
-  if (blocks > (u16)maxBlock)
+  u16 blocks = m_current_directory_block->m_dir_entries[index].m_block_count;
+  if (blocks > (u16)m_size_blocks)
     return 0xFFFF;
   return blocks;
 }
@@ -540,7 +545,7 @@ u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
 
-  return CurrentDir->m_dir_entries[index].m_comments_address;
+  return m_current_directory_block->m_dir_entries[index].m_comments_address;
 }
 
 std::string GCMemcard::GetSaveComment1(u8 index) const
@@ -548,13 +553,13 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  u32 Comment1 = CurrentDir->m_dir_entries[index].m_comments_address;
-  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
-  if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
+  u32 Comment1 = m_current_directory_block->m_dir_entries[index].m_comments_address;
+  u32 DataBlock = m_current_directory_block->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
+  if ((DataBlock > m_size_blocks) || (Comment1 == 0xFFFFFFFF))
   {
     return "";
   }
-  return std::string((const char*)mc_data_blocks[DataBlock].block + Comment1, DENTRY_STRLEN);
+  return std::string((const char*)m_data_blocks[DataBlock].block + Comment1, DENTRY_STRLEN);
 }
 
 std::string GCMemcard::GetSaveComment2(u8 index) const
@@ -562,14 +567,14 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  u32 Comment1 = CurrentDir->m_dir_entries[index].m_comments_address;
+  u32 Comment1 = m_current_directory_block->m_dir_entries[index].m_comments_address;
   u32 Comment2 = Comment1 + DENTRY_STRLEN;
-  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
-  if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
+  u32 DataBlock = m_current_directory_block->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
+  if ((DataBlock > m_size_blocks) || (Comment1 == 0xFFFFFFFF))
   {
     return "";
   }
-  return std::string((const char*)mc_data_blocks[DataBlock].block + Comment2, DENTRY_STRLEN);
+  return std::string((const char*)m_data_blocks[DataBlock].block + Comment2, DENTRY_STRLEN);
 }
 
 bool GCMemcard::GetDEntry(u8 index, DEntry& dest) const
@@ -577,7 +582,7 @@ bool GCMemcard::GetDEntry(u8 index, DEntry& dest) const
   if (!m_valid || index >= DIRLEN)
     return false;
 
-  dest = CurrentDir->m_dir_entries[index];
+  dest = m_current_directory_block->m_dir_entries[index];
   return true;
 }
 
@@ -651,8 +656,8 @@ u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
   {
     if ((!nextBlock) || (nextBlock == 0xFFFF))
       return FAIL;
-    Blocks.push_back(mc_data_blocks[nextBlock - MC_FST_BLOCKS]);
-    nextBlock = CurrentBat->GetNextBlock(nextBlock);
+    Blocks.push_back(m_data_blocks[nextBlock - MC_FST_BLOCKS]);
+    nextBlock = m_current_bat_block->GetNextBlock(nextBlock);
   }
   return SUCCESS;
 }
@@ -667,7 +672,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   {
     return OUTOFDIRENTRIES;
   }
-  if (CurrentBat->m_free_blocks < direntry.m_block_count)
+  if (m_current_bat_block->m_free_blocks < direntry.m_block_count)
   {
     return OUTOFBLOCKS;
   }
@@ -677,10 +682,11 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   }
 
   // find first free data block
-  u16 firstBlock = CurrentBat->NextFreeBlock(maxBlock, CurrentBat->m_last_allocated_block);
+  u16 firstBlock = m_current_bat_block->NextFreeBlock(m_size_blocks,
+                                                      m_current_bat_block->m_last_allocated_block);
   if (firstBlock == 0xFFFF)
     return OUTOFBLOCKS;
-  Directory UpdatedDir = *CurrentDir;
+  Directory UpdatedDir = *m_current_directory_block;
 
   // find first free dir entry
   for (int i = 0; i < DIRLEN; i++)
@@ -694,35 +700,35 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     }
   }
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
-  *PreviousDir = UpdatedDir;
-  if (PreviousDir == &dir)
+  *m_previous_directory_block = UpdatedDir;
+  if (m_previous_directory_block == &m_directory_block)
   {
-    CurrentDir = &dir;
-    PreviousDir = &dir_backup;
+    m_current_directory_block = &m_directory_block;
+    m_previous_directory_block = &m_directory_backup_block;
   }
   else
   {
-    CurrentDir = &dir_backup;
-    PreviousDir = &dir;
+    m_current_directory_block = &m_directory_backup_block;
+    m_previous_directory_block = &m_directory_block;
   }
 
   int fileBlocks = direntry.m_block_count;
 
-  FZEROGX_MakeSaveGameValid(hdr, direntry, saveBlocks);
-  PSO_MakeSaveGameValid(hdr, direntry, saveBlocks);
+  FZEROGX_MakeSaveGameValid(m_header_block, direntry, saveBlocks);
+  PSO_MakeSaveGameValid(m_header_block, direntry, saveBlocks);
 
-  BlockAlloc UpdatedBat = *CurrentBat;
+  BlockAlloc UpdatedBat = *m_current_bat_block;
   u16 nextBlock;
   // keep assuming no freespace fragmentation, and copy over all the data
   for (int i = 0; i < fileBlocks; ++i)
   {
     if (firstBlock == 0xFFFF)
       PanicAlert("Fatal Error");
-    mc_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
+    m_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
     if (i == fileBlocks - 1)
       nextBlock = 0xFFFF;
     else
-      nextBlock = UpdatedBat.NextFreeBlock(maxBlock, firstBlock + 1);
+      nextBlock = UpdatedBat.NextFreeBlock(m_size_blocks, firstBlock + 1);
     UpdatedBat.m_map[firstBlock - MC_FST_BLOCKS] = nextBlock;
     UpdatedBat.m_last_allocated_block = firstBlock;
     firstBlock = nextBlock;
@@ -730,16 +736,16 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
 
   UpdatedBat.m_free_blocks = UpdatedBat.m_free_blocks - fileBlocks;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
-  *PreviousBat = UpdatedBat;
-  if (PreviousBat == &bat)
+  *m_previous_bat_block = UpdatedBat;
+  if (m_previous_bat_block == &m_bat_block)
   {
-    CurrentBat = &bat;
-    PreviousBat = &bat_backup;
+    m_current_bat_block = &m_bat_block;
+    m_previous_bat_block = &m_bat_backup_block;
   }
   else
   {
-    CurrentBat = &bat_backup;
-    PreviousBat = &bat;
+    m_current_bat_block = &m_bat_backup_block;
+    m_previous_bat_block = &m_bat_block;
   }
 
   FixChecksums();
@@ -754,26 +760,26 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   if (index >= DIRLEN)
     return DELETE_FAIL;
 
-  u16 startingblock = CurrentDir->m_dir_entries[index].m_first_block;
-  u16 numberofblocks = CurrentDir->m_dir_entries[index].m_block_count;
+  u16 startingblock = m_current_directory_block->m_dir_entries[index].m_first_block;
+  u16 numberofblocks = m_current_directory_block->m_dir_entries[index].m_block_count;
 
-  BlockAlloc UpdatedBat = *CurrentBat;
+  BlockAlloc UpdatedBat = *m_current_bat_block;
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
     return DELETE_FAIL;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
-  *PreviousBat = UpdatedBat;
-  if (PreviousBat == &bat)
+  *m_previous_bat_block = UpdatedBat;
+  if (m_previous_bat_block == &m_bat_block)
   {
-    CurrentBat = &bat;
-    PreviousBat = &bat_backup;
+    m_current_bat_block = &m_bat_block;
+    m_previous_bat_block = &m_bat_backup_block;
   }
   else
   {
-    CurrentBat = &bat_backup;
-    PreviousBat = &bat;
+    m_current_bat_block = &m_bat_backup_block;
+    m_previous_bat_block = &m_bat_block;
   }
 
-  Directory UpdatedDir = *CurrentDir;
+  Directory UpdatedDir = *m_current_directory_block;
   /*
   // TODO: determine when this is used, even on the same memory card I have seen
   // both update to broken file, and not updated
@@ -797,16 +803,16 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   */
   memset(&(UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
-  *PreviousDir = UpdatedDir;
-  if (PreviousDir == &dir)
+  *m_previous_directory_block = UpdatedDir;
+  if (m_previous_directory_block == &m_directory_block)
   {
-    CurrentDir = &dir;
-    PreviousDir = &dir_backup;
+    m_current_directory_block = &m_directory_block;
+    m_previous_directory_block = &m_directory_backup_block;
   }
   else
   {
-    CurrentDir = &dir_backup;
-    PreviousDir = &dir;
+    m_current_directory_block = &m_directory_backup_block;
+    m_previous_directory_block = &m_directory_block;
   }
 
   FixChecksums();
@@ -1092,7 +1098,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
   if (!m_valid || index >= DIRLEN)
     return false;
 
-  int flags = CurrentDir->m_dir_entries[index].m_banner_and_icon_flags;
+  int flags = m_current_directory_block->m_dir_entries[index].m_banner_and_icon_flags;
   // Timesplitters 2 is the only game that I see this in
   // May be a hack
   if (flags == 0xFB)
@@ -1103,10 +1109,10 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
   if (bnrFormat == 0)
     return false;
 
-  u32 DataOffset = CurrentDir->m_dir_entries[index].m_image_offset;
-  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
+  u32 DataOffset = m_current_directory_block->m_dir_entries[index].m_image_offset;
+  u32 DataBlock = m_current_directory_block->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
 
-  if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
+  if ((DataBlock > m_size_blocks) || (DataOffset == 0xFFFFFFFF))
   {
     return false;
   }
@@ -1115,14 +1121,14 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 
   if (bnrFormat & 1)
   {
-    u8* pxdata = (u8*)(mc_data_blocks[DataBlock].block + DataOffset);
-    u16* paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
+    u8* pxdata = (u8*)(m_data_blocks[DataBlock].block + DataOffset);
+    u16* paldata = (u16*)(m_data_blocks[DataBlock].block + DataOffset + pixels);
 
     Common::DecodeCI8Image(buffer, pxdata, paldata, 96, 32);
   }
   else
   {
-    u16* pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
+    u16* pxdata = (u16*)(m_data_blocks[DataBlock].block + DataOffset);
 
     Common::Decode5A3Image(buffer, pxdata, 96, 32);
   }
@@ -1138,10 +1144,10 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
   // Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
   // int fmtCheck = 0;
 
-  int formats = CurrentDir->m_dir_entries[index].m_icon_format;
-  int fdelays = CurrentDir->m_dir_entries[index].m_animation_speed;
+  int formats = m_current_directory_block->m_dir_entries[index].m_icon_format;
+  int fdelays = m_current_directory_block->m_dir_entries[index].m_animation_speed;
 
-  int flags = CurrentDir->m_dir_entries[index].m_banner_and_icon_flags;
+  int flags = m_current_directory_block->m_dir_entries[index].m_banner_and_icon_flags;
   // Timesplitters 2 and 3 is the only game that I see this in
   // May be a hack
   // if (flags == 0xFB) flags = ~flags;
@@ -1150,15 +1156,15 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
 
   int bnrFormat = (flags & 3);
 
-  u32 DataOffset = CurrentDir->m_dir_entries[index].m_image_offset;
-  u32 DataBlock = CurrentDir->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
+  u32 DataOffset = m_current_directory_block->m_dir_entries[index].m_image_offset;
+  u32 DataBlock = m_current_directory_block->m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
 
-  if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
+  if ((DataBlock > m_size_blocks) || (DataOffset == 0xFFFFFFFF))
   {
     return 0;
   }
 
-  u8* animData = (u8*)(mc_data_blocks[DataBlock].block + DataOffset);
+  u8* animData = (u8*)(m_data_blocks[DataBlock].block + DataOffset);
 
   switch (bnrFormat)
   {
@@ -1282,20 +1288,20 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 
 bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
-  memset(&hdr, 0xFF, BLOCK_SIZE);
-  memset(&dir, 0xFF, BLOCK_SIZE);
-  memset(&dir_backup, 0xFF, BLOCK_SIZE);
-  memset(&bat, 0, BLOCK_SIZE);
-  memset(&bat_backup, 0, BLOCK_SIZE);
+  memset(&m_header_block, 0xFF, BLOCK_SIZE);
+  memset(&m_directory_block, 0xFF, BLOCK_SIZE);
+  memset(&m_directory_backup_block, 0xFF, BLOCK_SIZE);
+  memset(&m_bat_block, 0, BLOCK_SIZE);
+  memset(&m_bat_backup_block, 0, BLOCK_SIZE);
 
-  hdr = Header(SLOT_A, SizeMb, shift_jis);
-  dir = dir_backup = Directory();
-  bat = bat_backup = BlockAlloc(SizeMb);
+  m_header_block = Header(SLOT_A, SizeMb, shift_jis);
+  m_directory_block = m_directory_backup_block = Directory();
+  m_bat_block = m_bat_backup_block = BlockAlloc(SizeMb);
 
-  m_sizeMb = SizeMb;
-  maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
-  mc_data_blocks.clear();
-  mc_data_blocks.resize(maxBlock - MC_FST_BLOCKS);
+  m_size_mb = SizeMb;
+  m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
+  m_data_blocks.clear();
+  m_data_blocks.resize(m_size_blocks - MC_FST_BLOCKS);
 
   InitDirBatPointers();
   m_valid = true;

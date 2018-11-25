@@ -324,16 +324,22 @@ class GCMemcard
 {
 private:
   bool m_valid;
-  std::string m_fileName;
+  std::string m_filename;
 
-  u32 maxBlock;
-  u16 m_sizeMb;
+  u32 m_size_blocks;
+  u16 m_size_mb;
 
-  Header hdr;
-  Directory dir, dir_backup, *CurrentDir, *PreviousDir;
-  BlockAlloc bat, bat_backup, *CurrentBat, *PreviousBat;
+  Header m_header_block;
+  Directory m_directory_block;
+  Directory m_directory_backup_block;
+  BlockAlloc m_bat_block;
+  BlockAlloc m_bat_backup_block;
+  std::vector<GCMBlock> m_data_blocks;
 
-  std::vector<GCMBlock> mc_data_blocks;
+  Directory* m_current_directory_block;
+  Directory* m_previous_directory_block;
+  BlockAlloc* m_current_bat_block;
+  BlockAlloc* m_previous_bat_block;
 
   u32 ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
                         const std::string& outputFile);
