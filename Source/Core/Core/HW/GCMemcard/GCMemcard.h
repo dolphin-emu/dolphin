@@ -330,10 +330,8 @@ private:
   u16 m_size_mb;
 
   Header m_header_block;
-  Directory m_directory_block;
-  Directory m_directory_backup_block;
-  BlockAlloc m_bat_block;
-  BlockAlloc m_bat_backup_block;
+  std::array<Directory, 2> m_directory_blocks;
+  std::array<BlockAlloc, 2> m_bat_blocks;
   std::vector<GCMBlock> m_data_blocks;
 
   Directory* m_current_directory_block;

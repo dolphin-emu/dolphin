@@ -99,25 +99,25 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     return;
   }
 
-  if (!mcdFile.ReadBytes(&m_directory_block, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_directory_blocks[0], BLOCK_SIZE))
   {
     PanicAlertT("Failed to read directory correctly\n(0x2000-0x3FFF)");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&m_directory_backup_block, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_directory_blocks[1], BLOCK_SIZE))
   {
     PanicAlertT("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&m_bat_block, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_bat_blocks[0], BLOCK_SIZE))
   {
     PanicAlertT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
     return;
   }
 
-  if (!mcdFile.ReadBytes(&m_bat_backup_block, BLOCK_SIZE))
+  if (!mcdFile.ReadBytes(&m_bat_blocks[1], BLOCK_SIZE))
   {
     PanicAlertT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
     return;
@@ -144,8 +144,8 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     else
     {
       // backup is correct, restore
-      m_directory_block = m_directory_backup_block;
-      m_bat_block = m_bat_backup_block;
+      m_directory_blocks[0] = m_directory_blocks[1];
+      m_bat_blocks[0] = m_bat_blocks[1];
 
       // update checksums
       csums = TestChecksums();
@@ -163,8 +163,8 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     else
     {
       // backup is correct, restore
-      m_directory_block = m_directory_backup_block;
-      m_bat_block = m_bat_backup_block;
+      m_directory_blocks[0] = m_directory_blocks[1];
+      m_bat_blocks[0] = m_bat_blocks[1];
 
       // update checksums
       csums = TestChecksums();
@@ -209,25 +209,25 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
 
 void GCMemcard::InitDirBatPointers()
 {
-  if (m_directory_block.m_update_counter > m_directory_backup_block.m_update_counter)
+  if (m_directory_blocks[0].m_update_counter > m_directory_blocks[1].m_update_counter)
   {
-    m_current_directory_block = &m_directory_block;
-    m_previous_directory_block = &m_directory_backup_block;
+    m_current_directory_block = &m_directory_blocks[0];
+    m_previous_directory_block = &m_directory_blocks[1];
   }
   else
   {
-    m_current_directory_block = &m_directory_backup_block;
-    m_previous_directory_block = &m_directory_block;
+    m_current_directory_block = &m_directory_blocks[1];
+    m_previous_directory_block = &m_directory_blocks[0];
   }
-  if (m_bat_block.m_update_counter > m_bat_backup_block.m_update_counter)
+  if (m_bat_blocks[0].m_update_counter > m_bat_blocks[1].m_update_counter)
   {
-    m_current_bat_block = &m_bat_block;
-    m_previous_bat_block = &m_bat_backup_block;
+    m_current_bat_block = &m_bat_blocks[0];
+    m_previous_bat_block = &m_bat_blocks[1];
   }
   else
   {
-    m_current_bat_block = &m_bat_backup_block;
-    m_previous_bat_block = &m_bat_block;
+    m_current_bat_block = &m_bat_blocks[1];
+    m_previous_bat_block = &m_bat_blocks[0];
   }
 }
 
@@ -242,10 +242,10 @@ bool GCMemcard::Save()
   mcdFile.Seek(0, SEEK_SET);
 
   mcdFile.WriteBytes(&m_header_block, BLOCK_SIZE);
-  mcdFile.WriteBytes(&m_directory_block, BLOCK_SIZE);
-  mcdFile.WriteBytes(&m_directory_backup_block, BLOCK_SIZE);
-  mcdFile.WriteBytes(&m_bat_block, BLOCK_SIZE);
-  mcdFile.WriteBytes(&m_bat_backup_block, BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_directory_blocks[0], BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_directory_blocks[1], BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_bat_blocks[0], BLOCK_SIZE);
+  mcdFile.WriteBytes(&m_bat_blocks[1], BLOCK_SIZE);
   for (unsigned int i = 0; i < m_size_blocks - MC_FST_BLOCKS; ++i)
   {
     mcdFile.WriteBytes(m_data_blocks[i].block, BLOCK_SIZE);
@@ -286,21 +286,22 @@ u32 GCMemcard::TestChecksums() const
   if ((m_header_block.m_checksum != csum) || (m_header_block.m_checksum_inv != csum_inv))
     results |= 1;
 
-  calc_checksumsBE((u16*)&m_directory_block, 0xFFE, &csum, &csum_inv);
-  if ((m_directory_block.m_checksum != csum) || (m_directory_block.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)&m_directory_blocks[0], 0xFFE, &csum, &csum_inv);
+  if ((m_directory_blocks[0].m_checksum != csum) ||
+      (m_directory_blocks[0].m_checksum_inv != csum_inv))
     results |= 2;
 
-  calc_checksumsBE((u16*)&m_directory_backup_block, 0xFFE, &csum, &csum_inv);
-  if ((m_directory_backup_block.m_checksum != csum) ||
-      (m_directory_backup_block.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)&m_directory_blocks[1], 0xFFE, &csum, &csum_inv);
+  if ((m_directory_blocks[1].m_checksum != csum) ||
+      (m_directory_blocks[1].m_checksum_inv != csum_inv))
     results |= 4;
 
-  calc_checksumsBE((u16*)(((u8*)&m_bat_block) + 4), 0xFFE, &csum, &csum_inv);
-  if ((m_bat_block.m_checksum != csum) || (m_bat_block.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)(((u8*)&m_bat_blocks[0]) + 4), 0xFFE, &csum, &csum_inv);
+  if ((m_bat_blocks[0].m_checksum != csum) || (m_bat_blocks[0].m_checksum_inv != csum_inv))
     results |= 8;
 
-  calc_checksumsBE((u16*)(((u8*)&m_bat_backup_block) + 4), 0xFFE, &csum, &csum_inv);
-  if ((m_bat_backup_block.m_checksum != csum) || (m_bat_backup_block.m_checksum_inv != csum_inv))
+  calc_checksumsBE((u16*)(((u8*)&m_bat_blocks[1]) + 4), 0xFFE, &csum, &csum_inv);
+  if ((m_bat_blocks[1].m_checksum != csum) || (m_bat_blocks[1].m_checksum_inv != csum_inv))
     results |= 16;
 
   return results;
@@ -313,14 +314,14 @@ bool GCMemcard::FixChecksums()
 
   calc_checksumsBE((u16*)&m_header_block, 0xFE, &m_header_block.m_checksum,
                    &m_header_block.m_checksum_inv);
-  calc_checksumsBE((u16*)&m_directory_block, 0xFFE, &m_directory_block.m_checksum,
-                   &m_directory_block.m_checksum_inv);
-  calc_checksumsBE((u16*)&m_directory_backup_block, 0xFFE, &m_directory_backup_block.m_checksum,
-                   &m_directory_backup_block.m_checksum_inv);
-  calc_checksumsBE((u16*)&m_bat_block + 2, 0xFFE, &m_bat_block.m_checksum,
-                   &m_bat_block.m_checksum_inv);
-  calc_checksumsBE((u16*)&m_bat_backup_block + 2, 0xFFE, &m_bat_backup_block.m_checksum,
-                   &m_bat_backup_block.m_checksum_inv);
+  calc_checksumsBE((u16*)&m_directory_blocks[0], 0xFFE, &m_directory_blocks[0].m_checksum,
+                   &m_directory_blocks[0].m_checksum_inv);
+  calc_checksumsBE((u16*)&m_directory_blocks[1], 0xFFE, &m_directory_blocks[1].m_checksum,
+                   &m_directory_blocks[1].m_checksum_inv);
+  calc_checksumsBE((u16*)&m_bat_blocks[0] + 2, 0xFFE, &m_bat_blocks[0].m_checksum,
+                   &m_bat_blocks[0].m_checksum_inv);
+  calc_checksumsBE((u16*)&m_bat_blocks[1] + 2, 0xFFE, &m_bat_blocks[1].m_checksum,
+                   &m_bat_blocks[1].m_checksum_inv);
 
   return true;
 }
@@ -701,15 +702,15 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   }
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   *m_previous_directory_block = UpdatedDir;
-  if (m_previous_directory_block == &m_directory_block)
+  if (m_previous_directory_block == &m_directory_blocks[0])
   {
-    m_current_directory_block = &m_directory_block;
-    m_previous_directory_block = &m_directory_backup_block;
+    m_current_directory_block = &m_directory_blocks[0];
+    m_previous_directory_block = &m_directory_blocks[1];
   }
   else
   {
-    m_current_directory_block = &m_directory_backup_block;
-    m_previous_directory_block = &m_directory_block;
+    m_current_directory_block = &m_directory_blocks[1];
+    m_previous_directory_block = &m_directory_blocks[0];
   }
 
   int fileBlocks = direntry.m_block_count;
@@ -737,15 +738,15 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   UpdatedBat.m_free_blocks = UpdatedBat.m_free_blocks - fileBlocks;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   *m_previous_bat_block = UpdatedBat;
-  if (m_previous_bat_block == &m_bat_block)
+  if (m_previous_bat_block == &m_bat_blocks[0])
   {
-    m_current_bat_block = &m_bat_block;
-    m_previous_bat_block = &m_bat_backup_block;
+    m_current_bat_block = &m_bat_blocks[0];
+    m_previous_bat_block = &m_bat_blocks[1];
   }
   else
   {
-    m_current_bat_block = &m_bat_backup_block;
-    m_previous_bat_block = &m_bat_block;
+    m_current_bat_block = &m_bat_blocks[1];
+    m_previous_bat_block = &m_bat_blocks[0];
   }
 
   FixChecksums();
@@ -768,15 +769,15 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
     return DELETE_FAIL;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   *m_previous_bat_block = UpdatedBat;
-  if (m_previous_bat_block == &m_bat_block)
+  if (m_previous_bat_block == &m_bat_blocks[0])
   {
-    m_current_bat_block = &m_bat_block;
-    m_previous_bat_block = &m_bat_backup_block;
+    m_current_bat_block = &m_bat_blocks[0];
+    m_previous_bat_block = &m_bat_blocks[1];
   }
   else
   {
-    m_current_bat_block = &m_bat_backup_block;
-    m_previous_bat_block = &m_bat_block;
+    m_current_bat_block = &m_bat_blocks[1];
+    m_previous_bat_block = &m_bat_blocks[0];
   }
 
   Directory UpdatedDir = *m_current_directory_block;
@@ -804,15 +805,15 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   memset(&(UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   *m_previous_directory_block = UpdatedDir;
-  if (m_previous_directory_block == &m_directory_block)
+  if (m_previous_directory_block == &m_directory_blocks[0])
   {
-    m_current_directory_block = &m_directory_block;
-    m_previous_directory_block = &m_directory_backup_block;
+    m_current_directory_block = &m_directory_blocks[0];
+    m_previous_directory_block = &m_directory_blocks[1];
   }
   else
   {
-    m_current_directory_block = &m_directory_backup_block;
-    m_previous_directory_block = &m_directory_block;
+    m_current_directory_block = &m_directory_blocks[1];
+    m_previous_directory_block = &m_directory_blocks[0];
   }
 
   FixChecksums();
@@ -1289,14 +1290,14 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
   memset(&m_header_block, 0xFF, BLOCK_SIZE);
-  memset(&m_directory_block, 0xFF, BLOCK_SIZE);
-  memset(&m_directory_backup_block, 0xFF, BLOCK_SIZE);
-  memset(&m_bat_block, 0, BLOCK_SIZE);
-  memset(&m_bat_backup_block, 0, BLOCK_SIZE);
+  memset(&m_directory_blocks[0], 0xFF, BLOCK_SIZE);
+  memset(&m_directory_blocks[1], 0xFF, BLOCK_SIZE);
+  memset(&m_bat_blocks[0], 0, BLOCK_SIZE);
+  memset(&m_bat_blocks[1], 0, BLOCK_SIZE);
 
   m_header_block = Header(SLOT_A, SizeMb, shift_jis);
-  m_directory_block = m_directory_backup_block = Directory();
-  m_bat_block = m_bat_backup_block = BlockAlloc(SizeMb);
+  m_directory_blocks[0] = m_directory_blocks[1] = Directory();
+  m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(SizeMb);
 
   m_size_mb = SizeMb;
   m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
