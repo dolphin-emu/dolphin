@@ -678,9 +678,9 @@ private:
 
             // Activate motion plus:
             reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
-            times_updated_since_activation = 0x2;
+            reg_data.initialization_status = 0x2;
 
-            // Test some hax
+            // Some hax to disable encryption:
             std::array<u8, 1> data = {0x55};
             i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, 0xf0, (int)data.size(), data.data());
           }

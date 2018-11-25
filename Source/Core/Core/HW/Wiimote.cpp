@@ -135,20 +135,36 @@ void Pause()
 // An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL channel.
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (g_wiimote_sources[number])
+  if (WIIMOTE_SRC_EMU == g_wiimote_sources[number])
   {
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->ControlChannel(channel_id, data, size);
+  }
+  else if (WIIMOTE_SRC_REAL == g_wiimote_sources[number])
+  {
+    WiimoteReal::ControlChannel(number, channel_id, data, size);
+  }
+  else
+  {
+    // Wiimote is disabled
   }
 }
 
 // An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT channel.
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (g_wiimote_sources[number])
+  if (WIIMOTE_SRC_EMU == g_wiimote_sources[number])
   {
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->InterruptChannel(channel_id, data, size);
+  }
+  else if (WIIMOTE_SRC_REAL == g_wiimote_sources[number])
+  {
+    WiimoteReal::InterruptChannel(number, channel_id, data, size);
+  }
+  else
+  {
+    // Wiimote is disabled
   }
 }
 
