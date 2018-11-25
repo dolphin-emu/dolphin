@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <string>
-#include <algorithm>
 
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
@@ -264,9 +264,10 @@ public:
 
   void Reset() { m_slaves.clear(); }
 
+  // TODO: change int to u16 or something
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   {
-    INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
+    // INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
     for (auto& slave : m_slaves)
     {
       auto const bytes_read = slave->BusRead(slave_addr, addr, count, data_out);
@@ -279,12 +280,13 @@ public:
     return 0;
   }
 
+  // TODO: change int to u16 or something
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   {
     // TODO: write in blocks of 6 to simulate the real bus
     // this might trigger activation writes more accurately
 
-    INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
+    // INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
     for (auto& slave : m_slaves)
     {
       auto const bytes_written = slave->BusWrite(slave_addr, addr, count, data_in);
@@ -451,7 +453,7 @@ private:
         // Here we should sample user input and update controller data
         // Moved into Update() function for TAS determinism
         // TAS code fails to sync data reads and such..
-        //extension->GetState(reg_data.controller_data);
+        // extension->GetState(reg_data.controller_data);
       }
 
       auto const result = RawRead(&reg_data, addr, count, data_out);
@@ -459,7 +461,14 @@ private:
       // Encrypt data read from extension register
       // Check if encrypted reads is on
       if (0xaa == reg_data.encryption)
+      {
+        INFO_LOG(WIIMOTE, "Encrypted read.");
         WiimoteEncrypt(&ext_key, data_out, addr, (u8)count);
+      }
+      else
+      {
+        INFO_LOG(WIIMOTE, "Unencrypted read.");
+      }
 
       return result;
     }
@@ -553,20 +562,22 @@ private:
 #pragma pack(push, 1)
     struct MotionPlusRegister
     {
-      u8 controller_data[0x10];
-      u8 unknown[0x10];
+      u8 controller_data[21];
+      u8 unknown[11];
+
+      // address 0x20
       u8 calibration_data[0x20];
       u8 unknown2[0xb0];
 
       // address 0xF0
-      // TODO: bad name
-      u8 activated;
+      u8 initialized;
 
       u8 unknown3[6];
 
-      // Wiibrew: "While the Motion Plus is initialising, the value at 0x(4)a600f7 changes
-      // from 0x02 to 0x04 to 0x08 to 0x0C to 0x0E then stays at 0x0E"
-      // Wii Sports Resort reads this regularly and claims motion plus is disconnected if not to its liking
+      // address 0xf7
+      // Wii Sports Resort reads regularly and claims mplus is disconnected if not to its liking
+      // Value starts at 0x00 and goes up after activation (not initialization)
+      // Immediately returns 0x02, even still after 15 and 30 seconds
       u8 initialization_status;
 
       u8 unknown4[2];
@@ -582,16 +593,15 @@ private:
     static const u8 INACTIVE_DEVICE_ADDR = 0x53;
     static const u8 ACTIVE_DEVICE_ADDR = 0x52;
 
-    static const u8 INIT_STATUS_BEGIN = 0x00;
-    static const u8 INIT_STATUS_STEP = 0x02;
-    static const u8 INIT_STATUS_END = 0x0e;
-
     enum class PassthroughMode : u8
     {
       PASSTHROUGH_DISABLED = 0x04,
       PASSTHROUGH_NUNCHUK = 0x05,
       PASSTHROUGH_CLASSIC = 0x07,
     };
+
+    // TODO: savestate
+    u8 times_updated_since_activation = 0;
 
     bool IsActive() const { return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2]; }
 
@@ -600,12 +610,14 @@ private:
       return static_cast<PassthroughMode>(reg_data.ext_identifier[4]);
     }
 
-    // TODO: when activated it seems the motion plus continuously reads from the ext port even when not in passthrough mode
-    // 16 bytes it seems
-
-    // It also sends the 0x55 to 0xf0 activation
+    // TODO: when activated it seems the motion plus reactivates the extension
+    // It sends 0x55 to 0xf0
     // It also writes 0x00 to slave:0x52 addr:0xfa for some reason
     // And starts a write to 0xfa but never writes bytes..
+    // It tries to read data at 0x00 for 3 times (failing)
+    // then it reads the 16 bytes of calibration at 0x20 and stops
+
+    // TODO: if an extension is attached after activation, it also does this.
 
     int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override
     {
@@ -644,7 +656,7 @@ private:
           {
             // Deactivate motion plus:
             reg_data.ext_identifier[2] = INACTIVE_DEVICE_ADDR << 1;
-            reg_data.initialization_status = INIT_STATUS_BEGIN;
+            times_updated_since_activation = 0;
           }
         }
         else
@@ -662,8 +674,15 @@ private:
           // It seems a write of any value triggers activation.
           if (0xfe == addr)
           {
+            INFO_LOG(WIIMOTE, "Motion Plus has been activated with value: %d", data_in[0]);
+
             // Activate motion plus:
             reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
+            times_updated_since_activation = 0x2;
+
+            // Test some hax
+            std::array<u8, 1> data = {0x55};
+            i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, 0xf0, (int)data.size(), data.data());
           }
 
           return result;

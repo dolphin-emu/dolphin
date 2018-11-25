@@ -321,8 +321,17 @@ void Wiimote::Reset()
   memset(&m_camera_logic.reg_data, 0, sizeof(m_camera_logic.reg_data));
   memset(&m_ext_logic.reg_data, 0, sizeof(m_ext_logic.reg_data));
 
-  memset(&m_motion_plus_logic.reg_data, 0, sizeof(m_motion_plus_logic.reg_data));
+  memset(&m_motion_plus_logic.reg_data, 0x00, sizeof(m_motion_plus_logic.reg_data));
   memcpy(&m_motion_plus_logic.reg_data.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
+
+  // calibration hackery
+  static const u8 c1[16] = {0x78, 0xd9, 0x78, 0x38, 0x77, 0x9d, 0x2f, 0x0c, 0xcf, 0xf0, 0x31, 0xad,
+                  0xc8, 0x0b, 0x5e, 0x39};
+  static const u8 c2[16] = {0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51, 0x33, 0x60, 0xc9, 0xf5, 0x37, 0xc1,
+                  0x2d, 0xe9, 0x15, 0x8d};
+
+  //std::copy(std::begin(c1), std::end(c1), m_motion_plus_logic.reg_data.calibration_data);
+  //std::copy(std::begin(c2), std::end(c2), m_motion_plus_logic.reg_data.calibration_data + 0x10);
 
   // status
   memset(&m_status, 0, sizeof(m_status));
@@ -1113,13 +1122,43 @@ void SetBit(T& value, u32 bit_number, bool bit_value)
 
 void Wiimote::MotionPlusLogic::Update()
 {
-  if (IsActive() && reg_data.initialization_status != INIT_STATUS_END)
+  if (!IsActive())
   {
-    reg_data.initialization_status += INIT_STATUS_STEP;
+    return;
+  }
+
+  // TODO: clean up this hackery:
+  // the value seems to increase based on time starting after the first read of 0x00
+  if (IsActive() && times_updated_since_activation < 0xff)
+  {
+    ++times_updated_since_activation;
+
+    // TODO: wtf is this value actually..
+    if (times_updated_since_activation == 9)
+      reg_data.initialization_status = 0x4;
+    else if (times_updated_since_activation == 10)
+      reg_data.initialization_status = 0x8;
+    else if (times_updated_since_activation == 18)
+      reg_data.initialization_status = 0xc;
+    else if (times_updated_since_activation == 53)
+      reg_data.initialization_status = 0xe;
   }
 
   auto& mplus_data = *reinterpret_cast<wm_motionplus_data*>(reg_data.controller_data);
   auto& data = reg_data.controller_data;
+
+  // TODO: make sure a motion plus report is sent first after init
+
+  // On real mplus:
+  // For some reason the first read seems to have garbage data
+  // is_mp_data and extension_connected are set, but the data is junk
+  // it does seem to have some sort of pattern though, byte 5 is always 2
+  // something like: d5, b0, 4e, 6e, fc, 2
+  // When a passthrough mode is set:
+  // the second read is valid mplus data, which then triggers a read from the extension
+  // the third read is finally extension data
+  // If an extension is not attached the data is always mplus data
+  // even when passthrough is enabled
 
   switch (GetPassthroughMode())
   {
@@ -1130,43 +1169,49 @@ void Wiimote::MotionPlusLogic::Update()
   }
   case PassthroughMode::PASSTHROUGH_NUNCHUK:
   {
-    // If we sent mplus data last time now we will send ext data.
-    mplus_data.is_mp_data ^= true;
-
-    if (!mplus_data.is_mp_data)
+    // If we sent mplus data last time now we will try to send ext data.
+    if (mplus_data.is_mp_data)
     {
-      // The real mplus seems to read 16 bytes, even when not in passthrough mode.
-      // We'll just read 6 bytes
-      i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data);
-      // Passthrough data modifications via wiibrew.org
-      // Data passing through drops the least significant bit of the three accelerometer values
-      // Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
-      SetBit(data[5], 6, Common::ExtractBit(data[5], 7));
-      // Bit 0 of byte 4 is moved to bit 7 of byte 5
-      SetBit(data[5], 7, Common::ExtractBit(data[4], 0));
-      // Bit 3 of byte 5 is moved to  bit 4 of byte 5, overwriting it
-      SetBit(data[5], 4, Common::ExtractBit(data[5], 3));
-      // Bit 1 of byte 5 is moved to bit 3 of byte 5
-      SetBit(data[5], 3, Common::ExtractBit(data[5], 1));
-      // Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
-      SetBit(data[5], 2, Common::ExtractBit(data[5], 0));
+      // The real mplus seems to only ever read 6 bytes from the extension
+      // bytes after 6 seem to be zero filled
+      // The real hardware uses these 6 bytes for the next frame,
+      // but we aren't going to do that
+      if (6 == i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data))
+      {
+        // Passthrough data modifications via wiibrew.org
+        // Data passing through drops the least significant bit of the three accelerometer values
+        // Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
+        SetBit(data[5], 6, Common::ExtractBit(data[5], 7));
+        // Bit 0 of byte 4 is moved to bit 7 of byte 5
+        SetBit(data[5], 7, Common::ExtractBit(data[4], 0));
+        // Bit 3 of byte 5 is moved to  bit 4 of byte 5, overwriting it
+        SetBit(data[5], 4, Common::ExtractBit(data[5], 3));
+        // Bit 1 of byte 5 is moved to bit 3 of byte 5
+        SetBit(data[5], 3, Common::ExtractBit(data[5], 1));
+        // Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
+        SetBit(data[5], 2, Common::ExtractBit(data[5], 0));
+
+        mplus_data.is_mp_data = false;
+      }
     }
     break;
   }
   case PassthroughMode::PASSTHROUGH_CLASSIC:
   {
-    // If we sent mplus data last time now we will send ext data.
-    mplus_data.is_mp_data ^= true;
-
-    if (!mplus_data.is_mp_data)
+    // If we sent mplus data last time now we will try to send ext data.
+    if (mplus_data.is_mp_data)
     {
-      i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, reg_data.controller_data);
-      // Passthrough data modifications via wiibrew.org
-      // Data passing through drops the least significant bit of the axes of the left (or only) joystick
-      // Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag]
-      // Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
-      SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
-      SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
+      if (6 == i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data))
+      {
+        // Passthrough data modifications via wiibrew.org
+        // Data passing through drops the least significant bit of the axes of the left (or only) joystick
+        // Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag]
+        // Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
+        SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
+        SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
+
+        mplus_data.is_mp_data = false;
+      }
     }
     break;
   }
