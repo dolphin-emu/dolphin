@@ -158,7 +158,7 @@ void Jit64AsmRoutineManager::Generate()
   // Ok, no block, let's call the slow dispatcher
   ABI_PushRegistersAndAdjustStack({}, 0);
   MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
-  ABI_CallFunction(JitBase::Dispatch);
+  ABI_CallFunction(JitCommonBase::Dispatch);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
   TEST(64, R(ABI_RETURN), R(ABI_RETURN));

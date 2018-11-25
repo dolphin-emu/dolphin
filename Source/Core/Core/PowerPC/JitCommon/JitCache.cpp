@@ -38,7 +38,7 @@ bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
          physical_addresses.lower_bound(address + length);
 }
 
-JitBaseBlockCache::JitBaseBlockCache(JitBase& jit) : m_jit{jit}
+JitBaseBlockCache::JitBaseBlockCache(JitCommonBase& jit) : m_jit{jit}
 {
 }
 

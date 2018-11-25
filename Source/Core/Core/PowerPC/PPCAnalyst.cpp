@@ -90,7 +90,8 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= JitBase::code_buffer_size * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))
+    if (func.size >= JitCommonBase::code_buffer_size * 4 ||
+        !PowerPC::HostIsInstructionRAMAddress(addr))
       return false;
 
     if (max_size && func.size > max_size)
