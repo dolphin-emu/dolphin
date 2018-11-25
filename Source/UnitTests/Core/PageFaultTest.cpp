@@ -21,7 +21,7 @@ enum
 #endif
 };
 
-class PageFaultFakeJit : public JitBase
+class PageFaultFakeJit : public JitCommonBase
 {
 public:
   // CPUCoreBase methods

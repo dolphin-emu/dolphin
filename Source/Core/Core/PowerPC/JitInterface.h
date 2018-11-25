@@ -45,7 +45,6 @@ enum class ProfilingState
 
 void SetProfilingState(ProfilingState state);
 void WriteProfileResults(const std::string& filename);
-void GetProfileResults(Profiler::ProfileStats* prof_stats);
 int GetHostCode(u32* address, const u8** code, u32* code_size);
 
 // Memory Utilities

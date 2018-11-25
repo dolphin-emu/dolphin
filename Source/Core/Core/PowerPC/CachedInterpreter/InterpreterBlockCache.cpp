@@ -6,7 +6,7 @@
 
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-BlockCache::BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
+BlockCache::BlockCache(JitCommonBase& jit) : JitBaseBlockCache{jit}
 {
 }
 

@@ -30,16 +30,26 @@ constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 
 constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 
-class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
+class Jitx86Base : public JitCommonBase, public QuantizedMemoryRoutines
 {
+private:
+  static Jitx86Base* s_instance;
+
 protected:
   bool BackPatch(u32 emAddress, SContext* ctx);
   JitBlockCache blocks{*this};
   TrampolineCache trampolines;
 
 public:
+  Jitx86Base() { s_instance = this; }
+  ~Jitx86Base() { s_instance = nullptr; }
+
   JitBlockCache* GetBlockCache() override { return &blocks; }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
+  // needed for some ASM routines
+  static JitCommonBase::JitState& GetState() { return s_instance->js; }
+  static JitCommonBase::JitOptions& GetOptions() { return s_instance->jo; }
 };
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,

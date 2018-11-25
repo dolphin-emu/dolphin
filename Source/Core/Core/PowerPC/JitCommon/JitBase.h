@@ -15,6 +15,7 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
@@ -39,12 +40,24 @@
 #define JITDISABLE(setting)                                                                        \
   FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
 
-class JitBase;
-
-extern JitBase* g_jit;
-
 class JitBase : public CPUCoreBase
 {
+public:
+  virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
+  virtual bool HandleStackFault() { return false; }
+  virtual void ClearCache() = 0;
+  virtual void ClearSafe() = 0;
+  virtual void InvalidateICache(u32 address, u32 size, bool forced) = 0;
+};
+
+class JitBaseBlockCache;
+
+class JitCommonBase : public JitBase
+{
+  friend void JitInterface::CompileExceptionCheck(ExceptionType type);
+  friend void JitInterface::SetProfilingState(ProfilingState state);
+  friend class JitBaseBlockCache;
+
 protected:
   struct JitOptions
   {
@@ -100,30 +113,31 @@ protected:
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::CodeBuffer m_code_buffer;
   PPCAnalyst::PPCAnalyzer analyzer;
+  JitOptions jo{};
+  JitState js{};
 
   bool CanMergeNextInstructions(int count) const;
 
   void UpdateMemoryOptions();
 
 public:
-  JitBase();
-  ~JitBase() override;
+  JitCommonBase();
+  ~JitCommonBase() override;
 
-  static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;
 
   virtual void Jit(u32 em_address) = 0;
 
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
+  virtual void InvalidateICache(u32 address, u32 size, bool forced)
+  {
+    GetBlockCache()->InvalidateICache(address, size, forced);
+  }
+  void ClearSafe() { GetBlockCache()->Clear(); }
 
-  virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
-  virtual bool HandleStackFault() { return false; }
+  static const u8* Dispatch(JitCommonBase& jit);
 
   static constexpr std::size_t code_buffer_size = 32000;
-
-  // This should probably be removed from public:
-  JitOptions jo{};
-  JitState js{};
 };
 
-void JitTrampoline(JitBase& jit, u32 em_address);
+void JitTrampoline(JitCommonBase& jit, u32 em_address);

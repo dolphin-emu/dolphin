@@ -62,7 +62,7 @@ void JitArm64::GenerateAsm()
   //   do
   //   {
   // dispatcher_no_check:
-  //     ExecuteBlock(JitBase::Dispatch());
+  //     ExecuteBlock(JitCommonBase::Dispatch);
   // dispatcher:
   //   } while (PowerPC::ppcState.downcount > 0);
   // do_timing:
@@ -126,7 +126,7 @@ void JitArm64::GenerateAsm()
   // Call C version of Dispatch().
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   MOVP2R(X0, this);
-  MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
+  MOVP2R(X30, reinterpret_cast<void*>(&JitCommonBase::Dispatch));
   BLR(X30);
 
   FixupBranch no_block_available = CBZ(X0);

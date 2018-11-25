@@ -12,7 +12,7 @@ namespace Gen
 class X64CodeBlock;
 }
 
-class JitBase;
+class JitCommonBase;
 
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write
@@ -35,7 +35,7 @@ public:
   // want to ensure this number is big enough.
   static constexpr size_t CODE_SIZE = 16384;
 
-  explicit Jit64AsmRoutineManager(JitBase& jit);
+  explicit Jit64AsmRoutineManager(JitCommonBase& jit);
 
   void Init(u8* stack_top);
 
@@ -46,5 +46,5 @@ private:
   void GenerateCommon();
 
   u8* m_stack_top = nullptr;
-  JitBase& m_jit;
+  JitCommonBase& m_jit;
 };

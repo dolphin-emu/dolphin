@@ -20,6 +20,8 @@
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+Jitx86Base* Jitx86Base::s_instance = nullptr;
+
 // This generates some fairly heavy trampolines, but it doesn't really hurt.
 // Only instructions that access I/O will get these, and there won't be that
 // many of them in a typical program/game.

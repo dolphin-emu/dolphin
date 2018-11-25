@@ -8,7 +8,7 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-JitBlockCache::JitBlockCache(JitBase& jit) : JitBaseBlockCache{jit}
+JitBlockCache::JitBlockCache(JitCommonBase& jit) : JitBaseBlockCache{jit}
 {
 }
 
