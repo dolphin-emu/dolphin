@@ -13,12 +13,12 @@
 #include <mutex>
 #include <numeric>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/BitUtils.h"
 
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteInputSettings.h"
@@ -101,11 +101,16 @@ static const ReportFeatures reporting_mode_features[] = {
     {2, 0, 10, 9, 23},
     // 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
     {2, 3, 10, 6, 23},
-    // UNSUPPORTED (but should be easy enough to implement):
+    // Ugly padding members so 0x3d,3e,3f are properly placed in the array:
+    {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0},
     // 0x3d: 21 Extension Bytes
     {0, 0, 0, 21, 23},
     // 0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
-    {0, 0, 0, 0, 23},
+    {2, 1, 0, 18, 23},
 };
 
 // Used for extension calibration data:
@@ -335,13 +340,13 @@ void Wiimote::Reset()
   memcpy(&m_motion_plus_logic.reg_data.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
 
   // calibration hackery
-  static const u8 c1[16] = {0x78, 0xd9, 0x78, 0x38, 0x77, 0x9d, 0x2f, 0x0c, 0xcf, 0xf0, 0x31, 0xad,
-                  0xc8, 0x0b, 0x5e, 0x39};
-  static const u8 c2[16] = {0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51, 0x33, 0x60, 0xc9, 0xf5, 0x37, 0xc1,
-                  0x2d, 0xe9, 0x15, 0x8d};
+  static const u8 c1[16] = {0x78, 0xd9, 0x78, 0x38, 0x77, 0x9d, 0x2f, 0x0c,
+                            0xcf, 0xf0, 0x31, 0xad, 0xc8, 0x0b, 0x5e, 0x39};
+  static const u8 c2[16] = {0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51, 0x33, 0x60,
+                            0xc9, 0xf5, 0x37, 0xc1, 0x2d, 0xe9, 0x15, 0x8d};
 
-  //std::copy(std::begin(c1), std::end(c1), m_motion_plus_logic.reg_data.calibration_data);
-  //std::copy(std::begin(c2), std::end(c2), m_motion_plus_logic.reg_data.calibration_data + 0x10);
+  // std::copy(std::begin(c1), std::end(c1), m_motion_plus_logic.reg_data.calibration_data);
+  // std::copy(std::begin(c2), std::end(c2), m_motion_plus_logic.reg_data.calibration_data + 0x10);
 
   // status
   memset(&m_status, 0, sizeof(m_status));
@@ -610,7 +615,8 @@ void Wiimote::GetButtonData(u8* const data)
   reinterpret_cast<wm_buttons*>(data)->hex |= m_status.buttons.hex;
 }
 
-void Wiimote::GetAccelData(u8* const data)
+// Produces 10-bit precision values.
+void Wiimote::GetAccelData(s16* x, s16* y, s16* z)
 {
   const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
   const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
@@ -661,26 +667,14 @@ void Wiimote::GetAccelData(u8* const data)
   EmulateDynamicShake(&m_accel, m_shake_dynamic_data, m_shake_dynamic, shake_config,
                       m_shake_dynamic_step.data());
 
-  // TODO: kill these ugly looking offsets
-  wm_accel& accel = *reinterpret_cast<wm_accel*>(data + 4);
-  wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + 2);
-
   // We now use 2 bits more precision, so multiply by 4 before converting to int
-  s16 x = (s16)(4 * (m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
-  s16 y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
-  s16 z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
+  *x = (s16)(4 * (m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
+  *y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
+  *z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-  x = MathUtil::Clamp<s16>(x, 0, 0x3ff);
-  y = MathUtil::Clamp<s16>(y, 0, 0x3ff);
-  z = MathUtil::Clamp<s16>(z, 0, 0x3ff);
-
-  accel.x = (x >> 2) & 0xFF;
-  accel.y = (y >> 2) & 0xFF;
-  accel.z = (z >> 2) & 0xFF;
-
-  core.acc_x_lsb = x & 0x3;
-  core.acc_y_lsb = (y >> 1) & 0x1;
-  core.acc_z_lsb = (z >> 1) & 0x1;
+  *x = MathUtil::Clamp<s16>(*x, 0, 0x3ff);
+  *y = MathUtil::Clamp<s16>(*y, 0, 0x3ff);
+  *z = MathUtil::Clamp<s16>(*z, 0, 0x3ff);
 }
 
 inline void LowPassFilter(double& var, double newval, double period)
@@ -694,9 +688,6 @@ inline void LowPassFilter(double& var, double newval, double period)
 
 void Wiimote::UpdateIRData(bool use_accel)
 {
-  // IR data is stored at offset 0x37
-  u8* const data = m_camera_logic.reg_data.camera_data;
-
   u16 x[4], y[4];
   memset(x, 0xFF, sizeof(x));
 
@@ -781,15 +772,20 @@ void Wiimote::UpdateIRData(bool use_accel)
     y[i] = static_cast<u16>(lround((v[i].y + 1) / 2 * (camHeight - 1)));
   }
 
+  // IR data is read from offset 0x37 on real hardware
+  u8* const data = m_camera_logic.reg_data.camera_data;
+  // A maximum of 36 bytes.
+  std::fill_n(data, sizeof(wm_ir_full) * 4, 0xff);
+
   // Fill report with valid data when full handshake was done
   if (m_camera_logic.reg_data.data[0x30])
+  {
     // ir mode
     switch (m_camera_logic.reg_data.mode)
     {
     // basic
     case 1:
     {
-      memset(data, 0xFF, 10);
       wm_ir_basic* const irdata = reinterpret_cast<wm_ir_basic*>(data);
       for (unsigned int i = 0; i < 2; ++i)
       {
@@ -810,12 +806,11 @@ void Wiimote::UpdateIRData(bool use_accel)
           irdata[i].y2hi = y[i * 2 + 1] >> 8;
         }
       }
+      break;
     }
-    break;
     // extended
     case 3:
     {
-      memset(data, 0xFF, 12);
       wm_ir_extended* const irdata = reinterpret_cast<wm_ir_extended*>(data);
       for (unsigned int i = 0; i < 4; ++i)
         if (x[i] < 1024 && y[i] < 768)
@@ -828,14 +823,39 @@ void Wiimote::UpdateIRData(bool use_accel)
 
           irdata[i].size = 10;
         }
-    }
-    break;
-    // full
-    case 5:
-      PanicAlert("Full IR report");
-      // UNSUPPORTED
       break;
     }
+    // full
+    case 5:
+    {
+      wm_ir_full* const irdata = reinterpret_cast<wm_ir_full*>(data);
+      for (unsigned int i = 0; i < 4; ++i)
+        if (x[i] < 1024 && y[i] < 768)
+        {
+          irdata[i].x = static_cast<u8>(x[i]);
+          irdata[i].xhi = x[i] >> 8;
+
+          irdata[i].y = static_cast<u8>(y[i]);
+          irdata[i].yhi = y[i] >> 8;
+
+          irdata[i].size = 10;
+
+          // TODO: implement these sensibly:
+          // TODO: do high bits of x/y min/max need to be set to zero?
+          irdata[i].xmin = 0;
+          irdata[i].ymin = 0;
+          irdata[i].xmax = 0;
+          irdata[i].ymax = 0;
+          irdata[i].zero = 0;
+          irdata[i].intensity = 0;
+        }
+      break;
+    }
+    default:
+      WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");
+      break;
+    }
+  }
 }
 
 void Wiimote::Update()
@@ -863,13 +883,21 @@ void Wiimote::Update()
     return;
   }
 
+  if (RT_REPORT_CORE == m_reporting_mode && !m_reporting_auto)
+  {
+    // TODO: we only need to send a report if the data changed when reporting_auto is disabled
+    // probably only sensible to check this with RT_REPORT_CORE
+    // and just always send a report with the other modes
+    // return;
+  }
+
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - RT_REPORT_CORE];
   s8 rptf_size = rptf.total_size;
   if (Movie::IsPlayingInput() &&
       Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_logic.ext_key))
   {
     if (rptf.core_size)
-      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + 2);
+      m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.GetCoreOffset());
   }
   else
   {
@@ -881,8 +909,7 @@ void Wiimote::Update()
     // hotkey/settings modifier
     m_hotkeys->GetState();  // data is later accessed in UpdateButtonsStatus and GetAccelData
 
-    // Data starts at byte 2 in the report
-    u8* feature_ptr = data + 2;
+    u8* feature_ptr = data + rptf.GetCoreOffset();
 
     // core buttons
     if (rptf.core_size)
@@ -895,7 +922,38 @@ void Wiimote::Update()
     if (rptf.accel_size)
     {
       // TODO: GetAccelData has hardcoded payload offsets..
-      GetAccelData(data);
+      s16 x, y, z;
+      GetAccelData(&x, &y, &z);
+
+      auto& core = *reinterpret_cast<wm_buttons*>(data + rptf.GetCoreOffset());
+
+      // Special cases for the interleaved reports:
+      // only 8 bits of precision.
+      if (RT_REPORT_INTERLEAVE1 == m_reporting_mode)
+      {
+        *feature_ptr = (x >> 2) & 0xff;
+        core.acc_bits = (z >> 4) & 0b11;
+        core.acc_bits2 = (z >> 6) & 0b11;
+      }
+      if (RT_REPORT_INTERLEAVE2 == m_reporting_mode)
+      {
+        *feature_ptr = (y >> 2) & 0xff;
+        core.acc_bits = (z >> 0) & 0b11;
+        core.acc_bits2 = (z >> 2) & 0b11;
+      }
+      else
+      {
+        auto& accel = *reinterpret_cast<wm_accel*>(feature_ptr);
+        accel.x = (x >> 2) & 0xFF;
+        accel.y = (y >> 2) & 0xFF;
+        accel.z = (z >> 2) & 0xFF;
+
+        // Set the LSBs
+        core.acc_bits = x & 0b11;
+        core.acc_bits2 = (y >> 1) & 0x1;
+        core.acc_bits2 |= ((z >> 1) & 0x1) << 1;
+      }
+
       feature_ptr += rptf.accel_size;
     }
 
@@ -909,8 +967,16 @@ void Wiimote::Update()
       if (!m_status.ir)
         WARN_LOG(WIIMOTE, "Game is reading IR data without enabling IR logic first.");
 
-      m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR, offsetof(IRCameraLogic::RegData, camera_data),
-                        rptf.ir_size, feature_ptr);
+      u8 camera_data_offset = offsetof(IRCameraLogic::RegData, camera_data);
+
+      if (RT_REPORT_INTERLEAVE2 == m_reporting_mode)
+      {
+        // Interleave2 reads the 2nd half of the "FULL" IR data
+        camera_data_offset += sizeof(wm_ir_full) * 2;
+      }
+
+      m_i2c_bus.BusRead(IRCameraLogic::DEVICE_ADDR, camera_data_offset, rptf.ir_size, feature_ptr);
+
       feature_ptr += rptf.ir_size;
     }
 
@@ -944,15 +1010,17 @@ void Wiimote::Update()
   Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension,
                             m_ext_logic.ext_key);
 
-  // don't send a data report if auto reporting is off
-  if (false == m_reporting_auto && data[1] >= RT_REPORT_CORE)
-    return;
-
   // send data report
   if (rptf_size)
   {
     Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
   }
+
+  // The interleaved reporting modes toggle back and forth:
+  if (RT_REPORT_INTERLEAVE1 == m_reporting_mode)
+    m_reporting_mode = RT_REPORT_INTERLEAVE2;
+  else if (RT_REPORT_INTERLEAVE2 == m_reporting_mode)
+    m_reporting_mode = RT_REPORT_INTERLEAVE1;
 }
 
 void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
@@ -1213,9 +1281,9 @@ void Wiimote::MotionPlusLogic::Update()
       if (6 == i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data))
       {
         // Passthrough data modifications via wiibrew.org
-        // Data passing through drops the least significant bit of the axes of the left (or only) joystick
-        // Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag]
-        // Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
+        // Data passing through drops the least significant bit of the axes of the left (or only)
+        // joystick Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag] Bits 0 and 1
+        // of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
         SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
         SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
 

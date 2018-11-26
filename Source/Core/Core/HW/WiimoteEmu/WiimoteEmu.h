@@ -269,6 +269,9 @@ public:
   // TODO: change int to u16 or something
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   {
+    // TODO: the real bus seems to read in blocks of 8.
+    // peripherals NACK after each 8 bytes.
+
     // INFO_LOG(WIIMOTE, "i2c bus read: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
     for (auto& slave : m_slaves)
     {
@@ -286,6 +289,7 @@ public:
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   {
     // TODO: write in blocks of 6 to simulate the real bus
+    // sometimes it writes in blocks of 8, (speaker data)
     // this might trigger activation writes more accurately
 
     // INFO_LOG(WIIMOTE, "i2c bus write: 0x%02x @ 0x%02x (%d)", slave_addr, addr, count);
@@ -389,7 +393,7 @@ protected:
   void UpdateButtonsStatus();
 
   void GetButtonData(u8* data);
-  void GetAccelData(u8* data);
+  void GetAccelData(s16* x, s16* y, s16* z);
   void UpdateIRData(bool use_accel);
 
 private:
@@ -399,6 +403,8 @@ private:
 
   struct IRCameraLogic : public I2CSlave
   {
+    // TODO: some of this memory is write-only and should return error 7.
+
     struct RegData
     {
       // Contains sensitivity and other unknown data
@@ -500,6 +506,8 @@ private:
   {
     static const u8 DATA_FORMAT_ADPCM = 0x00;
     static const u8 DATA_FORMAT_PCM = 0x40;
+
+    // TODO: It seems reading address 0x00 should always return 0xff.
 
     struct
     {
@@ -746,6 +754,7 @@ private:
   DynamicData m_shake_dynamic_data;
 
   // Wiimote accel data
+  // TODO: can this member be eliminated?
   AccelData m_accel;
 
   // Wiimote index, 0-3

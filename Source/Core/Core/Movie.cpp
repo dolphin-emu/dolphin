@@ -688,8 +688,7 @@ static void SetWiiInputDisplayString(int remoteID, const u8* const data,
       std::memcpy(&dt, accelData, sizeof(dt));
 
       display_str +=
-          StringFromFormat(" ACC:%d,%d,%d", dt.x << 2 | buttons.acc_x_lsb,
-                           dt.y << 2 | buttons.acc_y_lsb << 1, dt.z << 2 | buttons.acc_z_lsb << 1);
+          StringFromFormat(" ACC:%d,%d,%d (LSB not shown)", dt.x << 2, dt.y << 2, dt.z << 2);
     }
   }
 

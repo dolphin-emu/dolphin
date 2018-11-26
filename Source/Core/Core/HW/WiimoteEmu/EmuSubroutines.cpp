@@ -46,10 +46,6 @@ void Wiimote::ReportMode(const wm_report_mode* const dr)
     WARN_LOG(WIIMOTE, "Game requested invalid report mode: 0x%02x", dr->mode);
     return;
   }
-  else if (dr->mode > RT_REPORT_CORE_ACCEL_IR10_EXT6)
-  {
-    PanicAlert("Wiimote: Unsupported Reporting mode: 0x%02x", dr->mode);
-  }
 
   // TODO: A real wiimote sends a report immediately.
   // even on REPORT_CORE and continuous off when the buttons haven't changed.
