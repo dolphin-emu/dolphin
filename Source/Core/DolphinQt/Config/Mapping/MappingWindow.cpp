@@ -237,6 +237,7 @@ void MappingWindow::OnDeviceChanged(int index)
 
   const auto device = m_devices_combo->currentText().toStdString();
   m_controller->SetDefaultDevice(device);
+  m_config->SaveConfig();
 }
 
 bool MappingWindow::IsMappingAllDevices() const
