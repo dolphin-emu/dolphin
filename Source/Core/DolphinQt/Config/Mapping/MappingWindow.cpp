@@ -241,7 +241,8 @@ void MappingWindow::OnDeviceChanged(int index)
 
 bool MappingWindow::IsMappingAllDevices() const
 {
-  return m_devices_combo->currentIndex() == m_devices_combo->count() - 1;
+  return m_devices_combo->count() > 0 &&
+         m_devices_combo->currentIndex() == m_devices_combo->count() - 1;
 }
 
 void MappingWindow::RefreshDevices()
@@ -251,25 +252,45 @@ void MappingWindow::RefreshDevices()
 
 void MappingWindow::OnGlobalDevicesChanged()
 {
+  const bool was_mapping_all_devices = IsMappingAllDevices();
+
+  // Prevent OnDeviceChanged from being called by the adds below.
+  m_devices_combo->blockSignals(true);
   m_devices_combo->clear();
 
   Core::RunAsCPUThread([&] {
     m_controller->UpdateReferences(g_controller_interface);
 
-    const auto default_device = m_controller->GetDefaultDevice().ToString();
-
-    if (!default_device.empty())
-      m_devices_combo->addItem(QString::fromStdString(default_device));
-
     for (const auto& name : g_controller_interface.GetAllDeviceStrings())
+      m_devices_combo->addItem(QString::fromStdString(name));
+
+    const auto default_device = m_controller->GetDefaultDevice().ToString();
+    if (!default_device.empty())
     {
-      if (name != default_device)
-        m_devices_combo->addItem(QString::fromStdString(name));
+      const auto default_device_qstr = QString::fromStdString(default_device);
+      int default_index = m_devices_combo->findText(default_device_qstr);
+      if (default_index < 0)
+      {
+        default_index = m_devices_combo->count();
+        m_devices_combo->addItem(default_device_qstr);
+      }
+
+      if (!was_mapping_all_devices)
+        m_devices_combo->setCurrentIndex(default_index);
     }
 
     m_devices_combo->addItem(tr("All devices"));
+    if (was_mapping_all_devices)
+    {
+      // The controller itself still needs a device set, otherwise it won't bind.
+      // Realistically, this doesn't matter as the "all devices" path is different.
+      m_controller->SetDefaultDevice(default_device.empty() ?
+                                         g_controller_interface.GetDefaultDeviceString() :
+                                         default_device);
+      m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
+    }
 
-    m_devices_combo->setCurrentIndex(0);
+    m_devices_combo->blockSignals(false);
   });
 }
 
