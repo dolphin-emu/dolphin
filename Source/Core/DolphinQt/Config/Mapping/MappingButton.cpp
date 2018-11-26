@@ -119,58 +119,49 @@ void MappingButton::Detect()
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
 
-    std::vector<std::future<std::pair<QString, QString>>> futures;
     QString expr;
 
     if (m_parent->GetParent()->IsMappingAllDevices())
     {
+      std::vector<std::pair<QString, std::shared_ptr<ciface::Core::Device>>> devices;
       for (const std::string& device_str : g_controller_interface.GetAllDeviceStrings())
       {
         ciface::Core::DeviceQualifier devq;
         devq.FromString(device_str);
 
         auto dev = g_controller_interface.FindDevice(devq);
+        if (!dev)
+          continue;
 
-        auto future = std::async(std::launch::async, [this, devq, dev, device_str] {
-          return std::make_pair(
-              QString::fromStdString(device_str),
-              MappingCommon::DetectExpression(m_reference, dev.get(),
-                                              m_parent->GetController()->GetDefaultDevice()));
-        });
-
-        futures.push_back(std::move(future));
+        devices.emplace_back(QString::fromStdString(device_str), dev);
       }
 
-      bool done = false;
-
-      while (!done)
+      // Wait up to 5 seconds for any controller input.
+      const auto end = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+      while (expr.isEmpty() && std::chrono::steady_clock::now() < end)
       {
-        for (auto& future : futures)
+        for (const auto& dev : devices)
         {
-          const auto status = future.wait_for(std::chrono::milliseconds(10));
-          if (status == std::future_status::ready)
-          {
-            const auto pair = future.get();
+          expr = MappingCommon::DetectExpression(m_reference, dev.second.get(),
+                                                 ciface::Core::DeviceQualifier(),
+                                                 MappingCommon::Quote::On, 10);
+          if (expr.isEmpty())
+            continue;
 
-            done = true;
-
-            if (pair.second.isEmpty())
-              break;
-
-            expr = QStringLiteral("`%1:%2`")
-                       .arg(pair.first)
-                       .arg(pair.second.startsWith(QLatin1Char('`')) ? pair.second.mid(1) :
-                                                                       pair.second);
-            break;
-          }
+          expr = QStringLiteral("`%1:%2`").arg(dev.first).arg(
+              expr.startsWith(QLatin1Char('`')) ? expr.mid(1) : expr);
+          break;
         }
       }
     }
     else
     {
       const auto dev = m_parent->GetDevice();
-      expr = MappingCommon::DetectExpression(m_reference, dev.get(),
-                                             m_parent->GetController()->GetDefaultDevice());
+      if (dev)
+      {
+        expr = MappingCommon::DetectExpression(m_reference, dev.get(),
+                                               m_parent->GetController()->GetDefaultDevice());
+      }
     }
 
     releaseKeyboard();

@@ -30,5 +30,5 @@ QString GetExpressionForControl(const QString& control_name,
                                 Quote quote = Quote::On);
 QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
                          const ciface::Core::DeviceQualifier& default_device,
-                         Quote quote = Quote::On);
+                         Quote quote = Quote::On, const unsigned int timeout = 5000);
 }  // namespace MappingCommon

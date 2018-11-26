@@ -39,9 +39,10 @@ QString GetExpressionForControl(const QString& control_name,
 }
 
 QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
-                         const ciface::Core::DeviceQualifier& default_device, Quote quote)
+                         const ciface::Core::DeviceQualifier& default_device, Quote quote,
+                         const unsigned int timeout)
 {
-  ciface::Core::Device::Control* const ctrl = reference->Detect(5000, device);
+  ciface::Core::Device::Control* const ctrl = reference->Detect(timeout, device);
 
   if (ctrl)
   {
