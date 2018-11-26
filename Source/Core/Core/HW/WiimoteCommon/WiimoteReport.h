@@ -63,7 +63,7 @@ union wm_buttons  // also just called "core data"
     u8 down : 1;
     u8 up : 1;
     u8 plus : 1;
-    u8 acc_x_lsb : 2;  // LSB of accelerometer (10 bits in total)
+    u8 acc_bits : 2;
     u8 unknown : 1;
 
     u8 two : 1;
@@ -71,8 +71,7 @@ union wm_buttons  // also just called "core data"
     u8 b : 1;
     u8 a : 1;
     u8 minus : 1;
-    u8 acc_y_lsb : 1;  // LSB of accelerometer (9 bits in total)
-    u8 acc_z_lsb : 1;  // LSB of accelerometer (9 bits in total)
+    u8 acc_bits2 : 2;
     u8 home : 1;
   };
 };
@@ -108,6 +107,23 @@ struct wm_ir_extended
   u8 yhi : 2;
 };
 static_assert(sizeof(wm_ir_extended) == 3, "Wrong size");
+
+// Nine bytes for one object
+// first 3 bytes are the same as extended
+struct wm_ir_full : wm_ir_extended
+{
+  u8 xmin : 7;
+  u8 : 1;
+  u8 ymin : 7;
+  u8 : 1;
+  u8 xmax : 7;
+  u8 : 1;
+  u8 ymax : 7;
+  u8 : 1;
+  u8 zero;
+  u8 intensity;
+};
+static_assert(sizeof(wm_ir_full) == 9, "Wrong size");
 
 // Nunchuk
 union wm_nc_core

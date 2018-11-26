@@ -350,11 +350,12 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
   if (m_remote_orientation_box->isVisible() && accel_data && buttons_data)
   {
     wm_accel& accel = *reinterpret_cast<wm_accel*>(accel_data);
-    wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
+    //wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
 
-    u16 accel_x = (accel.x << 2) & (buttons.acc_x_lsb & 0b11);
-    u16 accel_y = (accel.y << 2) & ((buttons.acc_y_lsb & 0b1) << 1);
-    u16 accel_z = (accel.z << 2) & ((buttons.acc_z_lsb & 0b1) << 1);
+    // TODO: lsb
+    u16 accel_x = (accel.x << 2); // & (buttons.acc_x_lsb & 0b11);
+    u16 accel_y = (accel.y << 2); // & ((buttons.acc_y_lsb & 0b1) << 1);
+    u16 accel_z = (accel.z << 2); // &((buttons.acc_z_lsb & 0b1) << 1);
 
     GetSpinBoxU16(m_remote_orientation_x_value, accel_x);
     GetSpinBoxU16(m_remote_orientation_y_value, accel_y);
@@ -364,9 +365,10 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     accel.y = accel_y >> 2;
     accel.z = accel_z >> 2;
 
-    buttons.acc_x_lsb = accel_x & 0b11;
-    buttons.acc_y_lsb = (accel_y >> 1) & 0b1;
-    buttons.acc_z_lsb = (accel_z >> 1) & 0b1;
+    // TODO: lsb
+    //buttons.acc_x_lsb = accel_x & 0b11;
+    //buttons.acc_y_lsb = (accel_y >> 1) & 0b1;
+    //buttons.acc_z_lsb = (accel_z >> 1) & 0b1;
   }
 
   if (m_ir_box->isVisible() && ir_data && !m_use_controller->isChecked())
