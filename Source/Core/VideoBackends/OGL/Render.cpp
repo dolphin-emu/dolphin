@@ -1184,6 +1184,27 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   glDepthRangef(near_depth, far_depth);
 }
 
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  glDrawArrays(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(), base_vertex,
+               num_vertices);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  if (g_ogl_config.bSupportsGLBaseVertex)
+  {
+    glDrawElementsBaseVertex(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(),
+                             num_indices, GL_UNSIGNED_SHORT,
+                             static_cast<u16*>(nullptr) + base_index, base_vertex);
+  }
+  else
+  {
+    glDrawElements(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(),
+                   num_indices, GL_UNSIGNED_SHORT, static_cast<u16*>(nullptr) + base_index);
+  }
+}
+
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z)
 {
@@ -1673,54 +1694,6 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 void Renderer::SetInterlacingMode()
 {
   // TODO
-}
-
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Copy in uniforms.
-  if (uniforms_size > 0)
-    UploadUtilityUniforms(uniforms, uniforms_size);
-
-  // Draw from base index if there is vertex data.
-  if (vertices)
-  {
-    StreamBuffer* vbuf = static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBuffer();
-    auto buf = vbuf->Map(vertex_stride * num_vertices, vertex_stride);
-    std::memcpy(buf.first, vertices, vertex_stride * num_vertices);
-    vbuf->Unmap(vertex_stride * num_vertices);
-    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), buf.second / vertex_stride, num_vertices);
-  }
-  else
-  {
-    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), 0, num_vertices);
-  }
-}
-
-void Renderer::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
-{
-  DEBUG_ASSERT(uniforms_size > 0);
-
-  auto buf = ProgramShaderCache::GetUniformBuffer()->Map(
-      uniforms_size, ProgramShaderCache::GetUniformBufferAlignment());
-  std::memcpy(buf.first, uniforms, uniforms_size);
-  ProgramShaderCache::GetUniformBuffer()->Unmap(uniforms_size);
-  glBindBufferRange(GL_UNIFORM_BUFFER, 1, ProgramShaderCache::GetUniformBuffer()->m_buffer,
-                    buf.second, uniforms_size);
-
-  // This is rather horrible, but because of how the UBOs are bound, this forces it to rebind.
-  ProgramShaderCache::InvalidateConstants();
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  glUseProgram(static_cast<const OGLShader*>(shader)->GetGLComputeProgramID());
-  if (uniforms_size > 0)
-    UploadUtilityUniforms(uniforms, uniforms_size);
-
-  glDispatchCompute(groups_x, groups_y, groups_z);
-  ProgramShaderCache::InvalidateLastProgram();
 }
 
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()

@@ -20,7 +20,8 @@ public:
   static ID3D11GeometryShader* GetClearGeometryShader();
   static ID3D11GeometryShader* GetCopyGeometryShader();
 
-  static ID3D11Buffer*& GetConstantBuffer();
+  static ID3D11Buffer* GetConstantBuffer();
+  static void UpdateConstantBuffer(const void* data, u32 data_size);
 };
 
 }  // namespace DX11

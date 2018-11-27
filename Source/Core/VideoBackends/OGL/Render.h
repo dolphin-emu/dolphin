@@ -116,6 +116,8 @@ public:
   void SetInterlacingMode() override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
+  void Draw(u32 base_vertex, u32 num_vertices) override;
+  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
   void RenderText(const std::string& text, int left, int top, u32 color) override;
 
@@ -137,17 +139,13 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                           u32 vertex_stride, u32 num_vertices) override;
-
-  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
-                             u32 groups_x, u32 groups_y, u32 groups_z) override;
-
   std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 
   // Only call methods from this on the GPU thread.
   GLContext* GetMainGLContext() const { return m_main_gl_context.get(); }
   bool IsGLES() const { return m_main_gl_context->IsGLES(); }
+
+  const OGLPipeline* GetCurrentGraphicsPipeline() const { return m_graphics_pipeline; }
 
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
@@ -165,7 +163,6 @@ private:
   void ApplyBlendingState(const BlendingState state, bool force = false);
   void ApplyRasterizationState(const RasterizationState state, bool force = false);
   void ApplyDepthState(const DepthState state, bool force = false);
-  void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
 
   std::unique_ptr<GLContext> m_main_gl_context;
   std::array<const AbstractTexture*, 8> m_bound_textures{};

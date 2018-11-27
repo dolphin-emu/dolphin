@@ -87,11 +87,8 @@ public:
   void SetInterlacingMode() override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
-
-  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                           u32 vertex_stride, u32 num_vertices) override;
-  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
-                             u32 groups_x, u32 groups_y, u32 groups_z) override;
+  void Draw(u32 base_vertex, u32 num_vertices) override;
+  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
 private:
   bool CreateSemaphores();

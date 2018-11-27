@@ -167,16 +167,6 @@ void Renderer::SetupDeviceObjects()
   D3D::SetDebugObjectName(m_reset_rast_state, "rasterizer state for Renderer::ResetAPIState");
 
   m_screenshot_texture = nullptr;
-
-  CD3D11_BUFFER_DESC vbo_desc(UTILITY_VBO_SIZE, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
-                              D3D11_CPU_ACCESS_WRITE);
-  hr = D3D::device->CreateBuffer(&vbo_desc, nullptr, &m_utility_vertex_buffer);
-  CHECK(SUCCEEDED(hr), "Create utility VBO");
-
-  CD3D11_BUFFER_DESC ubo_desc(UTILITY_UBO_SIZE, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC,
-                              D3D11_CPU_ACCESS_WRITE);
-  hr = D3D::device->CreateBuffer(&ubo_desc, nullptr, &m_utility_uniform_buffer);
-  CHECK(SUCCEEDED(hr), "Create utility UBO");
 }
 
 // Kill off all device objects
@@ -196,8 +186,6 @@ void Renderer::TeardownDeviceObjects()
   SAFE_RELEASE(m_reset_rast_state);
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);
-  SAFE_RELEASE(m_utility_vertex_buffer);
-  SAFE_RELEASE(m_utility_uniform_buffer);
 }
 
 void Renderer::Create3DVisionTexture(int width, int height)
@@ -273,25 +261,6 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return DXPipeline::Create(config);
 }
 
-void Renderer::UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size)
-{
-  DEBUG_ASSERT(uniforms_size > 0 && uniforms_size < UTILITY_UBO_SIZE);
-  D3D11_MAPPED_SUBRESOURCE mapped;
-  HRESULT hr = D3D::context->Map(m_utility_uniform_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-  CHECK(SUCCEEDED(hr), "Map utility UBO");
-  std::memcpy(mapped.pData, uniforms, uniforms_size);
-  D3D::context->Unmap(m_utility_uniform_buffer, 0);
-}
-
-void Renderer::UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices)
-{
-  D3D11_MAPPED_SUBRESOURCE mapped;
-  HRESULT hr = D3D::context->Map(m_utility_vertex_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-  CHECK(SUCCEEDED(hr), "Map utility VBO");
-  std::memcpy(mapped.pData, vertices, num_vertices * vertex_stride);
-  D3D::context->Unmap(m_utility_vertex_buffer, 0);
-}
-
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
   const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
@@ -306,54 +275,6 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   D3D::stateman->SetVertexShader(dx_pipeline->GetVertexShader());
   D3D::stateman->SetGeometryShader(dx_pipeline->GetGeometryShader());
   D3D::stateman->SetPixelShader(dx_pipeline->GetPixelShader());
-}
-
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Copy in uniforms.
-  if (uniforms_size > 0)
-  {
-    UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-    D3D::stateman->SetVertexConstants(m_utility_uniform_buffer);
-    D3D::stateman->SetPixelConstants(m_utility_uniform_buffer);
-    D3D::stateman->SetGeometryConstants(m_utility_uniform_buffer);
-  }
-
-  // If the vertices are larger than our buffer, we need to break it up into multiple draws.
-  const char* vertices_ptr = static_cast<const char*>(vertices);
-  while (num_vertices > 0)
-  {
-    u32 vertices_this_draw = num_vertices;
-    if (vertices_ptr)
-    {
-      vertices_this_draw = std::min(vertices_this_draw, UTILITY_VBO_SIZE / vertex_stride);
-      DEBUG_ASSERT(vertices_this_draw > 0);
-      UpdateUtilityVertexBuffer(vertices_ptr, vertex_stride, vertices_this_draw);
-      D3D::stateman->SetVertexBuffer(m_utility_vertex_buffer, vertex_stride, 0);
-    }
-
-    // Apply pending state and draw.
-    D3D::stateman->Apply();
-    D3D::context->Draw(vertices_this_draw, 0);
-    vertices_ptr += vertex_stride * vertices_this_draw;
-    num_vertices -= vertices_this_draw;
-  }
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
-
-  if (uniforms_size > 0)
-  {
-    UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-    D3D::stateman->SetComputeConstants(m_utility_uniform_buffer);
-  }
-
-  D3D::stateman->Apply();
-  D3D::context->Dispatch(groups_x, groups_y, groups_z);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -558,6 +479,18 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   vp.MinDepth = near_depth;
   vp.MaxDepth = far_depth;
   D3D::context->RSSetViewports(1, &vp);
+}
+
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  D3D::stateman->Apply();
+  D3D::context->Draw(num_vertices, base_vertex);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  D3D::stateman->Apply();
+  D3D::context->DrawIndexed(num_indices, base_index, base_vertex);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,

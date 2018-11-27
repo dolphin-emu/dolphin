@@ -259,158 +259,6 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Binding the utility pipeline layout breaks the standard layout.
-  StateTracker::GetInstance()->SetPendingRebind();
-
-  // Upload uniforms.
-  VkBuffer uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-  u32 uniform_buffer_offset = 0;
-  if (uniforms_size > 0)
-    std::tie(uniform_buffer, uniform_buffer_offset) =
-        UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-
-  // Upload vertices.
-  VkBuffer vertex_buffer = VK_NULL_HANDLE;
-  VkDeviceSize vertex_buffer_offset = 0;
-  if (vertices)
-  {
-    u32 vertices_size = vertex_stride * num_vertices;
-    StreamBuffer* vbo_buf = g_object_cache->GetUtilityShaderVertexBuffer();
-    if (!vbo_buf->ReserveMemory(vertices_size, vertex_stride))
-    {
-      Util::ExecuteCurrentCommandsAndRestoreState(true);
-      if (!vbo_buf->ReserveMemory(vertices_size, vertex_stride))
-      {
-        PanicAlert("Failed to reserve vertex buffer space for utility draw.");
-        return;
-      }
-    }
-
-    vertex_buffer = vbo_buf->GetBuffer();
-    vertex_buffer_offset = vbo_buf->GetCurrentOffset();
-    std::memcpy(vbo_buf->GetCurrentHostPointer(), vertices, vertices_size);
-    vbo_buf->CommitMemory(vertices_size);
-  }
-
-  // Allocate descriptor sets.
-  std::array<VkDescriptorSet, 2> dsets;
-  dsets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
-  dsets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
-
-  // Flush first if failed.
-  if (dsets[0] == VK_NULL_HANDLE || dsets[1] == VK_NULL_HANDLE)
-  {
-    Util::ExecuteCurrentCommandsAndRestoreState(true);
-    dsets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
-    dsets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
-
-    if (dsets[0] == VK_NULL_HANDLE || dsets[1] == VK_NULL_HANDLE)
-    {
-      PanicAlert("Failed to allocate descriptor sets in utility draw.");
-      return;
-    }
-  }
-
-  // Build UBO descriptor set.
-  std::array<VkWriteDescriptorSet, 2> dswrites;
-  VkDescriptorBufferInfo dsbuffer = {uniform_buffer, 0, std::max(uniforms_size, 4u)};
-  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,    nullptr, dsets[0],  0,      0, 1,
-                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &dsbuffer, nullptr};
-  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                 nullptr,
-                 dsets[1],
-                 0,
-                 0,
-                 NUM_PIXEL_SHADER_SAMPLERS,
-                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                 StateTracker::GetInstance()->GetPSSamplerBindings().data(),
-                 nullptr,
-                 nullptr};
-
-  // Build commands.
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    StateTracker::GetInstance()->GetPipeline()->GetVkPipeline());
-  if (vertex_buffer != VK_NULL_HANDLE)
-    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &vertex_buffer_offset);
-
-  // Update and bind descriptors.
-  VkPipelineLayout pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
-  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
-                         dswrites.data(), 0, nullptr);
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
-                          static_cast<u32>(dsets.size()), dsets.data(), 1, &uniform_buffer_offset);
-
-  // Ensure we're in a render pass before drawing, just in case we had to flush.
-  StateTracker::GetInstance()->BeginRenderPass();
-  vkCmdDraw(command_buffer, num_vertices, 1, 0, 0);
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  // Binding the utility pipeline layout breaks the standard layout.
-  StateTracker::GetInstance()->SetPendingRebind();
-  StateTracker::GetInstance()->EndRenderPass();
-
-  // Upload uniforms.
-  VkBuffer uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-  u32 uniform_buffer_offset = 0;
-  if (uniforms_size > 0)
-    std::tie(uniform_buffer, uniform_buffer_offset) =
-        UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-
-  // Flush first if failed.
-  VkDescriptorSet dset = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
-  if (dset == VK_NULL_HANDLE)
-  {
-    Util::ExecuteCurrentCommandsAndRestoreState(true);
-    dset = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
-    if (dset == VK_NULL_HANDLE)
-    {
-      PanicAlert("Failed to allocate descriptor sets in utility dispatch.");
-      return;
-    }
-  }
-
-  std::array<VkWriteDescriptorSet, 2> dswrites;
-  VkDescriptorBufferInfo dsbuffer = {uniform_buffer, 0, std::max(uniforms_size, 4u)};
-  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,    nullptr, dset,      0,      0, 1,
-                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &dsbuffer, nullptr};
-  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                 nullptr,
-                 dset,
-                 1,
-                 0,
-                 NUM_PIXEL_SHADER_SAMPLERS,
-                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                 StateTracker::GetInstance()->GetPSSamplerBindings().data(),
-                 nullptr,
-                 nullptr};
-
-  // TODO: Texel buffers, storage images.
-
-  // Build commands.
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  VkPipelineLayout pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    static_cast<const VKShader*>(shader)->GetComputePipeline());
-  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
-                         dswrites.data(), 0, nullptr);
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout, 0, 1,
-                          &dset, 1, &uniform_buffer_offset);
-  vkCmdDispatch(command_buffer, groups_x, groups_y, groups_z);
-}
-
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   u32 backbuffer_width = m_swap_chain->GetWidth();
@@ -1183,6 +1031,23 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   VkViewport viewport = {x,          y,        std::max(width, 1.0f), std::max(height, 1.0f),
                          near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
+}
+
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  if (StateTracker::GetInstance()->Bind())
+    return;
+
+  vkCmdDraw(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_vertices, 1, base_vertex, 0);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  if (!StateTracker::GetInstance()->Bind())
+    return;
+
+  vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, 1, base_index,
+                   base_vertex, 0);
 }
 
 void Renderer::RecompileShaders()

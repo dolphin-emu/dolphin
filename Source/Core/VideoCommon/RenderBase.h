@@ -114,6 +114,10 @@ public:
   {
   }
 
+  // Drawing with currently-bound pipeline state.
+  virtual void Draw(u32 base_vertex, u32 num_vertices) {}
+  virtual void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) {}
+
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader>
   CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
@@ -191,16 +195,6 @@ public:
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
-
-  // Drawing utility shaders.
-  virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-  {
-  }
-  virtual void DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-  {
-  }
 
   void ShowOSDMessage(OSDMessage message);
 

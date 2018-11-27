@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "Common/Compiler.h"
@@ -54,6 +55,13 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 {
   index_buffer_current = primitive_table[primitive](index_buffer_current, numVerts, base_index);
   base_index += numVerts;
+}
+
+void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices)
+{
+  std::memcpy(index_buffer_current, indices, sizeof(u16) * num_indices);
+  index_buffer_current += num_indices;
+  base_index += num_vertices;
 }
 
 // Triangles

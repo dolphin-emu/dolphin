@@ -4,7 +4,6 @@
 
 #include <string>
 
-#include "Common/Align.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -18,8 +17,6 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -34,25 +31,6 @@ ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader()
 ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader()
 {
   return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? CopyGeometryShader : nullptr;
-}
-
-ID3D11Buffer* gscbuf = nullptr;
-
-ID3D11Buffer*& GeometryShaderCache::GetConstantBuffer()
-{
-  // TODO: divide the global variables of the generated shaders into about 5 constant buffers to
-  // speed this up
-  if (GeometryShaderManager::dirty)
-  {
-    D3D11_MAPPED_SUBRESOURCE map;
-    D3D::context->Map(gscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-    memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
-    D3D::context->Unmap(gscbuf, 0);
-    GeometryShaderManager::dirty = false;
-
-    ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(GeometryShaderConstants));
-  }
-  return gscbuf;
 }
 
 const char clear_shader_code[] = {
@@ -116,15 +94,6 @@ const char copy_shader_code[] = {
 
 void GeometryShaderCache::Init()
 {
-  unsigned int gbsize = Common::AlignUp(static_cast<unsigned int>(sizeof(GeometryShaderConstants)),
-                                        16);  // must be a multiple of 16
-  D3D11_BUFFER_DESC gbdesc = CD3D11_BUFFER_DESC(gbsize, D3D11_BIND_CONSTANT_BUFFER,
-                                                D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-  HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, &gscbuf);
-  CHECK(hr == S_OK, "Create geometry shader constant buffer (size=%u)", gbsize);
-  D3D::SetDebugObjectName(gscbuf,
-                          "geometry shader constant buffer used to emulate the GX pipeline");
-
   // used when drawing clear quads
   ClearGeometryShader = D3D::CompileAndCreateGeometryShader(clear_shader_code);
   CHECK(ClearGeometryShader != nullptr, "Create clear geometry shader");
@@ -138,8 +107,6 @@ void GeometryShaderCache::Init()
 
 void GeometryShaderCache::Shutdown()
 {
-  SAFE_RELEASE(gscbuf);
-
   SAFE_RELEASE(ClearGeometryShader);
   SAFE_RELEASE(CopyGeometryShader);
 }
