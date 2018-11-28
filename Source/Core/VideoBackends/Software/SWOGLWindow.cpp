@@ -84,9 +84,9 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region)
+void SWOGLWindow::ShowImage(const AbstractTexture* image, const EFBRectangle& xfb_region)
 {
-  SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
+  const SW::SWTexture* sw_image = static_cast<const SW::SWTexture*>(image);
   m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
   GLsizei glWidth = (GLsizei)m_gl_context->GetBackBufferWidth();

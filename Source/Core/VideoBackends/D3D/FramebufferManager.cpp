@@ -125,6 +125,7 @@ void FramebufferManager::BindEFBRenderTarget(bool bind_depth)
 
 FramebufferManager::FramebufferManager(int target_width, int target_height)
 {
+  static constexpr std::array<float, 4> clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
   m_target_width = static_cast<unsigned int>(std::max(target_width, 1));
   m_target_height = static_cast<unsigned int>(std::max(target_height, 1));
   DXGI_SAMPLE_DESC sample_desc;
@@ -154,6 +155,7 @@ FramebufferManager::FramebufferManager(int target_width, int target_height)
   D3D::SetDebugObjectName(m_efb.color_tex->GetTex(), "EFB color texture");
   D3D::SetDebugObjectName(m_efb.color_tex->GetSRV(), "EFB color texture shader resource view");
   D3D::SetDebugObjectName(m_efb.color_tex->GetRTV(), "EFB color texture render target view");
+  D3D::context->ClearRenderTargetView(m_efb.color_tex->GetRTV(), clear_color.data());
 
   // Temporary EFB color texture - used in ReinterpretPixelData
   texdesc =
@@ -173,6 +175,7 @@ FramebufferManager::FramebufferManager(int target_width, int target_height)
                           "EFB color temp texture shader resource view");
   D3D::SetDebugObjectName(m_efb.color_temp_tex->GetRTV(),
                           "EFB color temp texture render target view");
+  D3D::context->ClearRenderTargetView(m_efb.color_temp_tex->GetRTV(), clear_color.data());
 
   // Integer render targets for EFB, used for logic op
   CD3D11_RENDER_TARGET_VIEW_DESC int_rtv_desc(m_efb.color_tex->GetTex(),
@@ -222,6 +225,7 @@ FramebufferManager::FramebufferManager(int target_width, int target_height)
   D3D::SetDebugObjectName(m_efb.depth_tex->GetTex(), "EFB depth texture");
   D3D::SetDebugObjectName(m_efb.depth_tex->GetDSV(), "EFB depth texture depth stencil view");
   D3D::SetDebugObjectName(m_efb.depth_tex->GetSRV(), "EFB depth texture shader resource view");
+  D3D::context->ClearDepthStencilView(m_efb.depth_tex->GetDSV(), D3D11_CLEAR_DEPTH, 0.0f, 0);
 
   // Render buffer for AccessEFB (depth data)
   texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, 1, D3D11_BIND_RENDER_TARGET);

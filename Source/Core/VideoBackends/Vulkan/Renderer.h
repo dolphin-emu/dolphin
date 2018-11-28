@@ -60,8 +60,9 @@ public:
   void BBoxWrite(int index, u16 value) override;
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override;
   void Flush() override;
+  void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) override;
+  void OnConfigChanged(u32 bits) override;
 
   void ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha_enable, bool z_enable,
                    u32 color, u32 z) override;
@@ -88,6 +89,8 @@ public:
                    float far_depth) override;
   void Draw(u32 base_vertex, u32 num_vertices) override;
   void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
+  void BindBackbuffer(const ClearColor& clear_color = {}) override;
+  void PresentBackbuffer() override;
 
 private:
   bool CreateSemaphores();
@@ -97,7 +100,6 @@ private:
 
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
-  void CheckForConfigChanges();
 
   void ResetSamplerStates();
 
@@ -109,13 +111,6 @@ private:
   void RecompileShaders();
   bool CompileShaders();
   void DestroyShaders();
-
-  // Draw the frame, as well as the OSD to the swap chain.
-  void DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region);
-
-  // Copies/scales an image to the currently-bound framebuffer.
-  void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
-                  const TargetRectangle& src_rect, const Texture2D* src_tex);
 
   std::tuple<VkBuffer, u32> UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
 

@@ -92,9 +92,4 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-void Renderer::SwapImpl(AbstractTexture*, const EFBRectangle&, u64)
-{
-  UpdateActiveConfig();
-}
-
 }  // namespace Null

@@ -109,6 +109,14 @@ public:
   virtual void Draw(u32 base_vertex, u32 num_vertices) {}
   virtual void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) {}
 
+  // Binds the backbuffer for rendering. The buffer will be cleared immediately after binding.
+  // This is where any window size changes are detected, therefore m_backbuffer_width and/or
+  // m_backbuffer_height may change after this function returns.
+  virtual void BindBackbuffer(const ClearColor& clear_color = {}) {}
+
+  // Presents the backbuffer to the window system, or "swaps buffers".
+  virtual void PresentBackbuffer() {}
+
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader>
   CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
@@ -173,11 +181,18 @@ public:
   virtual u16 BBoxRead(int index) = 0;
   virtual void BBoxWrite(int index, u16 value) = 0;
 
+  virtual void Flush() {}
+
   // Finish up the current frame, print some stats
   void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
             u64 ticks);
-  virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) = 0;
-  virtual void Flush() {}
+
+  // Draws the specified XFB buffer to the screen, performing any post-processing.
+  // Assumes that the backbuffer has already been bound and cleared.
+  virtual void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) {}
+
+  // Called when the configuration changes, and backend structures need to be updated.
+  virtual void OnConfigChanged(u32 bits) {}
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
@@ -195,23 +210,43 @@ public:
   // as the drawing is tied to a "frame".
   std::unique_lock<std::mutex> GetImGuiLock();
 
+  // Begins/presents a "UI frame". UI frames do not draw any of the console XFB, but this could
+  // change in the future.
+  void BeginUIFrame();
+  void EndUIFrame();
+
 protected:
+  // Bitmask containing information about which configuration has changed for the backend.
+  enum ConfigChangeBits : u32
+  {
+    CONFIG_CHANGE_BIT_HOST_CONFIG = (1 << 0),
+    CONFIG_CHANGE_BIT_MULTISAMPLES = (1 << 1),
+    CONFIG_CHANGE_BIT_STEREO_MODE = (1 << 2),
+    CONFIG_CHANGE_BIT_TARGET_SIZE = (1 << 3),
+    CONFIG_CHANGE_BIT_ANISOTROPY = (1 << 4),
+    CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING = (1 << 5),
+    CONFIG_CHANGE_BIT_VSYNC = (1 << 6),
+    CONFIG_CHANGE_BIT_BBOX = (1 << 7)
+  };
+
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
-  bool CheckForHostConfigChanges();
+  void CheckForConfigChanges();
 
   void CheckFifoRecording();
   void RecordVideoMemory();
 
-  // Renders ImGui windows to the currently-bound framebuffer.
-  void DrawImGui();
+  // Sets up ImGui state for the next frame.
+  // This function itself acquires the ImGui lock, so it should not be held.
+  void BeginImGuiFrame();
 
   // Destroys all ImGui GPU resources, must do before shutdown.
   void ShutdownImGui();
 
-  // Sets up ImGui state for the next frame.
-  void BeginImGuiFrame();
+  // Renders ImGui windows to the currently-bound framebuffer.
+  // Should be called with the ImGui lock held.
+  void RenderImGui();
 
   // TODO: Remove the width/height parameters once we make the EFB an abstract framebuffer.
   const AbstractFramebuffer* m_current_framebuffer = nullptr;
@@ -243,9 +278,6 @@ protected:
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
   std::mutex m_swap_mutex;
-
-  u32 m_last_host_config_bits = 0;
-  u32 m_last_efb_multisamples = 1;
 
   // ImGui resources.
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;

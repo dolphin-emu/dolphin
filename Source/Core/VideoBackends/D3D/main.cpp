@@ -157,13 +157,14 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();
-  if (!g_shader_cache->Initialize())
+
+  if (!g_renderer->Initialize() || !g_shader_cache->Initialize())
     return false;
 
   D3D::InitUtils();
   BBox::Init();
 
-  return g_renderer->Initialize();
+  return true;
 }
 
 void VideoBackend::Shutdown()

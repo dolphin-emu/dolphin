@@ -91,9 +91,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
   CalculateTargetSize();
 
   m_aspect_wide = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
-
-  m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
-  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
 }
 
 Renderer::~Renderer() = default;
@@ -239,24 +236,56 @@ void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_complet
   }
 }
 
-bool Renderer::CheckForHostConfigChanges()
+void Renderer::CheckForConfigChanges()
 {
+  const ShaderHostConfig old_shader_host_config = ShaderHostConfig::GetCurrent();
+  const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
+  const u32 old_multisamples = g_ActiveConfig.iMultisamples;
+  const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  const bool old_vsync = g_ActiveConfig.IsVSync();
+  const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+
+  UpdateActiveConfig();
+
+  // Update texture cache settings with any changed options.
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
+
+  // Determine which (if any) settings have changed.
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
-  if (new_host_config.bits == m_last_host_config_bits &&
-      m_last_efb_multisamples == g_ActiveConfig.iMultisamples)
+  u32 changed_bits = 0;
+  if (old_shader_host_config.bits != new_host_config.bits)
+    changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;
+  if (old_stereo != g_ActiveConfig.stereo_mode)
+    changed_bits |= CONFIG_CHANGE_BIT_STEREO_MODE;
+  if (old_multisamples != g_ActiveConfig.iMultisamples)
+    changed_bits |= CONFIG_CHANGE_BIT_MULTISAMPLES;
+  if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
+    changed_bits |= CONFIG_CHANGE_BIT_ANISOTROPY;
+  if (old_force_filtering != g_ActiveConfig.bForceFiltering)
+    changed_bits |= CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING;
+  if (old_vsync != g_ActiveConfig.IsVSync())
+    changed_bits |= CONFIG_CHANGE_BIT_VSYNC;
+  if (old_bbox != g_ActiveConfig.bBBoxEnable)
+    changed_bits |= CONFIG_CHANGE_BIT_BBOX;
+  if (CalculateTargetSize())
+    changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
+
+  // No changes?
+  if (changed_bits == 0)
+    return;
+
+  // Notify the backend of the changes, if any.
+  OnConfigChanged(changed_bits);
+
+  // Reload shaders if host config has changed.
+  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
   {
-    return false;
+    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+    SetPipeline(nullptr);
+    g_vertex_manager->InvalidatePipelineObject();
+    g_shader_cache->SetHostConfig(new_host_config, g_ActiveConfig.iMultisamples);
   }
-
-  m_last_host_config_bits = new_host_config.bits;
-  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
-
-  // Reload shaders.
-  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
-  SetPipeline(nullptr);
-  g_vertex_manager->InvalidatePipelineObject();
-  g_shader_cache->SetHostConfig(new_host_config, g_ActiveConfig.iMultisamples);
-  return true;
 }
 
 // Create On-Screen-Messages
@@ -754,6 +783,8 @@ void Renderer::ShutdownImGui()
 
 void Renderer::BeginImGuiFrame()
 {
+  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+
   const u64 current_time_us = Common::Timer::GetTimeUs();
   const u64 time_diff_us = current_time_us - m_imgui_last_frame_time;
   const float time_diff_secs = static_cast<float>(time_diff_us / 1000000.0);
@@ -768,11 +799,16 @@ void Renderer::BeginImGuiFrame()
   ImGui::NewFrame();
 }
 
-void Renderer::DrawImGui()
+void Renderer::RenderImGui()
 {
+  ImGui::Render();
+
   ImDrawData* draw_data = ImGui::GetDrawData();
   if (!draw_data)
     return;
+
+  SetViewport(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
+              static_cast<float>(m_backbuffer_height), 0.0f, 1.0f);
 
   // Uniform buffer for draws.
   struct ImGuiUbo
@@ -783,8 +819,9 @@ void Renderer::DrawImGui()
   ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
 
   // Set up common state for drawing.
-  g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
+  SetPipeline(m_imgui_pipeline.get());
   SetSamplerState(0, RenderState::GetPointSamplerState());
+  g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
 
   for (int i = 0; i < draw_data->CmdListsCount; i++)
   {
@@ -805,7 +842,6 @@ void Renderer::DrawImGui()
         continue;
       }
 
-      SetPipeline(m_imgui_pipeline.get());
       SetScissorRect(MathUtil::Rectangle<int>(
           static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
           static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)));
@@ -821,13 +857,31 @@ std::unique_lock<std::mutex> Renderer::GetImGuiLock()
   return std::unique_lock<std::mutex>(m_imgui_mutex);
 }
 
+void Renderer::BeginUIFrame()
+{
+  ResetAPIState();
+  BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
+}
+
+void Renderer::EndUIFrame()
+{
+  {
+    auto lock = GetImGuiLock();
+    RenderImGui();
+  }
+
+  {
+    std::lock_guard<std::mutex> guard(m_swap_mutex);
+    PresentBackbuffer();
+  }
+
+  BeginImGuiFrame();
+  RestoreAPIState();
+}
+
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     u64 ticks)
 {
-  // Hold the imgui lock while we're presenting.
-  // It's only to prevent races on inputs anyway, at this point.
-  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
-
   const AspectMode suggested = g_ActiveConfig.suggested_aspect_mode;
   if (suggested == AspectMode::Analog || suggested == AspectMode::AnalogWide)
   {
@@ -892,16 +946,27 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
       g_vertex_manager->Flush();
 
-      // Draw any imgui overlays we have. Note that "draw" here means "create commands", the actual
-      // draw calls don't get issued until DrawImGui is called, which happens in SwapImpl.
-      DrawDebugText();
-      OSD::DrawMessages();
-      ImGui::Render();
+      // Render the XFB to the screen.
+      ResetAPIState();
+      BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
+      UpdateDrawRectangle();
+      RenderXFBToScreen(xfb_entry->texture.get(), xfb_rect);
 
-      // TODO: merge more generic parts into VideoCommon
+      // Hold the imgui lock while we're presenting.
+      // It's only to prevent races on inputs anyway, at this point.
+      {
+        auto lock = GetImGuiLock();
+
+        DrawDebugText();
+        OSD::DrawMessages();
+
+        RenderImGui();
+      }
+
+      // Present to the window system.
       {
         std::lock_guard<std::mutex> guard(m_swap_mutex);
-        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks);
+        PresentBackbuffer();
       }
 
       // Update the window size based on the frame that was just rendered.
@@ -923,10 +988,9 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
       // Begin new frame
-      // Set default viewport and scissor, for the clear to work correctly
-      // New frame
       stats.ResetFrame();
       g_shader_cache->RetrieveAsyncShaders();
+      BeginImGuiFrame();
 
       // We invalidate the pipeline object at the start of the frame.
       // This is for the rare case where only a single pipeline configuration is used,
@@ -938,7 +1002,14 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
       g_texture_cache->FlushEFBCopies();
 
-      BeginImGuiFrame();
+      // Remove stale EFB/XFB copies.
+      g_texture_cache->Cleanup(frameCount);
+
+      // Handle any config changes, this gets propogated to the backend.
+      CheckForConfigChanges();
+      g_Config.iSaveTargetId = 0;
+
+      RestoreAPIState();
 
       Core::Callback_VideoCopiedToXFB(true);
     }
