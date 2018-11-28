@@ -38,6 +38,7 @@ signals:
   void RequestPPCComparison(u32 addr);
   void SymbolsChanged();
   void BreakpointsChanged();
+  void SendSearchValue(u32 addr);
 
 private:
   enum class ReplaceWith
@@ -60,6 +61,7 @@ private:
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
+  void OnMemoryViewAddress();
   void OnRenameSymbol();
   void OnSelectionChanged();
   void OnSetSymbolSize();

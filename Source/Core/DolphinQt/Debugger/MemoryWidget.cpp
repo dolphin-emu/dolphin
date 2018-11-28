@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <ctype.h>
 #include <string>
 
 #include <QCheckBox>
@@ -83,6 +84,7 @@ void MemoryWidget::CreateWidgets()
 
   // Search
   m_search_address = new QLineEdit;
+  m_search_address_offset = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
   m_data_preview = new QLabel;
@@ -92,8 +94,8 @@ void MemoryWidget::CreateWidgets()
   m_data_preview->setAutoFillBackground(true);
 
   m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_address_offset->setPlaceholderText(tr("Offset"));
   m_data_edit->setPlaceholderText(tr("Value"));
-
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
   m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
@@ -160,6 +162,11 @@ void MemoryWidget::CreateWidgets()
   bp_layout->addWidget(m_bp_log_check);
   bp_layout->setSpacing(1);
 
+  // Search Address
+  auto* searchaddr_layout = new QHBoxLayout;
+  searchaddr_layout->addWidget(m_search_address);
+  searchaddr_layout->addWidget(m_search_address_offset);
+
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
@@ -167,7 +174,7 @@ void MemoryWidget::CreateWidgets()
 
   sidebar->setLayout(sidebar_layout);
 
-  sidebar_layout->addWidget(m_search_address);
+  sidebar_layout->addLayout(searchaddr_layout);
   sidebar_layout->addWidget(m_data_edit);
   sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_find_ascii);
@@ -205,6 +212,7 @@ void MemoryWidget::CreateWidgets()
 void MemoryWidget::ConnectWidgets()
 {
   connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_address_offset, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
 
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
   connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
@@ -231,6 +239,8 @@ void MemoryWidget::ConnectWidgets()
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
   connect(m_memory_view, &MemoryViewWidget::SendSearchValue, m_search_address, &QLineEdit::setText);
+  connect(m_memory_view, &MemoryViewWidget::SendSearchValue, m_search_address_offset,
+          &QLineEdit::clear);
   connect(m_memory_view, &MemoryViewWidget::SendDataValue, m_data_edit, &QLineEdit::setText);
 }
 
@@ -261,12 +271,15 @@ void MemoryWidget::LoadSettings()
   const bool type_u32 = settings.value(QStringLiteral("memorywidget/typeu32"), false).toBool();
   const bool type_float = settings.value(QStringLiteral("memorywidget/typefloat"), false).toBool();
   const bool type_ascii = settings.value(QStringLiteral("memorywidget/typeascii"), false).toBool();
+  const bool mem_view_style =
+      settings.value(QStringLiteral("memorywidget/memviewstyle"), false).toBool();
 
   m_type_u8->setChecked(type_u8);
   m_type_u16->setChecked(type_u16);
   m_type_u32->setChecked(type_u32);
   m_type_float->setChecked(type_float);
   m_type_ascii->setChecked(type_ascii);
+  m_mem_view_style->setChecked(mem_view_style);
 
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
@@ -357,7 +370,8 @@ void MemoryWidget::OnBPTypeChanged()
 void MemoryWidget::OnSearchAddress()
 {
   bool good;
-  u32 addr = m_search_address->text().toUInt(&good, 16);
+  u32 addr =
+      m_search_address->text().toUInt(&good, 16) + m_search_address_offset->text().toInt(&good, 16);
 
   QFont font;
   QPalette palette;
@@ -532,7 +546,8 @@ void MemoryWidget::OnDumpFakeVMEM()
 
 std::vector<u8> MemoryWidget::GetValueData() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  // Series of bytes we want to look for.
+  std::vector<u8> search_for;
 
   if (m_find_ascii->isChecked())
   {
@@ -541,25 +556,14 @@ std::vector<u8> MemoryWidget::GetValueData() const
   }
   else
   {
-    bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-      return {};
-
-    int size;
-
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
+    // Accepts any amount of bytes.
+    std::string search_prep = m_data_edit->text().toStdString();
+    for (size_t i = 0; i <= search_prep.length() - 2; i = i + 2)
+    {
+      if (!isxdigit(search_prep[i]) || !isxdigit(search_prep[i + 1]))
+        return {};
+      search_for.push_back(std::stoi((search_prep.substr(i, 2)), nullptr, 16));
+    }
   }
 
   return search_for;
@@ -567,8 +571,6 @@ std::vector<u8> MemoryWidget::GetValueData() const
 
 void MemoryWidget::FindValue(bool next)
 {
-  // TODO: GetValueData is a very poor method, ignoring leading zeroes. hexstring from
-  // ValidateSearchValue might be usable here.
   std::vector<u8> search_for = GetValueData();
 
   if (search_for.empty())
@@ -651,4 +653,10 @@ void MemoryWidget::OnFindNextValue()
 void MemoryWidget::OnFindPreviousValue()
 {
   FindValue(false);
+}
+
+void MemoryWidget::OnSetAddress(u32 addr)
+{
+  const QString address = QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0'));
+  m_search_address->setText(address);
 }

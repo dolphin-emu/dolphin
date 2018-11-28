@@ -116,7 +116,8 @@ void MemoryViewWidget::Update()
       addr_item->setSelected(true);
 
     // Don't update values unless game is started
-    if (Core::GetState() == Core::State::Uninitialized || Core::GetState() == Core::State::Starting)
+    if ((Core::GetState() != Core::State::Paused && Core::GetState() != Core::State::Running) ||
+        !PowerPC::HostIsRAMAddress(addr))
       continue;
 
     auto* description_item =
@@ -222,6 +223,9 @@ void MemoryViewWidget::Update()
     setColumnWidth(i, columnWidth(i) * 1.1);
   }
 
+  // Clearly denote which row the address box points to. Could look better than this.
+  item(20, 0)->setBackground(Qt::lightGray);
+
   viewport()->update();
   update();
 }
@@ -294,9 +298,9 @@ void MemoryViewWidget::ToggleRowBreakpoint(bool row)
 {
   TMemCheck check;
 
-  // Breakpoints will apply to 4 bytes aligned to 0x4
-  const u32 addr = row ? GetContextAddress() & 0xFFFFFFF0 : ((GetContextAddress() >> 2) << 2);
-  const auto length = (GetColumnCount(m_type) == 2) ? 4 : (row ? 16 : 4);
+  const u32 addr = row ? GetContextAddress() & 0xFFFFFFFC : GetContextAddress();
+  const auto length =
+      (GetColumnCount(m_type) == 2) ? 4 : (row ? 16 : (16 / GetColumnCount(m_type)));
 
   if (!PowerPC::memchecks.OverlapsMemcheck(addr, length))
   {

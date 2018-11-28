@@ -26,6 +26,7 @@ public:
   ~MemoryWidget();
 
   void Update();
+  void OnSetAddress(u32 addr);
 signals:
   void BreakpointsChanged();
 
@@ -60,6 +61,7 @@ private:
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
   QLineEdit* m_search_address;
+  QLineEdit* m_search_address_offset;
   QLineEdit* m_data_edit;
   QLabel* m_data_preview;
   QPushButton* m_set_value;
