@@ -32,6 +32,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -105,6 +106,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   if (!running)
     m_recording_stop->setEnabled(false);
   m_recording_play->setEnabled(!running);
+
+  // Options
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   // Tools
   m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
@@ -471,7 +475,8 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
-  options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
+  m_controllers_action =
+      options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
 
   options_menu->addSeparator();
