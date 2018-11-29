@@ -63,6 +63,8 @@ union wm_buttons  // also just called "core data"
     u8 down : 1;
     u8 up : 1;
     u8 plus : 1;
+    // For most input reports this is the 2 LSbs of accel.x:
+    // For interleaved reports this is alternating bits of accel.z:
     u8 acc_bits : 2;
     u8 unknown : 1;
 
@@ -71,6 +73,8 @@ union wm_buttons  // also just called "core data"
     u8 b : 1;
     u8 a : 1;
     u8 minus : 1;
+    // For most input reports this is bits of accel.y/z:
+    // For interleaved reports this is alternating bits of accel.z:
     u8 acc_bits2 : 2;
     u8 home : 1;
   };
@@ -425,8 +429,10 @@ struct wm_write_data
   u8 rumble : 1;
   u8 space : 2;  // see WM_SPACE_*
   u8 : 5;
-  // used only for register space (i2c bus)
-  u8 slave_address;
+  // A real wiimote ignores the i2c read/write bit.
+  u8 i2c_rw_ignored : 1;
+  // Used only for register space (i2c bus) (7-bits):
+  u8 slave_address : 7;
   // big endian:
   u8 address[2];
   u8 size;
@@ -447,8 +453,10 @@ struct wm_read_data
   u8 rumble : 1;
   u8 space : 2;  // see WM_SPACE_*
   u8 : 5;
-  // used only for register space (i2c bus)
-  u8 slave_address;
+  // A real wiimote ignores the i2c read/write bit.
+  u8 i2c_rw_ignored : 1;
+  // Used only for register space (i2c bus) (7-bits):
+  u8 slave_address : 7;
   // big endian:
   u8 address[2];
   u8 size[2];

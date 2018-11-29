@@ -177,11 +177,11 @@ void Wiimote::SendAck(u8 report_id, u8 error_code)
   rpt.param = HID_PARAM_INPUT;
   rpt.report_id = RT_ACK_DATA;
 
-  auto ack = &rpt.data;
+  auto& ack = rpt.data;
 
-  ack->buttons = m_status.buttons;
-  ack->reportID = report_id;
-  ack->errorID = error_code;
+  ack.buttons = m_status.buttons;
+  ack.reportID = report_id;
+  ack.errorID = error_code;
 
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),
                                          rpt.GetSize());
@@ -209,7 +209,7 @@ void Wiimote::HandleExtensionSwap()
 
 void Wiimote::RequestStatus(const wm_request_status* const rs)
 {
-  INFO_LOG(WIIMOTE, "Wiimote::RequestStatus");
+  //INFO_LOG(WIIMOTE, "Wiimote::RequestStatus");
 
   // update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
@@ -290,7 +290,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     // Write to Control Register
 
     // Top byte of address is ignored on the bus.
-    auto const bytes_written = m_i2c_bus.BusWrite(wd->slave_address >> 1, (u8)address, wd->size, wd->data);
+    auto const bytes_written = m_i2c_bus.BusWrite(wd->slave_address, (u8)address, wd->size, wd->data);
     if (bytes_written != wd->size)
     {
       // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
@@ -336,7 +336,7 @@ bool Wiimote::ProcessReadDataRequest()
 {
   // Limit the amt to 16 bytes
   // AyuanX: the MTU is 640B though... what a waste!
-  u16 const bytes_to_read = std::min((u16)16, m_read_request.size);
+  const u16 bytes_to_read = std::min<u16>(16, m_read_request.size);
 
   if (0 == bytes_to_read)
   {
@@ -404,7 +404,7 @@ bool Wiimote::ProcessReadDataRequest()
     // Read from Control Register
 
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
-    auto const bytes_read = m_i2c_bus.BusRead(m_read_request.slave_address >> 1,
+    auto const bytes_read = m_i2c_bus.BusRead(m_read_request.slave_address,
                                         (u8)m_read_request.address, bytes_to_read, reply->data);
 
     reply->size_minus_one = bytes_read - 1;
@@ -412,20 +412,30 @@ bool Wiimote::ProcessReadDataRequest()
     if (bytes_read != bytes_to_read)
     {
       // generate read error, 7 == no such slave (no ack)
-      INFO_LOG(WIIMOTE, "Responding with read error 7.");
+      INFO_LOG(WIIMOTE, "Responding with read error 7 @ 0x%x @ 0x%x (%d)",
+               m_read_request.slave_address, m_read_request.address, m_read_request.size);
       reply->error = 0x07;
     }
   }
   break;
 
   default:
-    PanicAlert("Wiimote::ReadData: unimplemented address space (space: 0x%x)!", m_read_request.space);
+    PanicAlert("Wiimote::ReadData: invalid address space (space: 0x%x)!", m_read_request.space);
     break;
   }
 
-  // Modify the read request, zero size == complete
-  m_read_request.address += bytes_to_read;
-  m_read_request.size -= bytes_to_read;
+  if (reply->error)
+  {
+    // Stop processing request on read error:
+    m_read_request.size = 0;
+
+  }
+  else
+  {
+    // Modify the read request, zero size == complete
+    m_read_request.address += bytes_to_read;
+    m_read_request.size -= bytes_to_read;
+  }
 
   // Send the data
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),

@@ -95,7 +95,7 @@ static const ReportFeatures reporting_mode_features[] = {
     {2, 0, 10, 9, 23},
     // 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
     {2, 3, 10, 6, 23},
-    // Ugly padding members so 0x3d,3e,3f are properly placed in the array:
+    // 0x38 - 0x3c: Nothing
     {0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0},
@@ -103,7 +103,8 @@ static const ReportFeatures reporting_mode_features[] = {
     {0, 0, 0, 0, 0},
     // 0x3d: 21 Extension Bytes
     {0, 0, 0, 21, 23},
-    // 0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+    // 0x3e - 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+    {2, 1, 0, 18, 23},
     {2, 1, 0, 18, 23},
 };
 
@@ -303,6 +304,7 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
+  // TODO: Is a wiimote in CORE or DISABLED reporting mode on sync?
   m_reporting_mode = RT_REPORT_DISABLED;
   m_reporting_channel = 0;
   m_reporting_auto = false;
@@ -553,19 +555,12 @@ bool Wiimote::Step()
     UpdateButtonsStatus();
   }
 
-  if (ProcessReadDataRequest())
-  {
-    // Read requests suppress normal input reports
-    // Don't send any other reports
-    return true;
-  }
-
   // If an extension change is requested in the GUI it will first be disconnected here.
   // causing IsDeviceConnected() to return false below:
   HandleExtensionSwap();
 
-  // check if a status report needs to be sent
-  // this happens when extensions are switched
+  // Check if a status report needs to be sent. This happens when extensions are switched.
+  // ..even during read requests which continue after the status report is sent.
   if (m_status.extension != m_extension_port.IsDeviceConnected())
   {
     // WiiBrew: Following a connection or disconnection event on the Extension Port,
@@ -573,8 +568,17 @@ bool Wiimote::Step()
     // arrive.
     m_reporting_mode = RT_REPORT_DISABLED;
 
+    INFO_LOG(WIIMOTE, "Sending status report due to extension status change.");
+
     RequestStatus();
 
+    return true;
+  }
+
+  if (ProcessReadDataRequest())
+  {
+    // Read requests suppress normal input reports
+    // Don't send any other reports
     return true;
   }
 
@@ -868,7 +872,7 @@ void Wiimote::Update()
 
   if (RT_REPORT_DISABLED == m_reporting_mode)
   {
-    // The wiimote is in this disabled state on boot and after an extension change.
+    // The wiimote is in this disabled after an extension change.
     // Input reports are not sent, even on button change.
     return;
   }
@@ -922,14 +926,14 @@ void Wiimote::Update()
       if (RT_REPORT_INTERLEAVE1 == m_reporting_mode)
       {
         *feature_ptr = (x >> 2) & 0xff;
-        core.acc_bits = (z >> 4) & 0b11;
-        core.acc_bits2 = (z >> 6) & 0b11;
+        core.acc_bits = (z >> 6) & 0b11;
+        core.acc_bits2 = (z >> 8) & 0b11;
       }
       if (RT_REPORT_INTERLEAVE2 == m_reporting_mode)
       {
         *feature_ptr = (y >> 2) & 0xff;
-        core.acc_bits = (z >> 0) & 0b11;
-        core.acc_bits2 = (z >> 2) & 0b11;
+        core.acc_bits = (z >> 2) & 0b11;
+        core.acc_bits2 = (z >> 4) & 0b11;
       }
       else
       {
@@ -989,6 +993,7 @@ void Wiimote::Update()
     Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension,
                              m_ext_logic.ext_key);
   }
+
   if (NetPlay::IsNetPlayRunning())
   {
     NetPlay_GetWiimoteData(m_index, data, rptf.total_size, m_reporting_mode);
@@ -996,7 +1001,6 @@ void Wiimote::Update()
       m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core_size);
   }
 
-  // TODO: need to fix usage of rptf probably
   Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension,
                             m_ext_logic.ext_key);
 
@@ -1190,22 +1194,7 @@ void Wiimote::MotionPlusLogic::Update()
     return;
   }
 
-  // TODO: clean up this hackery:
-  // the value seems to increase based on time starting after the first read of 0x00
-  if (IsActive() && times_updated_since_activation < 0xff)
-  {
-    ++times_updated_since_activation;
-
-    // TODO: wtf is this value actually..
-    if (times_updated_since_activation == 9)
-      reg_data.initialization_status = 0x4;
-    else if (times_updated_since_activation == 10)
-      reg_data.initialization_status = 0x8;
-    else if (times_updated_since_activation == 18)
-      reg_data.initialization_status = 0xc;
-    else if (times_updated_since_activation == 53)
-      reg_data.initialization_status = 0xe;
-  }
+  reg_data.cert_ready = 0xe;
 
   auto& mplus_data = *reinterpret_cast<wm_motionplus_data*>(reg_data.controller_data);
   auto& data = reg_data.controller_data;
@@ -1254,6 +1243,7 @@ void Wiimote::MotionPlusLogic::Update()
         // Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
         SetBit(data[5], 2, Common::ExtractBit(data[5], 0));
 
+        // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
         mplus_data.is_mp_data = false;
       }
     }
@@ -1270,9 +1260,11 @@ void Wiimote::MotionPlusLogic::Update()
         // Data passing through drops the least significant bit of the axes of the left (or only)
         // joystick Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag] Bits 0 and 1
         // of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
+        
         SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
         SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
 
+        // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
         mplus_data.is_mp_data = false;
       }
     }

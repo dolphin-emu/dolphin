@@ -571,24 +571,33 @@ private:
     struct MotionPlusRegister
     {
       u8 controller_data[21];
-      u8 unknown[11];
+      u8 unknown_0x15[11];
 
       // address 0x20
       u8 calibration_data[0x20];
-      u8 unknown2[0xb0];
+
+      u8 unknown_0x40[0x10];
+
+      // address 0x50
+      u8 cert_data[0x40];
+
+      u8 unknown_0x90[0x60];
 
       // address 0xF0
       u8 initialized;
 
-      u8 unknown3[6];
+      u8 unknown_0xf1[6];
 
       // address 0xf7
-      // Wii Sports Resort reads regularly and claims mplus is disconnected if not to its liking
+      // Wii Sports Resort reads regularly
       // Value starts at 0x00 and goes up after activation (not initialization)
       // Immediately returns 0x02, even still after 15 and 30 seconds
-      u8 initialization_status;
+      // After the first data read the value seems to progress to 0x4,0x8,0xc,0xe
+      // A value of 0xe triggers the game to read 64 bytes from 0x50
+      // The game claims M+ is disconnected after this read of unsatisfactory data
+      u8 cert_ready;
 
-      u8 unknown4[2];
+      u8 unknown_0xf8[2];
 
       // address 0xFA
       u8 ext_identifier[6];
@@ -607,9 +616,6 @@ private:
       PASSTHROUGH_NUNCHUK = 0x05,
       PASSTHROUGH_CLASSIC = 0x07,
     };
-
-    // TODO: savestate
-    u8 times_updated_since_activation = 0;
 
     bool IsActive() const { return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2]; }
 
@@ -657,15 +663,19 @@ private:
         if (ACTIVE_DEVICE_ADDR == slave_addr)
         {
           auto const result = RawWrite(&reg_data, addr, count, data_in);
-          return result;
 
           // It seems a write of any value triggers deactivation.
           if (0xf0 == addr)
           {
             // Deactivate motion plus:
             reg_data.ext_identifier[2] = INACTIVE_DEVICE_ADDR << 1;
-            times_updated_since_activation = 0;
+            reg_data.cert_ready = 0x0;
+
+            // Pass through the activation write to the attached extension:
+            // The M+ deactivation signal is cleverly the same as EXT activation:
+            i2c_bus.BusWrite(slave_addr, addr, count, data_in);
           }
+          return result;
         }
         else
         {
@@ -686,9 +696,11 @@ private:
 
             // Activate motion plus:
             reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
-            reg_data.initialization_status = 0x2;
+            // TODO: kill magic number
+            reg_data.cert_ready = 0x2;
 
-            // Some hax to disable encryption:
+            // TODO: activate extension and disable encrption
+            // also do this if an extension is attached after activation.
             std::array<u8, 1> data = {0x55};
             i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, 0xf0, (int)data.size(), data.data());
           }
@@ -708,11 +720,11 @@ private:
     {
       if (IsActive())
       {
-        // TODO: logic for when motion plus deactivates
         return true;
       }
       else
       {
+        // When not active device detect pin reads from ext port:
         return extension_port.IsDeviceConnected();
       }
     }
