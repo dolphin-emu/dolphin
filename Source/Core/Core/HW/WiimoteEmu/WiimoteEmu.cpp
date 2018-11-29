@@ -101,7 +101,7 @@ static const ReportFeatures reporting_mode_features[] = {
     {2, 0, 10, 9, 23},
     // 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
     {2, 3, 10, 6, 23},
-    // Ugly padding members so 0x3d,3e,3f are properly placed in the array:
+    // 0x38 - 0x3c: Nothing
     {0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0},
@@ -109,7 +109,8 @@ static const ReportFeatures reporting_mode_features[] = {
     {0, 0, 0, 0, 0},
     // 0x3d: 21 Extension Bytes
     {0, 0, 0, 21, 23},
-    // 0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+    // 0x3e - 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+    {2, 1, 0, 18, 23},
     {2, 1, 0, 18, 23},
 };
 
@@ -313,6 +314,7 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
+  // TODO: Is a wiimote in CORE or DISABLED reporting mode on sync?
   m_reporting_mode = RT_REPORT_DISABLED;
   m_reporting_channel = 0;
   m_reporting_auto = false;
@@ -345,8 +347,26 @@ void Wiimote::Reset()
   static const u8 c2[16] = {0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51, 0x33, 0x60,
                             0xc9, 0xf5, 0x37, 0xc1, 0x2d, 0xe9, 0x15, 0x8d};
 
+  static const u8 mp_cert[64] = {
+    //0x50, 0xc3, 0x0c, 0xab, 0x16, 0x07, 0xf6, 0x89, 0x51, 0x93, 0xbe, 0xa5, 0xb2,
+    //0xbb, 0xbb, 0x35, 0x49, 0x32, 0x04, 0xfd, 0x29, 0x1d, 0xc1, 0xb7, 0x5a, 0x7c,
+    //0x85, 0xb9, 0x78, 0x14, 0xf4, 0xfe, 0x21, 0x30, 0xa2, 0x5f, 0xb2, 0xc2, 0x8b,
+    //0x72, 0x02, 0xf8, 0x60, 0xdf, 0x03, 0x30, 0xdc, 0xb6, 0x86, 0xa4, 0x41, 0xdd,
+    //0x49, 0x01, 0x7b, 0x2f, 0xb2, 0xc8, 0x5b, 0x12, 0x92, 0x47, 0xb8, 0x23
+
+    //0xf0, 0x89, 0x3b, 0xf7, 0x1b, 0x6c, 0x92, 0x95, 0xa0, 0x05, 0xd4, 0x03, 0x82,
+    //0x8e, 0xae, 0x73, 0x15, 0xc7, 0x95, 0xfb, 0xae, 0xee, 0xc0, 0x68, 0xbd, 0x49,
+    //0xf5, 0x32, 0x48, 0x8d, 0x33, 0x00, 0x94, 0x32, 0xf5, 0xf1, 0x30, 0x66, 0x68,
+    //0x9e, 0xf3, 0xe5, 0xfa, 0x9b, 0xb6, 0xe3, 0x0b, 0xa8, 0x07, 0xd5, 0x25, 0x38,
+
+    0x99, 0x1a, 0x07, 0x1b, 0x97, 0xf1, 0x11, 0x78, 0x0c, 0x42, 0x2b, 0x68, 0xdf, 0x44, 0x38, 0x0d,
+    0x2b, 0x7e, 0xd6, 0x84, 0x84, 0x58, 0x65, 0xc9, 0xf2, 0x95, 0xd9, 0xaf, 0xb6, 0xc4, 0x87, 0xd5,
+    0x18, 0xdb, 0x67, 0x3a, 0xc0, 0x71, 0xec, 0x3e, 0xf4, 0xe6, 0x7e, 0x35, 0xa3, 0x29, 0xf8, 0x1f,
+    0xc5, 0x7c, 0x3d, 0xb9, 0x56, 0x22, 0x95, 0x98, 0x8f, 0xfb, 0x66, 0x3e, 0x9a, 0xdd, 0xeb, 0x7e,
+  };
+
   // std::copy(std::begin(c1), std::end(c1), m_motion_plus_logic.reg_data.calibration_data);
-  // std::copy(std::begin(c2), std::end(c2), m_motion_plus_logic.reg_data.calibration_data + 0x10);
+  std::copy(std::begin(mp_cert), std::end(mp_cert), m_motion_plus_logic.reg_data.cert_data);
 
   // status
   memset(&m_status, 0, sizeof(m_status));
@@ -379,7 +399,7 @@ void Wiimote::Reset()
   // TODO: only add to bus when connected:
   // Address 0x52 (when motion plus is not activated)
   // Connected to motion plus i2c_bus (with passthrough by default)
-  m_motion_plus_logic.extension_port.SetAttachment(&m_ext_logic);
+  //m_motion_plus_logic.extension_port.SetAttachment(&m_ext_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
@@ -563,19 +583,12 @@ bool Wiimote::Step()
     UpdateButtonsStatus();
   }
 
-  if (ProcessReadDataRequest())
-  {
-    // Read requests suppress normal input reports
-    // Don't send any other reports
-    return true;
-  }
-
   // If an extension change is requested in the GUI it will first be disconnected here.
   // causing IsDeviceConnected() to return false below:
   HandleExtensionSwap();
 
-  // check if a status report needs to be sent
-  // this happens when extensions are switched
+  // Check if a status report needs to be sent. This happens when extensions are switched.
+  // ..even during read requests which continue after the status report is sent.
   if (m_status.extension != m_extension_port.IsDeviceConnected())
   {
     // WiiBrew: Following a connection or disconnection event on the Extension Port,
@@ -583,8 +596,17 @@ bool Wiimote::Step()
     // arrive.
     m_reporting_mode = RT_REPORT_DISABLED;
 
+    INFO_LOG(WIIMOTE, "Sending status report due to extension status change.");
+
     RequestStatus();
 
+    return true;
+  }
+
+  if (ProcessReadDataRequest())
+  {
+    // Read requests suppress normal input reports
+    // Don't send any other reports
     return true;
   }
 
@@ -878,7 +900,7 @@ void Wiimote::Update()
 
   if (RT_REPORT_DISABLED == m_reporting_mode)
   {
-    // The wiimote is in this disabled state on boot and after an extension change.
+    // The wiimote is in this disabled after an extension change.
     // Input reports are not sent, even on button change.
     return;
   }
@@ -932,14 +954,14 @@ void Wiimote::Update()
       if (RT_REPORT_INTERLEAVE1 == m_reporting_mode)
       {
         *feature_ptr = (x >> 2) & 0xff;
-        core.acc_bits = (z >> 4) & 0b11;
-        core.acc_bits2 = (z >> 6) & 0b11;
+        core.acc_bits = (z >> 6) & 0b11;
+        core.acc_bits2 = (z >> 8) & 0b11;
       }
       if (RT_REPORT_INTERLEAVE2 == m_reporting_mode)
       {
         *feature_ptr = (y >> 2) & 0xff;
-        core.acc_bits = (z >> 0) & 0b11;
-        core.acc_bits2 = (z >> 2) & 0b11;
+        core.acc_bits = (z >> 2) & 0b11;
+        core.acc_bits2 = (z >> 4) & 0b11;
       }
       else
       {
@@ -999,6 +1021,7 @@ void Wiimote::Update()
     Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension,
                              m_ext_logic.ext_key);
   }
+
   if (NetPlay::IsNetPlayRunning())
   {
     NetPlay_GetWiimoteData(m_index, data, rptf.total_size, m_reporting_mode);
@@ -1006,7 +1029,6 @@ void Wiimote::Update()
       m_status.buttons = *reinterpret_cast<wm_buttons*>(data + rptf.core_size);
   }
 
-  // TODO: need to fix usage of rptf probably
   Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension,
                             m_ext_logic.ext_key);
 
@@ -1180,7 +1202,7 @@ int Wiimote::CurrentExtension() const
 
 bool Wiimote::ExtensionLogic::ReadDeviceDetectPin()
 {
-  return extension->active_extension ? true : false;
+  return extension->active_extension != 0;
 }
 
 void Wiimote::ExtensionLogic::Update()
@@ -1204,25 +1226,54 @@ void Wiimote::MotionPlusLogic::Update()
     return;
   }
 
-  // TODO: clean up this hackery:
-  // the value seems to increase based on time starting after the first read of 0x00
-  if (IsActive() && times_updated_since_activation < 0xff)
-  {
-    ++times_updated_since_activation;
+  auto& data = reg_data.controller_data;
+  auto& mplus_data = *reinterpret_cast<wm_motionplus_data*>(data);
 
-    // TODO: wtf is this value actually..
-    if (times_updated_since_activation == 9)
-      reg_data.initialization_status = 0x4;
-    else if (times_updated_since_activation == 10)
-      reg_data.initialization_status = 0x8;
-    else if (times_updated_since_activation == 18)
-      reg_data.initialization_status = 0xc;
-    else if (times_updated_since_activation == 53)
-      reg_data.initialization_status = 0xe;
+  if (0x0 == reg_data.cert_ready)
+  {
+
+    // Without sending this nonsense, inputs are unresponsive.. even regular buttons
+    // Device still operates when changing the data slightly so its not any sort of encrpytion
+    // It even works when removing the is_mp_data bit in the last byte
+    static const u8 init_data[6] = {0x8e, 0xb0, 0x4f, 0x5a, 0xfc, 0x02};
+    //std::copy(std::begin(init_data), std::end(init_data), data);
+    reg_data.cert_ready = 0x2;
+    //return;
   }
 
-  auto& mplus_data = *reinterpret_cast<wm_motionplus_data*>(reg_data.controller_data);
-  auto& data = reg_data.controller_data;
+  if (0x2 == reg_data.cert_ready)
+  {
+    // A real wiimote takes about 2 seconds to reach this state:
+    reg_data.cert_ready = 0xe;
+  }
+
+  if (0x18 == reg_data.cert_ready)
+  {
+    const u8 mp_cert2[64] = {
+        //0x39, 0x7c, 0xe9, 0x79, 0x15, 0x52, 0x0e, 0x4f, 0x28, 0x4d, 0x9d, 0x2c, 0xd3,
+        //0x2a, 0x1a, 0x28, 0xa1, 0x25, 0x55, 0xb4, 0x4e, 0xb1, 0xd5, 0xae, 0x9d, 0x99,
+        //0x96, 0x96, 0x1d, 0x94, 0xd1, 0x22, 0xca, 0x1f, 0x51, 0x1d, 0x55, 0xee, 0x4d,
+        //0x58, 0x97, 0xd4, 0xb9, 0x3f, 0x0d, 0x0a, 0x04, 0xd8, 0x01, 0x21, 0xf9, 0x17,
+        //0x45, 0xe4, 0x42, 0x58, 0x3f, 0x7c, 0x3c, 0x2c, 0x3a, 0xcd, 0xbd, 0x27, 0x3b,
+
+        //0xea, 0x7c, 0x25, 0xaf, 0xcc, 0xc8, 0xef, 0x22, 0x99, 0xb3, 0x79, 0x72, 0x60,
+        //0xe8, 0x16, 0x4f, 0x5a, 0x47, 0x07, 0x04, 0x02, 0x14, 0x7b, 0xd0, 0xf6, 0xc9,
+        //0x77, 0x28, 0x9f, 0x77, 0x78, 0xce, 0x19, 0x74, 0x89, 0xe3, 0x56, 0x3a, 0x23,
+        //0x13, 0x63, 0xbb, 0x86, 0xf9, 0x13, 0x0e, 0x62, 0xfb, 0x61, 0xf5, 0x42, 0x65,
+        //0x48, 0x8e, 0xed, 0xc2, 0xc4, 0xc1, 0x18, 0xd0, 0x19, 0x9c, 0xe5, 0x1e
+
+      0xa5, 0x84, 0x1f, 0xd6, 0xbd, 0xdc, 0x7a, 0x4c, 0xf3, 0xc0, 0x24, 0xe0, 0x92, 0xef, 0x19, 0x28,
+      0x65, 0xe0, 0x62, 0x7c, 0x9b, 0x41, 0x6f, 0x12, 0xc3, 0xac, 0x78, 0xe4, 0xfc, 0x6b, 0x7b, 0x0a,
+      0xb4, 0x50, 0xd6, 0xf2, 0x45, 0xf7, 0x93, 0x04, 0xaf, 0xf2, 0xb7, 0x26, 0x94, 0xee, 0xad, 0x92,
+      0x05, 0x6d, 0xe5, 0xc6, 0xd6, 0x36, 0xdc, 0xa5, 0x69, 0x0f, 0xc8, 0x99, 0xf2, 0x1c, 0x4e, 0x0d,
+    };
+
+    std::copy(std::begin(mp_cert2), std::end(mp_cert2), reg_data.cert_data);
+
+    // A real wiimote takes about 2 seconds to reach this state:
+    reg_data.cert_ready = 0x1a;
+    INFO_LOG(WIIMOTE, "M+ cert 2 ready!", reg_data.cert_ready);
+  }
 
   // TODO: make sure a motion plus report is sent first after init
 
@@ -1268,6 +1319,7 @@ void Wiimote::MotionPlusLogic::Update()
         // Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
         SetBit(data[5], 2, Common::ExtractBit(data[5], 0));
 
+        // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
         mplus_data.is_mp_data = false;
       }
     }
@@ -1284,9 +1336,11 @@ void Wiimote::MotionPlusLogic::Update()
         // Data passing through drops the least significant bit of the axes of the left (or only)
         // joystick Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag] Bits 0 and 1
         // of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
+
         SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
         SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
 
+        // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
         mplus_data.is_mp_data = false;
       }
     }
@@ -1315,9 +1369,17 @@ void Wiimote::MotionPlusLogic::Update()
     mplus_data.pitch1 = pitch_value & 0xff;
 
     // Bits 8-13
-    mplus_data.yaw1 = yaw_value >> 8;
-    mplus_data.roll1 = roll_value >> 8;
-    mplus_data.pitch1 = pitch_value >> 8;
+    mplus_data.yaw2 = yaw_value >> 8;
+    mplus_data.roll2 = roll_value >> 8;
+    mplus_data.pitch2 = pitch_value >> 8;
+
+    // hax:
+    //data[0] = 0x6d;
+    //data[1] = 0xfa;
+    //data[2] = 0x13;
+    //data[3] = 0x7f;
+    //data[4] = 0x83;
+    //data[5] = 0x7e;
   }
 
   mplus_data.extension_connected = extension_port.IsDeviceConnected();
