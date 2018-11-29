@@ -515,6 +515,7 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 add_subdirectory(Externals/glslang)
+add_subdirectory(Externals/imgui)
 
 find_package(pugixml)
 if(NOT pugixml_FOUND)
