@@ -25,9 +25,7 @@
 #include "VideoBackends/Null/VideoBackend.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
-#ifndef __APPLE__
 #include "VideoBackends/Vulkan/VideoBackend.h"
-#endif
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -187,9 +185,7 @@ void VideoBackendBase::PopulateList()
 #ifdef _WIN32
   g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
 #endif
-#ifndef __APPLE__
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
-#endif
   g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
   g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
 

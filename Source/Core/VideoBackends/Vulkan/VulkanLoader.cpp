@@ -4,8 +4,10 @@
 
 #include <atomic>
 #include <cstdarg>
+#include <cstdlib>
 
 #include "Common/CommonFuncs.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -14,7 +16,8 @@
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 #include <Windows.h>
 #elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(USE_HEADLESS)
+    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_MACOS_MVK) ||                  \
+    defined(USE_HEADLESS)
 #include <dlfcn.h>
 #endif
 
@@ -98,7 +101,8 @@ void UnloadVulkanLibrary()
 }
 
 #elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(USE_HEADLESS)
+    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_MACOS_MVK) ||                  \
+    defined(USE_HEADLESS)
 
 static void* vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
@@ -112,15 +116,27 @@ bool LoadVulkanLibrary()
     return true;
   }
 
+#if defined(__APPLE__)
+  // Check if a path to a specific Vulkan library has been specified.
+  char* libvulkan_env = getenv("LIBVULKAN_PATH");
+  if (libvulkan_env)
+    vulkan_module = dlopen(libvulkan_env, RTLD_NOW);
+  if (!vulkan_module)
+  {
+    // Use the libvulkan.dylib from the application bundle.
+    std::string path = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+    vulkan_module = dlopen(path.c_str(), RTLD_NOW);
+  }
+#else
   // Names of libraries to search. Desktop should use libvulkan.so.1 or libvulkan.so.
   static const char* search_lib_names[] = {"libvulkan.so.1", "libvulkan.so"};
-
   for (size_t i = 0; i < ArraySize(search_lib_names); i++)
   {
     vulkan_module = dlopen(search_lib_names[i], RTLD_NOW);
     if (vulkan_module)
       break;
   }
+#endif
 
   if (!vulkan_module)
   {
@@ -164,6 +180,7 @@ void UnloadVulkanLibrary()
   dlclose(vulkan_module);
   vulkan_module = nullptr;
 }
+
 #else
 
 //#warning Unknown platform, not compiling loader.

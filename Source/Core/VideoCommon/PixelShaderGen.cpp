@@ -448,7 +448,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
     if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
     {
       out.Write("SSBO_BINDING(0) buffer BBox {\n"
-                "\tint4 bbox_data;\n"
+                "\tint bbox_left, bbox_right, bbox_top, bbox_bottom;\n"
                 "};\n");
     }
     else
@@ -853,13 +853,21 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   if (uid_data->bounding_box)
   {
-    const char* atomic_op =
-        (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan) ? "atomic" : "Interlocked";
-    out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
-              "\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n"
-              "\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n"
-              "\tif(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
-              atomic_op, atomic_op, atomic_op, atomic_op);
+    if (ApiType == APIType::D3D)
+    {
+      out.Write(
+          "\tif(bbox_data[0] > int(rawpos.x)) InterlockedMin(bbox_data[0], int(rawpos.x));\n"
+          "\tif(bbox_data[1] < int(rawpos.x)) InterlockedMax(bbox_data[1], int(rawpos.x));\n"
+          "\tif(bbox_data[2] > int(rawpos.y)) InterlockedMin(bbox_data[2], int(rawpos.y));\n"
+          "\tif(bbox_data[3] < int(rawpos.y)) InterlockedMax(bbox_data[3], int(rawpos.y));\n");
+    }
+    else
+    {
+      out.Write("\tif(bbox_left > int(rawpos.x)) atomicMin(bbox_left, int(rawpos.x));\n"
+                "\tif(bbox_right < int(rawpos.x)) atomicMax(bbox_right, int(rawpos.x));\n"
+                "\tif(bbox_top > int(rawpos.y)) atomicMin(bbox_top, int(rawpos.y));\n"
+                "\tif(bbox_bottom < int(rawpos.y)) atomicMax(bbox_bottom, int(rawpos.y));\n");
+    }
   }
 
   out.Write("}\n");
