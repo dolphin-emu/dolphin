@@ -245,6 +245,10 @@ void Stop()  // - Hammertime!
 
   s_is_stopping = true;
 
+  // Notify state changed callback
+  if (s_on_state_changed_callback)
+    s_on_state_changed_callback(State::Stopping);
+
   // Dump left over jobs
   HostDispatchJobs();
 
