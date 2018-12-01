@@ -84,6 +84,73 @@ void JitTieredGeneric::CompactInterpreterBlocks()
   report.blocks.push_back({0, static_cast<u32>(offset_new), 0});
 }
 
+u32 JitTieredGeneric::FindBlock(u32 address)
+{
+  u32 key = DispatchCacheKey(address);
+  u32 cache_addr = disp_cache[key].address;
+  if ((cache_addr & ~FLAG_MASK) == address)
+  {
+    // best outcome: we have the block in primary cache
+    return key;
+  }
+  // not in primary cache, search victim cache
+  u32 victim_set = key >> (DISP_CACHE_SHIFT - VICTIM_SETS_SHIFT);
+  u32 victim_start = DISP_PRIMARY_CACHE_SIZE + (victim_set << VICTIM_WAYS_SHIFT);
+  u32 victim_end = victim_start + VICTIM_WAYS;
+  bool found_vacancy = false;
+  u32 pos = 0;
+  for (u32 i = victim_start; i < victim_end; i += 1)
+  {
+    if ((disp_cache[i].address & ~FLAG_MASK) == address)
+    {
+      // second-best outcome: we find the block in victim cache ⇒ swap and done
+      DispCacheEntry tmp = disp_cache[key];
+      disp_cache[key] = disp_cache[i];
+      disp_cache[i] = tmp;
+      victim_second_chance[i] = true;
+      return key;
+    }
+    if (disp_cache[i].address == 0)
+    {
+      // third-best outcome: we have a vacancy in victim cache
+      // (but continue searching for a real match)
+      found_vacancy = true;
+      pos = i;
+    }
+  }
+  if (!found_vacancy && cache_addr != 0)
+  {
+    // worst outcome: we have to evict from victim cache
+    u32 clock = victim_clocks[victim_set];
+    for (u32 i = 0; i < VICTIM_WAYS; i += 1)
+    {
+      pos = victim_start + clock;
+      if (victim_second_chance[pos])
+      {
+        victim_second_chance[pos] = false;
+      }
+      else
+      {
+        break;
+      }
+      clock = (clock + 1) % VICTIM_WAYS;
+    }
+    victim_clocks[victim_set] = clock;
+    disp_cache[pos] = disp_cache[key];
+    victim_second_chance[pos] = true;
+  }
+  // at this point, the primary cache contains an invalid entry
+  // (or one that has already been saved to victim cache)
+
+  // (look up in JIT DB here once that's implemented)
+
+  // not in cache: create new Interpreter block
+  disp_cache[key].address = address;
+  disp_cache[key].offset = (u32)inst_cache.size();
+  disp_cache[key].len = disp_cache[key].usecount = 0;
+  return key;
+}
+
 static bool IsRedispatchInstruction(UGeckoInstruction inst)
 {
   auto info = PPCTables::GetOpInfo(inst);
@@ -119,16 +186,8 @@ void JitTieredGeneric::InterpretBlock()
     }
   }
   u32 start_addr = PC;
-  u32 key = DispatchCacheKey(start_addr);
-  if ((disp_cache[key].address & ~FLAG_MASK) != start_addr)
-  {
-    // not in cache: create new Interpreter block
-    // (or look up in JIT block DB once that's implemented)
-    disp_cache[key].address = start_addr;
-    disp_cache[key].offset = (u32)inst_cache.size();
-    disp_cache[key].len = disp_cache[key].usecount = 0;
-  }
-  if (disp_cache[key].address == start_addr)
+  u32 key = FindBlock(start_addr);
+  if ((disp_cache[key].address & FLAG_MASK) == 0)
   {
     // flag bits are zero: interpreter block
     u32 len = disp_cache[key].len;

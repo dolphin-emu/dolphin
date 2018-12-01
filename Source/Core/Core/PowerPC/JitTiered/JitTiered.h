@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <vector>
 
 #include "Common/HandShake.h"
@@ -115,15 +116,29 @@ private:
 
   void BaselineIteration();
 
+  u32 FindBlock(u32 address);
+
   /// the least-significant two bits of instruction addresses are always zero, so we can use them
   /// for flags. this constant can be used to mask out the address
   /// (use ~FLAG_MASK to get the address)
   static constexpr u32 FLAG_MASK = 3;
 
-  static constexpr int DISP_CACHE_SHIFT = 10;
-  static constexpr size_t DISP_CACHE_SIZE = 1 << DISP_CACHE_SHIFT;
-  /// direct-associative cache (hash table) for blocks
+  static constexpr int DISP_CACHE_SHIFT = 8;
+  static constexpr size_t DISP_PRIMARY_CACHE_SIZE = 1 << DISP_CACHE_SHIFT;
+  static constexpr int VICTIM_SETS_SHIFT = 3;
+  static constexpr size_t VICTIM_SETS = 1 << VICTIM_SETS_SHIFT;
+  static constexpr int VICTIM_WAYS_SHIFT = 5;
+  static constexpr size_t VICTIM_WAYS = 1 << VICTIM_WAYS_SHIFT;
+  static constexpr size_t DISP_CACHE_SIZE = DISP_PRIMARY_CACHE_SIZE + VICTIM_SETS * VICTIM_WAYS;
+
+  /// direct-associative cache (hash table) for blocks, followed by victim cache
+  /// (contiguous for iteration convenience)
   DispCacheEntry disp_cache[DISP_CACHE_SIZE]{};
+
+  /// second-chance bits for the WS-Clock eviction algorithm
+  std::bitset<VICTIM_SETS * VICTIM_WAYS> victim_second_chance;
+  /// clocks for the WS-Clock eviction algorithm
+  u8 victim_clocks[VICTIM_SETS];
 
   /// contents of interpreter blocks
   std::vector<DecodedInstruction> inst_cache;
