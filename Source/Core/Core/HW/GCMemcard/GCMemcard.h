@@ -163,7 +163,6 @@ static_assert(sizeof(Header) == BLOCK_SIZE);
 
 struct DEntry
 {
-  static const u8 DENTRY_SIZE = 0x40;
   DEntry() { memset(this, 0xFF, DENTRY_SIZE); }
   std::string GCI_FileName() const
   {
