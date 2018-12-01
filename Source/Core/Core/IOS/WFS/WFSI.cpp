@@ -18,6 +18,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 
 namespace
@@ -307,6 +308,33 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     // Bytes 1c-1e: title id?
     WARN_LOG(IOS_WFS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
     break;
+
+  case IOCTL_WFSI_CHANGE_TITLE:
+  {
+    u64 title_id = Memory::Read_U64(request.buffer_in);
+    u16 group_id = Memory::Read_U16(request.buffer_in + 0x1C);
+
+    // TODO: Handle permissions
+    SetCurrentTitleIdAndGroupId(title_id, group_id);
+
+    // Change home directory
+    const std::string homedir_path =
+        StringFromFormat("/vol/%s/title/%s/%s/", m_device_name.c_str(),
+                         m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+    const u16 homedir_path_len = static_cast<u16>(homedir_path.size());
+    INFO_LOG(IOS_WFS, "IOCTL_WFSI_CHANGE_TITLE: %s (path_len: 0x%x)", homedir_path.c_str(),
+             homedir_path_len);
+
+    return_error_code = -3;
+    if (homedir_path_len > 0x1FD)
+      break;
+    auto device = IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/wfssrv");
+    if (!device)
+      break;
+    std::static_pointer_cast<IOS::HLE::Device::WFSSRV>(device)->SetHomeDir(homedir_path);
+    return_error_code = IPC_SUCCESS;
+    break;
+  }
 
   case IOCTL_WFSI_GET_VERSION:
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_GET_VERSION");
