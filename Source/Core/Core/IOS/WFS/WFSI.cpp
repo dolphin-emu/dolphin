@@ -117,6 +117,15 @@ void WFSI::SetImportTitleIdAndGroupId(u64 tid, u16 gid)
   m_import_group_id_str = GroupIdStr(gid);
 }
 
+void WFSI::FinalizePatchInstall()
+{
+  const std::string current_title_dir =
+      StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(), m_current_group_id_str.c_str(),
+                       m_current_title_id_str.c_str());
+  const std::string patch_dir = current_title_dir + "/_patch";
+  File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
+}
+
 IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 {
   s32 return_error_code = IPC_SUCCESS;
@@ -258,7 +267,43 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   case IOCTL_WFSI_FINALIZE_TITLE_INSTALL:
   {
     std::string tmd_path;
-    if (m_patch_type == NOT_A_PATCH)
+
+    switch (m_patch_type)
+    {
+    case PATCH_TYPE_2:
+    {
+      // Delete content's default.dol
+      const std::string title_content_dir =
+          StringFromFormat("/vol/%s/title/%s/%s/content/", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      File::Delete(WFS::NativePath(title_content_dir + "default.dol"));
+
+      // Copy content's _default.dol to patch's directory
+      const std::string patch_dir =
+          StringFromFormat("/vol/%s/title/%s/%s/_patch/", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      const std::string patch_content_dir = patch_dir + "content/";
+      File::CreateDir(WFS::NativePath(patch_dir));
+      File::CreateDir(WFS::NativePath(patch_content_dir));
+      File::Rename(WFS::NativePath(title_content_dir + "_default.dol"),
+                   WFS::NativePath(patch_content_dir + "default.dol"));
+
+      FinalizePatchInstall();
+      [[fallthrough]];
+    }
+    case PATCH_TYPE_1:
+    {
+      std::string patch_dir =
+          StringFromFormat("/vol/%s/title/%s/%s/_patch", m_device_name.c_str(),
+                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
+      File::DeleteDirRecursively(WFS::NativePath(patch_dir));
+
+      tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
+                                  m_device_name.c_str(), m_current_group_id_str.c_str(),
+                                  m_current_title_id_str.c_str(), m_import_title_id);
+      break;
+    }
+    case NOT_A_PATCH:
     {
       std::string title_install_dir = StringFromFormat("/vol/%s/_install/%s", m_device_name.c_str(),
                                                        m_import_title_id_str.c_str());
@@ -270,17 +315,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
       tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
                                   m_device_name.c_str(), m_import_group_id_str.c_str(),
                                   m_import_title_id_str.c_str(), m_import_title_id);
+      break;
     }
-    else
-    {
-      std::string patch_dir =
-          StringFromFormat("/vol/%s/title/%s/%s/_patch", m_device_name.c_str(),
-                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
-      File::DeleteDirRecursively(WFS::NativePath(patch_dir));
-
-      tmd_path = StringFromFormat("/vol/%s/title/%s/%s/meta/%016" PRIx64 ".tmd",
-                                  m_device_name.c_str(), m_current_group_id_str.c_str(),
-                                  m_current_title_id_str.c_str(), m_import_title_id);
     }
 
     File::IOFile tmd_file(WFS::NativePath(tmd_path), "wb");
@@ -292,13 +328,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   {
     INFO_LOG(IOS_WFS, "IOCTL_WFSI_FINALIZE_PATCH_INSTALL");
     if (m_patch_type != NOT_A_PATCH)
-    {
-      std::string current_title_dir =
-          StringFromFormat("/vol/%s/title/%s/%s", m_device_name.c_str(),
-                           m_current_group_id_str.c_str(), m_current_title_id_str.c_str());
-      std::string patch_dir = current_title_dir + "/_patch";
-      File::CopyDir(WFS::NativePath(patch_dir), WFS::NativePath(current_title_dir), true);
-    }
+      FinalizePatchInstall();
     break;
   }
 

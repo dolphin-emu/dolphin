@@ -46,6 +46,7 @@ private:
 
   void SetCurrentTitleIdAndGroupId(u64 tid, u16 gid);
   void SetImportTitleIdAndGroupId(u64 tid, u16 gid);
+  void FinalizePatchInstall();
 
   s32 CancelTitleImport(bool continue_install);
   s32 CancelPatchImport(bool continue_install);
