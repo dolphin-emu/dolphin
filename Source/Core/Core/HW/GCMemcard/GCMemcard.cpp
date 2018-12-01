@@ -595,13 +595,12 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
                      DENTRY_STRLEN);
 }
 
-bool GCMemcard::GetDEntry(u8 index, DEntry& dest) const
+std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
-    return false;
+    return std::nullopt;
 
-  dest = GetActiveDirectory().m_dir_entries[index];
-  return true;
+  return GetActiveDirectory().m_dir_entries[index];
 }
 
 u16 BlockAlloc::GetNextBlock(u16 Block) const
@@ -803,8 +802,8 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
   if (!m_valid || !source.m_valid)
     return NOMEMCARD;
 
-  DEntry tempDEntry;
-  if (!source.GetDEntry(index, tempDEntry))
+  std::optional<DEntry> tempDEntry = source.GetDEntry(index);
+  if (!tempDEntry)
     return NOMEMCARD;
 
   u32 size = source.DEntry_BlockCount(index);
@@ -821,7 +820,7 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
     return NOMEMCARD;
   default:
     FixChecksums();
-    return ImportFile(tempDEntry, saveData);
+    return ImportFile(*tempDEntry, saveData);
   }
 }
 
@@ -976,14 +975,12 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
     break;
   }
 
-  DEntry tempDEntry;
-  if (!GetDEntry(index, tempDEntry))
-  {
+  std::optional<DEntry> tempDEntry = GetDEntry(index);
+  if (!tempDEntry)
     return NOMEMCARD;
-  }
 
-  Gcs_SavConvert(tempDEntry, offset);
-  gci.WriteBytes(&tempDEntry, DENTRY_SIZE);
+  Gcs_SavConvert(*tempDEntry, offset);
+  gci.WriteBytes(&tempDEntry.value(), DENTRY_SIZE);
 
   u32 size = DEntry_BlockCount(index);
   if (size == 0xFFFF)

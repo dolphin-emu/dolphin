@@ -199,12 +199,11 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     auto* icon = new QTableWidgetItem;
     icon->setData(Qt::DecorationRole, frames[0]);
 
-    DEntry d;
-    memcard->GetDEntry(file_index, d);
+    std::optional<DEntry> entry = memcard->GetDEntry(file_index);
 
     // TODO: This is wrong, the animation speed is not static and is already correctly calculated in
     // GetIconFromSaveFile(), just not returned
-    const u16 animation_speed = d.m_animation_speed;
+    const u16 animation_speed = entry ? entry->m_animation_speed : 1;
     const auto speed = (((animation_speed >> 8) & 1) << 2) + (animation_speed & 1);
 
     m_slot_active_icons[slot].push_back({speed, frames});

@@ -397,8 +397,9 @@ public:
   u32 DEntry_CommentsAddress(u8 index) const;
   std::string GetSaveComment1(u8 index) const;
   std::string GetSaveComment2(u8 index) const;
-  // Copies a DEntry from u8 index to DEntry& data
-  bool GetDEntry(u8 index, DEntry& dest) const;
+
+  // Fetches a DEntry from the given file index.
+  std::optional<DEntry> GetDEntry(u8 index) const;
 
   u32 GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
