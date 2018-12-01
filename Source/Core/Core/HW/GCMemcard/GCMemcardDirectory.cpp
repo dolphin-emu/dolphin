@@ -517,7 +517,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
         }
 
         m_last_block = block;
-        m_last_block_address = m_saves[i].m_save_data[idx].m_block;
+        m_last_block_address = m_saves[i].m_save_data[idx].m_block.data();
         return m_last_block;
       }
     }

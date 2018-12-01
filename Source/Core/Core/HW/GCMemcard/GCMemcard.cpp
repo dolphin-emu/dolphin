@@ -188,7 +188,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
   for (u32 i = MC_FST_BLOCKS; i < m_size_blocks; ++i)
   {
     GCMBlock b;
-    if (mcdFile.ReadBytes(b.m_block, BLOCK_SIZE))
+    if (mcdFile.ReadBytes(b.m_block.data(), b.m_block.size()))
     {
       m_data_blocks.push_back(b);
     }
@@ -263,7 +263,7 @@ bool GCMemcard::Save()
   mcdFile.WriteBytes(&m_bat_blocks[1], BLOCK_SIZE);
   for (unsigned int i = 0; i < m_size_blocks - MC_FST_BLOCKS; ++i)
   {
-    mcdFile.WriteBytes(m_data_blocks[i].m_block, BLOCK_SIZE);
+    mcdFile.WriteBytes(m_data_blocks[i].m_block.data(), m_data_blocks[i].m_block.size());
   }
 
   return mcdFile.Close();
@@ -575,7 +575,8 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
   {
     return "";
   }
-  return std::string((const char*)m_data_blocks[DataBlock].m_block + Comment1, DENTRY_STRLEN);
+  return std::string((const char*)m_data_blocks[DataBlock].m_block.data() + Comment1,
+                     DENTRY_STRLEN);
 }
 
 std::string GCMemcard::GetSaveComment2(u8 index) const
@@ -590,7 +591,8 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
   {
     return "";
   }
-  return std::string((const char*)m_data_blocks[DataBlock].m_block + Comment2, DENTRY_STRLEN);
+  return std::string((const char*)m_data_blocks[DataBlock].m_block.data() + Comment2,
+                     DENTRY_STRLEN);
 }
 
 bool GCMemcard::GetDEntry(u8 index, DEntry& dest) const
@@ -888,7 +890,7 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
   for (unsigned int i = 0; i < size; ++i)
   {
     GCMBlock b;
-    gci.ReadBytes(b.m_block, BLOCK_SIZE);
+    gci.ReadBytes(b.m_block.data(), b.m_block.size());
     saveData.push_back(b);
   }
   u32 ret;
@@ -909,7 +911,7 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
 
     for (int i = 0; i < fileBlocks; ++i)
     {
-      if (!gci2.WriteBytes(saveData[i].m_block, BLOCK_SIZE))
+      if (!gci2.WriteBytes(saveData[i].m_block.data(), saveData[i].m_block.size()))
         completeWrite = false;
     }
 
@@ -1002,7 +1004,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
   gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
   for (unsigned int i = 0; i < size; ++i)
   {
-    gci.WriteBytes(saveData[i].m_block, BLOCK_SIZE);
+    gci.WriteBytes(saveData[i].m_block.data(), saveData[i].m_block.size());
   }
 
   if (gci.IsGood())
@@ -1097,14 +1099,14 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 
   if (bnrFormat & 1)
   {
-    u8* pxdata = (u8*)(m_data_blocks[DataBlock].m_block + DataOffset);
-    u16* paldata = (u16*)(m_data_blocks[DataBlock].m_block + DataOffset + pixels);
+    u8* pxdata = (u8*)(m_data_blocks[DataBlock].m_block.data() + DataOffset);
+    u16* paldata = (u16*)(m_data_blocks[DataBlock].m_block.data() + DataOffset + pixels);
 
     Common::DecodeCI8Image(buffer, pxdata, paldata, 96, 32);
   }
   else
   {
-    u16* pxdata = (u16*)(m_data_blocks[DataBlock].m_block + DataOffset);
+    u16* pxdata = (u16*)(m_data_blocks[DataBlock].m_block.data() + DataOffset);
 
     Common::Decode5A3Image(buffer, pxdata, 96, 32);
   }
@@ -1140,7 +1142,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
     return 0;
   }
 
-  u8* animData = (u8*)(m_data_blocks[DataBlock].m_block + DataOffset);
+  u8* animData = (u8*)(m_data_blocks[DataBlock].m_block.data() + DataOffset);
 
   switch (bnrFormat)
   {

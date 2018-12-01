@@ -93,8 +93,8 @@ protected:
 struct GCMBlock
 {
   GCMBlock() { Erase(); }
-  void Erase() { memset(m_block, 0xFF, BLOCK_SIZE); }
-  u8 m_block[BLOCK_SIZE];
+  void Erase() { memset(m_block.data(), 0xFF, m_block.size()); }
+  std::array<u8, BLOCK_SIZE> m_block;
 };
 
 void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
