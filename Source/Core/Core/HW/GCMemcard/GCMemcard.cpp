@@ -188,7 +188,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
   for (u32 i = MC_FST_BLOCKS; i < m_size_blocks; ++i)
   {
     GCMBlock b;
-    if (mcdFile.ReadBytes(b.block, BLOCK_SIZE))
+    if (mcdFile.ReadBytes(b.m_block, BLOCK_SIZE))
     {
       m_data_blocks.push_back(b);
     }
@@ -263,7 +263,7 @@ bool GCMemcard::Save()
   mcdFile.WriteBytes(&m_bat_blocks[1], BLOCK_SIZE);
   for (unsigned int i = 0; i < m_size_blocks - MC_FST_BLOCKS; ++i)
   {
-    mcdFile.WriteBytes(m_data_blocks[i].block, BLOCK_SIZE);
+    mcdFile.WriteBytes(m_data_blocks[i].m_block, BLOCK_SIZE);
   }
 
   return mcdFile.Close();
@@ -575,7 +575,7 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
   {
     return "";
   }
-  return std::string((const char*)m_data_blocks[DataBlock].block + Comment1, DENTRY_STRLEN);
+  return std::string((const char*)m_data_blocks[DataBlock].m_block + Comment1, DENTRY_STRLEN);
 }
 
 std::string GCMemcard::GetSaveComment2(u8 index) const
@@ -590,7 +590,7 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
   {
     return "";
   }
-  return std::string((const char*)m_data_blocks[DataBlock].block + Comment2, DENTRY_STRLEN);
+  return std::string((const char*)m_data_blocks[DataBlock].m_block + Comment2, DENTRY_STRLEN);
 }
 
 bool GCMemcard::GetDEntry(u8 index, DEntry& dest) const
@@ -888,7 +888,7 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
   for (unsigned int i = 0; i < size; ++i)
   {
     GCMBlock b;
-    gci.ReadBytes(b.block, BLOCK_SIZE);
+    gci.ReadBytes(b.m_block, BLOCK_SIZE);
     saveData.push_back(b);
   }
   u32 ret;
@@ -909,7 +909,7 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
 
     for (int i = 0; i < fileBlocks; ++i)
     {
-      if (!gci2.WriteBytes(saveData[i].block, BLOCK_SIZE))
+      if (!gci2.WriteBytes(saveData[i].m_block, BLOCK_SIZE))
         completeWrite = false;
     }
 
@@ -1002,7 +1002,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
   gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
   for (unsigned int i = 0; i < size; ++i)
   {
-    gci.WriteBytes(saveData[i].block, BLOCK_SIZE);
+    gci.WriteBytes(saveData[i].m_block, BLOCK_SIZE);
   }
 
   if (gci.IsGood())
@@ -1097,14 +1097,14 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 
   if (bnrFormat & 1)
   {
-    u8* pxdata = (u8*)(m_data_blocks[DataBlock].block + DataOffset);
-    u16* paldata = (u16*)(m_data_blocks[DataBlock].block + DataOffset + pixels);
+    u8* pxdata = (u8*)(m_data_blocks[DataBlock].m_block + DataOffset);
+    u16* paldata = (u16*)(m_data_blocks[DataBlock].m_block + DataOffset + pixels);
 
     Common::DecodeCI8Image(buffer, pxdata, paldata, 96, 32);
   }
   else
   {
-    u16* pxdata = (u16*)(m_data_blocks[DataBlock].block + DataOffset);
+    u16* pxdata = (u16*)(m_data_blocks[DataBlock].m_block + DataOffset);
 
     Common::Decode5A3Image(buffer, pxdata, 96, 32);
   }
@@ -1140,7 +1140,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
     return 0;
   }
 
-  u8* animData = (u8*)(m_data_blocks[DataBlock].block + DataOffset);
+  u8* animData = (u8*)(m_data_blocks[DataBlock].m_block + DataOffset);
 
   switch (bnrFormat)
   {
@@ -1312,15 +1312,15 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   cardheader.CARD_GetSerialNo(&serial1, &serial2);
 
   // set new serial numbers
-  *(u16*)&FileBuffer[1].block[0x0066] = BE16(BE32(serial1) >> 16);
-  *(u16*)&FileBuffer[3].block[0x1580] = BE16(BE32(serial2) >> 16);
-  *(u16*)&FileBuffer[1].block[0x0060] = BE16(BE32(serial1) & 0xFFFF);
-  *(u16*)&FileBuffer[1].block[0x0200] = BE16(BE32(serial2) & 0xFFFF);
+  *(u16*)&FileBuffer[1].m_block[0x0066] = BE16(BE32(serial1) >> 16);
+  *(u16*)&FileBuffer[3].m_block[0x1580] = BE16(BE32(serial2) >> 16);
+  *(u16*)&FileBuffer[1].m_block[0x0060] = BE16(BE32(serial1) & 0xFFFF);
+  *(u16*)&FileBuffer[1].m_block[0x0200] = BE16(BE32(serial2) & 0xFFFF);
 
   // calc 16-bit checksum
   for (i = 0x02; i < 0x8000; i++)
   {
-    chksum ^= (FileBuffer[block].block[i - (block * 0x2000)] & 0xFF);
+    chksum ^= (FileBuffer[block].m_block[i - (block * 0x2000)] & 0xFF);
     for (j = 8; j > 0; j--)
     {
       if (chksum & 1)
@@ -1333,7 +1333,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   }
 
   // set new checksum
-  *(u16*)&FileBuffer[0].block[0x00] = BE16(~chksum);
+  *(u16*)&FileBuffer[0].m_block[0x00] = BE16(~chksum);
 
   return 1;
 }
@@ -1378,8 +1378,8 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   cardheader.CARD_GetSerialNo(&serial1, &serial2);
 
   // set new serial numbers
-  *(u32*)&FileBuffer[1].block[0x0158] = serial1;
-  *(u32*)&FileBuffer[1].block[0x015C] = serial2;
+  *(u32*)&FileBuffer[1].m_block[0x0158] = serial1;
+  *(u32*)&FileBuffer[1].m_block[0x015C] = serial2;
 
   // generate crc32 LUT
   for (i = 0; i < 256; i++)
@@ -1402,11 +1402,11 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   // calc 32-bit checksum
   for (i = 0x004C; i < 0x0164 + pso3offset; i++)
   {
-    chksum = ((chksum >> 8) & 0xFFFFFF) ^ crc32LUT[(chksum ^ FileBuffer[1].block[i]) & 0xFF];
+    chksum = ((chksum >> 8) & 0xFFFFFF) ^ crc32LUT[(chksum ^ FileBuffer[1].m_block[i]) & 0xFF];
   }
 
   // set new checksum
-  *(u32*)&FileBuffer[1].block[0x0048] = BE32(chksum ^ 0xFFFFFFFF);
+  *(u32*)&FileBuffer[1].m_block[0x0048] = BE32(chksum ^ 0xFFFFFFFF);
 
   return 1;
 }
