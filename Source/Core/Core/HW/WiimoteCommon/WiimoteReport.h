@@ -427,7 +427,7 @@ static_assert(sizeof(wm_status_report) == 6, "Wrong size");
 struct wm_write_data
 {
   u8 rumble : 1;
-  u8 space : 2;  // see WM_SPACE_*
+  u8 space : 2;
   u8 : 5;
   // A real wiimote ignores the i2c read/write bit.
   u8 i2c_rw_ignored : 1;
@@ -451,7 +451,7 @@ static_assert(sizeof(wm_acknowledge) == 4, "Wrong size");
 struct wm_read_data
 {
   u8 rumble : 1;
-  u8 space : 2;  // see WM_SPACE_*
+  u8 space : 2;
   u8 : 5;
   // A real wiimote ignores the i2c read/write bit.
   u8 i2c_rw_ignored : 1;
@@ -466,7 +466,7 @@ static_assert(sizeof(wm_read_data) == 6, "Wrong size");
 struct wm_read_data_reply
 {
   wm_buttons buttons;
-  u8 error : 4;  // see WM_RDERR_*
+  u8 error : 4;
   u8 size_minus_one : 4;
   // big endian:
   u16 address;
