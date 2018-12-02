@@ -16,6 +16,7 @@
 #include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 
@@ -210,11 +211,12 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
     break;
   }
 
-  m_log_queue.push(
-      QStringLiteral("%1 <font color='%2'>%3</font>")
-          .arg(QString::fromStdString(std::string(text).substr(0, TIMESTAMP_LENGTH)),
-               QString::fromStdString(color),
-               QString::fromStdString(std::string(text).substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
+  std::string str(text);
+  StringPopBackIf(&str, '\n');
+  m_log_queue.push(QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
+                       .arg(QString::fromStdString(str.substr(0, TIMESTAMP_LENGTH)),
+                            QString::fromStdString(color),
+                            QString::fromStdString(str.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
 }
 
 void LogWidget::closeEvent(QCloseEvent*)
