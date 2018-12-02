@@ -160,6 +160,7 @@ void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
   }
   else if (WIIMOTE_SRC_REAL == g_wiimote_sources[number])
   {
+    INFO_LOG(WIIMOTE, "OutData: %s", ArrayToString((const u8*)data, size, 50).c_str());
     WiimoteReal::InterruptChannel(number, channel_id, data, size);
   }
   else

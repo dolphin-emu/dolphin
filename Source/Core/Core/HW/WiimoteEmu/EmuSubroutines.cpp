@@ -40,7 +40,7 @@ namespace WiimoteEmu
 void Wiimote::ReportMode(const wm_report_mode* const dr)
 {
   if (dr->mode < RT_REPORT_CORE || dr->mode > RT_REPORT_INTERLEAVE2 ||
-           (dr->mode > RT_REPORT_CORE_ACCEL_IR10_EXT6 && dr->mode < RT_REPORT_EXT21))
+      (dr->mode > RT_REPORT_CORE_ACCEL_IR10_EXT6 && dr->mode < RT_REPORT_EXT21))
   {
     // A real wiimote ignores the entire message if the mode is invalid.
     WARN_LOG(WIIMOTE, "Game requested invalid report mode: 0x%02x", dr->mode);
@@ -194,12 +194,22 @@ void Wiimote::HandleExtensionSwap()
   {
     // if an extension is currently connected and we want to switch to a different extension
     if ((m_extension->active_extension > 0) && m_extension->switch_extension)
+    {
       // detach extension first, wait til next Update() or RequestStatus() call to change to the new
       // extension
       m_extension->active_extension = 0;
+    }
     else
+    {
       // set the wanted extension
       m_extension->active_extension = m_extension->switch_extension;
+    }
+
+    // TODO: this is a bit ugly:
+    if (m_extension->active_extension != 0)
+      m_motion_plus_logic.extension_port.SetAttachment(&m_ext_logic);
+    else
+      m_motion_plus_logic.extension_port.SetAttachment(nullptr);
 
     // reset register
     ((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension].get())
@@ -209,7 +219,7 @@ void Wiimote::HandleExtensionSwap()
 
 void Wiimote::RequestStatus(const wm_request_status* const rs)
 {
-  //INFO_LOG(WIIMOTE, "Wiimote::RequestStatus");
+  // INFO_LOG(WIIMOTE, "Wiimote::RequestStatus");
 
   // update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
@@ -247,7 +257,8 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     return;
   }
 
-  INFO_LOG(WIIMOTE, "Wiimote::WriteData: 0x%02x @ 0x%02x @ 0x%02x (%d)", wd->space, wd->slave_address, address, wd->size);
+  INFO_LOG(WIIMOTE, "Wiimote::WriteData: 0x%02x @ 0x%02x @ 0x%02x (%d)", wd->space,
+           wd->slave_address, address, wd->size);
 
   if (wd->size > 16)
   {
@@ -290,7 +301,8 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     // Write to Control Register
 
     // Top byte of address is ignored on the bus.
-    auto const bytes_written = m_i2c_bus.BusWrite(wd->slave_address, (u8)address, wd->size, wd->data);
+    auto const bytes_written =
+        m_i2c_bus.BusWrite(wd->slave_address, (u8)address, wd->size, wd->data);
     if (bytes_written != wd->size)
     {
       // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
@@ -325,7 +337,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   m_read_request.size = Common::swap16(rd->size);
 
   INFO_LOG(WIIMOTE, "Wiimote::ReadData: %d @ 0x%02x @ 0x%02x (%d)", m_read_request.space,
-          m_read_request.slave_address, m_read_request.address, m_read_request.size);
+           m_read_request.slave_address, m_read_request.address, m_read_request.size);
 
   // Send up to one read-data-reply.
   // If more data needs to be sent it will happen on the next "Update()"
@@ -404,8 +416,8 @@ bool Wiimote::ProcessReadDataRequest()
     // Read from Control Register
 
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
-    auto const bytes_read = m_i2c_bus.BusRead(m_read_request.slave_address,
-                                        (u8)m_read_request.address, bytes_to_read, reply->data);
+    auto const bytes_read = m_i2c_bus.BusRead(
+        m_read_request.slave_address, (u8)m_read_request.address, bytes_to_read, reply->data);
 
     reply->size_minus_one = bytes_read - 1;
 
@@ -428,7 +440,9 @@ bool Wiimote::ProcessReadDataRequest()
   {
     // Stop processing request on read error:
     m_read_request.size = 0;
-
+    // TODO: what size does a real wiimote return on read error?
+    // it's 10 minus one (9) for some reason??
+    // reply->size_minus_one = 0;
   }
   else
   {
