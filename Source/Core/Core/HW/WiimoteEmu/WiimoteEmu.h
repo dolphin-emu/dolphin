@@ -595,6 +595,7 @@ private:
       // address 0xF1
       u8 cert_enable;
 
+      // Conduit 2 writes 1 byte to 0xf2 on calibration screen
       u8 unknown_0xf2[5];
 
       // address 0xf7
@@ -694,6 +695,11 @@ private:
             // 0x1a is final value
             reg_data.cert_ready = 0x18;
           }
+          // TODO: kill magic number
+          else if (0xf2 == addr)
+          {
+            INFO_LOG(WIIMOTE, "M+ calibration ?? : 0x%x", reg_data.unknown_0xf2[0]);
+          }
 
           return result;
         }
@@ -718,6 +724,10 @@ private:
             reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
             // TODO: kill magic number
             //reg_data.cert_ready = 0x2;
+
+            // A real M+ is unresponsive on the bus for some time during activation
+            // Reads fail to ack and ext data gets filled with 0xff for a frame or two
+            // I don't think we need to emulate that.
 
             // TODO: activate extension and disable encrption
             // also do this if an extension is attached after activation.

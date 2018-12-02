@@ -331,31 +331,25 @@ void Wiimote::Reset()
   memset(&m_motion_plus_logic.reg_data, 0x00, sizeof(m_motion_plus_logic.reg_data));
   memcpy(&m_motion_plus_logic.reg_data.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
 
-  // calibration hackery
-  static const u8 c1[16] = {0x78, 0xd9, 0x78, 0x38, 0x77, 0x9d, 0x2f, 0x0c,
-                            0xcf, 0xf0, 0x31, 0xad, 0xc8, 0x0b, 0x5e, 0x39};
-  static const u8 c2[16] = {0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51, 0x33, 0x60,
-                            0xc9, 0xf5, 0x37, 0xc1, 0x2d, 0xe9, 0x15, 0x8d};
-
-  static const u8 mp_cert[64] = {
-    //0x50, 0xc3, 0x0c, 0xab, 0x16, 0x07, 0xf6, 0x89, 0x51, 0x93, 0xbe, 0xa5, 0xb2,
-    //0xbb, 0xbb, 0x35, 0x49, 0x32, 0x04, 0xfd, 0x29, 0x1d, 0xc1, 0xb7, 0x5a, 0x7c,
-    //0x85, 0xb9, 0x78, 0x14, 0xf4, 0xfe, 0x21, 0x30, 0xa2, 0x5f, 0xb2, 0xc2, 0x8b,
-    //0x72, 0x02, 0xf8, 0x60, 0xdf, 0x03, 0x30, 0xdc, 0xb6, 0x86, 0xa4, 0x41, 0xdd,
-    //0x49, 0x01, 0x7b, 0x2f, 0xb2, 0xc8, 0x5b, 0x12, 0x92, 0x47, 0xb8, 0x23
-
-    //0xf0, 0x89, 0x3b, 0xf7, 0x1b, 0x6c, 0x92, 0x95, 0xa0, 0x05, 0xd4, 0x03, 0x82,
-    //0x8e, 0xae, 0x73, 0x15, 0xc7, 0x95, 0xfb, 0xae, 0xee, 0xc0, 0x68, 0xbd, 0x49,
-    //0xf5, 0x32, 0x48, 0x8d, 0x33, 0x00, 0x94, 0x32, 0xf5, 0xf1, 0x30, 0x66, 0x68,
-    //0x9e, 0xf3, 0xe5, 0xfa, 0x9b, 0xb6, 0xe3, 0x0b, 0xa8, 0x07, 0xd5, 0x25, 0x38,
-
-    0x99, 0x1a, 0x07, 0x1b, 0x97, 0xf1, 0x11, 0x78, 0x0c, 0x42, 0x2b, 0x68, 0xdf, 0x44, 0x38, 0x0d,
-    0x2b, 0x7e, 0xd6, 0x84, 0x84, 0x58, 0x65, 0xc9, 0xf2, 0x95, 0xd9, 0xaf, 0xb6, 0xc4, 0x87, 0xd5,
-    0x18, 0xdb, 0x67, 0x3a, 0xc0, 0x71, 0xec, 0x3e, 0xf4, 0xe6, 0x7e, 0x35, 0xa3, 0x29, 0xf8, 0x1f,
-    0xc5, 0x7c, 0x3d, 0xb9, 0x56, 0x22, 0x95, 0x98, 0x8f, 0xfb, 0x66, 0x3e, 0x9a, 0xdd, 0xeb, 0x7e,
+  // TODO: determine meaning of calibration data:
+  static const u8 mplus_cdata[32] = {
+      0x78, 0xd9, 0x78, 0x38, 0x77, 0x9d, 0x2f, 0x0c, 0xcf, 0xf0, 0x31,
+      0xad, 0xc8, 0x0b, 0x5e, 0x39, 0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51,
+      0x33, 0x60, 0xc9, 0xf5, 0x37, 0xc1, 0x2d, 0xe9, 0x15, 0x8d,
   };
 
-  // std::copy(std::begin(c1), std::end(c1), m_motion_plus_logic.reg_data.calibration_data);
+  std::copy(std::begin(mplus_cdata), std::end(mplus_cdata),
+            m_motion_plus_logic.reg_data.calibration_data);
+
+  // TODO: determine the meaning behind this:
+  static const u8 mp_cert[64] = {
+      0x99, 0x1a, 0x07, 0x1b, 0x97, 0xf1, 0x11, 0x78, 0x0c, 0x42, 0x2b, 0x68, 0xdf,
+      0x44, 0x38, 0x0d, 0x2b, 0x7e, 0xd6, 0x84, 0x84, 0x58, 0x65, 0xc9, 0xf2, 0x95,
+      0xd9, 0xaf, 0xb6, 0xc4, 0x87, 0xd5, 0x18, 0xdb, 0x67, 0x3a, 0xc0, 0x71, 0xec,
+      0x3e, 0xf4, 0xe6, 0x7e, 0x35, 0xa3, 0x29, 0xf8, 0x1f, 0xc5, 0x7c, 0x3d, 0xb9,
+      0x56, 0x22, 0x95, 0x98, 0x8f, 0xfb, 0x66, 0x3e, 0x9a, 0xdd, 0xeb, 0x7e,
+  };
+
   std::copy(std::begin(mp_cert), std::end(mp_cert), m_motion_plus_logic.reg_data.cert_data);
 
   // status
@@ -389,7 +383,7 @@ void Wiimote::Reset()
   // TODO: only add to bus when connected:
   // Address 0x52 (when motion plus is not activated)
   // Connected to motion plus i2c_bus (with passthrough by default)
-  //m_motion_plus_logic.extension_port.SetAttachment(&m_ext_logic);
+  // m_motion_plus_logic.extension_port.SetAttachment(&m_ext_logic);
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
@@ -785,11 +779,12 @@ void Wiimote::UpdateIRData(bool use_accel)
   }
 
   // IR data is read from offset 0x37 on real hardware
-  u8* const data = m_camera_logic.reg_data.camera_data;
-  // A maximum of 36 bytes.
-  std::fill_n(data, sizeof(wm_ir_full) * 4, 0xff);
+  auto& data = m_camera_logic.reg_data.camera_data;
+  // A maximum of 36 bytes:
+  std::fill(std::begin(data), std::end(data), 0xff);
 
   // Fill report with valid data when full handshake was done
+  // TODO: kill magic number:
   if (m_camera_logic.reg_data.data[0x30])
   {
     // ir mode
@@ -864,7 +859,8 @@ void Wiimote::UpdateIRData(bool use_accel)
       break;
     }
     default:
-      WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");
+      // This is fairly normal, 0xff data is sent in this case:
+      // WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");
       break;
     }
   }
@@ -999,7 +995,13 @@ void Wiimote::Update()
       m_ext_logic.Update();
       m_motion_plus_logic.Update();
 
-      m_i2c_bus.BusRead(ExtensionLogic::DEVICE_ADDR, 0x00, rptf.ext_size, feature_ptr);
+      const u8 slave_addr = ExtensionLogic::DEVICE_ADDR;
+      if (rptf.ext_size != m_i2c_bus.BusRead(slave_addr, 0x00, rptf.ext_size, feature_ptr))
+      {
+        // Real wiimote seems to fill with 0xff on failed bus read
+        std::fill_n(feature_ptr, rptf.ext_size, 0xff);
+      }
+
       feature_ptr += rptf.ext_size;
     }
 
@@ -1217,14 +1219,14 @@ void Wiimote::MotionPlusLogic::Update()
 
   if (0x0 == reg_data.cert_ready)
   {
-
     // Without sending this nonsense, inputs are unresponsive.. even regular buttons
     // Device still operates when changing the data slightly so its not any sort of encrpytion
     // It even works when removing the is_mp_data bit in the last byte
-    static const u8 init_data[6] = {0x8e, 0xb0, 0x4f, 0x5a, 0xfc, 0x02};
-    //std::copy(std::begin(init_data), std::end(init_data), data);
+    // My M+ non-inside gives: 61,46,45,aa,0,2 or b6,46,45,9a,0,2
+    static const u8 init_data[6] = {0x8e, 0xb0, 0x4f, 0x5a, 0xfc | 0x01, 0x02};
+    std::copy(std::begin(init_data), std::end(init_data), data);
     reg_data.cert_ready = 0x2;
-    //return;
+    return;
   }
 
   if (0x2 == reg_data.cert_ready)
@@ -1235,26 +1237,22 @@ void Wiimote::MotionPlusLogic::Update()
 
   if (0x18 == reg_data.cert_ready)
   {
+    // TODO: determine the meaning of this
     const u8 mp_cert2[64] = {
-        //0x39, 0x7c, 0xe9, 0x79, 0x15, 0x52, 0x0e, 0x4f, 0x28, 0x4d, 0x9d, 0x2c, 0xd3,
-        //0x2a, 0x1a, 0x28, 0xa1, 0x25, 0x55, 0xb4, 0x4e, 0xb1, 0xd5, 0xae, 0x9d, 0x99,
-        //0x96, 0x96, 0x1d, 0x94, 0xd1, 0x22, 0xca, 0x1f, 0x51, 0x1d, 0x55, 0xee, 0x4d,
-        //0x58, 0x97, 0xd4, 0xb9, 0x3f, 0x0d, 0x0a, 0x04, 0xd8, 0x01, 0x21, 0xf9, 0x17,
-        //0x45, 0xe4, 0x42, 0x58, 0x3f, 0x7c, 0x3c, 0x2c, 0x3a, 0xcd, 0xbd, 0x27, 0x3b,
-
-        //0xea, 0x7c, 0x25, 0xaf, 0xcc, 0xc8, 0xef, 0x22, 0x99, 0xb3, 0x79, 0x72, 0x60,
-        //0xe8, 0x16, 0x4f, 0x5a, 0x47, 0x07, 0x04, 0x02, 0x14, 0x7b, 0xd0, 0xf6, 0xc9,
-        //0x77, 0x28, 0x9f, 0x77, 0x78, 0xce, 0x19, 0x74, 0x89, 0xe3, 0x56, 0x3a, 0x23,
-        //0x13, 0x63, 0xbb, 0x86, 0xf9, 0x13, 0x0e, 0x62, 0xfb, 0x61, 0xf5, 0x42, 0x65,
-        //0x48, 0x8e, 0xed, 0xc2, 0xc4, 0xc1, 0x18, 0xd0, 0x19, 0x9c, 0xe5, 0x1e
-
-      0xa5, 0x84, 0x1f, 0xd6, 0xbd, 0xdc, 0x7a, 0x4c, 0xf3, 0xc0, 0x24, 0xe0, 0x92, 0xef, 0x19, 0x28,
-      0x65, 0xe0, 0x62, 0x7c, 0x9b, 0x41, 0x6f, 0x12, 0xc3, 0xac, 0x78, 0xe4, 0xfc, 0x6b, 0x7b, 0x0a,
-      0xb4, 0x50, 0xd6, 0xf2, 0x45, 0xf7, 0x93, 0x04, 0xaf, 0xf2, 0xb7, 0x26, 0x94, 0xee, 0xad, 0x92,
-      0x05, 0x6d, 0xe5, 0xc6, 0xd6, 0x36, 0xdc, 0xa5, 0x69, 0x0f, 0xc8, 0x99, 0xf2, 0x1c, 0x4e, 0x0d,
+        0xa5, 0x84, 0x1f, 0xd6, 0xbd, 0xdc, 0x7a, 0x4c, 0xf3, 0xc0, 0x24, 0xe0, 0x92,
+        0xef, 0x19, 0x28, 0x65, 0xe0, 0x62, 0x7c, 0x9b, 0x41, 0x6f, 0x12, 0xc3, 0xac,
+        0x78, 0xe4, 0xfc, 0x6b, 0x7b, 0x0a, 0xb4, 0x50, 0xd6, 0xf2, 0x45, 0xf7, 0x93,
+        0x04, 0xaf, 0xf2, 0xb7, 0x26, 0x94, 0xee, 0xad, 0x92, 0x05, 0x6d, 0xe5, 0xc6,
+        0xd6, 0x36, 0xdc, 0xa5, 0x69, 0x0f, 0xc8, 0x99, 0xf2, 0x1c, 0x4e, 0x0d,
     };
 
     std::copy(std::begin(mp_cert2), std::end(mp_cert2), reg_data.cert_data);
+
+    if (0x01 != reg_data.cert_enable)
+    {
+      PanicAlert("M+ Failure! Game requested cert2 with value other than 0x01. M+ will disconnect "
+                 "shortly unfortunately. Reconnect wiimote and hope for the best.");
+    }
 
     // A real wiimote takes about 2 seconds to reach this state:
     reg_data.cert_ready = 0x1a;
@@ -1274,23 +1272,32 @@ void Wiimote::MotionPlusLogic::Update()
   // If an extension is not attached the data is always mplus data
   // even when passthrough is enabled
 
-  switch (GetPassthroughMode())
+  // Real M+ seems to only ever read 6 bytes from the extension.
+  // Data after 6 bytes seems to be zero-filled.
+  // After reading, the real M+ uses that data for the next frame.
+  // But we are going to use it for the current frame instead.
+  const int ext_amt = 6;
+  // Always read from 0x52 @ 0x00:
+  const u8 ext_slave = ACTIVE_DEVICE_ADDR;
+  const u8 ext_addr = 0x00;
+
+  // Try to alternate between M+ and EXT data:
+  mplus_data.is_mp_data ^= true;
+
+  // If the last frame had M+ data try to send some non-M+ data:
+  if (!mplus_data.is_mp_data)
   {
-  case PassthroughMode::PASSTHROUGH_DISABLED:
-  {
-    mplus_data.is_mp_data = true;
-    break;
-  }
-  case PassthroughMode::PASSTHROUGH_NUNCHUK:
-  {
-    // If we sent mplus data last time now we will try to send ext data.
-    if (mplus_data.is_mp_data)
+    switch (GetPassthroughMode())
     {
-      // The real mplus seems to only ever read 6 bytes from the extension
-      // bytes after 6 seem to be zero filled
-      // The real hardware uses these 6 bytes for the next frame,
-      // but we aren't going to do that
-      if (6 == i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data))
+    case PassthroughMode::PASSTHROUGH_DISABLED:
+    {
+      // Passthrough disabled, always send M+ data:
+      mplus_data.is_mp_data = true;
+      break;
+    }
+    case PassthroughMode::PASSTHROUGH_NUNCHUK:
+    {
+      if (ext_amt == i2c_bus.BusRead(ext_slave, ext_addr, ext_amt, data))
       {
         // Passthrough data modifications via wiibrew.org
         // Data passing through drops the least significant bit of the three accelerometer values
@@ -1308,42 +1315,51 @@ void Wiimote::MotionPlusLogic::Update()
         // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
         mplus_data.is_mp_data = false;
       }
+      else
+      {
+        // Read failed (extension unplugged), Send M+ data instead
+        mplus_data.is_mp_data = true;
+      }
+      break;
     }
-    break;
-  }
-  case PassthroughMode::PASSTHROUGH_CLASSIC:
-  {
-    // If we sent mplus data last time now we will try to send ext data.
-    if (mplus_data.is_mp_data)
+    case PassthroughMode::PASSTHROUGH_CLASSIC:
     {
-      if (6 == i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, 0x00, 6, data))
+      if (ext_amt == i2c_bus.BusRead(ext_slave, ext_addr, ext_amt, data))
       {
         // Passthrough data modifications via wiibrew.org
         // Data passing through drops the least significant bit of the axes of the left (or only)
         // joystick Bit 0 of Byte 4 is overwritten [by the 'extension_connected' flag] Bits 0 and 1
         // of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting what was there before
-
         SetBit(data[0], 0, Common::ExtractBit(data[5], 0));
         SetBit(data[1], 0, Common::ExtractBit(data[5], 1));
 
         // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
         mplus_data.is_mp_data = false;
       }
+      else
+      {
+        // Read failed (extension unplugged), Send M+ data instead
+        mplus_data.is_mp_data = true;
+      }
+      break;
     }
-    break;
-  }
-  default:
-    PanicAlert("MotionPlus unknown passthrough-mode %d", GetPassthroughMode());
-    break;
+    default:
+      PanicAlert("MotionPlus unknown passthrough-mode %d", GetPassthroughMode());
+      break;
+    }
   }
 
-  // If the above logic determined this should be mp data, update it here
+  // If the above logic determined this should be M+ data, update it here
   if (mplus_data.is_mp_data)
   {
     // Wiibrew: "While the Wiimote is still, the values will be about 0x1F7F (8,063)"
-    u16 yaw_value = 0x1F7F;
-    u16 roll_value = 0x1F7F;
-    u16 pitch_value = 0x1F7F;
+    // high-velocity range should be about +/- 1500 or 1600 dps
+    // low-velocity range should be about +/- 400 dps
+    // Wiibrew implies it shoould be +/- 595 and 2700
+
+    u16 yaw_value = 0x2000;
+    u16 roll_value = 0x2000;
+    u16 pitch_value = 0x2000;
 
     mplus_data.yaw_slow = 1;
     mplus_data.roll_slow = 1;
@@ -1358,14 +1374,6 @@ void Wiimote::MotionPlusLogic::Update()
     mplus_data.yaw2 = yaw_value >> 8;
     mplus_data.roll2 = roll_value >> 8;
     mplus_data.pitch2 = pitch_value >> 8;
-
-    // hax:
-    //data[0] = 0x6d;
-    //data[1] = 0xfa;
-    //data[2] = 0x13;
-    //data[3] = 0x7f;
-    //data[4] = 0x83;
-    //data[5] = 0x7e;
   }
 
   mplus_data.extension_connected = extension_port.IsDeviceConnected();

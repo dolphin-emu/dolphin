@@ -366,6 +366,9 @@ bool Wiimote::ProcessReadDataRequest()
   reply->buttons = m_status.buttons;
   reply->address = Common::swap16(m_read_request.address);
 
+  // Pre-fill with zeros in case of read-error or read < 16-bytes:
+  std::fill(std::begin(reply->data), std::end(reply->data), 0x00);
+
   switch (m_read_request.space)
   {
   case WS_EEPROM:
@@ -440,9 +443,8 @@ bool Wiimote::ProcessReadDataRequest()
   {
     // Stop processing request on read error:
     m_read_request.size = 0;
-    // TODO: what size does a real wiimote return on read error?
-    // it's 10 minus one (9) for some reason??
-    // reply->size_minus_one = 0;
+    // Real wiimote seems to set size to max value on read errors:
+    reply->size_minus_one = 0xf;
   }
   else
   {
