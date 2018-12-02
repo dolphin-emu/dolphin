@@ -24,6 +24,7 @@ class TrampolineCache : public EmuCodeBlock
   const u8* GenerateWriteTrampoline(const TrampolineInfo& info);
 
 public:
+  explicit TrampolineCache(Jitx86Base& jit) : EmuCodeBlock(jit) {}
   const u8* GenerateTrampoline(const TrampolineInfo& info);
   void ClearCodeSpace();
 };
