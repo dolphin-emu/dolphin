@@ -98,7 +98,8 @@ void VertexManager::ResetBuffer(u32 stride)
 
   // Attempt to allocate from buffers
   bool has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride);
-  bool has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE, sizeof(u16));
+  bool has_ibuffer_allocation =
+      m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
   if (!has_vbuffer_allocation || !has_ibuffer_allocation)
   {
     // Flush any pending commands first, so that we can wait on the fences
@@ -109,7 +110,8 @@ void VertexManager::ResetBuffer(u32 stride)
     if (!has_vbuffer_allocation)
       has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride);
     if (!has_ibuffer_allocation)
-      has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE, sizeof(u16));
+      has_ibuffer_allocation =
+          m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
 
     // If we still failed, that means the allocation was too large and will never succeed, so panic
     if (!has_vbuffer_allocation || !has_ibuffer_allocation)
