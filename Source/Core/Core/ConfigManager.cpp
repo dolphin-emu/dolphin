@@ -92,6 +92,7 @@ void SConfig::SaveSettings()
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
+  SaveJitDebugSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -352,6 +353,21 @@ void SConfig::SaveAutoUpdateSettings(IniFile& ini)
   section->Set("HashOverride", m_auto_update_hash_override);
 }
 
+void SConfig::SaveJitDebugSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Debug");
+
+  section->Set("JitOff", bJITOff);
+  section->Set("JitLoadStoreOff", bJITLoadStoreOff);
+  section->Set("JitLoadStoreFloatingOff", bJITLoadStoreFloatingOff);
+  section->Set("JitLoadStorePairedOff", bJITLoadStorePairedOff);
+  section->Set("JitFloatingPointOff", bJITFloatingPointOff);
+  section->Set("JitIntegerOff", bJITIntegerOff);
+  section->Set("JitPairedOff", bJITPairedOff);
+  section->Set("JitSystemRegistersOff", bJITSystemRegistersOff);
+  section->Set("JitBranchOff", bJITBranchOff);
+}
+
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -374,6 +390,7 @@ void SConfig::LoadSettings()
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
   LoadAutoUpdateSettings(ini);
+  LoadJitDebugSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -645,6 +662,20 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
 
   section->Get("UpdateTrack", &m_auto_update_track, SCM_UPDATE_TRACK_STR);
   section->Get("HashOverride", &m_auto_update_hash_override, "");
+}
+
+void SConfig::LoadJitDebugSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Debug");
+  section->Get("JitOff", &bJITOff, false);
+  section->Get("JitLoadStoreOff", &bJITLoadStoreOff, false);
+  section->Get("JitLoadStoreFloatingOff", &bJITLoadStoreFloatingOff, false);
+  section->Get("JitLoadStorePairedOff", &bJITLoadStorePairedOff, false);
+  section->Get("JitFloatingPointOff", &bJITFloatingPointOff, false);
+  section->Get("JitIntegerOff", &bJITIntegerOff, false);
+  section->Get("JitPairedOff", &bJITPairedOff, false);
+  section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
+  section->Get("JitBranchOff", &bJITBranchOff, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
