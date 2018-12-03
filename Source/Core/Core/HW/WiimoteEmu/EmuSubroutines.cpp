@@ -170,7 +170,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
    The first two bytes are the core buttons data,
    00 00 means nothing is pressed.
    The last byte is the success code 00. */
-void Wiimote::SendAck(u8 report_id, u8 error_code)
+void Wiimote::SendAck(u8 report_id, WiimoteErrorCode error_code)
 {
   TypedHidPacket<wm_acknowledge> rpt;
   rpt.type = HID_TYPE_DATA;
@@ -181,7 +181,7 @@ void Wiimote::SendAck(u8 report_id, u8 error_code)
 
   ack.buttons = m_status.buttons;
   ack.reportID = report_id;
-  ack.errorID = error_code;
+  ack.errorID = static_cast<u8>(error_code);
 
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),
                                          rpt.GetSize());
@@ -266,11 +266,11 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     return;
   }
 
-  u8 error_code = 0;
+  WiimoteErrorCode error_code = WiimoteErrorCode::SUCCESS;
 
-  switch (wd->space)
+  switch (static_cast<WiimoteAddressSpace>(wd->space))
   {
-  case WS_EEPROM:
+  case WiimoteAddressSpace::EEPROM:
   {
     // Write to EEPROM
 
@@ -295,8 +295,8 @@ void Wiimote::WriteData(const wm_write_data* const wd)
   }
   break;
 
-  case WS_REGS1:
-  case WS_REGS2:
+  case WiimoteAddressSpace::I2C_BUS:
+  case WiimoteAddressSpace::I2C_BUS_ALT:
   {
     // Write to Control Register
 
@@ -306,7 +306,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     if (bytes_written != wd->size)
     {
       // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
-      error_code = 0x07;
+      error_code = WiimoteErrorCode::NACK;
     }
   }
   break;
@@ -330,7 +330,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   }
 
   // Save the request and process it on the next "Update()" calls
-  m_read_request.space = rd->space;
+  m_read_request.space = static_cast<WiimoteAddressSpace>(rd->space);
   m_read_request.slave_address = rd->slave_address;
   m_read_request.address = Common::swap16(rd->address);
   // A zero size request is just ignored, like on the real wiimote.
@@ -362,23 +362,24 @@ bool Wiimote::ProcessReadDataRequest()
   rpt.report_id = RT_READ_DATA_REPLY;
 
   auto reply = &rpt.data;
-  reply->error = 0;
   reply->buttons = m_status.buttons;
   reply->address = Common::swap16(m_read_request.address);
 
   // Pre-fill with zeros in case of read-error or read < 16-bytes:
   std::fill(std::begin(reply->data), std::end(reply->data), 0x00);
 
+  WiimoteErrorCode error_code = WiimoteErrorCode::SUCCESS;
+
   switch (m_read_request.space)
   {
-  case WS_EEPROM:
+  case WiimoteAddressSpace::EEPROM:
   {
     // Read from EEPROM
     if (m_read_request.address + m_read_request.size >= WIIMOTE_EEPROM_FREE_SIZE)
     {
       if (m_read_request.address + m_read_request.size > WIIMOTE_EEPROM_SIZE)
       {
-        PanicAlert("ReadData: address + size out of bounds");
+        ERROR_LOG(WIIMOTE, "ReadData: address + size out of bounds");
       }
 
       // generate a read error, even if the start of the block is readable a real wiimote just sends
@@ -389,8 +390,8 @@ bool Wiimote::ProcessReadDataRequest()
       // read the calibration data at the beginning of Eeprom. I think this
       // error is supposed to occur when we try to read above the freely
       // usable space that ends at 0x16ff.
-      INFO_LOG(WIIMOTE, "Responding with read error 8.");
-      reply->error = 0x08;
+      //INFO_LOG(WIIMOTE, "Responding with read error 8.");
+      error_code = WiimoteErrorCode::INVALID;
     }
     else
     {
@@ -413,8 +414,8 @@ bool Wiimote::ProcessReadDataRequest()
   }
   break;
 
-  case WS_REGS1:
-  case WS_REGS2:
+  case WiimoteAddressSpace::I2C_BUS:
+  case WiimoteAddressSpace::I2C_BUS_ALT:
   {
     // Read from Control Register
 
@@ -429,7 +430,7 @@ bool Wiimote::ProcessReadDataRequest()
       // generate read error, 7 == no such slave (no ack)
       INFO_LOG(WIIMOTE, "Responding with read error 7 @ 0x%x @ 0x%x (%d)",
                m_read_request.slave_address, m_read_request.address, m_read_request.size);
-      reply->error = 0x07;
+      error_code = WiimoteErrorCode::NACK;
     }
   }
   break;
@@ -439,7 +440,7 @@ bool Wiimote::ProcessReadDataRequest()
     break;
   }
 
-  if (reply->error)
+  if (WiimoteErrorCode::SUCCESS != error_code)
   {
     // Stop processing request on read error:
     m_read_request.size = 0;
@@ -452,6 +453,8 @@ bool Wiimote::ProcessReadDataRequest()
     m_read_request.address += bytes_to_read;
     m_read_request.size -= bytes_to_read;
   }
+
+  reply->error = static_cast<u8>(error_code);
 
   // Send the data
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, rpt.GetData(),

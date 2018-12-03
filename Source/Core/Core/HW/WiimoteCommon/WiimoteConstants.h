@@ -41,17 +41,20 @@ enum WiimoteLED
   LED_4 = 0x80
 };
 
-enum WiimoteSpace
+enum class WiimoteAddressSpace : u8
 {
-  WS_EEPROM = 0x00,
-  WS_REGS1 = 0x01,
-  WS_REGS2 = 0x02
+  EEPROM = 0x00,
+  // 0x01 is never used but it does function on a real wiimote:
+  I2C_BUS_ALT = 0x01,
+  I2C_BUS = 0x02,
 };
 
-enum WiimoteReadError
+enum class WiimoteErrorCode : u8
 {
-  RDERR_WOREG = 7,
-  RDERR_NOMEM = 8
+  SUCCESS = 0,
+  NACK = 7,
+  // TODO: Can there be a better name for this?
+  INVALID = 8,
 };
 
 constexpr u8 MAX_PAYLOAD = 23;

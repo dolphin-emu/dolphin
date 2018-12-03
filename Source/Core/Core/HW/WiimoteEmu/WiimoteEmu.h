@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Logging/Log.h"
+#include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
@@ -761,7 +762,7 @@ private:
   } m_motion_plus_logic;
 
   void ReportMode(const wm_report_mode* dr);
-  void SendAck(u8 report_id, u8 error_code = 0x0);
+  void SendAck(u8 report_id, WiimoteErrorCode error_code = WiimoteErrorCode::SUCCESS);
   void RequestStatus(const wm_request_status* rs = nullptr);
   void ReadData(const wm_read_data* rd);
   void WriteData(const wm_write_data* wd);
@@ -820,7 +821,7 @@ private:
 
   struct ReadRequest
   {
-    u8 space;
+    WiimoteAddressSpace space;
     u8 slave_address;
     u16 address;
     u16 size;
