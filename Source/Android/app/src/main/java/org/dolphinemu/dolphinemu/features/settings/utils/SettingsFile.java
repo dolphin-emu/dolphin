@@ -90,6 +90,16 @@ public final class SettingsFile
   public static final String KEY_SHADER_COMPILATION_MODE = "ShaderCompilationMode";
   public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
 
+  public static final String KEY_DEBUG_JITOFF = "JitOff";
+  public static final String KEY_DEBUG_JITLOADSTOREOFF = "JitLoadStoreOff";
+  public static final String KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF = "JitLoadStoreFloatingOff";
+  public static final String KEY_DEBUG_JITLOADSTOREPAIREDOFF = "JitLoadStorePairedOff";
+  public static final String KEY_DEBUG_JITFLOATINGPOINTOFF = "JitFloatingPointOff";
+  public static final String KEY_DEBUG_JITINTEGEROFF = "JitIntegerOff";
+  public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
+  public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
+  public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
+
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
 
