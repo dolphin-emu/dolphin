@@ -72,8 +72,8 @@ static void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const
   u32 blk_off = (blkT << 2) + blkS;
 
   u32 offset_argb = (base_argb + blk_off) << 1;
-  const u8* val_addr_ar = src_ar + offset_ar;
-  const u8* val_addr_gb = src_gb + offset_gb;
+  const u8* val_addr_ar = src_ar + offset_argb;
+  const u8* val_addr_gb = src_gb + offset_argb;
 
   dst[3] = val_addr_ar[0];  // A
   dst[0] = val_addr_ar[1];  // R
