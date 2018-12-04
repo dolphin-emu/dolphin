@@ -128,13 +128,19 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case RT_WRITE_SPEAKER_DATA:
-    // Not sure if speaker mute stops the bus write on real hardware, but it's not that important
+    // TODO: Does speaker mute stop speaker data processing?
+    // (important to keep decoder in proper state)
     if (!m_speaker_mute)
     {
       auto sd = reinterpret_cast<const wm_speaker_data*>(sr->data);
-      if (sd->length > 20)
-        PanicAlert("EmuWiimote: bad speaker data length!");
-      SpeakerData(sd->data, sd->length);
+      if (sd->length > ArraySize(sd->data))
+      {
+        ERROR_LOG(WIIMOTE, "Bad speaker data length: %d", sd->length);
+      }
+      else
+      {
+        SpeakerData(sd->data, sd->length);
+      }
     }
     // No ACK:
     return;

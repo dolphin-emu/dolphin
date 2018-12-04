@@ -1276,7 +1276,7 @@ void Wiimote::MotionPlusLogic::Update()
 
     // A real wiimote takes about 2 seconds to reach this state:
     reg_data.cert_ready = 0x1a;
-    INFO_LOG(WIIMOTE, "M+ cert 2 ready!", reg_data.cert_ready);
+    INFO_LOG(WIIMOTE, "M+ cert 2 ready!");
   }
 
   // TODO: make sure a motion plus report is sent first after init
@@ -1364,7 +1364,7 @@ void Wiimote::MotionPlusLogic::Update()
       break;
     }
     default:
-      PanicAlert("MotionPlus unknown passthrough-mode %d", GetPassthroughMode());
+      PanicAlert("MotionPlus unknown passthrough-mode %d", (int)GetPassthroughMode());
       break;
     }
   }

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 // Wiimote internal codes
 
 // Communication channels
