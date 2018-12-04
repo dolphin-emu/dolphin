@@ -49,15 +49,13 @@ void Wiimote::ReportMode(const wm_report_mode* const dr)
 
   // TODO: A real wiimote sends a report immediately.
   // even on REPORT_CORE and continuous off when the buttons haven't changed.
+  // But.. it is sent after the ACK
 
   // INFO_LOG(WIIMOTE, "Set data report mode");
   // DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
   // DEBUG_LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
-  // DEBUG_LOG(WIIMOTE, "  All The Time: %x", dr->all_the_time);
   // DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-  // TODO: what does the 'all_the_time' bit really do?
-  // m_reporting_auto = dr->all_the_time;
   m_reporting_auto = dr->continuous;
   m_reporting_mode = dr->mode;
 }
@@ -86,52 +84,50 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
   switch (sr->wm)
   {
-  case RT_RUMBLE:  // 0x10
-    // this is handled above
-    return;  // no ack
+  case RT_RUMBLE:
+    // This is handled above.
+    // A real wiimote never ACKs a rumble report:
+    return;
     break;
 
-  case RT_LEDS:  // 0x11
+  case RT_LEDS:
     // INFO_LOG(WIIMOTE, "Set LEDs: 0x%02x", sr->data[0]);
     m_status.leds = sr->data[0] >> 4;
     break;
 
-  case RT_REPORT_MODE:  // 0x12
+  case RT_REPORT_MODE:
     ReportMode(reinterpret_cast<const wm_report_mode*>(sr->data));
     break;
 
-  case RT_IR_PIXEL_CLOCK:  // 0x13
+  case RT_IR_PIXEL_CLOCK:
     // INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
     // Camera data is currently always updated. Ignoring pixel clock status.
-    // m_ir_clock = sr->enable;
-    if (false == sr->ack)
-      return;
     break;
 
-  case RT_SPEAKER_ENABLE:  // 0x14
-    // ERROR_LOG(WIIMOTE, "WM Speaker Enable: %02x", sr->enable);
-    // PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
+  case RT_SPEAKER_ENABLE:
+    // INFO_LOG(WIIMOTE, "WM Speaker Enable: %02x", sr->enable);
     m_status.speaker = sr->enable;
-    if (false == sr->ack)
-      return;
     break;
 
-  case RT_REQUEST_STATUS:  // 0x15
+  case RT_REQUEST_STATUS:
     RequestStatus(reinterpret_cast<const wm_request_status*>(sr->data));
-    return;  // sends its own ack
+    // No ACK:
+    return;
     break;
 
-  case RT_WRITE_DATA:  // 0x16
+  case RT_WRITE_DATA:
     WriteData(reinterpret_cast<const wm_write_data*>(sr->data));
-    return;  // sends its own ack
+    // Sends it's own ACK conditionally:
+    return;
     break;
 
-  case RT_READ_DATA:  // 0x17
+  case RT_READ_DATA:
     ReadData(reinterpret_cast<const wm_read_data*>(sr->data));
-    return;  // sends its own ack/reply
+    // No ACK:
+    return;
     break;
 
-  case RT_WRITE_SPEAKER_DATA:  // 0x18
+  case RT_WRITE_SPEAKER_DATA:
     // Not sure if speaker mute stops the bus write on real hardware, but it's not that important
     if (!m_speaker_mute)
     {
@@ -140,29 +136,27 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
         PanicAlert("EmuWiimote: bad speaker data length!");
       SpeakerData(sd->data, sd->length);
     }
-    return;  // no ack
+    // No ACK:
+    return;
     break;
 
-  case RT_SPEAKER_MUTE:  // 0x19
+  case RT_SPEAKER_MUTE:
     m_speaker_mute = sr->enable;
-    if (false == sr->ack)
-      return;
     break;
 
-  case RT_IR_LOGIC:  // 0x1a
+  case RT_IR_LOGIC:
     // Camera data is currently always updated. Just saving this for status requests.
     m_status.ir = sr->enable;
-    if (false == sr->ack)
-      return;
     break;
 
   default:
     PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->wm);
-    return;  // no ack
+    return;
     break;
   }
 
-  SendAck(sr->wm);
+  if (sr->ack)
+    SendAck(sr->wm);
 }
 
 /* This will generate the 0x22 acknowledgement for most Input reports.
@@ -219,8 +213,6 @@ void Wiimote::HandleExtensionSwap()
 
 void Wiimote::RequestStatus(const wm_request_status* const rs)
 {
-  // INFO_LOG(WIIMOTE, "Wiimote::RequestStatus");
-
   // update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
   // Battery levels in voltage
@@ -229,8 +221,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
   //   0x33 - 0x54: level 3
   //   0x55 - 0xff: level 4
   m_status.battery = (u8)(m_battery_setting->GetValue() * 0xff);
-  // TODO: this right?
-  m_status.battery_low = m_status.battery < 0x33;
+  m_status.battery_low = m_status.battery < 0x20;
 
   // set up report
   TypedHidPacket<wm_status_report> rpt;
@@ -251,18 +242,13 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 {
   u16 address = Common::swap16(wd->address);
 
-  if (0 == wd->size)
-  {
-    // Ignore requests of zero size
-    return;
-  }
-
   INFO_LOG(WIIMOTE, "Wiimote::WriteData: 0x%02x @ 0x%02x @ 0x%02x (%d)", wd->space,
            wd->slave_address, address, wd->size);
 
-  if (wd->size > 16)
+  if (0 == wd->size || wd->size > 16)
   {
-    PanicAlert("WriteData: size is > 16 bytes");
+    WARN_LOG(WIIMOTE, "WriteData: invalid size: %d", wd->size);
+    // A real wiimote silently ignores such a request:
     return;
   }
 
@@ -276,21 +262,23 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 
     if (address + wd->size > WIIMOTE_EEPROM_SIZE)
     {
-      ERROR_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
-      PanicAlert("WriteData: address + size out of bounds!");
-      return;
+      WARN_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
+      error_code = WiimoteErrorCode::INVALID_ADDRESS;
     }
-    memcpy(m_eeprom + address, wd->data, wd->size);
-
-    // write mii data to file
-    if (address >= 0x0FCA && address < 0x12C0)
+    else
     {
-      // TODO Only write parts of the Mii block
-      std::ofstream file;
-      File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
-                        std::ios::binary | std::ios::out);
-      file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
-      file.close();
+      std::copy_n(wd->data, wd->size, m_eeprom + address);
+
+      // Write mii data to file
+      if (address >= 0x0FCA && address < 0x12C0)
+      {
+        // TODO: Only write parts of the Mii block
+        std::ofstream file;
+        File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
+                          std::ios::binary | std::ios::out);
+        file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
+        file.close();
+      }
     }
   }
   break;
@@ -312,7 +300,9 @@ void Wiimote::WriteData(const wm_write_data* const wd)
   break;
 
   default:
-    PanicAlert("WriteData: unimplemented parameters!");
+    WARN_LOG(WIIMOTE, "WriteData: invalid address space: 0x%x", wd->space);
+    // A real wiimote gives error 6:
+    error_code = WiimoteErrorCode::INVALID_SPACE;
     break;
   }
 
@@ -325,7 +315,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   if (m_read_request.size)
   {
     // There is already an active read request.
-    // a real wiimote ignores the new one.
+    // A real wiimote ignores the new one.
     return;
   }
 
@@ -375,14 +365,14 @@ bool Wiimote::ProcessReadDataRequest()
   case WiimoteAddressSpace::EEPROM:
   {
     // Read from EEPROM
-    if (m_read_request.address + m_read_request.size >= WIIMOTE_EEPROM_FREE_SIZE)
+    if (m_read_request.address + m_read_request.size > WIIMOTE_EEPROM_FREE_SIZE)
     {
       if (m_read_request.address + m_read_request.size > WIIMOTE_EEPROM_SIZE)
       {
-        ERROR_LOG(WIIMOTE, "ReadData: address + size out of bounds");
+        WARN_LOG(WIIMOTE, "ReadData: address + size out of bounds!");
       }
 
-      // generate a read error, even if the start of the block is readable a real wiimote just sends
+      // Generate a read error. Even if the start of the block is readable a real wiimote just sends
       // error code 8
 
       // The real Wiimote generate an error for the first
@@ -390,8 +380,7 @@ bool Wiimote::ProcessReadDataRequest()
       // read the calibration data at the beginning of Eeprom. I think this
       // error is supposed to occur when we try to read above the freely
       // usable space that ends at 0x16ff.
-      //INFO_LOG(WIIMOTE, "Responding with read error 8.");
-      error_code = WiimoteErrorCode::INVALID;
+      error_code = WiimoteErrorCode::INVALID_ADDRESS;
     }
     else
     {
@@ -417,8 +406,7 @@ bool Wiimote::ProcessReadDataRequest()
   case WiimoteAddressSpace::I2C_BUS:
   case WiimoteAddressSpace::I2C_BUS_ALT:
   {
-    // Read from Control Register
-
+    // Read from I2C bus
     // Top byte of address is ignored on the bus, but it IS maintained in the read-reply.
     auto const bytes_read = m_i2c_bus.BusRead(
         m_read_request.slave_address, (u8)m_read_request.address, bytes_to_read, reply->data);
@@ -436,7 +424,9 @@ bool Wiimote::ProcessReadDataRequest()
   break;
 
   default:
-    PanicAlert("Wiimote::ReadData: invalid address space (space: 0x%x)!", m_read_request.space);
+    WARN_LOG(WIIMOTE, "ReadData: invalid address space: 0x%x", m_read_request.space);
+    // A real wiimote gives error 6:
+    error_code = WiimoteErrorCode::INVALID_SPACE;
     break;
   }
 
@@ -449,7 +439,7 @@ bool Wiimote::ProcessReadDataRequest()
   }
   else
   {
-    // Modify the read request, zero size == complete
+    // Modify the active read request, zero size == complete
     m_read_request.address += bytes_to_read;
     m_read_request.size -= bytes_to_read;
   }
