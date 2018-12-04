@@ -59,6 +59,28 @@ static inline void AddTexel(const u8* inTexel, u32* outTexel, u32 fract)
   outTexel[3] += inTexel[3] * fract;
 }
 
+static void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
+                                         int imageWidth)
+{
+  u16 sBlk = s >> 2;
+  u16 tBlk = t >> 2;
+  u16 widthBlks =
+      (imageWidth >> 2) + 1;  // TODO: Looks wrong. Shouldn't this be ((imageWidth-1)>>2)+1 ?
+  u32 base_argb = (tBlk * widthBlks + sBlk) << 4;
+  u16 blkS = s & 3;
+  u16 blkT = t & 3;
+  u32 blk_off = (blkT << 2) + blkS;
+
+  u32 offset_argb = (base_argb + blk_off) << 1;
+  const u8* val_addr_ar = src_ar + offset_ar;
+  const u8* val_addr_gb = src_gb + offset_gb;
+
+  dst[3] = val_addr_ar[0];  // A
+  dst[0] = val_addr_ar[1];  // R
+  dst[1] = val_addr_gb[0];  // G
+  dst[2] = val_addr_gb[1];  // B
+}
+
 void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
 {
   int baseMip = 0;

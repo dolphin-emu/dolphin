@@ -714,39 +714,31 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   }
 }
 
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
-                                         int imageWidth)
-{
-  u16 sBlk = s >> 2;
-  u16 tBlk = t >> 2;
-  u16 widthBlks =
-      (imageWidth >> 2) + 1;  // TODO: Looks wrong. Shouldn't this be ((imageWidth-1)>>2)+1 ?
-  u32 base_ar = (tBlk * widthBlks + sBlk) << 4;
-  u32 base_gb = (tBlk * widthBlks + sBlk) << 4;
-  u16 blkS = s & 3;
-  u16 blkT = t & 3;
-  u32 blk_off = (blkT << 2) + blkS;
-
-  u32 offset_ar = (base_ar + blk_off) << 1;
-  u32 offset_gb = (base_gb + blk_off) << 1;
-  const u8* val_addr_ar = src_ar + offset_ar;
-  const u8* val_addr_gb = src_gb + offset_gb;
-
-  dst[3] = val_addr_ar[0];  // A
-  dst[0] = val_addr_ar[1];  // R
-  dst[1] = val_addr_gb[0];  // G
-  dst[2] = val_addr_gb[1];  // B
-}
-
 void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
                                     int height)
 {
   // TODO for someone who cares: Make this less slow!
-  for (int y = 0; y < height; ++y)
+  u16 widthBlks = ((width - 1) >> 2) + 1;
+  for (int t = 0; t < height; ++t)
   {
-    for (int x = 0; x < width; ++x)
+    for (int s = 0; s < width; ++s)
     {
-      TexDecoder_DecodeTexelRGBA8FromTmem(dst, src_ar, src_gb, x, y, width - 1);
+      u16 sBlk = s >> 2;
+      u16 tBlk = t >> 2;
+
+      u32 base_argb = (tBlk * widthBlks + sBlk) << 4;
+      u16 blkS = s & 3;
+      u16 blkT = t & 3;
+      u32 blk_off = (blkT << 2) + blkS;
+
+      u32 offset_argb = (base_argb + blk_off) << 1;
+      const u8* val_addr_ar = src_ar + offset_argb;
+      const u8* val_addr_gb = src_gb + offset_argb;
+
+      dst[3] = val_addr_ar[0];  // A
+      dst[0] = val_addr_ar[1];  // R
+      dst[1] = val_addr_gb[0];  // G
+      dst[2] = val_addr_gb[1];  // B
       dst += 4;
     }
   }
