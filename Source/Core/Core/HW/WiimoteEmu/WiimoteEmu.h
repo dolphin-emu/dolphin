@@ -538,6 +538,7 @@ private:
 
     static_assert(0x100 == sizeof(reg_data));
 
+    // TODO: What actions should reset this state?
     ADPCMState adpcm_state;
 
     static const u8 DEVICE_ADDR = 0x51;
@@ -562,6 +563,8 @@ private:
       }
       else
       {
+        // TODO: Does writing immediately change the decoder config even when active
+        // or does a write to 0x08 activate the new configuration or something?
         return RawWrite(&reg_data, addr, count, data_in);
       }
     }

@@ -7,6 +7,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -70,11 +71,14 @@ void stopdamnwav()
 
 void Wiimote::SpeakerData(const u8* data, int length)
 {
+  // TODO: should we still process samples for the decoder state?
   if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
     return;
-  if (m_speaker_logic.reg_data.volume == 0 || m_speaker_logic.reg_data.sample_rate == 0 ||
-      length == 0)
+
+  if (m_speaker_logic.reg_data.sample_rate == 0 || length == 0)
     return;
+
+  // Even if volume is zero we process samples to maintain proper decoder state.
 
   // TODO consider using static max size instead of new
   std::unique_ptr<s16[]> samples(new s16[length * 2]);
@@ -87,7 +91,7 @@ void Wiimote::SpeakerData(const u8* data, int length)
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
     {
-      samples[i] = ((s16)(s8)data[i]) << 8;
+      samples[i] = ((s16)(s8)data[i]) * 0x100;
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
@@ -107,9 +111,6 @@ void Wiimote::SpeakerData(const u8* data, int length)
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 6000000;
-
-    // 0 - 127
-    // TODO: does it go beyond 127 for format == 0x40?
     volume_divisor = 0x7F;
     sample_length = (unsigned int)length * 2;
   }
@@ -119,19 +120,23 @@ void Wiimote::SpeakerData(const u8* data, int length)
     return;
   }
 
+  if (m_speaker_logic.reg_data.volume > volume_divisor)
+  {
+    DEBUG_LOG(IOS_WIIMOTE, "Wiimote volume is higher than suspected maximum!");
+    volume_divisor = m_speaker_logic.reg_data.volume;
+  }
+
   // Speaker Pan
-  // TODO: fix
-  unsigned int vol = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
+  // GUI clamps pan setting from -127 to 127. Why?
+  const auto pan = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
 
-  unsigned int sample_rate = sample_rate_dividend / m_speaker_logic.reg_data.sample_rate;
+  const unsigned int sample_rate = sample_rate_dividend / m_speaker_logic.reg_data.sample_rate;
   float speaker_volume_ratio = (float)m_speaker_logic.reg_data.volume / volume_divisor;
-  unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio);
-  unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio);
-
-  if (left_volume > 255)
-    left_volume = 255;
-  if (right_volume > 255)
-    right_volume = 255;
+  // Sloppy math:
+  unsigned int left_volume =
+      MathUtil::Clamp<unsigned int>((0xff + (2 * pan)) * speaker_volume_ratio, 0, 0xff);
+  unsigned int right_volume =
+      MathUtil::Clamp<unsigned int>((0xff - (2 * pan)) * speaker_volume_ratio, 0, 0xff);
 
   g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
 
@@ -161,4 +166,4 @@ void Wiimote::SpeakerData(const u8* data, int length)
   num++;
 #endif
 }
-}
+}  // namespace WiimoteEmu
