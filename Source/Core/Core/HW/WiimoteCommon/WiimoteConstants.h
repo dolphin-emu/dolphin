@@ -52,9 +52,9 @@ enum class WiimoteAddressSpace : u8
 enum class WiimoteErrorCode : u8
 {
   SUCCESS = 0,
+  INVALID_SPACE = 6,
   NACK = 7,
-  // TODO: Can there be a better name for this?
-  INVALID = 8,
+  INVALID_ADDRESS = 8,
 };
 
 constexpr u8 MAX_PAYLOAD = 23;

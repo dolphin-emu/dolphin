@@ -16,6 +16,7 @@
 typedef std::vector<u8> Report;
 
 // Report defines
+// TODO: enum classes
 enum ReportType
 {
   RT_RUMBLE = 0x10,
@@ -184,6 +185,7 @@ union wm_nc
 };
 static_assert(sizeof(wm_nc) == 6, "Wrong size");
 
+// TODO: kill/move these:
 union wm_classic_extension_buttons
 {
   u16 hex;
@@ -375,10 +377,12 @@ struct wm_report
     u8 data[0];
     struct
     {
-      u8 rumble : 1;  // enable/disable rumble
-      // only valid for certain reports
-      u8 ack : 1;     // respond with an ack
-      u8 enable : 1;  // enable/disable certain features
+      // Enable/disable rumble. (Valid for ALL output reports)
+      u8 rumble : 1;
+      // Respond with an ack. (Only valid for certain reports)
+      u8 ack : 1;
+      // Enable/disable certain features. (Only valid for certain reports)
+      u8 enable : 1;
     };
   };
 };
@@ -387,7 +391,6 @@ static_assert(sizeof(wm_report) == 2, "Wrong size");
 struct wm_leds
 {
   u8 rumble : 1;
-  // real Wii also sets bit 0x2 (unknown purpose)
   u8 : 3;
   u8 leds : 4;
 };
@@ -396,8 +399,7 @@ static_assert(sizeof(wm_leds) == 1, "Wrong size");
 struct wm_report_mode
 {
   u8 rumble : 1;
-  // unsure what "all_the_time" actually is, the real Wii does set it (bit 0x2)
-  u8 all_the_time : 1;
+  u8 : 1;
   u8 continuous : 1;
   u8 : 5;
   u8 mode;
@@ -419,7 +421,7 @@ struct wm_status_report
   u8 speaker : 1;
   u8 ir : 1;
   u8 leds : 4;
-  u8 padding2[2];  // two 00, TODO: this needs more investigation
+  u8 padding2[2];
   u8 battery;
 };
 static_assert(sizeof(wm_status_report) == 6, "Wrong size");

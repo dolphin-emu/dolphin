@@ -413,6 +413,9 @@ private:
     struct RegData
     {
       // Contains sensitivity and other unknown data
+      // TODO: Do the IR and Camera enabling reports write to the i2c bus?
+      // TODO: does disabling the camera peripheral reset the mode or sensitivity?
+      // TODO: break out this "data" array into some known members
       u8 data[0x33];
       u8 mode;
       u8 unk[3];
@@ -475,12 +478,12 @@ private:
       // Check if encrypted reads is on
       if (0xaa == reg_data.encryption)
       {
-        //INFO_LOG(WIIMOTE, "Encrypted read.");
+        // INFO_LOG(WIIMOTE, "Encrypted read.");
         WiimoteEncrypt(&ext_key, data_out, addr, (u8)count);
       }
       else
       {
-        //INFO_LOG(WIIMOTE, "Unencrypted read.");
+        // INFO_LOG(WIIMOTE, "Unencrypted read.");
       }
 
       return result;
@@ -509,11 +512,12 @@ private:
 
   struct SpeakerLogic : public I2CSlave
   {
+    // TODO: enum class
     static const u8 DATA_FORMAT_ADPCM = 0x00;
     static const u8 DATA_FORMAT_PCM = 0x40;
 
     // TODO: It seems reading address 0x00 should always return 0xff.
-
+#pragma pack(push, 1)
     struct
     {
       // Speaker reports result in a write of samples to addr 0x00 (which also plays sound)
@@ -522,14 +526,17 @@ private:
       u8 format;
       // seems to always play at 6khz no matter what this is set to?
       // or maybe it only applies to pcm input
+      // Little-endian:
       u16 sample_rate;
       u8 volume;
+      u8 unk_5;
       u8 unk_6;
+      // Reading this byte on real hardware seems to return 0x09:
       u8 unk_7;
-      u8 play;
-      u8 unk_9;
-      u8 unknown[0xf4];
+      u8 unk_8;
+      u8 unknown[0xf6];
     } reg_data;
+#pragma pack(pop)
 
     static_assert(0x100 == sizeof(reg_data));
 
@@ -557,7 +564,6 @@ private:
       }
       else
       {
-        // TODO: should address wrap around after 0xff result in processing speaker data?
         return RawWrite(&reg_data, addr, count, data_in);
       }
     }
@@ -626,9 +632,9 @@ private:
 
     enum class PassthroughMode : u8
     {
-      PASSTHROUGH_DISABLED = 0x04,
-      PASSTHROUGH_NUNCHUK = 0x05,
-      PASSTHROUGH_CLASSIC = 0x07,
+      DISABLED = 0x04,
+      NUNCHUK = 0x05,
+      CLASSIC = 0x07,
     };
 
     bool IsActive() const { return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2]; }
@@ -726,7 +732,7 @@ private:
             // Activate motion plus:
             reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
             // TODO: kill magic number
-            //reg_data.cert_ready = 0x2;
+            // reg_data.cert_ready = 0x2;
 
             // A real M+ is unresponsive on the bus for some time during activation
             // Reads fail to ack and ext data gets filled with 0xff for a frame or two

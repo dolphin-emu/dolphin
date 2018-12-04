@@ -314,14 +314,15 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
-  // TODO: Is a wiimote in CORE or DISABLED reporting mode on sync?
-  m_reporting_mode = RT_REPORT_DISABLED;
+  // Wiimote starts in non-continuous CORE mode:
+  m_reporting_mode = RT_REPORT_CORE;
   m_reporting_channel = 0;
   m_reporting_auto = false;
 
   m_rumble_on = false;
   m_speaker_mute = false;
 
+  // TODO: Can probably just set this to the desired extension right away?
   m_extension->active_extension = 0;
 
   // eeprom
@@ -889,8 +890,7 @@ void Wiimote::Update()
       return;
   }
 
-  u8 data[MAX_PAYLOAD];
-  memset(data, 0, sizeof(data));
+  u8 data[MAX_PAYLOAD] = {};
 
   Movie::SetPolledDevice();
 
@@ -939,7 +939,6 @@ void Wiimote::Update()
     // acceleration
     if (rptf.accel_size)
     {
-      // TODO: GetAccelData has hardcoded payload offsets..
       s16 x, y, z;
       GetAccelData(&x, &y, &z);
 
@@ -983,8 +982,12 @@ void Wiimote::Update()
     if (rptf.ir_size)
     {
       if (!m_status.ir)
+      {
+        // TODO: Does a real wiimote send 0xFFs in this case?
         WARN_LOG(WIIMOTE, "Game is reading IR data without enabling IR logic first.");
+      }
 
+      // The real wiimote reads camera data from the i2c bus at offset 0x37:
       u8 camera_data_offset = offsetof(IRCameraLogic::RegData, camera_data);
 
       if (RT_REPORT_INTERLEAVE2 == m_reporting_mode)
@@ -1218,7 +1221,10 @@ void Wiimote::ExtensionLogic::Update()
 template <typename T>
 void SetBit(T& value, u32 bit_number, bool bit_value)
 {
-  bit_value ? value |= (1 << bit_number) : value &= ~(1 << bit_number);
+  if (bit_value)
+    value |= (1 << bit_number);
+  else
+    value &= ~(1 << bit_number);
 }
 
 void Wiimote::MotionPlusLogic::Update()
@@ -1303,13 +1309,13 @@ void Wiimote::MotionPlusLogic::Update()
   {
     switch (GetPassthroughMode())
     {
-    case PassthroughMode::PASSTHROUGH_DISABLED:
+    case PassthroughMode::DISABLED:
     {
       // Passthrough disabled, always send M+ data:
       mplus_data.is_mp_data = true;
       break;
     }
-    case PassthroughMode::PASSTHROUGH_NUNCHUK:
+    case PassthroughMode::NUNCHUK:
     {
       if (ext_amt == i2c_bus.BusRead(ext_slave, ext_addr, ext_amt, data))
       {
@@ -1336,7 +1342,7 @@ void Wiimote::MotionPlusLogic::Update()
       }
       break;
     }
-    case PassthroughMode::PASSTHROUGH_CLASSIC:
+    case PassthroughMode::CLASSIC:
     {
       if (ext_amt == i2c_bus.BusRead(ext_slave, ext_addr, ext_amt, data))
       {

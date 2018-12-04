@@ -98,7 +98,6 @@ void Wiimote::DisableDataReporting()
   // This probably accomplishes nothing.
   wm_report_mode rpt = {};
   rpt.mode = RT_REPORT_CORE;
-  rpt.all_the_time = 0;
   rpt.continuous = 0;
   rpt.rumble = 0;
   QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
@@ -110,7 +109,6 @@ void Wiimote::EnableDataReporting(u8 mode)
 
   wm_report_mode rpt = {};
   rpt.mode = mode;
-  rpt.all_the_time = 1;
   rpt.continuous = 1;
   QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 }
@@ -445,7 +443,6 @@ void Wiimote::EmuResume()
 
   wm_report_mode rpt = {};
   rpt.mode = wm->m_reporting_mode;
-  rpt.all_the_time = 1;
   rpt.continuous = 1;
   QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 
@@ -460,7 +457,6 @@ void Wiimote::EmuPause()
 
   wm_report_mode rpt = {};
   rpt.mode = RT_REPORT_CORE;
-  rpt.all_the_time = 0;
   rpt.continuous = 0;
   QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 
