@@ -130,6 +130,9 @@ VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::D32F_S8:
     return VK_FORMAT_D32_SFLOAT_S8_UINT;
 
+  case AbstractTextureFormat::Undefined:
+    return VK_FORMAT_UNDEFINED;
+
   default:
     PanicAlert("Unhandled texture format.");
     return VK_FORMAT_R8G8B8A8_UNORM;

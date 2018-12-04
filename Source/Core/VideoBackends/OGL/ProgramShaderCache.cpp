@@ -259,6 +259,21 @@ void ProgramShaderCache::UploadConstants()
   }
 }
 
+void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
+{
+  // allocate and copy
+  const u32 alloc_size = Common::AlignUp(data_size, s_ubo_align);
+  auto buffer = s_buffer->Map(alloc_size, s_ubo_align);
+  std::memcpy(buffer.first, data, data_size);
+  s_buffer->Unmap(alloc_size);
+
+  // bind the same sub-buffer to all stages
+  for (u32 index = 1; index <= 3; index++)
+    glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
+
+  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
+}
+
 bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
                                        const std::string& pcode, const std::string& gcode)
 {
@@ -537,6 +552,11 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 
   glBindVertexArray(new_VAO);
   s_last_VAO = new_VAO;
+}
+
+bool ProgramShaderCache::IsValidVertexFormatBound()
+{
+  return s_last_VAO != 0 && s_last_VAO != s_attributeless_VAO;
 }
 
 void ProgramShaderCache::InvalidateVertexFormat()

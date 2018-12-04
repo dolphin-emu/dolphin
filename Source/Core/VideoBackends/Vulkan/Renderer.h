@@ -37,6 +37,9 @@ public:
 
   bool IsHeadless() const override;
 
+  bool Initialize() override;
+  void Shutdown() override;
+
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
@@ -52,8 +55,6 @@ public:
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
   BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
-  bool Initialize();
-
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
@@ -86,11 +87,8 @@ public:
   void SetInterlacingMode() override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
-
-  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                           u32 vertex_stride, u32 num_vertices) override;
-  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
-                             u32 groups_x, u32 groups_y, u32 groups_z) override;
+  void Draw(u32 base_vertex, u32 num_vertices) override;
+  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
 private:
   bool CreateSemaphores();
@@ -124,6 +122,8 @@ private:
 
   VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
   VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;
+  VkRenderPass m_swap_chain_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_swap_chain_clear_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<BoundingBox> m_bounding_box;

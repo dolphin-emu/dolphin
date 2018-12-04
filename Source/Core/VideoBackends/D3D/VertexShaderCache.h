@@ -23,8 +23,6 @@ public:
   static void Init();
   static void Shutdown();
 
-  static ID3D11Buffer*& GetConstantBuffer();
-
   static ID3D11VertexShader* GetSimpleVertexShader();
   static ID3D11VertexShader* GetClearVertexShader();
   static ID3D11InputLayout* GetSimpleInputLayout();

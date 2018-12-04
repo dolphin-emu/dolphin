@@ -69,9 +69,29 @@ public:
     m_pipeline_config_changed = true;
   }
 
+  // Utility pipeline drawing (e.g. EFB copies, post-processing, UI).
+  virtual void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size) = 0;
+  void UploadUtilityVertices(const void* vertices, u32 vertex_stride, u32 num_vertices,
+                             const u16* indices, u32 num_indices, u32* out_base_vertex,
+                             u32* out_base_index);
+
 protected:
-  virtual void vDoState(PointerWrap& p) {}
-  virtual void ResetBuffer(u32 stride) = 0;
+  // Vertex buffers/index buffer creation.
+  virtual void CreateDeviceObjects() {}
+  virtual void DestroyDeviceObjects() {}
+
+  // Prepares the buffer for the next batch of vertices.
+  virtual void ResetBuffer(u32 vertex_stride, bool cull_all) = 0;
+
+  // Commits/uploads the current batch of vertices.
+  virtual void CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+                            u32* out_base_vertex, u32* out_base_index) = 0;
+
+  // Uploads uniform buffers for GX draws.
+  virtual void UploadConstants() = 0;
+
+  // Issues the draw call for the current batch in the backend.
+  virtual void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) = 0;
 
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;
@@ -98,10 +118,6 @@ private:
   size_t m_flush_count_4_3 = 0;
   size_t m_flush_count_anamorphic = 0;
 
-  virtual void vFlush() = 0;
-
-  virtual void CreateDeviceObjects() {}
-  virtual void DestroyDeviceObjects() {}
   void UpdatePipelineConfig();
   void UpdatePipelineObject();
 };

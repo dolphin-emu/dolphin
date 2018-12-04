@@ -78,8 +78,10 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height)
+Renderer::Renderer(int backbuffer_width, int backbuffer_height,
+                   AbstractTextureFormat backbuffer_format)
+    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
+      m_backbuffer_format(backbuffer_format)
 {
   UpdateActiveConfig();
   UpdateDrawRectangle();
@@ -92,6 +94,11 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 }
 
 Renderer::~Renderer() = default;
+
+bool Renderer::Initialize()
+{
+  return true;
+}
 
 void Renderer::Shutdown()
 {
@@ -696,6 +703,11 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
         xfb_rect.right -= EFBToScaledX(native_stride_width_difference);
 
       m_last_xfb_region = xfb_rect;
+
+      // Since we use the common pipelines here and draw vertices if a batch is currently being
+      // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
+      // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
+      g_vertex_manager->Flush();
 
       // TODO: merge more generic parts into VideoCommon
       {

@@ -161,7 +161,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   D3D::InitUtils();
   BBox::Init();
-  return true;
+
+  return g_renderer->Initialize();
 }
 
 void VideoBackend::Shutdown()
