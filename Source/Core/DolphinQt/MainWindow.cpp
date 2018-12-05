@@ -558,6 +558,7 @@ void MainWindow::ConnectStack()
 
   setCentralWidget(m_stack);
 
+  setDockOptions(DockOption::AllowNestedDocks);
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
   addDockWidget(Qt::LeftDockWidgetArea, m_log_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_log_config_widget);
