@@ -85,7 +85,7 @@ Useful for development as root access is not required.
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
 4. `make`
-5. `ln -s ../../Data/Sys Binaries/`
+5. `ln -s ../Data/Sys Binaries/`
 
 ### Linux Portable Build Steps:
 
