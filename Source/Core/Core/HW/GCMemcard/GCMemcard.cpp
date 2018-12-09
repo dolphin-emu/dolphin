@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 
+#include "Common/BitUtils.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
@@ -480,16 +481,11 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  std::array<u8, 2> tmp;
-  memcpy(tmp.data(), &GetActiveDirectory().m_dir_entries[index].m_icon_format, 2);
-  int x = tmp[0];
+  u16 x = GetActiveDirectory().m_dir_entries[index].m_icon_format;
   std::string format;
-  for (int i = 0; i < 16; i++)
+  for (size_t i = 0; i < 16; ++i)
   {
-    if (i == 8)
-      x = tmp[1];
-    format.push_back((x & 0x80) ? '1' : '0');
-    x = x << 1;
+    format.push_back(Common::ExtractBit(x, 15 - i) ? '1' : '0');
   }
   return format;
 }
@@ -499,16 +495,11 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
   if (!m_valid || index >= DIRLEN)
     return "";
 
-  std::array<u8, 2> tmp;
-  memcpy(tmp.data(), &GetActiveDirectory().m_dir_entries[index].m_animation_speed, 2);
-  int x = tmp[0];
+  u16 x = GetActiveDirectory().m_dir_entries[index].m_animation_speed;
   std::string speed;
-  for (int i = 0; i < 16; i++)
+  for (size_t i = 0; i < 16; ++i)
   {
-    if (i == 8)
-      x = tmp[1];
-    speed.push_back((x & 0x80) ? '1' : '0');
-    x = x << 1;
+    speed.push_back(Common::ExtractBit(x, 15 - i) ? '1' : '0');
   }
   return speed;
 }
