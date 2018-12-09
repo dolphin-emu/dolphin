@@ -173,7 +173,7 @@ struct DEntry
     return Common::EscapeFileName(filename);
   }
 
-  static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE = {0xFF, 0xFF, 0xFF, 0xFF};
+  static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE{{0xFF, 0xFF, 0xFF, 0xFF}};
 
   std::array<u8, 4> m_gamecode;   // 0x00      0x04    Gamecode
   std::array<u8, 2> m_makercode;  // 0x04      0x02    Makercode
