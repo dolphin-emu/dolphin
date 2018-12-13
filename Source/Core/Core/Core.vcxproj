@@ -442,7 +442,6 @@
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
     <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />
-    <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="HW\WiiSave.h" />

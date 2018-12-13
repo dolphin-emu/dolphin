@@ -49,13 +49,6 @@
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
-namespace
-{
-// :)
-auto const TAU = 6.28318530717958647692;
-auto const PI = TAU / 2.0;
-}  // namespace
-
 namespace WiimoteEmu
 {
 constexpr int SHAKE_FREQ = 6;
@@ -67,8 +60,8 @@ constexpr int SHAKE_STEP_MAX = ::Wiimote::UPDATE_FREQ / SHAKE_FREQ;
 static const u8 eeprom_data_0[] = {
     // IR, maybe more
     // assuming last 2 bytes are checksum
-    0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00,
-    0x00,  // messing up the checksum on purpose
+    // messing up the checksum on purpose
+    0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,
     0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,
     // Accelerometer
     // Important: checksum is required for tilt games
@@ -137,7 +130,7 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   {
     if (shake & (1 << i))
     {
-      (&(accel->x))[i] += std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity;
+      (&(accel->x))[i] += std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity;
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
     }
     else
@@ -163,7 +156,7 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
     else if (dynamic_data.executing_frames_left[i] > 0)
     {
       (&(accel->x))[i] +=
-          std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * dynamic_data.intensity[i];
+          std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) * dynamic_data.intensity[i];
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
       dynamic_data.executing_frames_left[i]--;
     }
@@ -196,8 +189,8 @@ void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, 
 {
   // 180 degrees
   const ControllerEmu::Tilt::StateData state = tilt_group->GetState();
-  const ControlState roll = state.x * PI;
-  const ControlState pitch = state.y * PI;
+  const ControlState roll = state.x * MathUtil::PI;
+  const ControlState pitch = state.y * MathUtil::PI;
 
   // Some notes that no one will understand but me :p
   // left, forward, up
@@ -217,7 +210,7 @@ void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, 
   if (!sideways && upright)
     sgn[ud] *= -1;
 
-  (&accel->x)[ud] = (sin((PI / 2) - std::max(fabs(roll), fabs(pitch)))) * sgn[ud];
+  (&accel->x)[ud] = (sin((MathUtil::PI / 2) - std::max(fabs(roll), fabs(pitch)))) * sgn[ud];
   (&accel->x)[lr] = -sin(roll) * sgn[lr];
   (&accel->x)[fb] = sin(pitch) * sgn[fb];
 }
@@ -1243,13 +1236,22 @@ void Wiimote::MotionPlusLogic::Update()
     // Device still operates when changing the data slightly so its not any sort of encrpytion
     // It even works when removing the is_mp_data bit in the last byte
     // My M+ non-inside gives: 61,46,45,aa,0,2 or b6,46,45,9a,0,2
-    static const u8 init_data[6] = {0x8e, 0xb0, 0x4f, 0x5a, 0xfc | 0x01, 0x02};
+    // static const u8 init_data[6] = {0x8e, 0xb0, 0x4f, 0x5a, 0xfc | 0x01, 0x02};
+    static const u8 init_data[6] = {0x81, 0x46, 0x46, 0xb6, 0x01, 0x02};
     std::copy(std::begin(init_data), std::end(init_data), data);
     reg_data.cert_ready = 0x2;
     return;
   }
 
   if (0x2 == reg_data.cert_ready)
+  {
+    static const u8 init_data[6] = {0x7f, 0xcf, 0xdf, 0x8b, 0x4f, 0x82};
+    std::copy(std::begin(init_data), std::end(init_data), data);
+    reg_data.cert_ready = 0x8;
+    return;
+  }
+
+  if (0x8 == reg_data.cert_ready)
   {
     // A real wiimote takes about 2 seconds to reach this state:
     reg_data.cert_ready = 0xe;
@@ -1303,6 +1305,13 @@ void Wiimote::MotionPlusLogic::Update()
 
   // Try to alternate between M+ and EXT data:
   mplus_data.is_mp_data ^= true;
+
+  // hax!!!
+  static const u8 hacky_mp_data[6] = {0x1d, 0x91, 0x49, 0x87, 0x73, 0x7a};
+  static const u8 hacky_nc_data[6] = {0x79, 0x7f, 0x4b, 0x83, 0x8b, 0xec};
+  auto& hacky_ptr = mplus_data.is_mp_data ? hacky_mp_data : hacky_nc_data;
+  std::copy(std::begin(hacky_ptr), std::end(hacky_ptr), data);
+  return;
 
   // If the last frame had M+ data try to send some non-M+ data:
   if (!mplus_data.is_mp_data)
