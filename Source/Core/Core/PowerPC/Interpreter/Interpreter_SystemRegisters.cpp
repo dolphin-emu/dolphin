@@ -346,6 +346,9 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // not set.
     // TODO: disable write gather pipe if WPE not set
     // TODO: emulate locked cache and DMA bits.
+    // Only the lower half of the register (upper half from a little endian perspective)
+    // is modifiable, except for the DMAQL field.
+    rSPR(index) = (rSPR(index) & 0xF0FF0000) | (old_value & 0x0F000000);
     break;
 
   case SPR_HID4:
