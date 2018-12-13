@@ -341,9 +341,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     rSPR(index) &= 0xF8000000;
     break;
 
-  case SPR_HID2:  // HID2
-    // TODO: generate illegal instruction for paired inst if PSE or LSQE
-    // not set.
+  case SPR_HID2:
     // TODO: disable write gather pipe if WPE not set
     // TODO: emulate locked cache and DMA bits.
     // Only the lower half of the register (upper half from a little endian perspective)
