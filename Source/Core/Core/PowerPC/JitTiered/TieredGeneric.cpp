@@ -148,9 +148,14 @@ u32 JitTieredGeneric::FindBlock(u32 address)
   // at this point, the primary cache contains an invalid entry
   // (or one that has already been saved to victim cache)
 
-  // (look up in JIT DB here once that's implemented)
+  // let the subclass decide how to get a block
+  // (or whether to create an interpreter block instead)
+  return LookupBlock(key, address);
+}
 
-  // not in cache: create new Interpreter block
+u32 JitTieredGeneric::LookupBlock(u32 key, u32 address)
+{
+  // we have no JIT to get blocks from, so just create new interpreter block unconditionally
   disp_cache[key].address = address;
   disp_cache[key].offset = (u32)inst_cache.size();
   disp_cache[key].len = disp_cache[key].usecount = 0;
@@ -167,7 +172,7 @@ static bool IsRedispatchInstruction(UGeckoInstruction inst)
       ;
 }
 
-void JitTieredGeneric::InterpretBlock()
+void JitTieredGeneric::RunZeroInstruction()
 {
   if (PC == 0)
   {
@@ -191,113 +196,110 @@ void JitTieredGeneric::InterpretBlock()
       return;
     }
   }
-  u32 start_addr = PC;
-  u32 key = FindBlock(start_addr);
-  if ((disp_cache[key].address & FLAG_MASK) == 0)
+}
+
+void JitTieredGeneric::InterpretBlock(u32 index)
+{
+  u32 len = disp_cache[index].len;
+  u32 offset = disp_cache[index].offset;
+  for (u32 pos = offset; pos < offset + len; pos += 1)
   {
-    // flag bits are zero: interpreter block
-    u32 len = disp_cache[key].len;
-    disp_cache[key].usecount += 1;
-    u32 offset = disp_cache[key].offset;
-    for (u32 pos = offset; pos < offset + len; pos += 1)
+    auto& inst = inst_cache[pos];
+    NPC = PC + 4;
+    if (inst.uses_fpu && !MSR.FP)
     {
-      auto& inst = inst_cache[pos];
-      NPC = PC + 4;
-      if (inst.uses_fpu && !MSR.FP)
-      {
-        PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-      }
-      else
-      {
-        inst.func(inst.inst);
-      }
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_SYNC)
-      {
-        PowerPC::CheckExceptions();
-        PowerPC::ppcState.downcount -= inst.cycles;
-        PowerPC::ppcState.Exceptions &= ~EXCEPTION_SYNC;
-        return;
-      }
-      if (NPC != PC + 4)
-      {
-        PowerPC::ppcState.downcount -= inst.cycles;
-        PC = NPC;
-        return;
-      }
+      PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+    }
+    else
+    {
+      inst.func(inst.inst);
+    }
+    if (PowerPC::ppcState.Exceptions & EXCEPTION_SYNC)
+    {
+      PowerPC::CheckExceptions();
+      PowerPC::ppcState.downcount -= inst.cycles;
+      PowerPC::ppcState.Exceptions &= ~EXCEPTION_SYNC;
+      return;
+    }
+    if (NPC != PC + 4)
+    {
+      PowerPC::ppcState.downcount -= inst.cycles;
       PC = NPC;
+      return;
     }
-    u32 cycles = 0;
-    if (len != 0)
-    {
-      auto& last = inst_cache[offset + len - 1];
-      cycles = last.cycles;
-      if (IsRedispatchInstruction(last.inst) || PowerPC::breakpoints.IsAddressBreakPoint(PC))
-      {
-        // even if the block didn't end here, we have to go back to dispatcher
-        // because of e. g. invalidation or breakpoints
-        PowerPC::ppcState.downcount -= cycles;
-        return;
-      }
-    }
-    // overrun: add more instructions to block
-    if (offset + len != inst_cache.size())
-    {
-      // we can only append to the last block, so copy this one to the end
-      disp_cache[key].offset = inst_cache.size();
-      for (u32 pos = offset; pos < offset + len; pos += 1)
-      {
-        inst_cache.push_back(inst_cache[pos]);
-      }
-      // following code should not index into inst_cache, but just to be sure
-      offset = disp_cache[key].offset;
-    }
-    do
-    {
-      // handle temporary breakpoints
-      PowerPC::CheckBreakPoints();
-      auto inst = UGeckoInstruction(PowerPC::Read_Opcode(PC));
-      if (inst.hex == 0)
-      {
-        PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
-        PowerPC::CheckExceptions();
-        return;
-      }
-      // end the block only on permanent breakpoints
-      if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
-      {
-        INFO_LOG(DYNA_REC, "%8x: breakpoint", PC);
-        break;
-      }
-      cycles += PPCTables::GetOpInfo(inst)->numCycles;
-      auto func = PPCTables::GetInterpreterOp(inst);
-      bool uses_fpu = PPCTables::UsesFPU(inst);
-      inst_cache.push_back({func, inst, cycles, static_cast<u32>(uses_fpu)});
-      disp_cache[key].len += 1;
-      NPC = PC + 4;
-      if (uses_fpu && !MSR.FP)
-      {
-        PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-      }
-      else
-      {
-        func(inst);
-      }
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_SYNC)
-      {
-        PowerPC::CheckExceptions();
-        PowerPC::ppcState.downcount -= cycles;
-        PowerPC::ppcState.Exceptions &= ~EXCEPTION_SYNC;
-        return;
-      }
-      PC += 4;
-      if (IsRedispatchInstruction(inst))
-      {
-        break;
-      }
-    } while (PC == NPC);
-    PowerPC::ppcState.downcount -= cycles;
     PC = NPC;
   }
+  u32 cycles = 0;
+  if (len != 0)
+  {
+    auto& last = inst_cache[offset + len - 1];
+    cycles = last.cycles;
+    if (IsRedispatchInstruction(last.inst) || PowerPC::breakpoints.IsAddressBreakPoint(PC))
+    {
+      // even if the block didn't end here, we have to go back to dispatcher
+      // because of e. g. invalidation or breakpoints
+      PowerPC::ppcState.downcount -= cycles;
+      return;
+    }
+  }
+  // overrun: add more instructions to block
+  if (offset + len != inst_cache.size())
+  {
+    // we can only append to the last block, so copy this one to the end
+    disp_cache[index].offset = inst_cache.size();
+    for (u32 pos = offset; pos < offset + len; pos += 1)
+    {
+      inst_cache.push_back(inst_cache[pos]);
+    }
+    // following code should not index into inst_cache, but just to be sure
+    offset = disp_cache[index].offset;
+  }
+  do
+  {
+    // handle temporary breakpoints
+    PowerPC::CheckBreakPoints();
+    auto inst = UGeckoInstruction(PowerPC::Read_Opcode(PC));
+    if (inst.hex == 0)
+    {
+      PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+      PowerPC::CheckExceptions();
+      return;
+    }
+    // end the block only on permanent breakpoints
+    if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+    {
+      INFO_LOG(DYNA_REC, "%8x: breakpoint", PC);
+      break;
+    }
+    cycles += PPCTables::GetOpInfo(inst)->numCycles;
+    auto func = PPCTables::GetInterpreterOp(inst);
+    bool uses_fpu = PPCTables::UsesFPU(inst);
+    inst_cache.push_back({func, inst, cycles, static_cast<u32>(uses_fpu)});
+    disp_cache[index].len += 1;
+    NPC = PC + 4;
+    if (uses_fpu && !MSR.FP)
+    {
+      PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+    }
+    else
+    {
+      func(inst);
+    }
+    if (PowerPC::ppcState.Exceptions & EXCEPTION_SYNC)
+    {
+      PowerPC::CheckExceptions();
+      PowerPC::ppcState.downcount -= cycles;
+      PowerPC::ppcState.Exceptions &= ~EXCEPTION_SYNC;
+      return;
+    }
+    PC += 4;
+    if (IsRedispatchInstruction(inst))
+    {
+      break;
+    }
+  } while (PC == NPC);
+  PowerPC::ppcState.downcount -= cycles;
+  PC = NPC;
 }
 
 void JitTieredGeneric::SingleStep()
@@ -312,35 +314,22 @@ void JitTieredGeneric::Run()
   while (*state == CPU::State::Running)
   {
     CoreTiming::Advance();
-    // this heuristic works well for the interpreter-only case,
-    // but probably doesn't for a real on-thread JIT situation
-    // (in the off-thread JIT case this is not necessary at all)
-    if (on_thread_baseline && inst_cache.size() >= (1 << 16))
+    BaselineReport& report = baseline_report.GetWriter();
+    // this heuristic works well for the interpreter-only case
+    if (inst_cache.size() >= (1 << 16))
     {
-      BaselineIteration();
-    }
-    {
-      auto guard = baseline_report.Yield();
-      if (guard.has_value())
-      {
-        CompactInterpreterBlocks();
-        old_bloom = guard.invalidation_bloom;
-      }
+      CompactInterpreterBlocks();
+      old_bloom = report.invalidation_bloom;
+      report.invalidation_bloom = BloomNone();
     }
     do
     {
-      InterpretBlock();
+      RunZeroInstruction();
+      u32 start_addr = PC;
+      u32 key = FindBlock(start_addr);
+      // the generic path only creates interpreter blocks.
+      disp_cache[key].usecount += 1;
+      InterpretBlock(key);
     } while (PowerPC::ppcState.downcount > 0 && *state == CPU::State::Running);
   }
-}
-
-void JitTieredGeneric::BaselineIteration()
-{
-  {
-    // this will switch sides on the Baseline report, causing compaction
-    auto guard = baseline_report.Wait();
-    // in subclasses: invalidate JIT blocks here and do the most urgent of compilation
-    report.invalidation_bloom = BloomNone();
-  }
-  // in subclasses: do less urgent work here
 }

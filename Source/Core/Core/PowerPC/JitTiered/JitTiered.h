@@ -10,6 +10,10 @@
 #include "Common/HandShake.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+/// generic path of the Tiered JIT framework.
+/// implements an interpreter with block caching and compaction of said cache.
+/// JIT-related data and functions are only allowed here if the data
+/// has to be managed by the interpreter. (e. g. dispatch cache, invalidation filter)
 class JitTieredGeneric : public JitBase
 {
 public:
@@ -17,7 +21,7 @@ public:
   virtual void Init() {}
   virtual void ClearCache() final;
   virtual void SingleStep() final;
-  virtual void Run() final;
+  virtual void Run();
   virtual void Shutdown() {}
 
   /// JITs may never reclaim code space while the CPU thread is in JIT code,
@@ -26,7 +30,7 @@ public:
   virtual bool HandleFault(uintptr_t, SContext*) { return false; }
   virtual void InvalidateICache(u32 address, u32 size, bool forced) final;
 
-private:
+protected:
   // for invalidation of JIT blocks
   using Bloom = u64;
   struct DispCacheEntry
@@ -121,9 +125,11 @@ private:
   void CompactInterpreterBlocks();
   void InterpretBlock();
 
-  void BaselineIteration();
-
   u32 FindBlock(u32 address);
+  /// tail-called by FindBlock if it doesn't find a block in the dispatch cache.
+  /// *must* create a block of some kind at the index `key` in the dispatch cache, and return `key`.
+  /// the default implementation just creates a new interpreter block.
+  virtual u32 LookupBlock(u32 key, u32 address);
 
   /// the least-significant two bits of instruction addresses are always zero, so we can use them
   /// for flags. this constant can be used to mask out the address
@@ -140,6 +146,7 @@ private:
 
   /// direct-associative cache (hash table) for blocks, followed by victim cache
   /// (contiguous for iteration convenience)
+  /// JIT threads may only delete entries, not create them (safety invariant)
   DispCacheEntry disp_cache[DISP_CACHE_SIZE]{};
 
   /// second-chance bits for the WS-Clock eviction algorithm
@@ -152,15 +159,8 @@ private:
   /// offset in inst_cache at which new instructions begin
   size_t offset_new = 0;
 
-  /// bloom filter for invalidations that have been reported to Baseline in the last report (after
-  /// the next report we can be sure Baseline has processed the invalidations and don't need to
-  /// consider this filter anymore)
-  Bloom old_bloom;
-
-  /// interface to Baseline JIT thread (not yet implemented, but this is used in interpreter block
-  /// compaction)
+  /// interface to Baseline JIT thread.
+  /// Defined in the generic class because it is used in compaction and contains the invalidation
+  /// bloom filter
   HandShake<BaselineReport> baseline_report;
-  /// whether to run the Baseline JIT on the CPU thread
-  /// (override with false in subclasses, except for debugging)
-  bool on_thread_baseline = true;
 };
