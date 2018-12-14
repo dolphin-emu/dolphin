@@ -18,8 +18,7 @@ public class ControllerMappingHelper
     {
       // The two analog triggers generate analog motion events as well as a keycode.
       // We always prefer to use the analog values, so throw away the button press
-      // Even though the triggers are L/R2, without mappings they generate L/R1 events.
-      return keyCode == KeyEvent.KEYCODE_BUTTON_L1 || keyCode == KeyEvent.KEYCODE_BUTTON_R1;
+      return keyCode == KeyEvent.KEYCODE_BUTTON_L2 || keyCode == KeyEvent.KEYCODE_BUTTON_R2;
     }
     return false;
   }
