@@ -283,6 +283,7 @@ void JitTieredGeneric::InterpretBlock(u32 index)
     dec_inst.inst = inst;
     dec_inst.cycles = cycles;
     dec_inst.uses_fpu = static_cast<u32>(uses_fpu);
+    dec_inst.needs_slowmem = 1;
     disp_cache[index].len += 1;
     NPC = PC + 4;
     if (uses_fpu && !MSR.FP)
@@ -291,6 +292,18 @@ void JitTieredGeneric::InterpretBlock(u32 index)
     }
     else
     {
+      if (inst.OPCD >= 32 && inst.OPCD <= 55 && inst.OPCD != 46 && inst.OPCD != 47)
+      {
+        // instruction is a non-indexed load/store (but not a multi-word store).
+        // we assume that if these are used for MMIO,
+        // they will likely access non-RAM addresses the first time.
+        // it can save us a lot of backpatching pain
+        // to just detect most of them before they are JITed.
+        u32 base = inst.RA == 0 ? 0 : GPR(inst.RA);
+        u32 addr =
+            static_cast<u32>(static_cast<s64>(base) + (static_cast<s64>(1) << 32) + inst.SIMM_16);
+        dec_inst.needs_slowmem = static_cast<u32>(!PowerPC::IsOptimizableRAMAddress(addr));
+      }
       func(inst);
     }
     inst_cache.push_back(dec_inst);

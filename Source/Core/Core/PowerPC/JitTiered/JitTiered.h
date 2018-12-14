@@ -65,10 +65,13 @@ protected:
     InterpreterFunc func;
     UGeckoInstruction inst;
     /// prefix sum of estimated cycles from start of block
-    u32 cycles : 31;
+    u32 cycles : 30;
     // whether this instruction causes FPU Unavailable if MSR.FP=0 (not checked in the interpreter
     // functions themselves)
     u32 uses_fpu : 1;
+    // whether this instruction has been known to access addresses not available to fastmem
+    // currently always set to 1 except for some non-indexed load/stores
+    u32 needs_slowmem : 1;
   };
   static_assert(sizeof(DecodedInstruction) <= 16, "Decoded instruction should fit in 16 bytes");
 
