@@ -76,10 +76,17 @@ private:
       u32 start;
       u32 usecount;
     };
+    struct Invalidation
+    {
+      u32 first;
+      u32 last;
+    };
     /// has sentinel value with address = 0 and start = instructions.size() to make block size
     /// calculation easier
     std::vector<CompactedBlock> blocks;
     std::vector<DecodedInstruction> instructions;
+    std::vector<Invalidation> invalidations;
+    Bloom invalidation_bloom;
   };
 
   template <int bits, int shift_off>
@@ -144,6 +151,11 @@ private:
   std::vector<DecodedInstruction> inst_cache;
   /// offset in inst_cache at which new instructions begin
   size_t offset_new = 0;
+
+  /// bloom filter for invalidations that have been reported to Baseline in the last report (after
+  /// the next report we can be sure Baseline has processed the invalidations and don't need to
+  /// consider this filter anymore)
+  Bloom old_bloom;
 
   /// interface to Baseline JIT thread (not yet implemented, but this is used in interpreter block
   /// compaction)

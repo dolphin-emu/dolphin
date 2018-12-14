@@ -18,6 +18,9 @@ void JitTieredGeneric::ClearCache()
 {
   // invalidate dispatch cache
   std::memset(&disp_cache, 0, sizeof(disp_cache));
+  BaselineReport& report = baseline_report.GetWriter();
+  report.invalidation_bloom = BloomAll();
+  report.invalidations.push_back({0, 0xffffffff});
 }
 
 static bool overlaps(u32 block_start, u32 block_len, u32 first_inval, u32 last_inval)
@@ -34,6 +37,9 @@ void JitTieredGeneric::InvalidateICache(u32 address, u32 size, bool forced)
     return;  // zero-sized invalidations don't have a 'last invalidated byte' so exit early
   }
   u32 end = address + size - 1;
+  BaselineReport& report = baseline_report.GetWriter();
+  report.invalidation_bloom |= BloomRange(address, end);
+  report.invalidations.push_back({address, end});
   for (size_t i = 0; i < DISP_CACHE_SIZE; i += 1)
   {
     if ((disp_cache[i].address & FLAG_MASK) <= 1)
@@ -313,10 +319,13 @@ void JitTieredGeneric::Run()
     {
       BaselineIteration();
     }
-    auto guard = baseline_report.Yield();
-    if (guard.has_value())
     {
-      CompactInterpreterBlocks();
+      auto guard = baseline_report.Yield();
+      if (guard.has_value())
+      {
+        CompactInterpreterBlocks();
+        old_bloom = guard.invalidation_bloom;
+      }
     }
     do
     {
@@ -331,6 +340,7 @@ void JitTieredGeneric::BaselineIteration()
     // this will switch sides on the Baseline report, causing compaction
     auto guard = baseline_report.Wait();
     // in subclasses: invalidate JIT blocks here and do the most urgent of compilation
+    report.invalidation_bloom = BloomNone();
   }
   // in subclasses: do less urgent work here
 }
