@@ -27,8 +27,8 @@ enum class TurntableGroup
   Crossfade
 };
 
-// TODO: Does the turntable ever use encryption?
-class Turntable : public EncryptedExtension
+// The DJ Hero Turntable uses the "1st-party" extension encryption scheme.
+class Turntable : public Extension1stParty
 {
 public:
   struct DataFormat

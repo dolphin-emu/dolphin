@@ -26,7 +26,7 @@ enum class ClassicGroup
   RightStick
 };
 
-class Classic : public EncryptedExtension
+class Classic : public Extension1stParty
 {
 public:
   union ButtonFormat

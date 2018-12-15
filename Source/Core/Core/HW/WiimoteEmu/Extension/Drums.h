@@ -22,8 +22,8 @@ enum class DrumsGroup
   Stick
 };
 
-// TODO: Do the drums ever use encryption?
-class Drums : public EncryptedExtension
+// The Drums use the "1st-party" extension encryption scheme.
+class Drums : public Extension1stParty
 {
 public:
   struct DataFormat

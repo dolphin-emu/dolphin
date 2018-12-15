@@ -907,6 +907,9 @@
     <ClCompile Include="HW\WiimoteEmu\Extension\Turntable.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\UDrawTablet.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\Extension\Extension.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClCompile>
@@ -1619,6 +1622,9 @@
     <ClInclude Include="HW\WiimoteEmu\Extension\Turntable.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\UDrawTablet.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Extension\Extension.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClInclude>
@@ -1628,6 +1634,7 @@
     <ClInclude Include="HW\WiimoteCommon\DataReport.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\ConditionRegister.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
