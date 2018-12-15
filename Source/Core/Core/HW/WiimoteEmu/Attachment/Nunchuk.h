@@ -14,7 +14,7 @@ class Buttons;
 class ControlGroup;
 class Force;
 class Tilt;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
@@ -69,4 +69,4 @@ private:
   std::array<u8, 3> m_shake_soft_step{};
   std::array<u8, 3> m_shake_hard_step{};
 };
-}
+}  // namespace WiimoteEmu

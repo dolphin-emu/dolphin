@@ -23,7 +23,7 @@ enum class ClassicGroup;
 enum class GuitarGroup;
 enum class DrumsGroup;
 enum class TurntableGroup;
-}
+}  // namespace WiimoteEmu
 
 enum
 {
@@ -55,6 +55,9 @@ enum class InitializeMode
   DO_NOT_WAIT_FOR_WIIMOTES,
 };
 
+// The Real Wii Remote sends report every ~5ms (200 Hz).
+constexpr int UPDATE_FREQ = 200;
+
 void Shutdown();
 void Initialize(InitializeMode init_mode);
 void Connect(unsigned int index, bool connect);
@@ -78,7 +81,7 @@ void InterruptChannel(int number, u16 channel_id, const void* data, u32 size);
 bool ButtonPressed(int number);
 void Update(int number, bool connected);
 bool NetPlay_GetButtonPress(int wiimote, bool pressed);
-}
+}  // namespace Wiimote
 
 namespace WiimoteReal
 {
@@ -90,4 +93,4 @@ void Pause();
 void Refresh();
 
 void LoadSettings();
-}
+}  // namespace WiimoteReal
