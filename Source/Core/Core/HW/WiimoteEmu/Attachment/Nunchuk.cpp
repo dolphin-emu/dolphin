@@ -69,6 +69,35 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   m_id = nunchuk_id;
+
+  // Build calibration data:
+  m_calibration = {{
+      // Accel Zero X,Y,Z:
+      ACCEL_ZERO_G,
+      ACCEL_ZERO_G,
+      ACCEL_ZERO_G,
+      // Possibly LSBs of zero values:
+      0x00,
+      // Accel 1G X,Y,Z:
+      ACCEL_ONE_G,
+      ACCEL_ONE_G,
+      ACCEL_ONE_G,
+      // Possibly LSBs of 1G values:
+      0x00,
+      // Stick X max,min,center:
+      STICK_CENTER + STICK_RADIUS,
+      STICK_CENTER - STICK_RADIUS,
+      STICK_CENTER,
+      // Stick Y max,min,center:
+      STICK_CENTER + STICK_RADIUS,
+      STICK_CENTER - STICK_RADIUS,
+      STICK_CENTER,
+      // 2 checksum bytes calculated below:
+      0x00,
+      0x00,
+  }};
+
+  UpdateCalibrationDataChecksum(m_calibration);
 }
 
 void Nunchuk::GetState(u8* const data)
@@ -186,4 +215,4 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(1, "Shift_L");    // Z
 #endif
 }
-}
+}  // namespace WiimoteEmu

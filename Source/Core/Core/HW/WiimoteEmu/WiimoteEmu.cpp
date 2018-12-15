@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstring>
 #include <mutex>
+#include <numeric>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -100,6 +101,15 @@ static const ReportFeatures reporting_mode_features[] = {
     // 0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
     {0, 0, 0, 0, 23},
 };
+
+// Used for extension calibration data:
+// Last two bytes are the sum of the previous bytes plus 0x55 and 0xaa
+void UpdateCalibrationDataChecksum(std::array<u8, 0x10>& data)
+{
+  const u8 ck1 = std::accumulate(std::begin(data), std::end(data) - 2, (u8)0x55);
+  data[0xe] = ck1;
+  data[0xf] = ck1 + 0x55;
+}
 
 void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_group,
                   const double intensity, u8* const shake_step)
@@ -1028,8 +1038,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "Click 1");  // A
   m_buttons->SetControlExpression(1, "Click 3");  // B
 #else
-  m_buttons->SetControlExpression(0, "Click 0");  // A
-  m_buttons->SetControlExpression(1, "Click 1");  // B
+  m_buttons->SetControlExpression(0, "Click 0");            // A
+  m_buttons->SetControlExpression(1, "Click 1");            // B
 #endif
   m_buttons->SetControlExpression(2, "1");  // 1
   m_buttons->SetControlExpression(3, "2");  // 2
