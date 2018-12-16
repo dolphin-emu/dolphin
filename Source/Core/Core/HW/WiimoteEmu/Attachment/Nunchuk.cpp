@@ -154,9 +154,9 @@ void Nunchuk::GetState(u8* const data)
   s16 accel_y = (s16)(4 * (accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
   s16 accel_z = (s16)(4 * (accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-  accel_x = MathUtil::Clamp<s16>(accel_x, 0, 1024);
-  accel_y = MathUtil::Clamp<s16>(accel_y, 0, 1024);
-  accel_z = MathUtil::Clamp<s16>(accel_z, 0, 1024);
+  accel_x = MathUtil::Clamp<s16>(accel_x, 0, 0x3ff);
+  accel_y = MathUtil::Clamp<s16>(accel_y, 0, 0x3ff);
+  accel_z = MathUtil::Clamp<s16>(accel_z, 0, 0x3ff);
 
   nc_data.ax = (accel_x >> 2) & 0xFF;
   nc_data.ay = (accel_y >> 2) & 0xFF;

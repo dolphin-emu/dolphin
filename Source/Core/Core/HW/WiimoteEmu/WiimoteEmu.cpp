@@ -108,12 +108,14 @@ static const ReportFeatures reporting_mode_features[] = {
 };
 
 // Used for extension calibration data:
-// Last two bytes are the sum of the previous bytes plus 0x55 and 0xaa
 void UpdateCalibrationDataChecksum(std::array<u8, 0x10>& data)
 {
-  const u8 ck1 = std::accumulate(std::begin(data), std::end(data) - 2, (u8)0x55);
-  data[0xe] = ck1;
-  data[0xf] = ck1 + 0x55;
+  // Last two bytes are the sum of the previous bytes plus 0x55 and 0xaa (0x55 + 0x55)
+  const u8 checksum1 = std::accumulate(std::begin(data), std::end(data) - 2, u8(0x55));
+  const u8 checksum2 = checksum1 + 0x55;
+
+  data[0xe] = checksum1;
+  data[0xf] = checksum2;
 }
 
 void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_group,
@@ -128,7 +130,7 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   {
     if (shake & (1 << i))
     {
-      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity;
+      (&(accel->x))[i] += std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity;
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
     }
     else
@@ -153,7 +155,8 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
     }
     else if (dynamic_data.executing_frames_left[i] > 0)
     {
-      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * dynamic_data.intensity[i];
+      (&(accel->x))[i] +=
+          std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * dynamic_data.intensity[i];
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
       dynamic_data.executing_frames_left[i]--;
     }
@@ -658,9 +661,9 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   s16 y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
   s16 z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-  x = MathUtil::Clamp<s16>(x, 0, 1024);
-  y = MathUtil::Clamp<s16>(y, 0, 1024);
-  z = MathUtil::Clamp<s16>(z, 0, 1024);
+  x = MathUtil::Clamp<s16>(x, 0, 0x3ff);
+  y = MathUtil::Clamp<s16>(y, 0, 0x3ff);
+  z = MathUtil::Clamp<s16>(z, 0, 0x3ff);
 
   accel.x = (x >> 2) & 0xFF;
   accel.y = (y >> 2) & 0xFF;
