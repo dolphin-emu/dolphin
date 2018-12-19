@@ -25,9 +25,6 @@ public:
   std::string GetName() const override;
 
 protected:
-  // Default radius for attachment analog sticks.
-  static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
-
   std::array<u8, 6> m_id{};
   std::array<u8, 0x10> m_calibration{};
 

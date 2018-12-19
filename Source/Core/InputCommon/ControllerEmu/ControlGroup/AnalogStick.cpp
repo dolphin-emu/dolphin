@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "Common/Common.h"
+#include "Common/MathUtil.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -18,54 +19,158 @@
 
 namespace ControllerEmu
 {
-AnalogStick::AnalogStick(const char* const name_, ControlState default_radius)
-    : AnalogStick(name_, name_, default_radius)
+AnalogStick::AnalogStick(const char* const name_, std::unique_ptr<StickGate>&& stick_gate)
+    : AnalogStick(name_, name_, std::move(stick_gate))
 {
 }
 
 AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
-                         ControlState default_radius)
-    : ControlGroup(name_, ui_name_, GroupType::Stick)
+                         std::unique_ptr<StickGate>&& stick_gate)
+    : ControlGroup(name_, ui_name_, GroupType::Stick), m_stick_gate(std::move(stick_gate))
 {
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
+
   numeric_settings.emplace_back(
-      std::make_unique<NumericSetting>(_trans("Radius"), default_radius, 0, 100));
+      std::make_unique<NumericSetting>(_trans("Input Radius"), 1.0, 0, 100));
+  numeric_settings.emplace_back(
+      std::make_unique<NumericSetting>(_trans("Input Shape"), 0.0, 0, 50));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-AnalogStick::StateData AnalogStick::GetState()
+AnalogStick::StateData AnalogStick::GetState(bool adjusted)
 {
   ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
   ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-  const ControlState radius = numeric_settings[SETTING_RADIUS]->GetValue();
-  const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
-  const ControlState m = controls[4]->control_ref->State();
+  // Return raw values. (used in UI)
+  if (!adjusted)
+    return {x, y};
 
-  const ControlState ang = atan2(y, x);
+  // TODO: make the AtAngle functions work with negative angles:
+  const ControlState ang = atan2(y, x) + MathUtil::TAU;
   const ControlState ang_sin = sin(ang);
   const ControlState ang_cos = cos(ang);
 
-  ControlState dist = sqrt(x * x + y * y);
+  const ControlState gate_max_dist = GetGateRadiusAtAngle(ang);
+  const ControlState input_max_dist = GetInputRadiusAtAngle(ang);
 
-  // dead zone code
-  dist = std::max(0.0, dist - deadzone);
-  dist /= (1 - deadzone);
+  // If input radius is zero we apply no scaling.
+  // This is useful when mapping native controllers without knowing intimate radius details.
+  const ControlState max_dist = input_max_dist ? input_max_dist : gate_max_dist;
 
-  // radius
-  dist *= radius;
+  ControlState dist = std::sqrt(x * x + y * y) / max_dist;
 
-  // The modifier halves the distance by 50%, which is useful
-  // for keyboard controls.
-  if (m)
+  // If the modifier is pressed, scale the distance by the modifier's value.
+  // This is affected by the modifier's "range" setting which defaults to 50%.
+  const ControlState modifier = controls[4]->control_ref->State();
+  if (modifier)
+  {
+    // TODO: Modifier's range setting gets reset to 100% when the clear button is clicked.
+    // This causes the modifier to not behave how a user might suspect.
+    // Retaining the old scale-by-50% behavior until range is fixed to clear to 50%.
     dist *= 0.5;
+    // dist *= modifier;
+  }
+
+  // Apply deadzone as a percentage of the user-defined radius/shape:
+  const ControlState deadzone = GetDeadzoneRadiusAtAngle(ang);
+  dist = std::max(0.0, dist - deadzone) / (1.0 - deadzone);
+
+  // Scale to the gate shape/radius:
+  dist = dist *= gate_max_dist;
 
   y = std::max(-1.0, std::min(1.0, ang_sin * dist));
   x = std::max(-1.0, std::min(1.0, ang_cos * dist));
 
   return {x, y};
 }
+
+ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const
+{
+  return m_stick_gate->GetRadiusAtAngle(ang);
+}
+
+ControlState AnalogStick::GetDeadzoneRadiusAtAngle(double ang) const
+{
+  return CalculateInputShapeRadiusAtAngle(ang) * numeric_settings[SETTING_DEADZONE]->GetValue();
+}
+
+ControlState AnalogStick::GetInputRadiusAtAngle(double ang) const
+{
+  return CalculateInputShapeRadiusAtAngle(ang) * numeric_settings[SETTING_INPUT_RADIUS]->GetValue();
+}
+
+ControlState AnalogStick::CalculateInputShapeRadiusAtAngle(double ang) const
+{
+  const auto shape = numeric_settings[SETTING_INPUT_SHAPE]->GetValue() * 4.0;
+
+  if (shape < 1.0)
+  {
+    // Between 0 and 25 return a shape between octagon and circle
+    const auto amt = shape;
+    return OctagonStickGate::ComputeRadiusAtAngle(ang) * (1 - amt) + amt;
+  }
+  else
+  {
+    // Between 25 and 50 return a shape between circle and square
+    const auto amt = shape - 1.0;
+    return (1 - amt) + SquareStickGate::ComputeRadiusAtAngle(ang) * amt;
+  }
+}
+
+OctagonStickGate::OctagonStickGate(ControlState radius) : m_radius(radius)
+{
+}
+
+ControlState OctagonStickGate::GetRadiusAtAngle(double ang) const
+{
+  return ComputeRadiusAtAngle(ang) * m_radius;
+}
+
+ControlState OctagonStickGate::ComputeRadiusAtAngle(double ang)
+{
+  // Ratio of octagon circumcircle to incircle:
+  const double incircle_radius = 0.923879532511287;
+  const double section_ang = MathUtil::TAU / 8;
+  return incircle_radius / std::cos(std::fmod(ang, section_ang) - section_ang / 2);
+}
+
+RoundStickGate::RoundStickGate(ControlState radius) : m_radius(radius)
+{
+}
+
+ControlState RoundStickGate::GetRadiusAtAngle(double) const
+{
+  return m_radius;
+}
+
+SquareStickGate::SquareStickGate(ControlState half_width) : m_half_width(half_width)
+{
+}
+
+ControlState SquareStickGate::GetRadiusAtAngle(double ang) const
+{
+  return ComputeRadiusAtAngle(ang) * m_half_width;
+}
+
+ControlState SquareStickGate::ComputeRadiusAtAngle(double ang)
+{
+  const double section_ang = MathUtil::TAU / 4;
+  return 1 / std::cos(std::fmod(ang + section_ang / 2, section_ang) - section_ang / 2);
+}
+
+OctagonAnalogStick::OctagonAnalogStick(const char* name, ControlState gate_radius)
+    : OctagonAnalogStick(name, name, gate_radius)
+{
+}
+
+OctagonAnalogStick::OctagonAnalogStick(const char* name, const char* ui_name,
+                                       ControlState gate_radius)
+    : AnalogStick(name, ui_name, std::make_unique<ControllerEmu::OctagonStickGate>(gate_radius))
+{
+}
+
 }  // namespace ControllerEmu

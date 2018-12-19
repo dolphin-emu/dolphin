@@ -48,6 +48,7 @@ public:
   {
     STICK_CENTER = 0x80,
     STICK_RADIUS = 0x7F,
+    STICK_GATE_RADIUS = 0x52,
   };
 
   void LoadDefaults(const ControllerInterface& ciface) override;

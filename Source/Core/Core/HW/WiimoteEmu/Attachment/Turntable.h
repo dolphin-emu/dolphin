@@ -45,6 +45,12 @@ public:
     BUTTON_PLUS = 0x04,
   };
 
+  static const u8 STICK_CENTER = 0x20;
+  static const u8 STICK_RADIUS = 0x1f;
+
+  // TODO: Test real hardware. Is this accurate?
+  static const u8 STICK_GATE_RADIUS = 0x16;
+
 private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_stick;
