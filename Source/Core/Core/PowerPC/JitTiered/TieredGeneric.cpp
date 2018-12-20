@@ -174,7 +174,7 @@ static bool IsRedispatchInstruction(UGeckoInstruction inst)
 
 void JitTieredGeneric::RunZeroInstruction()
 {
-  if (PC == 0)
+  while (PC == 0)
   {
     // zero is a null value in the cache tags, so handle it specially in case code jumps there
     u32 inst = PowerPC::Read_Opcode(0);
@@ -185,6 +185,10 @@ void JitTieredGeneric::RunZeroInstruction()
     }
     PPCTables::GetInterpreterOp(UGeckoInstruction(inst))(inst);
     PowerPC::ppcState.downcount -= PPCTables::GetOpInfo(inst)->numCycles;
+    if (PowerPC::ppcState.downcount < 0)
+    {
+      CoreTiming::Advance();
+    }
     if (PowerPC::ppcState.Exceptions)
     {
       PowerPC::CheckExceptions();
@@ -274,7 +278,11 @@ void JitTieredGeneric::InterpretBlock(u32 index)
     cycles += PPCTables::GetOpInfo(inst)->numCycles;
     auto func = PPCTables::GetInterpreterOp(inst);
     bool uses_fpu = PPCTables::UsesFPU(inst);
-    inst_cache.push_back({func, inst, cycles, static_cast<u32>(uses_fpu)});
+    DecodedInstruction dec_inst;
+    dec_inst.func = func;
+    dec_inst.inst = inst;
+    dec_inst.cycles = cycles;
+    dec_inst.uses_fpu = static_cast<u32>(uses_fpu);
     disp_cache[index].len += 1;
     NPC = PC + 4;
     if (uses_fpu && !MSR.FP)
@@ -285,6 +293,7 @@ void JitTieredGeneric::InterpretBlock(u32 index)
     {
       func(inst);
     }
+    inst_cache.push_back(dec_inst);
     if (PowerPC::ppcState.Exceptions & EXCEPTION_SYNC)
     {
       PowerPC::CheckExceptions();
@@ -305,7 +314,13 @@ void JitTieredGeneric::InterpretBlock(u32 index)
 void JitTieredGeneric::SingleStep()
 {
   CoreTiming::Advance();
-  InterpretBlock();
+  RunZeroInstruction();
+  u32 key = FindBlock(PC);
+  if ((disp_cache[key].address & FLAG_MASK) <= 1)
+  {
+    disp_cache[key].usecount += 1;
+  }
+  InterpretBlock(key);
 }
 
 void JitTieredGeneric::Run()
@@ -319,7 +334,6 @@ void JitTieredGeneric::Run()
     if (inst_cache.size() >= (1 << 16))
     {
       CompactInterpreterBlocks();
-      old_bloom = report.invalidation_bloom;
       report.invalidation_bloom = BloomNone();
     }
     do

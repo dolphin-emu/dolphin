@@ -123,7 +123,8 @@ protected:
   }
 
   void CompactInterpreterBlocks();
-  void InterpretBlock();
+  void InterpretBlock(u32);
+  void RunZeroInstruction();
 
   u32 FindBlock(u32 address);
   /// tail-called by FindBlock if it doesn't find a block in the dispatch cache.
