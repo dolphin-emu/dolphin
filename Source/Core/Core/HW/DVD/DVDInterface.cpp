@@ -1039,7 +1039,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", command_1 ? "eject" : "",
              command_2 ? "kill!" : "");
 
-    bool auto_disc_change = Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput();
+    bool auto_disc_change = Config::Get(Config::MAIN_AUTO_DISC_CHANGE) &&
+                            !Movie::IsPlayingInput() && DVDThread::IsInsertedDiscRunning();
     if (auto_disc_change)
       auto_disc_change = AutoChangeDisc();
     if (auto_disc_change)
