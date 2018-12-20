@@ -122,7 +122,7 @@ protected:
     return res;
   }
 
-  void CompactInterpreterBlocks();
+  void CompactInterpreterBlocks(bool keep_old_blocks);
   void InterpretBlock(u32);
   void RunZeroInstruction();
 

@@ -53,7 +53,7 @@ void JitTieredGeneric::InvalidateICache(u32 address, u32 size, bool forced)
   }
 }
 
-void JitTieredGeneric::CompactInterpreterBlocks()
+void JitTieredGeneric::CompactInterpreterBlocks(bool keep_old_blocks = false)
 {
   auto report = baseline_report.GetWriter();
   report.instructions.clear();
@@ -64,7 +64,7 @@ void JitTieredGeneric::CompactInterpreterBlocks()
     if ((address & FLAG_MASK) == 0 && address)
     {
       u32 offset = disp_cache[i].offset;
-      if (offset >= offset_new)
+      if (keep_old_blocks || offset >= offset_new)
       {
         u32 start = static_cast<u32>(report.instructions.size());
         report.blocks.push_back({address, start, disp_cache[i].usecount});
@@ -326,15 +326,17 @@ void JitTieredGeneric::SingleStep()
 void JitTieredGeneric::Run()
 {
   const CPU::State* state = CPU::GetStatePtr();
+  size_t last_cache_size = 0;
   while (*state == CPU::State::Running)
   {
     CoreTiming::Advance();
     BaselineReport& report = baseline_report.GetWriter();
     // this heuristic works well for the interpreter-only case
-    if (inst_cache.size() >= (1 << 16))
+    size_t num_instructions = inst_cache.size();
+    if (num_instructions >= (1 << 20) && num_instructions >= 2 * last_cache_size)
     {
-      CompactInterpreterBlocks();
-      report.invalidation_bloom = BloomNone();
+      CompactInterpreterBlocks(true);
+      last_cache_size = inst_cache.size();
     }
     do
     {
