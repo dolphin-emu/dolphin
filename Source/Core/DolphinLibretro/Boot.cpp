@@ -11,6 +11,7 @@
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinLibretro/Input.h"
@@ -27,6 +28,7 @@
 namespace Libretro
 {
 extern retro_environment_t environ_cb;
+static void InitDiskControlInterface();
 }
 
 bool retro_load_game(const struct retro_game_info* game)
@@ -40,6 +42,7 @@ bool retro_load_game(const struct retro_game_info* game)
   Libretro::environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir);
   Libretro::environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir);
   Libretro::environ_cb(RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY, &core_assets_dir);
+  Libretro::InitDiskControlInterface();
 
   if (save_dir && *save_dir)
     user_dir = std::string(save_dir) + DIR_SEP "User";
@@ -143,3 +146,82 @@ void retro_unload_game(void)
   Libretro::Log::Shutdown();
   UICommon::Shutdown();
 }
+
+namespace Libretro
+{
+
+// Disk swapping
+static struct retro_disk_control_callback retro_disk_control_cb;
+static unsigned disk_index = 0;
+static std::vector<std::string> disk_paths;
+
+static bool retro_set_eject_state(bool ejected)
+{
+  return true;
+}
+
+static bool retro_get_eject_state()
+{
+  return false;
+}
+
+static unsigned retro_get_image_index()
+{
+  return disk_index;
+}
+
+static bool retro_set_image_index(unsigned index)
+{
+  disk_index = index;
+  if (disk_index >= disk_paths.size())
+  {
+    // No disk in drive
+    return true;
+  }
+  Core::RunAsCPUThread([] { DVDInterface::ChangeDisc(disk_paths[disk_index]); });
+
+  return true;
+}
+
+static unsigned retro_get_num_images()
+{
+  return disk_paths.size();
+}
+
+static bool retro_add_image_index()
+{
+  disk_paths.push_back("");
+
+  return true;
+}
+
+static bool retro_replace_image_index(unsigned index, const struct retro_game_info *info)
+{
+  if (info == nullptr)
+  {
+    if (index < disk_paths.size())
+    {
+      disk_paths.erase(disk_paths.begin() + index);
+      if (disk_index >= index && disk_index > 0)
+        disk_index--;
+    }
+  }
+  else
+    disk_paths[index] = info->path;
+
+  return true;
+}
+
+static void InitDiskControlInterface()
+{
+  retro_disk_control_cb.set_eject_state = retro_set_eject_state;
+  retro_disk_control_cb.get_eject_state = retro_get_eject_state;
+  retro_disk_control_cb.set_image_index = retro_set_image_index;
+  retro_disk_control_cb.get_image_index = retro_get_image_index;
+  retro_disk_control_cb.get_num_images  = retro_get_num_images;
+  retro_disk_control_cb.add_image_index = retro_add_image_index;
+  retro_disk_control_cb.replace_image_index = retro_replace_image_index;
+
+  environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE, &retro_disk_control_cb);
+}
+}   // namespace Libretro
