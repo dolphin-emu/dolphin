@@ -20,4 +20,5 @@ protected:
   const Gen::X64Reg* GetAllocationOrder(size_t* count) const override;
   BitSet32 GetRegUtilization() const override;
   BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const override;
+  BitSet32 GetCallerSaveXRegs() const override;
 };

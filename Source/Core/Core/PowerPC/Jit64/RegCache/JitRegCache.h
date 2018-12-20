@@ -170,6 +170,7 @@ public:
 
   RCForkGuard Fork();
   void Flush(BitSet32 pregs = BitSet32::AllTrue(32));
+  void FlushCallerSave();
   void Revert();
   void Commit();
 
@@ -191,6 +192,7 @@ protected:
 
   virtual BitSet32 GetRegUtilization() const = 0;
   virtual BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const = 0;
+  virtual BitSet32 GetCallerSaveXRegs() const = 0;
 
   void FlushX(Gen::X64Reg reg);
   void DiscardRegContentsIfCached(preg_t preg);
