@@ -933,8 +933,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       fpr.Commit();
 
       // If we have a register that will never be used again, flush it.
-      gpr.Flush(~op.gprInUse);
-      fpr.Flush(~op.fprInUse);
+      gpr.Flush(~op.gprInUse & op.gprWillBeSet);
+      fpr.Flush(~op.fprInUse & op.fprWillBeSet);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
@@ -1007,8 +1007,12 @@ void Jit64::IntializeSpeculativeConstants()
   // Insert a check at the start of the block to verify that the value is actually constant.
   // This can save a lot of backpatching and optimize gather pipe writes in more places.
   const u8* target = nullptr;
-  for (auto i : code_block.m_gpr_inputs)
+  for (auto i : code_block.m_inputs)
   {
+    // Only check GPRs
+    if (i > 32)
+      continue;
+
     u32 compileTimeValue = PowerPC::ppcState.gpr[i];
     if (PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue) ||
         PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
