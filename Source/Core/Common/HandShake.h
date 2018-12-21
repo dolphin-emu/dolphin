@@ -14,12 +14,7 @@ struct HandShake
 public:
   class ReaderGuard
   {
-  private:
-    HandShake& parent;
-    std::unique_lock<std::mutex> guard;
-
   public:
-    // a concurrency guru should probably check whether these memory orders are correct
     ReaderGuard(HandShake& par)
         : parent(par), guard(par.sides[par.select.load(std::memory_order_acquire)].mutex)
     {
@@ -31,20 +26,24 @@ public:
                           std::memory_order_release);
     }
     Inner& GetRef() { return parent.sides[parent.select.load(std::memory_order_relaxed)].inner; }
+
+  private:
+    HandShake& parent;
+    std::unique_lock<std::mutex> guard;
   };
   // dropping a value of this type will release the other side to the reader
   class YieldGuard
   {
     friend class HandShake<Inner>;
 
-  private:
-    HandShake& parent;
-    std::unique_lock<std::mutex> guard;
-
   public:
     YieldGuard(HandShake& par) : parent(par), guard(parent.sides[parent.side].mutex) {}
     /// returns the side that will be freed after dropping this guard
     Inner& GetRef() { return parent.sides[1 ^ parent.side].inner; }
+
+  private:
+    HandShake& parent;
+    std::unique_lock<std::mutex> guard;
   };
 
   // reader interface
