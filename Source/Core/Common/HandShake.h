@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <mutex>
 #include <optional>
@@ -69,15 +70,17 @@ private:
   // sharing, so use the highest value in use on the given architecture
   static constexpr int CACHELINE_SIZE = 128;
 
-  /// if we could detect whether a mutex is being waited on (theoretically possible in most mutex
-  /// implementations) we wouldn't need this
-  std::atomic<int> select = 0;
-  struct
+  struct Side
   {
     // separate into different cache lines to avoid false sharing
     alignas(CACHELINE_SIZE) std::mutex mutex;
     Inner inner;
-  } sides[2];
+  };
+
+  /// if we could detect whether a mutex is being waited on (theoretically possible in most mutex
+  /// implementations) we wouldn't need this
+  std::atomic<int> select = 0;
+  std::array<Side, 2> sides;
   alignas(CACHELINE_SIZE) int side;
   std::unique_lock<std::mutex> writerGuard;
 };

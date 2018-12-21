@@ -17,7 +17,7 @@ static constexpr u32 EXCEPTION_SYNC =
 void JitTieredGeneric::ClearCache()
 {
   // invalidate dispatch cache
-  std::memset(&disp_cache, 0, sizeof(disp_cache));
+  disp_cache = {};
   BaselineReport& report = baseline_report.GetWriter();
   report.invalidation_bloom = BloomAll();
   report.invalidations.push_back({0, 0xffffffff});

@@ -151,12 +151,12 @@ protected:
   /// direct-associative cache (hash table) for blocks, followed by victim cache
   /// (contiguous for iteration convenience)
   /// JIT threads may only delete entries, not create them (safety invariant)
-  DispCacheEntry disp_cache[DISP_CACHE_SIZE]{};
+  std::array<DispCacheEntry, DISP_CACHE_SIZE> disp_cache{};
 
   /// second-chance bits for the WS-Clock eviction algorithm
   std::bitset<VICTIM_SETS * VICTIM_WAYS> victim_second_chance;
   /// clocks for the WS-Clock eviction algorithm
-  u8 victim_clocks[VICTIM_SETS];
+  std::array<u8, VICTIM_SETS> victim_clocks;
 
   /// contents of interpreter blocks
   std::vector<DecodedInstruction> inst_cache;
