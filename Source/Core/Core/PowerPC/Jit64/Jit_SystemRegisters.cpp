@@ -553,14 +553,14 @@ void Jit64::crXXX(UGeckoInstruction inst)
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
   // Special case: crclr
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
+  if (inst.CRBA == inst.CRBB && inst.SUBOP10 == 193)
   {
     ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
     return;
   }
 
   // Special case: crset
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
+  if (inst.CRBA == inst.CRBB && inst.SUBOP10 == 289)
   {
     SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
     return;
