@@ -17,7 +17,7 @@ void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBl
   u8* location = source.exitPtrs;
   const u8* address = dest ? dest->checkedEntry : m_jit.GetAsmRoutines()->dispatcher;
   Gen::XEmitter emit(location);
-  if (*location == 0xE8)
+  if (source.call)
   {
     emit.CALL(address);
   }

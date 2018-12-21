@@ -5,6 +5,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include <map>
+#include <optional>
 #include <string>
 
 // for the PROFILER stuff
@@ -437,23 +438,44 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
 void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
 {
+  std::optional<FixupBranch> after_fixup;
+
   // If nobody has taken care of this yet (this can be removed when all branches are done)
   JitBlock* b = js.curBlock;
   JitBlock::LinkData linkData;
   linkData.exitAddress = destination;
   linkData.linkStatus = false;
+  linkData.call = bl;
 
   MOV(32, PPCSTATE(pc), Imm32(destination));
-  linkData.exitPtrs = GetWritableCodePtr();
+
+  // Perform downcount flag check, followed by the requested exit
   if (bl)
+  {
+    FixupBranch do_timing = J_CC(CC_NG, true);
+    SwitchToFarCode();
+    SetJumpTarget(do_timing);
+    CALL(asm_routines.do_timing);
+    after_fixup = J(true);
+    SwitchToNearCode();
+
+    linkData.exitPtrs = GetWritableCodePtr();
     CALL(asm_routines.dispatcher);
+  }
   else
+  {
+    J_CC(CC_NG, asm_routines.do_timing);
+
+    linkData.exitPtrs = GetWritableCodePtr();
     JMP(asm_routines.dispatcher, true);
+  }
 
   b->linkData.push_back(linkData);
 
   if (bl)
   {
+    if (after_fixup)
+      SetJumpTarget(*after_fixup);
     POP(RSCRATCH);
     JustWriteExit(after, false, 0);
   }
@@ -660,16 +682,7 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   u8* const start = AlignCode4();
   b->checkedEntry = start;
-
-  // Downcount flag check. The last block decremented downcounter, and the flag should still be
-  // available.
-  FixupBranch skip = J_CC(CC_G);
-  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-  JMP(asm_routines.do_timing, true);  // downcount hit zero - go do_timing.
-  SetJumpTarget(skip);
-
-  u8* const normal_entry = GetWritableCodePtr();
-  b->normalEntry = normal_entry;
+  b->normalEntry = start;
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (ImHereDebug)
@@ -955,7 +968,7 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
 #endif
 
-  return normal_entry;
+  return start;
 }
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
