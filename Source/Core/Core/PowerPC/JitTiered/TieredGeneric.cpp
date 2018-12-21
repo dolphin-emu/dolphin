@@ -250,7 +250,7 @@ void JitTieredGeneric::InterpretBlock(u32 index)
   if (offset + len != inst_cache.size())
   {
     // we can only append to the last block, so copy this one to the end
-    disp_cache[index].offset = inst_cache.size();
+    disp_cache[index].offset = static_cast<u32>(inst_cache.size());
     for (u32 pos = offset; pos < offset + len; pos += 1)
     {
       inst_cache.push_back(inst_cache[pos]);
