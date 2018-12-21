@@ -54,8 +54,8 @@ class JitBaseBlockCache;
 
 class JitCommonBase : public JitBase
 {
-  friend void JitInterface::CompileExceptionCheck(ExceptionType type);
-  friend void JitInterface::SetProfilingState(ProfilingState state);
+  friend void JitInterface::CompileExceptionCheck(JitInterface::ExceptionType type);
+  friend void JitInterface::SetProfilingState(JitInterface::ProfilingState state);
   friend class JitBaseBlockCache;
 
 protected:
