@@ -552,23 +552,40 @@ void Jit64::crXXX(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
-  // Special case: crclr
-  if (inst.CRBA == inst.CRBB && inst.SUBOP10 == 193)
-  {
-    ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
-    return;
-  }
+  // TODO(merry): Futher optimizations can be performed here. For example,
+  // instead of extracting each CR field bit then setting it, the operation
+  // could be performed on the internal format directly instead and the
+  // relevant bit result can be masked out.
 
-  // Special case: crset
-  if (inst.CRBA == inst.CRBB && inst.SUBOP10 == 289)
+  if (inst.CRBA == inst.CRBB)
   {
-    SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
-    return;
-  }
+    switch (inst.SUBOP10)
+    {
+    // crclr
+    case 129:  // crandc: A && ~B => 0
+    case 193:  // crxor:  A ^ B   => 0
+      ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+      return;
 
-  // TODO(delroth): Potential optimizations could be applied here. For
-  // instance, if the two CR bits being loaded are the same, two loads are
-  // not required.
+    // crset
+    case 289:  // creqv: ~(A ^ B) => 1
+    case 417:  // crorc: A || ~B  => 1
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+      return;
+
+    case 257:  // crand: A && B => A
+    case 449:  // cror:  A || B => A
+      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), RSCRATCH, false);
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), RSCRATCH);
+      return;
+
+    case 33:   // crnor:  ~(A || B) => ~A
+    case 225:  // crnand: ~(A && B) => ~A
+      GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), RSCRATCH, true);
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), RSCRATCH);
+      return;
+    }
+  }
 
   // creqv or crnand or crnor
   bool negateA = inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
