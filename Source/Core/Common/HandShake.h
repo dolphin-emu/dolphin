@@ -10,7 +10,7 @@
 #include <optional>
 
 template <typename Inner>
-struct HandShake
+class HandShake
 {
 public:
   class ReaderGuard
