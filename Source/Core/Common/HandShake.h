@@ -4,45 +4,56 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include <optional>
 
+/// A lightweight synchronization primitive for two threads to hand off 'reports'
+/// where one may block (the 'reader', though both sides have read-write access to their side)
+/// while the other may not (the 'writer'), with a RAII-style interface
 template <typename Inner>
 class HandShake
 {
 public:
+  /// dropping this unlocks the mutex, signalling to the writer (when it next checks) that new data
+  /// is desired
   class ReaderGuard
   {
   public:
-    ReaderGuard(HandShake& par)
-        : parent(par), guard(par.sides[par.select.load(std::memory_order_acquire)].mutex)
+    /// waits for new data to be available
+    ReaderGuard(HandShake& par) : parent(par), guard(par.mutex)
     {
+      par.condvar.wait(guard, [par] { return !par.has_read; });
     }
-    // announces a switch
-    ~ReaderGuard()
-    {
-      parent.select.store(parent.select.load(std::memory_order_acquire) ^ 1,
-                          std::memory_order_release);
-    }
-    Inner& GetRef() { return parent.sides[parent.select.load(std::memory_order_relaxed)].inner; }
+    /// announces a switch
+    ~ReaderGuard() { parent.has_read = true; }
+    Inner& GetRef() { return parent.reader_side; }
 
   private:
     HandShake& parent;
     std::unique_lock<std::mutex> guard;
   };
-  // dropping a value of this type will release the other side to the reader
+  /// dropping a value of this type will wake up the reader
   class YieldGuard
   {
     friend class HandShake<Inner>;
 
   public:
-    YieldGuard(HandShake& par) : parent(par), guard(parent.sides[parent.side].mutex) {}
-    /// returns the side that will be freed after dropping this guard
-    Inner& GetRef() { return parent.sides[1 ^ parent.side].inner; }
+    ~YieldGuard()
+    {
+      has_read = false;
+      guard.unlock();
+      parent.condvar.notify_one();
+    }
+    /// returns the writer side
+    Inner& GetRef() { return parent.writer_side; }
 
   private:
+    YieldGuard(std::unique_lock<std::mutex>&& gard, HandShake<Inner>& par)
+        : parent(par), guard(gard)
+    {
+    }
+
     HandShake& parent;
     std::unique_lock<std::mutex> guard;
   };
@@ -52,35 +63,32 @@ public:
   ReaderGuard Wait() { return ReaderGuard(*this); }
 
   // writer interface
-  Inner& GetWriter() { return sides[side].inner; }
+  Inner& GetWriter() { return writer_side; }
   std::optional<YieldGuard> Yield()
   {
-    if (select.load(std::memory_order_acquire) != side)
-    {  // reader is still on the other side
+    std::unique_lock guard(mutex, std::try_to_lock);
+    if (guard.owns_lock() && has_read)
+    {
+      return YieldGuard(guard, *this);
+    }
+    else
+    {
+      // reader is either working on the last report or hasn't locked it yet
       return {};
     }
-    side ^= 1;
-    auto res = std::make_optional<YieldGuard>(*this);
-    writerGuard.swap(res->guard);
-    return res;
   }
 
 private:
-  // depends on microarchitecture; usual values are 32, 64 or 128; this is used to avoid false
-  // sharing, so use the highest value in use on the given architecture
-  static constexpr int CACHELINE_SIZE = 128;
+  /// FIXME: this should be replaced with std::hardware_destructive_interference_size,
+  /// but that is C++17 and not available on popular compilers like GCC 7.3
+  static constexpr size_t CACHELINE_SIZE = 128;
 
-  struct Side
-  {
-    // separate into different cache lines to avoid false sharing
-    alignas(CACHELINE_SIZE) std::mutex mutex;
-    Inner inner;
-  };
-
-  /// if we could detect whether a mutex is being waited on (theoretically possible in most mutex
-  /// implementations) we wouldn't need this
-  std::atomic<int> select = 0;
-  std::array<Side, 2> sides;
-  alignas(CACHELINE_SIZE) int side;
-  std::unique_lock<std::mutex> writerGuard;
+  Inner writer_side;
+  alignas(CACHELINE_SIZE) Inner reader_side;
+  /// protects reader_side and has_read
+  std::mutex mutex;
+  /// used to signal that new data is available (implies has_read == false)
+  std::condition_variable condvar;
+  /// reader will wait on the condition variable above until this is reset by the writer
+  bool has_read = true;
 };
