@@ -32,6 +32,9 @@
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp">
       <Filter>ControllerEmu</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerEmu\StickGate.cpp">
+      <Filter>ControllerEmu</Filter>
+    </ClCompile>
     <ClCompile Include="ControllerEmu\Control\Control.cpp">
       <Filter>ControllerEmu\Control</Filter>
     </ClCompile>
@@ -117,6 +120,9 @@
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h">
+      <Filter>ControllerEmu</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\StickGate.h">
       <Filter>ControllerEmu</Filter>
     </ClInclude>
     <ClInclude Include="ControllerEmu\Control\Control.h">

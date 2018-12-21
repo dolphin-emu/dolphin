@@ -4,9 +4,7 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
-#include <algorithm>
 #include <cmath>
-#include <memory>
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -33,8 +31,10 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
 
+  // Set default input radius to that of the gate radius (no resizing)
   numeric_settings.emplace_back(
-      std::make_unique<NumericSetting>(_trans("Input Radius"), 1.0, 0, 100));
+      std::make_unique<NumericSetting>(_trans("Input Radius"), GetGateRadiusAtAngle(0.0), 0, 100));
+  // Set default input shape to an octagon (no reshaping)
   numeric_settings.emplace_back(
       std::make_unique<NumericSetting>(_trans("Input Shape"), 0.0, 0, 50));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
@@ -50,9 +50,7 @@ AnalogStick::StateData AnalogStick::GetState(bool adjusted)
     return {x, y};
 
   // TODO: make the AtAngle functions work with negative angles:
-  const ControlState ang = atan2(y, x) + MathUtil::TAU;
-  const ControlState ang_sin = sin(ang);
-  const ControlState ang_cos = cos(ang);
+  const ControlState ang = std::atan2(y, x) + MathUtil::TAU;
 
   const ControlState gate_max_dist = GetGateRadiusAtAngle(ang);
   const ControlState input_max_dist = GetInputRadiusAtAngle(ang);
@@ -82,9 +80,8 @@ AnalogStick::StateData AnalogStick::GetState(bool adjusted)
   // Scale to the gate shape/radius:
   dist = dist *= gate_max_dist;
 
-  y = std::max(-1.0, std::min(1.0, ang_sin * dist));
-  x = std::max(-1.0, std::min(1.0, ang_cos * dist));
-
+  x = MathUtil::Clamp(std::cos(ang) * dist, -1.0, 1.0);
+  y = MathUtil::Clamp(std::sin(ang) * dist, -1.0, 1.0);
   return {x, y};
 }
 
@@ -111,55 +108,14 @@ ControlState AnalogStick::CalculateInputShapeRadiusAtAngle(double ang) const
   {
     // Between 0 and 25 return a shape between octagon and circle
     const auto amt = shape;
-    return OctagonStickGate::ComputeRadiusAtAngle(ang) * (1 - amt) + amt;
+    return OctagonStickGate(1).GetRadiusAtAngle(ang) * (1 - amt) + amt;
   }
   else
   {
     // Between 25 and 50 return a shape between circle and square
     const auto amt = shape - 1.0;
-    return (1 - amt) + SquareStickGate::ComputeRadiusAtAngle(ang) * amt;
+    return (1 - amt) + SquareStickGate(1).GetRadiusAtAngle(ang) * amt;
   }
-}
-
-OctagonStickGate::OctagonStickGate(ControlState radius) : m_radius(radius)
-{
-}
-
-ControlState OctagonStickGate::GetRadiusAtAngle(double ang) const
-{
-  return ComputeRadiusAtAngle(ang) * m_radius;
-}
-
-ControlState OctagonStickGate::ComputeRadiusAtAngle(double ang)
-{
-  // Ratio of octagon circumcircle to incircle:
-  const double incircle_radius = 0.923879532511287;
-  const double section_ang = MathUtil::TAU / 8;
-  return incircle_radius / std::cos(std::fmod(ang, section_ang) - section_ang / 2);
-}
-
-RoundStickGate::RoundStickGate(ControlState radius) : m_radius(radius)
-{
-}
-
-ControlState RoundStickGate::GetRadiusAtAngle(double) const
-{
-  return m_radius;
-}
-
-SquareStickGate::SquareStickGate(ControlState half_width) : m_half_width(half_width)
-{
-}
-
-ControlState SquareStickGate::GetRadiusAtAngle(double ang) const
-{
-  return ComputeRadiusAtAngle(ang) * m_half_width;
-}
-
-ControlState SquareStickGate::ComputeRadiusAtAngle(double ang)
-{
-  const double section_ang = MathUtil::TAU / 4;
-  return 1 / std::cos(std::fmod(ang + section_ang / 2, section_ang) - section_ang / 2);
 }
 
 OctagonAnalogStick::OctagonAnalogStick(const char* name, ControlState gate_radius)

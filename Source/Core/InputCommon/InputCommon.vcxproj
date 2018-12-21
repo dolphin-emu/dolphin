@@ -37,6 +37,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
+    <ClCompile Include="ControllerEmu\StickGate.cpp" />
     <ClCompile Include="ControllerEmu\Control\Control.cpp" />
     <ClCompile Include="ControllerEmu\Control\Input.cpp" />
     <ClCompile Include="ControllerEmu\Control\Output.cpp" />
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
+    <ClInclude Include="ControllerEmu\StickGate.h" />
     <ClInclude Include="ControllerEmu\Control\Control.h" />
     <ClInclude Include="ControllerEmu\Control\Input.h" />
     <ClInclude Include="ControllerEmu\Control\Output.h" />

@@ -5,54 +5,11 @@
 #pragma once
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
 {
-// An abstract class representing the plastic shell that limits an analog stick's movement.
-class StickGate
-{
-public:
-  // Angle is in radians and should be non-negative
-  virtual ControlState GetRadiusAtAngle(double ang) const = 0;
-};
-
-// An octagon-shaped stick gate is found on most Nintendo GC/Wii analog sticks.
-class OctagonStickGate : public StickGate
-{
-public:
-  explicit OctagonStickGate(ControlState radius);
-  ControlState GetRadiusAtAngle(double ang) const override;
-
-  static ControlState ComputeRadiusAtAngle(double ang);
-
-  const ControlState m_radius;
-};
-
-// A round-shaped stick gate. Possibly found on 3rd-party accessories.
-class RoundStickGate : public StickGate
-{
-public:
-  explicit RoundStickGate(ControlState radius);
-  ControlState GetRadiusAtAngle(double ang) const override;
-
-private:
-  const ControlState m_radius;
-};
-
-// A square-shaped stick gate. e.g. keyboard input.
-class SquareStickGate : public StickGate
-{
-public:
-  explicit SquareStickGate(ControlState half_width);
-  ControlState GetRadiusAtAngle(double ang) const override;
-
-  static ControlState ComputeRadiusAtAngle(double ang);
-
-private:
-  const ControlState m_half_width;
-};
-
 class AnalogStick : public ControlGroup
 {
 public:

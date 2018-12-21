@@ -159,7 +159,8 @@ void MappingIndicator::DrawStick()
 {
   // Make the c-stick yellow:
   const bool is_c_stick = m_group->name == "C-Stick";
-  const QColor gate_color = is_c_stick ? Qt::yellow : Qt::lightGray;
+  const QColor gate_brush_color = is_c_stick ? Qt::yellow : Qt::lightGray;
+  const QColor gate_pen_color = gate_brush_color.darker(125);
 
   auto& stick = *static_cast<ControllerEmu::AnalogStick*>(m_group);
 
@@ -191,8 +192,8 @@ void MappingIndicator::DrawStick()
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   // Input gate. (i.e. the octagon shape)
-  p.setPen(Qt::darkGray);
-  p.setBrush(gate_color);
+  p.setPen(gate_pen_color);
+  p.setBrush(gate_brush_color);
   p.drawPolygon(GetPolygonFromRadiusGetter(
       [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, scale));
 
