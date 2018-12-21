@@ -343,7 +343,6 @@ void JitTieredGeneric::Run()
   while (*state == CPU::State::Running)
   {
     CoreTiming::Advance();
-    BaselineReport& report = baseline_report.GetWriter();
     // this heuristic works well for the interpreter-only case
     size_t num_instructions = inst_cache.size();
     if (num_instructions >= (1 << 20) && num_instructions >= 2 * last_cache_size)
