@@ -718,43 +718,11 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.carryFlagInverted = false;
   js.constantGqr.clear();
 
-  // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
-  // loads and stores,
-  // which are significantly faster when inlined (especially in MMU mode, where this lets them use
-  // fastmem).
-  if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
-  {
-    // If there are GQRs used but not set, we'll treat those as constant and optimize them
-    BitSet8 gqr_static = ComputeStaticGQRs(code_block);
-    if (gqr_static)
-    {
-      SwitchToFarCode();
-      const u8* target = GetCodePtr();
-      MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-      ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                        static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      ABI_PopRegistersAndAdjustStack({}, 0);
-      JMP(asm_routines.dispatcher_no_check, true);
-      SwitchToNearCode();
+  const BitSet8 static_gqrs = ComputeStaticGQRs(code_block);
+  const BitSet32 specul_gprs = ComputeSpeculativeConstants();
 
-      // Insert a check that the GQRs are still the value we expect at
-      // the start of the block in case our guess turns out wrong.
-      for (int gqr : gqr_static)
-      {
-        u32 value = GQR(gqr);
-        js.constantGqr[gqr] = value;
-        CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
-        J_CC(CC_NZ, target);
-      }
-    }
-  }
-
-  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
-      js.noSpeculativeConstantsAddresses.end())
-  {
-    IntializeSpeculativeConstants();
-  }
+  EmitCheckStaticGQRs(static_gqrs);
+  EmitCheckSpeculativeConstants(specul_gprs);
 
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -973,7 +941,94 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 {
+  if (js.pairedQuantizeAddresses.find(js.blockStart) != js.pairedQuantizeAddresses.end())
+    return {};
+
+  // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
+  // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
+  // this lets them use fastmem).
+  // If there are GQRs used but not set, we'll treat those as constant and optimize them
   return cb.m_gqr_used & ~cb.m_gqr_modified;
+}
+
+BitSet32 Jit64::ComputeSpeculativeConstants() const
+{
+  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) !=
+      js.noSpeculativeConstantsAddresses.end())
+    return {};
+
+  // If the block depends on an input register which looks like a gather pipe or MMIO related
+  // constant, guess that it is actually a constant input, and specialize the block based on this
+  // assumption. This happens when there are branches in code writing to the gather pipe, but only
+  // the first block loads the constant.
+  // This can save a lot of backpatching and optimize gather pipe writes in more places.
+  BitSet32 const_gprs;
+  for (auto i : code_block.m_inputs)
+  {
+    // Only check GPRs
+    if (i > 32)
+      continue;
+
+    const u32 compileTimeValue = PowerPC::ppcState.gpr[i];
+    if (PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue) ||
+        PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
+        compileTimeValue == 0xCC000000)
+    {
+      const_gprs[i] = true;
+    }
+  }
+  return const_gprs;
+}
+
+void Jit64::EmitCheckStaticGQRs(BitSet8 static_gqrs)
+{
+  if (!static_gqrs)
+    return;
+
+  SwitchToFarCode();
+  const u8* target = GetCodePtr();
+  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  ABI_PushRegistersAndAdjustStack({}, 0);
+  ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
+                    static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+  ABI_PopRegistersAndAdjustStack({}, 0);
+  JMP(asm_routines.dispatcher_no_check, true);
+  SwitchToNearCode();
+
+  // Insert a check that the GQRs are still the value we expect at
+  // the start of the block in case our guess turns out wrong.
+  for (int gqr : static_gqrs)
+  {
+    u32 value = GQR(gqr);
+    js.constantGqr[gqr] = value;
+    CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
+    J_CC(CC_NZ, target);
+  }
+}
+
+void Jit64::EmitCheckSpeculativeConstants(BitSet32 const_gprs)
+{
+  if (!const_gprs)
+    return;
+
+  SwitchToFarCode();
+  const u8* target = GetCodePtr();
+  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  ABI_PushRegistersAndAdjustStack({}, 0);
+  ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
+                    static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+  ABI_PopRegistersAndAdjustStack({}, 0);
+  JMP(asm_routines.dispatcher, true);
+  SwitchToNearCode();
+
+  // Insert a check at the start of the block to verify that the value is actually constant.
+  for (auto i : const_gprs)
+  {
+    const u32 compileTimeValue = PowerPC::ppcState.gpr[i];
+    CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
+    J_CC(CC_NZ, target);
+    gpr.SetImmediate32(i, compileTimeValue, false);
+  }
 }
 
 BitSet32 Jit64::CallerSavedRegistersInUse() const
@@ -996,45 +1051,6 @@ void Jit64::EnableOptimization()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
-}
-
-void Jit64::IntializeSpeculativeConstants()
-{
-  // If the block depends on an input register which looks like a gather pipe or MMIO related
-  // constant, guess that it is actually a constant input, and specialize the block based on this
-  // assumption. This happens when there are branches in code writing to the gather pipe, but only
-  // the first block loads the constant.
-  // Insert a check at the start of the block to verify that the value is actually constant.
-  // This can save a lot of backpatching and optimize gather pipe writes in more places.
-  const u8* target = nullptr;
-  for (auto i : code_block.m_inputs)
-  {
-    // Only check GPRs
-    if (i > 32)
-      continue;
-
-    u32 compileTimeValue = PowerPC::ppcState.gpr[i];
-    if (PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue) ||
-        PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
-        compileTimeValue == 0xCC000000)
-    {
-      if (!target)
-      {
-        SwitchToFarCode();
-        target = GetCodePtr();
-        MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-        ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                          static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
-        ABI_PopRegistersAndAdjustStack({}, 0);
-        JMP(asm_routines.dispatcher, true);
-        SwitchToNearCode();
-      }
-      CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
-      J_CC(CC_NZ, target);
-      gpr.SetImmediate32(i, compileTimeValue, false);
-    }
-  }
 }
 
 bool Jit64::HandleFunctionHooking(u32 address)

@@ -32,7 +32,7 @@ namespace PPCAnalyst
 {
 struct CodeBlock;
 struct CodeOp;
-}
+}  // namespace PPCAnalyst
 
 class Jit64 : public Jitx86Base
 {
@@ -56,8 +56,10 @@ public:
 
   BitSet32 CallerSavedRegistersInUse() const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
+  BitSet32 ComputeSpeculativeConstants() const;
 
-  void IntializeSpeculativeConstants();
+  void EmitCheckStaticGQRs(BitSet8 static_gqrs);
+  void EmitCheckSpeculativeConstants(BitSet32 specul_gprs);
 
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
