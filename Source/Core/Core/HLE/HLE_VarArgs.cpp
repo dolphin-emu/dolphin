@@ -21,7 +21,7 @@ double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
 HLE::SystemVABI::VAListStruct::VAListStruct(u32 address)
     : VAList(0), m_va_list{PowerPC::HostRead_U8(address), PowerPC::HostRead_U8(address + 1),
                            PowerPC::HostRead_U32(address + 4), PowerPC::HostRead_U32(address + 8)},
-      m_address(address), m_has_fpr_area(PowerPC::GetCRBit(6) == 1)
+      m_address(address), m_has_fpr_area(PowerPC::ppcState.cr.GetBit(6) == 1)
 {
   m_stack = m_va_list.overflow_arg_area;
   m_gpr += m_va_list.gpr;

@@ -280,8 +280,8 @@ void RegisterWidget::PopulateTable()
               [](u64 value) { PowerPC::ppcState.spr[SPR_CTR] = value; });
 
   // CR
-  AddRegister(20, 5, RegisterType::cr, "CR", [] { return PowerPC::GetCR(); },
-              [](u64 value) { PowerPC::SetCR(value); });
+  AddRegister(20, 5, RegisterType::cr, "CR", [] { return PowerPC::ppcState.cr.Get(); },
+              [](u64 value) { PowerPC::ppcState.cr.Set(value); });
 
   // XER
   AddRegister(21, 5, RegisterType::xer, "XER", [] { return PowerPC::GetXER().Hex; },

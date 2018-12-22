@@ -550,14 +550,16 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     pGreater = J_CC(CC_B);
   }
 
-  MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_EQ_BIT])));
+  MOV(64, R(RSCRATCH),
+      Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_EQ_BIT])));
   if (fprf)
     OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_EQ << FPRF_SHIFT));
 
   continue1 = J();
 
   SetJumpTarget(pNaN);
-  MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_SO_BIT])));
+  MOV(64, R(RSCRATCH),
+      Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_SO_BIT])));
   if (fprf)
     OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_SO << FPRF_SHIFT));
 
@@ -566,13 +568,15 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     continue2 = J();
 
     SetJumpTarget(pGreater);
-    MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_GT_BIT])));
+    MOV(64, R(RSCRATCH),
+        Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_GT_BIT])));
     if (fprf)
       OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_GT << FPRF_SHIFT));
     continue3 = J();
 
     SetJumpTarget(pLesser);
-    MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_LT_BIT])));
+    MOV(64, R(RSCRATCH),
+        Imm64(PowerPC::ConditionRegister::PPCToInternal(output[PowerPC::CR_LT_BIT])));
     if (fprf)
       OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_LT << FPRF_SHIFT));
   }
@@ -584,7 +588,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     SetJumpTarget(continue3);
   }
 
-  MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+  MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
 }
 
 void Jit64::fcmpX(UGeckoInstruction inst)

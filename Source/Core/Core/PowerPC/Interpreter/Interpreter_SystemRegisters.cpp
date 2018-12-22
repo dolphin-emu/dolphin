@@ -107,14 +107,14 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  PowerPC::SetCRField(inst.CRFD, PowerPC::GetXER().Hex >> 28);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, PowerPC::GetXER().Hex >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
 
 void Interpreter::mfcr(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = PowerPC::GetCR();
+  rGPR[inst.RD] = PowerPC::ppcState.cr.Get();
 }
 
 void Interpreter::mtcrf(UGeckoInstruction inst)
@@ -122,7 +122,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
   const u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
-    PowerPC::SetCR(rGPR[inst.RS]);
+    PowerPC::ppcState.cr.Set(rGPR[inst.RS]);
   }
   else
   {
@@ -134,7 +134,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
         mask |= 0xFU << (i * 4);
     }
 
-    PowerPC::SetCR((PowerPC::GetCR() & ~mask) | (rGPR[inst.RS] & mask));
+    PowerPC::ppcState.cr.Set((PowerPC::ppcState.cr.Get() & ~mask) | (rGPR[inst.RS] & mask));
   }
 }
 
@@ -464,48 +464,56 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
 void Interpreter::crand(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, PowerPC::GetCRBit(inst.CRBA) & PowerPC::GetCRBit(inst.CRBB));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, PowerPC::ppcState.cr.GetBit(inst.CRBA) &
+                                             PowerPC::ppcState.cr.GetBit(inst.CRBB));
 }
 
 void Interpreter::crandc(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, PowerPC::GetCRBit(inst.CRBA) & (1 ^ PowerPC::GetCRBit(inst.CRBB)));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, PowerPC::ppcState.cr.GetBit(inst.CRBA) &
+                                             (1 ^ PowerPC::ppcState.cr.GetBit(inst.CRBB)));
 }
 
 void Interpreter::creqv(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, 1 ^ (PowerPC::GetCRBit(inst.CRBA) ^ PowerPC::GetCRBit(inst.CRBB)));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (PowerPC::ppcState.cr.GetBit(inst.CRBA) ^
+                                              PowerPC::ppcState.cr.GetBit(inst.CRBB)));
 }
 
 void Interpreter::crnand(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, 1 ^ (PowerPC::GetCRBit(inst.CRBA) & PowerPC::GetCRBit(inst.CRBB)));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (PowerPC::ppcState.cr.GetBit(inst.CRBA) &
+                                              PowerPC::ppcState.cr.GetBit(inst.CRBB)));
 }
 
 void Interpreter::crnor(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, 1 ^ (PowerPC::GetCRBit(inst.CRBA) | PowerPC::GetCRBit(inst.CRBB)));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (PowerPC::ppcState.cr.GetBit(inst.CRBA) |
+                                              PowerPC::ppcState.cr.GetBit(inst.CRBB)));
 }
 
 void Interpreter::cror(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, (PowerPC::GetCRBit(inst.CRBA) | PowerPC::GetCRBit(inst.CRBB)));
+  PowerPC::ppcState.cr.SetBit(
+      inst.CRBD, (PowerPC::ppcState.cr.GetBit(inst.CRBA) | PowerPC::ppcState.cr.GetBit(inst.CRBB)));
 }
 
 void Interpreter::crorc(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, (PowerPC::GetCRBit(inst.CRBA) | (1 ^ PowerPC::GetCRBit(inst.CRBB))));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, (PowerPC::ppcState.cr.GetBit(inst.CRBA) |
+                                          (1 ^ PowerPC::ppcState.cr.GetBit(inst.CRBB))));
 }
 
 void Interpreter::crxor(UGeckoInstruction inst)
 {
-  PowerPC::SetCRBit(inst.CRBD, (PowerPC::GetCRBit(inst.CRBA) ^ PowerPC::GetCRBit(inst.CRBB)));
+  PowerPC::ppcState.cr.SetBit(
+      inst.CRBD, (PowerPC::ppcState.cr.GetBit(inst.CRBA) ^ PowerPC::ppcState.cr.GetBit(inst.CRBB)));
 }
 
 void Interpreter::mcrf(UGeckoInstruction inst)
 {
-  const u32 cr_f = PowerPC::GetCRField(inst.CRFS);
-  PowerPC::SetCRField(inst.CRFD, cr_f);
+  const u32 cr_f = PowerPC::ppcState.cr.GetField(inst.CRFS);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, cr_f);
 }
 
 void Interpreter::isync(UGeckoInstruction inst)
@@ -546,7 +554,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
     FPSCR.VXCVI = 0;
     break;
   }
-  PowerPC::SetCRField(inst.CRFD, fpflags);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, fpflags);
 }
 
 void Interpreter::mffsx(UGeckoInstruction inst)

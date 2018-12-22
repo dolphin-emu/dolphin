@@ -41,7 +41,8 @@ void Interpreter::bcx(UGeckoInstruction inst)
   const bool only_condition_check = ((inst.BO >> 2) & 1);
   const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
   const bool counter = only_condition_check || ctr_check;
-  const bool condition = only_counter_check || (PowerPC::GetCRBit(inst.BI) == u32(true_false));
+  const bool condition =
+      only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI) == u32(true_false));
 
   if (counter && condition)
   {
@@ -81,7 +82,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
                    "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (condition)
   {
@@ -100,7 +101,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 
   const u32 counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (counter & condition)
   {

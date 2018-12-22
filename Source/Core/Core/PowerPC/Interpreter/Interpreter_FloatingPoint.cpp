@@ -161,7 +161,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, 
   // Clear and set the FPCC bits accordingly.
   FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compare_value;
 
-  PowerPC::SetCRField(inst.CRFD, compare_value);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, compare_value);
 }
 
 void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa, double fb)
@@ -195,7 +195,7 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa
   // Clear and set the FPCC bits accordingly.
   FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compare_value;
 
-  PowerPC::SetCRField(inst.CRFD, compare_value);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, compare_value);
 }
 
 void Interpreter::fcmpo(UGeckoInstruction inst)
