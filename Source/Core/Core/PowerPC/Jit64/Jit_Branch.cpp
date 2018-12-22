@@ -84,9 +84,6 @@ void Jit64::bx(UGeckoInstruction inst)
     return;
   }
 
-  gpr.Flush();
-  fpr.Flush();
-
   u32 destination;
   if (inst.AA)
     destination = SignExt26(inst.LI << 2);
@@ -98,6 +95,8 @@ void Jit64::bx(UGeckoInstruction inst)
 #endif
   if (destination == js.compilerPC)
   {
+    gpr.Flush();
+    fpr.Flush();
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunction(CoreTiming::Idle);
     ABI_PopRegistersAndAdjustStack({}, 0);
@@ -163,8 +162,6 @@ void Jit64::bcx(UGeckoInstruction inst)
   {
     RCForkGuard gpr_guard = gpr.Fork();
     RCForkGuard fpr_guard = fpr.Fork();
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(destination, inst.LK, js.compilerPC + 4);
   }
 
@@ -175,8 +172,6 @@ void Jit64::bcx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }
@@ -231,8 +226,6 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
     if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
     {
-      gpr.Flush();
-      fpr.Flush();
       WriteExit(js.compilerPC + 4);
     }
   }
@@ -292,8 +285,6 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }

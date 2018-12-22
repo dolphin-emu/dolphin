@@ -443,6 +443,7 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
   if (!m_enable_blr_optimization)
     bl = false;
 
+  fpr.Flush();
   Cleanup();
 
   if (bl)
@@ -983,8 +984,6 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   if (code_block.m_broken)
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(nextPC);
   }
 

@@ -375,6 +375,8 @@ void Jit64::DoMergedBranch()
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 528))  // bcctrx
   {
+    gpr.Flush();
+    fpr.Flush();
     if (next.LK)
       MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
     MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_CTR]));
@@ -383,6 +385,8 @@ void Jit64::DoMergedBranch()
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 16))  // bclrx
   {
+    gpr.Flush();
+    fpr.Flush();
     MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_LR]));
     if (!m_enable_blr_optimization)
       AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
@@ -420,10 +424,6 @@ void Jit64::DoMergedBranchCondition()
   {
     RCForkGuard gpr_guard = gpr.Fork();
     RCForkGuard fpr_guard = fpr.Fork();
-
-    gpr.Flush();
-    fpr.Flush();
-
     DoMergedBranch();
   }
 
@@ -431,8 +431,6 @@ void Jit64::DoMergedBranchCondition()
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(nextPC + 4);
   }
 }
@@ -460,14 +458,10 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 
   if (branch)
   {
-    gpr.Flush();
-    fpr.Flush();
     DoMergedBranch();
   }
   else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(nextPC + 4);
   }
 }
@@ -1991,8 +1985,6 @@ void Jit64::twX(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }
