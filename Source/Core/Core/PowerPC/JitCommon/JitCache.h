@@ -77,6 +77,15 @@ struct JitBlock
   // This tracks the position if this block within the fast block cache.
   // We allow each block to have only one map entry.
   size_t fast_block_map_index;
+
+  struct HandoverInfo
+  {
+    size_t index;
+    s8 preg;
+    bool needs_store;
+    u8* entry;
+  };
+  std::vector<HandoverInfo> handover_info;
 };
 
 typedef void (*CompiledCode)();

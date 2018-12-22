@@ -305,7 +305,7 @@ public:
       return;
     state = State::Discarded;
   }
-  void BindToRegister([[maybe_unused]] bool doLoad, bool makeDirty)
+  void BindToFreeRegister([[maybe_unused]] bool doLoad, bool makeDirty)
   {
     if (state != State::Unknown || !makeDirty)
       return;

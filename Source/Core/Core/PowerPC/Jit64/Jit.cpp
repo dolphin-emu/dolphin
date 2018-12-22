@@ -701,9 +701,9 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (ImHereDebug)
   {
-    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
     ABI_CallFunction(ImHere);
-    ABI_PopRegistersAndAdjustStack({}, 0);
+    ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
   }
 
   // Conditionally add profiling code.
@@ -714,8 +714,11 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     int offset = static_cast<int>(offsetof(JitBlock::ProfileData, runCount)) -
                  static_cast<int>(offsetof(JitBlock::ProfileData, ticStart));
     ADD(64, MDisp(ABI_PARAM1, offset), Imm8(1));
+    ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
     ABI_CallFunction(QueryPerformanceCounter);
+    ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
   }
+
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
@@ -734,6 +737,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   const BitSet8 static_gqrs = ComputeStaticGQRs(code_block);
   const BitSet32 specul_gprs = ComputeSpeculativeConstants();
+
+  b->handover_info = EmitHandoverPrelude(specul_gprs);
 
   EmitCheckStaticGQRs(static_gqrs);
   EmitCheckSpeculativeConstants(specul_gprs);
@@ -943,6 +948,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     WriteExit(nextPC);
   }
 
+  FixupHandoverTracking(b->handover_info);
+
   b->codeSize = (u32)(GetCodePtr() - start);
   b->originalSize = code_block.m_num_instructions;
 
@@ -980,7 +987,7 @@ BitSet32 Jit64::ComputeSpeculativeConstants() const
   for (auto i : code_block.m_inputs)
   {
     // Only check GPRs
-    if (i > 32)
+    if (i >= 32)
       continue;
 
     const u32 compileTimeValue = PowerPC::ppcState.gpr[i];
@@ -992,6 +999,30 @@ BitSet32 Jit64::ComputeSpeculativeConstants() const
     }
   }
   return const_gprs;
+}
+
+std::vector<JitBlock::HandoverInfo> Jit64::EmitHandoverPrelude(BitSet32 specul_gprs)
+{
+  constexpr size_t maximum_handover_count = 8;
+  std::vector<JitBlock::HandoverInfo> result;
+  BitSet32 handover_set;
+  for (s8 input : code_block.m_inputs)
+  {
+    // Only handle GPRs for now
+    if (input >= 32)
+      continue;
+    if (specul_gprs[input])
+      continue;
+    if (result.size() >= maximum_handover_count)
+      break;
+
+    const size_t index = result.size();
+    gpr.HandoverPrelude(index, input);
+    result.emplace_back(JitBlock::HandoverInfo{index, input, true, GetWritableCodePtr()});
+    handover_set[input] = true;
+  }
+  gpr.HandoverStartTracking(handover_set);
+  return result;
 }
 
 void Jit64::EmitCheckStaticGQRs(BitSet8 static_gqrs)
@@ -1042,6 +1073,27 @@ void Jit64::EmitCheckSpeculativeConstants(BitSet32 const_gprs)
     CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
     J_CC(CC_NZ, target);
     gpr.SetImmediate32(i, compileTimeValue, false);
+  }
+}
+
+void Jit64::FixupHandoverTracking(std::vector<JitBlock::HandoverInfo>& handover_info)
+{
+  const auto state = gpr.HandoverGetTrackingState();
+  for (JitBlock::HandoverInfo& info : handover_info)
+  {
+    switch (state[info.preg])
+    {
+    case RegTracker::State::Dirtied:
+    case RegTracker::State::Stored:
+      info.needs_store = false;
+      break;
+    case RegTracker::State::Untracked:
+    case RegTracker::State::Unknown:
+    case RegTracker::State::Discarded:
+    case RegTracker::State::Forked:
+      info.needs_store = true;
+      break;
+    }
   }
 }
 

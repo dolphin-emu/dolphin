@@ -464,7 +464,7 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
     if (NumFreeRegisters() < 2)
       return;
     if (!R(preg).IsImm())
-      BindToRegister(preg, true, false);
+      BindToFreeRegister(preg, true, false);
   }
 }
 
@@ -495,6 +495,19 @@ std::array<RegTracker::State, 32> RegCache::HandoverGetTrackingState() const
   return result;
 }
 
+Gen::X64Reg RegCache::HandoverGetXReg(size_t index)
+{
+  size_t count;
+  const Gen::X64Reg* order = GetAllocationOrder(&count);
+  ASSERT(index < count);
+  return order[index];
+}
+
+void RegCache::HandoverPrelude(size_t index, preg_t preg)
+{
+  BindToRegister(preg, HandoverGetXReg(index), true, false);
+}
+
 void RegCache::FlushX(X64Reg reg)
 {
   ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);
@@ -517,31 +530,14 @@ void RegCache::DiscardRegContentsIfCached(preg_t preg)
   }
 }
 
-void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
+void RegCache::BindToFreeRegister(preg_t i, bool doLoad, bool makeDirty)
 {
-  m_trackers[i].BindToRegister(doLoad, makeDirty);
+  m_trackers[i].BindToFreeRegister(doLoad, makeDirty);
 
   if (!m_regs[i].IsBound())
   {
-    X64Reg xr = GetFreeXReg();
-
-    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg %i already dirty", xr);
-    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
-    ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Invalid transaction state");
-
-    m_xregs[xr].SetBoundTo(i, makeDirty || m_regs[i].IsAway());
-
-    if (doLoad)
-    {
-      LoadRegister(i, xr);
-    }
-
-    ASSERT_MSG(DYNA_REC,
-               std::none_of(m_regs.begin(), m_regs.end(),
-                            [xr](const auto& r) { return r.Location().IsSimpleReg(xr); }),
-               "Xreg %i already bound", xr);
-
-    m_regs[i].SetBoundTo(xr);
+    const X64Reg xr = GetFreeXReg();
+    BindToRegister(i, xr, doLoad, makeDirty);
   }
   else
   {
@@ -552,6 +548,28 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
   }
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(), "WTF, this reg should have been flushed");
+}
+
+void RegCache::BindToRegister(preg_t i, Gen::X64Reg xr, bool doLoad, bool makeDirty)
+{
+  ASSERT_MSG(DYNA_REC, !m_regs[i].IsBound(), "Register %zu already bound", i);
+  ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg %i already dirty", xr);
+  ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
+  ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Invalid transaction state");
+
+  m_xregs[xr].SetBoundTo(i, makeDirty || m_regs[i].IsAway());
+
+  if (doLoad)
+  {
+    LoadRegister(i, xr);
+  }
+
+  ASSERT_MSG(DYNA_REC,
+             std::none_of(m_regs.begin(), m_regs.end(),
+                          [xr](const auto& r) { return r.Location().IsSimpleReg(xr); }),
+             "Xreg %i already bound", xr);
+
+  m_regs[i].SetBoundTo(xr);
 }
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
@@ -726,7 +744,7 @@ void RegCache::Realize(preg_t preg)
   const bool kill_mem = m_constraints[preg].ShouldKillMemory();
 
   const auto do_bind = [&] {
-    BindToRegister(preg, load, dirty);
+    BindToFreeRegister(preg, load, dirty);
     m_constraints[preg].Realized(RCConstraint::RealizedLoc::Bound);
   };
 

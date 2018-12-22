@@ -182,6 +182,8 @@ public:
   // Functions for register handover optimization use
   void HandoverStartTracking(BitSet32 pregs);
   std::array<RegTracker::State, 32> HandoverGetTrackingState() const;
+  Gen::X64Reg HandoverGetXReg(size_t index);
+  void HandoverPrelude(size_t index, preg_t preg);
 
 protected:
   friend class RCOpArg;
@@ -200,7 +202,8 @@ protected:
 
   void FlushX(Gen::X64Reg reg);
   void DiscardRegContentsIfCached(preg_t preg);
-  void BindToRegister(preg_t preg, bool doLoad = true, bool makeDirty = true);
+  void BindToFreeRegister(preg_t preg, bool doLoad = true, bool makeDirty = true);
+  void BindToRegister(preg_t preg, Gen::X64Reg xr, bool doLoad, bool makeDirty);
   void StoreFromRegister(preg_t preg, FlushMode mode = FlushMode::Full);
 
   Gen::X64Reg GetFreeXReg();
