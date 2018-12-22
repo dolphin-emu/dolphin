@@ -12,7 +12,6 @@
 
 namespace MappingCommon
 {
-
 constexpr int INPUT_DETECT_TIME = 3000;
 constexpr int OUTPUT_DETECT_TIME = 2000;
 

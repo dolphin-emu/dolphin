@@ -150,6 +150,8 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
 
 Joystick::~Joystick()
 {
+  DeInitForceFeedback();
+
   m_device->Unacquire();
   m_device->Release();
 }
@@ -265,5 +267,5 @@ ControlState Joystick::Hat::GetState() const
 
   return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
 }
-}
-}
+}  // namespace DInput
+}  // namespace ciface
