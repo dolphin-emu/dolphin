@@ -170,14 +170,15 @@ void QuantizeAndStore(double ps0, double ps1, u32 addr, u32 instW, u32 stScale)
   }
 }
 
-void Interpreter::Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW)
+static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRS,
+                            u32 instW)
 {
-  const UGQR gqr(rSPR(SPR_GQR0 + instI));
+  const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   const EQuantizeType stType = gqr.st_type;
   const unsigned int stScale = gqr.st_scale;
 
-  const double ps0 = rPS(instRS).PS0AsDouble();
-  const double ps1 = rPS(instRS).PS1AsDouble();
+  const double ps0 = ppcs->ps[instRS].PS0AsDouble();
+  const double ps1 = ppcs->ps[instRS].PS1AsDouble();
 
   switch (stType)
   {
@@ -344,7 +345,7 @@ void Interpreter::psq_st(UGeckoInstruction inst)
   }
 
   const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
-  Helper_Quantize(EA, inst.I, inst.RS, inst.W);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 }
 
 void Interpreter::psq_stu(UGeckoInstruction inst)
@@ -356,7 +357,7 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
   }
 
   const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
-  Helper_Quantize(EA, inst.I, inst.RS, inst.W);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
@@ -374,7 +375,7 @@ void Interpreter::psq_lx(UGeckoInstruction inst)
 void Interpreter::psq_stx(UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
-  Helper_Quantize(EA, inst.Ix, inst.RS, inst.Wx);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 }
 
 void Interpreter::psq_lux(UGeckoInstruction inst)
@@ -392,7 +393,7 @@ void Interpreter::psq_lux(UGeckoInstruction inst)
 void Interpreter::psq_stux(UGeckoInstruction inst)
 {
   const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
-  Helper_Quantize(EA, inst.Ix, inst.RS, inst.Wx);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
