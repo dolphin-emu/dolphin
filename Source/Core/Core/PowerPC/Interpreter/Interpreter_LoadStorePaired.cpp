@@ -245,9 +245,10 @@ std::pair<float, float> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
   return {ps0, ps1};
 }
 
-void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
+static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRD,
+                              u32 instW)
 {
-  UGQR gqr(rSPR(SPR_GQR0 + instI));
+  UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   EQuantizeType ldType = gqr.ld_type;
   unsigned int ldScale = gqr.ld_scale;
 
@@ -296,12 +297,12 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
     break;
   }
 
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (ppcs->Exceptions & EXCEPTION_DSI)
   {
     return;
   }
 
-  rPS(instRD).SetBoth(ps0, ps1);
+  ppcs->ps[instRD].SetBoth(ps0, ps1);
 }
 
 void Interpreter::psq_l(UGeckoInstruction inst)
@@ -313,7 +314,7 @@ void Interpreter::psq_l(UGeckoInstruction inst)
   }
 
   const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
-  Helper_Dequantize(EA, inst.I, inst.RD, inst.W);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 }
 
 void Interpreter::psq_lu(UGeckoInstruction inst)
@@ -325,7 +326,7 @@ void Interpreter::psq_lu(UGeckoInstruction inst)
   }
 
   const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
-  Helper_Dequantize(EA, inst.I, inst.RD, inst.W);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
@@ -367,7 +368,7 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
 void Interpreter::psq_lx(UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
-  Helper_Dequantize(EA, inst.Ix, inst.RD, inst.Wx);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 }
 
 void Interpreter::psq_stx(UGeckoInstruction inst)
@@ -379,7 +380,7 @@ void Interpreter::psq_stx(UGeckoInstruction inst)
 void Interpreter::psq_lux(UGeckoInstruction inst)
 {
   const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
-  Helper_Dequantize(EA, inst.Ix, inst.RD, inst.Wx);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
