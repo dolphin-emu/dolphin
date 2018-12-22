@@ -41,6 +41,8 @@
 #include "Common/GekkoDisassembler.h"
 #endif
 
+#include "Core/HW/Memmap.h"
+
 using namespace Gen;
 using namespace PowerPC;
 
@@ -204,6 +206,9 @@ bool Jit64::HandleStackFault()
   return true;
 }
 
+// This generates some fairly heavy trampolines, but it doesn't really hurt.
+// Only instructions that access I/O will get these, and there won't be that
+// many of them in a typical program/game.
 bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
   uintptr_t stack = (uintptr_t)m_stack;
@@ -212,7 +217,16 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
   if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
     return HandleStackFault();
 
-  return Jitx86Base::HandleFault(access_address, ctx);
+  // TODO: do we properly handle off-the-end?
+  const auto base_ptr = reinterpret_cast<uintptr_t>(Memory::physical_base);
+  if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
+    return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
+
+  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(Memory::logical_base);
+  if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
+    return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
+
+  return false;
 }
 
 void Jit64::Init()

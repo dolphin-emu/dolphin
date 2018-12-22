@@ -9,11 +9,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Reg.h"
-#include "Core/PowerPC/Jit64Common/BlockCache.h"
-#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
-#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+struct JitBlock;
 
 // RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
 // limitation.
@@ -29,18 +27,6 @@ constexpr Gen::X64Reg RMEM = Gen::RBX;
 constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 
 constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
-
-class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
-{
-protected:
-  bool BackPatch(u32 emAddress, SContext* ctx);
-  JitBlockCache blocks{*this};
-  TrampolineCache trampolines;
-
-public:
-  JitBlockCache* GetBlockCache() override { return &blocks; }
-  bool HandleFault(uintptr_t access_address, SContext* ctx) override;
-};
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
                      const JitBlock* b);

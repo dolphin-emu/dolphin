@@ -18,26 +18,10 @@
 #include "Common/x64Reg.h"
 #include "Core/HW/Memmap.h"
 #include "Core/MachineContext.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-// This generates some fairly heavy trampolines, but it doesn't really hurt.
-// Only instructions that access I/O will get these, and there won't be that
-// many of them in a typical program/game.
-bool Jitx86Base::HandleFault(uintptr_t access_address, SContext* ctx)
-{
-  // TODO: do we properly handle off-the-end?
-  const auto base_ptr = reinterpret_cast<uintptr_t>(Memory::physical_base);
-  if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
-    return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
-
-  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(Memory::logical_base);
-  if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
-    return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
-
-  return false;
-}
-
-bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
+bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
 {
   u8* codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
 
