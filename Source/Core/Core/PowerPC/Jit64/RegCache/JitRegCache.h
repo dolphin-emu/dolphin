@@ -179,6 +179,10 @@ public:
   void PreloadRegisters(BitSet32 pregs);
   BitSet32 RegistersInUse() const;
 
+  // Functions for register handover optimization use
+  void HandoverStartTracking(BitSet32 pregs);
+  std::array<RegTracker::State, 32> HandoverGetTrackingState() const;
+
 protected:
   friend class RCOpArg;
   friend class RCX64Reg;
@@ -220,5 +224,6 @@ protected:
   std::array<PPCCachedReg, 32> m_regs;
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
   std::array<RCConstraint, 32> m_constraints;
+  std::array<RegTracker, 32> m_trackers;
   Gen::XEmitter* m_emitter = nullptr;
 };

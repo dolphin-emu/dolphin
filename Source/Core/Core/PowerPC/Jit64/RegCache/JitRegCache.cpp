@@ -300,6 +300,7 @@ void RegCache::Start()
   {
     m_regs[i] = PPCCachedReg{GetDefaultLocation(i)};
   }
+  m_trackers.fill({});
 }
 
 void RegCache::SetEmitter(XEmitter* emitter)
@@ -377,6 +378,11 @@ RCX64Reg RegCache::Scratch(X64Reg xr)
 
 RCForkGuard RegCache::Fork()
 {
+  for (RegTracker& t : m_trackers)
+  {
+    t.Fork();
+  }
+
   return RCForkGuard{*this};
 }
 
@@ -473,6 +479,22 @@ BitSet32 RegCache::RegistersInUse() const
   return result;
 }
 
+void RegCache::HandoverStartTracking(BitSet32 pregs)
+{
+  for (preg_t preg : pregs)
+  {
+    m_trackers[preg].StartTracking();
+  }
+}
+
+std::array<RegTracker::State, 32> RegCache::HandoverTrackingState() const
+{
+  std::array<RegTracker::State, 32> result;
+  std::transform(m_trackers.begin(), m_trackers.end(), result.begin(),
+                 [](const auto& t) { return t.GetState(); });
+  return result;
+}
+
 void RegCache::FlushX(X64Reg reg)
 {
   ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);
@@ -485,6 +507,8 @@ void RegCache::FlushX(X64Reg reg)
 
 void RegCache::DiscardRegContentsIfCached(preg_t preg)
 {
+  m_trackers[preg].DiscardRegContentsIfCached();
+
   if (m_regs[preg].IsBound())
   {
     X64Reg xr = m_regs[preg].Location().GetSimpleReg();
@@ -495,6 +519,8 @@ void RegCache::DiscardRegContentsIfCached(preg_t preg)
 
 void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 {
+  m_trackers[i].BindToRegister(doLoad, makeDirty);
+
   if (!m_regs[i].IsBound())
   {
     X64Reg xr = GetFreeXReg();
@@ -530,6 +556,8 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 {
+  m_trackers[i].StoreFromRegister(mode);
+
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress!");
 
