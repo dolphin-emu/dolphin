@@ -297,7 +297,7 @@ public:
   };
 
   void StartTracking() { state = State::Unknown; }
-  State GetState() { return state; }
+  State GetState() const { return state; }
 
   void DiscardRegContentsIfCached()
   {
@@ -311,7 +311,7 @@ public:
       return;
     state = State::Dirtied;
   }
-  void StoreFromRegister([[maybe_unused]] RegCache::FlushMode mode)
+  void StoreFromRegister()
   {
     if (state != State::Unknown)
       return;

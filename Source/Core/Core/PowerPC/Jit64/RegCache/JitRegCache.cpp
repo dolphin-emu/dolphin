@@ -487,7 +487,7 @@ void RegCache::HandoverStartTracking(BitSet32 pregs)
   }
 }
 
-std::array<RegTracker::State, 32> RegCache::HandoverTrackingState() const
+std::array<RegTracker::State, 32> RegCache::HandoverGetTrackingState() const
 {
   std::array<RegTracker::State, 32> result;
   std::transform(m_trackers.begin(), m_trackers.end(), result.begin(),
@@ -556,7 +556,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 {
-  m_trackers[i].StoreFromRegister(mode);
+  m_trackers[i].StoreFromRegister();
 
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress!");
