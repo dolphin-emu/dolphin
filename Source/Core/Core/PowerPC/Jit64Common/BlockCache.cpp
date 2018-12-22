@@ -6,32 +6,17 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-JitBlockCache::JitBlockCache(JitBase& jit) : JitBaseBlockCache{jit}
+JitBlockCache::JitBlockCache(Jit64& jit) : JitBaseBlockCache{jit}, m_jit{jit}
 {
 }
 
 void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
-  u8* location = source.exitPtrs;
-  const u8* address = dest ? dest->checkedEntry : m_jit.GetAsmRoutines()->dispatcher;
-  Gen::XEmitter emit(location);
-  if (source.call)
-  {
-    emit.CALL(address);
-  }
-  else
-  {
-    // If we're going to link with the next block, there is no need
-    // to emit JMP. So just NOP out the gap to the next block.
-    // Support up to 3 additional bytes because of alignment.
-    s64 offset = address - emit.GetCodePtr();
-    if (offset > 0 && offset <= 5 + 3)
-      emit.NOP(offset);
-    else
-      emit.JMP(address, true);
-  }
+  Gen::XEmitter emit(source.exitPtrs);
+  m_jit.WriteHandoverAtExit(emit, source, dest);
 }
 
 void JitBlockCache::WriteDestroyBlock(const JitBlock& block)

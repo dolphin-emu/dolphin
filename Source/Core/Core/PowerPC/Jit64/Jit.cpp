@@ -376,6 +376,8 @@ bool Jit64::Cleanup()
 
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
+    gpr.FlushCallerSave();
+    fpr.FlushCallerSave();
     MOV(64, R(RSCRATCH), PPCSTATE(gather_pipe_ptr));
     SUB(64, R(RSCRATCH), PPCSTATE(gather_pipe_base_ptr));
     CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
@@ -390,6 +392,8 @@ bool Jit64::Cleanup()
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0.Hex || MMCR1.Hex)
   {
+    gpr.FlushCallerSave();
+    fpr.FlushCallerSave();
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
                         js.numFloatingPointInst);
@@ -399,6 +403,8 @@ bool Jit64::Cleanup()
 
   if (jo.profile_blocks)
   {
+    gpr.FlushCallerSave();
+    fpr.FlushCallerSave();
     ABI_PushRegistersAndAdjustStack({}, 0);
     // get end tic
     MOV(64, R(ABI_PARAM1), ImmPtr(&js.curBlock->profile_data.ticStop));
@@ -428,7 +434,7 @@ void Jit64::FakeBLCall(u32 after)
   PUSH(RSCRATCH2);
   FixupBranch skip_exit = CALL();
   POP(RSCRATCH2);
-  JustWriteExit(after, false, 0);
+  JustWriteExit(after, false, 0, {});
   SetJumpTarget(skip_exit);
 }
 
@@ -447,10 +453,10 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
-  JustWriteExit(destination, bl, after);
+  JustWriteExit(destination, bl, after, gpr.HandoverExitState());
 }
 
-void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+void Jit64::JustWriteExit(u32 destination, bool bl, u32 after, JitBlock::LinkData::Regs gpr_state)
 {
   std::optional<FixupBranch> after_fixup;
 
@@ -460,29 +466,27 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   linkData.exitAddress = destination;
   linkData.linkStatus = false;
   linkData.call = bl;
+  linkData.gpr_state = gpr_state;
 
   MOV(32, PPCSTATE(pc), Imm32(destination));
 
-  // Perform downcount flag check, followed by the requested exit
+  FixupBranch do_timing = J_CC(CC_NG, true);
+  SwitchToFarCode();
+  SetJumpTarget(do_timing);
+  WriteFlushLinkDataRegs(*this, gpr_state);
   if (bl)
   {
-    FixupBranch do_timing = J_CC(CC_NG, true);
-    SwitchToFarCode();
-    SetJumpTarget(do_timing);
     CALL(asm_routines.do_timing);
     after_fixup = J(true);
-    SwitchToNearCode();
-
-    linkData.exitPtrs = GetWritableCodePtr();
-    CALL(asm_routines.dispatcher);
   }
   else
   {
-    J_CC(CC_NG, asm_routines.do_timing);
-
-    linkData.exitPtrs = GetWritableCodePtr();
-    JMP(asm_routines.dispatcher, true);
+    JMP(asm_routines.do_timing, true);
   }
+  SwitchToNearCode();
+
+  linkData.exitPtrs = GetWritableCodePtr();
+  WriteHandoverAtExit(*this, linkData, nullptr);
 
   b->linkData.push_back(linkData);
 
@@ -491,7 +495,43 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
     if (after_fixup)
       SetJumpTarget(*after_fixup);
     POP(RSCRATCH);
-    JustWriteExit(after, false, 0);
+    JustWriteExit(after, false, 0, {});
+  }
+}
+
+void Jit64::WriteFlushLinkDataRegs(Gen::XEmitter& emit, const JitBlock::LinkData::Regs& gpr_state)
+{
+  for (size_t preg = 0; preg < gpr_state.size(); preg++)
+  {
+    const auto& reg = gpr_state[preg];
+    switch (reg.location_type)
+    {
+    case JitBlock::LinkData::Reg::LocationType::PpcState:
+    case JitBlock::LinkData::Reg::LocationType::CleanHostReg:
+      break;
+    case JitBlock::LinkData::Reg::LocationType::DirtyHostReg:
+      emit.MOV(32, PPCSTATE(gpr[preg]), R(static_cast<Gen::X64Reg>(reg.location)));
+      break;
+    case JitBlock::LinkData::Reg::LocationType::Immediate:
+      emit.MOV(32, PPCSTATE(gpr[preg]), Imm32(static_cast<u32>(reg.location)));
+      break;
+    }
+  }
+}
+
+void Jit64::WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData& link_data,
+                                const JitBlock* block)
+{
+  WriteFlushLinkDataRegs(emit, link_data.gpr_state);
+
+  const u8* address = block ? block->checkedEntry : asm_routines.dispatcher;
+  if (link_data.call)
+  {
+    emit.CALL(address);
+  }
+  else
+  {
+    emit.JMP(address, true);
   }
 }
 
@@ -513,7 +553,7 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
   {
     CALL(asm_routines.dispatcher);
     POP(RSCRATCH);
-    JustWriteExit(after, false, 0);
+    JustWriteExit(after, false, 0, {});
   }
   else
   {

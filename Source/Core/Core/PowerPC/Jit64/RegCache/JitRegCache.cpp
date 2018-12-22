@@ -508,6 +508,40 @@ void RegCache::HandoverPrelude(size_t index, preg_t preg)
   BindToRegister(preg, HandoverGetXReg(index), true, false);
 }
 
+JitBlock::LinkData::Regs RegCache::HandoverExitState() const
+{
+  JitBlock::LinkData::Regs result;
+  for (preg_t preg = 0; preg < result.size(); preg++)
+  {
+    switch (m_regs[preg].GetLocationType())
+    {
+    case PPCCachedReg::LocationType::Default:
+    case PPCCachedReg::LocationType::SpeculativeImmediate:
+      result[preg].location_type = JitBlock::LinkData::Reg::LocationType::PpcState;
+      break;
+    case PPCCachedReg::LocationType::Bound:
+    {
+      X64Reg xr = RX(preg);
+      if (m_xregs[xr].IsDirty())
+      {
+        result[preg].location_type = JitBlock::LinkData::Reg::LocationType::DirtyHostReg;
+      }
+      else
+      {
+        result[preg].location_type = JitBlock::LinkData::Reg::LocationType::CleanHostReg;
+      }
+      result[preg].location = static_cast<size_t>(xr);
+      break;
+    }
+    case PPCCachedReg::LocationType::Immediate:
+      result[preg].location_type = JitBlock::LinkData::Reg::LocationType::Immediate;
+      result[preg].location = static_cast<size_t>(Imm32(preg));
+      break;
+    }
+  }
+  return result;
+}
+
 void RegCache::FlushX(X64Reg reg)
 {
   ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);

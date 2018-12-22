@@ -12,6 +12,7 @@
 
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64;
@@ -184,6 +185,7 @@ public:
   std::array<RegTracker::State, 32> HandoverGetTrackingState() const;
   Gen::X64Reg HandoverGetXReg(size_t index);
   void HandoverPrelude(size_t index, preg_t preg);
+  JitBlock::LinkData::Regs HandoverExitState() const;
 
 protected:
   friend class RCOpArg;
