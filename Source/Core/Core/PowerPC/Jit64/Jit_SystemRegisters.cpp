@@ -230,16 +230,16 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
     MOV(32, R(RSCRATCH), Rd);
     AND(32, R(RSCRATCH), Imm32(0xff7f));
-    MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
+    MOV(16, PPCSTATE(xer.stringctrl), R(RSCRATCH));
 
     MOV(32, R(RSCRATCH), Rd);
     SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
     AND(8, R(RSCRATCH), Imm8(1));
-    MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
+    MOV(8, PPCSTATE(xer.ca), R(RSCRATCH));
 
     MOV(32, R(RSCRATCH), Rd);
     SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-    MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
+    MOV(8, PPCSTATE(xer.so_ov), R(RSCRATCH));
 
     return;
   }
@@ -364,12 +364,12 @@ void Jit64::mfspr(UGeckoInstruction inst)
   {
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Rd);
-    MOVZX(32, 16, Rd, PPCSTATE(xer_stringctrl));
-    MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
+    MOVZX(32, 16, Rd, PPCSTATE(xer.stringctrl));
+    MOVZX(32, 8, RSCRATCH, PPCSTATE(xer.ca));
     SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
     OR(32, Rd, R(RSCRATCH));
 
-    MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
+    MOVZX(32, 8, RSCRATCH, PPCSTATE(xer.so_ov));
     SHL(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
     OR(32, Rd, R(RSCRATCH));
     break;
@@ -535,8 +535,8 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
 
   // Copy XER[0-3] into CR[inst.CRFD]
-  MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
-  MOVZX(32, 8, RSCRATCH2, PPCSTATE(xer_so_ov));
+  MOVZX(32, 8, RSCRATCH, PPCSTATE(xer.ca));
+  MOVZX(32, 8, RSCRATCH2, PPCSTATE(xer.so_ov));
   // [0 SO OV CA]
   LEA(32, RSCRATCH, MComplex(RSCRATCH, RSCRATCH2, SCALE_2, 0));
   // [SO OV CA 0] << 3
@@ -547,8 +547,8 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   MOV(64, CROffset(inst.CRFD), R(RSCRATCH));
 
   // Clear XER[0-3]
-  MOV(8, PPCSTATE(xer_ca), Imm8(0));
-  MOV(8, PPCSTATE(xer_so_ov), Imm8(0));
+  MOV(8, PPCSTATE(xer.ca), Imm8(0));
+  MOV(8, PPCSTATE(xer.so_ov), Imm8(0));
 }
 
 void Jit64::crXXX(UGeckoInstruction inst)

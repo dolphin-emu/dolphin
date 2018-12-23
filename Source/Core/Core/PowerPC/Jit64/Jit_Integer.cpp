@@ -31,12 +31,12 @@ void Jit64::GenerateConstantOverflow(bool overflow)
   if (overflow)
   {
     // XER[OV/SO] = 1
-    MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
+    MOV(8, PPCSTATE(xer.so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
   }
   else
   {
     // XER[OV] = 0
-    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
+    AND(8, PPCSTATE(xer.so_ov), Imm8(~XER_OV_MASK));
   }
 }
 
@@ -45,7 +45,7 @@ void Jit64::GenerateOverflow()
 {
   FixupBranch jno = J_CC(CC_NO);
   // XER[OV/SO] = 1
-  MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
+  MOV(8, PPCSTATE(xer.so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
   FixupBranch exit = J();
   SetJumpTarget(jno);
   // XER[OV] = 0
@@ -53,10 +53,10 @@ void Jit64::GenerateOverflow()
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
   static const std::array<u8, 4> ovtable = {{0, 0, XER_SO_MASK, XER_SO_MASK}};
-  MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
+  MOVZX(32, 8, RSCRATCH, PPCSTATE(xer.so_ov));
   LEA(64, RSCRATCH2, MConst(ovtable));
   MOV(8, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
-  MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
+  MOV(8, PPCSTATE(xer.so_ov), R(RSCRATCH));
   SetJumpTarget(exit);
 }
 
@@ -124,10 +124,10 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
     // Make sure not to lose the carry flags (not a big deal, this path is rare).
     PUSHF();
     // XER[OV] = 0
-    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
+    AND(8, PPCSTATE(xer.so_ov), Imm8(~XER_OV_MASK));
     FixupBranch jno = J_CC(CC_NO);
     // XER[OV/SO] = 1
-    MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_SO_MASK | XER_OV_MASK));
+    MOV(8, PPCSTATE(xer.so_ov), Imm8(XER_SO_MASK | XER_OV_MASK));
     SetJumpTarget(jno);
     POPF();
   }
@@ -1864,7 +1864,7 @@ void Jit64::srawix(UGeckoInstruction inst)
         SHR(32, R(RSCRATCH), Imm8(31));  // sign
         AND(32, R(RSCRATCH), Ra);        // (sign && carry)
         SAR(32, Ra, Imm8(1));
-        MOV(8, PPCSTATE(xer_ca),
+        MOV(8, PPCSTATE(xer.ca),
             R(RSCRATCH));  // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
       }
       else

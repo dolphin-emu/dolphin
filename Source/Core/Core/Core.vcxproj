@@ -554,6 +554,7 @@
     <ClInclude Include="PowerPC\PPCSymbolDB.h" />
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
+    <ClInclude Include="PowerPC\XER.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Titles.h" />

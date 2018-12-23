@@ -86,8 +86,8 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   ARM64Reg WB = DecodeReg(XB);
 
   // Copy XER[0-3] into CR[inst.CRFD]
-  LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-  LDRB(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+  LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer.ca));
+  LDRB(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(xer.so_ov));
 
   // [0 SO OV CA]
   ADD(WA, WA, WB, ArithOption(WB, ST_LSL, 2));
@@ -98,8 +98,8 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   LDR(XB, XB, XA);
 
   // Clear XER[0-3]
-  STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
-  STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+  STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer.ca));
+  STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer.so_ov));
 
   gpr.Unlock(WA);
 }
@@ -329,10 +329,10 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     gpr.BindToRegister(d, false);
     ARM64Reg RD = gpr.R(d);
     ARM64Reg WA = gpr.GetReg();
-    LDRH(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF(xer_stringctrl));
-    LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+    LDRH(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF(xer.stringctrl));
+    LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer.ca));
     ORR(RD, RD, WA, ArithOption(WA, ST_LSL, XER_CA_SHIFT));
-    LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+    LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer.so_ov));
     ORR(RD, RD, WA, ArithOption(WA, ST_LSL, XER_OV_SHIFT));
     gpr.Unlock(WA);
   }
@@ -393,11 +393,11 @@ void JitArm64::mtspr(UGeckoInstruction inst)
     ARM64Reg RD = gpr.R(inst.RD);
     ARM64Reg WA = gpr.GetReg();
     AND(WA, RD, 24, 30);
-    STRH(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_stringctrl));
+    STRH(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer.stringctrl));
     UBFM(WA, RD, XER_CA_SHIFT, XER_CA_SHIFT + 1);
-    STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+    STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer.ca));
     UBFM(WA, RD, XER_OV_SHIFT, 31);  // Same as WA = RD >> XER_OV_SHIFT
-    STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+    STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer.so_ov));
     gpr.Unlock(WA);
   }
   break;

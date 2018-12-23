@@ -17,6 +17,7 @@
 #include "Core/PowerPC/ConditionRegister.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
+#include "Core/PowerPC/XER.h"
 
 class CPUCoreBase;
 class PointerWrap;
@@ -116,12 +117,7 @@ struct PowerPCState
   // This variable should be inside of the CoreTiming namespace if we wanted to be correct.
   int downcount;
 
-  // XER, reformatted into byte fields for easier access.
-  u8 xer_ca;
-  u8 xer_so_ov;  // format: (SO << 1) | OV
-  // The Broadway CPU implements bits 16-23 of the XER register... even though it doesn't support
-  // lscbx
-  u16 xer_stringctrl;
+  XER xer;
 
   // gather pipe pointer for JIT access
   u8* gather_pipe_ptr;
@@ -235,53 +231,6 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define TU PowerPC::ppcState.spr[SPR_TU]
 
 #define rPS(i) (PowerPC::ppcState.ps[(i)])
-
-inline void SetCarry(u32 ca)
-{
-  PowerPC::ppcState.xer_ca = ca;
-}
-
-inline u32 GetCarry()
-{
-  return PowerPC::ppcState.xer_ca;
-}
-
-inline UReg_XER GetXER()
-{
-  u32 xer = 0;
-  xer |= PowerPC::ppcState.xer_stringctrl;
-  xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
-  xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
-  return UReg_XER{xer};
-}
-
-inline void SetXER(UReg_XER new_xer)
-{
-  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
-  PowerPC::ppcState.xer_ca = new_xer.CA;
-  PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
-}
-
-inline u32 GetXER_SO()
-{
-  return PowerPC::ppcState.xer_so_ov >> 1;
-}
-
-inline void SetXER_SO(bool value)
-{
-  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value) << 1;
-}
-
-inline u32 GetXER_OV()
-{
-  return PowerPC::ppcState.xer_so_ov & 1;
-}
-
-inline void SetXER_OV(bool value)
-{
-  PowerPC::ppcState.xer_so_ov = (PowerPC::ppcState.xer_so_ov & 0xFE) | static_cast<u32>(value);
-  SetXER_SO(value);
-}
 
 void UpdateFPRF(double dvalue);
 
