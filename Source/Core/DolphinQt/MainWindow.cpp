@@ -87,6 +87,7 @@
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/RenderWidget.h"
+#include "DolphinQt/ResourcePackManager.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
@@ -99,6 +100,10 @@
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
+#include "UICommon/ResourcePack/Manager.h"
+#include "UICommon/ResourcePack/Manifest.h"
+#include "UICommon/ResourcePack/ResourcePack.h"
+
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -208,6 +213,21 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   // Restoring of window states can sometimes go wrong, resulting in widgets being visible when they
   // shouldn't be so we have to reapply all our rules afterwards.
   Settings::Instance().RefreshWidgetVisibility();
+
+  if (!ResourcePack::Init())
+    QMessageBox::critical(this, tr("Error"), tr("Error occured while loading some texture packs"));
+
+  for (auto& pack : ResourcePack::GetPacks())
+  {
+    if (!pack.IsValid())
+    {
+      QMessageBox::critical(this, tr("Error"),
+                            tr("Invalid Pack %1 provided: %2")
+                                .arg(QString::fromStdString(pack.GetPath()))
+                                .arg(QString::fromStdString(pack.GetError())));
+      return;
+    }
+  }
 }
 
 MainWindow::~MainWindow()
@@ -393,6 +413,8 @@ void MainWindow::ConnectMenuBar()
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
+  connect(m_menu_bar, &MenuBar::ShowResourcePackManager, this,
+          &MainWindow::ShowResourcePackManager);
   connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
@@ -1552,6 +1574,13 @@ void MainWindow::OnConnectWiiRemote(int id)
 void MainWindow::ShowMemcardManager()
 {
   GCMemcardManager manager(this);
+
+  manager.exec();
+}
+
+void MainWindow::ShowResourcePackManager()
+{
+  ResourcePackManager manager(this);
 
   manager.exec();
 }

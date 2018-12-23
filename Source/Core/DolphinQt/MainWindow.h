@@ -131,6 +131,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
+  void ShowResourcePackManager();
   void ShowCheatsManager();
 
   void NetPlayInit();
