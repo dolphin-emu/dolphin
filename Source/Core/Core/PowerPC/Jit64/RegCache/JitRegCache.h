@@ -186,6 +186,7 @@ public:
   Gen::X64Reg HandoverGetXReg(size_t index);
   void HandoverPrelude(size_t index, preg_t preg);
   JitBlock::LinkData::Regs HandoverExitState() const;
+  void HandoverFullyFlush();
 
 protected:
   friend class RCOpArg;

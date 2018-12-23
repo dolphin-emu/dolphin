@@ -488,6 +488,7 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after, JitBlock::LinkDat
 
   linkData.exitPtrs = GetWritableCodePtr();
   WriteHandoverAtExit(*this, linkData, nullptr);
+  linkData.exitEnd = GetWritableCodePtr();
 
   b->linkData.push_back(linkData);
 
@@ -500,40 +501,122 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after, JitBlock::LinkDat
   }
 }
 
+void Jit64::WriteFlushLinkDataReg(Gen::XEmitter& emit, size_t preg, const JitBlock::LinkData::Reg& reg)
+{
+  switch (reg.location_type)
+  {
+  case JitBlock::LinkData::Reg::LocationType::PpcState:
+  case JitBlock::LinkData::Reg::LocationType::CleanHostReg:
+    break;
+  case JitBlock::LinkData::Reg::LocationType::DirtyHostReg:
+    emit.MOV(32, PPCSTATE(gpr[preg]), R(static_cast<Gen::X64Reg>(reg.location)));
+    break;
+  case JitBlock::LinkData::Reg::LocationType::Immediate:
+    emit.MOV(32, PPCSTATE(gpr[preg]), Imm32(static_cast<u32>(reg.location)));
+    break;
+  }
+}
+
 void Jit64::WriteFlushLinkDataRegs(Gen::XEmitter& emit, const JitBlock::LinkData::Regs& gpr_state)
 {
   for (size_t preg = 0; preg < gpr_state.size(); preg++)
   {
-    const auto& reg = gpr_state[preg];
-    switch (reg.location_type)
-    {
-    case JitBlock::LinkData::Reg::LocationType::PpcState:
-    case JitBlock::LinkData::Reg::LocationType::CleanHostReg:
-      break;
-    case JitBlock::LinkData::Reg::LocationType::DirtyHostReg:
-      emit.MOV(32, PPCSTATE(gpr[preg]), R(static_cast<Gen::X64Reg>(reg.location)));
-      break;
-    case JitBlock::LinkData::Reg::LocationType::Immediate:
-      emit.MOV(32, PPCSTATE(gpr[preg]), Imm32(static_cast<u32>(reg.location)));
-      break;
-    }
+    WriteFlushLinkDataReg(emit, preg, gpr_state[preg]);
   }
 }
 
 void Jit64::WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData& link_data,
                                 const JitBlock* block)
 {
-  WriteFlushLinkDataRegs(emit, link_data.gpr_state);
+  if (!block)
+  {
+    WriteFlushLinkDataRegs(emit, link_data.gpr_state);
+    if (link_data.call)
+    {
+      emit.CALL(asm_routines.dispatcher);
+      FixupBranch f = emit.J(false);
+      emit.NOP(64);
+      emit.SetJumpTarget(f);
+    }
+    else
+    {
+      emit.JMP(asm_routines.dispatcher, true);
+      emit.NOP(64);
+    }
+    ASSERT(!link_data.exitEnd || link_data.exitEnd <= emit.GetWritableCodePtr());
+    return;
+  }
 
-  const u8* address = block ? block->checkedEntry : asm_routines.dispatcher;
+  const auto& gpr_state = link_data.gpr_state;
+  const auto& infos = block->handover_info;
+
+  const auto infos_end = std::find_if(infos.begin(), infos.end(), [&](const auto& i) {
+    return gpr_state[i.preg].location_type == JitBlock::LinkData::Reg::LocationType::PpcState;
+  });
+
+  std::array<std::optional<size_t>, 16> gpr_layout;
+  for (size_t preg = 0; preg < gpr_state.size(); preg++)
+  {
+    const auto iter = std::find_if(infos.begin(), infos_end, [&](const auto& i) { return i.preg == preg; });
+    if (iter == infos_end/* || iter->needs_store*/)
+    {
+      WriteFlushLinkDataReg(emit, preg, gpr_state[preg]);
+    }
+    if (iter != infos_end && gpr_state[preg].location_type != JitBlock::LinkData::Reg::LocationType::Immediate)
+    {
+      gpr_layout[gpr_state[preg].location] = static_cast<size_t>(gpr.HandoverGetXReg(iter->index));
+    }
+  }
+
+  //printf("moo: ");
+  for (size_t source = 0; source < gpr_layout.size(); source++)
+  {
+    //printf("%i ", gpr_layout[source] ? (int)*gpr_layout[source] : -1);
+  }
+  //printf("\n");
+
+  for (size_t source = 0; source < gpr_layout.size(); source++)
+  {
+    auto& destination = gpr_layout[source];
+    if (!destination || *destination == source)
+      continue;
+    auto& destination_destination = gpr_layout[*destination];
+    if (!destination_destination)
+    {
+      //printf("%zu <-- %zu\n", *destination, source);
+      emit.MOV(32, R(static_cast<X64Reg>(*destination)), R(static_cast<X64Reg>(source)));
+      destination_destination = *destination;
+      destination = std::nullopt;
+    }
+    else
+    {
+      //printf("%zu <=> %zu\n", *destination, source);
+      emit.XCHG(32, R(static_cast<X64Reg>(*destination)), R(static_cast<X64Reg>(source)));
+      destination_destination.swap(destination);
+      source--;
+    }
+  }
+
+  for (auto iter = infos.begin(); iter != infos_end; iter++)
+  {
+    const size_t preg = iter->preg;
+    if (gpr_state[preg].location_type == JitBlock::LinkData::Reg::LocationType::Immediate)
+    {
+      emit.MOV(32, R(gpr.HandoverGetXReg(iter->index)), Imm32(static_cast<u32>(gpr_state[preg].location)));
+    }
+  }
+
+  const u8* address = infos.begin() == infos_end ? block->normalEntry : std::prev(infos_end)->entry;
   if (link_data.call)
   {
     emit.CALL(address);
+    emit.JMP(link_data.exitEnd, false);
   }
   else
   {
     emit.JMP(address, true);
   }
+  ASSERT(link_data.exitEnd <= emit.GetWritableCodePtr());
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
@@ -1042,7 +1125,7 @@ BitSet32 Jit64::ComputeSpeculativeConstants() const
 
 std::vector<JitBlock::HandoverInfo> Jit64::EmitHandoverPrelude(BitSet32 specul_gprs)
 {
-  constexpr size_t maximum_handover_count = 8;
+  constexpr size_t maximum_handover_count = 4;
   std::vector<JitBlock::HandoverInfo> result;
   BitSet32 handover_set;
   for (s8 input : code_block.m_inputs)
@@ -1071,6 +1154,8 @@ void Jit64::EmitCheckStaticGQRs(BitSet8 static_gqrs)
 
   SwitchToFarCode();
   const u8* target = GetCodePtr();
+  gpr.HandoverFullyFlush();
+  fpr.HandoverFullyFlush();
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
@@ -1097,6 +1182,8 @@ void Jit64::EmitCheckSpeculativeConstants(BitSet32 const_gprs)
 
   SwitchToFarCode();
   const u8* target = GetCodePtr();
+  gpr.HandoverFullyFlush();
+  fpr.HandoverFullyFlush();
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
@@ -1123,13 +1210,13 @@ void Jit64::FixupHandoverTracking(std::vector<JitBlock::HandoverInfo>& handover_
     switch (state[info.preg])
     {
     case RegTracker::State::Dirtied:
-    case RegTracker::State::Stored:
       info.needs_store = false;
       break;
     case RegTracker::State::Untracked:
     case RegTracker::State::Unknown:
     case RegTracker::State::Discarded:
     case RegTracker::State::Forked:
+    case RegTracker::State::Stored:
       info.needs_store = true;
       break;
     }

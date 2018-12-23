@@ -82,7 +82,8 @@ public:
   void FakeBLCall(u32 after);
   void WriteExit(u32 destination, bool bl = false, u32 after = 0);
   void JustWriteExit(u32 destination, bool bl, u32 after, JitBlock::LinkData::Regs gpr_state);
-  void WriteFlushLinkDataRegs(Gen::XEmitter& emit, const JitBlock::LinkData::Regs& gpr);
+  void WriteFlushLinkDataReg(Gen::XEmitter& emit, size_t preg, const JitBlock::LinkData::Reg& reg);
+  void WriteFlushLinkDataRegs(Gen::XEmitter& emit, const JitBlock::LinkData::Regs& gpr_state);
   void WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData&, const JitBlock*);
   void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
   void WriteBLRExit();

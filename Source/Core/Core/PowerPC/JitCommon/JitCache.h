@@ -72,6 +72,7 @@ struct JitBlock
     using Regs = std::array<Reg, 32>;
 
     u8* exitPtrs;  // to be able to rewrite the exit jump
+    u8* exitEnd = nullptr;
     u32 exitAddress;
     bool linkStatus;  // is it already linked?
     bool call;

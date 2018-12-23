@@ -505,7 +505,7 @@ Gen::X64Reg RegCache::HandoverGetXReg(size_t index)
 
 void RegCache::HandoverPrelude(size_t index, preg_t preg)
 {
-  BindToRegister(preg, HandoverGetXReg(index), true, false);
+  BindToRegister(preg, HandoverGetXReg(index), true, true);
 }
 
 JitBlock::LinkData::Regs RegCache::HandoverExitState() const
@@ -540,6 +540,25 @@ JitBlock::LinkData::Regs RegCache::HandoverExitState() const
     }
   }
   return result;
+}
+
+void RegCache::HandoverFullyFlush()
+{
+  for (size_t i = 0; i < 32; i++)
+  {
+    switch (m_regs[i].GetLocationType())
+    {
+    case PPCCachedReg::LocationType::Default:
+    case PPCCachedReg::LocationType::SpeculativeImmediate:
+      break;
+    case PPCCachedReg::LocationType::Immediate:
+      ASSERT(!"We shouldn't have any immediates at this point");
+      break;
+    case PPCCachedReg::LocationType::Bound:
+      StoreRegister(i, GetDefaultLocation(i));
+      break;
+    }
+  }
 }
 
 void RegCache::FlushX(X64Reg reg)
