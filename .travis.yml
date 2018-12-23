@@ -1,0 +1,9 @@
+language: generic
+addons:
+  homebrew:
+    brewfile: true
+matrix:
+  include:
+    - os: osx
+      env: CC=gcc CXX=g++ Qt5_DIR=/usr/local/opt/qt5
+script: mkdir build && pushd build && cmake .. && make

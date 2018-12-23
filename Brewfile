@@ -1,0 +1,7 @@
+brew 'pulseaudio'
+brew 'libev'
+brew 'qt5'
+brew 'jack'
+brew 'libusb'
+brew 'ffmpeg'
+brew 'libav'
