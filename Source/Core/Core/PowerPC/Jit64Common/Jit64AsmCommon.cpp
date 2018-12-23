@@ -15,6 +15,7 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #define QUANTIZED_REGS_TO_SAVE                                                                     \

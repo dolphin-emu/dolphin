@@ -25,16 +25,20 @@
 #include "Core/PowerPC/Jit64/RegCache/FPURegCache.h"
 #include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/BlockCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
 namespace PPCAnalyst
 {
 struct CodeBlock;
 struct CodeOp;
-}
+}  // namespace PPCAnalyst
 
-class Jit64 : public Jitx86Base
+class Jit64 : public JitBase, public QuantizedMemoryRoutines
 {
 public:
   Jit64();
@@ -56,8 +60,11 @@ public:
 
   BitSet32 CallerSavedRegistersInUse() const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
-
-  void IntializeSpeculativeConstants();
+  BitSet32 ComputeSpeculativeConstants() const;
+  std::vector<JitBlock::HandoverInfo> EmitHandoverPrelude(BitSet32 specul_gprs);
+  void EmitCheckStaticGQRs(BitSet8 static_gqrs);
+  void EmitCheckSpeculativeConstants(BitSet32 specul_gprs);
+  void FixupHandoverTracking(std::vector<JitBlock::HandoverInfo>& handover_info);
 
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
@@ -74,7 +81,10 @@ public:
 
   void FakeBLCall(u32 after);
   void WriteExit(u32 destination, bool bl = false, u32 after = 0);
-  void JustWriteExit(u32 destination, bool bl, u32 after);
+  void JustWriteExit(u32 destination, bool bl, u32 after, JitBlock::LinkData::Regs gpr_state);
+  void WriteFlushLinkDataReg(Gen::XEmitter& emit, size_t preg, const JitBlock::LinkData::Reg& reg);
+  void WriteFlushLinkDataRegs(Gen::XEmitter& emit, const JitBlock::LinkData::Regs& gpr_state);
+  void WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData&, const JitBlock*);
   void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
   void WriteBLRExit();
   void WriteExceptionExit();
@@ -229,6 +239,11 @@ public:
   void dcbx(UGeckoInstruction inst);
 
   void eieio(UGeckoInstruction inst);
+
+protected:
+  bool BackPatch(u32 emAddress, SContext* ctx);
+  JitBlockCache blocks{*this};
+  TrampolineCache trampolines;
 
 private:
   static void InitializeInstructionTables();

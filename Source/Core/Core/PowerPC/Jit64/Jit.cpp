@@ -5,6 +5,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 
 #include <map>
+#include <optional>
 #include <string>
 
 // for the PROFILER stuff
@@ -39,6 +40,8 @@
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #include "Common/GekkoDisassembler.h"
 #endif
+
+#include "Core/HW/Memmap.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -203,6 +206,9 @@ bool Jit64::HandleStackFault()
   return true;
 }
 
+// This generates some fairly heavy trampolines, but it doesn't really hurt.
+// Only instructions that access I/O will get these, and there won't be that
+// many of them in a typical program/game.
 bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
   uintptr_t stack = (uintptr_t)m_stack;
@@ -211,7 +217,16 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
   if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
     return HandleStackFault();
 
-  return Jitx86Base::HandleFault(access_address, ctx);
+  // TODO: do we properly handle off-the-end?
+  const auto base_ptr = reinterpret_cast<uintptr_t>(Memory::physical_base);
+  if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
+    return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
+
+  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(Memory::logical_base);
+  if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
+    return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
+
+  return false;
 }
 
 void Jit64::Init()
@@ -361,6 +376,8 @@ bool Jit64::Cleanup()
 
   if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
+    gpr.FlushCallerSave();
+    fpr.FlushCallerSave();
     MOV(64, R(RSCRATCH), PPCSTATE(gather_pipe_ptr));
     SUB(64, R(RSCRATCH), PPCSTATE(gather_pipe_base_ptr));
     CMP(64, R(RSCRATCH), Imm32(GPFifo::GATHER_PIPE_SIZE));
@@ -375,6 +392,8 @@ bool Jit64::Cleanup()
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0.Hex || MMCR1.Hex)
   {
+    gpr.FlushCallerSave();
+    fpr.FlushCallerSave();
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
                         js.numFloatingPointInst);
@@ -384,6 +403,8 @@ bool Jit64::Cleanup()
 
   if (jo.profile_blocks)
   {
+    gpr.FlushCallerSave();
+    fpr.FlushCallerSave();
     ABI_PushRegistersAndAdjustStack({}, 0);
     // get end tic
     MOV(64, R(ABI_PARAM1), ImmPtr(&js.curBlock->profile_data.ticStop));
@@ -413,7 +434,7 @@ void Jit64::FakeBLCall(u32 after)
   PUSH(RSCRATCH2);
   FixupBranch skip_exit = CALL();
   POP(RSCRATCH2);
-  JustWriteExit(after, false, 0);
+  JustWriteExit(after, false, 0, {});
   SetJumpTarget(skip_exit);
 }
 
@@ -422,6 +443,7 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
   if (!m_enable_blr_optimization)
     bl = false;
 
+  fpr.Flush();
   Cleanup();
 
   if (bl)
@@ -432,31 +454,170 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
-  JustWriteExit(destination, bl, after);
+  JustWriteExit(destination, bl, after, gpr.HandoverExitState());
 }
 
-void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+void Jit64::JustWriteExit(u32 destination, bool bl, u32 after, JitBlock::LinkData::Regs gpr_state)
 {
+  std::optional<FixupBranch> after_fixup;
+
   // If nobody has taken care of this yet (this can be removed when all branches are done)
   JitBlock* b = js.curBlock;
   JitBlock::LinkData linkData;
   linkData.exitAddress = destination;
   linkData.linkStatus = false;
+  linkData.call = bl;
+  linkData.gpr_state = gpr_state;
 
   MOV(32, PPCSTATE(pc), Imm32(destination));
-  linkData.exitPtrs = GetWritableCodePtr();
+
+  FixupBranch do_timing = J_CC(CC_NG, true);
+  SwitchToFarCode();
+  SetJumpTarget(do_timing);
+  WriteFlushLinkDataRegs(*this, gpr_state);
   if (bl)
-    CALL(asm_routines.dispatcher);
+  {
+    CALL(asm_routines.do_timing);
+    after_fixup = J(true);
+  }
   else
-    JMP(asm_routines.dispatcher, true);
+  {
+    JMP(asm_routines.do_timing, true);
+  }
+  SwitchToNearCode();
+
+  linkData.exitPtrs = GetWritableCodePtr();
+  WriteHandoverAtExit(*this, linkData, nullptr);
+  linkData.exitEnd = GetWritableCodePtr();
 
   b->linkData.push_back(linkData);
 
   if (bl)
   {
+    if (after_fixup)
+      SetJumpTarget(*after_fixup);
     POP(RSCRATCH);
-    JustWriteExit(after, false, 0);
+    JustWriteExit(after, false, 0, {});
   }
+}
+
+void Jit64::WriteFlushLinkDataReg(Gen::XEmitter& emit, size_t preg, const JitBlock::LinkData::Reg& reg)
+{
+  switch (reg.location_type)
+  {
+  case JitBlock::LinkData::Reg::LocationType::PpcState:
+  case JitBlock::LinkData::Reg::LocationType::CleanHostReg:
+    break;
+  case JitBlock::LinkData::Reg::LocationType::DirtyHostReg:
+    emit.MOV(32, PPCSTATE(gpr[preg]), R(static_cast<Gen::X64Reg>(reg.location)));
+    break;
+  case JitBlock::LinkData::Reg::LocationType::Immediate:
+    emit.MOV(32, PPCSTATE(gpr[preg]), Imm32(static_cast<u32>(reg.location)));
+    break;
+  }
+}
+
+void Jit64::WriteFlushLinkDataRegs(Gen::XEmitter& emit, const JitBlock::LinkData::Regs& gpr_state)
+{
+  for (size_t preg = 0; preg < gpr_state.size(); preg++)
+  {
+    WriteFlushLinkDataReg(emit, preg, gpr_state[preg]);
+  }
+}
+
+void Jit64::WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData& link_data,
+                                const JitBlock* block)
+{
+  if (!block)
+  {
+    WriteFlushLinkDataRegs(emit, link_data.gpr_state);
+    if (link_data.call)
+    {
+      FixupBranch f = emit.J(false);
+      emit.NOP(32);
+      emit.SetJumpTarget(f);
+      emit.CALL(asm_routines.dispatcher);
+    }
+    else
+    {
+      emit.JMP(asm_routines.dispatcher, true);
+      emit.NOP(32);
+    }
+    ASSERT(!link_data.exitEnd || link_data.exitEnd >= emit.GetWritableCodePtr());
+    return;
+  }
+
+  const auto& gpr_state = link_data.gpr_state;
+  const auto& infos = block->handover_info;
+
+  const auto infos_end = std::find_if(infos.begin(), infos.end(), [&](const auto& i) {
+    return gpr_state[i.preg].location_type == JitBlock::LinkData::Reg::LocationType::PpcState;
+  });
+
+  std::array<std::optional<size_t>, 16> gpr_layout;
+  for (size_t preg = 0; preg < gpr_state.size(); preg++)
+  {
+    const auto iter = std::find_if(infos.begin(), infos_end, [&](const auto& i) { return i.preg == preg; });
+    if (iter == infos_end/* || iter->needs_store*/)
+    {
+      WriteFlushLinkDataReg(emit, preg, gpr_state[preg]);
+    }
+    if (iter != infos_end && gpr_state[preg].location_type != JitBlock::LinkData::Reg::LocationType::Immediate)
+    {
+      gpr_layout[gpr_state[preg].location] = static_cast<size_t>(gpr.HandoverGetXReg(iter->index));
+    }
+  }
+
+  //printf("moo: ");
+  for (size_t source = 0; source < gpr_layout.size(); source++)
+  {
+    //printf("%i ", gpr_layout[source] ? (int)*gpr_layout[source] : -1);
+  }
+  //printf("\n");
+
+  for (size_t source = 0; source < gpr_layout.size(); source++)
+  {
+    auto& destination = gpr_layout[source];
+    if (!destination || *destination == source)
+      continue;
+    auto& destination_destination = gpr_layout[*destination];
+    if (!destination_destination)
+    {
+      //printf("%zu <-- %zu\n", *destination, source);
+      emit.MOV(32, R(static_cast<X64Reg>(*destination)), R(static_cast<X64Reg>(source)));
+      destination_destination = *destination;
+      destination = std::nullopt;
+    }
+    else
+    {
+      //printf("%zu <=> %zu\n", *destination, source);
+      emit.XCHG(32, R(static_cast<X64Reg>(*destination)), R(static_cast<X64Reg>(source)));
+      destination_destination.swap(destination);
+      source--;
+    }
+  }
+
+  for (auto iter = infos.begin(); iter != infos_end; iter++)
+  {
+    const size_t preg = iter->preg;
+    if (gpr_state[preg].location_type == JitBlock::LinkData::Reg::LocationType::Immediate)
+    {
+      emit.MOV(32, R(gpr.HandoverGetXReg(iter->index)), Imm32(static_cast<u32>(gpr_state[preg].location)));
+    }
+  }
+
+  const u8* address = infos.begin() == infos_end ? block->normalEntry : std::prev(infos_end)->entry;
+  if (link_data.call)
+  {
+    emit.JMP(link_data.exitEnd - 5, false);
+    emit.SetCodePtr(link_data.exitEnd - 5);
+    emit.CALL(address);
+  }
+  else
+  {
+    emit.JMP(address, true);
+  }
+  ASSERT(link_data.exitEnd >= emit.GetWritableCodePtr());
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
@@ -477,7 +638,7 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
   {
     CALL(asm_routines.dispatcher);
     POP(RSCRATCH);
-    JustWriteExit(after, false, 0);
+    JustWriteExit(after, false, 0, {});
   }
   else
   {
@@ -660,23 +821,14 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   u8* const start = AlignCode4();
   b->checkedEntry = start;
-
-  // Downcount flag check. The last block decremented downcounter, and the flag should still be
-  // available.
-  FixupBranch skip = J_CC(CC_G);
-  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-  JMP(asm_routines.do_timing, true);  // downcount hit zero - go do_timing.
-  SetJumpTarget(skip);
-
-  u8* const normal_entry = GetWritableCodePtr();
-  b->normalEntry = normal_entry;
+  b->normalEntry = start;
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (ImHereDebug)
   {
-    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
     ABI_CallFunction(ImHere);
-    ABI_PopRegistersAndAdjustStack({}, 0);
+    ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
   }
 
   // Conditionally add profiling code.
@@ -687,8 +839,11 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     int offset = static_cast<int>(offsetof(JitBlock::ProfileData, runCount)) -
                  static_cast<int>(offsetof(JitBlock::ProfileData, ticStart));
     ADD(64, MDisp(ABI_PARAM1, offset), Imm8(1));
+    ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
     ABI_CallFunction(QueryPerformanceCounter);
+    ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLER_SAVED, 0);
   }
+
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
   // should help logged stack-traces become more accurate
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
@@ -705,43 +860,13 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.carryFlagInverted = false;
   js.constantGqr.clear();
 
-  // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
-  // loads and stores,
-  // which are significantly faster when inlined (especially in MMU mode, where this lets them use
-  // fastmem).
-  if (js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
-  {
-    // If there are GQRs used but not set, we'll treat those as constant and optimize them
-    BitSet8 gqr_static = ComputeStaticGQRs(code_block);
-    if (gqr_static)
-    {
-      SwitchToFarCode();
-      const u8* target = GetCodePtr();
-      MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-      ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                        static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
-      ABI_PopRegistersAndAdjustStack({}, 0);
-      JMP(asm_routines.dispatcher_no_check, true);
-      SwitchToNearCode();
+  const BitSet8 static_gqrs = ComputeStaticGQRs(code_block);
+  const BitSet32 specul_gprs = ComputeSpeculativeConstants();
 
-      // Insert a check that the GQRs are still the value we expect at
-      // the start of the block in case our guess turns out wrong.
-      for (int gqr : gqr_static)
-      {
-        u32 value = GQR(gqr);
-        js.constantGqr[gqr] = value;
-        CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
-        J_CC(CC_NZ, target);
-      }
-    }
-  }
+  b->handover_info = EmitHandoverPrelude(specul_gprs);
 
-  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
-      js.noSpeculativeConstantsAddresses.end())
-  {
-    IntializeSpeculativeConstants();
-  }
+  EmitCheckStaticGQRs(static_gqrs);
+  EmitCheckSpeculativeConstants(specul_gprs);
 
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -920,8 +1045,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       fpr.Commit();
 
       // If we have a register that will never be used again, flush it.
-      gpr.Flush(~op.gprInUse);
-      fpr.Flush(~op.fprInUse);
+      gpr.Flush(~op.gprInUse & op.gprWillBeSet);
+      fpr.Flush(~op.fprInUse & op.fprWillBeSet);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
@@ -943,10 +1068,10 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
   if (code_block.m_broken)
   {
-    gpr.Flush();
-    fpr.Flush();
     WriteExit(nextPC);
   }
+
+  FixupHandoverTracking(b->handover_info);
 
   b->codeSize = (u32)(GetCodePtr() - start);
   b->originalSize = code_block.m_num_instructions;
@@ -955,12 +1080,148 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
 #endif
 
-  return normal_entry;
+  return start;
 }
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 {
+  if (js.pairedQuantizeAddresses.find(js.blockStart) != js.pairedQuantizeAddresses.end())
+    return {};
+
+  // Assume that GQR values don't change often at runtime. Many paired-heavy games use largely float
+  // loads and stores, which are significantly faster when inlined (especially in MMU mode, where
+  // this lets them use fastmem).
+  // If there are GQRs used but not set, we'll treat those as constant and optimize them
   return cb.m_gqr_used & ~cb.m_gqr_modified;
+}
+
+BitSet32 Jit64::ComputeSpeculativeConstants() const
+{
+  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) !=
+      js.noSpeculativeConstantsAddresses.end())
+    return {};
+
+  // If the block depends on an input register which looks like a gather pipe or MMIO related
+  // constant, guess that it is actually a constant input, and specialize the block based on this
+  // assumption. This happens when there are branches in code writing to the gather pipe, but only
+  // the first block loads the constant.
+  // This can save a lot of backpatching and optimize gather pipe writes in more places.
+  BitSet32 const_gprs;
+  for (auto i : code_block.m_inputs)
+  {
+    // Only check GPRs
+    if (i >= 32)
+      continue;
+
+    const u32 compileTimeValue = PowerPC::ppcState.gpr[i];
+    if (PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue) ||
+        PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
+        compileTimeValue == 0xCC000000)
+    {
+      const_gprs[i] = true;
+    }
+  }
+  return const_gprs;
+}
+
+std::vector<JitBlock::HandoverInfo> Jit64::EmitHandoverPrelude(BitSet32 specul_gprs)
+{
+  constexpr size_t maximum_handover_count = 4;
+  std::vector<JitBlock::HandoverInfo> result;
+  BitSet32 handover_set;
+  for (s8 input : code_block.m_inputs)
+  {
+    // Only handle GPRs for now
+    if (input >= 32)
+      continue;
+    if (specul_gprs[input])
+      continue;
+    if (result.size() >= maximum_handover_count)
+      break;
+
+    const size_t index = result.size();
+    gpr.HandoverPrelude(index, input);
+    result.emplace_back(JitBlock::HandoverInfo{index, input, true, GetWritableCodePtr()});
+    handover_set[input] = true;
+  }
+  gpr.HandoverStartTracking(handover_set);
+  return result;
+}
+
+void Jit64::EmitCheckStaticGQRs(BitSet8 static_gqrs)
+{
+  if (!static_gqrs)
+    return;
+
+  SwitchToFarCode();
+  const u8* target = GetCodePtr();
+  gpr.HandoverFullyFlush();
+  fpr.HandoverFullyFlush();
+  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  ABI_PushRegistersAndAdjustStack({}, 0);
+  ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
+                    static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+  ABI_PopRegistersAndAdjustStack({}, 0);
+  JMP(asm_routines.dispatcher_no_check, true);
+  SwitchToNearCode();
+
+  // Insert a check that the GQRs are still the value we expect at
+  // the start of the block in case our guess turns out wrong.
+  for (int gqr : static_gqrs)
+  {
+    u32 value = GQR(gqr);
+    js.constantGqr[gqr] = value;
+    CMP_or_TEST(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm32(value));
+    J_CC(CC_NZ, target);
+  }
+}
+
+void Jit64::EmitCheckSpeculativeConstants(BitSet32 const_gprs)
+{
+  if (!const_gprs)
+    return;
+
+  SwitchToFarCode();
+  const u8* target = GetCodePtr();
+  gpr.HandoverFullyFlush();
+  fpr.HandoverFullyFlush();
+  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  ABI_PushRegistersAndAdjustStack({}, 0);
+  ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
+                    static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+  ABI_PopRegistersAndAdjustStack({}, 0);
+  JMP(asm_routines.dispatcher, true);
+  SwitchToNearCode();
+
+  // Insert a check at the start of the block to verify that the value is actually constant.
+  for (auto i : const_gprs)
+  {
+    const u32 compileTimeValue = PowerPC::ppcState.gpr[i];
+    CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
+    J_CC(CC_NZ, target);
+    gpr.SetImmediate32(i, compileTimeValue, false);
+  }
+}
+
+void Jit64::FixupHandoverTracking(std::vector<JitBlock::HandoverInfo>& handover_info)
+{
+  const auto state = gpr.HandoverGetTrackingState();
+  for (JitBlock::HandoverInfo& info : handover_info)
+  {
+    switch (state[info.preg])
+    {
+    case RegTracker::State::Dirtied:
+      info.needs_store = false;
+      break;
+    case RegTracker::State::Untracked:
+    case RegTracker::State::Unknown:
+    case RegTracker::State::Discarded:
+    case RegTracker::State::Forked:
+    case RegTracker::State::Stored:
+      info.needs_store = true;
+      break;
+    }
+  }
 }
 
 BitSet32 Jit64::CallerSavedRegistersInUse() const
@@ -983,41 +1244,6 @@ void Jit64::EnableOptimization()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
-}
-
-void Jit64::IntializeSpeculativeConstants()
-{
-  // If the block depends on an input register which looks like a gather pipe or MMIO related
-  // constant, guess that it is actually a constant input, and specialize the block based on this
-  // assumption. This happens when there are branches in code writing to the gather pipe, but only
-  // the first block loads the constant.
-  // Insert a check at the start of the block to verify that the value is actually constant.
-  // This can save a lot of backpatching and optimize gather pipe writes in more places.
-  const u8* target = nullptr;
-  for (auto i : code_block.m_gpr_inputs)
-  {
-    u32 compileTimeValue = PowerPC::ppcState.gpr[i];
-    if (PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue) ||
-        PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
-        compileTimeValue == 0xCC000000)
-    {
-      if (!target)
-      {
-        SwitchToFarCode();
-        target = GetCodePtr();
-        MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-        ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                          static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
-        ABI_PopRegistersAndAdjustStack({}, 0);
-        JMP(asm_routines.dispatcher, true);
-        SwitchToNearCode();
-      }
-      CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
-      J_CC(CC_NZ, target);
-      gpr.SetImmediate32(i, compileTimeValue, false);
-    }
-  }
 }
 
 bool Jit64::HandleFunctionHooking(u32 address)

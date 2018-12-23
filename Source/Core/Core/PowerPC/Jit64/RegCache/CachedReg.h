@@ -282,3 +282,48 @@ private:
   bool kill_mem = false;
   bool revertable = false;
 };
+
+class RegTracker
+{
+public:
+  enum State
+  {
+    Untracked,
+    Unknown,
+    Discarded,
+    Dirtied,
+    Stored,
+    Forked,
+  };
+
+  void StartTracking() { state = State::Unknown; }
+  State GetState() const { return state; }
+
+  void DiscardRegContentsIfCached()
+  {
+    if (state != State::Unknown)
+      return;
+    state = State::Discarded;
+  }
+  void BindToFreeRegister([[maybe_unused]] bool doLoad, bool makeDirty)
+  {
+    if (state != State::Unknown || !makeDirty)
+      return;
+    state = State::Dirtied;
+  }
+  void StoreFromRegister()
+  {
+    if (state != State::Unknown)
+      return;
+    state = State::Stored;
+  }
+  void Fork()
+  {
+    if (state != State::Unknown)
+      return;
+    state = State::Forked;
+  }
+
+private:
+  State state = State::Untracked;
+};

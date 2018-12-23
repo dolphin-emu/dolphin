@@ -12,6 +12,7 @@
 
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64;
@@ -170,6 +171,7 @@ public:
 
   RCForkGuard Fork();
   void Flush(BitSet32 pregs = BitSet32::AllTrue(32));
+  void FlushCallerSave();
   void Revert();
   void Commit();
 
@@ -177,6 +179,14 @@ public:
 
   void PreloadRegisters(BitSet32 pregs);
   BitSet32 RegistersInUse() const;
+
+  // Functions for register handover optimization use
+  void HandoverStartTracking(BitSet32 pregs);
+  std::array<RegTracker::State, 32> HandoverGetTrackingState() const;
+  Gen::X64Reg HandoverGetXReg(size_t index);
+  void HandoverPrelude(size_t index, preg_t preg);
+  JitBlock::LinkData::Regs HandoverExitState() const;
+  void HandoverFullyFlush();
 
 protected:
   friend class RCOpArg;
@@ -191,10 +201,12 @@ protected:
 
   virtual BitSet32 GetRegUtilization() const = 0;
   virtual BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const = 0;
+  virtual BitSet32 GetCallerSaveXRegs() const = 0;
 
   void FlushX(Gen::X64Reg reg);
   void DiscardRegContentsIfCached(preg_t preg);
-  void BindToRegister(preg_t preg, bool doLoad = true, bool makeDirty = true);
+  void BindToFreeRegister(preg_t preg, bool doLoad = true, bool makeDirty = true);
+  void BindToRegister(preg_t preg, Gen::X64Reg xr, bool doLoad, bool makeDirty);
   void StoreFromRegister(preg_t preg, FlushMode mode = FlushMode::Full);
 
   Gen::X64Reg GetFreeXReg();
@@ -218,5 +230,6 @@ protected:
   std::array<PPCCachedReg, 32> m_regs;
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
   std::array<RCConstraint, 32> m_constraints;
+  std::array<RegTracker, 32> m_trackers;
   Gen::XEmitter* m_emitter = nullptr;
 };

@@ -6,14 +6,15 @@
 
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
-class JitBase;
+class Jit64;
 
 class JitBlockCache : public JitBaseBlockCache
 {
 public:
-  explicit JitBlockCache(JitBase& jit);
+  explicit JitBlockCache(Jit64& jit);
 
 private:
+  Jit64& m_jit;
   void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override;
   void WriteDestroyBlock(const JitBlock& block) override;
 };

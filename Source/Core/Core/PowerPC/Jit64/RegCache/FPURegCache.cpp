@@ -4,6 +4,7 @@
 
 #include "Core/PowerPC/Jit64/RegCache/FPURegCache.h"
 
+#include "Common/x64ABI.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
@@ -55,4 +56,9 @@ BitSet32 FPURegCache::CountRegsIn(preg_t preg, u32 lookahead) const
   }
 
   return regs_used;
+}
+
+BitSet32 FPURegCache::GetCallerSaveXRegs() const
+{
+  return (ABI_ALL_CALLER_SAVED & ABI_ALL_FPRS) >> 16;
 }

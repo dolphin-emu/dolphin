@@ -54,10 +54,29 @@ struct JitBlock
   // This is used to implement block linking.
   struct LinkData
   {
+    // Information about PPC register state for this exit.
+    // This is used to implement register handover.
+    struct Reg
+    {
+      enum class LocationType
+      {
+        PpcState,
+        CleanHostReg,
+        DirtyHostReg,
+        Immediate,
+      };
+
+      LocationType location_type = LocationType::PpcState;
+      size_t location;
+    };
+    using Regs = std::array<Reg, 32>;
+
     u8* exitPtrs;  // to be able to rewrite the exit jump
+    u8* exitEnd = nullptr;
     u32 exitAddress;
     bool linkStatus;  // is it already linked?
     bool call;
+    Regs gpr_state;
   };
   std::vector<LinkData> linkData;
 
@@ -77,6 +96,15 @@ struct JitBlock
   // This tracks the position if this block within the fast block cache.
   // We allow each block to have only one map entry.
   size_t fast_block_map_index;
+
+  struct HandoverInfo
+  {
+    size_t index;
+    s8 preg;
+    bool needs_store;
+    u8* entry;
+  };
+  std::vector<HandoverInfo> handover_info;
 };
 
 typedef void (*CompiledCode)();
