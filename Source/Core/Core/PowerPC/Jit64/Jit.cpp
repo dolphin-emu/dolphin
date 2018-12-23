@@ -533,17 +533,17 @@ void Jit64::WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData& l
     WriteFlushLinkDataRegs(emit, link_data.gpr_state);
     if (link_data.call)
     {
-      emit.CALL(asm_routines.dispatcher);
       FixupBranch f = emit.J(false);
-      emit.NOP(64);
+      emit.NOP(32);
       emit.SetJumpTarget(f);
+      emit.CALL(asm_routines.dispatcher);
     }
     else
     {
       emit.JMP(asm_routines.dispatcher, true);
-      emit.NOP(64);
+      emit.NOP(32);
     }
-    ASSERT(!link_data.exitEnd || link_data.exitEnd <= emit.GetWritableCodePtr());
+    ASSERT(!link_data.exitEnd || link_data.exitEnd >= emit.GetWritableCodePtr());
     return;
   }
 
@@ -609,14 +609,15 @@ void Jit64::WriteHandoverAtExit(Gen::XEmitter& emit, const JitBlock::LinkData& l
   const u8* address = infos.begin() == infos_end ? block->normalEntry : std::prev(infos_end)->entry;
   if (link_data.call)
   {
+    emit.JMP(link_data.exitEnd - 5, false);
+    emit.SetCodePtr(link_data.exitEnd - 5);
     emit.CALL(address);
-    emit.JMP(link_data.exitEnd, false);
   }
   else
   {
     emit.JMP(address, true);
   }
-  ASSERT(link_data.exitEnd <= emit.GetWritableCodePtr());
+  ASSERT(link_data.exitEnd >= emit.GetWritableCodePtr());
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
