@@ -41,7 +41,8 @@ void Jit64::SetFPRFIfNeeded(RCX64Reg& reg)
   }
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
+RCRepr Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, RCRepr repr,
+                         X64Reg clobber)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -55,10 +56,12 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
   {
     if (xmm_out != xmm)
       MOVAPD(xmm_out, R(xmm));
-    return;
+    return repr;
   }
 
   ASSERT(xmm != clobber);
+
+  fpr.Convert(xmm, repr, RCRepr::Canonical);
 
   std::vector<u32> inputs;
   u32 a = inst.FA, b = inst.FB, c = inst.FC;
@@ -151,6 +154,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
   }
   if (xmm_out != xmm)
     MOVAPD(xmm_out, R(xmm));
+  return RCRepr::Canonical;
 }
 
 void Jit64::fp_arith(UGeckoInstruction inst)
@@ -206,7 +210,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, Rd, dest);
+    HandleNaNs(inst, Rd, dest, RCRepr::Canonical);
     Rd.SetRepr(RCRepr::Canonical);
     if (single)
     {
@@ -366,15 +370,16 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       XORPD(XMM1, MConst(packed ? psSignBits2 : psSignBits));
   }
 
-  Rd.SetRepr(RCRepr::Canonical);
   if (single)
   {
-    HandleNaNs(inst, Rd, XMM1);
+    HandleNaNs(inst, Rd, XMM1, RCRepr::Canonical);
+    Rd.SetRepr(RCRepr::Canonical);
     ForceSinglePrecision(Rd, Rd, packed, true);
   }
   else
   {
-    HandleNaNs(inst, XMM1, XMM1);
+    HandleNaNs(inst, XMM1, XMM1, RCRepr::Canonical);
+    Rd.SetRepr(RCRepr::Canonical);
     MOVSD(Rd, R(XMM1));
   }
   SetFPRFIfNeeded(Rd);

@@ -34,7 +34,7 @@ namespace PPCAnalyst
 {
 struct CodeBlock;
 struct CodeOp;
-}
+}  // namespace PPCAnalyst
 
 class Jit64 : public Jitx86Base
 {
@@ -110,8 +110,8 @@ public:
   Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
   void SetFPRFIfNeeded(RCX64Reg& xmm);
 
-  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
-                  Gen::X64Reg clobber = Gen::XMM0);
+  RCRepr HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in, RCRepr repr,
+                    Gen::X64Reg clobber = Gen::XMM0);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 

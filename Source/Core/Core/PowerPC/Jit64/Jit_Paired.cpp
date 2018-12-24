@@ -76,7 +76,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   default:
     PanicAlert("ps_sum WTF!!!");
   }
-  HandleNaNs(inst, Rd, tmp, tmp == XMM1 ? XMM0 : XMM1);
+  HandleNaNs(inst, Rd, tmp, RCRepr::Canonical, tmp == XMM1 ? XMM0 : XMM1);
   Rd.SetRepr(RCRepr::Canonical);
   ForceSinglePrecision(Rd, Rd);
   SetFPRFIfNeeded(Rd);
@@ -112,7 +112,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   if (round_input)
     Force25BitPrecision(XMM1, R(XMM1), XMM0);
   MULPD(XMM1, Ra);
-  HandleNaNs(inst, Rd, XMM1);
+  HandleNaNs(inst, Rd, XMM1, RCRepr::Canonical);
   Rd.SetRepr(RCRepr::Canonical);
   ForceSinglePrecision(Rd, Rd);
   SetFPRFIfNeeded(Rd);
