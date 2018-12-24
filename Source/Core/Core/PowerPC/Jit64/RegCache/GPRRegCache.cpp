@@ -24,6 +24,11 @@ void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
   m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].Location());
 }
 
+void GPRRegCache::ConvertRegister(preg_t, RCRepr)
+{
+  ASSERT_MSG(DYNA_REC, false, "GPRRegCache: Only RCRepr::Canonical is valid");
+}
+
 OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
 {
   return PPCSTATE(gpr[preg]);

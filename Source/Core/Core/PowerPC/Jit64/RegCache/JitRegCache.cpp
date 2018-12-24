@@ -267,6 +267,13 @@ void RCX64Reg::Unlock()
   contents = std::monostate{};
 }
 
+void RCX64Reg::SetRepr(RCRepr repr)
+{
+  const preg_t* preg = std::get_if<preg_t>(&contents);
+  ASSERT(rc && preg);
+  rc->SetRepr(*preg, repr);
+}
+
 RCForkGuard::RCForkGuard(RegCache& rc_) : rc(&rc_), m_regs(rc_.m_regs), m_xregs(rc_.m_xregs)
 {
   ASSERT(!rc->IsAnyConstraintActive());
@@ -334,27 +341,27 @@ bool RegCache::SanityCheck() const
   return true;
 }
 
-RCOpArg RegCache::Use(preg_t preg, RCMode mode)
+RCOpArg RegCache::Use(preg_t preg, RCMode mode, RCRepr repr)
 {
-  m_constraints[preg].AddUse(mode);
+  m_constraints[preg].AddUse(mode, repr);
   return RCOpArg{this, preg};
 }
 
-RCOpArg RegCache::UseNoImm(preg_t preg, RCMode mode)
+RCOpArg RegCache::UseNoImm(preg_t preg, RCMode mode, RCRepr repr)
 {
-  m_constraints[preg].AddUseNoImm(mode);
+  m_constraints[preg].AddUseNoImm(mode, repr);
   return RCOpArg{this, preg};
 }
 
-RCOpArg RegCache::BindOrImm(preg_t preg, RCMode mode)
+RCOpArg RegCache::BindOrImm(preg_t preg, RCMode mode, RCRepr repr)
 {
-  m_constraints[preg].AddBindOrImm(mode);
+  m_constraints[preg].AddBindOrImm(mode, repr);
   return RCOpArg{this, preg};
 }
 
-RCX64Reg RegCache::Bind(preg_t preg, RCMode mode)
+RCX64Reg RegCache::Bind(preg_t preg, RCMode mode, RCRepr repr)
 {
-  m_constraints[preg].AddBind(mode);
+  m_constraints[preg].AddBind(mode, repr);
   return RCX64Reg{this, preg};
 }
 
@@ -444,8 +451,8 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
   {
     if (NumFreeRegisters() < 2)
       return;
-    if (!R(preg).IsImm())
-      BindToRegister(preg, true, false);
+    if (!R(preg).IsImm() && !m_regs[preg].IsBound())
+      BindToRegister(preg, true, false, RCRepr::Canonical);
   }
 }
 
@@ -480,7 +487,7 @@ void RegCache::DiscardRegContentsIfCached(preg_t preg)
   }
 }
 
-void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty, RCRepr repr)
 {
   if (!m_regs[i].IsBound())
   {
@@ -512,6 +519,13 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
       m_xregs[RX(i)].MakeDirty();
   }
 
+  if (doLoad && repr != m_regs[i].GetRepr())
+  {
+    ConvertRegister(i, repr);
+  }
+  if (makeDirty)
+    m_regs[i].SetRepr(repr);
+
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(), "WTF, this reg should have been flushed");
 }
 
@@ -519,6 +533,8 @@ void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 {
   // When a transaction is in progress, allowing the store would overwrite the old value.
   ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress!");
+  ASSERT_MSG(DYNA_REC, mode == FlushMode::Full || IsRCReprCanonicalCompatible(m_regs[i].GetRepr()),
+             "Value requires representation conversion, cannot MaintainState!");
 
   bool doStore = false;
 
@@ -683,14 +699,18 @@ void RegCache::Realize(preg_t preg)
   const bool dirty = m_constraints[preg].ShouldDirty();
   const bool kill_imm = m_constraints[preg].ShouldKillImmediate();
   const bool kill_mem = m_constraints[preg].ShouldKillMemory();
+  const RCRepr repr = m_constraints[preg].RequiredRepr();
 
   const auto do_bind = [&] {
-    BindToRegister(preg, load, dirty);
+    BindToRegister(preg, load, dirty, repr);
     m_constraints[preg].Realized(RCConstraint::RealizedLoc::Bound);
   };
 
   if (m_constraints[preg].ShouldBeRevertable())
   {
+    ASSERT(repr == RCRepr::Canonical);
+    if (!IsRCReprCanonicalCompatible(m_regs[preg].GetRepr()))
+      ConvertRegister(preg, RCRepr::Canonical);
     StoreFromRegister(preg, FlushMode::MaintainState);
     do_bind();
     m_regs[preg].SetRevertable();
@@ -720,6 +740,12 @@ void RegCache::Realize(preg_t preg)
     m_constraints[preg].Realized(RCConstraint::RealizedLoc::Imm);
     break;
   }
+}
+
+void RegCache::SetRepr(preg_t preg, RCRepr repr)
+{
+  ASSERT_MSG(DYNA_REC, m_constraints[preg].ShouldDirty(), "Not RCMode::Write!!!");
+  m_regs[preg].SetRepr(repr);
 }
 
 bool RegCache::IsAnyConstraintActive() const
