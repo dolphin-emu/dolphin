@@ -240,9 +240,11 @@ static size_t s_auto_disc_change_index;
 
 // Events
 static CoreTiming::EventType* s_finish_executing_command;
+static CoreTiming::EventType* s_auto_change_disc;
 static CoreTiming::EventType* s_eject_disc;
 static CoreTiming::EventType* s_insert_disc;
 
+static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate);
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
@@ -398,6 +400,7 @@ void Init()
   Reset();
   s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
 
+  s_auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
   s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
   s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
@@ -469,6 +472,11 @@ void SetDisc(std::unique_ptr<DiscIO::Volume> disc,
 bool IsDiscInside()
 {
   return DVDThread::HasDisc();
+}
+
+static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate)
+{
+  AutoChangeDisc();
 }
 
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
@@ -1039,15 +1047,19 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", command_1 ? "eject" : "",
              command_2 ? "kill!" : "");
 
-    bool auto_disc_change = Config::Get(Config::MAIN_AUTO_DISC_CHANGE) &&
-                            !Movie::IsPlayingInput() && DVDThread::IsInsertedDiscRunning();
-    if (auto_disc_change)
-      auto_disc_change = AutoChangeDisc();
-    if (auto_disc_change)
-      OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
+    const bool force_eject = command_1 && !command_2;
 
-    if (!auto_disc_change && command_1 && !command_2)
+    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
+        DVDThread::IsInsertedDiscRunning() && !s_auto_disc_change_paths.empty())
+    {
+      CoreTiming::ScheduleEvent(force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2,
+                                s_auto_change_disc);
+      OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
+    }
+    else if (force_eject)
+    {
       EjectDiscCallback(0, 0);
+    }
     break;
   }
 
