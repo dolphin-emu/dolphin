@@ -72,6 +72,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   if (single)
   {
     ConvertSingleToDouble(Rd, RSCRATCH, true);
+    Rd.SetRepr(RCRepr::DupPhysical);
   }
   else
   {

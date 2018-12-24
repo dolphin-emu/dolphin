@@ -166,8 +166,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
   // at the end by
   // using packed arithmetic instead.
-  bool packed = inst.OPCD == 4 ||
-                (inst.OPCD == 59 && js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[arg2]);
+  bool packed = inst.OPCD == 4 || (inst.OPCD == 59 && fpr.IsDupPhysical(a, arg2));
   // Packed divides are slower than scalar divides on basically all x86, so this optimization isn't
   // worth it in that case.
   // Atoms (and a few really old CPUs) are also slower on packed operations than scalar ones.
@@ -206,7 +205,10 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 
     HandleNaNs(inst, Rd, dest);
     if (single)
+    {
       ForceSinglePrecision(Rd, Rd, packed, true);
+      Rd.SetRepr(RCRepr::DupPhysical);
+    }
     SetFPRFIfNeeded(Rd);
   };
 
@@ -245,8 +247,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   int d = inst.FD;
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
   bool round_input = single && !js.op->fprIsSingle[c];
-  bool packed = inst.OPCD == 4 || (!cpu_info.bAtom && single && js.op->fprIsDuplicated[a] &&
-                                   js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
+  bool packed = inst.OPCD == 4 || (!cpu_info.bAtom && single && fpr.IsDupPhysical(a, b, c));
 
   // While we don't know if any games are actually affected (replays seem to work with all the usual
   // suspects for desyncing), netplay and other applications need absolute perfect determinism, so
@@ -366,6 +367,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   {
     HandleNaNs(inst, Rd, XMM1);
     ForceSinglePrecision(Rd, Rd, packed, true);
+    Rd.SetRepr(RCRepr::DupPhysical);
   }
   else
   {
@@ -644,13 +646,14 @@ void Jit64::frspx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
-  bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
+  bool packed = fpr.IsDupPhysical(b) && !cpu_info.bAtom;
 
   RCOpArg Rb = fpr.Use(b, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(Rb, Rd);
 
   ForceSinglePrecision(Rd, Rb, packed, true);
+  Rd.SetRepr(RCRepr::DupPhysical);
   SetFPRFIfNeeded(Rd);
 }
 
@@ -689,5 +692,6 @@ void Jit64::fresx(UGeckoInstruction inst)
   MOVAPD(XMM0, Rb);
   CALL(asm_routines.fres);
   MOVDDUP(Rd, R(XMM0));
+  Rd.SetRepr(RCRepr::DupPhysical);
   SetFPRFIfNeeded(Rd);
 }
