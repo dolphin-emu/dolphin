@@ -274,6 +274,13 @@ void RCX64Reg::SetRepr(RCRepr repr)
   rc->SetRepr(*preg, repr);
 }
 
+void RCX64Reg::ConvertTo(RCRepr repr)
+{
+  const preg_t* preg = std::get_if<preg_t>(&contents);
+  ASSERT(rc && preg);
+  rc->ConvertRegister(*preg, repr);
+}
+
 RCForkGuard::RCForkGuard(RegCache& rc_) : rc(&rc_), m_regs(rc_.m_regs), m_xregs(rc_.m_xregs)
 {
   ASSERT(!rc->IsAnyConstraintActive());

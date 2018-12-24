@@ -89,6 +89,7 @@ public:
   void Unlock();
 
   void SetRepr(RCRepr repr);
+  void ConvertTo(RCRepr repr);
 
 private:
   friend class RegCache;
