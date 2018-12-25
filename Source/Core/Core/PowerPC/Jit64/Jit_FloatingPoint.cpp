@@ -721,8 +721,8 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   int d = inst.RD;
   int b = inst.RB;
 
-  RCOpArg Rb = fpr.Use(b, RCMode::Read);
-  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RCOpArg Rb = fpr.Use(b, RCMode::Read, RCRepr::LowerDouble);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::ReadWrite, RCRepr::Canonical);
   RegCache::Realize(Rb, Rd);
 
   // Intel uses 0x80000000 as a generic error code while PowerPC uses clamping:
