@@ -37,6 +37,7 @@ import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -74,10 +75,10 @@ public final class EmulationActivity extends AppCompatActivity
   private boolean activityRecreated;
   private String mSelectedTitle;
   private int mPlatform;
-  private String mPath;
+  private String[] mPaths;
   private boolean backPressedOnce = false;
 
-  public static final String EXTRA_SELECTED_GAME = "SelectedGame";
+  public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
   public static final String EXTRA_PLATFORM = "Platform";
 
@@ -166,11 +167,20 @@ public final class EmulationActivity extends AppCompatActivity
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
   }
 
+  private static String[] scanForSecondDisc(GameFile gameFile)
+  {
+    GameFile secondFile = GameFileCacheService.findSecondDisc(gameFile);
+    if (secondFile == null)
+      return new String[]{gameFile.getPath()};
+    else
+      return new String[]{gameFile.getPath(), secondFile.getPath()};
+  }
+
   public static void launch(FragmentActivity activity, GameFile gameFile)
   {
     Intent launcher = new Intent(activity, EmulationActivity.class);
 
-    launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
+    launcher.putExtra(EXTRA_SELECTED_GAMES, scanForSecondDisc(gameFile));
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
     Bundle options = new Bundle();
@@ -193,7 +203,7 @@ public final class EmulationActivity extends AppCompatActivity
     {
       // Get params we were passed
       Intent gameToEmulate = getIntent();
-      mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
+      mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       activityRecreated = false;
@@ -201,7 +211,7 @@ public final class EmulationActivity extends AppCompatActivity
     else
     {
       // Could have recreated the activity(rotate) before creating the fragment. If the fragment
-      // doesn't exist, treat this as a new start. 
+      // doesn't exist, treat this as a new start.
       activityRecreated = mEmulationFragment != null;
       restoreState(savedInstanceState);
     }
@@ -264,7 +274,7 @@ public final class EmulationActivity extends AppCompatActivity
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) &&
             mEmulationFragment == null)
     {
-      mEmulationFragment = EmulationFragment.newInstance(mPath);
+      mEmulationFragment = EmulationFragment.newInstance(mPaths);
       getSupportFragmentManager().beginTransaction()
               .add(R.id.frame_emulation_fragment, mEmulationFragment)
               .commit();
@@ -286,7 +296,7 @@ public final class EmulationActivity extends AppCompatActivity
     {
       mEmulationFragment.saveTemporaryState();
     }
-    outState.putString(EXTRA_SELECTED_GAME, mPath);
+    outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
     super.onSaveInstanceState(outState);
@@ -294,7 +304,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   protected void restoreState(Bundle savedInstanceState)
   {
-    mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
+    mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
   }

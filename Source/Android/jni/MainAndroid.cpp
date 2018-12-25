@@ -571,10 +571,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
   WiimoteReal::Refresh();
 }
 
-static void Run(const std::string& path, bool first_open,
+static void Run(const std::vector<std::string>& paths, bool first_open,
                 std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
 {
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", path.c_str());
+  ASSERT(!paths.empty());
+  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
 
   // Install our callbacks
   OSD::AddCallback(OSD::CallbackType::Shutdown, ButtonManager::Shutdown);
@@ -595,7 +596,7 @@ static void Run(const std::string& path, bool first_open,
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
-  std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(path, savestate_path);
+  std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(paths, savestate_path);
   boot->delete_savestate = delete_savestate;
   WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf);
   if (BootManager::BootCore(std::move(boot), wsi))
@@ -630,17 +631,17 @@ static void Run(const std::string& path, bool first_open,
   }
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jboolean jfirstOpen)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jobjectArray jPaths, jboolean jfirstOpen)
 {
-  Run(GetJString(env, jFile), jfirstOpen);
+  Run(JStringArrayToVector(env, jPaths), jfirstOpen);
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate)
+Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jobjectArray jPaths, jstring jSavestate, jboolean jDeleteSavestate)
 {
-  Run(GetJString(env, jFile), false, GetJString(env, jSavestate), jDeleteSavestate);
+  Run(JStringArrayToVector(env, jPaths), false, GetJString(env, jSavestate), jDeleteSavestate);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env,

@@ -30,7 +30,7 @@ import java.io.File;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
-  private static final String KEY_GAMEPATH = "gamepath";
+  private static final String KEY_GAMEPATHS = "gamepaths";
 
   private SharedPreferences mPreferences;
 
@@ -42,11 +42,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   private EmulationActivity activity;
 
-  public static EmulationFragment newInstance(String gamePath)
+  public static EmulationFragment newInstance(String[] gamePaths)
   {
-
     Bundle args = new Bundle();
-    args.putString(KEY_GAMEPATH, gamePath);
+    args.putStringArray(KEY_GAMEPATHS, gamePaths);
 
     EmulationFragment fragment = new EmulationFragment();
     fragment.setArguments(args);
@@ -82,13 +81,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
     mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-    String gamePath = getArguments().getString(KEY_GAMEPATH);
+    String[] gamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
     boolean firstOpen = preferences.getBoolean(StartupHandler.NEW_SESSION, true);
     SharedPreferences.Editor sPrefsEditor = preferences.edit();
     sPrefsEditor.putBoolean(StartupHandler.NEW_SESSION, false);
     sPrefsEditor.apply();
-    mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath(), firstOpen);
+    mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath(), firstOpen);
   }
 
   /**
@@ -273,7 +272,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       STOPPED, RUNNING, PAUSED
     }
 
-    private final String mGamePath;
+    private final String[] mGamePaths;
     private Thread mEmulationThread;
     private State state;
     private Surface mSurface;
@@ -282,10 +281,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     private boolean firstOpen;
     private final String temporaryStatePath;
 
-    EmulationState(String gamePath, String temporaryStatePath, boolean firstOpen)
+    EmulationState(String[] gamePaths, String temporaryStatePath, boolean firstOpen)
     {
       this.firstOpen = firstOpen;
-      mGamePath = gamePath;
+      mGamePaths = gamePaths;
       this.temporaryStatePath = temporaryStatePath;
       // Starting state is stopped.
       state = State.STOPPED;
@@ -423,12 +422,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
           if (loadPreviousTemporaryState)
           {
             Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-            NativeLibrary.Run(mGamePath, temporaryStatePath, true);
+            NativeLibrary.Run(mGamePaths, temporaryStatePath, true);
           }
           else
           {
             Log.debug("[EmulationFragment] Starting emulation thread.");
-            NativeLibrary.Run(mGamePath, firstOpen);
+            NativeLibrary.Run(mGamePaths, firstOpen);
           }
         }, "NativeEmulation");
         mEmulationThread.start();

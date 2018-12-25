@@ -213,6 +213,7 @@ public final class SettingsFragmentPresenter
     Setting overclock = null;
     Setting speedLimit = null;
     Setting audioStretch = null;
+    Setting autoDiscChange = null;
     Setting analytics = null;
     Setting enableSaveState;
     Setting lockToLandscape;
@@ -225,6 +226,7 @@ public final class SettingsFragmentPresenter
     overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
     speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
     audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+    autoDiscChange = coreSection.getSetting(SettingsFile.KEY_AUTO_DISC_CHANGE);
     analytics = analyticsSection.getSetting(SettingsFile.KEY_ANALYTICS_ENABLED);
     enableSaveState = coreSection.getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
     lockToLandscape = coreSection.getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
@@ -264,6 +266,8 @@ public final class SettingsFragmentPresenter
             R.string.speed_limit, 0, 200, "%", 100, speedLimit));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
             R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_AUTO_DISC_CHANGE, Settings.SECTION_INI_CORE,
+            R.string.auto_disc_change, 0, false, autoDiscChange));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_SAVE_STATES, Settings.SECTION_INI_CORE,
             R.string.enable_save_states, R.string.enable_save_states_description, false,
             enableSaveState));
