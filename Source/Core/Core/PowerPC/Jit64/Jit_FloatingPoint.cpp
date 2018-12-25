@@ -491,40 +491,95 @@ void Jit64::fselx(UGeckoInstruction inst)
 
   bool packed = inst.OPCD == 4;  // ps_sel
 
-  RCOpArg Ra = fpr.Use(a, RCMode::Read);
-  RCOpArg Rb = fpr.Use(b, RCMode::Read);
-  RCOpArg Rc = fpr.Use(c, RCMode::Read);
-  RCX64Reg Rd = fpr.Bind(d, packed ? RCMode::Write : RCMode::ReadWrite);
-  RegCache::Realize(Ra, Rb, Rc, Rd);
-
-  XORPD(XMM0, R(XMM0));
-  // This condition is very tricky; there's only one right way to handle both the case of
-  // negative/positive zero and NaN properly.
-  // (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
-  if (packed)
-    CMPPD(XMM0, Ra, CMP_NLE);
-  else
-    CMPSD(XMM0, Ra, CMP_NLE);
-
-  if (cpu_info.bSSE4_1)
+  if (fpr.IsSingle(a, b, c) && (packed || fpr.IsSingle(d)))
   {
-    MOVAPD(XMM1, Rc);
-    BLENDVPD(XMM1, Rb);
+    RCOpArg Ra = fpr.Use(a, RCMode::Read, RCRepr::PairSingles);
+    RCOpArg Rb = fpr.Use(b, RCMode::Read, RCRepr::PairSingles);
+    RCOpArg Rc = fpr.Use(c, RCMode::Read, RCRepr::PairSingles);
+    RCX64Reg Rd = fpr.Bind(d, packed ? RCMode::Write : RCMode::ReadWrite, RCRepr::PairSingles);
+    RegCache::Realize(Ra, Rb, Rc, Rd);
+
+    XORPS(XMM0, R(XMM0));
+    // This condition is very tricky; there's only one right way to handle both the case of
+    // negative/positive zero and NaN properly.
+    // (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
+    if (packed)
+      CMPPS(XMM0, Ra, CMP_NLE);
+    else
+      CMPSS(XMM0, Ra, CMP_NLE);
+
+    if (cpu_info.bSSE4_1 && c == d && packed)
+    {
+      BLENDVPS(Rd, Rb);
+    }
+    else if (cpu_info.bSSE4_1)
+    {
+      MOVAPS(XMM1, Rc);
+      BLENDVPS(XMM1, Rb);
+      if (packed)
+        MOVAPS(Rd, R(XMM1));
+      else
+        MOVSS(Rd, R(XMM1));
+    }
+    else
+    {
+      MOVAPS(XMM1, R(XMM0));
+      ANDPS(XMM0, Rb);
+      ANDNPS(XMM1, Rc);
+      ORPS(XMM1, R(XMM0));
+      if (packed)
+        MOVAPS(Rd, R(XMM1));
+      else
+        MOVSS(Rd, R(XMM1));
+    }
+
+    Rd.SetRepr(RCRepr::PairSingles);
   }
   else
   {
-    MOVAPD(XMM1, R(XMM0));
-    ANDPD(XMM0, Rb);
-    ANDNPD(XMM1, Rc);
-    ORPD(XMM1, R(XMM0));
+    RCOpArg Ra = fpr.Use(a, RCMode::Read);
+    RCOpArg Rb = fpr.Use(b, RCMode::Read);
+    RCOpArg Rc = fpr.Use(c, RCMode::Read);
+    RCX64Reg Rd = fpr.Bind(d, packed ? RCMode::Write : RCMode::ReadWrite);
+    RegCache::Realize(Ra, Rb, Rc, Rd);
+
+    XORPD(XMM0, R(XMM0));
+    // This condition is very tricky; there's only one right way to handle both the case of
+    // negative/positive zero and NaN properly.
+    // (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
+    if (packed)
+      CMPPD(XMM0, Ra, CMP_NLE);
+    else
+      CMPSD(XMM0, Ra, CMP_NLE);
+
+    if (cpu_info.bSSE4_1 && c == d && packed)
+    {
+      BLENDVPD(Rd, Rb);
+    }
+    if (cpu_info.bSSE4_1)
+    {
+      MOVAPD(XMM1, Rc);
+      BLENDVPD(XMM1, Rb);
+      if (packed)
+        MOVAPD(Rd, R(XMM1));
+      else
+        MOVSD(Rd, R(XMM1));
+    }
+    else
+    {
+      MOVAPD(XMM1, R(XMM0));
+      ANDPD(XMM0, Rb);
+      ANDNPD(XMM1, Rc);
+      ORPD(XMM1, R(XMM0));
+      if (packed)
+        MOVAPD(Rd, R(XMM1));
+      else
+        MOVSD(Rd, R(XMM1));
+    }
+
+    bool result_rounded = fpr.IsRounded(b, c) && (packed || fpr.IsRounded(d));
+    Rd.SetRepr(result_rounded ? RCRepr::PairRounded : RCRepr::Canonical);
   }
-
-  if (packed)
-    MOVAPD(Rd, R(XMM1));
-  else
-    MOVSD(Rd, R(XMM1));
-
-  Rd.SetRepr(RCRepr::Canonical);
 }
 
 void Jit64::fmrx(UGeckoInstruction inst)
