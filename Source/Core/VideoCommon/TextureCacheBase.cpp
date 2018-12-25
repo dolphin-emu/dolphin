@@ -1378,9 +1378,10 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
     }
     else
     {
+      s32 srcNumBlocksX = entry->native_width / tex_info.block_width;
       s32 block_offset = (entry_to_update->addr - entry->addr) / tex_info.bytes_per_block;
-      s32 block_x = block_offset % numBlocksX;
-      s32 block_y = block_offset / numBlocksX;
+      s32 block_x = block_offset % srcNumBlocksX;
+      s32 block_y = block_offset / srcNumBlocksX;
       src_x = block_x * tex_info.block_width;
       src_y = block_y * tex_info.block_height;
       dst_x = 0;
