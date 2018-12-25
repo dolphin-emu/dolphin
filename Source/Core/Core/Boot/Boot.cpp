@@ -4,6 +4,12 @@
 
 #include "Core/Boot/Boot.h"
 
+#ifdef _MSC_VER
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#define HAS_STD_FILESYSTEM
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -54,10 +60,52 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-std::vector<std::string> ReadM3UFile(const std::string& path)
+std::vector<std::string> ReadM3UFile(const std::string& m3u_path, const std::string& folder_path)
 {
-  // TODO
-  return {};
+#ifndef HAS_STD_FILESYSTEM
+  ASSERT(folder_path.back() == '/');
+#endif
+
+  std::vector<std::string> result;
+  std::vector<std::string> nonexistent;
+
+  std::ifstream s;
+  File::OpenFStream(s, m3u_path, std::ios_base::in);
+
+  std::string line;
+  while (std::getline(s, line))
+  {
+    if (StringBeginsWith(line, u8"\uFEFF"))
+    {
+      WARN_LOG(BOOT, "UTF-8 BOM in file: %s", m3u_path.c_str());
+      line.erase(0, 3);
+    }
+
+    if (!line.empty() && line.front() != '#')  // Comments start with #
+    {
+#ifdef HAS_STD_FILESYSTEM
+      const fs::path path_line = fs::u8path(line);
+      const std::string path_to_add =
+          path_line.is_relative() ? fs::u8path(folder_path).append(path_line).u8string() : line;
+#else
+      const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
+#endif
+
+      (File::Exists(path_to_add) ? result : nonexistent).push_back(path_to_add);
+    }
+  }
+
+  if (!nonexistent.empty())
+  {
+    PanicAlertT("Files specified in the M3U file \"%s\" were not found:\n%s", m3u_path.c_str(),
+                JoinStrings(nonexistent, "\n").c_str());
+    return {};
+  }
+
+  if (result.empty())
+    PanicAlertT("No paths found in the M3U file \"%s\"", m3u_path.c_str());
+
+  return result;
 }
 
 BootParameters::BootParameters(Parameters&& parameters_,
@@ -88,20 +136,19 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     return {};
   }
 
+  std::string folder_path;
   std::string extension;
-  SplitPath(paths.front(), nullptr, nullptr, &extension);
+  SplitPath(paths.front(), &folder_path, nullptr, &extension);
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-  if (extension == ".m3u")
+  if (extension == ".m3u" || extension == ".m3u8")
   {
-    std::vector<std::string> new_paths = ReadM3UFile(paths.front());
-    if (!new_paths.empty())
-    {
-      paths = new_paths;
+    paths = ReadM3UFile(paths.front(), folder_path);
+    if (paths.empty())
+      return {};
 
-      SplitPath(paths.front(), nullptr, nullptr, &extension);
-      std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-    }
+    SplitPath(paths.front(), nullptr, nullptr, &extension);
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
   }
 
   const std::string path = paths.front();
