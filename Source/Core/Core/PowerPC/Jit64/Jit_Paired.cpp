@@ -104,7 +104,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
     MOVDDUP(XMM1, Rc);
     break;
   case 13:  // ps_muls1
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
+    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
     break;
   default:
     PanicAlert("ps_muls WTF!!!");
@@ -136,16 +136,16 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
   switch (inst.SUBOP10)
   {
   case 528:
-    avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
+    avx_dop(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
     break;  // 00
   case 560:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
+    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
     break;  // 01
   case 592:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);
+    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);
     break;  // 10
   case 624:
-    avx_op(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, Rd, Ra, Rb);
+    avx_dop(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, Rd, Ra, Rb);
     break;  // 11
   default:
     ASSERT_MSG(DYNA_REC, 0, "ps_merge - invalid op");

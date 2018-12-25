@@ -101,7 +101,7 @@ RCRepr Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, RCR
     std::reverse(inputs.begin(), inputs.end());
     if (cpu_info.bSSE4_1)
     {
-      avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
+      avx_dop(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, R(xmm), R(xmm), CMP_UNORD);
       PTEST(clobber, R(clobber));
       FixupBranch handle_nan = J_CC(CC_NZ, true);
       SwitchToFarCode();
@@ -112,7 +112,7 @@ RCRepr Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, RCR
       {
         RCOpArg Rx = fpr.Use(x, RCMode::Read);
         RegCache::Realize(Rx);
-        avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, Rx, Rx, CMP_UNORD);
+        avx_dop(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, Rx, Rx, CMP_UNORD);
         BLENDVPD(xmm, Rx);
       }
       FixupBranch done = J(true);
@@ -207,7 +207,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     }
     else
     {
-      avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
+      avx_dop(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
     HandleNaNs(inst, Rd, dest, RCRepr::Canonical);
@@ -281,7 +281,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
   case 15:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
+    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
     if (round_input)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
@@ -402,15 +402,15 @@ void Jit64::fsign(UGeckoInstruction inst)
   switch (inst.SUBOP10)
   {
   case 40:  // neg
-    avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
+    avx_dop(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
            packed);
     break;
   case 136:  // nabs
-    avx_op(&XEmitter::VORPD, &XEmitter::ORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
+    avx_dop(&XEmitter::VORPD, &XEmitter::ORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
            packed);
     break;
   case 264:  // abs
-    avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, Rd, src, MConst(packed ? psAbsMask2 : psAbsMask),
+    avx_dop(&XEmitter::VANDPD, &XEmitter::ANDPD, Rd, src, MConst(packed ? psAbsMask2 : psAbsMask),
            packed);
     break;
   default:
