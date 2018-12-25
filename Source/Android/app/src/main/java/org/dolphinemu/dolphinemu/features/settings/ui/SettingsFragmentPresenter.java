@@ -404,7 +404,7 @@ public final class SettingsFragmentPresenter
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_general, 0));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
-            R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries,
+            R.string.video_backend, 0, R.array.videoBackendEntries,
             R.array.videoBackendValues, 0, videoBackend));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, Settings.SECTION_GFX_SETTINGS,
             R.string.show_fps, R.string.show_fps_description, false, showFps));
@@ -466,7 +466,7 @@ public final class SettingsFragmentPresenter
     shaderListValues[0] = "";
     sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_POST_SHADER,
             Settings.SECTION_GFX_ENHANCEMENTS, R.string.post_processing_shader,
-            R.string.post_processing_shader_description, shaderListEntries, shaderListValues, "",
+            0, shaderListEntries, shaderListValues, "",
             shader));
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, Settings.SECTION_GFX_HACKS,
@@ -493,11 +493,11 @@ public final class SettingsFragmentPresenter
             R.string.wide_screen_hack, R.string.wide_screen_hack_description, false,
             wideScreenHack));
 
-		 /*
-		 Check if we support stereo
-		 If we support desktop GL then we must support at least OpenGL 3.2
-		 If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
-		 */
+     /*
+     Check if we support stereo
+     If we support desktop GL then we must support at least OpenGL 3.2
+     If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
+     */
     EGLHelper helper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
 
     if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
@@ -815,7 +815,7 @@ public final class SettingsFragmentPresenter
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
       sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
               Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), R.string.wiimote_extensions,
-              R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
+              0, R.array.wiimoteExtensionsEntries,
               R.array.wiimoteExtensionsValues, 0, extension,
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
     }
@@ -827,7 +827,7 @@ public final class SettingsFragmentPresenter
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
       sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
               Settings.SECTION_CONTROLS, R.string.wiimote_extensions,
-              R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
+              0, R.array.wiimoteExtensionsEntries,
               R.array.wiimoteExtensionsValues, 0, extension,
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
     }
