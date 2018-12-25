@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <tuple>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -170,29 +171,47 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   int arg2 = inst.SUBOP5 == 25 ? c : b;
 
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
-  // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
-  // at the end by
-  // using packed arithmetic instead.
-  bool packed = inst.OPCD == 4 || (inst.OPCD == 59 && fpr.IsDupPhysical(a, arg2));
   // Packed divides are slower than scalar divides on basically all x86, so this optimization isn't
   // worth it in that case.
+  // NOTE(merry): The above is not entirely true in 2018; most CPUs past Haswell now have packed
+  // divides with good performance.
   // Atoms (and a few really old CPUs) are also slower on packed operations than scalar ones.
-  if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
-    packed = false;
+  bool nopackopt = inst.SUBOP5 == 18 || cpu_info.bAtom;
+  // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
+  // at the end by using packed arithmetic instead.
+  bool packed = inst.OPCD == 4 || (!nopackopt && inst.OPCD == 59 && fpr.IsDupPhysical(a, arg2));
 
-  bool round_input = single && !js.op->fprIsSingle[inst.FC];
   bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
-  const auto fp_tri_op = [&](int op1, int op2, bool reversible,
-                             void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
-                             void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool roundRHS = false) {
-    RCX64Reg Rd = fpr.Bind(d, !single ? RCMode::ReadWrite : RCMode::Write);
-    RCOpArg Rop1 = fpr.Use(op1, RCMode::Read);
-    RCOpArg Rop2 = fpr.Use(op2, RCMode::Read);
+  using AvxOp = void (XEmitter::*)(X64Reg, X64Reg, const OpArg&);
+  using SseOp = void (XEmitter::*)(X64Reg, const OpArg&);
+
+  const auto fp_tri_op = [&](AvxOp avxOpSS, AvxOp avxOpPS, AvxOp avxOpSD, AvxOp avxOpPD,
+                             SseOp sseOpSS, SseOp sseOpPS, SseOp sseOpSD, SseOp sseOpPD,
+                             bool reversible, int op1, int op2, bool consider_rounding = false) {
+    const bool values_single = single && fpr.IsSingle(op1, op2);
+    const RCRepr in_repr = [&] {
+      if (!single)
+        return RCRepr::Canonical;
+      if (values_single)
+        return packed ? RCRepr::PairSingles : RCRepr::LowerSingle;
+      return packed ? RCRepr::Canonical : RCRepr::LowerDouble;
+    }();
+    const auto[avxOp, sseOp] = [&] {
+      if (!single)
+        return std::tie(avxOpSD, sseOpSD);
+      if (values_single)
+        return packed ? std::tie(avxOpPS, sseOpPS) : std::tie(avxOpSS, sseOpSS);
+      return packed ? std::tie(avxOpPD, sseOpPD) : std::tie(avxOpSD, sseOpSD);
+    }();
+
+    RCX64Reg Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite, in_repr);
+    RCOpArg Rop1 = fpr.Use(op1, RCMode::Read, in_repr);
+    RCOpArg Rop2 = fpr.Use(op2, RCMode::Read, in_repr);
     RegCache::Realize(Rd, Rop1, Rop2);
 
     X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
-    if (roundRHS)
+    if (consider_rounding && single && !values_single && !fpr.IsRounded(c))
     {
       if (d == op1 && !preserve_inputs)
       {
@@ -205,37 +224,40 @@ void Jit64::fp_arith(UGeckoInstruction inst)
         (this->*sseOp)(dest, Rop1);
       }
     }
+    else if (values_single)
+    {
+      avx_sop(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
+    }
     else
     {
       avx_dop(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, Rd, dest, RCRepr::Canonical);
-    Rd.SetRepr(RCRepr::Canonical);
-    if (single)
-    {
+    RCRepr out_repr = HandleNaNs(inst, Rd, dest, in_repr);
+    Rd.SetRepr(out_repr);
+    if (single && !values_single)
       ForceSinglePrecision(Rd, Rd, packed, true);
-    }
     SetFPRFIfNeeded(Rd);
   };
 
   switch (inst.SUBOP5)
   {
   case 18:
-    fp_tri_op(a, b, false, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
-              packed ? &XEmitter::DIVPD : &XEmitter::DIVSD);
+    fp_tri_op(&XEmitter::VDIVSS, &XEmitter::VDIVPS, &XEmitter::VDIVSD, &XEmitter::VDIVPD,
+              &XEmitter::DIVSS, &XEmitter::DIVPS, &XEmitter::DIVSD, &XEmitter::DIVPD, false, a, b);
     break;
   case 20:
-    fp_tri_op(a, b, false, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
-              packed ? &XEmitter::SUBPD : &XEmitter::SUBSD);
+    fp_tri_op(&XEmitter::VSUBSS, &XEmitter::VSUBPS, &XEmitter::VSUBSD, &XEmitter::VSUBPD,
+              &XEmitter::SUBSS, &XEmitter::SUBPS, &XEmitter::SUBSD, &XEmitter::SUBPD, false, a, b);
     break;
   case 21:
-    fp_tri_op(a, b, true, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
-              packed ? &XEmitter::ADDPD : &XEmitter::ADDSD);
+    fp_tri_op(&XEmitter::VADDSS, &XEmitter::VADDPS, &XEmitter::VADDSD, &XEmitter::VADDPD,
+              &XEmitter::ADDSS, &XEmitter::ADDPS, &XEmitter::ADDSD, &XEmitter::ADDPD, true, a, b);
     break;
   case 25:
-    fp_tri_op(a, c, true, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
-              packed ? &XEmitter::MULPD : &XEmitter::MULSD, round_input);
+    fp_tri_op(&XEmitter::VMULSS, &XEmitter::VMULPS, &XEmitter::VMULSD, &XEmitter::VMULPD,
+              &XEmitter::MULSS, &XEmitter::MULPS, &XEmitter::MULSD, &XEmitter::MULPD, true, a, c,
+              true);
     break;
   default:
     ASSERT_MSG(DYNA_REC, 0, "fp_arith WTF!!!");
