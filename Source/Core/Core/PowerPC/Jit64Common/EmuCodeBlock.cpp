@@ -1047,7 +1047,6 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 
   SetJumpTarget(continue1);
   SetJumpTarget(continue2);
-  MOVDDUP(dst, R(dst));
 }
 
 alignas(16) static const u64 psDoubleExp[2] = {0x7FF0000000000000ULL, 0};

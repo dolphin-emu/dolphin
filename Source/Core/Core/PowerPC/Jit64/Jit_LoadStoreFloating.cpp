@@ -61,7 +61,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
       offset = (s16)inst.SIMM_16;
   }
 
-  RCMode Rd_mode = !single ? RCMode::ReadWrite : RCMode::Write;
+  RCMode Rd_mode = single ? RCMode::Write : RCMode::ReadWrite;
   RCX64Reg Rd = jo.memcheck && single ? fpr.RevertableBind(d, Rd_mode) : fpr.Bind(d, Rd_mode);
   RegCache::Realize(Rd);
   BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -71,8 +71,8 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    ConvertSingleToDouble(Rd, RSCRATCH, true);
-    Rd.SetRepr(RCRepr::DupPhysical);
+    MOVD_xmm(Rd, R(RSCRATCH));
+    Rd.SetRepr(RCRepr::DupSingles);
   }
   else
   {
