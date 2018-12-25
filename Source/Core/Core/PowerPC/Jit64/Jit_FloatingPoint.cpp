@@ -20,12 +20,16 @@
 
 using namespace Gen;
 
-alignas(16) static const u64 psSignBits[2] = {0x8000000000000000ULL, 0x0000000000000000ULL};
-alignas(16) static const u64 psSignBits2[2] = {0x8000000000000000ULL, 0x8000000000000000ULL};
-alignas(16) static const u64 psAbsMask[2] = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
-alignas(16) static const u64 psAbsMask2[2] = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-alignas(16) static const u64 psGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
+alignas(16) static const u64 pdSignBits[2] = {0x8000000000000000ULL, 0x0000000000000000ULL};
+alignas(16) static const u64 pdSignBits2[2] = {0x8000000000000000ULL, 0x8000000000000000ULL};
+alignas(16) static const u64 pdAbsMask[2] = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+alignas(16) static const u64 pdAbsMask2[2] = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+alignas(16) static const u64 pdGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
 alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000};
+alignas(16) static const u32 psSignBits[4] = {0x80000000, 0, 0, 0};
+alignas(16) static const u32 psSignBits2[4] = {0x80000000, 0x80000000, 0, 0};
+alignas(16) static const u32 psAbsMask[4] = {0x7FFFFFFF, 0xFFFFFFFF, 0, 0};
+alignas(16) static const u32 psAbsMask2[4] = {0x7FFFFFFF, 0x7FFFFFFF, 0, 0};
 
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
@@ -89,7 +93,7 @@ RCRepr Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, RCR
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
     }
-    MOVDDUP(xmm, MConst(psGeneratedQNaN));
+    MOVDDUP(xmm, MConst(pdGeneratedQNaN));
     for (FixupBranch fixup : fixups)
       SetJumpTarget(fixup);
     FixupBranch done = J(true);
@@ -108,7 +112,7 @@ RCRepr Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, RCR
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
       ASSERT_MSG(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
-      BLENDVPD(xmm, MConst(psGeneratedQNaN));
+      BLENDVPD(xmm, MConst(pdGeneratedQNaN));
       for (u32 x : inputs)
       {
         RCOpArg Rx = fpr.Use(x, RCMode::Read);
@@ -134,7 +138,7 @@ RCRepr Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, RCR
       SetJumpTarget(handle_nan);
       MOVAPD(tmp, R(clobber));
       ANDNPD(clobber, R(xmm));
-      ANDPD(tmp, MConst(psGeneratedQNaN));
+      ANDPD(tmp, MConst(pdGeneratedQNaN));
       ORPD(tmp, R(clobber));
       MOVAPD(xmm, tmp);
       for (u32 x : inputs)
@@ -389,7 +393,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         ADDSD(XMM1, Rb);
     }
     if (inst.SUBOP5 == 31)  // nmadd
-      XORPD(XMM1, MConst(packed ? psSignBits2 : psSignBits));
+      XORPD(XMM1, MConst(packed ? pdSignBits2 : pdSignBits));
   }
 
   if (single)
@@ -417,29 +421,61 @@ void Jit64::fsign(UGeckoInstruction inst)
   int b = inst.FB;
   bool packed = inst.OPCD == 4;
 
-  RCOpArg src = fpr.Use(b, RCMode::Read);
+  bool values_single = fpr.IsSingle(b);
+  bool values_dup = packed && fpr.IsDup(b);
+  RCRepr in_repr = [&] {
+    if (values_dup)
+      return values_single ? RCRepr::DupSingles : RCRepr::Dup;
+    return values_single ? RCRepr::PairSingles : RCRepr::Canonical;
+  }();
+
+  RCOpArg src = fpr.Use(b, RCMode::Read, in_repr);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(src, Rd);
 
   switch (inst.SUBOP10)
   {
   case 40:  // neg
-    avx_dop(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
-           packed);
+    if (values_single)
+    {
+      avx_sop(&XEmitter::VXORPS, &XEmitter::XORPS, Rd, src,
+              MConst(packed ? psSignBits2 : psSignBits), packed);
+    }
+    else
+    {
+      avx_dop(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src,
+              MConst(packed ? pdSignBits2 : pdSignBits), packed);
+    }
     break;
   case 136:  // nabs
-    avx_dop(&XEmitter::VORPD, &XEmitter::ORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
-           packed);
+    if (values_single)
+    {
+      avx_sop(&XEmitter::VORPS, &XEmitter::ORPS, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
+              packed);
+    }
+    else
+    {
+      avx_dop(&XEmitter::VORPD, &XEmitter::ORPD, Rd, src, MConst(packed ? pdSignBits2 : pdSignBits),
+              packed);
+    }
     break;
   case 264:  // abs
-    avx_dop(&XEmitter::VANDPD, &XEmitter::ANDPD, Rd, src, MConst(packed ? psAbsMask2 : psAbsMask),
-           packed);
+    if (values_single)
+    {
+      avx_sop(&XEmitter::VANDPS, &XEmitter::ANDPS, Rd, src, MConst(packed ? psAbsMask2 : psAbsMask),
+              packed);
+    }
+    else
+    {
+      avx_dop(&XEmitter::VANDPD, &XEmitter::ANDPD, Rd, src, MConst(packed ? pdAbsMask2 : pdAbsMask),
+              packed);
+    }
     break;
   default:
     PanicAlert("fsign bleh");
     break;
   }
-  Rd.SetRepr(RCRepr::Canonical);
+  Rd.SetRepr(in_repr);
 }
 
 void Jit64::fselx(UGeckoInstruction inst)
