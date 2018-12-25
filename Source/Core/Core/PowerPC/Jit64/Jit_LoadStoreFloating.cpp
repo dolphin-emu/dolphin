@@ -206,7 +206,7 @@ void Jit64::stfiwx(UGeckoInstruction inst)
 
   RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(b, RCMode::Read);
-  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read, RCRepr::LowerDouble);
   RegCache::Realize(Ra, Rb, Rs);
 
   MOV_sum(32, RSCRATCH2, Ra, Rb);
