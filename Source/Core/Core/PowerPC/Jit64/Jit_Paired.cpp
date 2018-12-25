@@ -40,46 +40,115 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   int b = inst.FB;
   int c = inst.FC;
 
-  RCOpArg Ra = fpr.Use(a, RCMode::Read);
-  RCOpArg Rb = fpr.Use(b, RCMode::Read);
-  RCOpArg Rc = fpr.Use(c, RCMode::Read);
-  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
-  RegCache::Realize(Ra, Rb, Rc, Rd);
+  ASSERT(inst.SUBOP5 == 10 || inst.SUBOP5 == 11);
+  const bool sum0 = inst.SUBOP5 == 10;
 
-  X64Reg tmp = XMM1;
-  MOVDDUP(tmp, Ra);  // {a.ps0, a.ps0}
-  ADDPD(tmp, Rb);    // {a.ps0 + b.ps0, a.ps0 + b.ps1}
-  switch (inst.SUBOP5)
+  if (fpr.IsSingle(a, b, c))
   {
-  case 10:  // ps_sum0: {a.ps0 + b.ps1, c.ps1}
-    UNPCKHPD(tmp, Rc);
-    break;
-  case 11:  // ps_sum1: {c.ps0, a.ps0 + b.ps1}
-    if (Rc.IsSimpleReg())
+    RCX64Reg Ra = fpr.Bind(a, RCMode::Read, sum0 ? RCRepr::LowerSingle : RCRepr::PairSingles);
+    RCX64Reg Rb = fpr.Bind(b, RCMode::Read, RCRepr::PairSingles);
+    RCX64Reg Rc = fpr.Bind(c, RCMode::Read, sum0 ? RCRepr::PairSingles : RCRepr::LowerSingle);
+    RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rc, Rd);
+
+    X64Reg tmp = XMM1;
+    if (sum0)
     {
-      if (cpu_info.bSSE4_1)
+      // ps_sum0: {a.ps0 + b.ps1, c.ps1}
+      if (!fpr.IsDupPhysical(b))
       {
-        BLENDPD(tmp, Rc, 1);
+        MOVSHDUP(tmp, Rb);
+        ADDPS(tmp, Ra);
       }
       else
       {
-        MOVAPD(XMM0, Rc);
-        SHUFPD(XMM0, R(tmp), 2);
-        tmp = XMM0;
+        avx_sop(&XEmitter::VADDPS, &XEmitter::ADDPS, tmp, Rb, Ra);
+      }
+      if (cpu_info.bSSE4_1)
+      {
+        BLENDPS(tmp, Rc, 2);
+      }
+      else
+      {
+        MOVSS(tmp, Rc);
       }
     }
     else
     {
-      MOVLPD(tmp, Rc);
+      // ps_sum1: {c.ps0, a.ps0 + b.ps1}
+      if (!fpr.IsDupPhysical(a))
+      {
+        MOVSLDUP(tmp, Ra);
+        ADDPS(tmp, Rb);
+      }
+      else
+      {
+        avx_sop(&XEmitter::VADDPS, &XEmitter::ADDPS, tmp, Ra, Rb);
+      }
+      if (cpu_info.bSSE4_1)
+      {
+        BLENDPS(tmp, Rc, 1);
+      }
+      else
+      {
+        MOVAPS(XMM0, Rc);
+        MOVSS(XMM0, R(tmp));
+        tmp = XMM0;
+      }
     }
-    break;
-  default:
-    PanicAlert("ps_sum WTF!!!");
+    RCRepr repr = HandleNaNs(inst, Rd, tmp, RCRepr::PairSingles, tmp == XMM1 ? XMM0 : XMM1);
+    Rd.SetRepr(repr);
+    SetFPRFIfNeeded(Rd);
   }
-  HandleNaNs(inst, Rd, tmp, RCRepr::Canonical, tmp == XMM1 ? XMM0 : XMM1);
-  Rd.SetRepr(RCRepr::Canonical);
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  else
+  {
+    RCOpArg Ra = fpr.Use(a, RCMode::Read, sum0 ? RCRepr::LowerDouble : RCRepr::Canonical);
+    RCOpArg Rb = fpr.Use(b, RCMode::Read, RCRepr::Canonical);
+    RCOpArg Rc = fpr.Use(c, RCMode::Read, sum0 ? RCRepr::Canonical : RCRepr::LowerDouble);
+    RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rc, Rd);
+
+    X64Reg tmp = XMM1;
+    if (!fpr.IsDupPhysical(a))
+    {
+      MOVDDUP(tmp, Ra);  // {a.ps0, a.ps0}
+      ADDPD(tmp, Rb);    // {a.ps0 + b.ps0, a.ps0 + b.ps1}
+    }
+    else
+    {
+      avx_dop(&XEmitter::VADDPD, &XEmitter::ADDPD, tmp, Ra, Rb);
+    }
+    if (sum0)
+    {
+      // ps_sum0: {a.ps0 + b.ps1, c.ps1}
+      UNPCKHPD(tmp, Rc);
+    }
+    else
+    {
+      // ps_sum1: {c.ps0, a.ps0 + b.ps1}
+      if (Rc.IsSimpleReg())
+      {
+        if (cpu_info.bSSE4_1)
+        {
+          BLENDPD(tmp, Rc, 1);
+        }
+        else
+        {
+          MOVAPD(XMM0, Rc);
+          SHUFPD(XMM0, R(tmp), 2);
+          tmp = XMM0;
+        }
+      }
+      else
+      {
+        MOVLPD(tmp, Rc);
+      }
+    }
+    RCRepr repr = HandleNaNs(inst, Rd, tmp, RCRepr::Canonical, tmp == XMM1 ? XMM0 : XMM1);
+    Rd.SetRepr(repr);
+    ForceSinglePrecision(Rd, Rd);
+    SetFPRFIfNeeded(Rd);
+  }
 }
 
 void Jit64::ps_muls(UGeckoInstruction inst)
