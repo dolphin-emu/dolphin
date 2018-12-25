@@ -231,12 +231,6 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
     low |= pad_status.substickX << 24;  // All 8 bits
   }
 
-  // Unset all bits except those that represent
-  // A, B, X, Y, Start and the error bits, as they
-  // are not used.
-  if (m_simulate_konga)
-    hi &= ~0x20FFFFFF;
-
   return true;
 }
 
@@ -349,4 +343,21 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_timer_button_combo);
   p.Do(m_last_button_combo);
 }
+
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
+    : CSIDevice_GCController(device, device_number)
+{
+}
+
+bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
+{
+  CSIDevice_GCController::GetData(hi, low);
+
+  // Unsets the first 16 bits (StickX/Y), PAD_USE_ORIGIN,
+  // and all buttons except: A, B, X, Y, Start, R
+  hi &= BUTTON_MASK;
+
+  return true;
+}
+
 }  // namespace SerialInterface
