@@ -251,30 +251,91 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
   int a = inst.FA;
   int b = inst.FB;
 
-  RCOpArg Ra = fpr.Use(a, RCMode::Read);
-  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  const bool single = fpr.IsSingle(a, b);
+  const bool rounded = fpr.IsRounded(a, b);
+
+  ASSERT(inst.SUBOP10 == 528 || inst.SUBOP10 == 560 || inst.SUBOP10 == 592 || inst.SUBOP10 == 624);
+  // ps_merge00 or ps_merge01
+  const bool a0 = inst.SUBOP10 == 528 || inst.SUBOP10 == 560;
+  // ps_merge00 or ps_merge10
+  const bool b0 = inst.SUBOP10 == 528 || inst.SUBOP10 == 592;
+  const bool a1 = !a0;
+  const bool b1 = !b0;
+
+  const bool a_dup = fpr.IsAnyDup(a);
+  const bool b_dup = fpr.IsAnyDup(b);
+
+  const bool can_blend = (a0 || a_dup) && (b1 || b_dup);
+  const bool can_unpcklpd = (a0 || a_dup) && (b0 || b_dup) && !can_blend;
+  const bool can_shuf = (a1 || a_dup) && (b0 || b_dup) && !can_blend && !can_unpcklpd;
+  const bool can_unpckhpd = !a_dup && !b_dup && a1 && b1;
+
+  ASSERT(can_blend + can_shuf + can_unpcklpd + can_unpckhpd == 1);
+
+  const bool need_a_upper = can_shuf || can_unpckhpd;
+  const bool need_b_upper = can_blend || can_unpckhpd;
+
+  const RCRepr lower_repr = single ? RCRepr::LowerSingle : RCRepr::LowerDouble;
+  const RCRepr pair_repr = single ? RCRepr::PairSingles : RCRepr::Canonical;
+  const RCRepr out_repr = rounded ? RCRepr::PairRounded : pair_repr;
+
+  RCOpArg Ra = fpr.Use(a, RCMode::Read, need_a_upper ? pair_repr : lower_repr);
+  RCOpArg Rb = fpr.Use(b, RCMode::Read, need_b_upper ? pair_repr : lower_repr);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rb, Rd);
 
-  switch (inst.SUBOP10)
+  if (can_blend)
   {
-  case 528:
-    avx_dop(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
-    break;  // 00
-  case 560:
-    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
-    break;  // 01
-  case 592:
-    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);
-    break;  // 10
-  case 624:
-    avx_dop(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, Rd, Ra, Rb);
-    break;  // 11
-  default:
-    ASSERT_MSG(DYNA_REC, 0, "ps_merge - invalid op");
+    // d = {a.ps0, b.ps1}
+    if (single)
+      avx_sop(&XEmitter::VBLENDPS, &XEmitter::BLENDPS, Rd, Ra, Rb, 2);
+    else
+      avx_dop(&XEmitter::VBLENDPD, &XEmitter::BLENDPD, Rd, Ra, Rb, 2);
+  }
+  else if (can_unpcklpd)
+  {
+    // d = {a.ps0, b.ps0}
+    if (single)
+      avx_sop(&XEmitter::VUNPCKLPS, &XEmitter::UNPCKLPS, Rd, Ra, Rb);
+    else
+      avx_dop(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
+  }
+  else if (can_shuf)
+  {
+    // d = {a.ps1, b.ps0}
+    if (single && a == b)
+    {
+      avx_sop(&XEmitter::VSHUFPS, &XEmitter::SHUFPS, Rd, Ra, Ra, 1);
+    }
+    else if (single)
+    {
+      avx_sop(&XEmitter::VBLENDPS, &XEmitter::BLENDPS, Rd, Ra, Rb, 1);  // {b.ps0, a.ps1}
+      avx_sop(&XEmitter::VSHUFPS, &XEmitter::SHUFPS, Rd, Rd, Rd, 1);
+    }
+    else
+    {
+      avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);
+    }
+  }
+  else if (can_unpckhpd)
+  {
+    // d = {a.ps1, b.ps1}
+    if (single && a == b)
+    {
+      avx_sop(&XEmitter::VSHUFPS, &XEmitter::SHUFPS, Rd, Ra, Ra, 5);
+    }
+    else if (single)
+    {
+      avx_sop(&XEmitter::VSHUFPS, &XEmitter::SHUFPS, XMM1, Ra, Ra, 5);  // {a.ps1, a.ps1}
+      avx_sop(&XEmitter::VBLENDPS, &XEmitter::BLENDPS, Rd, Rb, R(XMM1), 1);
+    }
+    else
+    {
+      avx_dop(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, Rd, Ra, Rb);
+    }
   }
 
-  Rd.SetRepr(RCRepr::Canonical);
+  Rd.SetRepr(out_repr);
 }
 
 void Jit64::ps_rsqrte(UGeckoInstruction inst)
