@@ -961,7 +961,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     case 0x01:  // Returns the current offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08" PRIx64,
                s_audio_position);
-      WriteImmediate(static_cast<u32>(s_audio_position >> 2), output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>((s_audio_position & 0xffffffffffff8000ull) >> 2),
+                     output_address, reply_to_ios);
       break;
     case 0x02:  // Returns the start offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08" PRIx64,
@@ -1298,4 +1299,4 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
             ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }
 
-}  // namespace
+}  // namespace DVDInterface
