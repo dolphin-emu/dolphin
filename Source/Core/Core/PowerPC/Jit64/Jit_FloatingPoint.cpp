@@ -646,22 +646,66 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     output[3 - (next.CRBB & 3)] |= 1 << dst;
   }
 
-  RCOpArg Ra = upper ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
-  RCX64Reg Rb = fpr.Bind(b, RCMode::Read);
-  RegCache::Realize(Ra, Rb);
-
   if (fprf)
     AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
 
-  if (upper)
+  const bool Ra_upper = upper && !fpr.IsAnyDup(a);
+  const bool Rb_upper = upper && !fpr.IsAnyDup(b);
+
+  if (fpr.IsSingle(a, b))
   {
-    MOVHLPS(XMM0, Ra.GetSimpleReg());
-    MOVHLPS(XMM1, Rb);
-    UCOMISD(XMM1, R(XMM0));
+    RCX64Reg Ra = fpr.Bind(a, RCMode::Read, Ra_upper ? RCRepr::PairSingles : RCRepr::LowerSingle);
+    RCX64Reg Rb = fpr.Bind(b, RCMode::Read, Rb_upper ? RCRepr::PairSingles : RCRepr::LowerSingle);
+    RegCache::Realize(Ra, Rb);
+
+    if (Ra_upper && Rb_upper)
+    {
+      MOVSHDUP(XMM0, Ra);
+      MOVSHDUP(XMM1, Rb);
+      UCOMISS(XMM1, R(XMM0));
+    }
+    else if (Ra_upper)
+    {
+      MOVSHDUP(XMM0, Ra);
+      UCOMISS(Rb, R(XMM0));
+    }
+    else if (Ra_upper)
+    {
+      MOVSHDUP(XMM0, Rb);
+      UCOMISS(XMM0, Ra);
+    }
+    else
+    {
+      UCOMISS(Rb, Ra);
+    }
   }
   else
   {
-    UCOMISD(Rb, Ra);
+    RCOpArg Ra =
+        Ra_upper ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read, RCRepr::LowerDouble);
+    RCX64Reg Rb = fpr.Bind(b, RCMode::Read, Rb_upper ? RCRepr::Canonical : RCRepr::LowerDouble);
+    RegCache::Realize(Ra, Rb);
+
+    if (Ra_upper && Rb_upper)
+    {
+      MOVHLPS(XMM0, Ra.GetSimpleReg());
+      MOVHLPS(XMM1, Rb);
+      UCOMISD(XMM1, R(XMM0));
+    }
+    else if (Ra_upper)
+    {
+      MOVHLPS(XMM0, Ra.GetSimpleReg());
+      UCOMISD(Rb, R(XMM0));
+    }
+    else if (Rb_upper)
+    {
+      MOVHLPS(XMM0, Rb);
+      UCOMISD(XMM0, Ra);
+    }
+    else
+    {
+      UCOMISD(Rb, Ra);
+    }
   }
 
   FixupBranch pNaN, pLesser, pGreater;
