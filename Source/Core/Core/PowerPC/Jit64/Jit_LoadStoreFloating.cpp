@@ -78,6 +78,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   {
     MOVQ_xmm(XMM0, R(RSCRATCH));
     MOVSD(Rd, R(XMM0));
+    Rd.SetRepr(RCRepr::Canonical);
   }
   if (update && jo.memcheck)
   {

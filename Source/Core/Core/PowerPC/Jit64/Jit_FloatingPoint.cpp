@@ -36,10 +36,9 @@ void Jit64::SetFPRFIfNeeded(RCX64Reg& reg)
   // if the FPRF flag is set.
   if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
   {
-    reg.ConvertTo(RCRepr::Canonical);
+    reg.ConvertTo(RCRepr::Dup);
     SetFPRF(reg);
   }
-  reg.ConvertTo(RCRepr::Canonical);
 }
 
 void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
@@ -208,6 +207,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     }
 
     HandleNaNs(inst, Rd, dest);
+    Rd.SetRepr(RCRepr::Canonical);
     if (single)
     {
       ForceSinglePrecision(Rd, Rd, packed, true);
@@ -366,6 +366,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
       XORPD(XMM1, MConst(packed ? psSignBits2 : psSignBits));
   }
 
+  Rd.SetRepr(RCRepr::Canonical);
   if (single)
   {
     HandleNaNs(inst, Rd, XMM1);
@@ -411,6 +412,7 @@ void Jit64::fsign(UGeckoInstruction inst)
     PanicAlert("fsign bleh");
     break;
   }
+  Rd.SetRepr(RCRepr::Canonical);
 }
 
 void Jit64::fselx(UGeckoInstruction inst)
@@ -458,6 +460,8 @@ void Jit64::fselx(UGeckoInstruction inst)
     MOVAPD(Rd, R(XMM1));
   else
     MOVSD(Rd, R(XMM1));
+
+  Rd.SetRepr(RCRepr::Canonical);
 }
 
 void Jit64::fmrx(UGeckoInstruction inst)
@@ -472,25 +476,16 @@ void Jit64::fmrx(UGeckoInstruction inst)
   if (d == b)
     return;
 
-  RCOpArg Rd = fpr.Use(d, RCMode::Write);
-  RegCache::Realize(Rd);
-  if (Rd.IsSimpleReg())
-  {
-    RCOpArg Rb = fpr.Use(b, RCMode::Read);
-    RegCache::Realize(Rb);
-    // We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
-    // to zero and we don't want that.
-    if (!Rb.IsSimpleReg())
-      MOVLPD(Rd.GetSimpleReg(), Rb);
-    else
-      MOVSD(Rd, Rb.GetSimpleReg());
-  }
+  RCX64Reg Rd = fpr.Bind(d, RCMode::ReadWrite);
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RegCache::Realize(Rd, Rb);
+  // We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
+  // to zero and we don't want that.
+  if (!Rb.IsSimpleReg())
+    MOVLPD(Rd, Rb);
   else
-  {
-    RCOpArg Rb = fpr.Bind(b, RCMode::Read);
-    RegCache::Realize(Rb);
     MOVSD(Rd, Rb.GetSimpleReg());
-  }
+  Rd.SetRepr(RCRepr::Canonical);
 }
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
@@ -639,6 +634,8 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   }
   // d[64+] must not be modified
   MOVSD(Rd, XMM0);
+
+  Rd.SetRepr(RCRepr::Canonical);
 }
 
 void Jit64::frspx(UGeckoInstruction inst)
@@ -654,6 +651,7 @@ void Jit64::frspx(UGeckoInstruction inst)
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(Rb, Rd);
 
+  Rd.SetRepr(RCRepr::Canonical);
   ForceSinglePrecision(Rd, Rb, packed, true);
   SetFPRFIfNeeded(Rd);
 }
@@ -674,6 +672,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   MOVAPD(XMM0, Rb);
   CALL(asm_routines.frsqrte);
   MOVSD(Rd, XMM0);
+  Rd.SetRepr(RCRepr::Canonical);
   SetFPRFIfNeeded(Rd);
 }
 

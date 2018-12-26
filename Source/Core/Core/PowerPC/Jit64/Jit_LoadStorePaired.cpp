@@ -166,6 +166,8 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   }
 
   CVTPS2PD(Rs, R(XMM0));
+  Rs.SetRepr(RCRepr::Canonical);
+
   if (update && jo.memcheck)
   {
     ADD(32, Ra, Rb);
