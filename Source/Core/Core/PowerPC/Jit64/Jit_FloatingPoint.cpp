@@ -29,13 +29,17 @@ alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
 // not calculate it.
-void Jit64::SetFPRFIfNeeded(X64Reg xmm)
+void Jit64::SetFPRFIfNeeded(RCX64Reg& reg)
 {
   // As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
   // if the FPRF flag is set.
   if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
-    SetFPRF(xmm);
+  {
+    reg.ConvertTo(RCRepr::Canonical);
+    SetFPRF(reg);
+  }
+  reg.ConvertTo(RCRepr::Canonical);
 }
 
 void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
