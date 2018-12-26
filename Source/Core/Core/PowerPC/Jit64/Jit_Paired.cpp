@@ -161,31 +161,84 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   int d = inst.FD;
   int a = inst.FA;
   int c = inst.FC;
-  bool round_input = !js.op->fprIsSingle[c];
 
-  RCOpArg Ra = fpr.Use(a, RCMode::Read);
-  RCOpArg Rc = fpr.Use(c, RCMode::Read);
-  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
-  RegCache::Realize(Ra, Rc, Rd);
+  ASSERT(inst.SUBOP5 == 12 || inst.SUBOP5 == 13);
+  const bool muls0 = inst.SUBOP5 == 12;
 
-  switch (inst.SUBOP5)
+  if (fpr.IsDup(a, c))
   {
-  case 12:  // ps_muls0
-    MOVDDUP(XMM1, Rc);
-    break;
-  case 13:  // ps_muls1
-    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
-    break;
-  default:
-    PanicAlert("ps_muls WTF!!!");
+    RCRepr in_repr = fpr.IsSingle(a, c) ? RCRepr::DupSingles : RCRepr::Dup;
+    RCOpArg Ra = fpr.Use(a, RCMode::Read, in_repr);
+    RCOpArg Rc = fpr.Use(c, RCMode::Read, in_repr);
+    RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rc, Rd);
+
+    if (in_repr == RCRepr::DupSingles)
+    {
+      avx_sop(&XEmitter::VMULSS, &XEmitter::MULSS, XMM1, Ra, Rc);
+    }
+    else if (fpr.IsRounded(c))
+    {
+      avx_dop(&XEmitter::VMULSD, &XEmitter::MULSD, XMM1, Ra, Rc);
+    }
+    else
+    {
+      MOVAPD(XMM1, Rc);
+      Force25BitPrecision(XMM1, R(XMM1), XMM0);
+      MULSD(XMM1, Ra);
+    }
+    RCRepr repr = HandleNaNs(inst, Rd, XMM1, in_repr);
+    Rd.SetRepr(repr);
+    if (in_repr == RCRepr::Dup)
+      ForceSinglePrecision(Rd, Rd);
+    SetFPRFIfNeeded(Rd);
   }
-  if (round_input)
-    Force25BitPrecision(XMM1, R(XMM1), XMM0);
-  MULPD(XMM1, Ra);
-  HandleNaNs(inst, Rd, XMM1, RCRepr::Canonical);
-  Rd.SetRepr(RCRepr::Canonical);
-  ForceSinglePrecision(Rd, Rd);
-  SetFPRFIfNeeded(Rd);
+  else
+  {
+    RCRepr in_repr = fpr.IsSingle(a, c) ? RCRepr::PairSingles : RCRepr::Canonical;
+    RCOpArg Ra = fpr.Use(a, RCMode::Read, in_repr);
+    RCOpArg Rc = fpr.Use(c, RCMode::Read, in_repr);
+    RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rc, Rd);
+
+    if (fpr.IsDupPhysical(c) && in_repr == RCRepr::PairSingles)
+    {
+      avx_sop(&XEmitter::VMULPS, &XEmitter::MULPS, XMM1, Ra, Rc);
+    }
+    else if (in_repr == RCRepr::PairSingles)
+    {
+      if (muls0)
+        MOVSLDUP(XMM1, Rc);
+      else
+        MOVSHDUP(XMM1, Rc);
+
+      MULPS(XMM1, Ra);
+    }
+    else if (fpr.IsDupPhysical(c) && fpr.IsRounded(c))
+    {
+      avx_dop(&XEmitter::VMULPD, &XEmitter::MULPD, XMM1, Ra, Rc);
+    }
+    else
+    {
+      if (fpr.IsDupPhysical(c))
+        MOVAPD(XMM1, Rc);
+      else if (muls0)
+        MOVDDUP(XMM1, Rc);
+      else
+        avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
+
+      if (!fpr.IsRounded(c))
+        Force25BitPrecision(XMM1, R(XMM1), XMM0);
+
+      MULPD(XMM1, Ra);
+    }
+
+    RCRepr repr = HandleNaNs(inst, Rd, XMM1, in_repr);
+    Rd.SetRepr(repr);
+    if (in_repr == RCRepr::Canonical)
+      ForceSinglePrecision(Rd, Rd);
+    SetFPRFIfNeeded(Rd);
+  }
 }
 
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
