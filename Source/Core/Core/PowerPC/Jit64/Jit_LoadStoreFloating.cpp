@@ -107,19 +107,26 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (js.op->fprIsStoreSafe[s])
+    if (fpr.IsSingle(s))
     {
-      RCOpArg Rs = fpr.Use(s, RCMode::Read);
+      RCX64Reg Rs = fpr.Bind(s, RCMode::Read, RCRepr::LowerSingle);
+      RegCache::Realize(Rs);
+      MOVD_xmm(R(RSCRATCH), Rs);
+    }
+    else if (fpr.IsRounded(s) || js.op->fprIsStoreSafe[s])
+    {
+      RCOpArg Rs = fpr.Use(s, RCMode::Read, RCRepr::LowerDouble);
       RegCache::Realize(Rs);
       CVTSD2SS(XMM0, Rs);
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
     else
     {
       RCX64Reg Rs = fpr.Bind(s, RCMode::Read);
       RegCache::Realize(Rs);
       ConvertDoubleToSingle(XMM0, Rs);
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
-    MOVD_xmm(R(RSCRATCH), XMM0);
   }
   else
   {
