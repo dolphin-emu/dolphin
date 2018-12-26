@@ -43,7 +43,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
   RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
-  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read, fpr.IsSingle(s) ? RCRepr::PairSingles : RCRepr::Canonical);
   RegCache::Realize(scratch_guard, Ra, Rb, Rs);
 
   MOV_sum(32, RSCRATCH_EXTRA, Ra, Rb);
@@ -52,10 +52,17 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   if (update && !jo.memcheck)
     MOV(32, Ra, R(RSCRATCH_EXTRA));
 
-  if (w)
-    CVTSD2SS(XMM0, Rs);  // one
+  if (fpr.IsSingle(s))
+  {
+    MOVAPS(XMM0, Rs);
+  }
   else
-    CVTPD2PS(XMM0, Rs);  // pair
+  {
+    if (w)
+      CVTSD2SS(XMM0, Rs);  // one
+    else
+      CVTPD2PS(XMM0, Rs);  // pair
+  }
 
   if (gqrIsConstant)
   {
