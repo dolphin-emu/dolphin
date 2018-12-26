@@ -165,8 +165,8 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
     CALLptr(MatR(RSCRATCH));
   }
 
-  CVTPS2PD(Rs, R(XMM0));
-  Rs.SetRepr(RCRepr::Canonical);
+  MOVAPS(Rs, R(XMM0));
+  Rs.SetRepr(RCRepr::PairSingles);
 
   if (update && jo.memcheck)
   {
