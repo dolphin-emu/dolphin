@@ -279,7 +279,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   int c = inst.FC;
   int d = inst.FD;
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
-  bool round_input = single && !js.op->fprIsSingle[c];
+  bool round_input = single && !fpr.IsSingle(c) && !fpr.IsRounded(c);
   bool packed = inst.OPCD == 4 || (!cpu_info.bAtom && single && fpr.IsDupPhysical(a, b, c));
 
   // While we don't know if any games are actually affected (replays seem to work with all the usual
@@ -290,55 +290,49 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   // instances on different computers giving identical results.
   const bool use_fma = cpu_info.bFMA && !Core::WantsDeterminism();
 
-  // For use_fma == true:
-  //   Statistics suggests b is a lot less likely to be unbound in practice, so
-  //   if we have to pick one of a or b to bind, let's make it b.
-  RCOpArg Ra = fpr.Use(a, RCMode::Read);
-  RCOpArg Rb = use_fma ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
-  RCOpArg Rc = fpr.Use(c, RCMode::Read);
-  RCX64Reg Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
-  RegCache::Realize(Ra, Rb, Rc, Rd);
-
-  switch (inst.SUBOP5)
+  if (use_fma && single && fpr.IsSingle(a, b, c))
   {
-  case 14:
-    MOVDDUP(XMM1, Rc);
-    if (round_input)
-      Force25BitPrecision(XMM1, R(XMM1), XMM0);
-    break;
-  case 15:
-    avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
-    if (round_input)
-      Force25BitPrecision(XMM1, R(XMM1), XMM0);
-    break;
-  default:
-    bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::WantsDeterminism());
-    X64Reg tmp1 = special ? XMM0 : XMM1;
-    X64Reg tmp2 = special ? XMM1 : XMM0;
-    if (single && round_input)
-      Force25BitPrecision(tmp1, Rc, tmp2);
-    else
-      MOVAPD(tmp1, Rc);
-    break;
-  }
+    RCRepr in_repr = packed ? RCRepr::PairSingles : RCRepr::DupSingles;
+    RCX64Reg Ra = fpr.Bind(a, RCMode::Read, in_repr);
+    RCX64Reg Rb = fpr.Bind(b, RCMode::Read, in_repr);
+    RCX64Reg Rc = fpr.Bind(c, RCMode::Read, in_repr);
+    RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rc, Rd);
 
-  if (use_fma)
-  {
+    switch (inst.SUBOP5)
+    {
+    case 14:  // ps_madds0
+      if (fpr.IsDupPhysical(c))
+        MOVAPS(XMM1, Rc);
+      else
+        MOVSLDUP(XMM1, Rc);
+      break;
+    case 15:  // ps_madds1
+      if (fpr.IsDupPhysical(c))
+        MOVAPS(XMM1, Rc);
+      else
+        MOVSHDUP(XMM1, Rc);
+      break;
+    default:  // everything else
+      MOVAPS(XMM1, Rc);
+      break;
+    }
+
     switch (inst.SUBOP5)
     {
     case 28:  // msub
       if (packed)
-        VFMSUB132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFMSUB132PS(XMM1, Rb, Ra);
       else
-        VFMSUB132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFMSUB132SS(XMM1, Rb, Ra);
       break;
     case 14:  // madds0
     case 15:  // madds1
     case 29:  // madd
       if (packed)
-        VFMADD132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFMADD132PS(XMM1, Rb, Ra);
       else
-        VFMADD132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFMADD132SS(XMM1, Rb, Ra);
       break;
     // PowerPC and x86 define NMADD/NMSUB differently
     // x86: D = -A*C (+/-) B
@@ -346,69 +340,151 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     // so we have to swap them; the ADD/SUB here isn't a typo.
     case 30:  // nmsub
       if (packed)
-        VFNMADD132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFNMADD132PS(XMM1, Rb, Ra);
       else
-        VFNMADD132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFNMADD132SS(XMM1, Rb, Ra);
       break;
     case 31:  // nmadd
       if (packed)
-        VFNMSUB132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFNMSUB132PS(XMM1, Rb, Ra);
       else
-        VFNMSUB132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        VFNMSUB132SS(XMM1, Rb, Ra);
       break;
     }
-  }
-  else if (inst.SUBOP5 == 30)  // nmsub
-  {
-    // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)), so handle it
-    // separately.
-    MOVAPD(XMM1, Rb);
-    if (packed)
-    {
-      MULPD(XMM0, Ra);
-      SUBPD(XMM1, R(XMM0));
-    }
-    else
-    {
-      MULSD(XMM0, Ra);
-      SUBSD(XMM1, R(XMM0));
-    }
-  }
-  else
-  {
-    if (packed)
-    {
-      MULPD(XMM1, Ra);
-      if (inst.SUBOP5 == 28)  // msub
-        SUBPD(XMM1, Rb);
-      else  //(n)madd(s[01])
-        ADDPD(XMM1, Rb);
-    }
-    else
-    {
-      MULSD(XMM1, Ra);
-      if (inst.SUBOP5 == 28)
-        SUBSD(XMM1, Rb);
-      else
-        ADDSD(XMM1, Rb);
-    }
-    if (inst.SUBOP5 == 31)  // nmadd
-      XORPD(XMM1, MConst(packed ? pdSignBits2 : pdSignBits));
-  }
 
-  if (single)
-  {
-    HandleNaNs(inst, Rd, XMM1, RCRepr::Canonical);
-    Rd.SetRepr(RCRepr::Canonical);
-    ForceSinglePrecision(Rd, Rd, packed, true);
+    RCRepr repr = HandleNaNs(inst, Rd, XMM1, in_repr);
+    Rd.SetRepr(repr);
+    SetFPRFIfNeeded(Rd);
   }
   else
   {
-    HandleNaNs(inst, XMM1, XMM1, RCRepr::Canonical);
-    Rd.SetRepr(RCRepr::Canonical);
-    MOVSD(Rd, R(XMM1));
+    RCRepr in_repr = packed ? RCRepr::Canonical : RCRepr::LowerDouble;
+    // For use_fma == true:
+    //   Statistics suggests b is a lot less likely to be unbound in practice, so
+    //   if we have to pick one of a or b to bind, let's make it b.
+    RCOpArg Ra = fpr.Use(a, RCMode::Read, in_repr);
+    RCOpArg Rb = use_fma ? fpr.Bind(b, RCMode::Read, in_repr) : fpr.Use(b, RCMode::Read, in_repr);
+    RCOpArg Rc = fpr.Use(c, RCMode::Read, in_repr);
+    RCX64Reg Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
+    RegCache::Realize(Ra, Rb, Rc, Rd);
+
+    switch (inst.SUBOP5)
+    {
+    case 14:  // ps_madds0
+      if (fpr.IsDupPhysical(c))
+        MOVAPD(XMM1, Rc);
+      else
+        MOVDDUP(XMM1, Rc);
+      if (round_input)
+        Force25BitPrecision(XMM1, R(XMM1), XMM0);
+      break;
+    case 15:  // ps_madds1
+      if (fpr.IsDupPhysical(c))
+        MOVAPD(XMM1, Rc);
+      else
+        avx_dop(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
+      if (round_input)
+        Force25BitPrecision(XMM1, R(XMM1), XMM0);
+      break;
+    default:
+      bool special = inst.SUBOP5 == 30 && !use_fma;
+      X64Reg tmp1 = special ? XMM0 : XMM1;
+      X64Reg tmp2 = special ? XMM1 : XMM0;
+      if (single && round_input)
+        Force25BitPrecision(tmp1, Rc, tmp2);
+      else
+        MOVAPD(tmp1, Rc);
+      break;
+    }
+
+    if (use_fma)
+    {
+      switch (inst.SUBOP5)
+      {
+      case 28:  // msub
+        if (packed)
+          VFMSUB132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        else
+          VFMSUB132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        break;
+      case 14:  // madds0
+      case 15:  // madds1
+      case 29:  // madd
+        if (packed)
+          VFMADD132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        else
+          VFMADD132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        break;
+      // PowerPC and x86 define NMADD/NMSUB differently
+      // x86: D = -A*C (+/-) B
+      // PPC: D = -(A*C (+/-) B)
+      // so we have to swap them; the ADD/SUB here isn't a typo.
+      case 30:  // nmsub
+        if (packed)
+          VFNMADD132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        else
+          VFNMADD132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        break;
+      case 31:  // nmadd
+        if (packed)
+          VFNMSUB132PD(XMM1, Rb.GetSimpleReg(), Ra);
+        else
+          VFNMSUB132SD(XMM1, Rb.GetSimpleReg(), Ra);
+        break;
+      }
+    }
+    else if (inst.SUBOP5 == 30)  // nmsub
+    {
+      // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)), so handle it
+      // separately.
+      MOVAPD(XMM1, Rb);
+      if (packed)
+      {
+        MULPD(XMM0, Ra);
+        SUBPD(XMM1, R(XMM0));
+      }
+      else
+      {
+        MULSD(XMM0, Ra);
+        SUBSD(XMM1, R(XMM0));
+      }
+    }
+    else
+    {
+      if (packed)
+      {
+        MULPD(XMM1, Ra);
+        if (inst.SUBOP5 == 28)  // msub
+          SUBPD(XMM1, Rb);
+        else  //(n)madd(s[01])
+          ADDPD(XMM1, Rb);
+      }
+      else
+      {
+        MULSD(XMM1, Ra);
+        if (inst.SUBOP5 == 28)
+          SUBSD(XMM1, Rb);
+        else
+          ADDSD(XMM1, Rb);
+      }
+      if (inst.SUBOP5 == 31)  // nmadd
+        XORPD(XMM1, MConst(packed ? pdSignBits2 : pdSignBits));
+    }
+
+    if (single)
+    {
+      HandleNaNs(inst, Rd, XMM1, RCRepr::Canonical);
+      Rd.SetRepr(RCRepr::Canonical);
+      ForceSinglePrecision(Rd, Rd, packed, true);
+    }
+    else
+    {
+      HandleNaNs(inst, XMM1, XMM1, RCRepr::Canonical);
+      Rd.SetRepr(RCRepr::Canonical);
+      MOVSD(Rd, R(XMM1));
+    }
+    SetFPRFIfNeeded(Rd);
   }
-  SetFPRFIfNeeded(Rd);
 }
 
 void Jit64::fsign(UGeckoInstruction inst)
