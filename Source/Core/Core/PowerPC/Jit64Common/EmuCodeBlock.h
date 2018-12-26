@@ -14,6 +14,9 @@
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
 
+class RCOpArg;
+class RCX64Reg;
+
 namespace MMIO
 {
 class Mapping;
@@ -114,7 +117,7 @@ public:
               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8), Gen::X64Reg regOp,
               const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
 
-  void ForceSinglePrecision(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
+  void ForceSinglePrecision(RCX64Reg& out, const Gen::OpArg& in, bool packed = true,
                             bool duplicate = false);
   void Force25BitPrecision(Gen::X64Reg output, const Gen::OpArg& input, Gen::X64Reg tmp);
 

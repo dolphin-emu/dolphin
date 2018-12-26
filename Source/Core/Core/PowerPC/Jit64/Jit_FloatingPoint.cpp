@@ -207,7 +207,6 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     if (single)
     {
       ForceSinglePrecision(Rd, Rd, packed, true);
-      Rd.SetRepr(RCRepr::DupPhysical);
     }
     SetFPRFIfNeeded(Rd);
   };
@@ -367,7 +366,6 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   {
     HandleNaNs(inst, Rd, XMM1);
     ForceSinglePrecision(Rd, Rd, packed, true);
-    Rd.SetRepr(RCRepr::DupPhysical);
   }
   else
   {
@@ -653,7 +651,6 @@ void Jit64::frspx(UGeckoInstruction inst)
   RegCache::Realize(Rb, Rd);
 
   ForceSinglePrecision(Rd, Rb, packed, true);
-  Rd.SetRepr(RCRepr::DupPhysical);
   SetFPRFIfNeeded(Rd);
 }
 

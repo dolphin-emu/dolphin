@@ -15,6 +15,7 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/MMU.h"
@@ -720,31 +721,19 @@ void EmuCodeBlock::JitClearCA()
   MOV(8, PPCSTATE(xer_ca), Imm8(0));
 }
 
-void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool packed,
+void EmuCodeBlock::ForceSinglePrecision(RCX64Reg& out, const Gen::OpArg& in, bool packed,
                                         bool duplicate)
 {
-  // Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-  if (g_jit->jo.accurateSinglePrecision)
+  if (packed)
   {
-    if (packed)
-    {
-      CVTPD2PS(output, input);
-      CVTPS2PD(output, R(output));
-    }
-    else
-    {
-      CVTSD2SS(output, input);
-      CVTSS2SD(output, R(output));
-      if (duplicate)
-        MOVDDUP(output, R(output));
-    }
+    CVTPD2PS(out, in);
+    out.SetRepr(RCRepr::PairSingles);
   }
-  else if (!input.IsSimpleReg(output))
+  else
   {
-    if (duplicate)
-      MOVDDUP(output, input);
-    else
-      MOVAPD(output, input);
+    ASSERT(duplicate);
+    CVTSD2SS(out, in);
+    out.SetRepr(RCRepr::DupSingles);
   }
 }
 
