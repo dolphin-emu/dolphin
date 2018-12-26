@@ -594,16 +594,32 @@ void Jit64::fmrx(UGeckoInstruction inst)
   if (d == b)
     return;
 
-  RCX64Reg Rd = fpr.Bind(d, RCMode::ReadWrite);
-  RCOpArg Rb = fpr.Use(b, RCMode::Read);
-  RegCache::Realize(Rd, Rb);
-  // We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
-  // to zero and we don't want that.
-  if (!Rb.IsSimpleReg())
-    MOVLPD(Rd, Rb);
+  if (fpr.IsSingle(b, d))
+  {
+    RCX64Reg Rd = fpr.Bind(d, RCMode::ReadWrite, RCRepr::PairSingles);
+    RCX64Reg Rb = fpr.Bind(b, RCMode::Read, RCRepr::LowerSingle);
+    RegCache::Realize(Rd, Rb);
+    if (cpu_info.bSSE4_1)
+      BLENDPS(Rd, Rb, 1);
+    else
+      MOVSS(Rd, static_cast<X64Reg>(Rb));
+    Rd.SetRepr(RCRepr::PairSingles);
+  }
   else
-    MOVSD(Rd, Rb.GetSimpleReg());
-  Rd.SetRepr(RCRepr::Canonical);
+  {
+    RCX64Reg Rd = fpr.Bind(d, RCMode::ReadWrite);
+    RCOpArg Rb = fpr.Use(b, RCMode::Read, RCRepr::LowerDouble);
+    RegCache::Realize(Rd, Rb);
+    // We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
+    // to zero and we don't want that.
+    if (cpu_info.bSSE4_1)
+      BLENDPD(Rd, Rb, 1);
+    else if (!Rb.IsSimpleReg())
+      MOVLPD(Rd, Rb);
+    else
+      MOVSD(Rd, Rb.GetSimpleReg());
+    Rd.SetRepr(fpr.IsRounded(b, d) ? RCRepr::PairRounded : RCRepr::Canonical);
+  }
 }
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
