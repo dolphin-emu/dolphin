@@ -16,12 +16,159 @@ FPURegCache::FPURegCache(Jit64& jit) : RegCache{jit}
 
 void FPURegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
 {
-  m_emitter->MOVAPD(new_loc, m_regs[preg].Location().GetSimpleReg());
+  OpArg new_loc_upper = new_loc;
+  new_loc_upper.AddMemOffset(sizeof(double));
+
+  const RCRepr repr = m_regs[preg].GetRepr();
+  switch (repr)
+  {
+  case RCRepr::Canonical:
+  case RCRepr::PairRounded:
+  case RCRepr::DupPhysical:
+  case RCRepr::DupPhysicalRounded:
+    m_emitter->MOVAPD(new_loc, m_regs[preg].Location().GetSimpleReg());
+    m_regs[preg].SetRepr(repr);
+    break;
+  case RCRepr::PairSingles:
+    m_emitter->CVTPS2PD(m_regs[preg].Location().GetSimpleReg(), m_regs[preg].Location());
+    m_emitter->MOVAPD(new_loc, m_regs[preg].Location().GetSimpleReg());
+    m_regs[preg].SetRepr(RCRepr::PairRounded);
+    break;
+  case RCRepr::DupPhysicalSingles:
+    m_emitter->CVTPS2PD(m_regs[preg].Location().GetSimpleReg(), m_regs[preg].Location());
+    m_emitter->MOVAPD(new_loc, m_regs[preg].Location().GetSimpleReg());
+    m_regs[preg].SetRepr(RCRepr::DupPhysicalRounded);
+    break;
+  case RCRepr::DupSingles:
+    m_emitter->CVTSS2SD(m_regs[preg].Location().GetSimpleReg(), m_regs[preg].Location());
+    m_emitter->MOVSD(new_loc, m_regs[preg].Location().GetSimpleReg());
+    m_emitter->MOVSD(new_loc_upper, m_regs[preg].Location().GetSimpleReg());
+    m_regs[preg].SetRepr(RCRepr::DupPhysicalRounded);
+  case RCRepr::Dup:
+    m_emitter->MOVSD(new_loc, m_regs[preg].Location().GetSimpleReg());
+    m_emitter->MOVSD(new_loc_upper, m_regs[preg].Location().GetSimpleReg());
+    m_regs[preg].SetRepr(RCRepr::DupPhysical);
+    break;
+  case RCRepr::DupRounded:
+    m_emitter->MOVSD(new_loc, m_regs[preg].Location().GetSimpleReg());
+    m_emitter->MOVSD(new_loc_upper, m_regs[preg].Location().GetSimpleReg());
+    m_regs[preg].SetRepr(RCRepr::DupPhysicalRounded);
+    break;
+  }
 }
 
 void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
+  ASSERT(IsRCReprCanonicalCompatible(m_regs[preg].GetRepr()));
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location());
+}
+
+RCRepr FPURegCache::Convert(Gen::X64Reg reg, RCRepr old_repr, RCRepr requested_repr)
+{
+  switch (requested_repr)
+  {
+  case RCRepr::Canonical:
+    switch (old_repr)
+    {
+    case RCRepr::Canonical:
+    case RCRepr::PairRounded:
+    case RCRepr::DupPhysical:
+    case RCRepr::DupPhysicalRounded:
+      // No conversion required.
+      return old_repr;
+    case RCRepr::Dup:
+      m_emitter->MOVDDUP(reg, ::Gen::R(reg));
+      return RCRepr::DupPhysical;
+    case RCRepr::DupRounded:
+      m_emitter->MOVDDUP(reg, ::Gen::R(reg));
+      return RCRepr::DupPhysicalRounded;
+    case RCRepr::PairSingles:
+      m_emitter->CVTPS2PD(reg, ::Gen::R(reg));
+      return RCRepr::PairRounded;
+    case RCRepr::DupPhysicalSingles:
+      m_emitter->CVTPS2PD(reg, ::Gen::R(reg));
+      return RCRepr::DupPhysicalRounded;
+    case RCRepr::DupSingles:
+      m_emitter->CVTSS2SD(reg, ::Gen::R(reg));
+      m_emitter->MOVDDUP(reg, ::Gen::R(reg));
+      return RCRepr::DupPhysicalRounded;
+    }
+    break;
+  case RCRepr::Dup:
+    switch (old_repr)
+    {
+    case RCRepr::Canonical:
+    case RCRepr::PairRounded:
+    case RCRepr::Dup:
+    case RCRepr::DupRounded:
+    case RCRepr::DupPhysical:
+    case RCRepr::DupPhysicalRounded:
+      // No conversion required.
+      return old_repr;
+    case RCRepr::PairSingles:
+      m_emitter->CVTPS2PD(reg, ::Gen::R(reg));
+      return RCRepr::PairRounded;
+    case RCRepr::DupPhysicalSingles:
+      m_emitter->CVTPS2PD(reg, ::Gen::R(reg));
+      return RCRepr::DupPhysicalRounded;
+    case RCRepr::DupSingles:
+      m_emitter->CVTSS2SD(reg, ::Gen::R(reg));
+      return RCRepr::DupRounded;
+    }
+    break;
+  case RCRepr::PairSingles:
+    switch (old_repr)
+    {
+    case RCRepr::Canonical:
+    case RCRepr::PairRounded:
+    case RCRepr::Dup:
+    case RCRepr::DupRounded:
+    case RCRepr::DupPhysical:
+    case RCRepr::DupPhysicalRounded:
+      ASSERT_MSG(DYNA_REC, false, "Lossy conversion not allowed");
+      break;
+    case RCRepr::PairSingles:
+    case RCRepr::DupPhysicalSingles:
+      // No conversion required
+      return old_repr;
+    case RCRepr::DupSingles:
+      m_emitter->MOVSLDUP(reg, ::Gen::R(reg));
+      return RCRepr::DupPhysicalSingles;
+    }
+  case RCRepr::DupSingles:
+    switch (old_repr)
+    {
+    case RCRepr::Canonical:
+    case RCRepr::PairRounded:
+    case RCRepr::Dup:
+    case RCRepr::DupRounded:
+    case RCRepr::DupPhysical:
+    case RCRepr::DupPhysicalRounded:
+      ASSERT_MSG(DYNA_REC, false, "Lossy conversion not allowed");
+      break;
+    case RCRepr::PairSingles:
+    case RCRepr::DupSingles:
+    case RCRepr::DupPhysicalSingles:
+      // No conversion required
+      return old_repr;
+    }
+  case RCRepr::PairRounded:
+  case RCRepr::DupRounded:
+  case RCRepr::DupPhysical:
+  case RCRepr::DupPhysicalSingles:
+  case RCRepr::DupPhysicalRounded:
+    ASSERT_MSG(DYNA_REC, false, "Cannot request direct conversion to these representations");
+    break;
+  }
+  ASSERT_MSG(DYNA_REC, false, "Unreachable");
+  return old_repr;
+}
+
+void FPURegCache::ConvertRegister(preg_t preg, RCRepr requested_repr)
+{
+  const Gen::X64Reg xr = m_regs[preg].Location().GetSimpleReg();
+  const RCRepr new_repr = Convert(xr, m_regs[preg].GetRepr(), requested_repr);
+  m_regs[preg].SetRepr(new_repr);
 }
 
 const X64Reg* FPURegCache::GetAllocationOrder(size_t* count) const

@@ -88,6 +88,9 @@ public:
 
   void Unlock();
 
+  void SetRepr(RCRepr repr);
+  void ConvertTo(RCRepr repr);
+
 private:
   friend class RegCache;
   friend class RCOpArg;
@@ -160,10 +163,10 @@ public:
   u32 Imm32(preg_t preg) const { return R(preg).Imm32(); }
   s32 SImm32(preg_t preg) const { return R(preg).SImm32(); }
 
-  RCOpArg Use(preg_t preg, RCMode mode);
-  RCOpArg UseNoImm(preg_t preg, RCMode mode);
-  RCOpArg BindOrImm(preg_t preg, RCMode mode);
-  RCX64Reg Bind(preg_t preg, RCMode mode);
+  RCOpArg Use(preg_t preg, RCMode mode, RCRepr repr = RCRepr::Canonical);
+  RCOpArg UseNoImm(preg_t preg, RCMode mode, RCRepr repr = RCRepr::Canonical);
+  RCOpArg BindOrImm(preg_t preg, RCMode mode, RCRepr repr = RCRepr::Canonical);
+  RCX64Reg Bind(preg_t preg, RCMode mode, RCRepr repr = RCRepr::Canonical);
   RCX64Reg RevertableBind(preg_t preg, RCMode mode);
   RCX64Reg Scratch();
   RCX64Reg Scratch(Gen::X64Reg xr);
@@ -186,6 +189,7 @@ protected:
   virtual Gen::OpArg GetDefaultLocation(preg_t preg) const = 0;
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
+  virtual void ConvertRegister(preg_t preg, RCRepr requested_repr) = 0;
 
   virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) const = 0;
 
@@ -194,7 +198,7 @@ protected:
 
   void FlushX(Gen::X64Reg reg);
   void DiscardRegContentsIfCached(preg_t preg);
-  void BindToRegister(preg_t preg, bool doLoad = true, bool makeDirty = true);
+  void BindToRegister(preg_t preg, bool doLoad, bool makeDirty, RCRepr repr);
   void StoreFromRegister(preg_t preg, FlushMode mode = FlushMode::Full);
 
   Gen::X64Reg GetFreeXReg();
@@ -211,6 +215,7 @@ protected:
   void UnlockX(Gen::X64Reg xr);
   bool IsRealized(preg_t preg) const;
   void Realize(preg_t preg);
+  void SetRepr(preg_t preg, RCRepr repr);
 
   bool IsAnyConstraintActive() const;
 

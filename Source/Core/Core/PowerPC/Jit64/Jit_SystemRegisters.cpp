@@ -678,6 +678,7 @@ void Jit64::mffsx(UGeckoInstruction inst)
   OR(64, R(RSCRATCH), R(RSCRATCH2));
   MOVQ_xmm(XMM0, R(RSCRATCH));
   MOVSD(Rd, R(XMM0));
+  Rd.SetRepr(RCRepr::Canonical);
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]

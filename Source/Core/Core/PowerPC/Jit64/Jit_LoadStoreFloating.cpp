@@ -61,7 +61,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
       offset = (s16)inst.SIMM_16;
   }
 
-  RCMode Rd_mode = !single ? RCMode::ReadWrite : RCMode::Write;
+  RCMode Rd_mode = single ? RCMode::Write : RCMode::ReadWrite;
   RCX64Reg Rd = jo.memcheck && single ? fpr.RevertableBind(d, Rd_mode) : fpr.Bind(d, Rd_mode);
   RegCache::Realize(Rd);
   BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -71,12 +71,14 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    ConvertSingleToDouble(Rd, RSCRATCH, true);
+    MOVD_xmm(Rd, R(RSCRATCH));
+    Rd.SetRepr(RCRepr::DupSingles);
   }
   else
   {
     MOVQ_xmm(XMM0, R(RSCRATCH));
     MOVSD(Rd, R(XMM0));
+    Rd.SetRepr(RCRepr::Canonical);
   }
   if (update && jo.memcheck)
   {
@@ -105,19 +107,26 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (js.op->fprIsStoreSafe[s])
+    if (fpr.IsSingle(s))
     {
-      RCOpArg Rs = fpr.Use(s, RCMode::Read);
+      RCX64Reg Rs = fpr.Bind(s, RCMode::Read, RCRepr::LowerSingle);
+      RegCache::Realize(Rs);
+      MOVD_xmm(R(RSCRATCH), Rs);
+    }
+    else if (fpr.IsRounded(s) || js.op->fprIsStoreSafe[s])
+    {
+      RCOpArg Rs = fpr.Use(s, RCMode::Read, RCRepr::LowerDouble);
       RegCache::Realize(Rs);
       CVTSD2SS(XMM0, Rs);
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
     else
     {
       RCX64Reg Rs = fpr.Bind(s, RCMode::Read);
       RegCache::Realize(Rs);
       ConvertDoubleToSingle(XMM0, Rs);
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
-    MOVD_xmm(R(RSCRATCH), XMM0);
   }
   else
   {
@@ -197,7 +206,7 @@ void Jit64::stfiwx(UGeckoInstruction inst)
 
   RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(b, RCMode::Read);
-  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read, RCRepr::LowerDouble);
   RegCache::Realize(Ra, Rb, Rs);
 
   MOV_sum(32, RSCRATCH2, Ra, Rb);

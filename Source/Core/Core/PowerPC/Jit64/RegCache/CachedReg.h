@@ -5,6 +5,8 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
+#include <type_traits>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -12,6 +14,93 @@
 #include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 
 using preg_t = size_t;
+
+/// Value representation
+/// bit 0: Is Single?
+/// bit 1: Is Rounded?
+/// Bit 2: Does only lower value exist physically?
+/// Bit 3: Is value physically duplicated?
+enum class RCRepr
+{
+  /// Canonical representation
+  /// Integer: A simple integer
+  /// Float: A pair of doubles
+  Canonical = 0b0000,
+
+  // Float representations
+
+  /// A pair of singles
+  PairSingles = 0b0001,
+  /// A pair of doubles that have been rounded to single precision
+  PairRounded = 0b0010,
+  /// Lower reg is same as upper one (note: physically upper is nonexistent)
+  Dup = 0b0100,
+  /// Lower reg is same as upper one as single (only lower exists)
+  DupSingles = 0b0101,
+  /// Lower reg is same as upper one as rounded (only lower exists)
+  DupRounded = 0b0110,
+  /// Lower reg is same as upper one (and both physically exist)
+  DupPhysical = 0b1000,
+  /// Lower reg is same as upper one as single (and both exist)
+  DupPhysicalSingles = 0b1001,
+  /// Lower reg is same as upper one as rounded (and both exist)
+  DupPhysicalRounded = 0b1010,
+
+  /// Used when requesting representations
+  LowerSingle = DupSingles,
+  /// Used when requesting representations
+  LowerDouble = Dup,
+};
+
+inline bool IsRCReprSingle(RCRepr repr)
+{
+  return static_cast<std::underlying_type_t<RCRepr>>(repr) & 0b0001;
+}
+
+inline bool IsRCReprAnyDup(RCRepr repr)
+{
+  return static_cast<std::underlying_type_t<RCRepr>>(repr) & 0b1100;
+}
+
+inline bool IsRCReprDup(RCRepr repr)
+{
+  return (static_cast<std::underlying_type_t<RCRepr>>(repr) & 0b1100) == 0b0100;
+}
+
+inline bool IsRCReprDupPhysical(RCRepr repr)
+{
+  return static_cast<std::underlying_type_t<RCRepr>>(repr) & 0b1000;
+}
+
+inline bool IsRCReprRounded(RCRepr repr)
+{
+  return static_cast<std::underlying_type_t<RCRepr>>(repr) & 0b0010;
+}
+
+inline bool IsRCReprCanonicalCompatible(RCRepr repr)
+{
+  return repr == RCRepr::Canonical || repr == RCRepr::PairRounded || repr == RCRepr::DupPhysical ||
+         repr == RCRepr::DupPhysicalRounded;
+}
+
+inline bool IsRCReprRequestable(RCRepr repr)
+{
+  switch (repr)
+  {
+  case RCRepr::Canonical:
+  case RCRepr::PairSingles:
+  case RCRepr::Dup:
+  case RCRepr::DupSingles:
+    return true;
+  case RCRepr::PairRounded:
+  case RCRepr::DupRounded:
+  case RCRepr::DupPhysical:
+  case RCRepr::DupPhysicalSingles:
+  case RCRepr::DupPhysicalRounded:
+    return false;
+  }
+  return false;
+}
 
 class PPCCachedReg
 {
@@ -59,6 +148,7 @@ public:
 
   void SetBoundTo(Gen::X64Reg xreg)
   {
+    ASSERT(IsRCReprCanonicalCompatible(repr));
     away = true;
     location = Gen::R(xreg);
   }
@@ -74,6 +164,7 @@ public:
   {
     away |= dirty;
     location = Gen::Imm32(imm32);
+    repr = RCRepr::Canonical;
   }
 
   bool IsRevertable() const { return revertable; }
@@ -102,12 +193,20 @@ public:
     locked--;
   }
 
+  RCRepr GetRepr() const { return repr; }
+  void SetRepr(RCRepr r)
+  {
+    ASSERT(IsBound());
+    repr = r;
+  }
+
 private:
   Gen::OpArg default_location{};
   Gen::OpArg location{};
   bool away = false;  // value not in source register
   bool revertable = false;
   size_t locked = 0;
+  RCRepr repr = RCRepr::Canonical;
 };
 
 class X64CachedReg
@@ -155,7 +254,7 @@ public:
   bool IsRealized() const { return realized != RealizedLoc::Invalid; }
   bool IsActive() const
   {
-    return IsRealized() || write || read || kill_imm || kill_mem || revertable;
+    return IsRealized() || write || read || kill_imm || kill_mem || revertable || repr;
   }
 
   bool ShouldLoad() const { return read; }
@@ -163,6 +262,7 @@ public:
   bool ShouldBeRevertable() const { return revertable; }
   bool ShouldKillImmediate() const { return kill_imm; }
   bool ShouldKillMemory() const { return kill_mem; }
+  RCRepr RequiredRepr() const { return *repr; }
 
   enum class RealizedLoc
   {
@@ -186,18 +286,29 @@ public:
     Any,
   };
 
-  void AddUse(RCMode mode) { AddConstraint(mode, ConstraintLoc::Any, false); }
-  void AddUseNoImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrMem, false); }
-  void AddBindOrImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrImm, false); }
-  void AddBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, false); }
-  void AddRevertableBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, true); }
+  void AddUse(RCMode m, RCRepr r) { AddConstraint(m, ConstraintLoc::Any, false, r); }
+  void AddUseNoImm(RCMode m, RCRepr r) { AddConstraint(m, ConstraintLoc::BoundOrMem, false, r); }
+  void AddBindOrImm(RCMode m, RCRepr r) { AddConstraint(m, ConstraintLoc::BoundOrImm, false, r); }
+  void AddBind(RCMode m, RCRepr r) { AddConstraint(m, ConstraintLoc::Bound, false, r); }
+  void AddRevertableBind(RCMode m)
+  {
+    AddConstraint(m, ConstraintLoc::Bound, true, RCRepr::Canonical);
+  }
 
 private:
-  void AddConstraint(RCMode mode, ConstraintLoc loc, bool should_revertable)
+  RCRepr ReconcileRepr(RCRepr r1, std::optional<RCRepr> r2)
+  {
+    if (!r2)
+      return r1;
+    ASSERT(IsRCReprSingle(r1) == IsRCReprSingle(*r2));
+    return IsRCReprAnyDup(r1) ? *r2 : r1;
+  }
+
+  void AddConstraint(RCMode mode, ConstraintLoc loc, bool should_revertable, RCRepr r)
   {
     if (IsRealized())
     {
-      ASSERT(IsCompatible(mode, loc, should_revertable));
+      ASSERT(IsCompatible(mode, loc, should_revertable, r));
       return;
     }
 
@@ -223,21 +334,29 @@ private:
     switch (mode)
     {
     case RCMode::Read:
+      repr = ReconcileRepr(r, repr);
       read = true;
       break;
     case RCMode::Write:
+      // ignore r parameter
       write = true;
       break;
     case RCMode::ReadWrite:
+      repr = ReconcileRepr(r, repr);
       read = true;
       write = true;
       break;
     }
   }
 
-  bool IsCompatible(RCMode mode, ConstraintLoc loc, bool should_revertable) const
+  bool IsCompatible(RCMode mode, ConstraintLoc loc, bool should_revertable, RCRepr r) const
   {
     if (should_revertable && !revertable)
+    {
+      return false;
+    }
+
+    if (repr != r)
     {
       return false;
     }
@@ -281,4 +400,5 @@ private:
   bool kill_imm = false;
   bool kill_mem = false;
   bool revertable = false;
+  std::optional<RCRepr> repr;
 };

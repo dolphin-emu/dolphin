@@ -871,7 +871,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   }
 
   // Forward scan, for flags that need the other direction for calculation.
-  BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe, gprDefined, gprBlockInputs;
+  BitSet32 fprIsSingle, fprIsStoreSafe, gprDefined, gprBlockInputs;
   BitSet8 gqrUsed, gqrModified;
   for (u32 i = 0; i < block->m_num_instructions; i++)
   {
@@ -881,18 +881,15 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     gprDefined |= op.regsOut;
 
     op.fprIsSingle = fprIsSingle;
-    op.fprIsDuplicated = fprIsDuplicated;
     op.fprIsStoreSafe = fprIsStoreSafe;
     if (op.fregOut >= 0)
     {
       fprIsSingle[op.fregOut] = false;
-      fprIsDuplicated[op.fregOut] = false;
       fprIsStoreSafe[op.fregOut] = false;
       // Single, duplicated, and doesn't need PPC_FP.
       if (op.opinfo->type == OpType::SingleFP)
       {
         fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = true;
         fprIsStoreSafe[op.fregOut] = true;
       }
       // Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
@@ -902,7 +899,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       if (!strncmp(op.opinfo->opname, "lfs", 3))
       {
         fprIsSingle[op.fregOut] = true;
-        fprIsDuplicated[op.fregOut] = true;
       }
       // Paired are still floats, but the top/bottom halves may differ.
       if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
@@ -936,4 +932,4 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   return address;
 }
 
-}  // namespace
+}  // namespace PPCAnalyst
