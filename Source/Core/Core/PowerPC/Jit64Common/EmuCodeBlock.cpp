@@ -54,12 +54,13 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // load/store, the trampoline generator will have stashed the exception
   // handler (that we previously generated after the fastmem instruction) in
   // trampolineExceptionHandler.
-  if (g_jit->js.generatingTrampoline)
+  auto& js = m_jit.js;
+  if (js.generatingTrampoline)
   {
-    if (g_jit->js.trampolineExceptionHandler)
+    if (js.trampolineExceptionHandler)
     {
       TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-      J_CC(CC_NZ, g_jit->js.trampolineExceptionHandler);
+      J_CC(CC_NZ, js.trampolineExceptionHandler);
     }
     return;
   }
@@ -67,11 +68,11 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // If memcheck (ie: MMU) mode is enabled and we haven't generated an
   // exception handler for this instruction yet, we will generate an
   // exception check.
-  if (g_jit->jo.memcheck && !g_jit->js.fastmemLoadStore && !g_jit->js.fixupExceptionHandler)
+  if (m_jit.jo.memcheck && !js.fastmemLoadStore && !js.fixupExceptionHandler)
   {
     TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-    g_jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
-    g_jit->js.fixupExceptionHandler = true;
+    js.exceptionHandler = J_CC(Gen::CC_NZ, true);
+    js.fixupExceptionHandler = true;
   }
 }
 
@@ -318,8 +319,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 {
   bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
+  auto& js = m_jit.js;
   registersInUse[reg_value] = false;
-  if (g_jit->jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
+  if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
       !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
@@ -327,7 +329,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = g_jit->js.compilerPC;
+    info.pc = js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = true;
@@ -346,7 +348,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     }
     info.len = static_cast<u32>(GetCodePtr() - info.start);
 
-    g_jit->js.fastmemLoadStore = mov.address;
+    js.fastmemLoadStore = mov.address;
     return;
   }
 
@@ -384,7 +386,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   // Invalid for calls from Jit64AsmCommon routines
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -448,7 +450,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   }
 
   // Helps external systems know which instruction triggered the read.
-  MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
 
   // Fall back to general-case code.
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
@@ -490,14 +492,15 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
 
-  if (g_jit->jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
+  auto& js = m_jit.js;
+  if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
       !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = g_jit->js.compilerPC;
+    info.pc = js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = false;
@@ -515,7 +518,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     }
     info.len = static_cast<u32>(GetCodePtr() - info.start);
 
-    g_jit->js.fastmemLoadStore = mov.address;
+    js.fastmemLoadStore = mov.address;
 
     return;
   }
@@ -551,7 +554,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   // Invalid for calls from Jit64AsmCommon routines
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -617,7 +620,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
 
   // If we already know the address through constant folding, we can do some
   // fun tricks...
-  if (g_jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
+  if (m_jit.jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
   {
     X64Reg arg_reg = RSCRATCH;
 
@@ -634,7 +637,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     ADD(64, R(RSCRATCH2), Imm8(accessSize >> 3));
     MOV(64, PPCSTATE(gather_pipe_ptr), R(RSCRATCH2));
 
-    g_jit->js.fifoBytesSinceCheck += accessSize >> 3;
+    m_jit.js.fifoBytesSinceCheck += accessSize >> 3;
     return false;
   }
   else if (PowerPC::IsOptimizableRAMAddress(address))
@@ -645,7 +648,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   else
   {
     // Helps external systems know which instruction triggered the write
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
 
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
     switch (accessSize)
@@ -724,7 +727,7 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
                                         bool duplicate)
 {
   // Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-  if (g_jit->jo.accurateSinglePrecision)
+  if (m_jit.jo.accurateSinglePrecision)
   {
     if (packed)
     {
@@ -840,7 +843,7 @@ alignas(16) static const u64 psRoundBit[2] = {0x8000000, 0x8000000};
 // It needs a temp, so let the caller pass that in.
 void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg tmp)
 {
-  if (g_jit->jo.accurateSinglePrecision)
+  if (m_jit.jo.accurateSinglePrecision)
   {
     // mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
     if (input.IsSimpleReg() && cpu_info.bAVX)

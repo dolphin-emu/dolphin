@@ -19,10 +19,13 @@ namespace MMIO
 class Mapping;
 }
 
+class Jitx86Base;
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
+  explicit EmuCodeBlock(Jitx86Base& jit) : m_jit{jit} {}
   void MemoryExceptionCheck();
 
   // Simple functions to switch between near and far code emitting
@@ -125,6 +128,7 @@ public:
   void Clear();
 
 protected:
+  Jitx86Base& m_jit;
   ConstantPool m_const_pool;
   FarCodeCache m_far_code;
   u8* m_near_code;  // Backed up when we switch to far code.

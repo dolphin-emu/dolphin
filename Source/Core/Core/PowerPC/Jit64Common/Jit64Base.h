@@ -32,14 +32,15 @@ constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 
 class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
+public:
+  Jitx86Base() : QuantizedMemoryRoutines(*this) {}
+  JitBlockCache* GetBlockCache() override { return &blocks; }
+  bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
 protected:
   bool BackPatch(u32 emAddress, SContext* ctx);
   JitBlockCache blocks{*this};
-  TrampolineCache trampolines;
-
-public:
-  JitBlockCache* GetBlockCache() override { return &blocks; }
-  bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  TrampolineCache trampolines{*this};
 };
 
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
