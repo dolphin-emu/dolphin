@@ -34,7 +34,7 @@ class ModifySettingsButton;
 class NumericSetting;
 class Output;
 class Tilt;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteReal
 {
@@ -180,6 +180,8 @@ struct ExtensionReg
   u8 constant_id[6];
 };
 #pragma pack(pop)
+
+void UpdateCalibrationDataChecksum(std::array<u8, 0x10>& data);
 
 void EmulateShake(AccelData* accel, ControllerEmu::Buttons* buttons_group, double intensity,
                   u8* shake_step);
@@ -377,4 +379,4 @@ private:
 
 #pragma pack(pop)
 };
-}
+}  // namespace WiimoteEmu

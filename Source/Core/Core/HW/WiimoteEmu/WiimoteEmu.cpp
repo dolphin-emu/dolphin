@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstring>
 #include <mutex>
+#include <numeric>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -56,6 +57,11 @@ auto const PI = TAU / 2.0;
 
 namespace WiimoteEmu
 {
+constexpr int SHAKE_FREQ = 6;
+// Frame count of one up/down shake
+// < 9 no shake detection in "Wario Land: Shake It"
+constexpr int SHAKE_STEP_MAX = ::Wiimote::UPDATE_FREQ / SHAKE_FREQ;
+
 // clang-format off
 static const u8 eeprom_data_0[] = {
     // IR, maybe more
@@ -101,13 +107,20 @@ static const ReportFeatures reporting_mode_features[] = {
     {0, 0, 0, 0, 23},
 };
 
+// Used for extension calibration data:
+void UpdateCalibrationDataChecksum(std::array<u8, 0x10>& data)
+{
+  // Last two bytes are the sum of the previous bytes plus 0x55 and 0xaa (0x55 + 0x55)
+  const u8 checksum1 = std::accumulate(std::begin(data), std::end(data) - 2, u8(0x55));
+  const u8 checksum2 = checksum1 + 0x55;
+
+  data[0xe] = checksum1;
+  data[0xf] = checksum2;
+}
+
 void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_group,
                   const double intensity, u8* const shake_step)
 {
-  // frame count of one up/down shake
-  // < 9 no shake detection in "Wario Land: Shake It"
-  auto const shake_step_max = 15;
-
   // shake is a bitfield of X,Y,Z shake button states
   static const unsigned int btns[] = {0x01, 0x02, 0x04};
   unsigned int shake = 0;
@@ -117,8 +130,8 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   {
     if (shake & (1 << i))
     {
-      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * intensity;
-      shake_step[i] = (shake_step[i] + 1) % shake_step_max;
+      (&(accel->x))[i] += std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity;
+      shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
     }
     else
       shake_step[i] = 0;
@@ -129,10 +142,6 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
                          ControllerEmu::Buttons* const buttons_group,
                          const DynamicConfiguration& config, u8* const shake_step)
 {
-  // frame count of one up/down shake
-  // < 9 no shake detection in "Wario Land: Shake It"
-  auto const shake_step_max = 15;
-
   // shake is a bitfield of X,Y,Z shake button states
   static const unsigned int btns[] = {0x01, 0x02, 0x04};
   unsigned int shake = 0;
@@ -146,8 +155,9 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
     }
     else if (dynamic_data.executing_frames_left[i] > 0)
     {
-      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * dynamic_data.intensity[i];
-      shake_step[i] = (shake_step[i] + 1) % shake_step_max;
+      (&(accel->x))[i] +=
+          std::sin(TAU * shake_step[i] / SHAKE_STEP_MAX) * dynamic_data.intensity[i];
+      shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
       dynamic_data.executing_frames_left[i]--;
     }
     else if (shake == 0 && dynamic_data.timing[i] > 0)
@@ -651,9 +661,9 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   s16 y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
   s16 z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
-  x = MathUtil::Clamp<s16>(x, 0, 1024);
-  y = MathUtil::Clamp<s16>(y, 0, 1024);
-  z = MathUtil::Clamp<s16>(z, 0, 1024);
+  x = MathUtil::Clamp<s16>(x, 0, 0x3ff);
+  y = MathUtil::Clamp<s16>(y, 0, 0x3ff);
+  z = MathUtil::Clamp<s16>(z, 0, 0x3ff);
 
   accel.x = (x >> 2) & 0xFF;
   accel.y = (y >> 2) & 0xFF;
@@ -1025,11 +1035,15 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
-  m_buttons->SetControlExpression(0, "Click 1");  // A
-  m_buttons->SetControlExpression(1, "Click 3");  // B
+  // A
+  m_buttons->SetControlExpression(0, "Click 1");
+  // B
+  m_buttons->SetControlExpression(1, "Click 3");
 #else
-  m_buttons->SetControlExpression(0, "Click 0");  // A
-  m_buttons->SetControlExpression(1, "Click 1");  // B
+  // A
+  m_buttons->SetControlExpression(0, "Click 0");
+  // B
+  m_buttons->SetControlExpression(1, "Click 1");
 #endif
   m_buttons->SetControlExpression(2, "1");  // 1
   m_buttons->SetControlExpression(3, "2");  // 2
