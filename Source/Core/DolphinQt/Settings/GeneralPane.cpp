@@ -45,6 +45,8 @@ constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
     {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},
     {PowerPC::CPUCore::CachedInterpreter, QT_TR_NOOP("Cached Interpreter (slower)")},
+    {PowerPC::CPUCore::TieredGeneric,
+     QT_TR_NOOP("Generic path of the tiered JIT framework (slow, experimental)")},
     {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler (recommended)")},
     {PowerPC::CPUCore::JITARM64, QT_TR_NOOP("JIT Arm64 (experimental)")},
 };

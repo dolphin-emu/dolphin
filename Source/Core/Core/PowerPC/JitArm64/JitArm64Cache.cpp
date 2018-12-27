@@ -9,7 +9,7 @@
 
 using namespace Arm64Gen;
 
-JitArm64BlockCache::JitArm64BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
+JitArm64BlockCache::JitArm64BlockCache(JitCommonBase& jit) : JitBaseBlockCache{jit}
 {
 }
 

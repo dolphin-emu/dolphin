@@ -30,8 +30,12 @@ constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 
 constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 
-class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
+class Jitx86Base : public JitCommonBase, public QuantizedMemoryRoutines
 {
+  // these need to access JitOptions and JitState
+  friend class EmuCodeBlock;
+  friend class QuantizedMemoryRoutines;
+
 public:
   Jitx86Base() : QuantizedMemoryRoutines(*this) {}
   JitBlockCache* GetBlockCache() override { return &blocks; }

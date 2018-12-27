@@ -206,6 +206,7 @@ const std::vector<CPUCore>& AvailableCPUCores()
   static const std::vector<CPUCore> cpu_cores = {
       CPUCore::Interpreter,
       CPUCore::CachedInterpreter,
+      CPUCore::TieredGeneric,
 #ifdef _M_X86_64
       CPUCore::JIT64,
 #elif defined(_M_ARM_64)

@@ -36,6 +36,11 @@ struct CodeOp;
 
 class Jit64 : public Jitx86Base
 {
+  // these three need access to the JitState
+  friend class FPURegCache;
+  friend class GPRRegCache;
+  friend class RegCache;
+
 public:
   Jit64();
   ~Jit64() override;

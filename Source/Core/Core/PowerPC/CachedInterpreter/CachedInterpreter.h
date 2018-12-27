@@ -11,7 +11,7 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-class CachedInterpreter : public JitBase
+class CachedInterpreter : public JitCommonBase
 {
 public:
   CachedInterpreter();

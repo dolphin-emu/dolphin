@@ -221,6 +221,7 @@ add_library(core
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitBase.cpp
   PowerPC/JitCommon/JitCache.cpp
+  PowerPC/JitTiered/TieredGeneric.cpp
 )
 
 if(_M_X86)

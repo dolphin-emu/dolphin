@@ -10,23 +10,23 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
-const u8* JitBase::Dispatch(JitBase& jit)
+const u8* JitCommonBase::Dispatch(JitCommonBase& jit)
 {
   return jit.GetBlockCache()->Dispatch();
 }
 
-void JitTrampoline(JitBase& jit, u32 em_address)
+void JitTrampoline(JitCommonBase& jit, u32 em_address)
 {
   jit.Jit(em_address);
 }
 
-JitBase::JitBase() : m_code_buffer(code_buffer_size)
+JitCommonBase::JitCommonBase() : m_code_buffer(code_buffer_size)
 {
 }
 
-JitBase::~JitBase() = default;
+JitCommonBase::~JitCommonBase() = default;
 
-bool JitBase::CanMergeNextInstructions(int count) const
+bool JitCommonBase::CanMergeNextInstructions(int count) const
 {
   if (CPU::IsStepping() || js.instructionsLeft < count)
     return false;
@@ -42,7 +42,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   return true;
 }
 
-void JitBase::UpdateMemoryOptions()
+void JitCommonBase::UpdateMemoryOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
   jo.fastmem = SConfig::GetInstance().bFastmem && (MSR.DR || !any_watchpoints);
