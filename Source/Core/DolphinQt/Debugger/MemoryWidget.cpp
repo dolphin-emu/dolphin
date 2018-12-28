@@ -212,6 +212,7 @@ void MemoryWidget::ConnectWidgets()
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
+  connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -321,6 +322,15 @@ void MemoryWidget::OnBPTypeChanged()
   m_memory_view->SetBPType(type);
 
   SaveSettings();
+}
+
+void MemoryWidget::SetAddress(u32 address)
+{
+  m_memory_view->SetAddress(address);
+  Settings::Instance().SetMemoryVisible(true);
+  raise();
+
+  m_memory_view->setFocus();
 }
 
 void MemoryWidget::OnSearchAddress()

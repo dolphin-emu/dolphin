@@ -164,6 +164,7 @@ void CodeWidget::ConnectWidgets()
 
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
           &CodeWidget::RequestPPCComparison);
+  connect(m_code_view, &CodeViewWidget::ShowMemory, this, &CodeWidget::ShowMemory);
 }
 
 void CodeWidget::OnSearchAddress()
@@ -250,6 +251,12 @@ void CodeWidget::OnSelectFunctionCallers()
 void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update)
 {
   m_code_view->SetAddress(address, update);
+
+  if (update == CodeViewWidget::SetAddressUpdate::WithUpdate)
+  {
+    raise();
+    m_code_view->setFocus();
+  }
 }
 
 void CodeWidget::Update()

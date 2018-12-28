@@ -224,6 +224,9 @@ void CodeViewWidget::OnContextMenu()
   auto* copy_line_action =
       menu->addAction(tr("Copy code &line"), this, &CodeViewWidget::OnCopyCode);
   auto* copy_hex_action = menu->addAction(tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
+
+  menu->addAction(tr("Show in &memory"), this, &CodeViewWidget::OnShowInMemory);
+
   menu->addSeparator();
 
   auto* symbol_rename_action =
@@ -265,6 +268,11 @@ void CodeViewWidget::OnCopyAddress()
   const u32 addr = GetContextAddress();
 
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
+}
+
+void CodeViewWidget::OnShowInMemory()
+{
+  emit ShowMemory(GetContextAddress());
 }
 
 void CodeViewWidget::OnCopyCode()
