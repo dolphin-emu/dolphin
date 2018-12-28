@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -56,6 +57,43 @@ struct TLBEntry
   u32 pte[TLB_WAYS] = {};
   u8 recent = 0;
 };
+
+struct PairedSingle
+{
+  u64 PS0AsU64() const { return ps0; }
+  u64 PS1AsU64() const { return ps1; }
+
+  u32 PS0AsU32() const { return static_cast<u32>(ps0); }
+  u32 PS1AsU32() const { return static_cast<u32>(ps1); }
+
+  double PS0AsDouble() const;
+  double PS1AsDouble() const;
+
+  void SetPS0(u64 value) { ps0 = value; }
+  void SetPS0(double value);
+
+  void SetPS1(u64 value) { ps1 = value; }
+  void SetPS1(double value);
+
+  void SetBoth(u64 lhs, u64 rhs)
+  {
+    SetPS0(lhs);
+    SetPS1(rhs);
+  }
+  void SetBoth(double lhs, double rhs)
+  {
+    SetPS0(lhs);
+    SetPS1(rhs);
+  }
+
+  void Fill(u64 value) { SetBoth(value, value); }
+  void Fill(double value) { SetBoth(value, value); }
+
+  u64 ps0 = 0;
+  u64 ps1 = 0;
+};
+// Paired single must be standard layout in order for offsetof to work, which is used by the JITs
+static_assert(std::is_standard_layout<PairedSingle>(), "PairedSingle must be standard layout");
 
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
 struct PowerPCState
@@ -114,7 +152,7 @@ struct PowerPCState
   // The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
   // but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
   // Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
-  alignas(16) u64 ps[32][2];
+  alignas(16) PairedSingle ps[32];
 
   u32 sr[16];  // Segment registers.
 
@@ -212,11 +250,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define TL PowerPC::ppcState.spr[SPR_TL]
 #define TU PowerPC::ppcState.spr[SPR_TU]
 
-#define rPS0(i) (*(double*)(&PowerPC::ppcState.ps[i][0]))
-#define rPS1(i) (*(double*)(&PowerPC::ppcState.ps[i][1]))
-
-#define riPS0(i) (*(u64*)(&PowerPC::ppcState.ps[i][0]))
-#define riPS1(i) (*(u64*)(&PowerPC::ppcState.ps[i][1]))
+#define rPS(i) (PowerPC::ppcState.ps[(i)])
 
 enum CRBits
 {

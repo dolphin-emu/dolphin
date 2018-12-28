@@ -98,7 +98,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
+  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
@@ -555,7 +555,7 @@ void Interpreter::mffsx(UGeckoInstruction inst)
   // TODO(ector): grab all overflow flags etc and set them in FPSCR
 
   UpdateFPSCR();
-  riPS0(inst.FD) = 0xFFF8000000000000 | FPSCR.Hex;
+  rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
 
   if (inst.Rc)
     Helper_UpdateCR1();

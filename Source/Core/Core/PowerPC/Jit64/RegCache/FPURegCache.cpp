@@ -34,7 +34,7 @@ const X64Reg* FPURegCache::GetAllocationOrder(size_t* count) const
 
 OpArg FPURegCache::GetDefaultLocation(preg_t preg) const
 {
-  return PPCSTATE(ps[preg][0]);
+  return PPCSTATE(ps[preg].ps0);
 }
 
 BitSet32 FPURegCache::GetRegUtilization() const
