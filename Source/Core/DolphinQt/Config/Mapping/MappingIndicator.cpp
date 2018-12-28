@@ -138,8 +138,8 @@ void MappingIndicator::DrawCursor(bool tilt)
 template <typename F>
 QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
 {
-  // 24 is a multiple of 8 (octagon) and enough points to be visibly pleasing:
-  constexpr int shape_point_count = 24;
+  // A multiple of 8 (octagon) and enough points to be visibly pleasing:
+  constexpr int shape_point_count = 32;
   QPolygonF shape{shape_point_count};
 
   int p = 0;

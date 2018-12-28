@@ -32,8 +32,10 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
 
   // Set default input radius to that of the gate radius (no resizing)
+  // Allow radius greater than 1.0 for definitions of rounded squares
+  // This is ideal for Xbox controllers (and probably others)
   numeric_settings.emplace_back(
-      std::make_unique<NumericSetting>(_trans("Input Radius"), GetGateRadiusAtAngle(0.0), 0, 100));
+      std::make_unique<NumericSetting>(_trans("Input Radius"), GetGateRadiusAtAngle(0.0), 0, 140));
   // Set default input shape to an octagon (no reshaping)
   numeric_settings.emplace_back(
       std::make_unique<NumericSetting>(_trans("Input Shape"), 0.0, 0, 50));
@@ -97,7 +99,10 @@ ControlState AnalogStick::GetDeadzoneRadiusAtAngle(double ang) const
 
 ControlState AnalogStick::GetInputRadiusAtAngle(double ang) const
 {
-  return CalculateInputShapeRadiusAtAngle(ang) * numeric_settings[SETTING_INPUT_RADIUS]->GetValue();
+  const ControlState radius =
+      CalculateInputShapeRadiusAtAngle(ang) * numeric_settings[SETTING_INPUT_RADIUS]->GetValue();
+  // Clamp within the -1 to +1 square as input radius may be greater than 1.0:
+  return std::min(radius, SquareStickGate(1).GetRadiusAtAngle(ang));
 }
 
 ControlState AnalogStick::CalculateInputShapeRadiusAtAngle(double ang) const
