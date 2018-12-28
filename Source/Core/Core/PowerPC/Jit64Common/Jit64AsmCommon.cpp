@@ -13,7 +13,8 @@
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 

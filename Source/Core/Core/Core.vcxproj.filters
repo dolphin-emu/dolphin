@@ -699,9 +699,6 @@
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp">
-      <Filter>PowerPC\Jit64Common</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
@@ -1393,7 +1390,7 @@
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h">
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h">

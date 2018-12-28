@@ -255,7 +255,6 @@ if(_M_X86)
     PowerPC/Jit64Common/EmuCodeBlock.cpp
     PowerPC/Jit64Common/FarCodeCache.cpp
     PowerPC/Jit64Common/Jit64AsmCommon.cpp
-    PowerPC/Jit64Common/Jit64Base.cpp
     PowerPC/Jit64Common/TrampolineCache.cpp
   )
 elseif(_M_ARM_64)
