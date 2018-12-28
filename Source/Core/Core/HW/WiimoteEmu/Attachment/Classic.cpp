@@ -83,10 +83,11 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
   }
 
   // sticks
-  groups.emplace_back(m_left_stick = new ControllerEmu::AnalogStick(
-                          _trans("Left Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
-  groups.emplace_back(m_right_stick = new ControllerEmu::AnalogStick(
-                          _trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / LEFT_STICK_RADIUS;
+  groups.emplace_back(m_left_stick =
+                          new ControllerEmu::OctagonAnalogStick(_trans("Left Stick"), gate_radius));
+  groups.emplace_back(
+      m_right_stick = new ControllerEmu::OctagonAnalogStick(_trans("Right Stick"), gate_radius));
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));

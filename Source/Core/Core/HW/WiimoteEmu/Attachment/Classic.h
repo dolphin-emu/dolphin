@@ -68,6 +68,8 @@ public:
     RIGHT_TRIGGER_RANGE = 0x1F,
   };
 
+  static const u8 STICK_GATE_RADIUS = 0x16;
+
 private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::MixedTriggers* m_triggers;

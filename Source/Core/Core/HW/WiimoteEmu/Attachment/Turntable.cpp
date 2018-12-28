@@ -69,8 +69,9 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
                       new ControllerEmu::Slider("Table Right", _trans("Right Table")));
 
   // stick
-  groups.emplace_back(
-      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // effect dial
   groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
@@ -92,8 +93,8 @@ void Turntable::GetState(u8* const data)
   {
     const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    tt_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
-    tt_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
+    tt_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
+    tt_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
   }
 
   // left table
@@ -170,4 +171,4 @@ ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)
     return nullptr;
   }
 }
-}
+}  // namespace WiimoteEmu

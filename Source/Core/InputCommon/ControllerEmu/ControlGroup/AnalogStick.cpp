@@ -4,11 +4,10 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
-#include <algorithm>
 #include <cmath>
-#include <memory>
 
 #include "Common/Common.h"
+#include "Common/MathUtil.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -18,54 +17,121 @@
 
 namespace ControllerEmu
 {
-AnalogStick::AnalogStick(const char* const name_, ControlState default_radius)
-    : AnalogStick(name_, name_, default_radius)
+AnalogStick::AnalogStick(const char* const name_, std::unique_ptr<StickGate>&& stick_gate)
+    : AnalogStick(name_, name_, std::move(stick_gate))
 {
 }
 
 AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
-                         ControlState default_radius)
-    : ControlGroup(name_, ui_name_, GroupType::Stick)
+                         std::unique_ptr<StickGate>&& stick_gate)
+    : ControlGroup(name_, ui_name_, GroupType::Stick), m_stick_gate(std::move(stick_gate))
 {
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
+
+  // Set default input radius to that of the gate radius (no resizing)
+  // Allow radius greater than 1.0 for definitions of rounded squares
+  // This is ideal for Xbox controllers (and probably others)
   numeric_settings.emplace_back(
-      std::make_unique<NumericSetting>(_trans("Radius"), default_radius, 0, 100));
+      std::make_unique<NumericSetting>(_trans("Input Radius"), GetGateRadiusAtAngle(0.0), 0, 140));
+  // Set default input shape to an octagon (no reshaping)
+  numeric_settings.emplace_back(
+      std::make_unique<NumericSetting>(_trans("Input Shape"), 0.0, 0, 50));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-AnalogStick::StateData AnalogStick::GetState()
+AnalogStick::StateData AnalogStick::GetState(bool adjusted)
 {
   ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
   ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-  const ControlState radius = numeric_settings[SETTING_RADIUS]->GetValue();
-  const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
-  const ControlState m = controls[4]->control_ref->State();
+  // Return raw values. (used in UI)
+  if (!adjusted)
+    return {x, y};
 
-  const ControlState ang = atan2(y, x);
-  const ControlState ang_sin = sin(ang);
-  const ControlState ang_cos = cos(ang);
+  // TODO: make the AtAngle functions work with negative angles:
+  const ControlState ang = std::atan2(y, x) + MathUtil::TAU;
 
-  ControlState dist = sqrt(x * x + y * y);
+  const ControlState gate_max_dist = GetGateRadiusAtAngle(ang);
+  const ControlState input_max_dist = GetInputRadiusAtAngle(ang);
 
-  // dead zone code
-  dist = std::max(0.0, dist - deadzone);
-  dist /= (1 - deadzone);
+  // If input radius is zero we apply no scaling.
+  // This is useful when mapping native controllers without knowing intimate radius details.
+  const ControlState max_dist = input_max_dist ? input_max_dist : gate_max_dist;
 
-  // radius
-  dist *= radius;
+  ControlState dist = std::sqrt(x * x + y * y) / max_dist;
 
-  // The modifier halves the distance by 50%, which is useful
-  // for keyboard controls.
-  if (m)
+  // If the modifier is pressed, scale the distance by the modifier's value.
+  // This is affected by the modifier's "range" setting which defaults to 50%.
+  const ControlState modifier = controls[4]->control_ref->State();
+  if (modifier)
+  {
+    // TODO: Modifier's range setting gets reset to 100% when the clear button is clicked.
+    // This causes the modifier to not behave how a user might suspect.
+    // Retaining the old scale-by-50% behavior until range is fixed to clear to 50%.
     dist *= 0.5;
+    // dist *= modifier;
+  }
 
-  y = std::max(-1.0, std::min(1.0, ang_sin * dist));
-  x = std::max(-1.0, std::min(1.0, ang_cos * dist));
+  // Apply deadzone as a percentage of the user-defined radius/shape:
+  const ControlState deadzone = GetDeadzoneRadiusAtAngle(ang);
+  dist = std::max(0.0, dist - deadzone) / (1.0 - deadzone);
 
+  // Scale to the gate shape/radius:
+  dist = dist *= gate_max_dist;
+
+  x = MathUtil::Clamp(std::cos(ang) * dist, -1.0, 1.0);
+  y = MathUtil::Clamp(std::sin(ang) * dist, -1.0, 1.0);
   return {x, y};
 }
+
+ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const
+{
+  return m_stick_gate->GetRadiusAtAngle(ang);
+}
+
+ControlState AnalogStick::GetDeadzoneRadiusAtAngle(double ang) const
+{
+  return CalculateInputShapeRadiusAtAngle(ang) * numeric_settings[SETTING_DEADZONE]->GetValue();
+}
+
+ControlState AnalogStick::GetInputRadiusAtAngle(double ang) const
+{
+  const ControlState radius =
+      CalculateInputShapeRadiusAtAngle(ang) * numeric_settings[SETTING_INPUT_RADIUS]->GetValue();
+  // Clamp within the -1 to +1 square as input radius may be greater than 1.0:
+  return std::min(radius, SquareStickGate(1).GetRadiusAtAngle(ang));
+}
+
+ControlState AnalogStick::CalculateInputShapeRadiusAtAngle(double ang) const
+{
+  const auto shape = numeric_settings[SETTING_INPUT_SHAPE]->GetValue() * 4.0;
+
+  if (shape < 1.0)
+  {
+    // Between 0 and 25 return a shape between octagon and circle
+    const auto amt = shape;
+    return OctagonStickGate(1).GetRadiusAtAngle(ang) * (1 - amt) + amt;
+  }
+  else
+  {
+    // Between 25 and 50 return a shape between circle and square
+    const auto amt = shape - 1.0;
+    return (1 - amt) + SquareStickGate(1).GetRadiusAtAngle(ang) * amt;
+  }
+}
+
+OctagonAnalogStick::OctagonAnalogStick(const char* name, ControlState gate_radius)
+    : OctagonAnalogStick(name, name, gate_radius)
+{
+}
+
+OctagonAnalogStick::OctagonAnalogStick(const char* name, const char* ui_name,
+                                       ControlState gate_radius)
+    : AnalogStick(name, ui_name, std::make_unique<ControllerEmu::OctagonStickGate>(gate_radius))
+{
+}
+
 }  // namespace ControllerEmu

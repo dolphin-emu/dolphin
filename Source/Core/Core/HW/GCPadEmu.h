@@ -16,7 +16,7 @@ namespace ControllerEmu
 class AnalogStick;
 class Buttons;
 class MixedTriggers;
-}
+}  // namespace ControllerEmu
 
 enum class PadGroup
 {
@@ -45,6 +45,9 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  static const u8 MAIN_STICK_GATE_RADIUS = 87;
+  static const u8 C_STICK_GATE_RADIUS = 74;
+
 private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_main_stick;
@@ -57,7 +60,4 @@ private:
   ControllerEmu::BooleanSetting* m_always_connected;
 
   const unsigned int m_index;
-
-  // Default analog stick radius for GameCube controllers.
-  static constexpr ControlState DEFAULT_PAD_STICK_RADIUS = 1.0;
 };

@@ -17,6 +17,9 @@
 
 namespace MathUtil
 {
+constexpr double TAU = 6.2831853071795865;
+constexpr double PI = TAU / 2;
+
 template <class T>
 constexpr T Clamp(const T val, const T& min, const T& max)
 {
