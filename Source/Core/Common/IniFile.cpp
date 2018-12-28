@@ -45,21 +45,16 @@ IniFile::Section::Section(std::string name_) : name{std::move(name_)}
 {
 }
 
-void IniFile::Section::Set(const std::string& key, const std::string& newValue)
+void IniFile::Section::Set(const std::string& key, std::string new_value)
 {
   auto it = values.find(key);
   if (it != values.end())
-    it->second = newValue;
+    it->second = std::move(new_value);
   else
   {
-    values[key] = newValue;
+    values[key] = std::move(new_value);
     keys_order.push_back(key);
   }
-}
-
-void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
-{
-  Set(key, JoinStrings(newValues, ","));
 }
 
 bool IniFile::Section::Get(const std::string& key, std::string* value,
@@ -80,36 +75,6 @@ bool IniFile::Section::Get(const std::string& key, std::string* value,
   return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-  if (!retval || temp.empty())
-  {
-    return false;
-  }
-
-  // ignore starting comma, if any
-  size_t subStart = temp.find_first_not_of(",");
-
-  // split by comma
-  while (subStart != std::string::npos)
-  {
-    // Find next comma
-    size_t subEnd = temp.find(',', subStart);
-    if (subStart != subEnd)
-    {
-      // take from first char until next comma
-      out->push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
-    }
-
-    // Find the next non-comma char
-    subStart = temp.find_first_not_of(",", subEnd);
-  }
-
-  return true;
-}
-
 bool IniFile::Section::Exists(const std::string& key) const
 {
   return values.find(key) != values.end();
@@ -126,12 +91,7 @@ bool IniFile::Section::Delete(const std::string& key)
   return true;
 }
 
-void IniFile::Section::SetLines(const std::vector<std::string>& lines)
-{
-  m_lines = lines;
-}
-
-void IniFile::Section::SetLines(std::vector<std::string>&& lines)
+void IniFile::Section::SetLines(std::vector<std::string> lines)
 {
   m_lines = std::move(lines);
 }
