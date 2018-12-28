@@ -15,7 +15,8 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -182,7 +183,7 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
     {
       // This method can potentially clobber the address if it shares a register
       // with the load target. In this case we can just subtract offset from the
-      // register (see Jit64Base for this implementation).
+      // register (see Jit64 for this implementation).
       offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
 
       LEA(32, reg_value, MDisp(opAddress.GetSimpleReg(), offset));

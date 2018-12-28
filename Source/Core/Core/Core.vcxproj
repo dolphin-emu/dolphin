@@ -279,7 +279,6 @@
     <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
@@ -523,7 +522,7 @@
     <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h" />
     <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h" />
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h" />
     <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h" />
