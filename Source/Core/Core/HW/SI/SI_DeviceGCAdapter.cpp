@@ -66,7 +66,7 @@ bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
 
   if (m_simulate_konga)
   {
-    hi &= CSIDevice_TaruKonga::BUTTON_MASK;
+    hi &= CSIDevice_TaruKonga::HI_BUTTON_MASK;
   }
 
   return true;
