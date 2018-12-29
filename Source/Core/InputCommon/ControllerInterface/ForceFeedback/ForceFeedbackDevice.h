@@ -26,7 +26,7 @@ namespace ForceFeedback
 class ForceFeedbackDevice : public Core::Device
 {
 public:
-  bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int cAxes);
+  bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int axis_count);
   void DeInitForceFeedback();
 
 private:
@@ -35,7 +35,7 @@ private:
   class Force : public Output
   {
   public:
-    Force(ForceFeedbackDevice* parent, const std::string name, LPDIRECTINPUTEFFECT effect);
+    Force(ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect);
 
     void UpdateOutput();
     void Release();
@@ -50,7 +50,7 @@ private:
     virtual void UpdateEffect(int magnitude) = 0;
 
     ForceFeedbackDevice& m_parent;
-    const std::string m_name;
+    const char* const m_name;
     std::atomic<int> m_desired_magnitude;
   };
 
@@ -58,7 +58,8 @@ private:
   class TypedForce : public Force
   {
   public:
-    TypedForce(ForceFeedbackDevice* parent, const std::string name, LPDIRECTINPUTEFFECT effect);
+    TypedForce(ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect,
+               const P& params);
 
   private:
     void UpdateEffect(int magnitude) override;

@@ -4,7 +4,7 @@
 
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
-#include <algorithm>
+#include <array>
 #include <string>
 
 #include "Common/Thread.h"
@@ -13,6 +13,14 @@ namespace ciface
 {
 namespace ForceFeedback
 {
+// 100Hz which homebrew docs very roughly imply is within WiiMote normal
+// range, used for periodic haptic effects though often ignored by devices
+constexpr int RUMBLE_PERIOD = DI_SECONDS / 100;
+// This needs to be at least as long as the longest rumble that might ever be played.
+// Too short and it's going to stop in the middle of a long effect.
+// "INFINITE" is invalid for ramp effects and probably not sensible.
+constexpr int RUMBLE_LENGTH_MAX = DI_SECONDS * 10;
+
 // Template instantiation:
 template class ForceFeedbackDevice::TypedForce<DICONSTANTFORCE>;
 template class ForceFeedbackDevice::TypedForce<DIRAMPFORCE>;
@@ -74,41 +82,41 @@ void ForceFeedbackDevice::SignalUpdateThread()
   m_update_event.Set();
 }
 
-bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, int cAxes)
+bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, int axis_count)
 {
-  if (cAxes == 0)
+  if (axis_count == 0)
     return false;
 
-  // TODO: check for DIDC_FORCEFEEDBACK in devcaps?
-
-  // Temporary for creating the effect:
-  DWORD rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
-  LONG rglDirection[2] = {-200, 0};
+  // We just use the X axis (for wheel left/right).
+  // Gamepads seem to not care which axis you use.
+  // These are temporary for creating the effect:
+  std::array<DWORD, 1> rgdwAxes = {DIJOFS_X};
+  std::array<LONG, 1> rglDirection = {-200};
 
   DIEFFECT eff{};
-  eff.dwSize = sizeof(DIEFFECT);
+  eff.dwSize = sizeof(eff);
   eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-  // Infinite seems to work just fine:
-  eff.dwDuration = INFINITE;  // (4 * DI_SECONDS)
+  eff.dwDuration = RUMBLE_LENGTH_MAX;
   eff.dwSamplePeriod = 0;
   eff.dwGain = DI_FFNOMINALMAX;
   eff.dwTriggerButton = DIEB_NOTRIGGER;
   eff.dwTriggerRepeatInterval = 0;
-  eff.cAxes = std::min<DWORD>(1, cAxes);
-  eff.rgdwAxes = rgdwAxes;
-  eff.rglDirection = rglDirection;
+  eff.cAxes = DWORD(rgdwAxes.size());
+  eff.rgdwAxes = rgdwAxes.data();
+  eff.rglDirection = rglDirection.data();
+  eff.dwStartDelay = 0;
 
-  // Initialize parameters.
+  // Initialize parameters with zero force (their current state).
   DICONSTANTFORCE diCF{};
-  diCF.lMagnitude = DI_FFNOMINALMAX;
+  diCF.lMagnitude = 0;
   DIRAMPFORCE diRF{};
+  diRF.lStart = diRF.lEnd = 0;
   DIPERIODIC diPE{};
-
-  // This doesn't seem needed:
-  // DIENVELOPE env;
-  // eff.lpEnvelope = &env;
-  // ZeroMemory(&env, sizeof(env));
-  // env.dwSize = sizeof(env);
+  diPE.dwMagnitude = 0;
+  // Is it sensible to have a zero-offset?
+  diPE.lOffset = 0;
+  diPE.dwPhase = 0;
+  diPE.dwPeriod = RUMBLE_PERIOD;
 
   for (auto& f : force_type_names)
   {
@@ -133,11 +141,11 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
     if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr)))
     {
       if (f.guid == GUID_ConstantForce)
-        AddOutput(new ForceConstant(this, f.name, pEffect));
+        AddOutput(new ForceConstant(this, f.name, pEffect, diCF));
       else if (f.guid == GUID_RampForce)
-        AddOutput(new ForceRamp(this, f.name, pEffect));
+        AddOutput(new ForceRamp(this, f.name, pEffect, diRF));
       else
-        AddOutput(new ForcePeriodic(this, f.name, pEffect));
+        AddOutput(new ForcePeriodic(this, f.name, pEffect, diPE));
     }
   }
 
@@ -163,12 +171,11 @@ template <typename P>
 void ForceFeedbackDevice::TypedForce<P>::PlayEffect()
 {
   DIEFFECT eff{};
-  eff.dwSize = sizeof(DIEFFECT);
-  eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-
+  eff.dwSize = sizeof(eff);
   eff.cbTypeSpecificParams = sizeof(m_params);
   eff.lpvTypeSpecificParams = &m_params;
-  m_effect->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START);
+
+  m_effect->SetParameters(&eff, DIEP_START | DIEP_TYPESPECIFICPARAMS);
 }
 
 template <typename P>
@@ -192,6 +199,8 @@ bool ForceFeedbackDevice::ForceRamp::UpdateParameters(int magnitude)
 {
   const auto old_magnitude = m_params.lStart;
 
+  // Having the same "start" and "end" here is a bit odd..
+  // But ramp forces don't really make sense for our rumble effects anyways..
   m_params.lStart = m_params.lEnd = magnitude;
 
   return old_magnitude != m_params.lStart;
@@ -203,16 +212,14 @@ bool ForceFeedbackDevice::ForcePeriodic::UpdateParameters(int magnitude)
   const auto old_magnitude = m_params.dwMagnitude;
 
   m_params.dwMagnitude = magnitude;
-  // Zero is working fine for me:
-  // params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS);
 
   return old_magnitude != m_params.dwMagnitude;
 }
 
 template <typename P>
-ForceFeedbackDevice::TypedForce<P>::TypedForce(ForceFeedbackDevice* parent, std::string name,
-                                               LPDIRECTINPUTEFFECT effect)
-    : Force(parent, std::move(name), effect), m_params{}
+ForceFeedbackDevice::TypedForce<P>::TypedForce(ForceFeedbackDevice* parent, const char* name,
+                                               LPDIRECTINPUTEFFECT effect, const P& params)
+    : Force(parent, name, effect), m_params(params)
 {
 }
 
@@ -233,9 +240,9 @@ std::string ForceFeedbackDevice::Force::GetName() const
   return m_name;
 }
 
-ForceFeedbackDevice::Force::Force(ForceFeedbackDevice* parent, const std::string name,
+ForceFeedbackDevice::Force::Force(ForceFeedbackDevice* parent, const char* name,
                                   LPDIRECTINPUTEFFECT effect)
-    : m_effect(effect), m_parent(*parent), m_name(std::move(name)), m_desired_magnitude()
+    : m_effect(effect), m_parent(*parent), m_name(name), m_desired_magnitude()
 {
 }
 
