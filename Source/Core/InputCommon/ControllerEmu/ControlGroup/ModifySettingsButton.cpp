@@ -22,7 +22,6 @@ namespace ControllerEmu
 ModifySettingsButton::ModifySettingsButton(std::string button_name)
     : Buttons(std::move(button_name))
 {
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
 
 void ModifySettingsButton::AddInput(std::string button_name, bool toggle)
