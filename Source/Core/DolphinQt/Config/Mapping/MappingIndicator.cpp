@@ -37,6 +37,8 @@ static const QColor TEXT_COLOR = Qt::darkGray;
 // Text color that is visible atop ADJ_INPUT_COLOR:
 static const QColor TEXT_ALT_COLOR = Qt::white;
 
+constexpr int INPUT_DOT_RADIUS = 2;
+
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
 {
   setMinimumHeight(128);
@@ -181,8 +183,6 @@ void MappingIndicator::DrawStick()
   // Bounding box size:
   const double scale = height() / 2.5;
 
-  const float dot_radius = 2;
-
   QPainter p(this);
   p.translate(width() / 2, height() / 2);
 
@@ -219,14 +219,14 @@ void MappingIndicator::DrawStick()
   // Raw stick position.
   p.setPen(Qt::NoPen);
   p.setBrush(RAW_INPUT_COLOR);
-  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, dot_radius, dot_radius);
+  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
   // Adjusted stick position.
   if (adj_coord.x || adj_coord.y)
   {
     p.setPen(Qt::NoPen);
     p.setBrush(ADJ_INPUT_COLOR);
-    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale, dot_radius, dot_radius);
+    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
 }
 
@@ -236,16 +236,19 @@ void MappingIndicator::DrawMixedTriggers()
   p.setRenderHint(QPainter::TextAntialiasing, true);
 
   auto& triggers = *static_cast<ControllerEmu::MixedTriggers*>(m_group);
-  const ControlState threshold = triggers.numeric_settings[0]->GetValue();
+  const ControlState threshold = triggers.GetThreshold();
+  const ControlState deadzone = triggers.GetDeadzone();
 
   // MixedTriggers interface is a bit ugly:
   constexpr int TRIGGER_COUNT = 2;
-  std::array<ControlState, TRIGGER_COUNT> analog_state;
+  std::array<ControlState, TRIGGER_COUNT> raw_analog_state;
+  std::array<ControlState, TRIGGER_COUNT> adj_analog_state;
   const std::array<u16, TRIGGER_COUNT> button_masks = {0x1, 0x2};
   u16 button_state = 0;
 
   Settings::Instance().SetControllerStateNeeded(true);
-  triggers.GetState(&button_state, button_masks.data(), analog_state.data());
+  triggers.GetState(&button_state, button_masks.data(), raw_analog_state.data(), false);
+  triggers.GetState(&button_state, button_masks.data(), adj_analog_state.data(), true);
   Settings::Instance().SetControllerStateNeeded(false);
 
   // Rectangle sizes:
@@ -261,7 +264,8 @@ void MappingIndicator::DrawMixedTriggers()
 
   for (int t = 0; t != TRIGGER_COUNT; ++t)
   {
-    const double trigger_analog = analog_state[t];
+    const double raw_analog = raw_analog_state[t];
+    const double adj_analog = adj_analog_state[t];
     const bool trigger_button = button_state & button_masks[t];
     auto const analog_name = QString::fromStdString(triggers.controls[TRIGGER_COUNT + t]->ui_name);
     auto const button_name = QString::fromStdString(triggers.controls[t]->ui_name);
@@ -274,12 +278,20 @@ void MappingIndicator::DrawMixedTriggers()
     p.setPen(TEXT_COLOR);
     p.drawText(analog_rect, Qt::AlignCenter, analog_name);
 
-    const QRectF activated_analog_rect(0, 0, trigger_analog * trigger_analog_width, trigger_height);
+    const QRectF adj_analog_rect(0, 0, adj_analog * trigger_analog_width, trigger_height);
 
     // Trigger analog:
     p.setPen(Qt::NoPen);
+    p.setBrush(RAW_INPUT_COLOR);
+    p.drawEllipse(QPoint(raw_analog * trigger_analog_width, trigger_height - INPUT_DOT_RADIUS),
+                  INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
     p.setBrush(ADJ_INPUT_COLOR);
-    p.drawRect(activated_analog_rect);
+    p.drawRect(adj_analog_rect);
+
+    // Deadzone:
+    p.setPen(DEADZONE_COLOR);
+    p.setBrush(DEADZONE_BRUSH);
+    p.drawRect(0, 0, trigger_analog_width * deadzone, trigger_height);
 
     // Threshold setting:
     const int threshold_x = trigger_analog_width * threshold;
@@ -306,7 +318,7 @@ void MappingIndicator::DrawMixedTriggers()
     // Activated analog text:
     p.setPen(TEXT_ALT_COLOR);
     p.setClipping(true);
-    p.setClipRect(activated_analog_rect);
+    p.setClipRect(adj_analog_rect);
     p.drawText(analog_rect, Qt::AlignCenter, analog_name);
     p.setClipping(false);
 

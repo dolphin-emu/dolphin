@@ -13,8 +13,17 @@ namespace ControllerEmu
 class MixedTriggers : public ControlGroup
 {
 public:
+  enum
+  {
+    SETTING_THRESHOLD,
+    SETTING_DEADZONE,
+  };
+
   explicit MixedTriggers(const std::string& name);
 
-  void GetState(u16* digital, const u16* bitmasks, ControlState* analog);
+  void GetState(u16* digital, const u16* bitmasks, ControlState* analog, bool adjusted = true);
+
+  ControlState GetDeadzone() const;
+  ControlState GetThreshold() const;
 };
 }  // namespace ControllerEmu
