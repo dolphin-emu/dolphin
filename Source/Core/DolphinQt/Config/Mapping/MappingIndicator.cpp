@@ -15,10 +15,27 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 #include "DolphinQt/Settings.h"
+
+// Color constants to keep things looking consistent:
+// TODO: could we maybe query theme colors from Qt for the bounding box?
+static const QColor BBOX_PEN_COLOR = Qt::darkGray;
+static const QColor BBOX_BRUSH_COLOR = Qt::white;
+
+static const QColor RAW_INPUT_COLOR = Qt::darkGray;
+static const QColor ADJ_INPUT_COLOR = Qt::red;
+static const QPen INPUT_SHAPE_PEN(RAW_INPUT_COLOR, 1.0, Qt::DashLine);
+
+static const QColor DEADZONE_COLOR = Qt::darkGray;
+static const QBrush DEADZONE_BRUSH(DEADZONE_COLOR, Qt::BDiagPattern);
+
+static const QColor TEXT_COLOR = Qt::darkGray;
+// Text color that is visible atop ADJ_INPUT_COLOR:
+static const QColor TEXT_ALT_COLOR = Qt::white;
 
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
 {
@@ -36,7 +53,7 @@ MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group
     BindCursorControls(true);
     break;
   case ControllerEmu::GroupType::MixedTriggers:
-    BindMixedTriggersControls();
+    // Nothing needed:
     break;
   default:
     break;
@@ -68,16 +85,6 @@ void MappingIndicator::BindCursorControls(bool tilt)
   {
     m_cursor_deadzone = m_group->numeric_settings[0].get();
   }
-}
-
-void MappingIndicator::BindMixedTriggersControls()
-{
-  m_mixed_triggers_l_button = m_group->controls[0]->control_ref.get();
-  m_mixed_triggers_r_button = m_group->controls[1]->control_ref.get();
-  m_mixed_triggers_l_analog = m_group->controls[2]->control_ref.get();
-  m_mixed_triggers_r_analog = m_group->controls[3]->control_ref.get();
-
-  m_mixed_triggers_threshold = m_group->numeric_settings[0].get();
 }
 
 static ControlState PollControlState(ControlReference* ref)
@@ -180,8 +187,8 @@ void MappingIndicator::DrawStick()
   p.translate(width() / 2, height() / 2);
 
   // Bounding box.
-  p.setBrush(Qt::white);
-  p.setPen(Qt::gray);
+  p.setBrush(BBOX_BRUSH_COLOR);
+  p.setPen(BBOX_PEN_COLOR);
   p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
 
   // UI y-axis is opposite that of stick.
@@ -198,27 +205,27 @@ void MappingIndicator::DrawStick()
       [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, scale));
 
   // Deadzone.
-  p.setPen(Qt::darkGray);
-  p.setBrush(QBrush(Qt::darkGray, Qt::BDiagPattern));
+  p.setPen(DEADZONE_COLOR);
+  p.setBrush(DEADZONE_BRUSH);
   p.drawPolygon(GetPolygonFromRadiusGetter(
       [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, scale));
 
   // Input shape.
-  p.setPen(QPen(Qt::darkGray, 1.0, Qt::DashLine));
+  p.setPen(INPUT_SHAPE_PEN);
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
       [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, scale));
 
   // Raw stick position.
   p.setPen(Qt::NoPen);
-  p.setBrush(Qt::darkGray);
+  p.setBrush(RAW_INPUT_COLOR);
   p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, dot_radius, dot_radius);
 
   // Adjusted stick position.
   if (adj_coord.x || adj_coord.y)
   {
     p.setPen(Qt::NoPen);
-    p.setBrush(Qt::red);
+    p.setBrush(ADJ_INPUT_COLOR);
     p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale, dot_radius, dot_radius);
   }
 }
@@ -226,48 +233,86 @@ void MappingIndicator::DrawStick()
 void MappingIndicator::DrawMixedTriggers()
 {
   QPainter p(this);
-  p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::TextAntialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  // Polled values
-  double r_analog = PollControlState(m_mixed_triggers_r_analog);
-  double r_button = PollControlState(m_mixed_triggers_r_button);
-  double l_analog = PollControlState(m_mixed_triggers_l_analog);
-  double l_button = PollControlState(m_mixed_triggers_l_button);
-  double threshold = m_mixed_triggers_threshold->GetValue();
+  auto& triggers = *static_cast<ControllerEmu::MixedTriggers*>(m_group);
+  const ControlState threshold = triggers.numeric_settings[0]->GetValue();
 
-  double r_bar_percent = r_analog;
-  double l_bar_percent = l_analog;
+  // MixedTriggers interface is a bit ugly:
+  constexpr int TRIGGER_COUNT = 2;
+  std::array<ControlState, TRIGGER_COUNT> analog_state;
+  const std::array<u16, TRIGGER_COUNT> button_masks = {0x1, 0x2};
+  u16 button_state = 0;
 
-  if ((r_button && r_button != r_analog) || (r_button == r_analog && r_analog > threshold))
-    r_bar_percent = 1;
-  else
-    r_bar_percent *= 0.8;
+  Settings::Instance().SetControllerStateNeeded(true);
+  triggers.GetState(&button_state, button_masks.data(), analog_state.data());
+  Settings::Instance().SetControllerStateNeeded(false);
 
-  if ((l_button && l_button != l_analog) || (l_button == l_analog && l_analog > threshold))
-    l_bar_percent = 1;
-  else
-    l_bar_percent *= 0.8;
+  // Rectangle sizes:
+  const int trigger_height = 32;
+  const int trigger_width = width() - 1;
+  const int trigger_button_width = 32;
+  const int trigger_analog_width = trigger_width - trigger_button_width;
 
-  p.fillRect(0, 0, width(), 64, Qt::black);
+  // Bounding box background:
+  p.setPen(Qt::NoPen);
+  p.setBrush(BBOX_BRUSH_COLOR);
+  p.drawRect(0, 0, trigger_width, trigger_height * TRIGGER_COUNT);
 
-  p.fillRect(0, 0, l_bar_percent * width(), 32, Qt::red);
-  p.fillRect(0, 32, r_bar_percent * width(), 32, Qt::red);
+  for (int t = 0; t != TRIGGER_COUNT; ++t)
+  {
+    const double trigger_analog = analog_state[t];
+    const bool trigger_button = button_state & button_masks[t];
+    auto const analog_name = QString::fromStdString(triggers.controls[TRIGGER_COUNT + t]->ui_name);
+    auto const button_name = QString::fromStdString(triggers.controls[t]->ui_name);
 
-  p.setPen(Qt::white);
-  p.drawLine(width() * 0.8, 0, width() * 0.8, 63);
-  p.drawLine(0, 32, width(), 32);
+    const QRectF trigger_rect(0, 0, trigger_width, trigger_height);
 
-  p.setPen(Qt::green);
-  p.drawLine(width() * 0.8 * threshold, 0, width() * 0.8 * threshold, 63);
+    const QRectF analog_rect(0, 0, trigger_analog_width, trigger_height);
 
-  p.setBrush(Qt::black);
-  p.setPen(Qt::white);
-  p.drawText(width() * 0.225, 20, tr("L-Analog"));
-  p.drawText(width() * 0.8 + 16, 20, tr("L"));
-  p.drawText(width() * 0.225, 52, tr("R-Analog"));
-  p.drawText(width() * 0.8 + 16, 52, tr("R"));
+    // Unactivated analog text:
+    p.setPen(TEXT_COLOR);
+    p.drawText(analog_rect, Qt::AlignCenter, analog_name);
+
+    const QRectF activated_analog_rect(0, 0, trigger_analog * trigger_analog_width, trigger_height);
+
+    // Trigger analog:
+    p.setPen(Qt::NoPen);
+    p.setBrush(ADJ_INPUT_COLOR);
+    p.drawRect(activated_analog_rect);
+
+    // Threshold setting:
+    const int threshold_x = trigger_analog_width * threshold;
+    p.setPen(INPUT_SHAPE_PEN);
+    p.drawLine(threshold_x, 0, threshold_x, trigger_height);
+
+    const QRectF button_rect(trigger_analog_width, 0, trigger_button_width, trigger_height);
+
+    // Trigger button:
+    p.setPen(BBOX_PEN_COLOR);
+    p.setBrush(trigger_button ? ADJ_INPUT_COLOR : BBOX_BRUSH_COLOR);
+    p.drawRect(button_rect);
+
+    // Bounding box outline:
+    p.setPen(BBOX_PEN_COLOR);
+    p.setBrush(Qt::NoBrush);
+    p.drawRect(trigger_rect);
+
+    // Button text:
+    p.setPen(TEXT_COLOR);
+    p.setPen(trigger_button ? TEXT_ALT_COLOR : TEXT_COLOR);
+    p.drawText(button_rect, Qt::AlignCenter, button_name);
+
+    // Activated analog text:
+    p.setPen(TEXT_ALT_COLOR);
+    p.setClipping(true);
+    p.setClipRect(activated_analog_rect);
+    p.drawText(analog_rect, Qt::AlignCenter, analog_name);
+    p.setClipping(false);
+
+    // Move down for next trigger:
+    p.translate(0.0, trigger_height);
+  }
 }
 
 void MappingIndicator::paintEvent(QPaintEvent*)

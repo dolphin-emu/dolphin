@@ -11,7 +11,7 @@ namespace ControllerEmu
 class Control;
 class ControlGroup;
 class NumericSetting;
-}
+}  // namespace ControllerEmu
 
 class QPaintEvent;
 class QTimer;
@@ -25,7 +25,6 @@ public:
 
 private:
   void BindCursorControls(bool tilt);
-  void BindMixedTriggersControls();
 
   void DrawCursor(bool tilt);
   void DrawStick();
@@ -46,14 +45,6 @@ private:
   ControllerEmu::NumericSetting* m_cursor_width;
   ControllerEmu::NumericSetting* m_cursor_height;
   ControllerEmu::NumericSetting* m_cursor_deadzone;
-
-  // Triggers settings
-  ControlReference* m_mixed_triggers_r_analog;
-  ControlReference* m_mixed_triggers_r_button;
-  ControlReference* m_mixed_triggers_l_analog;
-  ControlReference* m_mixed_triggers_l_button;
-
-  ControllerEmu::NumericSetting* m_mixed_triggers_threshold;
 
   QTimer* m_timer;
 };
