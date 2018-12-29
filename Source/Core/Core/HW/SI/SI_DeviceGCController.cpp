@@ -355,7 +355,7 @@ bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
 
   // Unsets the first 16 bits (StickX/Y), PAD_USE_ORIGIN,
   // and all buttons except: A, B, X, Y, Start, R
-  hi &= BUTTON_MASK;
+  hi &= HI_BUTTON_MASK;
 
   return true;
 }
