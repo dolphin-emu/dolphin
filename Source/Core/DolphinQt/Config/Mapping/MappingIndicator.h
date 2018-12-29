@@ -6,6 +6,8 @@
 
 #include <QWidget>
 
+#include "InputCommon/ControllerEmu/StickGate.h"
+
 namespace ControllerEmu
 {
 class Control;
@@ -27,7 +29,7 @@ private:
   void BindCursorControls(bool tilt);
 
   void DrawCursor(bool tilt);
-  void DrawStick();
+  void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
   void DrawMixedTriggers();
 
   void paintEvent(QPaintEvent*) override;

@@ -14,7 +14,6 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -164,14 +163,12 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
   return shape;
 }
 
-void MappingIndicator::DrawStick()
+void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick)
 {
   // Make the c-stick yellow:
   const bool is_c_stick = m_group->name == "C-Stick";
   const QColor gate_brush_color = is_c_stick ? Qt::yellow : Qt::lightGray;
   const QColor gate_pen_color = gate_brush_color.darker(125);
-
-  auto& stick = *static_cast<ControllerEmu::AnalogStick*>(m_group);
 
   // TODO: This SetControllerStateNeeded interface leaks input into the game
   // We should probably hold the mutex for UI updates.
@@ -334,11 +331,9 @@ void MappingIndicator::paintEvent(QPaintEvent*)
   case ControllerEmu::GroupType::Cursor:
     DrawCursor(false);
     break;
-  case ControllerEmu::GroupType::Tilt:
-    DrawCursor(true);
-    break;
   case ControllerEmu::GroupType::Stick:
-    DrawStick();
+  case ControllerEmu::GroupType::Tilt:
+    DrawReshapableInput(*static_cast<ControllerEmu::ReshapableInput*>(m_group));
     break;
   case ControllerEmu::GroupType::MixedTriggers:
     DrawMixedTriggers();
