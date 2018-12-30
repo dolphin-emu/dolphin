@@ -43,7 +43,7 @@ Cursor::Cursor(const std::string& name_)
   boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Auto-Hide"), false));
 }
 
-ReshapableInput::ReshapeData Cursor::GetReshapableState(bool adjusted)
+Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
 {
   const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
   const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();

@@ -37,7 +37,7 @@ Tilt::Tilt(const std::string& name_)
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.9, 0, 180));
 }
 
-Tilt::StateData Tilt::GetReshapableState(bool adjusted)
+Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
 {
   const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
   const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();

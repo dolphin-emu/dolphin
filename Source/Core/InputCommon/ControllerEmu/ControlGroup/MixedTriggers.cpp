@@ -26,7 +26,7 @@ MixedTriggers::MixedTriggers(const std::string& name_)
 }
 
 void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
-                             bool adjusted)
+                             bool adjusted) const
 {
   const ControlState threshold = numeric_settings[SETTING_THRESHOLD]->GetValue();
   ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();

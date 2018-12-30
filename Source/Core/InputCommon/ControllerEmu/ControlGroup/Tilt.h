@@ -15,26 +15,26 @@ namespace ControllerEmu
 class Tilt : public ReshapableInput
 {
 public:
-  typedef ReshapeData StateData;
-
-  enum
-  {
-    SETTING_MAX_ANGLE = ReshapableInput::SETTING_COUNT,
-  };
+  using StateData = ReshapeData;
 
   explicit Tilt(const std::string& name);
 
-  StateData GetReshapableState(bool adjusted) final override;
+  ReshapeData GetReshapableState(bool adjusted) final override;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
   StateData GetState();
 
 private:
+  enum
+  {
+    SETTING_MAX_ANGLE = ReshapableInput::SETTING_COUNT,
+  };
+
   static constexpr int MAX_DEG_PER_SEC = 360 * 6;
 
   StateData m_tilt;
 
-  typedef std::chrono::steady_clock Clock;
+  using Clock = std::chrono::steady_clock;
   Clock::time_point m_last_update;
 };
 }  // namespace ControllerEmu

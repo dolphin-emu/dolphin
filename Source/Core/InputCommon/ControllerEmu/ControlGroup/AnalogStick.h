@@ -13,12 +13,12 @@ namespace ControllerEmu
 class AnalogStick : public ReshapableInput
 {
 public:
-  typedef ReshapeData StateData;
+  using StateData = ReshapeData;
 
   AnalogStick(const char* name, std::unique_ptr<StickGate>&& stick_gate);
   AnalogStick(const char* name, const char* ui_name, std::unique_ptr<StickGate>&& stick_gate);
 
-  StateData GetReshapableState(bool adjusted) final override;
+  ReshapeData GetReshapableState(bool adjusted) final override;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
   StateData GetState();

@@ -57,7 +57,7 @@ private:
 
   int m_auto_hide_timer = AUTO_HIDE_MS;
 
-  typedef std::chrono::steady_clock Clock;
+  using Clock = std::chrono::steady_clock;
   Clock::time_point m_last_update;
 };
 }  // namespace ControllerEmu

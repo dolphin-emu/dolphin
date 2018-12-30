@@ -23,24 +23,24 @@
 
 // Color constants to keep things looking consistent:
 // TODO: could we maybe query theme colors from Qt for the bounding box?
-static const QColor BBOX_PEN_COLOR = Qt::darkGray;
-static const QColor BBOX_BRUSH_COLOR = Qt::white;
+const QColor BBOX_PEN_COLOR = Qt::darkGray;
+const QColor BBOX_BRUSH_COLOR = Qt::white;
 
-static const QColor RAW_INPUT_COLOR = Qt::darkGray;
-static const QColor ADJ_INPUT_COLOR = Qt::red;
-static const QPen INPUT_SHAPE_PEN(RAW_INPUT_COLOR, 1.0, Qt::DashLine);
+const QColor RAW_INPUT_COLOR = Qt::darkGray;
+const QColor ADJ_INPUT_COLOR = Qt::red;
+const QPen INPUT_SHAPE_PEN(RAW_INPUT_COLOR, 1.0, Qt::DashLine);
 
-static const QColor DEADZONE_COLOR = Qt::darkGray;
-static const QBrush DEADZONE_BRUSH(DEADZONE_COLOR, Qt::BDiagPattern);
+const QColor DEADZONE_COLOR = Qt::darkGray;
+const QBrush DEADZONE_BRUSH(DEADZONE_COLOR, Qt::BDiagPattern);
 
-static const QColor TEXT_COLOR = Qt::darkGray;
+const QColor TEXT_COLOR = Qt::darkGray;
 // Text color that is visible atop ADJ_INPUT_COLOR:
-static const QColor TEXT_ALT_COLOR = Qt::white;
+const QColor TEXT_ALT_COLOR = Qt::white;
 
-static const QColor STICK_GATE_COLOR = Qt::lightGray;
-static const QColor C_STICK_GATE_COLOR = Qt::yellow;
-static const QColor CURSOR_TV_COLOR = 0xaed6f1;
-static const QColor TILT_GATE_COLOR = 0xa2d9ce;
+const QColor STICK_GATE_COLOR = Qt::lightGray;
+const QColor C_STICK_GATE_COLOR = Qt::yellow;
+const QColor CURSOR_TV_COLOR = 0xaed6f1;
+const QColor TILT_GATE_COLOR = 0xa2d9ce;
 
 constexpr int INPUT_DOT_RADIUS = 2;
 
@@ -53,6 +53,8 @@ MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group
   m_timer->start(1000 / 30);
 }
 
+namespace
+{
 // Constructs a polygon by querying a radius at varying angles:
 template <typename F>
 QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
@@ -73,6 +75,7 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
 
   return shape;
 }
+}  // namespace
 
 void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
 {
@@ -250,7 +253,7 @@ void MappingIndicator::DrawMixedTriggers()
   QPainter p(this);
   p.setRenderHint(QPainter::TextAntialiasing, true);
 
-  auto& triggers = *static_cast<ControllerEmu::MixedTriggers*>(m_group);
+  const auto& triggers = *static_cast<ControllerEmu::MixedTriggers*>(m_group);
   const ControlState threshold = triggers.GetThreshold();
   const ControlState deadzone = triggers.GetDeadzone();
 
