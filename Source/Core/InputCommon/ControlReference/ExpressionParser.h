@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -46,21 +47,26 @@ public:
   }
 };
 
-class ControlFinder
+class ControlEnvironment
 {
 public:
-  ControlFinder(const Core::DeviceContainer& container_, const Core::DeviceQualifier& default_,
-                const bool is_input_)
-      : container(container_), default_device(default_), is_input(is_input_)
+  using VariableContainer = std::map<std::string, ControlState>;
+
+  ControlEnvironment(const Core::DeviceContainer& container_, const Core::DeviceQualifier& default_,
+                     VariableContainer& vars)
+      : m_variables(vars), container(container_), default_device(default_)
   {
   }
+
   std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier) const;
-  Core::Device::Control* FindControl(ControlQualifier qualifier) const;
+  Core::Device::Input* FindInput(ControlQualifier qualifier) const;
+  Core::Device::Output* FindOutput(ControlQualifier qualifier) const;
+  ControlState* GetVariablePtr(const std::string& name);
 
 private:
+  VariableContainer& m_variables;
   const Core::DeviceContainer& container;
   const Core::DeviceQualifier& default_device;
-  bool is_input;
 };
 
 class Expression
@@ -70,7 +76,7 @@ public:
   virtual ControlState GetValue() const = 0;
   virtual void SetValue(ControlState state) = 0;
   virtual int CountNumControls() const = 0;
-  virtual void UpdateReferences(ControlFinder& finder) = 0;
+  virtual void UpdateReferences(ControlEnvironment& finder) = 0;
   virtual operator std::string() const = 0;
 };
 

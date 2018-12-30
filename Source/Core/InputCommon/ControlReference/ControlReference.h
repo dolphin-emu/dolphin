@@ -30,8 +30,7 @@ public:
 
   int BoundCount() const;
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
-  void UpdateReference(const ciface::Core::DeviceContainer& devices,
-                       const ciface::Core::DeviceQualifier& default_device);
+  void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
   std::string GetExpression() const;
   void SetExpression(std::string expr);
 
