@@ -37,6 +37,11 @@ static const QColor TEXT_COLOR = Qt::darkGray;
 // Text color that is visible atop ADJ_INPUT_COLOR:
 static const QColor TEXT_ALT_COLOR = Qt::white;
 
+static const QColor STICK_GATE_COLOR = Qt::lightGray;
+static const QColor C_STICK_GATE_COLOR = Qt::yellow;
+static const QColor CURSOR_TV_COLOR = 0xaed6f1;
+static const QColor TILT_GATE_COLOR = 0xa2d9ce;
+
 constexpr int INPUT_DOT_RADIUS = 2;
 
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
@@ -71,7 +76,7 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
 
 void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
 {
-  const QColor tv_brush_color = 0xaed6f1;
+  const QColor tv_brush_color = CURSOR_TV_COLOR;
   const QColor tv_pen_color = tv_brush_color.darker(125);
 
   // TODO: This SetControllerStateNeeded interface leaks input into the game
@@ -114,8 +119,8 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   p.drawRect(
       QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
 
-  // Adjusted Z:
-  if (adj_coord.z)
+  // Adjusted Z (if not hidden):
+  if (adj_coord.z && adj_coord.x < 10000)
   {
     p.setBrush(ADJ_INPUT_COLOR);
     p.drawRect(
@@ -158,7 +163,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   p.setBrush(RAW_INPUT_COLOR);
   p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
-  // Adjusted cursor position if not hidden:
+  // Adjusted cursor position (if not hidden):
   if (adj_coord.x < 10000)
   {
     p.setPen(Qt::NoPen);
@@ -173,16 +178,13 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   // Some hacks for pretty colors:
   const bool is_c_stick = m_group->name == "C-Stick";
   const bool is_tilt = m_group->name == "Tilt";
-  const bool is_cursor = m_group->name == "IR";
 
-  QColor gate_brush_color = Qt::lightGray;
+  QColor gate_brush_color = STICK_GATE_COLOR;
 
   if (is_c_stick)
-    gate_brush_color = Qt::yellow;
+    gate_brush_color = C_STICK_GATE_COLOR;
   else if (is_tilt)
-    gate_brush_color = 0xa2d9ce;
-  else if (is_cursor)
-    gate_brush_color = 0xaed6f1;
+    gate_brush_color = TILT_GATE_COLOR;
 
   const QColor gate_pen_color = gate_brush_color.darker(125);
 
