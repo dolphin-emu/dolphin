@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -11,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 
@@ -31,6 +34,7 @@ enum TokenType
   TOK_ADD,
   TOK_MUL,
   TOK_DIV,
+  TOK_MOD,
   TOK_CONTROL,
   TOK_LITERAL,
 };
@@ -51,6 +55,8 @@ inline std::string OpName(TokenType op)
     return "Mul";
   case TOK_DIV:
     return "Div";
+  case TOK_MOD:
+    return "Mod";
   default:
     assert(false);
     return "";
@@ -89,6 +95,8 @@ public:
       return "*";
     case TOK_DIV:
       return "/";
+    case TOK_MOD:
+      return "%";
     case TOK_CONTROL:
       return "Device(" + data + ")";
     case TOK_LITERAL:
@@ -200,6 +208,8 @@ public:
       return Token(TOK_MUL);
     case '/':
       return Token(TOK_DIV);
+    case '%':
+      return Token(TOK_MOD);
     case '\'':
       return GetLiteral();
     case '`':
@@ -303,6 +313,11 @@ public:
     {
       const ControlState result = lhsValue / rhsValue;
       return std::isinf(result) ? 0.0 : result;
+    }
+    case TOK_MOD:
+    {
+      const ControlState result = std::fmod(lhsValue, rhsValue);
+      return std::isnan(result) ? 0.0 : result;
     }
     default:
       assert(false);
@@ -411,6 +426,16 @@ public:
   std::string GetFuncName() const override { return ""; }
 };
 
+class UnarySinExpression : public UnaryExpression
+{
+public:
+  UnarySinExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
+
+  ControlState GetValue() const override { return std::cos(inner->GetValue()); }
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "Sin"; }
+};
+
 std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
                                                      std::unique_ptr<Expression>&& inner_)
 {
@@ -421,6 +446,8 @@ std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
     return std::make_unique<UnaryNotExpression>(std::move(inner_));
   else if ("toggle" == name)
     return std::make_unique<UnaryToggleExpression>(std::move(inner_));
+  else if ("sin" == name)
+    return std::make_unique<UnarySinExpression>(std::move(inner_));
   else
     return std::make_unique<UnaryUnknownExpression>(std::move(inner_));
 }
@@ -428,14 +455,6 @@ std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
 class LiteralExpression : public Expression
 {
 public:
-  explicit LiteralExpression(const std::string& str)
-  {
-    // If it fails to parse it will just be the default: 0.0
-    TryParse(str, &m_value);
-  }
-
-  ControlState GetValue() const override { return m_value; }
-
   void SetValue(ControlState value) override
   {
     // Do nothing.
@@ -448,11 +467,61 @@ public:
     // Nothing needed.
   }
 
-  operator std::string() const override { return '\'' + ValueToString(m_value) + '\''; }
+  operator std::string() const override { return '\'' + GetName() + '\''; }
+
+protected:
+  virtual std::string GetName() const = 0;
+};
+
+class LiteralReal : public LiteralExpression
+{
+public:
+  LiteralReal(ControlState value) : m_value(value) {}
+
+  ControlState GetValue() const override { return m_value; }
+
+  std::string GetName() const override { return ValueToString(m_value); }
 
 private:
-  ControlState m_value{};
+  const ControlState m_value{};
 };
+
+// A +1.0 per second incrementing timer:
+class LiteralTimer : public LiteralExpression
+{
+public:
+  ControlState GetValue() const override
+  {
+    const auto ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now().time_since_epoch());
+    // TODO: Will this roll over nicely?
+    return ms.count() / 1000.0;
+  }
+
+  std::string GetName() const override { return "Timer"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+};
+
+std::unique_ptr<LiteralExpression> MakeLiteralExpression(std::string name)
+{
+  // Case insensitive matching.
+  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+  // Check for named literals:
+  if ("timer" == name)
+  {
+    return std::make_unique<LiteralTimer>();
+  }
+  else
+  {
+    // Assume it's a Real. If TryParse fails we'll just get a Zero.
+    ControlState val{};
+    TryParse(name, &val);
+    return std::make_unique<LiteralReal>(val);
+  }
+}
 
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
 // right-hand child. Its intended use is for supporting old-style barewords expressions.
@@ -552,7 +621,7 @@ private:
     }
     case TOK_LITERAL:
     {
-      return {ParseStatus::Successful, std::make_unique<LiteralExpression>(tok.data)};
+      return {ParseStatus::Successful, MakeLiteralExpression(tok.data)};
     }
     case TOK_LPAREN:
       return Paren();
@@ -595,6 +664,7 @@ private:
     case TOK_ADD:
     case TOK_MUL:
     case TOK_DIV:
+    case TOK_MOD:
       return true;
     default:
       return false;
