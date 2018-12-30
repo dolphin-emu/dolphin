@@ -28,9 +28,14 @@ enum TokenType
   TOK_EOF,
   TOK_LPAREN,
   TOK_RPAREN,
-  TOK_AND,
-  TOK_OR,
   TOK_UNARY,
+  TOK_CONTROL,
+  TOK_LITERAL,
+  TOK_VARIABLE,
+  // Binary Ops:
+  TOK_BINARY_OPS_BEGIN,
+  TOK_AND = TOK_BINARY_OPS_BEGIN,
+  TOK_OR,
   TOK_ADD,
   TOK_MUL,
   TOK_DIV,
@@ -38,9 +43,8 @@ enum TokenType
   TOK_ASSIGN,
   TOK_LTHAN,
   TOK_GTHAN,
-  TOK_CONTROL,
-  TOK_LITERAL,
-  TOK_VARIABLE,
+  TOK_COND,
+  TOK_BINARY_OPS_END,
 };
 
 inline std::string OpName(TokenType op)
@@ -67,6 +71,8 @@ inline std::string OpName(TokenType op)
     return "LThan";
   case TOK_GTHAN:
     return "GThan";
+  case TOK_COND:
+    return "Cond";
   case TOK_VARIABLE:
     return "Var";
   default:
@@ -115,6 +121,8 @@ public:
       return "<";
     case TOK_GTHAN:
       return ">";
+    case TOK_COND:
+      return "?";
     case TOK_CONTROL:
       return "Device(" + data + ")";
     case TOK_LITERAL:
@@ -240,6 +248,8 @@ public:
       return Token(TOK_LTHAN);
     case '>':
       return Token(TOK_GTHAN);
+    case '?':
+      return Token(TOK_COND);
     case '\'':
       return GetLiteral();
     case '$':
@@ -334,38 +344,43 @@ public:
 
   ControlState GetValue() const override
   {
-    ControlState lhsValue = lhs->GetValue();
-    ControlState rhsValue = rhs->GetValue();
     switch (op)
     {
     case TOK_AND:
-      return std::min(lhsValue, rhsValue);
+      return std::min(lhs->GetValue(), rhs->GetValue());
     case TOK_OR:
-      return std::max(lhsValue, rhsValue);
+      return std::max(lhs->GetValue(), rhs->GetValue());
     case TOK_ADD:
-      return lhsValue + rhsValue;
+      return lhs->GetValue() + rhs->GetValue();
     case TOK_MUL:
-      return lhsValue * rhsValue;
+      return lhs->GetValue() * rhs->GetValue();
     case TOK_DIV:
     {
-      const ControlState result = lhsValue / rhsValue;
+      const ControlState result = lhs->GetValue() / rhs->GetValue();
       return std::isinf(result) ? 0.0 : result;
     }
     case TOK_MOD:
     {
-      const ControlState result = std::fmod(lhsValue, rhsValue);
+      const ControlState result = std::fmod(lhs->GetValue(), rhs->GetValue());
       return std::isnan(result) ? 0.0 : result;
     }
     case TOK_ASSIGN:
     {
-      lhs->SetValue(rhsValue);
-      // TODO: Should this instead GetValue(lhs) ?
-      return rhsValue;
+      lhs->SetValue(rhs->GetValue());
+      return lhs->GetValue();
     }
     case TOK_LTHAN:
-      return lhsValue < rhsValue;
+      return lhs->GetValue() < rhs->GetValue();
     case TOK_GTHAN:
-      return lhsValue > rhsValue;
+      return lhs->GetValue() > rhs->GetValue();
+    case TOK_COND:
+    {
+      constexpr ControlState COND_THRESHOLD = 0.5;
+      if (lhs->GetValue() > COND_THRESHOLD)
+        return rhs->GetValue();
+      else
+        return 0.0;
+    }
     default:
       assert(false);
       return 0;
@@ -742,21 +757,7 @@ private:
 
   bool IsBinaryToken(TokenType type)
   {
-    switch (type)
-    {
-    case TOK_AND:
-    case TOK_OR:
-    case TOK_ADD:
-    case TOK_MUL:
-    case TOK_DIV:
-    case TOK_MOD:
-    case TOK_ASSIGN:
-    case TOK_LTHAN:
-    case TOK_GTHAN:
-      return true;
-    default:
-      return false;
-    }
+    return type >= TOK_BINARY_OPS_BEGIN && type < TOK_BINARY_OPS_END;
   }
 
   ParseResult Binary()
