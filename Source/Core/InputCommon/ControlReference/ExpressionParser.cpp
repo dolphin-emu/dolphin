@@ -28,6 +28,8 @@ enum TokenType
   TOK_OR,
   TOK_NOT,
   TOK_ADD,
+  TOK_MUL,
+  TOK_DIV,
   TOK_CONTROL,
   TOK_LITERAL,
 };
@@ -44,6 +46,10 @@ inline std::string OpName(TokenType op)
     return "Not";
   case TOK_ADD:
     return "Add";
+  case TOK_MUL:
+    return "Mul";
+  case TOK_DIV:
+    return "Div";
   default:
     assert(false);
     return "";
@@ -78,6 +84,10 @@ public:
       return "!";
     case TOK_ADD:
       return "+";
+    case TOK_MUL:
+      return "*";
+    case TOK_DIV:
+      return "/";
     case TOK_CONTROL:
       return "Device(" + data + ")";
     case TOK_LITERAL:
@@ -170,6 +180,10 @@ public:
       return Token(TOK_NOT);
     case '+':
       return Token(TOK_ADD);
+    case '*':
+      return Token(TOK_MUL);
+    case '/':
+      return Token(TOK_DIV);
     case '\'':
       return GetLiteral();
     case '`':
@@ -266,7 +280,14 @@ public:
     case TOK_OR:
       return std::max(lhsValue, rhsValue);
     case TOK_ADD:
-      return std::min(lhsValue + rhsValue, 1.0);
+      return lhsValue + rhsValue;
+    case TOK_MUL:
+      return lhsValue * rhsValue;
+    case TOK_DIV:
+    {
+      const ControlState result = lhsValue / rhsValue;
+      return std::isinf(result) ? 0.0 : result;
+    }
     default:
       assert(false);
       return 0;
@@ -508,6 +529,8 @@ private:
     case TOK_AND:
     case TOK_OR:
     case TOK_ADD:
+    case TOK_MUL:
+    case TOK_DIV:
       return true;
     default:
       return false;
