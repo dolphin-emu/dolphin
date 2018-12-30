@@ -106,7 +106,7 @@ public:
     case TOK_OR:
       return "|";
     case TOK_UNARY:
-      return "!" + data;
+      return '!' + data;
     case TOK_ADD:
       return "+";
     case TOK_MUL:
@@ -124,7 +124,7 @@ public:
     case TOK_COND:
       return "?";
     case TOK_CONTROL:
-      return "Device(" + data + ")";
+      return "Device(" + data + ')';
     case TOK_LITERAL:
       return '\'' + data + '\'';
     case TOK_VARIABLE:
@@ -422,7 +422,7 @@ public:
 
   operator std::string() const override
   {
-    return "!" + GetFuncName() + "(" + (std::string)(*inner) + ")";
+    return '!' + GetFuncName() + '(' + static_cast<std::string>(*inner) + ')';
   }
 
 protected:
@@ -493,7 +493,7 @@ class UnarySinExpression : public UnaryExpression
 public:
   UnarySinExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
 
-  ControlState GetValue() const override { return std::cos(inner->GetValue()); }
+  ControlState GetValue() const override { return std::sin(inner->GetValue()); }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Sin"; }
 };
@@ -502,9 +502,10 @@ std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
                                                      std::unique_ptr<Expression>&& inner_)
 {
   // Case insensitive matching.
-  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+  std::transform(name.begin(), name.end(), name.begin(),
+                 [](char c) { return std::tolower(c, std::locale::classic()); });
 
-  if ("" == name)
+  if (name.empty())
     return std::make_unique<UnaryNotExpression>(std::move(inner_));
   else if ("toggle" == name)
     return std::make_unique<UnaryToggleExpression>(std::move(inner_));
@@ -569,7 +570,8 @@ private:
 std::unique_ptr<LiteralExpression> MakeLiteralExpression(std::string name)
 {
   // Case insensitive matching.
-  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+  std::transform(name.begin(), name.end(), name.begin(),
+                 [](char c) { return std::tolower(c, std::locale::classic()); });
 
   // Check for named literals:
   if ("timer" == name)
