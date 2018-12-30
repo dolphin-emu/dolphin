@@ -37,6 +37,7 @@ enum TokenType
   TOK_AND = TOK_BINARY_OPS_BEGIN,
   TOK_OR,
   TOK_ADD,
+  TOK_SUB,
   TOK_MUL,
   TOK_DIV,
   TOK_MOD,
@@ -44,6 +45,7 @@ enum TokenType
   TOK_LTHAN,
   TOK_GTHAN,
   TOK_COND,
+  TOK_COMMA,
   TOK_BINARY_OPS_END,
 };
 
@@ -59,6 +61,8 @@ inline std::string OpName(TokenType op)
     return "Unary";
   case TOK_ADD:
     return "Add";
+  case TOK_SUB:
+    return "Sub";
   case TOK_MUL:
     return "Mul";
   case TOK_DIV:
@@ -73,6 +77,8 @@ inline std::string OpName(TokenType op)
     return "GThan";
   case TOK_COND:
     return "Cond";
+  case TOK_COMMA:
+    return "Comma";
   case TOK_VARIABLE:
     return "Var";
   default:
@@ -109,6 +115,8 @@ public:
       return '!' + data;
     case TOK_ADD:
       return "+";
+    case TOK_SUB:
+      return "-";
     case TOK_MUL:
       return "*";
     case TOK_DIV:
@@ -123,6 +131,8 @@ public:
       return ">";
     case TOK_COND:
       return "?";
+    case TOK_COMMA:
+      return ",";
     case TOK_CONTROL:
       return "Device(" + data + ')';
     case TOK_LITERAL:
@@ -236,6 +246,8 @@ public:
       return GetUnaryFunction();
     case '+':
       return Token(TOK_ADD);
+    case '-':
+      return Token(TOK_SUB);
     case '*':
       return Token(TOK_MUL);
     case '/':
@@ -250,6 +262,8 @@ public:
       return Token(TOK_GTHAN);
     case '?':
       return Token(TOK_COND);
+    case ',':
+      return Token(TOK_COMMA);
     case '\'':
       return GetLiteral();
     case '$':
@@ -352,6 +366,8 @@ public:
       return std::max(lhs->GetValue(), rhs->GetValue());
     case TOK_ADD:
       return lhs->GetValue() + rhs->GetValue();
+    case TOK_SUB:
+      return lhs->GetValue() - rhs->GetValue();
     case TOK_MUL:
       return lhs->GetValue() * rhs->GetValue();
     case TOK_DIV:
@@ -380,6 +396,12 @@ public:
         return rhs->GetValue();
       else
         return 0.0;
+    }
+    case TOK_COMMA:
+    {
+      // Eval and discard lhs:
+      lhs->GetValue();
+      return rhs->GetValue();
     }
     default:
       assert(false);
@@ -498,6 +520,32 @@ public:
   std::string GetFuncName() const override { return "Sin"; }
 };
 
+class UnaryWhileExpression : public UnaryExpression
+{
+public:
+  UnaryWhileExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
+
+  ControlState GetValue() const override
+  {
+    constexpr int MAX_REPS = 10000;
+    constexpr int COND_THRESHOLD = 0.5;
+
+    // Returns 1.0 on successful loop, 0.0 on reps exceeded. Sensible?
+
+    for (int i = 0; i != MAX_REPS; ++i)
+    {
+      const ControlState val = inner->GetValue();
+      if (val < COND_THRESHOLD)
+        return 1.0;
+    }
+
+    // Exceeded max reps:
+    return 0.0;
+  }
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "Sin"; }
+};
+
 std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
                                                      std::unique_ptr<Expression>&& inner_)
 {
@@ -511,6 +559,8 @@ std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
     return std::make_unique<UnaryToggleExpression>(std::move(inner_));
   else if ("sin" == name)
     return std::make_unique<UnarySinExpression>(std::move(inner_));
+  else if ("while" == name)
+    return std::make_unique<UnaryWhileExpression>(std::move(inner_));
   else
     return std::make_unique<UnaryUnknownExpression>(std::move(inner_));
 }
