@@ -58,7 +58,7 @@ class ReshapableInput : public ControlGroup
 public:
   ReshapableInput(std::string name, std::string ui_name, GroupType type);
 
-  struct StateData
+  struct ReshapeData
   {
     ControlState x{};
     ControlState y{};
@@ -77,13 +77,13 @@ public:
   ControlState GetInputRadiusAtAngle(double ang) const;
 
   virtual ControlState GetGateRadiusAtAngle(double ang) const = 0;
-  virtual StateData GetState(bool adjusted = true) = 0;
+  virtual ReshapeData GetReshapableState(bool adjusted) = 0;
 
 protected:
   void AddReshapingSettings(ControlState default_radius, ControlState default_shape,
                             int max_deadzone);
 
-  StateData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0);
+  ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0);
 
 private:
   ControlState CalculateInputShapeRadiusAtAngle(double ang) const;

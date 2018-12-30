@@ -14,6 +14,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -42,104 +43,9 @@ MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group
 {
   setMinimumHeight(128);
 
-  switch (m_group->type)
-  {
-  case ControllerEmu::GroupType::Cursor:
-    BindCursorControls(false);
-    break;
-  case ControllerEmu::GroupType::Stick:
-    // Nothing needed:
-    break;
-  case ControllerEmu::GroupType::Tilt:
-    BindCursorControls(true);
-    break;
-  case ControllerEmu::GroupType::MixedTriggers:
-    // Nothing needed:
-    break;
-  default:
-    break;
-  }
-
   m_timer = new QTimer(this);
   connect(m_timer, &QTimer::timeout, this, [this] { repaint(); });
   m_timer->start(1000 / 30);
-}
-
-void MappingIndicator::BindCursorControls(bool tilt)
-{
-  m_cursor_up = m_group->controls[0]->control_ref.get();
-  m_cursor_down = m_group->controls[1]->control_ref.get();
-  m_cursor_left = m_group->controls[2]->control_ref.get();
-  m_cursor_right = m_group->controls[3]->control_ref.get();
-
-  if (!tilt)
-  {
-    m_cursor_forward = m_group->controls[4]->control_ref.get();
-    m_cursor_backward = m_group->controls[5]->control_ref.get();
-
-    m_cursor_center = m_group->numeric_settings[0].get();
-    m_cursor_width = m_group->numeric_settings[1].get();
-    m_cursor_height = m_group->numeric_settings[2].get();
-    m_cursor_deadzone = m_group->numeric_settings[3].get();
-  }
-  else
-  {
-    m_cursor_deadzone = m_group->numeric_settings[0].get();
-  }
-}
-
-static ControlState PollControlState(ControlReference* ref)
-{
-  Settings::Instance().SetControllerStateNeeded(true);
-
-  auto state = ref->State();
-
-  Settings::Instance().SetControllerStateNeeded(false);
-
-  if (state != 0)
-    return state;
-  else
-    return 0;
-}
-
-void MappingIndicator::DrawCursor(bool tilt)
-{
-  float centerx = width() / 2., centery = height() / 2.;
-
-  QPainter p(this);
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-  float width = 64, height = 64;
-  float deadzone = m_cursor_deadzone->GetValue() * 48;
-
-  if (!tilt)
-  {
-    float depth = centery - PollControlState(m_cursor_forward) * this->height() / 2.5 +
-                  PollControlState(m_cursor_backward) * this->height() / 2.5;
-
-    p.fillRect(0, depth, this->width(), 4, Qt::gray);
-
-    width *= m_cursor_width->GetValue();
-    height *= m_cursor_height->GetValue();
-  }
-
-  float curx = centerx - 4 - std::min(PollControlState(m_cursor_left), 0.5) * width +
-               std::min(PollControlState(m_cursor_right), 0.5) * width,
-        cury = centery - 4 - std::min(PollControlState(m_cursor_up), 0.5) * height +
-               std::min(PollControlState(m_cursor_down), 0.5) * height;
-
-  // Draw background
-  p.setBrush(Qt::white);
-  p.setPen(Qt::black);
-  p.drawRect(centerx - (width / 2), centery - (height / 2), width, height);
-
-  // Draw deadzone
-  p.setBrush(Qt::lightGray);
-  p.drawEllipse(centerx - (deadzone / 2), centery - (deadzone / 2), deadzone, deadzone);
-
-  // Draw cursor
-  p.fillRect(curx, cury, 8, 8, Qt::red);
 }
 
 // Constructs a polygon by querying a radius at varying angles:
@@ -163,18 +69,128 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
   return shape;
 }
 
+void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
+{
+  const QColor tv_brush_color = 0xaed6f1;
+  const QColor tv_pen_color = tv_brush_color.darker(125);
+
+  // TODO: This SetControllerStateNeeded interface leaks input into the game
+  // We should probably hold the mutex for UI updates.
+  Settings::Instance().SetControllerStateNeeded(true);
+  const auto raw_coord = cursor.GetState(false);
+  const auto adj_coord = cursor.GetState(true);
+  Settings::Instance().SetControllerStateNeeded(false);
+
+  // Bounding box size:
+  const double scale = height() / 2.5;
+
+  QPainter p(this);
+  p.translate(width() / 2, height() / 2);
+
+  // Bounding box.
+  p.setBrush(BBOX_BRUSH_COLOR);
+  p.setPen(BBOX_PEN_COLOR);
+  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+
+  // UI y-axis is opposite that of stick.
+  p.scale(1.0, -1.0);
+
+  // Enable AA after drawing bounding box.
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+  // Deadzone for Z (forward/backward):
+  const double deadzone = cursor.numeric_settings[cursor.SETTING_DEADZONE]->GetValue();
+  if (deadzone > 0.0)
+  {
+    p.setPen(DEADZONE_COLOR);
+    p.setBrush(DEADZONE_BRUSH);
+    p.drawRect(QRectF(-scale, -deadzone * scale, scale * 2, deadzone * scale * 2));
+  }
+
+  // Raw Z:
+  p.setPen(Qt::NoPen);
+  p.setBrush(RAW_INPUT_COLOR);
+  p.drawRect(
+      QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
+
+  // Adjusted Z:
+  if (adj_coord.z)
+  {
+    p.setBrush(ADJ_INPUT_COLOR);
+    p.drawRect(
+        QRectF(-scale, adj_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
+  }
+
+  // TV screen or whatever you want to call this:
+  constexpr double tv_scale = 0.75;
+  constexpr double center_scale = 2.0 / 3.0;
+
+  const double tv_center = (cursor.numeric_settings[cursor.SETTING_CENTER]->GetValue() - 0.5);
+  const double tv_width = cursor.numeric_settings[cursor.SETTING_WIDTH]->GetValue();
+  const double tv_height = cursor.numeric_settings[cursor.SETTING_HEIGHT]->GetValue();
+
+  p.setPen(tv_pen_color);
+  p.setBrush(tv_brush_color);
+  auto gate_polygon = GetPolygonFromRadiusGetter(
+      [&cursor](double ang) { return cursor.GetGateRadiusAtAngle(ang); }, scale);
+  for (auto& pt : gate_polygon)
+  {
+    pt = {pt.x() * tv_width, pt.y() * tv_height + tv_center * center_scale * scale};
+    pt *= tv_scale;
+  }
+  p.drawPolygon(gate_polygon);
+
+  // Deadzone.
+  p.setPen(DEADZONE_COLOR);
+  p.setBrush(DEADZONE_BRUSH);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&cursor](double ang) { return cursor.GetDeadzoneRadiusAtAngle(ang); }, scale));
+
+  // Input shape.
+  p.setPen(INPUT_SHAPE_PEN);
+  p.setBrush(Qt::NoBrush);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&cursor](double ang) { return cursor.GetInputRadiusAtAngle(ang); }, scale));
+
+  // Raw stick position.
+  p.setPen(Qt::NoPen);
+  p.setBrush(RAW_INPUT_COLOR);
+  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+
+  // Adjusted cursor position if not hidden:
+  if (adj_coord.x < 10000)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(ADJ_INPUT_COLOR);
+    const QPointF pt(adj_coord.x / 2.0, (adj_coord.y - tv_center) / 2.0 + tv_center * center_scale);
+    p.drawEllipse(pt * scale * tv_scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
+}
+
 void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick)
 {
-  // Make the c-stick yellow:
+  // Some hacks for pretty colors:
   const bool is_c_stick = m_group->name == "C-Stick";
-  const QColor gate_brush_color = is_c_stick ? Qt::yellow : Qt::lightGray;
+  const bool is_tilt = m_group->name == "Tilt";
+  const bool is_cursor = m_group->name == "IR";
+
+  QColor gate_brush_color = Qt::lightGray;
+
+  if (is_c_stick)
+    gate_brush_color = Qt::yellow;
+  else if (is_tilt)
+    gate_brush_color = 0xa2d9ce;
+  else if (is_cursor)
+    gate_brush_color = 0xaed6f1;
+
   const QColor gate_pen_color = gate_brush_color.darker(125);
 
   // TODO: This SetControllerStateNeeded interface leaks input into the game
   // We should probably hold the mutex for UI updates.
   Settings::Instance().SetControllerStateNeeded(true);
-  const auto raw_coord = stick.GetState(false);
-  const auto adj_coord = stick.GetState(true);
+  const auto raw_coord = stick.GetReshapableState(false);
+  const auto adj_coord = stick.GetReshapableState(true);
   Settings::Instance().SetControllerStateNeeded(false);
 
   // Bounding box size:
@@ -329,7 +345,7 @@ void MappingIndicator::paintEvent(QPaintEvent*)
   switch (m_group->type)
   {
   case ControllerEmu::GroupType::Cursor:
-    DrawCursor(false);
+    DrawCursor(*static_cast<ControllerEmu::Cursor*>(m_group));
     break;
   case ControllerEmu::GroupType::Stick:
   case ControllerEmu::GroupType::Tilt:

@@ -37,10 +37,10 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
   AddReshapingSettings(GetGateRadiusAtAngle(0.0), 0.0, 50);
 }
 
-AnalogStick::StateData AnalogStick::GetState(bool adjusted)
+AnalogStick::StateData AnalogStick::GetReshapableState(bool adjusted)
 {
-  ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
   // Return raw values. (used in UI)
   if (!adjusted)
@@ -49,6 +49,11 @@ AnalogStick::StateData AnalogStick::GetState(bool adjusted)
   const ControlState modifier = controls[4]->control_ref->State();
 
   return Reshape(x, y, modifier);
+}
+
+AnalogStick::StateData AnalogStick::GetState()
+{
+  return GetReshapableState(true);
 }
 
 ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const

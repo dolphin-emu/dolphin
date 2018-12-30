@@ -76,8 +76,8 @@ void ReshapableInput::AddReshapingSettings(ControlState default_radius, ControlS
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-ReshapableInput::StateData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                    ControlState modifier)
+ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
+                                                      ControlState modifier)
 {
   // TODO: make the AtAngle functions work with negative angles:
   const ControlState ang = std::atan2(y, x) + MathUtil::TAU;
