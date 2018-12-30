@@ -36,6 +36,8 @@ enum TokenType
   TOK_DIV,
   TOK_MOD,
   TOK_ASSIGN,
+  TOK_LTHAN,
+  TOK_GTHAN,
   TOK_CONTROL,
   TOK_LITERAL,
   TOK_VARIABLE,
@@ -61,6 +63,10 @@ inline std::string OpName(TokenType op)
     return "Mod";
   case TOK_ASSIGN:
     return "Assign";
+  case TOK_LTHAN:
+    return "LThan";
+  case TOK_GTHAN:
+    return "GThan";
   case TOK_VARIABLE:
     return "Var";
   default:
@@ -105,6 +111,10 @@ public:
       return "%";
     case TOK_ASSIGN:
       return "=";
+    case TOK_LTHAN:
+      return "<";
+    case TOK_GTHAN:
+      return ">";
     case TOK_CONTROL:
       return "Device(" + data + ")";
     case TOK_LITERAL:
@@ -226,6 +236,10 @@ public:
       return Token(TOK_MOD);
     case '=':
       return Token(TOK_ASSIGN);
+    case '<':
+      return Token(TOK_LTHAN);
+    case '>':
+      return Token(TOK_GTHAN);
     case '\'':
       return GetLiteral();
     case '$':
@@ -348,6 +362,10 @@ public:
       // TODO: Should this instead GetValue(lhs) ?
       return rhsValue;
     }
+    case TOK_LTHAN:
+      return lhsValue < rhsValue;
+    case TOK_GTHAN:
+      return lhsValue > rhsValue;
     default:
       assert(false);
       return 0;
@@ -733,6 +751,8 @@ private:
     case TOK_DIV:
     case TOK_MOD:
     case TOK_ASSIGN:
+    case TOK_LTHAN:
+    case TOK_GTHAN:
       return true;
     default:
       return false;
