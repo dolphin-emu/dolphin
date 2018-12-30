@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -26,7 +27,7 @@ enum TokenType
   TOK_RPAREN,
   TOK_AND,
   TOK_OR,
-  TOK_NOT,
+  TOK_UNARY,
   TOK_ADD,
   TOK_MUL,
   TOK_DIV,
@@ -42,8 +43,8 @@ inline std::string OpName(TokenType op)
     return "And";
   case TOK_OR:
     return "Or";
-  case TOK_NOT:
-    return "Not";
+  case TOK_UNARY:
+    return "Unary";
   case TOK_ADD:
     return "Add";
   case TOK_MUL:
@@ -80,8 +81,8 @@ public:
       return "&";
     case TOK_OR:
       return "|";
-    case TOK_NOT:
-      return "!";
+    case TOK_UNARY:
+      return "!" + data;
     case TOK_ADD:
       return "+";
     case TOK_MUL:
@@ -120,6 +121,21 @@ public:
       value += c;
     }
     return false;
+  }
+
+  Token GetUnaryFunction()
+  {
+    std::string name;
+
+    std::regex valid_name_char("[a-z0-9_]", std::regex_constants::icase);
+
+    while (it != expr.end() && std::regex_match(std::string(1, *it), valid_name_char))
+    {
+      name += *it;
+      ++it;
+    }
+
+    return Token(TOK_UNARY, name);
   }
 
   Token GetLiteral()
@@ -177,7 +193,7 @@ public:
     case '|':
       return Token(TOK_OR);
     case '!':
-      return Token(TOK_NOT);
+      return GetUnaryFunction();
     case '+':
       return Token(TOK_ADD);
     case '*':
@@ -322,43 +338,92 @@ public:
 class UnaryExpression : public Expression
 {
 public:
-  TokenType op;
-  std::unique_ptr<Expression> inner;
-
-  UnaryExpression(TokenType op_, std::unique_ptr<Expression>&& inner_)
-      : op(op_), inner(std::move(inner_))
-  {
-  }
-  ControlState GetValue() const override
-  {
-    ControlState value = inner->GetValue();
-    switch (op)
-    {
-    case TOK_NOT:
-      return 1.0 - value;
-    default:
-      assert(false);
-      return 0;
-    }
-  }
-
-  void SetValue(ControlState value) override
-  {
-    switch (op)
-    {
-    case TOK_NOT:
-      inner->SetValue(1.0 - value);
-      break;
-
-    default:
-      assert(false);
-    }
-  }
+  UnaryExpression(std::unique_ptr<Expression>&& inner_) : inner(std::move(inner_)) {}
 
   int CountNumControls() const override { return inner->CountNumControls(); }
   void UpdateReferences(ControlFinder& finder) override { inner->UpdateReferences(finder); }
-  operator std::string() const override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
+
+  operator std::string() const override
+  {
+    return "!" + GetFuncName() + "(" + (std::string)(*inner) + ")";
+  }
+
+protected:
+  virtual std::string GetFuncName() const = 0;
+
+  std::unique_ptr<Expression> inner;
 };
+
+// TODO: Return an oscillating value to make it apparent something was spelled wrong?
+class UnaryUnknownExpression : public UnaryExpression
+{
+public:
+  UnaryUnknownExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_))
+  {
+  }
+
+  ControlState GetValue() const override { return 0.0; }
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "Unknown"; }
+};
+
+class UnaryToggleExpression : public UnaryExpression
+{
+public:
+  UnaryToggleExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_))
+  {
+  }
+
+  ControlState GetValue() const override
+  {
+    const ControlState inner_value = inner->GetValue();
+
+    if (inner_value < THRESHOLD)
+    {
+      m_released = true;
+    }
+    else if (m_released && inner_value > THRESHOLD)
+    {
+      m_released = false;
+      m_state ^= true;
+    }
+
+    return m_state;
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "Toggle"; }
+
+private:
+  static constexpr ControlState THRESHOLD = 0.5;
+  // eww:
+  mutable bool m_released{};
+  mutable bool m_state{};
+};
+
+class UnaryNotExpression : public UnaryExpression
+{
+public:
+  UnaryNotExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
+
+  ControlState GetValue() const override { return 1.0 - inner->GetValue(); }
+  void SetValue(ControlState value) override { inner->SetValue(1.0 - value); }
+  std::string GetFuncName() const override { return ""; }
+};
+
+std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
+                                                     std::unique_ptr<Expression>&& inner_)
+{
+  // Case insensitive matching.
+  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+  if ("" == name)
+    return std::make_unique<UnaryNotExpression>(std::move(inner_));
+  else if ("toggle" == name)
+    return std::make_unique<UnaryToggleExpression>(std::move(inner_));
+  else
+    return std::make_unique<UnaryUnknownExpression>(std::move(inner_));
+}
 
 class LiteralExpression : public Expression
 {
@@ -500,7 +565,7 @@ private:
   {
     switch (type)
     {
-    case TOK_NOT:
+    case TOK_UNARY:
       return true;
     default:
       return false;
@@ -515,8 +580,7 @@ private:
       ParseResult result = Atom();
       if (result.status == ParseStatus::SyntaxError)
         return result;
-      return {ParseStatus::Successful,
-              std::make_unique<UnaryExpression>(tok.type, std::move(result.expr))};
+      return {ParseStatus::Successful, MakeUnaryExpression(tok.data, std::move(result.expr))};
     }
 
     return Atom();
