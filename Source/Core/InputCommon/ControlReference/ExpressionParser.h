@@ -19,12 +19,30 @@ public:
   std::string control_name;
 
   ControlQualifier() : has_device(false) {}
+
   operator std::string() const
   {
     if (has_device)
       return device_qualifier.ToString() + ":" + control_name;
     else
       return control_name;
+  }
+
+  void FromString(const std::string& str)
+  {
+    const auto col_pos = str.find_last_of(':');
+
+    has_device = (str.npos != col_pos);
+    if (has_device)
+    {
+      device_qualifier.FromString(str.substr(0, col_pos));
+      control_name = str.substr(col_pos + 1);
+    }
+    else
+    {
+      device_qualifier.FromString("");
+      control_name = str;
+    }
   }
 };
 

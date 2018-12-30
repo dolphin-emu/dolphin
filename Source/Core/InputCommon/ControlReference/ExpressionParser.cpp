@@ -29,6 +29,7 @@ enum TokenType
   TOK_NOT,
   TOK_ADD,
   TOK_CONTROL,
+  TOK_LITERAL,
 };
 
 inline std::string OpName(TokenType op)
@@ -53,10 +54,10 @@ class Token
 {
 public:
   TokenType type;
-  ControlQualifier qualifier;
+  std::string data;
 
   Token(TokenType type_) : type(type_) {}
-  Token(TokenType type_, ControlQualifier qualifier_) : type(type_), qualifier(qualifier_) {}
+  Token(TokenType type_, std::string data_) : type(type_), data(std::move(data_)) {}
   operator std::string() const
   {
     switch (type)
@@ -78,7 +79,9 @@ public:
     case TOK_ADD:
       return "+";
     case TOK_CONTROL:
-      return "Device(" + (std::string)qualifier + ")";
+      return "Device(" + data + ")";
+    case TOK_LITERAL:
+      return '\'' + data + '\'';
     case TOK_INVALID:
       break;
     }
@@ -94,38 +97,33 @@ public:
   std::string::iterator it;
 
   Lexer(const std::string& expr_) : expr(expr_) { it = expr.begin(); }
-  bool FetchBacktickString(std::string& value, char otherDelim = 0)
+
+  bool FetchDelimString(std::string& value, char delim)
   {
     value = "";
     while (it != expr.end())
     {
       char c = *it;
       ++it;
-      if (c == '`')
-        return false;
-      if (c > 0 && c == otherDelim)
+      if (c == delim)
         return true;
       value += c;
     }
     return false;
   }
 
+  Token GetLiteral()
+  {
+    std::string value;
+    FetchDelimString(value, '\'');
+    return Token(TOK_LITERAL, value);
+  }
+
   Token GetFullyQualifiedControl()
   {
-    ControlQualifier qualifier;
     std::string value;
-
-    if (FetchBacktickString(value, ':'))
-    {
-      // Found colon, this is the device name
-      qualifier.has_device = true;
-      qualifier.device_qualifier.FromString(value);
-      FetchBacktickString(value);
-    }
-
-    qualifier.control_name = value;
-
-    return Token(TOK_CONTROL, qualifier);
+    FetchDelimString(value, '`');
+    return Token(TOK_CONTROL, value);
   }
 
   Token GetBarewordsControl(char c)
@@ -172,6 +170,8 @@ public:
       return Token(TOK_NOT);
     case '+':
       return Token(TOK_ADD);
+    case '\'':
+      return GetLiteral();
     case '`':
       return GetFullyQualifiedControl();
     default:
@@ -339,6 +339,35 @@ public:
   operator std::string() const override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
 };
 
+class LiteralExpression : public Expression
+{
+public:
+  explicit LiteralExpression(const std::string& str)
+  {
+    // If it fails to parse it will just be the default: 0.0
+    TryParse(str, &m_value);
+  }
+
+  ControlState GetValue() const override { return m_value; }
+
+  void SetValue(ControlState value) override
+  {
+    // Do nothing.
+  }
+
+  int CountNumControls() const override { return 1; }
+
+  void UpdateReferences(ControlFinder&) override
+  {
+    // Nothing needed.
+  }
+
+  operator std::string() const override { return '\'' + ValueToString(m_value) + '\''; }
+
+private:
+  ControlState m_value{};
+};
+
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
 // right-hand child. Its intended use is for supporting old-style barewords expressions.
 class CoalesceExpression : public Expression
@@ -430,7 +459,15 @@ private:
     switch (tok.type)
     {
     case TOK_CONTROL:
-      return {ParseStatus::Successful, std::make_unique<ControlExpression>(tok.qualifier)};
+    {
+      ControlQualifier cq;
+      cq.FromString(tok.data);
+      return {ParseStatus::Successful, std::make_unique<ControlExpression>(cq)};
+    }
+    case TOK_LITERAL:
+    {
+      return {ParseStatus::Successful, std::make_unique<LiteralExpression>(tok.data)};
+    }
     case TOK_LPAREN:
       return Paren();
     default:
