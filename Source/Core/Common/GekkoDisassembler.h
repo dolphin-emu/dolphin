@@ -128,7 +128,25 @@ private:
     }
   }
 
-  static int SEX12(u32 x) { return x & 0x800 ? (x | 0xFFFFF000) : x; }
+  static std::string psq_offs(u32 val)
+  {
+    if (val == 0)
+    {
+      return "0";
+    }
+    else
+    {
+      if (val & 0x800)
+      {
+        return StringFromFormat("-0x%.4X", ((~val) & 0xfff) + 1);
+      }
+      else
+      {
+        return StringFromFormat("0x%.4X", val);
+      }
+    }
+  }
+
   enum InstructionType
   {
     PPCINSTR_OTHER = 0,   // No additional info for other instr.
