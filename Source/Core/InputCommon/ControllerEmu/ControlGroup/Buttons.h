@@ -24,11 +24,13 @@ public:
   {
     for (auto& control : controls)
     {
-      if (control->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
+      if (control->control_ref->State() > ACTIVATION_THRESHOLD)
         *buttons |= *bitmasks;
 
       bitmasks++;
     }
   }
+
+  static constexpr ControlState ACTIVATION_THRESHOLD = 0.5;
 };
 }  // namespace ControllerEmu
