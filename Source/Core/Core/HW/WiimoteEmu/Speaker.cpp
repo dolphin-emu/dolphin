@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/Speaker.h"
+
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
@@ -69,13 +71,13 @@ void stopdamnwav()
 }
 #endif
 
-void Wiimote::SpeakerData(const u8* data, int length)
+void SpeakerLogic::SpeakerData(const u8* data, int length, int speaker_pan)
 {
   // TODO: should we still process samples for the decoder state?
   if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
     return;
 
-  if (m_speaker_logic.reg_data.sample_rate == 0 || length == 0)
+  if (reg_data.sample_rate == 0 || length == 0)
     return;
 
   // Even if volume is zero we process samples to maintain proper decoder state.
@@ -86,7 +88,7 @@ void Wiimote::SpeakerData(const u8* data, int length)
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
 
-  if (m_speaker_logic.reg_data.format == SpeakerLogic::DATA_FORMAT_PCM)
+  if (reg_data.format == SpeakerLogic::DATA_FORMAT_PCM)
   {
     // 8 bit PCM
     for (int i = 0; i < length; ++i)
@@ -99,14 +101,13 @@ void Wiimote::SpeakerData(const u8* data, int length)
     volume_divisor = 0xff;
     sample_length = (unsigned int)length;
   }
-  else if (m_speaker_logic.reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
+  else if (reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
   {
     // 4 bit Yamaha ADPCM (same as dreamcast)
     for (int i = 0; i < length; ++i)
     {
-      samples[i * 2] =
-          adpcm_yamaha_expand_nibble(m_speaker_logic.adpcm_state, (data[i] >> 4) & 0xf);
-      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_speaker_logic.adpcm_state, data[i] & 0xf);
+      samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, (data[i] >> 4) & 0xf);
+      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
@@ -116,27 +117,25 @@ void Wiimote::SpeakerData(const u8* data, int length)
   }
   else
   {
-    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", m_speaker_logic.reg_data.format);
+    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", reg_data.format);
     return;
   }
 
-  if (m_speaker_logic.reg_data.volume > volume_divisor)
+  if (reg_data.volume > volume_divisor)
   {
     DEBUG_LOG(IOS_WIIMOTE, "Wiimote volume is higher than suspected maximum!");
-    volume_divisor = m_speaker_logic.reg_data.volume;
+    volume_divisor = reg_data.volume;
   }
 
-  // Speaker Pan
-  // GUI clamps pan setting from -127 to 127. Why?
-  const auto pan = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
+  // TODO: use speaker pan law
 
-  const unsigned int sample_rate = sample_rate_dividend / m_speaker_logic.reg_data.sample_rate;
-  float speaker_volume_ratio = (float)m_speaker_logic.reg_data.volume / volume_divisor;
+  const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
+  float speaker_volume_ratio = (float)reg_data.volume / volume_divisor;
   // Sloppy math:
   unsigned int left_volume =
-      MathUtil::Clamp<unsigned int>((0xff + (2 * pan)) * speaker_volume_ratio, 0, 0xff);
+      MathUtil::Clamp<unsigned int>((0xff + (2 * speaker_pan)) * speaker_volume_ratio, 0, 0xff);
   unsigned int right_volume =
-      MathUtil::Clamp<unsigned int>((0xff - (2 * pan)) * speaker_volume_ratio, 0, 0xff);
+      MathUtil::Clamp<unsigned int>((0xff - (2 * speaker_pan)) * speaker_volume_ratio, 0, 0xff);
 
   g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
 
@@ -166,4 +165,46 @@ void Wiimote::SpeakerData(const u8* data, int length)
   num++;
 #endif
 }
+
+void SpeakerLogic::Reset()
+{
+  reg_data = {};
+
+  // Yamaha ADPCM state initialize
+  adpcm_state.predictor = 0;
+  adpcm_state.step = 127;
+}
+
+void SpeakerLogic::DoState(PointerWrap& p)
+{
+  p.Do(adpcm_state);
+  p.Do(reg_data);
+}
+
+int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+{
+  if (I2C_ADDR != slave_addr)
+    return 0;
+
+  return RawRead(&reg_data, addr, count, data_out);
+}
+
+int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+{
+  if (I2C_ADDR != slave_addr)
+    return 0;
+
+  if (0x00 == addr)
+  {
+    ERROR_LOG(WIIMOTE, "Writing of speaker data to address 0x00 is unimplemented!");
+    return count;
+  }
+  else
+  {
+    // TODO: Does writing immediately change the decoder config even when active
+    // or does a write to 0x08 activate the new configuration or something?
+    return RawWrite(&reg_data, addr, count, data_in);
+  }
+}
+
 }  // namespace WiimoteEmu

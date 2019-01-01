@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
+#include "Core/HW/WiimoteEmu/Extension/Drums.h"
 
 #include <array>
 #include <cassert>
@@ -43,7 +43,7 @@ constexpr std::array<u16, 2> drum_button_bitmasks{{
     Drums::BUTTON_PLUS,
 }};
 
-Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
+Drums::Drums() : EncryptedExtension(_trans("Drums"))
 {
   // pads
   groups.emplace_back(m_pads = new ControllerEmu::Buttons(_trans("Pads")));
@@ -62,16 +62,12 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "-"));
   m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
-
-  // set up register
-  m_id = drums_id;
 }
 
-void Drums::GetState(u8* const data)
+void Drums::Update()
 {
-  wm_drums_extension drum_data = {};
-
-  // calibration data not figured out yet?
+  auto& drum_data = reinterpret_cast<DataFormat&>(m_reg.controller_data);
+  drum_data = {};
 
   // stick
   {
@@ -81,9 +77,12 @@ void Drums::GetState(u8* const data)
     drum_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
   }
 
-  // TODO: softness maybe
-  data[2] = 0xFF;
-  data[3] = 0xFF;
+  // TODO: Implement these:
+  drum_data.which = 0x1F;
+  drum_data.none = 1;
+  drum_data.hhp = 1;
+  drum_data.velocity = 0xf;
+  drum_data.softness = 7;
 
   // buttons
   m_buttons->GetState(&drum_data.bt, drum_button_bitmasks.data());
@@ -93,8 +92,6 @@ void Drums::GetState(u8* const data)
 
   // flip button bits
   drum_data.bt ^= 0xFFFF;
-
-  std::memcpy(data, &drum_data, sizeof(wm_drums_extension));
 }
 
 bool Drums::IsButtonPressed() const
@@ -103,6 +100,14 @@ bool Drums::IsButtonPressed() const
   m_buttons->GetState(&buttons, drum_button_bitmasks.data());
   m_pads->GetState(&buttons, drum_pad_bitmasks.data());
   return buttons != 0;
+}
+
+void Drums::Reset()
+{
+  m_reg = {};
+  m_reg.identifier = drums_id;
+
+  // TODO: Is there calibration data?
 }
 
 ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)

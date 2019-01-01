@@ -5,7 +5,9 @@
 #pragma once
 
 #include <array>
-#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
 {
@@ -18,16 +20,59 @@ class Tilt;
 
 namespace WiimoteEmu
 {
-enum class NunchukGroup;
-struct ExtensionReg;
+enum class NunchukGroup
+{
+  Buttons,
+  Stick,
+  Tilt,
+  Swing,
+  Shake
+};
 
-class Nunchuk : public Attachment
+class Nunchuk : public EncryptedExtension
 {
 public:
-  explicit Nunchuk(ExtensionReg& reg);
+  union ButtonFormat
+  {
+    u8 hex;
 
-  void GetState(u8* const data) override;
+    struct
+    {
+      u8 z : 1;
+      u8 c : 1;
+
+      // LSBs of accelerometer
+      u8 acc_x_lsb : 2;
+      u8 acc_y_lsb : 2;
+      u8 acc_z_lsb : 2;
+    };
+  };
+  static_assert(sizeof(ButtonFormat) == 1, "Wrong size");
+
+  union DataFormat
+  {
+    struct
+    {
+      // joystick x, y
+      u8 jx;
+      u8 jy;
+
+      // accelerometer
+      u8 ax;
+      u8 ay;
+      u8 az;
+
+      // buttons + accelerometer LSBs
+      ButtonFormat bt;
+    };
+  };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  Nunchuk();
+
+  void Update() override;
   bool IsButtonPressed() const override;
+  void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(NunchukGroup group);
 
@@ -41,7 +86,6 @@ public:
   {
     ACCEL_ZERO_G = 0x80,
     ACCEL_ONE_G = 0xB3,
-    ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
   };
 
   enum
@@ -55,6 +99,7 @@ public:
 
 private:
   ControllerEmu::Tilt* m_tilt;
+
   ControllerEmu::Force* m_swing;
   ControllerEmu::Force* m_swing_slow;
   ControllerEmu::Force* m_swing_fast;

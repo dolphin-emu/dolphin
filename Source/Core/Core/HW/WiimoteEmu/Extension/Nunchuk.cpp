@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
 #include <array>
 #include <cassert>
@@ -30,7 +30,7 @@ constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
     Nunchuk::BUTTON_Z,
 }};
 
-Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
+Nunchuk::Nunchuk() : EncryptedExtension(_trans("Nunchuk"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -68,11 +68,83 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+}
 
-  m_id = nunchuk_id;
+void Nunchuk::Update()
+{
+  auto& nc_data = *reinterpret_cast<DataFormat*>(&m_reg.controller_data);
+  nc_data = {};
+
+  // stick
+  const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
+  nc_data.jx = u8(STICK_CENTER + stick_state.x * STICK_RADIUS);
+  nc_data.jy = u8(STICK_CENTER + stick_state.y * STICK_RADIUS);
+
+  // Some terribly coded games check whether to move with a check like
+  //
+  //     if (x != 0 && y != 0)
+  //         do_movement(x, y);
+  //
+  // With keyboard controls, these games break if you simply hit
+  // of the axes. Adjust this if you're hitting one of the axes so that
+  // we slightly tweak the other axis.
+  if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
+  {
+    if (nc_data.jx == STICK_CENTER)
+      ++nc_data.jx;
+    if (nc_data.jy == STICK_CENTER)
+      ++nc_data.jy;
+  }
+
+  NormalizedAccelData accel;
+
+  // tilt
+  EmulateTilt(&accel, m_tilt);
+
+  // swing
+  EmulateSwing(&accel, m_swing, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_MEDIUM));
+  EmulateSwing(&accel, m_swing_slow, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_SLOW));
+  EmulateSwing(&accel, m_swing_fast, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_FAST));
+
+  // shake
+  EmulateShake(&accel, m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
+               m_shake_step.data());
+  EmulateShake(&accel, m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
+               m_shake_soft_step.data());
+  EmulateShake(&accel, m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
+               m_shake_hard_step.data());
+
+  // buttons
+  m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
+
+  // flip the button bits :/
+  nc_data.bt.hex ^= 0x03;
+
+  // Calibration values are 8-bit but we want 10-bit precision, so << 2.
+  auto acc = DenormalizeAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+
+  nc_data.ax = (acc.x >> 2) & 0xFF;
+  nc_data.ay = (acc.y >> 2) & 0xFF;
+  nc_data.az = (acc.z >> 2) & 0xFF;
+  nc_data.bt.acc_x_lsb = acc.x & 0x3;
+  nc_data.bt.acc_y_lsb = acc.y & 0x3;
+  nc_data.bt.acc_z_lsb = acc.z & 0x3;
+}
+
+bool Nunchuk::IsButtonPressed() const
+{
+  u8 buttons = 0;
+  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
+  return buttons != 0;
+}
+
+void Nunchuk::Reset()
+{
+  m_reg = {};
+  m_reg.identifier = nunchuk_id;
 
   // Build calibration data:
-  m_calibration = {{
+  m_reg.calibration = {{
       // Accel Zero X,Y,Z:
       ACCEL_ZERO_G,
       ACCEL_ZERO_G,
@@ -98,82 +170,7 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
       0x00,
   }};
 
-  UpdateCalibrationDataChecksum(m_calibration);
-}
-
-void Nunchuk::GetState(u8* const data)
-{
-  wm_nc nc_data = {};
-
-  // stick
-  const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
-  nc_data.jx = u8(STICK_CENTER + stick_state.x * STICK_RADIUS);
-  nc_data.jy = u8(STICK_CENTER + stick_state.y * STICK_RADIUS);
-
-  // Some terribly coded games check whether to move with a check like
-  //
-  //     if (x != 0 && y != 0)
-  //         do_movement(x, y);
-  //
-  // With keyboard controls, these games break if you simply hit
-  // of the axes. Adjust this if you're hitting one of the axes so that
-  // we slightly tweak the other axis.
-  if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
-  {
-    if (nc_data.jx == STICK_CENTER)
-      ++nc_data.jx;
-    if (nc_data.jy == STICK_CENTER)
-      ++nc_data.jy;
-  }
-
-  AccelData accel;
-
-  // tilt
-  EmulateTilt(&accel, m_tilt);
-
-  // swing
-  EmulateSwing(&accel, m_swing, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_MEDIUM));
-  EmulateSwing(&accel, m_swing_slow, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_SLOW));
-  EmulateSwing(&accel, m_swing_fast, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_FAST));
-
-  // shake
-  EmulateShake(&accel, m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
-               m_shake_step.data());
-  EmulateShake(&accel, m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
-               m_shake_soft_step.data());
-  EmulateShake(&accel, m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
-               m_shake_hard_step.data());
-
-  // buttons
-  m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
-
-  // flip the button bits :/
-  nc_data.bt.hex ^= 0x03;
-
-  // We now use 2 bits more precision, so multiply by 4 before converting to int
-  s16 accel_x = (s16)(4 * (accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
-  s16 accel_y = (s16)(4 * (accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
-  s16 accel_z = (s16)(4 * (accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
-
-  accel_x = MathUtil::Clamp<s16>(accel_x, 0, 0x3ff);
-  accel_y = MathUtil::Clamp<s16>(accel_y, 0, 0x3ff);
-  accel_z = MathUtil::Clamp<s16>(accel_z, 0, 0x3ff);
-
-  nc_data.ax = (accel_x >> 2) & 0xFF;
-  nc_data.ay = (accel_y >> 2) & 0xFF;
-  nc_data.az = (accel_z >> 2) & 0xFF;
-  nc_data.bt.acc_x_lsb = accel_x & 0x3;
-  nc_data.bt.acc_y_lsb = accel_y & 0x3;
-  nc_data.bt.acc_z_lsb = accel_z & 0x3;
-
-  std::memcpy(data, &nc_data, sizeof(wm_nc));
-}
-
-bool Nunchuk::IsButtonPressed() const
-{
-  u8 buttons = 0;
-  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
-  return buttons != 0;
+  UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
 ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)

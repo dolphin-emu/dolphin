@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Classic.h"
 
 #include <array>
 #include <cassert>
@@ -71,7 +71,7 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
     Classic::PAD_RIGHT,
 }};
 
-Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
+Classic::Classic() : EncryptedExtension(_trans("Classic"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -104,52 +104,21 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
     m_dpad->controls.emplace_back(
         new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
   }
-
-  m_id = classic_id;
-
-  // Build calibration data:
-  m_calibration = {{
-      // Left Stick X max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
-      CAL_STICK_CENTER,
-      // Left Stick Y max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
-      CAL_STICK_CENTER,
-      // Right Stick X max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
-      CAL_STICK_CENTER,
-      // Right Stick Y max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
-      CAL_STICK_CENTER,
-      // Left/Right trigger range: (assumed based on real calibration data values)
-      LEFT_TRIGGER_RANGE,
-      RIGHT_TRIGGER_RANGE,
-      // 2 checksum bytes calculated below:
-      0x00,
-      0x00,
-  }};
-
-  UpdateCalibrationDataChecksum(m_calibration);
 }
 
-void Classic::GetState(u8* const data)
+void Classic::Update()
 {
-  wm_classic_extension classic_data = {};
-
-  // not using calibration data, o well
+  auto& classic_data = *reinterpret_cast<DataFormat*>(&m_reg.controller_data);
+  classic_data = {};
 
   // left stick
   {
     const ControllerEmu::AnalogStick::StateData left_stick_state = m_left_stick->GetState();
 
-    classic_data.regular_data.lx = static_cast<u8>(
-        Classic::LEFT_STICK_CENTER_X + (left_stick_state.x * Classic::LEFT_STICK_RADIUS));
-    classic_data.regular_data.ly = static_cast<u8>(
-        Classic::LEFT_STICK_CENTER_Y + (left_stick_state.y * Classic::LEFT_STICK_RADIUS));
+    classic_data.lx = static_cast<u8>(Classic::LEFT_STICK_CENTER_X +
+                                      (left_stick_state.x * Classic::LEFT_STICK_RADIUS));
+    classic_data.ly = static_cast<u8>(Classic::LEFT_STICK_CENTER_Y +
+                                      (left_stick_state.y * Classic::LEFT_STICK_RADIUS));
   }
 
   // right stick
@@ -187,8 +156,6 @@ void Classic::GetState(u8* const data)
 
   // flip button bits
   classic_data.bt.hex ^= 0xFFFF;
-
-  std::memcpy(data, &classic_data, sizeof(wm_classic_extension));
 }
 
 bool Classic::IsButtonPressed() const
@@ -199,6 +166,40 @@ bool Classic::IsButtonPressed() const
   m_dpad->GetState(&buttons, classic_dpad_bitmasks.data());
   m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), trigs.data());
   return buttons != 0;
+}
+
+void Classic::Reset()
+{
+  m_reg = {};
+  m_reg.identifier = classic_id;
+
+  // Build calibration data:
+  m_reg.calibration = {{
+      // Left Stick X max,min,center:
+      CAL_STICK_CENTER + CAL_STICK_RANGE,
+      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER,
+      // Left Stick Y max,min,center:
+      CAL_STICK_CENTER + CAL_STICK_RANGE,
+      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER,
+      // Right Stick X max,min,center:
+      CAL_STICK_CENTER + CAL_STICK_RANGE,
+      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER,
+      // Right Stick Y max,min,center:
+      CAL_STICK_CENTER + CAL_STICK_RANGE,
+      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER,
+      // Left/Right trigger range: (assumed based on real calibration data values)
+      LEFT_TRIGGER_RANGE,
+      RIGHT_TRIGGER_RANGE,
+      // 2 checksum bytes calculated below:
+      0x00,
+      0x00,
+  }};
+
+  UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
 ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)

@@ -350,9 +350,9 @@ void MainWindow::CreateComponents()
     m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
   });
 
-  Movie::SetWiiInputManip([this](u8* input_data, WiimoteEmu::ReportFeatures rptf, int controller_id,
-                                 int ext, wiimote_key key) {
-    m_wii_tas_input_windows[controller_id]->GetValues(input_data, rptf, ext, key);
+  Movie::SetWiiInputManip([this](WiimoteCommon::DataReportBuilder& rpt, int controller_id, int ext,
+                                 const WiimoteEmu::EncryptionKey& key) {
+    m_wii_tas_input_windows[controller_id]->GetValues(rpt, ext, key);
   });
 
   m_jit_widget = new JITWidget(this);

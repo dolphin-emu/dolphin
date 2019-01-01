@@ -199,4 +199,14 @@ inline To BitCast(const From& source) noexcept
   std::memcpy(&storage, &source, sizeof(storage));
   return reinterpret_cast<To&>(storage);
 }
+
+template <typename T>
+void SetBit(T& value, size_t bit_number, bool bit_value)
+{
+  if (bit_value)
+    value |= (1 << bit_number);
+  else
+    value &= ~(1 << bit_number);
+}
+
 }  // namespace Common
