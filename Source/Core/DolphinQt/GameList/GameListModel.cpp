@@ -89,6 +89,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
       QString name = QString::fromStdString(game.GetName(m_title_database));
+
+      // Add disc numbers > 1 to title if not present.
       const int disc_nr = game.GetDiscNumber() + 1;
       if (disc_nr > 1)
       {
@@ -97,6 +99,21 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
           name.append(tr(" (Disc %1)").arg(disc_nr));
         }
       }
+
+      // For natural sorting, pad all numbers to the same length.
+      if (Qt::InitialSortOrderRole == role)
+      {
+        constexpr int MAX_NUMBER_LENGTH = 10;
+
+        QRegExp rx(QStringLiteral("\\d+"));
+        int pos = 0;
+        while ((pos = rx.indexIn(name, pos)) != -1)
+        {
+          name.replace(pos, rx.matchedLength(), rx.cap().rightJustified(MAX_NUMBER_LENGTH));
+          pos += MAX_NUMBER_LENGTH;
+        }
+      }
+
       return name;
     }
     break;
