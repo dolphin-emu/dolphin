@@ -36,17 +36,16 @@
 
 ControllerInterface g_controller_interface;
 
-//
-// Init
-//
-// Detect devices and inputs outputs / will make refresh function later
-//
 void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 {
   if (m_is_init)
     return;
 
   m_wsi = wsi;
+
+  // Allow backends to add devices as soon as they are initialized.
+  m_is_init = true;
+
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_DINPUT
@@ -76,7 +75,6 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 // nothing needed
 #endif
 
-  m_is_init = true;
   RefreshDevices();
 }
 
@@ -136,15 +134,14 @@ void ControllerInterface::RefreshDevices()
   InvokeDevicesChangedCallbacks();
 }
 
-//
-// DeInit
-//
-// Remove all devices/ call library cleanup functions
-//
+// Remove all devices and call library cleanup functions
 void ControllerInterface::Shutdown()
 {
   if (!m_is_init)
     return;
+
+  // Prevent additional devices from being added during shutdown.
+  m_is_init = false;
 
   {
     std::lock_guard<std::mutex> lk(m_devices_mutex);
@@ -158,6 +155,10 @@ void ControllerInterface::Shutdown()
 
     m_devices.clear();
   }
+
+  // This will update control references so shared_ptr<Device>s are freed up
+  // BEFORE we shutdown the backends.
+  InvokeDevicesChangedCallbacks();
 
 #ifdef CIFACE_USE_XINPUT
   ciface::XInput::DeInit();
@@ -181,12 +182,14 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Shutdown();
 #endif
-
-  m_is_init = false;
 }
 
 void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
+  // If we are shutdown (or in process of shutting down) ignore this request:
+  if (!m_is_init)
+    return;
+
   {
     std::lock_guard<std::mutex> lk(m_devices_mutex);
     // Try to find an ID for this device
@@ -232,11 +235,7 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
     InvokeDevicesChangedCallbacks();
 }
 
-//
-// UpdateInput
-//
-// Update input for all devices
-//
+// Update input for all devices if lock can be acquired without waiting.
 void ControllerInterface::UpdateInput()
 {
   // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
@@ -248,23 +247,15 @@ void ControllerInterface::UpdateInput()
   }
 }
 
-//
-// RegisterDevicesChangedCallback
-//
 // Register a callback to be called when a device is added or removed (as from the input backends'
 // hotplug thread), or when devices are refreshed
-//
 void ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
 {
   std::lock_guard<std::mutex> lk(m_callbacks_mutex);
   m_devices_changed_callbacks.emplace_back(std::move(callback));
 }
 
-//
-// InvokeDevicesChangedCallbacks
-//
 // Invoke all callbacks that were registered
-//
 void ControllerInterface::InvokeDevicesChangedCallbacks() const
 {
   std::lock_guard<std::mutex> lk(m_callbacks_mutex);
