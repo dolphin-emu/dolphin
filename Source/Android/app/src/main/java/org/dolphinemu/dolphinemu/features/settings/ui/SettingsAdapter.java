@@ -48,6 +48,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   private ArrayList<SettingsItem> mSettings;
 
   private SettingsItem mClickedItem;
+  private int mClickedPosition;
   private int mSeekbarProgress;
 
   private AlertDialog mDialog;
@@ -57,6 +58,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mView = view;
     mContext = context;
+    mClickedPosition = -1;
   }
 
   @Override
@@ -157,9 +159,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.onSettingChanged();
   }
 
-  public void onSingleChoiceClick(SingleChoiceSetting item)
+  public void onSingleChoiceClick(SingleChoiceSetting item, int position)
   {
     mClickedItem = item;
+    mClickedPosition = position;
 
     int value = getSelectionForSingleChoiceValue(item);
 
@@ -171,9 +174,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mDialog = builder.show();
   }
 
-  public void onStringSingleChoiceClick(StringSingleChoiceSetting item)
+  public void onStringSingleChoiceClick(StringSingleChoiceSetting item, int position)
   {
     mClickedItem = item;
+    mClickedPosition = position;
 
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
 
@@ -183,9 +187,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mDialog = builder.show();
   }
 
-  public void onSliderClick(SliderSetting item)
+  public void onSliderClick(SliderSetting item, int position)
   {
     mClickedItem = item;
+    mClickedPosition = position;
     mSeekbarProgress = item.getSelectedValue();
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
 
@@ -195,7 +200,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     builder.setTitle(item.getNameId());
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, this);
-    builder.setNegativeButton(R.string.cancel, this);
     mDialog = builder.show();
 
     mTextSliderValue = (TextView) view.findViewById(R.id.text_value);
@@ -347,6 +351,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
           mView.putSetting(setting);
         }
       }
+
+      closeDialog();
     }
 
     mView.onSettingChanged();
@@ -358,6 +364,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     if (mDialog != null)
     {
+      if (mClickedPosition != -1)
+      {
+        notifyItemChanged(mClickedPosition);
+        mClickedPosition = -1;
+      }
       mDialog.dismiss();
       mDialog = null;
     }
