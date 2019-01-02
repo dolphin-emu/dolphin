@@ -5,6 +5,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 
 #include <cstddef>
+#include <regex>
 #include <string>
 
 #include "Common/Align.h"
@@ -322,6 +323,40 @@ int PPCDebugInterface::GetColor(unsigned int address)
 std::string PPCDebugInterface::GetDescription(unsigned int address)
 {
   return g_symbolDB.GetDescription(address);
+}
+
+u32 PPCDebugInterface::GetMemoryAddressFromInstruction(std::string instruction)
+{
+  int offs = 0;
+  u32 roffs = 0;
+  std::regex re(",\\W*(-?0[xX]?[0-9a-fA-F]*|r\\d+)[^r^s]*.(p|toc|\\d+)");
+  std::smatch match;
+  std::regex_search(instruction, match, re);
+
+  // Output: match.str(1): either -+0xNNNN, 0, or rNN. Check for r later to see if a gpr needs to be
+  // loaded. match.str(2): will either be p, toc, or NN. Always a gpr.
+  if (match.str(1).find("r") != std::string::npos)
+  {
+    const int i = stoi(match.str(1).erase(0, 1), nullptr, 10);
+    roffs = GPR(i);
+  }
+  else
+  {
+    offs = std::stoi(match.str(1), nullptr, 16);
+  }
+
+  // sp and rtoc need to be converted to 1 and 2. First letter is already removed.
+  int i;
+  if (match.str(2).find("p") != std::string::npos)
+    i = 1;
+  else if (match.str(2).find("toc") != std::string::npos)
+    i = 2;
+  else
+    i = std::stoi(match.str(2), nullptr, 10);
+
+  u32 addr = GPR(i);
+  addr = addr + offs + roffs;
+  return addr;
 }
 
 unsigned int PPCDebugInterface::GetPC()
