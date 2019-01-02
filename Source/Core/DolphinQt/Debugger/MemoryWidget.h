@@ -53,6 +53,8 @@ private:
   void OnDumpExRAM();
   void OnDumpFakeVMEM();
 
+  void OnFloatToHex(bool float_in);
+
   std::vector<u8> GetValueData() const;
 
   void FindValue(bool next);
@@ -83,10 +85,13 @@ private:
   QRadioButton* m_type_u32;
   QRadioButton* m_type_ascii;
   QRadioButton* m_type_float;
-
+  QCheckBox* m_mem_view_style;
   // Breakpoint options
   QRadioButton* m_bp_read_write;
   QRadioButton* m_bp_read_only;
   QRadioButton* m_bp_write_only;
   QCheckBox* m_bp_log_check;
+  // Float to Hex conversion
+  QLineEdit* m_float_convert;
+  QLineEdit* m_hex_convert;
 };
