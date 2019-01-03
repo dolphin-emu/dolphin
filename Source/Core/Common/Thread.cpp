@@ -14,6 +14,8 @@
 
 #ifdef __APPLE__
 #include <mach/mach.h>
+#elif defined __NetBSD__
+#include <pthread.h>
 #elif defined BSD4_4 || defined __FreeBSD__ || defined __OpenBSD__
 #include <pthread_np.h>
 #elif defined __HAIKU__
@@ -135,6 +137,8 @@ void SetCurrentThreadName(const char* szThreadName)
   pthread_setname_np(szThreadName);
 #elif defined __FreeBSD__ || defined __OpenBSD__
   pthread_set_name_np(pthread_self(), szThreadName);
+#elif defined __NetBSD__
+  pthread_setname_np(pthread_self(), szThreadName, NULL);
 #elif defined __HAIKU__
   rename_thread(find_thread(nullptr), szThreadName);
 #else

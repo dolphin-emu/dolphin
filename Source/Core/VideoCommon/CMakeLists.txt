@@ -63,7 +63,7 @@ target_link_libraries(videocommon
 PUBLIC
   core
 PRIVATE
-  png
+  ${PNG_LIBRARIES}
   xxhash
 )
 

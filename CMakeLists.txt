@@ -321,10 +321,16 @@ endif()
 # All commands and submodule commands also need to see these
 # changes, so just setting them in the project scope via
 # include_directories and link_directories is not sufficient
-if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD")
+if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
   set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/local")
   set(CMAKE_REQUIRED_INCLUDES "/usr/local/include")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/pkg")
+  set(CMAKE_REQUIRED_INCLUDES "/usr/pkg/include")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/pkg/lib")
 endif()
 
 # Dolphin requires threads.
@@ -734,10 +740,10 @@ add_subdirectory(Source)
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
   install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
 endif()
-if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|NetBSD|OpenBSD|Darwin")
   install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
-if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
+if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|NetBSD|OpenBSD")
   # Install the application icon and menu item
   install(FILES Data/dolphin-emu.svg
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)

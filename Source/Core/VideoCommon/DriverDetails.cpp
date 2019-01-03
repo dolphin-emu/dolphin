@@ -33,6 +33,8 @@ const u32 m_os = OS_ALL | OS_OSX;
 const u32 m_os = OS_ALL | OS_LINUX;
 #elif __FreeBSD__
 const u32 m_os = OS_ALL | OS_FREEBSD;
+#elif __NetBSD__
+const u32 m_os = OS_ALL | OS_NETBSD;
 #elif __OpenBSD__
 const u32 m_os = OS_ALL | OS_OPENBSD;
 #endif
