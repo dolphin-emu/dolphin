@@ -1,4 +1,4 @@
-find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS DBus Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
@@ -103,6 +103,7 @@ add_executable(dolphin-emu
   QtUtils/ElidedButton.cpp
   QtUtils/FlowLayout.cpp
   QtUtils/ImageConverter.cpp
+  QtUtils/ScreenSaverInhibitor.cpp
   QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WinIconHelper.cpp
@@ -141,6 +142,7 @@ PRIVATE
 target_link_libraries(dolphin-emu
 PRIVATE
   core
+  Qt5::DBus
   Qt5::Widgets
   uicommon
 )

@@ -85,6 +85,7 @@
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/QtUtils/ScreenSaverInhibitor.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
@@ -665,7 +666,6 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     if (selection)
     {
       StartGame(selection->GetFilePath(), savestate_path);
-      EnableScreenSaver(false);
     }
     else
     {
@@ -673,7 +673,6 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, savestate_path);
-        EnableScreenSaver(false);
       }
       else
       {
@@ -781,10 +780,7 @@ bool MainWindow::RequestStop()
   }
 
   ForceStop();
-#ifdef Q_OS_WIN
-  // Allow windows to idle or turn off display again
-  SetThreadExecutionState(ES_CONTINUOUS);
-#endif
+  EnableScreenSaver(true);
   return true;
 }
 
@@ -877,12 +873,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   if (SConfig::GetInstance().bFullscreen)
     m_fullscreen_requested = true;
 
-#ifdef Q_OS_WIN
-  // Prevents Windows from sleeping, turning off the display, or idling
-  EXECUTION_STATE shouldScreenSave =
-      SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
-  SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
-#endif
+  EnableScreenSaver(false);
 }
 
 void MainWindow::SetFullScreenResolution(bool fullscreen)
@@ -1316,12 +1307,15 @@ void MainWindow::NetPlayQuit()
 
 void MainWindow::EnableScreenSaver(bool enable)
 {
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-  if (GetWindowSystemType() == WindowSystemType::X11)
-    UICommon::EnableScreenSaver(winId(), enable);
-#else
-  UICommon::EnableScreenSaver(enable);
-#endif
+  if (enable && m_screen_saver_inhibitor)
+  {
+    m_screen_saver_inhibitor->deleteLater();
+    m_screen_saver_inhibitor = nullptr;
+  }
+  else if (!enable && !m_screen_saver_inhibitor)
+  {
+    m_screen_saver_inhibitor = new ScreenSaverInhibitor(this);
+  }
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
