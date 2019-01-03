@@ -46,26 +46,26 @@ CodeViewWidget::CodeViewWidget()
 
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-  for (int i = 0; i < columnCount(); i++)
+  for (int i = 1; i < columnCount(); i++)
   {
-    horizontalHeader()->setSectionResizeMode(i, QHeaderView::Fixed);
+    horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
   }
 
+  horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
   verticalHeader()->hide();
   horizontalHeader()->hide();
   horizontalHeader()->setStretchLastSection(true);
 
   setFont(Settings::Instance().GetDebugFont());
 
-  Update();
+  // Also runs Update()
+  FontBasedSizing();
 
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
   connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = PC;
-    Update();
-  });
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
+          &CodeViewWidget::FontBasedSizing);
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &CodeViewWidget::Update);
 }
@@ -80,6 +80,20 @@ static u32 GetBranchFromAddress(u32 addr)
 
   std::string hex = disasm.substr(pos + 2);
   return std::stoul(hex, nullptr, 16);
+}
+
+void CodeViewWidget::FontBasedSizing()
+{
+  // Set fixed column width for param column based on max possible size, to reduce resizing while
+  // scrolling. Set tighter row height.
+  QFontMetrics fm(Settings::Instance().GetDebugFont());
+  const int fontw = fm.width(QStringLiteral("r20, r20, 20, 30, 30 (00000000)"));
+  setColumnWidth(3, fontw);
+  const int fonth = fm.height() + 1;
+  verticalHeader()->setMaximumSectionSize(fonth);
+  horizontalHeader()->setMinimumSectionSize(fonth + 2);
+  setColumnWidth(0, fonth + 2);
+  Update();
 }
 
 void CodeViewWidget::Update()
@@ -98,8 +112,11 @@ void CodeViewWidget::Update()
 
   setRowCount(rows);
 
+  QFontMetrics fm(Settings::Instance().GetDebugFont());
+  const int fonth = fm.height();
+
   for (int i = 0; i < rows; i++)
-    setRowHeight(i, 24);
+    setRowHeight(i, fonth + 1);
 
   u32 pc = PowerPC::ppcState.pc;
 
@@ -162,8 +179,9 @@ void CodeViewWidget::Update()
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
-      bp_item->setData(Qt::DecorationRole,
-                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
+      bp_item->setData(
+          Qt::DecorationRole,
+          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(fonth, fonth)));
     }
 
     setItem(i, 0, bp_item);
@@ -177,9 +195,6 @@ void CodeViewWidget::Update()
       selectRow(addr_item->row());
     }
   }
-
-  resizeColumnsToContents();
-  setColumnWidth(0, 24 + 5);
 
   g_symbolDB.FillInCallers();
 

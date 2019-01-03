@@ -19,6 +19,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -32,15 +33,25 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   verticalHeader()->hide();
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setShowGrid(false);
+  setAlternatingRowColors(true);
 
   setFont(Settings::Instance().GetDebugFont());
+  QFontMetrics fm(Settings::Instance().GetDebugFont());
+
+  // Row height as function of text size. Less height than default.
+  const int fonth = fm.height() + 3;
+  verticalHeader()->setMaximumSectionSize(fonth);
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] { Update(); });
   connect(this, &MemoryViewWidget::customContextMenuRequested, this,
           &MemoryViewWidget::OnContextMenu);
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
-
+  // Update on stepping. Is there a better way than this?
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
+    if (Core::GetState() == Core::State::Paused)
+      Update();
+  });
   setContextMenuPolicy(Qt::CustomContextMenu);
 
   Update();
@@ -101,19 +112,10 @@ void MemoryViewWidget::Update()
     if (addr == m_address)
       addr_item->setSelected(true);
 
-    if (Core::GetState() != Core::State::Paused || !PowerPC::HostIsRAMAddress(addr))
-    {
-      for (int c = 2; c < columnCount(); c++)
-      {
-        auto* item = new QTableWidgetItem(QStringLiteral("-"));
-        item->setFlags(Qt::ItemIsEnabled);
-        item->setData(Qt::UserRole, addr);
-
-        setItem(i, c, item);
-      }
-
+    // Don't update values unless game is started
+    if ((Core::GetState() != Core::State::Paused && Core::GetState() != Core::State::Running) ||
+        !PowerPC::HostIsRAMAddress(addr))
       continue;
-    }
 
     auto* description_item =
         new QTableWidgetItem(QString::fromStdString(PowerPC::debug_interface.GetDescription(addr)));
@@ -197,6 +199,9 @@ void MemoryViewWidget::Update()
     // Add some extra spacing because the default width is too small in most cases
     setColumnWidth(i, columnWidth(i) * 1.1);
   }
+
+  // Clearly denote which row the address box points to. Could look better than this.
+  item(rows / 2, 0)->setBackground(Qt::lightGray);
 
   viewport()->update();
   update();
@@ -327,8 +332,10 @@ void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == 0)
       ToggleRowBreakpoint(true);
     else
+    {
+      // Scroll with LClick
       SetAddress(addr & 0xFFFFFFF0);
-
+    }
     Update();
     break;
   default:

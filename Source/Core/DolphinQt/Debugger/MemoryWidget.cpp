@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <ctype.h>
 #include <string>
 
 #include <QCheckBox>
@@ -83,12 +84,18 @@ void MemoryWidget::CreateWidgets()
 
   // Search
   m_search_address = new QLineEdit;
+  m_search_address_offset = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
+  m_data_preview = new QLabel;
+
+  m_search_address->setMaxLength(8);
+  m_data_preview->setBackgroundRole(QPalette::Base);
+  m_data_preview->setAutoFillBackground(true);
 
   m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_address_offset->setPlaceholderText(tr("Offset"));
   m_data_edit->setPlaceholderText(tr("Value"));
-
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
   m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
@@ -153,6 +160,11 @@ void MemoryWidget::CreateWidgets()
   bp_layout->addWidget(m_bp_log_check);
   bp_layout->setSpacing(1);
 
+  // Search Address
+  auto* searchaddr_layout = new QHBoxLayout;
+  searchaddr_layout->addWidget(m_search_address);
+  searchaddr_layout->addWidget(m_search_address_offset);
+
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
@@ -160,8 +172,9 @@ void MemoryWidget::CreateWidgets()
 
   sidebar->setLayout(sidebar_layout);
 
-  sidebar_layout->addWidget(m_search_address);
+  sidebar_layout->addLayout(searchaddr_layout);
   sidebar_layout->addWidget(m_data_edit);
+  sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_find_ascii);
   sidebar_layout->addWidget(m_find_hex);
   sidebar_layout->addWidget(m_set_value);
@@ -196,8 +209,8 @@ void MemoryWidget::CreateWidgets()
 
 void MemoryWidget::ConnectWidgets()
 {
-  connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
-
+  connect(m_search_address, &QLineEdit::textEdited, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_address_offset, &QLineEdit::textEdited, this, &MemoryWidget::OnSearchAddress);
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
   connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
   connect(m_find_hex, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
@@ -351,7 +364,8 @@ void MemoryWidget::SetAddress(u32 address)
 void MemoryWidget::OnSearchAddress()
 {
   bool good;
-  u32 addr = m_search_address->text().toUInt(&good, 16);
+  u32 addr =
+      m_search_address->text().toUInt(&good, 16) + m_search_address_offset->text().toInt(&good, 16);
 
   QFont font;
   QPalette palette;
@@ -375,16 +389,42 @@ void MemoryWidget::ValidateSearchValue()
 {
   QFont font;
   QPalette palette;
+  m_data_preview->clear();
 
   if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
   {
     bool good;
-    m_data_edit->text().toULongLong(&good, 16);
+    u64 value = m_data_edit->text().toULongLong(&good, 16);
 
     if (!good)
     {
       font.setBold(true);
       palette.setColor(QPalette::Text, Qt::red);
+    }
+    else
+    {
+      const int data_length = m_data_edit->text().size();
+      int field_width = 8;
+
+      if (data_length > 8)
+      {
+        field_width = 16;
+      }
+      else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+      {
+        field_width = data_length > 2 ? 4 : 2;
+      }
+      else if (m_type_u16->isChecked() && data_length <= 4)
+      {
+        field_width = 4;
+      }
+
+      QString hex_string =
+          QStringLiteral("%1").arg(value, field_width, 16, QLatin1Char('0')).toUpper();
+      int hsize = hex_string.size();
+      for (int i = 2; i < hsize; i += 2)
+        hex_string.insert(hsize - i, QLatin1Char{' '});
+      m_data_preview->setText(hex_string);
     }
   }
 
@@ -427,20 +467,27 @@ void MemoryWidget::OnSetValue()
       return;
     }
 
-    if (value == static_cast<u8>(value))
+    const int data_length = m_data_edit->text().size();
+
+    if (data_length > 8)
     {
-      PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      PowerPC::HostWrite_U64(value, addr);
     }
-    else if (value == static_cast<u16>(value))
+    else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+    {
+      if (data_length > 2)
+        PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      else
+        PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+    }
+    else if (m_type_u16->isChecked() && data_length <= 4)
     {
       PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
     }
-    else if (value == static_cast<u32>(value))
+    else
     {
       PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
     }
-    else
-      PowerPC::HostWrite_U64(value, addr);
   }
 
   Update();
@@ -493,7 +540,8 @@ void MemoryWidget::OnDumpFakeVMEM()
 
 std::vector<u8> MemoryWidget::GetValueData() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  // Series of bytes we want to look for.
+  std::vector<u8> search_for;
 
   if (m_find_ascii->isChecked())
   {
@@ -502,25 +550,14 @@ std::vector<u8> MemoryWidget::GetValueData() const
   }
   else
   {
-    bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-      return {};
-
-    int size;
-
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
+    // Accepts any amount of bytes.
+    std::string search_prep = m_data_edit->text().toStdString();
+    for (size_t i = 0; i <= search_prep.length() - 2; i = i + 2)
+    {
+      if (!isxdigit(search_prep[i]) || !isxdigit(search_prep[i + 1]))
+        return {};
+      search_for.push_back(std::stoi((search_prep.substr(i, 2)), nullptr, 16));
+    }
   }
 
   return search_for;
@@ -582,7 +619,7 @@ void MemoryWidget::FindValue(bool next)
   }
   else
   {
-    end = &ram_ptr[addr + search_for.size() - 1];
+    end = &ram_ptr[addr - 1];
     ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
   }
 

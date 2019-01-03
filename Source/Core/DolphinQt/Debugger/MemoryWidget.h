@@ -62,7 +62,9 @@ private:
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
   QLineEdit* m_search_address;
+  QLineEdit* m_search_address_offset;
   QLineEdit* m_data_edit;
+  QLabel* m_data_preview;
   QPushButton* m_set_value;
   QPushButton* m_dump_mram;
   QPushButton* m_dump_exram;

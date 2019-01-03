@@ -81,6 +81,11 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   }
 
   CallstackEntry entry;
+
+  entry.Name = StringFromFormat(" * %s [ PC = %08x ]\n", g_symbolDB.GetDescription(PC).c_str(), PC);
+  entry.vAddress = PC;
+  output.push_back(entry);
+
   entry.Name =
       StringFromFormat(" * %s [ LR = %08x ]\n", g_symbolDB.GetDescription(LR).c_str(), LR - 4);
   entry.vAddress = LR - 4;

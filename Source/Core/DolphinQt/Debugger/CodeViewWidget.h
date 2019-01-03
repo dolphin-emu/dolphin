@@ -30,6 +30,7 @@ public:
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
+  void FontBasedSizing();
   void Update();
 
   void ToggleBreakpoint();

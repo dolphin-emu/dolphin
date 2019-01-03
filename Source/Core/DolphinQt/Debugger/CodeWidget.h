@@ -66,6 +66,7 @@ private:
   void OnSelectFunctionCalls();
 
   void closeEvent(QCloseEvent*) override;
+  bool eventFilter(QObject* obj, QEvent* event);
 
   CodeTraceDialog* trace_dialog = nullptr;
   CodeDiffDialog* diff_dialog = nullptr;
