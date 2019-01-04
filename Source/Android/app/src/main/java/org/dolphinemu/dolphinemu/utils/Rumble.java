@@ -17,6 +17,7 @@ import java.util.HashMap;
 
 public class Rumble
 {
+  private static long lastRumbleTime = 0;
   private static Vibrator phoneVibrator;
   private static SparseArray<Vibrator> emuVibrators;
 
@@ -73,6 +74,12 @@ public class Rumble
 
   public static void checkRumble(int padId, double state)
   {
+    // vibrate one by one
+    long currentTime = System.currentTimeMillis();
+    if (currentTime - lastRumbleTime < 100)
+      return;
+    lastRumbleTime = currentTime;
+
     if (phoneVibrator != null)
       doRumble(phoneVibrator);
 
