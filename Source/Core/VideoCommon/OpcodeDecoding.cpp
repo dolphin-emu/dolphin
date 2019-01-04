@@ -203,11 +203,11 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         u32 bp_cmd = src.Read<u32>();
         if (is_preprocess)
         {
-          LoadBPRegPreprocess(bp_cmd);
+          totalCycles += LoadBPRegPreprocess(bp_cmd);
         }
         else
         {
-          LoadBPReg(bp_cmd);
+          totalCycles += LoadBPReg(bp_cmd);
           INCSTAT(stats.thisFrame.numBPLoads);
         }
       }

@@ -1102,7 +1102,7 @@ struct BPMemory
 
 extern BPMemory bpmem;
 
-void LoadBPReg(u32 value0);
-void LoadBPRegPreprocess(u32 value0);
+u32 LoadBPReg(u32 value0);
+u32 LoadBPRegPreprocess(u32 value0);
 
 void GetBPRegInfo(const u8* data, std::string* name, std::string* desc);
