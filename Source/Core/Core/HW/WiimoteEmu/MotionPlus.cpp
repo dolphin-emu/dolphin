@@ -50,11 +50,6 @@ void MotionPlus::DoState(PointerWrap& p)
   p.Do(reg_data);
 }
 
-void MotionPlus::AttachExtension(Extension* ext)
-{
-  extension_port.AttachExtension(ext);
-}
-
 bool MotionPlus::IsActive() const
 {
   return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2];
@@ -63,6 +58,11 @@ bool MotionPlus::IsActive() const
 MotionPlus::PassthroughMode MotionPlus::GetPassthroughMode() const
 {
   return static_cast<PassthroughMode>(reg_data.ext_identifier[4]);
+}
+
+ExtensionPort& MotionPlus::GetExtPort()
+{
+  return m_extension_port;
 }
 
 int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
@@ -175,7 +175,7 @@ bool MotionPlus::ReadDeviceDetectPin() const
   else
   {
     // When inactive the device detect pin reads from the ext port:
-    return extension_port.IsDeviceConnected();
+    return m_extension_port.IsDeviceConnected();
   }
 }
 
@@ -369,7 +369,7 @@ void MotionPlus::Update()
     mplus_data.pitch2 = pitch_value >> 8;
   }
 
-  mplus_data.extension_connected = extension_port.IsDeviceConnected();
+  mplus_data.extension_connected = m_extension_port.IsDeviceConnected();
   mplus_data.zero = 0;
 }
 

@@ -112,13 +112,13 @@ void Wiimote::Reset()
   m_i2c_bus.AddSlave(&m_speaker_logic);
   m_i2c_bus.AddSlave(&m_camera_logic);
 
-  // FYI: AttachExtension also connects devices to the i2c bus
-  // TODO: Only attach M+ when enabled in settings.
-  m_extension_port.AttachExtension(&m_motion_plus);
-
+  // Reset extension connections:
+  m_is_motion_plus_attached = false;
   m_active_extension = ExtensionNumber::NONE;
-  m_motion_plus.AttachExtension(GetActiveExtension());
-  // Switch to the desired extension (if any).
+  m_extension_port.AttachExtension(GetNoneExtension());
+  m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+
+  // Switch to desired M+ status and extension (if any).
   HandleExtensionSwap();
 
   // Reset sub-devices:
@@ -215,6 +215,13 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+
+  // m_options->boolean_settings.emplace_back(
+  //    m_motion_plus_setting =
+  //        new ControllerEmu::BooleanSetting("Attach MotionPlus", _trans("Attach MotionPlus"),
+  //        true,
+  //                                          ControllerEmu::SettingType::NORMAL, false));
+
   m_options->boolean_settings.emplace_back(
       new ControllerEmu::BooleanSetting("Forward Wiimote", _trans("Forward Wii Remote"), true,
                                         ControllerEmu::SettingType::NORMAL, true));
@@ -671,6 +678,11 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
+}
+
+Extension* Wiimote::GetNoneExtension() const
+{
+  return static_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
 }
 
 Extension* Wiimote::GetActiveExtension() const

@@ -181,6 +181,7 @@ private:
   bool IsUpright() const;
 
   Extension* GetActiveExtension() const;
+  Extension* GetNoneExtension() const;
 
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
@@ -247,6 +248,7 @@ private:
   ControllerEmu::BooleanSetting* m_sideways_setting;
   ControllerEmu::BooleanSetting* m_upright_setting;
   ControllerEmu::NumericSetting* m_battery_setting;
+  // ControllerEmu::BooleanSetting* m_motion_plus_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
   SpeakerLogic m_speaker_logic;
@@ -272,6 +274,8 @@ private:
   WiimoteCommon::InputReportStatus m_status;
 
   ExtensionNumber m_active_extension;
+
+  bool m_is_motion_plus_attached;
 
   ReadRequest m_read_request;
   UsableEEPROMData m_eeprom;

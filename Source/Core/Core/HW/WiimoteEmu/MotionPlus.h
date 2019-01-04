@@ -21,7 +21,7 @@ public:
   void Reset() override;
   void DoState(PointerWrap& p) override;
 
-  void AttachExtension(Extension* ext);
+  ExtensionPort& GetExtPort();
 
 private:
 #pragma pack(push, 1)
@@ -126,6 +126,6 @@ private:
 
   // The port on the end of the motion plus:
   I2CBus i2c_bus;
-  ExtensionPort extension_port{&i2c_bus};
+  ExtensionPort m_extension_port{&i2c_bus};
 };
 }  // namespace WiimoteEmu

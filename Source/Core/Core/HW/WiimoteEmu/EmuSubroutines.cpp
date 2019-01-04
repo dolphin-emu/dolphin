@@ -16,6 +16,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 
 namespace WiimoteEmu
 {
@@ -145,12 +146,53 @@ void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 
 void Wiimote::HandleExtensionSwap()
 {
-  const ExtensionNumber desired_extension =
+  ExtensionNumber desired_extension_number =
       static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment());
 
-  if (GetActiveExtensionNumber() != desired_extension)
+  // const bool desired_motion_plus = m_motion_plus_setting->GetValue();
+  const bool desired_motion_plus = false;
+
+  // FYI: AttachExtension also connects devices to the i2c bus
+
+  if (m_is_motion_plus_attached && !desired_motion_plus)
   {
-    if (GetActiveExtensionNumber())
+    // M+ is attached and it's not wanted, so remove it.
+    m_extension_port.AttachExtension(GetNoneExtension());
+    m_is_motion_plus_attached = false;
+
+    // Also remove extension (if any) from the M+'s ext port.
+    m_active_extension = ExtensionNumber::NONE;
+    m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+
+    // Don't do anything else this update cycle.
+    return;
+  }
+
+  if (desired_motion_plus && !m_is_motion_plus_attached)
+  {
+    // M+ is wanted and it's not attached
+
+    if (GetActiveExtensionNumber() != ExtensionNumber::NONE)
+    {
+      // But an extension is attached. Remove it first.
+      // (handled below)
+      desired_extension_number = ExtensionNumber::NONE;
+    }
+    else
+    {
+      // No extension attached so attach M+.
+      m_is_motion_plus_attached = true;
+      m_extension_port.AttachExtension(&m_motion_plus);
+      m_motion_plus.Reset();
+
+      // Also attach extension below if desired:
+    }
+  }
+
+  if (GetActiveExtensionNumber() != desired_extension_number)
+  {
+    // A different extension is wanted (either by user or by the M+ logic above)
+    if (GetActiveExtensionNumber() != ExtensionNumber::NONE)
     {
       // First we must detach the current extension.
       // The next call will change to the new extension if needed.
@@ -158,11 +200,20 @@ void Wiimote::HandleExtensionSwap()
     }
     else
     {
-      m_active_extension = desired_extension;
+      m_active_extension = desired_extension_number;
     }
 
-    // TODO: Attach directly when not using M+.
-    m_motion_plus.AttachExtension(GetActiveExtension());
+    if (m_is_motion_plus_attached)
+    {
+      // M+ is attached so attach to it.
+      m_motion_plus.GetExtPort().AttachExtension(GetActiveExtension());
+    }
+    else
+    {
+      // M+ is not attached so attach directly.
+      m_extension_port.AttachExtension(GetActiveExtension());
+    }
+
     GetActiveExtension()->Reset();
   }
 }
@@ -503,14 +554,18 @@ void Wiimote::DoState(PointerWrap& p)
 
   // Sub-devices:
   m_speaker_logic.DoState(p);
-  m_motion_plus.DoState(p);
   m_camera_logic.DoState(p);
 
+  p.Do(m_is_motion_plus_attached);
   p.Do(m_active_extension);
-  GetActiveExtension()->DoState(p);
 
-  // TODO: Handle motion plus being disabled.
-  m_motion_plus.AttachExtension(GetActiveExtension());
+  // Attach M+/Extensions.
+  m_extension_port.AttachExtension(m_is_motion_plus_attached ? &m_motion_plus : GetNoneExtension());
+  (m_is_motion_plus_attached ? m_motion_plus.GetExtPort() : m_extension_port)
+      .AttachExtension(GetActiveExtension());
+
+  m_motion_plus.DoState(p);
+  GetActiveExtension()->DoState(p);
 
   // Dynamics
   // TODO: clean this up:
