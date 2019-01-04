@@ -220,6 +220,8 @@ void MemoryWidget::ConnectWidgets()
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
+  connect(m_memory_view, &MemoryViewWidget::SendSearchValue, m_search_address, &QLineEdit::setText);
+  connect(m_memory_view, &MemoryViewWidget::SendDataValue, m_data_edit, &QLineEdit::setText);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
 }
 

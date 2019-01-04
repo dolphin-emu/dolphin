@@ -324,8 +324,23 @@ void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
   switch (event->button())
   {
   case Qt::LeftButton:
-    if (column(item) == 0)
+
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+      QString setaddr = QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0'));
+      emit SendSearchValue(setaddr);
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+      const auto length = 32 / ((GetColumnCount(m_type) == 2) ? 4 : GetColumnCount(m_type));
+      u64 value = PowerPC::HostRead_U64(addr);
+      QString setvalue = QStringLiteral("%1").arg(value, 16, 16, QLatin1Char('0')).left(length);
+      emit SendDataValue(setvalue);
+    }
+    else if (column(item) == 0)
+    {
       ToggleRowBreakpoint(true);
+    }
     else
       SetAddress(addr & 0xFFFFFFF0);
 

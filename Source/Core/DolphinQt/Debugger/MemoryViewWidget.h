@@ -49,6 +49,8 @@ public:
 
 signals:
   void BreakpointsChanged();
+  void SendSearchValue(const QString);
+  void SendDataValue(const QString);
   void ShowCode(u32 address);
 
 private:
