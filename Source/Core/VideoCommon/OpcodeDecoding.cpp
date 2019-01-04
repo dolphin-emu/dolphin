@@ -221,9 +221,10 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         if (src.size() < 2)
           goto end;
         u16 num_vertices = src.Read<u16>();
-        int bytes = VertexLoaderManager::RunVertices(
-            cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-            (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src, is_preprocess);
+        int bytes =
+            VertexLoaderManager::RunVertices(cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
+                                             (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+                                             num_vertices, src, is_preprocess, totalCycles);
 
         if (bytes < 0)
           goto end;
