@@ -138,7 +138,7 @@ void SetCurrentThreadName(const char* szThreadName)
 #elif defined __FreeBSD__ || defined __OpenBSD__
   pthread_set_name_np(pthread_self(), szThreadName);
 #elif defined __NetBSD__
-  pthread_setname_np(pthread_self(), szThreadName, NULL);
+  pthread_setname_np(pthread_self(), "%s", (void *)szThreadName);
 #elif defined __HAIKU__
   rename_thread(find_thread(nullptr), szThreadName);
 #else
