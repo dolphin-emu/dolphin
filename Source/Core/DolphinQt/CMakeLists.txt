@@ -77,6 +77,7 @@ add_executable(dolphin-emu
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
   Debugger/BreakpointWidget.cpp
+	Debugger/CodeDiffDialog.cpp
   Debugger/CodeViewWidget.cpp
   Debugger/CodeWidget.cpp
   Debugger/JITWidget.cpp
