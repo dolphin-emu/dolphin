@@ -171,12 +171,17 @@ public:
   std::string FetchDelimString(char delim)
   {
     const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
-    ++it;
+    if (it != expr.end())
+      ++it;
     return result;
   }
 
   std::string FetchWordChars()
   {
+    // Words must start with a letter or underscore.
+    if (expr.end() == it || (!std::isalpha(*it, std::locale::classic()) && ('_' != *it)))
+      return "";
+
     // Valid word characters:
     std::regex rx("[a-z0-9_]", std::regex_constants::icase);
 
@@ -513,6 +518,46 @@ public:
   std::string GetFuncName() const override { return "Sin"; }
 };
 
+class UnaryTimerExpression : public UnaryExpression
+{
+public:
+  UnaryTimerExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
+
+  ControlState GetValue() const override
+  {
+    const auto now = Clock::now();
+    const auto elapsed = now - m_start_time;
+
+    using FSec = std::chrono::duration<ControlState>;
+
+    const ControlState val = inner->GetValue();
+
+    ControlState progress = std::chrono::duration_cast<FSec>(elapsed).count() / val;
+
+    if (std::isinf(progress))
+    {
+      // User configured a 0.0 length timer. Reset the timer and return 0.0.
+      progress = 0.0;
+      m_start_time = now;
+    }
+    else if (progress >= 1.0)
+    {
+      const ControlState reset_count = std::floor(progress);
+
+      m_start_time += std::chrono::duration_cast<Clock::duration>(FSec(val * reset_count));
+      progress -= reset_count;
+    }
+
+    return progress;
+  }
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "Timer"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+  mutable Clock::time_point m_start_time = Clock::now();
+};
+
 class UnaryWhileExpression : public UnaryExpression
 {
 public:
@@ -548,10 +593,12 @@ std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
 
   if (name.empty())
     return std::make_unique<UnaryNotExpression>(std::move(inner_));
-  else if ("toggle" == name)
-    return std::make_unique<UnaryToggleExpression>(std::move(inner_));
   else if ("sin" == name)
     return std::make_unique<UnarySinExpression>(std::move(inner_));
+  else if ("timer" == name)
+    return std::make_unique<UnaryTimerExpression>(std::move(inner_));
+  else if ("toggle" == name)
+    return std::make_unique<UnaryToggleExpression>(std::move(inner_));
   else if ("while" == name)
     return std::make_unique<UnaryWhileExpression>(std::move(inner_));
   else
@@ -592,42 +639,12 @@ private:
   const ControlState m_value{};
 };
 
-// A +1.0 per second incrementing timer:
-class LiteralTimer : public LiteralExpression
-{
-public:
-  ControlState GetValue() const override
-  {
-    const auto ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now().time_since_epoch());
-    // TODO: Will this roll over nicely?
-    return ms.count() / 1000.0;
-  }
-
-  std::string GetName() const override { return "Timer"; }
-
-private:
-  using Clock = std::chrono::steady_clock;
-};
-
 std::unique_ptr<LiteralExpression> MakeLiteralExpression(std::string name)
 {
-  // Case insensitive matching.
-  std::transform(name.begin(), name.end(), name.begin(),
-                 [](char c) { return std::tolower(c, std::locale::classic()); });
-
-  // Check for named literals:
-  if ("timer" == name)
-  {
-    return std::make_unique<LiteralTimer>();
-  }
-  else
-  {
-    // Assume it's a Real. If TryParse fails we'll just get a Zero.
-    ControlState val{};
-    TryParse(name, &val);
-    return std::make_unique<LiteralReal>(val);
-  }
+  // If TryParse fails we'll just get a Zero.
+  ControlState val{};
+  TryParse(name, &val);
+  return std::make_unique<LiteralReal>(val);
 }
 
 class VariableExpression : public Expression
@@ -751,9 +768,16 @@ private:
 
   ParseResult Atom()
   {
-    Token tok = Chew();
+    const Token tok = Chew();
     switch (tok.type)
     {
+    case TOK_UNARY:
+    {
+      ParseResult result = Atom();
+      if (result.status == ParseStatus::SyntaxError)
+        return result;
+      return {ParseStatus::Successful, MakeUnaryExpression(tok.data, std::move(result.expr))};
+    }
     case TOK_CONTROL:
     {
       ControlQualifier cq;
@@ -769,27 +793,15 @@ private:
       return {ParseStatus::Successful, std::make_unique<VariableExpression>(tok.data)};
     }
     case TOK_LPAREN:
+    {
       return Paren();
+    }
     default:
       return {ParseStatus::SyntaxError};
     }
   }
 
   static bool IsUnaryExpression(TokenType type) { return TOK_UNARY == type; }
-
-  ParseResult Unary()
-  {
-    if (IsUnaryExpression(Peek().type))
-    {
-      const Token tok = Chew();
-      ParseResult result = Atom();
-      if (result.status == ParseStatus::SyntaxError)
-        return result;
-      return {ParseStatus::Successful, MakeUnaryExpression(tok.data, std::move(result.expr))};
-    }
-
-    return Atom();
-  }
 
   static bool IsBinaryToken(TokenType type)
   {
@@ -827,7 +839,7 @@ private:
 
   ParseResult Binary(int precedence = 999)
   {
-    ParseResult lhs = Unary();
+    ParseResult lhs = Atom();
 
     if (lhs.status == ParseStatus::SyntaxError)
       return lhs;
