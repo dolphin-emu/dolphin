@@ -10,13 +10,21 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
-#include "Core/HW/WiimoteEmu/Encryption.h"
 
 struct BootParameters;
 
 struct GCPadStatus;
 class PointerWrap;
+
+namespace WiimoteCommon
+{
+class DataReportBuilder;
+}
+
+namespace WiimoteEmu
+{
+class EncryptionKey;
+}
 
 // Per-(video )Movie actions
 

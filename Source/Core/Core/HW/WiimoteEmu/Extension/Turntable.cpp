@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -84,8 +85,7 @@ Turntable::Turntable() : EncryptedExtension(_trans("Turntable"))
 
 void Turntable::Update()
 {
-  auto& tt_data = reinterpret_cast<DataFormat&>(m_reg.controller_data);
-  tt_data = {};
+  DataFormat tt_data = {};
 
   // stick
   {
@@ -137,6 +137,8 @@ void Turntable::Update()
   // flip button bits :/
   tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
                  BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA);
+
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tt_data;
 }
 
 bool Turntable::IsButtonPressed() const

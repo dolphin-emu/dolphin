@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "Common/BitUtils.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 
 namespace WiimoteCommon
@@ -34,7 +35,7 @@ struct IncludeCore : virtual DataReportManipulator
 
   void GetCoreData(CoreData* result) const override
   {
-    *result = *reinterpret_cast<const CoreData*>(data_ptr);
+    *result = Common::BitCastPtr<CoreData>(data_ptr);
 
     // Remove accel LSBs.
     result->hex &= CoreData::BUTTON_MASK;
@@ -42,11 +43,13 @@ struct IncludeCore : virtual DataReportManipulator
 
   void SetCoreData(const CoreData& new_core) override
   {
-    auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
 
     // Don't overwrite accel LSBs.
     core.hex &= ~CoreData::BUTTON_MASK;
     core.hex |= new_core.hex & CoreData::BUTTON_MASK;
+
+    Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 };
 
@@ -71,13 +74,13 @@ struct IncludeAccel : virtual DataReportManipulator
 {
   void GetAccelData(AccelData* result) const override
   {
-    const auto& accel = *reinterpret_cast<AccelMSB*>(data_ptr + 2);
+    const AccelMSB accel = Common::BitCastPtr<AccelMSB>(data_ptr + 2);
     result->x = accel.x << 2;
     result->y = accel.y << 2;
     result->z = accel.z << 2;
 
     // LSBs
-    const auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
     result->x |= core.acc_bits & 0b11;
     result->y |= (core.acc_bits2 & 0b1) << 1;
     result->z |= core.acc_bits2 & 0b10;
@@ -85,16 +88,18 @@ struct IncludeAccel : virtual DataReportManipulator
 
   void SetAccelData(const AccelData& new_accel) override
   {
-    auto& accel = *reinterpret_cast<AccelMSB*>(data_ptr + 2);
+    AccelMSB accel = {};
     accel.x = new_accel.x >> 2;
     accel.y = new_accel.y >> 2;
     accel.z = new_accel.z >> 2;
+    Common::BitCastPtr<AccelMSB>(data_ptr + 2) = accel;
 
     // LSBs
-    auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
     core.acc_bits = (new_accel.x >> 0) & 0b11;
     core.acc_bits2 = (new_accel.y >> 1) & 0x1;
     core.acc_bits2 |= (new_accel.z & 0xb10);
+    Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
   bool HasAccel() const override { return true; }
@@ -196,10 +201,10 @@ struct ReportInterleave1 : IncludeCore, IncludeIR<3, 18, 0>, NoExt
   {
     accel->x = data_ptr[2] << 2;
 
-    // Retain lower 6LSBs.
+    // Retain lower 6 bits.
     accel->z &= 0b111111;
 
-    const auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
     accel->z |= (core.acc_bits << 6) | (core.acc_bits2 << 8);
   }
 
@@ -207,9 +212,10 @@ struct ReportInterleave1 : IncludeCore, IncludeIR<3, 18, 0>, NoExt
   {
     data_ptr[2] = accel.x >> 2;
 
-    auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
     core.acc_bits = (accel.z >> 6) & 0b11;
     core.acc_bits2 = (accel.z >> 8) & 0b11;
+    Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
   bool HasAccel() const override { return true; }
@@ -226,10 +232,10 @@ struct ReportInterleave2 : IncludeCore, IncludeIR<3, 18, 18>, NoExt
   {
     accel->y = data_ptr[2] << 2;
 
-    // Retain upper 4MSBs.
+    // Retain upper 4 bits.
     accel->z &= ~0b111111;
 
-    const auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
     accel->z |= (core.acc_bits << 2) | (core.acc_bits2 << 4);
   }
 
@@ -237,9 +243,10 @@ struct ReportInterleave2 : IncludeCore, IncludeIR<3, 18, 18>, NoExt
   {
     data_ptr[2] = accel.y >> 2;
 
-    auto& core = *reinterpret_cast<CoreData*>(data_ptr);
+    CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
     core.acc_bits = (accel.z >> 2) & 0b11;
     core.acc_bits2 = (accel.z >> 4) & 0b11;
+    Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
   bool HasAccel() const override { return true; }
@@ -257,47 +264,47 @@ std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID r
 
   switch (rpt_id)
   {
-  case InputReportID::REPORT_CORE:
+  case InputReportID::ReportCore:
     // 0x30: Core Buttons
     ptr = std::make_unique<ReportCore>();
     break;
-  case InputReportID::REPORT_CORE_ACCEL:
+  case InputReportID::ReportCoreAccel:
     // 0x31: Core Buttons and Accelerometer
     ptr = std::make_unique<ReportCoreAccel>();
     break;
-  case InputReportID::REPORT_CORE_EXT8:
+  case InputReportID::ReportCoreExt8:
     // 0x32: Core Buttons with 8 Extension bytes
     ptr = std::make_unique<ReportCoreExt8>();
     break;
-  case InputReportID::REPORT_CORE_ACCEL_IR12:
+  case InputReportID::ReportCoreAccelIR12:
     // 0x33: Core Buttons and Accelerometer with 12 IR bytes
     ptr = std::make_unique<ReportCoreAccelIR12>();
     break;
-  case InputReportID::REPORT_CORE_EXT19:
+  case InputReportID::ReportCoreExt19:
     // 0x34: Core Buttons with 19 Extension bytes
     ptr = std::make_unique<ReportCoreExt19>();
     break;
-  case InputReportID::REPORT_CORE_ACCEL_EXT16:
+  case InputReportID::ReportCoreAccelExt16:
     // 0x35: Core Buttons and Accelerometer with 16 Extension Bytes
     ptr = std::make_unique<ReportCoreAccelExt16>();
     break;
-  case InputReportID::REPORT_CORE_IR10_EXT9:
+  case InputReportID::ReportCoreIR10Ext9:
     // 0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
     ptr = std::make_unique<ReportCoreIR10Ext9>();
     break;
-  case InputReportID::REPORT_CORE_ACCEL_IR10_EXT6:
+  case InputReportID::ReportCoreAccelIR10Ext6:
     // 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
     ptr = std::make_unique<ReportCoreAccelIR10Ext6>();
     break;
-  case InputReportID::REPORT_EXT21:
+  case InputReportID::ReportExt21:
     // 0x3d: 21 Extension Bytes
     ptr = std::make_unique<ReportExt21>();
     break;
-  case InputReportID::REPORT_INTERLEAVE1:
+  case InputReportID::ReportInterleave1:
     // 0x3e - 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
     ptr = std::make_unique<ReportInterleave1>();
     break;
-  case InputReportID::REPORT_INTERLEAVE2:
+  case InputReportID::ReportInterleave2:
     ptr = std::make_unique<ReportInterleave2>();
     break;
   default:
@@ -327,9 +334,8 @@ InputReportID DataReportBuilder::GetMode() const
 
 bool DataReportBuilder::IsValidMode(InputReportID mode)
 {
-  return (mode >= InputReportID::REPORT_CORE &&
-          mode <= InputReportID::REPORT_CORE_ACCEL_IR10_EXT6) ||
-         (mode >= InputReportID::REPORT_EXT21 && InputReportID::REPORT_INTERLEAVE2 <= mode);
+  return (mode >= InputReportID::ReportCore && mode <= InputReportID::ReportCoreAccelIR10Ext6) ||
+         (mode >= InputReportID::ReportExt21 && InputReportID::ReportInterleave2 <= mode);
 }
 
 bool DataReportBuilder::HasCore() const

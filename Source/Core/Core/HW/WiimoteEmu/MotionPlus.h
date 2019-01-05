@@ -96,9 +96,9 @@ private:
 
   enum class PassthroughMode : u8
   {
-    DISABLED = 0x04,
-    NUNCHUK = 0x05,
-    CLASSIC = 0x07,
+    Disabled = 0x04,
+    Nunchuk = 0x05,
+    Classic = 0x07,
   };
 
   bool IsActive() const;

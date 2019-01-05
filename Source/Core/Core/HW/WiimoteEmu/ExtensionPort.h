@@ -30,7 +30,7 @@ public:
   static constexpr u8 REPORT_I2C_SLAVE = 0x52;
   static constexpr u8 REPORT_I2C_ADDR = 0x00;
 
-  ExtensionPort(I2CBus* i2c_bus);
+  explicit ExtensionPort(I2CBus* i2c_bus);
 
   bool IsDeviceConnected() const;
   void AttachExtension(Extension* dev);

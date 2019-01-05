@@ -15,11 +15,11 @@ namespace WiimoteEmu
 {
 struct NormalizedAccelData
 {
+  // Unit is 1G
   double x, y, z;
 };
 
-// Used for a dynamic swing or
-// shake
+// Used for a dynamic swing or shake
 struct DynamicData
 {
   std::array<int, 3> timing;                 // Hold length in frames for each axis
@@ -27,10 +27,8 @@ struct DynamicData
   std::array<int, 3> executing_frames_left;  // Number of frames to execute the intensity operation
 };
 
-// Used for a dynamic swing or
-// shake.  This is used to pass
-// in data that defines the dynamic
-// action
+// Used for a dynamic swing or shake.
+// This is used to pass in data that defines the dynamic action
 struct DynamicConfiguration
 {
   double low_intensity;

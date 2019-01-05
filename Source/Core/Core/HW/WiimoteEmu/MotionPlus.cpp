@@ -25,7 +25,7 @@ void MotionPlus::Reset()
   std::copy(std::begin(initial_id), std::end(initial_id), reg_data.ext_identifier);
 
   // TODO: determine meaning of calibration data:
-  static const u8 cdata[32] = {
+  constexpr std::array<u8, 32> cdata = {
       0x78, 0xd9, 0x78, 0x38, 0x77, 0x9d, 0x2f, 0x0c, 0xcf, 0xf0, 0x31,
       0xad, 0xc8, 0x0b, 0x5e, 0x39, 0x6f, 0x81, 0x7b, 0x89, 0x78, 0x51,
       0x33, 0x60, 0xc9, 0xf5, 0x37, 0xc1, 0x2d, 0xe9, 0x15, 0x8d,
@@ -34,7 +34,7 @@ void MotionPlus::Reset()
   std::copy(std::begin(cdata), std::end(cdata), reg_data.calibration_data);
 
   // TODO: determine the meaning behind this:
-  static const u8 cert[64] = {
+  constexpr std::array<u8, 64> cert = {
       0x99, 0x1a, 0x07, 0x1b, 0x97, 0xf1, 0x11, 0x78, 0x0c, 0x42, 0x2b, 0x68, 0xdf,
       0x44, 0x38, 0x0d, 0x2b, 0x7e, 0xd6, 0x84, 0x84, 0x58, 0x65, 0xc9, 0xf2, 0x95,
       0xd9, 0xaf, 0xb6, 0xc4, 0x87, 0xd5, 0x18, 0xdb, 0x67, 0x3a, 0xc0, 0x71, 0xec,
@@ -52,7 +52,7 @@ void MotionPlus::DoState(PointerWrap& p)
 
 bool MotionPlus::IsActive() const
 {
-  return ACTIVE_DEVICE_ADDR << 1 == reg_data.ext_identifier[2];
+  return (ACTIVE_DEVICE_ADDR << 1) == reg_data.ext_identifier[2];
 }
 
 MotionPlus::PassthroughMode MotionPlus::GetPassthroughMode() const
@@ -69,7 +69,8 @@ int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 {
   if (IsActive())
   {
-    // Motion plus does not respond to 0x53 when activated
+    // FYI: Motion plus does not respond to 0x53 when activated
+
     if (ACTIVE_DEVICE_ADDR == slave_addr)
       return RawRead(&reg_data, addr, count, data_out);
     else
@@ -78,7 +79,9 @@ int MotionPlus::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   else
   {
     if (INACTIVE_DEVICE_ADDR == slave_addr)
+    {
       return RawRead(&reg_data, addr, count, data_out);
+    }
     else
     {
       // Passthrough to the connected extension (if any)
@@ -200,7 +203,7 @@ void MotionPlus::Update()
     // It even works when removing the is_mp_data bit in the last byte
     // My M+ non-inside gives: 61,46,45,aa,0,2 or b6,46,45,9a,0,2
     // static const u8 init_data[6] = {0x8e, 0xb0, 0x4f, 0x5a, 0xfc | 0x01, 0x02};
-    static const u8 init_data[6] = {0x81, 0x46, 0x46, 0xb6, 0x01, 0x02};
+    constexpr std::array<u8, 6> init_data = {0x81, 0x46, 0x46, 0xb6, 0x01, 0x02};
     std::copy(std::begin(init_data), std::end(init_data), data);
     reg_data.cert_ready = 0x2;
     return;
@@ -208,7 +211,7 @@ void MotionPlus::Update()
 
   if (0x2 == reg_data.cert_ready)
   {
-    static const u8 init_data[6] = {0x7f, 0xcf, 0xdf, 0x8b, 0x4f, 0x82};
+    constexpr std::array<u8, 6> init_data = {0x7f, 0xcf, 0xdf, 0x8b, 0x4f, 0x82};
     std::copy(std::begin(init_data), std::end(init_data), data);
     reg_data.cert_ready = 0x8;
     return;
@@ -223,7 +226,7 @@ void MotionPlus::Update()
   if (0x18 == reg_data.cert_ready)
   {
     // TODO: determine the meaning of this
-    const u8 mp_cert2[64] = {
+    constexpr std::array<u8, 64> mp_cert2 = {
         0xa5, 0x84, 0x1f, 0xd6, 0xbd, 0xdc, 0x7a, 0x4c, 0xf3, 0xc0, 0x24, 0xe0, 0x92,
         0xef, 0x19, 0x28, 0x65, 0xe0, 0x62, 0x7c, 0x9b, 0x41, 0x6f, 0x12, 0xc3, 0xac,
         0x78, 0xe4, 0xfc, 0x6b, 0x7b, 0x0a, 0xb4, 0x50, 0xd6, 0xf2, 0x45, 0xf7, 0x93,
@@ -267,7 +270,7 @@ void MotionPlus::Update()
   constexpr u8 EXT_ADDR = ExtensionPort::REPORT_I2C_ADDR;
 
   // Try to alternate between M+ and EXT data:
-  auto& mplus_data = *reinterpret_cast<DataFormat*>(data);
+  DataFormat mplus_data = Common::BitCastPtr<DataFormat>(data);
   mplus_data.is_mp_data ^= true;
 
   // hax!!!
@@ -282,13 +285,13 @@ void MotionPlus::Update()
   {
     switch (GetPassthroughMode())
     {
-    case PassthroughMode::DISABLED:
+    case PassthroughMode::Disabled:
     {
       // Passthrough disabled, always send M+ data:
       mplus_data.is_mp_data = true;
       break;
     }
-    case PassthroughMode::NUNCHUK:
+    case PassthroughMode::Nunchuk:
     {
       if (EXT_AMT == i2c_bus.BusRead(EXT_SLAVE, EXT_ADDR, EXT_AMT, data))
       {
@@ -315,7 +318,7 @@ void MotionPlus::Update()
       }
       break;
     }
-    case PassthroughMode::CLASSIC:
+    case PassthroughMode::Classic:
     {
       if (EXT_AMT == i2c_bus.BusRead(EXT_SLAVE, EXT_ADDR, EXT_AMT, data))
       {
@@ -371,6 +374,8 @@ void MotionPlus::Update()
 
   mplus_data.extension_connected = m_extension_port.IsDeviceConnected();
   mplus_data.zero = 0;
+
+  Common::BitCastPtr<DataFormat>(data) = mplus_data;
 }
 
 }  // namespace WiimoteEmu

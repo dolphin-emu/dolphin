@@ -54,7 +54,7 @@ struct TypedHIDInputData
 
   T data;
 
-  static_assert(std::is_pod<T>::value);
+  static_assert(std::is_pod<T>());
 
   u8* GetData() { return reinterpret_cast<u8*>(this); }
   const u8* GetData() const { return reinterpret_cast<const u8*>(this); }

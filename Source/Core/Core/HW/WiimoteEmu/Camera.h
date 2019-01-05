@@ -64,6 +64,13 @@ public:
     IR_MODE_FULL = 5,
   };
 
+  void Reset();
+  void DoState(PointerWrap& p);
+  void Update(const ControllerEmu::Cursor::StateData& cursor, const NormalizedAccelData& accel,
+              bool sensor_bar_on_top);
+
+  static constexpr u8 I2C_ADDR = 0x58;
+
 private:
   // TODO: some of this memory is write-only and should return error 7.
 #pragma pack(push, 1)
@@ -85,20 +92,13 @@ private:
   static_assert(0x100 == sizeof(Register));
 
 public:
-  static constexpr u8 I2C_ADDR = 0x58;
-
   // The real wiimote reads camera data from the i2c bus at offset 0x37:
   static const u8 REPORT_DATA_OFFSET = offsetof(Register, camera_data);
 
-  void Reset();
-  void DoState(PointerWrap& p);
-  void Update(const ControllerEmu::Cursor::StateData& cursor, const NormalizedAccelData& accel,
-              bool sensor_bar_on_top);
-
 private:
-  Register reg_data;
-
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+
+  Register reg_data;
 };
 }  // namespace WiimoteEmu

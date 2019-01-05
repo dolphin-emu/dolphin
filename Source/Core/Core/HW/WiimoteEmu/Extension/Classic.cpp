@@ -7,6 +7,7 @@
 #include <array>
 #include <cassert>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -108,8 +109,7 @@ Classic::Classic() : EncryptedExtension(_trans("Classic"))
 
 void Classic::Update()
 {
-  auto& classic_data = *reinterpret_cast<DataFormat*>(&m_reg.controller_data);
-  classic_data = {};
+  DataFormat classic_data = {};
 
   // left stick
   {
@@ -156,6 +156,8 @@ void Classic::Update()
 
   // flip button bits
   classic_data.bt.hex ^= 0xFFFF;
+
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = classic_data;
 }
 
 bool Classic::IsButtonPressed() const

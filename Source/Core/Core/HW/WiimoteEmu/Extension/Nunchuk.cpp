@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -72,8 +73,7 @@ Nunchuk::Nunchuk() : EncryptedExtension(_trans("Nunchuk"))
 
 void Nunchuk::Update()
 {
-  auto& nc_data = *reinterpret_cast<DataFormat*>(&m_reg.controller_data);
-  nc_data = {};
+  DataFormat nc_data = {};
 
   // stick
   const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
@@ -129,6 +129,8 @@ void Nunchuk::Update()
   nc_data.bt.acc_x_lsb = acc.x & 0x3;
   nc_data.bt.acc_y_lsb = acc.y & 0x3;
   nc_data.bt.acc_z_lsb = acc.z & 0x3;
+
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = nc_data;
 }
 
 bool Nunchuk::IsButtonPressed() const

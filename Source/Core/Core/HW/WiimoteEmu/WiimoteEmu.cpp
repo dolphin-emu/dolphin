@@ -71,7 +71,7 @@ void Wiimote::Reset()
 
   // Wiimote starts in non-continuous CORE mode:
   m_reporting_channel = 0;
-  m_reporting_mode = InputReportID::REPORT_CORE;
+  m_reporting_mode = InputReportID::ReportCore;
   m_reporting_continuous = false;
 
   m_speaker_mute = false;
@@ -325,7 +325,7 @@ bool Wiimote::ProcessExtensionPortEvent()
     return false;
 
   // FYI: This happens even during a read request which continues after the status report is sent.
-  m_reporting_mode = InputReportID::REPORT_DISABLED;
+  m_reporting_mode = InputReportID::ReportDisabled;
 
   DEBUG_LOG(WIIMOTE, "Sending status report due to extension status change.");
 
@@ -382,14 +382,14 @@ void Wiimote::SendDataReport()
 {
   Movie::SetPolledDevice();
 
-  if (InputReportID::REPORT_DISABLED == m_reporting_mode)
+  if (InputReportID::ReportDisabled == m_reporting_mode)
   {
     // The wiimote is in this disabled after an extension change.
     // Input reports are not sent, even on button change.
     return;
   }
 
-  if (InputReportID::REPORT_CORE == m_reporting_mode && !m_reporting_continuous)
+  if (InputReportID::ReportCore == m_reporting_mode && !m_reporting_continuous)
   {
     // TODO: we only need to send a report if the data changed when m_reporting_continuous is
     // disabled. It's probably only sensible to check this with REPORT_CORE
@@ -497,10 +497,10 @@ void Wiimote::SendDataReport()
   CallbackInterruptChannel(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
 
   // The interleaved reporting modes toggle back and forth:
-  if (InputReportID::REPORT_INTERLEAVE1 == m_reporting_mode)
-    m_reporting_mode = InputReportID::REPORT_INTERLEAVE2;
-  else if (InputReportID::REPORT_INTERLEAVE2 == m_reporting_mode)
-    m_reporting_mode = InputReportID::REPORT_INTERLEAVE1;
+  if (InputReportID::ReportInterleave1 == m_reporting_mode)
+    m_reporting_mode = InputReportID::ReportInterleave2;
+  else if (InputReportID::ReportInterleave2 == m_reporting_mode)
+    m_reporting_mode = InputReportID::ReportInterleave1;
 }
 
 void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
@@ -550,7 +550,7 @@ void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
     {
       // AyuanX: My experiment shows Control Channel is never used
       // shuffle2: but lwbt uses this, so we'll do what we must :)
-      HIDOutputReport(hidp.data, size - hidp.HEADER_SIZE);
+      HIDOutputReport(hidp.data, size - HIDPacket::HEADER_SIZE);
 
       // TODO: Should this be above the previous?
       u8 handshake = HID_HANDSHAKE_SUCCESS;
@@ -594,7 +594,7 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
     switch (hidp.param)
     {
     case HID_PARAM_OUTPUT:
-      HIDOutputReport(hidp.data, size - hidp.HEADER_SIZE);
+      HIDOutputReport(hidp.data, size - HIDPacket::HEADER_SIZE);
       break;
 
     default:

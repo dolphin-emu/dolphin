@@ -37,7 +37,9 @@ void EmulateShake(NormalizedAccelData* const accel, ControllerEmu::Buttons* cons
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
     }
     else
+    {
       shake_step[i] = 0;
+    }
   }
 }
 

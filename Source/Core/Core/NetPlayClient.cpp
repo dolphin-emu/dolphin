@@ -53,7 +53,7 @@
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
@@ -2191,11 +2191,10 @@ void SetupWiimotes()
   {
     if (wiimote_map[i] > 0)
     {
-      static_cast<ControllerEmu::Extension*>(
-          static_cast<WiimoteEmu::Wiimote*>(
-              Wiimote::GetConfig()->GetController(static_cast<int>(i)))
-              ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Extension))
-          ->switch_extension = netplay_settings.m_WiimoteExtension[i];
+      static_cast<ControllerEmu::Attachments*>(
+          static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
+              ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
+          ->SetSelectedAttachment(netplay_settings.m_WiimoteExtension[i]);
     }
   }
 }

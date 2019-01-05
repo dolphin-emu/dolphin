@@ -449,7 +449,7 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
   Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
 
   u8 buf[MAX_PAYLOAD];
-  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::REQUEST_STATUS), 0};
+  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
   int invalid_report_count = 0;
   int rc = WriteToHandle(dev_handle, method, req_status_report, sizeof(req_status_report));
   while (rc > 0)
@@ -460,7 +460,7 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
 
     switch (InputReportID(buf[1]))
     {
-    case InputReportID::STATUS:
+    case InputReportID::Status:
       return true;
     default:
       WARN_LOG(WIIMOTE, "IsWiimote(): Received unexpected report %02x", buf[1]);
@@ -703,11 +703,11 @@ size_t GetReportSize(u8 rid)
 
   switch (report_id)
   {
-  case InputReportID::STATUS:
+  case InputReportID::Status:
     return sizeof(InputReportStatus);
-  case InputReportID::READ_DATA_REPLY:
+  case InputReportID::ReadDataReply:
     return sizeof(InputReportReadDataReply);
-  case InputReportID::ACK:
+  case InputReportID::Ack:
     return sizeof(InputReportAck);
   default:
     if (DataReportBuilder::IsValidMode(report_id))

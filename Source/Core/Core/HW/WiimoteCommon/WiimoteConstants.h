@@ -12,45 +12,45 @@ constexpr u8 MAX_PAYLOAD = 23;
 
 enum class InputReportID : u8
 {
-  STATUS = 0x20,
-  READ_DATA_REPLY = 0x21,
-  ACK = 0x22,
+  Status = 0x20,
+  ReadDataReply = 0x21,
+  Ack = 0x22,
 
   // Not a real value on the wiimote, just a state to disable reports:
-  REPORT_DISABLED = 0x00,
+  ReportDisabled = 0x00,
 
-  REPORT_CORE = 0x30,
-  REPORT_CORE_ACCEL = 0x31,
-  REPORT_CORE_EXT8 = 0x32,
-  REPORT_CORE_ACCEL_IR12 = 0x33,
-  REPORT_CORE_EXT19 = 0x34,
-  REPORT_CORE_ACCEL_EXT16 = 0x35,
-  REPORT_CORE_IR10_EXT9 = 0x36,
-  REPORT_CORE_ACCEL_IR10_EXT6 = 0x37,
+  ReportCore = 0x30,
+  ReportCoreAccel = 0x31,
+  ReportCoreExt8 = 0x32,
+  ReportCoreAccelIR12 = 0x33,
+  ReportCoreExt19 = 0x34,
+  ReportCoreAccelExt16 = 0x35,
+  ReportCoreIR10Ext9 = 0x36,
+  ReportCoreAccelIR10Ext6 = 0x37,
 
-  REPORT_EXT21 = 0x3d,
-  REPORT_INTERLEAVE1 = 0x3e,
-  REPORT_INTERLEAVE2 = 0x3f,
+  ReportExt21 = 0x3d,
+  ReportInterleave1 = 0x3e,
+  ReportInterleave2 = 0x3f,
 };
 
 enum class OutputReportID : u8
 {
-  RUMBLE = 0x10,
-  LEDS = 0x11,
-  REPORT_MODE = 0x12,
-  IR_PIXEL_CLOCK = 0x13,
-  SPEAKER_ENABLE = 0x14,
-  REQUEST_STATUS = 0x15,
-  WRITE_DATA = 0x16,
-  READ_DATA = 0x17,
-  SPEAKER_DATA = 0x18,
-  SPEAKER_MUTE = 0x19,
-  IR_LOGIC = 0x1A,
+  Rumble = 0x10,
+  LED = 0x11,
+  ReportMode = 0x12,
+  IRPixelClock = 0x13,
+  SpeakerEnable = 0x14,
+  RequestStatus = 0x15,
+  WriteData = 0x16,
+  ReadData = 0x17,
+  SpeakerData = 0x18,
+  SpeakerMute = 0x19,
+  IRLogic = 0x1a,
 };
 
 enum class LED : u8
 {
-  NONE = 0x00,
+  None = 0x00,
   LED_1 = 0x10,
   LED_2 = 0x20,
   LED_3 = 0x40,
@@ -63,19 +63,16 @@ enum class AddressSpace : u8
   // However attempting to access this device directly results in an error.
   EEPROM = 0x00,
   // 0x01 is never used but it does function on a real wiimote:
-  I2C_BUS_ALT = 0x01,
-  I2C_BUS = 0x02,
+  I2CBusAlt = 0x01,
+  I2CBus = 0x02,
 };
 
 enum class ErrorCode : u8
 {
-  SUCCESS = 0,
-  INVALID_SPACE = 6,
-  NACK = 7,
-  INVALID_ADDRESS = 8,
-
-  // Not a real value:
-  DO_NOT_SEND_ACK = 0xff,
+  Success = 0,
+  InvalidSpace = 6,
+  Nack = 7,
+  InvalidAddress = 8,
 };
 
 }  // namespace WiimoteCommon

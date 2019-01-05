@@ -4,6 +4,7 @@
 
 #include "Core/HW/WiimoteEmu/Camera.h"
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
@@ -39,9 +40,6 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
                          const NormalizedAccelData& accel, bool sensor_bar_on_top)
 {
-  u16 x[4], y[4];
-  memset(x, 0xFF, sizeof(x));
-
   double nsin, ncos;
 
   // Ugly code to figure out the wiimote's current angle.
@@ -73,7 +71,10 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
   static constexpr double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
   static constexpr double dist2 = 1.2 * dist1;
 
-  std::array<Vertex, 4> v;
+  constexpr int NUM_POINTS = 4;
+
+  std::array<Vertex, NUM_POINTS> v;
+
   for (auto& vtx : v)
   {
     vtx.x = cursor.x * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
@@ -104,6 +105,10 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
   MatrixRotationByZ(rot, ir_sin, ir_cos);
   MatrixMultiply(tot, scale, rot);
 
+  u16 x[NUM_POINTS], y[NUM_POINTS];
+  memset(x, 0xFF, sizeof(x));
+  memset(y, 0xFF, sizeof(y));
+
   for (std::size_t i = 0; i < v.size(); i++)
   {
     MatrixTransformVertex(tot, v[i]);
@@ -113,6 +118,12 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
 
     x[i] = static_cast<u16>(lround((v[i].x + 1) / 2 * (camWidth - 1)));
     y[i] = static_cast<u16>(lround((v[i].y + 1) / 2 * (camHeight - 1)));
+
+    if (x[i] >= camWidth || y[i] >= camHeight)
+    {
+      x[i] = -1;
+      y[i] = -1;
+    }
   }
 
   // IR data is read from offset 0x37 on real hardware
@@ -127,70 +138,70 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
     switch (reg_data.mode)
     {
     case IR_MODE_BASIC:
-    {
-      auto* const irdata = reinterpret_cast<IRBasic*>(data);
       for (unsigned int i = 0; i < 2; ++i)
       {
-        if (x[i * 2] < 1024 && y[i * 2] < 768)
-        {
-          irdata[i].x1 = static_cast<u8>(x[i * 2]);
-          irdata[i].x1hi = x[i * 2] >> 8;
+        IRBasic irdata = {};
 
-          irdata[i].y1 = static_cast<u8>(y[i * 2]);
-          irdata[i].y1hi = y[i * 2] >> 8;
-        }
-        if (x[i * 2 + 1] < 1024 && y[i * 2 + 1] < 768)
-        {
-          irdata[i].x2 = static_cast<u8>(x[i * 2 + 1]);
-          irdata[i].x2hi = x[i * 2 + 1] >> 8;
+        irdata.x1 = static_cast<u8>(x[i * 2]);
+        irdata.x1hi = x[i * 2] >> 8;
+        irdata.y1 = static_cast<u8>(y[i * 2]);
+        irdata.y1hi = y[i * 2] >> 8;
 
-          irdata[i].y2 = static_cast<u8>(y[i * 2 + 1]);
-          irdata[i].y2hi = y[i * 2 + 1] >> 8;
+        irdata.x2 = static_cast<u8>(x[i * 2 + 1]);
+        irdata.x2hi = x[i * 2 + 1] >> 8;
+        irdata.y2 = static_cast<u8>(y[i * 2 + 1]);
+        irdata.y2hi = y[i * 2 + 1] >> 8;
+
+        Common::BitCastPtr<IRBasic>(data + i * sizeof(IRBasic)) = irdata;
+      }
+      break;
+    case IR_MODE_EXTENDED:
+      for (unsigned int i = 0; i < 4; ++i)
+      {
+        if (x[i] < camWidth)
+        {
+          IRExtended irdata = {};
+
+          irdata.x = static_cast<u8>(x[i]);
+          irdata.xhi = x[i] >> 8;
+
+          irdata.y = static_cast<u8>(y[i]);
+          irdata.yhi = y[i] >> 8;
+
+          irdata.size = 10;
+
+          Common::BitCastPtr<IRExtended>(data + i * sizeof(IRExtended)) = irdata;
         }
       }
       break;
-    }
-    case IR_MODE_EXTENDED:
-    {
-      auto* const irdata = reinterpret_cast<IRExtended*>(data);
-      for (unsigned int i = 0; i < 4; ++i)
-        if (x[i] < 1024 && y[i] < 768)
-        {
-          irdata[i].x = static_cast<u8>(x[i]);
-          irdata[i].xhi = x[i] >> 8;
-
-          irdata[i].y = static_cast<u8>(y[i]);
-          irdata[i].yhi = y[i] >> 8;
-
-          irdata[i].size = 10;
-        }
-      break;
-    }
     case IR_MODE_FULL:
-    {
-      auto* const irdata = reinterpret_cast<IRFull*>(data);
       for (unsigned int i = 0; i < 4; ++i)
-        if (x[i] < 1024 && y[i] < 768)
+      {
+        if (x[i] < camWidth)
         {
-          irdata[i].x = static_cast<u8>(x[i]);
-          irdata[i].xhi = x[i] >> 8;
+          IRFull irdata = {};
 
-          irdata[i].y = static_cast<u8>(y[i]);
-          irdata[i].yhi = y[i] >> 8;
+          irdata.x = static_cast<u8>(x[i]);
+          irdata.xhi = x[i] >> 8;
 
-          irdata[i].size = 10;
+          irdata.y = static_cast<u8>(y[i]);
+          irdata.yhi = y[i] >> 8;
+
+          irdata.size = 10;
 
           // TODO: implement these sensibly:
           // TODO: do high bits of x/y min/max need to be set to zero?
-          irdata[i].xmin = 0;
-          irdata[i].ymin = 0;
-          irdata[i].xmax = 0;
-          irdata[i].ymax = 0;
-          irdata[i].zero = 0;
-          irdata[i].intensity = 0;
+          irdata.xmin = 0;
+          irdata.ymin = 0;
+          irdata.xmax = 0;
+          irdata.ymax = 0;
+          irdata.zero = 0;
+          irdata.intensity = 0;
+
+          Common::BitCastPtr<IRFull>(data + i * sizeof(IRFull)) = irdata;
         }
+      }
       break;
-    }
     default:
       // This seems to be fairly common, 0xff data is sent in this case:
       // WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");

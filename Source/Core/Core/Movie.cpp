@@ -51,6 +51,7 @@
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
 
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
@@ -706,7 +707,7 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
   }
 
   // Nunchuk
-  if (rpt.HasExt() && ext == 1)
+  if (rpt.HasExt() && ext == ExtensionNumber::NUNCHUK)
   {
     const u8* const extData = rpt.GetExtDataPtr();
 
@@ -728,7 +729,7 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
   }
 
   // Classic controller
-  if (rpt.HasExt() && ext == 2)
+  if (rpt.HasExt() && ext == ExtensionNumber::CLASSIC)
   {
     const u8* const extData = rpt.GetExtDataPtr();
 

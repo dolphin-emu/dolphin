@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -66,8 +67,7 @@ Drums::Drums() : EncryptedExtension(_trans("Drums"))
 
 void Drums::Update()
 {
-  auto& drum_data = reinterpret_cast<DataFormat&>(m_reg.controller_data);
-  drum_data = {};
+  DataFormat drum_data = {};
 
   // stick
   {
@@ -92,6 +92,8 @@ void Drums::Update()
 
   // flip button bits
   drum_data.bt ^= 0xFFFF;
+
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = drum_data;
 }
 
 bool Drums::IsButtonPressed() const

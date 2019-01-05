@@ -32,6 +32,6 @@ public:
 private:
   std::vector<std::unique_ptr<EmulatedController>> m_attachments;
 
-  std::atomic<u32> m_selected_attachment;
+  std::atomic<u32> m_selected_attachment = {};
 };
 }  // namespace ControllerEmu

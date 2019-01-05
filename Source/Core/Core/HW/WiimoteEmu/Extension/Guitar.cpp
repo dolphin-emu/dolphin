@@ -9,6 +9,7 @@
 #include <cstring>
 #include <map>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -98,8 +99,7 @@ Guitar::Guitar() : EncryptedExtension(_trans("Guitar"))
 
 void Guitar::Update()
 {
-  auto& guitar_data = reinterpret_cast<DataFormat&>(m_reg.controller_data);
-  guitar_data = {};
+  DataFormat guitar_data = {};
 
   // stick
   {
@@ -137,6 +137,8 @@ void Guitar::Update()
 
   // flip button bits
   guitar_data.bt ^= 0xFFFF;
+
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = guitar_data;
 }
 
 bool Guitar::IsButtonPressed() const

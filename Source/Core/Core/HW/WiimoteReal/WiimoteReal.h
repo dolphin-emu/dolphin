@@ -25,7 +25,7 @@ namespace WiimoteReal
 {
 using WiimoteCommon::MAX_PAYLOAD;
 
-typedef std::vector<u8> Report;
+using Report = std::vector<u8>;
 
 constexpr u32 WIIMOTE_DEFAULT_TIMEOUT = 1000;
 

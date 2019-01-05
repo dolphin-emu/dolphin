@@ -27,7 +27,7 @@ public:
     u16 x, y, z;
   };
 
-  typedef ButtonData CoreData;
+  using CoreData = ButtonData;
 
   virtual bool HasCore() const = 0;
   virtual bool HasAccel() const = 0;
@@ -63,13 +63,10 @@ std::unique_ptr<DataReportManipulator> MakeDataReportManipulator(InputReportID r
 class DataReportBuilder
 {
 public:
-  DataReportBuilder(InputReportID rpt_id);
+  explicit DataReportBuilder(InputReportID rpt_id);
 
-  typedef ButtonData CoreData;
-  typedef DataReportManipulator::AccelData AccelData;
-
-  typedef std::vector<u8> IRData;
-  typedef std::vector<u8> ExtData;
+  using CoreData = ButtonData;
+  using AccelData = DataReportManipulator::AccelData;
 
   void SetMode(InputReportID rpt_id);
   InputReportID GetMode() const;

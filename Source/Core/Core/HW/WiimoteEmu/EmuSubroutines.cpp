@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cmath>
 #include <fstream>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -43,7 +45,7 @@ void Wiimote::HandleReportMode(const OutputReportMode& dr)
   m_reporting_continuous = dr.continuous;
   m_reporting_mode = dr.mode;
 
-  SendAck(OutputReportID::REPORT_MODE, ErrorCode::SUCCESS);
+  SendAck(OutputReportID::ReportMode, ErrorCode::Success);
 }
 
 // Tests that we have enough bytes for the report before we run the handler.
@@ -53,9 +55,10 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
   if (size < sizeof(T))
   {
     ERROR_LOG(WIIMOTE, "InvokeHandler: report: 0x%02x invalid size: %d", int(rpt.rpt_id), size);
+    return;
   }
 
-  (this->*handler)(*reinterpret_cast<const T*>(rpt.data));
+  (this->*handler)(Common::BitCastPtr<T>(rpt.data));
 }
 
 // Here we process the Output Reports that the Wii sends. Our response will be
@@ -77,7 +80,7 @@ void Wiimote::HIDOutputReport(const void* data, u32 size)
   }
 
   auto& rpt = *static_cast<const OutputReportGeneric*>(data);
-  const int rpt_size = size - rpt.HEADER_SIZE;
+  const int rpt_size = size - OutputReportGeneric::HEADER_SIZE;
 
   DEBUG_LOG(WIIMOTE, "HIDOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index,
             m_reporting_channel, int(rpt.rpt_id));
@@ -88,37 +91,37 @@ void Wiimote::HIDOutputReport(const void* data, u32 size)
 
   switch (rpt.rpt_id)
   {
-  case OutputReportID::RUMBLE:
+  case OutputReportID::Rumble:
     // This is handled above.
     break;
-  case OutputReportID::LEDS:
+  case OutputReportID::LED:
     InvokeHandler<OutputReportLeds>(&Wiimote::HandleReportLeds, rpt, rpt_size);
     break;
-  case OutputReportID::REPORT_MODE:
+  case OutputReportID::ReportMode:
     InvokeHandler<OutputReportMode>(&Wiimote::HandleReportMode, rpt, rpt_size);
     break;
-  case OutputReportID::IR_PIXEL_CLOCK:
+  case OutputReportID::IRPixelClock:
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRPixelClock, rpt, rpt_size);
     break;
-  case OutputReportID::SPEAKER_ENABLE:
+  case OutputReportID::SpeakerEnable:
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerEnable, rpt, rpt_size);
     break;
-  case OutputReportID::REQUEST_STATUS:
+  case OutputReportID::RequestStatus:
     InvokeHandler<OutputReportRequestStatus>(&Wiimote::HandleRequestStatus, rpt, rpt_size);
     break;
-  case OutputReportID::WRITE_DATA:
+  case OutputReportID::WriteData:
     InvokeHandler<OutputReportWriteData>(&Wiimote::HandleWriteData, rpt, rpt_size);
     break;
-  case OutputReportID::READ_DATA:
+  case OutputReportID::ReadData:
     InvokeHandler<OutputReportReadData>(&Wiimote::HandleReadData, rpt, rpt_size);
     break;
-  case OutputReportID::SPEAKER_DATA:
+  case OutputReportID::SpeakerData:
     InvokeHandler<OutputReportSpeakerData>(&Wiimote::HandleSpeakerData, rpt, rpt_size);
     break;
-  case OutputReportID::SPEAKER_MUTE:
+  case OutputReportID::SpeakerMute:
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerMute, rpt, rpt_size);
     break;
-  case OutputReportID::IR_LOGIC:
+  case OutputReportID::IRLogic:
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogic, rpt, rpt_size);
     break;
   default:
@@ -134,7 +137,7 @@ void Wiimote::CallbackInterruptChannel(const u8* data, u32 size)
 
 void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 {
-  TypedHIDInputData<InputReportAck> rpt(InputReportID::ACK);
+  TypedHIDInputData<InputReportAck> rpt(InputReportID::Ack);
   auto& ack = rpt.data;
 
   ack.buttons = m_status.buttons;
@@ -229,7 +232,7 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Max battery level seems to be 0xc8 (decimal 200)
   constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
 
-  m_status.battery = (u8)(m_battery_setting->GetValue() * MAX_BATTERY_LEVEL);
+  m_status.battery = u8(std::lround(m_battery_setting->GetValue() * MAX_BATTERY_LEVEL));
 
   if (Core::WantsDeterminism())
   {
@@ -240,7 +243,7 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Less than 0x20 triggers the low-battery flag:
   m_status.battery_low = m_status.battery < 0x20;
 
-  TypedHIDInputData<InputReportStatus> rpt(InputReportID::STATUS);
+  TypedHIDInputData<InputReportStatus> rpt(InputReportID::Status);
   rpt.data = m_status;
   CallbackInterruptChannel(rpt.GetData(), rpt.GetSize());
 }
@@ -261,7 +264,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     return;
   }
 
-  ErrorCode error_code = ErrorCode::SUCCESS;
+  ErrorCode error_code = ErrorCode::Success;
 
   switch (static_cast<AddressSpace>(wd.space))
   {
@@ -270,7 +273,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     if (address + wd.size > EEPROM_FREE_SIZE)
     {
       WARN_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
-      error_code = ErrorCode::INVALID_ADDRESS;
+      error_code = ErrorCode::InvalidAddress;
     }
     else
     {
@@ -279,7 +282,8 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
       // Write mii data to file
       if (address >= 0x0FCA && address < 0x12C0)
       {
-        // TODO: Only write parts of the Mii block
+        // TODO: Only write parts of the Mii block.
+        // TODO: Use fifferent files for different wiimote numbers.
         std::ofstream file;
         File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
                           std::ios::binary | std::ios::out);
@@ -290,14 +294,14 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
   }
   break;
 
-  case AddressSpace::I2C_BUS:
-  case AddressSpace::I2C_BUS_ALT:
+  case AddressSpace::I2CBus:
+  case AddressSpace::I2CBusAlt:
   {
     // Attempting to access the EEPROM directly over i2c results in error 8.
     if (EEPROM_I2C_ADDR == m_read_request.slave_address)
     {
       WARN_LOG(WIIMOTE, "Attempt to write EEPROM directly.");
-      error_code = ErrorCode::INVALID_ADDRESS;
+      error_code = ErrorCode::InvalidAddress;
       break;
     }
 
@@ -306,7 +310,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     if (bytes_written != wd.size)
     {
       // A real wiimote gives error 7 for failed write to i2c bus (mainly a non-existant slave)
-      error_code = ErrorCode::NACK;
+      error_code = ErrorCode::Nack;
     }
   }
   break;
@@ -314,11 +318,11 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
   default:
     WARN_LOG(WIIMOTE, "WriteData: invalid address space: 0x%x", wd.space);
     // A real wiimote gives error 6:
-    error_code = ErrorCode::INVALID_SPACE;
+    error_code = ErrorCode::InvalidSpace;
     break;
   }
 
-  SendAck(OutputReportID::WRITE_DATA, error_code);
+  SendAck(OutputReportID::WriteData, error_code);
 }
 
 void Wiimote::HandleReportRumble(const WiimoteCommon::OutputReportRumble& rpt)
@@ -333,7 +337,7 @@ void Wiimote::HandleReportLeds(const WiimoteCommon::OutputReportLeds& rpt)
   m_status.leds = rpt.leds;
 
   if (rpt.ack)
-    SendAck(OutputReportID::LEDS, ErrorCode::SUCCESS);
+    SendAck(OutputReportID::LED, ErrorCode::Success);
 }
 
 void Wiimote::HandleIRPixelClock(const WiimoteCommon::OutputReportEnableFeature& rpt)
@@ -343,7 +347,7 @@ void Wiimote::HandleIRPixelClock(const WiimoteCommon::OutputReportEnableFeature&
   // FYI: Camera data is currently always updated. Ignoring pixel clock status.
 
   if (rpt.ack)
-    SendAck(OutputReportID::IR_PIXEL_CLOCK, ErrorCode::SUCCESS);
+    SendAck(OutputReportID::IRPixelClock, ErrorCode::Success);
 }
 
 void Wiimote::HandleIRLogic(const WiimoteCommon::OutputReportEnableFeature& rpt)
@@ -353,7 +357,7 @@ void Wiimote::HandleIRLogic(const WiimoteCommon::OutputReportEnableFeature& rpt)
   m_status.ir = rpt.enable;
 
   if (rpt.ack)
-    SendAck(OutputReportID::IR_LOGIC, ErrorCode::SUCCESS);
+    SendAck(OutputReportID::IRLogic, ErrorCode::Success);
 }
 
 void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& rpt)
@@ -361,7 +365,7 @@ void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& 
   m_speaker_mute = rpt.enable;
 
   if (rpt.ack)
-    SendAck(OutputReportID::SPEAKER_MUTE, ErrorCode::SUCCESS);
+    SendAck(OutputReportID::SpeakerMute, ErrorCode::Success);
 }
 
 void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
@@ -370,7 +374,7 @@ void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature
   m_status.speaker = rpt.enable;
 
   if (rpt.ack)
-    SendAck(OutputReportID::SPEAKER_ENABLE, ErrorCode::SUCCESS);
+    SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);
 }
 
 void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rpt)
@@ -437,7 +441,7 @@ bool Wiimote::ProcessReadDataRequest()
     return false;
   }
 
-  TypedHIDInputData<InputReportReadDataReply> rpt(InputReportID::READ_DATA_REPLY);
+  TypedHIDInputData<InputReportReadDataReply> rpt(InputReportID::ReadDataReply);
   auto& reply = rpt.data;
 
   reply.buttons = m_status.buttons;
@@ -446,7 +450,7 @@ bool Wiimote::ProcessReadDataRequest()
   // Pre-fill with zeros in case of read-error or read < 16-bytes:
   std::fill(std::begin(reply.data), std::end(reply.data), 0x00);
 
-  ErrorCode error_code = ErrorCode::SUCCESS;
+  ErrorCode error_code = ErrorCode::Success;
 
   switch (m_read_request.space)
   {
@@ -460,7 +464,7 @@ bool Wiimote::ProcessReadDataRequest()
       // The real Wiimote generate an error for the first
       // request to 0x1770 if we dont't replicate that the game will never
       // read the calibration data at the beginning of Eeprom.
-      error_code = ErrorCode::INVALID_ADDRESS;
+      error_code = ErrorCode::InvalidAddress;
     }
     else
     {
@@ -483,14 +487,14 @@ bool Wiimote::ProcessReadDataRequest()
   }
   break;
 
-  case AddressSpace::I2C_BUS:
-  case AddressSpace::I2C_BUS_ALT:
+  case AddressSpace::I2CBus:
+  case AddressSpace::I2CBusAlt:
   {
     // Attempting to access the EEPROM directly over i2c results in error 8.
     if (EEPROM_I2C_ADDR == m_read_request.slave_address)
     {
       WARN_LOG(WIIMOTE, "Attempt to read EEPROM directly.");
-      error_code = ErrorCode::INVALID_ADDRESS;
+      error_code = ErrorCode::InvalidAddress;
       break;
     }
 
@@ -502,7 +506,7 @@ bool Wiimote::ProcessReadDataRequest()
     {
       DEBUG_LOG(WIIMOTE, "Responding with read error 7 @ 0x%x @ 0x%x (%d)",
                 m_read_request.slave_address, m_read_request.address, m_read_request.size);
-      error_code = ErrorCode::NACK;
+      error_code = ErrorCode::Nack;
       break;
     }
 
@@ -513,11 +517,11 @@ bool Wiimote::ProcessReadDataRequest()
   default:
     WARN_LOG(WIIMOTE, "ReadData: invalid address space: 0x%x", int(m_read_request.space));
     // A real wiimote gives error 6:
-    error_code = ErrorCode::INVALID_SPACE;
+    error_code = ErrorCode::InvalidSpace;
     break;
   }
 
-  if (ErrorCode::SUCCESS != error_code)
+  if (ErrorCode::Success != error_code)
   {
     // Stop processing request on read error:
     m_read_request.size = 0;

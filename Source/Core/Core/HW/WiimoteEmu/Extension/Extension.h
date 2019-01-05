@@ -20,7 +20,7 @@ namespace WiimoteEmu
 class Extension : public ControllerEmu::EmulatedController, public I2CSlave
 {
 public:
-  Extension(const char* name);
+  explicit Extension(const char* name);
 
   std::string GetName() const override;
 
