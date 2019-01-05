@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 
+#include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
@@ -40,8 +41,10 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
         if (FAILED(js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
                                                   DISCL_BACKGROUND | DISCL_EXCLUSIVE)))
         {
-          // PanicAlert("SetCooperativeLevel(DISCL_EXCLUSIVE) failed!");
-          // fall back to non-exclusive mode, with no rumble
+          WARN_LOG(
+              PAD,
+              "DInput: Failed to acquire device exclusively. Force feedback will be unavailable.");
+          // Fall back to non-exclusive mode, with no rumble
           if (FAILED(
                   js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
           {
@@ -136,20 +139,27 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
     }
   }
 
-  // force feedback
+  // Force feedback:
   std::list<DIDEVICEOBJECTINSTANCE> objects;
   if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
   {
-    InitForceFeedback(m_device, (int)objects.size());
+    const int num_ff_axes =
+        std::count_if(std::begin(objects), std::end(objects), [](DIDEVICEOBJECTINSTANCE& pdidoi) {
+          return pdidoi.dwFlags && DIDOI_FFACTUATOR;
+        });
+    InitForceFeedback(m_device, num_ff_axes);
   }
 
-  ZeroMemory(&m_state_in, sizeof(m_state_in));
-  // set hats to center
-  memset(m_state_in.rgdwPOV, 0xFF, sizeof(m_state_in.rgdwPOV));
+  // Zero inputs:
+  m_state_in = {};
+  // Set hats to center:
+  std::fill(std::begin(m_state_in.rgdwPOV), std::end(m_state_in.rgdwPOV), 0xFF);
 }
 
 Joystick::~Joystick()
 {
+  DeInitForceFeedback();
+
   m_device->Unacquire();
   m_device->Release();
 }
@@ -265,5 +275,5 @@ ControlState Joystick::Hat::GetState() const
 
   return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
 }
-}
-}
+}  // namespace DInput
+}  // namespace ciface
