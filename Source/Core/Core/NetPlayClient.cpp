@@ -52,7 +52,9 @@
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/GCAdapter.h"
+#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -558,11 +560,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_OCFactor;
       packet >> m_net_settings.m_ReducePollingRate;
 
-      int tmp;
-      packet >> tmp;
-      m_net_settings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
-      packet >> tmp;
-      m_net_settings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      for (auto& device : m_net_settings.m_EXIDevice)
+      {
+        int tmp;
+        packet >> tmp;
+        device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      }
 
       packet >> m_net_settings.m_EFBAccessEnable;
       packet >> m_net_settings.m_BBoxEnable;
@@ -610,6 +613,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_SaveDataRegion;
       packet >> m_net_settings.m_SyncCodes;
       packet >> m_net_settings.m_SyncAllWiiSaves;
+
+      for (int& extension : m_net_settings.m_WiimoteExtension)
+        packet >> extension;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
@@ -2171,6 +2177,23 @@ bool IsSyncingAllWiiSaves()
     return netplay_client->GetNetSettings().m_SyncAllWiiSaves;
 
   return false;
+}
+
+void SetupWiimotes()
+{
+  ASSERT(IsNetPlayRunning());
+  const NetSettings& netplay_settings = netplay_client->GetNetSettings();
+  const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
+  for (int i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
+  {
+    if (wiimote_map[i] > 0)
+    {
+      static_cast<ControllerEmu::Extension*>(
+          static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(i))
+              ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Extension))
+          ->switch_extension = netplay_settings.m_WiimoteExtension[i];
+    }
+  }
 }
 
 void NetPlay_Enable(NetPlayClient* const np)

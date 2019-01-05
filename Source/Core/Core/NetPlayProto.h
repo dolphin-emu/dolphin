@@ -36,7 +36,7 @@ struct NetSettings
   bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
-  ExpansionInterface::TEXIDevices m_EXIDevice[2];
+  std::array<ExpansionInterface::TEXIDevices, 2> m_EXIDevice;
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
   bool m_ForceProgressive;
@@ -80,6 +80,7 @@ struct NetSettings
   bool m_SyncCodes;
   std::string m_SaveDataRegion;
   bool m_SyncAllWiiSaves;
+  std::array<int, 4> m_WiimoteExtension;
   bool m_IsHosting;
   bool m_HostInputAuthority;
 };
@@ -209,4 +210,5 @@ void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();
+void SetupWiimotes();
 }  // namespace NetPlay

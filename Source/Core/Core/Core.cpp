@@ -498,6 +498,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     {
       Wiimote::LoadConfig();
     }
+
+    if (NetPlay::IsNetPlayRunning())
+      NetPlay::SetupWiimotes();
   }
 
   Common::ScopeGuard controller_guard{[init_controllers] {
