@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <locale>
 #include <map>
 #include <memory>
 #include <regex>
@@ -155,70 +156,60 @@ public:
 
   Lexer(const std::string& expr_) : expr(expr_) { it = expr.begin(); }
 
-  bool FetchDelimString(std::string& value, char delim)
+  template <typename F>
+  std::string FetchCharsWhile(F&& func)
   {
-    value = "";
-    while (it != expr.end())
+    std::string value;
+    while (it != expr.end() && func(*it))
     {
-      char c = *it;
+      value += *it;
       ++it;
-      if (c == delim)
-        return true;
-      value += c;
     }
-    return false;
+    return value;
+  }
+
+  std::string FetchDelimString(char delim)
+  {
+    const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
+    ++it;
+    return result;
   }
 
   std::string FetchWordChars()
   {
-    std::string word;
+    // Valid word characters:
+    std::regex rx("[a-z0-9_]", std::regex_constants::icase);
 
-    std::regex valid_name_char("[a-z0-9_]", std::regex_constants::icase);
-
-    while (it != expr.end() && std::regex_match(std::string(1, *it), valid_name_char))
-    {
-      word += *it;
-      ++it;
-    }
-
-    return word;
+    return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
   }
 
   Token GetUnaryFunction() { return Token(TOK_UNARY, FetchWordChars()); }
 
-  Token GetLiteral()
-  {
-    std::string value;
-    FetchDelimString(value, '\'');
-    return Token(TOK_LITERAL, value);
-  }
+  Token GetDelimitedLiteral() { return Token(TOK_LITERAL, FetchDelimString('\'')); }
 
   Token GetVariable() { return Token(TOK_VARIABLE, FetchWordChars()); }
 
-  Token GetFullyQualifiedControl()
-  {
-    std::string value;
-    FetchDelimString(value, '`');
-    return Token(TOK_CONTROL, value);
-  }
+  Token GetFullyQualifiedControl() { return Token(TOK_CONTROL, FetchDelimString('`')); }
 
   Token GetBarewordsControl(char c)
   {
     std::string name;
     name += c;
-
-    while (it != expr.end())
-    {
-      c = *it;
-      if (!isalpha(c))
-        break;
-      name += c;
-      ++it;
-    }
+    name += FetchCharsWhile([](char c) { return std::isalpha(c, std::locale::classic()); });
 
     ControlQualifier qualifier;
     qualifier.control_name = name;
     return Token(TOK_CONTROL, qualifier);
+  }
+
+  Token GetRealLiteral(char c)
+  {
+    std::string value;
+    value += c;
+    value +=
+        FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
+
+    return Token(TOK_LITERAL, value);
   }
 
   Token NextToken()
@@ -265,14 +256,16 @@ public:
     case ',':
       return Token(TOK_COMMA);
     case '\'':
-      return GetLiteral();
+      return GetDelimitedLiteral();
     case '$':
       return GetVariable();
     case '`':
       return GetFullyQualifiedControl();
     default:
-      if (isalpha(c))
+      if (isalpha(c, std::locale::classic()))
         return GetBarewordsControl(c);
+      else if (isdigit(c, std::locale::classic()))
+        return GetRealLiteral(c);
       else
         return Token(TOK_INVALID);
     }
