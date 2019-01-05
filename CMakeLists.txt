@@ -327,12 +327,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/pkg")
-  set(CMAKE_REQUIRED_INCLUDES "/usr/pkg/include")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/pkg/lib")
-endif()
-
 # Dolphin requires threads.
 find_package(Threads)
 
