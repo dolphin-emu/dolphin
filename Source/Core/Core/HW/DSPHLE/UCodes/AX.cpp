@@ -45,7 +45,7 @@ void AXUCode::LoadResamplingCoefficients()
   m_coeffs_available = false;
 
   std::string filenames[] = {File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
-                             File::GetSysDirectory() + "/GC/dsp_coef.bin"};
+                             File::GetSysDirectory() + "GC/dsp_coef.bin"};
 
   size_t fidx;
   std::string filename;
