@@ -225,14 +225,18 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
 
-  // TODO: Battery level will break determinism in TAS/Netplay
+  // Based on testing, old WiiLi.org docs, and WiiUse library:
+  // Max battery level seems to be 0xc8 (decimal 200)
+  constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
 
-  // Battery levels in voltage
-  //   0x00 - 0x32: level 1
-  //   0x33 - 0x43: level 2
-  //   0x33 - 0x54: level 3
-  //   0x55 - 0xff: level 4
-  m_status.battery = (u8)(m_battery_setting->GetValue() * 0xff);
+  m_status.battery = (u8)(m_battery_setting->GetValue() * MAX_BATTERY_LEVEL);
+
+  if (Core::WantsDeterminism())
+  {
+    // One less thing to break determinism:
+    m_status.battery = MAX_BATTERY_LEVEL;
+  }
+
   // Less than 0x20 triggers the low-battery flag:
   m_status.battery_low = m_status.battery < 0x20;
 
