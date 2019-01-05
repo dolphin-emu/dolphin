@@ -164,7 +164,9 @@ size_t MemPhysical()
   mib[1] = HW_MEMSIZE;
 #elif defined __FreeBSD__
   mib[1] = HW_REALMEM;
-#elif defined __NetBSD__ || defined __OpenBSD__
+#elif defined __NetBSD__
+  mib[1] = HW_PHYSMEM64;
+#elif defined __OpenBSD__
   mib[1] = HW_PHYSMEM;
 #endif
   size_t length = sizeof(size_t);
