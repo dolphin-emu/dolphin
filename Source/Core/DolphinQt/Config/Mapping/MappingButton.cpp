@@ -66,7 +66,7 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool 
 
 void MappingButton::AdvancedPressed()
 {
-  IOWindow io(this, m_parent->GetController(), m_reference,
+  IOWindow io(m_parent, m_parent->GetController(), m_reference,
               m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
   io.exec();
 

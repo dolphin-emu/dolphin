@@ -105,7 +105,7 @@ MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group
   // TODO: Make these magic numbers less ugly.
   int required_height = 106;
 
-  if (ControllerEmu::GroupType::MixedTriggers == group->type)
+  if (group && ControllerEmu::GroupType::MixedTriggers == group->type)
     required_height = 64 + 1;
 
   setFixedHeight(required_height);
