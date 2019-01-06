@@ -759,27 +759,11 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   UpdateBat(UpdatedBat);
 
   Directory UpdatedDir = GetActiveDirectory();
-  /*
-  // TODO: determine when this is used, even on the same memory card I have seen
-  // both update to broken file, and not updated
-  *(u32*)&UpdatedDir.m_dir_entries[index].m_gamecode = 0;
-  *(u16*)&UpdatedDir.m_dir_entries[index].m_makercode = 0;
-  memset(UpdatedDir.m_dir_entries[index].m_filename, 0, 0x20);
-  strcpy((char*)UpdatedDir.m_dir_entries[index].m_filename, "Broken File000");
-  *(u16*)&UpdatedDir.m_update_counter = BE16(BE16(UpdatedDir.m_update_counter) + 1);
 
-  *PreviousDir = UpdatedDir;
-  if (PreviousDir == &dir )
-  {
-    CurrentDir = &dir;
-    PreviousDir = &dir_backup;
-  }
-  else
-  {
-    CurrentDir = &dir_backup;
-    PreviousDir = &dir;
-  }
-  */
+  // TODO: Deleting a file via the GC BIOS sometimes leaves behind an extra updated directory block
+  // here that has an empty file with the filename "Broken File000" where the actual deleted file
+  // was. Determine when exactly this happens and if this is neccessary for anything.
+
   memset(&(UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   UpdateDirectory(UpdatedDir);
