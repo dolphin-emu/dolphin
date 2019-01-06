@@ -179,14 +179,6 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
       // update checksums
       csums = TestChecksums();
     }
-    // It seems that the backup having a larger counter doesn't necessarily mean
-    // the backup should be copied?
-    //	}
-    //
-    //	if (dir_backup.m_update_counter > dir.m_update_counter) //check if the backup is newer
-    //	{
-    //		dir = dir_backup;
-    //		bat = bat_backup; // needed?
   }
 
   mcdFile.Seek(0xa000, SEEK_SET);
