@@ -22,6 +22,9 @@ namespace ciface::ExpressionParser
 {
 using namespace ciface::Core;
 
+constexpr int LOOP_MAX_REPS = 10000;
+constexpr ControlState CONDITION_THRESHOLD = 0.5;
+
 enum TokenType
 {
   TOK_DISCARD,
@@ -29,7 +32,7 @@ enum TokenType
   TOK_EOF,
   TOK_LPAREN,
   TOK_RPAREN,
-  TOK_UNARY,
+  TOK_FUNCTION,
   TOK_CONTROL,
   TOK_LITERAL,
   TOK_VARIABLE,
@@ -45,7 +48,6 @@ enum TokenType
   TOK_ASSIGN,
   TOK_LTHAN,
   TOK_GTHAN,
-  TOK_COND,
   TOK_COMMA,
   TOK_BINARY_OPS_END,
 };
@@ -58,8 +60,8 @@ inline std::string OpName(TokenType op)
     return "And";
   case TOK_OR:
     return "Or";
-  case TOK_UNARY:
-    return "Unary";
+  case TOK_FUNCTION:
+    return "Function";
   case TOK_ADD:
     return "Add";
   case TOK_SUB:
@@ -76,8 +78,6 @@ inline std::string OpName(TokenType op)
     return "LThan";
   case TOK_GTHAN:
     return "GThan";
-  case TOK_COND:
-    return "Cond";
   case TOK_COMMA:
     return "Comma";
   case TOK_VARIABLE:
@@ -112,7 +112,7 @@ public:
       return "&";
     case TOK_OR:
       return "|";
-    case TOK_UNARY:
+    case TOK_FUNCTION:
       return '!' + data;
     case TOK_ADD:
       return "+";
@@ -130,8 +130,6 @@ public:
       return "<";
     case TOK_GTHAN:
       return ">";
-    case TOK_COND:
-      return "?";
     case TOK_COMMA:
       return ",";
     case TOK_CONTROL:
@@ -188,7 +186,7 @@ public:
     return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
   }
 
-  Token GetUnaryFunction() { return Token(TOK_UNARY, FetchWordChars()); }
+  Token GetFunction() { return Token(TOK_FUNCTION, FetchWordChars()); }
 
   Token GetDelimitedLiteral() { return Token(TOK_LITERAL, FetchDelimString('\'')); }
 
@@ -239,7 +237,7 @@ public:
     case '|':
       return Token(TOK_OR);
     case '!':
-      return GetUnaryFunction();
+      return GetFunction();
     case '+':
       return Token(TOK_ADD);
     case '-':
@@ -256,8 +254,6 @@ public:
       return Token(TOK_LTHAN);
     case '>':
       return Token(TOK_GTHAN);
-    case '?':
-      return Token(TOK_COND);
     case ',':
       return Token(TOK_COMMA);
     case '\'':
@@ -387,14 +383,6 @@ public:
       return lhs->GetValue() < rhs->GetValue();
     case TOK_GTHAN:
       return lhs->GetValue() > rhs->GetValue();
-    case TOK_COND:
-    {
-      constexpr ControlState COND_THRESHOLD = 0.5;
-      if (lhs->GetValue() > COND_THRESHOLD)
-        return rhs->GetValue();
-      else
-        return 0.0;
-    }
     case TOK_COMMA:
     {
       // Eval and discard lhs:
@@ -432,54 +420,70 @@ public:
   }
 };
 
-class UnaryExpression : public Expression
+class FunctionExpression : public Expression
 {
 public:
-  UnaryExpression(std::unique_ptr<Expression>&& inner_) : inner(std::move(inner_)) {}
+  int CountNumControls() const override
+  {
+    int result = 0;
 
-  int CountNumControls() const override { return inner->CountNumControls(); }
-  void UpdateReferences(ControlEnvironment& env) override { inner->UpdateReferences(env); }
+    for (auto& arg : m_args)
+      result += arg->CountNumControls();
+
+    return result;
+  }
+
+  void UpdateReferences(ControlEnvironment& env) override
+  {
+    for (auto& arg : m_args)
+      arg->UpdateReferences(env);
+  }
 
   operator std::string() const override
   {
-    return '!' + GetFuncName() + '(' + static_cast<std::string>(*inner) + ')';
+    std::string result = '!' + GetFuncName();
+
+    for (auto& arg : m_args)
+      result += ' ' + static_cast<std::string>(*arg);
+
+    return result;
   }
+
+  void AppendArg(std::unique_ptr<Expression> arg) { m_args.emplace_back(std::move(arg)); }
+
+  Expression& GetArg(u32 number) { return *m_args[number]; }
+  const Expression& GetArg(u32 number) const { return *m_args[number]; }
+  virtual int GetArity() const = 0;
 
 protected:
   virtual std::string GetFuncName() const = 0;
 
-  std::unique_ptr<Expression> inner;
+private:
+  std::vector<std::unique_ptr<Expression>> m_args;
 };
 
 // TODO: Return an oscillating value to make it apparent something was spelled wrong?
-class UnaryUnknownExpression : public UnaryExpression
+class UnknownFunctionExpression : public FunctionExpression
 {
 public:
-  UnaryUnknownExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_))
-  {
-  }
-
   ControlState GetValue() const override { return 0.0; }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Unknown"; }
+  int GetArity() const override { return 0; }
 };
 
-class UnaryToggleExpression : public UnaryExpression
+class ToggleExpression : public FunctionExpression
 {
 public:
-  UnaryToggleExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_))
-  {
-  }
-
   ControlState GetValue() const override
   {
-    const ControlState inner_value = inner->GetValue();
+    const ControlState inner_value = GetArg(0).GetValue();
 
-    if (inner_value < THRESHOLD)
+    if (inner_value < CONDITION_THRESHOLD)
     {
       m_released = true;
     }
-    else if (m_released && inner_value > THRESHOLD)
+    else if (m_released && inner_value > CONDITION_THRESHOLD)
     {
       m_released = false;
       m_state ^= true;
@@ -490,39 +494,34 @@ public:
 
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Toggle"; }
+  int GetArity() const override { return 1; }
 
 private:
-  static constexpr ControlState THRESHOLD = 0.5;
-  // eww:
   mutable bool m_released{};
   mutable bool m_state{};
 };
 
-class UnaryNotExpression : public UnaryExpression
+class NotExpression : public FunctionExpression
 {
 public:
-  UnaryNotExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
-
-  ControlState GetValue() const override { return 1.0 - inner->GetValue(); }
-  void SetValue(ControlState value) override { inner->SetValue(1.0 - value); }
+  ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
+  void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
   std::string GetFuncName() const override { return ""; }
+  int GetArity() const override { return 1; }
 };
 
-class UnarySinExpression : public UnaryExpression
+class SinExpression : public FunctionExpression
 {
 public:
-  UnarySinExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
-
-  ControlState GetValue() const override { return std::sin(inner->GetValue()); }
+  ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Sin"; }
+  int GetArity() const override { return 1; }
 };
 
-class UnaryTimerExpression : public UnaryExpression
+class TimerExpression : public FunctionExpression
 {
 public:
-  UnaryTimerExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
-
   ControlState GetValue() const override
   {
     const auto now = Clock::now();
@@ -530,7 +529,7 @@ public:
 
     using FSec = std::chrono::duration<ControlState>;
 
-    const ControlState val = inner->GetValue();
+    const ControlState val = GetArg(0).GetValue();
 
     ControlState progress = std::chrono::duration_cast<FSec>(elapsed).count() / val;
 
@@ -552,57 +551,74 @@ public:
   }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Timer"; }
+  int GetArity() const override { return 1; }
 
 private:
   using Clock = std::chrono::steady_clock;
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
-class UnaryWhileExpression : public UnaryExpression
+class IfExpression : public FunctionExpression
 {
 public:
-  UnaryWhileExpression(std::unique_ptr<Expression>&& inner_) : UnaryExpression(std::move(inner_)) {}
-
   ControlState GetValue() const override
   {
-    constexpr int MAX_REPS = 10000;
-    constexpr ControlState COND_THRESHOLD = 0.5;
+    return (GetArg(0).GetValue() > CONDITION_THRESHOLD) ? GetArg(1).GetValue() :
+                                                          GetArg(2).GetValue();
+  }
 
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "If"; }
+  int GetArity() const override { return 3; }
+};
+
+class WhileExpression : public FunctionExpression
+{
+public:
+  ControlState GetValue() const override
+  {
     // Returns 1.0 on successful loop, 0.0 on reps exceeded. Sensible?
 
-    for (int i = 0; i != MAX_REPS; ++i)
+    for (int i = 0; i != LOOP_MAX_REPS; ++i)
     {
-      const ControlState val = inner->GetValue();
-      if (val < COND_THRESHOLD)
+      // Check condition of 1st argument:
+      const ControlState val = GetArg(0).GetValue();
+      if (val < CONDITION_THRESHOLD)
         return 1.0;
+
+      // Evaluate 2nd argument:
+      GetArg(1).GetValue();
     }
 
     // Exceeded max reps:
     return 0.0;
   }
+
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "While"; }
+  int GetArity() const override { return 2; }
 };
 
-std::unique_ptr<UnaryExpression> MakeUnaryExpression(std::string name,
-                                                     std::unique_ptr<Expression>&& inner_)
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   // Case insensitive matching.
   std::transform(name.begin(), name.end(), name.begin(),
                  [](char c) { return std::tolower(c, std::locale::classic()); });
 
   if (name.empty())
-    return std::make_unique<UnaryNotExpression>(std::move(inner_));
+    return std::make_unique<NotExpression>();
+  else if ("if" == name)
+    return std::make_unique<IfExpression>();
   else if ("sin" == name)
-    return std::make_unique<UnarySinExpression>(std::move(inner_));
+    return std::make_unique<SinExpression>();
   else if ("timer" == name)
-    return std::make_unique<UnaryTimerExpression>(std::move(inner_));
+    return std::make_unique<TimerExpression>();
   else if ("toggle" == name)
-    return std::make_unique<UnaryToggleExpression>(std::move(inner_));
+    return std::make_unique<ToggleExpression>();
   else if ("while" == name)
-    return std::make_unique<UnaryWhileExpression>(std::move(inner_));
+    return std::make_unique<WhileExpression>();
   else
-    return std::make_unique<UnaryUnknownExpression>(std::move(inner_));
+    return std::make_unique<UnknownFunctionExpression>();
 }
 
 class LiteralExpression : public Expression
@@ -771,12 +787,19 @@ private:
     const Token tok = Chew();
     switch (tok.type)
     {
-    case TOK_UNARY:
+    case TOK_FUNCTION:
     {
-      ParseResult result = Atom();
-      if (result.status == ParseStatus::SyntaxError)
-        return result;
-      return {ParseStatus::Successful, MakeUnaryExpression(tok.data, std::move(result.expr))};
+      auto func = MakeFunctionExpression(tok.data);
+      int arity = func->GetArity();
+      while (arity--)
+      {
+        auto arg = Atom();
+        if (arg.status == ParseStatus::SyntaxError)
+          return arg;
+
+        func->AppendArg(std::move(arg.expr));
+      }
+      return {ParseStatus::Successful, std::move(func)};
     }
     case TOK_CONTROL:
     {
@@ -801,8 +824,6 @@ private:
     }
   }
 
-  static bool IsUnaryExpression(TokenType type) { return TOK_UNARY == type; }
-
   static bool IsBinaryToken(TokenType type)
   {
     return type >= TOK_BINARY_OPS_BEGIN && type < TOK_BINARY_OPS_END;
@@ -826,7 +847,6 @@ private:
       return 4;
     case TOK_OR:
       return 5;
-    case TOK_COND:
     case TOK_ASSIGN:
       return 6;
     case TOK_COMMA:
