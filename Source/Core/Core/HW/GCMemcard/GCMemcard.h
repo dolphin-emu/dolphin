@@ -100,24 +100,49 @@ struct GCMBlock
 void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 
 #pragma pack(push, 1)
-struct Header  // Offset    Size    Description
+struct Header
 {
-  // Serial in libogc
-  std::array<u8, 12> m_serial;                  // 0x0000    12      ?
-  Common::BigEndianValue<u64> m_format_time;    // 0x000c    8       Time of format (OSTime value)
-  u32 m_sram_bias;                              // 0x0014    4       SRAM bias at time of format
-  Common::BigEndianValue<u32> m_sram_language;  // 0x0018    4       SRAM language
-  std::array<u8, 4> m_unknown_2;                // 0x001c    4       ? almost always 0
-  // end Serial in libogc
-  Common::BigEndianValue<u16>
-      m_device_id;  // 0x0020    2       0 if formated in slot A 1 if formated in slot B
-  Common::BigEndianValue<u16> m_size_mb;   // 0x0022    2       Size of memcard in Mbits
-  Common::BigEndianValue<u16> m_encoding;  // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
-  std::array<u8, 468> m_unused_1;          // 0x0026    468     Unused (0xff)
-  u16 m_update_counter;                    // 0x01fa    2       Update Counter (?, probably unused)
-  u16 m_checksum;                          // 0x01fc    2       Additive Checksum
-  u16 m_checksum_inv;                      // 0x01fe    2       Inverse Checksum
-  std::array<u8, 7680> m_unused_2;         // 0x0200    0x1e00  Unused (0xff)
+  // NOTE: libogc refers to 'Serial' as the first 0x20 bytes of the header,
+  // so the data from m_serial until m_unknown_2 (inclusive)
+
+  // 12 bytes at 0x0000
+  std::array<u8, 12> m_serial;
+
+  // 8 bytes at 0x000c: Time of format (OSTime value)
+  Common::BigEndianValue<u64> m_format_time;
+
+  // 4 bytes at 0x0014; SRAM bias at time of format
+  u32 m_sram_bias;
+
+  // 4 bytes at 0x0018: SRAM language
+  Common::BigEndianValue<u32> m_sram_language;
+
+  // 4 bytes at 0x001c: ? almost always 0
+  std::array<u8, 4> m_unknown_2;
+
+  // 2 bytes at 0x0020: 0 if formated in slot A, 1 if formated in slot B
+  Common::BigEndianValue<u16> m_device_id;
+
+  // 2 bytes at 0x0022: Size of memcard in Mbits
+  Common::BigEndianValue<u16> m_size_mb;
+
+  // 2 bytes at 0x0024: Encoding (Windows-1252 or Shift JIS)
+  Common::BigEndianValue<u16> m_encoding;
+
+  // 468 bytes at 0x0026: Unused (0xff)
+  std::array<u8, 468> m_unused_1;
+
+  // 2 bytes at 0x01fa: Update Counter (?, probably unused)
+  u16 m_update_counter;
+
+  // 2 bytes at 0x01fc: Additive Checksum
+  u16 m_checksum;
+
+  // 2 bytes at 0x01fe: Inverse Checksum
+  u16 m_checksum_inv;
+
+  // 0x1e00 bytes at 0x0200: Unused (0xff)
+  std::array<u8, 7680> m_unused_2;
 
   void CARD_GetSerialNo(u32* serial1, u32* serial2) const
   {
@@ -175,10 +200,16 @@ struct DEntry
 
   static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE{{0xFF, 0xFF, 0xFF, 0xFF}};
 
-  std::array<u8, 4> m_gamecode;   // 0x00      0x04    Gamecode
-  std::array<u8, 2> m_makercode;  // 0x04      0x02    Makercode
-  u8 m_unused_1;                  // 0x06      0x01    reserved/unused (always 0xff, has no effect)
-  u8 m_banner_and_icon_flags;  // 0x07      0x01    banner gfx format and icon animation (Image Key)
+  // 4 bytes at 0x00: Gamecode
+  std::array<u8, 4> m_gamecode;
+
+  // 2 bytes at 0x04: Makercode
+  std::array<u8, 2> m_makercode;
+
+  // 1 byte at 0x06: reserved/unused (always 0xff, has no effect)
+  u8 m_unused_1;
+
+  // 1 byte at 0x07: banner gfx format and icon animation (Image Key)
   //      Bit(s)  Description
   //      2       Icon Animation 0: forward 1: ping-pong
   //      1       [--0: No Banner 1: Banner present--] WRONG! YAGCD LIES!
@@ -188,42 +219,54 @@ struct DEntry
   //      01 CI8 banner
   //      10 RGB5A3 banner
   //      11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
-  //
-  std::array<u8, DENTRY_STRLEN> m_filename;  // 0x08      0x20     Filename
-  Common::BigEndianValue<u32>
-      m_modification_time;  // 0x28      0x04    Time of file's last modification in seconds since
-                            // 12am, January 1st, 2000
-  Common::BigEndianValue<u32> m_image_offset;  // 0x2c      0x04    image data offset
-  Common::BigEndianValue<u16> m_icon_format;   // 0x30      0x02    icon gfx format (2bits per icon)
+  u8 m_banner_and_icon_flags;
+
+  // 0x20 bytes at 0x08: Filename
+  std::array<u8, DENTRY_STRLEN> m_filename;
+
+  // 4 bytes at 0x28: Time of file's last modification in seconds since 12am, January 1st, 2000
+  Common::BigEndianValue<u32> m_modification_time;
+
+  // 4 bytes at 0x2c: image data offset
+  Common::BigEndianValue<u32> m_image_offset;
+
+  // 2 bytes at 0x30: icon gfx format (2bits per icon)
   //      Bits    Description
   //      00      No icon
   //      01      CI8 with a shared color palette after the last frame
   //      10      RGB5A3
   //      11      CI8 with a unique color palette after itself
-  //
-  Common::BigEndianValue<u16>
-      m_animation_speed;  // 0x32      0x02    Animation speed (2bits per icon) (*1)
+  Common::BigEndianValue<u16> m_icon_format;
+
+  // 2 bytes at 0x32: Animation speed (2bits per icon)
   //      Bits    Description
   //      00      No icon
   //      01      Icon lasts for 4 frames
   //      10      Icon lasts for 8 frames
   //      11      Icon lasts for 12 frames
-  //
-  u8 m_file_permissions;  // 0x34      0x01    File-permissions
+  Common::BigEndianValue<u16> m_animation_speed;
+
+  // 1 byte at 0x34: File-permissions
   //      Bit Permission  Description
   //      4   no move     File cannot be moved by the IPL
   //      3   no copy     File cannot be copied by the IPL
   //      2   public      Can be read by any game
-  //
-  u8 m_copy_counter;  // 0x35      0x01    Copy counter (*2)
-  Common::BigEndianValue<u16>
-      m_first_block;  // 0x36      0x02    Block no of first block of file (0 == offset 0)
-  Common::BigEndianValue<u16>
-      m_block_count;             // 0x38      0x02    File-length (number of blocks in file)
-  std::array<u8, 2> m_unused_2;  // 0x3a      0x02    Reserved/unused (always 0xffff, has no effect)
-  Common::BigEndianValue<u32>
-      m_comments_address;  // 0x3c      0x04    Address of the two comments within the file data
-                           // (*3)
+  u8 m_file_permissions;
+
+  // 1 byte at 0x35: Copy counter
+  u8 m_copy_counter;
+
+  // 2 bytes at 0x36: Block number of first block of file (0 == offset 0)
+  Common::BigEndianValue<u16> m_first_block;
+
+  // 2 bytes at 0x38: File-length (number of blocks in file)
+  Common::BigEndianValue<u16> m_block_count;
+
+  // 2 bytes at 0x3a: Reserved/unused (always 0xffff, has no effect)
+  std::array<u8, 2> m_unused_2;
+
+  // 4 bytes at 0x3c: Address of the two comments within the file data
+  Common::BigEndianValue<u32> m_comments_address;
 };
 static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
@@ -252,13 +295,23 @@ static_assert(sizeof(Directory) == BLOCK_SIZE);
 
 struct BlockAlloc
 {
-  u16 m_checksum;                                      // 0x0000    2       Additive Checksum
-  u16 m_checksum_inv;                                  // 0x0002    2       Inverse Checksum
-  Common::BigEndianValue<u16> m_update_counter;        // 0x0004    2       Update Counter
-  Common::BigEndianValue<u16> m_free_blocks;           // 0x0006    2       Free Blocks
-  Common::BigEndianValue<u16> m_last_allocated_block;  // 0x0008    2       Last allocated Block
-  std::array<Common::BigEndianValue<u16>, BAT_SIZE>
-      m_map;  // 0x000a    0x1ff8  Map of allocated Blocks
+  // 2 bytes at 0x0000: Additive Checksum
+  u16 m_checksum;
+
+  // 2 bytes at 0x0002: Inverse Checksum
+  u16 m_checksum_inv;
+
+  // 2 bytes at 0x0004: Update Counter
+  Common::BigEndianValue<u16> m_update_counter;
+
+  // 2 bytes at 0x0006: Free Blocks
+  Common::BigEndianValue<u16> m_free_blocks;
+
+  // 2 bytes at 0x0008: Last allocated Block
+  Common::BigEndianValue<u16> m_last_allocated_block;
+
+  // 0x1ff8 bytes at 0x000a: Map of allocated Blocks
+  std::array<Common::BigEndianValue<u16>, BAT_SIZE> m_map;
 
   u16 GetNextBlock(u16 Block) const;
   u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
