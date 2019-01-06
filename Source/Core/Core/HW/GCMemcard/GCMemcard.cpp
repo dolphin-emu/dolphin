@@ -105,25 +105,25 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
 
   if (!mcdFile.ReadBytes(&m_directory_blocks[0], BLOCK_SIZE))
   {
-    PanicAlertT("Failed to read directory correctly\n(0x2000-0x3FFF)");
+    PanicAlertT("Failed to read 1st directory block correctly\n(0x2000-0x3FFF)");
     return;
   }
 
   if (!mcdFile.ReadBytes(&m_directory_blocks[1], BLOCK_SIZE))
   {
-    PanicAlertT("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
+    PanicAlertT("Failed to read 2nd directory block correctly\n(0x4000-0x5FFF)");
     return;
   }
 
   if (!mcdFile.ReadBytes(&m_bat_blocks[0], BLOCK_SIZE))
   {
-    PanicAlertT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
+    PanicAlertT("Failed to read 1st block allocation table block correctly\n(0x6000-0x7FFF)");
     return;
   }
 
   if (!mcdFile.ReadBytes(&m_bat_blocks[1], BLOCK_SIZE))
   {
-    PanicAlertT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
+    PanicAlertT("Failed to read 2nd block allocation table block correctly\n(0x8000-0x9FFF)");
     return;
   }
 
@@ -137,17 +137,21 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     return;
   }
 
-  if (csums & 0x2)  // directory checksum error!
+  if (csums & 0x2)  // 1st directory block checksum error!
   {
     if (csums & 0x4)
     {
-      // backup is also wrong!
-      PanicAlertT("Directory checksum and directory backup checksum failed");
+      // 2nd block is also wrong!
+      PanicAlertT("Both directory block checksums are invalid");
       return;
     }
     else
     {
-      // backup is correct, restore
+      // FIXME: This is probably incorrect behavior, confirm what actually happens on hardware here.
+      // The currently active directory block and currently active BAT block don't necessarily have
+      // to correlate.
+
+      // 2nd block is correct, restore
       m_directory_blocks[0] = m_directory_blocks[1];
       m_bat_blocks[0] = m_bat_blocks[1];
 
@@ -156,17 +160,19 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     }
   }
 
-  if (csums & 0x8)  // BAT checksum error!
+  if (csums & 0x8)  // 1st BAT checksum error!
   {
     if (csums & 0x10)
     {
-      // backup is also wrong!
-      PanicAlertT("Block Allocation Table checksum failed");
+      // 2nd BAT is also wrong!
+      PanicAlertT("Both Block Allocation Table block checksums are invalid");
       return;
     }
     else
     {
-      // backup is correct, restore
+      // FIXME: Same as above, this feels incorrect.
+
+      // 2nd block is correct, restore
       m_directory_blocks[0] = m_directory_blocks[1];
       m_bat_blocks[0] = m_bat_blocks[1];
 
