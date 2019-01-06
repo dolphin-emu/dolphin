@@ -572,6 +572,20 @@ public:
   int GetArity() const override { return 3; }
 };
 
+class UnaryMinusExpression : public FunctionExpression
+{
+public:
+  ControlState GetValue() const override
+  {
+    // Subtraction for clarity:
+    return 0.0 - GetArg(0).GetValue();
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "Minus"; }
+  int GetArity() const override { return 1; }
+};
+
 class WhileExpression : public FunctionExpression
 {
 public:
@@ -617,6 +631,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<ToggleExpression>();
   else if ("while" == name)
     return std::make_unique<WhileExpression>();
+  else if ("minus" == name)
+    return std::make_unique<UnaryMinusExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
@@ -782,9 +798,8 @@ private:
     return tok.type == type;
   }
 
-  ParseResult Atom()
+  ParseResult Atom(const Token& tok)
   {
-    const Token tok = Chew();
     switch (tok.type)
     {
     case TOK_FUNCTION:
@@ -793,7 +808,7 @@ private:
       int arity = func->GetArity();
       while (arity--)
       {
-        auto arg = Atom();
+        auto arg = Atom(Chew());
         if (arg.status == ParseStatus::SyntaxError)
           return arg;
 
@@ -818,6 +833,12 @@ private:
     case TOK_LPAREN:
     {
       return Paren();
+    }
+    case TOK_SUB:
+    {
+      // An atom was expected but we got a subtraction symbol.
+      // Interpret it as a unary minus function.
+      return Atom(Token(TOK_FUNCTION, "minus"));
     }
     default:
       return {ParseStatus::SyntaxError};
@@ -859,7 +880,7 @@ private:
 
   ParseResult Binary(int precedence = 999)
   {
-    ParseResult lhs = Atom();
+    ParseResult lhs = Atom(Chew());
 
     if (lhs.status == ParseStatus::SyntaxError)
       return lhs;
