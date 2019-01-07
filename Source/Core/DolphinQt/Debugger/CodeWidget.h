@@ -61,6 +61,7 @@ private:
   void OnSelectFunctionCalls();
 
   void closeEvent(QCloseEvent*) override;
+  bool eventFilter(QObject* obj, QEvent* event) override;
 
   QLineEdit* m_search_address;
   QLineEdit* m_search_symbols;
