@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <cctype>
 #include <string>
 
 #include <QCheckBox>
@@ -493,7 +494,8 @@ void MemoryWidget::OnDumpFakeVMEM()
 
 std::vector<u8> MemoryWidget::GetValueData() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  // Series of bytes we want to look for.
+  std::vector<u8> search_for;
 
   if (m_find_ascii->isChecked())
   {
@@ -502,25 +504,14 @@ std::vector<u8> MemoryWidget::GetValueData() const
   }
   else
   {
-    bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-      return {};
-
-    int size;
-
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
+    // Accepts any amount of bytes.
+    std::string search_prep = m_data_edit->text().toStdString();
+    for (size_t i = 0; i <= search_prep.length() - 2; i = i + 2)
+    {
+      if (!isxdigit(search_prep[i]) || !isxdigit(search_prep[i + 1]))
+        return {};
+      search_for.push_back(std::stoi((search_prep.substr(i, 2)), nullptr, 16));
+    }
   }
 
   return search_for;
@@ -528,6 +519,12 @@ std::vector<u8> MemoryWidget::GetValueData() const
 
 void MemoryWidget::FindValue(bool next)
 {
+  if (!m_find_ascii->isChecked() && (m_data_edit->text().length() % 2 != 0))
+  {
+    m_result_label->setText(tr("Hex input requires whole bytes"));
+    return;
+  }
+
   std::vector<u8> search_for = GetValueData();
 
   if (search_for.empty())
@@ -582,7 +579,7 @@ void MemoryWidget::FindValue(bool next)
   }
   else
   {
-    end = &ram_ptr[addr + search_for.size() - 1];
+    end = &ram_ptr[addr - 1];
     ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
   }
 
