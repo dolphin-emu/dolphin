@@ -32,6 +32,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   verticalHeader()->hide();
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setShowGrid(false);
+  setAlternatingRowColors(true);
 
   setFont(Settings::Instance().GetDebugFont());
 
@@ -40,7 +41,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   connect(this, &MemoryViewWidget::customContextMenuRequested, this,
           &MemoryViewWidget::OnContextMenu);
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
-
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::Update);
   setContextMenuPolicy(Qt::CustomContextMenu);
 
   Update();
@@ -72,7 +73,10 @@ void MemoryViewWidget::Update()
   if (rowCount() == 0)
     setRowCount(1);
 
-  setRowHeight(0, 24);
+  const QFontMetrics fm(Settings::Instance().GetDebugFont());
+  const int fonth = fm.height();
+  verticalHeader()->setDefaultSectionSize(fonth + 3);
+  horizontalHeader()->setMinimumSectionSize(fonth + 3);
 
   // Calculate (roughly) how many rows will fit in our table
   int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
@@ -81,8 +85,6 @@ void MemoryViewWidget::Update()
 
   for (int i = 0; i < rows; i++)
   {
-    setRowHeight(i, 24);
-
     u32 addr = m_address - ((rowCount() / 2) * 16) + i * 16;
 
     auto* bp_item = new QTableWidgetItem;
@@ -185,18 +187,23 @@ void MemoryViewWidget::Update()
 
     if (row_breakpoint)
     {
-      bp_item->setData(Qt::DecorationRole,
-                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
+      bp_item->setData(
+          Qt::DecorationRole,
+          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(fonth - 2, fonth - 2)));
     }
   }
 
-  setColumnWidth(0, 24 + 5);
+  setColumnWidth(0, fonth + 3);
+
   for (int i = 1; i < columnCount(); i++)
   {
     resizeColumnToContents(i);
     // Add some extra spacing because the default width is too small in most cases
     setColumnWidth(i, columnWidth(i) * 1.1);
   }
+
+  // Clearly denote which row the address box points to. Could look better than this.
+  item(rows / 2, 0)->setBackground(Qt::lightGray);
 
   viewport()->update();
   update();
