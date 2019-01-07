@@ -85,6 +85,10 @@ void MemoryWidget::CreateWidgets()
   m_search_address = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
+  m_data_preview = new QLabel;
+
+  m_data_preview->setBackgroundRole(QPalette::Base);
+  m_data_preview->setAutoFillBackground(true);
 
   m_search_address->setPlaceholderText(tr("Search Address"));
   m_data_edit->setPlaceholderText(tr("Value"));
@@ -162,6 +166,7 @@ void MemoryWidget::CreateWidgets()
 
   sidebar_layout->addWidget(m_search_address);
   sidebar_layout->addWidget(m_data_edit);
+  sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_find_ascii);
   sidebar_layout->addWidget(m_find_hex);
   sidebar_layout->addWidget(m_set_value);
@@ -375,16 +380,44 @@ void MemoryWidget::ValidateSearchValue()
 {
   QFont font;
   QPalette palette;
+  m_data_preview->clear();
 
   if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
   {
     bool good;
-    m_data_edit->text().toULongLong(&good, 16);
+    u64 value = m_data_edit->text().toULongLong(&good, 16);
 
     if (!good)
     {
       font.setBold(true);
       palette.setColor(QPalette::Text, Qt::red);
+    }
+    else
+    {
+      const int data_length = m_data_edit->text().size();
+      int field_width = 8;
+
+      if (data_length > 8)
+      {
+        field_width = 16;
+      }
+      else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+      {
+        field_width = data_length > 2 ? 4 : 2;
+      }
+      else if (m_type_u16->isChecked() && data_length <= 4)
+      {
+        field_width = 4;
+      }
+
+      QString hex_string =
+          QStringLiteral("%1").arg(value, field_width, 16, QLatin1Char('0')).toUpper();
+
+      const int hsize = hex_string.size();
+      for (int i = 2; i < hsize; i += 2)
+        hex_string.insert(hsize - i, QLatin1Char{' '});
+
+      m_data_preview->setText(hex_string);
     }
   }
 
@@ -427,20 +460,27 @@ void MemoryWidget::OnSetValue()
       return;
     }
 
-    if (value == static_cast<u8>(value))
+    const int data_length = m_data_edit->text().size();
+
+    if (data_length > 8)
     {
-      PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      PowerPC::HostWrite_U64(value, addr);
     }
-    else if (value == static_cast<u16>(value))
+    else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+    {
+      if (data_length > 2)
+        PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      else
+        PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+    }
+    else if (m_type_u16->isChecked() && data_length <= 4)
     {
       PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
     }
-    else if (value == static_cast<u32>(value))
+    else
     {
       PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
     }
-    else
-      PowerPC::HostWrite_U64(value, addr);
   }
 
   Update();
