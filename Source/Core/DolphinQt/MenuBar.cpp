@@ -593,7 +593,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       bool* config = columns[action->text()];
       action->setChecked(*config);
     }
-   });
+  });
 
   for (const auto& key : columns.keys())
   {
