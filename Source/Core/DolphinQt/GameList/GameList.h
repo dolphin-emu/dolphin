@@ -51,6 +51,7 @@ signals:
 
 private:
   void ShowContextMenu(const QPoint&);
+  void ShowHeaderContextMenu(const QPoint&);
   void OpenContainingFolder();
   void OpenProperties();
   void OpenSaveFolder();

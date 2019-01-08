@@ -120,6 +120,9 @@ void GameList::MakeListView()
 
   hor_header->restoreState(
       Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
+  hor_header->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(hor_header, &QHeaderView::customContextMenuRequested, this,
+          &GameList::ShowHeaderContextMenu);
 
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
@@ -385,6 +388,39 @@ void GameList::ShowContextMenu(const QPoint&)
     netplay_host->setEnabled(!Core::IsRunning());
 
     menu->addAction(netplay_host);
+  }
+
+  menu->exec(QCursor::pos());
+}
+
+void GameList::ShowHeaderContextMenu(const QPoint&)
+{
+  static const QMap<QString, bool*> columns{
+      {tr("Platform"), &SConfig::GetInstance().m_showSystemColumn},
+      {tr("Banner"), &SConfig::GetInstance().m_showBannerColumn},
+      {tr("Title"), &SConfig::GetInstance().m_showTitleColumn},
+      {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
+      {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
+      {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
+      {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
+      {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
+
+  QActionGroup* column_group = new QActionGroup(this);
+  QMenu* menu = new QMenu(this);
+  column_group->setExclusive(false);
+
+  for (const auto& key : columns.keys())
+  {
+    bool* config = columns[key];
+    QAction* action = column_group->addAction(menu->addAction(key));
+    action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      OnColumnVisibilityToggled(key, value);
+    });
   }
 
   menu->exec(QCursor::pos());

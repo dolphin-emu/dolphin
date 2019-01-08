@@ -587,6 +587,14 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
   QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
   column_group->setExclusive(false);
 
+  connect(cols_menu, &QMenu::aboutToShow, column_group, [this, column_group]() {
+    for (auto& action : column_group->actions())
+    {
+      bool* config = columns[action->text()];
+      action->setChecked(*config);
+    }
+   });
+
   for (const auto& key : columns.keys())
   {
     bool* config = columns[key];
