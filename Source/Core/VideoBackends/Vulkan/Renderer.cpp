@@ -640,6 +640,11 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   TextureCache::GetInstance()->Cleanup(frameCount);
 }
 
+void Renderer::Flush()
+{
+  Util::ExecuteCurrentCommandsAndRestoreState(true, false);
+}
+
 void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
 {
   VkResult res;

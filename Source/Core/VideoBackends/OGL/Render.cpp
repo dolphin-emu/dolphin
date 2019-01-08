@@ -1528,6 +1528,13 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   ClearEFBCache();
 }
 
+void Renderer::Flush()
+{
+  // ensure all commands are sent to the GPU.
+  // Otherwise the driver could batch several frames togehter.
+  glFlush();
+}
+
 void Renderer::CheckForSurfaceChange()
 {
   if (!m_surface_changed.TestAndClear())
