@@ -13,14 +13,6 @@ namespace ciface
 {
 namespace ForceFeedback
 {
-// 100Hz which homebrew docs very roughly imply is within WiiMote normal
-// range, used for periodic haptic effects though often ignored by devices
-constexpr int RUMBLE_PERIOD = DI_SECONDS / 100;
-// This needs to be at least as long as the longest rumble that might ever be played.
-// Too short and it's going to stop in the middle of a long effect.
-// "INFINITE" is invalid for ramp effects and probably not sensible.
-constexpr int RUMBLE_LENGTH_MAX = DI_SECONDS * 10;
-
 // Template instantiation:
 template class ForceFeedbackDevice::TypedForce<DICONSTANTFORCE>;
 template class ForceFeedbackDevice::TypedForce<DIRAMPFORCE>;
@@ -96,7 +88,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   DIEFFECT eff{};
   eff.dwSize = sizeof(eff);
   eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-  eff.dwDuration = RUMBLE_LENGTH_MAX;
+  eff.dwDuration = DI_SECONDS / 1000 * RUMBLE_LENGTH_MS;
   eff.dwSamplePeriod = 0;
   eff.dwGain = DI_FFNOMINALMAX;
   eff.dwTriggerButton = DIEB_NOTRIGGER;
@@ -113,10 +105,9 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   diRF.lStart = diRF.lEnd = 0;
   DIPERIODIC diPE{};
   diPE.dwMagnitude = 0;
-  // Is it sensible to have a zero-offset?
   diPE.lOffset = 0;
   diPE.dwPhase = 0;
-  diPE.dwPeriod = RUMBLE_PERIOD;
+  diPE.dwPeriod = DI_SECONDS / 1000 * RUMBLE_PERIOD_MS;
 
   for (auto& f : force_type_names)
   {
