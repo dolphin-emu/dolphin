@@ -818,7 +818,15 @@ class Parser
 {
 public:
   explicit Parser(std::vector<Token> tokens_) : tokens(tokens_) { m_it = tokens.begin(); }
-  ParseResult Parse() { return Toplevel(); }
+  ParseResult Parse()
+  {
+    ParseResult result = ParseToplevel();
+
+    if (Peek().type == TOK_EOF)
+      return result;
+
+    return {ParseStatus::SyntaxError};
+  }
 
 private:
   struct FunctionArguments
@@ -859,7 +867,7 @@ private:
     {
       // Read one argument.
       // Grab an expression, but stop at comma.
-      auto arg = Binary(BinaryOperatorPrecedence(TOK_COMMA));
+      auto arg = ParseBinary(BinaryOperatorPrecedence(TOK_COMMA));
       if (ParseStatus::Successful != arg.status)
         return {ParseStatus::SyntaxError};
 
@@ -876,7 +884,7 @@ private:
     }
   }
 
-  ParseResult Atom(const Token& tok)
+  ParseResult ParseAtom(const Token& tok)
   {
     switch (tok.type)
     {
@@ -909,13 +917,13 @@ private:
     }
     case TOK_LPAREN:
     {
-      return Paren();
+      return ParseParens();
     }
     case TOK_SUB:
     {
       // An atom was expected but we got a subtraction symbol.
       // Interpret it as a unary minus function.
-      return Atom(Token(TOK_FUNCTION, "minus"));
+      return ParseAtom(Token(TOK_FUNCTION, "minus"));
     }
     default:
       return {ParseStatus::SyntaxError};
@@ -955,9 +963,9 @@ private:
     }
   }
 
-  ParseResult Binary(int precedence = 999)
+  ParseResult ParseBinary(int precedence = 999)
   {
-    ParseResult lhs = Atom(Chew());
+    ParseResult lhs = ParseAtom(Chew());
 
     if (lhs.status == ParseStatus::SyntaxError)
       return lhs;
@@ -968,7 +976,7 @@ private:
     while (IsBinaryToken(Peek().type) && BinaryOperatorPrecedence(Peek().type) < precedence)
     {
       const Token tok = Chew();
-      ParseResult rhs = Binary(BinaryOperatorPrecedence(tok.type));
+      ParseResult rhs = ParseBinary(BinaryOperatorPrecedence(tok.type));
       if (rhs.status == ParseStatus::SyntaxError)
       {
         return rhs;
@@ -980,10 +988,10 @@ private:
     return {ParseStatus::Successful, std::move(expr)};
   }
 
-  ParseResult Paren()
+  ParseResult ParseParens()
   {
     // lparen already chewed
-    ParseResult result = Toplevel();
+    ParseResult result = ParseToplevel();
     if (result.status != ParseStatus::Successful)
       return result;
 
@@ -995,7 +1003,7 @@ private:
     return result;
   }
 
-  ParseResult Toplevel() { return Binary(); }
+  ParseResult ParseToplevel() { return ParseBinary(); }
 };  // namespace ExpressionParser
 
 static ParseResult ParseComplexExpression(const std::string& str)
