@@ -477,7 +477,7 @@ private:
   }
   ControlState GetValue() const override { return 0.0; }
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "Unknown"; }
+  std::string GetFuncName() const override { return "unknown"; }
 };
 
 class ToggleExpression : public FunctionExpression
@@ -506,7 +506,7 @@ private:
   }
 
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "Toggle"; }
+  std::string GetFuncName() const override { return "toggle"; }
 
   mutable bool m_released{};
   mutable bool m_state{};
@@ -535,7 +535,7 @@ private:
 
   ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "Sin"; }
+  std::string GetFuncName() const override { return "sin"; }
 };
 
 class TimerExpression : public FunctionExpression
@@ -574,7 +574,7 @@ private:
     return progress;
   }
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "Timer"; }
+  std::string GetFuncName() const override { return "timer"; }
 
 private:
   using Clock = std::chrono::steady_clock;
@@ -596,7 +596,7 @@ private:
   }
 
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "If"; }
+  std::string GetFuncName() const override { return "if"; }
 };
 
 class UnaryMinusExpression : public FunctionExpression
@@ -614,7 +614,7 @@ private:
   }
 
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "Minus"; }
+  std::string GetFuncName() const override { return "minus"; }
 };
 
 class WhileExpression : public FunctionExpression
@@ -644,15 +644,11 @@ class WhileExpression : public FunctionExpression
   }
 
   void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "While"; }
+  std::string GetFuncName() const override { return "while"; }
 };
 
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
-  // Case insensitive matching.
-  std::transform(name.begin(), name.end(), name.begin(),
-                 [](char c) { return std::tolower(c, std::locale::classic()); });
-
   if (name.empty())
     return std::make_unique<NotExpression>();
   else if ("if" == name)
