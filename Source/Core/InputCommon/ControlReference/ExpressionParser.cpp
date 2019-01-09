@@ -449,14 +449,19 @@ public:
     return result;
   }
 
-  void AppendArg(std::unique_ptr<Expression> arg) { m_args.emplace_back(std::move(arg)); }
+  bool SetArguments(std::vector<std::unique_ptr<Expression>>&& args)
+  {
+    m_args = std::move(args);
 
-  Expression& GetArg(u32 number) { return *m_args[number]; }
-  const Expression& GetArg(u32 number) const { return *m_args[number]; }
-  virtual int GetArity() const = 0;
+    return ValidateArguments(m_args);
+  }
 
 protected:
   virtual std::string GetFuncName() const = 0;
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) = 0;
+
+  Expression& GetArg(u32 number) { return *m_args[number]; }
+  const Expression& GetArg(u32 number) const { return *m_args[number]; }
 
 private:
   std::vector<std::unique_ptr<Expression>> m_args;
@@ -465,16 +470,24 @@ private:
 // TODO: Return an oscillating value to make it apparent something was spelled wrong?
 class UnknownFunctionExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return false;
+  }
   ControlState GetValue() const override { return 0.0; }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Unknown"; }
-  int GetArity() const override { return 0; }
 };
 
 class ToggleExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 1 == args.size();
+  }
+
   ControlState GetValue() const override
   {
     const ControlState inner_value = GetArg(0).GetValue();
@@ -494,34 +507,45 @@ public:
 
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Toggle"; }
-  int GetArity() const override { return 1; }
 
-private:
   mutable bool m_released{};
   mutable bool m_state{};
 };
 
 class NotExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 1 == args.size();
+  }
+
   ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
   void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
   std::string GetFuncName() const override { return ""; }
-  int GetArity() const override { return 1; }
 };
 
 class SinExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 1 == args.size();
+  }
+
   ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Sin"; }
-  int GetArity() const override { return 1; }
 };
 
 class TimerExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 1 == args.size();
+  }
+
   ControlState GetValue() const override
   {
     const auto now = Clock::now();
@@ -551,7 +575,6 @@ public:
   }
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Timer"; }
-  int GetArity() const override { return 1; }
 
 private:
   using Clock = std::chrono::steady_clock;
@@ -560,7 +583,12 @@ private:
 
 class IfExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 3 == args.size();
+  }
+
   ControlState GetValue() const override
   {
     return (GetArg(0).GetValue() > CONDITION_THRESHOLD) ? GetArg(1).GetValue() :
@@ -569,12 +597,16 @@ public:
 
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "If"; }
-  int GetArity() const override { return 3; }
 };
 
 class UnaryMinusExpression : public FunctionExpression
 {
-public:
+private:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 1 == args.size();
+  }
+
   ControlState GetValue() const override
   {
     // Subtraction for clarity:
@@ -583,12 +615,15 @@ public:
 
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "Minus"; }
-  int GetArity() const override { return 1; }
 };
 
 class WhileExpression : public FunctionExpression
 {
-public:
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 2 == args.size();
+  }
+
   ControlState GetValue() const override
   {
     // Returns 1.0 on successful loop, 0.0 on reps exceeded. Sensible?
@@ -610,7 +645,6 @@ public:
 
   void SetValue(ControlState value) override {}
   std::string GetFuncName() const override { return "While"; }
-  int GetArity() const override { return 2; }
 };
 
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
@@ -787,15 +821,59 @@ public:
   ParseResult Parse() { return Toplevel(); }
 
 private:
+  struct FunctionArguments
+  {
+    FunctionArguments(ParseStatus status_, std::vector<std::unique_ptr<Expression>>&& args_ = {})
+        : status(status_), args(std::move(args_))
+    {
+    }
+
+    ParseStatus status;
+    std::vector<std::unique_ptr<Expression>> args;
+  };
+
   std::vector<Token> tokens;
   std::vector<Token>::iterator m_it;
 
   Token Chew() { return *m_it++; }
   Token Peek() { return *m_it; }
+
   bool Expects(TokenType type)
   {
     Token tok = Chew();
     return tok.type == type;
+  }
+
+  FunctionArguments ParseFunctionArguments()
+  {
+    if (!Expects(TOK_LPAREN))
+      return {ParseStatus::SyntaxError};
+
+    // Check for empty argument list:
+    if (TOK_RPAREN == Peek().type)
+      return {ParseStatus::Successful};
+
+    std::vector<std::unique_ptr<Expression>> args;
+
+    while (true)
+    {
+      // Read one argument.
+      // Grab an expression, but stop at comma.
+      auto arg = Binary(BinaryOperatorPrecedence(TOK_COMMA));
+      if (ParseStatus::Successful != arg.status)
+        return {ParseStatus::SyntaxError};
+
+      args.emplace_back(std::move(arg.expr));
+
+      // Right paren is the end of our arguments.
+      const Token tok = Chew();
+      if (TOK_RPAREN == tok.type)
+        return {ParseStatus::Successful, std::move(args)};
+
+      // Comma before the next argument.
+      if (TOK_COMMA != tok.type)
+        return {ParseStatus::SyntaxError};
+    }
   }
 
   ParseResult Atom(const Token& tok)
@@ -805,15 +883,14 @@ private:
     case TOK_FUNCTION:
     {
       auto func = MakeFunctionExpression(tok.data);
-      int arity = func->GetArity();
-      while (arity--)
-      {
-        auto arg = Atom(Chew());
-        if (arg.status == ParseStatus::SyntaxError)
-          return arg;
+      auto args = ParseFunctionArguments();
 
-        func->AppendArg(std::move(arg.expr));
-      }
+      if (ParseStatus::Successful != args.status)
+        return {ParseStatus::SyntaxError};
+
+      if (!func->SetArguments(std::move(args.args)))
+        return {ParseStatus::SyntaxError};
+
       return {ParseStatus::Successful, std::move(func)};
     }
     case TOK_CONTROL:
