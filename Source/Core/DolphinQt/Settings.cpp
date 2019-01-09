@@ -320,8 +320,29 @@ void Settings::SetCheatsEnabled(bool enabled)
   }
 }
 
+void Settings::SetSimplifiedModeEnabled(bool enabled)
+{
+  if (IsSimplifiedModeEnabled() != enabled)
+  {
+    GetQSettings().setValue(QStringLiteral("simplifiedmode/enabled"), enabled);
+    emit SimplifiedModeToggled(enabled);
+
+    emit DebugModeToggled(!enabled && IsDebugModeEnabled());
+    emit LogVisibilityChanged(!enabled && IsLogVisible());
+    emit LogConfigVisibilityChanged(!enabled && IsLogConfigVisible());
+  }
+}
+
+bool Settings::IsSimplifiedModeEnabled() const
+{
+  return GetQSettings().value(QStringLiteral("simplifiedmode/enabled"), true).toBool();
+}
+
 void Settings::SetDebugModeEnabled(bool enabled)
 {
+  if (IsSimplifiedModeEnabled())
+    return;
+
   if (IsDebugModeEnabled() != enabled)
   {
     SConfig::GetInstance().bEnableDebugging = enabled;
@@ -333,7 +354,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 
 bool Settings::IsDebugModeEnabled() const
 {
-  return SConfig::GetInstance().bEnableDebugging;
+  return !IsSimplifiedModeEnabled() && SConfig::GetInstance().bEnableDebugging;
 }
 
 void Settings::SetRegistersVisible(bool enabled)

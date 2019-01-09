@@ -390,6 +390,7 @@
     <ClInclude Include="Config\Mapping\MappingRadio.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
+    <ClInclude Include="QtUtils\HideOnSimple.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />

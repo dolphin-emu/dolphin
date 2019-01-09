@@ -117,6 +117,8 @@ public:
   // Debug
   void SetDebugModeEnabled(bool enabled);
   bool IsDebugModeEnabled() const;
+  void SetSimplifiedModeEnabled(bool enabled);
+  bool IsSimplifiedModeEnabled() const;
   void SetRegistersVisible(bool enabled);
   bool IsRegistersVisible() const;
   void SetWatchVisible(bool enabled);
@@ -169,6 +171,7 @@ signals:
   void CodeVisibilityChanged(bool visible);
   void MemoryVisibilityChanged(bool visible);
   void JITVisibilityChanged(bool visible);
+  void SimplifiedModeToggled(bool enabled);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);

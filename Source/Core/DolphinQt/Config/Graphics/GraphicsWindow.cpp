@@ -20,6 +20,7 @@
 #include "DolphinQt/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -70,6 +71,10 @@ void GraphicsWindow::CreateMainLayout()
           &GraphicsWindow::OnBackendChanged);
   connect(m_software_renderer, &SoftwareRendererWidget::BackendChanged, this,
           &GraphicsWindow::OnBackendChanged);
+  connect(&Settings::Instance(), &Settings::SimplifiedModeToggled, this, [this] {
+    m_tab_widget->clear();
+    OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  });
 
   m_wrapped_general = GetWrappedWidget(m_general_widget, this, 50, 305);
   m_wrapped_enhancements = GetWrappedWidget(m_enhancements_widget, this, 50, 305);
@@ -81,8 +86,12 @@ void GraphicsWindow::CreateMainLayout()
   {
     m_tab_widget->addTab(m_wrapped_general, tr("General"));
     m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
-    m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
-    m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
+
+    if (!Settings::Instance().IsSimplifiedModeEnabled())
+    {
+      m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
+      m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
+    }
   }
   else
   {
@@ -105,13 +114,17 @@ void GraphicsWindow::OnBackendChanged(const QString& backend_name)
     m_tab_widget->addTab(m_wrapped_software, tr("Software Renderer"));
   }
 
-  if (backend_name != QStringLiteral("Software Renderer") && m_tab_widget->count() == 1)
+  if (backend_name != QStringLiteral("Software Renderer") && m_tab_widget->count() <= 1)
   {
     m_tab_widget->clear();
     m_tab_widget->addTab(m_wrapped_general, tr("General"));
     m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
-    m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
-    m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
+
+    if (!Settings::Instance().IsSimplifiedModeEnabled())
+    {
+      m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
+      m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
+    }
   }
 
   emit BackendChanged(backend_name);

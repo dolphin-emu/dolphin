@@ -24,6 +24,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/QtUtils/HideOnSimple.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
@@ -146,6 +147,7 @@ void InterfacePane::CreateUI()
   }
 
   // Checkboxes
+  m_checkbox_use_simplified_ui = new QCheckBox(tr("Use Simplified UI"));
   m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
@@ -153,10 +155,13 @@ void InterfacePane::CreateUI()
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
 
+  HideOnSimple({m_checkbox_show_debugging_ui});
+
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_userstyle);
   groupbox_layout->addWidget(m_checkbox_use_covers);
+  groupbox_layout->addWidget(m_checkbox_use_simplified_ui);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
 }
 
@@ -188,6 +193,7 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_simplified_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme,
           static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
@@ -214,6 +220,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
   m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
+  m_checkbox_use_simplified_ui->setChecked(Settings::Instance().IsSimplifiedModeEnabled());
   m_combobox_language->setCurrentIndex(m_combobox_language->findData(
       QString::fromStdString(SConfig::GetInstance().m_InterfaceLanguage)));
   m_combobox_theme->setCurrentIndex(
@@ -247,6 +254,7 @@ void InterfacePane::OnSaveConfig()
   SConfig& settings = SConfig::GetInstance();
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
+  Settings::Instance().SetSimplifiedModeEnabled(m_checkbox_use_simplified_ui->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
   Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());

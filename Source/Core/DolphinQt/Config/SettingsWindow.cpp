@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt/Config/SettingsWindow.h"
+#include "DolphinQt/QtUtils/HideOnSimple.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -47,7 +48,18 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
     wii_pane->OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 
-  m_tab_widget->addTab(new AdvancedPane(), tr("Advanced"));
+  auto* advanced_pane = new AdvancedPane;
+
+  if (!Settings::Instance().IsSimplifiedModeEnabled())
+    m_tab_widget->addTab(advanced_pane, tr("Advanced"));
+
+  connect(&Settings::Instance(), &Settings::SimplifiedModeToggled,
+          [this, advanced_pane](bool enabled) {
+            if (enabled)
+              m_tab_widget->removeTab(m_tab_widget->count() - 1);
+            else
+              m_tab_widget->addTab(advanced_pane, tr("Advanced"));
+          });
 
   // Dialog box buttons
   QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);

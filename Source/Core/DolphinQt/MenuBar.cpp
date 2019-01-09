@@ -71,7 +71,14 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
           [this] { OnEmulationStateChanged(Core::GetState()); });
 
   OnEmulationStateChanged(Core::GetState());
+
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
+
+#ifndef __APPLE__
+  connect(&Settings::Instance(), &Settings::SimplifiedModeToggled, this, &MenuBar::setHidden);
+
+  setHidden(Settings::Instance().IsSimplifiedModeEnabled());
+#endif
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
