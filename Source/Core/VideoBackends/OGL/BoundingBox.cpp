@@ -99,7 +99,8 @@ int BoundingBox::Get(int index)
   {
     int data = 0;
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
-    if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA))
+    if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA) &&
+        !static_cast<Renderer*>(g_renderer.get())->IsGLES())
     {
       // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
       // on nVidia drivers. This is more noticeable at higher internal resolutions.
