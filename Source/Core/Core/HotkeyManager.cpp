@@ -238,7 +238,7 @@ void Initialize()
   if (s_config.ControllersNeedToBeCreated())
     s_config.CreateController<HotkeyManager>();
 
-  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
+  s_config.RegisterHotplugCallback();
 
   // load the saved controller config
   s_config.LoadConfig(true);
@@ -260,9 +260,11 @@ ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
 
 void Shutdown()
 {
+  s_config.UnregisterHotplugCallback();
+
   s_config.ClearControllers();
 }
-}
+}  // namespace HotkeyManagerEmu
 
 struct HotkeyGroupInfo
 {
