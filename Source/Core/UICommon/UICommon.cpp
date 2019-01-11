@@ -366,63 +366,6 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-#if defined(HAVE_XRANDR) && HAVE_X11
-void EnableScreenSaver(Window win, bool enable)
-#else
-void EnableScreenSaver(bool enable)
-#endif
-{
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
-
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    X11Utils::InhibitScreensaver(win, !enable);
-  }
-#endif
-
-#ifdef _WIN32
-  // Prevents Windows from sleeping, turning off the display, or idling
-  if (enable)
-  {
-    SetThreadExecutionState(ES_CONTINUOUS);
-  }
-  else
-  {
-    EXECUTION_STATE should_screen_save =
-        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
-    SetThreadExecutionState(ES_CONTINUOUS | should_screen_save | ES_SYSTEM_REQUIRED);
-  }
-#endif
-
-#ifdef __APPLE__
-  static IOPMAssertionID s_power_assertion = kIOPMNullAssertionID;
-
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    if (enable)
-    {
-      if (s_power_assertion != kIOPMNullAssertionID)
-      {
-        IOPMAssertionRelease(s_power_assertion);
-        s_power_assertion = kIOPMNullAssertionID;
-      }
-    }
-    else
-    {
-      CFStringRef reason_for_activity = CFSTR("Emulation Running");
-      if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
-                                      kIOPMAssertionLevelOn, reason_for_activity,
-                                      &s_power_assertion) != kIOReturnSuccess)
-      {
-        s_power_assertion = kIOPMNullAssertionID;
-      }
-    }
-  }
-#endif
-}
-
 std::string FormatSize(u64 bytes)
 {
   // i18n: The symbol for the unit "bytes"

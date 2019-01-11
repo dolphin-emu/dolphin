@@ -36,6 +36,7 @@ class NetPlayDialog;
 class NetPlaySetupDialog;
 class RegisterWidget;
 class RenderWidget;
+class ScreenSaverInhibitor;
 class SearchBar;
 class SettingsWindow;
 class ToolBar;
@@ -196,6 +197,8 @@ private:
   std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
   static constexpr int num_wii_controllers = 4;
   std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
+
+  ScreenSaverInhibitor* m_screen_saver_inhibitor = nullptr;
 
   BreakpointWidget* m_breakpoint_widget;
   CodeWidget* m_code_widget;

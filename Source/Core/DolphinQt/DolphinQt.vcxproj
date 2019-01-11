@@ -152,6 +152,7 @@
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
     <QtMoc Include="QtUtils\FlowLayout.h" />
+    <QtMoc Include="QtUtils\ScreenSaverInhibitor.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -252,6 +253,7 @@
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RegisterWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ScreenSaverInhibitor.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SearchBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
@@ -365,6 +367,7 @@
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
+    <ClCompile Include="QtUtils\ScreenSaverInhibitor.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
