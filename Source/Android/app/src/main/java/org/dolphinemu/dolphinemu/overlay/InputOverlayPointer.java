@@ -2,22 +2,45 @@ package org.dolphinemu.dolphinemu.overlay;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.MotionEvent;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+
+import java.util.ArrayList;
+
 public class InputOverlayPointer
 {
+  public static final int DOUBLE_TAP_A = 0;
+  public static final int DOUBLE_TAP_B = 1;
+  public static final int DOUBLE_TAP_2 = 2;
+  public static final int DOUBLE_TAP_CLASSIC_A = 3;
+
   private final float[] axes = {0f, 0f};
   private float maxHeight;
   private float maxWidth;
+  private boolean doubleTap = false;
+  private int doubleTapButton;
   private int trackId = -1;
 
-  public InputOverlayPointer(Context context)
+  public static ArrayList<Integer> DOUBLE_TAP_OPTIONS = new ArrayList<>();
+
+  static
+  {
+    DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.WIIMOTE_BUTTON_A);
+    DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.WIIMOTE_BUTTON_B);
+    DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.WIIMOTE_BUTTON_2);
+    DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.CLASSIC_BUTTON_A);
+  }
+
+  public InputOverlayPointer(Context context, int button)
   {
     Display display = ((Activity) context).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
     display.getMetrics(outMetrics);
+    doubleTapButton = button;
     maxWidth = outMetrics.widthPixels / 2;
     maxHeight = outMetrics.heightPixels / 2;
   }
@@ -31,6 +54,7 @@ public class InputOverlayPointer
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_POINTER_DOWN:
         trackId = event.getPointerId(pointerIndex);
+        touchPress();
         break;
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
@@ -48,6 +72,22 @@ public class InputOverlayPointer
     axes[1] = (x - maxWidth) / maxWidth;
 
     return false;
+  }
+
+  private void touchPress()
+  {
+    if (doubleTap)
+    {
+      NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
+              doubleTapButton, NativeLibrary.ButtonState.PRESSED);
+      new Handler().postDelayed(() -> NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
+              doubleTapButton, NativeLibrary.ButtonState.RELEASED), 50);
+    }
+    else
+    {
+      doubleTap = true;
+      new Handler().postDelayed(() -> doubleTap = false, 300);
+    }
   }
 
   public float[] getAxisValues()

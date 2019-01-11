@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -38,6 +39,8 @@ import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -93,7 +96,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP})
   public @interface MenuAction
   {
   }
@@ -126,6 +129,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
   public static final int MENU_SET_IR_SENSITIVITY = 27;
+  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -170,6 +174,8 @@ public final class EmulationActivity extends AppCompatActivity
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
     buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
+    buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
+            EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
   }
 
   private static String[] scanForSecondDisc(GameFile gameFile)
@@ -591,6 +597,10 @@ public final class EmulationActivity extends AppCompatActivity
         setIRSensitivity();
         return;
 
+      case MENU_ACTION_CHOOSE_DOUBLETAP:
+        chooseDoubleTapButton();
+        return;
+
       case MENU_ACTION_EXIT:
         // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
         if (TvUtil.isLeanback(getApplicationContext()))
@@ -714,6 +724,39 @@ public final class EmulationActivity extends AppCompatActivity
     {
       editor.apply();
 
+      mEmulationFragment.refreshInputOverlay();
+    });
+
+    AlertDialog alertDialog = builder.create();
+    alertDialog.show();
+  }
+
+  public void chooseDoubleTapButton()
+  {
+    final SharedPreferences.Editor editor = mPreferences.edit();
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+    int currentController =
+            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUCK);
+
+    int currentValue = mPreferences.getInt("doubleTapButton",
+            InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
+
+    int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
+            R.array.doubleTapWithClassic : R.array.doubleTap;
+
+    if (currentController != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+            currentValue == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
+    {
+      currentValue = InputOverlay.OVERLAY_WIIMOTE;
+    }
+
+    builder.setSingleChoiceItems(buttonList, currentValue, (DialogInterface dialog, int which) ->
+            editor.putInt("doubleTapButton", InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
+
+    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    {
+      editor.commit();
       mEmulationFragment.refreshInputOverlay();
     });
 

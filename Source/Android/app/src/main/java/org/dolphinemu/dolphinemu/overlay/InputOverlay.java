@@ -40,6 +40,12 @@ import java.util.Set;
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
+  public static final int OVERLAY_GAMECUBE = 0;
+  public static final int OVERLAY_WIIMOTE = 1;
+  public static final int OVERLAY_WIIMOTE_SIDEWAYS = 2;
+  public static final int OVERLAY_WIIMOTE_NUNCHUCK = 3;
+  public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
+
   private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
   private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
   private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
@@ -666,7 +672,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
 
     if (!EmulationActivity.isGameCubeGame())
-      overlayPointer = new InputOverlayPointer(this.getContext());
+    {
+      int doubleTapButton = mPreferences.getInt("doubleTapButton",
+              InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
+
+      if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUCK) !=
+              InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+              doubleTapButton == InputOverlayPointer.DOUBLE_TAP_CLASSIC_A)
+        doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
+
+      overlayPointer = new InputOverlayPointer(this.getContext(), doubleTapButton);
+    }
 
     invalidate();
   }
