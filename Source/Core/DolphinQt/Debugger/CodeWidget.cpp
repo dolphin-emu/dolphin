@@ -153,12 +153,12 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
 
-  connect(m_symbols_list, &QListWidget::itemClicked, this, &CodeWidget::OnSelectSymbol);
-  connect(m_callstack_list, &QListWidget::itemSelectionChanged, this,
+  connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
+  connect(m_callstack_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectCallstack);
-  connect(m_function_calls_list, &QListWidget::itemSelectionChanged, this,
+  connect(m_function_calls_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCalls);
-  connect(m_function_callers_list, &QListWidget::itemSelectionChanged, this,
+  connect(m_function_callers_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCallers);
 
   connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, &CodeWidget::UpdateSymbols);
