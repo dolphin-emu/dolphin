@@ -104,8 +104,10 @@ void MemoryWidget::CreateWidgets()
   m_find_previous = new QPushButton(tr("Find &Previous"));
   m_find_ascii = new QRadioButton(tr("ASCII"));
   m_find_hex = new QRadioButton(tr("Hex"));
+  m_ignore_case = new QCheckBox(tr("Ignore Case (ASCII)"));
   m_result_label = new QLabel;
 
+  search_layout->addWidget(m_ignore_case);
   search_layout->addWidget(m_find_next);
   search_layout->addWidget(m_find_previous);
   search_layout->addWidget(m_result_label);
@@ -572,15 +574,27 @@ void MemoryWidget::FindValue(bool next)
   const u8* ptr;
   const u8* end;
 
+  auto compare_toupper = [](char ch1, char ch2) {
+    return (ch1 == ch2 || std::toupper(ch1) == std::toupper(ch2));
+  };
+
   if (next)
   {
     end = &ram_ptr[ram_size - search_for.size() + 1];
-    ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end());
+
+    if (m_ignore_case->isChecked())
+      ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end(), compare_toupper);
+    else
+      ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end());
   }
   else
   {
     end = &ram_ptr[addr - 1];
-    ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
+
+    if (m_ignore_case->isChecked())
+      ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end(), compare_toupper);
+    else
+      ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
   }
 
   if (ptr != end)

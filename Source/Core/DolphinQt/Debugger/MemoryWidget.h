@@ -69,6 +69,7 @@ private:
   QPushButton* m_dump_fake_vmem;
 
   // Search
+  QCheckBox* m_ignore_case;
   QPushButton* m_find_next;
   QPushButton* m_find_previous;
   QRadioButton* m_find_ascii;
