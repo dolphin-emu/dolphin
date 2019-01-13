@@ -53,7 +53,7 @@ void CodeTraceDialog::reject()
 }
 
 void CodeTraceDialog::CreateWidgets()
-{  
+{
   auto& settings = Settings::GetQSettings();
   restoreGeometry(settings.value(QStringLiteral("tracedialog/geometry")).toByteArray());
   auto* input_layout = new QHBoxLayout;
@@ -77,6 +77,7 @@ void CodeTraceDialog::CreateWidgets()
   m_verbose = new QCheckBox(tr("Verbose"));
   m_clear_on_loop = new QCheckBox(tr("Reset on loopback"));
   m_change_range = new QCheckBox(tr("Change Range"));
+  m_change_range->setDisabled(true);
   m_sizes = new QLabel();
 
   m_reprocess = new QPushButton(tr("Reprocess"));
@@ -117,6 +118,10 @@ void CodeTraceDialog::ConnectWidgets()
   connect(m_parent, &CodeWidget::BreakpointsChanged, this, &CodeTraceDialog::UpdateBreakpoints);
   connect(m_run_trace, &QPushButton::toggled, this, &CodeTraceDialog::OnRunTrace);
   connect(m_reprocess, &QPushButton::pressed, this, &CodeTraceDialog::DisplayTrace);
+  connect(m_change_range, &QCheckBox::toggled, [=](bool checked) {
+    if (checked)
+      OnChangeRange();
+  });
   connect(m_output_list, &QListWidget::itemClicked, m_parent, [this](QListWidgetItem* item) {
     m_parent->SetAddress(item->data(ADDRESS_ROLE).toUInt(),
                          CodeViewWidget::SetAddressUpdate::WithUpdate);
@@ -134,6 +139,9 @@ void CodeTraceDialog::ClearAll()
   m_output_list->clear();
   m_bp1->setDisabled(true);
   m_bp1->setCurrentText(tr("Uses PC as trace starting point."));
+  m_bp2->setEnabled(true);
+  m_change_range->setChecked(false);
+  m_change_range->setDisabled(true);
   UpdateBreakpoints();
   InfoDisp();
 }
@@ -202,12 +210,15 @@ void CodeTraceDialog::OnRunTrace(bool checked)
   m_bp1->addItem(
       QStringLiteral("Trace Begin   %1 : %2").arg(start_bp, 8, 16, QLatin1Char('0')).arg(instr),
       start_bp);
+  m_bp1->setDisabled(true);
 
   instr = QString::fromStdString(PowerPC::debug_interface.Disassemble(PC));
   instr.replace(QStringLiteral("\t"), QStringLiteral(" "));
   m_bp2->insertItem(
       0, QStringLiteral("Trace End   %1 : %2").arg(PC, 8, 16, QLatin1Char('0')).arg(instr), PC);
   m_bp2->setCurrentIndex(0);
+  m_bp2->setDisabled(true);
+  m_change_range->setEnabled(true);
 
   CodeTraceDialog::DisplayTrace();
 }
@@ -266,9 +277,13 @@ void CodeTraceDialog::ForwardTrace()
   TraceOutput tmp_out;
   bool first_hit = true;
 
-  trace_itr_pair p = UpdateIterator();
-  auto begin_itr = p.first;
-  auto end_itr = p.second;
+  auto begin_itr = m_code_trace.begin();
+  auto end_itr = m_code_trace.end();
+  if (UpdateIterator(begin_itr, end_itr) == false)
+  {
+    m_error_msg = tr("Change Range using invalid addresses.");
+    return;
+  }
 
   for (auto instr = begin_itr; instr != end_itr; instr++)
   {
@@ -370,11 +385,15 @@ void CodeTraceDialog::Backtrace()
   std::vector<std::string> exclude{"dc", "ic", "mt", "c", "fc"};
   TraceOutput tmp_out;
 
-  trace_itr_pair p = UpdateIterator();
-  auto begin_itr = p.first;
-  auto end_itr = p.second;
+  auto begin_itr = m_code_trace.begin();
+  auto end_itr = m_code_trace.end();
+  if (UpdateIterator(begin_itr, end_itr) == false)
+  {
+    m_error_msg = tr("Change Range using invalid addresses.");
+    return;
+  }
 
-  for (auto instr = end_itr; instr != begin_itr; instr--)
+  for (auto instr = end_itr - 1; instr != begin_itr; instr--)
   {
     // Not an instruction we care about
     if (instr->reg0.empty())
@@ -423,7 +442,7 @@ void CodeTraceDialog::Backtrace()
         continue;
     }
 
-    // Update Trace Logic.
+    // Update trace logic.
     // Store/Load
     if (instr->memory_dest)
     {
@@ -450,7 +469,7 @@ void CodeTraceDialog::Backtrace()
       // Else: Erase tracked register and save what wrote to it.
       if (!match_reg0)
         continue;
-      else if (!match_reg1 && !match_reg2)
+      else if (instr->reg0 != instr->reg1 && instr->reg0 != instr->reg2)
         m_reg.erase(itR);
 
       // If tracked register is written, track r1 / r2.
@@ -469,9 +488,13 @@ void CodeTraceDialog::Backtrace()
 void CodeTraceDialog::CodePath()
 {
   // Shows entire trace without filtering if target input is blank.
-  trace_itr_pair p = UpdateIterator();
-  auto begin_itr = p.first;
-  auto end_itr = p.second;
+  auto begin_itr = m_code_trace.begin();
+  auto end_itr = m_code_trace.end();
+  if (UpdateIterator(begin_itr, end_itr) == false)
+  {
+    m_error_msg = tr("Change Range using invalid addresses.");
+    return;
+  }
 
   TraceOutput tmp_out;
   if (m_backtrace->isChecked())
@@ -529,6 +552,12 @@ void CodeTraceDialog::DisplayTrace()
   else
     ForwardTrace();
 
+  // Second Error check
+  if (!m_error_msg.isEmpty())
+  {
+    new QListWidgetItem(m_error_msg, m_output_list);
+    m_error_msg.clear();
+  }
   if (m_trace_out.size() >= m_max_trace)
     new QListWidgetItem(tr("Max output size reached, stopped early"), m_output_list);
 
@@ -566,11 +595,25 @@ void CodeTraceDialog::DisplayTrace()
   }
 }
 
-trace_itr_pair CodeTraceDialog::UpdateIterator()
+void CodeTraceDialog::OnChangeRange()
+{
+  u32 bp1 = m_bp1->currentData().toUInt();
+  u32 bp2 = m_bp2->currentData().toUInt();
+
+  m_bp1->setEnabled(true);
+  m_bp2->setEnabled(true);
+  m_bp1->clear();
+
+  m_bp1->addItem(QStringLiteral("%1").arg(bp1, 8, 16, QLatin1Char('0')));
+  m_bp2->setEditText(QStringLiteral("%1").arg(bp2, 8, 16, QLatin1Char('0')));
+}
+
+bool CodeTraceDialog::UpdateIterator(std::vector<CodeTrace>::iterator& begin_itr_return,
+                                     std::vector<CodeTrace>::iterator& end_itr_return)
 {
   // If the range is changed for reprocessing, this will change the iterator accordingly.
-  auto begin_itr = m_code_trace.begin();
-  auto end_itr = m_code_trace.end();
+  auto begin_itr_temp = m_code_trace.begin();
+  auto end_itr_temp = m_code_trace.end();
 
   if (m_change_range->isChecked())
   {
@@ -579,21 +622,27 @@ trace_itr_pair CodeTraceDialog::UpdateIterator()
     if (!good)
       start = m_bp1->currentData().toUInt(&good);
     if (!good)
-      return std::make_pair(begin_itr, end_itr);
+      return false;
 
     u32 end = m_bp2->currentText().toUInt(&good, 16);
     if (!good)
       end = m_bp2->currentData().toUInt(&good);
     if (!good)
-      return std::make_pair(begin_itr, end_itr);
+      return false;
 
-    begin_itr = find_if(m_code_trace.begin(), m_code_trace.end(),
-                        [start](const CodeTrace& t) { return t.address == start; });
-    end_itr = find_if(m_code_trace.rbegin(), m_code_trace.rend(),
-                      [end](const CodeTrace& t) { return t.address == end; })
-                  .base();
+    begin_itr_temp = find_if(m_code_trace.begin(), m_code_trace.end(),
+                             [start](const CodeTrace& t) { return t.address == start; });
+    end_itr_temp = find_if(m_code_trace.rbegin(), m_code_trace.rend(),
+                           [end](const CodeTrace& t) { return t.address == end; })
+                       .base();
   }
-  return std::make_pair(begin_itr, end_itr);
+
+  if (begin_itr_temp == m_code_trace.end() || end_itr_temp == m_code_trace.begin())
+    return false;
+
+  begin_itr_return = begin_itr_temp;
+  end_itr_return = end_itr_temp;
+  return true;
 }
 
 void CodeTraceDialog::UpdateBreakpoints()

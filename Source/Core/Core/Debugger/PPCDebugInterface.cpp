@@ -325,38 +325,50 @@ std::string PPCDebugInterface::GetDescription(unsigned int address)
   return g_symbolDB.GetDescription(address);
 }
 
-u32 PPCDebugInterface::GetMemoryAddressFromInstruction(std::string instruction)
+const u32 PPCDebugInterface::GetMemoryAddressFromInstruction(std::string instruction)
 {
-  int offs = 0;
-  u32 roffs = 0;
-  std::regex re(",\\W*(-?0[xX]?[0-9a-fA-F]*|r\\d+)[^r^s]*.(p|toc|\\d+)");
+  u32 offset = 0;
+  u32 register_offset = 0;
+  char is_reg = 'r';
+  char is_sp = 'p';
+  char is_rtoc = 't';
+
+  std::regex re(",[^r0-]*(-?)(0[xX]?[0-9a-fA-F]*|r\\d+)[^r^s]*.(p|toc|\\d+)");
   std::smatch match;
-  std::regex_search(instruction, match, re);
+  if (!std::regex_search(instruction, match, re))
+    return 0;
+
+  const std::string offset_match = match.str(2);
+  const std::string register_match = match.str(3);
 
   // Output: match.str(1): either -+0xNNNN, 0, or rNN. Check for r later to see if a gpr needs to be
   // loaded. match.str(2): will either be p, toc, or NN. Always a gpr.
-  if (match.str(1).find("r") != std::string::npos)
+  // r0 used as a register offset is always equal to 0 and not r0.
+  if (is_reg == offset_match[0])
   {
-    const int i = stoi(match.str(1).erase(0, 1), nullptr, 10);
-    roffs = GPR(i);
+    const int register_index = std::stoi(offset_match.substr(1), nullptr, 10);
+    register_offset = (register_index == 0 ? 0 : GPR(register_index));
   }
   else
   {
-    offs = std::stoi(match.str(1), nullptr, 16);
+    offset = (u32)std::stoi(offset_match, nullptr, 16);
   }
 
-  // sp and rtoc need to be converted to 1 and 2. First letter is already removed.
+  // sp and rtoc need to be converted to 1 and 2.
   int i;
-  if (match.str(2).find("p") != std::string::npos)
+  if (is_sp == register_match[0])
     i = 1;
-  else if (match.str(2).find("toc") != std::string::npos)
+  else if (is_rtoc == register_match[0])
     i = 2;
   else
-    i = std::stoi(match.str(2), nullptr, 10);
+    i = std::stoi(register_match, nullptr, 10);
 
-  u32 addr = GPR(i);
-  addr = addr + offs + roffs;
-  return addr;
+  u32 base_address = GPR(i);
+
+  if (!match.str(1).empty())
+    return base_address - offset;
+
+  return base_address + offset + register_offset;
 }
 
 unsigned int PPCDebugInterface::GetPC()

@@ -43,7 +43,7 @@ void CodeDiffDialog::reject()
 {
   // Triggered on window close. Make sure to free memory and reset info message.
   ClearData();
-  InfoDisp(); 
+  InfoDisp();
   auto& settings = Settings::GetQSettings();
   settings.setValue(QStringLiteral("diffdialog/geometry"), saveGeometry());
   QDialog::reject();

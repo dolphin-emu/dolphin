@@ -33,6 +33,7 @@ public:
   explicit MemoryViewWidget(QWidget* parent = nullptr);
 
   void Update();
+  const u32 PCTargetMemory();
   void ToggleBreakpoint();
   void ToggleRowBreakpoint(bool row);
 

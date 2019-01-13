@@ -35,9 +35,6 @@ struct TraceOutput
   std::string instruction;
 };
 
-typedef std::pair<std::vector<CodeTrace>::iterator, std::vector<CodeTrace>::iterator>
-    trace_itr_pair;
-
 class CodeTraceDialog : public QDialog
 {
   Q_OBJECT
@@ -56,7 +53,9 @@ private:
   void Backtrace();
   void CodePath();
   void DisplayTrace();
-  trace_itr_pair UpdateIterator();
+  void OnChangeRange();
+  bool UpdateIterator(std::vector<CodeTrace>::iterator& begin_itr,
+                      std::vector<CodeTrace>::iterator& end_itr);
   void UpdateBreakpoints();
   void InfoDisp();
 

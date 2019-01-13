@@ -45,16 +45,10 @@ CodeViewWidget::CodeViewWidget()
   setSelectionBehavior(QAbstractItemView::SelectRows);
 
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  for (int i = 1; i < columnCount(); i++)
-  {
-    horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
-  }
-
-  horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
   verticalHeader()->hide();
   horizontalHeader()->hide();
-  horizontalHeader()->setStretchLastSection(true);
 
   setFont(Settings::Instance().GetDebugFont());
 
@@ -84,15 +78,12 @@ static u32 GetBranchFromAddress(u32 addr)
 
 void CodeViewWidget::FontBasedSizing()
 {
-  // Set fixed column width for param column based on max possible size, to reduce resizing while
-  // scrolling. Set tighter row height.
+  // Set tighter row height. Set BP column sizing. This needs to run when font type changes.
   QFontMetrics fm(Settings::Instance().GetDebugFont());
-  const int fontw = fm.width(QStringLiteral("r20, r20, 20, 30, 30 (00000000)"));
-  setColumnWidth(3, fontw);
-  const int fonth = fm.height() + 1;
-  verticalHeader()->setMaximumSectionSize(fonth);
-  horizontalHeader()->setMinimumSectionSize(fonth + 2);
-  setColumnWidth(0, fonth + 2);
+  const int rowh = fm.height() + 1;
+  verticalHeader()->setMaximumSectionSize(rowh);
+  horizontalHeader()->setMinimumSectionSize(rowh + 5);
+  setColumnWidth(0, rowh + 5);
   Update();
 }
 
@@ -113,10 +104,10 @@ void CodeViewWidget::Update()
   setRowCount(rows);
 
   QFontMetrics fm(Settings::Instance().GetDebugFont());
-  const int fonth = fm.height();
+  const int rowh = fm.height() + 1;
 
   for (int i = 0; i < rows; i++)
-    setRowHeight(i, fonth + 1);
+    setRowHeight(i, rowh);
 
   u32 pc = PowerPC::ppcState.pc;
 
@@ -139,9 +130,17 @@ void CodeViewWidget::Update()
     std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
     std::string desc = PowerPC::debug_interface.GetDescription(addr);
 
-    auto* ins_item = new QTableWidgetItem(QString::fromStdString(ins));
-    auto* param_item = new QTableWidgetItem(QString::fromStdString(param));
-    auto* description_item = new QTableWidgetItem(QString::fromStdString(desc));
+    // Adds whitespace and a minimum size to ins and param. Helps to prevent frequent resizing while
+    // scrolling.
+    QString ins_formatted =
+        QStringLiteral("%1").arg(QString::fromStdString(ins), -7, QLatin1Char(' '));
+    QString param_formatted =
+        QStringLiteral("%1").arg(QString::fromStdString(param), -19, QLatin1Char(' '));
+    QString desc_formatted = QStringLiteral("%1   ").arg(QString::fromStdString(desc));
+
+    auto* ins_item = new QTableWidgetItem(ins_formatted);
+    auto* param_item = new QTableWidgetItem(param_formatted);
+    auto* description_item = new QTableWidgetItem(desc_formatted);
 
     for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item})
     {
@@ -181,7 +180,7 @@ void CodeViewWidget::Update()
     {
       bp_item->setData(
           Qt::DecorationRole,
-          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(fonth, fonth)));
+          Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2)));
     }
 
     setItem(i, 0, bp_item);
@@ -196,6 +195,7 @@ void CodeViewWidget::Update()
     }
   }
 
+  resizeColumnsToContents();
   g_symbolDB.FillInCallers();
 
   repaint();
