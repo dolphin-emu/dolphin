@@ -99,7 +99,7 @@ void WiiPane::CreateMisc()
   auto* misc_settings_group_layout = new QGridLayout();
   misc_settings_group->setLayout(misc_settings_group_layout);
   m_main_layout->addWidget(misc_settings_group);
-  m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
+  m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60/EuRGB60 Mode (PAL Only)"));
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
@@ -121,7 +121,7 @@ void WiiPane::CreateMisc()
   m_system_language_choice->addItem(tr("Korean"));
 
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
-                                       "(576i) for PAL games.\nMay not work for all games."));
+                                       "(576i) \nexhanging some visual fidelity for higher frame rate.\nMay not work for all PAL games."));
   m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
   m_sd_card_checkbox->setToolTip(tr("Saved to /Wii/sd.raw (default size is 128mb)."));
