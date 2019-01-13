@@ -6,13 +6,14 @@
 
 #include <QWidget>
 
+class QCheckBox;
+class QComboBox;
 class QLabel;
-class QSlider;
-class QVBoxLayout;
 class QListWidget;
 class QPushButton;
-class QComboBox;
-class QCheckBox;
+class QRadioButton;
+class QSlider;
+class QVBoxLayout;
 
 class WiiPane : public QWidget
 {
@@ -22,27 +23,28 @@ public:
   void OnEmulationStateChanged(bool running);
 
 private:
-  void PopulateUSBPassthroughListWidget();
   void CreateLayout();
   void ConnectLayout();
   void CreateMisc();
-  void CreateWhitelistedUSBPassthroughDevices();
   void CreateWiiRemoteSettings();
+  void CreateWhitelistedUSBPassthroughDevices();
+  void PopulateUSBPassthroughListWidget();
+
+  void OnUSBWhitelistAddButton();
+  void OnUSBWhitelistRemoveButton();
 
   void LoadConfig();
   void OnSaveConfig();
 
   void ValidateSelectionState();
 
-  void OnUSBWhitelistAddButton();
-  void OnUSBWhitelistRemoveButton();
-
   // Widgets
   QVBoxLayout* m_main_layout;
 
   // Misc Settings
   QCheckBox* m_screensaver_checkbox;
-  QCheckBox* m_pal60_mode_checkbox;
+  QRadioButton* m_display_mode_pal_50hz_576i;
+  QRadioButton* m_display_mode_pal_60hz_480i;
   QCheckBox* m_sd_card_checkbox;
   QCheckBox* m_connect_keyboard_checkbox;
   QComboBox* m_system_language_choice;

@@ -12,9 +12,11 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QSlider>
 #include <QSpacerItem>
 #include <QStringList>
+#include <QVBoxLayout>
 
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
@@ -71,7 +73,10 @@ void WiiPane::ConnectLayout()
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &WiiPane::OnSaveConfig);
   connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
-  connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
+
+  connect(m_display_mode_pal_50hz_576i, &QRadioButton::toggled, this, &WiiPane::OnSaveConfig);
+  connect(m_display_mode_pal_60hz_480i, &QRadioButton::toggled, this, &WiiPane::OnSaveConfig);
+
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
@@ -99,7 +104,17 @@ void WiiPane::CreateMisc()
   auto* misc_settings_group_layout = new QGridLayout();
   misc_settings_group->setLayout(misc_settings_group_layout);
   m_main_layout->addWidget(misc_settings_group);
-  m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
+
+  auto* display_mode_pal_box = new QGroupBox(tr("Display Mode (PAL)"));
+  auto* refresh_rate_pal_layout = new QHBoxLayout;
+
+  display_mode_pal_box->setLayout(refresh_rate_pal_layout);
+  m_display_mode_pal_50hz_576i = new QRadioButton(tr("50 Hz (576i)"));
+  m_display_mode_pal_60hz_480i = new QRadioButton(tr("60 Hz (480i)"));
+
+  refresh_rate_pal_layout->addWidget(m_display_mode_pal_50hz_576i);
+  refresh_rate_pal_layout->addWidget(m_display_mode_pal_60hz_480i);
+
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
@@ -120,38 +135,30 @@ void WiiPane::CreateMisc()
   m_system_language_choice->addItem(tr("Traditional Chinese"));
   m_system_language_choice->addItem(tr("Korean"));
 
-  m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
-                                       "(576i) for PAL games.\nMay not work for all games."));
+  m_display_mode_pal_50hz_576i->setToolTip(
+      tr("Sets the Wii display output to the standard 50Hz (576i) "
+         "mode.\nAlmost all PAL titles support this mode."));
+  m_display_mode_pal_60hz_480i->setToolTip(
+      tr("Sets the Wii display mode to 60Hz (480i) instead of the standard 50Hz "
+         "(576i).\nOnly works with PAL titles that support this mode, while titles that do not\n"
+         "support it will fallback to 50hz (576i) mode."));
+
   m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
   m_sd_card_checkbox->setToolTip(tr("Saved to /Wii/sd.raw (default size is 128mb)."));
   m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
 
-  misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_sd_card_checkbox, 0, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 1, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice, 3, 1, 1, 1);
-}
+  display_mode_pal_box->setFixedSize(200, 78);
+  m_aspect_ratio_choice->setFixedWidth(200);
 
-void WiiPane::CreateWhitelistedUSBPassthroughDevices()
-{
-  auto* whitelisted_usb_passthrough_devices_group =
-      new QGroupBox(tr("Whitelisted USB Passthrough Devices"));
-  auto* whitelist_layout = new QGridLayout();
-  m_whitelist_usb_list = new QListWidget();
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0, 1, -1);
-  whitelist_layout->setColumnStretch(0, 1);
-  m_whitelist_usb_add_button = new QPushButton(tr("Add..."));
-  m_whitelist_usb_remove_button = new QPushButton(tr("Remove"));
-  whitelist_layout->addWidget(m_whitelist_usb_add_button, 1, 1);
-  whitelist_layout->addWidget(m_whitelist_usb_remove_button, 1, 2);
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0);
-  whitelisted_usb_passthrough_devices_group->setLayout(whitelist_layout);
-  m_main_layout->addWidget(whitelisted_usb_passthrough_devices_group);
+  misc_settings_group_layout->addWidget(display_mode_pal_box, 0, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_sd_card_checkbox, 0, 0, 1, 1, Qt::AlignTop);
+  misc_settings_group_layout->addWidget(m_screensaver_checkbox, 0, 0, 1, 1, Qt::AlignVCenter);
+  misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 0, 0, 1, 1, Qt::AlignBottom);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 1, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 1, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice_label, 2, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice, 2, 1, 1, 1);
 }
 
 void WiiPane::CreateWiiRemoteSettings()
@@ -189,22 +196,69 @@ void WiiPane::CreateWiiRemoteSettings()
   wii_remote_settings_group_layout->addWidget(m_wiimote_motor, 3, 0, 1, -1);
 }
 
-void WiiPane::OnEmulationStateChanged(bool running)
+void WiiPane::CreateWhitelistedUSBPassthroughDevices()
 {
-  m_screensaver_checkbox->setEnabled(!running);
-  m_pal60_mode_checkbox->setEnabled(!running);
-  m_system_language_choice->setEnabled(!running);
-  m_aspect_ratio_choice->setEnabled(!running);
-  m_wiimote_motor->setEnabled(!running);
-  m_wiimote_speaker_volume->setEnabled(!running);
-  m_wiimote_ir_sensitivity->setEnabled(!running);
-  m_wiimote_ir_sensor_position->setEnabled(!running);
+  auto* whitelisted_usb_passthrough_devices_group =
+      new QGroupBox(tr("Whitelisted USB Passthrough Devices"));
+  auto* whitelist_layout = new QGridLayout();
+  m_whitelist_usb_list = new QListWidget();
+  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0, 1, -1);
+  whitelist_layout->setColumnStretch(0, 1);
+  m_whitelist_usb_add_button = new QPushButton(tr("Add..."));
+  m_whitelist_usb_remove_button = new QPushButton(tr("Remove"));
+  whitelist_layout->addWidget(m_whitelist_usb_add_button, 1, 1);
+  whitelist_layout->addWidget(m_whitelist_usb_remove_button, 1, 2);
+  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0);
+  whitelisted_usb_passthrough_devices_group->setLayout(whitelist_layout);
+  m_main_layout->addWidget(whitelisted_usb_passthrough_devices_group);
+}
+
+void WiiPane::PopulateUSBPassthroughListWidget()
+{
+  m_whitelist_usb_list->clear();
+  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  {
+    QListWidgetItem* usb_lwi =
+        new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));
+    m_whitelist_usb_list->addItem(usb_lwi);
+  }
+  ValidateSelectionState();
+}
+
+void WiiPane::OnUSBWhitelistAddButton()
+{
+  USBDeviceAddToWhitelistDialog usb_whitelist_dialog(this);
+  connect(&usb_whitelist_dialog, &USBDeviceAddToWhitelistDialog::accepted, this,
+          &WiiPane::PopulateUSBPassthroughListWidget);
+  usb_whitelist_dialog.exec();
+}
+
+void WiiPane::OnUSBWhitelistRemoveButton()
+{
+  QString device = m_whitelist_usb_list->currentItem()->text().left(9);
+  QString vid =
+      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[0]);
+  QString pid =
+      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[1]);
+  const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
+  const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
+  SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});
+  PopulateUSBPassthroughListWidget();
 }
 
 void WiiPane::LoadConfig()
 {
   m_screensaver_checkbox->setChecked(Config::Get(Config::SYSCONF_SCREENSAVER));
-  m_pal60_mode_checkbox->setChecked(Config::Get(Config::SYSCONF_PAL60));
+
+  if (Config::Get(Config::SYSCONF_PAL60) == true)
+  {
+    m_display_mode_pal_60hz_480i->setChecked(true);
+  }
+  else
+  {
+    m_display_mode_pal_50hz_576i->setChecked(true);
+  }
+
   m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
   m_sd_card_checkbox->setChecked(SConfig::GetInstance().m_WiiSDCard);
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
@@ -222,7 +276,16 @@ void WiiPane::LoadConfig()
 void WiiPane::OnSaveConfig()
 {
   Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
-  Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
+
+  if (m_display_mode_pal_60hz_480i->isChecked())
+  {
+    Config::SetBase(Config::SYSCONF_PAL60, true);
+  }
+  else
+  {
+    Config::SetBase(Config::SYSCONF_PAL60, false);
+  }
+
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
 
   if (SConfig::GetInstance().m_WiiSDCard != m_sd_card_checkbox->isChecked())
@@ -247,35 +310,15 @@ void WiiPane::ValidateSelectionState()
   m_whitelist_usb_remove_button->setEnabled(m_whitelist_usb_list->currentIndex().isValid());
 }
 
-void WiiPane::OnUSBWhitelistAddButton()
+void WiiPane::OnEmulationStateChanged(bool running)
 {
-  USBDeviceAddToWhitelistDialog usb_whitelist_dialog(this);
-  connect(&usb_whitelist_dialog, &USBDeviceAddToWhitelistDialog::accepted, this,
-          &WiiPane::PopulateUSBPassthroughListWidget);
-  usb_whitelist_dialog.exec();
-}
-
-void WiiPane::OnUSBWhitelistRemoveButton()
-{
-  QString device = m_whitelist_usb_list->currentItem()->text().left(9);
-  QString vid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[0]);
-  QString pid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[1]);
-  const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
-  const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
-  SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});
-  PopulateUSBPassthroughListWidget();
-}
-
-void WiiPane::PopulateUSBPassthroughListWidget()
-{
-  m_whitelist_usb_list->clear();
-  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
-  {
-    QListWidgetItem* usb_lwi =
-        new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));
-    m_whitelist_usb_list->addItem(usb_lwi);
-  }
-  ValidateSelectionState();
+  m_screensaver_checkbox->setEnabled(!running);
+  m_display_mode_pal_60hz_480i->setEnabled(!running);
+  m_display_mode_pal_50hz_576i->setEnabled(!running);
+  m_system_language_choice->setEnabled(!running);
+  m_aspect_ratio_choice->setEnabled(!running);
+  m_wiimote_motor->setEnabled(!running);
+  m_wiimote_speaker_volume->setEnabled(!running);
+  m_wiimote_ir_sensitivity->setEnabled(!running);
+  m_wiimote_ir_sensor_position->setEnabled(!running);
 }

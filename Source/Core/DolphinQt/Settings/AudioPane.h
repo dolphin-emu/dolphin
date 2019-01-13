@@ -8,8 +8,8 @@
 
 class QCheckBox;
 class QComboBox;
-class QLabel;
 class QGridLayout;
+class QLabel;
 class QRadioButton;
 class QSlider;
 class QSpinBox;
