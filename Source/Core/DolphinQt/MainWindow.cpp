@@ -215,7 +215,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
-    QMessageBox::critical(this, tr("Error"), tr("Error occured while loading some texture packs"));
+  {
+    QMessageBox::warning(this, tr("Dolphin - Resource Pack Manager"),
+                         tr("Error: Failed to initialize one or more resource packs."));
+  }
 
   for (auto& pack : ResourcePack::GetPacks())
   {

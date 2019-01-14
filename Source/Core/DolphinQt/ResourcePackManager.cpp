@@ -289,7 +289,9 @@ void ResourcePackManager::PriorityUp()
 
 void ResourcePackManager::Refresh()
 {
-  ResourcePack::Init();
+  if (!ResourcePack::Init())
+    QMessageBox::critical(this, tr("Dolphin - Resource Pack Manager"),
+                          tr("Error: Failed to initialize one or more resource packs."));
   RepopulateTable();
 }
 

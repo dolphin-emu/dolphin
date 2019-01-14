@@ -63,7 +63,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
   if (unzLocateFile(file, "manifest.json", 0) == UNZ_END_OF_LIST_OF_FILE)
   {
     m_valid = false;
-    m_error = "Resource pack is missing a manifest.";
+    m_error = "Resource pack is missing a manifest file.";
     return;
   }
 
