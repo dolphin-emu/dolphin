@@ -44,17 +44,26 @@ const std::string& GetLayerName(LayerType layer);
 LayerType GetActiveLayerForConfig(const ConfigLocation&);
 
 template <typename T>
-T Get(LayerType layer, const ConfigInfo<T>& info)
+T Get(LayerType layer_type, const ConfigInfo<T>& info)
 {
-  if (layer == LayerType::Meta)
+  if (layer_type == LayerType::Meta)
     return Get(info);
-  return GetLayer(layer)->Get(info);
+
+  Layer* const layer = GetLayer(layer_type);
+  if (!layer)
+    return {};
+
+  return layer->Get(info);
 }
 
 template <typename T>
 T Get(const ConfigInfo<T>& info)
 {
-  return GetLayer(GetActiveLayerForConfig(info.location))->Get(info);
+  Layer* const layer = GetLayer(GetActiveLayerForConfig(info.location));
+  if (!layer)
+    return {};
+
+  return layer->Get(info);
 }
 
 template <typename T>
@@ -70,9 +79,13 @@ LayerType GetActiveLayerForConfig(const ConfigInfo<T>& info)
 }
 
 template <typename T>
-void Set(LayerType layer, const ConfigInfo<T>& info, const std::common_type_t<T>& value)
+void Set(LayerType layer_type, const ConfigInfo<T>& info, const std::common_type_t<T>& value)
 {
-  GetLayer(layer)->Set(info, value);
+  Layer* const layer = GetLayer(layer_type);
+  if (!layer)
+    return;
+
+  layer->Set(info, value);
   InvokeConfigChangedCallbacks();
 }
 
