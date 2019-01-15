@@ -95,10 +95,10 @@ void WiiPane::ConnectLayout()
 
 void WiiPane::CreateMisc()
 {
-  auto* misc_settings_group = new QGroupBox(tr("Misc Settings"));
+  auto* system_settings_group = new QGroupBox(tr("System Settings"));
   auto* misc_settings_group_layout = new QGridLayout();
-  misc_settings_group->setLayout(misc_settings_group_layout);
-  m_main_layout->addWidget(misc_settings_group);
+  system_settings_group->setLayout(misc_settings_group_layout);
+  m_main_layout->addWidget(system_settings_group);
   m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
