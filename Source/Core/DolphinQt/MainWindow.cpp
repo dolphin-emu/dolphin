@@ -168,6 +168,17 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   return wsi;
 }
 
+static std::vector<std::string> StringListToStdVector(QStringList list)
+{
+  std::vector<std::string> result;
+  result.reserve(list.size());
+
+  for (const QString& s : list)
+    result.push_back(s.toStdString());
+
+  return result;
+}
+
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
@@ -387,7 +398,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::EjectDisc, this, &MainWindow::EjectDisc);
   connect(m_menu_bar, &MenuBar::ChangeDisc, this, &MainWindow::ChangeDisc);
   connect(m_menu_bar, &MenuBar::BootDVDBackup, this,
-          [this](const QString& drive) { StartGame(drive); });
+          [this](const QString& drive) { StartGame(drive, ScanForSecondDisc::No); });
 
   // Emulation
   connect(m_menu_bar, &MenuBar::Pause, this, &MainWindow::Pause);
@@ -610,30 +621,30 @@ void MainWindow::RefreshGameList()
   Settings::Instance().RefreshGameList();
 }
 
-QString MainWindow::PromptFileName()
+QStringList MainWindow::PromptFileNames()
 {
   auto& settings = Settings::Instance().GetQSettings();
-  QString path = QFileDialog::getOpenFileName(
+  QStringList paths = QFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QStringLiteral("")).toString(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;"
          "All Files (*)"));
 
-  if (!path.isEmpty())
+  if (!paths.isEmpty())
   {
     settings.setValue(QStringLiteral("mainwindow/lastdir"),
-                      QFileInfo(path).absoluteDir().absolutePath());
+                      QFileInfo(paths.front()).absoluteDir().absolutePath());
   }
 
-  return path;
+  return paths;
 }
 
 void MainWindow::ChangeDisc()
 {
-  QString file = PromptFileName();
+  std::vector<std::string> paths = StringListToStdVector(PromptFileNames());
 
-  if (!file.isEmpty())
-    Core::RunAsCPUThread([&file] { DVDInterface::ChangeDisc(file.toStdString()); });
+  if (!paths.empty())
+    Core::RunAsCPUThread([&paths] { DVDInterface::ChangeDisc(paths); });
 }
 
 void MainWindow::EjectDisc()
@@ -643,9 +654,9 @@ void MainWindow::EjectDisc()
 
 void MainWindow::Open()
 {
-  QString file = PromptFileName();
-  if (!file.isEmpty())
-    StartGame(file);
+  QStringList files = PromptFileNames();
+  if (!files.isEmpty())
+    StartGame(StringListToStdVector(files));
 }
 
 void MainWindow::Play(const std::optional<std::string>& savestate_path)
@@ -664,7 +675,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
-      StartGame(selection->GetFilePath(), savestate_path);
+      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes, savestate_path);
       EnableScreenSaver(false);
     }
     else
@@ -672,7 +683,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
       const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
-        StartGame(default_path, savestate_path);
+        StartGame(default_path, ScanForSecondDisc::Yes, savestate_path);
         EnableScreenSaver(false);
       }
       else
@@ -833,15 +844,44 @@ void MainWindow::ScreenShot()
   Core::SaveScreenShot();
 }
 
-void MainWindow::StartGame(const QString& path, const std::optional<std::string>& savestate_path)
+void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
+                                               const std::optional<std::string>& savestate_path)
 {
-  StartGame(path.toStdString(), savestate_path);
+  auto second_game = m_game_list->FindSecondDisc(game);
+
+  std::vector<std::string> paths = {game.GetFilePath()};
+  if (second_game != nullptr)
+    paths.push_back(second_game->GetFilePath());
+
+  StartGame(paths, savestate_path);
 }
 
-void MainWindow::StartGame(const std::string& path,
+void MainWindow::StartGame(const QString& path, ScanForSecondDisc scan,
                            const std::optional<std::string>& savestate_path)
 {
+  StartGame(path.toStdString(), scan, savestate_path);
+}
+
+void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
+                           const std::optional<std::string>& savestate_path)
+{
+  if (scan == ScanForSecondDisc::Yes)
+  {
+    std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
+    if (game != nullptr)
+    {
+      ScanForSecondDiscAndStartGame(*game, savestate_path);
+      return;
+    }
+  }
+
   StartGame(BootParameters::GenerateFromFile(path, savestate_path));
+}
+
+void MainWindow::StartGame(const std::vector<std::string>& paths,
+                           const std::optional<std::string>& savestate_path)
+{
+  StartGame(BootParameters::GenerateFromFile(paths, savestate_path));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
@@ -1075,7 +1115,7 @@ void MainWindow::ShowFIFOPlayer()
   {
     m_fifo_window = new FIFOPlayerWindow(this);
     connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
-            [this](const QString& path) { StartGame(path); });
+            [this](const QString& path) { StartGame(path, ScanForSecondDisc::No); });
   }
 
   m_fifo_window->show();
@@ -1170,7 +1210,7 @@ void MainWindow::NetPlayInit()
 #endif
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
-          [this](const QString& path) { StartGame(path); });
+          [this](const QString& path) { StartGame(path, ScanForSecondDisc::Yes); });
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
@@ -1346,38 +1386,48 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 
 void MainWindow::dropEvent(QDropEvent* event)
 {
-  const auto& urls = event->mimeData()->urls();
+  const QList<QUrl>& urls = event->mimeData()->urls();
   if (urls.empty())
     return;
 
-  const auto& url = urls[0];
-  QFileInfo file_info(url.toLocalFile());
+  QStringList files;
+  QStringList folders;
 
-  auto path = file_info.filePath();
-
-  if (!file_info.exists() || !file_info.isReadable())
+  for (const QUrl& url : urls)
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
-    return;
+    QFileInfo file_info(url.toLocalFile());
+    QString path = file_info.filePath();
+
+    if (!file_info.exists() || !file_info.isReadable())
+    {
+      QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+      return;
+    }
+
+    (file_info.isFile() ? files : folders).append(path);
   }
 
-  if (file_info.isFile())
+  if (!files.isEmpty())
   {
-    StartGame(path);
+    StartGame(StringListToStdVector(files));
   }
   else
   {
-    auto& settings = Settings::Instance();
+    Settings& settings = Settings::Instance();
+    const bool show_confirm = settings.GetPaths().size() != 0;
 
-    if (settings.GetPaths().size() != 0)
+    for (const QString& folder : folders)
     {
-      if (QMessageBox::question(
-              this, tr("Confirm"),
-              tr("Do you want to add \"%1\" to the list of Game Paths?").arg(path)) !=
-          QMessageBox::Yes)
-        return;
+      if (show_confirm)
+      {
+        if (QMessageBox::question(
+                this, tr("Confirm"),
+                tr("Do you want to add \"%1\" to the list of Game Paths?").arg(folder)) !=
+            QMessageBox::Yes)
+          return;
+      }
+      settings.AddPath(folder);
     }
-    settings.AddPath(path);
   }
 }
 

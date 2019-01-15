@@ -75,7 +75,7 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");
   parser->add_option("-e", "--exec")
-      .action("store")
+      .action("append")
       .metavar("<file>")
       .type("string")
       .help("Load the specified file");

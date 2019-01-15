@@ -737,6 +737,17 @@ bool GameList::HasMultipleSelected() const
                                      m_grid->selectionModel()->selectedIndexes().size() > 1;
 }
 
+std::shared_ptr<const UICommon::GameFile> GameList::FindGame(const std::string& path) const
+{
+  return m_model->FindGame(path);
+}
+
+std::shared_ptr<const UICommon::GameFile>
+GameList::FindSecondDisc(const UICommon::GameFile& game) const
+{
+  return m_model->FindSecondDisc(game);
+}
+
 void GameList::SetViewColumn(int col, bool view)
 {
   m_list->setColumnHidden(col, !view);

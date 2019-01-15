@@ -278,7 +278,7 @@ void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& gam
 
 void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
-  int index = FindGame(game->GetFilePath());
+  int index = FindGameIndex(game->GetFilePath());
   if (index < 0)
   {
     AddGame(game);
@@ -292,7 +292,7 @@ void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& 
 
 void GameListModel::RemoveGame(const std::string& path)
 {
-  int entry = FindGame(path);
+  int entry = FindGameIndex(path);
   if (entry < 0)
     return;
 
@@ -301,7 +301,13 @@ void GameListModel::RemoveGame(const std::string& path)
   endRemoveRows();
 }
 
-int GameListModel::FindGame(const std::string& path) const
+std::shared_ptr<const UICommon::GameFile> GameListModel::FindGame(const std::string& path) const
+{
+  const int index = FindGameIndex(path);
+  return index < 0 ? nullptr : m_games[index];
+}
+
+int GameListModel::FindGameIndex(const std::string& path) const
 {
   for (int i = 0; i < m_games.size(); i++)
   {
@@ -309,6 +315,29 @@ int GameListModel::FindGame(const std::string& path) const
       return i;
   }
   return -1;
+}
+
+std::shared_ptr<const UICommon::GameFile>
+GameListModel::FindSecondDisc(const UICommon::GameFile& game) const
+{
+  std::shared_ptr<const UICommon::GameFile> match_without_revision = nullptr;
+
+  if (DiscIO::IsDisc(game.GetPlatform()))
+  {
+    for (auto& other_game : m_games)
+    {
+      if (game.GetGameID() == other_game->GetGameID() &&
+          game.GetDiscNumber() != other_game->GetDiscNumber())
+      {
+        if (game.GetRevision() == other_game->GetRevision())
+          return other_game;
+        else
+          match_without_revision = other_game;
+      }
+    }
+  }
+
+  return match_without_revision;
 }
 
 void GameListModel::SetSearchTerm(const QString& term)
