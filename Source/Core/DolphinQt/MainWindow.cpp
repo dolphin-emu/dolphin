@@ -874,8 +874,18 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     Discord::UpdateDiscordPresence();
 #endif
 
-  if (SConfig::GetInstance().bFullscreen)
-    m_fullscreen_requested = true;
+  Config::Layer* layer = Config::GetLayer(Config::LayerType::CommandLine);
+  if (layer != nullptr && layer->Exists(Config::MAIN_FULL_SCREEN.location))
+  {
+    m_fullscreen_requested = layer->Get(Config::MAIN_FULL_SCREEN);
+    layer->DeleteKey(Config::MAIN_FULL_SCREEN.location);
+    layer->Save();
+  }
+  else
+  {
+    if (SConfig::GetInstance().bFullscreen)
+      m_fullscreen_requested = true;
+  }
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling

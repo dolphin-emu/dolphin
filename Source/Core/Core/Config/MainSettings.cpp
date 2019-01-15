@@ -122,4 +122,7 @@ const ConfigInfo<std::string> MAIN_DUMP_PATH{{System::Main, "General", "DumpPath
 const ConfigInfo<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const ConfigInfo<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 
+// Main.Display
+const ConfigInfo<bool> MAIN_FULL_SCREEN{{System::Main, "Display", "FullScreen"}, false};
+
 }  // namespace Config
