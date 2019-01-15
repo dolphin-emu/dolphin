@@ -244,73 +244,63 @@ static void Setup()
 
 static bool CheckDeviceAccess(libusb_device* device)
 {
-  int ret;
   libusb_device_descriptor desc;
-  int dRet = libusb_get_device_descriptor(device, &desc);
-  if (dRet)
+  int ret = libusb_get_device_descriptor(device, &desc);
+  if (ret)
   {
     // could not acquire the descriptor, no point in trying to use it.
-    ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", dRet);
+    ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", ret);
     return false;
   }
 
-  if (desc.idVendor == 0x057e && desc.idProduct == 0x0337)
+  if (desc.idVendor != 0x057e || desc.idProduct != 0x0337)
   {
-    NOTICE_LOG(SERIALINTERFACE, "Found GC Adapter with Vendor: %X Product: %X Devnum: %d",
-               desc.idVendor, desc.idProduct, 1);
+    // This isn’t the device we are looking for.
+    return false;
+  }
 
-    u8 bus = libusb_get_bus_number(device);
-    u8 port = libusb_get_device_address(device);
-    ret = libusb_open(device, &s_handle);
-    if (ret)
-    {
-      if (ret == LIBUSB_ERROR_ACCESS)
-      {
-        if (dRet)
-        {
-          ERROR_LOG(SERIALINTERFACE,
-                    "Dolphin does not have access to this device: Bus %03d Device "
-                    "%03d: ID ????:???? (couldn't get id).",
-                    bus, port);
-        }
-        else
-        {
-          ERROR_LOG(
-              SERIALINTERFACE,
+  NOTICE_LOG(SERIALINTERFACE, "Found GC Adapter with Vendor: %X Product: %X Devnum: %d",
+             desc.idVendor, desc.idProduct, 1);
+
+  u8 bus = libusb_get_bus_number(device);
+  u8 port = libusb_get_device_address(device);
+  ret = libusb_open(device, &s_handle);
+  if (ret == LIBUSB_ERROR_ACCESS)
+  {
+    ERROR_LOG(SERIALINTERFACE,
               "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.",
               bus, port, desc.idVendor, desc.idProduct);
-        }
-      }
-      else
-      {
-        ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
-        if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
-          s_libusb_driver_not_supported = true;
-      }
-      return false;
-    }
-    else
-    {
-      ret = libusb_kernel_driver_active(s_handle, 0);
-      if (ret == 1)
-      {
-        ret = libusb_detach_kernel_driver(s_handle, 0);
-        if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-          ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
-      }
-    }
-    // this split is needed so that we don't avoid claiming the interface when
-    // detaching the kernel driver is successful
-    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-      return false;
-
-    ret = libusb_claim_interface(s_handle, 0);
-    if (ret)
-      ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-    else
-      return true;
+    return false;
   }
-  return false;
+  if (ret)
+  {
+    ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
+    if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
+      s_libusb_driver_not_supported = true;
+    return false;
+  }
+
+  ret = libusb_kernel_driver_active(s_handle, 0);
+  if (ret == 1)
+  {
+    ret = libusb_detach_kernel_driver(s_handle, 0);
+    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+      ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
+  }
+
+  // this split is needed so that we don't avoid claiming the interface when
+  // detaching the kernel driver is successful
+  if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+    return false;
+
+  ret = libusb_claim_interface(s_handle, 0);
+  if (ret)
+  {
+    ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
+    return false;
+  }
+
+  return true;
 }
 
 static void AddGCAdapter(libusb_device* device)
