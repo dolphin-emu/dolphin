@@ -72,8 +72,9 @@ private:
   // Search
   QPushButton* m_find_next;
   QPushButton* m_find_previous;
-  QRadioButton* m_find_ascii;
-  QRadioButton* m_find_hex;
+  QRadioButton* m_input_ascii;
+  QRadioButton* m_input_float;
+  QRadioButton* m_input_hex;
   QLabel* m_result_label;
 
   // Datatypes
