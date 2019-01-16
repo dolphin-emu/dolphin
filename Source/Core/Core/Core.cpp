@@ -475,7 +475,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   else
   {
-    // Update references in case controllers were refreshed
     g_controller_interface.ChangeWindow(wsi.render_surface);
     Pad::LoadConfig();
     Keyboard::LoadConfig();
@@ -485,12 +484,14 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   const bool delete_savestate = boot->delete_savestate;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
+  bool init_wiimotes = false;
   if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     if (init_controllers)
     {
       Wiimote::Initialize(savestate_path ? Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
                                            Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+      init_wiimotes = true;
     }
     else
     {
@@ -501,11 +502,13 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       NetPlay::SetupWiimotes();
   }
 
-  Common::ScopeGuard controller_guard{[init_controllers] {
+  Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
     if (!init_controllers)
       return;
 
-    Wiimote::Shutdown();
+    if (init_wiimotes)
+      Wiimote::Shutdown();
+
     Keyboard::Shutdown();
     Pad::Shutdown();
     g_controller_interface.Shutdown();

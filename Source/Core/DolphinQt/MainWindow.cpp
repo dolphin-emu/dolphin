@@ -292,11 +292,11 @@ void MainWindow::ShutdownControllers()
 {
   m_hotkey_scheduler->Stop();
 
-  g_controller_interface.Shutdown();
   Pad::Shutdown();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
+  g_controller_interface.Shutdown();
 
   m_hotkey_scheduler->deleteLater();
 }

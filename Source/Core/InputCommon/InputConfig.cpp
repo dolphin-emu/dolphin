@@ -147,6 +147,21 @@ std::size_t InputConfig::GetControllerCount() const
   return m_controllers.size();
 }
 
+void InputConfig::RegisterHotplugCallback()
+{
+  // Update control references on all controllers
+  // as configured devices may have been added or removed.
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
+    for (auto& controller : m_controllers)
+      controller->UpdateReferences(g_controller_interface);
+  });
+}
+
+void InputConfig::UnregisterHotplugCallback()
+{
+  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+}
+
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
 {
   if (static_cast<size_t>(index) >= m_controllers.size())

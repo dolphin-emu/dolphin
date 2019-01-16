@@ -249,10 +249,20 @@ void ControllerInterface::UpdateInput()
 
 // Register a callback to be called when a device is added or removed (as from the input backends'
 // hotplug thread), or when devices are refreshed
-void ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
+// Returns a handle for later removing the callback.
+ControllerInterface::HotplugCallbackHandle
+ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
 {
   std::lock_guard<std::mutex> lk(m_callbacks_mutex);
   m_devices_changed_callbacks.emplace_back(std::move(callback));
+  return std::prev(m_devices_changed_callbacks.end());
+}
+
+// Unregister a device callback.
+void ControllerInterface::UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle)
+{
+  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
+  m_devices_changed_callbacks.erase(handle);
 }
 
 // Invoke all callbacks that were registered
