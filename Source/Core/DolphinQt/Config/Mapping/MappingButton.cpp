@@ -26,6 +26,7 @@
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -81,7 +82,7 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
     QFont f = m_parent->font();
     QPalette p = m_parent->palette();
 
-    if (state != 0)
+    if (state > ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
     {
       f.setBold(true);
       p.setColor(QPalette::ButtonText, Qt::red);
