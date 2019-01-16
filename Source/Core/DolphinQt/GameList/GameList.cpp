@@ -302,9 +302,10 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiDisc)
     {
-      auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this, [this] {
-        WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
-      });
+      auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this,
+                                                  [ this, file_path = game->GetFilePath() ] {
+                                                    WiiUpdate::PerformDiscUpdate(file_path, this);
+                                                  });
       perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
     }
 
@@ -392,7 +393,11 @@ void GameList::ShowContextMenu(const QPoint&)
 
 void GameList::OpenProperties()
 {
-  PropertiesDialog* properties = new PropertiesDialog(this, *GetSelectedGame());
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  PropertiesDialog* properties = new PropertiesDialog(this, *game);
 
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
 
@@ -430,7 +435,11 @@ void GameList::ExportWiiSave()
 
 void GameList::OpenWiki()
 {
-  QString game_id = QString::fromStdString(GetSelectedGame()->GetGameID());
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  QString game_id = QString::fromStdString(game->GetGameID());
   QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }
@@ -438,6 +447,10 @@ void GameList::OpenWiki()
 void GameList::CompressISO(bool decompress)
 {
   auto files = GetSelectedGames();
+  const auto game = GetSelectedGame();
+
+  if (files.size() == 0 || !game)
+    return;
 
   bool wii_warning_given = false;
   for (QMutableListIterator<std::shared_ptr<const UICommon::GameFile>> it(files); it.hasNext();)
@@ -471,9 +484,6 @@ void GameList::CompressISO(bool decompress)
     }
   }
 
-  if (files.size() == 0)
-    return;  // We shouldn't get here normally...
-
   QString dst_dir;
   QString dst_path;
 
@@ -483,7 +493,7 @@ void GameList::CompressISO(bool decompress)
         this,
         decompress ? tr("Select where you want to save the decompressed images") :
                      tr("Select where you want to save the compressed images"),
-        QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath())).dir().absolutePath());
+        QFileInfo(QString::fromStdString(game->GetFilePath())).dir().absolutePath());
 
     if (dst_dir.isEmpty())
       return;
@@ -494,7 +504,7 @@ void GameList::CompressISO(bool decompress)
         this,
         decompress ? tr("Select where you want to save the decompressed image") :
                      tr("Select where you want to save the compressed image"),
-        QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
+        QFileInfo(QString::fromStdString(game->GetFilePath()))
             .dir()
             .absoluteFilePath(
                 QFileInfo(QString::fromStdString(files[0]->GetFilePath())).completeBaseName())
@@ -574,9 +584,13 @@ void GameList::CompressISO(bool decompress)
 
 void GameList::InstallWAD()
 {
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
   QMessageBox result_dialog(this);
 
-  const bool success = WiiUtils::InstallWAD(GetSelectedGame()->GetFilePath());
+  const bool success = WiiUtils::InstallWAD(game->GetFilePath());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
@@ -587,6 +601,10 @@ void GameList::InstallWAD()
 
 void GameList::UninstallWAD()
 {
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
   QMessageBox warning_dialog(this);
 
   warning_dialog.setIcon(QMessageBox::Information);
@@ -600,7 +618,7 @@ void GameList::UninstallWAD()
 
   QMessageBox result_dialog(this);
 
-  const bool success = WiiUtils::UninstallTitle(GetSelectedGame()->GetTitleID());
+  const bool success = WiiUtils::UninstallTitle(game->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
@@ -611,20 +629,32 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
   Settings::Instance().SetDefaultGame(
-      QDir::toNativeSeparators(QString::fromStdString(GetSelectedGame()->GetFilePath())));
+      QDir::toNativeSeparators(QString::fromStdString(game->GetFilePath())));
 }
 
 void GameList::OpenContainingFolder()
 {
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
   QUrl url = QUrl::fromLocalFile(
-      QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath())).dir().absolutePath());
+      QFileInfo(QString::fromStdString(game->GetFilePath())).dir().absolutePath());
   QDesktopServices::openUrl(url);
 }
 
 void GameList::OpenSaveFolder()
 {
-  QUrl url = QUrl::fromLocalFile(QString::fromStdString(GetSelectedGame()->GetWiiFSPath()));
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  QUrl url = QUrl::fromLocalFile(QString::fromStdString(game->GetWiiFSPath()));
   QDesktopServices::openUrl(url);
 }
 
@@ -676,7 +706,11 @@ void GameList::DeleteFile()
 
 void GameList::ChangeDisc()
 {
-  Core::RunAsCPUThread([this] { DVDInterface::ChangeDisc(GetSelectedGame()->GetFilePath()); });
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  Core::RunAsCPUThread([file_path = game->GetFilePath()] { DVDInterface::ChangeDisc(file_path); });
 }
 
 std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
