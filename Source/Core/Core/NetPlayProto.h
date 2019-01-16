@@ -196,8 +196,8 @@ using NetWiimote = std::vector<u8>;
 using MessageId = u8;
 using PlayerId = u8;
 using FrameNum = u32;
-using PadMapping = s8;
-using PadMappingArray = std::array<PadMapping, 4>;
+using PadIndex = s8;
+using PadMappingArray = std::array<PlayerId, 4>;
 
 bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,

@@ -398,7 +398,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_PAD_MAPPING:
   {
-    for (PadMapping& mapping : m_pad_map)
+    for (PlayerId& mapping : m_pad_map)
     {
       packet >> mapping;
     }
@@ -411,7 +411,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_WIIMOTE_MAPPING:
   {
-    for (PadMapping& mapping : m_wiimote_map)
+    for (PlayerId& mapping : m_wiimote_map)
     {
       packet >> mapping;
     }
@@ -424,7 +424,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     while (!packet.endOfPacket())
     {
-      PadMapping map;
+      PadIndex map;
       packet >> map;
 
       GCPadStatus pad;
@@ -441,7 +441,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_WIIMOTE_DATA:
   {
-    PadMapping map = 0;
+    PadIndex map;
     NetWiimote nw;
     u8 size;
     packet >> map >> size;
@@ -470,7 +470,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_PAD_FIRST_RECEIVED:
   {
-    PadMapping map;
+    PadIndex map;
     packet >> map;
     packet >> m_first_pad_status_received[map];
     m_first_pad_status_received_event.Set();
@@ -1318,7 +1318,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus& pad,
                                         sf::Packet& packet)
 {
-  packet << static_cast<PadMapping>(in_game_pad);
+  packet << static_cast<PadIndex>(in_game_pad);
   packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
          << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
 }
@@ -1328,7 +1328,7 @@ void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw
 {
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  packet << static_cast<PadMapping>(in_game_pad);
+  packet << static_cast<PadIndex>(in_game_pad);
   packet << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
@@ -1882,7 +1882,7 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   return data_added;
 }
 
-void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
+void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 {
   if (!m_local_player->IsHost())
     return;
@@ -1903,7 +1903,7 @@ void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
       }
     }
   }
-  else if (m_pad_map[pad_num] > 0)
+  else if (m_pad_map[pad_num] != 0)
   {
     while (!m_first_pad_status_received[pad_num])
     {
@@ -1977,7 +1977,7 @@ void NetPlayClient::SendPowerButtonEvent()
 // called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
-  const auto mapping_matches_player_id = [this](const PadMapping& mapping) {
+  const auto mapping_matches_player_id = [this](const PlayerId& mapping) {
     return mapping == m_local_player->pid;
   };
 
