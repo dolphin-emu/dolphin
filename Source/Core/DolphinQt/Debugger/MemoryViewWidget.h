@@ -18,7 +18,9 @@ public:
     U16,
     U32,
     ASCII,
-    Float32
+    U32xASCII,
+    Float32,
+    U32xFloat32
   };
 
   enum class BPType

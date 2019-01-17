@@ -120,12 +120,14 @@ void MemoryWidget::CreateWidgets()
   m_type_u32 = new QRadioButton(tr("U&32"));
   m_type_ascii = new QRadioButton(tr("ASCII"));
   m_type_float = new QRadioButton(tr("Float"));
+  m_mem_view_style = new QCheckBox(tr("Alternate View"));
 
   datatype_layout->addWidget(m_type_u8);
   datatype_layout->addWidget(m_type_u16);
   datatype_layout->addWidget(m_type_u32);
   datatype_layout->addWidget(m_type_ascii);
   datatype_layout->addWidget(m_type_float);
+  datatype_layout->addWidget(m_mem_view_style);
   datatype_layout->setSpacing(1);
 
   // MBP options
@@ -214,6 +216,8 @@ void MemoryWidget::ConnectWidgets()
   for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
 
+  connect(m_mem_view_style, &QCheckBox::toggled, this, &MemoryWidget::OnTypeChanged);
+
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
@@ -252,12 +256,15 @@ void MemoryWidget::LoadSettings()
   const bool type_u32 = settings.value(QStringLiteral("memorywidget/typeu32"), false).toBool();
   const bool type_float = settings.value(QStringLiteral("memorywidget/typefloat"), false).toBool();
   const bool type_ascii = settings.value(QStringLiteral("memorywidget/typeascii"), false).toBool();
+  const bool mem_view_style =
+      settings.value(QStringLiteral("memorywidget/memviewstyle"), false).toBool();
 
   m_type_u8->setChecked(type_u8);
   m_type_u16->setChecked(type_u16);
   m_type_u32->setChecked(type_u32);
   m_type_float->setChecked(type_float);
   m_type_ascii->setChecked(type_ascii);
+  m_mem_view_style->setChecked(mem_view_style);
 
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
@@ -289,6 +296,7 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/typeu32"), m_type_u32->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeascii"), m_type_ascii->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typefloat"), m_type_float->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/memviewstyle"), m_mem_view_style->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
@@ -299,8 +307,11 @@ void MemoryWidget::SaveSettings()
 void MemoryWidget::OnTypeChanged()
 {
   MemoryViewWidget::Type type;
-
-  if (m_type_u8->isChecked())
+  if (m_mem_view_style->isChecked() && m_type_ascii->isChecked())
+    type = MemoryViewWidget::Type::U32xASCII;
+  else if (m_mem_view_style->isChecked() && m_type_float->isChecked())
+    type = MemoryViewWidget::Type::U32xFloat32;
+  else if (m_type_u8->isChecked())
     type = MemoryViewWidget::Type::U8;
   else if (m_type_u16->isChecked())
     type = MemoryViewWidget::Type::U16;

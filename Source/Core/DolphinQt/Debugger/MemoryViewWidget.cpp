@@ -50,12 +50,15 @@ static int GetColumnCount(MemoryViewWidget::Type type)
 {
   switch (type)
   {
-  case MemoryViewWidget::Type::ASCII:
+  case MemoryViewWidget::Type::U32xASCII:
+  case MemoryViewWidget::Type::U32xFloat32:
+    return 2;
   case MemoryViewWidget::Type::U8:
     return 16;
   case MemoryViewWidget::Type::U16:
     return 8;
   case MemoryViewWidget::Type::U32:
+  case MemoryViewWidget::Type::ASCII:
   case MemoryViewWidget::Type::Float32:
     return 4;
   default:
@@ -83,7 +86,9 @@ void MemoryViewWidget::Update()
   {
     setRowHeight(i, 24);
 
-    u32 addr = m_address - ((rowCount() / 2) * 16) + i * 16;
+    // Two column mode has rows increment by 0x4 instead of 0x10
+    u32 rowmod = ((GetColumnCount(m_type) == 2) ? 4 : 16);
+    u32 addr = m_address - (rowCount() / 2) * rowmod + i * rowmod;
 
     auto* bp_item = new QTableWidgetItem;
     bp_item->setFlags(Qt::ItemIsEnabled);
@@ -126,13 +131,17 @@ void MemoryViewWidget::Update()
     bool row_breakpoint = true;
 
     auto update_values = [&](auto value_to_string) {
-      for (int c = 0; c < GetColumnCount(m_type); c++)
+      const int columns = GetColumnCount(m_type);
+      for (int c = 0; c < columns; c++)
       {
         auto* hex_item = new QTableWidgetItem;
         hex_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-        const u32 address = addr + c * (16 / GetColumnCount(m_type));
+        u32 address = addr + c * (16 / columns);
 
-        if (PowerPC::memchecks.OverlapsMemcheck(address, 16 / GetColumnCount(m_type)))
+        // Alternate view requires two columns with the same address
+        if (columns == 2)
+          address = addr;
+        if (PowerPC::memchecks.OverlapsMemcheck(address, 16 / ((columns == 2) ? 4 : columns)))
           hex_item->setBackground(Qt::red);
         else
           row_breakpoint = false;
@@ -141,7 +150,17 @@ void MemoryViewWidget::Update()
 
         if (PowerPC::HostIsRAMAddress(address))
         {
-          hex_item->setText(value_to_string(address));
+          // 2 Column mode: Report hex value in first column.
+          if (columns == 2 && c == 0)
+          {
+            hex_item->setText(
+                QStringLiteral("%1").arg(PowerPC::HostRead_U32(address), 8, 16, QLatin1Char('0')));
+          }
+          else
+          {
+            hex_item->setText(value_to_string(address));
+          }
+
           hex_item->setData(Qt::UserRole, address);
         }
         else
@@ -161,9 +180,16 @@ void MemoryViewWidget::Update()
       });
       break;
     case Type::ASCII:
+    case Type::U32xASCII:
       update_values([](u32 address) {
-        const char value = PowerPC::HostRead_U8(address);
-        return std::isprint(value) ? QString{QChar::fromLatin1(value)} : QStringLiteral(".");
+        QString asciistring = QStringLiteral("");
+        // Group ASCII in sets of four.
+        for (u32 i = 0; i < 4; i++)
+        {
+          char value = PowerPC::HostRead_U8(address + i);
+          asciistring.append(std::isprint(value) ? QChar::fromLatin1(value) : QStringLiteral("."));
+        }
+        return asciistring;
       });
       break;
     case Type::U16:
@@ -179,6 +205,7 @@ void MemoryViewWidget::Update()
       });
       break;
     case Type::Float32:
+    case Type::U32xFloat32:
       update_values([](u32 address) { return QString::number(PowerPC::HostRead_F32(address)); });
       break;
     }
@@ -270,8 +297,9 @@ void MemoryViewWidget::ToggleRowBreakpoint(bool row)
 {
   TMemCheck check;
 
-  const u32 addr = row ? GetContextAddress() & 0xFFFFFFF0 : GetContextAddress();
-  const auto length = row ? 16 : (16 / GetColumnCount(m_type));
+  const u32 addr = row ? GetContextAddress() & 0xFFFFFFFC : GetContextAddress();
+  const auto length =
+      (GetColumnCount(m_type) == 2) ? 4 : (row ? 16 : (16 / GetColumnCount(m_type)));
 
   if (!PowerPC::memchecks.OverlapsMemcheck(addr, length))
   {
@@ -342,8 +370,13 @@ void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
       ToggleRowBreakpoint(true);
     }
     else
-      SetAddress(addr & 0xFFFFFFF0);
-
+    {
+      // Scroll with LClick
+      if (GetColumnCount(m_type) == 2)
+        SetAddress(addr & 0xFFFFFFFC);
+      else
+        SetAddress(addr & 0xFFFFFFF0);
+    }
     Update();
     break;
   default:
@@ -361,7 +394,7 @@ void MemoryViewWidget::OnCopyHex()
 {
   u32 addr = GetContextAddress();
 
-  const auto length = 16 / GetColumnCount(m_type);
+  const auto length = 16 / ((GetColumnCount(m_type) == 2) ? 4 : GetColumnCount(m_type));
 
   u64 value = PowerPC::HostRead_U64(addr);
 
