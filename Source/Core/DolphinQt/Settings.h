@@ -26,7 +26,6 @@ class NetPlayClient;
 class NetPlayServer;
 }  // namespace NetPlay
 
-class GameListModel;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
@@ -143,8 +142,6 @@ public:
   bool IsAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool enabled);
 
-  // Other
-  GameListModel* GetGameListModel() const;
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);

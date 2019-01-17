@@ -23,7 +23,6 @@
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
