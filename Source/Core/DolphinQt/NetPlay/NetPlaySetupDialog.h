@@ -6,7 +6,8 @@
 
 #include <QDialog>
 
-class GameListModel;
+#include "DolphinQt/GameList/GameListModel.h"
+
 class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
@@ -27,7 +28,7 @@ class NetPlaySetupDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit NetPlaySetupDialog(QWidget* parent);
+  explicit NetPlaySetupDialog(const GameListModel& game_list_model, QWidget* parent);
 
   void accept() override;
   void show();
@@ -79,5 +80,5 @@ private:
   QCheckBox* m_host_upnp;
 #endif
 
-  GameListModel* m_game_list_model;
+  const GameListModel& m_game_list_model;
 };

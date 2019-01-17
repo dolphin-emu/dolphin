@@ -8,7 +8,8 @@
 
 #include <QStackedWidget>
 
-class GameListModel;
+#include "DolphinQt/GameList/GameListModel.h"
+
 class QLabel;
 class QListView;
 class QSortFilterProxyModel;
@@ -45,6 +46,8 @@ public:
   void resizeEvent(QResizeEvent* event) override;
 
   void PurgeCache();
+
+  const GameListModel& GetGameListModel() const { return m_model; }
 
 signals:
   void GameSelected();
@@ -85,7 +88,7 @@ private:
   void ConsiderViewChange();
   void UpdateFont();
 
-  GameListModel* m_model;
+  GameListModel m_model;
   QSortFilterProxyModel* m_list_proxy;
   QSortFilterProxyModel* m_grid_proxy;
 
