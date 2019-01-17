@@ -149,11 +149,17 @@ void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 
 void Wiimote::HandleExtensionSwap()
 {
+  if (WIIMOTE_BALANCE_BOARD == m_index)
+  {
+    // Prevent M+ or anything else silly from being attached to a balance board.
+    // In the future if we support an emulated balance board we can force the BB "extension" here.
+    return;
+  }
+
   ExtensionNumber desired_extension_number =
       static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment());
 
-  // const bool desired_motion_plus = m_motion_plus_setting->GetValue();
-  const bool desired_motion_plus = false;
+  const bool desired_motion_plus = m_motion_plus_setting.GetValue();
 
   // FYI: AttachExtension also connects devices to the i2c bus
 
@@ -283,7 +289,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
       if (address >= 0x0FCA && address < 0x12C0)
       {
         // TODO: Only write parts of the Mii block.
-        // TODO: Use fifferent files for different wiimote numbers.
+        // TODO: Use different files for different wiimote numbers.
         std::ofstream file;
         File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
                           std::ios::binary | std::ios::out);
@@ -578,12 +584,16 @@ void Wiimote::DoState(PointerWrap& p)
   (m_is_motion_plus_attached ? m_motion_plus.GetExtPort() : m_extension_port)
       .AttachExtension(GetActiveExtension());
 
-  m_motion_plus.DoState(p);
-  GetActiveExtension()->DoState(p);
+  if (m_is_motion_plus_attached)
+    m_motion_plus.DoState(p);
+
+  if (m_active_extension != ExtensionNumber::NONE)
+    GetActiveExtension()->DoState(p);
 
   // Dynamics
   p.Do(m_swing_state);
   p.Do(m_tilt_state);
+  p.Do(m_cursor_state);
   p.Do(m_shake_state);
 
   p.DoMarker("Wiimote");

@@ -93,6 +93,7 @@ void Wiimote::Reset()
   m_eeprom.accel_calibration_1 = accel_calibration;
   m_eeprom.accel_calibration_2 = accel_calibration;
 
+  // TODO: Is this needed?
   // Data of unknown purpose:
   constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00,
                                                    0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99,
@@ -106,29 +107,29 @@ void Wiimote::Reset()
   m_i2c_bus.AddSlave(&m_speaker_logic);
   m_i2c_bus.AddSlave(&m_camera_logic);
 
-  // Reset extension connections:
+  // Reset extension connections to NONE:
   m_is_motion_plus_attached = false;
   m_active_extension = ExtensionNumber::NONE;
   m_extension_port.AttachExtension(GetNoneExtension());
   m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
 
   // Switch to desired M+ status and extension (if any).
+  // M+ and EXT are reset on attachment.
   HandleExtensionSwap();
 
-  // Reset sub-devices:
+  // Reset sub-devices.
   m_speaker_logic.Reset();
   m_camera_logic.Reset();
-  m_motion_plus.Reset();
-  GetActiveExtension()->Reset();
 
   m_status = {};
-  // TODO: This will suppress a status report on connect when an extension is already attached.
-  // I am not 100% sure if this is proper.
+  // This will suppress a status report on connect when an extension is already attached.
+  // TODO: I am not 100% sure if this is proper.
   m_status.extension = m_extension_port.IsDeviceConnected();
 
   // Dynamics:
   m_swing_state = {};
   m_tilt_state = {};
+  m_cursor_state = {};
   m_shake_state = {};
 }
 
@@ -165,6 +166,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
 
+  m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
+
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
   m_rumble->controls.emplace_back(
@@ -192,8 +195,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                          // i18n: The percent symbol.
                          _trans("%")},
                         95, 0, 100);
-
-  // m_options->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
@@ -310,6 +311,7 @@ void Wiimote::UpdateButtonsStatus()
   m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
 }
 
+// This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void Wiimote::Update()
 {
   // Check if connected.
@@ -322,6 +324,7 @@ void Wiimote::Update()
   // Data is later accessed in IsSideways and IsUpright
   m_hotkeys->GetState();
 
+  // Update our motion simulations.
   StepDynamics();
 
   // Update buttons in the status struct which is sent in 99% of input reports.
@@ -334,10 +337,22 @@ void Wiimote::Update()
   // If a new extension is requested in the GUI the change will happen here.
   HandleExtensionSwap();
 
+  // Allow extension to perform any regular duties it may need.
+  // (e.g. Nunchuk motion simulation step)
+  // Input is prepared here too.
+  // TODO: Separate input preparation from Update.
+  GetActiveExtension()->Update();
+
+  if (m_is_motion_plus_attached)
+  {
+    // M+ has some internal state that must processed.
+    m_motion_plus.Update();
+  }
+
   // Returns true if a report was sent.
   if (ProcessExtensionPortEvent())
   {
-    // Extension port event occured.
+    // Extension port event occurred.
     // Don't send any other reports.
     return;
   }
@@ -403,6 +418,8 @@ void Wiimote::SendDataReport()
     // IR Camera:
     if (rpt_builder.HasIR())
     {
+      // Note: Camera logic currently contains no changing state so we can just update it here.
+      // If that changes this should be moved to Wiimote::Update();
       m_camera_logic.Update(GetTransformation());
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
@@ -416,9 +433,16 @@ void Wiimote::SendDataReport()
     // Extension port:
     if (rpt_builder.HasExt())
     {
-      // Update extension first as motion-plus may read from it.
-      GetActiveExtension()->Update();
-      m_motion_plus.Update();
+      // Prepare extension input first as motion-plus may read from it.
+      // This currently happens in Wiimote::Update();
+      // TODO: Separate extension input data preparation from Update.
+      // GetActiveExtension()->PrepareInput();
+
+      if (m_is_motion_plus_attached)
+      {
+        // TODO: Make input preparation triggered by bus read.
+        m_motion_plus.PrepareInput(GetAngularVelocity());
+      }
 
       u8* ext_data = rpt_builder.GetExtDataPtr();
       const u8 ext_size = rpt_builder.GetExtDataSize();
@@ -658,10 +682,8 @@ void Wiimote::StepDynamics()
 {
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulateCursor(&m_cursor_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
-
-  // TODO: Move cursor state out of ControllerEmu::Cursor
-  // const auto cursor_mtx = EmulateCursorMovement(m_ir);
 }
 
 Common::Vec3 Wiimote::GetAcceleration()
@@ -677,6 +699,8 @@ Common::Vec3 Wiimote::GetAcceleration()
   if (IsUpright())
     orientation *= Common::Matrix33::RotateX(float(MathUtil::TAU / 4));
 
+  // TODO: cursor accel:
+
   Common::Vec3 accel =
       orientation *
       GetTransformation().Transform(
@@ -687,15 +711,31 @@ Common::Vec3 Wiimote::GetAcceleration()
   return accel;
 }
 
+Common::Vec3 Wiimote::GetAngularVelocity()
+{
+  // TODO: make cursor movement produce angular velocity.
+
+  auto orientation = Common::Matrix33::Identity();
+
+  // TODO: make a function out of this:
+  if (IsSideways())
+    orientation *= Common::Matrix33::RotateZ(float(MathUtil::TAU / -4));
+  if (IsUpright())
+    orientation *= Common::Matrix33::RotateX(float(MathUtil::TAU / 4));
+
+  return orientation * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity);
+}
+
 Common::Matrix44 Wiimote::GetTransformation() const
 {
   // Includes positional and rotational effects of:
   // IR, Swing, Tilt, Shake
 
+  // TODO: think about and clean up matrix order, make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
-         Common::Matrix44::FromMatrix33(GetRotationalMatrix(-m_tilt_state.angle) *
-                                        GetRotationalMatrix(-m_swing_state.angle)) *
-         EmulateCursorMovement(m_ir) * Common::Matrix44::Translate(-m_swing_state.position);
+         Common::Matrix44::FromMatrix33(GetRotationalMatrix(
+             -m_tilt_state.angle - m_swing_state.angle - m_cursor_state.angle)) *
+         Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
 }
 
 }  // namespace WiimoteEmu

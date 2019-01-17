@@ -129,7 +129,7 @@ WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3&
           u16(MathUtil::Clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))};
 }
 
-Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group)
+void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
 {
   using Common::Matrix33;
   using Common::Matrix44;
@@ -149,10 +149,19 @@ Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group)
 
   const auto cursor = ir_group->GetState(true);
 
-  return Matrix44::Translate({0, MOVE_DISTANCE * float(cursor.z), 0}) *
-         Matrix44::FromMatrix33(Matrix33::RotateX(pitch_scale * cursor.y) *
-                                Matrix33::RotateZ(yaw_scale * cursor.x)) *
-         Matrix44::Translate({0, -NEUTRAL_DISTANCE, height});
+  // TODO: Move state out of ControllerEmu::Cursor
+  // TODO: Use ApproachPositionWithJerk
+  // TODO: Move forward/backward after rotation.
+  const auto new_position =
+      Common::Vec3{0, NEUTRAL_DISTANCE - MOVE_DISTANCE * float(cursor.z), height};
+  state->acceleration = new_position - state->position;
+  state->position = new_position;
+
+  // TODO: expose this setting in UI:
+  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 100);
+
+  ApproachAngleWithAccel(state, Common::Vec3(pitch_scale * -cursor.y, 0, yaw_scale * -cursor.x),
+                         MAX_ACCEL, time_elapsed);
 }
 
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,
