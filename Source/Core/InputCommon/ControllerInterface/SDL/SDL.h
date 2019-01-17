@@ -124,13 +124,19 @@ private:
   class LeftRightEffect : public HapticEffect
   {
   public:
-    LeftRightEffect(SDL_Haptic* haptic, bool use_strong_motor);
+    enum class Motor : u8
+    {
+      Weak,
+      Strong,
+    };
+
+    LeftRightEffect(SDL_Haptic* haptic, Motor motor);
     std::string GetName() const override;
 
   private:
     bool UpdateParameters(s16 value) override;
 
-    const bool m_use_strong_motor;
+    const Motor m_motor;
   };
 #endif
 

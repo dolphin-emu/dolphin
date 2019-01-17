@@ -248,10 +248,8 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
   // LeftRight
   if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
   {
-    // Strong motor:
-    AddOutput(new LeftRightEffect(m_haptic, true));
-    // Weak motor:
-    AddOutput(new LeftRightEffect(m_haptic, false));
+    AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Strong));
+    AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
   }
 #endif
 }
@@ -344,8 +342,8 @@ Joystick::PeriodicEffect::PeriodicEffect(SDL_Haptic* haptic, u16 waveform)
   m_effect.periodic.phase = 0;
 }
 
-Joystick::LeftRightEffect::LeftRightEffect(SDL_Haptic* haptic, bool use_strong_motor)
-    : HapticEffect(haptic), m_use_strong_motor(use_strong_motor)
+Joystick::LeftRightEffect::LeftRightEffect(SDL_Haptic* haptic, Motor motor)
+    : HapticEffect(haptic), m_motor(motor)
 {
   m_effect.leftright = {};
   m_effect.leftright.length = RUMBLE_LENGTH_MS;
@@ -380,7 +378,7 @@ std::string Joystick::PeriodicEffect::GetName() const
 
 std::string Joystick::LeftRightEffect::GetName() const
 {
-  return m_use_strong_motor ? "Strong" : "Weak";
+  return (Motor::Strong == m_motor) ? "Strong" : "Weak";
 }
 
 void Joystick::HapticEffect::SetState(ControlState state)
@@ -432,8 +430,8 @@ bool Joystick::PeriodicEffect::UpdateParameters(s16 value)
 
 bool Joystick::LeftRightEffect::UpdateParameters(s16 value)
 {
-  u16& level =
-      m_use_strong_motor ? m_effect.leftright.large_magnitude : m_effect.leftright.small_magnitude;
+  u16& level = (Motor::Strong == m_motor) ? m_effect.leftright.large_magnitude :
+                                            m_effect.leftright.small_magnitude;
   const u16 old_level = level;
 
   level = value;
@@ -486,7 +484,7 @@ ControlState Joystick::Button::GetState() const
 
 ControlState Joystick::Axis::GetState() const
 {
-  return std::max(0.0, ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range);
+  return ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range;
 }
 
 ControlState Joystick::Hat::GetState() const
