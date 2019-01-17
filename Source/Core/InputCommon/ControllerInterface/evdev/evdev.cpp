@@ -204,18 +204,22 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
   // Buttons (and keyboard keys)
   int num_buttons = 0;
   for (int key = 0; key < KEY_MAX; key++)
+  {
     if (libevdev_has_event_code(m_dev, EV_KEY, key))
       AddInput(new Button(num_buttons++, key, m_dev));
+  }
 
   // Absolute axis (thumbsticks)
   int num_axis = 0;
   for (int axis = 0; axis < 0x100; axis++)
+  {
     if (libevdev_has_event_code(m_dev, EV_ABS, axis))
     {
       AddAnalogInputs(new Axis(num_axis, axis, false, m_dev),
                       new Axis(num_axis, axis, true, m_dev));
       ++num_axis;
     }
+  }
 
   // Disable autocenter
   if (libevdev_has_event_code(m_dev, EV_FF, FF_AUTOCENTER))
@@ -247,10 +251,8 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
   // Rumble (i.e. Left/Right) (i.e. Strong/Weak) effect
   if (libevdev_has_event_code(m_dev, EV_FF, FF_RUMBLE))
   {
-    // Strong motor:
-    AddOutput(new RumbleEffect(m_fd, true));
-    // Weak motor:
-    AddOutput(new RumbleEffect(m_fd, false));
+    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::STRONG));
+    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::WEAK));
   }
 
   // TODO: Add leds as output devices
@@ -381,7 +383,7 @@ std::string evdevDevice::PeriodicEffect::GetName() const
 
 std::string evdevDevice::RumbleEffect::GetName() const
 {
-  return m_use_strong_motor ? "Strong" : "Weak";
+  return (Motor::STRONG == m_motor) ? "Strong" : "Weak";
 }
 
 void evdevDevice::Effect::SetState(ControlState state)
@@ -444,8 +446,7 @@ evdevDevice::PeriodicEffect::PeriodicEffect(int fd, u16 waveform) : Effect(fd)
   m_effect.u.periodic.phase = 0;
 }
 
-evdevDevice::RumbleEffect::RumbleEffect(int fd, bool use_strong)
-    : Effect(fd), m_use_strong_motor(use_strong)
+evdevDevice::RumbleEffect::RumbleEffect(int fd, Motor motor) : Effect(fd), m_motor(motor)
 {
   m_effect.u.rumble = {};
 }
@@ -476,8 +477,8 @@ bool evdevDevice::PeriodicEffect::UpdateParameters(ControlState state)
 
 bool evdevDevice::RumbleEffect::UpdateParameters(ControlState state)
 {
-  u16& value =
-      m_use_strong_motor ? m_effect.u.rumble.strong_magnitude : m_effect.u.rumble.weak_magnitude;
+  u16& value = (Motor::STRONG == m_motor) ? m_effect.u.rumble.strong_magnitude :
+                                            m_effect.u.rumble.weak_magnitude;
   const u16 old_value = value;
 
   constexpr u16 MAX_VALUE = 0xffff;

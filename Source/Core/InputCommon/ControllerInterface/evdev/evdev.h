@@ -88,12 +88,18 @@ private:
   class RumbleEffect : public Effect
   {
   public:
-    RumbleEffect(int fd, bool use_strong);
+    enum class Motor : u8
+    {
+      WEAK,
+      STRONG,
+    };
+
+    RumbleEffect(int fd, Motor motor);
     bool UpdateParameters(ControlState state) override;
     std::string GetName() const override;
 
   private:
-    const bool m_use_strong_motor;
+    const Motor m_motor;
   };
 
 public:
