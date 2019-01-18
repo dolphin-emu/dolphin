@@ -661,6 +661,10 @@ bool Renderer::InitializeImGui()
 
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;
+  ImGui::GetIO().DisplayFramebufferScale.x = m_backbuffer_scale;
+  ImGui::GetIO().DisplayFramebufferScale.y = m_backbuffer_scale;
+  ImGui::GetIO().FontGlobalScale = m_backbuffer_scale;
+  ImGui::GetStyle().ScaleAllSizes(m_backbuffer_scale);
 
   PortableVertexDeclaration vdecl = {};
   vdecl.position = {VAR_FLOAT, 2, offsetof(ImDrawVert, pos), true, false};
