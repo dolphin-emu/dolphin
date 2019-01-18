@@ -18,7 +18,7 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height);
+  Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale);
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }

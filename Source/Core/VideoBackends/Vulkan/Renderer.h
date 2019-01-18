@@ -29,7 +29,7 @@ class VKTexture;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(std::unique_ptr<SwapChain> swap_chain);
+  Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
   ~Renderer() override;
 
   static Renderer* GetInstance();

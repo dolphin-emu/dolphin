@@ -14,7 +14,7 @@
 namespace Null
 {
 // Init functions
-Renderer::Renderer() : ::Renderer(1, 1, AbstractTextureFormat::RGBA8)
+Renderer::Renderer() : ::Renderer(1, 1, 1.0f, AbstractTextureFormat::RGBA8)
 {
   UpdateActiveConfig();
 }

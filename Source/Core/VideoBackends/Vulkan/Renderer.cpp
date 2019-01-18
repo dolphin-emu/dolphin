@@ -46,9 +46,9 @@
 
 namespace Vulkan
 {
-Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
+Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
     : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
-                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0,
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0, backbuffer_scale,
                  swap_chain ? swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined),
       m_swap_chain(std::move(swap_chain))
 {

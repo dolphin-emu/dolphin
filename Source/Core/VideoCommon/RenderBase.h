@@ -63,7 +63,8 @@ extern int frameCount;
 class Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height, AbstractTextureFormat backbuffer_format);
+  Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
+           AbstractTextureFormat backbuffer_format);
   virtual ~Renderer();
 
   using ClearColor = std::array<float, 4>;
@@ -125,6 +126,7 @@ public:
   // Display resolution
   int GetBackbufferWidth() const { return m_backbuffer_width; }
   int GetBackbufferHeight() const { return m_backbuffer_height; }
+  float GetBackbufferScale() const { return m_backbuffer_scale; }
   void SetWindowSize(int width, int height);
 
   // EFB coordinate conversion functions
@@ -229,6 +231,7 @@ protected:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
+  float m_backbuffer_scale = 1.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
 

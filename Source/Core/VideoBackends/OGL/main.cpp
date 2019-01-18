@@ -172,7 +172,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
-  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context));
+  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();

@@ -225,7 +225,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Create main wrapper instances.
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
+  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
   g_vertex_manager = std::make_unique<VertexManager>();
   g_texture_cache = std::make_unique<TextureCache>();
   ::g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();

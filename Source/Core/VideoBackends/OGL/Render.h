@@ -83,7 +83,7 @@ extern VideoConfig g_ogl_config;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(std::unique_ptr<GLContext> main_gl_context);
+  Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
   ~Renderer() override;
 
   bool IsHeadless() const override;
