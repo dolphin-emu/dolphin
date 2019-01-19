@@ -243,13 +243,13 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 
 MainWindow::~MainWindow()
 {
-  m_render_widget->deleteLater();
-  m_netplay_dialog->deleteLater();
+  delete m_render_widget;
+  delete m_netplay_dialog;
 
   for (int i = 0; i < 4; i++)
   {
-    m_gc_tas_input_windows[i]->deleteLater();
-    m_wii_tas_input_windows[i]->deleteLater();
+    delete m_gc_tas_input_windows[i];
+    delete m_wii_tas_input_windows[i];
   }
 
   ShutdownControllers();
