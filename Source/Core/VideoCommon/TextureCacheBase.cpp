@@ -416,7 +416,10 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
         dstrect.top = dst_y;
         dstrect.right = (dst_x + copy_width);
         dstrect.bottom = (dst_y + copy_height);
-        for (u32 layer = 0; layer < entry->texture->GetConfig().layers; layer++)
+
+        // If one copy is stereo, and the other isn't... not much we can do here :/
+        const u32 layers_to_copy = std::min(entry->GetNumLayers(), entry_to_update->GetNumLayers());
+        for (u32 layer = 0; layer < layers_to_copy; layer++)
         {
           entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer,
                                                              0, dstrect, layer, 0);
@@ -1414,7 +1417,9 @@ TextureCacheBase::GetTextureFromOverlappingTextures(const TextureLookupInformati
     dstrect.right = (dst_x + copy_width);
     dstrect.bottom = (dst_y + copy_height);
 
-    for (u32 layer = 0; layer < entry->texture->GetConfig().layers; layer++)
+    // If one copy is stereo, and the other isn't... not much we can do here :/
+    const u32 layers_to_copy = std::min(entry->GetNumLayers(), stitched_entry->GetNumLayers());
+    for (u32 layer = 0; layer < layers_to_copy; layer++)
     {
       stitched_entry->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer, 0,
                                                         dstrect, layer, 0);
