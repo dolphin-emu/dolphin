@@ -357,7 +357,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
     : ::Renderer(static_cast<int>(std::max(main_gl_context->GetBackBufferWidth(), 1u)),
                  static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u)),
                  AbstractTextureFormat::RGBA8),
-      m_main_gl_context(std::move(main_gl_context))
+      m_main_gl_context(std::move(main_gl_context)),
+      m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
+      m_current_depth_state(RenderState::GetInvalidDepthState()),
+      m_current_blend_state(RenderState::GetInvalidBlendingState())
 {
   bool bSuccess = true;
 
@@ -1585,6 +1588,9 @@ void Renderer::ResetAPIState()
   }
   glDepthMask(GL_FALSE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  m_current_rasterization_state = RenderState::GetInvalidRasterizationState();
+  m_current_depth_state = RenderState::GetInvalidDepthState();
+  m_current_blend_state = RenderState::GetInvalidBlendingState();
 }
 
 void Renderer::RestoreAPIState()
@@ -1603,10 +1609,6 @@ void Renderer::RestoreAPIState()
   }
   BPFunctions::SetScissor();
   BPFunctions::SetViewport();
-
-  ApplyRasterizationState(m_current_rasterization_state, true);
-  ApplyDepthState(m_current_depth_state, true);
-  ApplyBlendingState(m_current_blend_state, true);
 }
 
 void Renderer::ApplyRasterizationState(const RasterizationState state, bool force)

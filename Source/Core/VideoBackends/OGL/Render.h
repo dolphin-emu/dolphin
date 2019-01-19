@@ -168,8 +168,8 @@ private:
   std::unique_ptr<GLContext> m_main_gl_context;
   std::array<const AbstractTexture*, 8> m_bound_textures{};
   const OGLPipeline* m_graphics_pipeline = nullptr;
-  RasterizationState m_current_rasterization_state = {};
-  DepthState m_current_depth_state = {};
-  BlendingState m_current_blend_state = {};
+  RasterizationState m_current_rasterization_state;
+  DepthState m_current_depth_state;
+  BlendingState m_current_blend_state;
 };
 }  // namespace OGL
