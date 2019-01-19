@@ -587,6 +587,11 @@ else()
   set(PNG png)
 endif()
 
+if (APPLE)
+  message(STATUS "Using ed25519 from Externals")
+  add_subdirectory(Externals/ed25519)
+endif()
+
 # Using static soundtouch from Externals
 # Unable to use system soundtouch library: We require shorts, not floats.
 add_subdirectory(Externals/soundtouch)
