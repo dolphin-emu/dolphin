@@ -492,4 +492,19 @@ public final class NativeLibrary
 
     sEmulationActivity.clear();
   }
+
+  public static void updateTouchPointer()
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null.");
+    }
+    else
+    {
+      emulationActivity.runOnUiThread(emulationActivity::initInputPointer);
+    }
+  }
+
+  public static native float GetGameAspectRatio();
 }

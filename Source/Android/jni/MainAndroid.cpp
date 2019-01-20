@@ -107,6 +107,11 @@ void Host_UpdateMainFrame()
 
 void Host_RequestRenderWindowSize(int width, int height)
 {
+  // Update touch pointer
+  JNIEnv* env;
+  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetUpdateTouchPointer());
+  IDCache::GetJavaVM()->DetachCurrentThread();
 }
 
 bool Host_UINeedsControllerState()
@@ -564,6 +569,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     s_surf = nullptr;
   }
 }
+
+JNIEXPORT jfloat JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameAspectRatio(JNIEnv* env, jobject obj)
+{
+  return g_renderer->CalculateDrawAspectRatio();
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimotes(JNIEnv* env,
                                                                                     jobject obj)
 {

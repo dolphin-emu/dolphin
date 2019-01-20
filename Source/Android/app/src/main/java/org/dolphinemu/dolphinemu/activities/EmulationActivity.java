@@ -757,7 +757,7 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
     {
       editor.commit();
-      mEmulationFragment.refreshInputOverlay();
+      mEmulationFragment.initInputPointer();
     });
 
     AlertDialog alertDialog = builder.create();
@@ -1063,5 +1063,10 @@ public final class EmulationActivity extends AppCompatActivity
   public Settings getSettings()
   {
     return mSettings;
+  }
+
+  public void initInputPointer()
+  {
+    mEmulationFragment.initInputPointer();
   }
 }

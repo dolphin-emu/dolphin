@@ -19,8 +19,11 @@ public class InputOverlayPointer
   public static final int DOUBLE_TAP_CLASSIC_A = 3;
 
   private final float[] axes = {0f, 0f};
+
   private float maxHeight;
   private float maxWidth;
+  private float aspectAdjusted;
+  private boolean xAdjusted;
   private boolean doubleTap = false;
   private int doubleTapButton;
   private int trackId = -1;
@@ -41,8 +44,33 @@ public class InputOverlayPointer
     DisplayMetrics outMetrics = new DisplayMetrics();
     display.getMetrics(outMetrics);
     doubleTapButton = button;
-    maxWidth = outMetrics.widthPixels / 2;
-    maxHeight = outMetrics.heightPixels / 2;
+
+    Integer y = outMetrics.heightPixels;
+    Integer x = outMetrics.widthPixels;
+
+    // Adjusting for device's black bars.
+    Float deviceAR = (float) x / y;
+    Float gameAR = NativeLibrary.GetGameAspectRatio();
+    aspectAdjusted = gameAR / deviceAR;
+
+    if (gameAR < deviceAR) // Black bars on left/right
+    {
+      xAdjusted = true;
+      Integer gameX = Math.round((float) y * gameAR);
+      Integer buffer = (x - gameX);
+
+      maxWidth = (float) (x - buffer) / 2;
+      maxHeight = (float) y / 2;
+    }
+    else // Bars on top/bottom
+    {
+      xAdjusted = false;
+      Integer gameY = Math.round((float) x * gameAR);
+      Integer buffer = (y - gameY);
+
+      maxWidth = (float) x / 2;
+      maxHeight = (float) (y - buffer) / 2;
+    }
   }
 
   public boolean onTouch(MotionEvent event)
@@ -68,9 +96,16 @@ public class InputOverlayPointer
 
     int x = (int) event.getX(event.findPointerIndex(trackId));
     int y = (int) event.getY(event.findPointerIndex(trackId));
-    axes[0] = (y - maxHeight) / maxHeight;
-    axes[1] = (x - maxWidth) / maxWidth;
-
+    if (xAdjusted)
+    {
+      axes[0] = (y - maxHeight) / maxHeight;
+      axes[1] = ((x * aspectAdjusted) - maxWidth) / maxWidth;
+    }
+    else
+    {
+      axes[0] = ((y * aspectAdjusted) - maxHeight) / maxHeight;
+      axes[1] = (x - maxWidth) / maxWidth;
+    }
     return false;
   }
 

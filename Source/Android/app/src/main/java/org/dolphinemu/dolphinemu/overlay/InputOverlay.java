@@ -92,6 +92,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
     if (!mPreferences.getBoolean("OverlayInitV2", false))
       defaultOverlay();
+
     // Load the controls.
     refreshControls();
 
@@ -103,6 +104,27 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Request focus for the overlay so it has priority on presses.
     requestFocus();
+  }
+
+  public void initTouchPointer()
+  {
+    // Refresh before starting the pointer
+    refreshControls();
+
+    if (!EmulationActivity.isGameCubeGame())
+    {
+      int doubleTapButton = mPreferences.getInt("doubleTapButton",
+              InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
+
+      if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUCK) !=
+              InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+              doubleTapButton == InputOverlayPointer.DOUBLE_TAP_CLASSIC_A)
+      {
+        doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
+      }
+
+      overlayPointer = new InputOverlayPointer(this.getContext(), doubleTapButton);
+    }
   }
 
   @Override
@@ -201,15 +223,22 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
             // Release the buttons first, then press
             for (int i = 0; i < dpadPressed.length; i++)
+            {
               if (!dpadPressed[i])
+              {
                 NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
                         ButtonState.RELEASED);
+              }
+            }
             // Press buttons
             for (int i = 0; i < dpadPressed.length; i++)
+            {
               if (dpadPressed[i])
+              {
                 NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i),
                         ButtonState.PRESSED);
-
+              }
+            }
             setDpadState(dpad, dpadPressed[0], dpadPressed[1], dpadPressed[2], dpadPressed[3]);
           }
           break;
@@ -669,19 +698,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           addNunchukOverlayControls(orientation);
         }
       }
-    }
-
-    if (!EmulationActivity.isGameCubeGame())
-    {
-      int doubleTapButton = mPreferences.getInt("doubleTapButton",
-              InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
-
-      if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUCK) !=
-              InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
-              doubleTapButton == InputOverlayPointer.DOUBLE_TAP_CLASSIC_A)
-        doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
-
-      overlayPointer = new InputOverlayPointer(this.getContext(), doubleTapButton);
     }
 
     invalidate();
