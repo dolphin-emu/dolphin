@@ -7,7 +7,6 @@
 #include <array>
 #include <cstddef>
 #include <memory>
-#include <tuple>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
@@ -111,8 +110,6 @@ private:
   void RecompileShaders();
   bool CompileShaders();
   void DestroyShaders();
-
-  std::tuple<VkBuffer, u32> UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
 
   VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
   VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;

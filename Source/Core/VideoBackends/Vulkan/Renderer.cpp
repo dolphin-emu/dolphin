@@ -223,28 +223,6 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
                                static_cast<const VKTexture*>(depth_attachment));
 }
 
-std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* uniforms,
-                                                               u32 uniforms_size)
-{
-  StreamBuffer* ubo_buf = g_object_cache->GetUtilityShaderUniformBuffer();
-  if (!ubo_buf->ReserveMemory(uniforms_size, g_vulkan_context->GetUniformBufferAlignment()))
-  {
-    Util::ExecuteCurrentCommandsAndRestoreState(false, true);
-    if (!ubo_buf->ReserveMemory(uniforms_size, g_vulkan_context->GetUniformBufferAlignment()))
-    {
-      PanicAlert("Failed to reserve uniform buffer space for utility draw.");
-      return {};
-    }
-  }
-
-  VkBuffer ubo = ubo_buf->GetBuffer();
-  u32 ubo_offset = static_cast<u32>(ubo_buf->GetCurrentOffset());
-  std::memcpy(ubo_buf->GetCurrentHostPointer(), uniforms, uniforms_size);
-  ubo_buf->CommitMemory(uniforms_size);
-
-  return std::tie(ubo, ubo_offset);
-}
-
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
