@@ -839,7 +839,14 @@ private:
   std::vector<Token> tokens;
   std::vector<Token>::iterator m_it;
 
-  Token Chew() { return *m_it++; }
+  Token Chew()
+  {
+    const Token tok = Peek();
+    if (TOK_EOF != tok.type)
+      ++m_it;
+    return tok;
+  }
+
   Token Peek() { return *m_it; }
 
   bool Expects(TokenType type)
@@ -850,14 +857,28 @@ private:
 
   FunctionArguments ParseFunctionArguments()
   {
-    if (!Expects(TOK_LPAREN))
-      return {ParseStatus::SyntaxError};
+    std::vector<std::unique_ptr<Expression>> args;
+
+    if (TOK_LPAREN != Peek().type)
+    {
+      // Single argument with no parens (useful for unary ! function)
+      auto arg = ParseAtom(Chew());
+      if (ParseStatus::Successful != arg.status)
+        return {ParseStatus::SyntaxError};
+
+      args.emplace_back(std::move(arg.expr));
+      return {ParseStatus::Successful, std::move(args)};
+    }
+
+    // Chew the L-Paren
+    Chew();
 
     // Check for empty argument list:
     if (TOK_RPAREN == Peek().type)
+    {
+      Chew();
       return {ParseStatus::Successful};
-
-    std::vector<std::unique_ptr<Expression>> args;
+    }
 
     while (true)
     {
