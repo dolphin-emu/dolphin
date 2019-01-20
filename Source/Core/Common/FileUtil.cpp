@@ -42,6 +42,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
+#include <mach-o/dyld.h>
 #include <sys/param.h>
 #endif
 
@@ -683,6 +684,9 @@ std::string GetExePath()
       dolphin_path = TStrToUTF8(dolphin_exe_expanded_path);
     else
       dolphin_path = TStrToUTF8(dolphin_exe_path);
+#elif defined(__APPLE__)
+    dolphin_path = GetBundleDirectory();
+    dolphin_path = dolphin_path.substr(0, dolphin_path.find_last_of("Dolphin.app/Contents/MacOS"));
 #else
     char dolphin_exe_path[PATH_MAX];
     ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));

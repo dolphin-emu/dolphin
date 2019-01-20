@@ -15,11 +15,15 @@
 void run_on_main(std::function<void()> fnc)
 {
   if (![NSThread isMainThread])
+  {
     dispatch_sync(dispatch_get_main_queue(), ^{
       fnc();
     });
+  }
   else
+  {
     fnc();
+  }
 }
 
 NSWindow* GetWindow()
