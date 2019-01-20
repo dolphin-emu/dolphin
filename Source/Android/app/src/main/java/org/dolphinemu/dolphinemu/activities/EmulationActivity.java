@@ -1067,6 +1067,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void initInputPointer()
   {
-    mEmulationFragment.initInputPointer();
+    if (deviceHasTouchScreen())
+      mEmulationFragment.initInputPointer();
   }
 }
