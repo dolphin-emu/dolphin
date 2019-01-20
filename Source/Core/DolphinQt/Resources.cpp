@@ -46,6 +46,8 @@ QIcon Resources::GetIcon(const QString& name, const QString& dir)
 QPixmap Resources::GetPixmap(const QString& name, const QString& dir)
 {
   const auto icon = GetIcon(name, dir);
+  if (icon.availableSizes().length() == 0)
+    return {};
   return icon.pixmap(icon.availableSizes()[0]);
 }
 
