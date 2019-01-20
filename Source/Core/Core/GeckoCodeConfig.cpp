@@ -30,7 +30,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
     break;
   }
 
-  std::string endpoint{"http://geckocodes.org/txt.php?txt=" + gameid};
+  std::string endpoint{"https://geckocodes.org/txt.php?txt=" + gameid};
   Common::HttpRequest http;
 
   // Circumvent high-tech DDOS protection
