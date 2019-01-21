@@ -262,6 +262,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       SingleChoiceSetting scSetting = (SingleChoiceSetting) mClickedItem;
 
       int value = getValueForSingleChoiceSelection(scSetting, which);
+      if (scSetting.getSelectedValue() != value)
+        mView.onSettingChanged();
+
       MenuTag menuTag = scSetting.getMenuTag();
       if (menuTag != null)
       {
@@ -313,6 +316,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
       String value = scSetting.getValueAt(which);
+      if (!scSetting.getSelectedValue().equals(value))
+        mView.onSettingChanged();
+
       StringSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
       {
@@ -324,6 +330,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     else if (mClickedItem instanceof SliderSetting)
     {
       SliderSetting sliderSetting = (SliderSetting) mClickedItem;
+      if (sliderSetting.getSelectedValue() != mSeekbarProgress)
+        mView.onSettingChanged();
+
       if (sliderSetting.isPercentSetting() || sliderSetting.getSetting() instanceof FloatSetting)
       {
         float value;
@@ -355,7 +364,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       closeDialog();
     }
 
-    mView.onSettingChanged();
     mClickedItem = null;
     mSeekbarProgress = -1;
   }

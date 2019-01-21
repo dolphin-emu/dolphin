@@ -453,7 +453,7 @@ public final class SettingsFragmentPresenter
             R.string.internal_resolution, R.string.internal_resolution_description,
             R.array.internalResolutionEntries, R.array.internalResolutionValues, 1, resolution));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, Settings.SECTION_GFX_SETTINGS,
-            R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 0,
+            R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 1,
             fsaa));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_ANISOTROPY, Settings.SECTION_GFX_ENHANCEMENTS,
             R.string.anisotropic_filtering, R.string.anisotropic_filtering_description,
@@ -530,7 +530,7 @@ public final class SettingsFragmentPresenter
       if (shaderFiles != null)
       {
         String[] result = new String[shaderFiles.length + 1];
-        result[0] = "Off";
+        result[0] = mView.getActivity().getString(R.string.off);
         for (int i = 0; i < shaderFiles.length; i++)
         {
           String name = shaderFiles[i].getName();
