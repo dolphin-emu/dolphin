@@ -10,6 +10,7 @@
 
 #include <QMenu>
 #include <QMenuBar>
+#include <QPointer>
 
 namespace Core
 {
@@ -31,10 +32,14 @@ class MenuBar final : public QMenuBar
   Q_OBJECT
 
 public:
+  static MenuBar* GetMenuBar() { return s_menu_bar; }
+
   explicit MenuBar(QWidget* parent = nullptr);
 
   void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
+
+  QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
 #ifdef _WIN32
   void InstallUpdateManually();
@@ -169,6 +174,8 @@ private:
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
 
+  static QPointer<MenuBar> s_menu_bar;
+
   // File
   QAction* m_open_action;
   QAction* m_exit_action;
@@ -225,6 +232,7 @@ private:
   QAction* m_show_breakpoints;
   QAction* m_show_memory;
   QAction* m_show_jit;
+  QMenu* m_cols_menu;
 
   // JIT
   QMenu* m_jit;
