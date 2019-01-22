@@ -34,11 +34,15 @@ endif()
 
 if(NOT MSVC AND NOT CLANG)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+endif()
+
+if(LIBRETRO_STATIC)
    target_link_libraries(dolphin_libretro PRIVATE
       core
       uicommon
       ${LIBS}
-      -static-libgcc -static-libstdc++)
+      "-static-libgcc -static-libstdc++"
+   )
 else()
    target_link_libraries(dolphin_libretro PRIVATE
       core
