@@ -21,7 +21,16 @@ import java.lang.ref.WeakReference;
  */
 public final class NativeLibrary
 {
-  public static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
+  private static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
+
+  /**
+   * Returns the current instance of EmulationActivity.
+   * There should only ever be one EmulationActivity instantiated.
+   */
+  public static EmulationActivity getEmulationActivity()
+  {
+    return sEmulationActivity.get();
+  }
 
   /**
    * Button type for use in onTouchEvent
