@@ -185,6 +185,7 @@ Option<bool> efbToTexture("dolphin_efb_to_texture", "Store EFB Copies on GPU", t
 Option<bool> efbToVram("dolphin_efb_to_vram", "Disable EFB to VRAM", false);
 Option<bool> gpuTextureDecoding("dolphin_gpu_texture_decoding", "GPU Texture Decoding", false);
 Option<bool> waitForShaders("dolphin_wait_for_shaders", "Wait for Shaders before Starting", false);
+Option<bool> forceTextureFiltering("dolphin_force_texture_filtering", "Force Texture Filtering", false);
 Option<bool> loadCustomTextures("dolphin_load_custom_textures", "Load Custom Textures", false);
 }  // namespace Options
 }  // namespace Libretro
