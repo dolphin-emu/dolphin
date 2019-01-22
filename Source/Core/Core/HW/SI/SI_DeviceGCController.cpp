@@ -26,21 +26,14 @@ namespace SerialInterface
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_number)
     : ISIDevice(device, device_number)
 {
-}
-
-void CSIDevice_GCController::Calibrate()
-{
-  GCPadStatus pad_origin = GetPadStatus();
-  memset(&m_origin, 0, sizeof(SOrigin));
-  m_origin.button = pad_origin.button;
-  m_origin.origin_stick_x = pad_origin.stickX;
-  m_origin.origin_stick_y = pad_origin.stickY;
-  m_origin.substick_x = pad_origin.substickX;
-  m_origin.substick_y = pad_origin.substickY;
-  m_origin.trigger_left = pad_origin.triggerLeft;
-  m_origin.trigger_right = pad_origin.triggerRight;
-
-  m_calibrated = true;
+  // Here we set origin to perfectly centered values.
+  // This purposely differs from real hardware which sets origin to current input state.
+  // That behavior is less than ideal as the user may have inadvertently moved from neutral.
+  // The X+Y+Start button combo can override this if desired.
+  m_origin.origin_stick_x = GCPadStatus::MAIN_STICK_CENTER_X;
+  m_origin.origin_stick_y = GCPadStatus::MAIN_STICK_CENTER_Y;
+  m_origin.substick_x = GCPadStatus::C_STICK_CENTER_X;
+  m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
@@ -87,9 +80,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   {
     INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 
-    if (!m_calibrated)
-      Calibrate();
-
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
@@ -102,9 +92,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   case CMD_RECALIBRATE:
   {
     INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
-
-    if (!m_calibrated)
-      Calibrate();
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
@@ -336,7 +323,6 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 // Savestate support
 void CSIDevice_GCController::DoState(PointerWrap& p)
 {
-  p.Do(m_calibrated);
   p.Do(m_origin);
   p.Do(m_mode);
   p.Do(m_timer_button_combo_start);
