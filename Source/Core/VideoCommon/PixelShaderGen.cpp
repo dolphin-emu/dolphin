@@ -587,8 +587,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     if (uid_data->per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
       GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, host_config,
@@ -601,20 +600,26 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
-      // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       {
-        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
+        out.Write("VARYING_LOCATION(%u) %s in float3 tex%d;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
       }
       if (!host_config.fast_depth_calc)
-        out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
     }
 

@@ -128,8 +128,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
     }
 
-    // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
@@ -139,22 +138,26 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     else
     {
       // Let's set up attributes
-      for (u32 i = 0; i < 8; ++i)
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s out float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s out float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      for (u32 i = 0; i < uid_data->numTexGens; ++i)
       {
-        if (i < uid_data->numTexGens)
-        {
-          out.Write("%s out float3 tex%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
-        }
+        out.Write("VARYING_LOCATION(%u) %s out float3 tex%u;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
       }
       if (!host_config.fast_depth_calc)
-        out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s out float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s out float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s out float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
-      out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
     }
 
     out.Write("void main()\n{\n");
@@ -492,7 +495,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
     }
