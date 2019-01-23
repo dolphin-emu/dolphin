@@ -59,7 +59,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for %u texgens%s%s\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
-  WritePixelShaderCommonHeader(out, ApiType, numTexgen, per_pixel_lighting, bounding_box);
+  WritePixelShaderCommonHeader(out, ApiType, numTexgen, host_config, bounding_box);
   WriteUberShaderCommonHeader(out, ApiType, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -106,7 +106,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
-      GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting,
+      GenerateVSOutputMembers(out, ApiType, numTexgen, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
       if (stereo)
@@ -122,7 +122,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       // Let's set up attributes
       for (u32 i = 0; i < numTexgen; ++i)
         out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
-      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      if (!host_config.fast_depth_calc)
+        out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
         out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
@@ -709,8 +710,11 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     for (u32 i = 0; i < numTexgen; ++i)
       out.Write(",\n  in %s float3 tex%u : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa), i,
                 i);
-    out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
-              numTexgen);
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
+                numTexgen);
+    }
     if (per_pixel_lighting)
     {
       out.Write(",\n  in %s float3 Normal : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),

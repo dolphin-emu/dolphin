@@ -45,7 +45,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("};\n");
 
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting, "");
+  GenerateVSOutputMembers(out, ApiType, numTexgen, host_config, "");
   out.Write("};\n\n");
 
   WriteUberShaderCommonHeader(out, ApiType, host_config);
@@ -67,7 +67,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
     if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
-      GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting,
+      GenerateVSOutputMembers(out, ApiType, numTexgen, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, false));
       out.Write("} vs;\n");
     }
@@ -77,7 +77,8 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
       for (u32 i = 0; i < numTexgen; ++i)
         out.Write("%s out float3 tex%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
 
-      out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      if (!host_config.fast_depth_calc)
+        out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
         out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
@@ -184,8 +185,11 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   out.Write("    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n");
   out.Write("}\n");
 
-  // clipPos/w needs to be done in pixel shader, not here
-  out.Write("o.clipPos = o.pos;\n");
+  if (!host_config.fast_depth_calc)
+  {
+    // clipPos/w needs to be done in pixel shader, not here
+    out.Write("o.clipPos = o.pos;\n");
+  }
 
   if (per_pixel_lighting)
   {
@@ -207,8 +211,13 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
     // We adjust our depth value for clipping purposes to match the perspective projection in the
     // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
     out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
-    out.Write("o.clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
-    out.Write("o.clipDist1 = -clipDepth;\n");           // Far: z > 0
+    out.Write("float clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
+    out.Write("float clipDist1 = -clipDepth;\n");           // Far: z > 0
+    if (host_config.backend_geometry_shaders)
+    {
+      out.Write("o.clipDist0 = clipDist0;\n");
+      out.Write("o.clipDist1 = clipDist1;\n");
+    }
   }
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will
@@ -269,7 +278,7 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
   {
     if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
     {
-      AssignVSOutputMembers(out, "vs", "o", numTexgen, per_pixel_lighting);
+      AssignVSOutputMembers(out, "vs", "o", numTexgen, host_config);
     }
     else
     {
@@ -277,7 +286,8 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
       // are not supported, however that will require at least OpenGL 3.2 support.
       for (u32 i = 0; i < numTexgen; ++i)
         out.Write("tex%d.xyz = o.tex%d;\n", i, i);
-      out.Write("clipPos = o.clipPos;\n");
+      if (!host_config.fast_depth_calc)
+        out.Write("clipPos = o.clipPos;\n");
       if (per_pixel_lighting)
       {
         out.Write("Normal = o.Normal;\n");
@@ -289,8 +299,8 @@ ShaderCode GenVertexShader(APIType ApiType, const ShaderHostConfig& host_config,
 
     if (host_config.backend_depth_clamp)
     {
-      out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
-      out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
+      out.Write("gl_ClipDistance[0] = clipDist0;\n");
+      out.Write("gl_ClipDistance[1] = clipDist1;\n");
     }
 
     // Vulkan NDC space has Y pointing down (right-handed NDC space).
@@ -477,4 +487,4 @@ void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>
     callback(uid);
   }
 }
-}
+}  // namespace UberShader
