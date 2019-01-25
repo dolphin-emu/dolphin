@@ -63,6 +63,8 @@
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\GameConfigEdit.h" />
+    <QtMoc Include="Config\GameConfigHighlighter.h" />
     <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
@@ -194,6 +196,8 @@
     <ClCompile Include="$(QtMocOutPrefix)GCPadEmu.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GCTASInputWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameConfigEdit.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameConfigHighlighter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameConfigWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameCubePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
@@ -275,6 +279,8 @@
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\GameConfigEdit.cpp" />
+    <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
     <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
