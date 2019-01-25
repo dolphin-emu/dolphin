@@ -277,6 +277,30 @@ void VideoBackend::Shutdown()
   UnloadVulkanLibrary();
 }
 
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+static bool IsRunningOnMojaveOrHigher()
+{
+  // id processInfo = [NSProcessInfo processInfo]
+  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
+  if (!processInfo)
+    return false;
+
+  struct OSVersion  // NSOperatingSystemVersion
+  {
+    size_t major_version;  // NSInteger majorVersion
+    size_t minor_version;  // NSInteger minorVersion
+    size_t patch_version;  // NSInteger patchVersion
+  };
+
+  // const bool meets_requirement = [processInfo isOperatingSystemAtLeastVersion:required_version];
+  constexpr OSVersion required_version = {10, 14, 0};
+  const bool meets_requirement = reinterpret_cast<bool (*)(id, SEL, OSVersion)>(objc_msgSend)(
+      processInfo, sel_getUid("isOperatingSystemAtLeastVersion:"), required_version);
+  return meets_requirement;
+}
+#endif
+
 void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
 {
 #if defined(VK_USE_PLATFORM_MACOS_MVK)
@@ -315,6 +339,16 @@ void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
   // layer.contentsScale = factor
   reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
                                                             factor);
+  // The Metal version included with MacOS 10.13 and below does not support several features we
+  // require. Furthermore, the drivers seem to choke on our shaders (mainly Intel). So, we warn
+  // the user that this is an unsupported configuration, but permit them to continue.
+  if (!IsRunningOnMojaveOrHigher())
+  {
+    PanicAlertT(
+        "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. "
+        "For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please "
+        "do not report any issues encountered unless they also occur on 10.14+.");
+  }
 #endif
 }
 }  // namespace Vulkan
