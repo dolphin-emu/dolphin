@@ -306,6 +306,19 @@
         <item>Right Stick</item>
     </string-array>
 
+    <string-array name="doubleTap">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+    </string-array>
+
+    <string-array name="doubleTapWithClassic">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+        <item>Classic A</item>
+    </string-array>
+
     <string-array name="gameSettingsMenusGC">
         <item>Core Settings</item>
         <item>GFX Settings</item>

@@ -33,6 +33,11 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string profile[MAX_BBMOTES];
   std::string path;
 
+#if defined(ANDROID)
+  bool use_ir_config = false;
+  std::string ir_values[3];
+#endif
+
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
     std::string type;
@@ -73,6 +78,18 @@ bool InputConfig::LoadConfig(bool isGC)
         }
       }
     }
+#if defined(ANDROID)
+    // For use on android touchscreen IR pointer
+    // Check for IR values
+    if (control_section->Exists("IRWidth") && control_section->Exists("IRHeight") &&
+        control_section->Exists("IRCenter"))
+    {
+      use_ir_config = true;
+      control_section->Get("IRWidth", &ir_values[0]);
+      control_section->Get("IRHeight", &ir_values[1]);
+      control_section->Get("IRCenter", &ir_values[2]);
+    }
+#endif
   }
 
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
@@ -80,6 +97,7 @@ bool InputConfig::LoadConfig(bool isGC)
     int n = 0;
     for (auto& controller : m_controllers)
     {
+      IniFile::Section config;
       // Load settings from ini
       if (useProfile[n])
       {
@@ -91,13 +109,22 @@ bool InputConfig::LoadConfig(bool isGC)
 
         IniFile profile_ini;
         profile_ini.Load(profile[n]);
-        controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+        config = *profile_ini.GetOrCreateSection("Profile");
       }
       else
       {
-        controller->LoadConfig(inifile.GetOrCreateSection(controller->GetName()));
+        config = *inifile.GetOrCreateSection(controller->GetName());
       }
-
+#if defined(ANDROID)
+      // Only set for wii pads
+      if (!isGC && use_ir_config)
+      {
+        config.Set("IR/Width", ir_values[0]);
+        config.Set("IR/Height", ir_values[1]);
+        config.Set("IR/Center", ir_values[2]);
+      }
+#endif
+      controller->LoadConfig(&config);
       // Update refs
       controller->UpdateReferences(g_controller_interface);
 

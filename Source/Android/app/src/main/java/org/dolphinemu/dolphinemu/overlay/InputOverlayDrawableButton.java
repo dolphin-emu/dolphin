@@ -41,6 +41,7 @@ public final class InputOverlayDrawableButton
   public InputOverlayDrawableButton(Resources res, Bitmap defaultStateBitmap,
           Bitmap pressedStateBitmap, int buttonType)
   {
+    mTrackId = -1;
     mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
     mPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
     mButtonType = buttonType;
