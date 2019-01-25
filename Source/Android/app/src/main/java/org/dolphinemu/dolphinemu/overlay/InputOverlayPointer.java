@@ -53,7 +53,7 @@ public class InputOverlayPointer
     Float gameAR = NativeLibrary.GetGameAspectRatio();
     aspectAdjusted = gameAR / deviceAR;
 
-    if (gameAR < deviceAR) // Black bars on left/right
+    if (gameAR <= deviceAR) // Black bars on left/right
     {
       xAdjusted = true;
       Integer gameX = Math.round((float) y * gameAR);
@@ -65,7 +65,7 @@ public class InputOverlayPointer
     else // Bars on top/bottom
     {
       xAdjusted = false;
-      Integer gameY = Math.round((float) x * gameAR);
+      Integer gameY = Math.round((float) x / gameAR);
       Integer buffer = (y - gameY);
 
       maxWidth = (float) x / 2;
