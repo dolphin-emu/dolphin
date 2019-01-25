@@ -59,7 +59,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for %u texgens%s%s\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
-  WritePixelShaderCommonHeader(out, ApiType, numTexgen, per_pixel_lighting, bounding_box);
+  WritePixelShaderCommonHeader(out, ApiType, numTexgen, host_config, bounding_box);
   WriteUberShaderCommonHeader(out, ApiType, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -103,10 +103,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     if (per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
-      GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting,
+      GenerateVSOutputMembers(out, ApiType, numTexgen, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
       if (stereo)
@@ -116,17 +116,26 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
-      // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
-      for (u32 i = 0; i < numTexgen; ++i)
-        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
-      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      for (unsigned int i = 0; i < numTexgen; ++i)
+      {
+        out.Write("VARYING_LOCATION(%u) %s in float3 tex%d;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
+      }
+      if (!host_config.fast_depth_calc)
+        out.Write("VARYING_LOCATION(%u) %s in float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
     }
   }
@@ -709,8 +718,11 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     for (u32 i = 0; i < numTexgen; ++i)
       out.Write(",\n  in %s float3 tex%u : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa), i,
                 i);
-    out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
-              numTexgen);
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
+                numTexgen);
+    }
     if (per_pixel_lighting)
     {
       out.Write(",\n  in %s float3 Normal : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
