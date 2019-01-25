@@ -5,9 +5,7 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-# Note that the SDK determines the maximum version of which optional
-# features can be used, not the minimum required version to run.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10.0" CACHE STRING "")
 
 project(dolphin-emu)
 
