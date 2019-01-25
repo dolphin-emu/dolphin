@@ -303,6 +303,18 @@ void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
 
   // [view setLayer:layer]
   reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
+
+  // NSScreen* screen = [NSScreen mainScreen]
+  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("NSScreen"),
+                                                                 sel_getUid("mainScreen"));
+
+  // CGFloat factor = [screen backingScaleFactor]
+  double factor =
+      reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(screen, sel_getUid("backingScaleFactor"));
+
+  // layer.contentsScale = factor
+  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
+                                                            factor);
 #endif
 }
 }  // namespace Vulkan
