@@ -767,7 +767,9 @@ bool StateTracker::UpdateGXDescriptorSet()
   if (num_writes > 0)
     vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), num_writes, writes.data(), 0, nullptr);
 
-  m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
+  m_num_active_descriptor_sets = g_vulkan_context->SupportsBoundingBox() ?
+                                     NUM_GX_DRAW_DESCRIPTOR_SETS_SSBO :
+                                     NUM_GX_DRAW_DESCRIPTOR_SETS;
   m_num_dynamic_offsets = NUM_UBO_DESCRIPTOR_SET_BINDINGS;
   return true;
 }

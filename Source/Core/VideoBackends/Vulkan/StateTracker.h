@@ -103,7 +103,8 @@ private:
   // Number of descriptor sets for game draws.
   enum
   {
-    NUM_GX_DRAW_DESCRIPTOR_SETS = DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER + 1,
+    NUM_GX_DRAW_DESCRIPTOR_SETS = DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS + 1,
+    NUM_GX_DRAW_DESCRIPTOR_SETS_SSBO = DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER + 1,
     NUM_UTILITY_DRAW_DESCRIPTOR_SETS = 2
   };
 
@@ -192,4 +193,4 @@ private:
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
 };
-}
+}  // namespace Vulkan

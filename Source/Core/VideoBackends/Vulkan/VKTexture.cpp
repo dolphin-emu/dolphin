@@ -290,7 +290,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   if (upload_size <= STAGING_TEXTURE_UPLOAD_THRESHOLD &&
       upload_size <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
   {
-    StreamBuffer* stream_buffer = TextureCache::GetInstance()->GetTextureUploadBuffer();
+    StreamBuffer* stream_buffer = g_object_cache->GetTextureUploadBuffer();
     if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
     {
       // Execute the command buffer first.

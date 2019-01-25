@@ -83,7 +83,7 @@ extern VideoConfig g_ogl_config;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(std::unique_ptr<GLContext> main_gl_context);
+  Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
   ~Renderer() override;
 
   bool IsHeadless() const override;
@@ -118,8 +118,8 @@ public:
                    float far_depth) override;
   void Draw(u32 base_vertex, u32 num_vertices) override;
   void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
-
-  void RenderText(const std::string& text, int left, int top, u32 color) override;
+  void BindBackbuffer(const ClearColor& clear_color = {}) override;
+  void PresentBackbuffer() override;
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
@@ -132,8 +132,9 @@ public:
 
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override;
   void Flush() override;
+  void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) override;
+  void OnConfigChanged(u32 bits) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override;
@@ -152,12 +153,6 @@ private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
 
-  void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
-               const TargetRectangle& source_rc);
-
-  void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
-                  int src_height);
-
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
 
@@ -168,8 +163,8 @@ private:
   std::unique_ptr<GLContext> m_main_gl_context;
   std::array<const AbstractTexture*, 8> m_bound_textures{};
   const OGLPipeline* m_graphics_pipeline = nullptr;
-  RasterizationState m_current_rasterization_state = {};
-  DepthState m_current_depth_state = {};
-  BlendingState m_current_blend_state = {};
+  RasterizationState m_current_rasterization_state;
+  DepthState m_current_depth_state;
+  BlendingState m_current_blend_state;
 };
 }  // namespace OGL

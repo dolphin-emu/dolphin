@@ -31,7 +31,7 @@ public class Java_GCAdapter
 
   private static void RequestPermission()
   {
-    Context context = NativeLibrary.sEmulationActivity.get();
+    Context context = NativeLibrary.getEmulationActivity();
     if (context != null)
     {
       HashMap<String, UsbDevice> devices = manager.getDeviceList();
@@ -141,7 +141,7 @@ public class Java_GCAdapter
             }
           }
 
-          final Activity emulationActivity = NativeLibrary.sEmulationActivity.get();
+          final Activity emulationActivity = NativeLibrary.getEmulationActivity();
           if (emulationActivity != null)
           {
             emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity,

@@ -45,11 +45,6 @@ VkShaderModule TextureCache::GetCopyShader() const
   return m_copy_shader;
 }
 
-StreamBuffer* TextureCache::GetTextureUploadBuffer() const
-{
-  return m_texture_upload_buffer.get();
-}
-
 TextureCache* TextureCache::GetInstance()
 {
   return static_cast<TextureCache*>(g_texture_cache.get());
@@ -57,15 +52,6 @@ TextureCache* TextureCache::GetInstance()
 
 bool TextureCache::Initialize()
 {
-  m_texture_upload_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE,
-                           MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE);
-  if (!m_texture_upload_buffer)
-  {
-    PanicAlert("Failed to create texture upload buffer");
-    return false;
-  }
-
   m_texture_converter = std::make_unique<TextureConverter>();
   if (!m_texture_converter->Initialize())
   {

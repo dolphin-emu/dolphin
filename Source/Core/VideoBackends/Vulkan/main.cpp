@@ -225,7 +225,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Create main wrapper instances.
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
+  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
   g_vertex_manager = std::make_unique<VertexManager>();
   g_texture_cache = std::make_unique<TextureCache>();
   ::g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
@@ -303,6 +303,18 @@ void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
 
   // [view setLayer:layer]
   reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
+
+  // NSScreen* screen = [NSScreen mainScreen]
+  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("NSScreen"),
+                                                                 sel_getUid("mainScreen"));
+
+  // CGFloat factor = [screen backingScaleFactor]
+  double factor =
+      reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(screen, sel_getUid("backingScaleFactor"));
+
+  // layer.contentsScale = factor
+  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
+                                                            factor);
 #endif
 }
 }  // namespace Vulkan
