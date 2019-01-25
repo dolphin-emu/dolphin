@@ -2184,12 +2184,13 @@ void SetupWiimotes()
   ASSERT(IsNetPlayRunning());
   const NetSettings& netplay_settings = netplay_client->GetNetSettings();
   const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
-  for (int i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
+  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
   {
     if (wiimote_map[i] > 0)
     {
       static_cast<ControllerEmu::Extension*>(
-          static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(i))
+          static_cast<WiimoteEmu::Wiimote*>(
+              Wiimote::GetConfig()->GetController(static_cast<int>(i)))
               ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Extension))
           ->switch_extension = netplay_settings.m_WiimoteExtension[i];
     }
