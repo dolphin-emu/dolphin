@@ -176,6 +176,21 @@ void Settings::SetAutoRefreshEnabled(bool enabled)
   emit AutoRefreshToggled(enabled);
 }
 
+bool Settings::IsCompactViewEnabled() const
+{
+  return GetQSettings().value(QStringLiteral("CompactView"), false).toBool();
+}
+
+void Settings::SetCompactViewEnabled(bool enabled)
+{
+  if (IsCompactViewEnabled() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("CompactView"), enabled);
+
+  emit CompactViewChanged(enabled);
+}
+
 QString Settings::GetDefaultGame() const
 {
   return QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));

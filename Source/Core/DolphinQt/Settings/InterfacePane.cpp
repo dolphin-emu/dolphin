@@ -145,6 +145,7 @@ void InterfacePane::CreateUI()
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
+  m_checkbox_compact_view = new QCheckBox(tr("Compact View"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
@@ -152,6 +153,7 @@ void InterfacePane::CreateUI()
 
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_userstyle);
+  groupbox_layout->addWidget(m_checkbox_compact_view);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
   groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
@@ -206,6 +208,9 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_hide_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetHideCursor);
   connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_compact_view, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(&Settings::Instance(), &Settings::CompactViewChanged, m_checkbox_compact_view,
+          &QCheckBox::setChecked);
 }
 
 void InterfacePane::LoadConfig()
@@ -225,6 +230,7 @@ void InterfacePane::LoadConfig()
     m_combobox_userstyle->setCurrentIndex(index);
 
   m_checkbox_use_userstyle->setChecked(Settings::Instance().AreUserStylesEnabled());
+  m_checkbox_compact_view->setChecked(Settings::Instance().IsCompactViewEnabled());
 
   const bool visible = m_checkbox_use_userstyle->isChecked();
 
@@ -249,6 +255,7 @@ void InterfacePane::OnSaveConfig()
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
+  Settings::Instance().SetCompactViewEnabled(m_checkbox_compact_view->isChecked());
   Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
 
   const bool visible = m_checkbox_use_userstyle->isChecked();

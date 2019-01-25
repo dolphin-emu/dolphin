@@ -423,6 +423,13 @@ void MenuBar::AddViewMenu()
 
   connect(lock_widgets, &QAction::toggled, &Settings::Instance(), &Settings::SetWidgetsLocked);
 
+  QAction* compact_view = view_menu->addAction(tr("Compact View"));
+  compact_view->setCheckable(true);
+  compact_view->setChecked(Settings::Instance().IsCompactViewEnabled());
+
+  connect(compact_view, &QAction::toggled, &Settings::Instance(), &Settings::SetCompactViewEnabled);
+  connect(&Settings::Instance(), &Settings::CompactViewChanged, compact_view, &QAction::setChecked);
+
   view_menu->addSeparator();
 
   m_show_code = view_menu->addAction(tr("&Code"));
