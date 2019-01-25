@@ -284,8 +284,13 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
   case QEvent::MouseMove:
   {
     auto lock = g_renderer->GetImGuiLock();
-    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->x();
-    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->y();
+
+    // Qt multiplies all coordinates by the scaling factor in highdpi mode, giving us "scaled" mouse
+    // coordinates (as if the screen was standard dpi). We need to update the mouse position in
+    // native coordinates, as the UI (and game) is rendered at native resolution.
+    const float scale = devicePixelRatio();
+    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->x() * scale;
+    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->y() * scale;
   }
   break;
 
