@@ -361,7 +361,7 @@ void GameList::ShowContextMenu(const QPoint&)
       tag_action->setCheckable(true);
       tag_action->setChecked(game_tags.contains(tag));
 
-      connect(tag_action, &QAction::toggled, this, [this, path, tag, model](bool checked) {
+      connect(tag_action, &QAction::toggled, [path, tag, model](bool checked) {
         if (!checked)
           model->RemoveGameTag(path, tag);
         else

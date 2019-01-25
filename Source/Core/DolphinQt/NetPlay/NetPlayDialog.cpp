@@ -315,7 +315,7 @@ void NetPlayDialog::ConnectWidgets()
               client->AdjustPadBufferSize(value);
           });
 
-  connect(m_host_input_authority_box, &QCheckBox::toggled, [this](bool checked) {
+  connect(m_host_input_authority_box, &QCheckBox::toggled, [](bool checked) {
     auto server = Settings::Instance().GetNetPlayServer();
     if (server)
       server->SetHostInputAuthority(checked);

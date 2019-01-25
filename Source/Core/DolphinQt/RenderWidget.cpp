@@ -268,7 +268,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     // The actual text input goes through AddInputCharactersUTF8().
     const QKeyEvent* key_event = static_cast<const QKeyEvent*>(event);
     const bool is_down = event->type() == QEvent::KeyPress;
-    const int key = (key_event->key() & 0x1FF);
+    const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
     auto lock = g_renderer->GetImGuiLock();
     if (key < ArraySize(ImGui::GetIO().KeysDown))
       ImGui::GetIO().KeysDown[key] = is_down;
