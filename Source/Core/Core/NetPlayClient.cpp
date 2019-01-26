@@ -1566,21 +1566,21 @@ void NetPlayClient::UpdateDevices()
     {
       if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
       {
-        SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
+        SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
       }
       else
       {
-        SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+        SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
       }
       local_pad++;
     }
     else if (player_id > 0)
     {
-      SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
-      SerialInterface::AddDevice(SerialInterface::SIDEVICE_NONE, pad);
+      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_NONE, pad);
     }
     pad++;
   }
