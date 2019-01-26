@@ -271,6 +271,48 @@ private:
   mutable Clock::time_point m_last_update = Clock::now();
 };
 
+// usage: !hold(input, seconds)
+class HoldExpression : public FunctionExpression
+{
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 2 == args.size();
+  }
+
+  ControlState GetValue() const override
+  {
+    const auto now = Clock::now();
+
+    const ControlState input = GetArg(0).GetValue();
+
+    if (input < CONDITION_THRESHOLD)
+    {
+      m_state = false;
+      m_start_time = Clock::now();
+    }
+    else if (!m_state)
+    {
+      const auto hold_time = now - m_start_time;
+
+      using FSec = std::chrono::duration<ControlState>;
+
+      if (std::chrono::duration_cast<FSec>(hold_time).count() >= GetArg(1).GetValue())
+        m_state = true;
+    }
+
+    return m_state;
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "smooth"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+
+  mutable bool m_state = false;
+  mutable Clock::time_point m_start_time = Clock::now();
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   if (name.empty())
@@ -291,6 +333,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<DeadzoneExpression>();
   else if ("smooth" == name)
     return std::make_unique<SmoothExpression>();
+  else if ("hold" == name)
+    return std::make_unique<HoldExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
