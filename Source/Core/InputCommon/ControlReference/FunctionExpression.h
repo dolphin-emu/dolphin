@@ -30,6 +30,7 @@ protected:
 
   Expression& GetArg(u32 number);
   const Expression& GetArg(u32 number) const;
+  u32 GetArgCount() const;
 
 private:
   std::vector<std::unique_ptr<Expression>> m_args;

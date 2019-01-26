@@ -32,7 +32,8 @@ class ToggleExpression : public FunctionExpression
 private:
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 1 == args.size();
+    // Optional 2nd argument for clearing state:
+    return 1 == args.size() || 2 == args.size();
   }
 
   ControlState GetValue() const override
@@ -47,6 +48,11 @@ private:
     {
       m_released = false;
       m_state ^= true;
+    }
+
+    if (2 == GetArgCount() && GetArg(1).GetValue() > CONDITION_THRESHOLD)
+    {
+      m_state = false;
     }
 
     return m_state;
@@ -255,6 +261,11 @@ Expression& FunctionExpression::GetArg(u32 number)
 const Expression& FunctionExpression::GetArg(u32 number) const
 {
   return *m_args[number];
+}
+
+u32 FunctionExpression::GetArgCount() const
+{
+  return u32(m_args.size());
 }
 
 }  // namespace ExpressionParser
