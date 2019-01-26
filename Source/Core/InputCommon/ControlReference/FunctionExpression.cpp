@@ -438,6 +438,61 @@ private:
   mutable Clock::time_point m_last_update = Clock::now();
 };
 
+// usage: !pulse(input, seconds)
+class PulseExpression : public FunctionExpression
+{
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 2 == args.size();
+  }
+
+  ControlState GetValue() const override
+  {
+    const auto now = Clock::now();
+
+    const ControlState input = GetArg(0).GetValue();
+
+    if (input < CONDITION_THRESHOLD)
+    {
+      m_released = true;
+    }
+    else if (m_released)
+    {
+      m_released = false;
+
+      using FSec = std::chrono::duration<ControlState>;
+      const auto seconds = std::chrono::duration_cast<Clock::duration>(FSec(GetArg(1).GetValue()));
+
+      if (m_state)
+      {
+        m_release_time += seconds;
+      }
+      else
+      {
+        m_state = true;
+        m_release_time = now + seconds;
+      }
+    }
+
+    if (m_state && now >= m_release_time)
+    {
+      m_state = false;
+    }
+
+    return m_state;
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "pulse"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+
+  mutable bool m_released = false;
+  mutable bool m_state = false;
+  mutable Clock::time_point m_release_time = Clock::now();
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   if (name.empty())
@@ -464,6 +519,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<TapExpression>();
   else if ("relative" == name)
     return std::make_unique<RelativeExpression>();
+  else if ("pulse" == name)
+    return std::make_unique<PulseExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
