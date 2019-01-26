@@ -766,11 +766,13 @@ bool MainWindow::RequestStop()
                                            "before it completes. Force stop?") :
                                         tr("Do you want to stop the current emulation?"));
 
-    if (pause)
-      Core::SetState(state);
-
     if (confirm != QMessageBox::Yes)
+    {
+      if (pause)
+        Core::SetState(state);
+
       return false;
+    }
   }
 
   // TODO: Add Movie shutdown
