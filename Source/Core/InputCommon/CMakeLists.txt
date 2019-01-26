@@ -45,6 +45,8 @@ add_library(inputcommon
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp
   ControlReference/ExpressionParser.h
+  ControlReference/FunctionExpression.cpp
+  ControlReference/FunctionExpression.h
 )
 
 target_link_libraries(inputcommon PUBLIC
