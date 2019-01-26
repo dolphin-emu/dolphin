@@ -586,15 +586,9 @@ u8 ReadARAM(u32 address)
 {
   if (s_ARAM.wii_mode)
   {
-    if (address & 0x10000000)
-      return s_ARAM.ptr[address & s_ARAM.mask];
-    else
-      return Memory::Read_U8(address & Memory::RAM_MASK);
+    return Memory::Read_U8(address & 0x1fffffff);
   }
-  else
-  {
-    return s_ARAM.ptr[address & s_ARAM.mask];
-  }
+  return s_ARAM.ptr[address & s_ARAM.mask];
 }
 
 void WriteARAM(u8 value, u32 address)
