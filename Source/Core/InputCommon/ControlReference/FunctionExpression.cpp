@@ -226,6 +226,51 @@ class DeadzoneExpression : public FunctionExpression
   std::string GetFuncName() const override { return "deadzone"; }
 };
 
+// usage: smooth(input, seconds)
+// seconds is seconds to change from 0.0 to 1.0
+class SmoothExpression : public FunctionExpression
+{
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 2 == args.size();
+  }
+
+  ControlState GetValue() const override
+  {
+    const auto now = Clock::now();
+    const auto elapsed = now - m_last_update;
+    m_last_update = now;
+
+    const ControlState desired_value = GetArg(0).GetValue();
+    const ControlState smooth = GetArg(1).GetValue();
+
+    using FSec = std::chrono::duration<ControlState>;
+
+    const ControlState max_move = std::chrono::duration_cast<FSec>(elapsed).count() / smooth;
+
+    if (std::isinf(max_move))
+    {
+      m_value = desired_value;
+    }
+    else
+    {
+      const ControlState diff = desired_value - m_value;
+      m_value += std::copysign(std::min(max_move, std::abs(diff)), diff);
+    }
+
+    return m_value;
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "smooth"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+
+  mutable ControlState m_value = 0.0;
+  mutable Clock::time_point m_last_update = Clock::now();
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   if (name.empty())
@@ -244,6 +289,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<UnaryMinusExpression>();
   else if ("deadzone" == name)
     return std::make_unique<DeadzoneExpression>();
+  else if ("smooth" == name)
+    return std::make_unique<SmoothExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
