@@ -27,6 +27,7 @@ private:
   std::string GetFuncName() const override { return "unknown"; }
 };
 
+// usage: !toggle(toggle_state_input, [clear_state_input])
 class ToggleExpression : public FunctionExpression
 {
 private:
@@ -65,6 +66,7 @@ private:
   mutable bool m_state{};
 };
 
+// usage: !not(expression)
 class NotExpression : public FunctionExpression
 {
 private:
@@ -78,6 +80,7 @@ private:
   std::string GetFuncName() const override { return ""; }
 };
 
+// usage: !sin(expression)
 class SinExpression : public FunctionExpression
 {
 private:
@@ -91,6 +94,7 @@ private:
   std::string GetFuncName() const override { return "sin"; }
 };
 
+// usage: !timer(seconds)
 class TimerExpression : public FunctionExpression
 {
 private:
@@ -134,6 +138,7 @@ private:
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
+// usage: !if(condition, true_expression, false_expression)
 class IfExpression : public FunctionExpression
 {
 private:
@@ -152,6 +157,7 @@ private:
   std::string GetFuncName() const override { return "if"; }
 };
 
+// usage: !minus(expression)
 class UnaryMinusExpression : public FunctionExpression
 {
 private:
@@ -170,6 +176,7 @@ private:
   std::string GetFuncName() const override { return "minus"; }
 };
 
+// usage: !while(condition, expression)
 class WhileExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
@@ -200,6 +207,25 @@ class WhileExpression : public FunctionExpression
   std::string GetFuncName() const override { return "while"; }
 };
 
+// usage: deadzone(input, amount)
+class DeadzoneExpression : public FunctionExpression
+{
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 2 == args.size();
+  }
+
+  ControlState GetValue() const override
+  {
+    const ControlState val = GetArg(0).GetValue();
+    const ControlState deadzone = GetArg(1).GetValue();
+    return std::copysign(std::max(0.0, std::abs(val) - deadzone) / (1.0 - deadzone), val);
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "deadzone"; }
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   if (name.empty())
@@ -216,6 +242,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<WhileExpression>();
   else if ("minus" == name)
     return std::make_unique<UnaryMinusExpression>();
+  else if ("deadzone" == name)
+    return std::make_unique<DeadzoneExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
