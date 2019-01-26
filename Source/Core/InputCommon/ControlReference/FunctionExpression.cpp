@@ -375,6 +375,69 @@ private:
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
+// usage: !relative(input, speed, [max_abs_value, [shared_state]])
+// speed is max movement per second
+class RelativeExpression : public FunctionExpression
+{
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return args.size() >= 2 && args.size() <= 4;
+  }
+
+  ControlState GetValue() const override
+  {
+    // There is a lot of funky math in this function but it allows for a variety of uses:
+    //
+    // e.g. A single mapping with a relatively adjusted value between 0.0 and 1.0
+    // Potentially useful for a trigger input
+    //  !relative(`Up` - `Down`, 2.0)
+    //
+    // e.g. A value with two mappings (such as analog stick Up/Down)
+    // The shared state allows the two mappings to work together.
+    // This mapping (for up) returns a value clamped between 0.0 and 1.0
+    //  !relative(`Up`, 2.0, 1.0, $y)
+    // This mapping (for down) returns the negative value clamped between 0.0 and 1.0
+    // (Adjustments created by `Down` are applied negatively to the shared state)
+    //  !relative(`Down`, 2.0, -1.0, $y)
+
+    const auto now = Clock::now();
+
+    if (GetArgCount() >= 4)
+      m_state = GetArg(3).GetValue();
+
+    using FSec = std::chrono::duration<ControlState>;
+
+    const auto elapsed = std::chrono::duration_cast<FSec>(now - m_last_update).count();
+    m_last_update = now;
+
+    const ControlState input = GetArg(0).GetValue();
+    const ControlState speed = GetArg(1).GetValue();
+
+    const ControlState max_abs_value = (GetArgCount() >= 3) ? GetArg(2).GetValue() : 1.0;
+
+    const ControlState max_move = input * elapsed * speed;
+    const ControlState diff_from_zero = std::abs(0.0 - m_state);
+    const ControlState diff_from_max = std::abs(max_abs_value - m_state);
+
+    m_state += std::min(std::max(max_move, -diff_from_zero), diff_from_max) *
+               std::copysign(1.0, max_abs_value);
+
+    if (GetArgCount() >= 4)
+      const_cast<Expression&>(GetArg(3)).SetValue(m_state);
+
+    return std::max(0.0, m_state * std::copysign(1.0, max_abs_value));
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "relative"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+
+  mutable ControlState m_state = 0.0;
+  mutable Clock::time_point m_last_update = Clock::now();
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   if (name.empty())
@@ -399,6 +462,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<HoldExpression>();
   else if ("tap" == name)
     return std::make_unique<TapExpression>();
+  else if ("relative" == name)
+    return std::make_unique<RelativeExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
