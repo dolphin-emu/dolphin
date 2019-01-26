@@ -313,6 +313,68 @@ private:
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
+// usage: !tap(input, seconds, taps=2)
+class TapExpression : public FunctionExpression
+{
+  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  {
+    return 2 == args.size() || 3 == args.size();
+  }
+
+  ControlState GetValue() const override
+  {
+    const auto now = Clock::now();
+
+    using FSec = std::chrono::duration<ControlState>;
+
+    const auto elapsed = std::chrono::duration_cast<FSec>(now - m_start_time).count();
+
+    const ControlState input = GetArg(0).GetValue();
+    const ControlState seconds = GetArg(1).GetValue();
+
+    const bool is_time_up = elapsed > seconds;
+
+    const u32 desired_taps = (3 == GetArgCount()) ? u32(GetArg(2).GetValue() + 0.5) : 2;
+
+    if (input < CONDITION_THRESHOLD)
+    {
+      m_released = true;
+
+      if (m_taps > 0 && is_time_up)
+      {
+        m_taps = 0;
+      }
+    }
+    else
+    {
+      if (m_released)
+      {
+        if (!m_taps)
+        {
+          m_start_time = now;
+        }
+
+        ++m_taps;
+        m_released = false;
+      }
+
+      return desired_taps == m_taps;
+    }
+
+    return 0.0;
+  }
+
+  void SetValue(ControlState value) override {}
+  std::string GetFuncName() const override { return "tap"; }
+
+private:
+  using Clock = std::chrono::steady_clock;
+
+  mutable bool m_released = true;
+  mutable u32 m_taps = 0;
+  mutable Clock::time_point m_start_time = Clock::now();
+};
+
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
   if (name.empty())
@@ -335,6 +397,8 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<SmoothExpression>();
   else if ("hold" == name)
     return std::make_unique<HoldExpression>();
+  else if ("tap" == name)
+    return std::make_unique<TapExpression>();
   else
     return std::make_unique<UnknownFunctionExpression>();
 }
