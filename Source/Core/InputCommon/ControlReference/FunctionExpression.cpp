@@ -114,9 +114,9 @@ private:
 
     ControlState progress = std::chrono::duration_cast<FSec>(elapsed).count() / val;
 
-    if (std::isinf(progress))
+    if (std::isinf(progress) || progress < 0.0)
     {
-      // User configured a 0.0 length timer. Reset the timer and return 0.0.
+      // User configured a non-positive timer. Reset the timer and return 0.0.
       progress = 0.0;
       m_start_time = now;
     }
