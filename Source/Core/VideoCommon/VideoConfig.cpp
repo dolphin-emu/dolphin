@@ -19,11 +19,19 @@ VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 static bool s_has_registered_callback = false;
 
+static bool IsVSyncActive(bool enabled)
+{
+  // Vsync is disabled when the throttler is disabled by the tab key.
+  return enabled && !Core::GetIsThrottlerTempDisabled() &&
+         SConfig::GetInstance().m_EmulationSpeed == 1.0;
+}
+
 void UpdateActiveConfig()
 {
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
     Movie::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
+  g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
 }
 
 VideoConfig::VideoConfig()
@@ -173,12 +181,6 @@ void VideoConfig::VerifyValidity()
       stereo_mode = StereoMode::Off;
     }
   }
-}
-
-bool VideoConfig::IsVSync() const
-{
-  return bVSync && !Core::GetIsThrottlerTempDisabled() &&
-         SConfig::GetInstance().m_EmulationSpeed == 1.0;
 }
 
 bool VideoConfig::UsingUberShaders() const

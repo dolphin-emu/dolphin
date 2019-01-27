@@ -751,7 +751,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
   // Handle VSync on/off
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-    m_main_gl_context->SwapInterval(g_ActiveConfig.IsVSync());
+    m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
@@ -1439,7 +1439,7 @@ void Renderer::OnConfigChanged(u32 bits)
   }
 
   if (bits & CONFIG_CHANGE_BIT_VSYNC && !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-    m_main_gl_context->SwapInterval(g_ActiveConfig.IsVSync());
+    m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
   if (bits & CONFIG_CHANGE_BIT_ANISOTROPY)
     g_sampler_cache->Clear();
