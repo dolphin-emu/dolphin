@@ -141,10 +141,6 @@ void Renderer::Shutdown()
 {
   ::Renderer::Shutdown();
 
-  // Submit the current command buffer, in case there's a partial frame.
-  StateTracker::GetInstance()->EndRenderPass();
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-
   DestroyShaders();
   DestroySemaphores();
 }
