@@ -138,6 +138,11 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       return QString::fromStdString(UICommon::FormatSize(game.GetFileSize()));
     if (role == Qt::InitialSortOrderRole)
       return static_cast<quint64>(game.GetFileSize());
+    if (role == Qt::ForegroundRole && game.GetBlobType() != DiscIO::BlobType::PLAIN)
+    {
+      // Display compressed file sizes in blue.
+      return QColor(Qt::blue);
+    }
     break;
   case COL_TAGS:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
