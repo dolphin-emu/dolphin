@@ -188,7 +188,7 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     bool ok;
     const auto new_mac = QInputDialog::getText(
-        this, tr("Broadband adapter MAC address"), tr("Enter new broadband adapter MAC address:"),
+        this, tr("Broadband Adapter MAC address"), tr("Enter new Broadband Adapter MAC address:"),
         QLineEdit::Normal, QString::fromStdString(SConfig::GetInstance().m_bba_mac), &ok);
     if (ok)
       SConfig::GetInstance().m_bba_mac = new_mac.toStdString();

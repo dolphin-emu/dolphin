@@ -516,7 +516,7 @@ void MenuBar::InstallUpdateManually()
   {
     QMessageBox::information(
         this, tr("Update"),
-        tr("You are running the latest version available on this update track"));
+        tr("You are running the latest version available on this update track."));
   }
 
   track = previous_value;
