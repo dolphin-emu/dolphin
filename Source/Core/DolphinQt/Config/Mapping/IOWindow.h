@@ -51,7 +51,7 @@ private:
   void OnTestButtonPressed();
   void OnRangeChanged(int range);
 
-  void AppendSelectedOption(const std::string& prefix);
+  void AppendSelectedOption();
   void UpdateOptionList();
   void UpdateDeviceList();
 
@@ -70,13 +70,11 @@ private:
 
   // Shared actions
   QPushButton* m_select_button;
-  QPushButton* m_or_button;
+  QComboBox* m_operators_combo;
 
   // Input actions
   QPushButton* m_detect_button;
-  QPushButton* m_and_button;
-  QPushButton* m_not_button;
-  QPushButton* m_add_button;
+  QComboBox* m_functions_combo;
 
   // Output actions
   QPushButton* m_test_button;
