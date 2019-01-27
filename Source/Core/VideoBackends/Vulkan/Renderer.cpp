@@ -76,12 +76,6 @@ bool Renderer::Initialize()
 
   BindEFBToStateTracker();
 
-  if (!CompileShaders())
-  {
-    PanicAlert("Failed to compile shaders.");
-    return false;
-  }
-
   m_bounding_box = std::make_unique<BoundingBox>();
   if (!m_bounding_box->Initialize())
   {
@@ -117,8 +111,6 @@ bool Renderer::Initialize()
 void Renderer::Shutdown()
 {
   ::Renderer::Shutdown();
-
-  DestroyShaders();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -447,7 +439,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
                          g_shader_cache->GetPassthroughVertexShader(),
-                         g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
+                         g_shader_cache->GetPassthroughGeometryShader(),
+                         g_shader_cache->GetClearFragmentShader());
 
   draw.SetMultisamplingState(FramebufferManager::GetInstance()->GetEFBMultisamplingState());
   draw.SetDepthState(depth_state);
@@ -658,7 +651,6 @@ void Renderer::OnConfigChanged(u32 bits)
   if (bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
   {
     RecreateEFBFramebuffer();
-    RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
     g_shader_cache->ReloadPipelineCache();
     g_shader_cache->RecompileSharedShaders();
@@ -892,45 +884,4 @@ void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, 1, base_index,
                    base_vertex, 0);
 }
-
-void Renderer::RecompileShaders()
-{
-  DestroyShaders();
-  if (!CompileShaders())
-    PanicAlert("Failed to recompile shaders.");
-}
-
-bool Renderer::CompileShaders()
-{
-  static const char CLEAR_FRAGMENT_SHADER_SOURCE[] = R"(
-    layout(location = 0) in float3 uv0;
-    layout(location = 1) in float4 col0;
-    layout(location = 0) out float4 ocol0;
-
-    void main()
-    {
-      ocol0 = col0;
-    }
-
-  )";
-
-  std::string source = g_shader_cache->GetUtilityShaderHeader() + CLEAR_FRAGMENT_SHADER_SOURCE;
-  m_clear_fragment_shader = Util::CompileAndCreateFragmentShader(source);
-
-  return m_clear_fragment_shader != VK_NULL_HANDLE;
-}
-
-void Renderer::DestroyShaders()
-{
-  auto DestroyShader = [this](VkShaderModule& shader) {
-    if (shader != VK_NULL_HANDLE)
-    {
-      vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
-      shader = VK_NULL_HANDLE;
-    }
-  };
-
-  DestroyShader(m_clear_fragment_shader);
-}
-
 }  // namespace Vulkan

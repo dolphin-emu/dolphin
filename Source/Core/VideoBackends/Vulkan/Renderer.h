@@ -104,17 +104,10 @@ private:
   void RecreateEFBFramebuffer();
   void BindFramebuffer(const VKFramebuffer* fb);
 
-  void RecompileShaders();
-  bool CompileShaders();
-  void DestroyShaders();
-
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<BoundingBox> m_bounding_box;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
-
-  // Shaders used for clear/blit.
-  VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
 };
 }
