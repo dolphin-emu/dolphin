@@ -76,33 +76,10 @@ bool Renderer::Initialize()
 
   BindEFBToStateTracker();
 
-  if (!CreateSemaphores())
-  {
-    PanicAlert("Failed to create semaphores.");
-    return false;
-  }
-
   if (!CompileShaders())
   {
     PanicAlert("Failed to compile shaders.");
     return false;
-  }
-
-  // Swap chain render pass.
-  if (m_swap_chain)
-  {
-    m_swap_chain_render_pass =
-        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
-                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
-    m_swap_chain_clear_render_pass =
-        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
-                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
-    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
-        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
-    {
-      PanicAlert("Failed to create swap chain render passes.");
-      return false;
-    }
   }
 
   m_bounding_box = std::make_unique<BoundingBox>();
@@ -142,45 +119,6 @@ void Renderer::Shutdown()
   ::Renderer::Shutdown();
 
   DestroyShaders();
-  DestroySemaphores();
-}
-
-bool Renderer::CreateSemaphores()
-{
-  // Create two semaphores, one that is triggered when the swapchain buffer is ready, another after
-  // submit and before present
-  VkSemaphoreCreateInfo semaphore_info = {
-      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // VkStructureType          sType
-      nullptr,                                  // const void*              pNext
-      0                                         // VkSemaphoreCreateFlags   flags
-  };
-
-  VkResult res;
-  if ((res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
-                               &m_image_available_semaphore)) != VK_SUCCESS ||
-      (res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
-                               &m_rendering_finished_semaphore)) != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
-    return false;
-  }
-
-  return true;
-}
-
-void Renderer::DestroySemaphores()
-{
-  if (m_image_available_semaphore)
-  {
-    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_image_available_semaphore, nullptr);
-    m_image_available_semaphore = VK_NULL_HANDLE;
-  }
-
-  if (m_rendering_finished_semaphore)
-  {
-    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_rendering_finished_semaphore, nullptr);
-    m_rendering_finished_semaphore = VK_NULL_HANDLE;
-  }
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -553,7 +491,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
   if (!g_command_buffer_mgr->CheckLastPresentFail())
   {
     // Grab the next image from the swap chain in preparation for drawing the window.
-    res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+    res = m_swap_chain->AcquireNextImage();
   }
   else
   {
@@ -573,7 +511,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     m_swap_chain->ResizeSwapChain();
     BeginFrame();
     g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
-    res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+    res = m_swap_chain->AcquireNextImage();
   }
   if (res != VK_SUCCESS)
     PanicAlert("Failed to grab image from swap chain");
@@ -591,8 +529,8 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
 
   // Draw to the backbuffer.
   VkRect2D region = {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}};
-  StateTracker::GetInstance()->SetRenderPass(m_swap_chain_render_pass,
-                                             m_swap_chain_clear_render_pass);
+  StateTracker::GetInstance()->SetRenderPass(m_swap_chain->GetLoadRenderPass(),
+                                             m_swap_chain->GetClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(m_swap_chain->GetCurrentFramebuffer(), region);
 
   // Begin render pass for rendering to the swap chain.
@@ -608,18 +546,17 @@ void Renderer::PresentBackbuffer()
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.
-  Texture2D* backbuffer = m_swap_chain->GetCurrentTexture();
-  backbuffer->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  m_swap_chain->GetCurrentTexture()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   // Submit the current command buffer, signaling rendering finished semaphore when it's done
   // Because this final command buffer is rendering to the swap chain, we need to wait for
   // the available semaphore to be signaled before executing the buffer. This final submission
   // can happen off-thread in the background while we're preparing the next frame.
-  g_command_buffer_mgr->SubmitCommandBuffer(
-      true, m_image_available_semaphore, m_rendering_finished_semaphore,
-      m_swap_chain->GetSwapChain(), m_swap_chain->GetCurrentImageIndex());
-
+  g_command_buffer_mgr->SubmitCommandBuffer(true, m_swap_chain->GetImageAvailableSemaphore(),
+                                            m_swap_chain->GetRenderingFinishedSemaphore(),
+                                            m_swap_chain->GetSwapChain(),
+                                            m_swap_chain->GetCurrentImageIndex());
   BeginFrame();
 }
 
@@ -637,22 +574,22 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectan
 
     post_processor->BlitFromTexture(left_rect, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    0, m_swap_chain_render_pass);
+                                    0, m_swap_chain->GetLoadRenderPass());
     post_processor->BlitFromTexture(right_rect, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    1, m_swap_chain_render_pass);
+                                    1, m_swap_chain->GetLoadRenderPass());
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer)
   {
     post_processor->BlitFromTexture(target_rc, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    -1, m_swap_chain_render_pass);
+                                    -1, m_swap_chain->GetLoadRenderPass());
   }
   else
   {
     post_processor->BlitFromTexture(target_rc, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    0, m_swap_chain_render_pass);
+                                    0, m_swap_chain->GetLoadRenderPass());
   }
 
   // The post-processor uses the old-style Vulkan draws, which mess with the tracked state.

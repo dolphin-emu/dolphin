@@ -92,9 +92,6 @@ public:
   void PresentBackbuffer() override;
 
 private:
-  bool CreateSemaphores();
-  void DestroySemaphores();
-
   void BeginFrame();
 
   void CheckForSurfaceChange();
@@ -110,11 +107,6 @@ private:
   void RecompileShaders();
   bool CompileShaders();
   void DestroyShaders();
-
-  VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
-  VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;
-  VkRenderPass m_swap_chain_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_swap_chain_clear_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<BoundingBox> m_bounding_box;
