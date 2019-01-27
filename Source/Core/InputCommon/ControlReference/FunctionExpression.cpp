@@ -14,6 +14,9 @@ namespace ExpressionParser
 constexpr int LOOP_MAX_REPS = 10000;
 constexpr ControlState CONDITION_THRESHOLD = 0.5;
 
+using Clock = std::chrono::steady_clock;
+using FSec = std::chrono::duration<ControlState>;
+
 // TODO: Return an oscillating value to make it apparent something was spelled wrong?
 class UnknownFunctionExpression : public FunctionExpression
 {
@@ -108,8 +111,6 @@ private:
     const auto now = Clock::now();
     const auto elapsed = now - m_start_time;
 
-    using FSec = std::chrono::duration<ControlState>;
-
     const ControlState val = GetArg(0).GetValue();
 
     ControlState progress = std::chrono::duration_cast<FSec>(elapsed).count() / val;
@@ -134,7 +135,6 @@ private:
   std::string GetFuncName() const override { return "timer"; }
 
 private:
-  using Clock = std::chrono::steady_clock;
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
@@ -207,7 +207,7 @@ class WhileExpression : public FunctionExpression
   std::string GetFuncName() const override { return "while"; }
 };
 
-// usage: deadzone(input, amount)
+// usage: !deadzone(input, amount)
 class DeadzoneExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
@@ -226,7 +226,7 @@ class DeadzoneExpression : public FunctionExpression
   std::string GetFuncName() const override { return "deadzone"; }
 };
 
-// usage: smooth(input, seconds)
+// usage: !smooth(input, seconds)
 // seconds is seconds to change from 0.0 to 1.0
 class SmoothExpression : public FunctionExpression
 {
@@ -243,8 +243,6 @@ class SmoothExpression : public FunctionExpression
 
     const ControlState desired_value = GetArg(0).GetValue();
     const ControlState smooth = GetArg(1).GetValue();
-
-    using FSec = std::chrono::duration<ControlState>;
 
     const ControlState max_move = std::chrono::duration_cast<FSec>(elapsed).count() / smooth;
 
@@ -265,8 +263,6 @@ class SmoothExpression : public FunctionExpression
   std::string GetFuncName() const override { return "smooth"; }
 
 private:
-  using Clock = std::chrono::steady_clock;
-
   mutable ControlState m_value = 0.0;
   mutable Clock::time_point m_last_update = Clock::now();
 };
@@ -294,8 +290,6 @@ class HoldExpression : public FunctionExpression
     {
       const auto hold_time = now - m_start_time;
 
-      using FSec = std::chrono::duration<ControlState>;
-
       if (std::chrono::duration_cast<FSec>(hold_time).count() >= GetArg(1).GetValue())
         m_state = true;
     }
@@ -307,8 +301,6 @@ class HoldExpression : public FunctionExpression
   std::string GetFuncName() const override { return "smooth"; }
 
 private:
-  using Clock = std::chrono::steady_clock;
-
   mutable bool m_state = false;
   mutable Clock::time_point m_start_time = Clock::now();
 };
@@ -324,8 +316,6 @@ class TapExpression : public FunctionExpression
   ControlState GetValue() const override
   {
     const auto now = Clock::now();
-
-    using FSec = std::chrono::duration<ControlState>;
 
     const auto elapsed = std::chrono::duration_cast<FSec>(now - m_start_time).count();
 
@@ -368,8 +358,6 @@ class TapExpression : public FunctionExpression
   std::string GetFuncName() const override { return "tap"; }
 
 private:
-  using Clock = std::chrono::steady_clock;
-
   mutable bool m_released = true;
   mutable u32 m_taps = 0;
   mutable Clock::time_point m_start_time = Clock::now();
@@ -405,8 +393,6 @@ class RelativeExpression : public FunctionExpression
     if (GetArgCount() >= 4)
       m_state = GetArg(3).GetValue();
 
-    using FSec = std::chrono::duration<ControlState>;
-
     const auto elapsed = std::chrono::duration_cast<FSec>(now - m_last_update).count();
     m_last_update = now;
 
@@ -432,8 +418,6 @@ class RelativeExpression : public FunctionExpression
   std::string GetFuncName() const override { return "relative"; }
 
 private:
-  using Clock = std::chrono::steady_clock;
-
   mutable ControlState m_state = 0.0;
   mutable Clock::time_point m_last_update = Clock::now();
 };
@@ -460,7 +444,6 @@ class PulseExpression : public FunctionExpression
     {
       m_released = false;
 
-      using FSec = std::chrono::duration<ControlState>;
       const auto seconds = std::chrono::duration_cast<Clock::duration>(FSec(GetArg(1).GetValue()));
 
       if (m_state)
@@ -486,8 +469,6 @@ class PulseExpression : public FunctionExpression
   std::string GetFuncName() const override { return "pulse"; }
 
 private:
-  using Clock = std::chrono::steady_clock;
-
   mutable bool m_released = false;
   mutable bool m_state = false;
   mutable Clock::time_point m_release_time = Clock::now();
