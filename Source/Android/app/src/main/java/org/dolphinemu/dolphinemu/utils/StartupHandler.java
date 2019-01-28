@@ -37,7 +37,7 @@ public final class StartupHandler
     {
       // Start the emulation activity, send the ISO passed in and finish the main activity
       Intent emulation_intent = new Intent(parent, EmulationActivity.class);
-      emulation_intent.putExtra("SelectedGame", start_file);
+      emulation_intent.putExtra(EmulationActivity.EXTRA_SELECTED_GAMES, new String[]{start_file});
       parent.startActivity(emulation_intent);
       parent.finish();
     }
