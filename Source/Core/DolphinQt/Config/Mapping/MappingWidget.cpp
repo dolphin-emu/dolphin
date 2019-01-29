@@ -77,11 +77,13 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   const bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
                               group->type == ControllerEmu::GroupType::Stick ||
                               group->type == ControllerEmu::GroupType::Tilt ||
-                              group->type == ControllerEmu::GroupType::MixedTriggers;
+                              group->type == ControllerEmu::GroupType::MixedTriggers ||
+                              group->type == ControllerEmu::GroupType::Force;
 
   const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
                                 group->type == ControllerEmu::GroupType::Stick ||
-                                group->type == ControllerEmu::GroupType::Tilt;
+                                group->type == ControllerEmu::GroupType::Tilt ||
+                                group->type == ControllerEmu::GroupType::Force;
 
   for (auto& control : group->controls)
   {

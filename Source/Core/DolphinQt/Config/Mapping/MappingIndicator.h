@@ -7,6 +7,7 @@
 #include <QToolButton>
 #include <QWidget>
 
+#include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
@@ -14,6 +15,7 @@ namespace ControllerEmu
 class Control;
 class ControlGroup;
 class Cursor;
+class Force;
 class NumericSetting;
 }  // namespace ControllerEmu
 
@@ -34,6 +36,7 @@ private:
   void DrawCursor(ControllerEmu::Cursor& cursor);
   void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
   void DrawMixedTriggers();
+  void DrawForce(ControllerEmu::Force&);
   void DrawCalibration(QPainter& p, Common::DVec2 point);
 
   void paintEvent(QPaintEvent*) override;
@@ -43,6 +46,8 @@ private:
 
   ControllerEmu::ControlGroup* const m_group;
   CalibrationWidget* m_calibration_widget{};
+
+  WiimoteEmu::MotionState m_motion_state{};
 };
 
 class CalibrationWidget : public QToolButton
