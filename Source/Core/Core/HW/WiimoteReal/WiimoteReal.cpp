@@ -768,6 +768,13 @@ void Pause()
 void ChangeWiimoteSource(unsigned int index, int source)
 {
   const int previous_source = g_wiimote_sources[index];
+
+  if (previous_source == source)
+  {
+    // No change. Do nothing.
+    return;
+  }
+
   g_wiimote_sources[index] = source;
   {
     // kill real connection (or swap to different slot)
@@ -919,4 +926,4 @@ bool IsNewWiimote(const std::string& identifier)
   return s_known_ids.count(identifier) == 0;
 }
 
-};  // end of namespace
+};  // namespace WiimoteReal
