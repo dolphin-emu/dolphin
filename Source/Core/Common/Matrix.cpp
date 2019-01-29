@@ -4,10 +4,12 @@
 
 #include "Common/Matrix.h"
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
-inline void MatrixMul(int n, const float* a, const float* b, float* result)
+namespace
+{
+void MatrixMul(int n, const float* a, const float* b, float* result)
 {
   for (int i = 0; i < n; ++i)
   {
@@ -22,7 +24,10 @@ inline void MatrixMul(int n, const float* a, const float* b, float* result)
     }
   }
 }
+}  // namespace
 
+namespace Common
+{
 Matrix33 Matrix33::Identity()
 {
   Matrix33 mtx = {};
@@ -34,8 +39,8 @@ Matrix33 Matrix33::Identity()
 
 Matrix33 Matrix33::RotateX(float rad)
 {
-  float s = sin(rad);
-  float c = cos(rad);
+  const float s = sin(rad);
+  const float c = cos(rad);
   Matrix33 mtx = {};
   mtx.data[0] = 1;
   mtx.data[4] = c;
@@ -47,8 +52,8 @@ Matrix33 Matrix33::RotateX(float rad)
 
 Matrix33 Matrix33::RotateY(float rad)
 {
-  float s = sin(rad);
-  float c = cos(rad);
+  const float s = sin(rad);
+  const float c = cos(rad);
   Matrix33 mtx = {};
   mtx.data[0] = c;
   mtx.data[2] = s;
@@ -60,8 +65,8 @@ Matrix33 Matrix33::RotateY(float rad)
 
 Matrix33 Matrix33::RotateZ(float rad)
 {
-  float s = sin(rad);
-  float c = cos(rad);
+  const float s = sin(rad);
+  const float c = cos(rad);
   Matrix33 mtx = {};
   mtx.data[0] = c;
   mtx.data[1] = -s;
@@ -128,10 +133,10 @@ Matrix44 Matrix44::FromMatrix33(const Matrix33& m33)
   return mtx;
 }
 
-Matrix44 Matrix44::FromArray(const float mtxArray[16])
+Matrix44 Matrix44::FromArray(const std::array<float, 16>& arr)
 {
   Matrix44 mtx;
-  std::copy_n(mtxArray, 16, std::begin(mtx.data));
+  mtx.data = arr;
   return mtx;
 }
 
@@ -140,7 +145,7 @@ Matrix44 Matrix44::Translate(const Vec3& vec)
   Matrix44 mtx = Matrix44::Identity();
   mtx.data[3] = vec.x;
   mtx.data[7] = vec.y;
-  mtx.data[11] = vec.y;
+  mtx.data[11] = vec.z;
   return mtx;
 }
 
@@ -152,7 +157,8 @@ Matrix44 Matrix44::Shear(const float a, const float b)
   return mtx;
 }
 
-void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result)
+void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44* result)
 {
-  MatrixMul(4, a.data.data(), b.data.data(), result.data.data());
+  MatrixMul(4, a.data.data(), b.data.data(), result->data.data());
 }
+}  // namespace Common

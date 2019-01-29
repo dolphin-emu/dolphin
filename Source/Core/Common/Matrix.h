@@ -9,10 +9,20 @@
 // Tiny matrix/vector library.
 // Used for things like Free-Look in the gfx backend.
 
+namespace Common
+{
 union Vec3
 {
-  Vec3() {}
+  Vec3() = default;
   Vec3(float _x, float _y, float _z) : data{_x, _y, _z} {}
+
+  Vec3& operator+=(const Vec3& rhs)
+  {
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
+  }
 
   std::array<float, 3> data = {};
 
@@ -23,6 +33,11 @@ union Vec3
     float z;
   };
 };
+
+inline Vec3 operator+(Vec3 lhs, const Vec3& rhs)
+{
+  return lhs += rhs;
+}
 
 class Matrix33
 {
@@ -66,16 +81,16 @@ class Matrix44
 public:
   static Matrix44 Identity();
   static Matrix44 FromMatrix33(const Matrix33& m33);
-  static Matrix44 FromArray(const float mtxArray[16]);
+  static Matrix44 FromArray(const std::array<float, 16>& arr);
 
   static Matrix44 Translate(const Vec3& vec);
   static Matrix44 Shear(const float a, const float b = 0);
 
-  static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result);
+  static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44* result);
 
   Matrix44& operator*=(const Matrix44& rhs)
   {
-    Multiply(Matrix44(*this), rhs, *this);
+    Multiply(Matrix44(*this), rhs, this);
     return *this;
   }
 
@@ -86,3 +101,4 @@ inline Matrix44 operator*(Matrix44 lhs, const Matrix44& rhs)
 {
   return lhs *= rhs;
 }
+}  // namespace Common

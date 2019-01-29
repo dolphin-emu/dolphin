@@ -451,7 +451,6 @@
     <ClInclude Include="HW\WiimoteEmu\Extension\Nunchuk.h" />
     <ClInclude Include="HW\WiimoteEmu\Extension\Turntable.h" />
     <ClInclude Include="HW\WiimoteEmu\I2CBus.h" />
-    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
     <ClInclude Include="HW\WiimoteEmu\MotionPlus.h" />
     <ClInclude Include="HW\WiimoteEmu\Speaker.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />

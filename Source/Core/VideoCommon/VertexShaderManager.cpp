@@ -27,7 +27,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-alignas(16) static float g_fProjectionMatrix[16];
+alignas(16) static std::array<float, 16> g_fProjectionMatrix;
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -38,10 +38,10 @@ static int nNormalMatricesChanged[2];         // min,max
 static int nPostTransformMatricesChanged[2];  // min,max
 static int nLightsChanged[2];                 // min,max
 
-static Matrix44 s_viewportCorrection;
-static Matrix33 s_viewRotationMatrix;
-static Matrix33 s_viewInvRotationMatrix;
-static float s_fViewTranslationVector[3];
+static Common::Matrix44 s_viewportCorrection;
+static Common::Matrix33 s_viewRotationMatrix;
+static Common::Matrix33 s_viewInvRotationMatrix;
+static Common::Vec3 s_fViewTranslationVector;
 static float s_fViewRotation[2];
 
 VertexShaderConstants VertexShaderManager::constants;
@@ -57,7 +57,7 @@ bool VertexShaderManager::dirty;
 // [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
 // [         0         0     1                              0   ]
 // [         0         0     0                              1   ]
-static void ViewportCorrectionMatrix(Matrix44& result)
+static void ViewportCorrectionMatrix(Common::Matrix44& result)
 {
   int scissorXOff = bpmem.scissorOffset.x * 2;
   int scissorYOff = bpmem.scissorOffset.y * 2;
@@ -86,7 +86,7 @@ static void ViewportCorrectionMatrix(Matrix44& result)
   float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
   float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
 
-  result = Matrix44::Identity();
+  result = Common::Matrix44::Identity();
   if (Wd == 0 || Ht == 0)
     return;
 
@@ -121,10 +121,8 @@ void VertexShaderManager::Init()
   ResetView();
 
   // TODO: should these go inside ResetView()?
-  s_viewportCorrection = Matrix44::Identity();
-  memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
-  for (int i = 0; i < 4; ++i)
-    g_fProjectionMatrix[i * 5] = 1.0f;
+  s_viewportCorrection = Common::Matrix44::Identity();
+  g_fProjectionMatrix = Common::Matrix44::Identity().data;
 
   dirty = true;
 }
@@ -454,6 +452,8 @@ void VertexShaderManager::SetConstants()
 
     if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
     {
+      using Common::Matrix44;
+
       auto mtxA = Matrix44::Translate(s_fViewTranslationVector);
       auto mtxB = Matrix44::FromMatrix33(s_viewRotationMatrix);
       const auto viewMtx = mtxB * mtxA;  // view = rotation x translation
@@ -464,7 +464,7 @@ void VertexShaderManager::SetConstants()
     }
     else
     {
-      const auto projMtx = Matrix44::FromArray(g_fProjectionMatrix);
+      const auto projMtx = Common::Matrix44::FromArray(g_fProjectionMatrix);
       const auto correctedMtx = s_viewportCorrection * projMtx;
       memcpy(constants.projection.data(), correctedMtx.data.data(), 4 * sizeof(float4));
     }
@@ -654,19 +654,15 @@ void VertexShaderManager::SetMaterialColorChanged(int index)
 
 void VertexShaderManager::TranslateView(float x, float y, float z)
 {
-  float result[3];
-  float vector[3] = {x, z, y};
-
-  Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
-
-  for (size_t i = 0; i < ArraySize(result); i++)
-    s_fViewTranslationVector[i] += result[i];
+  s_fViewTranslationVector += s_viewInvRotationMatrix * Common::Vec3{x, z, y};
 
   bProjectionChanged = true;
 }
 
 void VertexShaderManager::RotateView(float x, float y)
 {
+  using Common::Matrix33;
+
   s_fViewRotation[0] += x;
   s_fViewRotation[1] += y;
 
@@ -682,7 +678,9 @@ void VertexShaderManager::RotateView(float x, float y)
 
 void VertexShaderManager::ResetView()
 {
-  memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
+  using Common::Matrix33;
+
+  s_fViewTranslationVector = {};
   s_viewRotationMatrix = Matrix33::Identity();
   s_viewInvRotationMatrix = Matrix33::Identity();
   s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
