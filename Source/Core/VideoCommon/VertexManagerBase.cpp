@@ -232,66 +232,6 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
   CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
 }
 
-static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
-                            bool has_arbitrary_mips)
-{
-  const FourTexUnits& tex = bpmem.tex[index / 4];
-  const TexMode0& tm0 = tex.texMode0[index % 4];
-
-  SamplerState state = {};
-  state.Generate(bpmem, index);
-
-  // Force texture filtering config option.
-  if (g_ActiveConfig.bForceFiltering)
-  {
-    state.min_filter = SamplerState::Filter::Linear;
-    state.mag_filter = SamplerState::Filter::Linear;
-    state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                              SamplerState::Filter::Linear :
-                              SamplerState::Filter::Point;
-  }
-
-  // Custom textures may have a greater number of mips
-  if (custom_tex)
-    state.max_lod = 255;
-
-  // Anisotropic filtering option.
-  if (g_ActiveConfig.iMaxAnisotropy != 0 && !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
-  {
-    // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
-    // For predictable results on all hardware/drivers, only use one of:
-    //	GL_LINEAR + GL_LINEAR (No Mipmaps [Bilinear])
-    //	GL_LINEAR + GL_LINEAR_MIPMAP_LINEAR (w/ Mipmaps [Trilinear])
-    // Letting the game set other combinations will have varying arbitrary results;
-    // possibly being interpreted as equal to bilinear/trilinear, implicitly
-    // disabling anisotropy, or changing the anisotropic algorithm employed.
-    state.min_filter = SamplerState::Filter::Linear;
-    state.mag_filter = SamplerState::Filter::Linear;
-    if (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
-      state.mipmap_filter = SamplerState::Filter::Linear;
-    state.anisotropic_filtering = 1;
-  }
-  else
-  {
-    state.anisotropic_filtering = 0;
-  }
-
-  if (has_arbitrary_mips && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
-  {
-    // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
-    // that have arbitrary contents, eg. are used for fog effects where the
-    // distance they kick in at is important to preserve at any resolution.
-    // Correct this with the upscaling factor of custom textures.
-    s64 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
-    state.lod_bias = MathUtil::Clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
-
-    // Anisotropic also pushes mips farther away so it cannot be used either
-    state.anisotropic_filtering = 0;
-  }
-
-  g_renderer->SetSamplerState(index, state);
-}
-
 void VertexManagerBase::Flush()
 {
   if (m_is_flushed)
@@ -355,20 +295,8 @@ void VertexManagerBase::Flush()
           usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
     for (unsigned int i : usedtextures)
-    {
-      const auto* tentry = g_texture_cache->Load(i);
+      g_texture_cache->Load(i);
 
-      if (tentry)
-      {
-        float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
-        SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
-        PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
-      }
-      else
-      {
-        ERROR_LOG(VIDEO, "error loading texture");
-      }
-    }
     g_texture_cache->BindTextures();
   }
 
