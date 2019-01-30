@@ -579,20 +579,29 @@ static void Do_ARAM_DMA()
             aram_transfer_direction[s_arDMA.Cnt.dir], s_arDMA.ARAddr,
             aram_transfer_direction[1 - s_arDMA.Cnt.dir], s_arDMA.MMAddr, PC);
 
+  if (s_ARAM.wii_mode)
+  {
+    // Wii has no physical ARAM
+    if (s_arDMA.Cnt.dir == ARAM_DMA_DIR_FROM_ARAM)
+    {
+      std::fill_n(Memory::GetPointer(s_arDMA.MMAddr), ARAM_LINE_SIZE * lines_to_transfer, 0);
+    }
+    s_arDMA.MMAddr += ARAM_LINE_SIZE * lines_to_transfer;
+    s_arDMA.ARAddr += ARAM_LINE_SIZE * lines_to_transfer;
+    s_arDMA.Cnt.count -= ARAM_LINE_SIZE * lines_to_transfer;
+    return;
+  }
+
   const ARAM_ADDRESS_CONVERSION_F convert_address = conversion_functions[s_ARAM_Info.base_size];
   for (u32 n = 0; n < lines_to_transfer; ++n)
+
   {
     std::optional<u32> physical_aram_addr = convert_address(s_arDMA.ARAddr);
     if (physical_aram_addr)
     {
-      const u8* source = &s_ARAM.ptr[*physical_aram_addr];
-      u8* dest = Memory::GetPointer(s_arDMA.MMAddr);
-      if (s_arDMA.Cnt.dir == ARAM_DMA_DIR_TO_ARAM)
-      {
-        source = dest;
-        dest = &s_ARAM.ptr[*physical_aram_addr];
-      }
-      std::copy_n(source, ARAM_LINE_SIZE, dest);
+      u8* copy_pointers[2] = {Memory::GetPointer(s_arDMA.MMAddr), &s_ARAM.ptr[*physical_aram_addr]};
+      std::copy_n(copy_pointers[s_arDMA.Cnt.dir], ARAM_LINE_SIZE,
+                  copy_pointers[1 - s_arDMA.Cnt.dir]);
     }
     else
     {
@@ -607,7 +616,7 @@ static void Do_ARAM_DMA()
     s_arDMA.ARAddr += ARAM_LINE_SIZE;
   }
   s_arDMA.Cnt.count -= ARAM_LINE_SIZE * lines_to_transfer;
-}
+}  // namespace DSP
 
 u8 ReadARAM(u32 address)
 {
