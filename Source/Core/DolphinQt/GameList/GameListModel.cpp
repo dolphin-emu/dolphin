@@ -135,7 +135,15 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
-      return QString::fromStdString(UICommon::FormatSize(game.GetFileSize()));
+    {
+      std::string str = UICommon::FormatSize(game.GetFileSize());
+
+      // Add asterisk to size of compressed files.
+      if (game.GetFileSize() != game.GetVolumeSize())
+        str += '*';
+
+      return QString::fromStdString(str);
+    }
     if (role == Qt::InitialSortOrderRole)
       return static_cast<quint64>(game.GetFileSize());
     break;
