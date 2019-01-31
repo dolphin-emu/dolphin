@@ -5,6 +5,7 @@
 #include "Core/HW/GCPadEmu.h"
 
 #include <array>
+#include <cmath>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -159,24 +160,29 @@ GCPadStatus GCPad::GetInput() const
   // dpad
   m_dpad->GetState(&pad.button, dpad_bitmasks);
 
+  // Here we round when converting our analog values from -1.0..+1.0 to integers.
+  // After applying our deadzone, resizing, and reshaping math
+  // we sometimes have a near-zero value which is slightly negative (e.g. -0.0001)
+  // which casting would round down when we really want STICK_CENTER_[XY]
+
   // sticks
   const ControllerEmu::AnalogStick::StateData main_stick_state = m_main_stick->GetState();
-  pad.stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X +
-                               (main_stick_state.x * GCPadStatus::MAIN_STICK_RADIUS));
-  pad.stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y +
-                               (main_stick_state.y * GCPadStatus::MAIN_STICK_RADIUS));
+  pad.stickX = u8(std::lround(GCPadStatus::MAIN_STICK_CENTER_X +
+                              main_stick_state.x * GCPadStatus::MAIN_STICK_RADIUS));
+  pad.stickY = u8(std::lround(GCPadStatus::MAIN_STICK_CENTER_Y +
+                              main_stick_state.y * GCPadStatus::MAIN_STICK_RADIUS));
 
   const ControllerEmu::AnalogStick::StateData c_stick_state = m_c_stick->GetState();
-  pad.substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X +
-                                  (c_stick_state.x * GCPadStatus::C_STICK_RADIUS));
-  pad.substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y +
-                                  (c_stick_state.y * GCPadStatus::C_STICK_RADIUS));
+  pad.substickX = u8(
+      std::lround(GCPadStatus::C_STICK_CENTER_X + c_stick_state.x * GCPadStatus::C_STICK_RADIUS));
+  pad.substickY = u8(
+      std::lround(GCPadStatus::C_STICK_CENTER_Y + c_stick_state.y * GCPadStatus::C_STICK_RADIUS));
 
   // triggers
   std::array<ControlState, 2> triggers;
   m_triggers->GetState(&pad.button, trigger_bitmasks, triggers.data());
-  pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-  pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+  pad.triggerLeft = u8(std::lround(triggers[0] * 0xFF));
+  pad.triggerRight = u8(std::lround(triggers[1] * 0xFF));
 
   return pad;
 }
