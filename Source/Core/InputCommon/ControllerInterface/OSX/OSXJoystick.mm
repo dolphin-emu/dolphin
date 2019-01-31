@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <sstream>
+#include <vector>
 
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
@@ -34,7 +34,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
       // DeviceElementDebugPrint(e, nullptr);
 
-      AddInput(new Button(e, m_device));
+      AddInput(new Button(e, m_device, i));
     }
     CFRelease(buttons);
   }
@@ -50,12 +50,30 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
 
   if (axes)
   {
+    // Apparently some devices provide elements with duplicate usages.
+    // i.e. Sometimes there are two "Axis X" elements.
+    // We assume the element enumerated last is the "real" one.
+    // The previously enumerated elements are still used but named by their "cookie" value.
     std::vector<IOHIDElementRef> elems;
+    std::vector<IOHIDElementRef> dup_elems;
+
+    unsigned int hat_num = 0;
     for (int i = 0; i < CFArrayGetCount(axes); i++)
     {
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
       // DeviceElementDebugPrint(e, nullptr);
-      uint32_t usage = IOHIDElementGetUsage(e);
+      const auto usage = IOHIDElementGetUsage(e);
+
+      if (usage == kHIDUsage_GD_Hatswitch)
+      {
+        // This is a "hat" rather than a regular axis.
+        AddInput(new Hat(e, m_device, Hat::Direction::Up, hat_num));
+        AddInput(new Hat(e, m_device, Hat::Direction::Right, hat_num));
+        AddInput(new Hat(e, m_device, Hat::Direction::Down, hat_num));
+        AddInput(new Hat(e, m_device, Hat::Direction::Left, hat_num));
+        ++hat_num;
+        continue;
+      }
 
       // Check for any existing elements with the same usage
       auto it = std::find_if(elems.begin(), elems.end(), [usage](const auto& ref) {
@@ -63,25 +81,27 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
       });
 
       if (it == elems.end())
+      {
         elems.push_back(e);
+      }
       else
+      {
+        dup_elems.push_back(*it);
         *it = e;
+      }
     }
 
     for (auto e : elems)
     {
-      if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch)
-      {
-        AddInput(new Hat(e, m_device, Hat::up));
-        AddInput(new Hat(e, m_device, Hat::right));
-        AddInput(new Hat(e, m_device, Hat::down));
-        AddInput(new Hat(e, m_device, Hat::left));
-      }
-      else
-      {
-        AddAnalogInputs(new Axis(e, m_device, Axis::negative),
-                        new Axis(e, m_device, Axis::positive));
-      }
+      AddAnalogInputs(new Axis(e, m_device, Axis::Direction::Negative, false),
+                      new Axis(e, m_device, Axis::Direction::Positive, false));
+    }
+
+    for (auto e : dup_elems)
+    {
+      // Force "cookie" name on the "duplicate" elements.
+      AddAnalogInputs(new Axis(e, m_device, Axis::Direction::Negative, true),
+                      new Axis(e, m_device, Axis::Direction::Positive, true));
     }
 
     CFRelease(axes);
@@ -112,191 +132,131 @@ std::string Joystick::GetName() const
 
 std::string Joystick::GetSource() const
 {
-  return "Input";
+  return "IOKit";
 }
 
 ControlState Joystick::Button::GetState() const
 {
   IOHIDValueRef value;
   if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-    return IOHIDValueGetIntegerValue(value);
+    return IOHIDValueGetIntegerValue(value) != 0;
   else
     return 0;
 }
 
 std::string Joystick::Button::GetName() const
 {
-  std::ostringstream s;
-  s << IOHIDElementGetUsage(m_element);
-  return std::string("Button ") + StripSpaces(s.str());
+  return StringFromFormat("Button %u", m_index);
 }
 
-Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
-    : m_element(element), m_device(device), m_direction(dir)
+Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, Direction dir,
+                     bool force_cookie_name)
+    : m_element(element), m_device(device)
 {
-  // Need to parse the element a bit first
-  std::string description("unk");
+  if (!force_cookie_name)
+  {
+    const auto usage = IOHIDElementGetUsage(m_element);
+    switch (usage)
+    {
+    case kHIDUsage_GD_X:
+      m_name = "X";
+      break;
+    case kHIDUsage_GD_Y:
+      m_name = "Y";
+      break;
+    case kHIDUsage_GD_Z:
+      m_name = "Z";
+      break;
+    case kHIDUsage_GD_Rx:
+      m_name = "Rx";
+      break;
+    case kHIDUsage_GD_Ry:
+      m_name = "Ry";
+      break;
+    case kHIDUsage_GD_Rz:
+      m_name = "Rz";
+      break;
+    case kHIDUsage_GD_Wheel:
+      m_name = "Wheel";
+      break;
+    case kHIDUsage_Csmr_ACPan:
+      m_name = "Pan";
+      break;
+    }
+  }
 
-  int const usage = IOHIDElementGetUsage(m_element);
-  switch (usage)
+  if (m_name.empty())
   {
-  case kHIDUsage_GD_X:
-    description = "X";
-    break;
-  case kHIDUsage_GD_Y:
-    description = "Y";
-    break;
-  case kHIDUsage_GD_Z:
-    description = "Z";
-    break;
-  case kHIDUsage_GD_Rx:
-    description = "Rx";
-    break;
-  case kHIDUsage_GD_Ry:
-    description = "Ry";
-    break;
-  case kHIDUsage_GD_Rz:
-    description = "Rz";
-    break;
-  case kHIDUsage_GD_Wheel:
-    description = "Wheel";
-    break;
-  case kHIDUsage_Csmr_ACPan:
-    description = "Pan";
-    break;
-  default:
-  {
-    IOHIDElementCookie elementCookie = IOHIDElementGetCookie(m_element);
+    const IOHIDElementCookie cookie = IOHIDElementGetCookie(m_element);
     // This axis isn't a 'well-known' one so cook a descriptive and uniquely
     // identifiable name. macOS provides a 'cookie' for each element that
     // will persist between sessions and identify the same physical controller
     // element so we can use that as a component of the axis name
-    std::ostringstream s;
-    s << "CK-";
-    s << elementCookie;
-    description = StripSpaces(s.str());
-    break;
-  }
+    m_name = StringFromFormat("CK-%u", cookie);
   }
 
-  m_name = std::string("Axis ") + description;
-  m_name.append((m_direction == positive) ? "+" : "-");
+  const auto logical_min = IOHIDElementGetLogicalMin(m_element);
+  const auto logical_max = IOHIDElementGetLogicalMax(m_element);
 
-  m_neutral = (IOHIDElementGetLogicalMax(m_element) + IOHIDElementGetLogicalMin(m_element)) / 2.;
-  m_scale = 1 / fabs(IOHIDElementGetLogicalMax(m_element) - m_neutral);
+  m_neutral = (logical_min + logical_max) / 2.0;
+  m_range = ((Direction::Positive == dir) ? logical_max : logical_min) - m_neutral;
 }
 
 ControlState Joystick::Axis::GetState() const
 {
   IOHIDValueRef value;
 
-  if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-  {
-    // IOHIDValueGetIntegerValue() crashes when trying
-    // to convert unusually large element values.
-    if (IOHIDValueGetLength(value) > 2)
-      return 0;
+  if (IOHIDDeviceGetValue(m_device, m_element, &value) != kIOReturnSuccess)
+    return 0;
 
-    float position = IOHIDValueGetIntegerValue(value);
+  // IOHIDValueGetIntegerValue() crashes when trying
+  // to convert unusually large element values.
+  if (IOHIDValueGetLength(value) > 2)
+    return 0;
 
-    if (m_direction == positive && position > m_neutral)
-      return (position - m_neutral) * m_scale;
-    if (m_direction == negative && position < m_neutral)
-      return (m_neutral - position) * m_scale;
-  }
-
-  return 0;
+  return std::max(0.0, (IOHIDValueGetIntegerValue(value) - m_neutral) / m_range);
 }
 
 std::string Joystick::Axis::GetName() const
 {
-  return m_name;
+  return "Axis " + m_name + ((m_range > 0) ? '+' : '-');
 }
 
-Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
-    : m_element(element), m_device(device), m_direction(dir)
+Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, Direction dir,
+                   unsigned int index)
+    : m_element(element), m_device(device), m_direction(dir), m_index(index),
+      m_min(IOHIDElementGetLogicalMin(m_element)), m_max(IOHIDElementGetLogicalMax(m_element))
 {
-  switch (dir)
-  {
-  case up:
-    m_name = "Up";
-    break;
-  case right:
-    m_name = "Right";
-    break;
-  case down:
-    m_name = "Down";
-    break;
-  case left:
-    m_name = "Left";
-    break;
-  default:
-    m_name = "unk";
-  }
 }
 
 ControlState Joystick::Hat::GetState() const
 {
   IOHIDValueRef value;
 
-  if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-  {
-    int position = IOHIDValueGetIntegerValue(value);
-    int min = IOHIDElementGetLogicalMin(m_element);
-    int max = IOHIDElementGetLogicalMax(m_element);
+  if (IOHIDDeviceGetValue(m_device, m_element, &value) != kIOReturnSuccess)
+    return 0;
 
-    // if the position is outside the min or max, don't register it as a valid button press
-    if (position < min || position > max)
-    {
-      return 0;
-    }
+  int position = IOHIDValueGetIntegerValue(value);
 
-    // normalize the position so that its lowest value is 0
-    position -= min;
+  // If the position is outside the min or max, don't register it as a valid button press.
+  if (position < m_min || position > m_max)
+    return 0;
 
-    switch (position)
-    {
-    case 0:
-      if (m_direction == up)
-        return 1;
-      break;
-    case 1:
-      if (m_direction == up || m_direction == right)
-        return 1;
-      break;
-    case 2:
-      if (m_direction == right)
-        return 1;
-      break;
-    case 3:
-      if (m_direction == right || m_direction == down)
-        return 1;
-      break;
-    case 4:
-      if (m_direction == down)
-        return 1;
-      break;
-    case 5:
-      if (m_direction == down || m_direction == left)
-        return 1;
-      break;
-    case 6:
-      if (m_direction == left)
-        return 1;
-      break;
-    case 7:
-      if (m_direction == left || m_direction == up)
-        return 1;
-      break;
-    };
-  }
+  // Normalize the position so that its lowest value is 0.
+  position -= m_min;
 
-  return 0;
+  // Values apparently start at 0 for Up and increase by 1 at intercardinal directions.
+  if (position < 0 || position > 7)
+    return 0;
+
+  // Test if current position is within 1 value away from m_direction.
+  // E.g. Down-Right (3) will activate Down and Right.
+  return std::abs(((position - (int(m_direction) * 2) + 12) % 8) - 4) <= 1;
 }
 
 std::string Joystick::Hat::GetName() const
 {
-  return m_name;
+  return StringFromFormat("Hat %u %c", m_index, "NESW"[int(m_direction)]);
 }
 
 bool Joystick::IsSameDevice(const IOHIDDeviceRef other_device) const
