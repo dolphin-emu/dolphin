@@ -149,6 +149,12 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   }
 
   HandleMoviePadStatus(&pad_status);
+
+  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
+  // Watch for this to calibrate real controllers on connection.
+  if (pad_status.button & PAD_GET_ORIGIN)
+    SetOrigin(pad_status);
+
   return pad_status;
 }
 
@@ -257,16 +263,13 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
+        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_RESET");
         ProcessorInterface::ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
-        m_origin.origin_stick_x = pad_status.stickX;
-        m_origin.origin_stick_y = pad_status.stickY;
-        m_origin.substick_x = pad_status.substickX;
-        m_origin.substick_y = pad_status.substickY;
-        m_origin.trigger_left = pad_status.triggerLeft;
-        m_origin.trigger_right = pad_status.triggerRight;
+        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
+        SetOrigin(pad_status);
       }
 
       m_last_button_combo = COMBO_NONE;
@@ -275,6 +278,16 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   }
 
   return COMBO_NONE;
+}
+
+void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
+{
+  m_origin.origin_stick_x = pad_status.stickX;
+  m_origin.origin_stick_y = pad_status.stickY;
+  m_origin.substick_x = pad_status.substickX;
+  m_origin.substick_y = pad_status.substickY;
+  m_origin.trigger_left = pad_status.triggerLeft;
+  m_origin.trigger_right = pad_status.triggerRight;
 }
 
 // SendCommand

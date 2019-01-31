@@ -111,6 +111,7 @@ public:
 
 protected:
   void HandleMoviePadStatus(GCPadStatus* pad_status);
+  void SetOrigin(const GCPadStatus& pad_status);
 };
 
 // "TaruKonga", the DK Bongo controller
