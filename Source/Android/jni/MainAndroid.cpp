@@ -72,6 +72,22 @@ Common::Event s_update_main_frame_event;
 bool s_have_wm_user_stop = false;
 }  // Anonymous namespace
 
+void UpdatePointer()
+{
+  // Update touch pointer
+  JNIEnv* env;
+  int get_env_status =
+      IDCache::GetJavaVM()->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+
+  if (get_env_status == JNI_EDETACHED)
+    IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
+
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetUpdateTouchPointer());
+
+  if (get_env_status == JNI_EDETACHED)
+    IDCache::GetJavaVM()->DetachCurrentThread();
+}
+
 void Host_NotifyMapLoaded()
 {
 }
@@ -108,11 +124,8 @@ void Host_UpdateMainFrame()
 
 void Host_RequestRenderWindowSize(int width, int height)
 {
-  // Update touch pointer
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
-  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetUpdateTouchPointer());
-  IDCache::GetJavaVM()->DetachCurrentThread();
+  std::thread jnicall(UpdatePointer);
+  jnicall.join();
 }
 
 bool Host_UINeedsControllerState()
