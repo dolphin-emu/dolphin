@@ -78,7 +78,6 @@ protected:
   //   Technically, the above is only on standard pad, wavebird does not support it for example
   // b, x, start for 3 seconds triggers reset (PI reset button interrupt)
   u64 m_timer_button_combo_start = 0;
-  u64 m_timer_button_combo = 0;
   // Type of button combo from the last/current poll
   EButtonCombo m_last_button_combo = COMBO_NONE;
 
