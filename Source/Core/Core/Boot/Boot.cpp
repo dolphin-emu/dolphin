@@ -60,7 +60,8 @@ namespace fs = std::experimental::filesystem;
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-std::vector<std::string> ReadM3UFile(const std::string& m3u_path, const std::string& folder_path)
+static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
+                                            const std::string& folder_path)
 {
 #ifndef HAS_STD_FILESYSTEM
   ASSERT(folder_path.back() == '/');
