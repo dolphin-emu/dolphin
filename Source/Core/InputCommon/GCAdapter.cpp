@@ -40,10 +40,10 @@ enum
 // Current adapter status: detected/not detected/in error (holds the error code)
 static std::atomic<int> s_status = NO_ADAPTER_DETECTED;
 static libusb_device_handle* s_handle = nullptr;
-static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
+static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_type = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
-static u8 s_controller_rumble[4];
+static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_rumble{};
 
 static std::mutex s_mutex;
 static u8 s_controller_payload[37];
@@ -236,11 +236,8 @@ static void Setup()
   if (s_status < 0)
     s_status = NO_ADAPTER_DETECTED;
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
-  {
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
-    s_controller_rumble[i] = 0;
-  }
+  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
+  s_controller_rumble.fill(0);
 
   s_libusb_context.GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
@@ -395,8 +392,7 @@ static void Reset()
     s_adapter_output_thread.join();
   }
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
+  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
 
   s_status = NO_ADAPTER_DETECTED;
 

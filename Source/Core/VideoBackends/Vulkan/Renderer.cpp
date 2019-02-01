@@ -48,8 +48,8 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
-  for (size_t i = 0; i < m_sampler_states.size(); i++)
-    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
+  for (SamplerState& m_sampler_state : m_sampler_states)
+    m_sampler_state.hex = RenderState::GetPointSamplerState().hex;
 }
 
 Renderer::~Renderer() = default;
