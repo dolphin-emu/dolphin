@@ -30,11 +30,14 @@ std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
     break;
   }
 
-  std::string endpoint{"https://geckocodes.org/txt.php?txt=" + gameid};
+  std::string endpoint{"https://www.geckocodes.org/txt.php?txt=" + gameid};
   Common::HttpRequest http;
 
   // Circumvent high-tech DDOS protection
   http.SetCookies("challenge=BitMitigate.com;");
+
+  // The server always redirects once to the same location.
+  http.FollowRedirects(1);
 
   const Common::HttpRequest::Response response = http.Get(endpoint);
   *succeeded = response.has_value();
