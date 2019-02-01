@@ -252,8 +252,8 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
 
   if (m_last_button_combo != COMBO_NONE)
   {
-    m_timer_button_combo = CoreTiming::GetTicks();
-    if ((m_timer_button_combo - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
+    const u64 current_time = CoreTiming::GetTicks();
+    if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
@@ -326,7 +326,6 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_origin);
   p.Do(m_mode);
   p.Do(m_timer_button_combo_start);
-  p.Do(m_timer_button_combo);
   p.Do(m_last_button_combo);
 }
 
