@@ -36,6 +36,7 @@ SwapChain::~SwapChain()
   DestroySwapChainImages();
   DestroySwapChain();
   DestroySurface();
+  DestroySemaphores();
 }
 
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_handle, void* hwnd)
@@ -142,10 +143,51 @@ std::unique_ptr<SwapChain> SwapChain::Create(void* display_handle, void* native_
   std::unique_ptr<SwapChain> swap_chain =
       std::make_unique<SwapChain>(display_handle, native_handle, surface, vsync);
 
-  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
+  if (!swap_chain->CreateSemaphores() || !swap_chain->CreateSwapChain() ||
+      !swap_chain->SetupSwapChainImages())
+  {
     return nullptr;
+  }
 
   return swap_chain;
+}
+
+bool SwapChain::CreateSemaphores()
+{
+  // Create two semaphores, one that is triggered when the swapchain buffer is ready, another after
+  // submit and before present
+  VkSemaphoreCreateInfo semaphore_info = {
+      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // VkStructureType          sType
+      nullptr,                                  // const void*              pNext
+      0                                         // VkSemaphoreCreateFlags   flags
+  };
+
+  VkResult res;
+  if ((res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
+                               &m_image_available_semaphore)) != VK_SUCCESS ||
+      (res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
+                               &m_rendering_finished_semaphore)) != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
+    return false;
+  }
+
+  return true;
+}
+
+void SwapChain::DestroySemaphores()
+{
+  if (m_image_available_semaphore)
+  {
+    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_image_available_semaphore, nullptr);
+    m_image_available_semaphore = VK_NULL_HANDLE;
+  }
+
+  if (m_rendering_finished_semaphore)
+  {
+    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_rendering_finished_semaphore, nullptr);
+    m_rendering_finished_semaphore = VK_NULL_HANDLE;
+  }
 }
 
 bool SwapChain::SelectSurfaceFormat()
@@ -370,8 +412,15 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
-  VkRenderPass render_pass = g_object_cache->GetRenderPass(
-      m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
+                                                VK_ATTACHMENT_LOAD_OP_LOAD);
+  m_clear_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED,
+                                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+  if (m_render_pass == VK_NULL_HANDLE || m_clear_render_pass == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to get swap chain render passes.");
+    return false;
+  }
 
   m_swap_chain_images.reserve(image_count);
   for (uint32_t i = 0; i < image_count; i++)
@@ -388,7 +437,7 @@ bool SwapChain::SetupSwapChainImages()
     VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                                                 nullptr,
                                                 0,
-                                                render_pass,
+                                                m_render_pass,
                                                 1,
                                                 &view,
                                                 m_width,
@@ -428,11 +477,11 @@ void SwapChain::DestroySwapChain()
   m_swap_chain = VK_NULL_HANDLE;
 }
 
-VkResult SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
+VkResult SwapChain::AcquireNextImage()
 {
-  VkResult res =
-      vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                            available_semaphore, VK_NULL_HANDLE, &m_current_swap_chain_image_index);
+  VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
+                                       m_image_available_semaphore, VK_NULL_HANDLE,
+                                       &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 

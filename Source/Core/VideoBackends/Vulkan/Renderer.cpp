@@ -76,35 +76,6 @@ bool Renderer::Initialize()
 
   BindEFBToStateTracker();
 
-  if (!CreateSemaphores())
-  {
-    PanicAlert("Failed to create semaphores.");
-    return false;
-  }
-
-  if (!CompileShaders())
-  {
-    PanicAlert("Failed to compile shaders.");
-    return false;
-  }
-
-  // Swap chain render pass.
-  if (m_swap_chain)
-  {
-    m_swap_chain_render_pass =
-        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
-                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
-    m_swap_chain_clear_render_pass =
-        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
-                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
-    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
-        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
-    {
-      PanicAlert("Failed to create swap chain render passes.");
-      return false;
-    }
-  }
-
   m_bounding_box = std::make_unique<BoundingBox>();
   if (!m_bounding_box->Initialize())
   {
@@ -140,51 +111,6 @@ bool Renderer::Initialize()
 void Renderer::Shutdown()
 {
   ::Renderer::Shutdown();
-
-  // Submit the current command buffer, in case there's a partial frame.
-  StateTracker::GetInstance()->EndRenderPass();
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-
-  DestroyShaders();
-  DestroySemaphores();
-}
-
-bool Renderer::CreateSemaphores()
-{
-  // Create two semaphores, one that is triggered when the swapchain buffer is ready, another after
-  // submit and before present
-  VkSemaphoreCreateInfo semaphore_info = {
-      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // VkStructureType          sType
-      nullptr,                                  // const void*              pNext
-      0                                         // VkSemaphoreCreateFlags   flags
-  };
-
-  VkResult res;
-  if ((res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
-                               &m_image_available_semaphore)) != VK_SUCCESS ||
-      (res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
-                               &m_rendering_finished_semaphore)) != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
-    return false;
-  }
-
-  return true;
-}
-
-void Renderer::DestroySemaphores()
-{
-  if (m_image_available_semaphore)
-  {
-    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_image_available_semaphore, nullptr);
-    m_image_available_semaphore = VK_NULL_HANDLE;
-  }
-
-  if (m_rendering_finished_semaphore)
-  {
-    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_rendering_finished_semaphore, nullptr);
-    m_rendering_finished_semaphore = VK_NULL_HANDLE;
-  }
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -513,7 +439,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
                          g_shader_cache->GetPassthroughVertexShader(),
-                         g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
+                         g_shader_cache->GetPassthroughGeometryShader(),
+                         g_shader_cache->GetClearFragmentShader());
 
   draw.SetMultisamplingState(FramebufferManager::GetInstance()->GetEFBMultisamplingState());
   draw.SetDepthState(depth_state);
@@ -557,7 +484,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
   if (!g_command_buffer_mgr->CheckLastPresentFail())
   {
     // Grab the next image from the swap chain in preparation for drawing the window.
-    res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+    res = m_swap_chain->AcquireNextImage();
   }
   else
   {
@@ -577,7 +504,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     m_swap_chain->ResizeSwapChain();
     BeginFrame();
     g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
-    res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+    res = m_swap_chain->AcquireNextImage();
   }
   if (res != VK_SUCCESS)
     PanicAlert("Failed to grab image from swap chain");
@@ -595,8 +522,8 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
 
   // Draw to the backbuffer.
   VkRect2D region = {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}};
-  StateTracker::GetInstance()->SetRenderPass(m_swap_chain_render_pass,
-                                             m_swap_chain_clear_render_pass);
+  StateTracker::GetInstance()->SetRenderPass(m_swap_chain->GetLoadRenderPass(),
+                                             m_swap_chain->GetClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(m_swap_chain->GetCurrentFramebuffer(), region);
 
   // Begin render pass for rendering to the swap chain.
@@ -612,18 +539,17 @@ void Renderer::PresentBackbuffer()
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.
-  Texture2D* backbuffer = m_swap_chain->GetCurrentTexture();
-  backbuffer->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  m_swap_chain->GetCurrentTexture()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   // Submit the current command buffer, signaling rendering finished semaphore when it's done
   // Because this final command buffer is rendering to the swap chain, we need to wait for
   // the available semaphore to be signaled before executing the buffer. This final submission
   // can happen off-thread in the background while we're preparing the next frame.
-  g_command_buffer_mgr->SubmitCommandBuffer(
-      true, m_image_available_semaphore, m_rendering_finished_semaphore,
-      m_swap_chain->GetSwapChain(), m_swap_chain->GetCurrentImageIndex());
-
+  g_command_buffer_mgr->SubmitCommandBuffer(true, m_swap_chain->GetImageAvailableSemaphore(),
+                                            m_swap_chain->GetRenderingFinishedSemaphore(),
+                                            m_swap_chain->GetSwapChain(),
+                                            m_swap_chain->GetCurrentImageIndex());
   BeginFrame();
 }
 
@@ -641,22 +567,22 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectan
 
     post_processor->BlitFromTexture(left_rect, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    0, m_swap_chain_render_pass);
+                                    0, m_swap_chain->GetLoadRenderPass());
     post_processor->BlitFromTexture(right_rect, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    1, m_swap_chain_render_pass);
+                                    1, m_swap_chain->GetLoadRenderPass());
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer)
   {
     post_processor->BlitFromTexture(target_rc, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    -1, m_swap_chain_render_pass);
+                                    -1, m_swap_chain->GetLoadRenderPass());
   }
   else
   {
     post_processor->BlitFromTexture(target_rc, rc,
                                     static_cast<const VKTexture*>(texture)->GetRawTexIdentifier(),
-                                    0, m_swap_chain_render_pass);
+                                    0, m_swap_chain->GetLoadRenderPass());
   }
 
   // The post-processor uses the old-style Vulkan draws, which mess with the tracked state.
@@ -725,7 +651,6 @@ void Renderer::OnConfigChanged(u32 bits)
   if (bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
   {
     RecreateEFBFramebuffer();
-    RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
     g_shader_cache->ReloadPipelineCache();
     g_shader_cache->RecompileSharedShaders();
@@ -959,45 +884,4 @@ void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, 1, base_index,
                    base_vertex, 0);
 }
-
-void Renderer::RecompileShaders()
-{
-  DestroyShaders();
-  if (!CompileShaders())
-    PanicAlert("Failed to recompile shaders.");
-}
-
-bool Renderer::CompileShaders()
-{
-  static const char CLEAR_FRAGMENT_SHADER_SOURCE[] = R"(
-    layout(location = 0) in float3 uv0;
-    layout(location = 1) in float4 col0;
-    layout(location = 0) out float4 ocol0;
-
-    void main()
-    {
-      ocol0 = col0;
-    }
-
-  )";
-
-  std::string source = g_shader_cache->GetUtilityShaderHeader() + CLEAR_FRAGMENT_SHADER_SOURCE;
-  m_clear_fragment_shader = Util::CompileAndCreateFragmentShader(source);
-
-  return m_clear_fragment_shader != VK_NULL_HANDLE;
-}
-
-void Renderer::DestroyShaders()
-{
-  auto DestroyShader = [this](VkShaderModule& shader) {
-    if (shader != VK_NULL_HANDLE)
-    {
-      vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
-      shader = VK_NULL_HANDLE;
-    }
-  };
-
-  DestroyShader(m_clear_fragment_shader);
-}
-
 }  // namespace Vulkan

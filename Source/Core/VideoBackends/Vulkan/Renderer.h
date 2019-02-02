@@ -92,9 +92,6 @@ public:
   void PresentBackbuffer() override;
 
 private:
-  bool CreateSemaphores();
-  void DestroySemaphores();
-
   void BeginFrame();
 
   void CheckForSurfaceChange();
@@ -107,22 +104,10 @@ private:
   void RecreateEFBFramebuffer();
   void BindFramebuffer(const VKFramebuffer* fb);
 
-  void RecompileShaders();
-  bool CompileShaders();
-  void DestroyShaders();
-
-  VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
-  VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;
-  VkRenderPass m_swap_chain_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_swap_chain_clear_render_pass = VK_NULL_HANDLE;
-
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<BoundingBox> m_bounding_box;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
-
-  // Shaders used for clear/blit.
-  VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
 };
 }
