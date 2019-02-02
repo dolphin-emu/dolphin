@@ -61,9 +61,12 @@ public final class InputOverlayDrawableJoystick
 
     mPreferences = prefsHandle;
     mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
+    mOuterBitmap.setAlpha(InputOverlay.overlayOpacity);
     mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
+    mDefaultStateInnerBitmap.setAlpha(InputOverlay.overlayOpacity);
     mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
     mBoundsBoxBitmap = new BitmapDrawable(res, bitmapOuter);
+    mBoundsBoxBitmap.setAlpha(InputOverlay.overlayOpacity);
     mWidth = bitmapOuter.getWidth();
     mHeight = bitmapOuter.getHeight();
 
@@ -108,7 +111,7 @@ public final class InputOverlayDrawableJoystick
         {
           mPressedState = pressed = true;
           mOuterBitmap.setAlpha(0);
-          mBoundsBoxBitmap.setAlpha(255);
+          mBoundsBoxBitmap.setAlpha(InputOverlay.overlayOpacity);
           if (reCenter)
           {
             getVirtBounds().offset((int) event.getX(pointerIndex) - getVirtBounds().centerX(),
@@ -125,7 +128,7 @@ public final class InputOverlayDrawableJoystick
           pressed = true;
           mPressedState = false;
           axises[0] = axises[1] = 0.0f;
-          mOuterBitmap.setAlpha(255);
+          mOuterBitmap.setAlpha(InputOverlay.overlayOpacity);
           mBoundsBoxBitmap.setAlpha(0);
           setVirtBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right,
                   mOrigBounds.bottom));
@@ -281,5 +284,11 @@ public final class InputOverlayDrawableJoystick
   public int getTrackId()
   {
     return trackId;
+  }
+
+  public void setAlpha(int value)
+  {
+    mDefaultStateInnerBitmap.setAlpha(value);
+    mPressedStateInnerBitmap.setAlpha(value);
   }
 }

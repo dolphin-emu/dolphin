@@ -68,6 +68,8 @@ public final class InputOverlayDrawableDpad
     mWidth = mDefaultStateBitmap.getIntrinsicWidth();
     mHeight = mDefaultStateBitmap.getIntrinsicHeight();
 
+    mDefaultStateBitmap.setAlpha(InputOverlay.overlayOpacity);
+
     mButtonType[0] = buttonUp;
     mButtonType[1] = buttonDown;
     mButtonType[2] = buttonLeft;
@@ -203,5 +205,10 @@ public final class InputOverlayDrawableDpad
   public void setState(int pressState)
   {
     mPressState = pressState;
+  }
+
+  public void setAlpha(int value)
+  {
+    mDefaultStateBitmap.setAlpha(value);
   }
 }

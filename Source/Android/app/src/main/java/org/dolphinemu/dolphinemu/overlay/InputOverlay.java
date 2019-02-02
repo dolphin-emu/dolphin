@@ -16,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -31,6 +32,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,10 +49,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int OVERLAY_WIIMOTE_NUNCHUCK = 3;
   public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
 
+  private static final int OVERLAY_DEFAULT_OPACITY = 255;
+  private static final int OVERLAY_DIM_OPACITY = 80;
+
   private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
   private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
   private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
   private InputOverlayPointer overlayPointer;
+
+  public static int overlayOpacity;
+  private long lastTouch;
+  private Handler dimHandler = new Handler();
 
   private boolean mIsInEditMode = false;
   private InputOverlayDrawableButton mButtonBeingConfigured;
@@ -112,6 +121,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (!mPreferences.getBoolean("OverlayInitV3", false))
       defaultOverlay();
 
+    overlayOpacity = mPreferences.getInt("OverlayOpacity", OVERLAY_DEFAULT_OPACITY);
+
     // Load the controls.
     refreshControls();
 
@@ -123,6 +134,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Request focus for the overlay so it has priority on presses.
     requestFocus();
+
+    // Start dim timer
+    lastTouch = new Date(System.currentTimeMillis()).getTime();
+    dimHandler.postDelayed(this::dimOverlay, 5000);
   }
 
   public void initTouchPointer()
@@ -181,6 +196,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     for (InputOverlayDrawableButton button : overlayButtons)
     {
+      // Undim
+      button.setAlpha(overlayOpacity);
       // Determine the button state to apply based on the MotionEvent action flag.
       switch (event.getAction() & MotionEvent.ACTION_MASK)
       {
@@ -213,6 +230,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     for (InputOverlayDrawableDpad dpad : overlayDpads)
     {
+      // Undim
+      dpad.setAlpha(overlayOpacity);
       // Determine the button state to apply based on the MotionEvent action flag.
       switch (event.getAction() & MotionEvent.ACTION_MASK)
       {
@@ -280,6 +299,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
     {
+      // Undim
+      joystick.setAlpha(overlayOpacity);
       if (joystick.TrackEvent(event))
       {
         if (joystick.getTrackId() != -1)
@@ -307,6 +328,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
 
     invalidate();
+
+    // Start dim timer
+    lastTouch = new Date(System.currentTimeMillis()).getTime();
+    dimHandler.removeCallbacksAndMessages(null);
+    dimHandler.postDelayed(this::dimOverlay, 5000);
 
     return true;
   }
@@ -434,6 +460,30 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
 
     return true;
+  }
+
+  public void dimOverlay()
+  {
+    long time = new Date(System.currentTimeMillis()).getTime();
+    if (lastTouch + 3000 < time)
+    {
+      for (InputOverlayDrawableButton button : overlayButtons)
+      {
+        button.setAlpha(OVERLAY_DIM_OPACITY);
+      }
+
+      for (InputOverlayDrawableDpad dpad : overlayDpads)
+      {
+        dpad.setAlpha(OVERLAY_DIM_OPACITY);
+      }
+
+      for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
+      {
+        joystick.setAlpha(OVERLAY_DIM_OPACITY);
+      }
+
+      invalidate();
+    }
   }
 
   private void setDpadState(InputOverlayDrawableDpad dpad, boolean up, boolean down, boolean left,

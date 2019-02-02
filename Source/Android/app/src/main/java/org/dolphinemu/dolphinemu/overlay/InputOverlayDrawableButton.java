@@ -48,6 +48,8 @@ public final class InputOverlayDrawableButton
 
     mWidth = mDefaultStateBitmap.getIntrinsicWidth();
     mHeight = mDefaultStateBitmap.getIntrinsicHeight();
+
+    mDefaultStateBitmap.setAlpha(InputOverlay.overlayOpacity);
   }
 
   /**
@@ -134,5 +136,10 @@ public final class InputOverlayDrawableButton
   public void setPressedState(boolean isPressed)
   {
     mPressedState = isPressed;
+  }
+
+  public void setAlpha(int value)
+  {
+    mDefaultStateBitmap.setAlpha(value);
   }
 }
