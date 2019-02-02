@@ -268,8 +268,8 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
       break;
 
     case EFBCopyFormat::XFB:
-      out.Write("  ocol0 = float4(pow(texcol.rgb, float3(gamma_rcp, gamma_rcp, gamma_rcp)), "
-                "texcol.a);\n");
+      out.Write(
+          "  ocol0 = float4(pow(texcol.rgb, float3(gamma_rcp, gamma_rcp, gamma_rcp)), 1.0f);\n");
       break;
 
     default:
