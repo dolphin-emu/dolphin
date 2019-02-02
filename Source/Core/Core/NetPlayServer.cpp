@@ -1215,13 +1215,13 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_SyncCodes;
   spac << m_settings.m_SyncAllWiiSaves;
 
-  for (int i = 0; i < m_settings.m_WiimoteExtension.size(); i++)
+  for (size_t i = 0; i < m_settings.m_WiimoteExtension.size(); i++)
   {
-    const int extension =
-        static_cast<ControllerEmu::Extension*>(
-            static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(i))
-                ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Extension))
-            ->switch_extension;
+    const int extension = static_cast<ControllerEmu::Extension*>(
+                              static_cast<WiimoteEmu::Wiimote*>(
+                                  Wiimote::GetConfig()->GetController(static_cast<int>(i)))
+                                  ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Extension))
+                              ->switch_extension;
     spac << extension;
   }
 

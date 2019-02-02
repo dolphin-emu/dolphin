@@ -137,7 +137,7 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-const char* GAME_QUIRKS_NAMES[] = {
+static const char* GAME_QUIRKS_NAMES[] = {
     "icache-matters",  // ICACHE_MATTERS
 };
 static_assert(sizeof(GAME_QUIRKS_NAMES) / sizeof(GAME_QUIRKS_NAMES[0]) ==
