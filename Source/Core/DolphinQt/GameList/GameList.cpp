@@ -107,8 +107,8 @@ void GameList::MakeListView()
   m_list->setCurrentIndex(QModelIndex());
   m_list->setContextMenuPolicy(Qt::CustomContextMenu);
   m_list->setWordWrap(false);
-  m_list->verticalHeader()->setDefaultSectionSize(m_list->verticalHeader()->defaultSectionSize() *
-                                                  1.25);
+  // Have 1 pixel of padding above and below the 32 pixel banners.
+  m_list->verticalHeader()->setDefaultSectionSize(32 + 2);
 
   connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
