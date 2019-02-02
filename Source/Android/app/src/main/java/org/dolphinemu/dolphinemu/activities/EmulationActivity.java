@@ -96,7 +96,8 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
+          MENU_ACTION_SET_OPACITY, MENU_ACTION_AUTO_DIM})
   public @interface MenuAction
   {
   }
@@ -130,6 +131,8 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
   public static final int MENU_SET_IR_SENSITIVITY = 27;
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
+  public static final int MENU_ACTION_SET_OPACITY = 29;
+  public static final int MENU_ACTION_AUTO_DIM = 30;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -176,6 +179,10 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
+    buttonsActionsMap.append(R.id.menu_emulation_set_opacity,
+            EmulationActivity.MENU_ACTION_SET_OPACITY);
+    buttonsActionsMap.append(R.id.menu_emulation_auto_dim,
+            EmulationActivity.MENU_ACTION_AUTO_DIM);
   }
 
   private static String[] scanForSecondDisc(GameFile gameFile)
@@ -437,6 +444,8 @@ public final class EmulationActivity extends AppCompatActivity
             .setChecked(mPreferences.getBoolean("joystickRelCenter", true));
     menu.findItem(R.id.menu_emulation_rumble)
             .setChecked(mPreferences.getBoolean("phoneRumble", true));
+    menu.findItem(R.id.menu_emulation_auto_dim)
+            .setChecked(mPreferences.getBoolean("autoDimOverlay", true));
 
     return true;
   }
@@ -472,6 +481,10 @@ public final class EmulationActivity extends AppCompatActivity
       case MENU_ACTION_RUMBLE:
         item.setChecked(!item.isChecked());
         toggleRumble(item.isChecked());
+        break;
+      case MENU_ACTION_AUTO_DIM:
+        item.setChecked(!item.isChecked());
+        toggleAutoDim(item.isChecked());
         break;
     }
   }
@@ -600,6 +613,10 @@ public final class EmulationActivity extends AppCompatActivity
         chooseDoubleTapButton();
         return;
 
+      case MENU_ACTION_SET_OPACITY:
+        adjustOpacity();
+        return;
+
       case MENU_ACTION_EXIT:
         // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
         if (TvUtil.isLeanback(getApplicationContext()))
@@ -625,6 +642,13 @@ public final class EmulationActivity extends AppCompatActivity
     Rumble.setPhoneVibrator(state, this);
   }
 
+  private void toggleAutoDim(boolean state)
+  {
+    final SharedPreferences.Editor editor = mPreferences.edit();
+    editor.putBoolean("autoDimOverlay", state);
+    editor.apply();
+    mEmulationFragment.refreshInputOverlay();
+  }
 
   private void editControlsPlacement()
   {
@@ -807,6 +831,55 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.refreshInputOverlay();
     });
 
+    AlertDialog alertDialog = builder.create();
+    alertDialog.show();
+  }
+
+  private void adjustOpacity()
+  {
+    LayoutInflater inflater = LayoutInflater.from(this);
+    View view = inflater.inflate(R.layout.dialog_seekbar, null);
+
+    final SeekBar seekbar = (SeekBar) view.findViewById(R.id.seekbar);
+    final TextView value = (TextView) view.findViewById(R.id.text_value);
+    final TextView units = (TextView) view.findViewById(R.id.text_units);
+
+    seekbar.setMax(100);
+    // Only allow 155 to 255 opacity
+    seekbar.setProgress(
+            mPreferences.getInt("OverlayOpacity", InputOverlay.OVERLAY_DEFAULT_OPACITY) - 155);
+    seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        value.setText(String.valueOf(progress));
+      }
+
+      public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+    value.setText(String.valueOf(seekbar.getProgress()));
+    units.setText("");
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.emulation_set_opacity);
+    builder.setView(view);
+    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    {
+      SharedPreferences.Editor editor = mPreferences.edit();
+      editor.putInt("OverlayOpacity", seekbar.getProgress() + 155);
+      editor.apply();
+
+      mEmulationFragment.refreshInputOverlay();
+    });
     AlertDialog alertDialog = builder.create();
     alertDialog.show();
   }

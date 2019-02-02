@@ -304,6 +304,9 @@
     <string name="emulation_ir_group">Touch IR Pointer</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
+    <string name="emulation_overlay_group">Overlay Interface</string>
+    <string name="emulation_set_opacity">Adujst Opacity</string>
+    <string name="emulation_auto_dim">Auto Dim</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

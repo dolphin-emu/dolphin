@@ -289,6 +289,6 @@ public final class InputOverlayDrawableJoystick
   public void setAlpha(int value)
   {
     mDefaultStateInnerBitmap.setAlpha(value);
-    mPressedStateInnerBitmap.setAlpha(value);
+    mOuterBitmap.setAlpha(value);
   }
 }

@@ -95,13 +95,28 @@
                 android:title="@string/emulation_toggle_controls"/>
 
             <item
-                android:id="@+id/menu_emulation_adjust_scale"
-                android:title="@string/emulation_control_scale"/>
+                android:id="@+id/menu_emulation_overlay_group"
+                android:title="@string/emulation_overlay_group"
+                app:showAsAction="never">
+                <menu>
+                    <item
+                        android:id="@+id/menu_emulation_adjust_scale"
+                        android:title="@string/emulation_control_scale"/>
+                    <item
+                        android:id="@+id/menu_emulation_set_opacity"
+                        android:title="@string/emulation_set_opacity"
+                        app:showAsAction="ifRoom"/>
+                    <item
+                        android:id="@+id/menu_emulation_joystick_rel_center"
+                        android:checkable="true"
+                        android:title="@string/emulation_control_joystick_rel_center"/>
+                    <item
+                        android:id="@+id/menu_emulation_auto_dim"
+                        android:checkable="true"
+                        android:title="@string/emulation_auto_dim"/>
+                </menu>
+            </item>
 
-            <item
-                android:id="@+id/menu_emulation_joystick_rel_center"
-                android:checkable="true"
-                android:title="@string/emulation_control_joystick_rel_center"/>
             <item
                 android:id="@+id/menu_emulation_rumble"
                 android:checkable="true"

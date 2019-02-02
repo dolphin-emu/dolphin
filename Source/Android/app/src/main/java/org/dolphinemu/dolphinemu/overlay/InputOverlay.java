@@ -49,7 +49,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int OVERLAY_WIIMOTE_NUNCHUCK = 3;
   public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
 
-  private static final int OVERLAY_DEFAULT_OPACITY = 255;
+  public static final int OVERLAY_DEFAULT_OPACITY = 255;
   private static final int OVERLAY_DIM_OPACITY = 80;
 
   private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
@@ -58,8 +58,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private InputOverlayPointer overlayPointer;
 
   public static int overlayOpacity;
+  private boolean autoDim;
+  private boolean isDim;
   private long lastTouch;
-  private Handler dimHandler = new Handler();
+  private final Handler dimHandler = new Handler();
 
   private boolean mIsInEditMode = false;
   private InputOverlayDrawableButton mButtonBeingConfigured;
@@ -122,6 +124,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       defaultOverlay();
 
     overlayOpacity = mPreferences.getInt("OverlayOpacity", OVERLAY_DEFAULT_OPACITY);
+    autoDim = mPreferences.getBoolean("autoDimOverlay", true);
 
     // Load the controls.
     refreshControls();
@@ -135,9 +138,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Request focus for the overlay so it has priority on presses.
     requestFocus();
 
-    // Start dim timer
-    lastTouch = new Date(System.currentTimeMillis()).getTime();
-    dimHandler.postDelayed(this::dimOverlay, 5000);
+    if (autoDim)
+    {
+      startDimTimer();
+    }
   }
 
   public void initTouchPointer()
@@ -300,12 +304,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
     {
       // Undim
-      joystick.setAlpha(overlayOpacity);
+      if (isDim)
+        joystick.setAlpha(overlayOpacity);
       if (joystick.TrackEvent(event))
       {
         if (joystick.getTrackId() != -1)
           pressed = true;
       }
+
       int[] axisIDs = joystick.getAxisIDs();
       float[] axises = joystick.getAxisValues();
 
@@ -329,10 +335,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     invalidate();
 
-    // Start dim timer
-    lastTouch = new Date(System.currentTimeMillis()).getTime();
-    dimHandler.removeCallbacksAndMessages(null);
-    dimHandler.postDelayed(this::dimOverlay, 5000);
+    if (autoDim)
+    {
+      startDimTimer();
+    }
 
     return true;
   }
@@ -467,6 +473,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     long time = new Date(System.currentTimeMillis()).getTime();
     if (lastTouch + 3000 < time)
     {
+      isDim = true;
       for (InputOverlayDrawableButton button : overlayButtons)
       {
         button.setAlpha(OVERLAY_DIM_OPACITY);
@@ -744,6 +751,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     overlayDpads.removeAll(overlayDpads);
     overlayJoysticks.removeAll(overlayJoysticks);
 
+    overlayOpacity = mPreferences.getInt("OverlayOpacity", OVERLAY_DEFAULT_OPACITY);
+    autoDim = mPreferences.getBoolean("autoDimOverlay", true);
+    isDim = false;
+
     String orientation =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
                     "-Portrait" : "";
@@ -767,6 +778,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           addNunchukOverlayControls(orientation);
         }
       }
+    }
+
+    if (autoDim)
+    {
+      startDimTimer();
     }
 
     invalidate();
@@ -806,6 +822,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       }
     }
     refreshControls();
+  }
+
+  private void startDimTimer()
+  {
+    isDim = false;
+    lastTouch = new Date(System.currentTimeMillis()).getTime();
+    dimHandler.removeCallbacksAndMessages(null);
+    dimHandler.postDelayed(this::dimOverlay, 5000);
   }
 
   private void saveControlPosition(int sharedPrefsId, int x, int y, String orientation)
