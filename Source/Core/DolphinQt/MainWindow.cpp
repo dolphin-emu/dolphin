@@ -578,6 +578,7 @@ void MainWindow::ConnectHost()
 {
   connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
           &MainWindow::OnUpdateProgressDialog);
+  connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
 }
 
 void MainWindow::ConnectStack()
