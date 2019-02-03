@@ -4,10 +4,12 @@
 
 #include "Core/HW/WiimoteEmu/Camera.h"
 
+#include <cmath>
+
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
+#include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
-#include "Core/HW/WiimoteEmu/MatrixMath.h"
 
 namespace WiimoteEmu
 {
@@ -40,29 +42,24 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
                          const NormalizedAccelData& accel, bool sensor_bar_on_top)
 {
-  double nsin, ncos;
+  double nsin;
 
   // Ugly code to figure out the wiimote's current angle.
   // TODO: Kill this.
   double ax = accel.x;
   double az = accel.z;
-  const double len = sqrt(ax * ax + az * az);
+  const double len = std::sqrt(ax * ax + az * az);
 
   if (len)
   {
     ax /= len;
     az /= len;  // normalizing the vector
     nsin = ax;
-    ncos = az;
   }
   else
   {
     nsin = 0;
-    ncos = 1;
   }
-
-  const double ir_sin = nsin;
-  const double ir_cos = ncos;
 
   static constexpr int camWidth = 1024;
   static constexpr int camHeight = 768;
@@ -73,7 +70,7 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
 
   constexpr int NUM_POINTS = 4;
 
-  std::array<Vertex, NUM_POINTS> v;
+  std::array<Common::Vec3, NUM_POINTS> v;
 
   for (auto& vtx : v)
   {
@@ -95,15 +92,9 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
   v[2].x -= (cursor.z * 0.5 + 1) * dist2;
   v[3].x += (cursor.z * 0.5 + 1) * dist2;
 
-#define printmatrix(m)                                                                             \
-  PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n", m[0][0], m[0][1], m[0][2],    \
-             m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3],      \
-             m[3][0], m[3][1], m[3][2], m[3][3])
-  Matrix rot, tot;
-  static Matrix scale;
-  MatrixScale(scale, 1, camWidth / camHeight, 1);
-  MatrixRotationByZ(rot, ir_sin, ir_cos);
-  MatrixMultiply(tot, scale, rot);
+  const auto scale = Common::Matrix33::Scale({1, camWidth / camHeight, 1});
+  const auto rot = Common::Matrix33::RotateZ(std::asin(nsin));
+  const auto tot = scale * rot;
 
   u16 x[NUM_POINTS], y[NUM_POINTS];
   memset(x, 0xFF, sizeof(x));
@@ -111,7 +102,7 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
 
   for (std::size_t i = 0; i < v.size(); i++)
   {
-    MatrixTransformVertex(tot, v[i]);
+    v[i] = tot * v[i];
 
     if ((v[i].x < -1) || (v[i].x > 1) || (v[i].y < -1) || (v[i].y > 1))
       continue;

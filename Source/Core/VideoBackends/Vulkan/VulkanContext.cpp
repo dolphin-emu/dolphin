@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 
 #include "Common/Assert.h"
@@ -847,4 +848,4 @@ void VulkanContext::InitDriverDetails()
                       static_cast<double>(m_device_properties.driverVersion),
                       DriverDetails::Family::UNKNOWN);
 }
-}
+}  // namespace Vulkan

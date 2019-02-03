@@ -1221,9 +1221,6 @@
     <ClInclude Include="HW\WiimoteEmu\Encryption.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
