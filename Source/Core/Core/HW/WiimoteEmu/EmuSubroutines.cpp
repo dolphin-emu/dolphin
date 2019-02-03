@@ -391,8 +391,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     else
     {
       // Speaker Pan
-      // GUI clamps pan setting from -127 to 127. Why?
-      const auto pan = int(m_options->numeric_settings[0]->GetValue() * 100);
+      const auto pan = m_options->numeric_settings[0]->GetValue();
 
       m_speaker_logic.SpeakerData(rpt.data, rpt.length, pan);
     }

@@ -71,7 +71,7 @@ void stopdamnwav()
 }
 #endif
 
-void SpeakerLogic::SpeakerData(const u8* data, int length, int speaker_pan)
+void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 {
   // TODO: should we still process samples for the decoder state?
   if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
@@ -127,19 +127,20 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, int speaker_pan)
     volume_divisor = reg_data.volume;
   }
 
-  // TODO: use speaker pan law
+  // SetWiimoteSpeakerVolume expects values from 0 to 255.
+  // Multiply by 256, cast to int, and clamp to 255 for a uniform conversion.
+  const double volume = float(reg_data.volume) / volume_divisor * 256;
 
-  const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
-  float speaker_volume_ratio = (float)reg_data.volume / volume_divisor;
-  // Sloppy math:
-  unsigned int left_volume =
-      MathUtil::Clamp<unsigned int>((0xff + (2 * speaker_pan)) * speaker_volume_ratio, 0, 0xff);
-  unsigned int right_volume =
-      MathUtil::Clamp<unsigned int>((0xff - (2 * speaker_pan)) * speaker_volume_ratio, 0, 0xff);
+  // Speaker pan using "Constant Power Pan Law"
+  const double pan_prime = MathUtil::PI * (speaker_pan + 1) / 4;
+
+  const auto left_volume = std::min(int(std::cos(pan_prime) * volume), 255);
+  const auto right_volume = std::min(int(std::sin(pan_prime) * volume), 255);
 
   g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
 
   // ADPCM sample rate is thought to be x2.(3000 x2 = 6000).
+  const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
   g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sample_length,
                                                         sample_rate * 2);
 

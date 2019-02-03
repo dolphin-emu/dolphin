@@ -23,7 +23,8 @@ public:
   void Reset();
   void DoState(PointerWrap& p);
 
-  void SpeakerData(const u8* data, int length, int speaker_pan);
+  // Pan is -1.0 to +1.0
+  void SpeakerData(const u8* data, int length, float speaker_pan);
 
 private:
   // TODO: enum class
