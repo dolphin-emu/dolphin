@@ -68,7 +68,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
                           "Main Stick", _trans("Control Stick"), main_gate_radius));
 
-  constexpr auto c_gate_radius = ControlState(C_STICK_GATE_RADIUS) / GCPadStatus::MAIN_STICK_RADIUS;
+  constexpr auto c_gate_radius = ControlState(C_STICK_GATE_RADIUS) / GCPadStatus::C_STICK_RADIUS;
   groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
                           "C-Stick", _trans("C Stick"), c_gate_radius));
 
@@ -160,23 +160,19 @@ GCPadStatus GCPad::GetInput() const
   m_dpad->GetState(&pad.button, dpad_bitmasks);
 
   // sticks
-  const ControllerEmu::AnalogStick::StateData main_stick_state = m_main_stick->GetState();
-  pad.stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X +
-                               (main_stick_state.x * GCPadStatus::MAIN_STICK_RADIUS));
-  pad.stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y +
-                               (main_stick_state.y * GCPadStatus::MAIN_STICK_RADIUS));
+  const auto main_stick_state = m_main_stick->GetState();
+  pad.stickX = MapFloat<u8>(main_stick_state.x, GCPadStatus::MAIN_STICK_CENTER_X);
+  pad.stickY = MapFloat<u8>(main_stick_state.y, GCPadStatus::MAIN_STICK_CENTER_Y);
 
-  const ControllerEmu::AnalogStick::StateData c_stick_state = m_c_stick->GetState();
-  pad.substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X +
-                                  (c_stick_state.x * GCPadStatus::C_STICK_RADIUS));
-  pad.substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y +
-                                  (c_stick_state.y * GCPadStatus::C_STICK_RADIUS));
+  const auto c_stick_state = m_c_stick->GetState();
+  pad.substickX = MapFloat<u8>(c_stick_state.x, GCPadStatus::C_STICK_CENTER_X);
+  pad.substickY = MapFloat<u8>(c_stick_state.y, GCPadStatus::C_STICK_CENTER_Y);
 
   // triggers
   std::array<ControlState, 2> triggers;
   m_triggers->GetState(&pad.button, trigger_bitmasks, triggers.data());
-  pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-  pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+  pad.triggerLeft = MapFloat<u8>(triggers[0], 0);
+  pad.triggerRight = MapFloat<u8>(triggers[1], 0);
 
   return pad;
 }

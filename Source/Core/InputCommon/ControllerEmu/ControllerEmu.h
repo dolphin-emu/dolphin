@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <cmath>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Common.h"
@@ -49,6 +51,29 @@ public:
   static std::unique_lock<std::recursive_mutex> GetStateLock();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
+
+  // Maps a float from -1.0..+1.0 to an integer of the provided values.
+  template <typename T, typename F>
+  static T MapFloat(F input_value, T zero_value, T neg_1_value = std::numeric_limits<T>::min(),
+                    T pos_1_value = std::numeric_limits<T>::max())
+  {
+    static_assert(std::is_integral<T>(), "T is only sane for int types.");
+    static_assert(std::is_floating_point<F>(), "F is only sane for float types.");
+
+    static_assert(std::numeric_limits<long>::min() <= std::numeric_limits<T>::min() &&
+                      std::numeric_limits<long>::max() >= std::numeric_limits<T>::max(),
+                  "long is not a superset of T. use of std::lround is not sane.");
+
+    // Here we round when converting from float to int.
+    // After applying our deadzone, resizing, and reshaping math
+    // we sometimes have a near-zero value which is slightly negative. (e.g. -0.0001)
+    // Casting would round down but rounding will yield our "zero_value".
+
+    if (input_value > 0)
+      return T(std::lround((pos_1_value - zero_value) * input_value + zero_value));
+    else
+      return T(std::lround((zero_value - neg_1_value) * input_value + zero_value));
+  }
 
 private:
   ciface::Core::DeviceQualifier m_default_device;
