@@ -409,7 +409,7 @@ bool IsNetPlayRecording()
 }
 
 // NOTE: Host Thread
-void ChangePads(bool instantly)
+void ChangePads()
 {
   if (!Core::IsRunning())
     return;
@@ -422,7 +422,7 @@ void ChangePads(bool instantly)
       controllers |= (1 << i);
   }
 
-  if (instantly && (s_controllers & 0x0F) == controllers)
+  if ((s_controllers & 0x0F) == controllers)
     return;
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
@@ -441,10 +441,7 @@ void ChangePads(bool instantly)
       }
     }
 
-    if (instantly)  // Changes from savestates need to be instantaneous
-      SerialInterface::AddDevice(device, i);
-    else
-      SerialInterface::ChangeDevice(device, i);
+    SerialInterface::ChangeDevice(device, i);
   }
 }
 
@@ -961,7 +958,7 @@ void LoadInput(const std::string& movie_path)
     t_record.WriteArray(&tmpHeader, 1);
   }
 
-  ChangePads(true);
+  ChangePads();
   if (SConfig::GetInstance().bWii)
     ChangeWiiPads(true);
 

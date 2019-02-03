@@ -152,7 +152,7 @@ bool IsNetPlayRecording();
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 bool IsUsingBongo(int controller);
-void ChangePads(bool instantly = false);
+void ChangePads();
 void ChangeWiiPads(bool instantly = false);
 
 void SetReadOnly(bool bEnabled);
