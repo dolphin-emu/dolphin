@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
 {
@@ -13,19 +13,53 @@ class Buttons;
 class ControlGroup;
 class Slider;
 class Triggers;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
-enum class TurntableGroup;
-struct ExtensionReg;
+enum class TurntableGroup
+{
+  Buttons,
+  Stick,
+  EffectDial,
+  LeftTable,
+  RightTable,
+  Crossfade
+};
 
-class Turntable : public Attachment
+// TODO: Does the turntable ever use encryption?
+class Turntable : public EncryptedExtension
 {
 public:
-  explicit Turntable(ExtensionReg& reg);
-  void GetState(u8* const data) override;
+  struct DataFormat
+  {
+    u8 sx : 6;
+    u8 rtable3 : 2;
+
+    u8 sy : 6;
+    u8 rtable2 : 2;
+
+    u8 rtable4 : 1;
+    u8 slider : 4;
+    u8 dial2 : 2;
+    u8 rtable1 : 1;
+
+    u8 ltable1 : 5;
+    u8 dial1 : 3;
+
+    union
+    {
+      u16 ltable2 : 1;
+      u16 bt;  // buttons
+    };
+  };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  Turntable();
+
+  void Update() override;
   bool IsButtonPressed() const override;
+  void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(TurntableGroup group);
 
@@ -59,4 +93,4 @@ private:
   ControllerEmu::Slider* m_right_table;
   ControllerEmu::Slider* m_crossfade;
 };
-}
+}  // namespace WiimoteEmu

@@ -4,26 +4,54 @@
 
 #pragma once
 
-#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
 {
 class AnalogStick;
 class Buttons;
 class ControlGroup;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
-enum class DrumsGroup;
-struct ExtensionReg;
+enum class DrumsGroup
+{
+  Buttons,
+  Pads,
+  Stick
+};
 
-class Drums : public Attachment
+// TODO: Do the drums ever use encryption?
+class Drums : public EncryptedExtension
 {
 public:
-  explicit Drums(ExtensionReg& reg);
-  void GetState(u8* const data) override;
+  struct DataFormat
+  {
+    u8 sx : 6;
+    u8 pad1 : 2;  // always 0
+
+    u8 sy : 6;
+    u8 pad2 : 2;  // always 0
+
+    u8 pad3 : 1;  // unknown
+    u8 which : 5;
+    u8 none : 1;
+    u8 hhp : 1;
+
+    u8 pad4 : 1;      // unknown
+    u8 velocity : 4;  // unknown
+    u8 softness : 3;
+
+    u16 bt;  // buttons
+  };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  Drums();
+
+  void Update() override;
   bool IsButtonPressed() const override;
+  void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(DrumsGroup group);
 
@@ -51,4 +79,4 @@ private:
   ControllerEmu::Buttons* m_pads;
   ControllerEmu::AnalogStick* m_stick;
 };
-}
+}  // namespace WiimoteEmu

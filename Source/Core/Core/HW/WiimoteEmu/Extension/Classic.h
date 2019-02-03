@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
 {
@@ -16,15 +17,74 @@ class MixedTriggers;
 
 namespace WiimoteEmu
 {
-enum class ClassicGroup;
-struct ExtensionReg;
+enum class ClassicGroup
+{
+  Buttons,
+  Triggers,
+  DPad,
+  LeftStick,
+  RightStick
+};
 
-class Classic : public Attachment
+class Classic : public EncryptedExtension
 {
 public:
-  explicit Classic(ExtensionReg& reg);
-  void GetState(u8* const data) override;
+  union ButtonFormat
+  {
+    u16 hex;
+
+    struct
+    {
+      u8 : 1;
+      u8 rt : 1;  // right trigger
+      u8 plus : 1;
+      u8 home : 1;
+      u8 minus : 1;
+      u8 lt : 1;  // left trigger
+      u8 dpad_down : 1;
+      u8 dpad_right : 1;
+
+      u8 dpad_up : 1;
+      u8 dpad_left : 1;
+      u8 zr : 1;
+      u8 x : 1;
+      u8 a : 1;
+      u8 y : 1;
+      u8 b : 1;
+      u8 zl : 1;  // left z button
+    };
+  };
+  static_assert(sizeof(ButtonFormat) == 2, "Wrong size");
+
+  struct DataFormat
+  {
+    // lx/ly/lz; left joystick
+    // rx/ry/rz; right joystick
+    // lt; left trigger
+    // rt; left trigger
+
+    u8 lx : 6;  // byte 0
+    u8 rx3 : 2;
+
+    u8 ly : 6;  // byte 1
+    u8 rx2 : 2;
+
+    u8 ry : 5;
+    u8 lt2 : 2;
+    u8 rx1 : 1;
+
+    u8 rt : 5;
+    u8 lt1 : 3;
+
+    ButtonFormat bt;  // byte 4, 5
+  };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  Classic();
+
+  void Update() override;
   bool IsButtonPressed() const override;
+  void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(ClassicGroup group);
 

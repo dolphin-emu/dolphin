@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
 {
@@ -13,19 +13,47 @@ class Buttons;
 class ControlGroup;
 class Triggers;
 class Slider;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
-enum class GuitarGroup;
-struct ExtensionReg;
+enum class GuitarGroup
+{
+  Buttons,
+  Frets,
+  Strum,
+  Whammy,
+  Stick,
+  SliderBar
+};
 
-class Guitar : public Attachment
+// TODO: Does the guitar ever use encryption?
+class Guitar : public EncryptedExtension
 {
 public:
-  explicit Guitar(ExtensionReg& reg);
-  void GetState(u8* const data) override;
+  struct DataFormat
+  {
+    u8 sx : 6;
+    u8 pad1 : 2;  // 1 on gh3, 0 on ghwt
+
+    u8 sy : 6;
+    u8 pad2 : 2;  // 1 on gh3, 0 on ghwt
+
+    u8 sb : 5;    // not used in gh3
+    u8 pad3 : 3;  // always 0
+
+    u8 whammy : 5;
+    u8 pad4 : 3;  // always 0
+
+    u16 bt;  // buttons
+  };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  Guitar();
+
+  void Update() override;
   bool IsButtonPressed() const override;
+  void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(GuitarGroup group);
 
@@ -57,4 +85,4 @@ private:
   ControllerEmu::AnalogStick* m_stick;
   ControllerEmu::Slider* m_slider_bar;
 };
-}
+}  // namespace WiimoteEmu

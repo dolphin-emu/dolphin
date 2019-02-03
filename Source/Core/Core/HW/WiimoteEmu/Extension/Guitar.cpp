@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
+#include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 
 #include <array>
 #include <cassert>
 #include <cstring>
 #include <map>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -61,7 +62,7 @@ constexpr std::array<u16, 2> guitar_strum_bitmasks{{
     Guitar::BAR_DOWN,
 }};
 
-Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
+Guitar::Guitar() : EncryptedExtension(_trans("Guitar"))
 {
   // frets
   groups.emplace_back(m_frets = new ControllerEmu::Buttons(_trans("Frets")));
@@ -94,16 +95,11 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 
   // slider bar
   groups.emplace_back(m_slider_bar = new ControllerEmu::Slider(_trans("Slider Bar")));
-
-  // set up register
-  m_id = guitar_id;
 }
 
-void Guitar::GetState(u8* const data)
+void Guitar::Update()
 {
-  wm_guitar_extension guitar_data = {};
-
-  // calibration data not figured out yet?
+  DataFormat guitar_data = {};
 
   // stick
   {
@@ -142,7 +138,7 @@ void Guitar::GetState(u8* const data)
   // flip button bits
   guitar_data.bt ^= 0xFFFF;
 
-  std::memcpy(data, &guitar_data, sizeof(wm_guitar_extension));
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = guitar_data;
 }
 
 bool Guitar::IsButtonPressed() const
@@ -152,6 +148,14 @@ bool Guitar::IsButtonPressed() const
   m_frets->GetState(&buttons, guitar_fret_bitmasks.data());
   m_strum->GetState(&buttons, guitar_strum_bitmasks.data());
   return buttons != 0;
+}
+
+void Guitar::Reset()
+{
+  m_reg = {};
+  m_reg.identifier = guitar_id;
+
+  // TODO: Is there calibration data?
 }
 
 ControllerEmu::ControlGroup* Guitar::GetGroup(GuitarGroup group)

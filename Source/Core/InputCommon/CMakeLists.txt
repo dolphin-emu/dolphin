@@ -7,10 +7,10 @@ add_library(inputcommon
   ControllerEmu/Control/Input.cpp
   ControllerEmu/Control/Output.cpp
   ControllerEmu/ControlGroup/AnalogStick.cpp
+  ControllerEmu/ControlGroup/Attachments.cpp
   ControllerEmu/ControlGroup/Buttons.cpp
   ControllerEmu/ControlGroup/ControlGroup.cpp
   ControllerEmu/ControlGroup/Cursor.cpp
-  ControllerEmu/ControlGroup/Extension.cpp
   ControllerEmu/ControlGroup/Force.cpp
   ControllerEmu/ControlGroup/MixedTriggers.cpp
   ControllerEmu/ControlGroup/ModifySettingsButton.cpp

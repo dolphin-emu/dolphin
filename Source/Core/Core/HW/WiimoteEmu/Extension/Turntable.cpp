@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
+#include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 
 #include <array>
 #include <cassert>
 #include <cstring>
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -44,7 +45,7 @@ constexpr std::array<const char*, 6> turntable_button_names{{
     _trans("Blue Right"),
 }};
 
-Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
+Turntable::Turntable() : EncryptedExtension(_trans("Turntable"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -80,14 +81,11 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
   // crossfade
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));
-
-  // set up register
-  m_id = turntable_id;
 }
 
-void Turntable::GetState(u8* const data)
+void Turntable::Update()
 {
-  wm_turntable_extension tt_data = {};
+  DataFormat tt_data = {};
 
   // stick
   {
@@ -140,7 +138,7 @@ void Turntable::GetState(u8* const data)
   tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
                  BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA);
 
-  std::memcpy(data, &tt_data, sizeof(wm_turntable_extension));
+  Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tt_data;
 }
 
 bool Turntable::IsButtonPressed() const
@@ -148,6 +146,14 @@ bool Turntable::IsButtonPressed() const
   u16 buttons = 0;
   m_buttons->GetState(&buttons, turntable_button_bitmasks.data());
   return buttons != 0;
+}
+
+void Turntable::Reset()
+{
+  m_reg = {};
+  m_reg.identifier = turntable_id;
+
+  // TODO: Is there calibration data?
 }
 
 ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)

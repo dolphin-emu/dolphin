@@ -45,7 +45,7 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Buttons.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\ControlGroup.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Cursor.cpp" />
-    <ClCompile Include="ControllerEmu\ControlGroup\Extension.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Force.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\MixedTriggers.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\ModifySettingsButton.cpp" />
@@ -84,7 +84,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Buttons.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\ControlGroup.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Cursor.h" />
-    <ClInclude Include="ControllerEmu\ControlGroup\Extension.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Force.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\MixedTriggers.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\ModifySettingsButton.h" />
