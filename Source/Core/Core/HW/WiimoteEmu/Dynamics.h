@@ -51,7 +51,7 @@ void EmulateDynamicShake(NormalizedAccelData* accel, DynamicData& dynamic_data,
                          u8* shake_step);
 
 void EmulateTilt(NormalizedAccelData* accel, ControllerEmu::Tilt* tilt_group, bool sideways = false,
-                 bool upright = false);
+                 bool upright = false, double cursor_tilt = 0.0);
 
 void EmulateSwing(NormalizedAccelData* accel, ControllerEmu::Force* swing_group, double intensity,
                   bool sideways = false, bool upright = false);

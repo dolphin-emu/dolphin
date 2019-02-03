@@ -90,12 +90,14 @@ void EmulateDynamicShake(NormalizedAccelData* const accel, DynamicData& dynamic_
 }
 
 void EmulateTilt(NormalizedAccelData* const accel, ControllerEmu::Tilt* const tilt_group,
-                 const bool sideways, const bool upright)
+                 const bool sideways, const bool upright, double cursor_tilt)
 {
   // 180 degrees
   const ControllerEmu::Tilt::StateData state = tilt_group->GetState();
   const ControlState roll = state.x * MathUtil::PI;
-  const ControlState pitch = state.y * MathUtil::PI;
+
+  // Semi-hacky: Add cursor Y position into the pitch to fix Skyward Sword's pointer.
+  const ControlState pitch = state.y * MathUtil::PI + cursor_tilt;
 
   // Some notes that no one will understand but me :p
   // left, forward, up
@@ -220,7 +222,11 @@ void Wiimote::GetAccelData(NormalizedAccelData* accel)
   const bool is_sideways = IsSideways();
   const bool is_upright = IsUpright();
 
-  EmulateTilt(accel, m_tilt, is_sideways, is_upright);
+  // Semi-hacky: Add cursor Y position into the pitch to fix Skyward Sword's pointer.
+  // PI * 0.25 (45 degrees)
+  const auto cursor_tilt = m_ir->GetState(true).y * MathUtil::PI * -0.25;
+
+  EmulateTilt(accel, m_tilt, is_sideways, is_upright, cursor_tilt);
 
   DynamicConfiguration swing_config;
   swing_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW);
