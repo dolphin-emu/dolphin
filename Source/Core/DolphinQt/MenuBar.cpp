@@ -53,8 +53,12 @@
 
 #include "UICommon/GameFile.h"
 
+QPointer<MenuBar> MenuBar::s_menu_bar;
+
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
+  s_menu_bar = this;
+
   AddFileMenu();
   AddEmulationMenu();
   AddMovieMenu();
@@ -584,13 +588,13 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
+  m_cols_menu = view_menu->addMenu(tr("List Columns"));
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())
   {
     bool* config = columns[key];
-    QAction* action = column_group->addAction(cols_menu->addAction(key));
+    QAction* action = column_group->addAction(m_cols_menu->addAction(key));
     action->setCheckable(true);
     action->setChecked(*config);
     connect(action, &QAction::toggled, [this, config, key](bool value) {

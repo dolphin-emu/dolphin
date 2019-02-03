@@ -42,6 +42,7 @@
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
+#include "DolphinQt/MenuBar.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -120,6 +121,9 @@ void GameList::MakeListView()
 
   hor_header->restoreState(
       Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
+
+  hor_header->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(hor_header, &QWidget::customContextMenuRequested, this, &GameList::ShowHeaderContextMenu);
 
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
@@ -221,6 +225,20 @@ void GameList::MakeGridView()
           [this](const QItemSelection&, const QItemSelection&) {
             emit SelectionChanged(GetSelectedGame());
           });
+}
+
+void GameList::ShowHeaderContextMenu(const QPoint& pos)
+{
+  const MenuBar* const menu_bar = MenuBar::GetMenuBar();
+  if (!menu_bar)
+    return;
+
+  QMenu* const list_columns_menu = menu_bar->GetListColumnsMenu();
+  if (!list_columns_menu)
+    return;
+
+  const QWidget* const widget = qobject_cast<QWidget*>(sender());
+  list_columns_menu->exec(widget ? widget->mapToGlobal(pos) : pos);
 }
 
 void GameList::ShowContextMenu(const QPoint&)
