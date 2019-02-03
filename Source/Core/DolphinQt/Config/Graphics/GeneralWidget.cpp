@@ -175,6 +175,7 @@ void GeneralWidget::SaveSettings()
       QMessageBox confirm_sw(this);
 
       confirm_sw.setIcon(QMessageBox::Warning);
+      confirm_sw.setWindowModality(Qt::WindowModal);
       confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       confirm_sw.setWindowTitle(tr("Confirm backend change"));
       confirm_sw.setText(tr("Software rendering is an order of magnitude slower than using the "

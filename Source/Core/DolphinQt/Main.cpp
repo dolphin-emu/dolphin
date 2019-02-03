@@ -186,6 +186,7 @@ int main(int argc, char* argv[])
       QMessageBox analytics_prompt(&win);
 
       analytics_prompt.setIcon(QMessageBox::Question);
+      analytics_prompt.setWindowModality(Qt::WindowModal);
       analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       analytics_prompt.setWindowTitle(QObject::tr("Allow Usage Statistics Reporting"));
       analytics_prompt.setText(
