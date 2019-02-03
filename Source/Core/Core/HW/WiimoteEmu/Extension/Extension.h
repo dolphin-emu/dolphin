@@ -96,6 +96,8 @@ protected:
 
   static_assert(0x100 == sizeof(Register));
 
+  void DoState(PointerWrap& p) override;
+
   Register m_reg = {};
 
 private:
@@ -105,8 +107,6 @@ private:
 
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
-
-  void DoState(PointerWrap& p) override;
 };
 
 }  // namespace WiimoteEmu

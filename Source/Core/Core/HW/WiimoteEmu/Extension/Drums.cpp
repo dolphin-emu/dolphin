@@ -25,8 +25,8 @@ constexpr std::array<u16, 6> drum_pad_bitmasks{{
     Drums::PAD_RED,
     Drums::PAD_YELLOW,
     Drums::PAD_BLUE,
-    Drums::PAD_GREEN,
     Drums::PAD_ORANGE,
+    Drums::PAD_GREEN,
     Drums::PAD_BASS,
 }};
 
@@ -34,8 +34,8 @@ constexpr std::array<const char*, 6> drum_pad_names{{
     _trans("Red"),
     _trans("Yellow"),
     _trans("Blue"),
-    _trans("Green"),
     _trans("Orange"),
+    _trans("Green"),
     _trans("Bass"),
 }};
 
@@ -77,20 +77,64 @@ void Drums::Update()
     drum_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
   }
 
-  // TODO: Implement these:
-  drum_data.which = 0x1F;
-  drum_data.none = 1;
-  drum_data.hhp = 1;
-  drum_data.velocity = 0xf;
-  drum_data.softness = 7;
-
   // buttons
   m_buttons->GetState(&drum_data.bt, drum_button_bitmasks.data());
 
   // pads
   m_pads->GetState(&drum_data.bt, drum_pad_bitmasks.data());
 
-  // flip button bits
+  // Currently using a fixed "softness".
+  constexpr u8 VELOCITY_SOFTNESS = 3;
+
+  // Send no velocity data by default.
+  drum_data.velocity_id = u8(VelocityID::None);
+  drum_data.no_velocity_data_0b11 = 0b11;
+  drum_data.always_0b11 = 0b11;
+  drum_data.no_velocity_data = 1;
+  drum_data.softness = 7;
+
+  // Clear velocity-sent state for released pads.
+  m_velocity_data_sent &= drum_data.bt;
+
+  // If a pad is hit send velocity data no more than once.
+  for (auto pad_mask : drum_pad_bitmasks)
+  {
+    if ((drum_data.bt & pad_mask) && !(m_velocity_data_sent & pad_mask))
+    {
+      m_velocity_data_sent |= pad_mask;
+
+      switch (pad_mask)
+      {
+      case Drums::PAD_RED:
+        drum_data.velocity_id = u8(VelocityID::Red);
+        break;
+      case Drums::PAD_YELLOW:
+        drum_data.velocity_id = u8(VelocityID::Yellow);
+        break;
+      case Drums::PAD_BLUE:
+        drum_data.velocity_id = u8(VelocityID::Blue);
+        break;
+      case Drums::PAD_ORANGE:
+        drum_data.velocity_id = u8(VelocityID::Orange);
+        break;
+      case Drums::PAD_GREEN:
+        drum_data.velocity_id = u8(VelocityID::Green);
+        break;
+      case Drums::PAD_BASS:
+        drum_data.velocity_id = u8(VelocityID::Bass);
+        break;
+      }
+
+      drum_data.no_velocity_data_0b11 = 0;
+      drum_data.no_velocity_data = 0;
+      drum_data.softness = VELOCITY_SOFTNESS;
+      drum_data.bt |= HAVE_VELOCITY_DATA;
+
+      break;
+    }
+  }
+
+  // Flip button and pad bits.
   drum_data.bt ^= 0xFFFF;
 
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = drum_data;
@@ -110,6 +154,13 @@ void Drums::Reset()
   m_reg.identifier = drums_id;
 
   // TODO: Is there calibration data?
+}
+
+void Drums::DoState(PointerWrap& p)
+{
+  EncryptedExtension::DoState(p);
+
+  p.Do(m_velocity_data_sent);
 }
 
 ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)

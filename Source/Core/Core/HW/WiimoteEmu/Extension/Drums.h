@@ -29,23 +29,41 @@ public:
   struct DataFormat
   {
     u8 sx : 6;
-    u8 pad1 : 2;  // always 0
+    // Always 0
+    u8 : 2;
 
     u8 sy : 6;
-    u8 pad2 : 2;  // always 0
+    // Always 0
+    u8 : 2;
 
-    u8 pad3 : 1;  // unknown
-    u8 which : 5;
-    u8 none : 1;
-    u8 hhp : 1;
+    u8 velocity_id;
 
-    u8 pad4 : 1;      // unknown
-    u8 velocity : 4;  // unknown
+    // Apparently 0b11 with no velocity data and 0b00 otherwise.
+    u8 no_velocity_data_0b11 : 2;
+    // Always 0b11.
+    u8 always_0b11 : 2;
+    // Apparently 1 with no velocity data and 0 otherwise.
+    u8 no_velocity_data : 1;
+    // Ranges from 0:very-hard to 7:very-soft
     u8 softness : 3;
 
-    u16 bt;  // buttons
+    // Buttons
+    u16 bt;
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  enum class VelocityID : u8
+  {
+    None = 0xff,
+    Bass = 0b10110111,
+    // TODO: Implement the Hi-Hat. More testing is needed.
+    // HighHat = 0b00110111,
+    Red = 0b10110011,
+    Yellow = 0b10100011,
+    Blue = 0b10011111,
+    Orange = 0b10011101,
+    Green = 0b10100101,
+  };
 
   Drums();
 
@@ -55,10 +73,14 @@ public:
 
   ControllerEmu::ControlGroup* GetGroup(DrumsGroup group);
 
-  enum
+  void DoState(PointerWrap& p) override;
+
+  enum : u16
   {
     BUTTON_PLUS = 0x04,
     BUTTON_MINUS = 0x10,
+
+    HAVE_VELOCITY_DATA = 0b10000001,
 
     PAD_BASS = 0x0400,
     PAD_BLUE = 0x0800,
@@ -78,5 +100,8 @@ private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_pads;
   ControllerEmu::AnalogStick* m_stick;
+
+  // Holds button masks for drum pad velocities that have been sent.
+  u16 m_velocity_data_sent;
 };
 }  // namespace WiimoteEmu
