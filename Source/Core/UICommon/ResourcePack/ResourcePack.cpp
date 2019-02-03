@@ -126,8 +126,8 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
       continue;
 
-    // If a texture is compressed, abort.
-    if (texture_info.compression_method != 0)
+    // If a texture is compressed and the manifest doesn't state that, abort.
+    if (!m_manifest->IsCompressed() && texture_info.compression_method != 0)
     {
       m_valid = false;
       m_error = "Texture " + filename + " is compressed!";

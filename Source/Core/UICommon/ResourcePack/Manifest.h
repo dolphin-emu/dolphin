@@ -15,6 +15,7 @@ public:
   explicit Manifest(const std::string& text);
 
   bool IsValid() const;
+  bool IsCompressed() const;
 
   const std::string& GetName() const;
   const std::string& GetVersion() const;
@@ -27,6 +28,7 @@ public:
 
 private:
   bool m_valid = true;
+  bool m_compressed = false;
 
   std::string m_name;
   std::string m_version;

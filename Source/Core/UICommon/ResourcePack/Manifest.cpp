@@ -29,6 +29,7 @@ Manifest::Manifest(const std::string& json)
   picojson::value& authors = out.get("authors");
   picojson::value& description = out.get("description");
   picojson::value& website = out.get("website");
+  picojson::value& compressed = out.get("compressed");
 
   if (!name.is<std::string>() || !id.is<std::string>() || !version.is<std::string>())
   {
@@ -58,6 +59,9 @@ Manifest::Manifest(const std::string& json)
 
   if (website.is<std::string>())
     m_website = website.to_str();
+
+  if (compressed.is<bool>())
+    m_compressed = compressed.get<bool>();
 }
 
 bool Manifest::IsValid() const
@@ -99,4 +103,10 @@ const std::optional<std::string>& Manifest::GetWebsite() const
 {
   return m_website;
 }
+
+bool Manifest::IsCompressed() const
+{
+  return m_compressed;
+}
+
 }  // namespace ResourcePack
