@@ -324,7 +324,6 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onStop()
   {
     super.onStop();
-    Rumble.clear();
   }
 
   @Override
