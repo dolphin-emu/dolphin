@@ -49,7 +49,12 @@ VideoConfig::VideoConfig()
   backend_info.bSupportsBPTCTextures = false;
 
   bEnableValidationLayer = false;
+
+#if defined(ANDROID)
+  bBackendMultithreading = false;
+#else
   bBackendMultithreading = true;
+#endif
 }
 
 void VideoConfig::Refresh()
