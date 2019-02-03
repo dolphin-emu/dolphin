@@ -387,18 +387,18 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 
   // General hotkeys
   set_key_expression(HK_OPEN, CTRL + " & O");
-  set_key_expression(HK_PLAY_PAUSE, "`F10`");
+  set_key_expression(HK_PLAY_PAUSE, NON + " & `F10`");
 #ifdef _WIN32
-  set_key_expression(HK_STOP, "ESCAPE");
+  set_key_expression(HK_STOP, NON + " & ESCAPE");
   set_key_expression(HK_FULLSCREEN, ALT + " & RETURN");
 #else
-  set_key_expression(HK_STOP, "Escape");
+  set_key_expression(HK_STOP, NON + " & Escape");
   set_key_expression(HK_FULLSCREEN, ALT + " & Return");
 #endif
   set_key_expression(HK_STEP, NON + " & `F11`");
-  set_key_expression(HK_STEP_OVER, NON + " & `F10`");
+  set_key_expression(HK_STEP_OVER, SHIFT + " & `F10`");
   set_key_expression(HK_STEP_OUT, SHIFT + " & `F11`");
-  set_key_expression(HK_BP_TOGGLE, NON + " & `F9`");
+  set_key_expression(HK_BP_TOGGLE, SHIFT + " & `F9`");
   set_key_expression(HK_SCREENSHOT, NON + " & `F9`");
   set_key_expression(HK_WIIMOTE1_CONNECT, ALT + " & `F5`");
   set_key_expression(HK_WIIMOTE2_CONNECT, ALT + " & `F6`");
@@ -406,9 +406,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_WIIMOTE4_CONNECT, ALT + " & `F8`");
   set_key_expression(HK_BALANCEBOARD_CONNECT, ALT + " & `F9`");
 #ifdef _WIN32
-  set_key_expression(HK_TOGGLE_THROTTLE, "TAB");
+  set_key_expression(HK_TOGGLE_THROTTLE, NON + " & TAB");
 #else
-  set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
+  set_key_expression(HK_TOGGLE_THROTTLE, NON + " & Tab");
 #endif
 
   // Freelook
