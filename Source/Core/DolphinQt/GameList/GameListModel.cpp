@@ -123,7 +123,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_DESCRIPTION:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return QString::fromStdString(game.GetDescription());
+    {
+      return QString::fromStdString(game.GetDescription())
+          .replace(QLatin1Char('\n'), QLatin1Char(' '));
+    }
     break;
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
