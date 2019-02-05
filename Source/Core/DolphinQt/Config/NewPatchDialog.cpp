@@ -181,8 +181,8 @@ QGroupBox* NewPatchDialog::CreateEntry(int index)
   dword->setChecked(entry_type == PatchEngine::PatchType::Patch32Bit);
 
   offset->setText(
-      QStringLiteral("%1").arg(m_patch.entries[index].address, 10, 16, QLatin1Char('0')));
-  value->setText(QStringLiteral("%1").arg(m_patch.entries[index].value, 10, 16, QLatin1Char('0')));
+      QStringLiteral("%1").arg(m_patch.entries[index].address, 8, 16, QLatin1Char('0')));
+  value->setText(QStringLiteral("%1").arg(m_patch.entries[index].value, 8, 16, QLatin1Char('0')));
 
   return box;
 }
