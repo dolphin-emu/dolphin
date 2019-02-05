@@ -32,9 +32,6 @@ Cursor::Cursor(const std::string& name_)
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 
-  // Default shape is a 1.0 square (no resizing/reshaping):
-  AddReshapingSettings(1.0, 0.5, 50);
-
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
@@ -57,8 +54,6 @@ Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
 
 ControlState Cursor::GetGateRadiusAtAngle(double ang) const
 {
-  // TODO: Change this to 0.5 and adjust the math,
-  // so pointer doesn't have to be clamped to the configured width/height?
   return SquareStickGate(1.0).GetRadiusAtAngle(ang);
 }
 

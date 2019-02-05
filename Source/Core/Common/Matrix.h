@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 
 // Tiny matrix/vector library.
 // Used for things like Free-Look in the gfx backend.
@@ -38,6 +39,71 @@ inline Vec3 operator+(Vec3 lhs, const Vec3& rhs)
 {
   return lhs += rhs;
 }
+
+template <typename T>
+union TVec2
+{
+  TVec2() = default;
+  TVec2(T _x, T _y) : data{_x, _y} {}
+
+  T Cross(const TVec2& rhs) const { return (x * rhs.y) - (y * rhs.x); }
+  T Dot(const TVec2& rhs) const { return (x * rhs.x) + (y * rhs.y); }
+  T LengthSquared() const { return Dot(*this); }
+  T Length() const { return std::sqrt(LengthSquared()); }
+  TVec2 Normalized() const { return *this / Length(); }
+
+  TVec2& operator+=(const TVec2& rhs)
+  {
+    x += rhs.x;
+    y += rhs.y;
+    return *this;
+  }
+
+  TVec2& operator-=(const TVec2& rhs)
+  {
+    x -= rhs.x;
+    y -= rhs.y;
+    return *this;
+  }
+
+  TVec2& operator*=(T scalar)
+  {
+    x *= scalar;
+    y *= scalar;
+    return *this;
+  }
+
+  TVec2 operator-() const { return {-x, -y}; }
+
+  std::array<T, 2> data = {};
+
+  struct
+  {
+    T x;
+    T y;
+  };
+};
+
+template <typename T>
+TVec2<T> operator+(TVec2<T> lhs, const TVec2<T>& rhs)
+{
+  return lhs += rhs;
+}
+
+template <typename T>
+TVec2<T> operator-(TVec2<T> lhs, const TVec2<T>& rhs)
+{
+  return lhs -= rhs;
+}
+
+template <typename T>
+TVec2<T> operator*(TVec2<T> lhs, T scalar)
+{
+  return lhs *= scalar;
+}
+
+using Vec2 = TVec2<float>;
+using DVec2 = TVec2<double>;
 
 class Matrix33
 {
