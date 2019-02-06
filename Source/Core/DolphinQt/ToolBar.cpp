@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt/ToolBar.h"
+
 #include <algorithm>
 #include <vector>
 
@@ -13,16 +15,14 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
-#include "DolphinQt/ToolBar.h"
 
-static QSize ICON_SIZE(32, 32);
+static const QSize ICON_SIZE(32, 32);
+static const QSize ICON_SIZE_SMALL(16, 16);
 
 ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 {
-  setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   setMovable(!Settings::Instance().AreWidgetsLocked());
   setFloatable(false);
-  setIconSize(ICON_SIZE);
   setVisible(Settings::Instance().IsToolBarVisible());
 
   setWindowTitle(tr("Toolbar"));
@@ -51,6 +51,10 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 
   OnEmulationStateChanged(Core::GetState());
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+
+  connect(&Settings::Instance(), &Settings::CompactViewChanged, this,
+          &ToolBar::OnCompactViewChanged);
+  OnCompactViewChanged(Settings::Instance().IsCompactViewEnabled());
 }
 
 void ToolBar::OnEmulationStateChanged(Core::State state)
@@ -94,6 +98,31 @@ void ToolBar::OnDebugModeToggled(bool enabled)
   m_set_pc_action->setEnabled(paused);
 }
 
+void ToolBar::OnCompactViewChanged(const bool enabled)
+{
+  setIconSize(enabled ? ICON_SIZE_SMALL : ICON_SIZE);
+  setToolButtonStyle(enabled ? Qt::ToolButtonIconOnly : Qt::ToolButtonTextUnderIcon);
+
+  if (enabled)
+  {
+    for (QWidget* widget : m_actions_widgets)
+      widget->setMinimumWidth(0);
+  }
+  else
+  {
+    std::vector<int> widths;
+    std::transform(m_actions_widgets.begin(), m_actions_widgets.end(), std::back_inserter(widths),
+                   [](const QWidget* const item) { return item->sizeHint().width(); });
+
+    const int min_width = *std::max_element(widths.begin(), widths.end()) * 0.85;
+    for (QWidget* const widget : m_actions_widgets)
+      widget->setMinimumWidth(min_width);
+  }
+
+  for (QAction* const separator : m_separators)
+    separator->setVisible(!enabled);
+}
+
 void ToolBar::MakeActions()
 {
   // i18n: Here, "Step" is a verb. This feature is used for
@@ -117,7 +146,7 @@ void ToolBar::MakeActions()
     emit RefreshPressed();
   });
 
-  addSeparator();
+  m_separators.emplace_back(addSeparator());
 
   m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
 
@@ -125,31 +154,21 @@ void ToolBar::MakeActions()
   m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
   m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
 
-  addSeparator();
+  m_separators.emplace_back(addSeparator());
 
   m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
 
-  // Ensure every button has about the same width
-  std::vector<QWidget*> items;
   for (const auto& action :
        {m_open_action, m_pause_play_action, m_stop_action, m_stop_action, m_fullscreen_action,
         m_screenshot_action, m_config_action, m_graphics_action, m_controllers_action,
         m_step_action, m_step_over_action, m_step_out_action, m_skip_action, m_show_pc_action,
         m_set_pc_action})
   {
-    items.emplace_back(widgetForAction(action));
+    m_actions_widgets.emplace_back(widgetForAction(action));
   }
-
-  std::vector<int> widths;
-  std::transform(items.begin(), items.end(), std::back_inserter(widths),
-                 [](QWidget* item) { return item->sizeHint().width(); });
-
-  const int min_width = *std::max_element(widths.begin(), widths.end()) * 0.85;
-  for (QWidget* widget : items)
-    widget->setMinimumWidth(min_width);
 }
 
 void ToolBar::UpdatePausePlayButtonState(const bool playing_state)

@@ -19,8 +19,6 @@
 #include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
-const QSize GAMECUBE_BANNER_SIZE(96, 32);
-
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::AddGame);

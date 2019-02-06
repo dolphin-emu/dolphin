@@ -111,6 +111,7 @@ void GameList::MakeListView()
   m_list->setCurrentIndex(QModelIndex());
   m_list->setContextMenuPolicy(Qt::CustomContextMenu);
   m_list->setWordWrap(false);
+
   // Have 1 pixel of padding above and below the 32 pixel banners.
   m_list->verticalHeader()->setDefaultSectionSize(32 + 2);
 
@@ -1063,6 +1064,11 @@ void GameList::SetSearchTerm(const QString& term)
   m_grid_proxy->invalidate();
 
   UpdateColumnVisibility();
+}
+
+void GameList::SetRowHeight(const int height)
+{
+  m_list->verticalHeader()->setDefaultSectionSize(height);
 }
 
 void GameList::ZoomIn()

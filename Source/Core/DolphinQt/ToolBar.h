@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <QToolBar>
 
 class QAction;
@@ -44,6 +46,7 @@ signals:
 private:
   void OnEmulationStateChanged(Core::State state);
   void OnDebugModeToggled(bool enabled);
+  void OnCompactViewChanged(bool enabled);
 
   void MakeActions();
   void UpdateIcons();
@@ -65,4 +68,7 @@ private:
   QAction* m_skip_action;
   QAction* m_show_pc_action;
   QAction* m_set_pc_action;
+
+  std::vector<QWidget*> m_actions_widgets;
+  std::vector<QAction*> m_separators;
 };

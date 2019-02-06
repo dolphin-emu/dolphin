@@ -37,6 +37,7 @@ public:
   void SetGridView() { SetPreferredView(false); }
   void SetViewColumn(int col, bool view);
   void SetSearchTerm(const QString& term);
+  void SetRowHeight(int height);
 
   void OnColumnVisibilityToggled(const QString& row, bool visible);
   void OnGameListVisibilityChanged();

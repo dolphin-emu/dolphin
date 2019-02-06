@@ -9,6 +9,7 @@
 
 #include <QAbstractTableModel>
 #include <QMap>
+#include <QSize>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -27,6 +28,8 @@ class GameListModel final : public QAbstractTableModel
   Q_OBJECT
 
 public:
+  static constexpr QSize GAMECUBE_BANNER_SIZE{96, 32};
+
   explicit GameListModel(QObject* parent = nullptr);
 
   // Qt's Model/View stuff uses these overrides.
