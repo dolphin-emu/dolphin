@@ -212,10 +212,10 @@ void GameConfigEdit::AddMenubarOptions()
     auto* video_menubar = m_menu->addMenu(tr("Video"));
 
     AddBoolOption(video_menubar, tr("Store EFB Copies to Texture Only"),
-                  QStringLiteral("Video_Settings"), QStringLiteral("EFBToTextureEnable"));
+                  QStringLiteral("Video_Hacks"), QStringLiteral("EFBToTextureEnable"));
 
     AddBoolOption(video_menubar, tr("Store XFB Copies to Texture Only"),
-                  QStringLiteral("Video_Settings"), QStringLiteral("XFBToTextureEnable"));
+                  QStringLiteral("Video_Hacks"), QStringLiteral("XFBToTextureEnable"));
 
     {
       auto* texture_cache = video_menubar->addMenu(tr("Texture Cache"));
