@@ -18,7 +18,6 @@ class MappingRadio : public QRadioButton
 public:
   MappingRadio(MappingWidget* widget, ControllerEmu::BooleanSetting* setting);
 
-  void Clear();
   void Update();
 
 private:
