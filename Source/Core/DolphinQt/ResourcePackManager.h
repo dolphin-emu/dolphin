@@ -31,6 +31,8 @@ private:
   void SelectionChanged();
   void ItemDoubleClicked(QTableWidgetItem* item);
 
+  int GetResourcePackIndex(QTableWidgetItem* item) const;
+
   QPushButton* m_open_directory_button;
   QPushButton* m_change_button;
   QPushButton* m_remove_button;
