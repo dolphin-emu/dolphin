@@ -24,7 +24,7 @@
 // Color constants to keep things looking consistent:
 // TODO: could we maybe query theme colors from Qt for the bounding box?
 const QColor BBOX_PEN_COLOR = Qt::darkGray;
-const QColor BBOX_BRUSH_COLOR = Qt::white;
+const QColor BBOX_BRUSH_COLOR = Qt::transparent;
 
 const QColor RAW_INPUT_COLOR = Qt::darkGray;
 const QColor ADJ_INPUT_COLOR = Qt::red;
