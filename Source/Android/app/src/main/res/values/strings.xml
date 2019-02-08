@@ -200,7 +200,7 @@
     <string name="stereoscopy_swap_eyes">Swap Eyes</string>
     <string name="stereoscopy_swap_eyes_description">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
     <string name="backend_multithreading">Backend Multithreading</string> <!--Backend Multithreading is only disabled by default on Android  -->
-    <string name="backend_multithreading_description">Enables CPU multithreading(Vulkan only). May affect performance. If unsure, leave unchecked</string>
+    <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave unchecked.</string>
 
     <string name="hacks_submenu">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
