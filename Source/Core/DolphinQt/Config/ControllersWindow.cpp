@@ -63,7 +63,6 @@ static std::optional<SerialInterface::SIDevices> FromGCMenuIndex(const int menud
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Controller Settings"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateGamecubeLayout();
   CreateWiimoteLayout();

@@ -24,7 +24,6 @@
 
 TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   m_use_controller = new QCheckBox(QStringLiteral("Enable Controller Inpu&t"));
   m_use_controller->setToolTip(tr("Warning: Analog inputs may reset to controller values at "
                                   "random. In some cases this can be fixed by adding a deadzone."));

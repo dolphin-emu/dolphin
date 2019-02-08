@@ -571,8 +571,6 @@ void GameList::CompressISO(bool decompress)
     QProgressDialog progress_dialog(decompress ? tr("Decompressing...") : tr("Compressing..."),
                                     tr("Abort"), 0, 100, this);
     progress_dialog.setWindowModality(Qt::WindowModal);
-    progress_dialog.setWindowFlags(progress_dialog.windowFlags() &
-                                   ~Qt::WindowContextHelpButtonHint);
     progress_dialog.setWindowTitle(tr("Progress"));
 
     bool good;

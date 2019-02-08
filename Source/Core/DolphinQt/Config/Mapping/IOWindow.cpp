@@ -38,7 +38,6 @@ IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controlle
   ConnectWidgets();
 
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   Update();
 }

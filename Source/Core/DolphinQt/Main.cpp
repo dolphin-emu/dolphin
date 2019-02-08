@@ -92,6 +92,7 @@ int main(int argc, char* argv[])
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
+  QCoreApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
   QApplication app(argc, argv);
 

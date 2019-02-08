@@ -50,7 +50,6 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateDevicesLayout();
   CreateProfilesLayout();

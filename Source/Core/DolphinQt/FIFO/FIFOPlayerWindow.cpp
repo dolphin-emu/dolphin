@@ -31,7 +31,6 @@
 FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("FIFO Player"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
   ConnectWidgets();

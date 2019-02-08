@@ -44,7 +44,6 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
   std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);
     dialog->setWindowTitle(tr("Update available"));
-    dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     auto* label = new QLabel(
         tr("<h2>A new version of Dolphin is available!</h2>Dolphin %1 is available for "

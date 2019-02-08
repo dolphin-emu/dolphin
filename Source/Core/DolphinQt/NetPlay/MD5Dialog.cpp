@@ -42,7 +42,6 @@ MD5Dialog::MD5Dialog(QWidget* parent) : QDialog(parent)
   CreateWidgets();
   ConnectWidgets();
   setWindowTitle(tr("MD5 Checksum"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 void MD5Dialog::CreateWidgets()

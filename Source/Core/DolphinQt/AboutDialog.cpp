@@ -14,7 +14,6 @@
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("About Dolphin"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   QString text = QStringLiteral("");
   QString small = QStringLiteral("<p style='margin-top:0; margin-bottom:0; font-size:small;'>");

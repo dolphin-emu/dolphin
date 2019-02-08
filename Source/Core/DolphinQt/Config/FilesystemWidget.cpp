@@ -289,7 +289,6 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   u32 size = info->GetTotalChildren();
 
   QProgressDialog* dialog = new QProgressDialog(this);
-  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dialog->setMinimum(0);
   dialog->setMaximum(size);
   dialog->show();
@@ -335,7 +334,6 @@ void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
       std::launch::async, [this, partition] { return m_volume->CheckIntegrity(partition); });
 
   dialog->setLabelText(tr("Verifying integrity of partition..."));
-  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dialog->setWindowTitle(tr("Verifying partition"));
 
   dialog->setMinimum(0);

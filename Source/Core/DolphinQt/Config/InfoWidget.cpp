@@ -225,7 +225,6 @@ void InfoWidget::ComputeChecksum()
   QProgressDialog* progress =
       new QProgressDialog(tr("Computing MD5 Checksum"), tr("Cancel"), 0, 1000, this);
   progress->setWindowTitle(tr("Computing MD5 Checksum"));
-  progress->setWindowFlags(progress->windowFlags() & ~Qt::WindowContextHelpButtonHint);
   progress->setMinimumDuration(500);
   progress->setWindowModality(Qt::WindowModal);
   while (read_offset < game_size)

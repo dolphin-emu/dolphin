@@ -62,8 +62,6 @@
 NetPlayDialog::NetPlayDialog(QWidget* parent)
     : QDialog(parent), m_game_list_model(Settings::Instance().GetGameListModel())
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
   setWindowTitle(tr("NetPlay"));
   setWindowIcon(Resources::GetAppIcon());
 
