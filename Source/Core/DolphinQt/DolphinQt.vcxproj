@@ -57,9 +57,11 @@
   <!--NOTE: When adding moc'd files, you must list outputs in the ClCompile ItemGroup too!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="BBAServerWindow.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\CheatCodeEditor.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
+    <QtMoc Include="Config\BBAConfigWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
@@ -172,6 +174,8 @@
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AspectRatioWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)BBAConfigWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)BBAServerWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BlockUserInputFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BreakpointWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatCodeEditor.cpp" />
@@ -273,9 +277,11 @@
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="BBAServerWindow.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
+    <ClCompile Include="Config\BBAConfigWidget.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />

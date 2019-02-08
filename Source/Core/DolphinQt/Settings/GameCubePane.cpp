@@ -28,6 +28,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
+#include "DolphinQt/Config/BBAConfigWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 
 enum
@@ -104,7 +105,8 @@ void GameCubePane::CreateWidgets()
   for (const auto& entry :
        {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
         std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
-        std::make_pair(tr("Broadband Adapter"), ExpansionInterface::EXIDEVICE_ETH)})
+        std::make_pair(tr("Broadband Adapter (TAP)"), ExpansionInterface::EXIDEVICE_ETH_TAP),
+        std::make_pair(tr("Broadband Adapter (TCP)"), ExpansionInterface::EXIDEVICE_ETH_TCP)})
   {
     m_slot_combos[2]->addItem(entry.first, entry.second);
   }
@@ -160,7 +162,8 @@ void GameCubePane::UpdateButton(int slot)
          value == ExpansionInterface::EXIDEVICE_AGP || value == ExpansionInterface::EXIDEVICE_MIC);
     break;
   case SLOT_SP1_INDEX:
-    has_config = (value == ExpansionInterface::EXIDEVICE_ETH);
+    has_config = (value == ExpansionInterface::EXIDEVICE_ETH_TAP ||
+                  value == ExpansionInterface::EXIDEVICE_ETH_TCP);
     break;
   }
 
@@ -172,7 +175,9 @@ void GameCubePane::OnConfigPressed(int slot)
   QString filter;
   bool memcard = false;
 
-  switch (m_slot_combos[slot]->currentData().toInt())
+  const auto currentData = m_slot_combos[slot]->currentData().toInt();
+
+  switch (currentData)
   {
   case ExpansionInterface::EXIDEVICE_MEMORYCARD:
     filter = tr("GameCube Memory Cards (*.raw *.gcp)");
@@ -184,14 +189,26 @@ void GameCubePane::OnConfigPressed(int slot)
   case ExpansionInterface::EXIDEVICE_MIC:
     MappingWindow(this, MappingWindow::Type::MAPPING_GC_MICROPHONE, slot).exec();
     return;
-  case ExpansionInterface::EXIDEVICE_ETH:
+  case ExpansionInterface::EXIDEVICE_ETH_TAP:
+  case ExpansionInterface::EXIDEVICE_ETH_TCP:
   {
-    bool ok;
-    const auto new_mac = QInputDialog::getText(
-        this, tr("Broadband Adapter MAC address"), tr("Enter new Broadband Adapter MAC address:"),
-        QLineEdit::Normal, QString::fromStdString(SConfig::GetInstance().m_bba_mac), &ok);
-    if (ok)
-      SConfig::GetInstance().m_bba_mac = new_mac.toStdString();
+    const auto isTcp = currentData == ExpansionInterface::EXIDEVICE_ETH_TCP;
+    BBAConfigWidget dialog(isTcp, this);
+    dialog.SetMacAddr(QString::fromStdString(SConfig::GetInstance().m_bba_mac));
+    if (isTcp)
+    {
+      dialog.SetServer(QString::fromStdString(SConfig::GetInstance().m_bba_server));
+      dialog.SetPort(SConfig::GetInstance().m_bba_port);
+    }
+    if(dialog.exec() == QDialog::Accepted)
+    {
+      SConfig::GetInstance().m_bba_mac = dialog.MacAddr().toStdString();
+      if (isTcp)
+      {
+        SConfig::GetInstance().m_bba_server = dialog.Server().toStdString();
+        SConfig::GetInstance().m_bba_port = dialog.Port();
+      }
+    }
     return;
   }
   default:
@@ -200,7 +217,7 @@ void GameCubePane::OnConfigPressed(int slot)
 
   QString filename = QFileDialog::getSaveFileName(
       this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      filter, 0, QFileDialog::DontConfirmOverwrite);
+      filter, nullptr, QFileDialog::DontConfirmOverwrite);
 
   if (filename.isEmpty())
     return;

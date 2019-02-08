@@ -23,6 +23,7 @@ class ControllersWindow;
 class DiscordHandler;
 class DragEnterEvent;
 class FIFOPlayerWindow;
+class BBAServerWindow;
 class GameList;
 class GCTASInputWindow;
 class GraphicsWindow;
@@ -148,6 +149,9 @@ private:
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
+#ifndef _WIN32
+  void StartBbaServer();
+#endif
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
@@ -204,6 +208,9 @@ private:
   SettingsWindow* m_settings_window = nullptr;
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
+#ifndef _WIN32
+  BBAServerWindow* m_bba_server_window = nullptr;
+#endif
   MappingWindow* m_hotkey_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;

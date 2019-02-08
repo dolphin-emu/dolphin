@@ -227,6 +227,8 @@ struct SConfig
   ExpansionInterface::TEXIDevices m_EXIDevice[3];
   SerialInterface::SIDevices m_SIDevice[4];
   std::string m_bba_mac;
+  std::string m_bba_server;
+  u16 m_bba_port;
 
   // interface language
   std::string m_InterfaceLanguage;

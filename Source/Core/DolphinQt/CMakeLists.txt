@@ -1,4 +1,4 @@
-find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS Core Network Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
@@ -7,6 +7,7 @@ set(CMAKE_AUTOMOC ON)
 
 add_executable(dolphin-emu
   AboutDialog.cpp
+  BBAServerWindow.cpp
   CheatsManager.cpp
   DiscordHandler.cpp
   DiscordJoinRequestDialog.cpp
@@ -27,6 +28,7 @@ add_executable(dolphin-emu
   WiiUpdate.h
   Config/CheatCodeEditor.cpp
   Config/ARCodeWidget.cpp
+  Config/BBAConfigWidget.cpp
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
@@ -146,6 +148,7 @@ PRIVATE
   Qt5::Widgets
   uicommon
   imgui
+  bbaserverlib
 )
 
 if(WIN32)
@@ -238,3 +241,11 @@ endif()
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
+
+add_executable(bbaserver BBAServer_main.cpp)
+
+target_link_libraries(bbaserver Qt5::Core Qt5::Network bbaserverlib)
+
+add_library(bbaserverlib BBAClient.cpp BBADebug.cpp BBAServer.cpp)
+
+target_link_libraries(bbaserverlib PUBLIC Qt5::Core PRIVATE Qt5::Network)

@@ -59,6 +59,7 @@
 #include "DiscIO/NANDImporter.h"
 
 #include "DolphinQt/AboutDialog.h"
+#include "DolphinQt/BBAServerWindow.h"
 #include "DolphinQt/CheatsManager.h"
 #include "DolphinQt/Config/ControllersWindow.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -438,6 +439,9 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+#ifndef _WIN32
+  connect(m_menu_bar, &MenuBar::StartBbaServer, this, &MainWindow::StartBbaServer);
+#endif
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
   // Movie
@@ -1126,6 +1130,18 @@ void MainWindow::ShowFIFOPlayer()
   m_fifo_window->raise();
   m_fifo_window->activateWindow();
 }
+
+#ifndef _WIN32
+void MainWindow::StartBbaServer()
+{
+  if (!m_bba_server_window)
+    m_bba_server_window = new BBAServerWindow(this);
+
+  m_bba_server_window->show();
+  m_bba_server_window->raise();
+  m_bba_server_window->activateWindow();
+}
+#endif
 
 void MainWindow::StateLoad()
 {

@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/EXI/BBA-TAP/TAP_Win32.h"
+#include "Core/HW/EXI/EXI_DeviceEthernetTAP.h"
+#include "Core/HW/EXI/EXI_DeviceEthernetTAP_Win32.h"
+
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 namespace Win32TAPHelper
 {
@@ -167,7 +167,32 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::Activate()
+CEXIEthernetTAP::~CEXIEthernetTAP()
+{
+  if (!IsActivated())
+    return;
+
+  // Signal read thread to exit.
+  m_read_enabled.Clear();
+  m_read_thread_shutdown.Set();
+
+  // Cancel any outstanding requests from both this thread (writes), and the read thread.
+  CancelIoEx(mHAdapter, nullptr);
+
+  // Wait for read thread to exit.
+  if (m_read_thread.joinable())
+    m_read_thread.join();
+
+  // Clean-up handles
+  CloseHandle(mReadOverlapped.hEvent);
+  CloseHandle(mWriteOverlapped.hEvent);
+  CloseHandle(mHAdapter);
+  mHAdapter = INVALID_HANDLE_VALUE;
+  memset(&mReadOverlapped, 0, sizeof(mReadOverlapped));
+  memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
+}
+
+bool CEXIEthernetTAP::Activate()
 {
   if (IsActivated())
     return true;
@@ -233,44 +258,19 @@ bool CEXIETHERNET::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::Deactivate()
-{
-  if (!IsActivated())
-    return;
-
-  // Signal read thread to exit.
-  readEnabled.Clear();
-  readThreadShutdown.Set();
-
-  // Cancel any outstanding requests from both this thread (writes), and the read thread.
-  CancelIoEx(mHAdapter, nullptr);
-
-  // Wait for read thread to exit.
-  if (readThread.joinable())
-    readThread.join();
-
-  // Clean-up handles
-  CloseHandle(mReadOverlapped.hEvent);
-  CloseHandle(mWriteOverlapped.hEvent);
-  CloseHandle(mHAdapter);
-  mHAdapter = INVALID_HANDLE_VALUE;
-  memset(&mReadOverlapped, 0, sizeof(mReadOverlapped));
-  memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
-}
-
-bool CEXIETHERNET::IsActivated()
+bool CEXIEthernetTAP::IsActivated() const
 {
   return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
+void CEXIEthernetTAP::ReadThreadHandler(CEXIEthernetTAP* self)
 {
-  while (!self->readThreadShutdown.IsSet())
+  while (!self->m_read_thread_shutdown.IsSet())
   {
     DWORD transferred;
 
     // Read from TAP into internal buffer.
-    if (ReadFile(self->mHAdapter, self->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
+    if (ReadFile(self->mHAdapter, self->m_recv_buffer.get(), BBA_RECV_SIZE, &transferred,
                  &self->mReadOverlapped))
     {
       // Returning immediately is not likely to happen, but if so, reset the event state manually.
@@ -300,16 +300,16 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
 
     // Copy to BBA buffer, and fire interrupt if enabled.
     DEBUG_LOG(SP1, "Received %u bytes:\n %s", transferred,
-              ArrayToString(self->mRecvBuffer.get(), transferred, 0x10).c_str());
-    if (self->readEnabled.IsSet())
+              ArrayToString(self->m_recv_buffer.get(), transferred, 0x10).c_str());
+    if (self->m_read_enabled.IsSet())
     {
-      self->mRecvBufferLength = transferred;
+      self->m_recv_buffer_length = transferred;
       self->RecvHandlePacket();
     }
   }
 }
 
-bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
+bool CEXIEthernetTAP::SendFrame(const u8* frame, u32 size)
 {
   DEBUG_LOG(SP1, "SendFrame %u bytes:\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
@@ -349,19 +349,19 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   return true;
 }
 
-bool CEXIETHERNET::RecvInit()
+bool CEXIEthernetTAP::RecvInit()
 {
-  readThread = std::thread(ReadThreadHandler, this);
+  m_read_thread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::RecvStart()
+void CEXIEthernetTAP::RecvStart()
 {
-  readEnabled.Set();
+  m_read_enabled.Set();
 }
 
-void CEXIETHERNET::RecvStop()
+void CEXIEthernetTAP::RecvStop()
 {
-  readEnabled.Clear();
+  m_read_enabled.Clear();
 }
 }  // namespace ExpansionInterface

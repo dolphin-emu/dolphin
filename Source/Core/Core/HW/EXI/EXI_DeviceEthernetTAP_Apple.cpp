@@ -7,12 +7,22 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/EXI_DeviceEthernetTAP.h"
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::Activate()
+CEXIEthernetTAP::~CEXIEthernetTAP()
+{
+  close(fd);
+  fd = -1;
+
+  m_read_enabled.Clear();
+  m_read_thread_shutdown.Set();
+  if (m_read_thread.joinable())
+    m_read_thread.join();
+}
+
+bool CEXIEthernetTAP::Activate()
 {
   if (IsActivated())
     return true;
@@ -30,23 +40,12 @@ bool CEXIETHERNET::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::Deactivate()
-{
-  close(fd);
-  fd = -1;
-
-  readEnabled.Clear();
-  readThreadShutdown.Set();
-  if (readThread.joinable())
-    readThread.join();
-}
-
-bool CEXIETHERNET::IsActivated()
+bool CEXIEthernetTAP::IsActivated() const
 {
   return fd != -1;
 }
 
-bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
+bool CEXIEthernetTAP::SendFrame(const u8* frame, u32 size)
 {
   INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
@@ -63,9 +62,9 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   }
 }
 
-void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
+void CEXIEthernetTAP::ReadThreadHandler(CEXIEthernetTAP* self)
 {
-  while (!self->readThreadShutdown.IsSet())
+  while (!self->m_read_thread_shutdown.IsSet())
   {
     fd_set rfds;
     FD_ZERO(&rfds);
@@ -77,34 +76,34 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
     if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
       continue;
 
-    int readBytes = read(self->fd, self->mRecvBuffer.get(), BBA_RECV_SIZE);
+    int readBytes = read(self->fd, self->m_recv_buffer.get(), BBA_RECV_SIZE);
     if (readBytes < 0)
     {
       ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
     }
-    else if (self->readEnabled.IsSet())
+    else if (self->m_read_enabled.IsSet())
     {
       INFO_LOG(SP1, "Read data: %s",
-               ArrayToString(self->mRecvBuffer.get(), readBytes, 0x10).c_str());
-      self->mRecvBufferLength = readBytes;
+               ArrayToString(self->m_recv_buffer.get(), readBytes, 0x10).c_str());
+      self->m_recv_buffer_length = readBytes;
       self->RecvHandlePacket();
     }
   }
 }
 
-bool CEXIETHERNET::RecvInit()
+bool CEXIEthernetTAP::RecvInit()
 {
-  readThread = std::thread(ReadThreadHandler, this);
+  m_read_thread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::RecvStart()
+void CEXIEthernetTAP::RecvStart()
 {
-  readEnabled.Set();
+  m_read_enabled.Set();
 }
 
-void CEXIETHERNET::RecvStop()
+void CEXIEthernetTAP::RecvStop()
 {
-  readEnabled.Clear();
+  m_read_enabled.Clear();
 }
 }  // namespace ExpansionInterface

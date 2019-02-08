@@ -4,15 +4,6 @@
 
 #pragma once
 
-#include <atomic>
-#include <thread>
-#include <vector>
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
-#include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -194,13 +185,11 @@ enum RecvStatus
   DESC_RERR = 0x80
 };
 
-#define BBA_RECV_SIZE 0x800
-
-class CEXIETHERNET : public IEXIDevice
+class CEXIEthernetBase : public IEXIDevice
 {
 public:
-  CEXIETHERNET();
-  virtual ~CEXIETHERNET();
+  CEXIEthernetBase();
+
   void SetCS(int cs) override;
   bool IsPresent() const override;
   bool IsInterruptSet() override;
@@ -210,7 +199,42 @@ public:
   void DMARead(u32 addr, u32 size) override;
   void DoState(PointerWrap& p) override;
 
-private:
+protected:
+  virtual bool Activate() = 0;
+  virtual bool IsActivated() const = 0;
+  virtual bool SendFrame(const u8* frame, u32 size) = 0;
+  virtual bool RecvInit() = 0;
+  virtual void RecvStart() = 0;
+  virtual void RecvStop() = 0;
+
+  inline u16 page_ptr(int const index) const
+  {
+    return ((u16)m_bba_mem[index + 1] << 8) | m_bba_mem[index];
+  }
+
+  inline u8* PtrFromPagePtr(int const index) const { return &m_bba_mem[page_ptr(index) << 8]; }
+  bool IsMXCommand(u32 const data);
+  bool IsWriteCommand(u32 const data);
+  const char* GetRegisterName() const;
+  void MXHardReset();
+  void MXCommandHandler(u32 data, u32 size);
+  void DirectFIFOWrite(const u8* data, u32 size);
+  void SendFromDirectFIFO();
+  void SendFromPacketBuffer();
+  void SendComplete();
+  u8 HashIndex(const u8* dest_eth_addr);
+  bool RecvMACFilter();
+  void inc_rwp();
+  bool RecvHandlePacket();
+
+  std::unique_ptr<u8[]> m_bba_mem;
+  std::unique_ptr<u8[]> m_tx_fifo;
+
+  std::unique_ptr<u8[]> m_recv_buffer;
+  u32 m_recv_buffer_length = 0;
+
+  static constexpr std::size_t BBA_RECV_SIZE = 0x800;
+
   struct
   {
     enum
@@ -273,58 +297,5 @@ private:
       word |= next_page & 0xfff;
     }
   };
-
-  inline u16 page_ptr(int const index) const
-  {
-    return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
-  }
-
-  inline u8* ptr_from_page_ptr(int const index) const { return &mBbaMem[page_ptr(index) << 8]; }
-  bool IsMXCommand(u32 const data);
-  bool IsWriteCommand(u32 const data);
-  const char* GetRegisterName() const;
-  void MXHardReset();
-  void MXCommandHandler(u32 data, u32 size);
-  void DirectFIFOWrite(const u8* data, u32 size);
-  void SendFromDirectFIFO();
-  void SendFromPacketBuffer();
-  void SendComplete();
-  u8 HashIndex(const u8* dest_eth_addr);
-  bool RecvMACFilter();
-  void inc_rwp();
-  bool RecvHandlePacket();
-
-  std::unique_ptr<u8[]> mBbaMem;
-  std::unique_ptr<u8[]> tx_fifo;
-
-  // TAP interface
-  static void ReadThreadHandler(CEXIETHERNET* self);
-  bool Activate();
-  void Deactivate();
-  bool IsActivated();
-  bool SendFrame(const u8* frame, u32 size);
-  bool RecvInit();
-  void RecvStart();
-  void RecvStop();
-
-  std::unique_ptr<u8[]> mRecvBuffer;
-  u32 mRecvBufferLength = 0;
-
-#if defined(_WIN32)
-  HANDLE mHAdapter = INVALID_HANDLE_VALUE;
-  OVERLAPPED mReadOverlapped = {};
-  OVERLAPPED mWriteOverlapped = {};
-  std::vector<u8> mWriteBuffer;
-  bool mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-  int fd = -1;
-#endif
-
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
-  std::thread readThread;
-  Common::Flag readEnabled;
-  Common::Flag readThreadShutdown;
-#endif
 };
 }  // namespace ExpansionInterface

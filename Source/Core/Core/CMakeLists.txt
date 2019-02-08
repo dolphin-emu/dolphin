@@ -100,7 +100,8 @@ add_library(core
   HW/EXI/EXI_DeviceAD16.cpp
   HW/EXI/EXI_DeviceAGP.cpp
   HW/EXI/EXI_DeviceDummy.cpp
-  HW/EXI/EXI_DeviceEthernet.cpp
+  HW/EXI/EXI_DeviceEthernetBase.cpp
+  HW/EXI/EXI_DeviceEthernetTCP.cpp
   HW/EXI/EXI_DeviceGecko.cpp
   HW/EXI/EXI_DeviceIPL.cpp
   HW/EXI/EXI_DeviceMemoryCard.cpp
@@ -330,7 +331,7 @@ endif()
 
 if(WIN32)
   target_sources(core PRIVATE
-    HW/EXI/BBA-TAP/TAP_Win32.cpp
+    HW/EXI/EXI_DeviceEthernetTAP_Win32.cpp
     HW/WiimoteReal/IOWin.cpp
   )
   target_link_libraries(core PUBLIC
@@ -340,12 +341,12 @@ if(WIN32)
   )
 elseif(APPLE)
   target_sources(core PRIVATE
-    HW/EXI/BBA-TAP/TAP_Apple.cpp
+    HW/EXI/EXI_DeviceEthernetTAP_Apple.cpp
     HW/WiimoteReal/IOdarwin.mm
   )
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)
-  target_sources(core PRIVATE HW/EXI/BBA-TAP/TAP_Unix.cpp)
+  target_sources(core PRIVATE HW/EXI/EXI_DeviceEthernetTAP_Unix.cpp)
   if(ANDROID)
     target_sources(core PRIVATE HW/WiimoteReal/IOAndroid.cpp)
   endif()
