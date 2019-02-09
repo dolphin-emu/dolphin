@@ -5,6 +5,10 @@ message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 set(CMAKE_AUTOMOC ON)
 
+add_library(bbaserverlib BBAClient.cpp BBADebug.cpp BBAServer.cpp)
+
+target_link_libraries(bbaserverlib PUBLIC Qt5::Core PRIVATE Qt5::Network)
+
 add_executable(dolphin-emu
   AboutDialog.cpp
   BBAServerWindow.cpp
@@ -244,8 +248,4 @@ endif()
 
 add_executable(bbaserver BBAServer_main.cpp)
 
-target_link_libraries(bbaserver Qt5::Core Qt5::Network bbaserverlib)
-
-add_library(bbaserverlib BBAClient.cpp BBADebug.cpp BBAServer.cpp)
-
-target_link_libraries(bbaserverlib PUBLIC Qt5::Core PRIVATE Qt5::Network)
+target_link_libraries(bbaserver PRIVATE Qt5::Core Qt5::Network bbaserverlib)

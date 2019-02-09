@@ -39,6 +39,6 @@ private:
   BBAServer &m_server;
 
   QByteArray m_buffer;
-  SocketState m_state;
+  SocketState m_state { SocketState::Size };
   int m_size;
 };

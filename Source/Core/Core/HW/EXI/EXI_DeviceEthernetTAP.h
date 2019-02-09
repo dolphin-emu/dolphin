@@ -12,7 +12,7 @@
 #endif
 
 #include "Common/Flag.h"
-#include "EXI_DeviceEthernetBase.h"
+#include "Core/HW/EXI/EXI_DeviceEthernetBase.h"
 
 namespace ExpansionInterface
 {

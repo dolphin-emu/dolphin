@@ -14,8 +14,7 @@
 BBAClient::BBAClient(QTcpSocket &socket, BBAServer &server) :
   QObject(&server),
   m_socket(socket),
-  m_server(server),
-  m_state(SocketState::Size)
+  m_server(server)
 {
   m_socket.setParent(this);
   connect(&m_socket, &QIODevice::readyRead, this, &BBAClient::ReadyRead);
@@ -35,9 +34,9 @@ BBADebug BBAClient::LogInfo()
 void BBAClient::SendMessage(const QByteArray &buffer)
 {
   {
-    QDataStream dataStream(&m_socket);
-    dataStream.setByteOrder(QDataStream::LittleEndian);
-    dataStream << buffer.size();
+    QDataStream data_stream(&m_socket);
+    data_stream.setByteOrder(QDataStream::LittleEndian);
+    data_stream << buffer.size();
   }
   m_socket.write(buffer);
 }

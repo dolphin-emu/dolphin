@@ -65,11 +65,6 @@ QHostAddress BBAServer::ServerAddress() const
   return m_server.serverAddress();
 }
 
-//QAbstractSocket::SocketError BbaServer::ServerError() const
-//{
-//  return m_server.serverError();
-//}
-
 QString BBAServer::ErrorString() const
 {
   return m_server.errorString();
@@ -86,9 +81,9 @@ void BBAServer::ResumeAccepting()
 }
 
 #ifndef QT_NO_NETWORKPROXY
-void BBAServer::SetProxy(const QNetworkProxy &networkProxy)
+void BBAServer::SetProxy(const QNetworkProxy &network_proxy)
 {
-  m_server.setProxy(networkProxy);
+  m_server.setProxy(network_proxy);
 }
 
 QNetworkProxy BBAServer::Proxy() const
@@ -124,11 +119,11 @@ void BBAServer::NewConnection()
   if (!socket)
     return;
 
-  auto client = new BBAClient(*socket, *this);
-  for(auto otherClient : m_clients)
+  auto* client = new BBAClient(*socket, *this);
+  for(auto* other_client : m_clients)
   {
-    connect(client, &BBAClient::ReceivedMessage, otherClient, &BBAClient::SendMessage);
-    connect(otherClient, &BBAClient::ReceivedMessage, client, &BBAClient::SendMessage);
+    connect(client, &BBAClient::ReceivedMessage, other_client, &BBAClient::SendMessage);
+    connect(other_client, &BBAClient::ReceivedMessage, client, &BBAClient::SendMessage);
   }
   if (m_timer_id == -1)
     m_timer_id = startTimer(1000);

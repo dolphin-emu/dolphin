@@ -33,14 +33,13 @@ public:
   quint16 ServerPort() const;
   QHostAddress ServerAddress() const;
 
-  //QAbstractSocket::SocketError ServerError() const; // can't be forward declared
   QString ErrorString() const;
 
   void PauseAccepting();
   void ResumeAccepting();
 
 #ifndef QT_NO_NETWORKPROXY
-  void SetProxy(const QNetworkProxy &networkProxy);
+  void SetProxy(const QNetworkProxy &network_proxy);
   QNetworkProxy Proxy() const;
 #endif
 

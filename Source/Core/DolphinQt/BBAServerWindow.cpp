@@ -22,12 +22,12 @@ BBAServerWindow::BBAServerWindow(QWidget *parent) :
   QDialog(parent),
   m_server(this)
 {
-  auto vbox_layout = new QVBoxLayout(this);
+  auto* vbox_layout = new QVBoxLayout(this);
 
   {
-    auto hbox_layout = new QHBoxLayout;
+    auto* hbox_layout = new QHBoxLayout;
 
-    auto host_addr_label = new QLabel(tr("Host address:"), this);
+    auto* host_addr_label = new QLabel(tr("Host address:"), this);
     hbox_layout->addWidget(host_addr_label);
 
     m_host_addr = new QLineEdit(this);
@@ -35,7 +35,7 @@ BBAServerWindow::BBAServerWindow(QWidget *parent) :
     m_host_addr->setPlaceholderText(tr("Leave empty for Any"));
     hbox_layout->addWidget(m_host_addr);
 
-    auto port_label = new QLabel(tr("Port:"), this);
+    auto* port_label = new QLabel(tr("Port:"), this);
     hbox_layout->addWidget(port_label);
 
     m_port = new QSpinBox(this);
@@ -57,7 +57,7 @@ BBAServerWindow::BBAServerWindow(QWidget *parent) :
   vbox_layout->addWidget(m_log_output, 1);
 
   {
-    auto button_box = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    auto* button_box = new QDialogButtonBox(QDialogButtonBox::Close, this);
     connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
     vbox_layout->addWidget(button_box, 1);
   }
@@ -87,8 +87,8 @@ void BBAServerWindow::Toggle()
 void BBAServerWindow::LogOutput(const QDateTime &timestamp, const QString &log_line)
 {
   m_log_output->appendPlainText(QStringLiteral("%0: %1").arg(timestamp.toString(QStringLiteral("HH:mm:ss.zzz")), log_line));
-  auto scrollBar = m_log_output->verticalScrollBar();
-  scrollBar->setValue(scrollBar->maximum());
+  auto* scroll_bar = m_log_output->verticalScrollBar();
+  scroll_bar->setValue(scroll_bar->maximum());
 }
 
 void BBAServerWindow::Update()

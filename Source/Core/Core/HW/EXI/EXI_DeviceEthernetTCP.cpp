@@ -58,9 +58,9 @@ bool CEXIEthernetTCP::IsActivated() const
 
 bool CEXIEthernetTCP::SendFrame(const u8* frame, u32 size)
 {
-  INFO_LOG(SP1, "SendFrame %i", size);
+  INFO_LOG(SP1, "SendFrame %u", size);
 
-  std::unique_ptr<u8[]> packet = std::make_unique<u8[]>(sizeof(int) + size);
+  const auto packet = std::make_unique<u8[]>(sizeof(int) + size);
 
   // prepend size
   for (std::size_t i = 0; i < sizeof(int); i++)
@@ -102,10 +102,12 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
   selector.add(*self->m_socket);
 
   // are we currently waiting for size (4 bytes) or payload?
-  enum { StateSize, StatePayload } state = StateSize;
+  enum class SocketState { Size, Payload };
+
+  SocketState state { SocketState::Size };
 
   // buffer to store size temporarily
-  u8 sizeBuffer[sizeof(int)];
+  u8 size_buffer[sizeof(int)];
 
   // how much of size or payload have we already received?
   std::size_t offset = 0;
@@ -123,9 +125,9 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
 
     switch (state)
     {
-    case StateSize:
+    case SocketState::Size:
       // try to read remaining bytes for size
-      status = self->m_socket->receive(&sizeBuffer + offset, sizeof(int) - offset, received);
+      status = self->m_socket->receive(&size_buffer + offset, sizeof(int) - offset, received);
       if (status != sf::Socket::Done)
       {
         ERROR_LOG(SP1, "Receiving failed %i", status);
@@ -143,7 +145,7 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
       // convert char array to size int
       size = 0;
       for(int i = 0; i < sizeof(int); i++)
-        size |= sizeBuffer[i] << (i * 8);
+        size |= size_buffer[i] << (i * 8);
 
       DEBUG_LOG(SP1, "Finished size %i", size);
 
@@ -153,8 +155,9 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
         return;
       }
 
-      state = StatePayload;
-    case StatePayload:
+      state = SocketState::Payload;
+      // [[fallthough]]
+    case SocketState::Payload:
       // try to read remaining bytes for payload
       status = self->m_socket->receive(self->m_recv_buffer.get() + offset, size - offset, received);
       if (status != sf::Socket::Done)
@@ -179,7 +182,7 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
         self->RecvHandlePacket();
       }
 
-      state = StateSize;
+      state = SocketState::Size;
     }
   }
 

@@ -13,7 +13,7 @@ class BBAConfigWidget : public QDialog {
     Q_OBJECT
 
 public:
-    explicit BBAConfigWidget(bool showServer, QWidget* parent = nullptr);
+    explicit BBAConfigWidget(bool show_server, QWidget* parent = nullptr);
 
     QString MacAddr() const;
     void SetMacAddr(const QString& mac_addr);
@@ -31,6 +31,6 @@ private slots:
 
 private:
     QLineEdit *m_mac_addr;
-    QLineEdit *m_server;
-    QSpinBox *m_port;
+    QLineEdit *m_server { nullptr };
+    QSpinBox *m_port { nullptr };
 };

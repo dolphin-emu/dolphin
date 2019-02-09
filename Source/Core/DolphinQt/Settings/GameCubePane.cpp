@@ -175,9 +175,9 @@ void GameCubePane::OnConfigPressed(int slot)
   QString filter;
   bool memcard = false;
 
-  const auto currentData = m_slot_combos[slot]->currentData().toInt();
+  const auto current_data = m_slot_combos[slot]->currentData().toInt();
 
-  switch (currentData)
+  switch (current_data)
   {
   case ExpansionInterface::EXIDEVICE_MEMORYCARD:
     filter = tr("GameCube Memory Cards (*.raw *.gcp)");
@@ -192,10 +192,10 @@ void GameCubePane::OnConfigPressed(int slot)
   case ExpansionInterface::EXIDEVICE_ETH_TAP:
   case ExpansionInterface::EXIDEVICE_ETH_TCP:
   {
-    const auto isTcp = currentData == ExpansionInterface::EXIDEVICE_ETH_TCP;
-    BBAConfigWidget dialog(isTcp, this);
+    const auto is_tcp = current_data == ExpansionInterface::EXIDEVICE_ETH_TCP;
+    BBAConfigWidget dialog(is_tcp, this);
     dialog.SetMacAddr(QString::fromStdString(SConfig::GetInstance().m_bba_mac));
-    if (isTcp)
+    if (is_tcp)
     {
       dialog.SetServer(QString::fromStdString(SConfig::GetInstance().m_bba_server));
       dialog.SetPort(SConfig::GetInstance().m_bba_port);
@@ -203,7 +203,7 @@ void GameCubePane::OnConfigPressed(int slot)
     if(dialog.exec() == QDialog::Accepted)
     {
       SConfig::GetInstance().m_bba_mac = dialog.MacAddr().toStdString();
-      if (isTcp)
+      if (is_tcp)
       {
         SConfig::GetInstance().m_bba_server = dialog.Server().toStdString();
         SConfig::GetInstance().m_bba_port = dialog.Port();

@@ -16,21 +16,19 @@
 
 #include "Common/Network.h"
 
-BBAConfigWidget::BBAConfigWidget(bool showServer, QWidget* parent) :
-    QDialog(parent),
-    m_server(nullptr),
-    m_port(nullptr)
+BBAConfigWidget::BBAConfigWidget(bool show_server, QWidget* parent) :
+    QDialog(parent)
 {
   setWindowTitle(tr("Broadband Adapter Configuration"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  auto vbox_layout = new QVBoxLayout(this);
+  auto* vbox_layout = new QVBoxLayout(this);
 
   {
-    auto form_layout = new QFormLayout;
+    auto* form_layout = new QFormLayout;
 
     {
-      auto hbox_layout = new QHBoxLayout;
+      auto* hbox_layout = new QHBoxLayout;
 
       m_mac_addr = new QLineEdit(this);
       m_mac_addr->setPlaceholderText(tr("Leave empty for random"));
@@ -38,7 +36,7 @@ BBAConfigWidget::BBAConfigWidget(bool showServer, QWidget* parent) :
       hbox_layout->addWidget(m_mac_addr);
 
       {
-        auto button = new QToolButton(this);
+        auto* button = new QToolButton(this);
         button->setText(tr("Randomize"));
         connect(button, &QAbstractButton::pressed, this, &BBAConfigWidget::GenerateMac);
         hbox_layout->addWidget(button);
@@ -47,32 +45,32 @@ BBAConfigWidget::BBAConfigWidget(bool showServer, QWidget* parent) :
       form_layout->addRow(tr("MAC address:"), hbox_layout);
     }
 
-    if (showServer)
+    if (show_server)
     {
-      auto hboxLayout = new QHBoxLayout;
+      auto* hbox_layout = new QHBoxLayout;
 
       m_server = new QLineEdit(this);
-      hboxLayout->addWidget(m_server);
+      hbox_layout->addWidget(m_server);
 
-      auto portLabel = new QLabel(tr("Port:"), this);
-      hboxLayout->addWidget(portLabel);
+      auto* portLabel = new QLabel(tr("Port:"), this);
+      hbox_layout->addWidget(portLabel);
 
       m_port = new QSpinBox(this);
       portLabel->setBuddy(m_port);
       m_port->setRange(std::numeric_limits<quint16>::min(), std::numeric_limits<quint16>::max());
-      hboxLayout->addWidget(m_port);
+      hbox_layout->addWidget(m_port);
 
-      form_layout->addRow(tr("Server:"), hboxLayout);
+      form_layout->addRow(tr("Server:"), hbox_layout);
     }
 
     vbox_layout->addLayout(form_layout, 1);
   }
 
   {
-    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Close, this);
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &BBAConfigWidget::Submit);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    vbox_layout->addWidget(buttonBox, 1);
+    auto* button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Close, this);
+    connect(button_box, &QDialogButtonBox::accepted, this, &BBAConfigWidget::Submit);
+    connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    vbox_layout->addWidget(button_box, 1);
   }
 
   setLayout(vbox_layout);
