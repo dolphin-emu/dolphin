@@ -20,6 +20,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/State.h"
 #include "DolphinLibretro/Input.h"
 #include "DolphinLibretro/Options.h"
@@ -235,6 +236,12 @@ void retro_run(void)
     retro_system_av_info info;
     retro_get_system_av_info(&info);
     Libretro::environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info);
+  }
+
+  if (Libretro::Options::WiimoteContinuousScanning.Updated())
+  {
+    SConfig::GetInstance().m_WiimoteContinuousScanning = Libretro::Options::WiimoteContinuousScanning;
+    WiimoteReal::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   }
 
   RETRO_PERFORMANCE_INIT(dolphin_main_func);

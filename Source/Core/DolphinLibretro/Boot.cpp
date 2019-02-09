@@ -92,6 +92,7 @@ bool retro_load_game(const struct retro_game_info* game)
   SConfig::GetInstance().bDPL2Decoder = false;
   SConfig::GetInstance().iLatency = 0;
   SConfig::GetInstance().m_audio_stretch = false;
+  SConfig::GetInstance().m_WiimoteContinuousScanning = Libretro::Options::WiimoteContinuousScanning;
 
   Config::SetBase(Config::SYSCONF_LANGUAGE, (u32)(DiscIO::Language)Libretro::Options::Language);
   Config::SetBase(Config::SYSCONF_WIDESCREEN, Libretro::Options::Widescreen);

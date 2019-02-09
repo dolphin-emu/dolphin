@@ -171,6 +171,7 @@ Option<bool> progressiveScan("dolphin_progressive_scan", "Progressive Scan", tru
 Option<bool> pal60("dolphin_pal60", "PAL60", true);
 Option<u32> sensorBarPosition("dolphin_sensor_bar_position", "Sensor Bar Position",
                               {"Bottom", "Top"});
+Option<bool> WiimoteContinuousScanning("dolphin_wiimote_continuous_scanning", "Wiimote Continuous Scanning", false);
 Option<unsigned int> audioMixerRate("dolphin_mixer_rate", "Audio Mixer Rate",
                                     {{"32000", 32000u}, {"48000", 48000u}});
 Option<ShaderCompilationMode> shaderCompilationMode(
