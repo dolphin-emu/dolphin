@@ -24,7 +24,6 @@
 
 MappingWidget::MappingWidget(MappingWindow* window) : m_parent(window)
 {
-  connect(window, &MappingWindow::ClearFields, this, &MappingWidget::OnClearFields);
   connect(window, &MappingWindow::Update, this, &MappingWidget::Update);
   connect(window, &MappingWindow::Save, this, &MappingWidget::SaveSettings);
 }
@@ -139,21 +138,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     form_layout->addRow(new MappingIndicator(group));
 
   return group_box;
-}
-
-void MappingWidget::OnClearFields()
-{
-  for (auto* button : m_buttons)
-    button->Clear();
-
-  for (auto* spinbox : m_numerics)
-    spinbox->Clear();
-
-  for (auto* checkbox : m_bools)
-    checkbox->Clear();
-
-  for (auto* radio : m_radio)
-    radio->Clear();
 }
 
 void MappingWidget::Update()
