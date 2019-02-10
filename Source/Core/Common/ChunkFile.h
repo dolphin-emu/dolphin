@@ -262,7 +262,8 @@ private:
     Do(size);
     container.resize(size);
 
-    DoArray(&container[0], size);
+    if (size > 0)
+      DoArray(&container[0], size);
   }
 
   template <typename T>
