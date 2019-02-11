@@ -233,7 +233,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                                                false, ControllerEmu::SettingType::NORMAL, true));
 
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
+      std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -100, 100));
   m_options->numeric_settings.emplace_back(
       m_battery_setting = new ControllerEmu::NumericSetting(_trans("Battery"), 95.0 / 100, 0, 100));
 
