@@ -146,12 +146,12 @@ bool GLContextGLX::Initialize(void* display_handle, void* window_handle, bool st
       s_glxError = false;
       m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs[0]);
       XSync(m_display, False);
-      m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
       if (!m_context || s_glxError)
         continue;
 
       // Got a context.
       INFO_LOG(VIDEO, "Created a GLX context with version %d.%d", version.first, version.second);
+      m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
       break;
     }
   }
