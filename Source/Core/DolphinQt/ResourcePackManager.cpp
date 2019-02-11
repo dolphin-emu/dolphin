@@ -160,6 +160,12 @@ void ResourcePackManager::RepopulateTable()
   SelectionChanged();
 }
 
+// Revert the indicies as to be more intuitive for users
+int ResourcePackManager::GetResourcePackIndex(QTableWidgetItem* item) const
+{
+  return m_table_widget->rowCount() - 1 - item->row();
+}
+
 void ResourcePackManager::Change()
 {
   auto items = m_table_widget->selectedItems();
@@ -167,10 +173,14 @@ void ResourcePackManager::Change()
   if (items.empty())
     return;
 
-  if (ResourcePack::IsInstalled(ResourcePack::GetPacks()[items[0]->row()]))
+  if (ResourcePack::IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]))
+  {
     Uninstall();
+  }
   else
+  {
     Install();
+  }
 }
 
 void ResourcePackManager::Install()
@@ -180,7 +190,7 @@ void ResourcePackManager::Install()
   if (items.empty())
     return;
 
-  auto& item = ResourcePack::GetPacks()[m_table_widget->rowCount() - 1 - items[0]->row()];
+  auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
   bool success = item.Install(File::GetUserPath(D_USER_IDX));
 
@@ -201,7 +211,7 @@ void ResourcePackManager::Uninstall()
   if (items.empty())
     return;
 
-  auto& item = ResourcePack::GetPacks()[m_table_widget->rowCount() - 1 - items[0]->row()];
+  auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
   bool success = item.Uninstall(File::GetUserPath(D_USER_IDX));
 
@@ -232,8 +242,7 @@ void ResourcePackManager::Remove()
     return;
 
   Uninstall();
-  File::Delete(
-      ResourcePack::GetPacks()[m_table_widget->rowCount() - 1 - items[0]->row()].GetPath());
+  File::Delete(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])].GetPath());
   RepopulateTable();
 }
 
@@ -244,7 +253,7 @@ void ResourcePackManager::PriorityDown()
   if (items.empty())
     return;
 
-  int row = m_table_widget->rowCount() - 1 - items[0]->row();
+  auto row = GetResourcePackIndex(items[0]);
 
   if (items[0]->row() >= m_table_widget->rowCount())
     return;
@@ -269,7 +278,7 @@ void ResourcePackManager::PriorityUp()
   if (items.empty())
     return;
 
-  int row = m_table_widget->rowCount() - 1 - items[0]->row();
+  auto row = GetResourcePackIndex(items[0]);
 
   if (items[0]->row() == 0)
     return;
@@ -301,9 +310,10 @@ void ResourcePackManager::SelectionChanged()
 
   if (has_selection)
   {
-    m_change_button->setText(ResourcePack::IsInstalled(ResourcePack::GetPacks()[items[0]->row()]) ?
-                                 tr("Uninstall") :
-                                 tr("Install"));
+    m_change_button->setText(
+        ResourcePack::IsInstalled(ResourcePack::GetPacks()[GetResourcePackIndex(items[0])]) ?
+            tr("Uninstall") :
+            tr("Install"));
   }
 
   for (auto* item : {m_change_button, m_remove_button})
