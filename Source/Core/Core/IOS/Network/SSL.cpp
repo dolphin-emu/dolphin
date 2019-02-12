@@ -142,7 +142,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   u32 BufferOut = 0, BufferOut2 = 0, BufferOut3 = 0;
   u32 BufferOutSize = 0, BufferOutSize2 = 0, BufferOutSize3 = 0;
 
-  if (request.in_vectors.size() > 0)
+  if (!request.in_vectors.empty())
   {
     BufferIn = request.in_vectors.at(0).address;
     BufferInSize = request.in_vectors.at(0).size;
@@ -158,7 +158,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     BufferInSize3 = request.in_vectors.at(2).size;
   }
 
-  if (request.io_vectors.size() > 0)
+  if (!request.io_vectors.empty())
   {
     BufferOut = request.io_vectors.at(0).address;
     BufferOutSize = request.io_vectors.at(0).size;

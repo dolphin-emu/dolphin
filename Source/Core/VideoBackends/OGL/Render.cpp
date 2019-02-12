@@ -890,7 +890,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 {
   const u32 cacheType = (type == EFBAccessType::PeekZ ? 0 : 1);
 
-  if (!s_efbCache[cacheType][cacheRectIdx].size())
+  if (s_efbCache[cacheType][cacheRectIdx].empty())
     s_efbCache[cacheType][cacheRectIdx].resize(EFB_CACHE_RECT_SIZE * EFB_CACHE_RECT_SIZE);
 
   u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;

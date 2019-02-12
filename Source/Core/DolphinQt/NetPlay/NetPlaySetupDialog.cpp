@@ -265,7 +265,7 @@ void NetPlaySetupDialog::accept()
   else
   {
     auto items = m_host_games->selectedItems();
-    if (items.size() == 0)
+    if (items.empty())
     {
       QMessageBox::critical(this, tr("Error"), tr("You must select a game to host!"));
       return;

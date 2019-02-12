@@ -243,7 +243,7 @@ u32 UnPatch(const std::string& patch_name)
   }
 
   const auto& symbols = g_symbolDB.GetSymbolsFromName(patch_name);
-  if (symbols.size())
+  if (!symbols.empty())
   {
     const auto& symbol = symbols[0];
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)

@@ -470,7 +470,7 @@ inline void GCMemcardDirectory::SyncSaves()
           m_saves[i].m_used_blocks.clear();
           m_saves[i].m_save_data.clear();
         }
-        if (m_saves[i].m_used_blocks.size() == 0)
+        if (m_saves[i].m_used_blocks.empty())
         {
           SetUsedBlocks(i);
         }
@@ -493,7 +493,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
   {
     if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
     {
-      if (m_saves[i].m_used_blocks.size() == 0)
+      if (m_saves[i].m_used_blocks.empty())
       {
         SetUsedBlocks(i);
       }
@@ -591,7 +591,7 @@ void GCMemcardDirectory::FlushToFile()
       if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       {
         m_saves[i].m_dirty = false;
-        if (m_saves[i].m_save_data.size() == 0)
+        if (m_saves[i].m_save_data.empty())
         {
           // The save's header has been changed but the actual save blocks haven't been read/written
           // to
@@ -658,7 +658,7 @@ void GCMemcardDirectory::FlushToFile()
     // this ensures that the save data for all of the current games gci files are stored in the
     // savestate
     u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode.data());
-    if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && m_saves[i].m_save_data.size())
+    if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && !m_saves[i].m_save_data.empty())
     {
       INFO_LOG(EXPANSIONINTERFACE, "Flushing savedata to disk for %s",
                m_saves[i].m_filename.c_str());
@@ -695,7 +695,7 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
 
 bool GCIFile::LoadSaveBlocks()
 {
-  if (m_save_data.size() == 0)
+  if (m_save_data.empty())
   {
     if (m_filename.empty())
       return false;
