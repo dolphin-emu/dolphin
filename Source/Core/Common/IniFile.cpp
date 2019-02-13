@@ -265,7 +265,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
     }
 #endif
 
-    if (line.size() > 0)
+    if (!line.empty())
     {
       if (line[0] == '[')
       {
@@ -288,8 +288,8 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
           // Lines starting with '$', '*' or '+' are kept verbatim.
           // Kind of a hack, but the support for raw lines inside an
           // INI is a hack anyway.
-          if ((key == "" && value == "") ||
-              (line.size() >= 1 && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
+          if ((key.empty() && value.empty()) ||
+              (!line.empty() && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
             current_section->m_lines.push_back(line);
           else
             current_section->Set(key, value);
@@ -315,10 +315,10 @@ bool IniFile::Save(const std::string& filename)
 
   for (const Section& section : sections)
   {
-    if (section.keys_order.size() != 0 || section.m_lines.size() != 0)
+    if (!section.keys_order.empty() || !section.m_lines.empty())
       out << '[' << section.name << ']' << std::endl;
 
-    if (section.keys_order.size() == 0)
+    if (section.keys_order.empty())
     {
       for (const std::string& s : section.m_lines)
         out << s << std::endl;

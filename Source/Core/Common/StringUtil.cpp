@@ -227,7 +227,7 @@ std::string StripSpaces(const std::string& str)
 // ends, as done by StripSpaces above, for example.
 std::string StripQuotes(const std::string& s)
 {
-  if (s.size() && '\"' == s[0] && '\"' == *s.rbegin())
+  if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
     return s.substr(1, s.size() - 2);
   else
     return s;

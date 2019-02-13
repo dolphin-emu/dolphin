@@ -184,7 +184,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
     for (const std::string& line : enabled_lines)
     {
-      if (line.size() != 0 && line[0] == '$')
+      if (!line.empty() && line[0] == '$')
       {
         std::string name = line.substr(1, line.size() - 1);
         enabled_names.insert(name);
@@ -211,12 +211,12 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       // Check if the line is a name of the code
       if (line[0] == '$')
       {
-        if (current_code.ops.size())
+        if (!current_code.ops.empty())
         {
           codes.push_back(current_code);
           current_code.ops.clear();
         }
-        if (encrypted_lines.size())
+        if (!encrypted_lines.empty())
         {
           DecryptARCode(encrypted_lines, &current_code.ops);
           codes.push_back(current_code);
@@ -270,11 +270,11 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
 
     // Handle the last code correctly.
-    if (current_code.ops.size())
+    if (!current_code.ops.empty())
     {
       codes.push_back(current_code);
     }
-    if (encrypted_lines.size())
+    if (!encrypted_lines.empty())
     {
       DecryptARCode(encrypted_lines, &current_code.ops);
       codes.push_back(current_code);

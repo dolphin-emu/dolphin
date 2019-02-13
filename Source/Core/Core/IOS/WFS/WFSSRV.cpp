@@ -456,7 +456,7 @@ void WFSSRV::ReleaseFileDescriptor(u16 fd)
   fd_obj->in_use = false;
 
   // Garbage collect and shrink the array if possible.
-  while (m_fds.size() > 0 && !m_fds[m_fds.size() - 1].in_use)
+  while (!m_fds.empty() && !m_fds[m_fds.size() - 1].in_use)
   {
     m_fds.resize(m_fds.size() - 1);
   }

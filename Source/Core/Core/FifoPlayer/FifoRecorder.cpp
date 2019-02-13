@@ -92,7 +92,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
     memcpy(&m_FifoData[currentSize], data, size);
   }
 
-  if (m_FrameEnded && m_FifoData.size() > 0)
+  if (m_FrameEnded && !m_FifoData.empty())
   {
     m_CurrentFrame.fifoData = m_FifoData;
 

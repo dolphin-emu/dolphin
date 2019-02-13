@@ -1418,7 +1418,7 @@ void MainWindow::dropEvent(QDropEvent* event)
   else
   {
     Settings& settings = Settings::Instance();
-    const bool show_confirm = settings.GetPaths().size() != 0;
+    const bool show_confirm = !settings.GetPaths().empty();
 
     for (const QString& folder : folders)
     {

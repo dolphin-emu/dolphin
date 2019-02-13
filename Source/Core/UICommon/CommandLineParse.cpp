@@ -25,10 +25,10 @@ public:
                                const std::string& audio_backend)
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
-    if (video_backend.size())
+    if (!video_backend.empty())
       m_values.emplace_back(std::make_tuple(Config::MAIN_GFX_BACKEND.location, video_backend));
 
-    if (audio_backend.size())
+    if (!audio_backend.empty())
       m_values.emplace_back(
           std::make_tuple(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE")));
 

@@ -474,7 +474,7 @@ void GameList::CompressISO(bool decompress)
   auto files = GetSelectedGames();
   const auto game = GetSelectedGame();
 
-  if (files.size() == 0 || !game)
+  if (files.empty() || !game)
     return;
 
   bool wii_warning_given = false;
