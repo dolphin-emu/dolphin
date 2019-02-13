@@ -1439,7 +1439,7 @@ void NetPlayClient::SyncCodeResponse(const bool success)
   // If something failed, immediately report back that code sync failed
   if (!success)
   {
-    m_dialog->AppendChat(GetStringT("Error processing Codes."));
+    m_dialog->AppendChat(GetStringT("Error processing codes."));
 
     sf::Packet response_packet;
     response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
