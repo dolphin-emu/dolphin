@@ -832,12 +832,9 @@ void CalibrationWidget::Update(Common::DVec2 point)
   }
   else if (IsPointOutsideCalibration(point, m_input))
   {
-    // Flashing bold and red on miscalibration.
-    if (QDateTime::currentDateTime().toMSecsSinceEpoch() % 500 < 350)
-    {
-      f.setBold(true);
-      p.setColor(QPalette::ButtonText, Qt::red);
-    }
+    // Bold and red on miscalibration.
+    f.setBold(true);
+    p.setColor(QPalette::ButtonText, Qt::red);
   }
 
   setFont(f);

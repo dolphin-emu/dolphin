@@ -125,16 +125,11 @@ void MappingButton::UpdateIndicator()
   const auto state = m_reference->State();
 
   QFont f = m_parent->font();
-  QPalette p = m_parent->palette();
 
   if (state > ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
-  {
     f.setBold(true);
-    p.setColor(QPalette::ButtonText, Qt::red);
-  }
 
   setFont(f);
-  setPalette(p);
 }
 
 void MappingButton::ConfigChanged()
