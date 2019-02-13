@@ -296,7 +296,7 @@ void EnhancementsWidget::AddDescriptions()
       "effects, and textures.\n\nIf unsure, select None.");
 
   static const char TR_ANISOTROPIC_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
-      "Enables anisotropic filtering, which enhances the visual quality of textures that  "
+      "Enables anisotropic filtering, which enhances the visual quality of textures that "
       "are at oblique viewing angles.\n\nMight cause issues in a small "
       "number of games.\n\nIf unsure, select 1x.");
 
