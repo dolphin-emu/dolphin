@@ -21,6 +21,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 
 MappingWidget::MappingWidget(MappingWindow* window) : m_parent(window)
 {
@@ -73,10 +74,14 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   group_box->setLayout(form_layout);
 
-  bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
-                        group->type == ControllerEmu::GroupType::Stick ||
-                        group->type == ControllerEmu::GroupType::Tilt ||
-                        group->type == ControllerEmu::GroupType::MixedTriggers;
+  const bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
+                              group->type == ControllerEmu::GroupType::Stick ||
+                              group->type == ControllerEmu::GroupType::Tilt ||
+                              group->type == ControllerEmu::GroupType::MixedTriggers;
+
+  const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
+                                group->type == ControllerEmu::GroupType::Stick ||
+                                group->type == ControllerEmu::GroupType::Tilt;
 
   for (auto& control : group->controls)
   {
@@ -135,7 +140,19 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   }
 
   if (need_indicator)
-    form_layout->addRow(new MappingIndicator(group));
+  {
+    auto const indicator = new MappingIndicator(group);
+
+    if (need_calibration)
+    {
+      const auto calibrate =
+          new CalibrationWidget(*static_cast<ControllerEmu::ReshapableInput*>(group), *indicator);
+
+      form_layout->addRow(calibrate);
+    }
+
+    form_layout->addRow(indicator);
+  }
 
   return group_box;
 }

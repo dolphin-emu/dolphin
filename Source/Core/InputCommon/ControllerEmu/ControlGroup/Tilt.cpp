@@ -29,11 +29,6 @@ Tilt::Tilt(const std::string& name_)
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
 
-  // Set default input radius to the full 1.0 (no resizing)
-  // Set default input shape to a square (no reshaping)
-  // Max deadzone to 50%
-  AddReshapingSettings(1.0, 0.5, 50);
-
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.9, 0, 180));
 }
 
@@ -86,6 +81,11 @@ ControlState Tilt::GetGateRadiusAtAngle(double ang) const
 {
   const ControlState max_tilt_angle = numeric_settings[SETTING_MAX_ANGLE]->GetValue() / 1.8;
   return SquareStickGate(max_tilt_angle).GetRadiusAtAngle(ang);
+}
+
+ControlState Tilt::GetDefaultInputRadiusAtAngle(double ang) const
+{
+  return SquareStickGate(1.0).GetRadiusAtAngle(ang);
 }
 
 }  // namespace ControllerEmu

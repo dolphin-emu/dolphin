@@ -148,6 +148,8 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
+  // We currently use the "Close" button as an "Accept" button so we must save on reject.
+  connect(this, &QDialog::rejected, [this] { emit Save(); });
 }
 
 void MappingWindow::OnDeleteProfilePressed()

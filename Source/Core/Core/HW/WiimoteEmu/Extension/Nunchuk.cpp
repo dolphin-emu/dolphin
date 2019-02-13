@@ -203,6 +203,9 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   m_stick->SetControlExpression(2, "A");  // left
   m_stick->SetControlExpression(3, "D");  // right
 
+  // Because our defaults use keyboard input, set calibration shape to a square.
+  m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+
 // Buttons
 #ifdef _WIN32
   m_buttons->SetControlExpression(0, "LCONTROL");  // C

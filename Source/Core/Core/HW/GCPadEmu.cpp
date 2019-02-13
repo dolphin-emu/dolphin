@@ -16,6 +16,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
@@ -247,6 +249,10 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(3, "Right");    // Right
   m_main_stick->SetControlExpression(4, "Shift_L");  // Modifier
 #endif
+
+  // Because our defaults use keyboard input, set calibration shapes to squares.
+  m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+  m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
   // Triggers
   m_triggers->SetControlExpression(0, "Q");  // L
