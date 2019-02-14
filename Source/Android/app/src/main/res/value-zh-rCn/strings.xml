@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Title of the app -->
+    <string name="app_name">Dolphin Emulator</string>
+    <string name="host">app</string>
+    <string name="scheme">dolphinemu</string>
+
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
+            is made that they are placed together so that we can access them sequentially in a loop. -->
+    <string name="controller_0">GameCube控制器 1</string>
+    <string name="controller_1">GameCube控制器 2</string>
+    <string name="controller_2">GameCube控制器 3</string>
+    <string name="controller_3">GameCube控制器 4</string>
+    <!-- END WARNING -->
+
+    <string name="controller_control">Control Stick</string>
+    <string name="controller_c">C Stick</string>
+    <string name="controller_trig">Triggers</string>
+    <string name="controller_dpad">D-Pad</string>
+    <string name="modifier_range">Modifier Range</string>
+    <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
+    <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
+
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
+            is made that they are placed together so that we can access them sequentially in a loop.
+            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
+    <string name="wiimote_4">Wii遥控器 1</string>
+    <string name="wiimote_5">Wii遥控器 2</string>
+    <string name="wiimote_6">Wii遥控器 3</string>
+    <string name="wiimote_7">Wii遥控器 4</string>
+    <!-- END WARNING -->
+
+    <string name="wiimote_extensions">Extension</string>
+    <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
+    <string name="wiimote_ir">IR</string>
+    <string name="wiimote_swing">Swing</string>
+    <string name="wiimote_tilt">Tilt</string>
+    <string name="wiimote_shake">Shake</string>
+
+    <string name="input_binding">Input Binding</string>
+    <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
+    <string name="input_rumble_description">Press or move any input to set rumble.</string>
+
+    <!-- Generic buttons (Shared with lots of stuff) -->
+    <string name="generic_buttons">Buttons</string>
+    <string name="generic_up">Up</string>
+    <string name="generic_down">Down</string>
+    <string name="generic_left">Left</string>
+    <string name="generic_right">Right</string>
+    <string name="generic_forward">Forward</string>
+    <string name="generic_backward">Backward</string>
+    <string name="generic_stick">Stick</string>
+    <string name="generic_green">Green</string>
+    <string name="generic_red">Red</string>
+    <string name="generic_yellow">Yellow</string>
+    <string name="generic_blue">Blue</string>
+    <string name="generic_orange">Orange</string>
+
+    <!-- GameCube buttons (May be shared with other stuff too) -->
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_start">START</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_z">Z</string>
+    <string name="trigger_left">L</string>
+    <string name="trigger_right">R</string>
+
+    <!-- Wii Remote buttons (May be shared with other stuff too) -->
+    <string name="button_one">1</string>
+    <string name="button_two">2</string>
+    <string name="button_minus">-</string>
+    <string name="button_plus">+</string>
+    <string name="button_home">HOME</string>
+    <string name="ir_hide">Hide</string>
+    <string name="tilt_modifier">Modifier</string>
+    <string name="shake_x">X</string>
+    <string name="shake_y">Y</string>
+    <string name="shake_z">Z</string>
+
+    <!-- Nunchuk only buttons -->
+    <string name="nunchuk_button_c">C</string>
+
+    <!-- Classic only buttons -->
+    <string name="classic_button_zl">ZL</string>
+    <string name="classic_button_zr">ZR</string>
+    <string name="classic_leftstick">Left Stick</string>
+    <string name="classic_rightstick">Right Stick</string>
+
+    <!-- Guitar only buttons -->
+    <string name="guitar_frets">Frets</string>
+    <string name="guitar_strum">Strum</string>
+    <string name="guitar_whammy">Whammy</string>
+    <string name="guitar_whammy_bar">Bar</string>
+
+    <!-- Drums only buttons -->
+    <string name="drums_pads">Pads</string>
+    <string name="drums_pad_bass">Bass</string>
+
+    <!-- Turntable only buttons -->
+    <string name="turntable_button_green_left">Green Left</string>
+    <string name="turntable_button_red_left">Red Left</string>
+    <string name="turntable_button_blue_left">Blue Left</string>
+    <string name="turntable_button_green_right">Green Right</string>
+    <string name="turntable_button_red_right">Red Right</string>
+    <string name="turntable_button_blue_right">Blue Right</string>
+    <string name="turntable_button_euphoria">Euphoria</string>
+    <string name="turntable_table_left">Table Left</string>
+    <string name="turntable_table_right">Table Right</string>
+    <string name="turntable_effect">Effect</string>
+    <string name="turntable_effect_dial">Dial</string>
+    <string name="turntable_crossfade">Crossfade</string>
+
+    <!-- General Preference Fragment -->
+    <string name="general_submenu">一般设置</string>
+    <string name="cpu_core">CPU核心</string>
+    <string name="cpu_core_description">%s</string>
+    <string name="dual_core">双核</string>
+    <string name="dual_core_description">将工作负载分成两个CPU核心提高速度。</string>
+    <string name="overclock_enable">覆盖模拟器CPU的时钟速度</string>
+    <string name="overclock_enable_description">较高的值可以使可变帧速率的游戏以更高的帧数运行，但这需要性能强大的设备。较低的值使游戏以较低的帧速率运行，提高了模拟速度，但降低了模拟控制台的性能</string>
+    <string name="overclock_title">模拟器CPU时钟速度</string>
+    <string name="overclock_title_description">如果启用了“覆盖模拟CPU的时钟速度”，则调整模拟器CPU的时钟速率。</string>
+    <string name="speed_limit">速度限制</string>
+    <string name="overclock_warning">警告：将其从默认值（100％）更改将可能导致游戏运行故障。请不要报告使用非默认时钟发生的错误。</string>
+    <string name="gamecube_submenu">GameCube</string>
+    <string name="gamecube_system_language">系统语言</string>
+    <string name="override_gamecube_language">在NTSC游戏中覆盖语言</string>
+    <string name="slot_a_device">GameCube Slot A Device</string>
+    <string name="slot_b_device">GameCube Slot B Device</string>
+    <string name="wii_submenu">Wii</string>
+    <string name="wiimote_scanning">Wii远程连续扫描</string>
+    <string name="wiimote_scanning_description">如果您使用DolphinBar进行真正的Wiimote支持，请保持此选项。</string>
+    <string name="wiimote_speaker">Wii远程扬声器</string>
+    <string name="wiimote_speaker_description">通过真实Wiimote上的扬声器启用声音输出（需要DolphinBar）。</string>
+    <string name="audio_stretch">音频拉伸</string>
+    <string name="audio_stretch_description">拉伸音频以减少卡顿。增加延迟。</string>
+    <string name="auto_disc_change">自动更换光盘</string>
+    <string name="enable_save_states">启用S​​avestates(防止OOM)</string>
+    <string name="enable_save_states_description">警告：存储状态可能与Dolphin的未来版本不兼容，并且在某些情况下无法创建正常的存储。永远不要使用S​​avestates作为保存进度的唯一方法。</string>
+    <string name="lock_emulation_landscape">横屏锁定</string>
+    <string name="lock_emulation_landscape_desc">如果以纵向播放，某些虚拟键将需要进行额外的调整。</string>
+    <string name="analytics">启用使用统计报告</string>
+    <string name="analytics_desc">如果授权，Dolphin可以收集有关其性能、功能使用、配置以及系统硬件和操作系统上的数据，但它不会收集私人数据。这些数据有助于我们了解人们和模拟游戏如何使用Dolphin并优先考虑我们的工作。它还可以帮助我们识别导致错误，解决性能和稳定性问题。并且可以通过Dolphin的设置随时撤销此授权</string>
+    <string name="gametdb_thanks">感谢GameTDB.com提供GameCube和Wii的封面！</string>
+
+    <!-- Interface Preference Fragment -->
+    <string name="interface_submenu">接口</string>
+    <string name="panic_handlers">使用紧急处理程序</string>
+    <string name="panic_handlers_description">发生潜在严重错误时显示消息框。禁用此功能可以避免烦人且非致命的消息，但可能会导致模拟崩溃时没有错误报告。</string>
+    <string name="osd_messages">在屏幕上显示 显示 消息</string>
+    <string name="osd_messages_description">在模拟区域显示信息。这些信息包括存储卡写入、视频后端和CPU信息以及JIT缓存清除。</string>
+
+    <!-- Graphics Settings -->
+    <string name="graphics_general">一般设置</string>
+    <string name="graphics_enhancements_and_hacks">增强功能 &amp; Hacks</string>
+
+    <!-- Video Preference Fragment -->
+    <string name="video_backend">渲染引擎</string>
+    <string name="video_backend_description">选择用于图形渲染的API。</string>
+    <string name="show_fps">显示FPS</string>
+    <string name="show_fps_description">显示每秒渲染的帧数，由此作为模拟速度的度量。</string>
+
+    <string name="enhancements_submenu">增强功能</string>
+    <string name="internal_resolution">内部分辨率</string>
+    <string name="internal_resolution_description">指定用于渲染的分辨率。高分辨率将大大提高视觉质量，但也十分消耗性能，并且可能在某些游戏中引起故障。</string>
+    <string name="FSAA">全局抗锯齿</string>
+    <string name="FSAA_description">这将会减少图像锯齿，但会严重降低模拟帧数，有时还会导致故障。</string>
+    <string name="anisotropic_filtering">各向异性过滤</string>
+    <string name="anisotropic_filtering_description">增强倾斜视角纹理的视觉质量。可能会导致少数游戏出现问题。</string>
+    <string name="post_processing_shader">后处理效果</string>
+    <string name="post_processing_shader_description">完成一帧渲染后应用后处理效果</string>
+    <string name="postprocessing_shader">后处理着色器</string>
+    <string name="postprocessing_shader_description">完成一帧渲染后应用后处理效果</string>
+    <string name="scaled_efb_copy">缩放 EFB Copy</string>
+    <string name="scaled_efb_copy_description">极大地提高了使用渲染到纹理效果生成的纹理质量。提高内部分辨率将改善此设置的效果。但略微降低性能并可能导致出现问题（尽管不太可能）。</string>
+    <string name="per_pixel_lighting">像素光照</string>
+    <string name="per_pixel_lighting_description">计算每个像素而不是每个顶点的3D图形的光照。将模拟速度降低几个百分点（取决于您的GPU）。这通常是一种安全的增强，但有时可能会引起问题。</string>
+    <string name="force_texture_filtering">强制纹理过滤</string>
+    <string name="force_texture_filtering_description">即使游戏明确禁用它也要强制进行纹理过滤。能稍微改善纹理质量但在某些游戏中会引起故障。</string>
+    <string name="force_24bit_color">强制24位色</string>
+    <string name="force_24bit_color_description">强制游戏以24位渲染RGB颜色通道，从而通过减少色带来提高质量。\n它对性能没有影响，并且几乎没有图形问题。如果不确定，请选中此选项。</string>
+    <string name="disable_fog">禁用雾</string>
+    <string name="disable_fog_description">通过去除雾使远处的物体更加明显，从而增加整体细节。禁用雾会破坏一些依赖雾的游戏的体验。</string>
+    <string name="disable_copy_filter">禁用复制过滤器</string>
+    <string name="disable_copy_filter_description">复制EFB时禁用相邻行的混合。这在一些游戏中被称为“消隐”或“平滑”。禁用过滤器通常是安全的，可能会导致图像更清晰。</string>
+    <string name="arbitrary_mipmap_detection">Arbitrary Mipmap Detection</string>
+    <string name="arbitrary_mipmap_detection_description">Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.\nMay have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures.\n\nIf unsure, leave this checked.</string>
+    <string name="stereoscopy_submenu">立体透视</string>
+    <string name="stereoscopy_submenu_description">如果您有相应的硬件，立体透视可以让您获得更好的深度感。\n这样会降低模拟速度，有时会导致问题。</string>
+    <string name="wide_screen_hack">强制宽屏显示</string>
+    <string name="wide_screen_hack_description">强制游戏输出任何宽高比的图形。使用“纵横比”设置为“强制16：9”以强制仅限4：3的游戏以16：9运行。很少产生良好的效果，并且通常会部分地破坏图形和游戏UI。\n如果使用任何AR/Gecko代码宽屏补丁，则不必要（且不利）。如果不确定，请不要选中此项。</string>
+    <string name="stereoscopy_mode">立体透视模式</string>
+    <string name="stereoscopy_mode_description">选择立体3D模式。</string>
+    <string name="stereoscopy_depth">深度</string>
+    <string name="stereoscopy_depth_description">控制虚拟摄像机之间的距离。\n值越高，深度感越强，低值越舒适。</string>
+    <string name="stereoscopy_convergence">Convergence</string>
+    <string name="stereoscopy_convergence_description">控制会聚平面的距离，这是物体在屏幕前方显示的距离。\n值越大，屏幕外效果越强，值越低越舒适。</string>
+    <string name="stereoscopy_swap_eyes">Swap Eyes</string>
+    <string name="stereoscopy_swap_eyes_description">交换左眼和右眼，如果您想要并排观察，则大多数情况下非常有用。</string>
+    <string name="backend_multithreading">后端多线程</string> <!--Backend Multithreading is only disabled by default on Android  -->
+    <string name="backend_multithreading_description">启用图形后端多线程（仅限Vulkan）。可能会影响性能。如果不确定，请不要选中。</string>
+
+    <string name="hacks_submenu">Hacks</string>
+    <string name="embedded_frame_buffer">嵌入式帧缓冲器</string>
+    <string name="skip_efb_access">跳过来自CPU的EFB访问</string>
+    <string name="skip_efb_access_description">忽略来自CPU的任何读取/写入EFB请求。</string>
+    <string name="ignore_format_changes">忽略格式更改</string>
+    <string name="ignore_format_changes_description">忽略对EFB格式的任何更改。</string>
+    <string name="efb_copy_method">Store EFB Copies to Texture Only</string>
+    <string name="efb_copy_method_description">Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games. If unsure, leave this checked.</string>
+    <string name="defer_efb_copies">Defer EFB Copies to RAM</string>
+    <string name="defer_efb_copies_description">Waits until the game synchronizes with the emulated GPU before writing the contents of EFB copies to RAM. May result in faster performance. If unsure, leave this unchecked.</string>
+    <string name="texture_cache">纹理缓存</string>
+    <string name="texture_cache_accuracy">纹理缓存准确度</string>
+    <string name="texture_cache_accuracy_description">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
+    <string name="gpu_texture_decoding">GPU纹理解码</string>
+    <string name="gpu_texture_decoding_description">使用支持GPU解码纹理的着色器。可能会在某些情况下提高性能。</string>
+    <string name="external_frame_buffer">外部帧缓冲器</string>
+    <string name="xfb_copy_method">Store XFB Copies to Texture Only</string>
+    <string name="xfb_copy_method_description">Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games that need to readback from memory. If unsure, leave this checked.</string>
+    <string name="immediate_xfb">Immediately Present XFB</string>
+    <string name="immediate_xfb_description">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
+    <string name="disable_destination_alpha">禁用目标Alpha</string>
+    <string name="disable_destination_alpha_description">禁用模拟目标alpha的硬件功能，该功能在许多游戏中用于实现各种效果。</string>
+    <string name="fast_depth_calculation">快速深度计算</string>
+    <string name="fast_depth_calculation_description">使用不太精确的算法来计算深度值。</string>
+    <string name="aspect_ratio">宽高比</string>
+    <string name="aspect_ratio_description">选择渲染时要使用的宽高比</string>
+    <string name="shader_compilation_mode">着色器编译模式</string>
+    <string name="shader_compilation_mode_description">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
+    <string name="wait_for_shaders">预编译着色器</string>
+    <string name="wait_for_shaders_description">这会在启动游戏时造成延迟，但会在早期减少卡顿。</string>
+
+    <!-- Debug -->
+    <string name="debug_submenu">Debug</string>
+    <string name="debug_warning">Warning: These settings will slow emulation</string>
+    <string name="debug_jit_header">Jit</string>
+    <string name="debug_jitoff">Jit Disabled</string>
+    <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
+    <string name="debug_jitloadstorefloatingoff">Jit Load Store Floating Point Disabled</string>
+    <string name="debug_jitloadstorepairedoff">Jit Load Store Paired Disabled</string>
+    <string name="debug_jitfloatingpointoff">Jit Floating Point Disabled</string>
+    <string name="debug_jitintegeroff">Jit Integer Disabled</string>
+    <string name="debug_jitpairedoff">Jit Paired Disabled</string>
+    <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
+    <string name="debug_jitbranchoff">Jit Branch Disabled</string>
+
+    <!-- Miscellaneous -->
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="ok">好的</string>
+    <string name="off">关闭</string>
+    <string name="cancel">取消</string>
+    <string name="clear">Clear</string>
+    <string name="disabled">Disabled</string>
+    <string name="other">Other</string>
+
+    <!-- Game Grid Screen-->
+    <string name="grid_menu_config">配置</string>
+    <string name="grid_menu_graphics_settings">图形设置</string>
+    <string name="grid_menu_gcpad_settings">GameCube控制</string>
+    <string name="grid_menu_wiimote_settings">Wii控制</string>
+    <string name="grid_menu_refresh">刷新库</string>
+
+    <!-- Add Directory Screen-->
+    <string name="add_directory_title">将文件夹添加到库</string>
+    <string name="add_directory_up_one_level">返回上一层</string>
+    <string name="add_directory_empty_folder">该文件夹是空的</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_save_exit">保存并退出</string>
+    <string name="preferences_settings">设置</string>
+    <string name="preferences_game_settings">游戏设置</string>
+    <string name="preferences_extensions">扩展绑定</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_screenshot">截图</string>
+    <string name="emulation_savestate">保存进度</string>
+    <string name="emulation_loadstate">载入进度</string>
+    <string name="emulation_exit">退出</string>
+    <string name="emulation_slot1">Slot 1</string>
+    <string name="emulation_slot2">Slot 2</string>
+    <string name="emulation_slot3">Slot 3</string>
+    <string name="emulation_slot4">Slot 4</string>
+    <string name="emulation_slot5">Slot 5</string>
+    <string name="emulation_slot6">Slot 6</string>
+    <string name="emulation_quicksave">快速保存</string>
+    <string name="emulation_quickload">快速载入</string>
+    <string name="emulation_refresh_wiimotes">刷新Wii控制器</string>
+    <string name="emulation_configure_controls">配置控制器</string>
+    <string name="emulation_edit_layout">编辑布局</string>
+    <string name="emulation_done">完成</string>
+    <string name="emulation_toggle_controls">切换控制器</string>
+    <string name="emulation_toggle_all">全部切换</string>
+    <string name="emulation_control_scale">调整比例</string>
+    <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
+    <string name="emulation_control_rumble">Rumble</string>
+    <string name="emulation_choose_controller">选择控制器</string>
+    <string name="emulation_controller_changed">您可能需要在更改扩展程序后重新加载游戏。</string>
+    <string name="emulation_touch_button_help">从屏幕顶部向下滑动以访问菜单。</string>
+    <string name="emulation_touch_overlay_reset">重置叠加层</string>
+    <string name="emulation_ir_group">触控鼠标指针</string>
+    <string name="emulation_ir_sensitivity">指针灵敏度</string>
+    <string name="emulation_choose_doubletap">双击按钮</string>
+
+    <!-- GC Adapter Menu-->
+    <string name="gc_adapter_rumble">启用振动</string>
+    <string name="gc_adapter_rumble_description">启用此GameCube控制器的振动功能。</string>
+    <string name="gc_adapter_bongos">Bongo控制器</string>
+    <string name="gc_adapter_bongos_description">如果您在此端口上使用Bongo，请启用此选项。</string>
+
+    <!-- Wii Remote Input Menu-->
+    <string name="header_wiimote_general">一般设置</string>
+    <string name="header_controllers">控制器</string>
+
+    <!-- Rumble -->
+    <string name="rumble_not_found">设备rumble未找到</string>
+
+    <string name="write_permission_needed">您需要授权读取权限才能使模拟器正常工作。</string>
+    <string name="load_settings">加载设置...</string>
+    <string name="emulation_change_disc">更换Disc</string>
+
+    <string name="external_storage_not_mounted">需要授权外部存储读写权限才能使用Dolphin</string>
+
+    <!-- Extra Leanback Homescreen Channels-->
+    <string name="homescreen_favorites">收藏</string>
+
+    <string name="select_dir">选择此目录</string>
+
+    <!-- Misc -->
+    <string name="height">高度</string>
+    <string name="width">宽度</string>
+    <string name="center">中心</string>
+
+</resources>
