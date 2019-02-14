@@ -332,6 +332,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-ssaa", g_Config.bSSAA);
   builder.AddData("cfg-gfx-anisotropy", g_Config.iMaxAnisotropy);
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
+  builder.AddData("cfg-gfx-sync-refresh-rate", g_Config.bSyncRefreshRate);
   builder.AddData("cfg-gfx-aspect-ratio", static_cast<int>(g_Config.aspect_mode));
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
   builder.AddData("cfg-gfx-efb-copy-format-changes", g_Config.bEFBEmulateFormatChanges);
@@ -358,8 +359,6 @@ void DolphinAnalytics::MakePerGameBuilder()
   {
     builder.AddData("gpu-adapter", g_Config.backend_info.AdapterName);
   }
-  builder.AddData("gpu-has-exclusive-fullscreen",
-                  g_Config.backend_info.bSupportsExclusiveFullscreen);
   builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
   builder.AddData("gpu-has-primitive-restart", g_Config.backend_info.bSupportsPrimitiveRestart);
   builder.AddData("gpu-has-oversized-viewports", g_Config.backend_info.bSupportsOversizedViewports);

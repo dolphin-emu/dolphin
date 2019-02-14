@@ -101,6 +101,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
   CalculateTargetSize();
 
   m_aspect_wide = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
+  m_last_refresh_rate = VideoInterface::GetTargetFractionalRefreshRate();
 }
 
 Renderer::~Renderer() = default;
@@ -122,6 +123,10 @@ void Renderer::Shutdown()
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
+
+  if (m_fullscreen_state)
+    ChangeFullscreenState(false, 0.0f);
+
   ShutdownImGui();
   m_post_processor.reset();
 }
@@ -833,12 +838,13 @@ void Renderer::SetWindowSize(int width, int height)
   const auto [out_width, out_height] = CalculateOutputDimensions(width, height);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
-    return;
-
-  m_last_window_request_width = out_width;
-  m_last_window_request_height = out_height;
-  Host_RequestRenderWindowSize(out_width, out_height);
+  if (width != m_last_window_request_width || height != m_last_window_request_height)
+  {
+    m_last_window_request_width = width;
+    m_last_window_request_height = height;
+    if (!m_fullscreen_state)
+      Host_RequestRenderWindowSize(width, height);
+  }
 }
 
 std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) const
@@ -909,6 +915,22 @@ void Renderer::RecordVideoMemory()
 
   FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size,
                                              texMem);
+}
+
+void Renderer::SetFullscreen(bool enable_fullscreen)
+{
+  if (enable_fullscreen == m_fullscreen_state)
+    return;
+
+  ChangeFullscreenState(enable_fullscreen,
+                        g_ActiveConfig.bSyncRefreshRate ? m_last_refresh_rate : 0.0f);
+}
+
+bool Renderer::ChangeFullscreenState(bool enable, float target_refresh_rate)
+{
+  m_fullscreen_state = enable;
+  Host_RequestFullscreen(enable, target_refresh_rate);
+  return true;
 }
 
 bool Renderer::InitializeImGui()
@@ -1183,6 +1205,15 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   // This is required even if frame dumping has stopped, since the frame dump is one frame
   // behind the renderer.
   FlushFrameDump();
+
+  // If the refresh rate has changed, update the host.
+  const float current_refresh_rate = VideoInterface::GetTargetFractionalRefreshRate();
+  if (m_last_refresh_rate != current_refresh_rate)
+  {
+    m_last_refresh_rate = current_refresh_rate;
+    if (IsFullscreen() && g_ActiveConfig.bSyncRefreshRate)
+      ChangeFullscreenState(true, current_refresh_rate);
+  }
 
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {

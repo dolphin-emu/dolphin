@@ -43,7 +43,6 @@ VideoConfig::VideoConfig()
   // disable all features by default
   backend_info.api_type = APIType::Nothing;
   backend_info.MaxTextureSize = 16384;
-  backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
   backend_info.bSupportsST3CTextures = false;
   backend_info.bSupportsBPTCTextures = false;
@@ -109,6 +108,7 @@ void VideoConfig::Refresh()
   bWireFrame = Config::Get(Config::GFX_ENABLE_WIREFRAME);
   bDisableFog = Config::Get(Config::GFX_DISABLE_FOG);
   bBorderlessFullscreen = Config::Get(Config::GFX_BORDERLESS_FULLSCREEN);
+  bSyncRefreshRate = Config::Get(Config::GFX_SYNC_REFRESH_RATE);
   bEnableValidationLayer = Config::Get(Config::GFX_ENABLE_VALIDATION_LAYER);
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);

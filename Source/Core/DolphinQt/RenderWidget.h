@@ -25,7 +25,6 @@ signals:
   void EscapePressed();
   void Closed();
   void HandleChanged(void* handle);
-  void StateChanged(bool fullscreen);
   void SizeChanged(int new_width, int new_height);
   void FocusChanged(bool focus);
 

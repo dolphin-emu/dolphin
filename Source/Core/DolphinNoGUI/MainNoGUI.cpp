@@ -81,6 +81,10 @@ void Host_UpdateMainFrame()
   s_update_main_frame_event.Set();
 }
 
+void Host_RequestFullscreen(bool active, float refresh_rate)
+{
+}
+
 void Host_RequestRenderWindowSize(int width, int height)
 {
 }
@@ -88,11 +92,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 bool Host_RendererHasFocus()
 {
   return s_platform->IsWindowFocused();
-}
-
-bool Host_RendererIsFullscreen()
-{
-  return s_platform->IsWindowFullscreen();
 }
 
 void Host_YieldToUI()

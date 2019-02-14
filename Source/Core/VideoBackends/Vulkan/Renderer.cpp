@@ -286,6 +286,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
   {
     // if it fails, don't keep trying
     m_swap_chain->SetNextFullscreenState(m_swap_chain->GetCurrentFullscreenState());
+    m_fullscreen_state = m_swap_chain->GetCurrentFullscreenState();
   }
 
   VkResult res = g_command_buffer_mgr->CheckLastPresentFail() ?
@@ -349,17 +350,16 @@ void Renderer::PresentBackbuffer()
   StateTracker::GetInstance()->InvalidateCachedState();
 }
 
-void Renderer::SetFullscreen(bool enable_fullscreen)
+bool Renderer::ChangeFullscreenState(bool enabled, float refresh_rate)
 {
-  if (!m_swap_chain->IsFullscreenSupported())
-    return;
+  // exclusive fullscreen only works if we're already fullscreen?
+  if (!::Renderer::ChangeFullscreenState(enabled, refresh_rate))
+    return false;
 
-  m_swap_chain->SetNextFullscreenState(enable_fullscreen);
-}
+  if (!g_ActiveConfig.bBorderlessFullscreen && m_swap_chain->IsFullscreenSupported())
+    m_swap_chain->SetNextFullscreenState(enabled);
 
-bool Renderer::IsFullscreen() const
-{
-  return m_swap_chain && m_swap_chain->GetCurrentFullscreenState();
+  return true;
 }
 
 void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)

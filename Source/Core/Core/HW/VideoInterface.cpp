@@ -706,6 +706,12 @@ u32 GetTargetRefreshRate()
   return s_target_refresh_rate;
 }
 
+float GetTargetFractionalRefreshRate()
+{
+  return static_cast<float>(2.0 * SystemTimers::GetTicksPerSecond() /
+                            (GetTicksPerEvenField() + GetTicksPerOddField()));
+}
+
 u32 GetTicksPerSample()
 {
   return 2 * SystemTimers::GetTicksPerSecond() / s_clock_freqs[m_Clock];

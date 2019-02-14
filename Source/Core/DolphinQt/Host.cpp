@@ -52,33 +52,53 @@ void Host::SetRenderHandle(void* handle)
   }
 }
 
-bool Host::GetRenderFocus()
+bool Host::GetRenderFocus() const
 {
-  return m_render_focus;
+  return m_render_focus.load();
+}
+
+bool Host::IsFullscreenEnabled() const
+{
+  return m_fullscreen_enabled.load();
+}
+
+bool Host::IsFullscreenActive() const
+{
+  return g_renderer ? g_renderer->IsFullscreen() : false;
 }
 
 void Host::SetRenderFocus(bool focus)
 {
-  m_render_focus = focus;
-  if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
+  m_render_focus.store(focus);
+
+  if (m_fullscreen_enabled.load())
+  {
     Core::RunAsCPUThread([focus] {
-      if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
+      if (!Config::Get(Config::MAIN_RENDER_TO_MAIN) && g_renderer)
         g_renderer->SetFullscreen(focus);
     });
+  }
 }
 
-bool Host::GetRenderFullscreen()
+void Host::SetFullscreenEnabled(bool enabled)
 {
-  return m_render_fullscreen;
+  bool old_value = !enabled;
+  if (!m_fullscreen_enabled.compare_exchange_strong(old_value, enabled) || old_value == enabled)
+    return;
+
+  Core::RunAsCPUThread([enabled]() {
+    if (g_renderer)
+      g_renderer->SetFullscreen(enabled);
+  });
 }
 
-void Host::SetRenderFullscreen(bool fullscreen)
+void Host::UpdateFullscreen(bool disable_temporarily)
 {
-  m_render_fullscreen = fullscreen;
-
-  if (g_renderer && g_renderer->IsFullscreen() != fullscreen &&
-      g_ActiveConfig.ExclusiveFullscreenEnabled())
-    Core::RunAsCPUThread([fullscreen] { g_renderer->SetFullscreen(fullscreen); });
+  const bool enabled = m_fullscreen_enabled.load() && !disable_temporarily;
+  Core::RunAsCPUThread([enabled]() {
+    if (g_renderer && g_renderer->IsFullscreen() != enabled)
+      g_renderer->SetFullscreen(enabled);
+  });
 }
 
 void Host::ResizeSurface(int new_width, int new_height)
@@ -111,11 +131,6 @@ bool Host_RendererHasFocus()
   return Host::GetInstance()->GetRenderFocus();
 }
 
-bool Host_RendererIsFullscreen()
-{
-  return Host::GetInstance()->GetRenderFullscreen();
-}
-
 void Host_YieldToUI()
 {
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -146,6 +161,11 @@ void Host_NotifyMapLoaded()
 // UpdateMainFrame should almost certainly be removed.
 void Host_UpdateMainFrame()
 {
+}
+
+void Host_RequestFullscreen(bool active, float refresh_rate)
+{
+  emit Host::GetInstance()->RequestFullscreen(active, refresh_rate);
 }
 
 void Host_RequestRenderWindowSize(int w, int h)

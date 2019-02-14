@@ -31,14 +31,13 @@ void Host_UpdateDisasmDialog()
 void Host_UpdateMainFrame()
 {
 }
+void Host_RequestFullscreen(bool, float)
+{
+}
 void Host_RequestRenderWindowSize(int, int)
 {
 }
 bool Host_RendererHasFocus()
-{
-  return false;
-}
-bool Host_RendererIsFullscreen()
 {
   return false;
 }

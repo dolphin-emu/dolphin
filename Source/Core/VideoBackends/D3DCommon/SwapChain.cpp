@@ -197,9 +197,61 @@ bool SwapChain::GetFullscreen() const
   return GetFullscreenState(m_swap_chain.Get());
 }
 
-void SwapChain::SetFullscreen(bool request)
+bool SwapChain::SetFullscreen(bool request, float refresh_rate)
 {
-  m_swap_chain->SetFullscreenState(request, nullptr);
+  HRESULT hr;
+  if (FAILED(hr = m_swap_chain->SetFullscreenState(request, nullptr)))
+    return false;
+
+  if (!request || refresh_rate <= 0.0f)
+    return true;
+
+  IDXGIOutput* output;
+  if (FAILED(hr = m_swap_chain->GetContainingOutput(&output)))
+    return false;
+
+  DXGI_SWAP_CHAIN_DESC current_desc;
+  if (FAILED(hr = m_swap_chain->GetDesc(&current_desc)))
+    return false;
+
+  // Get the dimensions of the new-fullscreen window. This is our fullscreen resolution.
+  RECT client_rc = {};
+  GetClientRect(current_desc.OutputWindow, &client_rc);
+
+  const UINT numerator = static_cast<UINT>(std::floor(refresh_rate * 1000.0f));
+  const UINT denominator = 1000u;
+
+  DXGI_MODE_DESC new_mode = current_desc.BufferDesc;
+  new_mode.Width = std::max(client_rc.right - client_rc.left, static_cast<LONG>(640));
+  new_mode.Height = std::max(client_rc.bottom - client_rc.top, static_cast<LONG>(480));
+  new_mode.RefreshRate.Numerator = numerator;
+  new_mode.RefreshRate.Denominator = denominator;
+
+  DXGI_MODE_DESC closest_mode;
+  if (FAILED(hr = output->FindClosestMatchingMode(&new_mode, &closest_mode, nullptr)) ||
+      new_mode.Format != current_desc.BufferDesc.Format)
+  {
+    ERROR_LOG(VIDEO, "Failed to find closest matching mode, hr=%08X", hr);
+    return false;
+  }
+
+  // Don't switch modes if it's not necessary.
+  if (std::tie(new_mode.Width, new_mode.Height, new_mode.RefreshRate.Numerator,
+               new_mode.RefreshRate.Denominator) ==
+      std::tie(current_desc.BufferDesc.Width, current_desc.BufferDesc.Height,
+               current_desc.BufferDesc.RefreshRate.Numerator,
+               current_desc.BufferDesc.RefreshRate.Denominator))
+  {
+    return true;
+  }
+
+  if (FAILED(m_swap_chain->ResizeTarget(&closest_mode)))
+  {
+    m_swap_chain->SetFullscreenState(false, nullptr);
+    return false;
+  }
+
+  return true;
 }
 
 bool SwapChain::CheckForFullscreenChange()

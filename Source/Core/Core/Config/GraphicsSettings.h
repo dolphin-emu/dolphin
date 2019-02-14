@@ -59,6 +59,7 @@ extern const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_CENTER;
 extern const ConfigInfo<bool> GFX_ENABLE_WIREFRAME;
 extern const ConfigInfo<bool> GFX_DISABLE_FOG;
 extern const ConfigInfo<bool> GFX_BORDERLESS_FULLSCREEN;
+extern const ConfigInfo<bool> GFX_SYNC_REFRESH_RATE;
 extern const ConfigInfo<bool> GFX_ENABLE_VALIDATION_LAYER;
 extern const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING;
 extern const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL;

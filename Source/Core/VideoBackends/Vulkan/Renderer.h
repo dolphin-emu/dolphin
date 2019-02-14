@@ -60,7 +60,6 @@ public:
 
   void Flush() override;
   void WaitForGPUIdle() override;
-  void OnConfigChanged(u32 bits) override;
 
   void ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
                    bool z_enable, u32 color, u32 z) override;
@@ -83,12 +82,14 @@ public:
                              u32 groups_z) override;
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
-  void SetFullscreen(bool enable_fullscreen) override;
-  bool IsFullscreen() const override;
 
   // Completes the current render pass, executes the command buffer, and restores state ready for
   // next render. Use when you want to kick the current buffer to make room for new data.
   void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
+
+protected:
+  bool ChangeFullscreenState(bool enabled, float refresh_rate) override;
+  void OnConfigChanged(u32 bits) override;
 
 private:
   void CheckForSurfaceChange();

@@ -97,6 +97,7 @@ public:
 
 protected:
   void OnConfigChanged(u32 bits) override;
+  bool ChangeFullscreenState(bool enabled, float refresh_rate) override;
 
 private:
   static const u32 MAX_TEXTURES = 8;

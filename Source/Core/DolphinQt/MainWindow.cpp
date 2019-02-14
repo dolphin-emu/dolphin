@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDateTime>
+#include <QDesktopWidget>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -13,6 +14,7 @@
 #include <QIcon>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QScreen>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -330,11 +332,10 @@ void MainWindow::InitCoreCallbacks()
     if (state != Core::State::Uninitialized && NetPlay::IsNetPlayRunning() && m_controllers_window)
       m_controllers_window->reject();
 
-    if (state == Core::State::Running && m_fullscreen_requested)
-    {
-      FullScreen();
-      m_fullscreen_requested = false;
-    }
+    // TODO: Move to Host?
+    const bool fullscreen_enabled = Host::GetInstance()->IsFullscreenEnabled();
+    if (fullscreen_enabled)
+      Host::GetInstance()->UpdateFullscreen(state != Core::State::Running);
   });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
@@ -364,6 +365,7 @@ void MainWindow::CreateComponents()
   m_search_bar = new SearchBar(this);
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
+  m_render_widget->hide();
   m_stack = new QStackedWidget(this);
 
   for (int i = 0; i < 4; i++)
@@ -437,7 +439,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::Play, this, [this]() { Play(); });
   connect(m_menu_bar, &MenuBar::Stop, this, &MainWindow::RequestStop);
   connect(m_menu_bar, &MenuBar::Reset, this, &MainWindow::Reset);
-  connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::FullScreen);
+  connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::ToggleFullscreen);
   connect(m_menu_bar, &MenuBar::FrameAdvance, this, &MainWindow::FrameAdvance);
   connect(m_menu_bar, &MenuBar::Screenshot, this, &MainWindow::ScreenShot);
   connect(m_menu_bar, &MenuBar::StateLoad, this, &MainWindow::StateLoad);
@@ -521,7 +523,8 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ResetHotkey, this, &MainWindow::Reset);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
-  connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this,
+          &MainWindow::ToggleFullscreen);
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadSlot, this, &MainWindow::StateLoadSlotAt);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveSlot, this, &MainWindow::StateSaveSlotAt);
@@ -576,7 +579,7 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
   connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::RequestStop);
-  connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
+  connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::ToggleFullscreen);
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
@@ -600,13 +603,8 @@ void MainWindow::ConnectGameList()
 
 void MainWindow::ConnectRenderWidget()
 {
-  m_rendering_to_main = false;
-  m_render_widget->hide();
+  m_render_widget->installEventFilter(this);
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-  connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
-    if (m_render_widget->isFullScreen())
-      SetFullScreenResolution(focus);
-  });
 }
 
 void MainWindow::ConnectHost()
@@ -614,6 +612,7 @@ void MainWindow::ConnectHost()
   connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
           &MainWindow::OnUpdateProgressDialog);
   connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
+  connect(Host::GetInstance(), &Host::RequestFullscreen, this, &MainWindow::RequestFullscreen);
 }
 
 void MainWindow::ConnectStack()
@@ -752,13 +751,12 @@ void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
   HideRenderWidget();
+  Host::GetInstance()->SetFullscreenEnabled(false);
   EnableScreenSaver(true);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
 #endif
-
-  SetFullScreenResolution(false);
 
   if (m_exit_requested || Settings::Instance().IsBatchModeEnabled())
     QGuiApplication::instance()->quit();
@@ -779,10 +777,11 @@ bool MainWindow::RequestStop()
     return true;
   }
 
-  if (!m_render_widget->isFullScreen())
-    m_render_widget_geometry = m_render_widget->saveGeometry();
+  // save the position if not fullscreen, otherwise temporarily disable fullscreen
+  if (Host::GetInstance()->IsFullscreenActive())
+    Host::GetInstance()->UpdateFullscreen(true);
   else
-    FullScreen();
+    m_render_widget_geometry = m_render_widget->saveGeometry();
 
   if (SConfig::GetInstance().bConfirmStop)
   {
@@ -809,6 +808,8 @@ bool MainWindow::RequestStop()
 
     if (confirm != QMessageBox::Yes)
     {
+      // restore fullscreen state
+      Host::GetInstance()->UpdateFullscreen();
       if (pause)
         Core::SetState(state);
 
@@ -860,27 +861,27 @@ void MainWindow::FrameAdvance()
   Core::DoFrameStep();
 }
 
-void MainWindow::FullScreen()
+void MainWindow::ToggleFullscreen()
 {
-  // If the render widget is fullscreen we want to reset it to whatever is in
-  // settings. If it's set to be fullscreen then it just remakes the window,
-  // which probably isn't ideal.
-  bool was_fullscreen = m_render_widget->isFullScreen();
+  const bool was_enabled = Host::GetInstance()->IsFullscreenEnabled();
+  if (was_enabled != Host::GetInstance()->IsFullscreenActive() &&
+      Core::GetState() == Core::State::Running)
+  {
+    // maybe we lost focus and that's why it's not up-to-date..
+    m_render_widget->setFocus();
+    Host::GetInstance()->UpdateFullscreen();
+    return;
+  }
 
-  if (!was_fullscreen)
+  if (!was_enabled)
+  {
+    // toggling off
     m_render_widget_geometry = m_render_widget->saveGeometry();
-
-  HideRenderWidget(false);
-  SetFullScreenResolution(!was_fullscreen);
-
-  if (was_fullscreen)
-  {
-    ShowRenderWidget();
   }
-  else
-  {
-    m_render_widget->showFullScreen();
-  }
+
+  // this will eventually call back to us
+  m_render_widget->setFocus();
+  Host::GetInstance()->SetFullscreenEnabled(!was_enabled);
 }
 
 void MainWindow::ScreenShot()
@@ -959,7 +960,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 #endif
 
   if (Config::Get(Config::MAIN_FULLSCREEN))
-    m_fullscreen_requested = true;
+    Host::GetInstance()->SetFullscreenEnabled(true);
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling
@@ -969,39 +970,51 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 #endif
 }
 
-void MainWindow::SetFullScreenResolution(bool fullscreen)
+void MainWindow::RequestFullscreen(bool fullscreen, float refresh_rate)
 {
-  if (Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES) == "Auto")
-    return;
-#ifdef _WIN32
+  QScreen* const screen =
+      QGuiApplication::screens()[QApplication::desktop()->screenNumber(m_render_widget)];
 
-  if (!fullscreen)
+  HideRenderWidget(false);
+
+  // For borderless, we just change the window state.
+  if (!g_ActiveConfig.bBorderlessFullscreen)
   {
-    ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
-    return;
+#ifdef _WIN32
+    if (!fullscreen || refresh_rate <= 0.0f)
+    {
+      if (m_display_settings_changed)
+      {
+        ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
+        m_display_settings_changed = false;
+      }
+    }
+    else
+    {
+      DEVMODE dm = {};
+      dm.dmSize = sizeof(dm);
+      dm.dmPelsWidth = static_cast<DWORD>(screen->size().width());
+      dm.dmPelsHeight = static_cast<DWORD>(screen->size().height());
+      dm.dmBitsPerPel = 32;
+      dm.dmDisplayFrequency = static_cast<DWORD>(std::floor(refresh_rate));
+      dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+      if (ChangeDisplaySettingsEx(screen->name().toStdWString().c_str(), &dm, NULL, CDS_FULLSCREEN,
+                                  NULL) == DISP_CHANGE_SUCCESSFUL)
+      {
+        m_display_settings_changed = true;
+      }
+    }
+#endif
   }
 
-  DEVMODE screen_settings;
-  memset(&screen_settings, 0, sizeof(screen_settings));
-  screen_settings.dmSize = sizeof(screen_settings);
-  sscanf(Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES).c_str(), "%dx%d",
-         &screen_settings.dmPelsWidth, &screen_settings.dmPelsHeight);
-  screen_settings.dmBitsPerPel = 32;
-  screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-
-  // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-  ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
-#elif defined(HAVE_XRANDR) && HAVE_XRANDR
-  if (m_xrr_config)
-    m_xrr_config->ToggleDisplayMode(fullscreen);
-#endif
+  if (fullscreen)
+    m_render_widget->showFullScreen();
+  else
+    ShowRenderWidget();
 }
 
 void MainWindow::ShowRenderWidget()
 {
-  SetFullScreenResolution(false);
-  Host::GetInstance()->SetRenderFullscreen(false);
-
   if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
@@ -1050,13 +1063,7 @@ void MainWindow::HideRenderWidget(bool reinit)
     m_render_widget->deleteLater();
 
     m_render_widget = new RenderWidget;
-
-    m_render_widget->installEventFilter(this);
-    connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
-      if (m_render_widget->isFullScreen())
-        SetFullScreenResolution(focus);
-    });
+    ConnectRenderWidget();
 
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core

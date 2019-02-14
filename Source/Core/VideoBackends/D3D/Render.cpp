@@ -285,15 +285,16 @@ void Renderer::WaitForGPUIdle()
   D3D::context->Flush();
 }
 
-void Renderer::SetFullscreen(bool enable_fullscreen)
+bool Renderer::ChangeFullscreenState(bool enabled, float refresh_rate)
 {
-  if (m_swap_chain)
-    m_swap_chain->SetFullscreen(enable_fullscreen);
-}
+  if (g_ActiveConfig.bBorderlessFullscreen)
+    return ::Renderer::ChangeFullscreenState(enabled, refresh_rate);
 
-bool Renderer::IsFullscreen() const
-{
-  return m_swap_chain && m_swap_chain->GetFullscreen();
+  if (!m_swap_chain->SetFullscreen(enabled, refresh_rate))
+    return false;
+
+  m_fullscreen_state = enabled;
+  return true;
 }
 
 }  // namespace DX11
