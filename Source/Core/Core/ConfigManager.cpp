@@ -725,6 +725,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
                                         GetCurrentLanguage(bWii);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
+  Host_TitleChanged();
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
