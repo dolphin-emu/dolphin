@@ -26,18 +26,26 @@ public final class StartupHandler
     // Ask the user if he wants to enable analytics if we haven't yet.
     Analytics.checkAnalyticsInit(parent);
 
-    String start_file = "";
+    String[] start_files = null;
     Bundle extras = parent.getIntent().getExtras();
     if (extras != null)
     {
-      start_file = extras.getString("AutoStartFile");
+      start_files = extras.getStringArray("AutoStartFiles");
+      if (start_files == null)
+      {
+        String start_file = extras.getString("AutoStartFile");
+        if (!TextUtils.isEmpty(start_file))
+        {
+          start_files = new String[]{start_file};
+        }
+      }
     }
 
-    if (!TextUtils.isEmpty(start_file))
+    if (start_files != null && start_files.length > 0)
     {
       // Start the emulation activity, send the ISO passed in and finish the main activity
       Intent emulation_intent = new Intent(parent, EmulationActivity.class);
-      emulation_intent.putExtra("SelectedGame", start_file);
+      emulation_intent.putExtra(EmulationActivity.EXTRA_SELECTED_GAMES, start_files);
       parent.startActivity(emulation_intent);
       parent.finish();
     }

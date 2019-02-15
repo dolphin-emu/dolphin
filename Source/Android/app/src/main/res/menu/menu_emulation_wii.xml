@@ -112,11 +112,30 @@
             <item
                 android:id="@+id/menu_emulation_choose_controller"
                 android:title="@string/emulation_choose_controller"/>
-
+            <item
+                android:id="@+id/menu_emulation_ir_group"
+                android:title="@string/emulation_ir_group"
+                app:showAsAction="never">
+                <menu>
+                    <item
+                        android:id="@+id/menu_emulation_set_ir_sensitivity"
+                        android:title="@string/emulation_ir_sensitivity"
+                        app:showAsAction="ifRoom"/>
+                    <item
+                        android:id="@+id/menu_emulation_choose_doubletap"
+                        android:title="@string/emulation_choose_doubletap"
+                        app:showAsAction="ifRoom"/>
+                </menu>
+            </item>
             <item
                 android:id="@+id/menu_emulation_reset_overlay"
                 android:title="@string/emulation_touch_overlay_reset"/>
         </menu>
     </item>
+
+    <item
+        android:id="@+id/menu_change_disc"
+        app:showAsAction="never"
+        android:title="@string/emulation_change_disc"/>
 
 </menu>

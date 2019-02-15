@@ -28,6 +28,8 @@
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 
 // Create func_t function pointer type and declare a nullptr-initialized static variable of that
@@ -436,6 +438,8 @@ int ReadFromHandle(HANDLE& dev_handle, u8* buf)
 
 bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& method)
 {
+  using namespace WiimoteCommon;
+
   HANDLE dev_handle = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE,
                                  FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
                                  FILE_FLAG_OVERLAPPED, nullptr);
@@ -445,7 +449,7 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
   Common::ScopeGuard handle_guard{[&dev_handle] { CloseHandle(dev_handle); }};
 
   u8 buf[MAX_PAYLOAD];
-  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
+  u8 const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
   int invalid_report_count = 0;
   int rc = WriteToHandle(dev_handle, method, req_status_report, sizeof(req_status_report));
   while (rc > 0)
@@ -454,9 +458,9 @@ bool IsWiimote(const std::basic_string<TCHAR>& device_path, WinWriteMethod& meth
     if (rc <= 0)
       break;
 
-    switch (buf[1])
+    switch (InputReportID(buf[1]))
     {
-    case RT_STATUS_REPORT:
+    case InputReportID::Status:
       return true;
     default:
       WARN_LOG(WIIMOTE, "IsWiimote(): Received unexpected report %02x", buf[1]);
@@ -691,34 +695,25 @@ bool WiimoteWindows::IsConnected() const
 }
 
 // See http://wiibrew.org/wiki/Wiimote for the Report IDs and its sizes
-size_t GetReportSize(u8 report_id)
+size_t GetReportSize(u8 rid)
 {
+  using namespace WiimoteCommon;
+
+  const auto report_id = static_cast<InputReportID>(rid);
+
   switch (report_id)
   {
-  case RT_STATUS_REPORT:
-    return sizeof(wm_status_report);
-  case RT_READ_DATA_REPLY:
-    return sizeof(wm_read_data_reply);
-  case RT_ACK_DATA:
-    return sizeof(wm_acknowledge);
-  case RT_REPORT_CORE:
-    return sizeof(wm_report_core);
-  case RT_REPORT_CORE_ACCEL:
-    return sizeof(wm_report_core_accel);
-  case RT_REPORT_CORE_EXT8:
-    return sizeof(wm_report_core_ext8);
-  case RT_REPORT_CORE_ACCEL_IR12:
-    return sizeof(wm_report_core_accel_ir12);
-  case RT_REPORT_CORE_EXT19:
-  case RT_REPORT_CORE_ACCEL_EXT16:
-  case RT_REPORT_CORE_IR10_EXT9:
-  case RT_REPORT_CORE_ACCEL_IR10_EXT6:
-  case RT_REPORT_EXT21:
-  case RT_REPORT_INTERLEAVE1:
-  case RT_REPORT_INTERLEAVE2:
-    return sizeof(wm_report_ext21);
+  case InputReportID::Status:
+    return sizeof(InputReportStatus);
+  case InputReportID::ReadDataReply:
+    return sizeof(InputReportReadDataReply);
+  case InputReportID::Ack:
+    return sizeof(InputReportAck);
   default:
-    return 0;
+    if (DataReportBuilder::IsValidMode(report_id))
+      return MakeDataReportManipulator(report_id, nullptr)->GetDataSize();
+    else
+      return 0;
   }
 }
 
@@ -1004,4 +999,4 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 
   return false;
 }
-}
+}  // namespace WiimoteReal

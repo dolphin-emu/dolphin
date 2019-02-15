@@ -337,8 +337,8 @@ static void AddBind(const std::string& dev, sBind* bind)
 
 void Init(const std::string& gameId)
 {
-  // Initialize our touchScreenKey buttons
-  for (int a = 0; a < 8; ++a)
+  // Initialize pad 0(gc 1) and pad 4(wii 1) as touch overlay controller
+  for (int a = 0; a < 5; a += 4)
   {
     // GC
     AddBind(touchScreenKey, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));

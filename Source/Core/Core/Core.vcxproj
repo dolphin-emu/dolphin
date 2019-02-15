@@ -171,14 +171,20 @@
     <ClCompile Include="HW\SystemTimers.cpp" />
     <ClCompile Include="HW\VideoInterface.cpp" />
     <ClCompile Include="HW\Wiimote.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Attachment.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Classic.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Drums.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Guitar.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Nunchuk.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Turntable.cpp" />
+    <ClCompile Include="HW\WiimoteCommon\DataReport.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Camera.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Dynamics.cpp" />
     <ClCompile Include="HW\WiimoteEmu\EmuSubroutines.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Encryption.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\ExtensionPort.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Classic.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Drums.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Extension.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Guitar.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Nunchuk.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Turntable.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\I2CBus.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\MotionPlus.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Speaker.cpp" />
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp" />
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
@@ -279,7 +285,6 @@
     <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
@@ -431,19 +436,24 @@
     <ClInclude Include="HW\SystemTimers.h" />
     <ClInclude Include="HW\VideoInterface.h" />
     <ClInclude Include="HW\Wiimote.h" />
+    <ClInclude Include="HW\WiimoteCommon\DataReport.h" />
     <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h" />
     <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Attachment.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Classic.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Drums.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Guitar.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Nunchuk.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h" />
+    <ClInclude Include="HW\WiimoteEmu\Camera.h" />
+    <ClInclude Include="HW\WiimoteEmu\Dynamics.h" />
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
-    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
+    <ClInclude Include="HW\WiimoteEmu\ExtensionPort.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Classic.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Drums.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Extension.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Guitar.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Nunchuk.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Turntable.h" />
+    <ClInclude Include="HW\WiimoteEmu\I2CBus.h" />
+    <ClInclude Include="HW\WiimoteEmu\MotionPlus.h" />
+    <ClInclude Include="HW\WiimoteEmu\Speaker.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />
-    <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="HW\WiiSave.h" />
@@ -523,7 +533,7 @@
     <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h" />
     <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h" />
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h" />
     <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h" />
@@ -597,6 +607,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
       <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)minizip\minizip.vcxproj">
+      <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -46,7 +46,6 @@
     <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="ProgramShaderCache.cpp" />
-    <ClCompile Include="RasterFont.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
     <ClCompile Include="StreamBuffer.cpp" />
@@ -64,7 +63,6 @@
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="ProgramShaderCache.h" />
-    <ClInclude Include="RasterFont.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="StreamBuffer.h" />

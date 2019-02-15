@@ -19,7 +19,7 @@ public class PicassoUtils
     File cover = new File(gameFile.getCustomCoverPath());
     if (cover.exists())
     {
-      Picasso.with(imageView.getContext())
+      Picasso.get()
               .load(cover)
               .noFade()
               .noPlaceholder()
@@ -31,7 +31,7 @@ public class PicassoUtils
     }
     else if ((cover = new File(gameFile.getCoverPath())).exists())
     {
-      Picasso.with(imageView.getContext())
+      Picasso.get()
               .load(cover)
               .noFade()
               .noPlaceholder()
@@ -47,7 +47,7 @@ public class PicassoUtils
      */
     else
     {
-      Picasso.with(imageView.getContext())
+      Picasso.get()
               .load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
               .noFade()
               .noPlaceholder()
@@ -65,9 +65,9 @@ public class PicassoUtils
                 }
 
                 @Override
-                public void onError() // Second pass using US region
+                public void onError(Exception ex) // Second pass using US region
                 {
-                  Picasso.with(imageView.getContext())
+                  Picasso.get()
                           .load(CoverHelper.buildGameTDBUrl(gameFile, "US"))
                           .fit()
                           .noFade()
@@ -87,9 +87,9 @@ public class PicassoUtils
                             }
 
                             @Override
-                            public void onError() // Third and last pass using EN region
+                            public void onError(Exception ex) // Third and last pass using EN region
                             {
-                              Picasso.with(imageView.getContext())
+                              Picasso.get()
                                       .load(CoverHelper.buildGameTDBUrl(gameFile, "EN"))
                                       .fit()
                                       .noFade()
@@ -110,7 +110,7 @@ public class PicassoUtils
                                         }
 
                                         @Override
-                                        public void onError()
+                                        public void onError(Exception ex)
                                         {
                                         }
                                       });

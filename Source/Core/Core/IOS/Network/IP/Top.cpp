@@ -972,7 +972,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   // So we have to do a bit of juggling here.
   std::string nodeNameStr;
   const char* pNodeName = nullptr;
-  if (request.in_vectors.size() > 0 && request.in_vectors[0].size > 0)
+  if (!request.in_vectors.empty() && request.in_vectors[0].size > 0)
   {
     nodeNameStr = Memory::GetString(request.in_vectors[0].address, request.in_vectors[0].size);
     pNodeName = nodeNameStr.c_str();

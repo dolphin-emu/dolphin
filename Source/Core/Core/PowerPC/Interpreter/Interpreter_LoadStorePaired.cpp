@@ -176,8 +176,8 @@ void Interpreter::Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW)
   const EQuantizeType stType = gqr.st_type;
   const unsigned int stScale = gqr.st_scale;
 
-  const double ps0 = rPS0(instRS);
-  const double ps1 = rPS1(instRS);
+  const double ps0 = rPS(instRS).PS0AsDouble();
+  const double ps1 = rPS(instRS).PS1AsDouble();
 
   switch (stType)
   {
@@ -301,8 +301,7 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
     return;
   }
 
-  rPS0(instRD) = ps0;
-  rPS1(instRD) = ps1;
+  rPS(instRD).SetBoth(ps0, ps1);
 }
 
 void Interpreter::psq_l(UGeckoInstruction inst)

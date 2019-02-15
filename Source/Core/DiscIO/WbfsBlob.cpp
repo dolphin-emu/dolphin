@@ -58,7 +58,7 @@ void WbfsFileReader::OpenAdditionalFiles(const std::string& path)
   if (path.length() < 4)
     return;
 
-  ASSERT(m_files.size() > 0);  // The code below gives .wbf0 for index 0, but it should be .wbfs
+  ASSERT(!m_files.empty());  // The code below gives .wbf0 for index 0, but it should be .wbfs
 
   while (true)
   {

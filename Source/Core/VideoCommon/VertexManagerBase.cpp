@@ -27,6 +27,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/SamplerCommon.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -131,7 +132,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   // need to alloc new buffer
   if (m_is_flushed)
   {
-    g_vertex_manager->ResetBuffer(stride);
+    g_vertex_manager->ResetBuffer(stride, cullall);
     m_is_flushed = false;
   }
 
@@ -207,6 +208,28 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   m_flush_count_4_3 = 0;
   m_flush_count_anamorphic = 0;
   return val;
+}
+
+void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_stride,
+                                              u32 num_vertices, const u16* indices, u32 num_indices,
+                                              u32* out_base_vertex, u32* out_base_index)
+{
+  // The GX vertex list should be flushed before any utility draws occur.
+  ASSERT(m_is_flushed);
+
+  // Copy into the buffers usually used for GX drawing.
+  ResetBuffer(std::max(vertex_stride, 1u), false);
+  if (vertices)
+  {
+    const u32 copy_size = vertex_stride * num_vertices;
+    ASSERT((m_cur_buffer_pointer + copy_size) <= m_end_buffer_pointer);
+    std::memcpy(m_cur_buffer_pointer, vertices, copy_size);
+    m_cur_buffer_pointer += copy_size;
+  }
+  if (indices)
+    IndexGenerator::AddExternalIndices(indices, num_indices, num_vertices);
+
+  CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
 }
 
 static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
@@ -384,19 +407,35 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
+    // Update and upload constants. Note for the Vulkan backend, this must occur before the
+    // vertex/index buffer is committed, otherwise the data will be associated with the
+    // previous command buffer, instead of the one with the draw if there is an overflow.
+    GeometryShaderManager::SetConstants();
+    PixelShaderManager::SetConstants();
+    UploadConstants();
+
+    // Now the vertices can be flushed to the GPU.
+    const u32 num_indices = IndexGenerator::GetIndexLen();
+    u32 base_vertex, base_index;
+    CommitBuffer(IndexGenerator::GetNumVerts(),
+                 VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(), num_indices,
+                 &base_vertex, &base_index);
+
     // Update the pipeline, or compile one if needed.
     UpdatePipelineConfig();
     UpdatePipelineObject();
+    if (m_current_pipeline_object)
+    {
+      g_renderer->SetPipeline(m_current_pipeline_object);
+      if (PerfQueryBase::ShouldEmulate())
+        g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
-    // set the rest of the global constants
-    GeometryShaderManager::SetConstants();
-    PixelShaderManager::SetConstants();
+      DrawCurrentBatch(base_index, num_indices, base_vertex);
+      INCSTAT(stats.thisFrame.numDrawCalls);
 
-    if (PerfQueryBase::ShouldEmulate())
-      g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-    g_vertex_manager->vFlush();
-    if (PerfQueryBase::ShouldEmulate())
-      g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+      if (PerfQueryBase::ShouldEmulate())
+        g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+    }
   }
 
   GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
@@ -413,7 +452,6 @@ void VertexManagerBase::Flush()
 void VertexManagerBase::DoState(PointerWrap& p)
 {
   p.Do(m_zslope);
-  g_vertex_manager->vDoState(p);
 }
 
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)

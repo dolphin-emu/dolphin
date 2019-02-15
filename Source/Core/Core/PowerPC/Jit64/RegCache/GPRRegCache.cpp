@@ -4,8 +4,8 @@
 
 #include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
 
+#include "Common/x64Reg.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 using namespace Gen;

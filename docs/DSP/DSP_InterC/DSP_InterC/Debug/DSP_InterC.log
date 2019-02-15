@@ -1,0 +1,20 @@
+﻿cl : Command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
+  stdafx.cpp
+c:\users\robin\source\repos\dolphin\docs\dsp\dsp_interc\dsp_interc\stdafx.cpp(18): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(1469): note: see declaration of 'vsprintf'
+cl : Command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
+  OutBuffer.cpp
+c:\users\robin\source\repos\dolphin\docs\dsp\dsp_interc\dsp_interc\outbuffer.cpp(23): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(1469): note: see declaration of 'vsprintf'
+c:\users\robin\source\repos\dolphin\docs\dsp\dsp_interc\dsp_interc\outbuffer.cpp(35): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(1469): note: see declaration of 'vsprintf'
+c:\users\robin\source\repos\dolphin\docs\dsp\dsp_interc\dsp_interc\outbuffer.cpp(151): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(1774): note: see declaration of 'sprintf'
+  DSPOpcodes.cpp
+  DSPExt.cpp
+  DSP_InterC.cpp
+c:\users\robin\source\repos\dolphin\docs\dsp\dsp_interc\dsp_interc\dsp_interc.cpp(37): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: see declaration of 'fopen'
+  Generating Code...
+DSP_InterC.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
+  DSP_InterC.vcxproj -> C:\Users\Robin\Source\Repos\dolphin\docs\DSP\DSP_InterC\Debug\DSP_InterC.exe

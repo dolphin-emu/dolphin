@@ -35,7 +35,7 @@ public:
   // want to ensure this number is big enough.
   static constexpr size_t CODE_SIZE = 16384;
 
-  explicit Jit64AsmRoutineManager(JitBase& jit);
+  explicit Jit64AsmRoutineManager(Jit64& jit);
 
   void Init(u8* stack_top);
 

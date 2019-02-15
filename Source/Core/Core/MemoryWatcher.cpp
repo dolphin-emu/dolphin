@@ -67,7 +67,7 @@ bool MemoryWatcher::LoadAddresses(const std::string& path)
   while (std::getline(locations, line))
     ParseLine(line);
 
-  return m_values.size() > 0;
+  return !m_values.empty();
 }
 
 void MemoryWatcher::ParseLine(const std::string& line)

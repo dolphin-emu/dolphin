@@ -143,7 +143,7 @@ public:
       else if (file.type == SaveFile::Type::Directory)
       {
         const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path);
-        if (!meta || meta->is_file)
+        if (meta && meta->is_file)
           return false;
 
         const FS::ResultCode result = m_fs->CreateDirectory(*m_uid, *m_gid, path, 0, modes);

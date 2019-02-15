@@ -48,14 +48,29 @@ SWVertexLoader::~SWVertexLoader()
 {
 }
 
-void SWVertexLoader::ResetBuffer(u32 stride)
+void SWVertexLoader::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+{
+}
+
+void SWVertexLoader::ResetBuffer(u32 vertex_stride, bool cull_all)
 {
   m_cur_buffer_pointer = m_base_buffer_pointer = m_local_vertex_buffer.data();
   m_end_buffer_pointer = m_cur_buffer_pointer + m_local_vertex_buffer.size();
   IndexGenerator::Start(m_local_index_buffer.data());
 }
 
-void SWVertexLoader::vFlush()
+void SWVertexLoader::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+                                  u32* out_base_vertex, u32* out_base_index)
+{
+  *out_base_vertex = 0;
+  *out_base_index = 0;
+}
+
+void SWVertexLoader::UploadConstants()
+{
+}
+
+void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   DebugUtil::OnObjectBegin();
 

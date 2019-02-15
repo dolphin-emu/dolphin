@@ -4,22 +4,31 @@
 
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QIcon>
 #include <QKeyEvent>
+#include <QMessageBox>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
 
+#include "imgui.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/State.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -27,6 +36,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(QStringLiteral("Dolphin"));
   setWindowIcon(Resources::GetAppIcon());
+  setAcceptDrops(true);
 
   QPalette p;
   p.setColor(QPalette::Background, Qt::black);
@@ -42,6 +52,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     SetFillBackground(SConfig::GetInstance().bRenderToMain && state == Core::State::Uninitialized);
+    if (state == Core::State::Running)
+      SetImGuiKeyMap();
   });
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
@@ -81,6 +93,37 @@ void RenderWidget::SetFillBackground(bool fill)
   setAutoFillBackground(fill);
 }
 
+void RenderWidget::dragEnterEvent(QDragEnterEvent* event)
+{
+  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+    event->acceptProposedAction();
+}
+
+void RenderWidget::dropEvent(QDropEvent* event)
+{
+  const auto& urls = event->mimeData()->urls();
+  if (urls.empty())
+    return;
+
+  const auto& url = urls[0];
+  QFileInfo file_info(url.toLocalFile());
+
+  auto path = file_info.filePath();
+
+  if (!file_info.exists() || !file_info.isReadable())
+  {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+    return;
+  }
+
+  if (!file_info.isFile())
+  {
+    return;
+  }
+
+  State::LoadAs(path.toStdString());
+}
+
 void RenderWidget::OnHideCursorChanged()
 {
   setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
@@ -115,6 +158,8 @@ void RenderWidget::showFullScreen()
 
 bool RenderWidget::event(QEvent* event)
 {
+  PassEventToImGui(event);
+
   switch (event->type())
   {
   case QEvent::Paint:
@@ -205,4 +250,89 @@ void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
 
   m_last_mouse[0] = event->x();
   m_last_mouse[1] = event->y();
+}
+
+void RenderWidget::PassEventToImGui(const QEvent* event)
+{
+  if (!Core::IsRunningAndStarted())
+    return;
+
+  switch (event->type())
+  {
+  case QEvent::KeyPress:
+  case QEvent::KeyRelease:
+  {
+    // As the imgui KeysDown array is only 512 elements wide, and some Qt keys which
+    // we need to track (e.g. alt) are above this value, we mask the lower 9 bits.
+    // Even masked, the key codes are still unique, so conflicts aren't an issue.
+    // The actual text input goes through AddInputCharactersUTF8().
+    const QKeyEvent* key_event = static_cast<const QKeyEvent*>(event);
+    const bool is_down = event->type() == QEvent::KeyPress;
+    const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
+    auto lock = g_renderer->GetImGuiLock();
+    if (key < ArraySize(ImGui::GetIO().KeysDown))
+      ImGui::GetIO().KeysDown[key] = is_down;
+
+    if (is_down)
+    {
+      auto utf8 = key_event->text().toUtf8();
+      ImGui::GetIO().AddInputCharactersUTF8(utf8.constData());
+    }
+  }
+  break;
+
+  case QEvent::MouseMove:
+  {
+    auto lock = g_renderer->GetImGuiLock();
+
+    // Qt multiplies all coordinates by the scaling factor in highdpi mode, giving us "scaled" mouse
+    // coordinates (as if the screen was standard dpi). We need to update the mouse position in
+    // native coordinates, as the UI (and game) is rendered at native resolution.
+    const float scale = devicePixelRatio();
+    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->x() * scale;
+    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->y() * scale;
+  }
+  break;
+
+  case QEvent::MouseButtonPress:
+  case QEvent::MouseButtonRelease:
+  {
+    auto lock = g_renderer->GetImGuiLock();
+    const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
+    for (size_t i = 0; i < ArraySize(ImGui::GetIO().MouseDown); i++)
+      ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
+  }
+  break;
+
+  default:
+    break;
+  }
+}
+
+void RenderWidget::SetImGuiKeyMap()
+{
+  static const int key_map[][2] = {{ImGuiKey_Tab, Qt::Key_Tab},
+                                   {ImGuiKey_LeftArrow, Qt::Key_Left},
+                                   {ImGuiKey_RightArrow, Qt::Key_Right},
+                                   {ImGuiKey_UpArrow, Qt::Key_Up},
+                                   {ImGuiKey_DownArrow, Qt::Key_Down},
+                                   {ImGuiKey_PageUp, Qt::Key_PageUp},
+                                   {ImGuiKey_PageDown, Qt::Key_PageDown},
+                                   {ImGuiKey_Home, Qt::Key_Home},
+                                   {ImGuiKey_End, Qt::Key_End},
+                                   {ImGuiKey_Insert, Qt::Key_Insert},
+                                   {ImGuiKey_Delete, Qt::Key_Delete},
+                                   {ImGuiKey_Backspace, Qt::Key_Backspace},
+                                   {ImGuiKey_Space, Qt::Key_Space},
+                                   {ImGuiKey_Enter, Qt::Key_Enter},
+                                   {ImGuiKey_Escape, Qt::Key_Escape},
+                                   {ImGuiKey_A, Qt::Key_A},
+                                   {ImGuiKey_C, Qt::Key_C},
+                                   {ImGuiKey_V, Qt::Key_V},
+                                   {ImGuiKey_X, Qt::Key_X},
+                                   {ImGuiKey_Y, Qt::Key_Y},
+                                   {ImGuiKey_Z, Qt::Key_Z}};
+  auto lock = g_renderer->GetImGuiLock();
+  for (size_t i = 0; i < ArraySize(key_map); i++)
+    ImGui::GetIO().KeyMap[key_map[i][0]] = (key_map[i][1] & 0x1FF);
 }

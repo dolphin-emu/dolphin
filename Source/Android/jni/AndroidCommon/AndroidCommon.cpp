@@ -5,6 +5,7 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 #include <string>
+#include <vector>
 
 #include <jni.h>
 
@@ -23,4 +24,16 @@ std::string GetJString(JNIEnv* env, jstring jstr)
 jstring ToJString(JNIEnv* env, const std::string& str)
 {
   return env->NewStringUTF(str.c_str());
+}
+
+std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
+{
+  const jsize size = env->GetArrayLength(array);
+  std::vector<std::string> result;
+  result.reserve(size);
+
+  for (jsize i = 0; i < size; ++i)
+    result.push_back(GetJString(env, (jstring)env->GetObjectArrayElement(array, i)));
+
+  return result;
 }

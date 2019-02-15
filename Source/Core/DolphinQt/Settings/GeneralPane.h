@@ -44,6 +44,7 @@ private:
   QComboBox* m_combobox_update_track;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
+  QCheckBox* m_checkbox_auto_disc_change;
 #ifdef USE_DISCORD_PRESENCE
   QCheckBox* m_checkbox_discord_presence;
 #endif

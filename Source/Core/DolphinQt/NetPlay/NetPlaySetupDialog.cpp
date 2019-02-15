@@ -35,6 +35,8 @@ NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
   int connect_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
   int host_port = Config::Get(Config::NETPLAY_HOST_PORT);
   int host_listen_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
+  bool enable_chunked_upload_limit = Config::Get(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT);
+  u32 chunked_upload_limit = Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT);
 #ifdef USE_UPNP
   bool use_upnp = Config::Get(Config::NETPLAY_USE_UPNP);
 
@@ -49,6 +51,10 @@ NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
   m_host_force_port_check->setChecked(false);
   m_host_force_port_box->setValue(host_listen_port);
   m_host_force_port_box->setEnabled(false);
+
+  m_host_chunked_upload_limit_check->setChecked(enable_chunked_upload_limit);
+  m_host_chunked_upload_limit_box->setValue(chunked_upload_limit);
+  m_host_chunked_upload_limit_box->setEnabled(enable_chunked_upload_limit);
 
   OnConnectionTypeChanged(m_connection_type->currentIndex());
 
@@ -81,14 +87,17 @@ void NetPlaySetupDialog::CreateMainLayout()
   connection_layout->addWidget(m_connect_port_label, 0, 2);
   connection_layout->addWidget(m_connect_port_box, 0, 3);
   connection_layout->addWidget(
-      new QLabel(tr(
-          "ALERT:\n\n"
-          "All players must use the same Dolphin version.\n"
-          "All memory cards, SD cards and cheats must be identical between players or disabled.\n"
-          "If DSP LLE is used, DSP ROMs must be identical between players.\n"
-          "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
-          "\n"
-          "Wii Remote support in netplay is experimental and should not be expected to work.\n")),
+      new QLabel(
+          tr("ALERT:\n\n"
+             "All players must use the same Dolphin version.\n"
+             "If enabled, SD cards must be identical between players.\n"
+             "If DSP LLE is used, DSP ROMs must be identical between players.\n"
+             "If a game is hanging on boot, it may not support Dual Core Netplay."
+             " Disable Dual Core.\n"
+             "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
+             "\n"
+             "Wii Remote support in netplay is experimental and may not work correctly.\n"
+             "Use at your own risk.\n")),
       1, 0, -1, -1);
   connection_layout->addWidget(m_connect_button, 3, 3, Qt::AlignRight);
 
@@ -101,6 +110,8 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_port_box = new QSpinBox;
   m_host_force_port_check = new QCheckBox(tr("Force Listen Port:"));
   m_host_force_port_box = new QSpinBox;
+  m_host_chunked_upload_limit_check = new QCheckBox(tr("Limit Chunked Upload Speed:"));
+  m_host_chunked_upload_limit_box = new QSpinBox;
 
 #ifdef USE_UPNP
   m_host_upnp = new QCheckBox(tr("Forward port (UPnP)"));
@@ -110,6 +121,12 @@ void NetPlaySetupDialog::CreateMainLayout()
 
   m_host_port_box->setMaximum(65535);
   m_host_force_port_box->setMaximum(65535);
+  m_host_chunked_upload_limit_box->setRange(1, 1000000);
+  m_host_chunked_upload_limit_box->setSingleStep(100);
+  m_host_chunked_upload_limit_box->setSuffix(QStringLiteral(" kbps"));
+
+  m_host_chunked_upload_limit_check->setToolTip(tr(
+      "This will limit the speed of chunked uploading per client, which is used for save sync."));
 
   host_layout->addWidget(m_host_port_label, 0, 0);
   host_layout->addWidget(m_host_port_box, 0, 1);
@@ -119,7 +136,9 @@ void NetPlaySetupDialog::CreateMainLayout()
   host_layout->addWidget(m_host_games, 1, 0, 1, -1);
   host_layout->addWidget(m_host_force_port_check, 2, 0);
   host_layout->addWidget(m_host_force_port_box, 2, 1, Qt::AlignLeft);
-  host_layout->addWidget(m_host_button, 2, 2, Qt::AlignRight);
+  host_layout->addWidget(m_host_chunked_upload_limit_check, 3, 0);
+  host_layout->addWidget(m_host_chunked_upload_limit_box, 3, 1, Qt::AlignLeft);
+  host_layout->addWidget(m_host_button, 2, 2, 2, 1, Qt::AlignRight);
 
   host_widget->setLayout(host_layout);
 
@@ -163,7 +182,14 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
 
   connect(m_host_force_port_check, &QCheckBox::toggled,
-          [this](int value) { m_host_force_port_box->setEnabled(value); });
+          [this](bool value) { m_host_force_port_box->setEnabled(value); });
+  connect(m_host_chunked_upload_limit_check, &QCheckBox::toggled, this, [this](bool value) {
+    m_host_chunked_upload_limit_box->setEnabled(value);
+    SaveSettings();
+  });
+  connect(m_host_chunked_upload_limit_box,
+          static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+          &NetPlaySetupDialog::SaveSettings);
 #ifdef USE_UPNP
   connect(m_host_upnp, &QCheckBox::stateChanged, this, &NetPlaySetupDialog::SaveSettings);
 #endif
@@ -191,6 +217,11 @@ void NetPlaySetupDialog::SaveSettings()
   if (m_host_force_port_check->isChecked())
     Config::SetBaseOrCurrent(Config::NETPLAY_LISTEN_PORT,
                              static_cast<u16>(m_host_force_port_box->value()));
+
+  Config::SetBaseOrCurrent(Config::NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT,
+                           m_host_chunked_upload_limit_check->isChecked());
+  Config::SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
+                           m_host_chunked_upload_limit_box->value());
 }
 
 void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
@@ -234,7 +265,7 @@ void NetPlaySetupDialog::accept()
   else
   {
     auto items = m_host_games->selectedItems();
-    if (items.size() == 0)
+    if (items.empty())
     {
       QMessageBox::critical(this, tr("Error"), tr("You must select a game to host!"));
       return;

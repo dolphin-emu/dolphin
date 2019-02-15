@@ -64,8 +64,8 @@ void GeckoReturnTrampoline()
   PowerPC::ExpandCR(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)
   {
-    riPS0(i) = PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64));
-    riPS1(i) = PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64));
+    rPS(i).SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),
+                   PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
   }
 }
 }

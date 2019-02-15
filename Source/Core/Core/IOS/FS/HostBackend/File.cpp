@@ -8,6 +8,8 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 namespace IOS::HLE::FS
@@ -32,29 +34,45 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   //    - The Beatles: Rock Band (saving doesn't work)
 
   // Check if the file has already been opened.
-  std::shared_ptr<File::IOFile> file;
   auto search = m_open_files.find(host_path);
   if (search != m_open_files.end())
   {
-    file = search->second.lock();  // Lock a shared pointer to use.
+    // Lock a shared pointer to use.
+    return search->second.lock();
   }
-  else
+
+  // All files are opened read/write. Actual access rights will be controlled per handle by the
+  // read/write functions below
+  File::IOFile file;
+  while (!file.Open(host_path, "r+b"))
   {
-    // This code will be called when all references to the shared pointer below have been removed.
-    auto deleter = [this, host_path](File::IOFile* ptr) {
-      delete ptr;                     // IOFile's deconstructor closes the file.
-      m_open_files.erase(host_path);  // erase the weak pointer from the list of open files.
-    };
+    const bool try_again =
+        PanicYesNo("File \"%s\" could not be opened!\n"
+                   "This may happen with improper permissions or use by another process.\n"
+                   "Press \"Yes\" to make another attempt.",
+                   host_path.c_str());
 
-    // All files are opened read/write. Actual access rights will be controlled per handle by the
-    // read/write functions below
-    file = std::shared_ptr<File::IOFile>(new File::IOFile(host_path, "r+b"),
-                                         deleter);  // Use the custom deleter from above.
-
-    // Store a weak pointer to our newly opened file in the cache.
-    m_open_files[host_path] = std::weak_ptr<File::IOFile>(file);
+    if (!try_again)
+    {
+      // We've failed to open the file:
+      ERROR_LOG(IOS_FS, "OpenHostFile %s", host_path.c_str());
+      return nullptr;
+    }
   }
-  return file;
+
+  // This code will be called when all references to the shared pointer below have been removed.
+  auto deleter = [this, host_path](File::IOFile* ptr) {
+    delete ptr;                     // IOFile's deconstructor closes the file.
+    m_open_files.erase(host_path);  // erase the weak pointer from the list of open files.
+  };
+
+  // Use the custom deleter from above.
+  std::shared_ptr<File::IOFile> file_ptr(new File::IOFile(std::move(file)), deleter);
+
+  // Store a weak pointer to our newly opened file in the cache.
+  m_open_files[host_path] = std::weak_ptr<File::IOFile>(file_ptr);
+
+  return file_ptr;
 }
 
 Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, Mode mode)
@@ -71,6 +89,12 @@ Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, M
   }
 
   handle->host_file = OpenHostFile(host_path);
+  if (!handle->host_file)
+  {
+    *handle = Handle{};
+    return ResultCode::AccessDenied;
+  }
+
   handle->wii_path = path;
   handle->mode = mode;
   handle->file_offset = 0;

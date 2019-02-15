@@ -111,10 +111,13 @@ void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
+void SetDisc(std::unique_ptr<DiscIO::Volume> disc,
+             std::optional<std::vector<std::string>> auto_disc_change_paths);
 bool IsDiscInside();
-void EjectDisc();                              // Must only be called on the CPU thread
-void ChangeDisc(const std::string& new_path);  // Must only be called on the CPU thread
+void EjectDisc();                                        // Must only be called on the CPU thread
+void ChangeDisc(const std::vector<std::string>& paths);  // Must only be called on the CPU thread
+void ChangeDisc(const std::string& new_path);            // Must only be called on the CPU thread
+bool AutoChangeDisc();                                   // Must only be called on the CPU thread
 
 // This function returns true and calls SConfig::SetRunningGameMetadata(Volume&, Partition&)
 // if both of the following conditions are true:

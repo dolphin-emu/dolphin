@@ -13,6 +13,7 @@ enum EQuantizeType : u32;
 class QuantizedMemoryRoutines : public EmuCodeBlock
 {
 public:
+  explicit QuantizedMemoryRoutines(Jit64& jit) : EmuCodeBlock(jit) {}
   void GenQuantizedLoad(bool single, EQuantizeType type, int quantize);
   void GenQuantizedStore(bool single, EQuantizeType type, int quantize);
 
@@ -24,6 +25,7 @@ private:
 class CommonAsmRoutines : public CommonAsmRoutinesBase, public QuantizedMemoryRoutines
 {
 public:
+  explicit CommonAsmRoutines(Jit64& jit) : QuantizedMemoryRoutines(jit) {}
   void GenFrsqrte();
   void GenFres();
   void GenMfcr();

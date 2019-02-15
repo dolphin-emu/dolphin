@@ -39,6 +39,7 @@ public:
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
   s32 Rename(std::string source, std::string dest) const;
+  void SetHomeDir(const std::string& home_dir);
 
 private:
   // WFS device name, e.g. msc01/msc02.

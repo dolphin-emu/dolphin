@@ -10,8 +10,6 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
-JitBase* g_jit;
-
 const u8* JitBase::Dispatch(JitBase& jit)
 {
   return jit.GetBlockCache()->Dispatch();
