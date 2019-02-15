@@ -76,10 +76,6 @@ public:
   {
     return m_device_features.samplerAnisotropy == VK_TRUE;
   }
-  bool SupportsGeometryShaders() const { return m_device_features.geometryShader == VK_TRUE; }
-  bool SupportsDualSourceBlend() const { return m_device_features.dualSrcBlend == VK_TRUE; }
-  bool SupportsLogicOps() const { return m_device_features.logicOp == VK_TRUE; }
-  bool SupportsBoundingBox() const { return m_device_features.fragmentStoresAndAtomics == VK_TRUE; }
   bool SupportsPreciseOcclusionQueries() const
   {
     return m_device_features.occlusionQueryPrecise == VK_TRUE;

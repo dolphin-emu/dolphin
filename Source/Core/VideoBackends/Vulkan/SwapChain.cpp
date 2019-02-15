@@ -13,6 +13,8 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/RenderBase.h"
 
@@ -32,7 +34,6 @@ SwapChain::~SwapChain()
   DestroySwapChainImages();
   DestroySwapChain();
   DestroySurface();
-  DestroySemaphores();
 }
 
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSystemInfo& wsi)
@@ -130,51 +131,10 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurf
                                              bool vsync)
 {
   std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
-  if (!swap_chain->CreateSemaphores() || !swap_chain->CreateSwapChain() ||
-      !swap_chain->SetupSwapChainImages())
-  {
+  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
     return nullptr;
-  }
 
   return swap_chain;
-}
-
-bool SwapChain::CreateSemaphores()
-{
-  // Create two semaphores, one that is triggered when the swapchain buffer is ready, another after
-  // submit and before present
-  VkSemaphoreCreateInfo semaphore_info = {
-      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // VkStructureType          sType
-      nullptr,                                  // const void*              pNext
-      0                                         // VkSemaphoreCreateFlags   flags
-  };
-
-  VkResult res;
-  if ((res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
-                               &m_image_available_semaphore)) != VK_SUCCESS ||
-      (res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
-                               &m_rendering_finished_semaphore)) != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
-    return false;
-  }
-
-  return true;
-}
-
-void SwapChain::DestroySemaphores()
-{
-  if (m_image_available_semaphore)
-  {
-    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_image_available_semaphore, nullptr);
-    m_image_available_semaphore = VK_NULL_HANDLE;
-  }
-
-  if (m_rendering_finished_semaphore)
-  {
-    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_rendering_finished_semaphore, nullptr);
-    m_rendering_finished_semaphore = VK_NULL_HANDLE;
-  }
 }
 
 bool SwapChain::SelectSurfaceFormat()
@@ -207,7 +167,7 @@ bool SwapChain::SelectSurfaceFormat()
     // Some drivers seem to return a SRGB format here (Intel Mesa).
     // This results in gamma correction when presenting to the screen, which we don't want.
     // Use a linear format instead, if this is the case.
-    VkFormat format = Util::GetLinearFormat(surface_format.format);
+    VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
     if (format == VK_FORMAT_R8G8B8A8_UNORM)
       m_texture_format = AbstractTextureFormat::RGBA8;
     else if (format == VK_FORMAT_B8G8R8A8_UNORM)
@@ -399,11 +359,13 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
-  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
-                                                VK_ATTACHMENT_LOAD_OP_LOAD);
-  m_clear_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED,
-                                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
-  if (m_render_pass == VK_NULL_HANDLE || m_clear_render_pass == VK_NULL_HANDLE)
+  const TextureConfig texture_config(TextureConfig(
+      m_width, m_height, 1, m_layers, 1, m_texture_format, AbstractTextureFlag_RenderTarget));
+  const VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
+      m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_LOAD);
+  const VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(
+      m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+  if (load_render_pass == VK_NULL_HANDLE || clear_render_pass == VK_NULL_HANDLE)
   {
     PanicAlert("Failed to get swap chain render passes.");
     return false;
@@ -416,26 +378,17 @@ bool SwapChain::SetupSwapChainImages()
     image.image = images[i];
 
     // Create texture object, which creates a view of the backbuffer
-    image.texture = Texture2D::CreateFromExistingImage(
-        m_width, m_height, 1, 1, m_surface_format.format, VK_SAMPLE_COUNT_1_BIT,
-        VK_IMAGE_VIEW_TYPE_2D, image.image);
+    image.texture =
+        VKTexture::CreateAdopted(texture_config, image.image,
+                                 m_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
+                                 VK_IMAGE_LAYOUT_UNDEFINED);
+    if (!image.texture)
+      return false;
 
-    VkImageView view = image.texture->GetView();
-    VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                                nullptr,
-                                                0,
-                                                m_render_pass,
-                                                1,
-                                                &view,
-                                                m_width,
-                                                m_height,
-                                                m_layers};
-
-    res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
-                              &image.framebuffer);
-    if (res != VK_SUCCESS)
+    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr);
+    if (!image.framebuffer)
     {
-      LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+      image.texture.reset();
       return false;
     }
 
@@ -447,10 +400,11 @@ bool SwapChain::SetupSwapChainImages()
 
 void SwapChain::DestroySwapChainImages()
 {
-  for (const auto& it : m_swap_chain_images)
+  for (auto& it : m_swap_chain_images)
   {
     // Images themselves are cleaned up by the swap chain object
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), it.framebuffer, nullptr);
+    it.framebuffer.reset();
+    it.texture.reset();
   }
   m_swap_chain_images.clear();
 }
@@ -467,8 +421,8 @@ void SwapChain::DestroySwapChain()
 VkResult SwapChain::AcquireNextImage()
 {
   VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                                       m_image_available_semaphore, VK_NULL_HANDLE,
-                                       &m_current_swap_chain_image_index);
+                                       g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
+                                       VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 

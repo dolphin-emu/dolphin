@@ -38,14 +38,9 @@
   <ItemGroup>
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="CommandBufferManager.cpp" />
-    <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PostProcessing.cpp" />
-    <ClCompile Include="ShaderCache.cpp" />
-    <ClCompile Include="TextureConverter.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="StagingBuffer.cpp" />
-    <ClCompile Include="Util.cpp" />
     <ClCompile Include="VertexFormat.cpp" />
     <ClCompile Include="ObjectCache.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -53,8 +48,6 @@
     <ClCompile Include="StateTracker.cpp" />
     <ClCompile Include="StreamBuffer.cpp" />
     <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="Texture2D.cpp" />
-    <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="VKPipeline.cpp" />
     <ClCompile Include="VKShader.cpp" />
@@ -65,13 +58,8 @@
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="CommandBufferManager.h" />
-    <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="Constants.h" />
-    <ClInclude Include="PostProcessing.h" />
-    <ClInclude Include="ShaderCache.h" />
-    <ClInclude Include="TextureConverter.h" />
     <ClInclude Include="StagingBuffer.h" />
-    <ClInclude Include="Util.h" />
     <ClInclude Include="VertexFormat.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="ObjectCache.h" />
@@ -80,8 +68,6 @@
     <ClInclude Include="StateTracker.h" />
     <ClInclude Include="StreamBuffer.h" />
     <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="Texture2D.h" />
-    <ClInclude Include="TextureCache.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
     <ClInclude Include="VKPipeline.h" />

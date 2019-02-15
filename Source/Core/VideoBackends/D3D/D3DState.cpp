@@ -12,6 +12,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/DXTexture.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -28,19 +29,31 @@ void StateManager::Apply()
   if (!m_dirtyFlags)
     return;
 
-  const int textureMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Texture0);
-  const int samplerMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
+  // Framebuffer changes must occur before texture changes, otherwise the D3D runtime messes with
+  // our bindings and sets them to null to prevent hazards.
+  if (m_dirtyFlags & DirtyFlag_Framebuffer)
+  {
+    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    {
+      D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+          m_pending.framebuffer->GetNumRTVs(),
+          m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
+                                      m_pending.framebuffer->GetRTVArray(),
+          m_pending.framebuffer->GetDSV(), 2, 1, &m_pending.uav, nullptr);
+    }
+    else
+    {
+      D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
+                                       m_pending.use_integer_rtv ?
+                                           m_pending.framebuffer->GetIntegerRTVArray() :
+                                           m_pending.framebuffer->GetRTVArray(),
+                                       m_pending.framebuffer->GetDSV());
+    }
+    m_current.framebuffer = m_pending.framebuffer;
+    m_current.uav = m_pending.uav;
+    m_current.use_integer_rtv = m_pending.use_integer_rtv;
+  }
 
-  u32 dirtyTextures =
-      (m_dirtyFlags &
-       (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3 |
-        DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >>
-      textureMaskShift;
-  u32 dirtySamplers =
-      (m_dirtyFlags &
-       (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3 |
-        DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7)) >>
-      samplerMaskShift;
   u32 dirtyConstants = m_dirtyFlags & (DirtyFlag_PixelConstants | DirtyFlag_VertexConstants |
                                        DirtyFlag_GeometryConstants);
   u32 dirtyShaders =
@@ -103,30 +116,6 @@ void StateManager::Apply()
     }
   }
 
-  while (dirtyTextures)
-  {
-    const int index = Common::LeastSignificantSetBit(dirtyTextures);
-    if (m_current.textures[index] != m_pending.textures[index])
-    {
-      D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
-      m_current.textures[index] = m_pending.textures[index];
-    }
-
-    dirtyTextures &= ~(1 << index);
-  }
-
-  while (dirtySamplers)
-  {
-    const int index = Common::LeastSignificantSetBit(dirtySamplers);
-    if (m_current.samplers[index] != m_pending.samplers[index])
-    {
-      D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
-      m_current.samplers[index] = m_pending.samplers[index];
-    }
-
-    dirtySamplers &= ~(1 << index);
-  }
-
   if (dirtyShaders)
   {
     if (m_current.pixelShader != m_pending.pixelShader)
@@ -164,7 +153,49 @@ void StateManager::Apply()
     m_current.rasterizerState = m_pending.rasterizerState;
   }
 
+  ApplyTextures();
+
   m_dirtyFlags = 0;
+}
+
+void StateManager::ApplyTextures()
+{
+  const int textureMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Texture0);
+  const int samplerMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
+
+  u32 dirtyTextures =
+      (m_dirtyFlags &
+       (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3 |
+        DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >>
+      textureMaskShift;
+  u32 dirtySamplers =
+      (m_dirtyFlags &
+       (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3 |
+        DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7)) >>
+      samplerMaskShift;
+  while (dirtyTextures)
+  {
+    const int index = Common::LeastSignificantSetBit(dirtyTextures);
+    if (m_current.textures[index] != m_pending.textures[index])
+    {
+      D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
+      m_current.textures[index] = m_pending.textures[index];
+    }
+
+    dirtyTextures &= ~(1 << index);
+  }
+
+  while (dirtySamplers)
+  {
+    const int index = Common::LeastSignificantSetBit(dirtySamplers);
+    if (m_current.samplers[index] != m_pending.samplers[index])
+    {
+      D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
+      m_current.samplers[index] = m_pending.samplers[index];
+    }
+
+    dirtySamplers &= ~(1 << index);
+  }
 }
 
 u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
@@ -193,6 +224,78 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
   }
 }
 
+void StateManager::SetComputeUAV(ID3D11UnorderedAccessView* uav)
+{
+  if (m_compute_image == uav)
+    return;
+
+  m_compute_image = uav;
+  D3D::context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+}
+
+void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
+{
+  if (m_compute_shader == shader)
+    return;
+
+  m_compute_shader = shader;
+  D3D::context->CSSetShader(shader, nullptr, 0);
+}
+
+void StateManager::SyncComputeBindings()
+{
+  if (m_compute_constants != m_pending.pixelConstants[0])
+  {
+    m_compute_constants = m_pending.pixelConstants[0];
+    D3D::context->CSSetConstantBuffers(0, 1, &m_compute_constants);
+  }
+
+  for (u32 start = 0; start < static_cast<u32>(m_compute_textures.size());)
+  {
+    if (m_compute_textures[start] == m_pending.textures[start])
+    {
+      start++;
+      continue;
+    }
+
+    m_compute_textures[start] = m_pending.textures[start];
+
+    u32 end = start + 1;
+    for (; end < static_cast<u32>(m_compute_textures.size()); end++)
+    {
+      if (m_compute_textures[end] == m_pending.textures[end])
+        break;
+
+      m_compute_textures[end] = m_pending.textures[end];
+    }
+
+    D3D::context->CSSetShaderResources(start, end - start, &m_compute_textures[start]);
+    start = end;
+  }
+
+  for (u32 start = 0; start < static_cast<u32>(m_compute_samplers.size());)
+  {
+    if (m_compute_samplers[start] == m_pending.samplers[start])
+    {
+      start++;
+      continue;
+    }
+
+    m_compute_samplers[start] = m_pending.samplers[start];
+
+    u32 end = start + 1;
+    for (; end < static_cast<u32>(m_compute_samplers.size()); end++)
+    {
+      if (m_compute_samplers[end] == m_pending.samplers[end])
+        break;
+
+      m_compute_samplers[end] = m_pending.samplers[end];
+    }
+
+    D3D::context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
+    start = end;
+  }
+}
 }  // namespace D3D
 
 StateCache::~StateCache()

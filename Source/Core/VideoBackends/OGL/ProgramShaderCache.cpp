@@ -4,6 +4,7 @@
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
+#include <atomic>
 #include <limits>
 #include <memory>
 #include <string>
@@ -27,7 +28,6 @@
 #include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
-#include "VideoCommon/Debugger.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
@@ -54,6 +54,7 @@ static GLuint CurrentProgram = 0;
 ProgramShaderCache::PipelineProgramMap ProgramShaderCache::s_pipeline_programs;
 std::mutex ProgramShaderCache::s_pipeline_program_lock;
 static std::string s_glsl_header = "";
+static std::atomic<u64> s_shader_counter{0};
 static thread_local bool s_is_shared_context = false;
 
 static std::string GetGLSLVersionString()
@@ -109,13 +110,13 @@ void SHADER::SetProgramVariables()
     glUniformBlockBinding(glprogid, UBERBlock_id, 4);
 
   // Bind Texture Samplers
-  for (int a = 0; a < 10; ++a)
+  for (int a = 0; a < 8; ++a)
   {
-    std::string name = StringFromFormat(a < 8 ? "samp[%d]" : "samp%d", a);
-
     // Still need to get sampler locations since we aren't binding them statically in the shaders
-    int loc = glGetUniformLocation(glprogid, name.c_str());
-    if (loc != -1)
+    int loc = glGetUniformLocation(glprogid, StringFromFormat("samp[%d]", a).c_str());
+    if (loc < 0)
+      loc = glGetUniformLocation(glprogid, StringFromFormat("samp%d", a).c_str());
+    if (loc >= 0)
       glUniform1i(loc, a);
   }
 
@@ -191,21 +192,22 @@ bool PipelineProgramKey::operator!=(const PipelineProgramKey& rhs) const
 
 bool PipelineProgramKey::operator==(const PipelineProgramKey& rhs) const
 {
-  return std::tie(vertex_shader, geometry_shader, pixel_shader) ==
-         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+  return std::tie(vertex_shader_id, geometry_shader_id, pixel_shader_id) ==
+         std::tie(rhs.vertex_shader_id, rhs.geometry_shader_id, rhs.pixel_shader_id);
 }
 
 bool PipelineProgramKey::operator<(const PipelineProgramKey& rhs) const
 {
-  return std::tie(vertex_shader, geometry_shader, pixel_shader) <
-         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+  return std::tie(vertex_shader_id, geometry_shader_id, pixel_shader_id) <
+         std::tie(rhs.vertex_shader_id, rhs.geometry_shader_id, rhs.pixel_shader_id);
 }
 
 std::size_t PipelineProgramKeyHash::operator()(const PipelineProgramKey& key) const
 {
   // We would really want std::hash_combine for this..
-  std::hash<const void*> hasher;
-  return hasher(key.vertex_shader) + hasher(key.geometry_shader) + hasher(key.pixel_shader);
+  std::hash<u64> hasher;
+  return hasher(key.vertex_shader_id) + hasher(key.geometry_shader_id) +
+         hasher(key.pixel_shader_id);
 }
 
 StreamBuffer* ProgramShaderCache::GetUniformBuffer()
@@ -216,13 +218,6 @@ StreamBuffer* ProgramShaderCache::GetUniformBuffer()
 u32 ProgramShaderCache::GetUniformBufferAlignment()
 {
   return s_ubo_align;
-}
-
-void ProgramShaderCache::InvalidateConstants()
-{
-  VertexShaderManager::dirty = true;
-  GeometryShaderManager::dirty = true;
-  PixelShaderManager::dirty = true;
 }
 
 void ProgramShaderCache::UploadConstants()
@@ -574,7 +569,9 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
                                                               const OGLShader* geometry_shader,
                                                               const OGLShader* pixel_shader)
 {
-  PipelineProgramKey key = {vertex_shader, geometry_shader, pixel_shader};
+  PipelineProgramKey key = {vertex_shader ? vertex_shader->GetID() : 0,
+                            geometry_shader ? geometry_shader->GetID() : 0,
+                            pixel_shader ? pixel_shader->GetID() : 0};
   {
     std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
     auto iter = s_pipeline_programs.find(key);
@@ -750,6 +747,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"
 
       // Silly differences
+      "#define API_OPENGL 1\n"
       "#define float2 vec2\n"
       "#define float3 vec3\n"
       "#define float4 vec4\n"
@@ -759,8 +757,6 @@ void ProgramShaderCache::CreateHeader()
       "#define int2 ivec2\n"
       "#define int3 ivec3\n"
       "#define int4 ivec4\n"
-
-      // hlsl to glsl function translation
       "#define frac fract\n"
       "#define lerp mix\n"
 
@@ -782,12 +778,17 @@ void ProgramShaderCache::CreateHeader()
           "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
           "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
           "#define SAMPLER_BINDING(x) layout(binding = x)\n"
-          "#define SSBO_BINDING(x) layout(binding = x)\n" :
+          "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(binding = x)\n"
+          "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n" :
           "#define ATTRIBUTE_LOCATION(x)\n"
           "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
           "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
           "#define UBO_BINDING(packing, x) layout(packing)\n"
-          "#define SAMPLER_BINDING(x)\n",
+          "#define SAMPLER_BINDING(x)\n"
+          "#define TEXEL_BUFFER_BINDING(x)\n"
+          "#define SSBO_BINDING(x)\n"
+          "#define IMAGE_BINDING(format, x) layout(format)\n",
       // Input/output blocks are matched by name during program linking
       "#define VARYING_LOCATION(x)\n",
       !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
@@ -821,6 +822,11 @@ void ProgramShaderCache::CreateHeader()
           "",
       v > GlslEs300 ? "precision highp sampler2DMS;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
+}
+
+u64 ProgramShaderCache::GenerateShaderID()
+{
+  return s_shader_counter++;
 }
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)

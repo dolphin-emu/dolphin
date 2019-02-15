@@ -24,23 +24,24 @@ static GLenum GetGLShaderTypeForStage(ShaderStage stage)
   }
 }
 
-OGLShader::OGLShader(ShaderStage stage, GLenum gl_type, GLuint shader_id)
-    : AbstractShader(stage), m_type(gl_type), m_id(shader_id)
+OGLShader::OGLShader(ShaderStage stage, GLenum gl_type, GLuint gl_id)
+    : AbstractShader(stage), m_id(ProgramShaderCache::GenerateShaderID()), m_type(gl_type),
+      m_gl_id(gl_id)
 {
 }
 
-OGLShader::OGLShader(GLuint compute_program_id)
-    : AbstractShader(ShaderStage::Compute), m_type(GL_COMPUTE_SHADER),
-      m_compute_program_id(compute_program_id)
+OGLShader::OGLShader(GLuint gl_compute_program_id)
+    : AbstractShader(ShaderStage::Compute), m_id(ProgramShaderCache::GenerateShaderID()),
+      m_type(GL_COMPUTE_SHADER), m_gl_compute_program_id(gl_compute_program_id)
 {
 }
 
 OGLShader::~OGLShader()
 {
   if (m_stage != ShaderStage::Compute)
-    glDeleteShader(m_id);
+    glDeleteShader(m_gl_id);
   else
-    glDeleteProgram(m_compute_program_id);
+    glDeleteProgram(m_gl_compute_program_id);
 }
 
 bool OGLShader::HasBinary() const

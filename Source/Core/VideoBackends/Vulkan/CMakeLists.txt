@@ -1,21 +1,14 @@
 add_library(videovulkan
   BoundingBox.cpp
   CommandBufferManager.cpp
-  FramebufferManager.cpp
   ObjectCache.cpp
   PerfQuery.cpp
-  PostProcessing.cpp
   Renderer.cpp
-  ShaderCache.cpp
   ShaderCompiler.cpp
   StateTracker.cpp
   StagingBuffer.cpp
   StreamBuffer.cpp
   SwapChain.cpp
-  Texture2D.cpp
-  TextureCache.cpp
-  TextureConverter.cpp
-  Util.cpp
   VertexFormat.cpp
   VertexManager.cpp
   VKPipeline.cpp

@@ -17,8 +17,9 @@
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/Debugger.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -79,11 +80,15 @@ static bool AspectIs16_9(float width, float height)
 }
 
 VertexManagerBase::VertexManagerBase()
+    : m_cpu_vertex_buffer(MAXVBUFFERSIZE), m_cpu_index_buffer(MAXIBUFFERSIZE)
 {
 }
 
-VertexManagerBase::~VertexManagerBase()
+VertexManagerBase::~VertexManagerBase() = default;
+
+bool VertexManagerBase::Initialize()
 {
+  return true;
 }
 
 u32 VertexManagerBase::GetRemainingSize() const
@@ -94,6 +99,10 @@ u32 VertexManagerBase::GetRemainingSize() const
 DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride,
                                                        bool cullall)
 {
+  // Flush all EFB pokes and invalidate the peek cache.
+  g_framebuffer_manager->InvalidatePeekCache();
+  g_framebuffer_manager->FlushEFBPokes();
+
   // The SSE vertex loader can write up to 4 bytes past the end
   u32 const needed_vertex_bytes = count * stride + 4;
 
@@ -132,7 +141,18 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   // need to alloc new buffer
   if (m_is_flushed)
   {
-    g_vertex_manager->ResetBuffer(stride, cullall);
+    if (cullall)
+    {
+      // This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
+      m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_vertex_buffer.data();
+      m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
+      IndexGenerator::Start(m_cpu_index_buffer.data());
+    }
+    else
+    {
+      ResetBuffer(stride);
+    }
+
     m_is_flushed = false;
   }
 
@@ -210,6 +230,48 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
+void VertexManagerBase::ResetBuffer(u32 vertex_stride)
+{
+  m_base_buffer_pointer = m_cpu_vertex_buffer.data();
+  m_cur_buffer_pointer = m_cpu_vertex_buffer.data();
+  m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
+  IndexGenerator::Start(m_cpu_index_buffer.data());
+}
+
+void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+                                     u32* out_base_vertex, u32* out_base_index)
+{
+  *out_base_vertex = 0;
+  *out_base_index = 0;
+}
+
+void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
+  if (::BoundingBox::active && g_ActiveConfig.bBBoxEnable &&
+      g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    g_renderer->BBoxFlush();
+  }
+
+  g_renderer->DrawIndexed(base_index, num_indices, base_vertex);
+}
+
+void VertexManagerBase::UploadUniforms()
+{
+}
+
+void VertexManagerBase::InvalidateConstants()
+{
+  VertexShaderManager::dirty = true;
+  GeometryShaderManager::dirty = true;
+  PixelShaderManager::dirty = true;
+}
+
+void VertexManagerBase::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+{
+}
+
 void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_stride,
                                               u32 num_vertices, const u16* indices, u32 num_indices,
                                               u32* out_base_vertex, u32* out_base_index)
@@ -218,7 +280,7 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
   ASSERT(m_is_flushed);
 
   // Copy into the buffers usually used for GX drawing.
-  ResetBuffer(std::max(vertex_stride, 1u), false);
+  ResetBuffer(std::max(vertex_stride, 1u));
   if (vertices)
   {
     const u32 copy_size = vertex_stride * num_vertices;
@@ -232,10 +294,50 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
   CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
 }
 
+u32 VertexManagerBase::GetTexelBufferElementSize(TexelBufferFormat buffer_format)
+{
+  // R8 - 1, R16 - 2, RGBA8 - 4, R32G32 - 8
+  return 1u << static_cast<u32>(buffer_format);
+}
+
+bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+                                          u32* out_offset)
+{
+  return false;
+}
+
+bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, TexelBufferFormat format,
+                                          u32* out_offset, const void* palette_data,
+                                          u32 palette_size, TexelBufferFormat palette_format,
+                                          u32* palette_offset)
+{
+  return false;
+}
+
+void VertexManagerBase::LoadTextures()
+{
+  BitSet32 usedtextures;
+  for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+    if (bpmem.tevorders[i / 2].getEnable(i & 1))
+      usedtextures[bpmem.tevorders[i / 2].getTexMap(i & 1)] = true;
+
+  if (bpmem.genMode.numindstages > 0)
+    for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+      if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+        usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
+
+  for (unsigned int i : usedtextures)
+    g_texture_cache->Load(i);
+
+  g_texture_cache->BindTextures();
+}
+
 void VertexManagerBase::Flush()
 {
   if (m_is_flushed)
     return;
+
+  m_is_flushed = true;
 
   // loading a state will invalidate BP, so check for it
   g_video_backend->CheckInvalidState();
@@ -280,29 +382,6 @@ void VertexManagerBase::Flush()
            (bpmem.alpha_test.hex >> 16) & 0xff);
 #endif
 
-  // If the primitave is marked CullAll. All we need to do is update the vertex constants and
-  // calculate the zfreeze refrence slope
-  if (!m_cull_all)
-  {
-    BitSet32 usedtextures;
-    for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-      if (bpmem.tevorders[i / 2].getEnable(i & 1))
-        usedtextures[bpmem.tevorders[i / 2].getTexMap(i & 1)] = true;
-
-    if (bpmem.genMode.numindstages > 0)
-      for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-        if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
-          usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
-
-    for (unsigned int i : usedtextures)
-      g_texture_cache->Load(i);
-
-    g_texture_cache->BindTextures();
-  }
-
-  // set global vertex constants
-  VertexShaderManager::SetConstants();
-
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
   if (!SConfig::GetInstance().bWii)
   {
@@ -322,6 +401,7 @@ void VertexManagerBase::Flush()
   }
 
   // Calculate ZSlope for zfreeze
+  VertexShaderManager::SetConstants();
   if (!bpmem.genMode.zfreeze)
   {
     // Must be done after VertexShaderManager::SetConstants()
@@ -335,19 +415,23 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
-    // Update and upload constants. Note for the Vulkan backend, this must occur before the
-    // vertex/index buffer is committed, otherwise the data will be associated with the
-    // previous command buffer, instead of the one with the draw if there is an overflow.
-    GeometryShaderManager::SetConstants();
-    PixelShaderManager::SetConstants();
-    UploadConstants();
-
-    // Now the vertices can be flushed to the GPU.
+    // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
+    // must be careful to not upload any utility vertices, as the binding will be lost otherwise.
     const u32 num_indices = IndexGenerator::GetIndexLen();
     u32 base_vertex, base_index;
     CommitBuffer(IndexGenerator::GetNumVerts(),
                  VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(), num_indices,
                  &base_vertex, &base_index);
+
+    // Texture loading can cause palettes to be applied (-> uniforms -> draws).
+    // Palette application does not use vertices, only a full-screen quad, so this is okay.
+    // Same with GPU texture decoding, which uses compute shaders.
+    LoadTextures();
+
+    // Now we can upload uniforms, as nothing else will override them.
+    GeometryShaderManager::SetConstants();
+    PixelShaderManager::SetConstants();
+    UploadUniforms();
 
     // Update the pipeline, or compile one if needed.
     UpdatePipelineConfig();
@@ -363,18 +447,17 @@ void VertexManagerBase::Flush()
 
       if (PerfQueryBase::ShouldEmulate())
         g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+
+      OnDraw();
     }
   }
 
-  GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
-
   if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
+  {
     ERROR_LOG(VIDEO,
               "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.",
               xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
-
-  m_is_flushed = true;
-  m_cull_all = false;
+  }
 }
 
 void VertexManagerBase::DoState(PointerWrap& p)
@@ -576,4 +659,110 @@ void VertexManagerBase::UpdatePipelineObject()
   }
   break;
   }
+}
+
+void VertexManagerBase::OnDraw()
+{
+  m_draw_counter++;
+
+  // If we didn't have any CPU access last frame, do nothing.
+  if (m_scheduled_command_buffer_kicks.empty() || !m_allow_background_execution)
+    return;
+
+  // Check if this draw is scheduled to kick a command buffer.
+  // The draw counters will always be sorted so a binary search is possible here.
+  if (std::binary_search(m_scheduled_command_buffer_kicks.begin(),
+                         m_scheduled_command_buffer_kicks.end(), m_draw_counter))
+  {
+    // Kick a command buffer on the background thread.
+    g_renderer->Flush();
+  }
+}
+
+void VertexManagerBase::OnCPUEFBAccess()
+{
+  // Check this isn't another access without any draws inbetween.
+  if (!m_cpu_accesses_this_frame.empty() && m_cpu_accesses_this_frame.back() == m_draw_counter)
+    return;
+
+  // Store the current draw counter for scheduling in OnEndFrame.
+  m_cpu_accesses_this_frame.emplace_back(m_draw_counter);
+}
+
+void VertexManagerBase::OnEFBCopyToRAM()
+{
+  // If we're not deferring, try to preempt it next frame.
+  if (!g_ActiveConfig.bDeferEFBCopies)
+  {
+    OnCPUEFBAccess();
+    return;
+  }
+
+  // Otherwise, only execute if we have at least 10 objects between us and the last copy.
+  const u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
+  m_last_efb_copy_draw_counter = m_draw_counter;
+  if (diff < MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
+    return;
+
+  g_renderer->Flush();
+}
+
+void VertexManagerBase::OnEndFrame()
+{
+  m_draw_counter = 0;
+  m_last_efb_copy_draw_counter = 0;
+  m_scheduled_command_buffer_kicks.clear();
+
+  // If we have no CPU access at all, leave everything in the one command buffer for maximum
+  // parallelism between CPU/GPU, at the cost of slightly higher latency.
+  if (m_cpu_accesses_this_frame.empty())
+    return;
+
+  // In order to reduce CPU readback latency, we want to kick a command buffer roughly halfway
+  // between the draw counters that invoked the readback, or every 250 draws, whichever is smaller.
+  if (g_ActiveConfig.iCommandBufferExecuteInterval > 0)
+  {
+    u32 last_draw_counter = 0;
+    u32 interval = static_cast<u32>(g_ActiveConfig.iCommandBufferExecuteInterval);
+    for (u32 draw_counter : m_cpu_accesses_this_frame)
+    {
+      // We don't want to waste executing command buffers for only a few draws, so set a minimum.
+      // Leave last_draw_counter as-is, so we get the correct number of draws between submissions.
+      u32 draw_count = draw_counter - last_draw_counter;
+      if (draw_count < MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
+        continue;
+
+      if (draw_count <= interval)
+      {
+        u32 mid_point = draw_count / 2;
+        m_scheduled_command_buffer_kicks.emplace_back(last_draw_counter + mid_point);
+      }
+      else
+      {
+        u32 counter = interval;
+        while (counter < draw_count)
+        {
+          m_scheduled_command_buffer_kicks.emplace_back(last_draw_counter + counter);
+          counter += interval;
+        }
+      }
+
+      last_draw_counter = draw_counter;
+    }
+  }
+
+#if 0
+  {
+    std::stringstream ss;
+    std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
+    WARN_LOG(VIDEO, "CPU EFB accesses in last frame: %s", ss.str().c_str());
+  }
+  {
+    std::stringstream ss;
+    std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
+    WARN_LOG(VIDEO, "Scheduled command buffer kicks: %s", ss.str().c_str());
+  }
+#endif
+
+  m_cpu_accesses_this_frame.clear();
 }

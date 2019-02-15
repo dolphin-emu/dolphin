@@ -7,6 +7,7 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/NativeVertexFormat.h"
@@ -18,7 +19,7 @@
 namespace OGL
 {
 std::unique_ptr<NativeVertexFormat>
-VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<GLVertexFormat>(vtx_decl);
 }
@@ -44,10 +45,10 @@ static void SetPointer(u32 attrib, u32 stride, const AttributeFormat& format)
                           (u8*)nullptr + format.offset);
 }
 
-GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
+GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
+    : NativeVertexFormat(vtx_decl)
 {
-  this->vtx_decl = _vtx_decl;
-  u32 vertex_stride = _vtx_decl.stride;
+  u32 vertex_stride = vtx_decl.stride;
 
   // We will not allow vertex components causing uneven strides.
   if (vertex_stride & 3)
@@ -63,22 +64,22 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->GetIndexBufferHandle());
   glBindBuffer(GL_ARRAY_BUFFER, vm->GetVertexBufferHandle());
 
-  SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, _vtx_decl.position);
+  SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
   for (int i = 0; i < 3; i++)
-    SetPointer(SHADER_NORM0_ATTRIB + i, vertex_stride, _vtx_decl.normals[i]);
+    SetPointer(SHADER_NORM0_ATTRIB + i, vertex_stride, vtx_decl.normals[i]);
 
   for (int i = 0; i < 2; i++)
-    SetPointer(SHADER_COLOR0_ATTRIB + i, vertex_stride, _vtx_decl.colors[i]);
+    SetPointer(SHADER_COLOR0_ATTRIB + i, vertex_stride, vtx_decl.colors[i]);
 
   for (int i = 0; i < 8; i++)
-    SetPointer(SHADER_TEXTURE0_ATTRIB + i, vertex_stride, _vtx_decl.texcoords[i]);
+    SetPointer(SHADER_TEXTURE0_ATTRIB + i, vertex_stride, vtx_decl.texcoords[i]);
 
-  SetPointer(SHADER_POSMTX_ATTRIB, vertex_stride, _vtx_decl.posmtx);
+  SetPointer(SHADER_POSMTX_ATTRIB, vertex_stride, vtx_decl.posmtx);
 }
 
 GLVertexFormat::~GLVertexFormat()
 {
   glDeleteVertexArrays(1, &VAO);
 }
-}
+}  // namespace OGL

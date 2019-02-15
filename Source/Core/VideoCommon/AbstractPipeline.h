@@ -45,24 +45,7 @@ struct AbstractPipelineConfig
   RasterizationState rasterization_state;
   DepthState depth_state;
   BlendingState blending_state;
-
-  union FramebufferState
-  {
-    BitField<0, 8, AbstractTextureFormat> color_texture_format;
-    BitField<8, 8, AbstractTextureFormat> depth_texture_format;
-    BitField<16, 8, u32> samples;
-    BitField<24, 1, u32> per_sample_shading;
-
-    bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
-    bool operator!=(const FramebufferState& rhs) const { return hex != rhs.hex; }
-    FramebufferState& operator=(const FramebufferState& rhs)
-    {
-      hex = rhs.hex;
-      return *this;
-    }
-
-    u32 hex;
-  } framebuffer_state;
+  FramebufferState framebuffer_state;
 
   AbstractPipelineUsage usage;
 

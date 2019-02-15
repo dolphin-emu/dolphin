@@ -12,17 +12,14 @@
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/D3DUtil.h"
-#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PerfQuery.h"
-#include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
-#include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexManager.h"
-#include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/VideoBackend.h"
 
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -51,6 +48,7 @@ void VideoBackend::InitBackendInfo()
 
   g_Config.backend_info.api_type = APIType::D3D;
   g_Config.backend_info.MaxTextureSize = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
+  g_Config.backend_info.bUsesLowerLeftOrigin = false;
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
@@ -58,16 +56,17 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsGeometryShaders = true;
   g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = true;
-  g_Config.backend_info.bSupportsPostProcessing = false;
+  g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
   g_Config.backend_info.bSupportsDepthClamp = true;
   g_Config.backend_info.bSupportsReversedDepthRange = false;
   g_Config.backend_info.bSupportsLogicOp = true;
   g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
+  g_Config.backend_info.bSupportsGPUTextureDecoding = true;
   g_Config.backend_info.bSupportsST3CTextures = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
+  g_Config.backend_info.bSupportsLargePoints = false;
   g_Config.backend_info.bSupportsBitfield = false;
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
@@ -149,21 +148,20 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   // internal interfaces
   g_renderer =
       std::make_unique<Renderer>(backbuffer_width, backbuffer_height, wsi.render_surface_scale);
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_texture_cache = std::make_unique<TextureCacheBase>();
   g_perf_query = std::make_unique<PerfQuery>();
-
-  VertexShaderCache::Init();
-  PixelShaderCache::Init();
-  GeometryShaderCache::Init();
-
-  if (!g_renderer->Initialize() || !g_shader_cache->Initialize())
+  if (!g_renderer->Initialize() || !g_vertex_manager->Initialize() ||
+      !g_shader_cache->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize())
+  {
     return false;
+  }
 
-  D3D::InitUtils();
   BBox::Init();
-
+  g_shader_cache->InitializeShaderCache();
   return true;
 }
 
@@ -172,16 +170,13 @@ void VideoBackend::Shutdown()
   g_shader_cache->Shutdown();
   g_renderer->Shutdown();
 
-  D3D::ShutdownUtils();
-  PixelShaderCache::Shutdown();
-  VertexShaderCache::Shutdown();
-  GeometryShaderCache::Shutdown();
   BBox::Shutdown();
 
   g_perf_query.reset();
-  g_vertex_manager.reset();
   g_texture_cache.reset();
+  g_framebuffer_manager.reset();
   g_shader_cache.reset();
+  g_vertex_manager.reset();
   g_renderer.reset();
 
   ShutdownShared();

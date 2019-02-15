@@ -16,7 +16,8 @@ public:
   DXPipeline(ID3D11InputLayout* input_layout, ID3D11VertexShader* vertex_shader,
              ID3D11GeometryShader* geometry_shader, ID3D11PixelShader* pixel_shader,
              ID3D11RasterizerState* rasterizer_state, ID3D11DepthStencilState* depth_state,
-             ID3D11BlendState* blend_state, D3D11_PRIMITIVE_TOPOLOGY primitive_topology);
+             ID3D11BlendState* blend_state, D3D11_PRIMITIVE_TOPOLOGY primitive_topology,
+             bool use_logic_op);
   ~DXPipeline() override;
 
   ID3D11InputLayout* GetInputLayout() const { return m_input_layout; }
@@ -28,6 +29,8 @@ public:
   ID3D11BlendState* GetBlendState() const { return m_blend_state; }
   D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return m_primitive_topology; }
   bool HasGeometryShader() const { return m_geometry_shader != nullptr; }
+  bool UseLogicOp() const { return m_use_logic_op; }
+
   static std::unique_ptr<DXPipeline> Create(const AbstractPipelineConfig& config);
 
 private:
@@ -39,5 +42,6 @@ private:
   ID3D11DepthStencilState* m_depth_state;
   ID3D11BlendState* m_blend_state;
   D3D11_PRIMITIVE_TOPOLOGY m_primitive_topology;
+  bool m_use_logic_op;
 };
 }  // namespace DX11

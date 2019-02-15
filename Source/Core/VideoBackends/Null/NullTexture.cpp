@@ -16,11 +16,6 @@ void NullTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                            u32 dst_layer, u32 dst_level)
 {
 }
-void NullTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
-                                            const MathUtil::Rectangle<int>& srcrect,
-                                            const MathUtil::Rectangle<int>& dstrect)
-{
-}
 void NullTexture::ResolveFromTexture(const AbstractTexture* src,
                                      const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
@@ -70,15 +65,18 @@ void NullStagingTexture::Flush()
   m_needs_flush = false;
 }
 
-NullFramebuffer::NullFramebuffer(AbstractTextureFormat color_format,
+NullFramebuffer::NullFramebuffer(AbstractTexture* color_attachment,
+                                 AbstractTexture* depth_attachment,
+                                 AbstractTextureFormat color_format,
                                  AbstractTextureFormat depth_format, u32 width, u32 height,
                                  u32 layers, u32 samples)
-    : AbstractFramebuffer(color_format, depth_format, width, height, layers, samples)
+    : AbstractFramebuffer(color_attachment, depth_attachment, color_format, depth_format, width,
+                          height, layers, samples)
 {
 }
 
-std::unique_ptr<NullFramebuffer> NullFramebuffer::Create(const NullTexture* color_attachment,
-                                                         const NullTexture* depth_attachment)
+std::unique_ptr<NullFramebuffer> NullFramebuffer::Create(NullTexture* color_attachment,
+                                                         NullTexture* depth_attachment)
 {
   if (!ValidateConfig(color_attachment, depth_attachment))
     return nullptr;
@@ -93,8 +91,8 @@ std::unique_ptr<NullFramebuffer> NullFramebuffer::Create(const NullTexture* colo
   const u32 layers = either_attachment->GetLayers();
   const u32 samples = either_attachment->GetSamples();
 
-  return std::make_unique<NullFramebuffer>(color_format, depth_format, width, height, layers,
-                                           samples);
+  return std::make_unique<NullFramebuffer>(color_attachment, depth_attachment, color_format,
+                                           depth_format, width, height, layers, samples);
 }
 
 }  // namespace Null

@@ -44,12 +44,16 @@ bool CommandBufferManager::Initialize()
 
 bool CommandBufferManager::CreateCommandBuffers()
 {
+  static constexpr VkSemaphoreCreateInfo semaphore_create_info = {
+      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, nullptr, 0};
+
   VkDevice device = g_vulkan_context->GetDevice();
   VkResult res;
 
   for (FrameResources& resources : m_frame_resources)
   {
     resources.init_command_buffer_used = false;
+    resources.semaphore_used = false;
     resources.needs_fence_wait = false;
 
     VkCommandPoolCreateInfo pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, nullptr, 0,
@@ -83,6 +87,13 @@ bool CommandBufferManager::CreateCommandBuffers()
       return false;
     }
 
+    res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &resources.semaphore);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
+      return false;
+    }
+
     // TODO: A better way to choose the number of descriptors.
     VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000},
                                          {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000},
@@ -105,9 +116,16 @@ bool CommandBufferManager::CreateCommandBuffers()
     }
   }
 
+  res = vkCreateSemaphore(device, &semaphore_create_info, nullptr, &m_present_semaphore);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
+    return false;
+  }
+
   // Activate the first command buffer. ActivateCommandBuffer moves forward, so start with the last
-  m_current_frame = m_frame_resources.size() - 1;
-  ActivateCommandBuffer();
+  m_current_frame = static_cast<u32>(m_frame_resources.size()) - 1;
+  BeginCommandBuffer();
   return true;
 }
 
@@ -122,28 +140,23 @@ void CommandBufferManager::DestroyCommandBuffers()
     // We destroy the command pool first, to avoid any warnings from the validation layers about
     // objects which are pending destruction being in-use.
     if (resources.command_pool != VK_NULL_HANDLE)
-    {
       vkDestroyCommandPool(device, resources.command_pool, nullptr);
-      resources.command_pool = VK_NULL_HANDLE;
-    }
 
     // Destroy any pending objects.
     for (auto& it : resources.cleanup_resources)
       it();
-    resources.cleanup_resources.clear();
+
+    if (resources.semaphore != VK_NULL_HANDLE)
+      vkDestroySemaphore(device, resources.semaphore, nullptr);
 
     if (resources.fence != VK_NULL_HANDLE)
-    {
       vkDestroyFence(device, resources.fence, nullptr);
-      resources.fence = VK_NULL_HANDLE;
-    }
 
     if (resources.descriptor_pool != VK_NULL_HANDLE)
-    {
       vkDestroyDescriptorPool(device, resources.descriptor_pool, nullptr);
-      resources.descriptor_pool = VK_NULL_HANDLE;
-    }
   }
+
+  vkDestroySemaphore(device, m_present_semaphore, nullptr);
 }
 
 VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayout set_layout)
@@ -183,20 +196,12 @@ bool CommandBufferManager::CreateSubmitThread()
         m_pending_submits.pop_front();
       }
 
-      SubmitCommandBuffer(submit.index, submit.wait_semaphore, submit.signal_semaphore,
-                          submit.present_swap_chain, submit.present_image_index);
+      SubmitCommandBuffer(submit.command_buffer_index, submit.present_swap_chain,
+                          submit.present_image_index);
     });
   });
 
   return true;
-}
-
-void CommandBufferManager::PrepareToSubmitCommandBuffer()
-{
-  // Grab the semaphore before submitting command buffer either on-thread or off-thread.
-  // This prevents a race from occurring where a second command buffer is executed
-  // before the worker thread has woken and executed the first one yet.
-  m_submit_semaphore.Wait();
 }
 
 void CommandBufferManager::WaitForWorkerThreadIdle()
@@ -215,8 +220,8 @@ void CommandBufferManager::WaitForGPUIdle()
 void CommandBufferManager::WaitForFence(VkFence fence)
 {
   // Find the command buffer that this fence corresponds to.
-  size_t command_buffer_index = 0;
-  for (; command_buffer_index < m_frame_resources.size(); command_buffer_index++)
+  u32 command_buffer_index = 0;
+  for (; command_buffer_index < static_cast<u32>(m_frame_resources.size()); command_buffer_index++)
   {
     if (m_frame_resources[command_buffer_index].fence == fence)
       break;
@@ -226,6 +231,9 @@ void CommandBufferManager::WaitForFence(VkFence fence)
   // Has this command buffer already been waited for?
   if (!m_frame_resources[command_buffer_index].needs_fence_wait)
     return;
+
+  // Ensure this command buffer has been submitted.
+  WaitForWorkerThreadIdle();
 
   // Wait for this command buffer to be completed.
   VkResult res =
@@ -240,19 +248,11 @@ void CommandBufferManager::WaitForFence(VkFence fence)
 }
 
 void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
-                                               VkSemaphore wait_semaphore,
-                                               VkSemaphore signal_semaphore,
                                                VkSwapchainKHR present_swap_chain,
                                                uint32_t present_image_index)
 {
-  FrameResources& resources = m_frame_resources[m_current_frame];
-
-  // Fire fence tracking callbacks. This can't happen on the worker thread.
-  // We invoke these before submitting so that any last-minute commands can be added.
-  for (const auto& iter : m_fence_point_callbacks)
-    iter.second.first(resources.command_buffers[1], resources.fence);
-
   // End the current command buffer.
+  FrameResources& resources = m_frame_resources[m_current_frame];
   for (VkCommandBuffer command_buffer : resources.command_buffers)
   {
     VkResult res = vkEndCommandBuffer(command_buffer);
@@ -266,14 +266,18 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   // This command buffer now has commands, so can't be re-used without waiting.
   resources.needs_fence_wait = true;
 
+  // Grab the semaphore before submitting command buffer either on-thread or off-thread.
+  // This prevents a race from occurring where a second command buffer is executed
+  // before the worker thread has woken and executed the first one yet.
+  m_submit_semaphore.Wait();
+
   // Submitting off-thread?
   if (m_use_threaded_submission && submit_on_worker_thread)
   {
     // Push to the pending submit queue.
     {
       std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-      m_pending_submits.push_back({m_current_frame, wait_semaphore, signal_semaphore,
-                                   present_swap_chain, present_image_index});
+      m_pending_submits.push_back({present_swap_chain, present_image_index, m_current_frame});
     }
 
     // Wake up the worker thread for a single iteration.
@@ -282,17 +286,18 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
   else
   {
     // Pass through to normal submission path.
-    SubmitCommandBuffer(m_current_frame, wait_semaphore, signal_semaphore, present_swap_chain,
-                        present_image_index);
+    SubmitCommandBuffer(m_current_frame, present_swap_chain, present_image_index);
   }
+
+  // Switch to next cmdbuffer.
+  BeginCommandBuffer();
 }
 
-void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_semaphore,
-                                               VkSemaphore signal_semaphore,
+void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                                VkSwapchainKHR present_swap_chain,
-                                               uint32_t present_image_index)
+                                               u32 present_image_index)
 {
-  FrameResources& resources = m_frame_resources[index];
+  FrameResources& resources = m_frame_resources[command_buffer_index];
 
   // This may be executed on the worker thread, so don't modify any state of the manager class.
   uint32_t wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -307,22 +312,22 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                               nullptr};
 
   // If the init command buffer did not have any commands recorded, don't submit it.
-  if (!m_frame_resources[index].init_command_buffer_used)
+  if (!resources.init_command_buffer_used)
   {
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &m_frame_resources[index].command_buffers[1];
+    submit_info.pCommandBuffers = &resources.command_buffers[1];
   }
 
-  if (wait_semaphore != VK_NULL_HANDLE)
+  if (resources.semaphore_used != VK_NULL_HANDLE)
   {
-    submit_info.pWaitSemaphores = &wait_semaphore;
+    submit_info.pWaitSemaphores = &resources.semaphore;
     submit_info.waitSemaphoreCount = 1;
   }
 
-  if (signal_semaphore != VK_NULL_HANDLE)
+  if (present_swap_chain != VK_NULL_HANDLE)
   {
     submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &signal_semaphore;
+    submit_info.pSignalSemaphores = &m_present_semaphore;
   }
 
   VkResult res =
@@ -337,11 +342,10 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
   if (present_swap_chain != VK_NULL_HANDLE)
   {
     // Should have a signal semaphore.
-    ASSERT(signal_semaphore != VK_NULL_HANDLE);
     VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                                      nullptr,
                                      1,
-                                     &signal_semaphore,
+                                     &m_present_semaphore,
                                      1,
                                      &present_swap_chain,
                                      &present_image_index,
@@ -361,15 +365,15 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
   m_submit_semaphore.Post();
 }
 
-void CommandBufferManager::OnCommandBufferExecuted(size_t index)
+void CommandBufferManager::OnCommandBufferExecuted(u32 index)
 {
   FrameResources& resources = m_frame_resources[index];
 
   // Fire fence tracking callbacks.
-  for (auto iter = m_fence_point_callbacks.begin(); iter != m_fence_point_callbacks.end();)
+  for (auto iter = m_fence_callbacks.begin(); iter != m_fence_callbacks.end();)
   {
     auto backup_iter = iter++;
-    backup_iter->second.second(resources.fence);
+    backup_iter->second(resources.fence);
   }
 
   // Clean up all objects pending destruction on this command buffer
@@ -378,7 +382,7 @@ void CommandBufferManager::OnCommandBufferExecuted(size_t index)
   resources.cleanup_resources.clear();
 }
 
-void CommandBufferManager::ActivateCommandBuffer()
+void CommandBufferManager::BeginCommandBuffer()
 {
   // Move to the next command buffer.
   m_current_frame = (m_current_frame + 1) % NUM_COMMAND_BUFFERS;
@@ -422,19 +426,7 @@ void CommandBufferManager::ActivateCommandBuffer()
 
   // Reset upload command buffer state
   resources.init_command_buffer_used = false;
-}
-
-void CommandBufferManager::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
-{
-  VkFence pending_fence = GetCurrentCommandBufferFence();
-
-  // If we're waiting for completion, don't bother waking the worker thread.
-  PrepareToSubmitCommandBuffer();
-  SubmitCommandBuffer((submit_off_thread && wait_for_completion));
-  ActivateCommandBuffer();
-
-  if (wait_for_completion)
-    WaitForFence(pending_fence);
+  resources.semaphore_used = false;
 }
 
 void CommandBufferManager::DeferBufferDestruction(VkBuffer object)
@@ -479,20 +471,18 @@ void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
       [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
-void CommandBufferManager::AddFencePointCallback(
-    const void* key, const CommandBufferQueuedCallback& queued_callback,
-    const CommandBufferExecutedCallback& executed_callback)
+void CommandBufferManager::AddFenceSignaledCallback(const void* key, FenceSignaledCallback callback)
 {
   // Shouldn't be adding twice.
-  ASSERT(m_fence_point_callbacks.find(key) == m_fence_point_callbacks.end());
-  m_fence_point_callbacks.emplace(key, std::make_pair(queued_callback, executed_callback));
+  ASSERT(m_fence_callbacks.find(key) == m_fence_callbacks.end());
+  m_fence_callbacks.emplace(key, std::move(callback));
 }
 
-void CommandBufferManager::RemoveFencePointCallback(const void* key)
+void CommandBufferManager::RemoveFenceSignaledCallback(const void* key)
 {
-  auto iter = m_fence_point_callbacks.find(key);
-  ASSERT(iter != m_fence_point_callbacks.end());
-  m_fence_point_callbacks.erase(iter);
+  auto iter = m_fence_callbacks.find(key);
+  ASSERT(iter != m_fence_callbacks.end());
+  m_fence_callbacks.erase(iter);
 }
 
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;

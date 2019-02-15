@@ -5,6 +5,7 @@
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -54,6 +55,7 @@ void BBox::Init()
     hr = D3D::device->CreateUnorderedAccessView(s_bbox_buffer, &UAVdesc, &s_bbox_uav);
     CHECK(SUCCEEDED(hr), "Create BoundingBox UAV.");
     D3D::SetDebugObjectName(s_bbox_uav, "BoundingBox UAV");
+    D3D::stateman->SetOMUAV(s_bbox_uav);
   }
 }
 
@@ -83,4 +85,4 @@ int BBox::Get(int index)
   D3D::context->Unmap(s_bbox_staging_buffer, 0);
   return data;
 }
-};
+};  // namespace DX11

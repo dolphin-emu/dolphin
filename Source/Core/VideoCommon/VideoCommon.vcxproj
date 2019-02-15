@@ -48,11 +48,11 @@
     <ClCompile Include="BPStructs.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CPMemory.cpp" />
-    <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DriverDetails.cpp" />
     <ClCompile Include="Fifo.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
-    <ClCompile Include="FramebufferManagerBase.cpp" />
+    <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="FramebufferShaderGen.cpp" />
     <ClCompile Include="HiresTextures.cpp" />
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
@@ -114,11 +114,11 @@
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CPMemory.h" />
     <ClInclude Include="DataReader.h" />
-    <ClInclude Include="Debugger.h" />
     <ClInclude Include="DriverDetails.h" />
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
-    <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="FramebufferShaderGen.h" />
     <ClInclude Include="GXPipelineTypes.h" />
     <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="UberShaderCommon.h" />

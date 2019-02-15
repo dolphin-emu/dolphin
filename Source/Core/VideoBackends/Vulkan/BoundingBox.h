@@ -24,9 +24,6 @@ public:
 
   bool Initialize();
 
-  VkBuffer GetGPUBuffer() const { return m_gpu_buffer; }
-  VkDeviceSize GetGPUBufferOffset() const { return 0; }
-  VkDeviceSize GetGPUBufferSize() const { return BUFFER_SIZE; }
   s32 Get(size_t index);
   void Set(size_t index, s32 value);
 

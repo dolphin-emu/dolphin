@@ -5,8 +5,8 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 
+#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
-#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -48,26 +48,47 @@ AbstractShader::BinaryData VKShader::GetBinary() const
 static std::unique_ptr<VKShader> CreateShaderObject(ShaderStage stage,
                                                     ShaderCompiler::SPIRVCodeVector spv)
 {
-  VkShaderModule mod = Util::CreateShaderModule(spv.data(), spv.size());
-  if (mod == VK_NULL_HANDLE)
-    return nullptr;
+  VkShaderModuleCreateInfo info = {};
+  info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+  info.codeSize = spv.size() * sizeof(u32);
+  info.pCode = spv.data();
+
+  VkShaderModule mod;
+  VkResult res = vkCreateShaderModule(g_vulkan_context->GetDevice(), &info, nullptr, &mod);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateShaderModule failed: ");
+    return VK_NULL_HANDLE;
+  }
 
   // If it's a graphics shader, we defer pipeline creation.
   if (stage != ShaderStage::Compute)
     return std::make_unique<VKShader>(stage, std::move(spv), mod);
 
   // If it's a compute shader, we create the pipeline straight away.
-  ComputePipelineInfo pinfo;
-  pinfo.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_COMPUTE);
-  pinfo.cs = mod;
-  VkPipeline pipeline = g_shader_cache->CreateComputePipeline(pinfo);
-  if (pipeline == VK_NULL_HANDLE)
+  const VkComputePipelineCreateInfo pipeline_info = {
+      VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+      nullptr,
+      0,
+      {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0, VK_SHADER_STAGE_COMPUTE_BIT,
+       mod, "main", nullptr},
+      g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_COMPUTE),
+      VK_NULL_HANDLE,
+      -1};
+
+  VkPipeline pipeline;
+  res = vkCreateComputePipelines(g_vulkan_context->GetDevice(), g_object_cache->GetPipelineCache(),
+                                 1, &pipeline_info, nullptr, &pipeline);
+
+  // Shader module is no longer needed, now it is compiled to a pipeline.
+  vkDestroyShaderModule(g_vulkan_context->GetDevice(), mod, nullptr);
+
+  if (res != VK_SUCCESS)
   {
-    vkDestroyShaderModule(g_vulkan_context->GetDevice(), mod, nullptr);
+    LOG_VULKAN_ERROR(res, "vkCreateComputePipelines failed: ");
     return nullptr;
   }
 
-  // Shader module is no longer needed, now it is compiled to a pipeline.
   return std::make_unique<VKShader>(std::move(spv), pipeline);
 }
 

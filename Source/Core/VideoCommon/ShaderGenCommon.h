@@ -181,7 +181,8 @@ union ShaderHostConfig
     u32 backend_dynamic_sampler_indexing : 1;
     u32 backend_shader_framebuffer_fetch : 1;
     u32 backend_logic_op : 1;
-    u32 pad : 10;
+    u32 backend_palette_conversion : 1;
+    u32 pad : 9;
   };
 
   static ShaderHostConfig GetCurrent();
@@ -216,7 +217,7 @@ template <class T>
 inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
                                     const ShaderHostConfig& host_config, const char* qualifier)
 {
-  DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
+  DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "SV_Position");
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 

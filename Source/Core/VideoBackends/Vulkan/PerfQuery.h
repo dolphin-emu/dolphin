@@ -24,6 +24,7 @@ public:
   static PerfQuery* GetInstance();
 
   bool Initialize();
+  void FlushQueries();
 
   void EnableQuery(PerfQueryGroup type) override;
   void DisableQuery(PerfQueryGroup type) override;
@@ -43,12 +44,11 @@ private:
 
   bool CreateQueryPool();
   bool CreateReadbackBuffer();
-  void QueueCopyQueryResults(VkCommandBuffer command_buffer, VkFence fence, u32 start_index,
-                             u32 query_count);
+  void QueueCopyQueryResults(u32 start_index, u32 query_count);
   void ProcessResults(u32 start_index, u32 query_count);
 
   void OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fence);
-  void OnCommandBufferExecuted(VkFence fence);
+  void OnFenceSignaled(VkFence fence);
 
   void NonBlockingPartialFlush();
   void BlockingPartialFlush();
