@@ -89,6 +89,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
       QString name = QString::fromStdString(game.GetName(m_title_database));
+
+      // Add disc numbers > 1 to title if not present.
       const int disc_nr = game.GetDiscNumber() + 1;
       if (disc_nr > 1)
       {
@@ -97,6 +99,21 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
           name.append(tr(" (Disc %1)").arg(disc_nr));
         }
       }
+
+      // For natural sorting, pad all numbers to the same length.
+      if (Qt::InitialSortOrderRole == role)
+      {
+        constexpr int MAX_NUMBER_LENGTH = 10;
+
+        QRegExp rx(QStringLiteral("\\d+"));
+        int pos = 0;
+        while ((pos = rx.indexIn(name, pos)) != -1)
+        {
+          name.replace(pos, rx.matchedLength(), rx.cap().rightJustified(MAX_NUMBER_LENGTH));
+          pos += MAX_NUMBER_LENGTH;
+        }
+      }
+
       return name;
     }
     break;
@@ -106,7 +123,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_DESCRIPTION:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return QString::fromStdString(game.GetDescription());
+    {
+      return QString::fromStdString(game.GetDescription())
+          .replace(QLatin1Char('\n'), QLatin1Char(' '));
+    }
     break;
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
@@ -118,7 +138,15 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
-      return QString::fromStdString(UICommon::FormatSize(game.GetFileSize()));
+    {
+      std::string str = UICommon::FormatSize(game.GetFileSize());
+
+      // Add asterisk to size of compressed files.
+      if (game.GetFileSize() != game.GetVolumeSize())
+        str += '*';
+
+      return QString::fromStdString(str);
+    }
     if (role == Qt::InitialSortOrderRole)
       return static_cast<quint64>(game.GetFileSize());
     break;
@@ -261,7 +289,7 @@ void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& gam
 
 void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
-  int index = FindGame(game->GetFilePath());
+  int index = FindGameIndex(game->GetFilePath());
   if (index < 0)
   {
     AddGame(game);
@@ -275,7 +303,7 @@ void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& 
 
 void GameListModel::RemoveGame(const std::string& path)
 {
-  int entry = FindGame(path);
+  int entry = FindGameIndex(path);
   if (entry < 0)
     return;
 
@@ -284,7 +312,13 @@ void GameListModel::RemoveGame(const std::string& path)
   endRemoveRows();
 }
 
-int GameListModel::FindGame(const std::string& path) const
+std::shared_ptr<const UICommon::GameFile> GameListModel::FindGame(const std::string& path) const
+{
+  const int index = FindGameIndex(path);
+  return index < 0 ? nullptr : m_games[index];
+}
+
+int GameListModel::FindGameIndex(const std::string& path) const
 {
   for (int i = 0; i < m_games.size(); i++)
   {
@@ -292,6 +326,29 @@ int GameListModel::FindGame(const std::string& path) const
       return i;
   }
   return -1;
+}
+
+std::shared_ptr<const UICommon::GameFile>
+GameListModel::FindSecondDisc(const UICommon::GameFile& game) const
+{
+  std::shared_ptr<const UICommon::GameFile> match_without_revision = nullptr;
+
+  if (DiscIO::IsDisc(game.GetPlatform()))
+  {
+    for (auto& other_game : m_games)
+    {
+      if (game.GetGameID() == other_game->GetGameID() &&
+          game.GetDiscNumber() != other_game->GetDiscNumber())
+      {
+        if (game.GetRevision() == other_game->GetRevision())
+          return other_game;
+        else
+          match_without_revision = other_game;
+      }
+    }
+  }
+
+  return match_without_revision;
 }
 
 void GameListModel::SetSearchTerm(const QString& term)

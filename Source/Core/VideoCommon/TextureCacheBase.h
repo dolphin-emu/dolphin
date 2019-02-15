@@ -250,11 +250,9 @@ public:
                             u32 tmem_address_even, u32 tmem_address_odd, u32 tlutaddr,
                             TLUTFormat tlutfmt, u32 levels);
   TCacheEntry* GetXFBFromCache(const TextureLookupInformation& tex_info);
-  bool LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_update,
-                                          const TextureLookupInformation& tex_info);
-  TCacheEntry* CreateNormalTexture(const TextureLookupInformation& tex_info);
-  void LoadTextureFromMemory(TCacheEntry* entry_to_update,
-                             const TextureLookupInformation& tex_info);
+  TCacheEntry* GetTextureFromOverlappingTextures(const TextureLookupInformation& tex_info);
+  TCacheEntry* GetTextureFromMemory(const TextureLookupInformation& tex_info);
+  TCacheEntry* CreateNormalTexture(const TextureLookupInformation& tex_info, u32 layers);
   void LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update,
                                       const TextureLookupInformation& tex_info, bool decode_on_gpu);
   virtual void BindTextures();

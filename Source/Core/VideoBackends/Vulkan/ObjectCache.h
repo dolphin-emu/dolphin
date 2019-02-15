@@ -58,6 +58,7 @@ public:
   {
     return m_utility_shader_uniform_buffer.get();
   }
+  StreamBuffer* GetTextureUploadBuffer() const { return m_texture_upload_buffer.get(); }
 
   // Static samplers
   VkSampler GetPointSampler() const { return m_point_sampler; }
@@ -94,6 +95,7 @@ private:
   std::unique_ptr<VertexFormat> m_utility_shader_vertex_format;
   std::unique_ptr<StreamBuffer> m_utility_shader_vertex_buffer;
   std::unique_ptr<StreamBuffer> m_utility_shader_uniform_buffer;
+  std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
   VkSampler m_point_sampler = VK_NULL_HANDLE;
   VkSampler m_linear_sampler = VK_NULL_HANDLE;

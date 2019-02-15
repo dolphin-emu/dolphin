@@ -71,8 +71,15 @@ const ConfigInfo<bool> GFX_BORDERLESS_FULLSCREEN{{System::GFX, "Settings", "Bord
                                                  false};
 const ConfigInfo<bool> GFX_ENABLE_VALIDATION_LAYER{
     {System::GFX, "Settings", "EnableValidationLayer"}, false};
+
+#if defined(ANDROID)
+const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING{
+    {System::GFX, "Settings", "BackendMultithreading"}, false};
+#else
 const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING{
     {System::GFX, "Settings", "BackendMultithreading"}, true};
+#endif
+
 const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
     {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 100};
 const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};

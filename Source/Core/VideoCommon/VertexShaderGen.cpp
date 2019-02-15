@@ -98,7 +98,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("};\n");
 
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, per_pixel_lighting, "");
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
   out.Write("};\n");
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -128,32 +128,36 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
     }
 
-    // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
-      GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, per_pixel_lighting,
+      GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, false));
       out.Write("} vs;\n");
     }
     else
     {
       // Let's set up attributes
-      for (u32 i = 0; i < 8; ++i)
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s out float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s out float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      for (u32 i = 0; i < uid_data->numTexGens; ++i)
       {
-        if (i < uid_data->numTexGens)
-        {
-          out.Write("%s out float3 tex%u;\n", GetInterpolationQualifier(msaa, ssaa), i);
-        }
+        out.Write("VARYING_LOCATION(%u) %s out float3 tex%u;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
       }
-      out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      if (!host_config.fast_depth_calc)
+        out.Write("VARYING_LOCATION(%u) %s out float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s out float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s out float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
-      out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
     }
 
     out.Write("void main()\n{\n");
@@ -398,7 +402,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // clipPos/w needs to be done in pixel shader, not here
-  out.Write("o.clipPos = o.pos;\n");
+  if (!host_config.fast_depth_calc)
+    out.Write("o.clipPos = o.pos;\n");
 
   if (per_pixel_lighting)
   {
@@ -422,8 +427,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // We adjust our depth value for clipping purposes to match the perspective projection in the
     // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
     out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
-    out.Write("o.clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
-    out.Write("o.clipDist1 = -clipDepth;\n");           // Far: z > 0
+    out.Write("float clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
+    out.Write("float clipDist1 = -clipDepth;\n");           // Far: z > 0
+    if (host_config.backend_geometry_shaders)
+    {
+      out.Write("o.clipDist0 = clipDist0;\n");
+      out.Write("o.clipDist1 = clipDist1;\n");
+    }
   }
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will
@@ -485,9 +495,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
-      AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, per_pixel_lighting);
+      AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
     }
     else
     {
@@ -495,7 +505,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       // are not supported, however that will require at least OpenGL 3.2 support.
       for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
         out.Write("tex%d.xyz = o.tex%d;\n", i, i);
-      out.Write("clipPos = o.clipPos;\n");
+      if (!host_config.fast_depth_calc)
+        out.Write("clipPos = o.clipPos;\n");
       if (per_pixel_lighting)
       {
         out.Write("Normal = o.Normal;\n");
@@ -507,8 +518,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
     if (host_config.backend_depth_clamp)
     {
-      out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
-      out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
+      out.Write("gl_ClipDistance[0] = clipDist0;\n");
+      out.Write("gl_ClipDistance[1] = clipDist1;\n");
     }
 
     // Vulkan NDC space has Y pointing down (right-handed NDC space).

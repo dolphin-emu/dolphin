@@ -367,6 +367,10 @@ void MemoryViewWidget::OnContextMenu()
 
   menu->addSeparator();
 
+  menu->addAction(tr("Show in code"), this, [this] { emit ShowCode(GetContextAddress()); });
+
+  menu->addSeparator();
+
   menu->addAction(tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
 
   menu->exec(QCursor::pos());

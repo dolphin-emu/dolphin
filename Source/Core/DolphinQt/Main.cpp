@@ -147,7 +147,10 @@ int main(int argc, char* argv[])
   std::unique_ptr<BootParameters> boot;
   if (options.is_set("exec"))
   {
-    boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
+    const std::list<std::string> paths_list = options.all("exec");
+    const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
+                                         std::make_move_iterator(std::end(paths_list))};
+    boot = BootParameters::GenerateFromFile(paths);
   }
   else if (options.is_set("nand_title"))
   {
@@ -183,6 +186,7 @@ int main(int argc, char* argv[])
       QMessageBox analytics_prompt(&win);
 
       analytics_prompt.setIcon(QMessageBox::Question);
+      analytics_prompt.setWindowModality(Qt::WindowModal);
       analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       analytics_prompt.setWindowTitle(QObject::tr("Allow Usage Statistics Reporting"));
       analytics_prompt.setText(

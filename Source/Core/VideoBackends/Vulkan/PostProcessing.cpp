@@ -28,9 +28,8 @@ VulkanPostProcessing::~VulkanPostProcessing()
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_fragment_shader, nullptr);
 }
 
-bool VulkanPostProcessing::Initialize(const Texture2D* font_texture)
+bool VulkanPostProcessing::Initialize()
 {
-  m_font_texture = font_texture;
   if (!CompileDefaultShader())
     return false;
 
@@ -63,7 +62,6 @@ void VulkanPostProcessing::BlitFromTexture(const TargetRectangle& dst, const Tar
     u8* uniforms = draw.AllocatePSUniforms(uniforms_size);
     FillUniformBuffer(uniforms, src, src_tex, src_layer);
     draw.CommitPSUniforms(uniforms_size);
-    draw.SetPSSampler(1, m_font_texture->GetView(), g_object_cache->GetLinearSampler());
   }
 
   draw.DrawQuad(dst.left, dst.top, dst.GetWidth(), dst.GetHeight(), src.left, src.top, src_layer,
@@ -173,11 +171,6 @@ constexpr char POSTPROCESSING_SHADER_HEADER[] = R"(
   }
 
   #define SampleOffset(offset) float4(textureOffset(samp0, uv0, offset).xyz, 1.0)
-
-  float4 SampleFontLocation(float2 location)
-  {
-    return texture(samp1, float3(location, 0.0));
-  }
 
   float2 GetResolution()
   {

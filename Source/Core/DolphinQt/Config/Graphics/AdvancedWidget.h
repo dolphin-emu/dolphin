@@ -44,5 +44,6 @@ private:
   // Misc
   QCheckBox* m_enable_cropping;
   QCheckBox* m_enable_prog_scan;
+  QCheckBox* m_backend_multithreading;
   QCheckBox* m_borderless_fullscreen;
 };

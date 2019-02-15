@@ -9,7 +9,6 @@
     <ClCompile Include="AudioCommon.cpp" />
     <ClCompile Include="AudioStretcher.cpp" />
     <ClCompile Include="CubebUtils.cpp" />
-    <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="WaveFile.cpp" />
     <ClCompile Include="NullSoundStream.cpp">
@@ -30,12 +29,12 @@
     <ClCompile Include="WASAPIStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
+    <ClCompile Include="SurroundDecoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="AudioStretcher.h" />
     <ClInclude Include="CubebUtils.h" />
-    <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="NullSoundStream.h">
@@ -68,6 +67,7 @@
     <ClInclude Include="WASAPIStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
+    <ClInclude Include="SurroundDecoder.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

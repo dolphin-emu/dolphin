@@ -46,6 +46,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/HW/SystemTimers.h"
 
 #include <cfloat>
+#include <cinttypes>
 #include <cmath>
 #include <cstdlib>
 
@@ -192,7 +193,7 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
     const s64 max_fallback = config.iTimingVariance * 1000;
     if (abs(diff) > max_fallback)
     {
-      DEBUG_LOG(COMMON, "system too %s, %ld ms skipped", diff < 0 ? "slow" : "fast",
+      DEBUG_LOG(COMMON, "system too %s, %" PRIi64 " ms skipped", diff < 0 ? "slow" : "fast",
                 abs(diff) - max_fallback);
       last_time = time - max_fallback;
     }
@@ -253,7 +254,7 @@ double GetEstimatedEmulationPerformance()
   u64 ts_now, ts_before;  // In microseconds
   {
     std::lock_guard<std::mutex> lk(s_emu_to_real_time_mutex);
-    size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() :
+    size_t index_now = s_emu_to_real_time_index == 0 ? s_emu_to_real_time_ring_buffer.size() - 1 :
                                                        s_emu_to_real_time_index - 1;
     size_t index_before = s_emu_to_real_time_index;
 

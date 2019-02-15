@@ -43,6 +43,10 @@ public:
   virtual std::string GetDisplayName() const { return GetName(); }
   virtual void InitBackendInfo() = 0;
 
+  // Prepares a native window for rendering. This is called on the main thread, or the
+  // thread which owns the window.
+  virtual void PrepareWindow(const WindowSystemInfo& wsi) {}
+
   void Video_ExitLoop();
 
   void Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);

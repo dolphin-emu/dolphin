@@ -21,8 +21,6 @@ public:
   static void Init();
   static void Shutdown();
 
-  static ID3D11Buffer* GetConstantBuffer();
-
   static ID3D11PixelShader* GetColorCopyProgram(bool multisampled);
   static ID3D11PixelShader* GetClearProgram();
   static ID3D11PixelShader* GetAnaglyphProgram();

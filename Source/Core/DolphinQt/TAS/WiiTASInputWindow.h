@@ -6,21 +6,27 @@
 
 #include "DolphinQt/TAS/TASInputWindow.h"
 
+namespace WiimoteCommon
+{
+class DataReportBuilder;
+}
+
 namespace WiimoteEmu
 {
-struct ReportFeatures;
+class EncryptionKey;
 }
+
 class QCheckBox;
 class QGroupBox;
 class QSpinBox;
-struct wiimote_key;
 
 class WiiTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:
   explicit WiiTASInputWindow(QWidget* parent, int num);
-  void GetValues(u8* input_data, WiimoteEmu::ReportFeatures rptf, int ext, wiimote_key key);
+  void GetValues(WiimoteCommon::DataReportBuilder& rpt, int ext,
+                 const WiimoteEmu::EncryptionKey& key);
 
 private:
   void UpdateExt(u8 ext);

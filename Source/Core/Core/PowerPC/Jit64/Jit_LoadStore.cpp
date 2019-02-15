@@ -244,7 +244,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     }
   }
 
-  RCX64Reg Ra = (update && storeAddress) ? gpr.Bind(a, RCMode::Write) : RCX64Reg{};
+  RCX64Reg Ra = (update && storeAddress) ? gpr.Bind(a, RCMode::ReadWrite) : RCX64Reg{};
   RegCache::Realize(opAddress, Ra, Rd);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();

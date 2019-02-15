@@ -18,7 +18,7 @@
 
 using namespace Gen;
 
-Jit64AsmRoutineManager::Jit64AsmRoutineManager(JitBase& jit) : m_jit{jit}
+Jit64AsmRoutineManager::Jit64AsmRoutineManager(Jit64& jit) : CommonAsmRoutines(jit), m_jit{jit}
 {
 }
 

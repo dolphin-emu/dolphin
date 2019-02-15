@@ -65,9 +65,8 @@ struct Statistics
   ThisFrame thisFrame;
   void ResetFrame();
   static void SwapDL();
-
-  static std::string ToString();
-  static std::string ToStringProj();
+  static void Display();
+  static void DisplayProj();
 };
 
 extern Statistics stats;

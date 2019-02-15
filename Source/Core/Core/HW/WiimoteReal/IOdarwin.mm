@@ -298,7 +298,7 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
     return;
   }
 
-  if (length > MAX_PAYLOAD)
+  if (length > WiimoteCommon::MAX_PAYLOAD)
   {
     WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, too large", wm->GetIndex() + 1);
     return;

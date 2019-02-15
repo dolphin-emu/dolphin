@@ -601,7 +601,7 @@ void Present()
   // flag when it is supported, even when presenting in windowed mode.
   // However, this flag cannot be used if the app is in fullscreen mode as a
   // result of calling SetFullscreenState.
-  if (AllowTearingSupported() && !g_ActiveConfig.IsVSync() && !GetFullscreenState())
+  if (AllowTearingSupported() && !g_ActiveConfig.bVSyncActive && !GetFullscreenState())
     present_flags |= DXGI_PRESENT_ALLOW_TEARING;
 
   if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
@@ -610,7 +610,7 @@ void Present()
   }
 
   // TODO: Is 1 the correct value for vsyncing?
-  swapchain->Present(static_cast<UINT>(g_ActiveConfig.IsVSync()), present_flags);
+  swapchain->Present(static_cast<UINT>(g_ActiveConfig.bVSyncActive), present_flags);
 }
 
 HRESULT SetFullscreenState(bool enable_fullscreen)

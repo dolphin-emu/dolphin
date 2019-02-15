@@ -32,6 +32,9 @@
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp">
       <Filter>ControllerEmu</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerEmu\StickGate.cpp">
+      <Filter>ControllerEmu</Filter>
+    </ClCompile>
     <ClCompile Include="ControllerEmu\Control\Control.cpp">
       <Filter>ControllerEmu\Control</Filter>
     </ClCompile>
@@ -51,9 +54,6 @@
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
     <ClCompile Include="ControllerEmu\ControlGroup\Cursor.cpp">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerEmu\ControlGroup\Extension.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
     <ClCompile Include="ControllerEmu\ControlGroup\Force.cpp">
@@ -111,12 +111,18 @@
       <Filter>ControllerInterface</Filter>
     </ClCompile>
     <ClCompile Include="InputProfile.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h">
+      <Filter>ControllerEmu</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\StickGate.h">
       <Filter>ControllerEmu</Filter>
     </ClInclude>
     <ClInclude Include="ControllerEmu\Control\Control.h">
@@ -138,9 +144,6 @@
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
     <ClInclude Include="ControllerEmu\ControlGroup\Cursor.h">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\ControlGroup\Extension.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
     <ClInclude Include="ControllerEmu\ControlGroup\Force.h">
@@ -204,6 +207,9 @@
       <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="InputProfile.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

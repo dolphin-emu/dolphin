@@ -42,32 +42,32 @@ public:
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
 
-  void CreateDeviceObjects() override;
-  void DestroyDeviceObjects() override;
+  void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size) override;
 
 protected:
-  void ResetBuffer(u32 stride) override;
-  u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+  void CreateDeviceObjects() override;
+  void DestroyDeviceObjects() override;
+  void ResetBuffer(u32 vertex_stride, bool cull_all) override;
+  void CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices, u32* out_base_vertex,
+                    u32* out_base_index) override;
+  void UploadConstants() override;
+  void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
 private:
-  void PrepareDrawBuffers(u32 stride);
-  void Draw(u32 stride);
-  // temp
-  void vFlush() override;
-
-  u32 m_vertexDrawOffset;
-  u32 m_indexDrawOffset;
-  u32 m_currentBuffer;
-  u32 m_bufferCursor;
-
   enum
   {
     MAX_BUFFER_COUNT = 2
   };
-  ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT];
+  ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT] = {};
+  u32 m_current_buffer = 0;
+  u32 m_buffer_cursor = 0;
 
-  std::vector<u8> LocalVBuffer;
-  std::vector<u16> LocalIBuffer;
+  std::vector<u8> m_staging_vertex_buffer;
+  std::vector<u16> m_staging_index_buffer;
+
+  ID3D11Buffer* m_vertex_constant_buffer = nullptr;
+  ID3D11Buffer* m_geometry_constant_buffer = nullptr;
+  ID3D11Buffer* m_pixel_constant_buffer = nullptr;
 };
 
-}  // namespace
+}  // namespace DX11

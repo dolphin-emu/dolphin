@@ -116,14 +116,24 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
   if (!wad.GetTMD().IsValid())
     return false;
 
+  SysConf sysconf{ios.GetFS()};
+  SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
+  const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0));
+  const u64 title_id = wad.GetTMD().GetTitleId();
+
   // Skip the install if the WAD is already installed.
   const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(wad.GetTMD());
   if (wad.GetTMD().GetContents() == installed_contents)
+  {
+    // Clear the "temporary title ID" flag in case the user tries to permanently install a title
+    // that has already been imported as a temporary title.
+    if (previous_temporary_title_id == title_id && install_type == InstallType::Permanent)
+      tid_entry->SetData<u64>(0);
     return true;
+  }
 
   // If a different version is currently installed, warn the user to make sure
   // they don't overwrite the current version by mistake.
-  const u64 title_id = wad.GetTMD().GetTitleId();
   const IOS::ES::TMDReader installed_tmd = ios.GetES()->FindInstalledTMD(title_id);
   const bool has_another_version =
       installed_tmd.IsValid() && installed_tmd.GetTitleVersion() != wad.GetTMD().GetTitleVersion();
@@ -137,9 +147,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
   }
 
   // Delete a previous temporary title, if it exists.
-  SysConf sysconf{ios.GetFS()};
-  SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
-  if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
+  if (previous_temporary_title_id)
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
 
   if (!ImportWAD(ios, wad))

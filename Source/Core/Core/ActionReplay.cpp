@@ -83,6 +83,7 @@ enum
 // General lock. Protects codes list and internal log.
 static std::mutex s_lock;
 static std::vector<ARCode> s_active_codes;
+static std::vector<ARCode> s_synced_codes;
 static std::vector<std::string> s_internal_log;
 static std::atomic<bool> s_use_internal_log{false};
 // pointer to the code currently being run, (used by log messages that include the code name)
@@ -123,6 +124,37 @@ void ApplyCodes(const std::vector<ARCode>& codes)
   s_active_codes.shrink_to_fit();
 }
 
+void SetSyncedCodesAsActive()
+{
+  s_active_codes.clear();
+  s_active_codes.reserve(s_synced_codes.size());
+  s_active_codes = s_synced_codes;
+}
+
+void UpdateSyncedCodes(const std::vector<ARCode>& codes)
+{
+  s_synced_codes.clear();
+  s_synced_codes.reserve(codes.size());
+  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
+               [](const ARCode& code) { return code.active; });
+  s_synced_codes.shrink_to_fit();
+}
+
+std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
+{
+  if (SConfig::GetInstance().bEnableCheats)
+  {
+    std::lock_guard<std::mutex> guard(s_lock);
+    s_disable_logging = false;
+    s_active_codes.clear();
+    std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
+                 [](const ARCode& code) { return code.active; });
+  }
+  s_active_codes.shrink_to_fit();
+
+  return s_active_codes;
+}
+
 void AddCode(ARCode code)
 {
   if (!SConfig::GetInstance().bEnableCheats)
@@ -152,7 +184,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
     for (const std::string& line : enabled_lines)
     {
-      if (line.size() != 0 && line[0] == '$')
+      if (!line.empty() && line[0] == '$')
       {
         std::string name = line.substr(1, line.size() - 1);
         enabled_names.insert(name);
@@ -179,12 +211,12 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       // Check if the line is a name of the code
       if (line[0] == '$')
       {
-        if (current_code.ops.size())
+        if (!current_code.ops.empty())
         {
           codes.push_back(current_code);
           current_code.ops.clear();
         }
-        if (encrypted_lines.size())
+        if (!encrypted_lines.empty())
         {
           DecryptARCode(encrypted_lines, &current_code.ops);
           codes.push_back(current_code);
@@ -238,11 +270,11 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
 
     // Handle the last code correctly.
-    if (current_code.ops.size())
+    if (!current_code.ops.empty())
     {
       codes.push_back(current_code);
     }
-    if (encrypted_lines.size())
+    if (!encrypted_lines.empty())
     {
       DecryptARCode(encrypted_lines, &current_code.ops);
       codes.push_back(current_code);

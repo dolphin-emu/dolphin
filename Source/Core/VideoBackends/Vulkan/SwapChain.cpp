@@ -36,6 +36,7 @@ SwapChain::~SwapChain()
   DestroySwapChainImages();
   DestroySwapChain();
   DestroySurface();
+  DestroySemaphores();
 }
 
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_handle, void* hwnd)
@@ -118,6 +119,19 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_h
 
   return surface;
 
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+  VkMacOSSurfaceCreateInfoMVK surface_create_info = {
+      VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, hwnd};
+
+  VkSurfaceKHR surface;
+  VkResult res = vkCreateMacOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateMacOSSurfaceMVK failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  return surface;
 #else
   return VK_NULL_HANDLE;
 #endif
@@ -129,13 +143,51 @@ std::unique_ptr<SwapChain> SwapChain::Create(void* display_handle, void* native_
   std::unique_ptr<SwapChain> swap_chain =
       std::make_unique<SwapChain>(display_handle, native_handle, surface, vsync);
 
-  if (!swap_chain->CreateSwapChain() || !swap_chain->CreateRenderPass() ||
+  if (!swap_chain->CreateSemaphores() || !swap_chain->CreateSwapChain() ||
       !swap_chain->SetupSwapChainImages())
   {
     return nullptr;
   }
 
   return swap_chain;
+}
+
+bool SwapChain::CreateSemaphores()
+{
+  // Create two semaphores, one that is triggered when the swapchain buffer is ready, another after
+  // submit and before present
+  VkSemaphoreCreateInfo semaphore_info = {
+      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // VkStructureType          sType
+      nullptr,                                  // const void*              pNext
+      0                                         // VkSemaphoreCreateFlags   flags
+  };
+
+  VkResult res;
+  if ((res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
+                               &m_image_available_semaphore)) != VK_SUCCESS ||
+      (res = vkCreateSemaphore(g_vulkan_context->GetDevice(), &semaphore_info, nullptr,
+                               &m_rendering_finished_semaphore)) != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
+    return false;
+  }
+
+  return true;
+}
+
+void SwapChain::DestroySemaphores()
+{
+  if (m_image_available_semaphore)
+  {
+    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_image_available_semaphore, nullptr);
+    m_image_available_semaphore = VK_NULL_HANDLE;
+  }
+
+  if (m_rendering_finished_semaphore)
+  {
+    vkDestroySemaphore(g_vulkan_context->GetDevice(), m_rendering_finished_semaphore, nullptr);
+    m_rendering_finished_semaphore = VK_NULL_HANDLE;
+  }
 }
 
 bool SwapChain::SelectSurfaceFormat()
@@ -162,13 +214,27 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  // Use the first surface format, just use what it prefers.
-  // Some drivers seem to return a SRGB format here (Intel Mesa).
-  // This results in gamma correction when presenting to the screen, which we don't want.
-  // Use a linear format instead, if this is the case.
-  m_surface_format.format = Util::GetLinearFormat(surface_formats[0].format);
-  m_surface_format.colorSpace = surface_formats[0].colorSpace;
-  return true;
+  // Try to find a suitable format.
+  for (const VkSurfaceFormatKHR& surface_format : surface_formats)
+  {
+    // Some drivers seem to return a SRGB format here (Intel Mesa).
+    // This results in gamma correction when presenting to the screen, which we don't want.
+    // Use a linear format instead, if this is the case.
+    VkFormat format = Util::GetLinearFormat(surface_format.format);
+    if (format == VK_FORMAT_R8G8B8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::RGBA8;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::BGRA8;
+    else
+      continue;
+
+    m_surface_format.format = format;
+    m_surface_format.colorSpace = surface_format.colorSpace;
+    return true;
+  }
+
+  PanicAlert("Failed to find a suitable format for swap chain buffers.");
+  return false;
 }
 
 bool SwapChain::SelectPresentMode()
@@ -221,14 +287,6 @@ bool SwapChain::SelectPresentMode()
   // Fall back to whatever is available.
   m_present_mode = present_modes[0];
   return true;
-}
-
-bool SwapChain::CreateRenderPass()
-{
-  // render pass for rendering to the swap chain
-  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
-                                                VK_ATTACHMENT_LOAD_OP_CLEAR);
-  return m_render_pass != VK_NULL_HANDLE;
 }
 
 bool SwapChain::CreateSwapChain()
@@ -354,6 +412,16 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
+  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
+                                                VK_ATTACHMENT_LOAD_OP_LOAD);
+  m_clear_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED,
+                                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+  if (m_render_pass == VK_NULL_HANDLE || m_clear_render_pass == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to get swap chain render passes.");
+    return false;
+  }
+
   m_swap_chain_images.reserve(image_count);
   for (uint32_t i = 0; i < image_count; i++)
   {
@@ -409,11 +477,11 @@ void SwapChain::DestroySwapChain()
   m_swap_chain = VK_NULL_HANDLE;
 }
 
-VkResult SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
+VkResult SwapChain::AcquireNextImage()
 {
-  VkResult res =
-      vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                            available_semaphore, VK_NULL_HANDLE, &m_current_swap_chain_image_index);
+  VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
+                                       m_image_available_semaphore, VK_NULL_HANDLE,
+                                       &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 
@@ -486,7 +554,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   }
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain() || !SetupSwapChainImages() || !CreateRenderPass())
+  if (!CreateSwapChain() || !SetupSwapChainImages())
     return false;
 
   return true;

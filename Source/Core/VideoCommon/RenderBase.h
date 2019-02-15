@@ -32,6 +32,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractFramebuffer;
@@ -39,6 +40,7 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
+class NativeVertexFormat;
 class PostProcessingShaderImplementation;
 struct TextureConfig;
 struct ComputePipelineConfig;
@@ -55,29 +57,22 @@ struct EfbPokeData
 
 extern int frameCount;
 
-enum class OSDMessage : s32
-{
-  IRChanged = 1,
-  ARToggled = 2,
-  EFBCopyToggled = 3,
-  FogToggled = 4,
-  SpeedChanged = 5,
-  XFBChanged = 6,
-  VolumeChanged = 7,
-};
-
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
 // more sense.
 class Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height);
+  Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
+           AbstractTextureFormat backbuffer_format);
   virtual ~Renderer();
 
   using ClearColor = std::array<float, 4>;
 
   virtual bool IsHeadless() const = 0;
+
+  virtual bool Initialize();
+  virtual void Shutdown();
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
@@ -110,6 +105,18 @@ public:
   {
   }
 
+  // Drawing with currently-bound pipeline state.
+  virtual void Draw(u32 base_vertex, u32 num_vertices) {}
+  virtual void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) {}
+
+  // Binds the backbuffer for rendering. The buffer will be cleared immediately after binding.
+  // This is where any window size changes are detected, therefore m_backbuffer_width and/or
+  // m_backbuffer_height may change after this function returns.
+  virtual void BindBackbuffer(const ClearColor& clear_color = {}) {}
+
+  // Presents the backbuffer to the window system, or "swaps buffers".
+  virtual void PresentBackbuffer() {}
+
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader>
   CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
@@ -127,6 +134,7 @@ public:
   // Display resolution
   int GetBackbufferWidth() const { return m_backbuffer_width; }
   int GetBackbufferHeight() const { return m_backbuffer_height; }
+  float GetBackbufferScale() const { return m_backbuffer_scale; }
   void SetWindowSize(int width, int height);
 
   // EFB coordinate conversion functions
@@ -158,7 +166,8 @@ public:
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
 
-  virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
+  // ImGui initialization depends on being able to create textures and pipelines, so do it last.
+  bool InitializeImGui();
 
   virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z) = 0;
@@ -172,10 +181,18 @@ public:
   virtual u16 BBoxRead(int index) = 0;
   virtual void BBoxWrite(int index, u16 value) = 0;
 
+  virtual void Flush() {}
+
   // Finish up the current frame, print some stats
   void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
             u64 ticks);
-  virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) = 0;
+
+  // Draws the specified XFB buffer to the screen, performing any post-processing.
+  // Assumes that the backbuffer has already been bound and cleared.
+  virtual void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) {}
+
+  // Called when the configuration changes, and backend structures need to be updated.
+  virtual void OnConfigChanged(u32 bits) {}
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
@@ -188,28 +205,48 @@ public:
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
 
-  virtual void Shutdown();
+  // Returns a lock for the ImGui mutex, enabling data structures to be modified from outside.
+  // Use with care, only non-drawing functions should be called from outside the video thread,
+  // as the drawing is tied to a "frame".
+  std::unique_lock<std::mutex> GetImGuiLock();
 
-  // Drawing utility shaders.
-  virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-  {
-  }
-  virtual void DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-  {
-  }
-
-  void ShowOSDMessage(OSDMessage message);
+  // Begins/presents a "UI frame". UI frames do not draw any of the console XFB, but this could
+  // change in the future.
+  void BeginUIFrame();
+  void EndUIFrame();
 
 protected:
+  // Bitmask containing information about which configuration has changed for the backend.
+  enum ConfigChangeBits : u32
+  {
+    CONFIG_CHANGE_BIT_HOST_CONFIG = (1 << 0),
+    CONFIG_CHANGE_BIT_MULTISAMPLES = (1 << 1),
+    CONFIG_CHANGE_BIT_STEREO_MODE = (1 << 2),
+    CONFIG_CHANGE_BIT_TARGET_SIZE = (1 << 3),
+    CONFIG_CHANGE_BIT_ANISOTROPY = (1 << 4),
+    CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING = (1 << 5),
+    CONFIG_CHANGE_BIT_VSYNC = (1 << 6),
+    CONFIG_CHANGE_BIT_BBOX = (1 << 7)
+  };
+
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
-  bool CheckForHostConfigChanges();
+  void CheckForConfigChanges();
 
   void CheckFifoRecording();
   void RecordVideoMemory();
+
+  // Sets up ImGui state for the next frame.
+  // This function itself acquires the ImGui lock, so it should not be held.
+  void BeginImGuiFrame();
+
+  // Destroys all ImGui GPU resources, must do before shutdown.
+  void ShutdownImGui();
+
+  // Renders ImGui windows to the currently-bound framebuffer.
+  // Should be called with the ImGui lock held.
+  void RenderImGui();
 
   // TODO: Remove the width/height parameters once we make the EFB an abstract framebuffer.
   const AbstractFramebuffer* m_current_framebuffer = nullptr;
@@ -229,6 +266,8 @@ protected:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
+  float m_backbuffer_scale = 1.0f;
+  AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
 
   FPSCounter m_fps_counter;
@@ -240,8 +279,12 @@ protected:
   Common::Flag m_surface_resized;
   std::mutex m_swap_mutex;
 
-  u32 m_last_host_config_bits = 0;
-  u32 m_last_efb_multisamples = 1;
+  // ImGui resources.
+  std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
+  std::vector<std::unique_ptr<AbstractTexture>> m_imgui_textures;
+  std::unique_ptr<AbstractPipeline> m_imgui_pipeline;
+  std::mutex m_imgui_mutex;
+  u64 m_imgui_last_frame_time;
 
 private:
   void RunFrameDumps();
@@ -285,9 +328,6 @@ private:
   // Note: Only used for auto-ir
   u32 m_last_xfb_width = MAX_XFB_WIDTH;
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
-
-  s32 m_osd_message = 0;
-  s32 m_osd_time = 0;
 
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToAVI(const FrameDumpConfig& config);

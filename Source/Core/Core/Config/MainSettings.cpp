@@ -44,6 +44,7 @@ const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
 const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
     {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
+const ConfigInfo<bool> MAIN_CODE_SYNC_OVERRIDE{{System::Main, "Core", "CheatSyncOverride"}, false};
 const ConfigInfo<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                                   ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const ConfigInfo<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
@@ -103,6 +104,7 @@ const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCVal
 const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS{{System::Main, "Core", "EnableSignatureChecks"},
                                                     true};
 const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE{{System::Main, "Core", "ReducePollingRate"}, false};
+const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
 
 // Main.DSP
 

@@ -8,14 +8,19 @@
 
 #include "Common/CommonTypes.h"
 
-// The key structure to use with WiimoteGenerateKey()
-struct wiimote_key
+namespace WiimoteEmu
 {
-  u8 ft[8];
-  u8 sb[8];
+class EncryptionKey
+{
+public:
+  void Generate(const u8* keydata);
+
+  void Encrypt(u8* data, int addr, u8 len) const;
+  void Decrypt(u8* data, int addr, u8 len) const;
+
+private:
+  u8 ft[8] = {};
+  u8 sb[8] = {};
 };
 
-void WiimoteEncrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
-void WiimoteDecrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
-
-void WiimoteGenerateKey(wiimote_key* const key, const u8* const keydata);
+}  // namespace WiimoteEmu

@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/Speaker.h"
+
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -68,71 +71,76 @@ void stopdamnwav()
 }
 #endif
 
-void Wiimote::SpeakerData(const wm_speaker_data* sd)
+void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 {
+  // TODO: should we still process samples for the decoder state?
   if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
     return;
-  if (m_reg_speaker.volume == 0 || m_reg_speaker.sample_rate == 0 || sd->length == 0)
+
+  if (reg_data.sample_rate == 0 || length == 0)
     return;
 
+  // Even if volume is zero we process samples to maintain proper decoder state.
+
   // TODO consider using static max size instead of new
-  std::unique_ptr<s16[]> samples(new s16[sd->length * 2]);
+  std::unique_ptr<s16[]> samples(new s16[length * 2]);
 
   unsigned int sample_rate_dividend, sample_length;
   u8 volume_divisor;
 
-  if (m_reg_speaker.format == 0x40)
+  if (reg_data.format == SpeakerLogic::DATA_FORMAT_PCM)
   {
     // 8 bit PCM
-    for (int i = 0; i < sd->length; ++i)
+    for (int i = 0; i < length; ++i)
     {
-      samples[i] = ((s16)(s8)sd->data[i]) << 8;
+      samples[i] = ((s16)(s8)data[i]) * 0x100;
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 12000000;
     volume_divisor = 0xff;
-    sample_length = (unsigned int)sd->length;
+    sample_length = (unsigned int)length;
   }
-  else if (m_reg_speaker.format == 0x00)
+  else if (reg_data.format == SpeakerLogic::DATA_FORMAT_ADPCM)
   {
     // 4 bit Yamaha ADPCM (same as dreamcast)
-    for (int i = 0; i < sd->length; ++i)
+    for (int i = 0; i < length; ++i)
     {
-      samples[i * 2] = adpcm_yamaha_expand_nibble(m_adpcm_state, (sd->data[i] >> 4) & 0xf);
-      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_adpcm_state, sd->data[i] & 0xf);
+      samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, (data[i] >> 4) & 0xf);
+      samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
     }
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 6000000;
-
-    // 0 - 127
-    // TODO: does it go beyond 127 for format == 0x40?
     volume_divisor = 0x7F;
-    sample_length = (unsigned int)sd->length * 2;
+    sample_length = (unsigned int)length * 2;
   }
   else
   {
-    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", m_reg_speaker.format);
+    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", reg_data.format);
     return;
   }
 
-  // Speaker Pan
-  unsigned int vol = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
+  if (reg_data.volume > volume_divisor)
+  {
+    DEBUG_LOG(IOS_WIIMOTE, "Wiimote volume is higher than suspected maximum!");
+    volume_divisor = reg_data.volume;
+  }
 
-  unsigned int sample_rate = sample_rate_dividend / m_reg_speaker.sample_rate;
-  float speaker_volume_ratio = (float)m_reg_speaker.volume / volume_divisor;
-  unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio);
-  unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio);
+  // SetWiimoteSpeakerVolume expects values from 0 to 255.
+  // Multiply by 256, cast to int, and clamp to 255 for a uniform conversion.
+  const double volume = float(reg_data.volume) / volume_divisor * 256;
 
-  if (left_volume > 255)
-    left_volume = 255;
-  if (right_volume > 255)
-    right_volume = 255;
+  // Speaker pan using "Constant Power Pan Law"
+  const double pan_prime = MathUtil::PI * (speaker_pan + 1) / 4;
+
+  const auto left_volume = std::min(int(std::cos(pan_prime) * volume), 255);
+  const auto right_volume = std::min(int(std::sin(pan_prime) * volume), 255);
 
   g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
 
   // ADPCM sample rate is thought to be x2.(3000 x2 = 6000).
+  const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
   g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sample_length,
                                                         sample_rate * 2);
 
@@ -147,15 +155,57 @@ void Wiimote::SpeakerData(const wm_speaker_data* sd)
     File::OpenFStream(ofile, "rmtdump.bin", ofile.binary | ofile.out);
     wav.Start("rmtdump.wav", 6000);
   }
-  wav.AddMonoSamples(samples.get(), sd->length * 2);
+  wav.AddMonoSamples(samples.get(), length * 2);
   if (ofile.good())
   {
-    for (int i = 0; i < sd->length; i++)
+    for (int i = 0; i < length; i++)
     {
-      ofile << sd->data[i];
+      ofile << data[i];
     }
   }
   num++;
 #endif
 }
+
+void SpeakerLogic::Reset()
+{
+  reg_data = {};
+
+  // Yamaha ADPCM state initialize
+  adpcm_state.predictor = 0;
+  adpcm_state.step = 127;
 }
+
+void SpeakerLogic::DoState(PointerWrap& p)
+{
+  p.Do(adpcm_state);
+  p.Do(reg_data);
+}
+
+int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
+{
+  if (I2C_ADDR != slave_addr)
+    return 0;
+
+  return RawRead(&reg_data, addr, count, data_out);
+}
+
+int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
+{
+  if (I2C_ADDR != slave_addr)
+    return 0;
+
+  if (0x00 == addr)
+  {
+    ERROR_LOG(WIIMOTE, "Writing of speaker data to address 0x00 is unimplemented!");
+    return count;
+  }
+  else
+  {
+    // TODO: Does writing immediately change the decoder config even when active
+    // or does a write to 0x08 activate the new configuration or something?
+    return RawWrite(&reg_data, addr, count, data_in);
+  }
+}
+
+}  // namespace WiimoteEmu

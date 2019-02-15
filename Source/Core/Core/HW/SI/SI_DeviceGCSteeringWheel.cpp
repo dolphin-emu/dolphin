@@ -81,26 +81,33 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
 
   if (wheel_command.command == CMD_FORCE)
   {
-    // 0 = left strong, 127 = left weak, 128 = right weak, 255 = right strong
-    unsigned int strength = wheel_command.parameter1;
-
-    // 06 = motor on, 04 = motor off
-    unsigned int type = wheel_command.parameter2;
-
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
 
     if (pad_num < 4)
     {
-      if (type == 0x06)
+      // Lowest bit is the high bit of the strength field.
+      const auto type = ForceCommandType(wheel_command.parameter2 >> 1);
+
+      // Strength is a 9 bit value from 0 to 256.
+      // 0 = left strong, 256 = right strong
+      const u32 strength = ((wheel_command.parameter2 & 1) << 8) | wheel_command.parameter1;
+
+      switch (type)
       {
-        // map 0..255 to -1.0..1.0
-        ControlState mapped_strength = strength / 127.5 - 1;
+      case ForceCommandType::MotorOn:
+      {
+        // Map 0..256 to -1.0..1.0
+        const ControlState mapped_strength = strength / 128.0 - 1;
         Pad::Rumble(pad_num, mapped_strength);
+        break;
       }
-      else
-      {
+      case ForceCommandType::MotorOff:
         Pad::Rumble(pad_num, 0);
+        break;
+      default:
+        WARN_LOG(SERIALINTERFACE, "Unknown CMD_FORCE type %i", int(type));
+        break;
       }
     }
 

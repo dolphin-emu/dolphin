@@ -24,7 +24,7 @@ enum class GroupType
   MixedTriggers,
   Buttons,
   Force,
-  Extension,
+  Attachments,
   Tilt,
   Cursor,
   Triggers,
