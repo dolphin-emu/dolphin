@@ -384,6 +384,17 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
           dst_y = 0;
         }
 
+        // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
+        // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
+        // to the graphics driver, which can cause GPU resets.
+        if (static_cast<u32>(src_x) >= entry->native_width ||
+            static_cast<u32>(src_y) >= entry->native_height ||
+            static_cast<u32>(dst_x) >= entry_to_update->native_width ||
+            static_cast<u32>(dst_y) >= entry_to_update->native_height)
+        {
+          continue;
+        }
+
         u32 copy_width =
             std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
         u32 copy_height =
@@ -1451,6 +1462,17 @@ TextureCacheBase::GetTextureFromOverlappingTextures(const TextureLookupInformati
       src_y = block_y * tex_info.block_height;
       dst_x = 0;
       dst_y = 0;
+    }
+
+    // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
+    // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
+    // to the graphics driver, which can cause GPU resets.
+    if (static_cast<u32>(src_x) >= entry->native_width ||
+        static_cast<u32>(src_y) >= entry->native_height ||
+        static_cast<u32>(dst_x) >= stitched_entry->native_width ||
+        static_cast<u32>(dst_y) >= stitched_entry->native_height)
+    {
+      continue;
     }
 
     u32 copy_width = std::min(entry->native_width - src_x, stitched_entry->native_width - dst_x);
