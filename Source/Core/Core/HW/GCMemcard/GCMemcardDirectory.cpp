@@ -58,7 +58,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
       }
     }
 
-    u16 num_blocks = gci.m_gci_header.m_block_count;
+    u16 num_blocks = BE16(gci.m_gci_header.BlockCount);
     // largest number of free blocks on a memory card
     // in reality, there are not likely any valid gci files > 251 blocks
     if (num_blocks > 2043)
@@ -79,7 +79,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
       return NO_INDEX;
     }
 
-    if (m_game_id == BE32(gci.m_gci_header.m_gamecode.data()))
+    if (m_game_id == BE32(gci.m_gci_header.Gamecode))
     {
       gci.LoadSaveBlocks();
     }
@@ -89,8 +89,8 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
       {
         return NO_INDEX;
       }
-      int total_blocks = m_hdr.m_size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
-      int free_blocks = m_bat1.m_free_blocks;
+      int total_blocks = BE16(m_hdr.SizeMb) * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+      int free_blocks = BE16(m_bat1.FreeBlocks);
       if (total_blocks > free_blocks * 10)
       {
         PanicAlertT("%s\nwas not loaded because there is less than 10%% free blocks available on "
@@ -108,7 +108,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
           file_name.c_str());
       return NO_INDEX;
     }
-    gci.m_gci_header.m_first_block = first_block;
+    *(u16*)&gci.m_gci_header.FirstBlock = first_block;
     if (gci.HasCopyProtection() && gci.LoadSaveBlocks())
     {
       GCMemcard::PSO_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
@@ -151,7 +151,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     if (std::find(loaded_saves.begin(), loaded_saves.end(), gci_filename) != loaded_saves.end())
       continue;
 
-    const u16 num_blocks = gci.m_gci_header.m_block_count;
+    const u16 num_blocks = BE16(gci.m_gci_header.BlockCount);
     // largest number of free blocks on a memory card
     // in reality, there are not likely any valid gci files > 251 blocks
     if (num_blocks > 2043)
@@ -166,7 +166,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     // card (see above method), but since we're only loading the saves for one GameID here, we're
     // definitely not going to run out of space.
 
-    if (game_code == BE32(gci.m_gci_header.m_gamecode.data()))
+    if (game_code == BE32(gci.m_gci_header.Gamecode))
     {
       loaded_saves.push_back(gci_filename);
       filenames.push_back(file_name);
@@ -429,17 +429,16 @@ inline void GCMemcardDirectory::SyncSaves()
 {
   Directory* current = &m_dir2;
 
-  if (m_dir1.m_update_counter > m_dir2.m_update_counter)
+  if (BE16(m_dir1.UpdateCounter) > BE16(m_dir2.UpdateCounter))
   {
     current = &m_dir1;
   }
 
   for (u32 i = 0; i < DIRLEN; ++i)
   {
-    if (current->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (BE32(current->Dir[i].Gamecode) != 0xFFFFFFFF)
     {
-      INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x",
-               BE32(current->m_dir_entries[i].m_gamecode.data()));
+      INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x", *(u32*)&(current->Dir[i].Gamecode));
       bool added = false;
       while (i >= m_saves.size())
       {
@@ -448,29 +447,27 @@ inline void GCMemcardDirectory::SyncSaves()
         added = true;
       }
 
-      if (added ||
-          memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE))
+      if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->Dir[i]), DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
-        u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode.data());
-        u32 new_gamecode = BE32(current->m_dir_entries[i].m_gamecode.data());
-        u32 old_start = m_saves[i].m_gci_header.m_first_block;
-        u32 new_start = current->m_dir_entries[i].m_first_block;
+        u32 gamecode = BE32(m_saves[i].m_gci_header.Gamecode);
+        u32 new_gamecode = BE32(current->Dir[i].Gamecode);
+        u32 old_start = BE16(m_saves[i].m_gci_header.FirstBlock);
+        u32 new_start = BE16(current->Dir[i].FirstBlock);
 
         if ((gamecode != 0xFFFFFFFF) && (gamecode != new_gamecode))
         {
           PanicAlertT("Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x",
-                      BE32(m_saves[i].m_gci_header.m_gamecode.data()),
-                      BE32(current->m_dir_entries[i].m_gamecode.data()));
+                      BE32(m_saves[i].m_gci_header.Gamecode), BE32(current->Dir[i].Gamecode));
         }
-        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE);
+        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->Dir[i]), DENTRY_SIZE);
         if (old_start != new_start)
         {
           INFO_LOG(EXPANSIONINTERFACE, "Save moved from 0x%x to 0x%x", old_start, new_start);
           m_saves[i].m_used_blocks.clear();
           m_saves[i].m_save_data.clear();
         }
-        if (m_saves[i].m_used_blocks.empty())
+        if (m_saves[i].m_used_blocks.size() == 0)
         {
           SetUsedBlocks(i);
         }
@@ -479,8 +476,8 @@ inline void GCMemcardDirectory::SyncSaves()
     else if ((i < m_saves.size()) && (*(u32*)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
     {
       INFO_LOG(EXPANSIONINTERFACE, "Clearing and/or deleting save 0x%x",
-               BE32(m_saves[i].m_gci_header.m_gamecode.data()));
-      m_saves[i].m_gci_header.m_gamecode = DEntry::UNINITIALIZED_GAMECODE;
+               BE32(m_saves[i].m_gci_header.Gamecode));
+      *(u32*)&(m_saves[i].m_gci_header.Gamecode) = 0xFFFFFFFF;
       m_saves[i].m_save_data.clear();
       m_saves[i].m_used_blocks.clear();
       m_saves[i].m_dirty = true;
@@ -491,9 +488,9 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 {
   for (u16 i = 0; i < m_saves.size(); ++i)
   {
-    if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (BE32(m_saves[i].m_gci_header.Gamecode) != 0xFFFFFFFF)
     {
-      if (m_saves[i].m_used_blocks.empty())
+      if (m_saves[i].m_used_blocks.size() == 0)
       {
         SetUsedBlocks(i);
       }
@@ -503,7 +500,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
       {
         if (!m_saves[i].LoadSaveBlocks())
         {
-          int num_blocks = m_saves[i].m_gci_header.m_block_count;
+          int num_blocks = BE16(m_saves[i].m_gci_header.BlockCount);
           while (num_blocks)
           {
             m_saves[i].m_save_data.emplace_back();
@@ -517,7 +514,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
         }
 
         m_last_block = block;
-        m_last_block_address = m_saves[i].m_save_data[idx].m_block.data();
+        m_last_block_address = m_saves[i].m_save_data[idx].block;
         return m_last_block;
       }
     }
@@ -549,12 +546,12 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 {
   BlockAlloc* current_bat;
-  if (m_bat2.m_update_counter > m_bat1.m_update_counter)
+  if (BE16(m_bat2.UpdateCounter) > BE16(m_bat1.UpdateCounter))
     current_bat = &m_bat2;
   else
     current_bat = &m_bat1;
 
-  u16 block = m_saves[save_index].m_gci_header.m_first_block;
+  u16 block = BE16(m_saves[save_index].m_gci_header.FirstBlock);
   while (block != 0xFFFF)
   {
     m_saves[save_index].m_used_blocks.push_back(block);
@@ -566,7 +563,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int save_index)
     }
   }
 
-  u16 num_blocks = m_saves[save_index].m_gci_header.m_block_count;
+  u16 num_blocks = BE16(m_saves[save_index].m_gci_header.BlockCount);
   u16 blocks_from_bat = (u16)m_saves[save_index].m_used_blocks.size();
   if (blocks_from_bat != num_blocks)
   {
@@ -588,10 +585,10 @@ void GCMemcardDirectory::FlushToFile()
   {
     if (m_saves[i].m_dirty)
     {
-      if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+      if (BE32(m_saves[i].m_gci_header.Gamecode) != 0xFFFFFFFF)
       {
         m_saves[i].m_dirty = false;
-        if (m_saves[i].m_save_data.empty())
+        if (m_saves[i].m_save_data.size() == 0)
         {
           // The save's header has been changed but the actual save blocks haven't been read/written
           // to
@@ -657,8 +654,8 @@ void GCMemcardDirectory::FlushToFile()
     // simultaneously
     // this ensures that the save data for all of the current games gci files are stored in the
     // savestate
-    u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode.data());
-    if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && !m_saves[i].m_save_data.empty())
+    u32 gamecode = BE32(m_saves[i].m_gci_header.Gamecode);
+    if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && m_saves[i].m_save_data.size())
     {
       INFO_LOG(EXPANSIONINTERFACE, "Flushing savedata to disk for %s",
                m_saves[i].m_filename.c_str());
@@ -695,7 +692,7 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
 
 bool GCIFile::LoadSaveBlocks()
 {
-  if (m_save_data.empty())
+  if (m_save_data.size() == 0)
   {
     if (m_filename.empty())
       return false;
@@ -706,7 +703,7 @@ bool GCIFile::LoadSaveBlocks()
 
     INFO_LOG(EXPANSIONINTERFACE, "Reading savedata from disk for %s", m_filename.c_str());
     save_file.Seek(DENTRY_SIZE, SEEK_SET);
-    u16 num_blocks = m_gci_header.m_block_count;
+    u16 num_blocks = BE16(m_gci_header.BlockCount);
     m_save_data.resize(num_blocks);
     if (!save_file.ReadBytes(m_save_data.data(), num_blocks * BLOCK_SIZE))
     {

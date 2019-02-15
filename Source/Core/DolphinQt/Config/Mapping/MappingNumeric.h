@@ -19,6 +19,7 @@ class MappingNumeric : public QSpinBox
 public:
   MappingNumeric(MappingWidget* widget, ControllerEmu::NumericSetting* ref);
 
+  void Clear();
   void Update();
 
 private:

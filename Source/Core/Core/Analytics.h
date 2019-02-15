@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -18,14 +17,6 @@
 #endif
 // Non generic part of the Dolphin Analytics framework. See Common/Analytics.h
 // for the main documentation.
-
-enum class GameQuirk
-{
-  // Sometimes code run from ICache is different from its mirror in RAM.
-  ICACHE_MATTERS = 0,
-
-  COUNT,
-};
 
 class DolphinAnalytics
 {
@@ -50,10 +41,6 @@ public:
   // Generates a base report for a "Game start" event. Also preseeds the
   // per-game base data.
   void ReportGameStart();
-
-  // Generates a report for a special condition being hit by a game. This is automatically throttled
-  // to once per game run.
-  void ReportGameQuirk(GameQuirk quirk);
 
   struct PerformanceSample
   {
@@ -105,9 +92,6 @@ private:
   u64 m_sampling_next_start_us;              // Next timestamp (in us) at which to trigger sampling.
   bool m_sampling_performance_info = false;  // Whether we are currently collecting samples.
   std::vector<PerformanceSample> m_performance_samples;
-
-  // What quirks have already been reported about the current game.
-  std::array<bool, static_cast<size_t>(GameQuirk::COUNT)> m_reported_quirks;
 
   // Builder that contains all non variable data that should be sent with all
   // reports.

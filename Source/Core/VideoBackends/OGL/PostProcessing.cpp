@@ -198,6 +198,11 @@ void OpenGLPostProcessing::CreateHeader()
 
       "#define SampleOffset(offset) textureOffset(samp9, float3(uv0, layer), offset)\n"
 
+      "float4 SampleFontLocation(float2 location)\n"
+      "{\n"
+      "\treturn texture(samp8, location);\n"
+      "}\n"
+
       "float2 GetResolution()\n"
       "{\n"
       "\treturn resolution.xy;\n"

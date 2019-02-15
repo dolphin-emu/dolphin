@@ -95,6 +95,7 @@ public:
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckIntegrity(const Partition& partition) const { return false; }
+  // May be inaccurate for WADs
   virtual Region GetRegion() const = 0;
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
   virtual BlobType GetBlobType() const = 0;

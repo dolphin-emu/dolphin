@@ -26,8 +26,6 @@ InputConfig* GetConfig()
 
 void Shutdown()
 {
-  s_config.UnregisterHotplugCallback();
-
   s_config.ClearControllers();
 }
 
@@ -39,7 +37,7 @@ void Initialize()
       s_config.CreateController<GCKeyboard>(i);
   }
 
-  s_config.RegisterHotplugCallback();
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   // Load the saved controller config
   s_config.LoadConfig(true);
@@ -59,4 +57,4 @@ KeyboardStatus GetStatus(int port)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }
-}  // namespace Keyboard
+}

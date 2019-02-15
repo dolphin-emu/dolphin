@@ -36,7 +36,7 @@ struct NetSettings
   bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
-  std::array<ExpansionInterface::TEXIDevices, 2> m_EXIDevice;
+  ExpansionInterface::TEXIDevices m_EXIDevice[2];
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
   bool m_ForceProgressive;
@@ -74,13 +74,9 @@ struct NetSettings
   bool m_ArbitraryMipmapDetection;
   float m_ArbitraryMipmapDetectionThreshold;
   bool m_EnableGPUTextureDecoding;
-  bool m_DeferEFBCopies;
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
-  bool m_SyncCodes;
   std::string m_SaveDataRegion;
-  bool m_SyncAllWiiSaves;
-  std::array<int, 4> m_WiimoteExtension;
   bool m_IsHosting;
   bool m_HostInputAuthority;
 };
@@ -112,12 +108,6 @@ enum
 
   NP_MSG_CHAT_MESSAGE = 0x30,
 
-  NP_MSG_CHUNKED_DATA_START = 0x40,
-  NP_MSG_CHUNKED_DATA_END = 0x41,
-  NP_MSG_CHUNKED_DATA_PAYLOAD = 0x42,
-  NP_MSG_CHUNKED_DATA_PROGRESS = 0x43,
-  NP_MSG_CHUNKED_DATA_COMPLETE = 0x44,
-
   NP_MSG_PAD_DATA = 0x60,
   NP_MSG_PAD_MAPPING = 0x61,
   NP_MSG_PAD_BUFFER = 0x62,
@@ -134,7 +124,6 @@ enum
   NP_MSG_GAME_STATUS = 0xA4,
   NP_MSG_IPL_STATUS = 0xA5,
   NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
-  NP_MSG_POWER_BUTTON = 0xA7,
 
   NP_MSG_TIMEBASE = 0xB0,
   NP_MSG_DESYNC_DETECTED = 0xB1,
@@ -154,7 +143,6 @@ enum
 
   NP_MSG_SYNC_GC_SRAM = 0xF0,
   NP_MSG_SYNC_SAVE_DATA = 0xF1,
-  NP_MSG_SYNC_CODES = 0xF2,
 };
 
 enum
@@ -174,41 +162,22 @@ enum
   SYNC_SAVE_DATA_WII = 5
 };
 
-enum
-{
-  SYNC_CODES_NOTIFY = 0,
-  SYNC_CODES_NOTIFY_GECKO = 1,
-  SYNC_CODES_NOTIFY_AR = 2,
-  SYNC_CODES_DATA_GECKO = 3,
-  SYNC_CODES_DATA_AR = 4,
-  SYNC_CODES_SUCCESS = 5,
-  SYNC_CODES_FAILURE = 6,
-};
-
 constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
 constexpr u32 NETPLAY_LZO_OUT_LEN = NETPLAY_LZO_IN_LEN + (NETPLAY_LZO_IN_LEN / 16) + 64 + 3;
-constexpr size_t CHUNKED_DATA_UNIT_SIZE = 16384;
-constexpr u8 CHANNEL_COUNT = 2;
-constexpr u8 DEFAULT_CHANNEL = 0;
-constexpr u8 CHUNKED_DATA_CHANNEL = 1;
 
 using NetWiimote = std::vector<u8>;
 using MessageId = u8;
 using PlayerId = u8;
 using FrameNum = u32;
-using PadIndex = s8;
-using PadMappingArray = std::array<PlayerId, 4>;
+using PadMapping = s8;
+using PadMappingArray = std::array<PadMapping, 4>;
 
 bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
 const NetSettings& GetNetSettings();
 IOS::HLE::FS::FileSystem* GetWiiSyncFS();
-const std::vector<u64>& GetWiiSyncTitles();
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles);
-void ClearWiiSyncData();
+void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
+void ClearWiiSyncFS();
 void SetSIPollBatching(bool state);
-void SendPowerButtonEvent();
-bool IsSyncingAllWiiSaves();
-void SetupWiimotes();
 }  // namespace NetPlay

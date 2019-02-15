@@ -53,9 +53,6 @@
     <ClCompile Include="AutoUpdate.cpp" />
     <ClCompile Include="CommandLineParse.cpp" />
     <ClCompile Include="DiscordPresence.cpp" />
-    <ClCompile Include="ResourcePack\Manager.cpp" />
-    <ClCompile Include="ResourcePack\Manifest.cpp" />
-    <ClCompile Include="ResourcePack\ResourcePack.cpp" />
     <ClCompile Include="UICommon.cpp" />
     <ClCompile Include="Disassembler.cpp" />
     <ClCompile Include="USBUtils.cpp">
@@ -69,9 +66,6 @@
     <ClInclude Include="AutoUpdate.h" />
     <ClInclude Include="CommandLineParse.h" />
     <ClInclude Include="DiscordPresence.h" />
-    <ClInclude Include="ResourcePack\Manager.h" />
-    <ClInclude Include="ResourcePack\Manifest.h" />
-    <ClInclude Include="ResourcePack\ResourcePack.h" />
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="Disassembler.h" />
     <ClInclude Include="USBUtils.h" />

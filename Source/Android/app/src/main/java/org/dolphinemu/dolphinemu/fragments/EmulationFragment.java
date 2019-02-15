@@ -30,7 +30,7 @@ import java.io.File;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
-  private static final String KEY_GAMEPATHS = "gamepaths";
+  private static final String KEY_GAMEPATH = "gamepath";
 
   private SharedPreferences mPreferences;
 
@@ -42,10 +42,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   private EmulationActivity activity;
 
-  public static EmulationFragment newInstance(String[] gamePaths)
+  public static EmulationFragment newInstance(String gamePath)
   {
+
     Bundle args = new Bundle();
-    args.putStringArray(KEY_GAMEPATHS, gamePaths);
+    args.putString(KEY_GAMEPATH, gamePath);
 
     EmulationFragment fragment = new EmulationFragment();
     fragment.setArguments(args);
@@ -81,13 +82,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
     mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-    String[] gamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
+    String gamePath = getArguments().getString(KEY_GAMEPATH);
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
     boolean firstOpen = preferences.getBoolean(StartupHandler.NEW_SESSION, true);
     SharedPreferences.Editor sPrefsEditor = preferences.edit();
     sPrefsEditor.putBoolean(StartupHandler.NEW_SESSION, false);
     sPrefsEditor.apply();
-    mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath(), firstOpen);
+    mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath(), firstOpen);
   }
 
   /**
@@ -102,6 +103,14 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     surfaceView.getHolder().addCallback(this);
 
     mInputOverlay = contents.findViewById(R.id.surface_input_overlay);
+    if (mInputOverlay != null)
+    {
+      // If the input overlay was previously disabled, then don't show it.
+      if (!mPreferences.getBoolean("showInputOverlay", true))
+      {
+        mInputOverlay.setVisibility(View.GONE);
+      }
+    }
 
     Button doneButton = contents.findViewById(R.id.done_control_config);
     if (doneButton != null)
@@ -191,19 +200,18 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     // If the overlay is currently set to INVISIBLE
     if (!mPreferences.getBoolean("showInputOverlay", false))
     {
+      // Set it to VISIBLE
+      mInputOverlay.setVisibility(View.VISIBLE);
       editor.putBoolean("showInputOverlay", true);
     }
     else
     {
+      // Set it to INVISIBLE
+      mInputOverlay.setVisibility(View.GONE);
       editor.putBoolean("showInputOverlay", false);
     }
-    editor.commit();
-    mInputOverlay.refreshControls();
-  }
 
-  public void initInputPointer()
-  {
-    mInputOverlay.initTouchPointer();
+    editor.apply();
   }
 
   public void refreshInputOverlay()
@@ -265,7 +273,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       STOPPED, RUNNING, PAUSED
     }
 
-    private final String[] mGamePaths;
+    private final String mGamePath;
     private Thread mEmulationThread;
     private State state;
     private Surface mSurface;
@@ -274,10 +282,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     private boolean firstOpen;
     private final String temporaryStatePath;
 
-    EmulationState(String[] gamePaths, String temporaryStatePath, boolean firstOpen)
+    EmulationState(String gamePath, String temporaryStatePath, boolean firstOpen)
     {
       this.firstOpen = firstOpen;
-      mGamePaths = gamePaths;
+      mGamePath = gamePath;
       this.temporaryStatePath = temporaryStatePath;
       // Starting state is stopped.
       state = State.STOPPED;
@@ -415,12 +423,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
           if (loadPreviousTemporaryState)
           {
             Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-            NativeLibrary.Run(mGamePaths, temporaryStatePath, true);
+            NativeLibrary.Run(mGamePath, temporaryStatePath, true);
           }
           else
           {
             Log.debug("[EmulationFragment] Starting emulation thread.");
-            NativeLibrary.Run(mGamePaths, firstOpen);
+            NativeLibrary.Run(mGamePath, firstOpen);
           }
         }, "NativeEmulation");
         mEmulationThread.start();

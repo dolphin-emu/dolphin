@@ -42,7 +42,7 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
     m_post_processor->LoadShader(m_shader);
   }
 
-  setWindowTitle(tr("Post-Processing Shader Configuration"));
+  setWindowTitle(tr("Post Processing Shader Configuration"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   PopulateGroups();

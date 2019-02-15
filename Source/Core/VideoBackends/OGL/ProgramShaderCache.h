@@ -69,7 +69,6 @@ class ProgramShaderCache
 {
 public:
   static void BindVertexFormat(const GLVertexFormat* vertex_format);
-  static bool IsValidVertexFormatBound();
   static void InvalidateVertexFormat();
   static void InvalidateLastProgram();
 
@@ -84,7 +83,6 @@ public:
   static u32 GetUniformBufferAlignment();
   static void InvalidateConstants();
   static void UploadConstants();
-  static void UploadConstants(const void* data, u32 data_size);
 
   static void Init();
   static void Shutdown();

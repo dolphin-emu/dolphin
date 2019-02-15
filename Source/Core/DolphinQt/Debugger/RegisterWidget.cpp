@@ -227,11 +227,11 @@ void RegisterWidget::PopulateTable()
                 [i](u64 value) { GPR(i) = value; });
 
     // Floating point registers (double)
-    AddRegister(i, 2, RegisterType::fpr, "f" + std::to_string(i), [i] { return rPS(i).PS0AsU64(); },
-                [i](u64 value) { rPS(i).SetPS0(value); });
+    AddRegister(i, 2, RegisterType::fpr, "f" + std::to_string(i), [i] { return riPS0(i); },
+                [i](u64 value) { riPS0(i) = value; });
 
-    AddRegister(i, 4, RegisterType::fpr, "", [i] { return rPS(i).PS1AsU64(); },
-                [i](u64 value) { rPS(i).SetPS1(value); });
+    AddRegister(i, 4, RegisterType::fpr, "", [i] { return riPS1(i); },
+                [i](u64 value) { riPS1(i) = value; });
   }
 
   for (int i = 0; i < 8; i++)

@@ -4,65 +4,67 @@
 
 #pragma once
 
-#include <QToolButton>
 #include <QWidget>
-
-#include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
 {
 class Control;
 class ControlGroup;
-class Cursor;
 class NumericSetting;
-}  // namespace ControllerEmu
+}
 
-class QPainter;
 class QPaintEvent;
 class QTimer;
 
-class CalibrationWidget;
+class ControlReference;
 
 class MappingIndicator : public QWidget
 {
 public:
   explicit MappingIndicator(ControllerEmu::ControlGroup* group);
 
-  void SetCalibrationWidget(CalibrationWidget* widget);
-
 private:
-  void DrawCursor(ControllerEmu::Cursor& cursor);
-  void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
+  void BindCursorControls(bool tilt);
+  void BindStickControls();
+  void BindMixedTriggersControls();
+
+  void DrawCursor(bool tilt);
+  void DrawStick();
   void DrawMixedTriggers();
-  void DrawCalibration(QPainter& p, Common::DVec2 point);
 
   void paintEvent(QPaintEvent*) override;
+  ControllerEmu::ControlGroup* m_group;
 
-  bool IsCalibrating() const;
-  void UpdateCalibrationWidget(Common::DVec2 point);
+  // Stick settings
+  ControlReference* m_stick_up;
+  ControlReference* m_stick_down;
+  ControlReference* m_stick_left;
+  ControlReference* m_stick_right;
+  ControlReference* m_stick_modifier;
 
-  ControllerEmu::ControlGroup* const m_group;
-  CalibrationWidget* m_calibration_widget{};
-};
+  ControllerEmu::NumericSetting* m_stick_radius;
+  ControllerEmu::NumericSetting* m_stick_deadzone;
 
-class CalibrationWidget : public QToolButton
-{
-public:
-  CalibrationWidget(ControllerEmu::ReshapableInput& input, MappingIndicator& indicator);
+  // Cursor settings
+  ControlReference* m_cursor_up;
+  ControlReference* m_cursor_down;
+  ControlReference* m_cursor_left;
+  ControlReference* m_cursor_right;
+  ControlReference* m_cursor_forward;
+  ControlReference* m_cursor_backward;
 
-  void Update(Common::DVec2 point);
+  ControllerEmu::NumericSetting* m_cursor_center;
+  ControllerEmu::NumericSetting* m_cursor_width;
+  ControllerEmu::NumericSetting* m_cursor_height;
+  ControllerEmu::NumericSetting* m_cursor_deadzone;
 
-  double GetCalibrationRadiusAtAngle(double angle) const;
+  // Triggers settings
+  ControlReference* m_mixed_triggers_r_analog;
+  ControlReference* m_mixed_triggers_r_button;
+  ControlReference* m_mixed_triggers_l_analog;
+  ControlReference* m_mixed_triggers_l_button;
 
-  bool IsCalibrating() const;
+  ControllerEmu::NumericSetting* m_mixed_triggers_threshold;
 
-private:
-  void StartCalibration();
-  void SetupActions();
-
-  ControllerEmu::ReshapableInput& m_input;
-  MappingIndicator& m_indicator;
-  QAction* m_completion_action;
-  ControllerEmu::ReshapableInput::CalibrationData m_calibration_data;
-  QTimer* m_informative_timer;
+  QTimer* m_timer;
 };

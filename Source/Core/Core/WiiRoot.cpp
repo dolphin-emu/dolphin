@@ -17,7 +17,6 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
-#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
@@ -30,16 +29,6 @@ namespace Core
 namespace FS = IOS::HLE::FS;
 
 static std::string s_temp_wii_root;
-
-static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 title_id)
-{
-  dest->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id), 0,
-                        {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                         IOS::HLE::FS::Mode::ReadWrite});
-  const auto source_save = WiiSave::MakeNandStorage(source, title_id);
-  const auto dest_save = WiiSave::MakeNandStorage(dest, title_id);
-  WiiSave::Copy(source_save.get(), dest_save.get());
-}
 
 static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
 {
@@ -64,28 +53,10 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
   {
     // Copy the current user's save to the Blank NAND
     auto* sync_fs = NetPlay::GetWiiSyncFS();
-    auto& sync_titles = NetPlay::GetWiiSyncTitles();
-    if (sync_fs)
-    {
-      for (const u64 title : sync_titles)
-      {
-        CopySave(sync_fs, session_fs, title);
-      }
-    }
-    else
-    {
-      if (NetPlay::IsSyncingAllWiiSaves())
-      {
-        for (const u64 title : sync_titles)
-        {
-          CopySave(configured_fs.get(), session_fs, title);
-        }
-      }
-      else
-      {
-        CopySave(configured_fs.get(), session_fs, title_id);
-      }
-    }
+    const auto user_save =
+        WiiSave::MakeNandStorage(sync_fs ? sync_fs : configured_fs.get(), title_id);
+    const auto session_save = WiiSave::MakeNandStorage(session_fs, title_id);
+    WiiSave::Copy(user_save.get(), session_save.get());
   }
 }
 

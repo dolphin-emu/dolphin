@@ -44,7 +44,6 @@ public:
 signals:
   void BreakpointsChanged();
   void RequestPPCComparison(u32 addr);
-  void ShowMemory(u32 address);
 
 private:
   void CreateWidgets();

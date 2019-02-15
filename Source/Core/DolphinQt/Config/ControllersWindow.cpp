@@ -373,7 +373,7 @@ void ControllersWindow::OnWiimoteRefreshPressed()
 
 void ControllersWindow::OnEmulationStateChanged(bool running)
 {
-  if (!SConfig::GetInstance().bWii)
+  if (!SConfig::GetInstance().bWii || NetPlay::IsNetPlayRunning())
   {
     m_wiimote_sync->setEnabled(!running);
     m_wiimote_reset->setEnabled(!running);
@@ -465,12 +465,8 @@ void ControllersWindow::LoadSettings()
   {
     const std::optional<int> gc_index = ToGCMenuIndex(SConfig::GetInstance().m_SIDevice[i]);
     if (gc_index)
-    {
       m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
-      m_gc_buttons[i]->setEnabled(*gc_index != 0 && *gc_index != 6);
-    }
     m_wiimote_boxes[i]->setCurrentIndex(g_wiimote_sources[i]);
-    m_wiimote_buttons[i]->setEnabled(g_wiimote_sources[i] != 0 && g_wiimote_sources[i] != 2);
   }
   m_wiimote_real_balance_board->setChecked(g_wiimote_sources[WIIMOTE_BALANCE_BOARD] ==
                                            WIIMOTE_SRC_REAL);

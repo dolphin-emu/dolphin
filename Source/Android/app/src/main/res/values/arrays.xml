@@ -143,16 +143,14 @@
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
-        <item>Off</item>
+        <item>1x</item>
         <item>2x</item>
         <item>4x</item>
-        <item>8x</item>
     </string-array>
     <integer-array name="FSAAValues" translatable="false">
+        <item>0</item>
         <item>1</item>
         <item>2</item>
-        <item>4</item>
-        <item>8</item>
     </integer-array>
 
     <!-- Anisotropic Filtering Preference -->
@@ -306,19 +304,6 @@
         <item>D-Pad</item>
         <item>Left Stick</item>
         <item>Right Stick</item>
-    </string-array>
-
-    <string-array name="doubleTap">
-        <item>Button A</item>
-        <item>Button B</item>
-        <item>Button 2</item>
-    </string-array>
-
-    <string-array name="doubleTapWithClassic">
-        <item>Button A</item>
-        <item>Button B</item>
-        <item>Button 2</item>
-        <item>Classic A</item>
     </string-array>
 
     <string-array name="gameSettingsMenusGC">

@@ -94,11 +94,10 @@ public final class InputOverlayDrawableJoystick
     mBoundsBoxBitmap.draw(canvas);
   }
 
-  public boolean TrackEvent(MotionEvent event)
+  public void TrackEvent(MotionEvent event)
   {
     boolean reCenter = mPreferences.getBoolean("joystickRelCenter", true);
     int pointerIndex = event.getActionIndex();
-    boolean pressed = false;
 
     switch (event.getAction() & MotionEvent.ACTION_MASK)
     {
@@ -106,7 +105,7 @@ public final class InputOverlayDrawableJoystick
       case MotionEvent.ACTION_POINTER_DOWN:
         if (getBounds().contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
         {
-          mPressedState = pressed = true;
+          mPressedState = true;
           mOuterBitmap.setAlpha(0);
           mBoundsBoxBitmap.setAlpha(255);
           if (reCenter)
@@ -122,7 +121,6 @@ public final class InputOverlayDrawableJoystick
       case MotionEvent.ACTION_POINTER_UP:
         if (trackId == event.getPointerId(pointerIndex))
         {
-          pressed = true;
           mPressedState = false;
           axises[0] = axises[1] = 0.0f;
           mOuterBitmap.setAlpha(255);
@@ -138,7 +136,7 @@ public final class InputOverlayDrawableJoystick
     }
 
     if (trackId == -1)
-      return pressed;
+      return;
 
     for (int i = 0; i < event.getPointerCount(); i++)
     {
@@ -160,7 +158,6 @@ public final class InputOverlayDrawableJoystick
         SetInnerBounds();
       }
     }
-    return pressed;
   }
 
   public boolean onConfigureTouch(MotionEvent event)
@@ -276,10 +273,5 @@ public final class InputOverlayDrawableJoystick
   public int getHeight()
   {
     return mHeight;
-  }
-
-  public int getTrackId()
-  {
-    return trackId;
   }
 }

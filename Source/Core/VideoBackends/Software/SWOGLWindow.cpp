@@ -84,9 +84,14 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void SWOGLWindow::ShowImage(const AbstractTexture* image, const EFBRectangle& xfb_region)
+void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 {
-  const SW::SWTexture* sw_image = static_cast<const SW::SWTexture*>(image);
+  m_text.push_back({text, x, y, color});
+}
+
+void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region)
+{
+  SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
   m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
   GLsizei glWidth = (GLsizei)m_gl_context->GetBackBufferWidth();
@@ -110,6 +115,12 @@ void SWOGLWindow::ShowImage(const AbstractTexture* image, const EFBRectangle& xf
 
   glBindVertexArray(m_image_vao);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+  // TODO: implement OSD
+  //	for (TextData& text : m_text)
+  //	{
+  //	}
+  m_text.clear();
 
   m_gl_context->Swap();
 }

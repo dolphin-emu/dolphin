@@ -136,7 +136,6 @@
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
-    <string name="auto_disc_change">Change Discs Automatically</string>
     <string name="enable_save_states">Enable Savestates</string>
     <string name="enable_save_states_description">WARNING: Savestates may not be compatible with future versions of Dolphin and can make it impossible to create normal saves in some cases. Never use savestates as the only way of saving your progress.</string>
     <string name="lock_emulation_landscape">Lock screen to landscape</string>
@@ -199,8 +198,6 @@
     <string name="stereoscopy_convergence_description">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
     <string name="stereoscopy_swap_eyes">Swap Eyes</string>
     <string name="stereoscopy_swap_eyes_description">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
-    <string name="backend_multithreading">Backend Multithreading</string> <!--Backend Multithreading is only disabled by default on Android  -->
-    <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave unchecked.</string>
 
     <string name="hacks_submenu">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
@@ -233,25 +230,10 @@
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
-    <!-- Debug -->
-    <string name="debug_submenu">Debug</string>
-    <string name="debug_warning">Warning: These settings will slow emulation</string>
-    <string name="debug_jit_header">Jit</string>
-    <string name="debug_jitoff">Jit Disabled</string>
-    <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
-    <string name="debug_jitloadstorefloatingoff">Jit Load Store Floating Point Disabled</string>
-    <string name="debug_jitloadstorepairedoff">Jit Load Store Paired Disabled</string>
-    <string name="debug_jitfloatingpointoff">Jit Floating Point Disabled</string>
-    <string name="debug_jitintegeroff">Jit Integer Disabled</string>
-    <string name="debug_jitpairedoff">Jit Paired Disabled</string>
-    <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
-    <string name="debug_jitbranchoff">Jit Branch Disabled</string>
-
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
-    <string name="off">Off</string>
     <string name="cancel">Cancel</string>
     <string name="clear">Clear</string>
     <string name="disabled">Disabled</string>
@@ -299,11 +281,8 @@
     <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
     <string name="emulation_controller_changed">You may have to reload the game after changing extensions.</string>
-    <string name="emulation_touch_button_help">Swipe down from the top of the screen to access the menu.</string>
+    <string name="emulation_touch_button_help">To change the button layout, open the menu -> Configure Controls -> Edit Layout</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
-    <string name="emulation_ir_group">Touch IR Pointer</string>
-    <string name="emulation_ir_sensitivity">IR Sensitivity</string>
-    <string name="emulation_choose_doubletap">Double tap button</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
@@ -328,10 +307,4 @@
     <string name="homescreen_favorites">Favorites</string>
 
     <string name="select_dir">Select This Directory</string>
-
-    <!-- Misc -->
-    <string name="height">Height</string>
-    <string name="width">Width</string>
-    <string name="center">Center</string>
-
 </resources>

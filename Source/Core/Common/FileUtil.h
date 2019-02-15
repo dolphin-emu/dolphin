@@ -51,7 +51,6 @@ enum
   D_MEMORYWATCHER_IDX,
   D_WFSROOT_IDX,
   D_BACKUP_IDX,
-  D_RESOURCEPACK_IDX,
   F_DOLPHINCONFIG_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
@@ -211,4 +210,4 @@ void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmod
 #endif
 }
 
-}  // namespace File
+}  // namespace

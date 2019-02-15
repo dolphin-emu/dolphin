@@ -41,7 +41,6 @@ extern const ConfigInfo<std::string> MAIN_AGP_CART_A_PATH;
 extern const ConfigInfo<std::string> MAIN_AGP_CART_B_PATH;
 extern const ConfigInfo<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE;
 extern const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE;
-extern const ConfigInfo<bool> MAIN_CODE_SYNC_OVERRIDE;
 extern const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY;
 extern const ConfigInfo<int> MAIN_SLOT_A;
 extern const ConfigInfo<int> MAIN_SLOT_B;
@@ -78,7 +77,6 @@ extern const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE;
 extern const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS;
 extern const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE;
-extern const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE;
 
 // Main.DSP
 

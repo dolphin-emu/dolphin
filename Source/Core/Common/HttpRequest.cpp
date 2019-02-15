@@ -30,7 +30,6 @@ public:
   bool IsValid() const;
   void SetCookies(const std::string& cookies);
   void UseIPv4();
-  void FollowRedirects(long max);
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size);
 
@@ -67,11 +66,6 @@ void HttpRequest::SetCookies(const std::string& cookies)
 void HttpRequest::UseIPv4()
 {
   m_impl->UseIPv4();
-}
-
-void HttpRequest::FollowRedirects(long max)
-{
-  m_impl->FollowRedirects(max);
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers)
@@ -151,12 +145,6 @@ void HttpRequest::Impl::SetCookies(const std::string& cookies)
 void HttpRequest::Impl::UseIPv4()
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-}
-
-void HttpRequest::Impl::FollowRedirects(long max)
-{
-  curl_easy_setopt(m_curl.get(), CURLOPT_FOLLOWLOCATION, 1);
-  curl_easy_setopt(m_curl.get(), CURLOPT_MAXREDIRS, max);
 }
 
 static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* userdata)

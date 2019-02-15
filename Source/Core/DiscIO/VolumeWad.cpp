@@ -84,15 +84,11 @@ Country VolumeWAD::GetCountry(const Partition& partition) const
   if (!m_tmd.IsValid())
     return Country::Unknown;
 
-  const u8 country_byte = static_cast<u8>(m_tmd.GetTitleId() & 0xff);
-  if (country_byte == 2)  // SYSMENU
+  u8 country_code = static_cast<u8>(m_tmd.GetTitleId() & 0xff);
+  if (country_code == 2)  // SYSMENU
     return TypicalCountryForRegion(GetSysMenuRegion(m_tmd.GetTitleVersion()));
 
-  const Region region = GetRegion();
-  if (CountryCodeToRegion(country_byte, Platform::WiiWAD, region) != region)
-    return TypicalCountryForRegion(region);
-
-  return CountryCodeToCountry(country_byte, Platform::WiiWAD, region);
+  return CountryCodeToCountry(country_code, Platform::WiiWAD);
 }
 
 const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const

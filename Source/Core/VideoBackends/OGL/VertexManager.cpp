@@ -15,7 +15,6 @@
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
-#include "VideoBackends/OGL/OGLPipeline.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
@@ -32,6 +31,11 @@ namespace OGL
 const u32 MAX_IBUFFER_SIZE = 2 * 1024 * 1024;
 const u32 MAX_VBUFFER_SIZE = 32 * 1024 * 1024;
 
+static std::unique_ptr<StreamBuffer> s_vertexBuffer;
+static std::unique_ptr<StreamBuffer> s_indexBuffer;
+static size_t s_baseVertex;
+static size_t s_index_offset;
+
 VertexManager::VertexManager() : m_cpu_v_buffer(MAX_VBUFFER_SIZE), m_cpu_i_buffer(MAX_IBUFFER_SIZE)
 {
   CreateDeviceObjects();
@@ -44,45 +48,58 @@ VertexManager::~VertexManager()
 
 void VertexManager::CreateDeviceObjects()
 {
-  m_vertex_buffer = StreamBuffer::Create(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
-  m_index_buffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
+  s_vertexBuffer = StreamBuffer::Create(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
+  m_vertex_buffers = s_vertexBuffer->m_buffer;
+
+  s_indexBuffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
+  m_index_buffers = s_indexBuffer->m_buffer;
 }
 
 void VertexManager::DestroyDeviceObjects()
 {
-  m_vertex_buffer.reset();
-  m_index_buffer.reset();
+  s_vertexBuffer.reset();
+  s_indexBuffer.reset();
 }
 
-void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+StreamBuffer* VertexManager::GetVertexBuffer() const
 {
-  ProgramShaderCache::InvalidateConstants();
-  ProgramShaderCache::UploadConstants(uniforms, uniforms_size);
+  return s_vertexBuffer.get();
+}
+
+OGL::StreamBuffer* VertexManager::GetIndexBuffer() const
+{
+  return s_indexBuffer.get();
 }
 
 GLuint VertexManager::GetVertexBufferHandle() const
 {
-  return m_vertex_buffer->m_buffer;
+  return m_vertex_buffers;
 }
 
 GLuint VertexManager::GetIndexBufferHandle() const
 {
-  return m_index_buffer->m_buffer;
+  return m_index_buffers;
 }
 
-static void CheckBufferBinding()
+void VertexManager::PrepareDrawBuffers(u32 stride)
 {
+  u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
+  u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
+
   // The index buffer is part of the VAO state, therefore we need to bind it first.
-  if (!ProgramShaderCache::IsValidVertexFormatBound())
-  {
-    ProgramShaderCache::BindVertexFormat(
-        static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat()));
-  }
+  const GLVertexFormat* vertex_format =
+      static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+  ProgramShaderCache::BindVertexFormat(vertex_format);
+  s_vertexBuffer->Unmap(vertex_data_size);
+  s_indexBuffer->Unmap(index_data_size);
+
+  ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
+  ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
 }
 
-void VertexManager::ResetBuffer(u32 vertex_stride, bool cull_all)
+void VertexManager::ResetBuffer(u32 stride)
 {
-  if (cull_all)
+  if (m_cull_all)
   {
     // This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
     m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_v_buffer.data();
@@ -92,41 +109,68 @@ void VertexManager::ResetBuffer(u32 vertex_stride, bool cull_all)
   }
   else
   {
-    CheckBufferBinding();
+    // The index buffer is part of the VAO state, therefore we need to bind it first.
+    const GLVertexFormat* vertex_format =
+        static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+    ProgramShaderCache::BindVertexFormat(vertex_format);
 
-    auto buffer = m_vertex_buffer->Map(MAXVBUFFERSIZE, vertex_stride);
+    auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
     m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
     m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;
+    s_baseVertex = buffer.second / stride;
 
-    buffer = m_index_buffer->Map(MAXIBUFFERSIZE * sizeof(u16));
+    buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
     IndexGenerator::Start((u16*)buffer.first);
+    s_index_offset = buffer.second;
   }
 }
 
-void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
-                                 u32* out_base_vertex, u32* out_base_index)
+void VertexManager::Draw(u32 stride)
 {
-  u32 vertex_data_size = num_vertices * vertex_stride;
-  u32 index_data_size = num_indices * sizeof(u16);
+  u32 index_size = IndexGenerator::GetIndexLen();
+  u32 max_index = IndexGenerator::GetNumVerts();
+  GLenum primitive_mode = 0;
 
-  *out_base_vertex = vertex_stride > 0 ? (m_vertex_buffer->GetCurrentOffset() / vertex_stride) : 0;
-  *out_base_index = m_index_buffer->GetCurrentOffset() / sizeof(u16);
+  switch (m_current_primitive_type)
+  {
+  case PrimitiveType::Points:
+    primitive_mode = GL_POINTS;
+    break;
+  case PrimitiveType::Lines:
+    primitive_mode = GL_LINES;
+    break;
+  case PrimitiveType::Triangles:
+    primitive_mode = GL_TRIANGLES;
+    break;
+  case PrimitiveType::TriangleStrip:
+    primitive_mode = GL_TRIANGLE_STRIP;
+    break;
+  }
 
-  CheckBufferBinding();
-  m_vertex_buffer->Unmap(vertex_data_size);
-  m_index_buffer->Unmap(index_data_size);
+  if (g_ogl_config.bSupportsGLBaseVertex)
+  {
+    glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT,
+                                  (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
+  }
+  else
+  {
+    glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT,
+                        (u8*)nullptr + s_index_offset);
+  }
 
-  ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
-  ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
+  INCSTAT(stats.thisFrame.numDrawCalls);
 }
 
-void VertexManager::UploadConstants()
+void VertexManager::vFlush()
 {
+  GLVertexFormat* nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
+  u32 stride = nativeVertexFmt->GetVertexStride();
+
+  PrepareDrawBuffers(stride);
+
+  // upload global constants
   ProgramShaderCache::UploadConstants();
-}
 
-void VertexManager::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
-{
   if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {
     glEnable(GL_STENCIL_TEST);
@@ -134,8 +178,8 @@ void VertexManager::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_v
 
   if (m_current_pipeline_object)
   {
-    static_cast<Renderer*>(g_renderer.get())->SetPipeline(m_current_pipeline_object);
-    static_cast<Renderer*>(g_renderer.get())->DrawIndexed(base_index, num_indices, base_vertex);
+    g_renderer->SetPipeline(m_current_pipeline_object);
+    Draw(stride);
   }
 
   if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
@@ -147,4 +191,5 @@ void VertexManager::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_v
   g_Config.iSaveTargetId++;
   ClearEFBCache();
 }
-}  // namespace OGL
+
+}  // namespace

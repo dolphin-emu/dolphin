@@ -241,10 +241,8 @@ static void GenerateTables(const u8* const rand, const u8* const key, const u8 i
   sb[7] = sboxes[idx][rand[2]] ^ sboxes[(idx + 1) % 8][rand[6]];
 }
 
-namespace WiimoteEmu
-{
-// Generate key from the 0x40-0x4c data in g_RegExt
-void EncryptionKey::Generate(const u8* const keydata)
+/* Generate key from the 0x40-0x4c data in g_RegExt */
+void WiimoteGenerateKey(wiimote_key* const key, const u8* const keydata)
 {
   u8 rand[10];
   u8 skey[6];
@@ -264,24 +262,22 @@ void EncryptionKey::Generate(const u8* const keydata)
   }
   // default case is idx = 7 which is valid (homebrew uses it for the 0x17 case)
 
-  GenerateTables(rand, skey, idx, ft, sb);
+  GenerateTables(rand, skey, idx, key->ft, key->sb);
 
   // for homebrew, ft and sb are all 0x97 which is equivalent to 0x17
 }
 
-// Question: Is there a reason these can only handle a length of 255?
-// Answer: The i2c address space is only 8-bits so it really doesn't need to.
-// Also, only 21 bytes are ever encrypted at most (6 in any normal game).
-void EncryptionKey::Encrypt(u8* const data, int addr, const u8 len) const
+// TODO: is there a reason these can only handle a length of 255?
+/* Encrypt data */
+void WiimoteEncrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
 {
   for (int i = 0; i < len; ++i, ++addr)
-    data[i] = (data[i] - ft[addr % 8]) ^ sb[addr % 8];
+    data[i] = (data[i] - key->ft[addr % 8]) ^ key->sb[addr % 8];
 }
 
-void EncryptionKey::Decrypt(u8* const data, int addr, const u8 len) const
+/* Decrypt data */
+void WiimoteDecrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
 {
   for (int i = 0; i < len; ++i, ++addr)
-    data[i] = (data[i] ^ sb[addr % 8]) + ft[addr % 8];
+    data[i] = (data[i] ^ key->sb[addr % 8]) + key->ft[addr % 8];
 }
-
-}  // namespace WiimoteEmu

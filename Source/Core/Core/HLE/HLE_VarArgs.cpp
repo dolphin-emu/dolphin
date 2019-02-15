@@ -15,7 +15,7 @@ u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
 
 double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
 {
-  return rPS(fpr).PS0AsDouble();
+  return rPS0(fpr);
 }
 
 HLE::SystemVABI::VAListStruct::VAListStruct(u32 address)

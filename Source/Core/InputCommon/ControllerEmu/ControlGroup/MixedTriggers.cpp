@@ -4,7 +4,6 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -22,53 +21,23 @@ MixedTriggers::MixedTriggers(const std::string& name_)
     : ControlGroup(name_, GroupType::MixedTriggers)
 {
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.9));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0.0, 0, 25));
 }
 
-void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
-                             bool adjusted) const
+void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog)
 {
-  const ControlState threshold = numeric_settings[SETTING_THRESHOLD]->GetValue();
-  ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+  const size_t trigger_count = controls.size() / 2;
 
-  // Return raw values. (used in UI)
-  if (!adjusted)
+  for (size_t i = 0; i < trigger_count; ++i, ++bitmasks, ++analog)
   {
-    deadzone = 0.0;
-  }
-
-  const int trigger_count = int(controls.size() / 2);
-  for (int i = 0; i != trigger_count; ++i)
-  {
-    ControlState button_value = controls[i]->control_ref->State();
-    ControlState analog_value = controls[trigger_count + i]->control_ref->State();
-
-    // Apply deadzone:
-    analog_value = std::max(0.0, analog_value - deadzone) / (1.0 - deadzone);
-    button_value = std::max(0.0, button_value - deadzone) / (1.0 - deadzone);
-
-    // Apply threshold:
-    if (button_value > threshold)
+    if (controls[i]->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
     {
-      // Fully activate analog:
-      analog_value = 1.0;
-
-      // Activate button:
-      *digital |= bitmasks[i];
+      *analog = 1.0;
+      *digital |= *bitmasks;
     }
-
-    analog[i] = analog_value;
+    else
+    {
+      *analog = controls[i + trigger_count]->control_ref->State();
+    }
   }
 }
-
-ControlState MixedTriggers::GetDeadzone() const
-{
-  return numeric_settings[SETTING_DEADZONE]->GetValue();
-}
-
-ControlState MixedTriggers::GetThreshold() const
-{
-  return numeric_settings[SETTING_THRESHOLD]->GetValue();
-}
-
 }  // namespace ControllerEmu

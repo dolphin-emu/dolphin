@@ -56,6 +56,7 @@ public:
 
 signals:
   void Update();
+  void ClearFields();
   void Save();
 
 private:
@@ -74,7 +75,6 @@ private:
   void OnLoadProfilePressed();
   void OnSaveProfilePressed();
   void OnDefaultFieldsPressed();
-  void OnClearFieldsPressed();
   void OnDeviceChanged(int index);
   void OnGlobalDevicesChanged();
 

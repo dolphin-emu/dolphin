@@ -218,37 +218,6 @@ void StateTracker::UpdatePixelShaderConstants()
   PixelShaderManager::dirty = false;
 }
 
-void StateTracker::UpdateConstants(const void* data, u32 data_size)
-{
-  if (!m_uniform_stream_buffer->ReserveMemory(
-          data_size, g_vulkan_context->GetUniformBufferAlignment(), true, true, false))
-  {
-    WARN_LOG(VIDEO, "Executing command buffer while waiting for ext space in uniform buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(false);
-  }
-
-  for (u32 binding = 0; binding < NUM_UBO_DESCRIPTOR_SET_BINDINGS; binding++)
-  {
-    if (m_bindings.uniform_buffer_bindings[binding].buffer != m_uniform_stream_buffer->GetBuffer())
-    {
-      m_bindings.uniform_buffer_bindings[binding].buffer = m_uniform_stream_buffer->GetBuffer();
-      m_dirty_flags |= DIRTY_FLAG_VS_UBO << binding;
-    }
-    m_bindings.uniform_buffer_offsets[binding] =
-        static_cast<uint32_t>(m_uniform_stream_buffer->GetCurrentOffset());
-  }
-  m_dirty_flags |= DIRTY_FLAG_DYNAMIC_OFFSETS;
-
-  std::memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), data, data_size);
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
-  m_uniform_stream_buffer->CommitMemory(data_size);
-
-  // Cached data is now out-of-sync.
-  VertexShaderManager::dirty = true;
-  GeometryShaderManager::dirty = true;
-  PixelShaderManager::dirty = true;
-}
-
 bool StateTracker::ReserveConstantStorage()
 {
   // Since we invalidate all constants on command buffer execution, it doesn't matter if this
@@ -504,16 +473,16 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   {
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             m_pipeline->GetVkPipelineLayout(), 0, m_num_active_descriptor_sets,
-                            m_descriptor_sets.data(), m_num_dynamic_offsets,
+                            m_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_bindings.uniform_buffer_offsets.data());
   }
   else if (m_dirty_flags & DIRTY_FLAG_DYNAMIC_OFFSETS)
   {
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline->GetVkPipelineLayout(),
-                            DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS, 1,
-                            &m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS],
-                            m_num_dynamic_offsets, m_bindings.uniform_buffer_offsets.data());
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(),
+        DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS, 1,
+        &m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS],
+        NUM_UBO_DESCRIPTOR_SET_BINDINGS, m_bindings.uniform_buffer_offsets.data());
   }
 
   if (m_dirty_flags & DIRTY_FLAG_VIEWPORT || rebind_all)
@@ -671,14 +640,6 @@ void StateTracker::EndClearRenderPass()
 
 bool StateTracker::UpdateDescriptorSet()
 {
-  if (m_pipeline->GetUsage() == AbstractPipelineUsage::GX)
-    return UpdateGXDescriptorSet();
-  else
-    return UpdateUtilityDescriptorSet();
-}
-
-bool StateTracker::UpdateGXDescriptorSet()
-{
   const size_t MAX_DESCRIPTOR_WRITES = NUM_UBO_DESCRIPTOR_SET_BINDINGS +  // UBO
                                        1 +                                // Samplers
                                        1;                                 // SSBO
@@ -767,53 +728,7 @@ bool StateTracker::UpdateGXDescriptorSet()
   if (num_writes > 0)
     vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), num_writes, writes.data(), 0, nullptr);
 
-  m_num_active_descriptor_sets = g_vulkan_context->SupportsBoundingBox() ?
-                                     NUM_GX_DRAW_DESCRIPTOR_SETS_SSBO :
-                                     NUM_GX_DRAW_DESCRIPTOR_SETS;
-  m_num_dynamic_offsets = NUM_UBO_DESCRIPTOR_SET_BINDINGS;
-  return true;
-}
-
-bool StateTracker::UpdateUtilityDescriptorSet()
-{
-  // Allocate descriptor sets.
-  m_descriptor_sets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
-  m_descriptor_sets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
-  if (m_descriptor_sets[0] == VK_NULL_HANDLE || m_descriptor_sets[1] == VK_NULL_HANDLE)
-  {
-    return false;
-  }
-
-  // Build UBO descriptor set.
-  std::array<VkWriteDescriptorSet, 2> dswrites;
-  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                 nullptr,
-                 m_descriptor_sets[0],
-                 0,
-                 0,
-                 1,
-                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-                 nullptr,
-                 &m_bindings.uniform_buffer_bindings[UBO_DESCRIPTOR_SET_BINDING_VS],
-                 nullptr};
-  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                 nullptr,
-                 m_descriptor_sets[1],
-                 0,
-                 0,
-                 NUM_PIXEL_SHADER_SAMPLERS,
-                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                 m_bindings.ps_samplers.data(),
-                 nullptr,
-                 nullptr};
-
-  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<uint32_t>(dswrites.size()),
-                         dswrites.data(), 0, nullptr);
-  m_num_active_descriptor_sets = NUM_UTILITY_DRAW_DESCRIPTOR_SETS;
-  m_num_dynamic_offsets = 1;
-  m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
+  m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
   return true;
 }
 

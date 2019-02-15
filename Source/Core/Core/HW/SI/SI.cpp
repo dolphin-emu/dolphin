@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <cstring>
 #include <memory>
 
@@ -103,8 +102,6 @@ struct SSIChannel
   USIChannelIn_Hi in_hi;
   USIChannelIn_Lo in_lo;
   std::unique_ptr<ISIDevice> device;
-
-  bool has_recent_device_change;
 };
 
 // SI Poll: Controls how often a device is polled
@@ -208,9 +205,6 @@ union USIEXIClockCount
 static CoreTiming::EventType* s_change_device_event;
 static CoreTiming::EventType* s_tranfer_pending_event;
 
-// User-configured device type. possibly overridden by TAS/Netplay
-static std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> s_desired_device_types;
-
 // STATE_TO_SAVE
 static std::array<SSIChannel, MAX_SI_CHANNELS> s_channel;
 static USIPoll s_poll;
@@ -242,8 +236,20 @@ static void SetNoResponse(u32 channel)
 
 static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
 {
-  // The purpose of this callback is to simply re-enable device changes.
-  s_channel[user_data].has_recent_device_change = false;
+  u8 channel = (u8)(user_data >> 32);
+  SIDevices device = (SIDevices)(u32)user_data;
+
+  // Skip redundant (spammed) device changes
+  if (GetDeviceType(channel) != device)
+  {
+    s_channel[channel].out.hex = 0;
+    s_channel[channel].in_hi.hex = 0;
+    s_channel[channel].in_lo.hex = 0;
+
+    SetNoResponse(channel);
+
+    AddDevice(device, channel);
+  }
 }
 
 static void UpdateInterrupts()
@@ -323,18 +329,26 @@ void DoState(PointerWrap& p)
     p.Do(s_channel[i].in_hi.hex);
     p.Do(s_channel[i].in_lo.hex);
     p.Do(s_channel[i].out.hex);
-    p.Do(s_channel[i].has_recent_device_change);
 
     std::unique_ptr<ISIDevice>& device = s_channel[i].device;
     SIDevices type = device->GetDeviceType();
     p.Do(type);
 
-    if (type != device->GetDeviceType())
+    if (type == device->GetDeviceType())
     {
-      AddDevice(SIDevice_Create(type, i));
+      device->DoState(p);
     }
-
-    device->DoState(p);
+    else
+    {
+      // If no movie is active, we'll assume the user wants to keep their current devices
+      // instead of the ones they had when the savestate was created.
+      // But we need to restore the current devices first just in case.
+      SIDevices original_device = device->GetDeviceType();
+      std::unique_ptr<ISIDevice> save_device = SIDevice_Create(type, i);
+      save_device->DoState(p);
+      AddDevice(std::move(save_device));
+      ChangeDeviceDeterministic(original_device, i);
+    }
   }
 
   p.Do(s_poll);
@@ -351,30 +365,27 @@ void Init()
     s_channel[i].out.hex = 0;
     s_channel[i].in_hi.hex = 0;
     s_channel[i].in_lo.hex = 0;
-    s_channel[i].has_recent_device_change = false;
 
     if (Movie::IsMovieActive())
     {
-      s_desired_device_types[i] = SIDEVICE_NONE;
-
       if (Movie::IsUsingPad(i))
       {
         SIDevices current = SConfig::GetInstance().m_SIDevice[i];
         // GC pad-compatible devices can be used for both playing and recording
-        if (Movie::IsUsingBongo(i))
-          s_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
-        else if (SIDevice_IsGCController(current))
-          s_desired_device_types[i] = current;
+        if (SIDevice_IsGCController(current))
+          AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : current, i);
         else
-          s_desired_device_types[i] = SIDEVICE_GC_CONTROLLER;
+          AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER, i);
+      }
+      else
+      {
+        AddDevice(SIDEVICE_NONE, i);
       }
     }
     else if (!NetPlay::IsNetPlayRunning())
     {
-      s_desired_device_types[i] = SConfig::GetInstance().m_SIDevice[i];
+      AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
     }
-
-    AddDevice(s_desired_device_types[i], i);
   }
 
   s_poll.hex = 0;
@@ -583,48 +594,31 @@ void AddDevice(const SIDevices device, int device_number)
 
 void ChangeDevice(SIDevices device, int channel)
 {
-  // Actual device change will happen in UpdateDevices.
-  s_desired_device_types[channel] = device;
+  // Called from GUI, so we need to use FromThread::NON_CPU.
+  // Let the hardware see no device for 1 second
+  // TODO: Calling GetDeviceType here isn't threadsafe.
+  if (GetDeviceType(channel) != device)
+  {
+    CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE,
+                              CoreTiming::FromThread::NON_CPU);
+    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
+                              ((u64)channel << 32) | device, CoreTiming::FromThread::NON_CPU);
+  }
 }
 
-static void ChangeDeviceDeterministic(SIDevices device, int channel)
+void ChangeDeviceDeterministic(SIDevices device, int channel)
 {
-  if (s_channel[channel].has_recent_device_change)
-    return;
-
-  if (GetDeviceType(channel) != SIDEVICE_NONE)
+  // Called from savestates, so we don't use FromThread::NON_CPU.
+  if (GetDeviceType(channel) != device)
   {
-    // Detach the current device before switching to the new one.
-    device = SIDEVICE_NONE;
+    CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE);
+    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
+                              ((u64)channel << 32) | device);
   }
-
-  s_channel[channel].out.hex = 0;
-  s_channel[channel].in_hi.hex = 0;
-  s_channel[channel].in_lo.hex = 0;
-
-  SetNoResponse(channel);
-
-  AddDevice(device, channel);
-
-  // Prevent additional device changes on this channel for one second.
-  s_channel[channel].has_recent_device_change = true;
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event, channel);
 }
 
 void UpdateDevices()
 {
-  // Check for device change requests:
-  for (int i = 0; i != MAX_SI_CHANNELS; ++i)
-  {
-    const SIDevices current_type = GetDeviceType(i);
-    const SIDevices desired_type = s_desired_device_types[i];
-
-    if (current_type != desired_type)
-    {
-      ChangeDeviceDeterministic(desired_type, i);
-    }
-  }
-
   // Hinting NetPlay that all controllers will be polled in
   // succession, in order to optimize networking
   NetPlay::SetSIPollBatching(true);

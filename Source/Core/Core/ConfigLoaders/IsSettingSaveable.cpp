@@ -31,7 +31,6 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::MAIN_DEFAULT_ISO.location,
       Config::MAIN_MEMCARD_A_PATH.location,
       Config::MAIN_MEMCARD_B_PATH.location,
-      Config::MAIN_AUTO_DISC_CHANGE.location,
 
       // Graphics.Hardware
 

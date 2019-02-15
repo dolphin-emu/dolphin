@@ -19,8 +19,6 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -34,16 +32,8 @@ Host* Host::GetInstance()
 
 void Host::SetRenderHandle(void* handle)
 {
-  if (m_render_handle == handle)
-    return;
-
-  m_render_handle = handle;
   if (g_renderer)
-  {
     g_renderer->ChangeSurface(handle);
-    if (g_controller_interface.IsInit())
-      g_controller_interface.ChangeWindow(handle);
-  }
 }
 
 bool Host::GetRenderFocus()

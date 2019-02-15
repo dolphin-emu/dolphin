@@ -25,11 +25,9 @@ public:
   explicit MemoryWidget(QWidget* parent = nullptr);
   ~MemoryWidget();
 
-  void SetAddress(u32 address);
   void Update();
 signals:
   void BreakpointsChanged();
-  void ShowCode(u32 address);
 
 private:
   void CreateWidgets();

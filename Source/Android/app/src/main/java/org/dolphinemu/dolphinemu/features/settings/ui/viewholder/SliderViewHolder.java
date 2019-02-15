@@ -38,16 +38,12 @@ public final class SliderViewHolder extends SettingViewHolder
     {
       mTextSettingDescription.setText(item.getDescriptionId());
     }
-    else
-    {
-      mTextSettingDescription.setText(mItem.getSelectedValue() + mItem.getUnits());
-    }
   }
 
   @Override
   public void onClick(View clicked)
   {
-    getAdapter().onSliderClick(mItem, getAdapterPosition());
+    getAdapter().onSliderClick(mItem);
   }
 }
 

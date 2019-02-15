@@ -19,5 +19,8 @@ public:
   explicit Force(const std::string& name);
 
   StateData GetState();
+
+private:
+  StateData m_swing{};
 };
 }  // namespace ControllerEmu

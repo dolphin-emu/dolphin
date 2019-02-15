@@ -25,8 +25,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 SWRenderer::SWRenderer(std::unique_ptr<SWOGLWindow> window)
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT), 1.0f,
-                 AbstractTextureFormat::RGBA8),
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT)),
       m_window(std::move(window))
 {
 }
@@ -53,6 +52,11 @@ SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 {
   return SW::SWFramebuffer::Create(static_cast<const SW::SWTexture*>(color_attachment),
                                    static_cast<const SW::SWTexture*>(depth_attachment));
+}
+
+void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
+{
+  m_window->PrintText(pstr, left, top, color);
 }
 
 class SWShader final : public AbstractShader
@@ -90,10 +94,17 @@ std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipel
 }
 
 // Called on the GPU thread
-void SWRenderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& xfb_region)
+void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks)
 {
+  OSD::DoCallbacks(OSD::CallbackType::OnFrame);
+
   if (!IsHeadless())
+  {
+    DrawDebugText();
     m_window->ShowImage(texture, xfb_region);
+  }
+
+  UpdateActiveConfig();
 }
 
 u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)

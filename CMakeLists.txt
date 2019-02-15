@@ -5,7 +5,9 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10.0" CACHE STRING "")
+# Note that the SDK determines the maximum version of which optional
+# features can be used, not the minimum required version to run.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "")
 
 project(dolphin-emu)
 
@@ -30,7 +32,6 @@ option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
-option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -514,7 +515,6 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 add_subdirectory(Externals/glslang)
-add_subdirectory(Externals/imgui)
 
 find_package(pugixml)
 if(NOT pugixml_FOUND)
@@ -562,9 +562,6 @@ else()
   add_subdirectory(Externals/zlib)
 endif()
 
-add_subdirectory(Externals/minizip)
-include_directories(External/minizip)
-
 if(NOT APPLE)
   check_lib(LZO "(no .pc for lzo2)" lzo2 lzo/lzo1x.h QUIET)
 endif()
@@ -585,16 +582,6 @@ else()
   message(STATUS "Using static libpng from Externals")
   add_subdirectory(Externals/libpng)
   set(PNG png)
-endif()
-
-# Using static FreeSurround from Externals
-# There is no system FreeSurround library.
-message(STATUS "Using static FreeSurround from Externals")
-add_subdirectory(Externals/FreeSurround)
-
-if (APPLE)
-  message(STATUS "Using ed25519 from Externals")
-  add_subdirectory(Externals/ed25519)
 endif()
 
 # Using static soundtouch from Externals
@@ -729,12 +716,8 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 ########################################
 # Unit testing.
 #
-if(ENABLE_TESTS)
-  message(STATUS "Using static gtest from Externals")
-  add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
-else()
-  message(STATUS "Unit tests are disabled")
-endif()
+message(STATUS "Using static gtest from Externals")
+add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 
 ########################################
 # Process Dolphin source now that all setup is complete

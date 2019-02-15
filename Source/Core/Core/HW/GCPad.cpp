@@ -23,8 +23,6 @@ InputConfig* GetConfig()
 
 void Shutdown()
 {
-  s_config.UnregisterHotplugCallback();
-
   s_config.ClearControllers();
 }
 
@@ -36,7 +34,7 @@ void Initialize()
       s_config.CreateController<GCPad>(i);
   }
 
-  s_config.RegisterHotplugCallback();
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   // Load the saved controller config
   s_config.LoadConfig(true);
@@ -76,4 +74,4 @@ bool GetMicButton(const int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetMicButton();
 }
-}  // namespace Pad
+}

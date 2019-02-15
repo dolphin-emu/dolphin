@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
@@ -19,6 +20,8 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -29,6 +32,7 @@ ID3D11PixelShader* s_AnaglyphProgram = nullptr;
 ID3D11PixelShader* s_DepthResolveProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
+ID3D11Buffer* pscbuf = nullptr;
 
 const char clear_program_code[] = {"void main(\n"
                                    "out float4 ocol0 : SV_Target,\n"
@@ -273,8 +277,36 @@ ID3D11PixelShader* PixelShaderCache::GetDepthResolveProgram()
   return s_DepthResolveProgram;
 }
 
+static void UpdateConstantBuffers()
+{
+  if (PixelShaderManager::dirty)
+  {
+    D3D11_MAPPED_SUBRESOURCE map;
+    D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+    memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+    D3D::context->Unmap(pscbuf, 0);
+    PixelShaderManager::dirty = false;
+
+    ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
+  }
+}
+
+ID3D11Buffer* PixelShaderCache::GetConstantBuffer()
+{
+  UpdateConstantBuffers();
+  return pscbuf;
+}
+
 void PixelShaderCache::Init()
 {
+  unsigned int cbsize = Common::AlignUp(static_cast<unsigned int>(sizeof(PixelShaderConstants)),
+                                        16);  // must be a multiple of 16
+  D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER,
+                                                D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+  D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
+  CHECK(pscbuf != nullptr, "Create pixel shader constant buffer");
+  D3D::SetDebugObjectName(pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
+
   // used when drawing clear quads
   s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
   CHECK(s_ClearProgram != nullptr, "Create clear pixel shader");
@@ -302,6 +334,8 @@ void PixelShaderCache::InvalidateMSAAShaders()
 
 void PixelShaderCache::Shutdown()
 {
+  SAFE_RELEASE(pscbuf);
+
   SAFE_RELEASE(s_ClearProgram);
   SAFE_RELEASE(s_AnaglyphProgram);
   SAFE_RELEASE(s_DepthResolveProgram);

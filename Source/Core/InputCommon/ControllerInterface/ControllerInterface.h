@@ -6,11 +6,10 @@
 
 #include <atomic>
 #include <functional>
-#include <list>
 #include <memory>
 #include <mutex>
+#include <vector>
 
-#include "Common/WindowSystemInfo.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // enable disable sources
@@ -40,11 +39,8 @@
 class ControllerInterface : public ciface::Core::DeviceContainer
 {
 public:
-  using HotplugCallbackHandle = std::list<std::function<void()>>::iterator;
-
-  ControllerInterface() : m_is_init(false) {}
-  void Initialize(const WindowSystemInfo& wsi);
-  void ChangeWindow(void* hwnd);
+  ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
+  void Initialize(void* const hwnd);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
@@ -52,16 +48,15 @@ public:
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 
-  HotplugCallbackHandle RegisterDevicesChangedCallback(std::function<void(void)> callback);
-  void UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle);
+  void RegisterDevicesChangedCallback(std::function<void(void)> callback);
   void InvokeDevicesChangedCallbacks() const;
 
 private:
-  std::list<std::function<void()>> m_devices_changed_callbacks;
+  std::vector<std::function<void()>> m_devices_changed_callbacks;
   mutable std::mutex m_callbacks_mutex;
-  std::atomic<bool> m_is_init;
+  bool m_is_init;
   std::atomic<bool> m_is_populating_devices{false};
-  WindowSystemInfo m_wsi;
+  void* m_hwnd;
 };
 
 extern ControllerInterface g_controller_interface;

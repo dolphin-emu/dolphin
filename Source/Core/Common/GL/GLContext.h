@@ -24,11 +24,11 @@ public:
 
   virtual ~GLContext();
 
-  Mode GetMode() const { return m_opengl_mode; }
+  Mode GetMode() { return m_opengl_mode; }
   bool IsGLES() const { return m_opengl_mode == Mode::OpenGLES; }
 
-  u32 GetBackBufferWidth() const { return m_backbuffer_width; }
-  u32 GetBackBufferHeight() const { return m_backbuffer_height; }
+  u32 GetBackBufferWidth() { return m_backbuffer_width; }
+  u32 GetBackBufferHeight() { return m_backbuffer_height; }
 
   virtual bool IsHeadless() const;
 

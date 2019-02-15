@@ -99,8 +99,6 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name)
 
 Joystick::~Joystick()
 {
-  DeInitForceFeedback();
-
   if (m_ff_device)
     m_ff_device->Release();
 }

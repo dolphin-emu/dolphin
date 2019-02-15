@@ -21,16 +21,7 @@ import java.lang.ref.WeakReference;
  */
 public final class NativeLibrary
 {
-  private static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
-
-  /**
-   * Returns the current instance of EmulationActivity.
-   * There should only ever be one EmulationActivity instantiated.
-   */
-  public static EmulationActivity getEmulationActivity()
-  {
-    return sEmulationActivity.get();
-  }
+  public static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
 
   /**
    * Button type for use in onTouchEvent
@@ -350,12 +341,12 @@ public final class NativeLibrary
   /**
    * Begins emulation.
    */
-  public static native void Run(String[] path, boolean firstOpen);
+  public static native void Run(String path, boolean firstOpen);
 
   /**
    * Begins emulation from the specified savestate.
    */
-  public static native void Run(String[] path, String savestatePath, boolean deleteSavestate);
+  public static native void Run(String path, String savestatePath, boolean deleteSavestate);
 
   public static native void ChangeDisc(String path);
 
@@ -405,8 +396,6 @@ public final class NativeLibrary
    * Provides a way to refresh the connections on Wiimotes
    */
   public static native void RefreshWiimotes();
-
-  public static native void ReloadWiimoteConfig();
 
   private static boolean alertResult = false;
 
@@ -501,19 +490,4 @@ public final class NativeLibrary
 
     sEmulationActivity.clear();
   }
-
-  public static void updateTouchPointer()
-  {
-    final EmulationActivity emulationActivity = sEmulationActivity.get();
-    if (emulationActivity == null)
-    {
-      Log.warning("[NativeLibrary] EmulationActivity is null.");
-    }
-    else
-    {
-      emulationActivity.runOnUiThread(emulationActivity::initInputPointer);
-    }
-  }
-
-  public static native float GetGameAspectRatio();
 }

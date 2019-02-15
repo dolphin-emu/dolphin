@@ -60,7 +60,6 @@ public final class InputOverlayDrawableDpad
           int buttonUp, int buttonDown,
           int buttonLeft, int buttonRight)
   {
-    mTrackId = -1;
     mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
     mPressedOneDirectionStateBitmap = new BitmapDrawable(res, pressedOneDirectionStateBitmap);
     mPressedTwoDirectionsStateBitmap = new BitmapDrawable(res, pressedTwoDirectionsStateBitmap);

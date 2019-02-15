@@ -13,12 +13,7 @@ void Error(const std::string& text);
 void Stop();
 
 void SetDescription(const std::string& text);
-
-void SetTotalMarquee(bool marquee);
-void ResetTotalProgress();
-void SetTotalProgress(int current, int total);
-
-void SetCurrentMarquee(bool marquee);
-void ResetCurrentProgress();
-void SetCurrentProgress(int current, int total);
+void SetMarquee(bool marquee);
+void ResetProgress();
+void SetProgress(int current, int total);
 }  // namespace UI

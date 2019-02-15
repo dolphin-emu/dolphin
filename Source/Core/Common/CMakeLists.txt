@@ -24,7 +24,6 @@ add_library(common
   JitRegister.cpp
   Logging/LogManager.cpp
   MathUtil.cpp
-  Matrix.cpp
   MD5.cpp
   MemArena.cpp
   MemoryUtil.cpp

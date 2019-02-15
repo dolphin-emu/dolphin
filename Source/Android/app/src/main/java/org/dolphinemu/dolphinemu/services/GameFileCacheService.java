@@ -61,26 +61,6 @@ public final class GameFileCacheService extends IntentService
     return null;
   }
 
-  public static GameFile findSecondDisc(GameFile game)
-  {
-    GameFile matchWithoutRevision = null;
-
-    GameFile[] allGames = gameFiles.get();
-    for (GameFile otherGame : allGames)
-    {
-      if (game.getGameId().equals(otherGame.getGameId()) &&
-              game.getDiscNumber() != otherGame.getDiscNumber())
-      {
-        if (game.getRevision() == otherGame.getRevision())
-          return otherGame;
-        else
-          matchWithoutRevision = otherGame;
-      }
-    }
-
-    return matchWithoutRevision;
-  }
-
   private static void startService(Context context, String action)
   {
     Intent intent = new Intent(context, GameFileCacheService.class);

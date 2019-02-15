@@ -2,15 +2,14 @@ add_library(inputcommon
   InputConfig.cpp
   InputProfile.cpp
   ControllerEmu/ControllerEmu.cpp
-  ControllerEmu/StickGate.cpp
   ControllerEmu/Control/Control.cpp
   ControllerEmu/Control/Input.cpp
   ControllerEmu/Control/Output.cpp
   ControllerEmu/ControlGroup/AnalogStick.cpp
-  ControllerEmu/ControlGroup/Attachments.cpp
   ControllerEmu/ControlGroup/Buttons.cpp
   ControllerEmu/ControlGroup/ControlGroup.cpp
   ControllerEmu/ControlGroup/Cursor.cpp
+  ControllerEmu/ControlGroup/Extension.cpp
   ControllerEmu/ControlGroup/Force.cpp
   ControllerEmu/ControlGroup/MixedTriggers.cpp
   ControllerEmu/ControlGroup/ModifySettingsButton.cpp

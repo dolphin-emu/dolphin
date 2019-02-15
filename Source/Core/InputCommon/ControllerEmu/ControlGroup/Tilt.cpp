@@ -10,8 +10,6 @@
 #include <string>
 
 #include "Common/Common.h"
-#include "Common/MathUtil.h"
-
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -19,8 +17,7 @@
 
 namespace ControllerEmu
 {
-Tilt::Tilt(const std::string& name_)
-    : ReshapableInput(name_, name_, GroupType::Tilt), m_last_update(Clock::now())
+Tilt::Tilt(const std::string& name_) : ControlGroup(name_, GroupType::Tilt)
 {
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
@@ -29,63 +26,71 @@ Tilt::Tilt(const std::string& name_)
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
 
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Circle Stick"), 0));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.9, 0, 180));
 }
 
-Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
+Tilt::StateData Tilt::GetState(const bool step)
 {
-  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  // this is all a mess
 
-  // Return raw values. (used in UI)
-  if (!adjusted)
-    return {x, y};
+  ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+  ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-  const ControlState modifier = controls[4]->control_ref->State();
+  ControlState deadzone = numeric_settings[0]->GetValue();
+  ControlState circle = numeric_settings[1]->GetValue();
+  auto const angle = numeric_settings[2]->GetValue() / 1.8;
+  ControlState m = controls[4]->control_ref->State();
 
-  // Compute desired tilt:
-  StateData target = Reshape(x, y, modifier);
+  // deadzone / circle stick code
+  // this section might be all wrong, but its working good enough, I think
 
-  // Step the simulation. This is somewhat ugly being here.
-  // We should be able to GetState without changing state.
-  // State should be stored outside of this object inside the wiimote,
-  // and separately inside the UI.
+  ControlState ang = atan2(yy, xx);
+  ControlState ang_sin = sin(ang);
+  ControlState ang_cos = cos(ang);
 
-  // We're using system time rather than ticks to step this.
-  // I don't think that's too horrible as we can consider this part of user input.
-  // And at least the Mapping UI will behave sanely this way.
-  // TODO: when state is moved outside of this class have a separate Step()
-  // function that takes a ms_passed argument
-  const auto now = Clock::now();
-  const auto ms_since_update =
-      std::chrono::duration_cast<std::chrono::milliseconds>(now - m_last_update).count();
-  m_last_update = now;
+  // the amt a full square stick would have at current angle
+  ControlState square_full =
+      std::min(ang_sin ? 1 / fabs(ang_sin) : 2, ang_cos ? 1 / fabs(ang_cos) : 2);
 
-  const double max_step = MAX_DEG_PER_SEC / 180.0 * ms_since_update / 1000;
+  // the amt a full stick would have that was (user setting circular) at current angle
+  // I think this is more like a pointed circle rather than a rounded square like it should be
+  ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
-  // TODO: Allow wrap around from 1.0 to -1.0
-  // (take the fastest route to target)
+  ControlState dist = sqrt(xx * xx + yy * yy);
 
-  m_tilt.x += MathUtil::Clamp(target.x - m_tilt.x, -max_step, max_step);
-  m_tilt.y += MathUtil::Clamp(target.y - m_tilt.y, -max_step, max_step);
+  // dead zone code
+  dist = std::max(0.0, dist - deadzone * stick_full);
+  dist /= (1 - deadzone);
 
-  return m_tilt;
+  // circle stick code
+  ControlState amt = dist / stick_full;
+  dist += (square_full - 1) * amt * circle;
+
+  if (m)
+    dist *= 0.5;
+
+  yy = std::max(-1.0, std::min(1.0, ang_sin * dist));
+  xx = std::max(-1.0, std::min(1.0, ang_cos * dist));
+
+  // this is kinda silly here
+  // gui being open will make this happen 2x as fast, o well
+
+  // silly
+  if (step)
+  {
+    if (xx > m_tilt.x)
+      m_tilt.x = std::min(m_tilt.x + 0.1, xx);
+    else if (xx < m_tilt.x)
+      m_tilt.x = std::max(m_tilt.x - 0.1, xx);
+
+    if (yy > m_tilt.y)
+      m_tilt.y = std::min(m_tilt.y + 0.1, yy);
+    else if (yy < m_tilt.y)
+      m_tilt.y = std::max(m_tilt.y - 0.1, yy);
+  }
+
+  return {m_tilt.x * angle, m_tilt.y * angle};
 }
-
-Tilt::StateData Tilt::GetState()
-{
-  return GetReshapableState(true);
-}
-
-ControlState Tilt::GetGateRadiusAtAngle(double ang) const
-{
-  const ControlState max_tilt_angle = numeric_settings[SETTING_MAX_ANGLE]->GetValue() / 1.8;
-  return SquareStickGate(max_tilt_angle).GetRadiusAtAngle(ang);
-}
-
-ControlState Tilt::GetDefaultInputRadiusAtAngle(double ang) const
-{
-  return SquareStickGate(1.0).GetRadiusAtAngle(ang);
-}
-
 }  // namespace ControllerEmu

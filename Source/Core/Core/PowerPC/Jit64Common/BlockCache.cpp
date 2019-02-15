@@ -14,15 +14,10 @@ JitBlockCache::JitBlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 
 void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
-  // Do not skip breakpoint check if debugging.
-  const u8* dispatcher = SConfig::GetInstance().bEnableDebugging ?
-                             m_jit.GetAsmRoutines()->dispatcher :
-                             m_jit.GetAsmRoutines()->dispatcher_no_check;
-
   u8* location = source.exitPtrs;
-  const u8* address = dest ? dest->checkedEntry : dispatcher;
+  const u8* address = dest ? dest->checkedEntry : m_jit.GetAsmRoutines()->dispatcher;
   Gen::XEmitter emit(location);
-  if (source.call)
+  if (*location == 0xE8)
   {
     emit.CALL(address);
   }

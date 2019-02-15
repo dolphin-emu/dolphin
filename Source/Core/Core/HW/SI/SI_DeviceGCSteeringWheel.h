@@ -32,11 +32,5 @@ private:
     CMD_FORCE = 0x30,
     CMD_WRITE = 0x40
   };
-
-  enum class ForceCommandType : u8
-  {
-    MotorOn = 0x03,
-    MotorOff = 0x02,
-  };
 };
 }  // namespace SerialInterface

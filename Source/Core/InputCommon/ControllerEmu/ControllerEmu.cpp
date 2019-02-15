@@ -12,8 +12,8 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ControllerEmu
@@ -41,10 +41,10 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
     for (auto& control : ctrlGroup->controls)
       control->control_ref.get()->UpdateReference(devi, GetDefaultDevice());
 
-    // Attachments:
-    if (ctrlGroup->type == GroupType::Attachments)
+    // extension
+    if (ctrlGroup->type == GroupType::Extension)
     {
-      for (auto& attachment : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
+      for (auto& attachment : ((Extension*)ctrlGroup.get())->attachments)
         attachment->UpdateReferences(devi);
     }
   }
@@ -73,10 +73,10 @@ void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
 
   for (auto& ctrlGroup : groups)
   {
-    // Attachments:
-    if (ctrlGroup->type == GroupType::Attachments)
+    // extension
+    if (ctrlGroup->type == GroupType::Extension)
     {
-      for (auto& ai : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
+      for (auto& ai : ((Extension*)ctrlGroup.get())->attachments)
       {
         ai->SetDefaultDevice(m_default_device);
       }

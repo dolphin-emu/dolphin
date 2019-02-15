@@ -63,9 +63,6 @@ public:
   void UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game);
   void RemoveGame(const std::string& path);
 
-  std::shared_ptr<const UICommon::GameFile> FindGame(const std::string& path) const;
-  std::shared_ptr<const UICommon::GameFile> FindSecondDisc(const UICommon::GameFile& game) const;
-
   void SetScale(float scale);
   float GetScale() const;
 
@@ -82,7 +79,7 @@ public:
 
 private:
   // Index in m_games, or -1 if it isn't found
-  int FindGameIndex(const std::string& path) const;
+  int FindGame(const std::string& path) const;
 
   QStringList m_tag_list;
   QMap<QString, QVariant> m_game_tags;

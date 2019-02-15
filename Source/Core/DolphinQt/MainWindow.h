@@ -5,7 +5,6 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QStringList>
 
 #include <memory>
 #include <optional>
@@ -46,11 +45,6 @@ class WiiTASInputWindow;
 namespace DiscIO
 {
 enum class Region;
-}
-
-namespace UICommon
-{
-class GameFile;
 }
 
 namespace X11Utils
@@ -121,20 +115,8 @@ private:
 
   void InitCoreCallbacks();
 
-  enum class ScanForSecondDisc
-  {
-    Yes,
-    No,
-  };
-
-  void ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
-                                     const std::optional<std::string>& savestate_path = {});
-  void StartGame(const QString& path, ScanForSecondDisc scan,
-                 const std::optional<std::string>& savestate_path = {});
-  void StartGame(const std::string& path, ScanForSecondDisc scan,
-                 const std::optional<std::string>& savestate_path = {});
-  void StartGame(const std::vector<std::string>& paths,
-                 const std::optional<std::string>& savestate_path = {});
+  void StartGame(const QString& path, const std::optional<std::string>& savestate_path = {});
+  void StartGame(const std::string& path, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true);
@@ -149,7 +131,6 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
-  void ShowResourcePackManager();
   void ShowCheatsManager();
 
   void NetPlayInit();
@@ -173,7 +154,7 @@ private:
   void ChangeDisc();
   void EjectDisc();
 
-  QStringList PromptFileNames();
+  QString PromptFileName();
 
   void EnableScreenSaver(bool enable);
 
@@ -192,7 +173,7 @@ private:
   MenuBar* m_menu_bar;
   SearchBar* m_search_bar;
   GameList* m_game_list;
-  RenderWidget* m_render_widget = nullptr;
+  RenderWidget* m_render_widget;
   bool m_rendering_to_main;
   bool m_stop_requested = false;
   bool m_exit_requested = false;

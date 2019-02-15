@@ -232,7 +232,7 @@ bool GameFileCache::SyncCacheFile(bool save)
   else
   {
     std::vector<u8> buffer(f.GetSize());
-    if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
+    if (buffer.size() && f.ReadBytes(buffer.data(), buffer.size()))
     {
       u8* ptr = buffer.data();
       PointerWrap p(&ptr, PointerWrap::MODE_READ);

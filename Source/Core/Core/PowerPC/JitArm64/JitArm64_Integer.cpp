@@ -631,9 +631,6 @@ void JitArm64::srawix(UGeckoInstruction inst)
       ComputeCarry(true);
     else
       ComputeCarry(false);
-
-    if (inst.Rc)
-      ComputeRC0(gpr.GetImm(a));
   }
   else if (amount == 0)
   {
@@ -642,9 +639,6 @@ void JitArm64::srawix(UGeckoInstruction inst)
     ARM64Reg RS = gpr.R(s);
     MOV(RA, RS);
     ComputeCarry(false);
-
-    if (inst.Rc)
-      ComputeRC0(RA);
   }
   else
   {

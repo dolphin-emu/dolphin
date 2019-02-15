@@ -10,8 +10,8 @@
 #include "Common/FloatUtils.h"
 #include "Common/x64ABI.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 #include <gtest/gtest.h>
@@ -19,7 +19,7 @@
 class TestCommonAsmRoutines : public CommonAsmRoutines
 {
 public:
-  TestCommonAsmRoutines() : CommonAsmRoutines(jit)
+  TestCommonAsmRoutines()
   {
     using namespace Gen;
 
@@ -49,7 +49,6 @@ public:
   }
 
   u64 (*wrapped_frsqrte)(u64, UReg_FPSCR&);
-  Jit64 jit;
 };
 
 TEST(Jit64, Frsqrte)

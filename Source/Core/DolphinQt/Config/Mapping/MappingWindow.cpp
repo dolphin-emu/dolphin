@@ -143,13 +143,11 @@ void MappingWindow::ConnectWidgets()
   connect(m_devices_refresh, &QPushButton::clicked, this, &MappingWindow::RefreshDevices);
   connect(m_devices_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &MappingWindow::OnDeviceChanged);
-  connect(m_reset_clear, &QPushButton::clicked, this, &MappingWindow::OnClearFieldsPressed);
+  connect(m_reset_clear, &QPushButton::clicked, this, [this] { emit ClearFields(); });
   connect(m_reset_default, &QPushButton::clicked, this, &MappingWindow::OnDefaultFieldsPressed);
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
-  // We currently use the "Close" button as an "Accept" button so we must save on reject.
-  connect(this, &QDialog::rejected, [this] { emit Save(); });
 }
 
 void MappingWindow::OnDeleteProfilePressed()
@@ -377,16 +375,6 @@ std::shared_ptr<ciface::Core::Device> MappingWindow::GetDevice() const
 void MappingWindow::OnDefaultFieldsPressed()
 {
   m_controller->LoadDefaults(g_controller_interface);
-  m_controller->UpdateReferences(g_controller_interface);
-  emit Update();
-  emit Save();
-}
-
-void MappingWindow::OnClearFieldsPressed()
-{
-  // Loading an empty inifile section clears everything.
-  IniFile::Section sec;
-  m_controller->LoadConfig(&sec);
   m_controller->UpdateReferences(g_controller_interface);
   emit Update();
   emit Save();

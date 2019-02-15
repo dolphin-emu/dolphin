@@ -33,17 +33,14 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
-#include "Core/ActionReplay.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
-#include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
-#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -53,21 +50,16 @@
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
-#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace NetPlay
 {
-using namespace WiimoteCommon;
-
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
-static std::vector<u64> s_wii_sync_titles;
 static bool s_si_poll_batching;
 
 // called from ---GUI--- thread
@@ -118,7 +110,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   if (!traversal_config.use_traversal)
   {
     // Direct Connection
-    m_client = enet_host_create(nullptr, 1, CHANNEL_COUNT, 0, 0);
+    m_client = enet_host_create(nullptr, 1, 3, 0, 0);
 
     if (m_client == nullptr)
     {
@@ -130,7 +122,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     enet_address_set_host(&addr, address.c_str());
     addr.port = port;
 
-    m_server = enet_host_connect(m_client, &addr, CHANNEL_COUNT, 0);
+    m_server = enet_host_connect(m_client, &addr, 3, 0);
 
     if (m_server == nullptr)
     {
@@ -344,64 +336,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
-  case NP_MSG_CHUNKED_DATA_START:
-  {
-    u32 cid;
-    packet >> cid;
-    std::string title;
-    packet >> title;
-    u64 data_size = Common::PacketReadU64(packet);
-
-    m_chunked_data_receive_queue.emplace(cid, sf::Packet{});
-
-    std::vector<int> players;
-    players.push_back(m_local_player->pid);
-    m_dialog->ShowChunkedProgressDialog(title, data_size, players);
-  }
-  break;
-
-  case NP_MSG_CHUNKED_DATA_END:
-  {
-    u32 cid;
-    packet >> cid;
-
-    OnData(m_chunked_data_receive_queue[cid]);
-    m_chunked_data_receive_queue.erase(m_chunked_data_receive_queue.find(cid));
-    m_dialog->HideChunkedProgressDialog();
-
-    sf::Packet complete_packet;
-    complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
-    complete_packet << cid;
-    Send(complete_packet, CHUNKED_DATA_CHANNEL);
-  }
-  break;
-
-  case NP_MSG_CHUNKED_DATA_PAYLOAD:
-  {
-    u32 cid;
-    packet >> cid;
-
-    while (!packet.endOfPacket())
-    {
-      u8 byte;
-      packet >> byte;
-      m_chunked_data_receive_queue[cid] << byte;
-    }
-
-    m_dialog->SetChunkedProgress(m_local_player->pid,
-                                 m_chunked_data_receive_queue[cid].getDataSize());
-
-    sf::Packet progress_packet;
-    progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
-    progress_packet << cid;
-    progress_packet << sf::Uint64{m_chunked_data_receive_queue[cid].getDataSize()};
-    Send(progress_packet, CHUNKED_DATA_CHANNEL);
-  }
-  break;
-
   case NP_MSG_PAD_MAPPING:
   {
-    for (PlayerId& mapping : m_pad_map)
+    for (PadMapping& mapping : m_pad_map)
     {
       packet >> mapping;
     }
@@ -414,7 +351,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_WIIMOTE_MAPPING:
   {
-    for (PlayerId& mapping : m_wiimote_map)
+    for (PadMapping& mapping : m_wiimote_map)
     {
       packet >> mapping;
     }
@@ -427,7 +364,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     while (!packet.endOfPacket())
     {
-      PadIndex map;
+      PadMapping map;
       packet >> map;
 
       GCPadStatus pad;
@@ -444,7 +381,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_WIIMOTE_DATA:
   {
-    PadIndex map;
+    PadMapping map = 0;
     NetWiimote nw;
     u8 size;
     packet >> map >> size;
@@ -473,7 +410,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_PAD_FIRST_RECEIVED:
   {
-    PadIndex map;
+    PadMapping map;
     packet >> map;
     packet >> m_first_pad_status_received[map];
     m_first_pad_status_received_event.Set();
@@ -563,12 +500,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_OCFactor;
       packet >> m_net_settings.m_ReducePollingRate;
 
-      for (auto& device : m_net_settings.m_EXIDevice)
-      {
-        int tmp;
-        packet >> tmp;
-        device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
-      }
+      int tmp;
+      packet >> tmp;
+      m_net_settings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      packet >> tmp;
+      m_net_settings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
 
       packet >> m_net_settings.m_EFBAccessEnable;
       packet >> m_net_settings.m_BBoxEnable;
@@ -607,18 +543,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_ArbitraryMipmapDetection;
       packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
       packet >> m_net_settings.m_EnableGPUTextureDecoding;
-      packet >> m_net_settings.m_DeferEFBCopies;
       packet >> m_net_settings.m_StrictSettingsSync;
 
       m_initial_rtc = Common::PacketReadU64(packet);
 
       packet >> m_net_settings.m_SyncSaveData;
       packet >> m_net_settings.m_SaveDataRegion;
-      packet >> m_net_settings.m_SyncCodes;
-      packet >> m_net_settings.m_SyncAllWiiSaves;
-
-      for (int& extension : m_net_settings.m_WiimoteExtension)
-        packet >> extension;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
@@ -635,12 +565,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     StopGame();
     m_dialog->OnMsgStopGame();
-  }
-  break;
-
-  case NP_MSG_POWER_BUTTON:
-  {
-    m_dialog->OnMsgPowerButton();
   }
   break;
 
@@ -720,9 +644,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     {
     case SYNC_SAVE_DATA_NOTIFY:
     {
-      if (m_local_player->IsHost())
-        return 0;
-
       packet >> m_sync_save_data_count;
       m_sync_save_data_success_count = 0;
 
@@ -798,6 +719,13 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       if (m_local_player->IsHost())
         return 0;
 
+      const auto game = m_dialog->FindGameFile(m_selected_game);
+      if (game == nullptr)
+      {
+        SyncSaveDataResponse(true);  // whatever, we won't be booting anyways
+        return 0;
+      }
+
       const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
 
       if (File::Exists(path) && !File::DeleteDirRecursively(path))
@@ -808,25 +736,16 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       }
 
       auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
-      std::vector<u64> titles;
+      temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                               Common::GetTitleDataPath(game->GetTitleID()), 0,
+                               {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
+                                IOS::HLE::FS::Mode::ReadWrite});
+      auto save = WiiSave::MakeNandStorage(temp_fs.get(), game->GetTitleID());
 
-      u32 save_count;
-      packet >> save_count;
-      for (u32 n = 0; n < save_count; n++)
+      bool exists;
+      packet >> exists;
+      if (exists)
       {
-        u64 title_id = Common::PacketReadU64(packet);
-        titles.push_back(title_id);
-        temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                 Common::GetTitleDataPath(title_id), 0,
-                                 {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                  IOS::HLE::FS::Mode::ReadWrite});
-        auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
-
-        bool exists;
-        packet >> exists;
-        if (!exists)
-          continue;
-
         // Header
         WiiSave::Header header;
         packet >> header.tid;
@@ -892,7 +811,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         }
       }
 
-      SetWiiSyncData(std::move(temp_fs), titles);
+      SetWiiSyncFS(std::move(temp_fs));
       SyncSaveDataResponse(true);
     }
     break;
@@ -900,163 +819,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     default:
       PanicAlertT("Unknown SYNC_SAVE_DATA message received with id: %d", sub_id);
       break;
-    }
-  }
-  break;
-
-  case NP_MSG_SYNC_CODES:
-  {
-    // Recieve Data Packet
-    MessageId sub_id;
-    packet >> sub_id;
-
-    // Check Which Operation to Perform with This Packet
-    switch (sub_id)
-    {
-    case SYNC_CODES_NOTIFY:
-    {
-      // Set both codes as unsynced
-      m_sync_gecko_codes_complete = false;
-      m_sync_ar_codes_complete = false;
-    }
-    break;
-
-    case SYNC_CODES_NOTIFY_GECKO:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Receive Number of Codelines to Receive
-      packet >> m_sync_gecko_codes_count;
-
-      m_sync_gecko_codes_success_count = 0;
-
-      NOTICE_LOG(ACTIONREPLAY, "Receiving %d Gecko codelines", m_sync_gecko_codes_count);
-
-      // Check if no codes to sync, if so return as finished
-      if (m_sync_gecko_codes_count == 0)
-      {
-        m_sync_gecko_codes_complete = true;
-        SyncCodeResponse(true);
-      }
-      else
-        m_dialog->AppendChat(GetStringT("Synchronizing Gecko codes..."));
-    }
-    break;
-
-    case SYNC_CODES_DATA_GECKO:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Create a synced code vector
-      std::vector<Gecko::GeckoCode> synced_codes;
-      // Create a GeckoCode
-      Gecko::GeckoCode gcode;
-      gcode = Gecko::GeckoCode();
-      // Initialize gcode
-      gcode.name = "Synced Codes";
-      gcode.enabled = true;
-
-      // Receive code contents from packet
-      for (int i = 0; i < m_sync_gecko_codes_count; i++)
-      {
-        Gecko::GeckoCode::Code new_code;
-        packet >> new_code.address;
-        packet >> new_code.data;
-
-        NOTICE_LOG(ACTIONREPLAY, "Received %08x %08x", new_code.address, new_code.data);
-
-        gcode.codes.push_back(std::move(new_code));
-
-        if (++m_sync_gecko_codes_success_count >= m_sync_gecko_codes_count)
-        {
-          m_sync_gecko_codes_complete = true;
-          SyncCodeResponse(true);
-        }
-      }
-
-      // Add gcode containing all codes to Gecko Code vector
-      synced_codes.push_back(std::move(gcode));
-
-      // Clear Vector if received 0 codes (match host's end when using no codes)
-      if (m_sync_gecko_codes_count == 0)
-        synced_codes.clear();
-
-      // Copy this to the vector located in GeckoCode.cpp
-      Gecko::UpdateSyncedCodes(synced_codes);
-    }
-    break;
-
-    case SYNC_CODES_NOTIFY_AR:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Receive Number of Codelines to Receive
-      packet >> m_sync_ar_codes_count;
-
-      m_sync_ar_codes_success_count = 0;
-
-      NOTICE_LOG(ACTIONREPLAY, "Receiving %d AR codelines", m_sync_ar_codes_count);
-
-      // Check if no codes to sync, if so return as finished
-      if (m_sync_ar_codes_count == 0)
-      {
-        m_sync_ar_codes_complete = true;
-        SyncCodeResponse(true);
-      }
-      else
-        m_dialog->AppendChat(GetStringT("Synchronizing AR codes..."));
-    }
-    break;
-
-    case SYNC_CODES_DATA_AR:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Create a synced code vector
-      std::vector<ActionReplay::ARCode> synced_codes;
-      // Create an ARCode
-      ActionReplay::ARCode arcode;
-      arcode = ActionReplay::ARCode();
-      // Initialize arcode
-      arcode.name = "Synced Codes";
-      arcode.active = true;
-
-      // Receive code contents from packet
-      for (int i = 0; i < m_sync_ar_codes_count; i++)
-      {
-        ActionReplay::AREntry new_code;
-        packet >> new_code.cmd_addr;
-        packet >> new_code.value;
-
-        NOTICE_LOG(ACTIONREPLAY, "Received %08x %08x", new_code.cmd_addr, new_code.value);
-        arcode.ops.push_back(new_code);
-
-        if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
-        {
-          m_sync_ar_codes_complete = true;
-          SyncCodeResponse(true);
-        }
-      }
-
-      // Add arcode containing all codes to AR Code vector
-      synced_codes.push_back(std::move(arcode));
-
-      // Clear Vector if received 0 codes (match host's end when using no codes)
-      if (m_sync_ar_codes_count == 0)
-        synced_codes.clear();
-
-      // Copy this to the vector located in ActionReplay.cpp
-      ActionReplay::UpdateSyncedCodes(synced_codes);
-    }
-    break;
     }
   }
   break;
@@ -1118,11 +880,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   return 0;
 }
 
-void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
+void NetPlayClient::Send(const sf::Packet& packet)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
-  enet_peer_send(m_server, channel_id, epac);
+  enet_peer_send(m_server, 0, epac);
 }
 
 void NetPlayClient::DisplayPlayersPing()
@@ -1172,11 +934,11 @@ void NetPlayClient::Disconnect()
   m_server = nullptr;
 }
 
-void NetPlayClient::SendAsync(sf::Packet&& packet, const u8 channel_id)
+void NetPlayClient::SendAsync(sf::Packet&& packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-    m_async_queue.Push(AsyncQueueEntry{std::move(packet), channel_id});
+    m_async_queue.Push(std::move(packet));
   }
   ENetUtil::WakeupThread(m_client);
 }
@@ -1204,10 +966,7 @@ void NetPlayClient::ThreadFunc()
     net = enet_host_service(m_client, &netEvent, 250);
     while (!m_async_queue.Empty())
     {
-      {
-        auto& e = m_async_queue.Front();
-        Send(e.packet, e.channel_id);
-      }
+      Send(m_async_queue.Front());
       m_async_queue.Pop();
     }
     if (net > 0)
@@ -1321,7 +1080,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus& pad,
                                         sf::Packet& packet)
 {
-  packet << static_cast<PadIndex>(in_game_pad);
+  packet << static_cast<PadMapping>(in_game_pad);
   packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
          << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
 }
@@ -1331,7 +1090,7 @@ void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw
 {
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  packet << static_cast<PadIndex>(in_game_pad);
+  packet << static_cast<PadMapping>(in_game_pad);
   packet << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
@@ -1429,34 +1188,6 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
     sf::Packet response_packet;
     response_packet << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
     response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_FAILURE);
-
-    Send(response_packet);
-  }
-}
-
-void NetPlayClient::SyncCodeResponse(const bool success)
-{
-  // If something failed, immediately report back that code sync failed
-  if (!success)
-  {
-    m_dialog->AppendChat(GetStringT("Error processing codes."));
-
-    sf::Packet response_packet;
-    response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
-    response_packet << static_cast<MessageId>(SYNC_CODES_FAILURE);
-
-    Send(response_packet);
-    return;
-  }
-
-  // If both gecko and AR codes have completely finished transferring, report back as successful
-  if (m_sync_gecko_codes_complete && m_sync_ar_codes_complete)
-  {
-    m_dialog->AppendChat(GetStringT("Codes received!"));
-
-    sf::Packet response_packet;
-    response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
-    response_packet << static_cast<MessageId>(SYNC_CODES_SUCCESS);
 
     Send(response_packet);
   }
@@ -1569,21 +1300,21 @@ void NetPlayClient::UpdateDevices()
     {
       if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
       {
-        SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
+        SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
       }
       else
       {
-        SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+        SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
       }
       local_pad++;
     }
     else if (player_id > 0)
     {
-      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+      SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
-      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_NONE, pad);
+      SerialInterface::AddDevice(SerialInterface::SIDEVICE_NONE, pad);
     }
     pad++;
   }
@@ -1628,7 +1359,7 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnectReady)
   {
     m_connection_state = ConnectionState::Connecting;
-    enet_host_connect(m_client, &addr, CHANNEL_COUNT, 0);
+    enet_host_connect(m_client, &addr, 0, 0);
   }
 }
 
@@ -1885,7 +1616,7 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   return data_added;
 }
 
-void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
+void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
 {
   if (!m_local_player->IsHost())
     return;
@@ -1906,7 +1637,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
       }
     }
   }
-  else if (m_pad_map[pad_num] != 0)
+  else if (m_pad_map[pad_num] > 0)
   {
     while (!m_first_pad_status_received[pad_num])
     {
@@ -1938,7 +1669,7 @@ bool NetPlayClient::StopGame()
   // stop game
   m_dialog->StopGame();
 
-  ClearWiiSyncData();
+  ClearWiiSyncFS();
 
   return true;
 }
@@ -1970,17 +1701,10 @@ void NetPlayClient::RequestStopGame()
     SendStopGamePacket();
 }
 
-void NetPlayClient::SendPowerButtonEvent()
-{
-  sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
-  SendAsync(std::move(packet));
-}
-
 // called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
-  const auto mapping_matches_player_id = [this](const PlayerId& mapping) {
+  const auto mapping_matches_player_id = [this](const PadMapping& mapping) {
     return mapping == m_local_player->pid;
   };
 
@@ -2139,18 +1863,12 @@ IOS::HLE::FS::FileSystem* GetWiiSyncFS()
   return s_wii_sync_fs.get();
 }
 
-const std::vector<u64>& GetWiiSyncTitles()
-{
-  return s_wii_sync_titles;
-}
-
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles)
+void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs)
 {
   s_wii_sync_fs = std::move(fs);
-  s_wii_sync_titles.insert(s_wii_sync_titles.end(), titles.begin(), titles.end());
 }
 
-void ClearWiiSyncData()
+void ClearWiiSyncFS()
 {
   // We're just assuming it will always be here because it is
   const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
@@ -2158,45 +1876,11 @@ void ClearWiiSyncData()
     File::DeleteDirRecursively(path);
 
   s_wii_sync_fs.reset();
-  s_wii_sync_titles.clear();
 }
 
 void SetSIPollBatching(bool state)
 {
   s_si_poll_batching = state;
-}
-
-void SendPowerButtonEvent()
-{
-  ASSERT(IsNetPlayRunning());
-  netplay_client->SendPowerButtonEvent();
-}
-
-bool IsSyncingAllWiiSaves()
-{
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
-
-  if (netplay_client)
-    return netplay_client->GetNetSettings().m_SyncAllWiiSaves;
-
-  return false;
-}
-
-void SetupWiimotes()
-{
-  ASSERT(IsNetPlayRunning());
-  const NetSettings& netplay_settings = netplay_client->GetNetSettings();
-  const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
-  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
-  {
-    if (wiimote_map[i] > 0)
-    {
-      static_cast<ControllerEmu::Attachments*>(
-          static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
-              ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
-          ->SetSelectedAttachment(netplay_settings.m_WiimoteExtension[i]);
-    }
-  }
 }
 
 void NetPlay_Enable(NetPlayClient* const np)

@@ -53,7 +53,7 @@ since the Binary directory contains a working Dolphin distribution.
 
 ## Building for Linux and macOS
 
-Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Many libraries are
+Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
@@ -146,7 +146,7 @@ is intended for debugging purposes only.
 
 ## Sys Files
 
-* `wiitdb.txt`: Wii title database from [GameTDB](https://www.gametdb.com/)
+* `wiitdb.txt`: Wii title database from [GameTDB](http://www.gametdb.com)
 * `totaldb.dsy`: Database of symbols (for devs only)
 * `GC/font_western.bin`: font dumps
 * `GC/font_japanese.bin`: font dumps

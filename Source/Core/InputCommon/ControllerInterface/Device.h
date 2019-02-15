@@ -16,17 +16,13 @@ typedef double ControlState;
 
 namespace ciface
 {
-// 100Hz which homebrew docs very roughly imply is within WiiMote normal
-// range, used for periodic haptic effects though often ignored by devices
-// TODO: Make this configurable.
-constexpr int RUMBLE_PERIOD_MS = 10;
-// This needs to be at least as long as the longest rumble that might ever be played.
-// Too short and it's going to stop in the middle of a long effect.
-// Infinite values are invalid for ramp effects and probably not sensible.
-constexpr int RUMBLE_LENGTH_MS = 1000 * 10;
-
 namespace Core
 {
+//
+// Device
+//
+// A device class
+//
 class Device
 {
 public:
@@ -167,5 +163,5 @@ protected:
   mutable std::mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
-}  // namespace Core
-}  // namespace ciface
+}
+}

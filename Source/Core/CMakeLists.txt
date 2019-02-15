@@ -11,7 +11,3 @@ add_subdirectory(VideoBackends)
 if(ENABLE_QT)
   add_subdirectory(DolphinQt)
 endif()
-
-if (APPLE)
-  add_subdirectory(MacUpdater)
-endif()

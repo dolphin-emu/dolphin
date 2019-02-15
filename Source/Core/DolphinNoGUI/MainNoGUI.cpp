@@ -368,10 +368,7 @@ int main(int argc, char* argv[])
   std::unique_ptr<BootParameters> boot;
   if (options.is_set("exec"))
   {
-    const std::list<std::string> paths_list = options.all("exec");
-    const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
-                                         std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths);
+    boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
   }
   else if (options.is_set("nand_title"))
   {

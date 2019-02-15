@@ -8,7 +8,6 @@
 #include "Common/Timer.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitInterface.h"
 
 // include order is important
 #include <gtest/gtest.h>  // NOLINT
@@ -57,7 +56,7 @@ TEST(PageFault, PageFault)
   Common::WriteProtectMemory(data, PAGE_GRAN, false);
 
   PageFaultFakeJit pfjit;
-  JitInterface::SetJit(&pfjit);
+  g_jit = &pfjit;
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -68,7 +67,7 @@ TEST(PageFault, PageFault)
   ((unsigned long long)std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count())
 
   EMM::UninstallExceptionHandler();
-  JitInterface::SetJit(nullptr);
+  g_jit = nullptr;
 
   printf("page fault timing:\n");
   printf("start->HandleFault     %llu ns\n", AS_NS(pfjit.m_pre_unprotect_time - start));

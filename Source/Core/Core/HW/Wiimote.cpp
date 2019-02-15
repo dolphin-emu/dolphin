@@ -67,8 +67,6 @@ ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::Turntable
 
 void Shutdown()
 {
-  s_config.UnregisterHotplugCallback();
-
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
@@ -82,7 +80,7 @@ void Initialize(InitializeMode init_mode)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
   }
 
-  s_config.RegisterHotplugCallback();
+  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
 
   LoadConfig();
 
@@ -217,4 +215,4 @@ void DoState(PointerWrap& p)
   for (int i = 0; i < MAX_BBMOTES; ++i)
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
 }
-}  // namespace Wiimote
+}

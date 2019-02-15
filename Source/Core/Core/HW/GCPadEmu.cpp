@@ -16,8 +16,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
-#include "InputCommon/ControllerEmu/StickGate.h"
-
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
@@ -65,14 +63,10 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   }
 
   // sticks
-  constexpr auto main_gate_radius =
-      ControlState(MAIN_STICK_GATE_RADIUS) / GCPadStatus::MAIN_STICK_RADIUS;
-  groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
-                          "Main Stick", _trans("Control Stick"), main_gate_radius));
-
-  constexpr auto c_gate_radius = ControlState(C_STICK_GATE_RADIUS) / GCPadStatus::C_STICK_RADIUS;
-  groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
-                          "C-Stick", _trans("C Stick"), c_gate_radius));
+  groups.emplace_back(m_main_stick = new ControllerEmu::AnalogStick(
+                          "Main Stick", _trans("Control Stick"), DEFAULT_PAD_STICK_RADIUS));
+  groups.emplace_back(m_c_stick = new ControllerEmu::AnalogStick("C-Stick", _trans("C Stick"),
+                                                                 DEFAULT_PAD_STICK_RADIUS));
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
@@ -162,19 +156,23 @@ GCPadStatus GCPad::GetInput() const
   m_dpad->GetState(&pad.button, dpad_bitmasks);
 
   // sticks
-  const auto main_stick_state = m_main_stick->GetState();
-  pad.stickX = MapFloat<u8>(main_stick_state.x, GCPadStatus::MAIN_STICK_CENTER_X);
-  pad.stickY = MapFloat<u8>(main_stick_state.y, GCPadStatus::MAIN_STICK_CENTER_Y);
+  const ControllerEmu::AnalogStick::StateData main_stick_state = m_main_stick->GetState();
+  pad.stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X +
+                               (main_stick_state.x * GCPadStatus::MAIN_STICK_RADIUS));
+  pad.stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y +
+                               (main_stick_state.y * GCPadStatus::MAIN_STICK_RADIUS));
 
-  const auto c_stick_state = m_c_stick->GetState();
-  pad.substickX = MapFloat<u8>(c_stick_state.x, GCPadStatus::C_STICK_CENTER_X);
-  pad.substickY = MapFloat<u8>(c_stick_state.y, GCPadStatus::C_STICK_CENTER_Y);
+  const ControllerEmu::AnalogStick::StateData c_stick_state = m_c_stick->GetState();
+  pad.substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X +
+                                  (c_stick_state.x * GCPadStatus::C_STICK_RADIUS));
+  pad.substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y +
+                                  (c_stick_state.y * GCPadStatus::C_STICK_RADIUS));
 
   // triggers
   std::array<ControlState, 2> triggers;
   m_triggers->GetState(&pad.button, trigger_bitmasks, triggers.data());
-  pad.triggerLeft = MapFloat<u8>(triggers[0], 0);
-  pad.triggerRight = MapFloat<u8>(triggers[1], 0);
+  pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
+  pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
 
   return pad;
 }
@@ -228,8 +226,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(4, "LSHIFT");  // Modifier
 
 #elif __APPLE__
-  // Modifier
-  m_c_stick->SetControlExpression(4, "Left Control");
+  m_c_stick->SetControlExpression(4, "Left Control");  // Modifier
 
   // Control Stick
   m_main_stick->SetControlExpression(0, "Up Arrow");     // Up
@@ -249,10 +246,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(3, "Right");    // Right
   m_main_stick->SetControlExpression(4, "Shift_L");  // Modifier
 #endif
-
-  // Because our defaults use keyboard input, set calibration shapes to squares.
-  m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
-  m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
   // Triggers
   m_triggers->SetControlExpression(0, "Q");  // L

@@ -485,7 +485,7 @@ Manifest::Hash ComputeHash(const std::string& contents)
 
 bool ProgressCallback(double total, double now, double, double)
 {
-  UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
+  UI::SetProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
 }
 
@@ -494,18 +494,14 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
 {
   Common::HttpRequest req(std::chrono::seconds(30), ProgressCallback);
 
-  UI::SetTotalMarquee(false);
-
   for (size_t i = 0; i < to_download.size(); i++)
   {
-    UI::SetTotalProgress(static_cast<int>(i + 1), static_cast<int>(to_download.size()));
-
     auto& download = to_download[i];
 
     std::string hash_filename = HexEncode(download.hash.data(), download.hash.size());
     UI::SetDescription("Downloading " + download.filename + "... (File " + std::to_string(i + 1) +
                        " of " + std::to_string(to_download.size()) + ")");
-    UI::SetCurrentMarquee(false);
+    UI::SetMarquee(false);
 
     // Add slashes where needed.
     std::string content_store_path = hash_filename;
@@ -519,7 +515,7 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
     if (!resp)
       return false;
 
-    UI::SetCurrentMarquee(true);
+    UI::SetMarquee(true);
     UI::SetDescription("Verifying " + download.filename + "...");
 
     std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
@@ -780,12 +776,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   CleanUpTempDir(temp_dir, todo);
 
-  UI::ResetCurrentProgress();
-  UI::ResetTotalProgress();
-  UI::SetCurrentMarquee(false);
-  UI::SetTotalMarquee(false);
-  UI::SetCurrentProgress(0, 1);
-  UI::SetTotalProgress(1, 1);
+  UI::ResetProgress();
+  UI::SetMarquee(false);
+  UI::SetProgress(100, 100);
   UI::SetDescription("Done!");
 
   // Let the user process that we are done.

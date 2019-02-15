@@ -60,6 +60,8 @@ protected:
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
 
 private:
+  void OnClearFields();
+
   MappingWindow* m_parent;
   bool m_first = true;
   std::vector<MappingBool*> m_bools;

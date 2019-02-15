@@ -24,10 +24,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
-#include <objc/message.h>
-#endif
-
 namespace Vulkan
 {
 void VideoBackend::InitBackendInfo()
@@ -213,8 +209,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(wsi.display_connection, wsi.render_surface, surface,
-                                   g_ActiveConfig.bVSyncActive);
+    swap_chain =
+        SwapChain::Create(wsi.display_connection, wsi.render_surface, surface, g_Config.IsVSync());
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
@@ -225,7 +221,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Create main wrapper instances.
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
+  g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
   g_vertex_manager = std::make_unique<VertexManager>();
   g_texture_cache = std::make_unique<TextureCache>();
   ::g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
@@ -275,46 +271,5 @@ void VideoBackend::Shutdown()
   g_vulkan_context.reset();
   ShutdownShared();
   UnloadVulkanLibrary();
-}
-
-void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
-{
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
-  // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
-  id view = reinterpret_cast<id>(wsi.render_surface);
-  Class clsCAMetalLayer = objc_getClass("CAMetalLayer");
-  if (!clsCAMetalLayer)
-  {
-    ERROR_LOG(VIDEO, "Failed to get CAMetalLayer class.");
-    return;
-  }
-
-  // [CAMetalLayer layer]
-  id layer = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("CAMetalLayer"),
-                                                                sel_getUid("layer"));
-  if (!layer)
-  {
-    ERROR_LOG(VIDEO, "Failed to create Metal layer.");
-    return;
-  }
-
-  // [view setWantsLayer:YES]
-  reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(view, sel_getUid("setWantsLayer:"), YES);
-
-  // [view setLayer:layer]
-  reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
-
-  // NSScreen* screen = [NSScreen mainScreen]
-  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("NSScreen"),
-                                                                 sel_getUid("mainScreen"));
-
-  // CGFloat factor = [screen backingScaleFactor]
-  double factor =
-      reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(screen, sel_getUid("backingScaleFactor"));
-
-  // layer.contentsScale = factor
-  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
-                                                            factor);
-#endif
 }
 }  // namespace Vulkan

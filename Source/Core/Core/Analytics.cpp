@@ -131,32 +131,7 @@ void DolphinAnalytics::ReportGameStart()
   builder.AddData("type", "game-start");
   Send(builder);
 
-  // Reset per-game state.
-  m_reported_quirks.fill(false);
   InitializePerformanceSampling();
-}
-
-// Keep in sync with enum class GameQuirk definition.
-static const char* GAME_QUIRKS_NAMES[] = {
-    "icache-matters",  // ICACHE_MATTERS
-};
-static_assert(sizeof(GAME_QUIRKS_NAMES) / sizeof(GAME_QUIRKS_NAMES[0]) ==
-                  static_cast<u32>(GameQuirk::COUNT),
-              "Game quirks names and enum definition are out of sync.");
-
-void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
-{
-  u32 quirk_idx = static_cast<u32>(quirk);
-
-  // Only report once per run.
-  if (m_reported_quirks[quirk_idx])
-    return;
-  m_reported_quirks[quirk_idx] = true;
-
-  Common::AnalyticsReportBuilder builder(m_per_game_builder);
-  builder.AddData("type", "quirk");
-  builder.AddData("quirk", GAME_QUIRKS_NAMES[quirk_idx]);
-  Send(builder);
 }
 
 void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)

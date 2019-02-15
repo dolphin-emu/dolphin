@@ -216,16 +216,6 @@ IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition)
   return s_disc->GetTicket(partition);
 }
 
-bool IsInsertedDiscRunning()
-{
-  if (!s_disc)
-    return false;
-
-  WaitUntilIdle();
-
-  return SConfig::GetInstance().GetGameID() == s_disc->GetGameID();
-}
-
 bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, std::optional<u64> title_id)
 {
   if (!s_disc)

@@ -200,7 +200,7 @@ void IOWindow::OnDetectButtonPressed()
     {
       const auto list = m_option_list->findItems(expr, Qt::MatchFixedString);
 
-      if (!list.empty())
+      if (list.size() > 0)
         m_option_list->setCurrentItem(list[0]);
     }
 

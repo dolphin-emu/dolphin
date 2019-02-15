@@ -20,7 +20,6 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
-#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -43,42 +42,6 @@ std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table19;
 std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table31;
 std::array<Interpreter::Instruction, 32> Interpreter::m_op_table59;
 std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table63;
-
-namespace
-{
-// Determines whether or not the given instruction is one where its execution
-// validity is determined by whether or not HID2's LSQE bit is set.
-// In other words, if the instruction is psq_l, psq_lu, psq_st, or psq_stu
-bool IsPairedSingleQuantizedNonIndexedInstruction(UGeckoInstruction inst)
-{
-  const u32 opcode = inst.OPCD;
-  return opcode == 0x38 || opcode == 0x39 || opcode == 0x3C || opcode == 0x3D;
-}
-
-bool IsPairedSingleInstruction(UGeckoInstruction inst)
-{
-  return inst.OPCD == 4 || IsPairedSingleQuantizedNonIndexedInstruction(inst);
-}
-
-// Checks if a given instruction would be illegal to execute if it's a paired single instruction.
-//
-// Paired single instructions are illegal to execute if HID2.PSE is not set.
-// It's also illegal to execute psq_l, psq_lu, psq_st, and psq_stu if HID2.PSE is enabled,
-// but HID2.LSQE is not set.
-bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
-{
-  if (!HID2.PSE && IsPairedSingleInstruction(inst))
-    return true;
-
-  return HID2.PSE && !HID2.LSQE && IsPairedSingleQuantizedNonIndexedInstruction(inst);
-}
-
-void UpdatePC()
-{
-  last_pc = PC;
-  PC = NPC;
-}
-}  // Anonymous namespace
 
 void Interpreter::RunTable4(UGeckoInstruction inst)
 {
@@ -125,10 +88,8 @@ static void Trace(UGeckoInstruction& inst)
   std::string fregs = "";
   for (int i = 0; i < 32; i++)
   {
-    const auto& ps = PowerPC::ppcState.ps[i];
-
-    fregs +=
-        StringFromFormat("f%02d: %08" PRIx64 " %08" PRIx64 " ", i, ps.PS0AsU64(), ps.PS1AsU64());
+    fregs += StringFromFormat("f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0],
+                              PowerPC::ppcState.ps[i][1]);
   }
 
   const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
@@ -149,77 +110,75 @@ bool Interpreter::HandleFunctionHooking(u32 address)
 
 int Interpreter::SingleStepInner()
 {
-  if (HandleFunctionHooking(PC))
+  if (!HandleFunctionHooking(PC))
   {
-    UpdatePC();
-    return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
-  }
-
 #ifdef USE_GDBSTUB
-  if (gdb_active() && gdb_bp_x(PC))
-  {
-    Host_UpdateDisasmDialog();
+    if (gdb_active() && gdb_bp_x(PC))
+    {
+      Host_UpdateDisasmDialog();
 
-    gdb_signal(GDB_SIGTRAP);
-    gdb_handle_exception();
-  }
+      gdb_signal(GDB_SIGTRAP);
+      gdb_handle_exception();
+    }
 #endif
 
-  NPC = PC + sizeof(UGeckoInstruction);
-  m_prev_inst.hex = PowerPC::Read_Opcode(PC);
+    NPC = PC + sizeof(UGeckoInstruction);
+    m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
-  // Uncomment to trace the interpreter
-  // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
-  //	startTrace = 1;
-  // else
-  //	startTrace = 0;
+    // Uncomment to trace the interpreter
+    // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
+    //	startTrace = 1;
+    // else
+    //	startTrace = 0;
 
-  if (startTrace)
-  {
-    Trace(m_prev_inst);
-  }
-
-  if (m_prev_inst.hex != 0)
-  {
-    if (IsInvalidPairedSingleExecution(m_prev_inst))
+    if (startTrace)
     {
-      GenerateProgramException();
-      CheckExceptions();
+      Trace(m_prev_inst);
     }
-    else if (MSR.FP)
+
+    if (m_prev_inst.hex != 0)
     {
-      m_op_table[m_prev_inst.OPCD](m_prev_inst);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
-      {
-        CheckExceptions();
-      }
-    }
-    else
-    {
-      // check if we have to generate a FPU unavailable exception or a program exception.
-      if (PPCTables::UsesFPU(m_prev_inst))
-      {
-        PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-        CheckExceptions();
-      }
-      else
+      if (MSR.FP)  // If FPU is enabled, just execute
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
         if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
         {
-          CheckExceptions();
+          PowerPC::CheckExceptions();
+          m_end_block = true;
+        }
+      }
+      else
+      {
+        // check if we have to generate a FPU unavailable exception
+        if (!PPCTables::UsesFPU(m_prev_inst))
+        {
+          m_op_table[m_prev_inst.OPCD](m_prev_inst);
+          if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+          {
+            PowerPC::CheckExceptions();
+            m_end_block = true;
+          }
+        }
+        else
+        {
+          PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+          PowerPC::CheckExceptions();
+          m_end_block = true;
         }
       }
     }
+    else
+    {
+      // Memory exception on instruction fetch
+      PowerPC::CheckExceptions();
+      m_end_block = true;
+    }
   }
-  else
-  {
-    // Memory exception on instruction fetch
-    CheckExceptions();
-  }
+  last_pc = PC;
+  PC = NPC;
 
-  UpdatePC();
-  return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
+  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
+  return opinfo->numCycles;
 }
 
 void Interpreter::SingleStep()
@@ -356,12 +315,6 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
 void Interpreter::ClearCache()
 {
   // Do nothing.
-}
-
-void Interpreter::CheckExceptions()
-{
-  PowerPC::CheckExceptions();
-  m_end_block = true;
 }
 
 const char* Interpreter::GetName() const

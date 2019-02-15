@@ -23,37 +23,6 @@ class PointerWrap;
 
 namespace WiimoteReal
 {
-using WiimoteCommon::MAX_PAYLOAD;
-
-using Report = std::vector<u8>;
-
-constexpr u32 WIIMOTE_DEFAULT_TIMEOUT = 1000;
-
-// Communication channels
-enum WiimoteChannel
-{
-  WC_OUTPUT = 0x11,
-  WC_INPUT = 0x13,
-};
-
-// The 4 most significant bits of the first byte of an outgoing command must be
-// 0x50 if sending on the command channel and 0xA0 if sending on the interrupt
-// channel. On Mac and Linux we use interrupt channel; on Windows, command.
-enum WiimoteReport
-{
-#ifdef _WIN32
-  WR_SET_REPORT = 0x50
-#else
-  WR_SET_REPORT = 0xA0
-#endif
-};
-
-enum WiimoteBT
-{
-  BT_INPUT = 0x01,
-  BT_OUTPUT = 0x02
-};
-
 class Wiimote
 {
 public:
@@ -205,4 +174,4 @@ bool IsNewWiimote(const std::string& identifier);
 void InitAdapterClass();
 #endif
 
-}  // namespace WiimoteReal
+}  // WiimoteReal

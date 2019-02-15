@@ -13,12 +13,8 @@
 // These "binary instructions" do not alter FPSCR.
 void Interpreter::ps_sel(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  rPS(inst.FD).SetBoth(a.PS0AsDouble() >= -0.0 ? c.PS0AsDouble() : b.PS0AsDouble(),
-                       a.PS1AsDouble() >= -0.0 ? c.PS1AsDouble() : b.PS1AsDouble());
+  rPS0(inst.FD) = rPS0(inst.FA) >= -0.0 ? rPS0(inst.FC) : rPS0(inst.FB);
+  rPS1(inst.FD) = rPS1(inst.FA) >= -0.0 ? rPS1(inst.FC) : rPS1(inst.FB);
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -26,9 +22,8 @@ void Interpreter::ps_sel(UGeckoInstruction inst)
 
 void Interpreter::ps_neg(UGeckoInstruction inst)
 {
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(b.PS0AsU64() ^ (UINT64_C(1) << 63), b.PS1AsU64() ^ (UINT64_C(1) << 63));
+  riPS0(inst.FD) = riPS0(inst.FB) ^ (1ULL << 63);
+  riPS1(inst.FD) = riPS1(inst.FB) ^ (1ULL << 63);
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -36,7 +31,8 @@ void Interpreter::ps_neg(UGeckoInstruction inst)
 
 void Interpreter::ps_mr(UGeckoInstruction inst)
 {
-  rPS(inst.FD) = rPS(inst.FB);
+  rPS0(inst.FD) = rPS0(inst.FB);
+  rPS1(inst.FD) = rPS1(inst.FB);
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -44,9 +40,8 @@ void Interpreter::ps_mr(UGeckoInstruction inst)
 
 void Interpreter::ps_nabs(UGeckoInstruction inst)
 {
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(b.PS0AsU64() | (UINT64_C(1) << 63), b.PS1AsU64() | (UINT64_C(1) << 63));
+  riPS0(inst.FD) = riPS0(inst.FB) | (1ULL << 63);
+  riPS1(inst.FD) = riPS1(inst.FB) | (1ULL << 63);
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -54,9 +49,8 @@ void Interpreter::ps_nabs(UGeckoInstruction inst)
 
 void Interpreter::ps_abs(UGeckoInstruction inst)
 {
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(b.PS0AsU64() & ~(UINT64_C(1) << 63), b.PS1AsU64() & ~(UINT64_C(1) << 63));
+  riPS0(inst.FD) = riPS0(inst.FB) & ~(1ULL << 63);
+  riPS1(inst.FD) = riPS1(inst.FB) & ~(1ULL << 63);
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -65,10 +59,10 @@ void Interpreter::ps_abs(UGeckoInstruction inst)
 // These are just moves, double is OK.
 void Interpreter::ps_merge00(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(a.PS0AsDouble(), b.PS0AsDouble());
+  double p0 = rPS0(inst.FA);
+  double p1 = rPS0(inst.FB);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -76,10 +70,10 @@ void Interpreter::ps_merge00(UGeckoInstruction inst)
 
 void Interpreter::ps_merge01(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(a.PS0AsDouble(), b.PS1AsDouble());
+  double p0 = rPS0(inst.FA);
+  double p1 = rPS1(inst.FB);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -87,10 +81,10 @@ void Interpreter::ps_merge01(UGeckoInstruction inst)
 
 void Interpreter::ps_merge10(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(a.PS1AsDouble(), b.PS0AsDouble());
+  double p0 = rPS1(inst.FA);
+  double p1 = rPS0(inst.FB);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -98,10 +92,10 @@ void Interpreter::ps_merge10(UGeckoInstruction inst)
 
 void Interpreter::ps_merge11(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  rPS(inst.FD).SetBoth(a.PS1AsDouble(), b.PS1AsDouble());
+  double p0 = rPS1(inst.FA);
+  double p1 = rPS1(inst.FB);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -110,14 +104,9 @@ void Interpreter::ps_merge11(UGeckoInstruction inst)
 // From here on, the real deal.
 void Interpreter::ps_div(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  const double ps0 = ForceSingle(NI_div(a.PS0AsDouble(), b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_div(a.PS1AsDouble(), b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  rPS0(inst.FD) = ForceSingle(NI_div(rPS0(inst.FA), rPS0(inst.FB)).value);
+  rPS1(inst.FD) = ForceSingle(NI_div(rPS1(inst.FA), rPS1(inst.FB)).value);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -126,8 +115,8 @@ void Interpreter::ps_div(UGeckoInstruction inst)
 void Interpreter::ps_res(UGeckoInstruction inst)
 {
   // this code is based on the real hardware tests
-  const double a = rPS(inst.FB).PS0AsDouble();
-  const double b = rPS(inst.FB).PS1AsDouble();
+  const double a = rPS0(inst.FB);
+  const double b = rPS1(inst.FB);
 
   if (a == 0.0 || b == 0.0)
   {
@@ -141,11 +130,9 @@ void Interpreter::ps_res(UGeckoInstruction inst)
   if (Common::IsSNAN(a) || Common::IsSNAN(b))
     SetFPException(FPSCR_VXSNAN);
 
-  const double ps0 = Common::ApproximateReciprocal(a);
-  const double ps1 = Common::ApproximateReciprocal(b);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  rPS0(inst.FD) = Common::ApproximateReciprocal(a);
+  rPS1(inst.FD) = Common::ApproximateReciprocal(b);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -153,8 +140,8 @@ void Interpreter::ps_res(UGeckoInstruction inst)
 
 void Interpreter::ps_rsqrte(UGeckoInstruction inst)
 {
-  const double ps0 = rPS(inst.FB).PS0AsDouble();
-  const double ps1 = rPS(inst.FB).PS1AsDouble();
+  const double ps0 = rPS0(inst.FB);
+  const double ps1 = rPS1(inst.FB);
 
   if (ps0 == 0.0 || ps1 == 0.0)
   {
@@ -174,11 +161,10 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
   if (Common::IsSNAN(ps0) || Common::IsSNAN(ps1))
     SetFPException(FPSCR_VXSNAN);
 
-  const double dst_ps0 = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps0));
-  const double dst_ps1 = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps1));
+  rPS0(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps0));
+  rPS1(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps1));
 
-  rPS(inst.FD).SetBoth(dst_ps0, dst_ps1);
-  PowerPC::UpdateFPRF(dst_ps0);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -186,14 +172,9 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
 
 void Interpreter::ps_sub(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  const double ps0 = ForceSingle(NI_sub(a.PS0AsDouble(), b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_sub(a.PS1AsDouble(), b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  rPS0(inst.FD) = ForceSingle(NI_sub(rPS0(inst.FA), rPS0(inst.FB)).value);
+  rPS1(inst.FD) = ForceSingle(NI_sub(rPS1(inst.FA), rPS1(inst.FB)).value);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -201,14 +182,9 @@ void Interpreter::ps_sub(UGeckoInstruction inst)
 
 void Interpreter::ps_add(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  const double ps0 = ForceSingle(NI_add(a.PS0AsDouble(), b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_add(a.PS1AsDouble(), b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  rPS0(inst.FD) = ForceSingle(NI_add(rPS0(inst.FA), rPS0(inst.FB)).value);
+  rPS1(inst.FD) = ForceSingle(NI_add(rPS1(inst.FA), rPS1(inst.FB)).value);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -216,17 +192,11 @@ void Interpreter::ps_add(UGeckoInstruction inst)
 
 void Interpreter::ps_mul(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double c1 = Force25Bit(c.PS1AsDouble());
-
-  const double ps0 = ForceSingle(NI_mul(a.PS0AsDouble(), c0).value);
-  const double ps1 = ForceSingle(NI_mul(a.PS1AsDouble(), c1).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  rPS0(inst.FD) = ForceSingle(NI_mul(rPS0(inst.FA), c0).value);
+  rPS1(inst.FD) = ForceSingle(NI_mul(rPS1(inst.FA), c1).value);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -234,18 +204,11 @@ void Interpreter::ps_mul(UGeckoInstruction inst)
 
 void Interpreter::ps_msub(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double c1 = Force25Bit(c.PS1AsDouble());
-
-  const double ps0 = ForceSingle(NI_msub(a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_msub(a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  rPS0(inst.FD) = ForceSingle(NI_msub(rPS0(inst.FA), c0, rPS0(inst.FB)).value);
+  rPS1(inst.FD) = ForceSingle(NI_msub(rPS1(inst.FA), c1, rPS1(inst.FB)).value);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -253,18 +216,11 @@ void Interpreter::ps_msub(UGeckoInstruction inst)
 
 void Interpreter::ps_madd(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double c1 = Force25Bit(c.PS1AsDouble());
-
-  const double ps0 = ForceSingle(NI_madd(a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_madd(a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  rPS0(inst.FD) = ForceSingle(NI_madd(rPS0(inst.FA), c0, rPS0(inst.FB)).value);
+  rPS1(inst.FD) = ForceSingle(NI_madd(rPS1(inst.FA), c1, rPS1(inst.FB)).value);
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -272,21 +228,13 @@ void Interpreter::ps_madd(UGeckoInstruction inst)
 
 void Interpreter::ps_nmsub(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double c1 = Force25Bit(c.PS1AsDouble());
-
-  const double tmp0 = ForceSingle(NI_msub(a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const double tmp1 = ForceSingle(NI_msub(a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
-
-  const double ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
-  const double ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  const double result0 = ForceSingle(NI_msub(rPS0(inst.FA), c0, rPS0(inst.FB)).value);
+  const double result1 = ForceSingle(NI_msub(rPS1(inst.FA), c1, rPS1(inst.FB)).value);
+  rPS0(inst.FD) = std::isnan(result0) ? result0 : -result0;
+  rPS1(inst.FD) = std::isnan(result1) ? result1 : -result1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -294,21 +242,13 @@ void Interpreter::ps_nmsub(UGeckoInstruction inst)
 
 void Interpreter::ps_nmadd(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double c1 = Force25Bit(c.PS1AsDouble());
-
-  const double tmp0 = ForceSingle(NI_madd(a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const double tmp1 = ForceSingle(NI_madd(a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
-
-  const double ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
-  const double ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  const double result0 = ForceSingle(NI_madd(rPS0(inst.FA), c0, rPS0(inst.FB)).value);
+  const double result1 = ForceSingle(NI_madd(rPS1(inst.FA), c1, rPS1(inst.FB)).value);
+  rPS0(inst.FD) = std::isnan(result0) ? result0 : -result0;
+  rPS1(inst.FD) = std::isnan(result1) ? result1 : -result1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -316,15 +256,11 @@ void Interpreter::ps_nmadd(UGeckoInstruction inst)
 
 void Interpreter::ps_sum0(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double ps0 = ForceSingle(NI_add(a.PS0AsDouble(), b.PS1AsDouble()).value);
-  const double ps1 = ForceSingle(c.PS1AsDouble());
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double p0 = ForceSingle(NI_add(rPS0(inst.FA), rPS1(inst.FB)).value);
+  const double p1 = ForceSingle(rPS1(inst.FC));
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -332,15 +268,11 @@ void Interpreter::ps_sum0(UGeckoInstruction inst)
 
 void Interpreter::ps_sum1(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double ps0 = ForceSingle(c.PS0AsDouble());
-  const double ps1 = ForceSingle(NI_add(a.PS0AsDouble(), b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps1);
+  const double p0 = ForceSingle(rPS0(inst.FC));
+  const double p1 = ForceSingle(NI_add(rPS0(inst.FA), rPS1(inst.FB)).value);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
+  PowerPC::UpdateFPRF(rPS1(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -348,15 +280,12 @@ void Interpreter::ps_sum1(UGeckoInstruction inst)
 
 void Interpreter::ps_muls0(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double ps0 = ForceSingle(NI_mul(a.PS0AsDouble(), c0).value);
-  const double ps1 = ForceSingle(NI_mul(a.PS1AsDouble(), c0).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double p0 = ForceSingle(NI_mul(rPS0(inst.FA), c0).value);
+  const double p1 = ForceSingle(NI_mul(rPS1(inst.FA), c0).value);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -364,15 +293,12 @@ void Interpreter::ps_muls0(UGeckoInstruction inst)
 
 void Interpreter::ps_muls1(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& c = rPS(inst.FC);
-
-  const double c1 = Force25Bit(c.PS1AsDouble());
-  const double ps0 = ForceSingle(NI_mul(a.PS0AsDouble(), c1).value);
-  const double ps1 = ForceSingle(NI_mul(a.PS1AsDouble(), c1).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  const double p0 = ForceSingle(NI_mul(rPS0(inst.FA), c1).value);
+  const double p1 = ForceSingle(NI_mul(rPS1(inst.FA), c1).value);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -380,16 +306,12 @@ void Interpreter::ps_muls1(UGeckoInstruction inst)
 
 void Interpreter::ps_madds0(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double c0 = Force25Bit(c.PS0AsDouble());
-  const double ps0 = ForceSingle(NI_madd(a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_madd(a.PS1AsDouble(), c0, b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c0 = Force25Bit(rPS0(inst.FC));
+  const double p0 = ForceSingle(NI_madd(rPS0(inst.FA), c0, rPS0(inst.FB)).value);
+  const double p1 = ForceSingle(NI_madd(rPS1(inst.FA), c0, rPS1(inst.FB)).value);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -397,16 +319,12 @@ void Interpreter::ps_madds0(UGeckoInstruction inst)
 
 void Interpreter::ps_madds1(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-  const auto& c = rPS(inst.FC);
-
-  const double c1 = Force25Bit(c.PS1AsDouble());
-  const double ps0 = ForceSingle(NI_madd(a.PS0AsDouble(), c1, b.PS0AsDouble()).value);
-  const double ps1 = ForceSingle(NI_madd(a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
-
-  rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRF(ps0);
+  const double c1 = Force25Bit(rPS1(inst.FC));
+  const double p0 = ForceSingle(NI_madd(rPS0(inst.FA), c1, rPS0(inst.FB)).value);
+  const double p1 = ForceSingle(NI_madd(rPS1(inst.FA), c1, rPS1(inst.FB)).value);
+  rPS0(inst.FD) = p0;
+  rPS1(inst.FD) = p1;
+  PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -414,32 +332,20 @@ void Interpreter::ps_madds1(UGeckoInstruction inst)
 
 void Interpreter::ps_cmpu0(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  Helper_FloatCompareUnordered(inst, a.PS0AsDouble(), b.PS0AsDouble());
+  Helper_FloatCompareUnordered(inst, rPS0(inst.FA), rPS0(inst.FB));
 }
 
 void Interpreter::ps_cmpo0(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  Helper_FloatCompareOrdered(inst, a.PS0AsDouble(), b.PS0AsDouble());
+  Helper_FloatCompareOrdered(inst, rPS0(inst.FA), rPS0(inst.FB));
 }
 
 void Interpreter::ps_cmpu1(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  Helper_FloatCompareUnordered(inst, a.PS1AsDouble(), b.PS1AsDouble());
+  Helper_FloatCompareUnordered(inst, rPS1(inst.FA), rPS1(inst.FB));
 }
 
 void Interpreter::ps_cmpo1(UGeckoInstruction inst)
 {
-  const auto& a = rPS(inst.FA);
-  const auto& b = rPS(inst.FB);
-
-  Helper_FloatCompareOrdered(inst, a.PS1AsDouble(), b.PS1AsDouble());
+  Helper_FloatCompareOrdered(inst, rPS1(inst.FA), rPS1(inst.FB));
 }

@@ -86,10 +86,6 @@ void FilesystemWidget::ConnectWidgets()
 
 void FilesystemWidget::PopulateView()
 {
-  // Cache these two icons, the tree will use them a lot.
-  m_folder_icon = Resources::GetScaledIcon("isoproperties_folder");
-  m_file_icon = Resources::GetScaledIcon("isoproperties_file");
-
   auto* disc = new QStandardItem(tr("Disc"));
   disc->setEditable(false);
   disc->setIcon(Resources::GetScaledIcon("isoproperties_disc"));
@@ -135,7 +131,8 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
   {
     auto* item = new QStandardItem(QString::fromStdString(info.GetName()));
     item->setEditable(false);
-    item->setIcon(info.IsDirectory() ? m_folder_icon : m_file_icon);
+    item->setIcon(Resources::GetScaledIcon(info.IsDirectory() ? "isoproperties_folder" :
+                                                                "isoproperties_file"));
 
     if (info.IsDirectory())
       PopulateDirectory(partition_id, item, info);

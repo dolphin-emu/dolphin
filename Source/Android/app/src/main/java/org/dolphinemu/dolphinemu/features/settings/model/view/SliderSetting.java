@@ -44,7 +44,8 @@ public final class SliderSetting extends SettingsItem
     else if (setting instanceof FloatSetting)
     {
       FloatSetting floatSetting = (FloatSetting) setting;
-      if (isPercentSetting())
+      if (floatSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
+              || floatSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT))
       {
         return Math.round(floatSetting.getValue() * 100);
       }
@@ -58,12 +59,6 @@ public final class SliderSetting extends SettingsItem
       Log.error("[SliderSetting] Error casting setting type.");
       return -1;
     }
-  }
-
-  public boolean isPercentSetting()
-  {
-    return getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
-            || getKey().equals(SettingsFile.KEY_SPEED_LIMIT);
   }
 
   /**

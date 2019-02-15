@@ -180,9 +180,6 @@ bool WiimoteDevice::LinkChannel()
   DEBUG_LOG(IOS_WIIMOTE, "ConnectionState CONN_LINKING -> CONN_COMPLETE");
   m_connection_state = ConnectionState::Complete;
 
-  // Update wiimote connection status in the UI
-  Host_UpdateDisasmDialog();
-
   return false;
 }
 
@@ -221,12 +218,8 @@ void WiimoteDevice::EventDisconnect()
   Wiimote::ControlChannel(m_connection_handle & 0xFF, 99, nullptr, 0);
 
   m_connection_state = ConnectionState::Inactive;
-
   // Clear channel flags
   ResetChannels();
-
-  // Update wiimote connection status in the UI
-  Host_UpdateDisasmDialog();
 }
 
 bool WiimoteDevice::EventPagingChanged(u8 page_mode) const

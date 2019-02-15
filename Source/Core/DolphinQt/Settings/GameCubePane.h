@@ -23,13 +23,12 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void UpdateButton(int slot);
   void OnConfigPressed(int slot);
 
   QCheckBox* m_skip_main_menu;
   QCheckBox* m_override_language_ntsc;
   QComboBox* m_language_combo;
 
-  QPushButton* m_slot_buttons[3];
+  QPushButton* m_slot_buttons[2];
   QComboBox* m_slot_combos[3];
 };

@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include <atomic>
+#include <list>
 #include <string>
-#include <thread>
 
-#include "Common/Event.h"
-#include "Common/Flag.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 #ifdef _WIN32
@@ -25,64 +22,30 @@ namespace ForceFeedback
 {
 class ForceFeedbackDevice : public Core::Device
 {
-public:
-  bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int axis_count);
-  void DeInitForceFeedback();
-
 private:
-  void ThreadFunc();
-
+  template <typename P>
   class Force : public Output
   {
   public:
-    Force(ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect);
+    Force(const std::string& name, LPDIRECTINPUTEFFECT iface);
+    ~Force();
 
-    void UpdateOutput();
-    void Release();
-
-    void SetState(ControlState state) override;
     std::string GetName() const override;
-
-  protected:
-    const LPDIRECTINPUTEFFECT m_effect;
-
-  private:
-    virtual void UpdateEffect(int magnitude) = 0;
-
-    ForceFeedbackDevice& m_parent;
-    const char* const m_name;
-    std::atomic<int> m_desired_magnitude;
-  };
-
-  template <typename P>
-  class TypedForce : public Force
-  {
-  public:
-    TypedForce(ForceFeedbackDevice* parent, const char* name, LPDIRECTINPUTEFFECT effect,
-               const P& params);
+    void SetState(ControlState state) override;
+    void Update();
+    void Stop();
 
   private:
-    void UpdateEffect(int magnitude) override;
-
-    // Returns true if parameters changed.
-    bool UpdateParameters(int magnitude);
-
-    void PlayEffect();
-    void StopEffect();
-
-    P m_params = {};
+    const std::string m_name;
+    LPDIRECTINPUTEFFECT m_iface;
+    P params;
   };
+  typedef Force<DICONSTANTFORCE> ForceConstant;
+  typedef Force<DIRAMPFORCE> ForceRamp;
+  typedef Force<DIPERIODIC> ForcePeriodic;
 
-  void SignalUpdateThread();
-
-  typedef TypedForce<DICONSTANTFORCE> ForceConstant;
-  typedef TypedForce<DIRAMPFORCE> ForceRamp;
-  typedef TypedForce<DIPERIODIC> ForcePeriodic;
-
-  std::thread m_update_thread;
-  Common::Event m_update_event;
-  Common::Flag m_run_thread;
+public:
+  bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int cAxes);
 };
-
-}  // namespace ForceFeedback
-}  // namespace ciface
+}
+}

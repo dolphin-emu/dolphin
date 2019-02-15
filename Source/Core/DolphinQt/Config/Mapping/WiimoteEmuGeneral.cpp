@@ -16,7 +16,7 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/InputConfig.h"
 
@@ -40,13 +40,12 @@ void WiimoteEmuGeneral::CreateMainLayout()
   m_main_layout->addWidget(CreateGroupBox(
       tr("Hotkeys"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Hotkeys)));
 
-  auto* extension_group =
-      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments);
+  auto* extension_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Extension);
   auto* extension = CreateGroupBox(tr("Extension"), extension_group);
-  auto* ce_extension = static_cast<ControllerEmu::Attachments*>(extension_group);
+  auto* ce_extension = static_cast<ControllerEmu::Extension*>(extension_group);
   m_extension_combo = new QComboBox();
 
-  for (const auto& attachment : ce_extension->GetAttachmentList())
+  for (const auto& attachment : ce_extension->attachments)
   {
     // TODO: Figure out how to localize this
     m_extension_combo->addItem(QString::fromStdString(attachment->GetName()));
@@ -89,18 +88,18 @@ void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
 
   m_extension_widget->ChangeExtensionType(value_map[value]);
 
-  auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
-      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
-  ce_extension->SetSelectedAttachment(extension);
+  auto* ce_extension = static_cast<ControllerEmu::Extension*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Extension));
+  ce_extension->switch_extension = extension;
   SaveSettings();
 }
 
 void WiimoteEmuGeneral::Update()
 {
-  auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
-      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
+  auto* ce_extension = static_cast<ControllerEmu::Extension*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Extension));
 
-  m_extension_combo->setCurrentIndex(ce_extension->GetSelectedAttachment());
+  m_extension_combo->setCurrentIndex(ce_extension->switch_extension);
 }
 
 void WiimoteEmuGeneral::LoadSettings()

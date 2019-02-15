@@ -26,6 +26,13 @@ void MappingBool::Connect()
   });
 }
 
+void MappingBool::Clear()
+{
+  m_setting->SetValue(false);
+  m_parent->SaveSettings();
+  Update();
+}
+
 void MappingBool::Update()
 {
   setChecked(m_setting->GetValue());

@@ -9,7 +9,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
@@ -67,22 +67,22 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GroupType::Attachments)
+  if (type == GroupType::Extension)
   {
-    auto* const ext = static_cast<Attachments*>(this);
+    Extension* const ext = (Extension*)this;
 
-    ext->SetSelectedAttachment(0);
+    ext->switch_extension = 0;
     u32 n = 0;
     std::string extname;
     sec->Get(base + name, &extname, "");
 
-    for (auto& ai : ext->GetAttachmentList())
+    for (auto& ai : ext->attachments)
     {
       ai->SetDefaultDevice(defdev);
       ai->LoadConfig(sec, base + ai->GetName() + "/");
 
       if (ai->GetName() == extname)
-        ext->SetSelectedAttachment(n);
+        ext->switch_extension = n;
 
       n++;
     }
@@ -120,13 +120,12 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GroupType::Attachments)
+  if (type == GroupType::Extension)
   {
-    auto* const ext = static_cast<Attachments*>(this);
-    sec->Set(base + name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
-             "None");
+    Extension* const ext = (Extension*)this;
+    sec->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), "None");
 
-    for (auto& ai : ext->GetAttachmentList())
+    for (auto& ai : ext->attachments)
       ai->SaveConfig(sec, base + ai->GetName() + "/");
   }
 }

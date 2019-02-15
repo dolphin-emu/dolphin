@@ -21,7 +21,7 @@ public:
   VulkanPostProcessing() = default;
   ~VulkanPostProcessing();
 
-  bool Initialize();
+  bool Initialize(const Texture2D* font_texture);
 
   void BlitFromTexture(const TargetRectangle& dst, const TargetRectangle& src,
                        const Texture2D* src_tex, int src_layer, VkRenderPass render_pass);
@@ -37,6 +37,7 @@ private:
   bool RecompileShader();
   std::string GetGLSLUniformBlock() const;
 
+  const Texture2D* m_font_texture = nullptr;
   VkShaderModule m_fragment_shader = VK_NULL_HANDLE;
   VkShaderModule m_default_fragment_shader = VK_NULL_HANDLE;
 };

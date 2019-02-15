@@ -28,6 +28,13 @@ void MappingNumeric::Connect()
           });
 }
 
+void MappingNumeric::Clear()
+{
+  m_setting->SetValue(m_setting->m_default_value);
+  m_parent->SaveSettings();
+  Update();
+}
+
 void MappingNumeric::Update()
 {
   setValue(m_setting->GetValue() * 100);

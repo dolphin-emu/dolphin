@@ -43,7 +43,6 @@
 #include "Core/NetPlayServer.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
-#include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 #include "DolphinQt/NetPlay/GameListDialog.h"
 #include "DolphinQt/NetPlay/MD5Dialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
@@ -55,7 +54,6 @@
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
-#include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -69,9 +67,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
 
   m_pad_mapping = new PadMappingDialog(this);
   m_md5_dialog = new MD5Dialog(this);
-  m_chunked_progress_dialog = new ChunkedProgressDialog(this);
 
-  ResetExternalIP();
   CreateChatLayout();
   CreatePlayersLayout();
   CreateMainLayout();
@@ -80,23 +76,19 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   const bool write_save_sdcard_data = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
   const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
   const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
   const bool reduce_polling_rate = Config::Get(Config::NETPLAY_REDUCE_POLLING_RATE);
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   const bool host_input_authority = Config::Get(Config::NETPLAY_HOST_INPUT_AUTHORITY);
-  const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
 
   m_buffer_size_box->setValue(buffer_size);
   m_save_sd_box->setChecked(write_save_sdcard_data);
   m_load_wii_box->setChecked(load_wii_save);
   m_sync_save_data_box->setChecked(sync_saves);
-  m_sync_codes_box->setChecked(sync_codes);
   m_record_input_box->setChecked(record_inputs);
   m_reduce_polling_rate_box->setChecked(reduce_polling_rate);
   m_strict_settings_sync_box->setChecked(strict_settings_sync);
   m_host_input_authority_box->setChecked(host_input_authority);
-  m_sync_all_wii_saves_box->setChecked(sync_all_wii_saves);
 
   ConnectWidgets();
 
@@ -128,8 +120,6 @@ void NetPlayDialog::CreateMainLayout()
   m_reduce_polling_rate_box = new QCheckBox(tr("Reduce Polling Rate"));
   m_strict_settings_sync_box = new QCheckBox(tr("Strict Settings Sync"));
   m_host_input_authority_box = new QCheckBox(tr("Host Input Authority"));
-  m_sync_codes_box = new QCheckBox(tr("Sync Codes"));
-  m_sync_all_wii_saves_box = new QCheckBox(tr("Sync All Wii Saves"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -138,7 +128,6 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button->setAutoDefault(false);
 
   m_sync_save_data_box->setChecked(true);
-  m_sync_codes_box->setChecked(true);
 
   auto* default_button = new QAction(tr("Calculate MD5 hash"), m_md5_button);
 
@@ -174,9 +163,6 @@ void NetPlayDialog::CreateMainLayout()
       tr("This will sync additional graphics settings, and force everyone to the same internal "
          "resolution.\nMay prevent desync in some games that use EFB reads. Please ensure everyone "
          "uses the same video backend."));
-  m_sync_codes_box->setToolTip(tr("This will sync the client's AR and Gecko Codes with the host's. "
-                                  "The client will be sent the codes regardless "
-                                  "\nof whether or not the client has them."));
   m_host_input_authority_box->setToolTip(
       tr("This gives the host control over when inputs are sent to the game, effectively "
          "decoupling players from each other in terms of buffering.\nThis allows players to have "
@@ -203,8 +189,6 @@ void NetPlayDialog::CreateMainLayout()
   options_boxes->addWidget(m_save_sd_box);
   options_boxes->addWidget(m_load_wii_box);
   options_boxes->addWidget(m_sync_save_data_box);
-  options_boxes->addWidget(m_sync_all_wii_saves_box);
-  options_boxes->addWidget(m_sync_codes_box);
   options_boxes->addWidget(m_record_input_box);
   options_boxes->addWidget(m_reduce_polling_rate_box);
   options_boxes->addWidget(m_strict_settings_sync_box);
@@ -315,7 +299,7 @@ void NetPlayDialog::ConnectWidgets()
               client->AdjustPadBufferSize(value);
           });
 
-  connect(m_host_input_authority_box, &QCheckBox::toggled, [](bool checked) {
+  connect(m_host_input_authority_box, &QCheckBox::toggled, [this](bool checked) {
     auto server = Settings::Instance().GetNetPlayServer();
     if (server)
       server->SetHostInputAuthority(checked);
@@ -338,18 +322,10 @@ void NetPlayDialog::ConnectWidgets()
     if (isVisible())
     {
       GameStatusChanged(state != Core::State::Uninitialized);
-      if ((state == Core::State::Uninitialized || state == Core::State::Stopping) &&
-          !m_got_stop_request)
-      {
-        Settings::Instance().GetNetPlayClient()->RequestStopGame();
-      }
       if (state == Core::State::Uninitialized)
         DisplayMessage(tr("Stopped game"), "red");
     }
   });
-
-  connect(m_sync_save_data_box, &QCheckBox::stateChanged, this,
-          [this](bool checked) { m_sync_all_wii_saves_box->setEnabled(checked); });
 
   // SaveSettings() - Save Hosting-Dialog Settings
 
@@ -358,12 +334,10 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_save_sd_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_load_wii_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_save_data_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
-  connect(m_sync_codes_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_record_input_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_reduce_polling_rate_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_strict_settings_sync_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_host_input_authority_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
-  connect(m_sync_all_wii_saves_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::OnChat()
@@ -473,12 +447,8 @@ void NetPlayDialog::OnStart()
   settings.m_ArbitraryMipmapDetectionThreshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
   settings.m_EnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
-  settings.m_DeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
   settings.m_StrictSettingsSync = m_strict_settings_sync_box->isChecked();
   settings.m_SyncSaveData = m_sync_save_data_box->isChecked();
-  settings.m_SyncCodes = m_sync_codes_box->isChecked();
-  settings.m_SyncAllWiiSaves =
-      m_sync_all_wii_saves_box->isChecked() && m_sync_save_data_box->isChecked();
 
   // Unload GameINI to restore things to normal
   Config::RemoveLayer(Config::LayerType::GlobalGame);
@@ -515,7 +485,6 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   {
     if (use_traversal)
       m_room_box->addItem(tr("Room ID"));
-    m_room_box->addItem(tr("External"));
 
     for (const auto& iface : Settings::Instance().GetNetPlayServer()->GetInterfaceSet())
     {
@@ -528,11 +497,9 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_save_sd_box->setHidden(!is_hosting);
   m_load_wii_box->setHidden(!is_hosting);
   m_sync_save_data_box->setHidden(!is_hosting);
-  m_sync_codes_box->setHidden(!is_hosting);
   m_reduce_polling_rate_box->setHidden(!is_hosting);
   m_strict_settings_sync_box->setHidden(!is_hosting);
   m_host_input_authority_box->setHidden(!is_hosting);
-  m_sync_all_wii_saves_box->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
   m_assign_ports_button->setHidden(!is_hosting);
   m_md5_button->setHidden(!is_hosting);
@@ -546,21 +513,6 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 
   QDialog::show();
   UpdateGUI();
-}
-
-void NetPlayDialog::ResetExternalIP()
-{
-  m_external_ip_address = Common::Lazy<std::string>([]() -> std::string {
-    Common::HttpRequest request;
-    // ENet does not support IPv6, so IPv4 has to be used
-    request.UseIPv4();
-    Common::HttpRequest::Response response =
-        request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
-
-    if (response.has_value())
-      return std::string(response->begin(), response->end());
-    return "";
-  });
 }
 
 void NetPlayDialog::UpdateDiscordPresence()
@@ -590,13 +542,23 @@ void NetPlayDialog::UpdateDiscordPresence()
     }
     else
     {
-      if (m_external_ip_address->empty())
-        return use_default();
+      if (m_external_ip_address.empty())
+      {
+        Common::HttpRequest request;
+        // ENet does not support IPv6, so IPv4 has to be used
+        request.UseIPv4();
+        Common::HttpRequest::Response response =
+            request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+        if (!response.has_value())
+          return use_default();
+        m_external_ip_address = std::string(response->begin(), response->end());
+      }
       const int port = Settings::Instance().GetNetPlayServer()->GetPort();
 
       Discord::UpdateDiscordPresence(
           m_player_count, Discord::SecretType::IPAddress,
-          Discord::CreateSecretFromIPAddress(*m_external_ip_address, port), m_current_game);
+          Discord::CreateSecretFromIPAddress(m_external_ip_address, port), m_current_game);
     }
   }
   else
@@ -708,30 +670,10 @@ void NetPlayDialog::UpdateGUI()
   }
   else if (server)
   {
-    if (m_room_box->currentIndex() == (m_use_traversal ? 1 : 0))
-    {
-      if (!m_external_ip_address->empty())
-      {
-        const int port = Settings::Instance().GetNetPlayServer()->GetPort();
-        m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
-            QString::fromStdString(*m_external_ip_address), QString::number(port)));
-        m_hostcode_action_button->setEnabled(true);
-      }
-      else
-      {
-        m_hostcode_label->setText(tr("Unknown"));
-        m_hostcode_action_button->setEnabled(false);
-      }
-    }
-    else
-    {
-      m_hostcode_label->setText(QString::fromStdString(
-          server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
-      m_hostcode_action_button->setEnabled(true);
-    }
-
+    m_hostcode_label->setText(QString::fromStdString(
+        server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
     m_hostcode_action_button->setText(tr("Copy"));
-    m_is_copy_button_retry = false;
+    m_hostcode_action_button->setEnabled(true);
   }
 
   if (m_old_player_count != m_player_count)
@@ -813,6 +755,9 @@ void NetPlayDialog::OnMsgChangeGame(const std::string& title)
 
 void NetPlayDialog::GameStatusChanged(bool running)
 {
+  if (!running && !m_got_stop_request)
+    Settings::Instance().GetNetPlayClient()->RequestStopGame();
+
   QueueOnObject(this, [this, running] { SetOptionsEnabled(!running); });
 }
 
@@ -825,12 +770,10 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_load_wii_box->setEnabled(enabled);
     m_save_sd_box->setEnabled(enabled);
     m_sync_save_data_box->setEnabled(enabled);
-    m_sync_codes_box->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_reduce_polling_rate_box->setEnabled(enabled);
     m_strict_settings_sync_box->setEnabled(enabled);
     m_host_input_authority_box->setEnabled(enabled);
-    m_sync_all_wii_saves_box->setEnabled(enabled && m_sync_save_data_box->isChecked());
   }
 
   m_record_input_box->setEnabled(enabled);
@@ -851,13 +794,6 @@ void NetPlayDialog::OnMsgStartGame()
 void NetPlayDialog::OnMsgStopGame()
 {
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
-}
-
-void NetPlayDialog::OnMsgPowerButton()
-{
-  if (!Core::IsRunning())
-    return;
-  QueueOnObject(this, [] { UICommon::TriggerSTMPowerEvent(); });
 }
 
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
@@ -1020,12 +956,10 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA, m_save_sd_box->isChecked());
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_box->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_box->isChecked());
-  Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_box->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_box->isChecked());
   Config::SetBase(Config::NETPLAY_REDUCE_POLLING_RATE, m_reduce_polling_rate_box->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_box->isChecked());
   Config::SetBase(Config::NETPLAY_HOST_INPUT_AUTHORITY, m_host_input_authority_box->isChecked());
-  Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_box->isChecked());
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)
@@ -1061,29 +995,5 @@ void NetPlayDialog::AbortMD5()
   QueueOnObject(this, [this] {
     m_md5_dialog->close();
     m_md5_button->setEnabled(true);
-  });
-}
-
-void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u64 data_size,
-                                              const std::vector<int>& players)
-{
-  QueueOnObject(this, [this, title, data_size, players] {
-    if (m_chunked_progress_dialog->isVisible())
-      m_chunked_progress_dialog->close();
-
-    m_chunked_progress_dialog->show(QString::fromStdString(title), data_size, players);
-  });
-}
-
-void NetPlayDialog::HideChunkedProgressDialog()
-{
-  QueueOnObject(this, [this] { m_chunked_progress_dialog->close(); });
-}
-
-void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
-{
-  QueueOnObject(this, [this, pid, progress] {
-    if (m_chunked_progress_dialog->isVisible())
-      m_chunked_progress_dialog->SetProgress(pid, progress);
   });
 }

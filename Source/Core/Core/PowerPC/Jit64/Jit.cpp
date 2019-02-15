@@ -4,9 +4,7 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <disasm.h>
 #include <map>
-#include <sstream>
 #include <string>
 
 // for the PROFILER stuff
@@ -16,26 +14,21 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
-#include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 #include "Common/x64ABI.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/MachineContext.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
-#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -153,9 +146,7 @@ enum
   GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE,
 };
 
-Jit64::Jit64() : QuantizedMemoryRoutines(*this)
-{
-}
+Jit64::Jit64() = default;
 
 Jit64::~Jit64() = default;
 
@@ -220,110 +211,7 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
   if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
     return HandleStackFault();
 
-  // This generates some fairly heavy trampolines, but it doesn't really hurt.
-  // Only instructions that access I/O will get these, and there won't be that
-  // many of them in a typical program/game.
-
-  // TODO: do we properly handle off-the-end?
-  const auto base_ptr = reinterpret_cast<uintptr_t>(Memory::physical_base);
-  if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
-    return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
-
-  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(Memory::logical_base);
-  if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
-    return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
-
-  return false;
-}
-
-bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
-{
-  u8* codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
-
-  if (!IsInSpace(codePtr))
-    return false;  // this will become a regular crash real soon after this
-
-  auto it = m_back_patch_info.find(codePtr);
-  if (it == m_back_patch_info.end())
-  {
-    PanicAlert("BackPatch: no register use entry for address %p", codePtr);
-    return false;
-  }
-
-  TrampolineInfo& info = it->second;
-
-  u8* exceptionHandler = nullptr;
-  if (jo.memcheck)
-  {
-    auto it2 = m_exception_handler_at_loc.find(codePtr);
-    if (it2 != m_exception_handler_at_loc.end())
-      exceptionHandler = it2->second;
-  }
-
-  // In the trampoline code, we jump back into the block at the beginning
-  // of the next instruction. The next instruction comes immediately
-  // after the backpatched operation, or BACKPATCH_SIZE bytes after the start
-  // of the backpatched operation, whichever comes last. (The JIT inserts NOPs
-  // into the original code if necessary to ensure there is enough space
-  // to insert the backpatch jump.)
-
-  js.generatingTrampoline = true;
-  js.trampolineExceptionHandler = exceptionHandler;
-  js.compilerPC = info.pc;
-
-  // Generate the trampoline.
-  const u8* trampoline = trampolines.GenerateTrampoline(info);
-  js.generatingTrampoline = false;
-  js.trampolineExceptionHandler = nullptr;
-
-  u8* start = info.start;
-
-  // Patch the original memory operation.
-  XEmitter emitter(start);
-  emitter.JMP(trampoline, true);
-  // NOPs become dead code
-  const u8* end = info.start + info.len;
-  for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
-    emitter.INT3();
-
-  // Rewind time to just before the start of the write block. If we swapped memory
-  // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
-  // swap it back so that the swap can happen again (this double swap isn't ideal but
-  // only happens the first time we fault).
-  if (info.nonAtomicSwapStoreSrc != Gen::INVALID_REG)
-  {
-    u64* ptr = ContextRN(ctx, info.nonAtomicSwapStoreSrc);
-    switch (info.accessSize << 3)
-    {
-    case 8:
-      // No need to swap a byte
-      break;
-    case 16:
-      *ptr = Common::swap16(static_cast<u16>(*ptr));
-      break;
-    case 32:
-      *ptr = Common::swap32(static_cast<u32>(*ptr));
-      break;
-    case 64:
-      *ptr = Common::swap64(static_cast<u64>(*ptr));
-      break;
-    default:
-      DEBUG_ASSERT(0);
-      break;
-    }
-  }
-
-  // This is special code to undo the LEA in SafeLoadToReg if it clobbered the address
-  // register in the case where reg_value shared the same location as opAddress.
-  if (info.offsetAddedToAddress)
-  {
-    u64* ptr = ContextRN(ctx, info.op_arg.GetSimpleReg());
-    *ptr -= static_cast<u32>(info.offset);
-  }
-
-  ctx->CTX_PC = reinterpret_cast<u64>(trampoline);
-
-  return true;
+  return Jitx86Base::HandleFault(access_address, ctx);
 }
 
 void Jit64::Init()
@@ -554,40 +442,21 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   JitBlock::LinkData linkData;
   linkData.exitAddress = destination;
   linkData.linkStatus = false;
-  linkData.call = bl;
 
   MOV(32, PPCSTATE(pc), Imm32(destination));
+  linkData.exitPtrs = GetWritableCodePtr();
+  if (bl)
+    CALL(asm_routines.dispatcher);
+  else
+    JMP(asm_routines.dispatcher, true);
 
-  // Do not skip breakpoint check if debugging.
-  const u8* dispatcher = SConfig::GetInstance().bEnableDebugging ? asm_routines.dispatcher :
-                                                                   asm_routines.dispatcher_no_check;
+  b->linkData.push_back(linkData);
 
-  // Perform downcount flag check, followed by the requested exit
   if (bl)
   {
-    FixupBranch do_timing = J_CC(CC_LE, true);
-    SwitchToFarCode();
-    SetJumpTarget(do_timing);
-    CALL(asm_routines.do_timing);
-    FixupBranch after_fixup = J(true);
-    SwitchToNearCode();
-
-    linkData.exitPtrs = GetWritableCodePtr();
-    CALL(dispatcher);
-
-    SetJumpTarget(after_fixup);
     POP(RSCRATCH);
     JustWriteExit(after, false, 0);
   }
-  else
-  {
-    J_CC(CC_LE, asm_routines.do_timing);
-
-    linkData.exitPtrs = GetWritableCodePtr();
-    JMP(dispatcher, true);
-  }
-
-  b->linkData.push_back(linkData);
 }
 
 void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
@@ -791,7 +660,16 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   u8* const start = AlignCode4();
   b->checkedEntry = start;
-  b->normalEntry = start;
+
+  // Downcount flag check. The last block decremented downcounter, and the flag should still be
+  // available.
+  FixupBranch skip = J_CC(CC_G);
+  MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+  JMP(asm_routines.do_timing, true);  // downcount hit zero - go do_timing.
+  SetJumpTarget(skip);
+
+  u8* const normal_entry = GetWritableCodePtr();
+  b->normalEntry = normal_entry;
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (ImHereDebug)
@@ -1077,7 +955,7 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
 #endif
 
-  return start;
+  return normal_entry;
 }
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
@@ -1155,41 +1033,4 @@ bool Jit64::HandleFunctionHooking(u32 address)
     WriteExitDestInRSCRATCH();
     return true;
   });
-}
-
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
-                     const JitBlock* b)
-{
-  for (size_t i = 0; i < size; i++)
-  {
-    const PPCAnalyst::CodeOp& op = code_buffer[i];
-    const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-    DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %08x %s\n", op.address, disasm.c_str());
-  }
-
-  disassembler x64disasm;
-  x64disasm.set_syntax_intel();
-
-  u64 disasmPtr = reinterpret_cast<u64>(normalEntry);
-  const u8* end = normalEntry + b->codeSize;
-
-  while (reinterpret_cast<u8*>(disasmPtr) < end)
-  {
-    char sptr[1000] = "";
-    disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, reinterpret_cast<u8*>(disasmPtr), sptr);
-    DEBUG_LOG(DYNA_REC, "IR_X86 x86: %s", sptr);
-  }
-
-  if (b->codeSize <= 250)
-  {
-    std::stringstream ss;
-    ss << std::hex;
-    for (u8 i = 0; i <= b->codeSize; i++)
-    {
-      ss.width(2);
-      ss.fill('0');
-      ss << static_cast<u32>(*(normalEntry + i));
-    }
-    DEBUG_LOG(DYNA_REC, "IR_X86 bin: %s\n\n\n", ss.str().c_str());
-  }
 }

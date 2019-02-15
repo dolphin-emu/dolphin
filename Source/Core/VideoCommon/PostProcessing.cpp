@@ -70,7 +70,7 @@ PostProcessingShaderConfiguration::~PostProcessingShaderConfiguration() = defaul
 std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 {
   // Load the shader from the configuration if there isn't one sent to us.
-  if (shader.empty())
+  if (shader == "")
     shader = g_ActiveConfig.sPostProcessingShader;
   m_current_shader = shader;
 
@@ -81,7 +81,7 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
   std::string code;
   std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
-  if (shader.empty())
+  if (shader == "")
   {
     code = s_default_shader;
   }
@@ -150,7 +150,7 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
       }
 #endif
 
-      if (!line.empty())
+      if (line.size() > 0)
       {
         if (line[0] == '[')
         {
@@ -171,7 +171,7 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
             std::string key, value;
             IniFile::ParseLine(line, &key, &value);
 
-            if (!(key.empty() && value.empty()))
+            if (!(key == "" && value == ""))
               current_strings->m_options.emplace_back(key, value);
           }
         }
@@ -272,7 +272,7 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
     {
       std::string value;
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
-      if (!value.empty())
+      if (value != "")
         TryParseVector(value, &it.second.m_integer_values);
     }
     break;
@@ -280,7 +280,7 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
     {
       std::string value;
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
-      if (!value.empty())
+      if (value != "")
         TryParseVector(value, &it.second.m_float_values);
     }
     break;

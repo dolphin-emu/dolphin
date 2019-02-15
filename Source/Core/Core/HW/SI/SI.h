@@ -38,6 +38,7 @@ void AddDevice(SIDevices device, int device_number);
 void AddDevice(std::unique_ptr<ISIDevice> device);
 
 void ChangeDevice(SIDevices device, int channel);
+void ChangeDeviceDeterministic(SIDevices device, int channel);
 
 SIDevices GetDeviceType(int channel);
 

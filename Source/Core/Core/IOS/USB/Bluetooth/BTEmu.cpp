@@ -356,7 +356,8 @@ void BluetoothEmu::Update()
     }
   }
 
-  const u64 interval = SystemTimers::GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
+  // The Real Wii Remote sends report every ~5ms (200 Hz).
+  const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
   const u64 now = CoreTiming::GetTicks();
 
   if (now - m_last_ticks > interval)

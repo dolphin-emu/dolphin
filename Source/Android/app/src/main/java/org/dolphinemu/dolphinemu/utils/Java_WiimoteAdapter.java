@@ -34,7 +34,7 @@ public class Java_WiimoteAdapter
 
   private static void RequestPermission()
   {
-    Context context = NativeLibrary.getEmulationActivity();
+    Context context = NativeLibrary.sEmulationActivity.get();
     if (context != null)
     {
       HashMap<String, UsbDevice> devices = manager.getDeviceList();

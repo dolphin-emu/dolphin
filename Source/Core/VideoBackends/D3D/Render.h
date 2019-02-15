@@ -18,7 +18,7 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale);
+  Renderer(int backbuffer_width, int backbuffer_height);
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
@@ -50,12 +50,10 @@ public:
   void SetInterlacingMode() override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
-  void Draw(u32 base_vertex, u32 num_vertices) override;
-  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
-  void BindBackbuffer(const ClearColor& clear_color = {}) override;
-  void PresentBackbuffer() override;
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
+
+  void RenderText(const std::string& text, int left, int top, u32 color) override;
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
@@ -68,13 +66,17 @@ public:
 
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) override;
-  void OnConfigChanged(u32 bits) override;
+  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override;
 
   void ReinterpretPixelData(unsigned int convtype) override;
+
+  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                           u32 vertex_stride, u32 num_vertices) override;
+  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
+                             u32 groups_x, u32 groups_y, u32 groups_z) override;
 
 private:
   void SetupDeviceObjects();
@@ -83,6 +85,12 @@ private:
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
   void UpdateBackbufferSize();
+
+  void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
+                  u32 src_width, u32 src_height);
+
+  void UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
+  void UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices);
 
   StateCache m_state_cache;
 
@@ -95,6 +103,11 @@ private:
   ID3D11Texture2D* m_screenshot_texture = nullptr;
   D3DTexture2D* m_3d_vision_texture = nullptr;
 
+  ID3D11Buffer* m_utility_vertex_buffer = nullptr;
+  ID3D11Buffer* m_utility_uniform_buffer = nullptr;
+
+  u32 m_last_multisamples = 1;
+  bool m_last_stereo_mode = false;
   bool m_last_fullscreen_state = false;
 };
 }

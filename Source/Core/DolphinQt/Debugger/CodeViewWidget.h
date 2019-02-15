@@ -34,10 +34,8 @@ public:
 
   void ToggleBreakpoint();
   void AddBreakpoint();
-
 signals:
   void RequestPPCComparison(u32 addr);
-  void ShowMemory(u32 address);
   void SymbolsChanged();
   void BreakpointsChanged();
 
@@ -59,7 +57,6 @@ private:
 
   void OnFollowBranch();
   void OnCopyAddress();
-  void OnShowInMemory();
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();

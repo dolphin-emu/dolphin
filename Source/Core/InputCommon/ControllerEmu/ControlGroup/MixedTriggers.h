@@ -15,17 +15,6 @@ class MixedTriggers : public ControlGroup
 public:
   explicit MixedTriggers(const std::string& name);
 
-  void GetState(u16* digital, const u16* bitmasks, ControlState* analog,
-                bool adjusted = true) const;
-
-  ControlState GetDeadzone() const;
-  ControlState GetThreshold() const;
-
-private:
-  enum
-  {
-    SETTING_THRESHOLD,
-    SETTING_DEADZONE,
-  };
+  void GetState(u16* digital, const u16* bitmasks, ControlState* analog);
 };
 }  // namespace ControllerEmu

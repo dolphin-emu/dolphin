@@ -340,7 +340,11 @@ public:
   }
 
   ControlState GetValue() const override { return GetActiveChild()->GetValue(); }
-  void SetValue(ControlState value) override { GetActiveChild()->SetValue(value); }
+  void SetValue(ControlState value) override
+  {
+    m_lhs->SetValue(GetActiveChild() == m_lhs ? value : 0.0);
+    m_rhs->SetValue(GetActiveChild() == m_rhs ? value : 0.0);
+  }
 
   int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
   operator std::string() const override
@@ -545,5 +549,5 @@ std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::s
                                                             std::move(complex_result.expr));
   return std::make_pair(complex_result.status, std::move(combined_expr));
 }
-}  // namespace ExpressionParser
-}  // namespace ciface
+}
+}

@@ -30,8 +30,6 @@ public:
   std::shared_ptr<const UICommon::GameFile> GetSelectedGame() const;
   QList<std::shared_ptr<const UICommon::GameFile>> GetSelectedGames() const;
   bool HasMultipleSelected() const;
-  std::shared_ptr<const UICommon::GameFile> FindGame(const std::string& path) const;
-  std::shared_ptr<const UICommon::GameFile> FindSecondDisc(const UICommon::GameFile& game) const;
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
@@ -52,7 +50,6 @@ signals:
   void OpenGeneralSettings();
 
 private:
-  void ShowHeaderContextMenu(const QPoint& pos);
   void ShowContextMenu(const QPoint&);
   void OpenContainingFolder();
   void OpenProperties();

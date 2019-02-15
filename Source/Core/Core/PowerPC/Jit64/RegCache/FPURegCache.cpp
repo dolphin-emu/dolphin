@@ -4,8 +4,8 @@
 
 #include "Core/PowerPC/Jit64/RegCache/FPURegCache.h"
 
-#include "Common/x64Reg.h"
 #include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 using namespace Gen;
@@ -34,7 +34,7 @@ const X64Reg* FPURegCache::GetAllocationOrder(size_t* count) const
 
 OpArg FPURegCache::GetDefaultLocation(preg_t preg) const
 {
-  return PPCSTATE(ps[preg].ps0);
+  return PPCSTATE(ps[preg][0]);
 }
 
 BitSet32 FPURegCache::GetRegUtilization() const

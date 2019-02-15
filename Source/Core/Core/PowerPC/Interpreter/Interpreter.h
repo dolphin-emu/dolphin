@@ -282,8 +282,6 @@ public:
   static u32 Helper_Carry(u32 value1, u32 value2);
 
 private:
-  void CheckExceptions();
-
   static void InitializeInstructionTables();
 
   static bool HandleFunctionHooking(u32 address);

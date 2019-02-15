@@ -42,7 +42,6 @@
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
-#include "DolphinQt/MenuBar.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -108,8 +107,8 @@ void GameList::MakeListView()
   m_list->setCurrentIndex(QModelIndex());
   m_list->setContextMenuPolicy(Qt::CustomContextMenu);
   m_list->setWordWrap(false);
-  // Have 1 pixel of padding above and below the 32 pixel banners.
-  m_list->verticalHeader()->setDefaultSectionSize(32 + 2);
+  m_list->verticalHeader()->setDefaultSectionSize(m_list->verticalHeader()->defaultSectionSize() *
+                                                  1.25);
 
   connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -121,9 +120,6 @@ void GameList::MakeListView()
 
   hor_header->restoreState(
       Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
-
-  hor_header->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(hor_header, &QWidget::customContextMenuRequested, this, &GameList::ShowHeaderContextMenu);
 
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
@@ -227,20 +223,6 @@ void GameList::MakeGridView()
           });
 }
 
-void GameList::ShowHeaderContextMenu(const QPoint& pos)
-{
-  const MenuBar* const menu_bar = MenuBar::GetMenuBar();
-  if (!menu_bar)
-    return;
-
-  QMenu* const list_columns_menu = menu_bar->GetListColumnsMenu();
-  if (!list_columns_menu)
-    return;
-
-  const QWidget* const widget = qobject_cast<QWidget*>(sender());
-  list_columns_menu->exec(widget ? widget->mapToGlobal(pos) : pos);
-}
-
 void GameList::ShowContextMenu(const QPoint&)
 {
   if (!GetSelectedGame())
@@ -320,10 +302,9 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiDisc)
     {
-      auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this,
-                                                  [ this, file_path = game->GetFilePath() ] {
-                                                    WiiUpdate::PerformDiscUpdate(file_path, this);
-                                                  });
+      auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this, [this] {
+        WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
+      });
       perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
     }
 
@@ -379,7 +360,7 @@ void GameList::ShowContextMenu(const QPoint&)
       tag_action->setCheckable(true);
       tag_action->setChecked(game_tags.contains(tag));
 
-      connect(tag_action, &QAction::toggled, [path, tag, model](bool checked) {
+      connect(tag_action, &QAction::toggled, this, [this, path, tag, model](bool checked) {
         if (!checked)
           model->RemoveGameTag(path, tag);
         else
@@ -411,11 +392,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
 void GameList::OpenProperties()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
-  PropertiesDialog* properties = new PropertiesDialog(this, *game);
+  PropertiesDialog* properties = new PropertiesDialog(this, *GetSelectedGame());
 
   connect(properties, &PropertiesDialog::OpenGeneralSettings, this, &GameList::OpenGeneralSettings);
 
@@ -442,29 +419,18 @@ void GameList::ExportWiiSave()
     QString failed_str;
     for (const std::string& str : failed)
       failed_str.append(QStringLiteral("\n")).append(QString::fromStdString(str));
-    QMessageBox msg(QMessageBox::Critical, tr("Save Export"),
-                    tr("Failed to export the following save files:") + failed_str, QMessageBox::Ok,
-                    this);
-
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    QMessageBox::critical(this, tr("Save Export"),
+                          tr("Failed to export the following save files:") + failed_str);
   }
   else
   {
-    QMessageBox msg(QMessageBox::Information, tr("Save Export"),
-                    tr("Successfully exported save files"), QMessageBox::Ok, this);
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    QMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
   }
 }
 
 void GameList::OpenWiki()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
-  QString game_id = QString::fromStdString(game->GetGameID());
+  QString game_id = QString::fromStdString(GetSelectedGame()->GetGameID());
   QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }
@@ -472,10 +438,6 @@ void GameList::OpenWiki()
 void GameList::CompressISO(bool decompress)
 {
   auto files = GetSelectedGames();
-  const auto game = GetSelectedGame();
-
-  if (files.empty() || !game)
-    return;
 
   bool wii_warning_given = false;
   for (QMutableListIterator<std::shared_ptr<const UICommon::GameFile>> it(files); it.hasNext();)
@@ -495,7 +457,6 @@ void GameList::CompressISO(bool decompress)
     {
       QMessageBox wii_warning(this);
       wii_warning.setIcon(QMessageBox::Warning);
-      wii_warning.setWindowModality(Qt::WindowModal);
       wii_warning.setWindowTitle(tr("Confirm"));
       wii_warning.setText(tr("Are you sure?"));
       wii_warning.setInformativeText(tr(
@@ -510,6 +471,9 @@ void GameList::CompressISO(bool decompress)
     }
   }
 
+  if (files.size() == 0)
+    return;  // We shouldn't get here normally...
+
   QString dst_dir;
   QString dst_path;
 
@@ -519,7 +483,7 @@ void GameList::CompressISO(bool decompress)
         this,
         decompress ? tr("Select where you want to save the decompressed images") :
                      tr("Select where you want to save the compressed images"),
-        QFileInfo(QString::fromStdString(game->GetFilePath())).dir().absolutePath());
+        QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath())).dir().absolutePath());
 
     if (dst_dir.isEmpty())
       return;
@@ -530,7 +494,7 @@ void GameList::CompressISO(bool decompress)
         this,
         decompress ? tr("Select where you want to save the decompressed image") :
                      tr("Select where you want to save the compressed image"),
-        QFileInfo(QString::fromStdString(game->GetFilePath()))
+        QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
             .dir()
             .absoluteFilePath(
                 QFileInfo(QString::fromStdString(files[0]->GetFilePath())).completeBaseName())
@@ -556,7 +520,6 @@ void GameList::CompressISO(bool decompress)
       {
         QMessageBox confirm_replace(this);
         confirm_replace.setIcon(QMessageBox::Warning);
-        confirm_replace.setWindowModality(Qt::WindowModal);
         confirm_replace.setWindowTitle(tr("Confirm"));
         confirm_replace.setText(tr("The file %1 already exists.\n"
                                    "Do you wish to replace it?")
@@ -602,27 +565,20 @@ void GameList::CompressISO(bool decompress)
     }
   }
 
-  QMessageBox msg(QMessageBox::Information, tr("Success"),
-                  decompress ? tr("Successfully decompressed %n image(s).", "", files.size()) :
-                               tr("Successfully compressed %n image(s).", "", files.size()),
-                  QMessageBox::Ok, this);
-
-  msg.setWindowModality(Qt::WindowModal);
-  msg.exec();
+  QMessageBox(QMessageBox::Information, tr("Success"),
+              decompress ? tr("Successfully decompressed %n image(s).", "", files.size()) :
+                           tr("Successfully compressed %n image(s).", "", files.size()),
+              QMessageBox::Ok, this)
+      .exec();
 }
 
 void GameList::InstallWAD()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
   QMessageBox result_dialog(this);
 
-  const bool success = WiiUtils::InstallWAD(game->GetFilePath());
+  const bool success = WiiUtils::InstallWAD(GetSelectedGame()->GetFilePath());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setWindowModality(Qt::WindowModal);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
                                   tr("Failed to install this title to the NAND."));
@@ -631,14 +587,9 @@ void GameList::InstallWAD()
 
 void GameList::UninstallWAD()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
   QMessageBox warning_dialog(this);
 
   warning_dialog.setIcon(QMessageBox::Information);
-  warning_dialog.setWindowModality(Qt::WindowModal);
   warning_dialog.setWindowTitle(tr("Confirm"));
   warning_dialog.setText(tr("Uninstalling the WAD will remove the currently installed version of "
                             "this title from the NAND without deleting its save data. Continue?"));
@@ -649,10 +600,9 @@ void GameList::UninstallWAD()
 
   QMessageBox result_dialog(this);
 
-  const bool success = WiiUtils::UninstallTitle(game->GetTitleID());
+  const bool success = WiiUtils::UninstallTitle(GetSelectedGame()->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setWindowModality(Qt::WindowModal);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
@@ -661,32 +611,20 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
   Settings::Instance().SetDefaultGame(
-      QDir::toNativeSeparators(QString::fromStdString(game->GetFilePath())));
+      QDir::toNativeSeparators(QString::fromStdString(GetSelectedGame()->GetFilePath())));
 }
 
 void GameList::OpenContainingFolder()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
   QUrl url = QUrl::fromLocalFile(
-      QFileInfo(QString::fromStdString(game->GetFilePath())).dir().absolutePath());
+      QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath())).dir().absolutePath());
   QDesktopServices::openUrl(url);
 }
 
 void GameList::OpenSaveFolder()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
-  QUrl url = QUrl::fromLocalFile(QString::fromStdString(game->GetWiiFSPath()));
+  QUrl url = QUrl::fromLocalFile(QString::fromStdString(GetSelectedGame()->GetWiiFSPath()));
   QDesktopServices::openUrl(url);
 }
 
@@ -695,9 +633,7 @@ void GameList::DeleteFile()
   QMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
-  confirm_dialog.setWindowModality(Qt::WindowModal);
   confirm_dialog.setWindowTitle(tr("Confirm"));
-  confirm_dialog.setWindowModality(Qt::WindowModal);
   confirm_dialog.setText(tr("Are you sure you want to delete this file?"));
   confirm_dialog.setInformativeText(tr("This cannot be undone!"));
   confirm_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
@@ -721,7 +657,6 @@ void GameList::DeleteFile()
           QMessageBox error_dialog(this);
 
           error_dialog.setIcon(QMessageBox::Critical);
-          error_dialog.setWindowModality(Qt::WindowModal);
           error_dialog.setWindowTitle(tr("Failure"));
           error_dialog.setText(tr("Failed to delete the selected file."));
           error_dialog.setInformativeText(tr("Check whether you have the permissions required to "
@@ -741,11 +676,7 @@ void GameList::DeleteFile()
 
 void GameList::ChangeDisc()
 {
-  const auto game = GetSelectedGame();
-  if (!game)
-    return;
-
-  Core::RunAsCPUThread([file_path = game->GetFilePath()] { DVDInterface::ChangeDisc(file_path); });
+  Core::RunAsCPUThread([this] { DVDInterface::ChangeDisc(GetSelectedGame()->GetFilePath()); });
 }
 
 std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
@@ -804,17 +735,6 @@ bool GameList::HasMultipleSelected() const
 {
   return currentWidget() == m_list ? m_list->selectionModel()->selectedRows().size() > 1 :
                                      m_grid->selectionModel()->selectedIndexes().size() > 1;
-}
-
-std::shared_ptr<const UICommon::GameFile> GameList::FindGame(const std::string& path) const
-{
-  return m_model->FindGame(path);
-}
-
-std::shared_ptr<const UICommon::GameFile>
-GameList::FindSecondDisc(const UICommon::GameFile& game) const
-{
-  return m_model->FindSecondDisc(game);
 }
 
 void GameList::SetViewColumn(int col, bool view)

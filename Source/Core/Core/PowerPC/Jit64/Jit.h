@@ -25,19 +25,16 @@
 #include "Core/PowerPC/Jit64/RegCache/FPURegCache.h"
 #include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
-#include "Core/PowerPC/Jit64Common/BlockCache.h"
-#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
-#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
 namespace PPCAnalyst
 {
 struct CodeBlock;
 struct CodeOp;
-}  // namespace PPCAnalyst
+}
 
-class Jit64 : public JitBase, public QuantizedMemoryRoutines
+class Jit64 : public Jitx86Base
 {
 public:
   Jit64();
@@ -48,7 +45,6 @@ public:
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
   bool HandleStackFault() override;
-  bool BackPatch(u32 emAddress, SContext* ctx);
 
   void EnableOptimization();
   void EnableBlockLink();
@@ -243,9 +239,6 @@ private:
   void AllocStack();
   void FreeStack();
 
-  JitBlockCache blocks{*this};
-  TrampolineCache trampolines{*this};
-
   GPRRegCache gpr{*this};
   FPURegCache fpr{*this};
 
@@ -255,6 +248,3 @@ private:
   bool m_cleanup_after_stackfault;
   u8* m_stack;
 };
-
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
-                     const JitBlock* b);

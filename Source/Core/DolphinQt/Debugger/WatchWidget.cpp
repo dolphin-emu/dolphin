@@ -232,7 +232,7 @@ void WatchWidget::ShowContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  if (!m_table->selectedItems().empty())
+  if (m_table->selectedItems().size())
   {
     auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
 

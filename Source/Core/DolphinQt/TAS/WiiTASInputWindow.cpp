@@ -14,16 +14,10 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Core.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
-#include "Core/HW/WiimoteEmu/Extension/Classic.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-
-#include "Core/HW/WiimoteEmu/Extension/Classic.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-#include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
@@ -32,8 +26,6 @@
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
 
 #include "InputCommon/InputConfig.h"
-
-using namespace WiimoteCommon;
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
 {
@@ -263,7 +255,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   if (Core::IsRunning())
   {
     ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))
-              ->GetActiveExtensionNumber();
+              ->CurrentExtension();
   }
   else
   {
@@ -326,20 +318,22 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
   }
 }
 
-void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
-                                  const WiimoteEmu::EncryptionKey& key)
+void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rptf, int ext,
+                                  wiimote_key key)
 {
   if (!isVisible())
     return;
 
   UpdateExt(ext);
 
-  if (m_remote_buttons_box->isVisible() && rpt.HasCore())
-  {
-    DataReportBuilder::CoreData core;
-    rpt.GetCoreData(&core);
+  u8* const buttons_data = rptf.core ? (report_data + rptf.core) : nullptr;
+  u8* const accel_data = rptf.accel ? (report_data + rptf.accel) : nullptr;
+  u8* const ir_data = rptf.ir ? (report_data + rptf.ir) : nullptr;
+  u8* const ext_data = rptf.ext ? (report_data + rptf.ext) : nullptr;
 
-    u16& buttons = core.hex;
+  if (m_remote_buttons_box->isVisible() && buttons_data)
+  {
+    u16& buttons = (reinterpret_cast<wm_buttons*>(buttons_data))->hex;
     GetButton<u16>(m_a_button, buttons, WiimoteEmu::Wiimote::BUTTON_A);
     GetButton<u16>(m_b_button, buttons, WiimoteEmu::Wiimote::BUTTON_B);
     GetButton<u16>(m_1_button, buttons, WiimoteEmu::Wiimote::BUTTON_ONE);
@@ -351,28 +345,32 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     GetButton<u16>(m_up_button, buttons, WiimoteEmu::Wiimote::PAD_UP);
     GetButton<u16>(m_down_button, buttons, WiimoteEmu::Wiimote::PAD_DOWN);
     GetButton<u16>(m_right_button, buttons, WiimoteEmu::Wiimote::PAD_RIGHT);
-
-    rpt.SetCoreData(core);
   }
 
-  if (m_remote_orientation_box->isVisible() && rpt.HasAccel())
+  if (m_remote_orientation_box->isVisible() && accel_data && buttons_data)
   {
-    // FYI: Interleaved reports may behave funky as not all data is always available.
+    wm_accel& accel = *reinterpret_cast<wm_accel*>(accel_data);
+    wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
 
-    DataReportBuilder::AccelData accel;
-    rpt.GetAccelData(&accel);
+    u16 accel_x = (accel.x << 2) & (buttons.acc_x_lsb & 0b11);
+    u16 accel_y = (accel.y << 2) & ((buttons.acc_y_lsb & 0b1) << 1);
+    u16 accel_z = (accel.z << 2) & ((buttons.acc_z_lsb & 0b1) << 1);
 
-    GetSpinBoxU16(m_remote_orientation_x_value, accel.x);
-    GetSpinBoxU16(m_remote_orientation_y_value, accel.y);
-    GetSpinBoxU16(m_remote_orientation_z_value, accel.z);
+    GetSpinBoxU16(m_remote_orientation_x_value, accel_x);
+    GetSpinBoxU16(m_remote_orientation_y_value, accel_y);
+    GetSpinBoxU16(m_remote_orientation_z_value, accel_z);
 
-    rpt.SetAccelData(accel);
+    accel.x = accel_x >> 2;
+    accel.y = accel_y >> 2;
+    accel.z = accel_z >> 2;
+
+    buttons.acc_x_lsb = accel_x & 0b11;
+    buttons.acc_y_lsb = (accel_y >> 1) & 0b1;
+    buttons.acc_z_lsb = (accel_z >> 1) & 0b1;
   }
 
-  if (m_ir_box->isVisible() && rpt.HasIR() && !m_use_controller->isChecked())
+  if (m_ir_box->isVisible() && ir_data && !m_use_controller->isChecked())
   {
-    u8* const ir_data = rpt.GetIRDataPtr();
-
     u16 y = m_ir_y_value->value();
     std::array<u16, 4> x;
     x[0] = m_ir_x_value->value();
@@ -380,19 +378,17 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     x[2] = x[0] - 10;
     x[3] = x[1] + 10;
 
-    // FYI: This check is not entirely foolproof.
-    // TODO: IR "full" mode not implemented.
-    u8 mode = WiimoteEmu::CameraLogic::IR_MODE_BASIC;
+    u8 mode;
+    // Mode 5 not supported in core anyway.
+    if (rptf.ext)
+      mode = (rptf.ext - rptf.ir) == 10 ? 1 : 3;
+    else
+      mode = (rptf.size - rptf.ir) == 10 ? 1 : 3;
 
-    if (rpt.GetIRDataSize() == sizeof(WiimoteEmu::IRExtended) * 4)
-      mode = WiimoteEmu::CameraLogic::IR_MODE_EXTENDED;
-    else if (rpt.GetIRDataSize() == sizeof(WiimoteEmu::IRFull) * 2)
-      mode = WiimoteEmu::CameraLogic::IR_MODE_FULL;
-
-    if (mode == WiimoteEmu::CameraLogic::IR_MODE_BASIC)
+    if (mode == 1)
     {
-      memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRBasic) * 2);
-      auto* const ir_basic = reinterpret_cast<WiimoteEmu::IRBasic*>(ir_data);
+      memset(ir_data, 0xFF, sizeof(wm_ir_basic) * 2);
+      wm_ir_basic* const ir_basic = reinterpret_cast<wm_ir_basic*>(ir_data);
       for (int i = 0; i < 2; ++i)
       {
         if (x[i * 2] < 1024 && y < 768)
@@ -417,8 +413,8 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     {
       // TODO: this code doesnt work, resulting in no IR TAS inputs in e.g. wii sports menu when no
       // remote extension is used
-      memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRExtended) * 4);
-      auto* const ir_extended = reinterpret_cast<WiimoteEmu::IRExtended*>(ir_data);
+      memset(ir_data, 0xFF, sizeof(wm_ir_extended) * 4);
+      wm_ir_extended* const ir_extended = reinterpret_cast<wm_ir_extended*>(ir_data);
       for (size_t i = 0; i < x.size(); ++i)
       {
         if (x[i] < 1024 && y < 768)
@@ -435,11 +431,9 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     }
   }
 
-  if (rpt.HasExt() && m_nunchuk_stick_box->isVisible())
+  if (ext_data && m_nunchuk_stick_box->isVisible())
   {
-    u8* const ext_data = rpt.GetExtDataPtr();
-
-    auto& nunchuk = *reinterpret_cast<WiimoteEmu::Nunchuk::DataFormat*>(ext_data);
+    wm_nc& nunchuk = *reinterpret_cast<wm_nc*>(ext_data);
 
     GetSpinBoxU8(m_nunchuk_stick_x_value, nunchuk.jx);
     GetSpinBoxU8(m_nunchuk_stick_y_value, nunchuk.jy);
@@ -465,15 +459,13 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     GetButton<u8>(m_z_button, nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
     nunchuk.bt.hex ^= 0b11;
 
-    key.Encrypt(reinterpret_cast<u8*>(&nunchuk), 0, sizeof(nunchuk));
+    WiimoteEncrypt(&key, reinterpret_cast<u8*>(&nunchuk), 0, sizeof(wm_nc));
   }
 
   if (m_classic_left_stick_box->isVisible())
   {
-    u8* const ext_data = rpt.GetExtDataPtr();
-
-    auto& cc = *reinterpret_cast<WiimoteEmu::Classic::DataFormat*>(ext_data);
-    key.Decrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
+    wm_classic_extension& cc = *reinterpret_cast<wm_classic_extension*>(ext_data);
+    WiimoteDecrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
 
     cc.bt.hex ^= 0xFFFF;
     GetButton<u16>(m_classic_a_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_A);
@@ -503,13 +495,13 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     GetSpinBoxU8(m_classic_right_stick_y_value, ry);
     cc.ry = ry;
 
-    u8 lx = cc.lx;
+    u8 lx = cc.regular_data.lx;
     GetSpinBoxU8(m_classic_left_stick_x_value, lx);
-    cc.lx = lx;
+    cc.regular_data.lx = lx;
 
-    u8 ly = cc.ly;
+    u8 ly = cc.regular_data.ly;
     GetSpinBoxU8(m_classic_left_stick_y_value, ly);
-    cc.ly = ly;
+    cc.regular_data.ly = ly;
 
     u8 rt = cc.rt;
     GetSpinBoxU8(m_right_trigger_value, rt);
@@ -520,6 +512,6 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     cc.lt1 = lt & 0b111;
     cc.lt2 = (lt >> 3) & 0b11;
 
-    key.Encrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
+    WiimoteEncrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
   }
 }

@@ -12,9 +12,6 @@
 
 namespace MappingCommon
 {
-constexpr int INPUT_DETECT_TIME = 3000;
-constexpr int OUTPUT_DETECT_TIME = 2000;
-
 QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& control_device,
                                 const ciface::Core::DeviceQualifier& default_device, Quote quote)
@@ -44,9 +41,7 @@ QString GetExpressionForControl(const QString& control_name,
 QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
                          const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
-  const int ms = reference->IsInput() ? INPUT_DETECT_TIME : OUTPUT_DETECT_TIME;
-
-  ciface::Core::Device::Control* const ctrl = reference->Detect(ms, device);
+  ciface::Core::Device::Control* const ctrl = reference->Detect(5000, device);
 
   if (ctrl)
   {

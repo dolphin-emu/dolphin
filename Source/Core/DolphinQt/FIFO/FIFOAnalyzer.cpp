@@ -423,7 +423,7 @@ void FIFOAnalyzer::FindPrevious()
 
 void FIFOAnalyzer::ShowSearchResult(size_t index)
 {
-  if (m_search_results.empty())
+  if (!m_search_results.size())
     return;
 
   if (index > m_search_results.size())

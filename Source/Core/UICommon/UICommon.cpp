@@ -156,7 +156,6 @@ void SetLocale(std::string locale_name)
 
 void CreateDirectories()
 {
-  File::CreateFullPath(File::GetUserPath(D_RESOURCEPACK_IDX));
   File::CreateFullPath(File::GetUserPath(D_USER_IDX));
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_COVERCACHE_IDX));

@@ -18,6 +18,5 @@ public:
   std::string GetName() const override { return "Vulkan"; }
   std::string GetDisplayName() const override { return _trans("Vulkan"); }
   void InitBackendInfo() override;
-  void PrepareWindow(const WindowSystemInfo& wsi) override;
 };
 }  // namespace Vulkan

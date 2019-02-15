@@ -1,4 +1,4 @@
-TITLES = https://www.gametdb.com (type: Wii language: RU_unique version: 20190127013926)
+TITLES = https://www.gametdb.com (type: Wii language: RU_unique version: 20180527221420)
 R5IR4Q = История игрушек: Парк развлечений
 RN4P41 = Anno: Create A New World
 RWAR78 = Валл-И

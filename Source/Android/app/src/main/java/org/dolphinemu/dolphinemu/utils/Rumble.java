@@ -18,12 +18,10 @@ import java.util.HashMap;
 public class Rumble
 {
   private static Vibrator phoneVibrator;
-  private static final SparseArray<Vibrator> emuVibrators = new SparseArray<>();
+  private static SparseArray<Vibrator> emuVibrators;
 
   public static void initRumble(EmulationActivity activity)
   {
-    clear();
-
     if (activity.deviceHasTouchScreen() &&
             PreferenceManager.getDefaultSharedPreferences(activity)
                     .getBoolean("phoneRumble", true))
@@ -31,6 +29,7 @@ public class Rumble
       setPhoneVibrator(true, activity);
     }
 
+    emuVibrators = new SparseArray<>();
     for (int i = 0; i < 8; i++)
     {
       StringSetting deviceName =
@@ -66,7 +65,7 @@ public class Rumble
     }
   }
 
-  private static void clear()
+  public static void clear()
   {
     phoneVibrator = null;
     emuVibrators.clear();

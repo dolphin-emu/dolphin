@@ -34,8 +34,6 @@ unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace WiimoteReal
 {
-using namespace WiimoteCommon;
-
 static void TryToConnectBalanceBoard(Wiimote*);
 static void TryToConnectWiimote(Wiimote*);
 static void HandleWiimoteDisconnect(int index);
@@ -71,7 +69,7 @@ void Wiimote::WriteReport(Report rpt)
     bool const new_rumble_state = (rpt[2] & 0x1) != 0;
 
     // If this is a rumble report and the rumble state didn't change, ignore.
-    if (rpt[1] == u8(OutputReportID::Rumble) && new_rumble_state == m_rumble_state)
+    if (rpt[1] == RT_RUMBLE && new_rumble_state == m_rumble_state)
       return;
 
     m_rumble_state = new_rumble_state;
@@ -97,22 +95,24 @@ void Wiimote::DisableDataReporting()
 {
   m_last_input_report.clear();
 
-  // This accomplishes very little:
-  OutputReportMode rpt = {};
-  rpt.mode = InputReportID::ReportCore;
+  // This probably accomplishes nothing.
+  wm_report_mode rpt = {};
+  rpt.mode = RT_REPORT_CORE;
+  rpt.all_the_time = 0;
   rpt.continuous = 0;
   rpt.rumble = 0;
-  QueueReport(u8(OutputReportID::ReportMode), &rpt, sizeof(rpt));
+  QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 }
 
 void Wiimote::EnableDataReporting(u8 mode)
 {
   m_last_input_report.clear();
 
-  OutputReportMode rpt = {};
-  rpt.mode = InputReportID(mode);
+  wm_report_mode rpt = {};
+  rpt.mode = mode;
+  rpt.all_the_time = 1;
   rpt.continuous = 1;
-  QueueReport(u8(OutputReportID::ReportMode), &rpt, sizeof(rpt));
+  QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 }
 
 void Wiimote::SetChannel(u16 channel)
@@ -141,11 +141,11 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   else
   {
     InterruptChannel(channel, data, size);
-    const auto& hidp = *static_cast<const HIDPacket*>(data);
-    if (hidp.type == HID_TYPE_SET_REPORT)
+    const hid_packet* const hidp = reinterpret_cast<const hid_packet*>(data);
+    if (hidp->type == HID_TYPE_SET_REPORT)
     {
-      u8 handshake = HID_HANDSHAKE_SUCCESS;
-      Core::Callback_WiimoteInterruptChannel(m_index, channel, &handshake, sizeof(handshake));
+      u8 handshake_ok = HID_HANDSHAKE_SUCCESS;
+      Core::Callback_WiimoteInterruptChannel(m_index, channel, &handshake_ok, sizeof(handshake_ok));
     }
   }
 }
@@ -177,21 +177,20 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
   // Disallow games from turning off all of the LEDs.
   // It makes Wiimote connection status confusing.
-  if (rpt[1] == u8(OutputReportID::LED))
+  if (rpt[1] == RT_LEDS)
   {
-    auto& leds_rpt = *reinterpret_cast<OutputReportLeds*>(&rpt[2]);
+    auto& leds_rpt = *reinterpret_cast<wm_leds*>(&rpt[2]);
     if (0 == leds_rpt.leds)
     {
       // Turn on ALL of the LEDs.
       leds_rpt.leds = 0xf;
     }
   }
-  else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
-           (!SConfig::GetInstance().m_WiimoteEnableSpeaker ||
-            (!wm->m_status.speaker || wm->m_speaker_mute)))
+  else if (rpt[1] == RT_WRITE_SPEAKER_DATA && (!SConfig::GetInstance().m_WiimoteEnableSpeaker ||
+                                               (!wm->m_status.speaker || wm->m_speaker_mute)))
   {
     // Translate speaker data reports into rumble reports.
-    rpt[1] = u8(OutputReportID::Rumble);
+    rpt[1] = RT_RUMBLE;
     // Keep only the rumble bit.
     rpt[2] &= 0x1;
     rpt.resize(3);
@@ -254,13 +253,11 @@ bool Wiimote::IsBalanceBoard()
   if (!ConnectInternal())
     return false;
   // Initialise the extension by writing 0x55 to 0xa400f0, then writing 0x00 to 0xa400fb.
-  // TODO: Use the structs for building these reports..
   static const u8 init_extension_rpt1[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
+      WR_SET_REPORT | BT_OUTPUT, RT_WRITE_DATA, 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
   static const u8 init_extension_rpt2[MAX_PAYLOAD] = {
-      WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::WriteData), 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
-  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus),
-                                     0};
+      WR_SET_REPORT | BT_OUTPUT, RT_WRITE_DATA, 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
+  static const u8 status_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
   if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
       !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
   {
@@ -276,29 +273,23 @@ bool Wiimote::IsBalanceBoard()
     if (ret == -1)
       continue;
 
-    switch (InputReportID(buf[1]))
+    switch (buf[1])
     {
-    case InputReportID::Status:
+    case RT_STATUS_REPORT:
     {
-      const auto* status = reinterpret_cast<InputReportStatus*>(&buf[2]);
+      const auto* status = reinterpret_cast<wm_status_report*>(&buf[2]);
       // A Balance Board has a Balance Board extension.
       if (!status->extension)
         return false;
       // Read two bytes from 0xa400fe to identify the extension.
-      static const u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
-                                            u8(OutputReportID::ReadData),
-                                            0x04,
-                                            0xa4,
-                                            0x00,
-                                            0xfe,
-                                            0x02,
-                                            0x00};
+      static const u8 identify_ext_rpt[] = {
+          WR_SET_REPORT | BT_OUTPUT, RT_READ_DATA, 0x04, 0xa4, 0x00, 0xfe, 0x02, 0x00};
       ret = IOWrite(identify_ext_rpt, sizeof(identify_ext_rpt));
       break;
     }
-    case InputReportID::ReadDataReply:
+    case RT_READ_DATA_REPLY:
     {
-      const auto* reply = reinterpret_cast<InputReportReadDataReply*>(&buf[2]);
+      const auto* reply = reinterpret_cast<wm_read_data_reply*>(&buf[2]);
       if (Common::swap16(reply->address) != 0x00fe)
       {
         ERROR_LOG(WIIMOTE, "IsBalanceBoard(): Received unexpected data reply for address %X",
@@ -308,17 +299,15 @@ bool Wiimote::IsBalanceBoard()
       // A Balance Board ext can be identified by checking for 0x0402.
       return reply->data[0] == 0x04 && reply->data[1] == 0x02;
     }
-    case InputReportID::Ack:
+    case RT_ACK_DATA:
     {
-      const auto* ack = reinterpret_cast<InputReportAck*>(&buf[2]);
-      if (ack->rpt_id == OutputReportID::ReadData && ack->error_code != ErrorCode::Success)
+      const auto* ack = reinterpret_cast<wm_acknowledge*>(&buf[2]);
+      if (ack->reportID == RT_READ_DATA && ack->errorID != 0x00)
       {
         WARN_LOG(WIIMOTE, "Failed to read from 0xa400fe, assuming Wiimote is not a Balance Board.");
         return false;
       }
     }
-    default:
-      break;
     }
   }
   return false;
@@ -326,7 +315,7 @@ bool Wiimote::IsBalanceBoard()
 
 static bool IsDataReport(const Report& rpt)
 {
-  return rpt.size() >= 2 && rpt[1] >= u8(InputReportID::ReportCore);
+  return rpt.size() >= 2 && rpt[1] >= RT_REPORT_CORE;
 }
 
 // Returns the next report that should be sent
@@ -375,17 +364,29 @@ void Wiimote::Update()
 
 bool Wiimote::CheckForButtonPress()
 {
-  Report& rpt = ProcessReadQueue();
+  const Report& rpt = ProcessReadQueue();
   if (rpt.size() >= 4)
   {
-    const auto mode = InputReportID(rpt[1]);
-    if (DataReportBuilder::IsValidMode(mode))
+    switch (rpt[1])
     {
-      auto builder = MakeDataReportManipulator(mode, rpt.data() + 2);
-      ButtonData buttons = {};
-      builder->GetCoreData(&buttons);
-
-      return buttons.hex != 0;
+    case RT_REPORT_CORE:
+    case RT_REPORT_CORE_ACCEL:
+    case RT_REPORT_CORE_EXT8:
+    case RT_REPORT_CORE_ACCEL_IR12:
+    case RT_REPORT_CORE_EXT19:
+    case RT_REPORT_CORE_ACCEL_EXT16:
+    case RT_REPORT_CORE_IR10_EXT9:
+    case RT_REPORT_CORE_ACCEL_IR10_EXT6:
+    case RT_REPORT_INTERLEAVE1:
+    case RT_REPORT_INTERLEAVE2:
+      // check any button without checking accelerometer data
+      if ((rpt[2] & 0x1F) != 0 || (rpt[3] & 0x9F) != 0)
+      {
+        return true;
+      }
+      break;
+    default:
+      break;
     }
   }
   return false;
@@ -400,20 +401,17 @@ void Wiimote::Prepare()
 bool Wiimote::PrepareOnThread()
 {
   // core buttons, no continuous reporting
-  // TODO: use the structs..
-  u8 static const mode_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::ReportMode), 0,
-                                   u8(InputReportID::ReportCore)};
+  u8 static const mode_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REPORT_MODE, 0, RT_REPORT_CORE};
 
   // Set the active LEDs and turn on rumble.
-  u8 static led_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::LED), 0};
-  led_report[2] = u8(u8(LED::LED_1) << (m_index % WIIMOTE_BALANCE_BOARD) | 0x1);
+  u8 static led_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_LEDS, 0};
+  led_report[2] = u8(WiimoteLED::LED_1 << (m_index % WIIMOTE_BALANCE_BOARD) | 0x1);
 
   // Turn off rumble
-  u8 static const rumble_report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::Rumble), 0};
+  u8 static const rumble_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_RUMBLE, 0};
 
   // Request status report
-  u8 static const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT,
-                                         u8(OutputReportID::RequestStatus), 0};
+  u8 static const req_status_report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
   // TODO: check for sane response?
 
   return (IOWrite(mode_report, sizeof(mode_report)) && IOWrite(led_report, sizeof(led_report)) &&
@@ -445,10 +443,11 @@ void Wiimote::EmuResume()
 
   m_last_input_report.clear();
 
-  OutputReportMode rpt = {};
+  wm_report_mode rpt = {};
   rpt.mode = wm->m_reporting_mode;
+  rpt.all_the_time = 1;
   rpt.continuous = 1;
-  QueueReport(u8(OutputReportID::ReportMode), &rpt, sizeof(rpt));
+  QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 
   NOTICE_LOG(WIIMOTE, "Resuming Wiimote data reporting.");
 
@@ -459,10 +458,11 @@ void Wiimote::EmuPause()
 {
   m_last_input_report.clear();
 
-  OutputReportMode rpt = {};
-  rpt.mode = InputReportID::ReportCore;
+  wm_report_mode rpt = {};
+  rpt.mode = RT_REPORT_CORE;
+  rpt.all_the_time = 0;
   rpt.continuous = 0;
-  QueueReport(u8(OutputReportID::ReportMode), &rpt, sizeof(rpt));
+  QueueReport(RT_REPORT_MODE, &rpt, sizeof(rpt));
 
   NOTICE_LOG(WIIMOTE, "Pausing Wiimote data reporting.");
 
@@ -768,13 +768,6 @@ void Pause()
 void ChangeWiimoteSource(unsigned int index, int source)
 {
   const int previous_source = g_wiimote_sources[index];
-
-  if (previous_source == source)
-  {
-    // No change. Do nothing.
-    return;
-  }
-
   g_wiimote_sources[index] = source;
   {
     // kill real connection (or swap to different slot)
@@ -926,4 +919,4 @@ bool IsNewWiimote(const std::string& identifier)
   return s_known_ids.count(identifier) == 0;
 }
 
-};  // namespace WiimoteReal
+};  // end of namespace

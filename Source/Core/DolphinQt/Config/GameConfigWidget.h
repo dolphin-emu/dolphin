@@ -18,10 +18,12 @@ class GameFile;
 
 class QCheckBox;
 class QComboBox;
+class QGroupBox;
+class QLineEdit;
 class QPushButton;
 class QSlider;
 class QSpinBox;
-class QTabWidget;
+class QVBoxLayout;
 
 class GameConfigWidget : public QWidget
 {
@@ -32,40 +34,38 @@ public:
 private:
   void CreateWidgets();
   void ConnectWidgets();
-
   void LoadSettings();
   void SaveSettings();
 
   void EditUserConfig();
+  void ViewDefaultConfig();
 
-  void SaveCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
   void LoadCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
+  void SaveCheckBox(QCheckBox* checkbox, const std::string& section, const std::string& key);
 
-  QString m_gameini_sys_path;
-  QString m_gameini_local_path;
+  QPushButton* m_refresh_config;
+  QPushButton* m_edit_user_config;
+  QPushButton* m_view_default_config;
 
-  QTabWidget* m_default_tab;
-  QTabWidget* m_local_tab;
-
+  // Core
   QCheckBox* m_enable_dual_core;
   QCheckBox* m_enable_mmu;
   QCheckBox* m_enable_fprf;
   QCheckBox* m_sync_gpu;
   QCheckBox* m_enable_fast_disc;
   QCheckBox* m_use_dsp_hle;
-  QCheckBox* m_use_monoscopic_shadows;
-
-  QPushButton* m_refresh_config;
-
   QComboBox* m_deterministic_dual_core;
 
+  // Stereoscopy
   QSlider* m_depth_slider;
-
   QSpinBox* m_convergence_spin;
+  QCheckBox* m_use_monoscopic_shadows;
 
-  const UICommon::GameFile& m_game;
-  std::string m_game_id;
+  QString m_gameini_local_path;
 
   IniFile m_gameini_local;
   IniFile m_gameini_default;
+
+  const UICommon::GameFile& m_game;
+  std::string m_game_id;
 };

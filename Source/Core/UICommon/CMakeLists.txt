@@ -5,9 +5,6 @@ add_library(uicommon
   DiscordPresence.cpp
   GameFile.cpp
   GameFileCache.cpp
-  ResourcePack/Manager.cpp
-  ResourcePack/Manifest.cpp
-  ResourcePack/ResourcePack.cpp
   UICommon.cpp
   USBUtils.cpp
   VideoUtils.cpp
@@ -17,7 +14,6 @@ target_link_libraries(uicommon
 PUBLIC
   common
   cpp-optparse
-  minizip
 
 PRIVATE
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
