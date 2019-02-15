@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Random.h"
+#include "Core/NetPlayProto.h"
 
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
     : m_NetHost(netHost), m_Server(server), m_port(port)
@@ -316,11 +317,11 @@ bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 liste
     g_OldListenPort = listen_port;
 
     ENetAddress addr = {ENET_HOST_ANY, listen_port};
-    ENetHost* host = enet_host_create(&addr,  // address
-                                      50,     // peerCount
-                                      1,      // channelLimit
-                                      0,      // incomingBandwidth
-                                      0);     // outgoingBandwidth
+    ENetHost* host = enet_host_create(&addr,                   // address
+                                      50,                      // peerCount
+                                      NetPlay::CHANNEL_COUNT,  // channelLimit
+                                      0,                       // incomingBandwidth
+                                      0);                      // outgoingBandwidth
     if (!host)
     {
       g_MainNetHost.reset();

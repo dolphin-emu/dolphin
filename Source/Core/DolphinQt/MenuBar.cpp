@@ -32,6 +32,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -52,8 +53,12 @@
 
 #include "UICommon/GameFile.h"
 
+QPointer<MenuBar> MenuBar::s_menu_bar;
+
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
+  s_menu_bar = this;
+
   AddFileMenu();
   AddEmulationMenu();
   AddMovieMenu();
@@ -105,6 +110,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   if (!running)
     m_recording_stop->setEnabled(false);
   m_recording_play->setEnabled(!running);
+
+  // Options
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   // Tools
   m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
@@ -203,6 +211,9 @@ void MenuBar::AddToolsMenu()
 
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
+
+  tools_menu->addAction(tr("&Resource Pack Manager"), this,
+                        [this] { emit ShowResourcePackManager(); });
 
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
@@ -471,7 +482,8 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
-  options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
+  m_controllers_action =
+      options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
 
   options_menu->addSeparator();
@@ -508,7 +520,7 @@ void MenuBar::InstallUpdateManually()
   {
     QMessageBox::information(
         this, tr("Update"),
-        tr("You are running the latest version available on this update track"));
+        tr("You are running the latest version available on this update track."));
   }
 
   track = previous_value;
@@ -576,13 +588,13 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
+  m_cols_menu = view_menu->addMenu(tr("List Columns"));
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())
   {
     bool* config = columns[key];
-    QAction* action = column_group->addAction(cols_menu->addAction(key));
+    QAction* action = column_group->addAction(m_cols_menu->addAction(key));
     action->setCheckable(true);
     action->setChecked(*config);
     connect(action, &QAction::toggled, [this, config, key](bool value) {

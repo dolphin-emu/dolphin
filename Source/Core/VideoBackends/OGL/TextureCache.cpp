@@ -61,6 +61,7 @@ void main()
       gl_Position = gl_in[i].gl_Position;
       gl_Layer = layer;
       EmitVertex();
+    }
   }
   EndPrimitive();
 }

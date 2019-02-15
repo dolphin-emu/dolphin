@@ -21,6 +21,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
@@ -53,7 +54,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
   localIni.GetLines(enabledSectionName, &enabledLines);
   for (const std::string& line : enabledLines)
   {
-    if (line.size() != 0 && line[0] == '$')
+    if (!line.empty() && line[0] == '$')
     {
       std::string name = line.substr(1, line.size() - 1);
       enabledNames.insert(name);
@@ -70,13 +71,13 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 
     for (std::string& line : lines)
     {
-      if (line.size() == 0)
+      if (line.empty())
         continue;
 
       if (line[0] == '$')
       {
         // Take care of the previous code
-        if (currentPatch.name.size())
+        if (!currentPatch.name.empty())
         {
           patches.push_back(currentPatch);
         }
@@ -118,7 +119,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
       }
     }
 
-    if (currentPatch.name.size() && currentPatch.entries.size())
+    if (!currentPatch.name.empty() && !currentPatch.entries.empty())
     {
       patches.push_back(currentPatch);
     }
@@ -164,9 +165,18 @@ void LoadPatches()
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
 
-  Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+  // Check if I'm syncing Codes
+  if (Config::Get(Config::MAIN_CODE_SYNC_OVERRIDE))
+  {
+    Gecko::SetSyncedCodesAsActive();
+    ActionReplay::SetSyncedCodesAsActive();
+  }
+  else
+  {
+    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  }
 
   LoadSpeedhacks("Speedhacks", merged);
 }

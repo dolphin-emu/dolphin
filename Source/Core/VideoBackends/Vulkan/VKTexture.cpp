@@ -290,7 +290,7 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   if (upload_size <= STAGING_TEXTURE_UPLOAD_THRESHOLD &&
       upload_size <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
   {
-    StreamBuffer* stream_buffer = TextureCache::GetInstance()->GetTextureUploadBuffer();
+    StreamBuffer* stream_buffer = g_object_cache->GetTextureUploadBuffer();
     if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
     {
       // Execute the command buffer first.
@@ -407,7 +407,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  ASSERT(m_type == StagingTextureType::Readback);
+  ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
@@ -459,9 +459,15 @@ void VKStagingTexture::CopyFromTexture(Texture2D* src, const MathUtil::Rectangle
   g_command_buffer_mgr->AddFencePointCallback(this,
                                               [this](VkCommandBuffer buf, VkFence fence) {
                                                 ASSERT(m_needs_flush);
+                                                if (m_flush_fence != VK_NULL_HANDLE)
+                                                  return;
+
                                                 m_flush_fence = fence;
                                               },
                                               [this](VkFence fence) {
+                                                if (m_flush_fence != fence)
+                                                  return;
+
                                                 m_flush_fence = VK_NULL_HANDLE;
                                                 m_needs_flush = false;
                                                 g_command_buffer_mgr->RemoveFencePointCallback(
@@ -474,7 +480,7 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                      u32 dst_level)
 {
-  ASSERT(m_type == StagingTextureType::Upload);
+  ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
@@ -520,9 +526,15 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   g_command_buffer_mgr->AddFencePointCallback(this,
                                               [this](VkCommandBuffer buf, VkFence fence) {
                                                 ASSERT(m_needs_flush);
+                                                if (m_flush_fence != VK_NULL_HANDLE)
+                                                  return;
+
                                                 m_flush_fence = fence;
                                               },
                                               [this](VkFence fence) {
+                                                if (m_flush_fence != fence)
+                                                  return;
+
                                                 m_flush_fence = VK_NULL_HANDLE;
                                                 m_needs_flush = false;
                                                 g_command_buffer_mgr->RemoveFencePointCallback(
@@ -563,7 +575,7 @@ void VKStagingTexture::Flush()
   m_needs_flush = false;
 
   // For readback textures, invalidate the CPU cache as there is new data there.
-  if (m_type == StagingTextureType::Readback)
+  if (m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable)
     m_staging_buffer->InvalidateCPUCache();
 }
 

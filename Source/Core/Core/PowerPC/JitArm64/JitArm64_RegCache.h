@@ -24,7 +24,7 @@ static const Arm64Gen::ARM64Reg DISPATCHER_PC =
 
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
-static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0,
+static_assert((PPCSTATE_OFF(ps[0].ps0) % 8) == 0,
               "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
 static_assert(PPCSTATE_OFF(xer_ca) < 4096, "STRB can't store xer_ca!");
 static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");

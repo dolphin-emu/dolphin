@@ -30,6 +30,10 @@ public class GameFile
 
   public native String getGameId();
 
+  public native int getDiscNumber();
+
+  public native int getRevision();
+
   public native int[] getBanner();
 
   public native int getBannerWidth();

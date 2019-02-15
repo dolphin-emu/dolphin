@@ -21,16 +21,12 @@ CommandBufferManager::CommandBufferManager(bool use_threaded_submission)
 
 CommandBufferManager::~CommandBufferManager()
 {
-  // If the worker thread is enabled, wait for it to exit.
+  // If the worker thread is enabled, stop and block until it exits.
   if (m_use_threaded_submission)
   {
-    // Wait for all command buffers to be consumed by the worker thread.
-    m_submit_semaphore.Wait();
     m_submit_loop->Stop();
     m_submit_thread.join();
   }
-
-  vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
   DestroyCommandBuffers();
 }
@@ -121,6 +117,17 @@ void CommandBufferManager::DestroyCommandBuffers()
 
   for (FrameResources& resources : m_frame_resources)
   {
+    // The Vulkan spec section 5.2 says: "When a pool is destroyed, all command buffers allocated
+    // from the pool are freed.". So we don't need to free the command buffers, just the pools.
+    // We destroy the command pool first, to avoid any warnings from the validation layers about
+    // objects which are pending destruction being in-use.
+    if (resources.command_pool != VK_NULL_HANDLE)
+    {
+      vkDestroyCommandPool(device, resources.command_pool, nullptr);
+      resources.command_pool = VK_NULL_HANDLE;
+    }
+
+    // Destroy any pending objects.
     for (auto& it : resources.cleanup_resources)
       it();
     resources.cleanup_resources.clear();
@@ -130,23 +137,11 @@ void CommandBufferManager::DestroyCommandBuffers()
       vkDestroyFence(device, resources.fence, nullptr);
       resources.fence = VK_NULL_HANDLE;
     }
+
     if (resources.descriptor_pool != VK_NULL_HANDLE)
     {
       vkDestroyDescriptorPool(device, resources.descriptor_pool, nullptr);
       resources.descriptor_pool = VK_NULL_HANDLE;
-    }
-    if (resources.command_buffers[0] != VK_NULL_HANDLE)
-    {
-      vkFreeCommandBuffers(device, resources.command_pool,
-                           static_cast<u32>(resources.command_buffers.size()),
-                           resources.command_buffers.data());
-
-      resources.command_buffers.fill(VK_NULL_HANDLE);
-    }
-    if (resources.command_pool != VK_NULL_HANDLE)
-    {
-      vkDestroyCommandPool(device, resources.command_pool, nullptr);
-      resources.command_pool = VK_NULL_HANDLE;
     }
   }
 }
@@ -501,4 +496,4 @@ void CommandBufferManager::RemoveFencePointCallback(const void* key)
 }
 
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
-}
+}  // namespace Vulkan

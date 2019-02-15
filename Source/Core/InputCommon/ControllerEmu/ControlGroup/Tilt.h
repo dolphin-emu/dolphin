@@ -4,26 +4,41 @@
 
 #pragma once
 
+#include <chrono>
 #include <string>
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+
+#include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
 {
-class Tilt : public ControlGroup
+class Tilt : public ReshapableInput
 {
 public:
-  struct StateData
-  {
-    ControlState x{};
-    ControlState y{};
-  };
+  using StateData = ReshapeData;
 
   explicit Tilt(const std::string& name);
 
-  StateData GetState(bool step = true);
+  ReshapeData GetReshapableState(bool adjusted) final override;
+  ControlState GetGateRadiusAtAngle(double angle) const final override;
+
+  // Tilt is using the gate radius to adjust the tilt angle so we must provide an unadjusted value
+  // for the default input radius.
+  ControlState GetDefaultInputRadiusAtAngle(double angle) const final override;
+
+  StateData GetState();
 
 private:
+  enum
+  {
+    SETTING_MAX_ANGLE = ReshapableInput::SETTING_COUNT,
+  };
+
+  static constexpr int MAX_DEG_PER_SEC = 360 * 6;
+
   StateData m_tilt;
+
+  using Clock = std::chrono::steady_clock;
+  Clock::time_point m_last_update;
 };
 }  // namespace ControllerEmu

@@ -90,7 +90,7 @@ int PadMappingDialog::exec()
 
       const auto index = gc ? m_pad_mapping[i] : m_wii_mapping[i];
 
-      combo->setCurrentIndex(index == -1 ? 0 : index);
+      combo->setCurrentIndex(index);
     }
   }
 
@@ -114,7 +114,7 @@ void PadMappingDialog::OnMappingChanged()
     int gc_id = m_gc_boxes[i]->currentIndex();
     int wii_id = m_wii_boxes[i]->currentIndex();
 
-    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : -1;
-    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : -1;
+    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
+    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : 0;
   }
 }

@@ -95,7 +95,7 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  return g_shader_cache->Initialize();
+  return g_renderer->Initialize() && g_shader_cache->Initialize();
 }
 
 void VideoSoftware::Shutdown()

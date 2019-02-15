@@ -54,6 +54,15 @@ bool ObjectCache::Initialize()
   if (!CreateStaticSamplers())
     return false;
 
+  m_texture_upload_buffer =
+      StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE,
+                           MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE);
+  if (!m_texture_upload_buffer)
+  {
+    PanicAlert("Failed to create texture upload buffer");
+    return false;
+  }
+
   m_utility_shader_vertex_buffer =
       StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
   m_utility_shader_uniform_buffer =

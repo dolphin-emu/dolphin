@@ -49,15 +49,12 @@ public:
                           TLUTFormat palette_format) override;
 
   VkShaderModule GetCopyShader() const;
-  StreamBuffer* GetTextureUploadBuffer() const;
 
 private:
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
                            bool scale_by_half, EFBCopyFormat dst_format, bool is_intensity,
                            float gamma, bool clamp_top, bool clamp_bottom,
                            const CopyFilterCoefficientArray& filter_coefficients) override;
-
-  std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
   std::unique_ptr<TextureConverter> m_texture_converter;
 

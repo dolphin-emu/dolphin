@@ -13,7 +13,8 @@
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -505,7 +506,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
 
   bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
 
-  if (g_jit->jo.memcheck)
+  if (m_jit.jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
     int flags = isInline ? 0 :
@@ -632,7 +633,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   int size = single ? 32 : 64;
   bool extend = false;
 
-  if (g_jit->jo.memcheck)
+  if (m_jit.jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
     int flags = isInline ? 0 :
@@ -643,7 +644,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
 
   if (single)
   {
-    if (g_jit->jo.memcheck)
+    if (m_jit.jo.memcheck)
     {
       MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
     }
@@ -668,7 +669,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
     // for a good reason, or merely because no game does this.
     // If we find something that actually does do this, maybe this should be changed. How
     // much of a performance hit would it be?
-    if (g_jit->jo.memcheck)
+    if (m_jit.jo.memcheck)
     {
       ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
       MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));

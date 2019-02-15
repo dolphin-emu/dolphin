@@ -95,10 +95,13 @@ bool WiimoteAndroid::IsConnected() const
 int WiimoteAndroid::IORead(u8* buf)
 {
   int read_size = m_env->CallStaticIntMethod(s_adapter_class, m_input_func, m_mayflash_index);
-  jbyte* java_data = m_env->GetByteArrayElements(m_java_wiimote_payload, nullptr);
-  memcpy(buf + 1, java_data, std::min(MAX_PAYLOAD - 1, read_size));
-  buf[0] = 0xA1;
-  m_env->ReleaseByteArrayElements(m_java_wiimote_payload, java_data, 0);
+  if (read_size > 0)
+  {
+    jbyte* java_data = m_env->GetByteArrayElements(m_java_wiimote_payload, nullptr);
+    memcpy(buf + 1, java_data, std::min(MAX_PAYLOAD - 1, read_size));
+    buf[0] = 0xA1;
+    m_env->ReleaseByteArrayElements(m_java_wiimote_payload, java_data, 0);
+  }
   return read_size <= 0 ? read_size : read_size + 1;
 }
 

@@ -26,13 +26,6 @@ void MappingRadio::Connect()
   });
 }
 
-void MappingRadio::Clear()
-{
-  m_setting->SetValue(false);
-  m_parent->SaveSettings();
-  Update();
-}
-
 void MappingRadio::Update()
 {
   setChecked(m_setting->GetValue());

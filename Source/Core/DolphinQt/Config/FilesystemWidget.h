@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QIcon>
 #include <memory>
 
 #include "UICommon/GameFile.h"
@@ -53,4 +54,7 @@ private:
 
   UICommon::GameFile m_game;
   std::unique_ptr<DiscIO::Volume> m_volume;
+
+  QIcon m_folder_icon;
+  QIcon m_file_icon;
 };

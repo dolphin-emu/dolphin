@@ -30,7 +30,31 @@ private:
 };
 }  // namespace Common
 
-#else  // _WIN32
+#elif defined(__APPLE__)
+
+#include <dispatch/dispatch.h>
+
+namespace Common
+{
+class Semaphore
+{
+public:
+  Semaphore(int initial_count, int maximum_count)
+  {
+    m_handle = dispatch_semaphore_create(0);
+    for (int i = 0; i < initial_count; i++)
+      dispatch_semaphore_signal(m_handle);
+  }
+  ~Semaphore() { dispatch_release(m_handle); }
+  void Wait() { dispatch_semaphore_wait(m_handle, DISPATCH_TIME_FOREVER); }
+  void Post() { dispatch_semaphore_signal(m_handle); }
+
+private:
+  dispatch_semaphore_t m_handle;
+};
+}  // namespace Common
+
+#else
 
 #include <semaphore.h>
 

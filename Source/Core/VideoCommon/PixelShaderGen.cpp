@@ -351,7 +351,7 @@ void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
-                                  bool per_pixel_lighting, bool bounding_box)
+                                  const ShaderHostConfig& host_config, bool bounding_box)
 {
   // dot product for integer vectors
   out.Write("int idot(int3 x, int3 y)\n"
@@ -430,7 +430,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "#define bpmem_tevorder(i) (bpmem_pack2[(i)].x)\n"
             "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n\n");
 
-  if (per_pixel_lighting)
+  if (host_config.per_pixel_lighting)
   {
     out.Write("%s", s_lighting_struct);
 
@@ -448,7 +448,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
     if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
     {
       out.Write("SSBO_BINDING(0) buffer BBox {\n"
-                "\tint4 bbox_data;\n"
+                "\tint bbox_left, bbox_right, bbox_top, bbox_bottom;\n"
                 "};\n");
     }
     else
@@ -458,7 +458,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
   }
 
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, num_texgens, per_pixel_lighting, "");
+  GenerateVSOutputMembers(out, ApiType, num_texgens, host_config, "");
   out.Write("};\n");
 }
 
@@ -491,7 +491,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
             uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
-  WritePixelShaderCommonHeader(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
+  WritePixelShaderCommonHeader(out, ApiType, uid_data->genMode_numtexgens, host_config,
                                uid_data->bounding_box);
 
   if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
@@ -587,11 +587,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     if (uid_data->per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
-      GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
+      GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
       if (stereo)
@@ -601,19 +600,26 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
-      // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       {
-        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
+        out.Write("VARYING_LOCATION(%u) %s in float3 tex%d;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
       }
-      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      if (!host_config.fast_depth_calc)
+        out.Write("VARYING_LOCATION(%u) %s in float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
     }
 
@@ -646,8 +652,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       out.Write(",\n  in %s float3 tex%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i,
                 i);
-    out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
-              uid_data->genMode_numtexgens);
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
+                uid_data->genMode_numtexgens);
+    }
     if (per_pixel_lighting)
     {
       out.Write(",\n  in %s float3 Normal : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
@@ -655,8 +664,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
                 uid_data->genMode_numtexgens + 2);
     }
-    out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
-    out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
+    if (host_config.backend_geometry_shaders)
+    {
+      out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
+      out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
+    }
     if (stereo)
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {\n");
@@ -853,13 +865,21 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   if (uid_data->bounding_box)
   {
-    const char* atomic_op =
-        (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan) ? "atomic" : "Interlocked";
-    out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
-              "\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n"
-              "\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n"
-              "\tif(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
-              atomic_op, atomic_op, atomic_op, atomic_op);
+    if (ApiType == APIType::D3D)
+    {
+      out.Write(
+          "\tif(bbox_data[0] > int(rawpos.x)) InterlockedMin(bbox_data[0], int(rawpos.x));\n"
+          "\tif(bbox_data[1] < int(rawpos.x)) InterlockedMax(bbox_data[1], int(rawpos.x));\n"
+          "\tif(bbox_data[2] > int(rawpos.y)) InterlockedMin(bbox_data[2], int(rawpos.y));\n"
+          "\tif(bbox_data[3] < int(rawpos.y)) InterlockedMax(bbox_data[3], int(rawpos.y));\n");
+    }
+    else
+    {
+      out.Write("\tif(bbox_left > int(rawpos.x)) atomicMin(bbox_left, int(rawpos.x));\n"
+                "\tif(bbox_right < int(rawpos.x)) atomicMax(bbox_right, int(rawpos.x));\n"
+                "\tif(bbox_top > int(rawpos.y)) atomicMin(bbox_top, int(rawpos.y));\n"
+                "\tif(bbox_bottom < int(rawpos.y)) atomicMax(bbox_bottom, int(rawpos.y));\n");
+    }
   }
 
   out.Write("}\n");

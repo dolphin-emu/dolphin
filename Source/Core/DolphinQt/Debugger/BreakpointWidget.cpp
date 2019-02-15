@@ -223,7 +223,7 @@ void BreakpointWidget::Update()
 
 void BreakpointWidget::OnDelete()
 {
-  if (m_table->selectedItems().size() == 0)
+  if (m_table->selectedItems().empty())
     return;
 
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();

@@ -98,7 +98,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
+  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
@@ -341,11 +341,12 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     rSPR(index) &= 0xF8000000;
     break;
 
-  case SPR_HID2:  // HID2
-    // TODO: generate illegal instruction for paired inst if PSE or LSQE
-    // not set.
+  case SPR_HID2:
     // TODO: disable write gather pipe if WPE not set
     // TODO: emulate locked cache and DMA bits.
+    // Only the lower half of the register (upper half from a little endian perspective)
+    // is modifiable, except for the DMAQL field.
+    rSPR(index) = (rSPR(index) & 0xF0FF0000) | (old_value & 0x0F000000);
     break;
 
   case SPR_HID4:
@@ -554,7 +555,7 @@ void Interpreter::mffsx(UGeckoInstruction inst)
   // TODO(ector): grab all overflow flags etc and set them in FPSCR
 
   UpdateFPSCR();
-  riPS0(inst.FD) = 0xFFF8000000000000 | FPSCR.Hex;
+  rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
 
   if (inst.Rc)
     Helper_UpdateCR1();

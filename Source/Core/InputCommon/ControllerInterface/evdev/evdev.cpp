@@ -39,11 +39,11 @@ static void HotplugThreadFunc()
   Common::SetCurrentThreadName("evdev Hotplug Thread");
   NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread started");
 
-  udev* udev = udev_new();
+  udev* const udev = udev_new();
   ASSERT_MSG(PAD, udev != nullptr, "Couldn't initialize libudev.");
 
   // Set up monitoring
-  udev_monitor* monitor = udev_monitor_new_from_netlink(udev, "udev");
+  udev_monitor* const monitor = udev_monitor_new_from_netlink(udev, "udev");
   udev_monitor_filter_add_match_subsystem_devtype(monitor, "input", nullptr);
   udev_monitor_enable_receiving(monitor);
   const int monitor_fd = udev_monitor_get_fd(monitor);
@@ -56,15 +56,16 @@ static void HotplugThreadFunc()
     FD_SET(monitor_fd, &fds);
     FD_SET(s_wakeup_eventfd, &fds);
 
-    int ret = select(std::max(monitor_fd, s_wakeup_eventfd) + 1, &fds, nullptr, nullptr, nullptr);
+    const int ret =
+        select(std::max(monitor_fd, s_wakeup_eventfd) + 1, &fds, nullptr, nullptr, nullptr);
     if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
       continue;
 
     std::unique_ptr<udev_device, decltype(&udev_device_unref)> dev{
         udev_monitor_receive_device(monitor), udev_device_unref};
 
-    const char* action = udev_device_get_action(dev.get());
-    const char* devnode = udev_device_get_devnode(dev.get());
+    const char* const action = udev_device_get_action(dev.get());
+    const char* const devnode = udev_device_get_devnode(dev.get());
     if (!devnode)
       continue;
 
@@ -72,16 +73,21 @@ static void HotplugThreadFunc()
     {
       const auto it = s_devnode_name_map.find(devnode);
       if (it == s_devnode_name_map.end())
-        continue;  // we don't know the name for this device, so it is probably not an evdev device
+      {
+        // We don't know the name for this device, so it is probably not an evdev device.
+        continue;
+      }
+
       const std::string& name = it->second;
       g_controller_interface.RemoveDevice([&name](const auto& device) {
         return device->GetSource() == "evdev" && device->GetName() == name && !device->IsValid();
       });
+
       s_devnode_name_map.erase(devnode);
     }
     else if (strcmp(action, "add") == 0)
     {
-      auto device = std::make_shared<evdevDevice>(devnode);
+      const auto device = std::make_shared<evdevDevice>(devnode);
       if (device->IsInteresting())
       {
         s_devnode_name_map.emplace(devnode, device->GetName());
@@ -96,8 +102,10 @@ static void StartHotplugThread()
 {
   // Mark the thread as running.
   if (!s_hotplug_thread_running.TestAndSet())
+  {
     // It was already running.
     return;
+  }
 
   s_wakeup_eventfd = eventfd(0, 0);
   ASSERT_MSG(PAD, s_wakeup_eventfd != -1, "Couldn't create eventfd.");
@@ -108,13 +116,15 @@ static void StopHotplugThread()
 {
   // Tell the hotplug thread to stop.
   if (!s_hotplug_thread_running.TestAndClear())
+  {
     // It wasn't running, we're done.
     return;
-  // Write something to efd so that select() stops blocking.
-  uint64_t value = 1;
-  if (write(s_wakeup_eventfd, &value, sizeof(uint64_t)) < 0)
-  {
   }
+
+  // Write something to efd so that select() stops blocking.
+  const uint64_t value = 1;
+  static_cast<void>(write(s_wakeup_eventfd, &value, sizeof(uint64_t)));
+
   s_hotplug_thread.join();
   close(s_wakeup_eventfd);
 }
@@ -131,14 +141,14 @@ void PopulateDevices()
   // Note: the Linux kernel is currently limited to just 32 event devices. If
   // this ever changes, hopefully udev will take care of this.
 
-  udev* udev = udev_new();
+  udev* const udev = udev_new();
   ASSERT_MSG(PAD, udev != nullptr, "Couldn't initialize libudev.");
 
   // List all input devices
-  udev_enumerate* enumerate = udev_enumerate_new(udev);
+  udev_enumerate* const enumerate = udev_enumerate_new(udev);
   udev_enumerate_add_match_subsystem(enumerate, "input");
   udev_enumerate_scan_devices(enumerate);
-  udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
+  udev_list_entry* const devices = udev_enumerate_get_list_entry(enumerate);
 
   // Iterate over all input devices
   udev_list_entry* dev_list_entry;
@@ -153,7 +163,7 @@ void PopulateDevices()
     {
       // Unfortunately udev gives us no way to filter out the non event device interfaces.
       // So we open it and see if it works with evdev ioctls or not.
-      auto input = std::make_shared<evdevDevice>(devnode);
+      const auto input = std::make_shared<evdevDevice>(devnode);
 
       if (input->IsInteresting())
       {
@@ -178,59 +188,82 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
   m_fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);
   if (m_fd == -1)
   {
-    m_initialized = false;
     return;
   }
 
-  int ret = libevdev_new_from_fd(m_fd, &m_dev);
-
-  if (ret != 0)
+  if (libevdev_new_from_fd(m_fd, &m_dev) != 0)
   {
-    // This useally fails because the device node isn't an evdev device, such as /dev/input/js0
-    m_initialized = false;
+    // This usually fails because the device node isn't an evdev device, such as /dev/input/js0
     close(m_fd);
+    m_fd = -1;
     return;
   }
 
   m_name = StripSpaces(libevdev_get_name(m_dev));
 
-  // Controller buttons (and keyboard keys)
+  // Buttons (and keyboard keys)
   int num_buttons = 0;
   for (int key = 0; key < KEY_MAX; key++)
+  {
     if (libevdev_has_event_code(m_dev, EV_KEY, key))
       AddInput(new Button(num_buttons++, key, m_dev));
+  }
 
   // Absolute axis (thumbsticks)
   int num_axis = 0;
   for (int axis = 0; axis < 0x100; axis++)
+  {
     if (libevdev_has_event_code(m_dev, EV_ABS, axis))
     {
       AddAnalogInputs(new Axis(num_axis, axis, false, m_dev),
                       new Axis(num_axis, axis, true, m_dev));
-      num_axis++;
+      ++num_axis;
     }
+  }
 
-  // Force feedback
+  // Disable autocenter
+  if (libevdev_has_event_code(m_dev, EV_FF, FF_AUTOCENTER))
+  {
+    input_event ie = {};
+    ie.type = EV_FF;
+    ie.code = FF_AUTOCENTER;
+    ie.value = 0;
+
+    static_cast<void>(write(m_fd, &ie, sizeof(ie)));
+  }
+
+  // Constant FF effect
+  if (libevdev_has_event_code(m_dev, EV_FF, FF_CONSTANT))
+  {
+    AddOutput(new ConstantEffect(m_fd));
+  }
+
+  // Periodic FF effects
   if (libevdev_has_event_code(m_dev, EV_FF, FF_PERIODIC))
   {
-    for (auto type : {FF_SINE, FF_SQUARE, FF_TRIANGLE, FF_SAW_UP, FF_SAW_DOWN})
-      if (libevdev_has_event_code(m_dev, EV_FF, type))
-        AddOutput(new ForceFeedback(type, m_dev));
+    for (auto wave : {FF_SINE, FF_SQUARE, FF_TRIANGLE, FF_SAW_UP, FF_SAW_DOWN})
+    {
+      if (libevdev_has_event_code(m_dev, EV_FF, wave))
+        AddOutput(new PeriodicEffect(m_fd, wave));
+    }
   }
+
+  // Rumble (i.e. Left/Right) (i.e. Strong/Weak) effect
   if (libevdev_has_event_code(m_dev, EV_FF, FF_RUMBLE))
   {
-    AddOutput(new ForceFeedback(FF_RUMBLE, m_dev));
+    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::STRONG));
+    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::WEAK));
   }
 
   // TODO: Add leds as output devices
 
-  m_initialized = true;
+  // Was there some reasoning behind these numbers?
   m_interesting = num_axis >= 2 || num_buttons >= 8;
 }
 
 evdevDevice::~evdevDevice()
 {
-  if (m_initialized)
+  if (m_fd != -1)
   {
     libevdev_free(m_dev);
     close(m_fd);
@@ -242,15 +275,15 @@ void evdevDevice::UpdateInput()
   // Run through all evdev events
   // libevdev will keep track of the actual controller state internally which can be queried
   // later with libevdev_fetch_event_value()
-  input_event ev;
   int rc = LIBEVDEV_READ_STATUS_SUCCESS;
-  do
+  while (rc >= 0)
   {
-    if (rc == LIBEVDEV_READ_STATUS_SYNC)
+    input_event ev;
+    if (LIBEVDEV_READ_STATUS_SYNC == rc)
       rc = libevdev_next_event(m_dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
     else
       rc = libevdev_next_event(m_dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
-  } while (rc >= 0);
+  }
 }
 
 bool evdevDevice::IsValid() const
@@ -291,15 +324,18 @@ ControlState evdevDevice::Button::GetState() const
 }
 
 evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, libevdev* dev)
-    : m_code(code), m_index(index), m_upper(upper), m_dev(dev)
+    : m_code(code), m_index(index), m_dev(dev)
 {
-  m_min = libevdev_get_abs_minimum(m_dev, m_code);
-  m_range = libevdev_get_abs_maximum(m_dev, m_code) - m_min;
+  const int min = libevdev_get_abs_minimum(m_dev, m_code);
+  const int max = libevdev_get_abs_maximum(m_dev, m_code);
+
+  m_base = (max + min) / 2;
+  m_range = (upper ? max : min) - m_base;
 }
 
 std::string evdevDevice::Axis::GetName() const
 {
-  return "Axis " + std::to_string(m_index) + (m_upper ? "+" : "-");
+  return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
 }
 
 ControlState evdevDevice::Axis::GetState() const
@@ -307,105 +343,155 @@ ControlState evdevDevice::Axis::GetState() const
   int value = 0;
   libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
 
-  // Value from 0.0 to 1.0
-  ControlState fvalue = MathUtil::Clamp(double(value - m_min) / double(m_range), 0.0, 1.0);
-
-  // Split into two axis, each covering half the range from 0.0 to 1.0
-  if (m_upper)
-    return std::max(0.0, fvalue - 0.5) * 2.0;
-  else
-    return (0.5 - std::min(0.5, fvalue)) * 2.0;
+  return std::max(0.0, ControlState(value - m_base) / m_range);
 }
 
-std::string evdevDevice::ForceFeedback::GetName() const
+evdevDevice::Effect::Effect(int fd) : m_fd(fd)
 {
-  // We have some default names.
-  switch (m_type)
+  m_effect.id = -1;
+  // Left (for wheels):
+  m_effect.direction = 0x4000;
+  m_effect.replay.length = RUMBLE_LENGTH_MS;
+
+  // FYI: type is set within UpdateParameters.
+  m_effect.type = DISABLED_EFFECT_TYPE;
+}
+
+std::string evdevDevice::ConstantEffect::GetName() const
+{
+  return "Constant";
+}
+
+std::string evdevDevice::PeriodicEffect::GetName() const
+{
+  switch (m_effect.u.periodic.waveform)
   {
-  case FF_SINE:
-    return "Sine";
-  case FF_TRIANGLE:
-    return "Triangle";
   case FF_SQUARE:
     return "Square";
-  case FF_RUMBLE:
-    return "LeftRight";
+  case FF_TRIANGLE:
+    return "Triangle";
+  case FF_SINE:
+    return "Sine";
+  case FF_SAW_UP:
+    return "Sawtooth Up";
+  case FF_SAW_DOWN:
+    return "Sawtooth Down";
   default:
-  {
-    const char* name = libevdev_event_code_get_name(EV_FF, m_type);
-    if (name)
-      return StripSpaces(name);
     return "Unknown";
-  }
   }
 }
 
-void evdevDevice::ForceFeedback::SetState(ControlState state)
+std::string evdevDevice::RumbleEffect::GetName() const
+{
+  return (Motor::STRONG == m_motor) ? "Strong" : "Weak";
+}
+
+void evdevDevice::Effect::SetState(ControlState state)
+{
+  if (UpdateParameters(state))
+  {
+    // Update effect if parameters changed.
+    UpdateEffect();
+  }
+}
+
+void evdevDevice::Effect::UpdateEffect()
 {
   // libevdev doesn't have nice helpers for forcefeedback
   // we will use the file descriptors directly.
 
-  if (m_id != -1)  // delete the previous effect (which also stops it)
+  // Note: m_effect.type is set within UpdateParameters
+  // to determine if effect should be playing or not.
+  if (m_effect.type != DISABLED_EFFECT_TYPE)
   {
-    ioctl(m_fd, EVIOCRMFF, m_id);
-    m_id = -1;
+    if (-1 == m_effect.id)
+    {
+      // If effect was not uploaded (previously stopped)
+      // we upload it and start playback
+
+      ioctl(m_fd, EVIOCSFF, &m_effect);
+
+      input_event play = {};
+      play.type = EV_FF;
+      play.code = m_effect.id;
+      play.value = 1;
+
+      static_cast<void>(write(m_fd, &play, sizeof(play)));
+    }
+    else
+    {
+      // Effect is already playing. Just update parameters.
+      ioctl(m_fd, EVIOCSFF, &m_effect);
+    }
   }
-
-  if (state > 0)  // Upload and start an effect.
+  else
   {
-    ff_effect effect;
-
-    effect.id = -1;
-    effect.direction = 0;        // down
-    effect.replay.length = 500;  // 500ms
-    effect.replay.delay = 0;
-    effect.trigger.button = 0;  // don't trigger on button press
-    effect.trigger.interval = 0;
-
-    // This is the the interface that XInput uses, with 2 motors of differing sizes/frequencies that
-    // are controlled seperatally
-    if (m_type == FF_RUMBLE)
-    {
-      effect.type = FF_RUMBLE;
-      // max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360 controller
-      effect.u.rumble.strong_magnitude = u16(state * 0x4000);
-      effect.u.rumble.weak_magnitude = u16(state * 0xFFFF);
-    }
-    else  // FF_PERIODIC, a more generic interface.
-    {
-      effect.type = FF_PERIODIC;
-      effect.u.periodic.waveform = m_type;
-      effect.u.periodic.phase = 0x7fff;  // 180 degrees
-      effect.u.periodic.offset = 0;
-      effect.u.periodic.period = 10;
-      effect.u.periodic.magnitude = s16(state * 0x7FFF);
-      effect.u.periodic.envelope.attack_length = 0;  // no attack
-      effect.u.periodic.envelope.attack_level = 0;
-      effect.u.periodic.envelope.fade_length = 0;
-      effect.u.periodic.envelope.fade_level = 0;
-    }
-
-    ioctl(m_fd, EVIOCSFF, &effect);
-    m_id = effect.id;
-
-    input_event play;
-    play.type = EV_FF;
-    play.code = m_id;
-    play.value = 1;
-
-    if (write(m_fd, &play, sizeof(play)) < 0)
-    {
-    }
+    // Stop and remove effect.
+    ioctl(m_fd, EVIOCRMFF, m_effect.id);
+    m_effect.id = -1;
   }
 }
 
-evdevDevice::ForceFeedback::~ForceFeedback()
+evdevDevice::ConstantEffect::ConstantEffect(int fd) : Effect(fd)
 {
-  // delete the uploaded effect, so we don't leak it.
-  if (m_id != -1)
-  {
-    ioctl(m_fd, EVIOCRMFF, m_id);
-  }
+  m_effect.u.constant = {};
 }
+
+evdevDevice::PeriodicEffect::PeriodicEffect(int fd, u16 waveform) : Effect(fd)
+{
+  m_effect.u.periodic = {};
+  m_effect.u.periodic.waveform = waveform;
+  m_effect.u.periodic.period = RUMBLE_PERIOD_MS;
+  m_effect.u.periodic.offset = 0;
+  m_effect.u.periodic.phase = 0;
 }
+
+evdevDevice::RumbleEffect::RumbleEffect(int fd, Motor motor) : Effect(fd), m_motor(motor)
+{
+  m_effect.u.rumble = {};
 }
+
+bool evdevDevice::ConstantEffect::UpdateParameters(ControlState state)
+{
+  s16& value = m_effect.u.constant.level;
+  const s16 old_value = value;
+
+  constexpr s16 MAX_VALUE = 0x7fff;
+  value = s16(state * MAX_VALUE);
+
+  m_effect.type = value ? FF_CONSTANT : DISABLED_EFFECT_TYPE;
+  return value != old_value;
+}
+
+bool evdevDevice::PeriodicEffect::UpdateParameters(ControlState state)
+{
+  s16& value = m_effect.u.periodic.magnitude;
+  const s16 old_value = value;
+
+  constexpr s16 MAX_VALUE = 0x7fff;
+  value = s16(state * MAX_VALUE);
+
+  m_effect.type = value ? FF_PERIODIC : DISABLED_EFFECT_TYPE;
+  return value != old_value;
+}
+
+bool evdevDevice::RumbleEffect::UpdateParameters(ControlState state)
+{
+  u16& value = (Motor::STRONG == m_motor) ? m_effect.u.rumble.strong_magnitude :
+                                            m_effect.u.rumble.weak_magnitude;
+  const u16 old_value = value;
+
+  constexpr u16 MAX_VALUE = 0xffff;
+  value = u16(state * MAX_VALUE);
+
+  m_effect.type = value ? FF_RUMBLE : DISABLED_EFFECT_TYPE;
+  return value != old_value;
+}
+
+evdevDevice::Effect::~Effect()
+{
+  m_effect.type = DISABLED_EFFECT_TYPE;
+  UpdateEffect();
+}
+}  // namespace evdev
+}  // namespace ciface

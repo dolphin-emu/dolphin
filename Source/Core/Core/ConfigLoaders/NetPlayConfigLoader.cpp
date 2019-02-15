@@ -64,6 +64,7 @@ public:
     layer->Set(Config::MAIN_FASTMEM, m_settings.m_Fastmem);
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
     layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
+    layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
 
     if (m_settings.m_StrictSettingsSync)
     {
@@ -104,6 +105,13 @@ public:
       }
 
       layer->Set(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY, true);
+    }
+
+    // Check To Override Client's Cheat Codes
+    if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
+    {
+      // Raise flag to use host's codes
+      layer->Set(Config::MAIN_CODE_SYNC_OVERRIDE, true);
     }
   }
 

@@ -126,7 +126,7 @@ ciface::Core::Device::Control* InputReference::Detect(const unsigned int ms,
   unsigned int time = 0;
   std::vector<bool> states(device->Inputs().size());
 
-  if (device->Inputs().size() == 0)
+  if (device->Inputs().empty())
     return nullptr;
 
   // get starting state of all inputs,

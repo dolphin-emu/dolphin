@@ -63,6 +63,8 @@
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\GameConfigEdit.h" />
+    <QtMoc Include="Config\GameConfigHighlighter.h" />
     <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
@@ -141,6 +143,7 @@
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
+    <QtMoc Include="NetPlay\ChunkedProgressDialog.h" />
     <QtMoc Include="NetPlay\GameListDialog.h" />
     <QtMoc Include="NetPlay\MD5Dialog.h" />
     <QtMoc Include="NetPlay\NetPlayDialog.h" />
@@ -174,6 +177,7 @@
     <ClCompile Include="$(QtMocOutPrefix)CheatCodeEditor.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatsManager.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ChunkedProgressDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
@@ -192,6 +196,8 @@
     <ClCompile Include="$(QtMocOutPrefix)GCPadEmu.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GCTASInputWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameConfigEdit.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameConfigHighlighter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameConfigWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameCubePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
@@ -273,6 +279,8 @@
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\GameConfigEdit.cpp" />
+    <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
     <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
@@ -329,6 +337,7 @@
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
+    <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
     <ClCompile Include="TAS\TASInputWindow.cpp" />
@@ -350,6 +359,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="NetPlay\ChunkedProgressDialog.cpp" />
     <ClCompile Include="NetPlay\GameListDialog.cpp" />
     <ClCompile Include="NetPlay\MD5Dialog.cpp" />
     <ClCompile Include="NetPlay\NetPlayDialog.cpp" />
@@ -390,6 +400,7 @@
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
     <ClInclude Include="QtUtils\WinIconHelper.h" />
+    <ClInclude Include="ResourcePackManager.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
@@ -457,6 +468,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\imgui\imgui.vcxproj">
+      <Project>{4c3b2264-ea73-4a7b-9cfe-65b0fd635ebb}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

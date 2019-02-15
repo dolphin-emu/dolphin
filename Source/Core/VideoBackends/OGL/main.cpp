@@ -172,14 +172,15 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
-  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context));
+  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();
   g_texture_cache = std::make_unique<TextureCache>();
   g_sampler_cache = std::make_unique<SamplerCache>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  static_cast<Renderer*>(g_renderer.get())->Init();
+  if (!g_renderer->Initialize())
+    return false;
   TextureConverter::Init();
   BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
   return g_shader_cache->Initialize();

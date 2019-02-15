@@ -64,7 +64,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_framebuffer_manager = std::make_unique<FramebufferManagerBase>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  return g_shader_cache->Initialize();
+  return g_renderer->Initialize() && g_shader_cache->Initialize();
 }
 
 void VideoBackend::Shutdown()

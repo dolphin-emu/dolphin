@@ -33,7 +33,6 @@
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/RasterFont.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/TextureCache.h"
@@ -57,14 +56,9 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static std::unique_ptr<RasterFont> s_raster_font;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static u32 s_last_multisamples = 1;
-static bool s_last_stereo_mode = false;
-
-static bool s_vsync;
 
 // EFB cache related
 static const u32 EFB_CACHE_RECT_SIZE = 64;  // Cache 64x64 blocks.
@@ -353,10 +347,14 @@ static void InitDriverInfo()
 }
 
 // Init functions
-Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
+Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale)
     : ::Renderer(static_cast<int>(std::max(main_gl_context->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u))),
-      m_main_gl_context(std::move(main_gl_context))
+                 static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u)),
+                 backbuffer_scale, AbstractTextureFormat::RGBA8),
+      m_main_gl_context(std::move(main_gl_context)),
+      m_current_rasterization_state(RenderState::GetInvalidRasterizationState()),
+      m_current_depth_state(RenderState::GetInvalidDepthState()),
+      m_current_blend_state(RenderState::GetInvalidBlendingState())
 {
   bool bSuccess = true;
 
@@ -723,9 +721,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 
-  // Since we modify the config here, we need to update the last host bits, it may have changed.
-  m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
-
   OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", g_ogl_config.gl_vendor,
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
@@ -754,15 +749,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
            g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
            g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
 
-  s_last_multisamples = g_ActiveConfig.iMultisamples;
-  s_MSAASamples = s_last_multisamples;
-
-  s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
-
   // Handle VSync on/off
-  s_vsync = g_ActiveConfig.IsVSync();
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-    m_main_gl_context->SwapInterval(s_vsync);
+    m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
@@ -811,19 +800,11 @@ bool Renderer::IsHeadless() const
   return m_main_gl_context->IsHeadless();
 }
 
-void Renderer::Shutdown()
+bool Renderer::Initialize()
 {
-  ::Renderer::Shutdown();
-  g_framebuffer_manager.reset();
+  if (!::Renderer::Initialize())
+    return false;
 
-  UpdateActiveConfig();
-
-  s_raster_font.reset();
-  m_post_processor.reset();
-}
-
-void Renderer::Init()
-{
   // Initialize the FramebufferManager
   g_framebuffer_manager = std::make_unique<FramebufferManager>(
       m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
@@ -831,7 +812,17 @@ void Renderer::Init()
   m_current_framebuffer_height = m_target_height;
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
-  s_raster_font = std::make_unique<RasterFont>();
+  return true;
+}
+
+void Renderer::Shutdown()
+{
+  ::Renderer::Shutdown();
+  g_framebuffer_manager.reset();
+
+  UpdateActiveConfig();
+
+  m_post_processor.reset();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -851,21 +842,6 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 {
   return OGLFramebuffer::Create(static_cast<const OGLTexture*>(color_attachment),
                                 static_cast<const OGLTexture*>(depth_attachment));
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  int screen_width = m_backbuffer_width;
-  int screen_height = m_backbuffer_height;
-  if (screen_width >= 2000)
-  {
-    screen_width /= 2;
-    screen_height /= 2;
-  }
-
-  s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(screen_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(screen_height), 0,
-                                    screen_width, screen_height, color);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
@@ -914,7 +890,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 {
   const u32 cacheType = (type == EFBAccessType::PeekZ ? 0 : 1);
 
-  if (!s_efbCache[cacheType][cacheRectIdx].size())
+  if (s_efbCache[cacheType][cacheRectIdx].empty())
     s_efbCache[cacheType][cacheRectIdx].resize(EFB_CACHE_RECT_SIZE * EFB_CACHE_RECT_SIZE);
 
   u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
@@ -1178,6 +1154,27 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   glDepthRangef(near_depth, far_depth);
 }
 
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  glDrawArrays(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(), base_vertex,
+               num_vertices);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  if (g_ogl_config.bSupportsGLBaseVertex)
+  {
+    glDrawElementsBaseVertex(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(),
+                             num_indices, GL_UNSIGNED_SHORT,
+                             static_cast<u16*>(nullptr) + base_index, base_vertex);
+  }
+  else
+  {
+    glDrawElements(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(),
+                   num_indices, GL_UNSIGNED_SHORT, static_cast<u16*>(nullptr) + base_index);
+  }
+}
+
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z)
 {
@@ -1210,37 +1207,55 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   ClearEFBCache();
 }
 
-void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture,
-                          int src_width, int src_height)
+void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc)
 {
+  TargetRectangle source_rc = rc;
+  source_rc.top = rc.GetHeight();
+  source_rc.bottom = 0;
+
+  // Check if we need to render to a new surface.
+  TargetRectangle flipped_trc = GetTargetRectangle();
+  std::swap(flipped_trc.top, flipped_trc.bottom);
+
+  // Copy the framebuffer to screen.
   OpenGLPostProcessing* post_processor = static_cast<OpenGLPostProcessing*>(m_post_processor.get());
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
-    TargetRectangle leftRc, rightRc;
+    TargetRectangle left_rc, right_rc;
 
     // Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
     if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
-      std::tie(rightRc, leftRc) = ConvertStereoRectangle(dst);
+      std::tie(right_rc, left_rc) = ConvertStereoRectangle(flipped_trc);
     else
-      std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
+      std::tie(left_rc, right_rc) = ConvertStereoRectangle(flipped_trc);
 
-    post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
-    post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
+    post_processor->BlitFromTexture(source_rc, left_rc,
+                                    static_cast<const OGLTexture*>(texture)->GetRawTexIdentifier(),
+                                    texture->GetWidth(), texture->GetHeight(), 0);
+    post_processor->BlitFromTexture(source_rc, right_rc,
+                                    static_cast<const OGLTexture*>(texture)->GetRawTexIdentifier(),
+                                    texture->GetWidth(), texture->GetHeight(), 1);
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer)
   {
     glDrawBuffer(GL_BACK_LEFT);
-    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
+    post_processor->BlitFromTexture(source_rc, flipped_trc,
+                                    static_cast<const OGLTexture*>(texture)->GetRawTexIdentifier(),
+                                    texture->GetWidth(), texture->GetHeight(), 0);
 
     glDrawBuffer(GL_BACK_RIGHT);
-    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 1);
+    post_processor->BlitFromTexture(source_rc, flipped_trc,
+                                    static_cast<const OGLTexture*>(texture)->GetRawTexIdentifier(),
+                                    texture->GetWidth(), texture->GetHeight(), 1);
 
     glDrawBuffer(GL_BACK);
   }
   else
   {
-    post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
+    post_processor->BlitFromTexture(source_rc, flipped_trc,
+                                    static_cast<const OGLTexture*>(texture)->GetRawTexIdentifier(),
+                                    texture->GetWidth(), texture->GetHeight(), 0);
   }
 }
 
@@ -1375,8 +1390,20 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
   m_current_blend_state = state;
 }
 
-// This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks)
+void Renderer::BindBackbuffer(const ClearColor& clear_color)
+{
+  CheckForSurfaceChange();
+  CheckForSurfaceResize();
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = m_backbuffer_width;
+  m_current_framebuffer_height = m_backbuffer_height;
+}
+
+void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1386,78 +1413,22 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
       glDisable(GL_DEBUG_OUTPUT);
   }
 
-  auto* xfb_texture = static_cast<OGLTexture*>(texture);
+  // Swap the back and front buffers, presenting the image.
+  m_main_gl_context->Swap();
+}
 
-  TargetRectangle sourceRc = xfb_region;
-  sourceRc.top = xfb_region.GetHeight();
-  sourceRc.bottom = 0;
-
-  ResetAPIState();
-
-  // Do our OSD callbacks
-  OSD::DoCallbacks(OSD::CallbackType::OnFrame);
-
-  // Check if we need to render to a new surface.
-  CheckForSurfaceChange();
-  CheckForSurfaceResize();
-  UpdateDrawRectangle();
-  TargetRectangle flipped_trc = GetTargetRectangle();
-  std::swap(flipped_trc.top, flipped_trc.bottom);
-
-  // Skip screen rendering when running in headless mode.
-  if (!IsHeadless())
+void Renderer::OnConfigChanged(u32 bits)
+{
+  if (bits & (CONFIG_CHANGE_BIT_TARGET_SIZE | CONFIG_CHANGE_BIT_MULTISAMPLES |
+              CONFIG_CHANGE_BIT_STEREO_MODE | CONFIG_CHANGE_BIT_BBOX))
   {
-    // Clear the framebuffer before drawing anything.
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    m_current_framebuffer = nullptr;
-    m_current_framebuffer_width = m_backbuffer_width;
-    m_current_framebuffer_height = m_backbuffer_height;
-
-    // Copy the framebuffer to screen.
-    BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
-               xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
-
-    // Render OSD messages.
-    glViewport(0, 0, m_backbuffer_width, m_backbuffer_height);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    DrawDebugText();
-    OSD::DrawMessages();
-
-    // Swap the back and front buffers, presenting the image.
-    m_main_gl_context->Swap();
-  }
-  else
-  {
-    // Since we're not swapping in headless mode, ensure all commands are sent to the GPU.
-    // Otherwise the driver could batch several frames togehter.
-    glFlush();
-  }
-
-  // Was the size changed since the last frame?
-  bool target_size_changed = CalculateTargetSize();
-  bool stencil_buffer_enabled =
-      static_cast<FramebufferManager*>(g_framebuffer_manager.get())->HasStencilBuffer();
-
-  bool fb_needs_update = target_size_changed ||
-                         s_last_multisamples != g_ActiveConfig.iMultisamples ||
-                         stencil_buffer_enabled != BoundingBox::NeedsStencilBuffer() ||
-                         s_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off);
-
-  if (fb_needs_update)
-  {
-    s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
-    s_last_multisamples = g_ActiveConfig.iMultisamples;
-    s_MSAASamples = s_last_multisamples;
-
+    s_MSAASamples = g_ActiveConfig.iMultisamples;
     if (s_MSAASamples > 1 && s_MSAASamples > g_ogl_config.max_samples)
     {
       s_MSAASamples = g_ogl_config.max_samples;
       OSD::AddMessage(
           StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.",
-                           s_last_multisamples, g_ogl_config.max_samples),
+                           s_MSAASamples, g_ogl_config.max_samples),
           10000);
     }
 
@@ -1465,40 +1436,20 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_framebuffer_manager = std::make_unique<FramebufferManager>(
         m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
     BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
-    UpdateDrawRectangle();
   }
 
-  if (s_vsync != g_ActiveConfig.IsVSync())
-  {
-    s_vsync = g_ActiveConfig.IsVSync();
-    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-      m_main_gl_context->SwapInterval(s_vsync);
-  }
+  if (bits & CONFIG_CHANGE_BIT_VSYNC && !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
+    m_main_gl_context->SwapInterval(g_ActiveConfig.bVSyncActive);
 
-  // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-  g_texture_cache->Cleanup(frameCount);
-
-  RestoreAPIState();
-
-  g_Config.iSaveTargetId = 0;
-
-  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  UpdateActiveConfig();
-  g_texture_cache->OnConfigChanged(g_ActiveConfig);
-
-  if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
+  if (bits & CONFIG_CHANGE_BIT_ANISOTROPY)
     g_sampler_cache->Clear();
+}
 
-  // Invalidate shader cache when the host config changes.
-  CheckForHostConfigChanges();
-
-  // For testing zbuffer targets.
-  // Renderer::SetZBufferRender();
-  // SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
-  //	      GetTargetWidth(), GetTargetHeight());
-
-  // Invalidate EFB cache
-  ClearEFBCache();
+void Renderer::Flush()
+{
+  // ensure all commands are sent to the GPU.
+  // Otherwise the driver could batch several frames togehter.
+  glFlush();
 }
 
 void Renderer::CheckForSurfaceChange()
@@ -1524,15 +1475,6 @@ void Renderer::CheckForSurfaceResize()
   m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
 }
 
-void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
-                       const TargetRectangle& source_rc)
-{
-  // for msaa mode, we must resolve the efb content to non-msaa
-  GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-  BlitScreen(source_rc, target_rc, tex, m_target_width, m_target_height);
-}
-
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
 void Renderer::ResetAPIState()
 {
@@ -1551,6 +1493,9 @@ void Renderer::ResetAPIState()
   }
   glDepthMask(GL_FALSE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  m_current_rasterization_state = RenderState::GetInvalidRasterizationState();
+  m_current_depth_state = RenderState::GetInvalidDepthState();
+  m_current_blend_state = RenderState::GetInvalidBlendingState();
 }
 
 void Renderer::RestoreAPIState()
@@ -1569,10 +1514,6 @@ void Renderer::RestoreAPIState()
   }
   BPFunctions::SetScissor();
   BPFunctions::SetViewport();
-
-  ApplyRasterizationState(m_current_rasterization_state, true);
-  ApplyDepthState(m_current_depth_state, true);
-  ApplyBlendingState(m_current_blend_state, true);
 }
 
 void Renderer::ApplyRasterizationState(const RasterizationState state, bool force)
@@ -1661,60 +1602,13 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 
     glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + i));
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    m_bound_textures[i] = nullptr;
   }
 }
 
 void Renderer::SetInterlacingMode()
 {
   // TODO
-}
-
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Copy in uniforms.
-  if (uniforms_size > 0)
-    UploadUtilityUniforms(uniforms, uniforms_size);
-
-  // Draw from base index if there is vertex data.
-  if (vertices)
-  {
-    StreamBuffer* vbuf = static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBuffer();
-    auto buf = vbuf->Map(vertex_stride * num_vertices, vertex_stride);
-    std::memcpy(buf.first, vertices, vertex_stride * num_vertices);
-    vbuf->Unmap(vertex_stride * num_vertices);
-    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), buf.second / vertex_stride, num_vertices);
-  }
-  else
-  {
-    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), 0, num_vertices);
-  }
-}
-
-void Renderer::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
-{
-  DEBUG_ASSERT(uniforms_size > 0);
-
-  auto buf = ProgramShaderCache::GetUniformBuffer()->Map(
-      uniforms_size, ProgramShaderCache::GetUniformBufferAlignment());
-  std::memcpy(buf.first, uniforms, uniforms_size);
-  ProgramShaderCache::GetUniformBuffer()->Unmap(uniforms_size);
-  glBindBufferRange(GL_UNIFORM_BUFFER, 1, ProgramShaderCache::GetUniformBuffer()->m_buffer,
-                    buf.second, uniforms_size);
-
-  // This is rather horrible, but because of how the UBOs are bound, this forces it to rebind.
-  ProgramShaderCache::InvalidateConstants();
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  glUseProgram(static_cast<const OGLShader*>(shader)->GetGLComputeProgramID());
-  if (uniforms_size > 0)
-    UploadUtilityUniforms(uniforms, uniforms_size);
-
-  glDispatchCompute(groups_x, groups_y, groups_z);
-  ProgramShaderCache::InvalidateLastProgram();
 }
 
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()

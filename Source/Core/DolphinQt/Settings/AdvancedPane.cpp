@@ -91,7 +91,7 @@ void AdvancedPane::CreateLayout()
 
   auto* custom_rtc_description =
       new QLabel(tr("This setting allows you to set a custom real time clock (RTC) separate from "
-                    "your current system time.\n\nIf you're unsure, leave this disabled."));
+                    "your current system time.\n\nIf unsure, leave this unchecked."));
   custom_rtc_description->setWordWrap(true);
   rtc_options->layout()->addWidget(custom_rtc_description);
 
