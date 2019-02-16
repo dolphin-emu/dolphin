@@ -62,7 +62,6 @@ signals:
   void FrameAdvance();
   void Screenshot();
   void StartNetPlay();
-  void StartBbaServer();
   void StateLoad();
   void StateSave();
   void StateLoadSlot();
@@ -81,6 +80,7 @@ signals:
   // Tools
   void ShowMemcardManager();
   void BootGameCubeIPL(DiscIO::Region region);
+  void StartBbaServer();
   void ShowFIFOPlayer();
   void ShowAboutDialog();
   void ShowCheatsManager();

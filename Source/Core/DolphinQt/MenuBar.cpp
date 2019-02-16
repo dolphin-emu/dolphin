@@ -240,9 +240,7 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
-#ifndef _WIN32
   tools_menu->addAction(tr("&Broadband Adapter Server"), this, &MenuBar::StartBbaServer);
-#endif
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
