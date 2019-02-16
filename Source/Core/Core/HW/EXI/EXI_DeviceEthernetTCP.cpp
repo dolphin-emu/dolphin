@@ -113,7 +113,7 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
   std::size_t offset = 0;
 
   // payload size
-  int size;
+  int size = 0;
 
   while (!self->m_read_thread_shutdown.IsSet())
   {

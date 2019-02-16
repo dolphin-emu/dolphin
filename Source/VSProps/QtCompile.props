@@ -19,7 +19,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">QT_NO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions>QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;QT_NETWORK_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>QT_USE_QSTRINGBUILDER;QT_NO_CAST_FROM_ASCII;QT_NO_CAST_TO_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtToolOutDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -27,6 +27,7 @@
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtNetwork;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
       Negate the previously enabled warning (set in Base.props). Not compatible with QtCore\qtmap.h
       This isn't too bad since we live with the fact that Qt-using projects will have different compiler args already.
@@ -35,7 +36,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>qtmain$(QtLibSuffix).lib;Qt5Core$(QtLibSuffix).lib;Qt5Gui$(QtLibSuffix).lib;Qt5Widgets$(QtLibSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmain$(QtLibSuffix).lib;Qt5Core$(QtLibSuffix).lib;Qt5Gui$(QtLibSuffix).lib;Qt5Widgets$(QtLibSuffix).lib;;Qt5Network$(QtLibSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <!--
       <AdditionalOptions>"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\" %(AdditionalOptions)</AdditionalOptions>
@@ -46,7 +47,7 @@
   <!--Compile files needed to MOC and output in the build directory-->
   <!--TODO find a way to autocreate from ClCompile settings-->
   <PropertyGroup>
-    <MocDefines>-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -D_SECURE_SCL=0 -D_ARCH_64=1 -D_M_X86_64=1 -D_M_X86=1 -DUSE_UPNP -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -DUNICODE</MocDefines>
+    <MocDefines>-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DQT_NETWORK_LIB -D_SECURE_SCL=0 -D_ARCH_64=1 -D_M_X86_64=1 -D_M_X86=1 -DUSE_UPNP -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -DUNICODE</MocDefines>
     <MocDefines Condition="'$(Configuration)'=='Release'">-DQT_NO_DEBUG -DNDEBUG $(MocDefines)</MocDefines>
     <!-- !!!HOLY UGLY BATMAN!!!
         Be very careful here when adding include directories. Each path must have the whole arg surrounded by doublequotes - HOWEVER,
@@ -56,7 +57,7 @@
         "-I$(SomeDir)"
         in order to prevent the trailing slash from escaping the doublequote after value replacement.
         -->
-    <MocIncludes>"-I$(QtIncludeDir)QtWidgets" "-I$(QtIncludeDir)QtGui" "-I$(QtIncludeDir)QtCore" "-I$(QtIncludeDir) " "-I$(QtToolOutDir) " -I.</MocIncludes>
+    <MocIncludes>"-I$(QtIncludeDir)QtNetwork" "-I$(QtIncludeDir)QtWidgets" "-I$(QtIncludeDir)QtGui" "-I$(QtIncludeDir)QtCore" "-I$(QtIncludeDir) " "-I$(QtToolOutDir) " -I.</MocIncludes>
     <MocIncludes>"-I$(ExternalsDir)xxhash" "-I$(ExternalsDir)zlib" "-I$(ExternalsDir)SFML\include" "-I$(ExternalsDir)mbedtls\include" "-I$(ExternalsDir)miniupnpc\src" "-I$(ExternalsDir)LZO" "-I$(ExternalsDir)libusbx\libusb" "-I$(ExternalsDir)libpng" "-I$(ExternalsDir)GL" "-I$(ExternalsDir)Bochs_disasm" "-I$(ExternalsDir) " "-I$(CoreDir) " $(MocIncludes)</MocIncludes>
   </PropertyGroup>
   <Target Name="QtMoc"
@@ -87,7 +88,7 @@
 
   <!--Copy the needed dlls-->
   <ItemGroup>
-    <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
+    <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix);Qt5Network$(QtLibSuffix)" />
     <QtDlls Include="@(QtLibNames -> '$(QtBinDir)%(Identity).dll')" />
     <!--Filter plugins to copy based on the observation that all debug versions end in "d"-->
     <QtAllPlugins Include="$(QtPluginsDir)**\*$(QtLibSuffix).dll" />

@@ -57,6 +57,9 @@
   <!--NOTE: When adding moc'd files, you must list outputs in the ClCompile ItemGroup too!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="BBAClient.h" />
+    <QtMoc Include="BBADebug.h" />
+    <QtMoc Include="BBAServer.h" />
     <QtMoc Include="BBAServerWindow.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\CheatCodeEditor.h" />
@@ -175,6 +178,9 @@
     <ClCompile Include="$(QtMocOutPrefix)AspectRatioWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AudioPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BBAConfigWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)BBAClient.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)BBADebug.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)BBAServer.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BBAServerWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BlockUserInputFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BreakpointWidget.cpp" />
@@ -277,6 +283,9 @@
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="BBAClient.cpp" />
+    <ClCompile Include="BBADebug.cpp" />
+    <ClCompile Include="BBAServer.cpp" />
     <ClCompile Include="BBAServerWindow.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
