@@ -13,11 +13,9 @@
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if defined(_WIN32)
 #include <Windows.h>
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_MACOS_MVK) ||                  \
-    defined(USE_HEADLESS)
+#else
 #include <dlfcn.h>
 #endif
 
@@ -42,7 +40,7 @@ static void ResetVulkanLibraryFunctionPointers()
 #undef VULKAN_MODULE_ENTRY_POINT
 }
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if defined(_WIN32)
 
 static HMODULE vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
@@ -100,9 +98,7 @@ void UnloadVulkanLibrary()
   vulkan_module = nullptr;
 }
 
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_MACOS_MVK) ||                  \
-    defined(USE_HEADLESS)
+#else
 
 static void* vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
@@ -179,20 +175,6 @@ void UnloadVulkanLibrary()
   ResetVulkanLibraryFunctionPointers();
   dlclose(vulkan_module);
   vulkan_module = nullptr;
-}
-
-#else
-
-//#warning Unknown platform, not compiling loader.
-
-bool LoadVulkanLibrary()
-{
-  return false;
-}
-
-void UnloadVulkanLibrary()
-{
-  ResetVulkanLibraryFunctionPointers();
 }
 
 #endif

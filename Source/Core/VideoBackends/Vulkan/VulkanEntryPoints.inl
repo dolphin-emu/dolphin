@@ -39,28 +39,21 @@ VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfaceFormatsKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfacePresentModesKHR, false)
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
-
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateWin32SurfaceKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceWin32PresentationSupportKHR, false)
+#endif
 
-#elif defined(VK_USE_PLATFORM_XLIB_KHR)
-
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateXlibSurfaceKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXlibPresentationSupportKHR, false)
+#endif
 
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-
-VULKAN_INSTANCE_ENTRY_POINT(vkCreateXcbSurfaceKHR, false)
-VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXcbPresentationSupportKHR, false)
-
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateAndroidSurfaceKHR, false)
+#endif
 
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateMacOSSurfaceMVK, false)
-
 #endif
 
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)

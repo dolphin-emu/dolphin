@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoCommon/TextureConfig.h"
@@ -20,18 +21,16 @@ class ObjectCache;
 class SwapChain
 {
 public:
-  SwapChain(void* display_handle, void* native_handle, VkSurfaceKHR surface, bool vsync);
+  SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync);
   ~SwapChain();
 
   // Creates a vulkan-renderable surface for the specified window handle.
-  static VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* display_handle, void* hwnd);
+  static VkSurfaceKHR CreateVulkanSurface(VkInstance instance, const WindowSystemInfo& wsi);
 
   // Create a new swap chain from a pre-existing surface.
-  static std::unique_ptr<SwapChain> Create(void* display_handle, void* native_handle,
-                                           VkSurfaceKHR surface, bool vsync);
+  static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
+                                           bool vsync);
 
-  void* GetDisplayHandle() const { return m_display_handle; }
-  void* GetNativeHandle() const { return m_native_handle; }
   VkSurfaceKHR GetSurface() const { return m_surface; }
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
   AbstractTextureFormat GetTextureFormat() const { return m_texture_format; }
@@ -89,8 +88,7 @@ private:
     VkFramebuffer framebuffer;
   };
 
-  void* m_display_handle;
-  void* m_native_handle;
+  WindowSystemInfo m_wsi;
   VkSurfaceKHR m_surface = VK_NULL_HANDLE;
   VkSurfaceFormatKHR m_surface_format = {};
   VkPresentModeKHR m_present_mode = VK_PRESENT_MODE_RANGE_SIZE_KHR;
