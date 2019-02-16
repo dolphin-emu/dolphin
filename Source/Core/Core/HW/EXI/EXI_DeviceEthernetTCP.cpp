@@ -39,7 +39,8 @@ bool CEXIEthernetTCP::Activate()
   DEBUG_LOG(SP1, "Connecting...");
 
   m_socket = std::make_unique<sf::TcpSocket>();
-  const sf::Socket::Status status = m_socket->connect(SConfig::GetInstance().m_bba_server, SConfig::GetInstance().m_bba_port);
+  const sf::Socket::Status status =
+      m_socket->connect(SConfig::GetInstance().m_bba_server, SConfig::GetInstance().m_bba_port);
   if (status != sf::Socket::Done)
   {
     ERROR_LOG(SP1, "Could not connect: %i", status);
@@ -102,9 +103,13 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
   selector.add(*self->m_socket);
 
   // are we currently waiting for size (4 bytes) or payload?
-  enum class SocketState { Size, Payload };
+  enum class SocketState
+  {
+    Size,
+    Payload
+  };
 
-  SocketState state { SocketState::Size };
+  SocketState state{SocketState::Size};
 
   // buffer to store size temporarily
   u8 size_buffer[sizeof(int)];
@@ -138,13 +143,13 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
 
       // Have we got all bytes for size?
       offset += received;
-      if(offset < sizeof(int))
+      if (offset < sizeof(int))
         continue;
       offset = 0;
 
       // convert char array to size int
       size = 0;
-      for(int i = 0; i < sizeof(int); i++)
+      for (int i = 0; i < sizeof(int); i++)
         size |= size_buffer[i] << (i * 8);
 
       DEBUG_LOG(SP1, "Finished size %i", size);
@@ -170,7 +175,7 @@ void CEXIEthernetTCP::ReadThreadHandler(CEXIEthernetTCP* self)
 
       // Have we got all bytes for payload?
       offset += received;
-      if(offset < size)
+      if (offset < size)
         continue;
       offset = 0;
 

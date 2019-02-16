@@ -11,10 +11,10 @@ class BBAServer;
 class BBADebug : public QDebug
 {
 public:
-    explicit BBADebug(BBAServer &server);
-    ~BBADebug();
+  explicit BBADebug(BBAServer& server);
+  ~BBADebug();
 
 private:
-    BBAServer &m_server;
-    QString m_log_line;
+  BBAServer& m_server;
+  QString m_log_line;
 };

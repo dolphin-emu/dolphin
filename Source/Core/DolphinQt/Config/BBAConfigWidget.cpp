@@ -4,20 +4,19 @@
 
 #include "DolphinQt/Config/BBAConfigWidget.h"
 
-#include <QVBoxLayout>
+#include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
-#include <QLineEdit>
-#include <QToolButton>
 #include <QLabel>
-#include <QSpinBox>
-#include <QDialogButtonBox>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QSpinBox>
+#include <QToolButton>
+#include <QVBoxLayout>
 
 #include "Common/Network.h"
 
-BBAConfigWidget::BBAConfigWidget(bool show_server, QWidget* parent) :
-    QDialog(parent)
+BBAConfigWidget::BBAConfigWidget(bool show_server, QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Broadband Adapter Configuration"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -108,7 +107,7 @@ void BBAConfigWidget::SetPort(quint16 port)
 
 void BBAConfigWidget::Submit()
 {
-  if(!MacAddr().isEmpty() && !Common::StringToMacAddress(MacAddr().toStdString()))
+  if (!MacAddr().isEmpty() && !Common::StringToMacAddress(MacAddr().toStdString()))
   {
     QMessageBox::warning(this, tr("Invalid MAC address!"), tr("Invalid MAC address!"));
     return;
@@ -119,13 +118,14 @@ void BBAConfigWidget::Submit()
 
 void BBAConfigWidget::GenerateMac()
 {
-  m_mac_addr->setText(QString::fromStdString(Common::MacAddressToString(Common::GenerateMacAddress(Common::MACConsumer::BBA))));
+  m_mac_addr->setText(QString::fromStdString(
+      Common::MacAddressToString(Common::GenerateMacAddress(Common::MACConsumer::BBA))));
 }
 
 void BBAConfigWidget::TextChanged(const QString& text)
 {
   QString inputMask;
-  if(!text.isEmpty() && text != QStringLiteral(":::::"))
+  if (!text.isEmpty() && text != QStringLiteral(":::::"))
     inputMask = QStringLiteral("HH:HH:HH:HH:HH:HH;_");
   if (m_mac_addr->inputMask() != inputMask)
     m_mac_addr->setInputMask(inputMask);

@@ -200,7 +200,7 @@ void GameCubePane::OnConfigPressed(int slot)
       dialog.SetServer(QString::fromStdString(SConfig::GetInstance().m_bba_server));
       dialog.SetPort(SConfig::GetInstance().m_bba_port);
     }
-    if(dialog.exec() == QDialog::Accepted)
+    if (dialog.exec() == QDialog::Accepted)
     {
       SConfig::GetInstance().m_bba_mac = dialog.MacAddr().toStdString();
       if (is_tcp)

@@ -14,22 +14,22 @@ class QPlainTextEdit;
 
 class BBAServerWindow : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit BBAServerWindow(QWidget *parent = nullptr);
+  explicit BBAServerWindow(QWidget* parent = nullptr);
 
 private slots:
-    void Toggle();
-    void LogOutput(const QDateTime &timestamp, const QString &log_line);
+  void Toggle();
+  void LogOutput(const QDateTime& timestamp, const QString& log_line);
 
 private:
-    void Update();
+  void Update();
 
-    BBAServer m_server;
+  BBAServer m_server;
 
-    QLineEdit *m_host_addr;
-    QSpinBox *m_port;
-    QPushButton *m_toggle;
+  QLineEdit* m_host_addr;
+  QSpinBox* m_port;
+  QPushButton* m_toggle;
 
-    QPlainTextEdit *m_log_output;
+  QPlainTextEdit* m_log_output;
 };

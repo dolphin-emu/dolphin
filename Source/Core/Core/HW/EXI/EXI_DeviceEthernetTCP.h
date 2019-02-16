@@ -9,14 +9,17 @@
 #include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_DeviceEthernetBase.h"
 
-namespace sf { class TcpSocket; }
+namespace sf
+{
+class TcpSocket;
+}
 
 namespace ExpansionInterface
 {
 class CEXIEthernetTCP : public CEXIEthernetBase
 {
 public:
-    ~CEXIEthernetTCP() override;
+  ~CEXIEthernetTCP() override;
 
 protected:
   bool Activate() override;

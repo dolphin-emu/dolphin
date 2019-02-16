@@ -11,11 +11,11 @@
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
 #include "Core/HW/EXI/EXI_DeviceEthernetTAP.h"
+#include "Core/HW/EXI/EXI_DeviceEthernetTCP.h"
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceMic.h"
-#include "Core/HW/EXI/EXI_DeviceEthernetTCP.h"
 #include "Core/HW/Memmap.h"
 
 namespace ExpansionInterface

@@ -7,8 +7,8 @@
 #include <thread>
 
 #ifdef _WIN32
-#include <vector>
 #include <Windows.h>
+#include <vector>
 #endif
 
 #include "Common/Flag.h"
@@ -19,15 +19,15 @@ namespace ExpansionInterface
 class CEXIEthernetTAP : public CEXIEthernetBase
 {
 public:
-    ~CEXIEthernetTAP() override;
+  ~CEXIEthernetTAP() override;
 
 protected:
-    bool Activate() override;
-    bool IsActivated() const override;
-    bool SendFrame(const u8* frame, u32 size) override;
-    bool RecvInit() override;
-    void RecvStart() override;
-    void RecvStop() override;
+  bool Activate() override;
+  bool IsActivated() const override;
+  bool SendFrame(const u8* frame, u32 size) override;
+  bool RecvInit() override;
+  void RecvStart() override;
+  void RecvStop() override;
 
 private:
   static void ReadThreadHandler(CEXIEthernetTAP* self);

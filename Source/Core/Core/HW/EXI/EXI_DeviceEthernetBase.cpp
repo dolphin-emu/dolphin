@@ -47,7 +47,6 @@ CEXIEthernetBase::CEXIEthernetBase()
       mac_addr = parsed.value();
   }
 
-
   memcpy(&m_bba_mem[BBA_NAFR_PAR0], mac_addr.data(), mac_addr.size());
 
   // HACK: .. fully established 100BASE-T link
@@ -582,4 +581,4 @@ wait_for_next:
 
   return true;
 }
-}
+}  // namespace ExpansionInterface

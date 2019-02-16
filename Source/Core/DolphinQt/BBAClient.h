@@ -16,29 +16,30 @@ class BBAClient : public QObject
   Q_OBJECT
 
 public:
-  explicit BBAClient(QTcpSocket &socket, BBAServer &server);
+  explicit BBAClient(QTcpSocket& socket, BBAServer& server);
 
   BBADebug LogInfo();
 
 signals:
-  void ReceivedMessage(const QByteArray &buffer);
+  void ReceivedMessage(const QByteArray& buffer);
 
 public slots:
-  void SendMessage(const QByteArray &buffer);
+  void SendMessage(const QByteArray& buffer);
 
 private slots:
   void ReadyRead();
 
 private:
-  enum class SocketState {
-      Size,
-      Payload
+  enum class SocketState
+  {
+    Size,
+    Payload
   };
 
-  QTcpSocket &m_socket;
-  BBAServer &m_server;
+  QTcpSocket& m_socket;
+  BBAServer& m_server;
 
   QByteArray m_buffer;
-  SocketState m_state { SocketState::Size };
+  SocketState m_state{SocketState::Size};
   int m_size;
 };

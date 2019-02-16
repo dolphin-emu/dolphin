@@ -8,9 +8,7 @@
 
 #include "DolphinQt/BBAServer.h"
 
-BBADebug::BBADebug(BBAServer &server) :
-  QDebug(&m_log_line),
-  m_server(server)
+BBADebug::BBADebug(BBAServer& server) : QDebug(&m_log_line), m_server(server)
 {
 }
 

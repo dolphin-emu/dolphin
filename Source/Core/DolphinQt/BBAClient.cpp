@@ -4,21 +4,19 @@
 
 #include "DolphinQt/BBAClient.h"
 
-#include <QTcpSocket>
-#include <QHostAddress>
 #include <QDataStream>
+#include <QHostAddress>
+#include <QTcpSocket>
 
-#include "DolphinQt/BBAServer.h"
 #include "DolphinQt/BBADebug.h"
+#include "DolphinQt/BBAServer.h"
 
-BBAClient::BBAClient(QTcpSocket &socket, BBAServer &server) :
-  QObject(&server),
-  m_socket(socket),
-  m_server(server)
+BBAClient::BBAClient(QTcpSocket& socket, BBAServer& server)
+    : QObject(&server), m_socket(socket), m_server(server)
 {
   m_socket.setParent(this);
   connect(&m_socket, &QIODevice::readyRead, this, &BBAClient::ReadyRead);
-  connect(&m_socket, &QAbstractSocket::disconnected, this, [this](){
+  connect(&m_socket, &QAbstractSocket::disconnected, this, [this]() {
     LogInfo() << m_socket.peerAddress() << m_socket.peerPort() << "disconnected";
     deleteLater();
   });
@@ -31,7 +29,7 @@ BBADebug BBAClient::LogInfo()
   return m_server.LogInfo();
 }
 
-void BBAClient::SendMessage(const QByteArray &buffer)
+void BBAClient::SendMessage(const QByteArray& buffer)
 {
   {
     QDataStream data_stream(&m_socket);
@@ -47,7 +45,7 @@ void BBAClient::ReadyRead()
 
   while (m_buffer.size())
   {
-    switch(m_state)
+    switch (m_state)
     {
     case SocketState::Size:
       if (m_buffer.size() < sizeof(int))

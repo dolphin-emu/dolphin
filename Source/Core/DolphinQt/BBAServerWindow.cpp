@@ -4,23 +4,21 @@
 
 #include "DolphinQt/BBAServerWindow.h"
 
-#include <QVBoxLayout>
+#include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QSpinBox>
-#include <QPushButton>
-#include <QPlainTextEdit>
-#include <QDialogButtonBox>
 #include <QMessageBox>
-#include <QTime>
+#include <QPlainTextEdit>
+#include <QPushButton>
 #include <QScrollBar>
+#include <QSpinBox>
+#include <QTime>
+#include <QVBoxLayout>
 
 #include <limits>
 
-BBAServerWindow::BBAServerWindow(QWidget *parent) :
-  QDialog(parent),
-  m_server(this)
+BBAServerWindow::BBAServerWindow(QWidget* parent) : QDialog(parent), m_server(this)
 {
   auto* vbox_layout = new QVBoxLayout(this);
 
@@ -78,15 +76,17 @@ void BBAServerWindow::Toggle()
   else
   {
     if (!m_server.Listen(m_host_addr->text(), m_port->value()))
-      QMessageBox::warning(this, tr("Could not start listening!"), tr("Could not start listening:\n\n%0").arg(m_server.ErrorString()));
+      QMessageBox::warning(this, tr("Could not start listening!"),
+                           tr("Could not start listening:\n\n%0").arg(m_server.ErrorString()));
   }
 
   Update();
 }
 
-void BBAServerWindow::LogOutput(const QDateTime &timestamp, const QString &log_line)
+void BBAServerWindow::LogOutput(const QDateTime& timestamp, const QString& log_line)
 {
-  m_log_output->appendPlainText(QStringLiteral("%0: %1").arg(timestamp.toString(QStringLiteral("HH:mm:ss.zzz")), log_line));
+  m_log_output->appendPlainText(
+      QStringLiteral("%0: %1").arg(timestamp.toString(QStringLiteral("HH:mm:ss.zzz")), log_line));
   auto* scroll_bar = m_log_output->verticalScrollBar();
   scroll_bar->setValue(scroll_bar->maximum());
 }
