@@ -36,6 +36,18 @@ public:
 protected:
   WiimoteEmu::MotionState m_motion_state{};
 
+  QPen GetBBoxPen() const;
+  QBrush GetBBoxBrush() const;
+  QColor GetRawInputColor() const;
+  QPen GetInputShapePen() const;
+  QColor GetAdjustedInputColor() const;
+  QColor GetDeadZoneColor() const;
+  QPen GetDeadZonePen() const;
+  QBrush GetDeadZoneBrush() const;
+  QColor GetTextColor() const;
+  QColor GetAltTextColor() const;
+  QColor GetGateColor() const;
+
 private:
   void DrawCursor(ControllerEmu::Cursor& cursor);
   void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
