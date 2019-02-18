@@ -195,6 +195,11 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
   QueueOnObject(this, [this, level, str]() mutable {
     std::lock_guard<std::mutex> lock(m_log_mutex);
 
+    static std::string last = "";
+
+    if (last == str)
+      return;
+
     const char* color = "white";
 
     switch (level)
@@ -222,6 +227,8 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
             .arg(QString::fromStdString(str.substr(0, TIMESTAMP_LENGTH)),
                  QString::fromStdString(color),
                  QString::fromStdString(str.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
+
+    last = str;
   });
 }
 
