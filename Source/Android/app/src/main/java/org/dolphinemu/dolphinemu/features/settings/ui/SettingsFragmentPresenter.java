@@ -682,7 +682,7 @@ public final class SettingsFragmentPresenter
     Setting swapEyes = stereoScopySection.getSetting(SettingsFile.KEY_STEREO_SWAP);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, Settings.SECTION_STEREOSCOPY,
-            R.string.stereoscopy_mode, R.string.stereoscopy_mode_description,
+            R.string.stereoscopy_mode, 0,
             R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
     sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, Settings.SECTION_STEREOSCOPY,
             R.string.stereoscopy_depth, R.string.stereoscopy_depth_description, 100, "%", 20,
