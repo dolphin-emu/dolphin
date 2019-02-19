@@ -426,7 +426,7 @@ public final class SettingsFragmentPresenter
             R.string.wait_for_shaders, R.string.wait_for_shaders_description, false,
             waitForShaders));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, Settings.SECTION_GFX_SETTINGS,
-            R.string.aspect_ratio, R.string.aspect_ratio_description, R.array.aspectRatioEntries,
+            R.string.aspect_ratio, 0, R.array.aspectRatioEntries,
             R.array.aspectRatioValues, 0, aspectRatio));
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
