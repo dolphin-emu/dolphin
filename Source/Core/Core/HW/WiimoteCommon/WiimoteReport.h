@@ -84,8 +84,9 @@ static_assert(sizeof(OutputReportRequestStatus) == 1, "Wrong size");
 struct OutputReportWriteData
 {
   u8 rumble : 1;
+  u8 : 1;
   u8 space : 2;
-  u8 : 5;
+  u8 : 4;
   // A real wiimote ignores the i2c read/write bit.
   u8 i2c_rw_ignored : 1;
   // Used only for register space (i2c bus) (7-bits):
@@ -100,8 +101,9 @@ static_assert(sizeof(OutputReportWriteData) == 21, "Wrong size");
 struct OutputReportReadData
 {
   u8 rumble : 1;
+  u8 : 1;
   u8 space : 2;
-  u8 : 5;
+  u8 : 4;
   // A real wiimote ignores the i2c read/write bit.
   u8 i2c_rw_ignored : 1;
   // Used only for register space (i2c bus) (7-bits):
@@ -114,7 +116,8 @@ static_assert(sizeof(OutputReportReadData) == 6, "Wrong size");
 
 struct OutputReportSpeakerData
 {
-  u8 unknown : 3;
+  u8 rumble : 1;
+  u8 : 2;
   u8 length : 5;
   u8 data[20];
 };
