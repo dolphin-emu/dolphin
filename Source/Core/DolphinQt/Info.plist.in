@@ -30,6 +30,8 @@
     <string>Dolphin</string>
     <key>CFBundleIconFile</key>
     <string>Dolphin.icns</string>
+    <key>CFBundleName</key>
+    <string>Dolphin</string>
     <key>CFBundleIdentifier</key>
     <string>org.dolphin-emu.dolphin</string>
     <key>CFBundleDevelopmentRegion</key>
