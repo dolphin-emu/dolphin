@@ -45,7 +45,8 @@ void Wiimote::HandleReportMode(const OutputReportMode& dr)
   m_reporting_continuous = dr.continuous;
   m_reporting_mode = dr.mode;
 
-  SendAck(OutputReportID::ReportMode, ErrorCode::Success);
+  if (dr.ack)
+    SendAck(OutputReportID::ReportMode, ErrorCode::Success);
 }
 
 // Tests that we have enough bytes for the report before we run the handler.
@@ -322,6 +323,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     break;
   }
 
+  // Real wiimotes seem to always ACK data writes.
   SendAck(OutputReportID::WriteData, error_code);
 }
 
@@ -426,6 +428,8 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   // If more data needs to be sent it will happen on the next "Update()"
   // TODO: should this be removed and let Update() take care of it?
   ProcessReadDataRequest();
+
+  // FYI: No "ACK" is sent.
 }
 
 bool Wiimote::ProcessReadDataRequest()
