@@ -156,8 +156,8 @@ private:
   void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&);
   void HandleReadData(const WiimoteCommon::OutputReportReadData&);
   void HandleWriteData(const WiimoteCommon::OutputReportWriteData&);
-  void HandleIRPixelClock(const WiimoteCommon::OutputReportEnableFeature&);
-  void HandleIRLogic(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&);
   void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&);
   void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&);
   void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&);

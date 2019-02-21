@@ -38,14 +38,14 @@ enum class OutputReportID : u8
   Rumble = 0x10,
   LED = 0x11,
   ReportMode = 0x12,
-  IRPixelClock = 0x13,
+  IRLogicEnable = 0x13,
   SpeakerEnable = 0x14,
   RequestStatus = 0x15,
   WriteData = 0x16,
   ReadData = 0x17,
   SpeakerData = 0x18,
   SpeakerMute = 0x19,
-  IRLogic = 0x1a,
+  IRLogicEnable2 = 0x1a,
 };
 
 enum class LED : u8

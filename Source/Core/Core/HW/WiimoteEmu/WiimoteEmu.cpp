@@ -445,13 +445,6 @@ void Wiimote::SendDataReport()
       const auto cursor = m_ir->GetState(true);
       m_camera_logic.Update(cursor, norm_accel, m_sensor_bar_on_top);
 
-      if (!m_status.ir)
-      {
-        // TODO: What does a real wiimote send in this case? 0xFFs ?
-        // I'm assuming it still reads from the bus?
-        DEBUG_LOG(WIIMOTE, "Game is reading IR data without enabling IR logic first.");
-      }
-
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
           CameraLogic::REPORT_DATA_OFFSET + rpt_builder.GetIRDataFormatOffset();

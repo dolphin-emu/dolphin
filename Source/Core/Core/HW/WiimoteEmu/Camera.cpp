@@ -16,16 +16,23 @@ namespace WiimoteEmu
 void CameraLogic::Reset()
 {
   reg_data = {};
+
+  m_is_enabled = false;
 }
 
 void CameraLogic::DoState(PointerWrap& p)
 {
   p.Do(reg_data);
+
+  // FYI: m_is_enabled is handled elsewhere.
 }
 
 int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 {
   if (I2C_ADDR != slave_addr)
+    return 0;
+
+  if (!m_is_enabled)
     return 0;
 
   return RawRead(&reg_data, addr, count, data_out);
@@ -34,6 +41,9 @@ int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 {
   if (I2C_ADDR != slave_addr)
+    return 0;
+
+  if (!m_is_enabled)
     return 0;
 
   return RawWrite(&reg_data, addr, count, data_in);
@@ -199,6 +209,11 @@ void CameraLogic::Update(const ControllerEmu::Cursor::StateData& cursor,
       break;
     }
   }
+}
+
+void CameraLogic::SetEnabled(bool is_enabled)
+{
+  m_is_enabled = is_enabled;
 }
 
 }  // namespace WiimoteEmu
