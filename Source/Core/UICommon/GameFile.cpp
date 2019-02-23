@@ -50,11 +50,22 @@ static const std::string EMPTY_STRING;
 static bool UseGameCovers()
 {
 // We ifdef this out on Android because accessing the config before emulation start makes us crash.
-// The Android GUI doesn't support covers anyway, so this doesn't make us lose out on functionality.
+// The Android GUI handles covers in Java anyway, so this doesn't make us lose any functionality.
 #ifdef ANDROID
   return false;
 #else
   return Config::Get(Config::MAIN_USE_GAME_COVERS);
+#endif
+}
+
+DiscIO::Language GameFile::GetConfigLanguage() const
+{
+#ifdef ANDROID
+  // TODO: Make the Android app load the config at app start instead of emulation start
+  // so that we can access the user's preference here
+  return DiscIO::Language::English;
+#else
+  return SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(m_platform));
 #endif
 }
 
@@ -94,15 +105,7 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
 const std::string&
 GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const
 {
-#ifdef ANDROID
-  // TODO: Make the Android app load the config at app start instead of emulation start
-  // so that we can access the user's preference here
-  const DiscIO::Language language = DiscIO::Language::English;
-#else
-  const bool wii = DiscIO::IsWii(m_platform);
-  const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(wii);
-#endif
-  return Lookup(language, strings);
+  return Lookup(GetConfigLanguage(), strings);
 }
 
 GameFile::GameFile(const std::string& path)
@@ -422,7 +425,7 @@ void GameFile::CustomBannerCommit()
 
 const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) const
 {
-  const std::string& custom_name = title_database.GetTitleName(m_gametdb_id);
+  const std::string& custom_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
   return custom_name.empty() ? GetName() : custom_name;
 }
 

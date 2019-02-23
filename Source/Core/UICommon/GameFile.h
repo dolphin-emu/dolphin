@@ -96,6 +96,7 @@ public:
   void CustomCoverCommit();
 
 private:
+  DiscIO::Language GetConfigLanguage() const;
   static const std::string& Lookup(DiscIO::Language language,
                                    const std::map<DiscIO::Language, std::string>& strings);
   const std::string&
