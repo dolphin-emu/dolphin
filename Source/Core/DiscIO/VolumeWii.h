@@ -45,6 +45,7 @@ public:
                                                  u64 partition_data_offset);
   u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const override;
   std::string GetGameID(const Partition& partition) const override;
+  std::string GetGameTDBID(const Partition& partition) const override;
   std::string GetMakerID(const Partition& partition) const override;
   std::optional<u16> GetRevision(const Partition& partition) const override;
   std::string GetInternalName(const Partition& partition) const override;

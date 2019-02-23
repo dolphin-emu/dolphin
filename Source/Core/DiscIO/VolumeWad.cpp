@@ -105,6 +105,11 @@ std::string VolumeWAD::GetGameID(const Partition& partition) const
   return m_tmd.GetGameID();
 }
 
+std::string VolumeWAD::GetGameTDBID(const Partition& partition) const
+{
+  return m_tmd.GetGameTDBID();
+}
+
 std::string VolumeWAD::GetMakerID(const Partition& partition) const
 {
   char temp[2];

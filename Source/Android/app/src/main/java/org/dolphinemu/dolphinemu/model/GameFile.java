@@ -30,6 +30,8 @@ public class GameFile
 
   public native String getGameId();
 
+  public native String getGameTdbId();
+
   public native int getDiscNumber();
 
   public native int getRevision();
@@ -43,7 +45,7 @@ public class GameFile
   public String getCoverPath()
   {
     return Environment.getExternalStorageDirectory().getPath() +
-            "/dolphin-emu/Cache/GameCovers/" + getGameId() + ".png";
+            "/dolphin-emu/Cache/GameCovers/" + getGameTdbId() + ".png";
   }
 
   public String getCustomCoverPath()

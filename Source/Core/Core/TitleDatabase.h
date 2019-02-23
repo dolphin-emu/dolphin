@@ -18,21 +18,15 @@ public:
   TitleDatabase();
   ~TitleDatabase();
 
-  enum class TitleType
-  {
-    Channel,
-    Other,
-  };
-
-  // Get a user friendly title name for a game ID.
+  // Get a user friendly title name for a GameTDB ID.
   // This falls back to returning an empty string if none could be found.
-  const std::string& GetTitleName(const std::string& game_id, TitleType = TitleType::Other) const;
+  const std::string& GetTitleName(const std::string& gametdb_id) const;
 
-  // Same as above, but takes a title ID instead of a game ID, and can only find names of channels.
+  // Same as above, but takes a title ID instead of a GameTDB ID, and only works for channels.
   const std::string& GetChannelName(u64 title_id) const;
 
-  // Get a description for a game ID (title name if available + game ID).
-  std::string Describe(const std::string& game_id, TitleType = TitleType::Other) const;
+  // Get a description for a GameTDB ID (title name if available + GameTDB ID).
+  std::string Describe(const std::string& gametdb_id) const;
 
 private:
   std::unordered_map<std::string, std::string> m_wii_title_map;

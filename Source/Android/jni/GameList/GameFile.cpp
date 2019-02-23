@@ -123,6 +123,12 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getGameI
   return ToJString(env, GetRef(env, obj)->GetGameID());
 }
 
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getGameTdbId(JNIEnv* env,
+                                                                                     jobject obj)
+{
+  return ToJString(env, GetRef(env, obj)->GetGameTDBID());
+}
+
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDiscNumber(JNIEnv* env,
                                                                                    jobject obj)
 {

@@ -26,8 +26,8 @@
 #include "UICommon/GameFile.h"
 
 GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision()),
-      m_restart_required(restart_required)
+    : m_game(game), m_game_id(game.GetGameID()), m_gametdb_id(game.GetGameTDBID()),
+      m_game_revision(game.GetRevision()), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -251,7 +251,7 @@ void GeckoCodeWidget::DownloadCodes()
 {
   bool success;
 
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_game_id, &success);
+  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
 
   if (!success)
   {

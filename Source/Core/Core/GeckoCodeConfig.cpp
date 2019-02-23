@@ -16,21 +16,9 @@
 
 namespace Gecko
 {
-std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
+std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded)
 {
-  switch (gameid[0])
-  {
-  case 'R':
-  case 'S':
-  case 'G':
-    break;
-  default:
-    // All channels (WiiWare, VirtualConsole, etc) are identified by their first four characters
-    gameid = gameid.substr(0, 4);
-    break;
-  }
-
-  std::string endpoint{"https://www.geckocodes.org/txt.php?txt=" + gameid};
+  std::string endpoint{"https://www.geckocodes.org/txt.php?txt=" + gametdb_id};
   Common::HttpRequest http;
 
   // Circumvent high-tech DDOS protection
