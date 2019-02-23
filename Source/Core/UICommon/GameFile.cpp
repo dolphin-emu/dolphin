@@ -147,7 +147,7 @@ GameFile::GameFile(const std::string& path)
   if (!IsValid() && IsElfOrDol())
   {
     m_valid = true;
-    m_file_size = File::GetSize(m_file_path);
+    m_file_size = m_volume_size = File::GetSize(m_file_path);
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
