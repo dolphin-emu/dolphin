@@ -74,12 +74,8 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  const AspectMode config_aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
+  aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
   suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
-  if (config_aspect_mode == AspectMode::Auto)
-    aspect_mode = suggested_aspect_mode;
-  else
-    aspect_mode = config_aspect_mode;
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
