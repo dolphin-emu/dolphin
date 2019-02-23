@@ -74,13 +74,12 @@ TitleDatabase::TitleDatabase()
   AddLazyMap(DiscIO::Language::TraditionalChinese, "zh_TW");
   AddLazyMap(DiscIO::Language::Korean, "ko");
 
-  // Titles that cannot be part of the Wii TDB,
-  // but common enough to justify having entries for them.
+  // Titles that aren't part of the Wii TDB, but common enough to justify having entries for them.
 
   // i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
   // which is (usually) the first thing users see when a Wii console starts.
   m_base_map.emplace("0000000100000002", GetStringT("Wii Menu"));
-  for (const auto& id : {"HAXX", "JODI", "00010001af1bf516", "LULZ", "OHBC"})
+  for (const auto& id : {"HAXX", "00010001af1bf516"})
     m_base_map.emplace(id, "The Homebrew Channel");
 }
 
