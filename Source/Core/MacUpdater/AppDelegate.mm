@@ -22,6 +22,9 @@
 #include <vector>
 #include <zlib.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -558,6 +561,10 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       return false;
     }
 
+    // TODO: A new updater protocol version is required to properly mark executable files. For
+    // now, copy executable bits from existing files. This will break for newly added executables.
+    mode_t permission;
+
     if (File::Exists(path))
     {
       std::string contents;
@@ -574,6 +581,13 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       }
       else if (!op.old_hash || contents_hash != *op.old_hash)
       {
+        struct stat file_stats;
+
+        if (stat(path.c_str(), &file_stats) != 0)
+          return false;
+
+        permission = file_stats.st_mode;
+
         if (!BackupFile(path))
           return false;
       }
@@ -586,8 +600,12 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     if (!File::Copy(temp_path + DIR_SEP + content_filename, path))
     {
       fprintf(log_fp, "Could not update file %s.\n", op.filename.c_str());
+
       return false;
     }
+
+    if (chmod(path.c_str(), permission) != 0)
+      return false;
   }
   return true;
 }
