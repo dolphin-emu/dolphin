@@ -83,7 +83,7 @@ void Resources::Init()
   }
 
   for (const std::string& country :
-       {"Flag_Europe", "Flag_Japan", "Flag_USA", "Flag_Australia", "Flag_France", "Flag_Germany",
+       {"Flag_Eurostralia", "Flag_Japan", "Flag_USA", "Flag_Australia", "Flag_France", "Flag_Germany",
         "Flag_Italy", "Flag_Korea", "Flag_Netherlands", "Flag_Russia", "Flag_Spain", "Flag_Taiwan",
         "Flag_International", "Flag_Unknown"})
   {
