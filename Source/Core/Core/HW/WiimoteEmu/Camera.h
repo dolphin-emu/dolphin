@@ -68,6 +68,7 @@ public:
   void DoState(PointerWrap& p);
   void Update(const ControllerEmu::Cursor::StateData& cursor, const NormalizedAccelData& accel,
               bool sensor_bar_on_top);
+  void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;
 
@@ -100,5 +101,9 @@ private:
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
 
   Register reg_data;
+
+  // When disabled the camera does not respond on the bus.
+  // Change is triggered by wiimote report 0x13.
+  bool m_is_enabled;
 };
 }  // namespace WiimoteEmu

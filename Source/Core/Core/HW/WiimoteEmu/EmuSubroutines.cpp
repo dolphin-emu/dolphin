@@ -101,8 +101,8 @@ void Wiimote::HIDOutputReport(const void* data, u32 size)
   case OutputReportID::ReportMode:
     InvokeHandler<OutputReportMode>(&Wiimote::HandleReportMode, rpt, rpt_size);
     break;
-  case OutputReportID::IRPixelClock:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRPixelClock, rpt, rpt_size);
+  case OutputReportID::IRLogicEnable:
+    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable, rpt, rpt_size);
     break;
   case OutputReportID::SpeakerEnable:
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerEnable, rpt, rpt_size);
@@ -122,8 +122,8 @@ void Wiimote::HIDOutputReport(const void* data, u32 size)
   case OutputReportID::SpeakerMute:
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleSpeakerMute, rpt, rpt_size);
     break;
-  case OutputReportID::IRLogic:
-    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogic, rpt, rpt_size);
+  case OutputReportID::IRLogicEnable2:
+    InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable2, rpt, rpt_size);
     break;
   default:
     PanicAlert("HidOutputReport: Unknown report ID 0x%02x", int(rpt.rpt_id));
@@ -342,24 +342,26 @@ void Wiimote::HandleReportLeds(const WiimoteCommon::OutputReportLeds& rpt)
     SendAck(OutputReportID::LED, ErrorCode::Success);
 }
 
-void Wiimote::HandleIRPixelClock(const WiimoteCommon::OutputReportEnableFeature& rpt)
+void Wiimote::HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
-  // INFO_LOG(WIIMOTE, "WM IR Clock: %02x", erpt.enable);
-
-  // FYI: Camera data is currently always updated. Ignoring pixel clock status.
+  // FYI: We ignore this and update camera data regardless.
 
   if (rpt.ack)
-    SendAck(OutputReportID::IRPixelClock, ErrorCode::Success);
+    SendAck(OutputReportID::IRLogicEnable2, ErrorCode::Success);
 }
 
-void Wiimote::HandleIRLogic(const WiimoteCommon::OutputReportEnableFeature& rpt)
+void Wiimote::HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
-  // FYI: Camera data is currently always updated. We just save this for status reports.
+  // Note: Wiibrew currently refers to this report (0x13) as "Enable IR Pixel Clock"
+  // however my testing shows this affects the relevant status bit and whether or not
+  // the camera responds on the I2C bus.
 
   m_status.ir = rpt.enable;
 
+  m_camera_logic.SetEnabled(m_status.ir);
+
   if (rpt.ack)
-    SendAck(OutputReportID::IRLogic, ErrorCode::Success);
+    SendAck(OutputReportID::IRLogicEnable, ErrorCode::Success);
 }
 
 void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& rpt)
@@ -372,7 +374,6 @@ void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& 
 
 void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
-  // INFO_LOG(WIIMOTE, "WM Speaker Enable: %02x", erpt.enable);
   m_status.speaker = rpt.enable;
 
   if (rpt.ack)
@@ -566,6 +567,9 @@ void Wiimote::DoState(PointerWrap& p)
   // Sub-devices:
   m_speaker_logic.DoState(p);
   m_camera_logic.DoState(p);
+
+  if (p.GetMode() == PointerWrap::MODE_READ)
+    m_camera_logic.SetEnabled(m_status.ir);
 
   p.Do(m_is_motion_plus_attached);
   p.Do(m_active_extension);
