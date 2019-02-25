@@ -75,9 +75,7 @@ Turntable::Turntable() : EncryptedExtension(_trans("Turntable"))
                           new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // effect dial
-  groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
-  m_effect_dial->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Dial")));
+  groups.emplace_back(m_effect_dial = new ControllerEmu::Slider(_trans("Effect")));
 
   // crossfade
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));
@@ -98,7 +96,7 @@ void Turntable::Update()
   // left table
   {
     const ControllerEmu::Slider::StateData lt = m_left_table->GetState();
-    const s8 tt = static_cast<s8>(lt.value * 0x1F);
+    const s8 tt = static_cast<s8>(lt.value * TABLE_RANGE);
 
     tt_data.ltable1 = tt;
     tt_data.ltable2 = tt >> 5;
@@ -107,7 +105,7 @@ void Turntable::Update()
   // right table
   {
     const ControllerEmu::Slider::StateData rt = m_right_table->GetState();
-    const s8 tt = static_cast<s8>(rt.value * 0x1F);
+    const s8 tt = static_cast<s8>(rt.value * TABLE_RANGE);
 
     tt_data.rtable1 = tt;
     tt_data.rtable2 = tt >> 1;
@@ -117,8 +115,8 @@ void Turntable::Update()
 
   // effect dial
   {
-    const ControllerEmu::Triggers::StateData state = m_effect_dial->GetState();
-    const u8 dial = static_cast<u8>(state.data[0] * 0x0F);
+    const auto dial_state = m_effect_dial->GetState();
+    const u8 dial = static_cast<u8>(dial_state.value * EFFECT_DIAL_RANGE) + EFFECT_DIAL_CENTER;
 
     tt_data.dial1 = dial;
     tt_data.dial2 = dial >> 3;
@@ -128,7 +126,7 @@ void Turntable::Update()
   {
     const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState();
 
-    tt_data.slider = static_cast<u8>((cfs.value * 0x07) + 0x08);
+    tt_data.slider = static_cast<u8>((cfs.value * CROSSFADE_RANGE) + CROSSFADE_CENTER);
   }
 
   // buttons
