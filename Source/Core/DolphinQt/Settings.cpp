@@ -7,7 +7,6 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
-#include <QSettings>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"

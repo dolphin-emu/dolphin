@@ -8,9 +8,10 @@
 #include <memory>
 #include <string>
 
-#include <QMenu>
 #include <QMenuBar>
 #include <QPointer>
+
+class QMenu;
 
 namespace Core
 {

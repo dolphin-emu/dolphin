@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include <QDialog>
 #include <ctime>
+
+#include <QDialog>
 
 class QGridLayout;
 class QPixmap;
