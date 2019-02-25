@@ -9,7 +9,6 @@
 #include <QFont>
 #include <QObject>
 #include <QSettings>
-#include <QVector>
 
 namespace Core
 {
@@ -29,7 +28,6 @@ class NetPlayServer;
 
 class GameListModel;
 class InputConfig;
-class QFont;
 
 // UI settings to be stored in the config directory.
 class Settings final : public QObject
