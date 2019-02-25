@@ -74,8 +74,21 @@
     <integer name="NUNCHUK_STICK_X">51</integer>
     <integer name="NUNCHUK_STICK_Y">681</integer>
 
-    <integer name="WIIMOTE_RIGHT_X">100</integer>
-    <integer name="WIIMOTE_RIGHT_Y">683</integer>
+    <!-- Wiimote only -->
+    <integer name="WIIMOTE_O_UP_X">48</integer>
+    <integer name="WIIMOTE_O_UP_Y">652</integer>
+
+    <!-- Horizontal Wiimote -->
+    <integer name="WIIMOTE_RIGHT_X">48</integer>
+    <integer name="WIIMOTE_RIGHT_Y">187</integer>
+    <integer name="WIIMOTE_H_BUTTON_A_X">890</integer>
+    <integer name="WIIMOTE_H_BUTTON_A_Y">734</integer>
+    <integer name="WIIMOTE_H_BUTTON_B_X">731</integer>
+    <integer name="WIIMOTE_H_BUTTON_B_Y">715</integer>
+    <integer name="WIIMOTE_H_BUTTON_1_X">867</integer>
+    <integer name="WIIMOTE_H_BUTTON_1_Y">303</integer>
+    <integer name="WIIMOTE_H_BUTTON_2_X">925</integer>
+    <integer name="WIIMOTE_H_BUTTON_2_Y">103</integer>
 
     <!-- Default Wii portrait layout -->
     <integer name="WIIMOTE_BUTTON_A_PORTRAIT_X">769</integer>
@@ -103,6 +116,17 @@
 
     <integer name="WIIMOTE_RIGHT_PORTRAIT_X">68</integer>
     <integer name="WIIMOTE_RIGHT_PORTRAIT_Y">602</integer>
+
+    <integer name="WIIMOTE_H_BUTTON_A_PORTRAIT_X">769</integer>
+    <integer name="WIIMOTE_H_BUTTON_A_PORTRAIT_Y">584</integer>
+    <integer name="WIIMOTE_H_BUTTON_B_PORTRAIT_X">553</integer>
+    <integer name="WIIMOTE_H_BUTTON_B_PORTRAIT_Y">621</integer>
+    <integer name="WIIMOTE_H_BUTTON_1_PORTRAIT_X">707</integer>
+    <integer name="WIIMOTE_H_BUTTON_1_PORTRAIT_Y">742</integer>
+    <integer name="WIIMOTE_H_BUTTON_2_PORTRAIT_X">846</integer>
+    <integer name="WIIMOTE_H_BUTTON_2_PORTRAIT_Y">692</integer>
+    <integer name="WIIMOTE_O_UP_PORTRAIT_X">260</integer>
+    <integer name="WIIMOTE_O_UP_PORTRAIT_Y">773</integer>
 
     <!-- Default Wii classic landscape layout -->
     <integer name="CLASSIC_BUTTON_A_X">860</integer>
