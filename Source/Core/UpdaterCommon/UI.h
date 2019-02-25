@@ -1,4 +1,4 @@
-// Copyright 2019 Dolphin Emulator Project
+// Copyright 2018 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -8,9 +8,9 @@
 
 namespace UI
 {
+void MessageLoop();
 void Error(const std::string& text);
-
-void SetVisible(bool visible);
+void Stop();
 
 void SetDescription(const std::string& text);
 
@@ -21,4 +21,6 @@ void SetTotalProgress(int current, int total);
 void SetCurrentMarquee(bool marquee);
 void ResetCurrentProgress();
 void SetCurrentProgress(int current, int total);
+
+void SetVisible(bool visible);
 }  // namespace UI

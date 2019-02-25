@@ -2,10 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="UI.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="UI.h" />
+    <ClCompile Include="WinUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Updater.exe.manifest" />
