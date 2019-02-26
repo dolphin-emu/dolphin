@@ -52,6 +52,7 @@
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
+#include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
@@ -507,7 +508,6 @@ void MenuBar::AddOptionsMenu()
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
-#ifdef _WIN32
 void MenuBar::InstallUpdateManually()
 {
   auto& track = SConfig::GetInstance().m_auto_update_track;
@@ -526,7 +526,6 @@ void MenuBar::InstallUpdateManually()
 
   track = previous_value;
 }
-#endif
 
 void MenuBar::AddHelpMenu()
 {
@@ -544,13 +543,17 @@ void MenuBar::AddHelpMenu()
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
   });
 
-#ifdef _WIN32
-  help_menu->addSeparator();
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  {
+    help_menu->addSeparator();
 
-  help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
+    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
+  }
+
+#ifndef __APPLE__
+  help_menu->addSeparator();
 #endif
 
-  help_menu->addSeparator();
   help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
 }
 
