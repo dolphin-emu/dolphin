@@ -14,6 +14,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Extension/TaTaCon.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -29,6 +30,7 @@ WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(
   CreateNunchukLayout();
   CreateTurntableLayout();
   CreateUDrawTabletLayout();
+  CreateTaTaConLayout();
   CreateMainLayout();
 
   ChangeExtensionType(WiimoteEmu::ExtensionNumber::NONE);
@@ -201,6 +203,19 @@ void WiimoteEmuExtension::CreateUDrawTabletLayout()
   m_udraw_tablet_box->setLayout(hbox);
 }
 
+void WiimoteEmuExtension::CreateTaTaConLayout()
+{
+  auto* hbox = new QHBoxLayout();
+  m_tatacon_box = new QGroupBox(tr("Taiko Drum"), this);
+
+  hbox->addWidget(CreateGroupBox(
+      tr("Center"), Wiimote::GetTaTaConGroup(GetPort(), WiimoteEmu::TaTaConGroup::Center)));
+  hbox->addWidget(CreateGroupBox(
+      tr("Rim"), Wiimote::GetTaTaConGroup(GetPort(), WiimoteEmu::TaTaConGroup::Rim)));
+
+  m_tatacon_box->setLayout(hbox);
+}
+
 void WiimoteEmuExtension::CreateMainLayout()
 {
   m_main_layout = new QHBoxLayout();
@@ -212,6 +227,7 @@ void WiimoteEmuExtension::CreateMainLayout()
   m_main_layout->addWidget(m_nunchuk_box);
   m_main_layout->addWidget(m_turntable_box);
   m_main_layout->addWidget(m_udraw_tablet_box);
+  m_main_layout->addWidget(m_tatacon_box);
 
   setLayout(m_main_layout);
 }
@@ -242,4 +258,5 @@ void WiimoteEmuExtension::ChangeExtensionType(u32 type)
   m_drums_box->setHidden(type != ExtensionNumber::DRUMS);
   m_turntable_box->setHidden(type != ExtensionNumber::TURNTABLE);
   m_udraw_tablet_box->setHidden(type != ExtensionNumber::UDRAW_TABLET);
+  m_tatacon_box->setHidden(type != ExtensionNumber::TATACON);
 }

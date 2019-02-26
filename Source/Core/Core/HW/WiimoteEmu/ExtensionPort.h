@@ -20,6 +20,7 @@ enum ExtensionNumber : u8
   DRUMS,
   TURNTABLE,
   UDRAW_TABLET,
+  TATACON,
 };
 
 // FYI: An extension must be attached.

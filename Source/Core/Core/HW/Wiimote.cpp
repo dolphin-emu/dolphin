@@ -72,6 +72,11 @@ ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTa
       ->GetUDrawTabletGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
+}
+
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
