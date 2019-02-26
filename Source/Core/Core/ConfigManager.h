@@ -367,12 +367,13 @@ private:
   void LoadAutoUpdateSettings(IniFile& ini);
   void LoadJitDebugSettings(IniFile& ini);
 
-  void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
-                              Core::TitleDatabase::TitleType type);
+  void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
+                              u64 title_id, u16 revision);
 
   static SConfig* m_Instance;
 
   std::string m_game_id;
+  std::string m_gametdb_id;
   std::string m_title_description;
   u64 m_title_id;
   u16 m_revision;

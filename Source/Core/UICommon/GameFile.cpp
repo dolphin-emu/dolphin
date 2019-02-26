@@ -50,11 +50,22 @@ static const std::string EMPTY_STRING;
 static bool UseGameCovers()
 {
 // We ifdef this out on Android because accessing the config before emulation start makes us crash.
-// The Android GUI doesn't support covers anyway, so this doesn't make us lose out on functionality.
+// The Android GUI handles covers in Java anyway, so this doesn't make us lose any functionality.
 #ifdef ANDROID
   return false;
 #else
   return Config::Get(Config::MAIN_USE_GAME_COVERS);
+#endif
+}
+
+DiscIO::Language GameFile::GetConfigLanguage() const
+{
+#ifdef ANDROID
+  // TODO: Make the Android app load the config at app start instead of emulation start
+  // so that we can access the user's preference here
+  return DiscIO::Language::English;
+#else
+  return SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(m_platform));
 #endif
 }
 
@@ -94,15 +105,7 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
 const std::string&
 GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const
 {
-#ifdef ANDROID
-  // TODO: Make the Android app load the config at app start instead of emulation start
-  // so that we can access the user's preference here
-  const DiscIO::Language language = DiscIO::Language::English;
-#else
-  const bool wii = DiscIO::IsWii(m_platform);
-  const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(wii);
-#endif
-  return Lookup(language, strings);
+  return Lookup(GetConfigLanguage(), strings);
 }
 
 GameFile::GameFile(const std::string& path)
@@ -132,6 +135,7 @@ GameFile::GameFile(const std::string& path)
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
+      m_gametdb_id = volume->GetGameTDBID();
       m_title_id = volume->GetTitleID().value_or(0);
       m_maker_id = volume->GetMakerID();
       m_revision = volume->GetRevision().value_or(0);
@@ -198,9 +202,8 @@ void GameFile::DownloadDefaultCover()
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
 
-  // If covers have already been downloaded, abort
-  if (File::Exists(cover_path + m_game_id + ".png") ||
-      File::Exists(cover_path + m_game_id.substr(0, 4) + ".png"))
+  // If the cover has already been downloaded, abort
+  if (File::Exists(cover_path + m_gametdb_id + ".png"))
     return;
 
   Common::HttpRequest request;
@@ -249,22 +252,13 @@ void GameFile::DownloadDefaultCover()
     break;
   }
 
-  auto response = request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.c_str()));
+  auto response =
+      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_gametdb_id.c_str()));
 
   if (response)
   {
     File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
-                            cover_path + m_game_id + ".png");
-    return;
-  }
-
-  response =
-      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.substr(0, 4).c_str()));
-
-  if (response)
-  {
-    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
-                            cover_path + m_game_id.substr(0, 4) + ".png");
+                            cover_path + m_gametdb_id + ".png");
   }
 }
 
@@ -277,10 +271,7 @@ bool GameFile::DefaultCoverChanged()
 
   std::string contents;
 
-  File::ReadFileToString(cover_path + m_game_id + ".png", contents);
-
-  if (contents.empty())
-    File::ReadFileToString(cover_path + m_game_id.substr(0, 4).c_str() + ".png", contents);
+  File::ReadFileToString(cover_path + m_gametdb_id + ".png", contents);
 
   if (contents.empty())
     return false;
@@ -328,6 +319,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_descriptions);
   p.Do(m_internal_name);
   p.Do(m_game_id);
+  p.Do(m_gametdb_id);
   p.Do(m_title_id);
   p.Do(m_maker_id);
 
@@ -433,10 +425,7 @@ void GameFile::CustomBannerCommit()
 
 const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) const
 {
-  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
-                        Core::TitleDatabase::TitleType::Channel :
-                        Core::TitleDatabase::TitleType::Other;
-  const std::string& custom_name = title_database.GetTitleName(m_game_id, type);
+  const std::string& custom_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
   return custom_name.empty() ? GetName() : custom_name;
 }
 

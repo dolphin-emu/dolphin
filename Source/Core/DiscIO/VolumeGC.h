@@ -34,6 +34,7 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
   std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;

@@ -278,6 +278,11 @@ std::string VolumeWii::GetGameID(const Partition& partition) const
   return DecodeString(id);
 }
 
+std::string VolumeWii::GetGameTDBID(const Partition& partition) const
+{
+  return GetGameID(partition);
+}
+
 Region VolumeWii::GetRegion() const
 {
   const std::optional<u32> region_code = m_reader->ReadSwapped<u32>(0x4E000);

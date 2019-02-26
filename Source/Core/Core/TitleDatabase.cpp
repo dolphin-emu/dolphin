@@ -21,46 +21,14 @@ namespace Core
 {
 static const std::string EMPTY_STRING;
 
-static std::string GetLanguageCode(DiscIO::Language language)
-{
-  switch (language)
-  {
-  case DiscIO::Language::Japanese:
-    return "ja";
-  case DiscIO::Language::English:
-    return "en";
-  case DiscIO::Language::German:
-    return "de";
-  case DiscIO::Language::French:
-    return "fr";
-  case DiscIO::Language::Spanish:
-    return "es";
-  case DiscIO::Language::Italian:
-    return "it";
-  case DiscIO::Language::Dutch:
-    return "nl";
-  case DiscIO::Language::SimplifiedChinese:
-    return "zh_CN";
-  case DiscIO::Language::TraditionalChinese:
-    return "zh_TW";
-  case DiscIO::Language::Korean:
-    return "ko";
-  default:
-    return "en";
-  }
-}
-
 using Map = std::unordered_map<std::string, std::string>;
 
-// Note that this function will not overwrite entries that already are in the maps
-static bool LoadMap(const std::string& file_path, Map& map,
-                    std::function<bool(const std::string& game_id)> predicate)
+static Map LoadMap(const std::string& file_path)
 {
+  Map map;
+
   std::ifstream txt;
   File::OpenFStream(txt, file_path, std::ios::in);
-
-  if (!txt.is_open())
-    return false;
 
   std::string line;
   while (std::getline(txt, line))
@@ -72,123 +40,94 @@ static bool LoadMap(const std::string& file_path, Map& map,
     if (equals_index != std::string::npos)
     {
       const std::string game_id = StripSpaces(line.substr(0, equals_index));
-      if (game_id.length() >= 4 && predicate(game_id))
+      if (game_id.length() >= 4)
         map.emplace(game_id, StripSpaces(line.substr(equals_index + 1)));
     }
   }
-  return true;
+  return map;
 }
 
-// This should only be used with the common game ID format (used by WiiTDBs), not Dolphin's.
-// Otherwise, TurboGrafx-16 VC games (with the system ID P) will be misdetected as GameCube titles.
-// The formats differ in that Dolphin's uses 6 characters for non-disc titles instead of 4.
-static bool IsGCTitle(const std::string& game_id)
+void TitleDatabase::AddLazyMap(DiscIO::Language language, const std::string& language_code)
 {
-  const char system_id = game_id[0];
-  return game_id.length() == 6 &&
-         (system_id == 'G' || system_id == 'D' || system_id == 'U' || system_id == 'P');
-}
-
-static bool IsWiiTitle(const std::string& game_id)
-{
-  // Assume that any non-GameCube title is a Wii title.
-  return !IsGCTitle(game_id);
-}
-
-static bool IsJapaneseGCTitle(const std::string& game_id)
-{
-  if (!IsGCTitle(game_id))
-    return false;
-
-  return DiscIO::CountryCodeToCountry(game_id[3], DiscIO::Platform::GameCubeDisc) ==
-         DiscIO::Country::Japan;
-}
-
-static bool IsNonJapaneseGCTitle(const std::string& game_id)
-{
-  if (!IsGCTitle(game_id))
-    return false;
-
-  return DiscIO::CountryCodeToCountry(game_id[3], DiscIO::Platform::GameCubeDisc) !=
-         DiscIO::Country::Japan;
-}
-
-// Note that this function will not overwrite entries that already are in the maps
-static bool LoadMap(const std::string& file_path, Map& gc_map, Map& wii_map)
-{
-  Map map;
-  if (!LoadMap(file_path, map, [](const auto& game_id) { return true; }))
-    return false;
-
-  for (auto& entry : map)
-  {
-    auto& destination_map = IsGCTitle(entry.first) ? gc_map : wii_map;
-    destination_map.emplace(std::move(entry));
-  }
-  return true;
+  m_title_maps[language] = [language_code]() -> Map {
+    return LoadMap(File::GetSysDirectory() + "wiitdb-" + language_code + ".txt");
+  };
 }
 
 TitleDatabase::TitleDatabase()
 {
-  // Load the user databases.
+  // User database
   const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
-  if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
-    LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
+  m_user_title_map = LoadMap(load_directory + "wiitdb.txt");
+  if (m_user_title_map.empty())
+    m_user_title_map = LoadMap(load_directory + "titles.txt");
 
-  if (!SConfig::GetInstance().m_use_builtin_title_database)
-    return;
+  // Pre-defined databases (one per language)
+  AddLazyMap(DiscIO::Language::Japanese, "ja");
+  AddLazyMap(DiscIO::Language::English, "en");
+  AddLazyMap(DiscIO::Language::German, "de");
+  AddLazyMap(DiscIO::Language::French, "fr");
+  AddLazyMap(DiscIO::Language::Spanish, "es");
+  AddLazyMap(DiscIO::Language::Italian, "it");
+  AddLazyMap(DiscIO::Language::Dutch, "nl");
+  AddLazyMap(DiscIO::Language::SimplifiedChinese, "zh_CN");
+  AddLazyMap(DiscIO::Language::TraditionalChinese, "zh_TW");
+  AddLazyMap(DiscIO::Language::Korean, "ko");
 
-  // Load the database in the console language.
-  // Note: The GameCube language setting can't be set to Japanese,
-  // so instead, we use Japanese names iff the games are NTSC-J.
-  const std::string gc_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(false));
-  const std::string wii_code = GetLanguageCode(SConfig::GetInstance().GetCurrentLanguage(true));
-  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
-  if (gc_code != "en")
-  {
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + gc_code + ".txt", m_gc_title_map,
-            IsNonJapaneseGCTitle);
-  }
-  if (wii_code != "en")
-    LoadMap(File::GetSysDirectory() + "wiitdb-" + wii_code + ".txt", m_wii_title_map, IsWiiTitle);
-
-  // Load the English database as the base database.
-  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
-
-  // Titles that cannot be part of the Wii TDB,
-  // but common enough to justify having entries for them.
+  // Titles that aren't part of the Wii TDB, but common enough to justify having entries for them.
 
   // i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
   // which is (usually) the first thing users see when a Wii console starts.
-  m_wii_title_map.emplace("0000000100000002", GetStringT("Wii Menu"));
-  for (const auto& id : {"HAXX", "JODI", "00010001af1bf516", "LULZ", "OHBC"})
-    m_wii_title_map.emplace(id, "The Homebrew Channel");
+  m_base_map.emplace("0000000100000002", GetStringT("Wii Menu"));
+  for (const auto& id : {"HAXX", "00010001af1bf516"})
+    m_base_map.emplace(id, "The Homebrew Channel");
 }
 
 TitleDatabase::~TitleDatabase() = default;
 
-const std::string& TitleDatabase::GetTitleName(const std::string& game_id, TitleType type) const
+const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
+                                               DiscIO::Language language) const
 {
-  const auto& map = IsWiiTitle(game_id) ? m_wii_title_map : m_gc_title_map;
-  const std::string key =
-      type == TitleType::Channel && game_id.length() == 6 ? game_id.substr(0, 4) : game_id;
-  const auto iterator = map.find(key);
-  return iterator != map.end() ? iterator->second : EMPTY_STRING;
+  auto it = m_user_title_map.find(gametdb_id);
+  if (it != m_user_title_map.end())
+    return it->second;
+
+  if (!SConfig::GetInstance().m_use_builtin_title_database)
+    return EMPTY_STRING;
+
+  const Map& map = *m_title_maps.at(language);
+  it = map.find(gametdb_id);
+  if (it != map.end())
+    return it->second;
+
+  if (language != DiscIO::Language::English)
+  {
+    const Map& english_map = *m_title_maps.at(DiscIO::Language::English);
+    it = english_map.find(gametdb_id);
+    if (it != english_map.end())
+      return it->second;
+  }
+
+  it = m_base_map.find(gametdb_id);
+  if (it != m_base_map.end())
+    return it->second;
+
+  return EMPTY_STRING;
 }
 
-const std::string& TitleDatabase::GetChannelName(u64 title_id) const
+const std::string& TitleDatabase::GetChannelName(u64 title_id, DiscIO::Language language) const
 {
   const std::string id{
       {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
        static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
-  return GetTitleName(id, TitleType::Channel);
+  return GetTitleName(id, language);
 }
 
-std::string TitleDatabase::Describe(const std::string& game_id, TitleType type) const
+std::string TitleDatabase::Describe(const std::string& gametdb_id, DiscIO::Language language) const
 {
-  const std::string& title_name = GetTitleName(game_id, type);
+  const std::string& title_name = GetTitleName(gametdb_id, language);
   if (title_name.empty())
-    return game_id;
-  return StringFromFormat("%s (%s)", title_name.c_str(), game_id.c_str());
+    return gametdb_id;
+  return StringFromFormat("%s (%s)", title_name.c_str(), gametdb_id.c_str());
 }
 }  // namespace Core

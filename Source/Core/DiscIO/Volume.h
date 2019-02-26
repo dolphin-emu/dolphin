@@ -76,6 +76,7 @@ public:
     return offset;
   }
   virtual std::string GetGameID(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::string GetMakerID(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::string GetInternalName(const Partition& partition = PARTITION_NONE) const = 0;
