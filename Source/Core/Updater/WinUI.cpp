@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Updater/UI.h"
-
-#include <CommCtrl.h>
-#include <ShObjIdl.h>
+#include "UpdaterCommon/UI.h"
 
 #include <string>
+
+#include <Windows.h>
+#include <CommCtrl.h>
+#include <ShObjIdl.h>
 
 #include "Common/Flag.h"
 #include "Common/StringUtil.h"

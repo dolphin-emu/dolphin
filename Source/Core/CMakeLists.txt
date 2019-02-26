@@ -16,5 +16,6 @@ if(ENABLE_QT)
 endif()
 
 if (APPLE)
+  add_subdirectory(UpdaterCommon)
   add_subdirectory(MacUpdater)
 endif()

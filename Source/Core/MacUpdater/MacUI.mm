@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "MacUpdater/UI.h"
 #include "MacUpdater/ViewController.h"
+
+#include "UpdaterCommon/UI.h"
 
 #include <Cocoa/Cocoa.h>
 
@@ -104,4 +105,8 @@ void UI::SetCurrentProgress(int current, int total)
 void UI::SetTotalProgress(int current, int total)
 {
   run_on_main([&] { [GetView() SetTotalProgress:(double)current total:(double)total]; });
+}
+
+void UI::Stop()
+{
 }

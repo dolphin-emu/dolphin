@@ -6,8 +6,7 @@ set(SOURCES
   AppDelegate.mm
   ViewController.h
   ViewController.m
-  UI.h
-  UI.mm
+  MacUI.mm
   ${STORYBOARDS}
 )
 
@@ -31,10 +30,8 @@ target_link_libraries(MacUpdater PRIVATE
     "-framework AppKit"
     "-framework CoreData"
     "-framework Foundation"
-    uicommon
-    mbedtls
-    z
-    ed25519
+	uicommon
+	updatercommon
 )
 
 # Compile storyboards (Adapted from https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/OSX-InterfaceBuilderFiles)
