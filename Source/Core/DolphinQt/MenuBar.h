@@ -42,9 +42,7 @@ public:
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
-#ifdef _WIN32
   void InstallUpdateManually();
-#endif
 
 signals:
   // File
