@@ -25,7 +25,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-using ConfigurationOption = PostProcessingShaderConfiguration::ConfigurationOption;
+using ConfigurationOption = VideoCommon::PostProcessingConfiguration::ConfigurationOption;
 using OptionType = ConfigurationOption::OptionType;
 
 PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* parent,
@@ -38,7 +38,7 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   }
   else
   {
-    m_post_processor = new PostProcessingShaderConfiguration();
+    m_post_processor = new VideoCommon::PostProcessingConfiguration();
     m_post_processor->LoadShader(m_shader);
   }
 
@@ -61,7 +61,8 @@ PostProcessingConfigWindow::~PostProcessingConfigWindow()
 
 void PostProcessingConfigWindow::PopulateGroups()
 {
-  const PostProcessingShaderConfiguration::ConfigMap& config_map = m_post_processor->GetOptions();
+  const VideoCommon::PostProcessingConfiguration::ConfigMap& config_map =
+      m_post_processor->GetOptions();
 
   auto config_groups = std::vector<std::unique_ptr<ConfigGroup>>();
   for (const auto& it : config_map)

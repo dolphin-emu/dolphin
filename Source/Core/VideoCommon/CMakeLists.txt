@@ -10,11 +10,11 @@ add_library(videocommon
   BPStructs.cpp
   CPMemory.cpp
   CommandProcessor.cpp
-  Debugger.cpp
   DriverDetails.cpp
   Fifo.cpp
   FPSCounter.cpp
-  FramebufferManagerBase.cpp
+  FramebufferManager.cpp
+  FramebufferShaderGen.cpp
   GeometryShaderGen.cpp
   GeometryShaderManager.cpp
   HiresTextures.cpp

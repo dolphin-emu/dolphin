@@ -41,21 +41,25 @@ class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
 class NativeVertexFormat;
-class PostProcessingShaderImplementation;
 struct TextureConfig;
 struct ComputePipelineConfig;
 struct AbstractPipelineConfig;
+struct PortableVertexDeclaration;
 enum class ShaderStage;
 enum class EFBAccessType;
+enum class EFBReinterpretType;
 enum class StagingTextureType;
+
+namespace VideoCommon
+{
+class PostProcessing;
+}
 
 struct EfbPokeData
 {
   u16 x, y;
   u32 data;
 };
-
-extern int frameCount;
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
@@ -78,36 +82,37 @@ public:
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
+  virtual void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
-  virtual void SetInterlacingMode() {}
   virtual void SetViewport(float x, float y, float width, float height, float near_depth,
                            float far_depth)
   {
   }
   virtual void SetFullscreen(bool enable_fullscreen) {}
   virtual bool IsFullscreen() const { return false; }
-  virtual void ApplyState() {}
-  virtual void RestoreState() {}
-  virtual void ResetAPIState() {}
-  virtual void RestoreAPIState() {}
+  virtual void BeginUtilityDrawing();
+  virtual void EndUtilityDrawing();
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(const AbstractTexture* color_attachment,
-                    const AbstractTexture* depth_attachment) = 0;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) = 0;
 
   // Framebuffer operations.
-  virtual void SetFramebuffer(const AbstractFramebuffer* framebuffer) {}
-  virtual void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) {}
-  virtual void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
-                                      const ClearColor& color_value = {}, float depth_value = 0.0f)
-  {
-  }
+  virtual void SetFramebuffer(AbstractFramebuffer* framebuffer);
+  virtual void SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer);
+  virtual void SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value = {}, float depth_value = 0.0f);
 
   // Drawing with currently-bound pipeline state.
   virtual void Draw(u32 base_vertex, u32 num_vertices) {}
   virtual void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) {}
+
+  // Dispatching compute shaders with currently-bound state.
+  virtual void DispatchComputeShader(const AbstractShader* shader, u32 groups_x, u32 groups_y,
+                                     u32 groups_z)
+  {
+  }
 
   // Binds the backbuffer for rendering. The buffer will be cleared immediately after binding.
   // This is where any window size changes are detected, therefore m_backbuffer_width and/or
@@ -122,12 +127,15 @@ public:
   CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
   virtual std::unique_ptr<AbstractShader>
   CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
+  virtual std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
   virtual std::unique_ptr<AbstractPipeline>
   CreatePipeline(const AbstractPipelineConfig& config) = 0;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
+                                                         const std::string& source);
 
-  const AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
-  u32 GetCurrentFramebufferWidth() const { return m_current_framebuffer_width; }
-  u32 GetCurrentFramebufferHeight() const { return m_current_framebuffer_height; }
+  AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
+
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
@@ -137,10 +145,27 @@ public:
   float GetBackbufferScale() const { return m_backbuffer_scale; }
   void SetWindowSize(int width, int height);
 
-  // EFB coordinate conversion functions
+  // Sets viewport and scissor to the specified rectangle. rect is assumed to be in framebuffer
+  // coordinates, i.e. lower-left origin in OpenGL.
+  void SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth = 0.0f,
+                             float max_depth = 1.0f);
 
+  // Scales a GPU texture using a copy shader.
+  virtual void ScaleTexture(AbstractFramebuffer* dst_framebuffer,
+                            const MathUtil::Rectangle<int>& dst_rect,
+                            const AbstractTexture* src_texture,
+                            const MathUtil::Rectangle<int>& src_rect);
+
+  // Converts an upper-left to lower-left if required by the backend, optionally
+  // clamping to the framebuffer size.
+  MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
+                                                       u32 fb_width, u32 fb_height);
+  MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
+                                                       const AbstractFramebuffer* framebuffer);
+
+  // EFB coordinate conversion functions
   // Use this to convert a whole native EFB rect to backbuffer coordinates
-  virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
+  TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
@@ -170,18 +195,20 @@ public:
   bool InitializeImGui();
 
   virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                           u32 color, u32 z) = 0;
-  virtual void ReinterpretPixelData(unsigned int convtype) = 0;
+                           u32 color, u32 z);
+  virtual void ReinterpretPixelData(EFBReinterpretType convtype);
   void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
                    float Gamma = 1.0f);
 
-  virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
-  virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) = 0;
+  virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
+  virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
   virtual u16 BBoxRead(int index) = 0;
   virtual void BBoxWrite(int index, u16 value) = 0;
+  virtual void BBoxFlush() {}
 
   virtual void Flush() {}
+  virtual void WaitForGPUIdle() {}
 
   // Finish up the current frame, print some stats
   void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
@@ -189,14 +216,14 @@ public:
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
-  virtual void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) {}
+  virtual void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc);
 
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 bits) {}
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
-  PostProcessingShaderImplementation* GetPostProcessor() const { return m_post_processor.get(); }
+  VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
@@ -246,12 +273,10 @@ protected:
 
   // Renders ImGui windows to the currently-bound framebuffer.
   // Should be called with the ImGui lock held.
-  void RenderImGui();
+  void DrawImGui();
 
-  // TODO: Remove the width/height parameters once we make the EFB an abstract framebuffer.
-  const AbstractFramebuffer* m_current_framebuffer = nullptr;
-  u32 m_current_framebuffer_width = 1;
-  u32 m_current_framebuffer_height = 1;
+  AbstractFramebuffer* m_current_framebuffer = nullptr;
+  const AbstractPipeline* m_current_pipeline = nullptr;
 
   Common::Flag m_screenshot_request;
   Common::Event m_screenshot_completed;
@@ -260,8 +285,8 @@ protected:
   bool m_aspect_wide = false;
 
   // The framebuffer size
-  int m_target_width = 0;
-  int m_target_height = 0;
+  int m_target_width = 1;
+  int m_target_height = 1;
 
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
@@ -269,10 +294,11 @@ protected:
   float m_backbuffer_scale = 1.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
+  int m_frame_count = 0;
 
   FPSCounter m_fps_counter;
 
-  std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
+  std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
 
   void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_changed;
@@ -315,6 +341,7 @@ private:
 
   // Texture used for screenshot/frame dumping
   std::unique_ptr<AbstractTexture> m_frame_dump_render_texture;
+  std::unique_ptr<AbstractFramebuffer> m_frame_dump_render_framebuffer;
   std::array<std::unique_ptr<AbstractStagingTexture>, 2> m_frame_dump_readback_textures;
   AVIDump::Frame m_last_frame_state;
   bool m_last_frame_exported = false;
@@ -340,14 +367,14 @@ private:
 
   bool IsFrameDumping();
 
-  // Asynchronously encodes the current staging texture to the frame dump.
+  // Checks that the frame dump render texture exists and is the correct size.
+  bool CheckFrameDumpRenderTexture(u32 target_width, u32 target_height);
+
+  // Checks that the frame dump readback texture exists and is the correct size.
+  bool CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height);
+
+  // Fills the frame dump staging texture with the current XFB texture.
   void DumpCurrentFrame();
-
-  // Fills the frame dump render texture with the current XFB texture.
-  void RenderFrameDump();
-
-  // Queues the current frame for readback, which will be written to AVI next frame.
-  void QueueFrameDumpReadback();
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
   void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state);

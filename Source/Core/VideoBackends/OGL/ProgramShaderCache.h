@@ -44,9 +44,9 @@ struct SHADER
 
 struct PipelineProgramKey
 {
-  const OGLShader* vertex_shader;
-  const OGLShader* geometry_shader;
-  const OGLShader* pixel_shader;
+  u64 vertex_shader_id;
+  u64 geometry_shader_id;
+  u64 pixel_shader_id;
 
   bool operator==(const PipelineProgramKey& rhs) const;
   bool operator!=(const PipelineProgramKey& rhs) const;
@@ -82,13 +82,20 @@ public:
                                      const std::string& gcode);
   static StreamBuffer* GetUniformBuffer();
   static u32 GetUniformBufferAlignment();
-  static void InvalidateConstants();
   static void UploadConstants();
   static void UploadConstants(const void* data, u32 data_size);
 
   static void Init();
   static void Shutdown();
   static void CreateHeader();
+
+  // This counter increments with each shader object allocated, in order to give it a unique ID.
+  // Since the shaders can be destroyed after a pipeline is created, we can't use the shader pointer
+  // as a key for GL programs. For the same reason, we can't use the GL objects either. This ID is
+  // guaranteed to be unique for the emulation session, even if the memory allocator or GL driver
+  // re-uses pointers, therefore we won't have any collisions where the shaders attached to a
+  // pipeline do not match the pipeline configuration.
+  static u64 GenerateShaderID();
 
   static const PipelineProgram* GetPipelineProgram(const GLVertexFormat* vertex_format,
                                                    const OGLShader* vertex_shader,

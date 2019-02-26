@@ -9,6 +9,7 @@
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Null
@@ -74,22 +75,16 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return std::make_unique<NullPipeline>();
 }
 
-std::unique_ptr<AbstractFramebuffer>
-Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
-                            const AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
+                                                                 AbstractTexture* depth_attachment)
 {
-  return NullFramebuffer::Create(static_cast<const NullTexture*>(color_attachment),
-                                 static_cast<const NullTexture*>(depth_attachment));
+  return NullFramebuffer::Create(static_cast<NullTexture*>(color_attachment),
+                                 static_cast<NullTexture*>(depth_attachment));
 }
 
-TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
+std::unique_ptr<NativeVertexFormat>
+Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  TargetRectangle result;
-  result.left = rc.left;
-  result.top = rc.top;
-  result.right = rc.right;
-  result.bottom = rc.bottom;
-  return result;
+  return std::make_unique<NativeVertexFormat>(vtx_decl);
 }
-
 }  // namespace Null

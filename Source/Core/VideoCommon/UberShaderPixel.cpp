@@ -52,8 +52,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
-  const bool bounding_box =
-      host_config.bounding_box && g_ActiveConfig.BBoxUseFragmentShaderImplementation();
+  const bool bounding_box = host_config.bounding_box;
   const u32 numTexgen = uid_data->num_texgens;
   ShaderCode out;
 
@@ -1058,7 +1057,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (host_config.fast_depth_calc)
   {
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("  int zCoord = int(rawpos.z * 16777216.0);\n");
@@ -1113,7 +1112,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("  // If early depth is enabled, write to zbuffer before depth textures\n");
     out.Write("  // If early depth isn't enabled, we write to the zbuffer here\n");
     out.Write("  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
     else
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");

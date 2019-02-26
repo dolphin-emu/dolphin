@@ -282,7 +282,6 @@ void VideoBackendBase::InitializeShared()
   m_initialized = true;
 
   m_invalid = false;
-  frameCount = 0;
 
   CommandProcessor::Init();
   Fifo::Init();

@@ -25,9 +25,6 @@ public:
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                 u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                 u32 dst_layer, u32 dst_level) override;
-  void ScaleRectangleFromTexture(const AbstractTexture* source,
-                                 const MathUtil::Rectangle<int>& srcrect,
-                                 const MathUtil::Rectangle<int>& dstrect) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                           u32 layer, u32 level) override;
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
@@ -66,12 +63,13 @@ private:
 class SWFramebuffer final : public AbstractFramebuffer
 {
 public:
-  explicit SWFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+  explicit SWFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                         AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
                          u32 width, u32 height, u32 layers, u32 samples);
   ~SWFramebuffer() override = default;
 
-  static std::unique_ptr<SWFramebuffer> Create(const SWTexture* color_attachment,
-                                               const SWTexture* depth_attachment);
+  static std::unique_ptr<SWFramebuffer> Create(SWTexture* color_attachment,
+                                               SWTexture* depth_attachment);
 };
 
 }  // namespace SW

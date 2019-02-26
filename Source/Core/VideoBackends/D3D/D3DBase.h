@@ -38,7 +38,8 @@ namespace DX11
     PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__, __VA_ARGS__); \
   }
 
-class D3DTexture2D;
+class DXTexture;
+class DXFramebuffer;
 
 namespace D3D
 {
@@ -64,7 +65,8 @@ void Reset(HWND new_wnd);
 void ResizeSwapChain();
 void Present();
 
-D3DTexture2D* GetBackBuffer();
+DXTexture* GetSwapChainTexture();
+DXFramebuffer* GetSwapChainFramebuffer();
 const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();

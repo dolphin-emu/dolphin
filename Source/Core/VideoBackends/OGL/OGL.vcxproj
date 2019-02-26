@@ -40,17 +40,13 @@
     <ClCompile Include="OGLShader.cpp" />
     <ClCompile Include="OGLTexture.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NativeVertexFormat.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
-    <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="ProgramShaderCache.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
     <ClCompile Include="StreamBuffer.cpp" />
-    <ClCompile Include="TextureCache.cpp" />
-    <ClCompile Include="TextureConverter.cpp" />
     <ClCompile Include="VertexManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -58,16 +54,12 @@
     <ClInclude Include="OGLShader.h" />
     <ClInclude Include="OGLTexture.h" />
     <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="GPUTimer.h" />
     <ClInclude Include="PerfQuery.h" />
-    <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="ProgramShaderCache.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="StreamBuffer.h" />
-    <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="TextureConverter.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>

@@ -13,6 +13,7 @@ enum class APIType;
 enum class TextureFormat;
 enum class EFBCopyFormat;
 enum class TLUTFormat;
+enum TexelBufferFormat : u32;
 struct EFBCopyParams;
 
 namespace TextureConversionShaderTiled
@@ -21,20 +22,10 @@ u16 GetEncodedSampleCount(EFBCopyFormat format);
 
 const char* GenerateEncodingShader(const EFBCopyParams& params, APIType ApiType);
 
-// View format of the input data to the texture decoding shader.
-enum BufferFormat
-{
-  BUFFER_FORMAT_R8_UINT,
-  BUFFER_FORMAT_R16_UINT,
-  BUFFER_FORMAT_R32G32_UINT,
-  BUFFER_FORMAT_RGBA8_UINT,
-  BUFFER_FORMAT_COUNT
-};
-
 // Information required to compile and dispatch a texture decoding shader.
 struct DecodingShaderInfo
 {
-  BufferFormat buffer_format;
+  TexelBufferFormat buffer_format;
   u32 palette_size;
   u32 group_size_x;
   u32 group_size_y;
@@ -46,10 +37,6 @@ struct DecodingShaderInfo
 // If this format does not have a shader written for it, returns nullptr.
 const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format);
 
-// Determine how many bytes there are in each element of the texel buffer.
-// Needed for alignment and stride calculations.
-u32 GetBytesPerBufferElement(BufferFormat buffer_format);
-
 // Determine how many thread groups should be dispatched for an image of the specified width/height.
 // First is the number of X groups, second is the number of Y groups, Z is always one.
 std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, u32 height);
@@ -57,5 +44,8 @@ std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, 
 // Returns the GLSL string containing the texture decoding shader for the specified format.
 std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_format,
                                    APIType api_type);
+
+// Returns the GLSL string containing the palette conversion shader for the specified format.
+std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type);
 
 }  // namespace TextureConversionShaderTiled

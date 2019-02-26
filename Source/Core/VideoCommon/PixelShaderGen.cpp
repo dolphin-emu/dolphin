@@ -171,8 +171,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
-  uid_data->bounding_box = g_ActiveConfig.BBoxUseFragmentShaderImplementation() &&
-                           g_ActiveConfig.bBBoxEnable && BoundingBox::active;
+  uid_data->bounding_box = g_ActiveConfig.bBBoxEnable && BoundingBox::active;
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
   uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
@@ -456,10 +455,6 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
       out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n");
     }
   }
-
-  out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers(out, ApiType, num_texgens, host_config, "");
-  out.Write("};\n");
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
@@ -804,7 +799,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   }
   else
   {
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
@@ -818,7 +813,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   // Note: z-textures are not written to depth buffer if early depth test is used
   if (uid_data->per_pixel_depth && uid_data->early_ztest)
   {
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -839,7 +834,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   if (uid_data->per_pixel_depth && uid_data->late_ztest)
   {
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -1316,7 +1311,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (per_pixel_depth)
   {
     out.Write("\t\tdepth = %s;\n",
-              (ApiType == APIType::D3D || ApiType == APIType::Vulkan) ? "0.0" : "1.0");
+              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? "0.0" : "1.0");
   }
 
   // ZCOMPLOC HACK:

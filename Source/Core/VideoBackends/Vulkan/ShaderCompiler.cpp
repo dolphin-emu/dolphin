@@ -53,12 +53,13 @@ static const char SHADER_HEADER[] = R"(
   #define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y) layout(location = x, index = y)
   #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (x - 1))
   #define SAMPLER_BINDING(x) layout(set = 1, binding = x)
+  #define TEXEL_BUFFER_BINDING(x) layout(set = 1, binding = (x + 8))
   #define SSBO_BINDING(x) layout(set = 2, binding = x)
-  #define TEXEL_BUFFER_BINDING(x) layout(set = 2, binding = x)
   #define VARYING_LOCATION(x) layout(location = x)
   #define FORCE_EARLY_Z layout(early_fragment_tests) in
 
   // hlsl to glsl function translation
+  #define API_VULKAN 1
   #define float2 vec2
   #define float3 vec3
   #define float4 vec4
@@ -79,12 +80,13 @@ static const char COMPUTE_SHADER_HEADER[] = R"(
   // Target GLSL 4.5.
   #version 450 core
   // All resources are packed into one descriptor set for compute.
-  #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (0 + x))
+  #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (x - 1))
   #define SAMPLER_BINDING(x) layout(set = 0, binding = (1 + x))
-  #define TEXEL_BUFFER_BINDING(x) layout(set = 0, binding = (5 + x))
-  #define IMAGE_BINDING(format, x) layout(format, set = 0, binding = (7 + x))
+  #define TEXEL_BUFFER_BINDING(x) layout(set = 0, binding = (3 + x))
+  #define IMAGE_BINDING(format, x) layout(format, set = 0, binding = (5 + x))
 
   // hlsl to glsl function translation
+  #define API_VULKAN 1
   #define float2 vec2
   #define float3 vec3
   #define float4 vec4

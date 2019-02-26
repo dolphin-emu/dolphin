@@ -2,43 +2,28 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <fstream>
+
 #include "Common/Assert.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/DXShader.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
-DXShader::DXShader(D3DBlob* bytecode, ID3D11VertexShader* vs)
-    : AbstractShader(ShaderStage::Vertex), m_bytecode(bytecode), m_shader(vs)
-{
-}
-
-DXShader::DXShader(D3DBlob* bytecode, ID3D11GeometryShader* gs)
-    : AbstractShader(ShaderStage::Geometry), m_bytecode(bytecode), m_shader(gs)
-{
-}
-
-DXShader::DXShader(D3DBlob* bytecode, ID3D11PixelShader* ps)
-    : AbstractShader(ShaderStage::Pixel), m_bytecode(bytecode), m_shader(ps)
-{
-}
-
-DXShader::DXShader(D3DBlob* bytecode, ID3D11ComputeShader* cs)
-    : AbstractShader(ShaderStage::Compute), m_bytecode(bytecode), m_shader(cs)
+DXShader::DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader)
+    : AbstractShader(stage), m_bytecode(bytecode), m_shader(shader)
 {
 }
 
 DXShader::~DXShader()
 {
   m_shader->Release();
-  m_bytecode->Release();
-}
-
-D3DBlob* DXShader::GetByteCode() const
-{
-  return m_bytecode;
 }
 
 ID3D11VertexShader* DXShader::GetD3DVertexShader() const
@@ -67,48 +52,62 @@ ID3D11ComputeShader* DXShader::GetD3DComputeShader() const
 
 bool DXShader::HasBinary() const
 {
-  ASSERT(m_bytecode);
   return true;
 }
 
 AbstractShader::BinaryData DXShader::GetBinary() const
 {
-  return BinaryData(m_bytecode->Data(), m_bytecode->Data() + m_bytecode->Size());
+  return m_bytecode;
 }
 
-std::unique_ptr<DXShader> DXShader::CreateFromBlob(ShaderStage stage, D3DBlob* bytecode)
+std::unique_ptr<DXShader> DXShader::CreateFromBytecode(ShaderStage stage, BinaryData bytecode)
 {
   switch (stage)
   {
   case ShaderStage::Vertex:
   {
-    ID3D11VertexShader* vs = D3D::CreateVertexShaderFromByteCode(bytecode);
-    if (vs)
-      return std::make_unique<DXShader>(bytecode, vs);
+    ID3D11VertexShader* vs;
+    HRESULT hr = D3D::device->CreateVertexShader(bytecode.data(), bytecode.size(), nullptr, &vs);
+    CHECK(SUCCEEDED(hr), "Create vertex shader");
+    if (FAILED(hr))
+      return nullptr;
+
+    return std::make_unique<DXShader>(ShaderStage::Vertex, std::move(bytecode), vs);
   }
-  break;
 
   case ShaderStage::Geometry:
   {
-    ID3D11GeometryShader* gs = D3D::CreateGeometryShaderFromByteCode(bytecode);
-    if (gs)
-      return std::make_unique<DXShader>(bytecode, gs);
+    ID3D11GeometryShader* gs;
+    HRESULT hr = D3D::device->CreateGeometryShader(bytecode.data(), bytecode.size(), nullptr, &gs);
+    CHECK(SUCCEEDED(hr), "Create geometry shader");
+    if (FAILED(hr))
+      return nullptr;
+
+    return std::make_unique<DXShader>(ShaderStage::Geometry, std::move(bytecode), gs);
   }
   break;
 
   case ShaderStage::Pixel:
   {
-    ID3D11PixelShader* ps = D3D::CreatePixelShaderFromByteCode(bytecode);
-    if (ps)
-      return std::make_unique<DXShader>(bytecode, ps);
+    ID3D11PixelShader* ps;
+    HRESULT hr = D3D::device->CreatePixelShader(bytecode.data(), bytecode.size(), nullptr, &ps);
+    CHECK(SUCCEEDED(hr), "Create pixel shader");
+    if (FAILED(hr))
+      return nullptr;
+
+    return std::make_unique<DXShader>(ShaderStage::Pixel, std::move(bytecode), ps);
   }
   break;
 
   case ShaderStage::Compute:
   {
-    ID3D11ComputeShader* cs = D3D::CreateComputeShaderFromByteCode(bytecode);
-    if (cs)
-      return std::make_unique<DXShader>(bytecode, cs);
+    ID3D11ComputeShader* cs;
+    HRESULT hr = D3D::device->CreateComputeShader(bytecode.data(), bytecode.size(), nullptr, &cs);
+    CHECK(SUCCEEDED(hr), "Create compute shader");
+    if (FAILED(hr))
+      return nullptr;
+
+    return std::make_unique<DXShader>(ShaderStage::Compute, std::move(bytecode), cs);
   }
   break;
 
@@ -119,65 +118,85 @@ std::unique_ptr<DXShader> DXShader::CreateFromBlob(ShaderStage stage, D3DBlob* b
   return nullptr;
 }
 
-std::unique_ptr<DXShader> DXShader::CreateFromSource(ShaderStage stage, const char* source,
-                                                     size_t length)
+static const char* GetCompileTarget(ShaderStage stage)
 {
-  D3DBlob* bytecode;
   switch (stage)
   {
   case ShaderStage::Vertex:
-  {
-    if (!D3D::CompileVertexShader(std::string(source, length), &bytecode))
-      return nullptr;
-  }
-  break;
-
+    return D3D::VertexShaderVersionString();
   case ShaderStage::Geometry:
-  {
-    if (!D3D::CompileGeometryShader(std::string(source, length), &bytecode))
-      return nullptr;
-  }
-  break;
-
+    return D3D::GeometryShaderVersionString();
   case ShaderStage::Pixel:
-  {
-    if (!D3D::CompilePixelShader(std::string(source, length), &bytecode))
-      return nullptr;
-  }
-  break;
-
+    return D3D::PixelShaderVersionString();
   case ShaderStage::Compute:
-  {
-    if (!D3D::CompileComputeShader(std::string(source, length), &bytecode))
-      return nullptr;
-  }
-
+    return D3D::ComputeShaderVersionString();
   default:
-    return nullptr;
+    return "";
   }
+}
 
-  std::unique_ptr<DXShader> shader = CreateFromBlob(stage, bytecode);
-  if (!shader)
+bool DXShader::CompileShader(BinaryData* out_bytecode, ShaderStage stage, const char* source,
+                             size_t length)
+{
+  static constexpr D3D_SHADER_MACRO macros[] = {{"API_D3D", "1"}, {nullptr, nullptr}};
+  const UINT flags = g_ActiveConfig.bEnableValidationLayer ?
+                         (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION) :
+                         (D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_SKIP_VALIDATION);
+  const char* target = GetCompileTarget(stage);
+
+  ID3DBlob* code = nullptr;
+  ID3DBlob* errors = nullptr;
+  HRESULT hr = PD3DCompile(source, length, nullptr, macros, nullptr, "main", target, flags, 0,
+                           &code, &errors);
+  if (FAILED(hr))
   {
-    bytecode->Release();
-    return nullptr;
+    static int num_failures = 0;
+    std::string filename = StringFromFormat(
+        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), target, num_failures++);
+    std::ofstream file;
+    File::OpenFStream(file, filename, std::ios_base::out);
+    file.write(source, length);
+    file << "\n";
+    file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
+    file.close();
+
+    PanicAlert("Failed to compile %s:\nDebug info (%s):\n%s", filename.c_str(), target,
+               static_cast<const char*>(errors->GetBufferPointer()));
+    errors->Release();
+    return false;
   }
 
-  return shader;
+  if (errors && errors->GetBufferSize() > 0)
+  {
+    WARN_LOG(VIDEO, "%s compilation succeeded with warnings:\n%s", target,
+             static_cast<const char*>(errors->GetBufferPointer()));
+  }
+  SAFE_RELEASE(errors);
+
+  out_bytecode->resize(code->GetBufferSize());
+  std::memcpy(out_bytecode->data(), code->GetBufferPointer(), code->GetBufferSize());
+  code->Release();
+  return true;
+}
+
+std::unique_ptr<DXShader> DXShader::CreateFromSource(ShaderStage stage, const char* source,
+                                                     size_t length)
+{
+  BinaryData bytecode;
+  if (!CompileShader(&bytecode, stage, source, length))
+    return nullptr;
+
+  return CreateFromBytecode(stage, std::move(bytecode));
 }
 
 std::unique_ptr<DXShader> DXShader::CreateFromBinary(ShaderStage stage, const void* data,
                                                      size_t length)
 {
-  D3DBlob* bytecode = new D3DBlob(static_cast<unsigned int>(length), static_cast<const u8*>(data));
-  std::unique_ptr<DXShader> shader = CreateFromBlob(stage, bytecode);
-  if (!shader)
-  {
-    bytecode->Release();
+  if (length == 0)
     return nullptr;
-  }
 
-  return shader;
+  BinaryData bytecode(length);
+  std::memcpy(bytecode.data(), data, length);
+  return CreateFromBytecode(stage, std::move(bytecode));
 }
-
 }  // namespace DX11

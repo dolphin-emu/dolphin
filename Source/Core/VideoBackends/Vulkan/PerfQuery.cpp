@@ -13,20 +13,18 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
 {
-PerfQuery::PerfQuery()
-{
-}
+PerfQuery::PerfQuery() = default;
 
 PerfQuery::~PerfQuery()
 {
-  g_command_buffer_mgr->RemoveFencePointCallback(this);
+  g_command_buffer_mgr->RemoveFenceSignaledCallback(this);
 
   if (m_query_pool != VK_NULL_HANDLE)
     vkDestroyQueryPool(g_vulkan_context->GetDevice(), m_query_pool, nullptr);
@@ -51,11 +49,8 @@ bool PerfQuery::Initialize()
     return false;
   }
 
-  g_command_buffer_mgr->AddFencePointCallback(
-      this,
-      std::bind(&PerfQuery::OnCommandBufferQueued, this, std::placeholders::_1,
-                std::placeholders::_2),
-      std::bind(&PerfQuery::OnCommandBufferExecuted, this, std::placeholders::_1));
+  g_command_buffer_mgr->AddFenceSignaledCallback(
+      this, std::bind(&PerfQuery::OnFenceSignaled, this, std::placeholders::_1));
 
   return true;
 }
@@ -92,9 +87,6 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
     // TODO: Is this needed?
     StateTracker::GetInstance()->BeginRenderPass();
     vkCmdBeginQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, index, flags);
-
-    // Prevent background command buffer submission while the query is active.
-    StateTracker::GetInstance()->SetBackgroundCommandBufferExecution(false);
   }
 }
 
@@ -105,8 +97,6 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
     // DisableQuery should be called for each EnableQuery, so subtract one to get the previous one.
     u32 index = (m_query_read_pos + m_query_count - 1) % PERF_QUERY_BUFFER_SIZE;
     vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, index);
-    StateTracker::GetInstance()->SetBackgroundCommandBufferExecution(true);
-    DEBUG_LOG(VIDEO, "end query %u", index);
   }
 }
 
@@ -198,40 +188,42 @@ bool PerfQuery::CreateReadbackBuffer()
   return true;
 }
 
-void PerfQuery::QueueCopyQueryResults(VkCommandBuffer command_buffer, VkFence fence,
-                                      u32 start_index, u32 query_count)
+void PerfQuery::QueueCopyQueryResults(u32 start_index, u32 query_count)
 {
   DEBUG_LOG(VIDEO, "queue copy of queries %u-%u", start_index, start_index + query_count - 1);
 
   // Transition buffer for GPU write
   // TODO: Is this needed?
-  m_readback_buffer->PrepareForGPUWrite(command_buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
+  m_readback_buffer->PrepareForGPUWrite(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                        VK_ACCESS_TRANSFER_WRITE_BIT,
                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Copy from queries -> buffer
-  vkCmdCopyQueryPoolResults(command_buffer, m_query_pool, start_index, query_count,
-                            m_readback_buffer->GetBuffer(), start_index * sizeof(PerfQueryDataType),
-                            sizeof(PerfQueryDataType), VK_QUERY_RESULT_WAIT_BIT);
+  vkCmdCopyQueryPoolResults(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool,
+                            start_index, query_count, m_readback_buffer->GetBuffer(),
+                            start_index * sizeof(PerfQueryDataType), sizeof(PerfQueryDataType),
+                            VK_QUERY_RESULT_WAIT_BIT);
 
   // Prepare for host readback
-  m_readback_buffer->FlushGPUCache(command_buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                   VK_PIPELINE_STAGE_TRANSFER_BIT);
+  m_readback_buffer->FlushGPUCache(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                   VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Reset queries so they're ready to use again
-  vkCmdResetQueryPool(command_buffer, m_query_pool, start_index, query_count);
+  vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, start_index,
+                      query_count);
 
   // Flag all queries as available, but with a fence that has to be completed first
   for (u32 i = 0; i < query_count; i++)
   {
     u32 index = start_index + i;
     ActiveQuery& entry = m_query_buffer[index];
-    entry.pending_fence = fence;
+    entry.pending_fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
     entry.available = true;
     entry.active = false;
   }
 }
 
-void PerfQuery::OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fence)
+void PerfQuery::FlushQueries()
 {
   // Flag all pending queries that aren't available as available after execution.
   u32 copy_start_index = 0;
@@ -254,7 +246,7 @@ void PerfQuery::OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fe
     ASSERT(entry.active);
     if (index < copy_start_index)
     {
-      QueueCopyQueryResults(command_buffer, fence, copy_start_index, copy_count);
+      QueueCopyQueryResults(copy_start_index, copy_count);
       copy_start_index = index;
       copy_count = 0;
     }
@@ -266,10 +258,10 @@ void PerfQuery::OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fe
   }
 
   if (copy_count > 0)
-    QueueCopyQueryResults(command_buffer, fence, copy_start_index, copy_count);
+    QueueCopyQueryResults(copy_start_index, copy_count);
 }
 
-void PerfQuery::OnCommandBufferExecuted(VkFence fence)
+void PerfQuery::OnFenceSignaled(VkFence fence)
 {
   // Need to save these since ProcessResults will modify them.
   u32 query_read_pos = m_query_read_pos;
@@ -350,7 +342,7 @@ void PerfQuery::NonBlockingPartialFlush()
   // Submit a command buffer in the background if the front query is not bound to one.
   // Ideally this will complete before the buffer fills.
   if (m_query_buffer[m_query_read_pos].pending_fence == VK_NULL_HANDLE)
-    Util::ExecuteCurrentCommandsAndRestoreState(true, false);
+    Renderer::GetInstance()->ExecuteCommandBuffer(true, false);
 }
 
 void PerfQuery::BlockingPartialFlush()
@@ -364,7 +356,7 @@ void PerfQuery::BlockingPartialFlush()
   {
     // This will callback OnCommandBufferQueued which will set the fence on the entry.
     // We wait for completion, which will also call OnCommandBufferExecuted, and clear the fence.
-    Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+    Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
   }
   else
   {
@@ -373,4 +365,4 @@ void PerfQuery::BlockingPartialFlush()
     g_command_buffer_mgr->WaitForFence(entry.pending_fence);
   }
 }
-}
+}  // namespace Vulkan

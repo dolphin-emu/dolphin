@@ -35,7 +35,7 @@ private:
   {
   public:
     explicit ConfigGroup(
-        const PostProcessingShaderConfiguration::ConfigurationOption* config_option);
+        const VideoCommon::PostProcessingConfiguration::ConfigurationOption* config_option);
 
     const std::string& GetGUIName() const noexcept;
     const std::string& GetParent() const noexcept;
@@ -57,7 +57,7 @@ private:
     std::vector<QSlider*> m_sliders;
     std::vector<QLineEdit*> m_value_boxes;
 
-    const PostProcessingShaderConfiguration::ConfigurationOption* m_config_option;
+    const VideoCommon::PostProcessingConfiguration::ConfigurationOption* m_config_option;
     std::vector<std::unique_ptr<ConfigGroup>> m_subgroups;
   };
   void Create();
@@ -72,7 +72,7 @@ private:
   QDialogButtonBox* m_buttons;
 
   const std::string& m_shader;
-  PostProcessingShaderConfiguration* m_post_processor;
+  VideoCommon::PostProcessingConfiguration* m_post_processor;
   std::unordered_map<std::string, ConfigGroup*> m_config_map;
   std::vector<std::unique_ptr<ConfigGroup>> m_config_groups;
 };

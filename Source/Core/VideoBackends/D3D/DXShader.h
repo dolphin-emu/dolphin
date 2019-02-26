@@ -3,13 +3,9 @@
 // Refer to the license.txt file included.
 
 #pragma once
-
-#include <cstddef>
 #include <d3d11.h>
 #include <memory>
-#include "Common/CommonTypes.h"
 
-#include "VideoBackends/D3D/D3DBlob.h"
 #include "VideoCommon/AbstractShader.h"
 
 namespace DX11
@@ -17,14 +13,11 @@ namespace DX11
 class DXShader final : public AbstractShader
 {
 public:
-  // Note: vs/gs/ps/cs references are transferred.
-  DXShader(D3DBlob* bytecode, ID3D11VertexShader* vs);
-  DXShader(D3DBlob* bytecode, ID3D11GeometryShader* gs);
-  DXShader(D3DBlob* bytecode, ID3D11PixelShader* ps);
-  DXShader(D3DBlob* bytecode, ID3D11ComputeShader* cs);
+  DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader);
   ~DXShader() override;
 
-  D3DBlob* GetByteCode() const;
+  const BinaryData& GetByteCode() const { return m_bytecode; }
+
   ID3D11VertexShader* GetD3DVertexShader() const;
   ID3D11GeometryShader* GetD3DGeometryShader() const;
   ID3D11PixelShader* GetD3DPixelShader() const;
@@ -33,8 +26,11 @@ public:
   bool HasBinary() const override;
   BinaryData GetBinary() const override;
 
-  // Creates a new shader object. The reference to bytecode is not transfered upon failure.
-  static std::unique_ptr<DXShader> CreateFromBlob(ShaderStage stage, D3DBlob* bytecode);
+  // Creates a new shader object.
+  static std::unique_ptr<DXShader> CreateFromBytecode(ShaderStage stage, BinaryData bytecode);
+  static bool CompileShader(BinaryData* out_bytecode, ShaderStage stage, const char* source,
+                            size_t length);
+
   static std::unique_ptr<DXShader> CreateFromBinary(ShaderStage stage, const void* data,
                                                     size_t length);
   static std::unique_ptr<DXShader> CreateFromSource(ShaderStage stage, const char* source,
@@ -42,7 +38,7 @@ public:
 
 private:
   ID3D11DeviceChild* m_shader;
-  D3DBlob* m_bytecode;
+  BinaryData m_bytecode;
 };
 
 }  // namespace DX11

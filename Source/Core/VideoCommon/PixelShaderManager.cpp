@@ -522,9 +522,7 @@ void PixelShaderManager::SetBlendModeChanged()
 
 void PixelShaderManager::SetBoundingBoxActive(bool active)
 {
-  const bool enable =
-      active && g_ActiveConfig.bBBoxEnable && g_ActiveConfig.BBoxUseFragmentShaderImplementation();
-
+  const bool enable = active && g_ActiveConfig.bBBoxEnable;
   if (enable == (constants.bounding_box != 0))
     return;
 

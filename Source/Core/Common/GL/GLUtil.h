@@ -10,6 +10,9 @@
 
 class GLContext;
 
+// Texture which we use to not disturb the other bindings.
+constexpr GLenum GL_MUTABLE_TEXTURE_INDEX = GL_TEXTURE10;
+
 namespace GLUtil
 {
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);

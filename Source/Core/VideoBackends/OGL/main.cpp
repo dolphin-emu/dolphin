@@ -50,13 +50,11 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/TextureCache.h"
-#include "VideoBackends/OGL/TextureConverter.h"
 #include "VideoBackends/OGL/VertexManager.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -78,6 +76,7 @@ void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::OpenGL;
   g_Config.backend_info.MaxTextureSize = 16384;
+  g_Config.backend_info.bUsesLowerLeftOrigin = true;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
@@ -89,6 +88,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsLogicOp = true;
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
+  g_Config.backend_info.bSupportsLargePoints = true;
 
   // TODO: There is a bug here, if texel buffers are not supported the graphics options
   // will show the option when it is not supported. The only way around this would be
@@ -173,17 +173,26 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
     return false;
 
   g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();
-  g_texture_cache = std::make_unique<TextureCache>();
-  g_sampler_cache = std::make_unique<SamplerCache>();
+  g_vertex_manager = std::make_unique<VertexManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  if (!g_renderer->Initialize())
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_perf_query = GetPerfQuery();
+  g_texture_cache = std::make_unique<TextureCacheBase>();
+  g_sampler_cache = std::make_unique<SamplerCache>();
+  BoundingBox::Init();
+
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize())
+  {
+    PanicAlert("Failed to initialize renderer classes");
+    Shutdown();
     return false;
-  TextureConverter::Init();
-  BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
-  return g_shader_cache->Initialize();
+  }
+
+  g_shader_cache->InitializeShaderCache();
+  return true;
 }
 
 void VideoBackend::Shutdown()
@@ -191,13 +200,13 @@ void VideoBackend::Shutdown()
   g_shader_cache->Shutdown();
   g_renderer->Shutdown();
   BoundingBox::Shutdown();
-  TextureConverter::Shutdown();
-  g_shader_cache.reset();
   g_sampler_cache.reset();
   g_texture_cache.reset();
-  ProgramShaderCache::Shutdown();
   g_perf_query.reset();
   g_vertex_manager.reset();
+  g_framebuffer_manager.reset();
+  g_shader_cache.reset();
+  ProgramShaderCache::Shutdown();
   g_renderer.reset();
   ShutdownShared();
 }

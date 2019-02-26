@@ -5,8 +5,8 @@
 #pragma once
 
 #include <memory>
-#include <vulkan/vulkan.h>
 
+#include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -19,33 +19,64 @@ class Texture2D;
 class VKTexture final : public AbstractTexture
 {
 public:
+  // Custom image layouts, mainly used for switching to/from compute
+  enum class ComputeImageLayout
+  {
+    Undefined,
+    ReadOnly,
+    WriteOnly,
+    ReadWrite
+  };
+
   VKTexture() = delete;
+  VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
+            VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
+            ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
   ~VKTexture();
+
+  static VkFormat GetLinearFormat(VkFormat format);
+  static VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
+  static VkImageAspectFlags GetImageAspectForFormat(AbstractTextureFormat format);
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                 u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                 u32 dst_layer, u32 dst_level) override;
-  void ScaleRectangleFromTexture(const AbstractTexture* source,
-                                 const MathUtil::Rectangle<int>& src_rect,
-                                 const MathUtil::Rectangle<int>& dst_rect) override;
   void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                           u32 layer, u32 level) override;
-
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
+  void FinishedRendering() override;
 
-  Texture2D* GetRawTexIdentifier() const;
-  VkFramebuffer GetFramebuffer() const;
+  VkImage GetImage() const { return m_image; }
+  VkDeviceMemory GetDeviceMemory() const { return m_device_memory; }
+  VkImageView GetView() const { return m_view; }
+  VkImageLayout GetLayout() const { return m_layout; }
+  VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
+  bool IsAdopted() const { return m_device_memory != nullptr; }
 
   static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config);
+  static std::unique_ptr<VKTexture>
+  CreateAdopted(const TextureConfig& tex_config, VkImage image,
+                VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+                VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED);
+
+  // Used when the render pass is changing the image layout, or to force it to
+  // VK_IMAGE_LAYOUT_UNDEFINED, if the existing contents of the image is
+  // irrelevant and will not be loaded.
+  void OverrideImageLayout(VkImageLayout new_layout);
+
+  void TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const;
+  void TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageLayout new_layout) const;
 
 private:
-  VKTexture(const TextureConfig& tex_config, std::unique_ptr<Texture2D> texture,
-            VkFramebuffer framebuffer);
+  bool CreateView(VkImageViewType type);
 
-  std::unique_ptr<Texture2D> m_texture;
-  VkFramebuffer m_framebuffer;
+  VkDeviceMemory m_device_memory;
+  VkImage m_image;
+  VkImageView m_view = VK_NULL_HANDLE;
+  mutable VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+  mutable ComputeImageLayout m_compute_layout = ComputeImageLayout::Undefined;
 };
 
 class VKStagingTexture final : public AbstractStagingTexture
@@ -65,11 +96,6 @@ public:
   void Unmap() override;
   void Flush() override;
 
-  // This overload is provided for compatibility as we dropped StagingTexture2D.
-  // For now, FramebufferManager relies on them. But we can drop it once we move that to common.
-  void CopyFromTexture(Texture2D* src, const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
-                       u32 src_level, const MathUtil::Rectangle<int>& dst_rect);
-
   static std::unique_ptr<VKStagingTexture> Create(StagingTextureType type,
                                                   const TextureConfig& config);
 
@@ -84,25 +110,23 @@ private:
 class VKFramebuffer final : public AbstractFramebuffer
 {
 public:
-  VKFramebuffer(const VKTexture* color_attachment, const VKTexture* depth_attachment, u32 width,
-                u32 height, u32 layers, u32 samples, VkFramebuffer fb,
-                VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
-                VkRenderPass clear_render_pass);
+  VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment, u32 width, u32 height,
+                u32 layers, u32 samples, VkFramebuffer fb, VkRenderPass load_render_pass,
+                VkRenderPass discard_render_pass, VkRenderPass clear_render_pass);
   ~VKFramebuffer() override;
 
   VkFramebuffer GetFB() const { return m_fb; }
+  VkRect2D GetRect() const { return VkRect2D{{0, 0}, {m_width, m_height}}; }
+
   VkRenderPass GetLoadRenderPass() const { return m_load_render_pass; }
   VkRenderPass GetDiscardRenderPass() const { return m_discard_render_pass; }
   VkRenderPass GetClearRenderPass() const { return m_clear_render_pass; }
-  void TransitionForRender() const;
-  void TransitionForSample() const;
+  void TransitionForRender();
 
-  static std::unique_ptr<VKFramebuffer> Create(const VKTexture* color_attachments,
-                                               const VKTexture* depth_attachment);
+  static std::unique_ptr<VKFramebuffer> Create(VKTexture* color_attachments,
+                                               VKTexture* depth_attachment);
 
 protected:
-  const VKTexture* m_color_attachment;
-  const VKTexture* m_depth_attachment;
   VkFramebuffer m_fb;
   VkRenderPass m_load_render_pass;
   VkRenderPass m_discard_render_pass;

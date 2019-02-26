@@ -22,7 +22,6 @@
 #include "VideoCommon/VideoCommon.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoBackends/Vulkan/Util.h"
 
 namespace Vulkan
 {
@@ -55,8 +54,14 @@ public:
   // Gets the fence that will be signaled when the currently executing command buffer is
   // queued and executed. Do not wait for this fence before the buffer is executed.
   VkFence GetCurrentCommandBufferFence() const { return m_frame_resources[m_current_frame].fence; }
-  // Ensure the worker thread has submitted the previous frame's command buffer.
-  void PrepareToSubmitCommandBuffer();
+
+  // Returns the semaphore for the current command buffer, which can be used to ensure the
+  // swap chain image is ready before the command buffer executes.
+  VkSemaphore GetCurrentCommandBufferSemaphore()
+  {
+    m_frame_resources[m_current_frame].semaphore_used = true;
+    return m_frame_resources[m_current_frame].semaphore;
+  }
 
   // Ensure that the worker thread has submitted any previous command buffers and is idle.
   void WaitForWorkerThreadIdle();
@@ -70,17 +75,12 @@ public:
   void WaitForFence(VkFence fence);
 
   void SubmitCommandBuffer(bool submit_on_worker_thread,
-                           VkSemaphore wait_semaphore = VK_NULL_HANDLE,
-                           VkSemaphore signal_semaphore = VK_NULL_HANDLE,
                            VkSwapchainKHR present_swap_chain = VK_NULL_HANDLE,
                            uint32_t present_image_index = 0xFFFFFFFF);
 
-  void ActivateCommandBuffer();
-
-  void ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion);
-
   // Was the last present submitted to the queue a failure? If so, we must recreate our swapchain.
   bool CheckLastPresentFail() { return m_present_failed_flag.TestAndClear(); }
+
   // Schedule a vulkan resource for destruction later on. This will occur when the command buffer
   // is next re-used, and the GPU has finished working with the specified resource.
   void DeferBufferDestruction(VkBuffer object);
@@ -93,13 +93,9 @@ public:
   // Instruct the manager to fire the specified callback when a fence is flagged to be signaled.
   // This happens when command buffers are executed, and can be tested if signaled, which means
   // that all commands up to the point when the callback was fired have completed.
-  using CommandBufferQueuedCallback = std::function<void(VkCommandBuffer, VkFence)>;
-  using CommandBufferExecutedCallback = std::function<void(VkFence)>;
-
-  void AddFencePointCallback(const void* key, const CommandBufferQueuedCallback& queued_callback,
-                             const CommandBufferExecutedCallback& executed_callback);
-
-  void RemoveFencePointCallback(const void* key);
+  using FenceSignaledCallback = std::function<void(VkFence)>;
+  void AddFenceSignaledCallback(const void* key, FenceSignaledCallback callback);
+  void RemoveFenceSignaledCallback(const void* key);
 
 private:
   bool CreateCommandBuffers();
@@ -107,30 +103,32 @@ private:
 
   bool CreateSubmitThread();
 
-  void SubmitCommandBuffer(size_t index, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore,
-                           VkSwapchainKHR present_swap_chain, uint32_t present_image_index);
+  void SubmitCommandBuffer(u32 command_buffer_index, VkSwapchainKHR present_swap_chain,
+                           u32 present_image_index);
+  void BeginCommandBuffer();
 
-  void OnCommandBufferExecuted(size_t index);
+  void OnCommandBufferExecuted(u32 index);
 
   struct FrameResources
   {
     // [0] - Init (upload) command buffer, [1] - draw command buffer
-    VkCommandPool command_pool;
-    std::array<VkCommandBuffer, 2> command_buffers;
-    VkDescriptorPool descriptor_pool;
-    VkFence fence;
-    bool init_command_buffer_used;
-    bool needs_fence_wait;
+    VkCommandPool command_pool = VK_NULL_HANDLE;
+    std::array<VkCommandBuffer, 2> command_buffers = {};
+    VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
+    VkFence fence = VK_NULL_HANDLE;
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    bool init_command_buffer_used = false;
+    bool semaphore_used = false;
+    bool needs_fence_wait = false;
 
     std::vector<std::function<void()>> cleanup_resources;
   };
 
-  std::array<FrameResources, NUM_COMMAND_BUFFERS> m_frame_resources = {};
-  size_t m_current_frame;
+  std::array<FrameResources, NUM_COMMAND_BUFFERS> m_frame_resources;
+  u32 m_current_frame;
 
   // callbacks when a fence point is set
-  std::map<const void*, std::pair<CommandBufferQueuedCallback, CommandBufferExecutedCallback>>
-      m_fence_point_callbacks;
+  std::map<const void*, FenceSignaledCallback> m_fence_callbacks;
 
   // Threaded command buffer execution
   // Semaphore determines when a command buffer can be queued
@@ -139,12 +137,11 @@ private:
   std::unique_ptr<Common::BlockingLoop> m_submit_loop;
   struct PendingCommandBufferSubmit
   {
-    size_t index;
-    VkSemaphore wait_semaphore;
-    VkSemaphore signal_semaphore;
     VkSwapchainKHR present_swap_chain;
-    uint32_t present_image_index;
+    u32 present_image_index;
+    u32 command_buffer_index;
   };
+  VkSemaphore m_present_semaphore = VK_NULL_HANDLE;
   std::deque<PendingCommandBufferSubmit> m_pending_submits;
   std::mutex m_pending_submit_lock;
   Common::Flag m_present_failed_flag;
