@@ -563,10 +563,17 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 
     // TODO: A new updater protocol version is required to properly mark executable files. For
     // now, copy executable bits from existing files. This will break for newly added executables.
-    mode_t permission;
+    std::optional<mode_t> permission;
 
     if (File::Exists(path))
     {
+      struct stat file_stats;
+
+      if (stat(path.c_str(), &file_stats) != 0)
+        return false;
+
+      permission = file_stats.st_mode;
+
       std::string contents;
       if (!File::ReadFileToString(path, contents))
       {
@@ -581,13 +588,6 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       }
       else if (!op.old_hash || contents_hash != *op.old_hash)
       {
-        struct stat file_stats;
-
-        if (stat(path.c_str(), &file_stats) != 0)
-          return false;
-
-        permission = file_stats.st_mode;
-
         if (!BackupFile(path))
           return false;
       }
@@ -604,7 +604,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
       return false;
     }
 
-    if (chmod(path.c_str(), permission) != 0)
+    if (permission.has_value() && chmod(path.c_str(), permission.value()) != 0)
       return false;
   }
   return true;
