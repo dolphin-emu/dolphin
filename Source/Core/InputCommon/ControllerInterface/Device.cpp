@@ -4,6 +4,7 @@
 
 #include "InputCommon/ControllerInterface/Device.h"
 
+#include <cmath>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -66,6 +67,11 @@ Device::Output* Device::FindOutput(const std::string& name) const
   }
 
   return nullptr;
+}
+
+ControlState Device::FullAnalogSurface::GetState() const
+{
+  return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
 }
 
 //
@@ -214,5 +220,5 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
   const auto device = FindDevice(qualifier);
   return device != nullptr && device->IsValid();
 }
-}
-}
+}  // namespace Core
+}  // namespace ciface

@@ -259,7 +259,7 @@ std::string Joystick::Hat::GetName() const
 
 ControlState Joystick::Axis::GetState() const
 {
-  return std::max(0.0, ControlState(m_axis - m_base) / m_range);
+  return ControlState(m_axis - m_base) / m_range;
 }
 
 ControlState Joystick::Button::GetState() const

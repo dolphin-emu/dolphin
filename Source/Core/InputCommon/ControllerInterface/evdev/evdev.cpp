@@ -343,7 +343,7 @@ ControlState evdevDevice::Axis::GetState() const
   int value = 0;
   libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
 
-  return std::max(0.0, ControlState(value - m_base) / m_range);
+  return ControlState(value - m_base) / m_range;
 }
 
 evdevDevice::Effect::Effect(int fd) : m_fd(fd)

@@ -2,6 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControlReference/ControlReference.h"
+
+#include <vector>
+
 #include "Common/Thread.h"
 // For InputGateOn()
 // This is a bad layering violation, but it's the cleanest
@@ -9,11 +13,13 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
-#include "InputCommon/ControlReference/ControlReference.h"
-
 using namespace ciface::ExpressionParser;
 
+namespace
+{
+// Compared to an input's current state (ideally 1.0) minus abs(initial_state) (ideally 0.0).
 constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
+}  // namespace
 
 bool ControlReference::InputGateOn()
 {
@@ -110,56 +116,53 @@ ControlState OutputReference::State(const ControlState state)
   return 0.0;
 }
 
-//
-// InputReference :: Detect
-//
-// Wait for input on all binded devices
-// supports not detecting inputs that were held down at the time of Detect start,
-// which is useful for those crazy flightsticks that have certain buttons that are always held down
-// or some crazy axes or something
-// upon input, return pointer to detected Control
-// else return nullptr
-//
+// Wait for input on a particular device.
+// Inputs are considered if they are first seen in a neutral state.
+// This is useful for crazy flightsticks that have certain buttons that are always held down
+// and also properly handles detection when using "FullAnalogSurface" inputs.
+// Upon input, return a pointer to the detected Control, else return nullptr.
 ciface::Core::Device::Control* InputReference::Detect(const unsigned int ms,
                                                       ciface::Core::Device* const device)
 {
-  unsigned int time = 0;
-  std::vector<bool> states(device->Inputs().size());
-
-  if (device->Inputs().empty())
-    return nullptr;
-
-  // get starting state of all inputs,
-  // so we can ignore those that were activated at time of Detect start
-  std::vector<ciface::Core::Device::Input*>::const_iterator i = device->Inputs().begin(),
-                                                            e = device->Inputs().end();
-  for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
-    *state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
-
-  while (time < ms)
+  struct InputState
   {
-    device->UpdateInput();
-    i = device->Inputs().begin();
-    for (std::vector<bool>::iterator state = states.begin(); i != e; ++i, ++state)
-    {
-      // detected an input
-      if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)
-      {
-        // input was released at some point during Detect call
-        // return the detected input
-        if (false == *state)
-          return *i;
-      }
-      else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD))
-      {
-        *state = false;
-      }
-    }
-    Common::SleepCurrentThread(10);
-    time += 10;
+    ciface::Core::Device::Input& input;
+    ControlState initial_state;
+  };
+
+  std::vector<InputState> input_states;
+  for (auto* input : device->Inputs())
+  {
+    // Don't detect things like absolute cursor position.
+    if (!input->IsDetectable())
+      continue;
+
+    // Undesirable axes will have negative values here when trying to map a "FullAnalogSurface".
+    input_states.push_back({*input, input->GetState()});
   }
 
-  // no input was detected
+  if (input_states.empty())
+    return nullptr;
+
+  unsigned int time = 0;
+  while (time < ms)
+  {
+    Common::SleepCurrentThread(10);
+    time += 10;
+
+    device->UpdateInput();
+    for (auto& input_state : input_states)
+    {
+      // We want an input that was initially 0.0 and currently 1.0.
+      const auto detection_score =
+          (input_state.input.GetState() - std::abs(input_state.initial_state));
+
+      if (detection_score > INPUT_DETECT_THRESHOLD)
+        return &input_state.input;
+    }
+  }
+
+  // No input was detected. :'(
   return nullptr;
 }
 
