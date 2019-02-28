@@ -75,7 +75,7 @@ bool VertexManager::Initialize()
         format_mapping = {{
             {TEXEL_BUFFER_FORMAT_R8_UINT, GL_R8UI},
             {TEXEL_BUFFER_FORMAT_R16_UINT, GL_R16UI},
-            {TEXEL_BUFFER_FORMAT_RGBA8_UINT, GL_RGBA8},
+            {TEXEL_BUFFER_FORMAT_RGBA8_UINT, GL_RGBA8UI},
             {TEXEL_BUFFER_FORMAT_R32G32_UINT, GL_RG32UI},
         }};
     glGenTextures(static_cast<GLsizei>(m_texel_buffer_views.size()), m_texel_buffer_views.data());
