@@ -30,7 +30,6 @@ signals:
 private:
   void mouseReleaseEvent(QMouseEvent* event) override;
 
-  void OnButtonTimeout();
   void Connect();
 
   MappingWidget* m_parent;

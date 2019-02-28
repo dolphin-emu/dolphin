@@ -48,6 +48,7 @@ private:
   void OnDialogButtonPressed(QAbstractButton* button);
   void OnDeviceChanged(const QString& device);
   void OnDetectButtonPressed();
+  void OnTestButtonPressed();
   void OnRangeChanged(int range);
 
   void AppendSelectedOption(const std::string& prefix);

@@ -4,17 +4,21 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 class QString;
-class ControlReference;
+class OutputReference;
+class QPushButton;
 
 namespace ciface
 {
 namespace Core
 {
-class Device;
+class DeviceContainer;
 class DeviceQualifier;
-}
-}
+}  // namespace Core
+}  // namespace ciface
 
 namespace MappingCommon
 {
@@ -28,7 +32,12 @@ QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& control_device,
                                 const ciface::Core::DeviceQualifier& default_device,
                                 Quote quote = Quote::On);
-QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
+
+QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+                         const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device,
                          Quote quote = Quote::On);
+
+void TestOutput(QPushButton* button, OutputReference* reference);
+
 }  // namespace MappingCommon
