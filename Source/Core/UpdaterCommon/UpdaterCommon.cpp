@@ -187,6 +187,11 @@ static bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download
     auto& download = to_download[i];
 
     std::string hash_filename = HexEncode(download.hash.data(), download.hash.size());
+
+    // File already exists, skipping
+    if (File::Exists(temp_path + DIR_SEP + hash_filename))
+      continue;
+
     UI::SetDescription("Downloading " + download.filename + "... (File " + std::to_string(i + 1) +
                        " of " + std::to_string(to_download.size()) + ")");
     UI::SetCurrentMarquee(false);
@@ -279,26 +284,18 @@ std::optional<std::string> FindOrCreateTempDir(const std::string& base_path)
   std::string temp_path = base_path + DIR_SEP + UPDATE_TEMP_DIR;
   int counter = 0;
 
+  File::DeleteDirRecursively(temp_path);
+
   do
   {
-    if (!File::Exists(temp_path))
-    {
-      if (File::CreateDir(temp_path))
-      {
-        return temp_path;
-      }
-      else
-      {
-        fprintf(log_fp, "Couldn't create temp directory.\n");
-        return {};
-      }
-    }
-    else if (File::IsDirectory(temp_path))
+    if (File::CreateDir(temp_path))
     {
       return temp_path;
     }
     else
     {
+      fprintf(log_fp, "Couldn't create temp directory.\n");
+
       // Try again with a counter appended to the path.
       std::string suffix = UPDATE_TEMP_DIR + std::to_string(counter);
       temp_path = base_path + DIR_SEP + suffix;
@@ -385,8 +382,14 @@ static bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
 #ifndef _WIN32
       struct stat file_stats;
 
-      if (stat(path.c_str(), &file_stats) != 0)
-        return false;
+      if (lstat(path.c_str(), &file_stats) != 0)
+        continue;
+
+      if (S_ISLNK(file_stats.st_mode))
+      {
+        fprintf(log_fp, "%s is symlink, skipping\n", path.c_str());
+        continue;
+      }
 
       permission = file_stats.st_mode;
 #endif
