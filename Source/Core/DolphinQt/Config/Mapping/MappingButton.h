@@ -36,4 +36,6 @@ private:
   MappingWidget* m_parent;
   ControlReference* m_reference;
   QTimer* m_timer;
+
+  bool eventFilter(QObject* object, QEvent* event) override;
 };

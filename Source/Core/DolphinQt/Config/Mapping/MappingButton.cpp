@@ -107,7 +107,7 @@ void MappingButton::Detect()
   if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
 
-  installEventFilter(BlockUserInputFilter::Instance());
+  installEventFilter(this);
   grabKeyboard();
 
   // Make sure that we don't block event handling
@@ -234,4 +234,10 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
   default:
     return;
   }
+}
+
+bool MappingButton::eventFilter(QObject* object, QEvent* event)
+{
+  const QEvent::Type event_type = event->type();
+  return event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease;
 }
