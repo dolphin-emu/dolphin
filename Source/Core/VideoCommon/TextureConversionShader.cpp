@@ -1345,7 +1345,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2u));
         float4 yuyv = float4(texelFetch(s_input_buffer, buffer_pos));
 
-        float y = mix(yuyv.r, yuyv.b, (uv.x & 1u) == 1u);
+        float y = (uv.x & 1u) != 0u ? yuyv.r : yuyv.g;
 
         float yComp = 1.164 * (y - 16.0);
         float uComp = yuyv.g - 128.0;
