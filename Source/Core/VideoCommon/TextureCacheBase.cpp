@@ -2389,8 +2389,8 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
       scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   const float rcp_efb_height = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBHeight());
-  encoder_params.position_uniform[0] = scaled_src_rect.left;
-  encoder_params.position_uniform[1] = scaled_src_rect.top;
+  encoder_params.position_uniform[0] = src_rect.left;
+  encoder_params.position_uniform[1] = src_rect.top;
   encoder_params.position_uniform[2] = static_cast<s32>(native_width);
   encoder_params.position_uniform[3] = scale_by_half ? 2 : 1;
   encoder_params.y_scale = y_scale;
