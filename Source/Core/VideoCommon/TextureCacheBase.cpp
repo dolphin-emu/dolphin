@@ -1593,12 +1593,12 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
   const u8* tlut = &texMem[tex_info.tlut_address];
 
   if (!decode_on_gpu ||
-      DecodeTextureOnGPU(entry_to_update, 0, tex_info.src_data, tex_info.total_bytes,
-                         tex_info.full_format.texfmt, tex_info.native_width, tex_info.native_height,
-                         tex_info.expanded_width, tex_info.expanded_height,
-                         tex_info.bytes_per_block *
-                             (tex_info.expanded_width / tex_info.block_width),
-                         tlut, tex_info.full_format.tlutfmt))
+      !DecodeTextureOnGPU(entry_to_update, 0, tex_info.src_data, tex_info.total_bytes,
+                          tex_info.full_format.texfmt, tex_info.native_width,
+                          tex_info.native_height, tex_info.expanded_width, tex_info.expanded_height,
+                          tex_info.bytes_per_block *
+                              (tex_info.expanded_width / tex_info.block_width),
+                          tlut, tex_info.full_format.tlutfmt))
   {
     size_t decoded_texture_size = tex_info.expanded_width * sizeof(u32) * tex_info.expanded_height;
     CheckTempSize(decoded_texture_size);
