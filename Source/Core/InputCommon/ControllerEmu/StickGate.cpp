@@ -250,11 +250,10 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   const ControlState gate_max_dist = GetGateRadiusAtAngle(angle);
   const ControlState input_max_dist = GetInputRadiusAtAngle(angle);
 
-  // If input radius is zero we apply no scaling.
-  // This is useful when mapping native controllers without knowing intimate radius details.
+  // If input radius (from calibration) is zero apply no scaling to prevent division by zero.
   const ControlState max_dist = input_max_dist ? input_max_dist : gate_max_dist;
 
-  ControlState dist = std::sqrt(x * x + y * y) / max_dist;
+  ControlState dist = Common::DVec2{x, y}.Length() / max_dist;
 
   // If the modifier is pressed, scale the distance by the modifier's value.
   // This is affected by the modifier's "range" setting which defaults to 50%.
@@ -267,16 +266,15 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
     // dist *= modifier;
   }
 
-  // Apply deadzone as a percentage of the user-defined radius/shape:
-  const ControlState deadzone = GetDeadzoneRadiusAtAngle(angle);
+  // Apply deadzone as a percentage of the user-defined calibration shape/size:
+  const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
   dist = std::max(0.0, dist - deadzone) / (1.0 - deadzone);
 
   // Scale to the gate shape/radius:
-  dist = dist *= gate_max_dist;
+  dist *= gate_max_dist;
 
-  x = MathUtil::Clamp(std::cos(angle) * dist, -1.0, 1.0);
-  y = MathUtil::Clamp(std::sin(angle) * dist, -1.0, 1.0);
-  return {x, y};
+  return {MathUtil::Clamp(std::cos(angle) * dist, -1.0, 1.0),
+          MathUtil::Clamp(std::sin(angle) * dist, -1.0, 1.0)};
 }
 
 }  // namespace ControllerEmu
