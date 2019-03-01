@@ -67,6 +67,11 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
   if (!m_reference->IsInput() || !indicator)
     return;
 
+  m_blockTimer = new QTimer(this);
+  connect(m_blockTimer, &QTimer::timeout, this, [this] {
+    removeEventFilter(BlockUserInputFilter::Instance());
+  });
+
   m_timer = new QTimer(this);
   connect(m_timer, &QTimer::timeout, this, [this] {
     if (!isActiveWindow())
@@ -107,9 +112,8 @@ void MappingButton::Detect()
   if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
 
-  installEventFilter(this);
+  installEventFilter(BlockUserInputFilter::Instance());
   grabKeyboard();
-
   // Make sure that we don't block event handling
   QueueOnObject(this, [this] {
     setText(QStringLiteral("..."));
@@ -175,7 +179,7 @@ void MappingButton::Detect()
     }
 
     releaseKeyboard();
-    removeEventFilter(BlockUserInputFilter::Instance());
+    m_blockTimer->start(150);
 
     if (!expr.isEmpty())
     {
@@ -191,6 +195,8 @@ void MappingButton::Detect()
     {
       OnButtonTimeout();
     }
+
+
   });
 }
 
@@ -234,10 +240,4 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
   default:
     return;
   }
-}
-
-bool MappingButton::eventFilter(QObject* object, QEvent* event)
-{
-  const QEvent::Type event_type = event->type();
-  return event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease;
 }
