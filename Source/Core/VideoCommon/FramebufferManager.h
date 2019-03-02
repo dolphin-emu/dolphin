@@ -9,10 +9,10 @@
 #include <optional>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/AbstractFramebuffer.h"
-#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractPipeline.h"
+#include "VideoCommon/AbstractStagingTexture.h"
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -87,7 +87,8 @@ public:
   u32 PeekEFBColor(u32 x, u32 y);
   float PeekEFBDepth(u32 x, u32 y);
   void SetEFBCacheTileSize(u32 size);
-  void InvalidatePeekCache();
+  void InvalidatePeekCache(bool forced = true);
+  void FlagPeekCacheAsOutOfDate();
 
   // Writes a value to the framebuffer. This will never block, and writes will be batched.
   void PokeEFBColor(u32 x, u32 y, u32 color);
@@ -111,6 +112,7 @@ protected:
     std::unique_ptr<AbstractStagingTexture> readback_texture;
     std::unique_ptr<AbstractPipeline> copy_pipeline;
     std::vector<bool> tiles;
+    bool out_of_date;
     bool valid;
   };
 

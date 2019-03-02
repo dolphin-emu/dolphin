@@ -186,7 +186,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                            bool z_enable, u32 color, u32 z)
 {
   g_framebuffer_manager->FlushEFBPokes();
-  g_framebuffer_manager->InvalidatePeekCache();
+  g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
 
   // Native -> EFB coordinates
   TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);

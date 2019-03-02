@@ -80,7 +80,7 @@ bool FramebufferManager::Initialize()
 void FramebufferManager::RecreateEFBFramebuffer()
 {
   FlushEFBPokes();
-  InvalidatePeekCache();
+  InvalidatePeekCache(true);
 
   DestroyReadbackFramebuffer();
   DestroyEFBFramebuffer();
@@ -289,7 +289,7 @@ bool FramebufferManager::ReinterpretPixelData(EFBReinterpretType convtype)
   std::swap(m_efb_color_texture, m_efb_convert_color_texture);
   std::swap(m_efb_framebuffer, m_efb_convert_framebuffer);
   g_renderer->EndUtilityDrawing();
-  InvalidatePeekCache();
+  InvalidatePeekCache(true);
   return true;
 }
 
@@ -396,25 +396,38 @@ void FramebufferManager::SetEFBCacheTileSize(u32 size)
   if (m_efb_cache_tile_size == size)
     return;
 
-  InvalidatePeekCache();
+  InvalidatePeekCache(true);
   m_efb_cache_tile_size = size;
   DestroyReadbackFramebuffer();
   if (!CreateReadbackFramebuffer())
     PanicAlert("Failed to create EFB readback framebuffers");
 }
 
-void FramebufferManager::InvalidatePeekCache()
+void FramebufferManager::InvalidatePeekCache(bool forced)
 {
-  if (m_efb_color_cache.valid)
+  if (forced || m_efb_color_cache.out_of_date)
   {
     m_efb_color_cache.valid = false;
+    m_efb_color_cache.out_of_date = false;
     std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(), false);
   }
-  if (m_efb_depth_cache.valid)
+  if (forced || m_efb_depth_cache.out_of_date)
   {
     m_efb_depth_cache.valid = false;
+    m_efb_depth_cache.out_of_date = false;
     std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(), false);
   }
+}
+
+void FramebufferManager::FlagPeekCacheAsOutOfDate()
+{
+  if (m_efb_color_cache.valid)
+    m_efb_color_cache.out_of_date = true;
+  if (m_efb_depth_cache.valid)
+    m_efb_depth_cache.out_of_date = true;
+
+  if (!g_ActiveConfig.bEFBAccessDeferInvalidation)
+    InvalidatePeekCache();
 }
 
 bool FramebufferManager::CompileReadbackPipelines()
@@ -580,6 +593,7 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
   // Wait until the copy is complete.
   data.readback_texture->Flush();
   data.valid = true;
+  data.out_of_date = false;
   if (IsUsingTiledEFBCache())
     data.tiles[tile_index] = true;
 }
@@ -588,7 +602,7 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear
                                   bool clear_alpha, bool clear_z, u32 color, u32 z)
 {
   FlushEFBPokes();
-  InvalidatePeekCache();
+  FlagPeekCacheAsOutOfDate();
   g_renderer->BeginUtilityDrawing();
 
   // Set up uniforms.

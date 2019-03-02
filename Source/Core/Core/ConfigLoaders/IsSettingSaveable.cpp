@@ -113,6 +113,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       // Graphics.Hacks
 
       Config::GFX_HACK_EFB_ACCESS_ENABLE.location,
+      Config::GFX_HACK_EFB_DEFER_INVALIDATION.location,
       Config::GFX_HACK_EFB_ACCESS_TILE_SIZE.location,
       Config::GFX_HACK_BBOX_ENABLE.location,
       Config::GFX_HACK_FORCE_PROGRESSIVE.location,

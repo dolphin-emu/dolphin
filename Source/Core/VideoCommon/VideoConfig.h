@@ -112,6 +112,7 @@ struct VideoConfig final
 
   // Hacks
   bool bEFBAccessEnable;
+  bool bEFBAccessDeferInvalidation;
   bool bPerfQueriesEnable;
   bool bBBoxEnable;
   bool bForceProgressive;

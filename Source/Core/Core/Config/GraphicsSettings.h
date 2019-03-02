@@ -101,6 +101,7 @@ extern const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE;
 // Graphics.Hacks
 
 extern const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE;
+extern const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION;
 extern const ConfigInfo<int> GFX_HACK_EFB_ACCESS_TILE_SIZE;
 extern const ConfigInfo<bool> GFX_HACK_BBOX_ENABLE;
 extern const ConfigInfo<bool> GFX_HACK_FORCE_PROGRESSIVE;
