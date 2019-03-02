@@ -20,33 +20,6 @@ namespace ciface::ExpressionParser
 {
 using namespace ciface::Core;
 
-enum TokenType
-{
-  TOK_DISCARD,
-  TOK_INVALID,
-  TOK_EOF,
-  TOK_LPAREN,
-  TOK_RPAREN,
-  TOK_FUNCTION,
-  TOK_CONTROL,
-  TOK_LITERAL,
-  TOK_VARIABLE,
-  // Binary Ops:
-  TOK_BINARY_OPS_BEGIN,
-  TOK_AND = TOK_BINARY_OPS_BEGIN,
-  TOK_OR,
-  TOK_ADD,
-  TOK_SUB,
-  TOK_MUL,
-  TOK_DIV,
-  TOK_MOD,
-  TOK_ASSIGN,
-  TOK_LTHAN,
-  TOK_GTHAN,
-  TOK_COMMA,
-  TOK_BINARY_OPS_END,
-};
-
 inline std::string OpName(TokenType op)
 {
   switch (op)
@@ -83,213 +56,213 @@ inline std::string OpName(TokenType op)
   }
 }
 
-class Token
+Token::Token(TokenType type_) : type(type_)
 {
-public:
-  TokenType type;
-  std::string data;
+}
 
-  Token(TokenType type_) : type(type_) {}
-  Token(TokenType type_, std::string data_) : type(type_), data(std::move(data_)) {}
-  operator std::string() const
+Token::Token(TokenType type_, std::string data_) : type(type_), data(std::move(data_))
+{
+}
+
+bool Token::IsBinaryOperator() const
+{
+  return type >= TOK_BINARY_OPS_BEGIN && type < TOK_BINARY_OPS_END;
+}
+
+Token::operator std::string() const
+{
+  switch (type)
   {
-    switch (type)
-    {
-    case TOK_DISCARD:
-      return "Discard";
-    case TOK_EOF:
-      return "EOF";
-    case TOK_LPAREN:
-      return "(";
-    case TOK_RPAREN:
-      return ")";
-    case TOK_AND:
-      return "&";
-    case TOK_OR:
-      return "|";
-    case TOK_FUNCTION:
-      return '!' + data;
-    case TOK_ADD:
-      return "+";
-    case TOK_SUB:
-      return "-";
-    case TOK_MUL:
-      return "*";
-    case TOK_DIV:
-      return "/";
-    case TOK_MOD:
-      return "%";
-    case TOK_ASSIGN:
-      return "=";
-    case TOK_LTHAN:
-      return "<";
-    case TOK_GTHAN:
-      return ">";
-    case TOK_COMMA:
-      return ",";
-    case TOK_CONTROL:
-      return "Device(" + data + ')';
-    case TOK_LITERAL:
-      return '\'' + data + '\'';
-    case TOK_VARIABLE:
-      return '$' + data;
-    default:
+  case TOK_DISCARD:
+    return "Discard";
+  case TOK_EOF:
+    return "EOF";
+  case TOK_LPAREN:
+    return "(";
+  case TOK_RPAREN:
+    return ")";
+  case TOK_AND:
+    return "&";
+  case TOK_OR:
+    return "|";
+  case TOK_FUNCTION:
+    return '!' + data;
+  case TOK_ADD:
+    return "+";
+  case TOK_SUB:
+    return "-";
+  case TOK_MUL:
+    return "*";
+  case TOK_DIV:
+    return "/";
+  case TOK_MOD:
+    return "%";
+  case TOK_ASSIGN:
+    return "=";
+  case TOK_LTHAN:
+    return "<";
+  case TOK_GTHAN:
+    return ">";
+  case TOK_COMMA:
+    return ",";
+  case TOK_CONTROL:
+    return "Device(" + data + ')';
+  case TOK_LITERAL:
+    return '\'' + data + '\'';
+  case TOK_VARIABLE:
+    return '$' + data;
+  default:
+    break;
+  }
+
+  return "Invalid";
+}
+
+Lexer::Lexer(const std::string& expr_) : expr(expr_)
+{
+  it = expr.begin();
+}
+
+std::string Lexer::FetchDelimString(char delim)
+{
+  const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
+  if (it != expr.end())
+    ++it;
+  return result;
+}
+
+std::string Lexer::FetchWordChars()
+{
+  // Words must start with a letter or underscore.
+  if (expr.end() == it || (!std::isalpha(*it, std::locale::classic()) && ('_' != *it)))
+    return "";
+
+  // Valid word characters:
+  std::regex rx("[a-z0-9_]", std::regex_constants::icase);
+
+  return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
+}
+
+Token Lexer::GetFunction()
+{
+  return Token(TOK_FUNCTION, FetchWordChars());
+}
+
+Token Lexer::GetDelimitedLiteral()
+{
+  return Token(TOK_LITERAL, FetchDelimString('\''));
+}
+
+Token Lexer::GetVariable()
+{
+  return Token(TOK_VARIABLE, FetchWordChars());
+}
+
+Token Lexer::GetFullyQualifiedControl()
+{
+  return Token(TOK_CONTROL, FetchDelimString('`'));
+}
+
+Token Lexer::GetBarewordsControl(char c)
+{
+  std::string name;
+  name += c;
+  name += FetchCharsWhile([](char c) { return std::isalpha(c, std::locale::classic()); });
+
+  ControlQualifier qualifier;
+  qualifier.control_name = name;
+  return Token(TOK_CONTROL, qualifier);
+}
+
+Token Lexer::GetRealLiteral(char c)
+{
+  std::string value;
+  value += c;
+  value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
+
+  return Token(TOK_LITERAL, value);
+}
+
+Token Lexer::NextToken()
+{
+  if (it == expr.end())
+    return Token(TOK_EOF);
+
+  char c = *it++;
+  switch (c)
+  {
+  case ' ':
+  case '\t':
+  case '\n':
+  case '\r':
+    return Token(TOK_DISCARD);
+  case '(':
+    return Token(TOK_LPAREN);
+  case ')':
+    return Token(TOK_RPAREN);
+  case '&':
+    return Token(TOK_AND);
+  case '|':
+    return Token(TOK_OR);
+  case '!':
+    return GetFunction();
+  case '+':
+    return Token(TOK_ADD);
+  case '-':
+    return Token(TOK_SUB);
+  case '*':
+    return Token(TOK_MUL);
+  case '/':
+    return Token(TOK_DIV);
+  case '%':
+    return Token(TOK_MOD);
+  case '=':
+    return Token(TOK_ASSIGN);
+  case '<':
+    return Token(TOK_LTHAN);
+  case '>':
+    return Token(TOK_GTHAN);
+  case ',':
+    return Token(TOK_COMMA);
+  case '\'':
+    return GetDelimitedLiteral();
+  case '$':
+    return GetVariable();
+  case '`':
+    return GetFullyQualifiedControl();
+  default:
+    if (isalpha(c, std::locale::classic()))
+      return GetBarewordsControl(c);
+    else if (isdigit(c, std::locale::classic()))
+      return GetRealLiteral(c);
+    else
+      return Token(TOK_INVALID);
+  }
+}
+
+ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
+{
+  while (true)
+  {
+    const std::size_t string_position = it - expr.begin();
+    Token tok = NextToken();
+
+    tok.string_position = string_position;
+    tok.string_length = it - expr.begin();
+
+    if (tok.type == TOK_DISCARD)
+      continue;
+
+    tokens.push_back(tok);
+
+    if (tok.type == TOK_INVALID)
+      return ParseStatus::SyntaxError;
+
+    if (tok.type == TOK_EOF)
       break;
-    }
-
-    return "Invalid";
   }
-};
-
-class Lexer
-{
-public:
-  std::string expr;
-  std::string::iterator it;
-
-  Lexer(const std::string& expr_) : expr(expr_) { it = expr.begin(); }
-
-  template <typename F>
-  std::string FetchCharsWhile(F&& func)
-  {
-    std::string value;
-    while (it != expr.end() && func(*it))
-    {
-      value += *it;
-      ++it;
-    }
-    return value;
-  }
-
-  std::string FetchDelimString(char delim)
-  {
-    const std::string result = FetchCharsWhile([delim](char c) { return c != delim; });
-    if (it != expr.end())
-      ++it;
-    return result;
-  }
-
-  std::string FetchWordChars()
-  {
-    // Words must start with a letter or underscore.
-    if (expr.end() == it || (!std::isalpha(*it, std::locale::classic()) && ('_' != *it)))
-      return "";
-
-    // Valid word characters:
-    std::regex rx("[a-z0-9_]", std::regex_constants::icase);
-
-    return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
-  }
-
-  Token GetFunction() { return Token(TOK_FUNCTION, FetchWordChars()); }
-
-  Token GetDelimitedLiteral() { return Token(TOK_LITERAL, FetchDelimString('\'')); }
-
-  Token GetVariable() { return Token(TOK_VARIABLE, FetchWordChars()); }
-
-  Token GetFullyQualifiedControl() { return Token(TOK_CONTROL, FetchDelimString('`')); }
-
-  Token GetBarewordsControl(char c)
-  {
-    std::string name;
-    name += c;
-    name += FetchCharsWhile([](char c) { return std::isalpha(c, std::locale::classic()); });
-
-    ControlQualifier qualifier;
-    qualifier.control_name = name;
-    return Token(TOK_CONTROL, qualifier);
-  }
-
-  Token GetRealLiteral(char c)
-  {
-    std::string value;
-    value += c;
-    value +=
-        FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
-
-    return Token(TOK_LITERAL, value);
-  }
-
-  Token NextToken()
-  {
-    if (it == expr.end())
-      return Token(TOK_EOF);
-
-    char c = *it++;
-    switch (c)
-    {
-    case ' ':
-    case '\t':
-    case '\n':
-    case '\r':
-      return Token(TOK_DISCARD);
-    case '(':
-      return Token(TOK_LPAREN);
-    case ')':
-      return Token(TOK_RPAREN);
-    case '&':
-      return Token(TOK_AND);
-    case '|':
-      return Token(TOK_OR);
-    case '!':
-      return GetFunction();
-    case '+':
-      return Token(TOK_ADD);
-    case '-':
-      return Token(TOK_SUB);
-    case '*':
-      return Token(TOK_MUL);
-    case '/':
-      return Token(TOK_DIV);
-    case '%':
-      return Token(TOK_MOD);
-    case '=':
-      return Token(TOK_ASSIGN);
-    case '<':
-      return Token(TOK_LTHAN);
-    case '>':
-      return Token(TOK_GTHAN);
-    case ',':
-      return Token(TOK_COMMA);
-    case '\'':
-      return GetDelimitedLiteral();
-    case '$':
-      return GetVariable();
-    case '`':
-      return GetFullyQualifiedControl();
-    default:
-      if (isalpha(c, std::locale::classic()))
-        return GetBarewordsControl(c);
-      else if (isdigit(c, std::locale::classic()))
-        return GetRealLiteral(c);
-      else
-        return Token(TOK_INVALID);
-    }
-  }
-
-  ParseStatus Tokenize(std::vector<Token>& tokens)
-  {
-    while (true)
-    {
-      Token tok = NextToken();
-
-      if (tok.type == TOK_DISCARD)
-        continue;
-
-      if (tok.type == TOK_INVALID)
-      {
-        tokens.clear();
-        return ParseStatus::SyntaxError;
-      }
-
-      tokens.push_back(tok);
-
-      if (tok.type == TOK_EOF)
-        break;
-    }
-    return ParseStatus::Successful;
-  }
-};
+  return ParseStatus::Successful;
+}
 
 class ControlExpression : public Expression
 {
@@ -418,7 +391,7 @@ public:
 class LiteralExpression : public Expression
 {
 public:
-  void SetValue(ControlState value) override
+  void SetValue(ControlState) override
   {
     // Do nothing.
   }
@@ -695,11 +668,6 @@ private:
     }
   }
 
-  static bool IsBinaryToken(TokenType type)
-  {
-    return type >= TOK_BINARY_OPS_BEGIN && type < TOK_BINARY_OPS_END;
-  }
-
   static int BinaryOperatorPrecedence(TokenType type)
   {
     switch (type)
@@ -738,7 +706,7 @@ private:
     std::unique_ptr<Expression> expr = std::move(lhs.expr);
 
     // TODO: handle LTR/RTL associativity?
-    while (IsBinaryToken(Peek().type) && BinaryOperatorPrecedence(Peek().type) < precedence)
+    while (Peek().IsBinaryOperator() && BinaryOperatorPrecedence(Peek().type) < precedence)
     {
       const Token tok = Chew();
       ParseResult rhs = ParseBinary(BinaryOperatorPrecedence(tok.type));

@@ -12,6 +12,92 @@
 
 namespace ciface::ExpressionParser
 {
+enum TokenType
+{
+  TOK_DISCARD,
+  TOK_INVALID,
+  TOK_EOF,
+  TOK_LPAREN,
+  TOK_RPAREN,
+  TOK_FUNCTION,
+  TOK_CONTROL,
+  TOK_LITERAL,
+  TOK_VARIABLE,
+  // Binary Ops:
+  TOK_BINARY_OPS_BEGIN,
+  TOK_AND = TOK_BINARY_OPS_BEGIN,
+  TOK_OR,
+  TOK_ADD,
+  TOK_SUB,
+  TOK_MUL,
+  TOK_DIV,
+  TOK_MOD,
+  TOK_ASSIGN,
+  TOK_LTHAN,
+  TOK_GTHAN,
+  TOK_COMMA,
+  TOK_BINARY_OPS_END,
+};
+
+class Token
+{
+public:
+  TokenType type;
+  std::string data;
+
+  // Position in the input string:
+  std::size_t string_position = 0;
+  std::size_t string_length = 0;
+
+  Token(TokenType type_);
+  Token(TokenType type_, std::string data_);
+
+  bool IsBinaryOperator() const;
+  operator std::string() const;
+};
+
+enum class ParseStatus
+{
+  Successful,
+  SyntaxError,
+  EmptyExpression,
+};
+
+class Lexer
+{
+public:
+  std::string expr;
+  std::string::iterator it;
+
+  Lexer(const std::string& expr_);
+
+  ParseStatus Tokenize(std::vector<Token>& tokens);
+
+private:
+  template <typename F>
+  std::string FetchCharsWhile(F&& func)
+  {
+    std::string value;
+    while (it != expr.end() && func(*it))
+    {
+      value += *it;
+      ++it;
+    }
+    return value;
+  }
+
+  std::string FetchDelimString(char delim);
+  std::string FetchWordChars();
+  Token GetFunction();
+  Token GetDelimitedLiteral();
+  Token GetVariable();
+  Token GetFullyQualifiedControl();
+  Token GetBarewordsControl(char c);
+  Token GetRealLiteral(char c);
+
+  Token NextToken();
+};
+
 class ControlQualifier
 {
 public:
@@ -78,13 +164,6 @@ public:
   virtual int CountNumControls() const = 0;
   virtual void UpdateReferences(ControlEnvironment& finder) = 0;
   virtual operator std::string() const = 0;
-};
-
-enum class ParseStatus
-{
-  Successful,
-  SyntaxError,
-  EmptyExpression,
 };
 
 std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr);

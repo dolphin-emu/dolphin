@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
+#include <QSyntaxHighlighter>
 #include <QVBoxLayout>
 
 #include "Core/Core.h"
@@ -26,10 +27,114 @@
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 constexpr int SLIDER_TICK_COUNT = 100;
+
+namespace
+{
+QTextCharFormat GetSpecialCharFormat()
+{
+  QTextCharFormat format;
+  format.setFontWeight(QFont::Weight::Bold);
+  return format;
+}
+
+QTextCharFormat GetOperatorCharFormat()
+{
+  QTextCharFormat format;
+  format.setFontWeight(QFont::Weight::Bold);
+  format.setForeground(QBrush{Qt::darkBlue});
+  return format;
+}
+
+QTextCharFormat GetLiteralCharFormat()
+{
+  QTextCharFormat format;
+  format.setForeground(QBrush{Qt::darkMagenta});
+  return format;
+}
+
+QTextCharFormat GetInvalidCharFormat()
+{
+  QTextCharFormat format;
+  format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
+  format.setUnderlineColor(Qt::darkRed);
+  return format;
+}
+
+QTextCharFormat GetControlCharFormat()
+{
+  QTextCharFormat format;
+  format.setForeground(QBrush{Qt::darkGreen});
+  return format;
+}
+
+QTextCharFormat GetVariableCharFormat()
+{
+  QTextCharFormat format;
+  format.setForeground(QBrush{Qt::magenta});
+  return format;
+}
+
+QTextCharFormat GetFunctionCharFormat()
+{
+  QTextCharFormat format;
+  format.setForeground(QBrush{Qt::darkCyan});
+  return format;
+}
+
+class SyntaxHighlighter : public QSyntaxHighlighter
+{
+public:
+  SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {}
+
+  void highlightBlock(const QString& text) final override
+  {
+    // TODO: This is going to result in improper highlighting with non-ascii characters:
+    ciface::ExpressionParser::Lexer lexer(text.toStdString());
+
+    std::vector<ciface::ExpressionParser::Token> tokens;
+    lexer.Tokenize(tokens);
+
+    using ciface::ExpressionParser::TokenType;
+
+    for (auto& token : tokens)
+    {
+      switch (token.type)
+      {
+      case TokenType::TOK_INVALID:
+        setFormat(token.string_position, token.string_length, GetInvalidCharFormat());
+        break;
+      case TokenType::TOK_LPAREN:
+      case TokenType::TOK_RPAREN:
+      case TokenType::TOK_COMMA:
+        setFormat(token.string_position, token.string_length, GetSpecialCharFormat());
+        break;
+      case TokenType::TOK_LITERAL:
+        setFormat(token.string_position, token.string_length, GetLiteralCharFormat());
+        break;
+      case TokenType::TOK_CONTROL:
+        setFormat(token.string_position, token.string_length, GetControlCharFormat());
+        break;
+      case TokenType::TOK_FUNCTION:
+        setFormat(token.string_position, token.string_length, GetFunctionCharFormat());
+        break;
+      case TokenType::TOK_VARIABLE:
+        setFormat(token.string_position, token.string_length, GetVariableCharFormat());
+        break;
+      default:
+        if (token.IsBinaryOperator())
+          setFormat(token.string_position, token.string_length, GetOperatorCharFormat());
+        break;
+      }
+    }
+  }
+};
+
+}  // namespace
 
 IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controller,
                    ControlReference* ref, IOWindow::Type type)
@@ -54,12 +159,15 @@ void IOWindow::CreateMainLayout()
   m_select_button = new QPushButton(tr("Select"));
   m_detect_button = new QPushButton(tr("Detect"));
   m_test_button = new QPushButton(tr("Test"));
-  m_expression_text = new QPlainTextEdit();
   m_button_box = new QDialogButtonBox();
   m_clear_button = new QPushButton(tr("Clear"));
   m_apply_button = new QPushButton(tr("Apply"));
   m_range_slider = new QSlider(Qt::Horizontal);
   m_range_spinbox = new QSpinBox();
+
+  m_expression_text = new QPlainTextEdit();
+  m_expression_text->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+  new SyntaxHighlighter(m_expression_text->document());
 
   m_operators_combo = new QComboBox();
   m_operators_combo->addItem(tr("Operators"));
