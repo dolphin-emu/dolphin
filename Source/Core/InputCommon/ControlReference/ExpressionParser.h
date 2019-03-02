@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "InputCommon/ControllerInterface/Device.h"
@@ -49,7 +50,7 @@ public:
   std::size_t string_position = 0;
   std::size_t string_length = 0;
 
-  Token(TokenType type_);
+  explicit Token(TokenType type_);
   Token(TokenType type_, std::string data_);
 
   bool IsBinaryOperator() const;
@@ -166,5 +167,26 @@ public:
   virtual operator std::string() const = 0;
 };
 
-std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr);
+class ParseResult
+{
+public:
+  static ParseResult MakeEmptyResult();
+  static ParseResult MakeSuccessfulResult(std::unique_ptr<Expression>&& expr);
+  static ParseResult MakeErrorResult(Token token, std::string description);
+
+  ParseStatus status;
+  std::unique_ptr<Expression> expr;
+
+  // Used for parse errors:
+  // TODO: This should probably be moved elsewhere:
+  std::optional<Token> token;
+  std::optional<std::string> description;
+
+private:
+  ParseResult() = default;
+};
+
+ParseResult ParseExpression(const std::string& expr);
+ParseResult ParseTokens(const std::vector<Token>& tokens);
+
 }  // namespace ciface::ExpressionParser

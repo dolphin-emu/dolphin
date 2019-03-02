@@ -6,6 +6,7 @@
 
 #include <QDialog>
 #include <QString>
+#include <QSyntaxHighlighter>
 
 #include "Common/Flag.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -14,6 +15,7 @@ class ControlReference;
 class QAbstractButton;
 class QComboBox;
 class QDialogButtonBox;
+class QLineEdit;
 class QListWidget;
 class QVBoxLayout;
 class QWidget;
@@ -26,6 +28,19 @@ namespace ControllerEmu
 {
 class EmulatedController;
 }
+
+class ControlExpressionSyntaxHighlighter final : public QSyntaxHighlighter
+{
+  Q_OBJECT
+public:
+  ControlExpressionSyntaxHighlighter(QTextDocument* parent, QLineEdit* result);
+
+protected:
+  void highlightBlock(const QString& text) final override;
+
+private:
+  QLineEdit* const m_result_text;
+};
 
 class IOWindow final : public QDialog
 {
@@ -81,6 +96,7 @@ private:
 
   // Textarea
   QPlainTextEdit* m_expression_text;
+  QLineEdit* m_parse_text;
 
   // Buttonbox
   QDialogButtonBox* m_button_box;

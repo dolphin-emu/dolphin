@@ -54,7 +54,9 @@ std::string ControlReference::GetExpression() const
 void ControlReference::SetExpression(std::string expr)
 {
   m_expression = std::move(expr);
-  std::tie(m_parse_status, m_parsed_expression) = ParseExpression(m_expression);
+  auto parse_result = ParseExpression(m_expression);
+  m_parse_status = parse_result.status;
+  m_parsed_expression = std::move(parse_result.expr);
 }
 
 ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)

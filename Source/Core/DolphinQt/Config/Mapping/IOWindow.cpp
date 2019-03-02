@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 
+#include <optional>
 #include <thread>
 
 #include <QComboBox>
@@ -11,13 +12,13 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
-#include <QSyntaxHighlighter>
 #include <QVBoxLayout>
 
 #include "Core/Core.h"
@@ -35,6 +36,7 @@ constexpr int SLIDER_TICK_COUNT = 100;
 
 namespace
 {
+// TODO: Make sure these functions return colors that will be visible in the current theme.
 QTextCharFormat GetSpecialCharFormat()
 {
   QTextCharFormat format;
@@ -85,56 +87,78 @@ QTextCharFormat GetFunctionCharFormat()
   format.setForeground(QBrush{Qt::darkCyan});
   return format;
 }
+}  // namespace
 
-class SyntaxHighlighter : public QSyntaxHighlighter
+ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocument* parent,
+                                                                       QLineEdit* result)
+    : QSyntaxHighlighter(parent), m_result_text(result)
 {
-public:
-  SyntaxHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {}
+}
 
-  void highlightBlock(const QString& text) final override
+void ControlExpressionSyntaxHighlighter::highlightBlock(const QString& text)
+{
+  // TODO: This is going to result in improper highlighting with non-ascii characters:
+  ciface::ExpressionParser::Lexer lexer(text.toStdString());
+
+  std::vector<ciface::ExpressionParser::Token> tokens;
+  const auto tokenize_status = lexer.Tokenize(tokens);
+
+  using ciface::ExpressionParser::TokenType;
+
+  for (auto& token : tokens)
   {
-    // TODO: This is going to result in improper highlighting with non-ascii characters:
-    ciface::ExpressionParser::Lexer lexer(text.toStdString());
+    std::optional<QTextCharFormat> char_format;
 
-    std::vector<ciface::ExpressionParser::Token> tokens;
-    lexer.Tokenize(tokens);
-
-    using ciface::ExpressionParser::TokenType;
-
-    for (auto& token : tokens)
+    switch (token.type)
     {
-      switch (token.type)
-      {
-      case TokenType::TOK_INVALID:
-        setFormat(token.string_position, token.string_length, GetInvalidCharFormat());
-        break;
-      case TokenType::TOK_LPAREN:
-      case TokenType::TOK_RPAREN:
-      case TokenType::TOK_COMMA:
-        setFormat(token.string_position, token.string_length, GetSpecialCharFormat());
-        break;
-      case TokenType::TOK_LITERAL:
-        setFormat(token.string_position, token.string_length, GetLiteralCharFormat());
-        break;
-      case TokenType::TOK_CONTROL:
-        setFormat(token.string_position, token.string_length, GetControlCharFormat());
-        break;
-      case TokenType::TOK_FUNCTION:
-        setFormat(token.string_position, token.string_length, GetFunctionCharFormat());
-        break;
-      case TokenType::TOK_VARIABLE:
-        setFormat(token.string_position, token.string_length, GetVariableCharFormat());
-        break;
-      default:
-        if (token.IsBinaryOperator())
-          setFormat(token.string_position, token.string_length, GetOperatorCharFormat());
-        break;
-      }
+    case TokenType::TOK_INVALID:
+      char_format = GetInvalidCharFormat();
+      break;
+    case TokenType::TOK_LPAREN:
+    case TokenType::TOK_RPAREN:
+    case TokenType::TOK_COMMA:
+      char_format = GetSpecialCharFormat();
+      break;
+    case TokenType::TOK_LITERAL:
+      char_format = GetLiteralCharFormat();
+      break;
+    case TokenType::TOK_CONTROL:
+      char_format = GetControlCharFormat();
+      break;
+    case TokenType::TOK_FUNCTION:
+      char_format = GetFunctionCharFormat();
+      break;
+    case TokenType::TOK_VARIABLE:
+      char_format = GetVariableCharFormat();
+      break;
+    default:
+      if (token.IsBinaryOperator())
+        char_format = GetOperatorCharFormat();
+      break;
+    }
+
+    if (char_format.has_value())
+      setFormat(int(token.string_position), int(token.string_length), *char_format);
+  }
+
+  if (ciface::ExpressionParser::ParseStatus::Successful != tokenize_status)
+  {
+    m_result_text->setText(tr("Invalid Token."));
+  }
+  else
+  {
+    const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
+
+    m_result_text->setText(
+        QString::fromStdString(parse_status.description.value_or(_trans("Success."))));
+
+    if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
+    {
+      const auto token = *parse_status.token;
+      setFormat(int(token.string_position), int(token.string_length), GetInvalidCharFormat());
     }
   }
-};
-
-}  // namespace
+}
 
 IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controller,
                    ControlReference* ref, IOWindow::Type type)
@@ -165,9 +189,12 @@ void IOWindow::CreateMainLayout()
   m_range_slider = new QSlider(Qt::Horizontal);
   m_range_spinbox = new QSpinBox();
 
+  m_parse_text = new QLineEdit();
+  m_parse_text->setReadOnly(true);
+
   m_expression_text = new QPlainTextEdit();
   m_expression_text->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-  new SyntaxHighlighter(m_expression_text->document());
+  new ControlExpressionSyntaxHighlighter(m_expression_text->document(), m_parse_text);
 
   m_operators_combo = new QComboBox();
   m_operators_combo->addItem(tr("Operators"));
@@ -234,6 +261,7 @@ void IOWindow::CreateMainLayout()
 
   m_main_layout->addLayout(hbox, 2);
   m_main_layout->addWidget(m_expression_text, 1);
+  m_main_layout->addWidget(m_parse_text);
 
   // Button Box
   m_main_layout->addWidget(m_button_box);

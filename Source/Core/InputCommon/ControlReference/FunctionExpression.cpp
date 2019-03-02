@@ -17,19 +17,6 @@ constexpr ControlState CONDITION_THRESHOLD = 0.5;
 using Clock = std::chrono::steady_clock;
 using FSec = std::chrono::duration<ControlState>;
 
-// TODO: Return an oscillating value to make it apparent something was spelled wrong?
-class UnknownFunctionExpression : public FunctionExpression
-{
-private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
-  {
-    return false;
-  }
-  ControlState GetValue() const override { return 0.0; }
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "unknown"; }
-};
-
 // usage: !toggle(toggle_state_input, [clear_state_input])
 class ToggleExpression : public FunctionExpression
 {
@@ -503,7 +490,7 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
   else if ("pulse" == name)
     return std::make_unique<PulseExpression>();
   else
-    return std::make_unique<UnknownFunctionExpression>();
+    return nullptr;
 }
 
 int FunctionExpression::CountNumControls() const

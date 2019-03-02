@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/StringUtil.h"
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -138,7 +139,7 @@ std::string Lexer::FetchWordChars()
     return "";
 
   // Valid word characters:
-  std::regex rx("[a-z0-9_]", std::regex_constants::icase);
+  std::regex rx(R"([a-z\d_])", std::regex_constants::icase);
 
   return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
 }
@@ -180,7 +181,10 @@ Token Lexer::GetRealLiteral(char c)
   value += c;
   value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
 
-  return Token(TOK_LITERAL, value);
+  if (std::regex_match(value, std::regex(R"(\d+(\.\d+)?)")))
+    return Token(TOK_LITERAL, value);
+
+  return Token(TOK_INVALID);
 }
 
 Token Lexer::NextToken()
@@ -267,8 +271,7 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
 class ControlExpression : public Expression
 {
 public:
-  // Keep a shared_ptr to the device so the control pointer doesn't become invalid
-  // TODO: This is causing devices to be destructed after backends are shutdown:
+  // Keep a shared_ptr to the device so the control pointer doesn't become invalid.
   std::shared_ptr<Device> m_device;
 
   explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
@@ -384,7 +387,7 @@ public:
 
   operator std::string() const override
   {
-    return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
+    return OpName(op) + "(" + std::string(*lhs) + ", " + std::string(*rhs) + ")";
   }
 };
 
@@ -422,12 +425,13 @@ private:
   const ControlState m_value{};
 };
 
-std::unique_ptr<LiteralExpression> MakeLiteralExpression(std::string name)
+ParseResult MakeLiteralExpression(Token token)
 {
-  // If TryParse fails we'll just get a Zero.
   ControlState val{};
-  TryParse(name, &val);
-  return std::make_unique<LiteralReal>(val);
+  if (TryParse(token.data, &val))
+    return ParseResult::MakeSuccessfulResult(std::make_unique<LiteralReal>(val));
+  else
+    return ParseResult::MakeErrorResult(token, _trans("Invalid literal."));
 }
 
 class VariableExpression : public Expression
@@ -520,45 +524,63 @@ ControlState* ControlEnvironment::GetVariablePtr(const std::string& name)
   return &m_variables[name];
 }
 
-struct ParseResult
+ParseResult ParseResult::MakeEmptyResult()
 {
-  ParseResult(ParseStatus status_, std::unique_ptr<Expression>&& expr_ = {})
-      : status(status_), expr(std::move(expr_))
-  {
-  }
+  ParseResult result;
+  result.status = ParseStatus::EmptyExpression;
+  return result;
+}
 
-  ParseStatus status;
-  std::unique_ptr<Expression> expr;
-};
+ParseResult ParseResult::MakeSuccessfulResult(std::unique_ptr<Expression>&& expr)
+{
+  ParseResult result;
+  result.status = ParseStatus::Successful;
+  result.expr = std::move(expr);
+  return result;
+}
+
+ParseResult ParseResult::MakeErrorResult(Token token, std::string description)
+{
+  ParseResult result;
+  result.status = ParseStatus::SyntaxError;
+  result.token = std::move(token);
+  result.description = std::move(description);
+  return result;
+}
 
 class Parser
 {
 public:
-  explicit Parser(std::vector<Token> tokens_) : tokens(tokens_) { m_it = tokens.begin(); }
+  explicit Parser(const std::vector<Token>& tokens_) : tokens(tokens_) { m_it = tokens.begin(); }
   ParseResult Parse()
   {
     ParseResult result = ParseToplevel();
 
+    if (ParseStatus::Successful != result.status)
+      return result;
+
     if (Peek().type == TOK_EOF)
       return result;
 
-    return {ParseStatus::SyntaxError};
+    return ParseResult::MakeErrorResult(Peek(), _trans("Expected EOF."));
   }
 
 private:
   struct FunctionArguments
   {
-    FunctionArguments(ParseStatus status_, std::vector<std::unique_ptr<Expression>>&& args_ = {})
-        : status(status_), args(std::move(args_))
+    FunctionArguments(ParseResult&& result_, std::vector<std::unique_ptr<Expression>>&& args_ = {})
+        : result(std::move(result_)), args(std::move(args_))
     {
     }
 
-    ParseStatus status;
+    // Note: expression member isn't being used.
+    ParseResult result;
+
     std::vector<std::unique_ptr<Expression>> args;
   };
 
-  std::vector<Token> tokens;
-  std::vector<Token>::iterator m_it;
+  const std::vector<Token>& tokens;
+  std::vector<Token>::const_iterator m_it;
 
   Token Chew()
   {
@@ -585,10 +607,10 @@ private:
       // Single argument with no parens (useful for unary ! function)
       auto arg = ParseAtom(Chew());
       if (ParseStatus::Successful != arg.status)
-        return {ParseStatus::SyntaxError};
+        return {std::move(arg)};
 
       args.emplace_back(std::move(arg.expr));
-      return {ParseStatus::Successful, std::move(args)};
+      return {ParseResult::MakeSuccessfulResult({}), std::move(args)};
     }
 
     // Chew the L-Paren
@@ -598,7 +620,7 @@ private:
     if (TOK_RPAREN == Peek().type)
     {
       Chew();
-      return {ParseStatus::Successful};
+      return {ParseResult::MakeSuccessfulResult({})};
     }
 
     while (true)
@@ -607,18 +629,18 @@ private:
       // Grab an expression, but stop at comma.
       auto arg = ParseBinary(BinaryOperatorPrecedence(TOK_COMMA));
       if (ParseStatus::Successful != arg.status)
-        return {ParseStatus::SyntaxError};
+        return {std::move(arg)};
 
       args.emplace_back(std::move(arg.expr));
 
       // Right paren is the end of our arguments.
       const Token tok = Chew();
       if (TOK_RPAREN == tok.type)
-        return {ParseStatus::Successful, std::move(args)};
+        return {ParseResult::MakeSuccessfulResult({}), std::move(args)};
 
       // Comma before the next argument.
       if (TOK_COMMA != tok.type)
-        return {ParseStatus::SyntaxError};
+        return {ParseResult::MakeErrorResult(tok, _trans("Expected comma."))};
     }
   }
 
@@ -629,29 +651,36 @@ private:
     case TOK_FUNCTION:
     {
       auto func = MakeFunctionExpression(tok.data);
+
+      if (!func)
+        return ParseResult::MakeErrorResult(tok, _trans("Unknown function."));
+
       auto args = ParseFunctionArguments();
 
-      if (ParseStatus::Successful != args.status)
-        return {ParseStatus::SyntaxError};
+      if (ParseStatus::Successful != args.result.status)
+        return std::move(args.result);
 
       if (!func->SetArguments(std::move(args.args)))
-        return {ParseStatus::SyntaxError};
+      {
+        // TODO: It would be nice to output how many arguments are expected.
+        return ParseResult::MakeErrorResult(tok, _trans("Wrong number of arguments."));
+      }
 
-      return {ParseStatus::Successful, std::move(func)};
+      return ParseResult::MakeSuccessfulResult(std::move(func));
     }
     case TOK_CONTROL:
     {
       ControlQualifier cq;
       cq.FromString(tok.data);
-      return {ParseStatus::Successful, std::make_unique<ControlExpression>(cq)};
+      return ParseResult::MakeSuccessfulResult(std::make_unique<ControlExpression>(cq));
     }
     case TOK_LITERAL:
     {
-      return {ParseStatus::Successful, MakeLiteralExpression(tok.data)};
+      return MakeLiteralExpression(tok);
     }
     case TOK_VARIABLE:
     {
-      return {ParseStatus::Successful, std::make_unique<VariableExpression>(tok.data)};
+      return ParseResult::MakeSuccessfulResult(std::make_unique<VariableExpression>(tok.data));
     }
     case TOK_LPAREN:
     {
@@ -661,10 +690,15 @@ private:
     {
       // An atom was expected but we got a subtraction symbol.
       // Interpret it as a unary minus function.
-      return ParseAtom(Token(TOK_FUNCTION, "minus"));
+
+      // Make sure to copy the existing string position values for proper error results.
+      Token func = tok;
+      func.type = TOK_FUNCTION;
+      func.data = "minus";
+      return ParseAtom(std::move(func));
     }
     default:
-      return {ParseStatus::SyntaxError};
+      return ParseResult::MakeErrorResult(tok, _trans("Expected start of expression."));
     }
   }
 
@@ -718,7 +752,7 @@ private:
       expr = std::make_unique<BinaryExpression>(tok.type, std::move(expr), std::move(rhs.expr));
     }
 
-    return {ParseStatus::Successful, std::move(expr)};
+    return ParseResult::MakeSuccessfulResult(std::move(expr));
   }
 
   ParseResult ParseParens()
@@ -728,9 +762,10 @@ private:
     if (result.status != ParseStatus::Successful)
       return result;
 
-    if (!Expects(TOK_RPAREN))
+    const auto rparen = Chew();
+    if (rparen.type != TOK_RPAREN)
     {
-      return {ParseStatus::SyntaxError};
+      return ParseResult::MakeErrorResult(rparen, _trans("Expected closing paren."));
     }
 
     return result;
@@ -739,15 +774,20 @@ private:
   ParseResult ParseToplevel() { return ParseBinary(); }
 };  // namespace ExpressionParser
 
+ParseResult ParseTokens(const std::vector<Token>& tokens)
+{
+  return Parser(tokens).Parse();
+}
+
 static ParseResult ParseComplexExpression(const std::string& str)
 {
   Lexer l(str);
   std::vector<Token> tokens;
-  ParseStatus tokenize_status = l.Tokenize(tokens);
+  const ParseStatus tokenize_status = l.Tokenize(tokens);
   if (tokenize_status != ParseStatus::Successful)
-    return {tokenize_status};
+    return ParseResult::MakeErrorResult(Token(TOK_INVALID), _trans("Tokenizing failed."));
 
-  return Parser(std::move(tokens)).Parse();
+  return ParseTokens(tokens);
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)
@@ -759,21 +799,24 @@ static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& st
   return std::make_unique<ControlExpression>(qualifier);
 }
 
-std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& str)
+ParseResult ParseExpression(const std::string& str)
 {
   if (StripSpaces(str).empty())
-    return std::make_pair(ParseStatus::EmptyExpression, nullptr);
+    return ParseResult::MakeEmptyResult();
 
   auto bareword_expr = ParseBarewordExpression(str);
   ParseResult complex_result = ParseComplexExpression(str);
 
   if (complex_result.status != ParseStatus::Successful)
   {
-    return std::make_pair(complex_result.status, std::move(bareword_expr));
+    // This is a bit odd.
+    // Return the error status of the complex expression with the fallback barewords expression.
+    complex_result.expr = std::move(bareword_expr);
+    return complex_result;
   }
 
-  auto combined_expr = std::make_unique<CoalesceExpression>(std::move(bareword_expr),
-                                                            std::move(complex_result.expr));
-  return std::make_pair(complex_result.status, std::move(combined_expr));
+  complex_result.expr = std::make_unique<CoalesceExpression>(std::move(bareword_expr),
+                                                             std::move(complex_result.expr));
+  return complex_result;
 }
 }  // namespace ciface::ExpressionParser
