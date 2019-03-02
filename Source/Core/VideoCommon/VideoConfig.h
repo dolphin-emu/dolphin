@@ -216,6 +216,7 @@ struct VideoConfig final
     bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
     bool bSupportsBackgroundCompiling;
     bool bSupportsLargePoints;
+    bool bSupportsPartialDepthCopies;
   } backend_info;
 
   // Utility

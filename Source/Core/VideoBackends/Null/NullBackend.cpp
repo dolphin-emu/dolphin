@@ -50,6 +50,8 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = false;
   g_Config.backend_info.bSupportsLogicOp = false;
+  g_Config.backend_info.bSupportsLargePoints = false;
+  g_Config.backend_info.bSupportsPartialDepthCopies = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();
