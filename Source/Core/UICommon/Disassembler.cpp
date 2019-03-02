@@ -83,7 +83,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
       {
         // If we are on an architecture that has a fixed instruction size
         // We can continue onward past this bad instruction.
-        std::string inst_str = "";
+        std::string inst_str;
         for (int i = 0; i < m_instruction_size; ++i)
           inst_str += StringFromFormat("%02x", disasmPtr[i]);
 
@@ -94,7 +94,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
       {
         // We can't continue if we are on an architecture that has flexible instruction sizes
         // Dump the rest of the block instead
-        std::string code_block = "";
+        std::string code_block;
         for (int i = 0; (disasmPtr + i) < end; ++i)
           code_block += StringFromFormat("%02x", disasmPtr[i]);
 

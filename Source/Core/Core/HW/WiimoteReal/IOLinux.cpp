@@ -106,7 +106,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
   }
 }
 
-WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : Wiimote(), m_bdaddr(bdaddr)
+WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : m_bdaddr(bdaddr)
 {
   m_really_disconnect = true;
 

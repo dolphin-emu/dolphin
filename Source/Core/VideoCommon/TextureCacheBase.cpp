@@ -1127,7 +1127,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   entry->memory_stride = entry->BytesPerRow();
   entry->SetNotCopy();
 
-  std::string basename = "";
+  std::string basename;
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
   {
     basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,

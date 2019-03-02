@@ -44,7 +44,7 @@ TEST(StringUtil, StringEndsWith)
 TEST(StringUtil, StringPopBackIf)
 {
   std::string abc = "abc";
-  std::string empty = "";
+  std::string empty;
 
   StringPopBackIf(&abc, 'a');
   StringPopBackIf(&empty, 'a');

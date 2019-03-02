@@ -1,4 +1,4 @@
-// Copyright 2008 Dolphin Emulator Project
+﻿// Copyright 2008 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -113,10 +113,10 @@ public:
   int GetIndex() const;
 
 protected:
-  Wiimote() = default;
+  Wiimote();
 
   int m_index = 0;
-  Report m_last_input_report = {};
+  Report m_last_input_report;
   u16 m_channel = 0;
 
   // If true, the Wiimote will be really disconnected when it is disconnected by Dolphin.

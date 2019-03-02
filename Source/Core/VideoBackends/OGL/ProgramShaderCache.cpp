@@ -51,7 +51,7 @@ static int num_failures = 0;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PipelineProgramMap ProgramShaderCache::s_pipeline_programs;
 std::mutex ProgramShaderCache::s_pipeline_program_lock;
-static std::string s_glsl_header = "";
+static std::string s_glsl_header;
 static std::atomic<u64> s_shader_counter{0};
 static thread_local bool s_is_shared_context = false;
 
@@ -684,7 +684,7 @@ void ProgramShaderCache::CreateHeader()
     break;
   }
 
-  std::string earlyz_string = "";
+  std::string earlyz_string;
   if (g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
     if (g_ogl_config.bSupportsImageLoadStore)

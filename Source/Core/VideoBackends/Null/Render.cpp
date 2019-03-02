@@ -66,7 +66,7 @@ std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage sta
 class NullPipeline final : public AbstractPipeline
 {
 public:
-  NullPipeline() : AbstractPipeline() {}
+  NullPipeline() = default;
   ~NullPipeline() override = default;
 };
 

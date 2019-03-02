@@ -118,8 +118,8 @@ static const char* regnames[32] = {"r0",  "sp",  "rtoc", "r3",  "r4",  "r5",  "r
 // Initialize static class variables.
 u32* GekkoDisassembler::m_instr = nullptr;
 u32* GekkoDisassembler::m_iaddr = nullptr;
-std::string GekkoDisassembler::m_opcode = "";
-std::string GekkoDisassembler::m_operands = "";
+std::string GekkoDisassembler::m_opcode;
+std::string GekkoDisassembler::m_operands;
 unsigned char GekkoDisassembler::m_type = 0;
 unsigned char GekkoDisassembler::m_flags = PPCF_ILLEGAL;
 unsigned short GekkoDisassembler::m_sreg = 0;
