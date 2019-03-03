@@ -69,21 +69,21 @@
             <objects>
                 <viewController id="XfG-lQ-9wD" customClass="ViewController" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="480" height="120"/>
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="133"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <progressIndicator identifier="progressTotal" wantsLayer="YES" fixedFrame="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="oLS-AW-V72">
-                                <rect key="frame" x="20" y="81" width="440" height="20"/>
+                                <rect key="frame" x="20" y="94" width="440" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </progressIndicator>
                             <progressIndicator identifier="progressCurrent" wantsLayer="YES" fixedFrame="YES" maxValue="100" indeterminate="YES" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="mni-rL-166">
-                                <rect key="frame" x="20" y="39" width="440" height="20"/>
+                                <rect key="frame" x="20" y="52" width="440" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </progressIndicator>
-                            <textField identifier="labelProgress" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="r87-pn-Exw" userLabel="Label">
-                                <rect key="frame" x="18" y="15" width="444" height="17"/>
+                            <textField identifier="labelProgress" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="r87-pn-Exw" userLabel="Label">
+                                <rect key="frame" x="18" y="7" width="444" height="38"/>
                                 <autoresizingMask key="autoresizingMask"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Initializing..." id="FBK-Tz-5cA">
+                                <textFieldCell key="cell" truncatesLastVisibleLine="YES" title="Initializing..." id="FBK-Tz-5cA">
                                     <font key="font" usesAppearanceFont="YES"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -103,7 +103,7 @@
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="647"/>
+            <point key="canvasLocation" x="75" y="653.5"/>
         </scene>
     </scenes>
 </document>
