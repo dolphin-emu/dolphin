@@ -306,7 +306,10 @@ void GCMemcardManager::ExportFiles(bool prompt)
 
   QString text = count == 1 ? tr("Successfully exported the save file.") :
                               tr("Successfully exported the %1 save files.").arg(count);
-  QMessageBox::information(this, tr("Success"), text);
+  QMessageBox msg(QMessageBox::Information, tr("Success"), text, QMessageBox::Ok, this);
+  msg.setWindowModality(Qt::WindowModal);
+
+  msg.exec();
 }
 
 void GCMemcardManager::ExportAllFiles()
@@ -330,7 +333,10 @@ void GCMemcardManager::ImportFile()
 
   if (result != SUCCESS)
   {
-    QMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
+    QMessageBox msg(QMessageBox::Critical, tr("Import failed"),
+                    tr("Failed to import \"%1\".").arg(path), QMessageBox::Ok, this);
+    msg.setWindowModality(Qt::WindowModal);
+    msg.exec();
     return;
   }
 
@@ -355,7 +361,12 @@ void GCMemcardManager::CopyFiles()
     const auto result = m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
 
     if (result != SUCCESS)
-      QMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
+    {
+      QMessageBox msg(QMessageBox::Warning, tr("Copy failed"), tr("Failed to copy file"),
+                      QMessageBox::Ok, this);
+      msg.setWindowModality(Qt::WindowModal);
+      msg.exec();
+    }
   }
 
   for (int i = 0; i < SLOT_COUNT; i++)
@@ -379,8 +390,12 @@ void GCMemcardManager::DeleteFiles()
   {
     QString text = count == 1 ? tr("Do you want to delete the selected save file?") :
                                 tr("Do you want to delete the %1 selected save files?").arg(count);
-    auto response =
-        QMessageBox::warning(this, tr("Question"), text, QMessageBox::Yes | QMessageBox::Abort);
+
+    QMessageBox msg(QMessageBox::Warning, tr("Question"), text,
+                    QMessageBox::Yes | QMessageBox::Abort, this);
+    msg.setWindowModality(Qt::WindowModal);
+
+    auto response = msg.exec();
 
     if (response == QMessageBox::Abort)
       return;
@@ -396,13 +411,25 @@ void GCMemcardManager::DeleteFiles()
   for (int file_index : file_indices)
   {
     if (memcard->RemoveFile(file_index) != SUCCESS)
-      QMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
+    {
+      QMessageBox msg(QMessageBox::Warning, tr("Remove failed"), tr("Failed to remove file"),
+                      QMessageBox::Ok, this);
+      msg.setWindowModality(Qt::WindowModal);
+      msg.exec();
+    }
   }
 
   if (!memcard->Save())
+  {
     PanicAlertT("File write failed");
+  }
   else
-    QMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
+  {
+    QMessageBox msg(QMessageBox::Information, tr("Success"), tr("Successfully deleted files."),
+                    QMessageBox::Ok, this);
+    msg.setWindowModality(Qt::WindowModal);
+    msg.exec();
+  }
 
   UpdateSlotTable(m_active_slot);
   UpdateActions();
