@@ -23,9 +23,19 @@ ITaskbarList3* taskbar_list = nullptr;
 
 Common::Flag running;
 Common::Flag request_stop;
+
+int GetWindowHeight(HWND hwnd)
+{
+  RECT rect;
+  GetWindowRect(hwnd, &rect);
+
+  return rect.bottom - rect.top;
+}
 };  // namespace
 
 constexpr int PROGRESSBAR_FLAGS = WS_VISIBLE | WS_CHILD | PBS_SMOOTH | PBS_SMOOTHREVERSE;
+constexpr int WINDOW_FLAGS = WS_VISIBLE | WS_CLIPCHILDREN;
+constexpr int PADDING_HEIGHT = 5;
 
 namespace UI
 {
@@ -42,8 +52,8 @@ bool Init()
     return false;
 
   window_handle =
-      CreateWindow(L"UPDATER", L"Dolphin Updater", WS_VISIBLE | WS_CLIPCHILDREN, CW_USEDEFAULT,
-                   CW_USEDEFAULT, 500, 100, nullptr, nullptr, GetModuleHandle(nullptr), 0);
+      CreateWindow(L"UPDATER", L"Dolphin Updater", WINDOW_FLAGS, CW_USEDEFAULT, CW_USEDEFAULT, 500,
+                   100, nullptr, nullptr, GetModuleHandle(nullptr), 0);
 
   if (!window_handle)
     return false;
@@ -59,7 +69,9 @@ bool Init()
     taskbar_list = nullptr;
   }
 
-  label_handle = CreateWindow(L"STATIC", NULL, WS_VISIBLE | WS_CHILD, 5, 5, 500, 25, window_handle,
+  int y = PADDING_HEIGHT;
+
+  label_handle = CreateWindow(L"STATIC", NULL, WS_VISIBLE | WS_CHILD, 5, y, 500, 25, window_handle,
                               nullptr, nullptr, 0);
 
   if (!label_handle)
@@ -75,17 +87,37 @@ bool Init()
   SendMessage(label_handle, WM_SETFONT,
               reinterpret_cast<WPARAM>(CreateFontIndirect(&metrics.lfMessageFont)), 0);
 
-  total_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, 25, 470, 25,
+  y += GetWindowHeight(label_handle) + PADDING_HEIGHT;
+
+  total_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, y, 470, 25,
                                           window_handle, nullptr, nullptr, 0);
+
+  y += GetWindowHeight(total_progressbar_handle) + PADDING_HEIGHT;
 
   if (!total_progressbar_handle)
     return false;
 
-  current_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, 30, 470, 25,
+  current_progressbar_handle = CreateWindow(PROGRESS_CLASS, NULL, PROGRESSBAR_FLAGS, 5, y, 470, 25,
                                             window_handle, nullptr, nullptr, 0);
+
+  y += GetWindowHeight(current_progressbar_handle) + PADDING_HEIGHT;
 
   if (!current_progressbar_handle)
     return false;
+
+  RECT rect;
+  GetWindowRect(window_handle, &rect);
+
+  // Account for the title bar
+  y += GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CYCAPTION) +
+       GetSystemMetrics(SM_CXPADDEDBORDER);
+  // ...and window border
+  y += GetSystemMetrics(SM_CYBORDER);
+
+  // Add some padding for good measure
+  y += PADDING_HEIGHT * 3;
+
+  SetWindowPos(window_handle, HWND_TOPMOST, 0, 0, rect.right - rect.left, y, SWP_NOMOVE);
 
   return true;
 }
