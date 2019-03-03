@@ -32,7 +32,6 @@
 #include "InputCommon/ControllerInterface/Device.h"
 
 constexpr int SLIDER_TICK_COUNT = 100;
-constexpr int VERTICAL_PADDING = 2;
 
 static QString EscapeAmpersand(QString&& string)
 {
@@ -48,18 +47,13 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
     : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
 {
-  // Force all mapping buttons to use stay at a minimal height
-  int height = QFontMetrics(qApp->font()).height() + 2 * VERTICAL_PADDING;
+  // Force all mapping buttons to stay at a minimal height.
+  setFixedHeight(minimumSizeHint().height());
 
-  setMinimumHeight(height);
+  // Make sure that long entries don't throw our layout out of whack.
+  setFixedWidth(112);
 
-  // macOS needs some wiggle room to always get round buttons
-  setMaximumHeight(height + 8);
-
-  // Make sure that long entries don't throw our layout out of whack
-  setMaximumWidth(115);
-
-  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
   Connect();
   setToolTip(
