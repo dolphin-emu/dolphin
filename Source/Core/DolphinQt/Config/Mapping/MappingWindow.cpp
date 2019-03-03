@@ -67,7 +67,9 @@ void MappingWindow::CreateDevicesLayout()
   m_devices_combo = new QComboBox();
   m_devices_refresh = new QPushButton(tr("Refresh"));
 
+  m_devices_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
   m_devices_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
   m_devices_layout->addWidget(m_devices_combo);
   m_devices_layout->addWidget(m_devices_refresh);
 
@@ -85,7 +87,7 @@ void MappingWindow::CreateProfilesLayout()
 
   auto* button_layout = new QHBoxLayout();
 
-  m_profiles_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  m_profiles_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
   m_profiles_combo->setEditable(true);
 
   m_profiles_layout->addWidget(m_profiles_combo);
