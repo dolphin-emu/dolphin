@@ -330,6 +330,7 @@ void ControllersWindow::OnBluetoothPassthroughResetPressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Warning);
+    error.setWindowModality(Qt::WindowModal);
     error.setWindowTitle(tr("Warning"));
     error.setText(tr("Saved Wii Remote pairings can only be reset when a Wii game is running."));
     error.exec();
@@ -351,6 +352,7 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Warning);
+    error.setWindowModality(Qt::WindowModal);
     error.setWindowTitle(tr("Warning"));
     error.setText(tr("A sync can only be triggered when a Wii game is running."));
     error.exec();
