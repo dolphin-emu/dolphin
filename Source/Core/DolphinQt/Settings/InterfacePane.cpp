@@ -269,9 +269,12 @@ void InterfacePane::OnSaveConfig()
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
   {
     SConfig::GetInstance().m_InterfaceLanguage = new_language;
-    QMessageBox::information(
-        this, tr("Restart Required"),
-        tr("You must restart Dolphin in order for the change to take effect."));
+    QMessageBox msg(QMessageBox::Information, tr("Restart Required"),
+                    tr("You must restart Dolphin in order for the change to take effect."),
+                    QMessageBox::Ok, this);
+
+    msg.setWindowModality(Qt::WindowModal);
+    msg.exec();
   }
 
   const bool use_covers = m_checkbox_use_covers->isChecked();
