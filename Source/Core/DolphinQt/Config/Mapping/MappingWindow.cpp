@@ -161,6 +161,7 @@ void MappingWindow::OnDeleteProfilePressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Critical);
+    error.setWindowModality(Qt::WindowModal);
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(profile_name));
     error.exec();
@@ -170,6 +171,7 @@ void MappingWindow::OnDeleteProfilePressed()
   QMessageBox confirm(this);
 
   confirm.setIcon(QMessageBox::Warning);
+  confirm.setWindowModality(Qt::WindowModal);
   confirm.setWindowTitle(tr("Confirm"));
   confirm.setText(tr("Are you sure that you want to delete '%1'?").arg(profile_name));
   confirm.setInformativeText(tr("This cannot be undone!"));
@@ -186,6 +188,7 @@ void MappingWindow::OnDeleteProfilePressed()
 
   QMessageBox result(this);
   result.setIcon(QMessageBox::Information);
+  result.setWindowModality(Qt::WindowModal);
   result.setWindowTitle(tr("Success"));
   result.setText(tr("Successfully deleted '%1'.").arg(profile_name));
 }
