@@ -131,6 +131,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
     // i18n: Here, VID means Vendor ID (for a USB device).
     QMessageBox vid_warning_box(this);
     vid_warning_box.setIcon(QMessageBox::Warning);
+    vid_warning_box.setWindowModality(Qt::WindowModal);
     vid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
     // i18n: Here, VID means Vendor ID (for a USB device).
     vid_warning_box.setText(tr("The entered VID is invalid."));
@@ -143,6 +144,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
     // i18n: Here, PID means Product ID (for a USB device).
     QMessageBox pid_warning_box(this);
     pid_warning_box.setIcon(QMessageBox::Warning);
+    pid_warning_box.setWindowModality(Qt::WindowModal);
     pid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
     // i18n: Here, PID means Product ID (for a USB device).
     pid_warning_box.setText(tr("The entered PID is invalid."));
@@ -156,8 +158,12 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 
   if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
   {
-    QErrorMessage* error = new QErrorMessage();
-    error->showMessage(tr("This USB device is already whitelisted."));
+    QMessageBox error_box(this);
+    error_box.setIcon(QMessageBox::Warning);
+    error_box.setWindowModality(Qt::WindowModal);
+    error_box.setWindowTitle(tr("USB Whitelist Error"));
+    error_box.setText(tr("This USB device is already whitelisted."));
+    error_box.exec();
     return;
   }
   SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);
