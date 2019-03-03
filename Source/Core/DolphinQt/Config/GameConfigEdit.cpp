@@ -121,11 +121,14 @@ void GameConfigEdit::SaveFile()
   QFile file(m_path);
 
   if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+  {
+    QMessageBox::warning(this, tr("Warning"), tr("Failed to open config file!"));
     return;
+  }
 
   const QByteArray contents = m_edit->toPlainText().toUtf8();
 
-  if (!file.write(contents))
+  if (file.write(contents) == -1)
     QMessageBox::warning(this, tr("Warning"), tr("Failed to write config file!"));
 }
 
