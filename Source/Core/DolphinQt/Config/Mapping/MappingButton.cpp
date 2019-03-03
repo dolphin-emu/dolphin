@@ -34,9 +34,11 @@
 constexpr int SLIDER_TICK_COUNT = 100;
 constexpr int VERTICAL_PADDING = 2;
 
-static QString EscapeAmpersand(QString&& string)
+// Escape ampersands and remove ticks
+static QString ToDisplayString(QString&& string)
 {
-  return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
+  return string.replace(QStringLiteral("&"), QStringLiteral("&&"))
+      .replace(QStringLiteral("`"), QStringLiteral(""));
 }
 
 bool MappingButton::IsInput() const
@@ -45,7 +47,7 @@ bool MappingButton::IsInput() const
 }
 
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator)
-    : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
+    : ElidedButton(ToDisplayString(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
 {
   // Force all mapping buttons to use stay at a minimal height
@@ -196,7 +198,7 @@ void MappingButton::Detect()
 
 void MappingButton::OnButtonTimeout()
 {
-  setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
+  setText(ToDisplayString(QString::fromStdString(m_reference->GetExpression())));
 }
 
 void MappingButton::Clear()
@@ -212,7 +214,7 @@ void MappingButton::Update()
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   m_reference->UpdateReference(g_controller_interface,
                                m_parent->GetController()->GetDefaultDevice());
-  setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
+  setText(ToDisplayString(QString::fromStdString(m_reference->GetExpression())));
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)
