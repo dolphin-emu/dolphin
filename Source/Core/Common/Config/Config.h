@@ -96,4 +96,15 @@ void SetBaseOrCurrent(const ConfigInfo<T>& info, const std::common_type_t<T>& va
   else
     Set<T>(LayerType::CurrentRun, info, value);
 }
-}
+
+// Used to defer InvokeConfigChangedCallbacks until after the completion of many config changes.
+class ConfigChangeCallbackGuard
+{
+public:
+  ConfigChangeCallbackGuard();
+  ~ConfigChangeCallbackGuard();
+
+  ConfigChangeCallbackGuard(const ConfigChangeCallbackGuard&) = delete;
+  ConfigChangeCallbackGuard& operator=(const ConfigChangeCallbackGuard&) = delete;
+};
+}  // namespace Config

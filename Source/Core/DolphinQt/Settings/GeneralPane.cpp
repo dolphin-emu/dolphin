@@ -282,6 +282,8 @@ static QString UpdateTrackFromIndex(int index)
 
 void GeneralPane::OnSaveConfig()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   auto& settings = SConfig::GetInstance();
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {

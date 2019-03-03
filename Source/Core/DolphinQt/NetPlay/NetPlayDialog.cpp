@@ -1008,6 +1008,8 @@ std::shared_ptr<const UICommon::GameFile> NetPlayDialog::FindGameFile(const std:
 
 void NetPlayDialog::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   if (m_host_input_authority)
   {
     if (!IsHosting())
