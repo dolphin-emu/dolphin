@@ -221,6 +221,8 @@ void WiiPane::LoadConfig()
 
 void WiiPane::OnSaveConfig()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
   Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());

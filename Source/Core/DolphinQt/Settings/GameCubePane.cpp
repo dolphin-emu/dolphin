@@ -332,6 +332,8 @@ void GameCubePane::LoadSettings()
 
 void GameCubePane::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   SConfig& params = SConfig::GetInstance();
 
   // IPL Settings

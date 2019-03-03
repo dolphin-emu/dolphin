@@ -203,6 +203,8 @@ void NetPlaySetupDialog::ConnectWidgets()
 
 void NetPlaySetupDialog::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
   Config::SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
                                                                     Config::NETPLAY_HOST_CODE,
