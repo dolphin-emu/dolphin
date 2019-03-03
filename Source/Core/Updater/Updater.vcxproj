@@ -42,9 +42,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Externals\cpp-optparse\cpp-optparse.vcxproj">
-      <Project>{c636d9d1-82fe-42b5-9987-63b7d4836341}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>

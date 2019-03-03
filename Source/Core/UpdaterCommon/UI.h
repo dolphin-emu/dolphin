@@ -6,11 +6,11 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 namespace UI
 {
-void MessageLoop();
 void Error(const std::string& text);
-void Stop();
 
 void SetDescription(const std::string& text);
 
@@ -23,4 +23,11 @@ void ResetCurrentProgress();
 void SetCurrentProgress(int current, int total);
 
 void SetVisible(bool visible);
+
+void Stop();
+
+void Init();
+void Sleep(int seconds);
+void WaitForPID(u32 pid);
+void LaunchApplication(std::string path);
 }  // namespace UI

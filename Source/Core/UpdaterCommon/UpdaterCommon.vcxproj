@@ -55,6 +55,9 @@
     <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
       <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
+	<ProjectReference Include="..\..\..\Externals\cpp-optparse\cpp-optparse.vcxproj">
+      <Project>{c636d9d1-82fe-42b5-9987-63b7d4836341}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
 	<ClCompile Include="UpdaterCommon.cpp" />

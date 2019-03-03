@@ -7,6 +7,7 @@
 #include "UpdaterCommon/UI.h"
 
 #include <Cocoa/Cocoa.h>
+#include <unistd.h>
 
 #include <functional>
 
@@ -105,6 +106,32 @@ void UI::SetCurrentProgress(int current, int total)
 void UI::SetTotalProgress(int current, int total)
 {
   run_on_main([&] { [GetView() SetTotalProgress:(double)current total:(double)total]; });
+}
+
+void UI::Sleep(int seconds)
+{
+  [NSThread sleepForTimeInterval:static_cast<float>(seconds)];
+}
+
+void UI::WaitForPID(u32 pid)
+{
+  for (int res = kill(pid, 0); res == 0 || (res < 0 && errno == EPERM); res = kill(pid, 0))
+  {
+    UI::Sleep(1);
+  }
+}
+
+void UI::LaunchApplication(std::string path)
+{
+  [[NSWorkspace sharedWorkspace]
+      launchApplication:[NSString stringWithCString:path.c_str()
+                                           encoding:[NSString defaultCStringEncoding]]];
+}
+
+// Stubs. These are only needed on Windows
+
+void UI::Init()
+{
 }
 
 void UI::Stop()
