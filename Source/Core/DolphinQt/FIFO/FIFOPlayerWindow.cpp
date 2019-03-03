@@ -204,7 +204,12 @@ void FIFOPlayerWindow::SaveRecording()
   bool result = file->Save(path.toStdString());
 
   if (!result)
-    QMessageBox::critical(this, tr("Error"), tr("Failed to save FIFO log."));
+  {
+    QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Failed to save FIFO log."),
+                    QMessageBox::Ok, this);
+    msg.setWindowModality(Qt::WindowModal);
+    msg.exec();
+  }
 }
 
 void FIFOPlayerWindow::StartRecording()
