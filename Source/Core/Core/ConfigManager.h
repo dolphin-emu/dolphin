@@ -144,16 +144,6 @@ struct SConfig
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
-  // Display settings
-  std::string strFullscreenResolution;
-  int iRenderWindowXPos = std::numeric_limits<int>::min();
-  int iRenderWindowYPos = std::numeric_limits<int>::min();
-  int iRenderWindowWidth = -1;
-  int iRenderWindowHeight = -1;
-  bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
-  bool bFullscreen = false, bRenderToMain = false;
-  bool bDisableScreenSaver = false;
-
   // Analytics settings.
   std::string m_analytics_id;
   bool m_analytics_enabled = false;
@@ -337,7 +327,6 @@ private:
 
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);
-  void SaveDisplaySettings(IniFile& ini);
   void SaveGameListSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
   void SaveDSPSettings(IniFile& ini);
@@ -353,7 +342,6 @@ private:
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
-  void LoadDisplaySettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);

@@ -90,6 +90,19 @@ extern const ConfigInfo<bool> MAIN_DUMP_UCODE;
 extern const ConfigInfo<std::string> MAIN_AUDIO_BACKEND;
 extern const ConfigInfo<int> MAIN_AUDIO_VOLUME;
 
+// Main.Display
+
+extern const ConfigInfo<std::string> MAIN_FULLSCREEN_DISPLAY_RES;
+extern const ConfigInfo<bool> MAIN_FULLSCREEN;
+extern const ConfigInfo<bool> MAIN_RENDER_TO_MAIN;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_XPOS;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_YPOS;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_WIDTH;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_HEIGHT;
+extern const ConfigInfo<bool> MAIN_RENDER_WINDOW_AUTOSIZE;
+extern const ConfigInfo<bool> MAIN_KEEP_WINDOW_ON_TOP;
+extern const ConfigInfo<bool> MAIN_DISABLE_SCREENSAVER;
+
 // Main.General
 
 extern const ConfigInfo<std::string> MAIN_DUMP_PATH;

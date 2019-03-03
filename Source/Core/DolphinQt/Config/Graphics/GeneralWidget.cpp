@@ -15,6 +15,7 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -59,7 +60,7 @@ void GeneralWidget::CreateWidgets()
                          Config::GFX_ASPECT_RATIO);
   m_adapter_combo = new QComboBox;
   m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
-  m_enable_fullscreen = new QCheckBox(tr("Use Fullscreen"));
+  m_enable_fullscreen = new GraphicsBool(tr("Use Fullscreen"), Config::MAIN_FULLSCREEN);
 
   m_video_box->setLayout(m_video_layout);
 
@@ -87,10 +88,11 @@ void GeneralWidget::CreateWidgets()
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
-  m_autoadjust_window_size = new QCheckBox(tr("Auto-Adjust Window Size"));
+  m_autoadjust_window_size =
+      new GraphicsBool(tr("Auto-Adjust Window Size"), Config::MAIN_RENDER_WINDOW_AUTOSIZE);
   m_show_messages =
       new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
-  m_render_main_window = new QCheckBox(tr("Render to Main Window"));
+  m_render_main_window = new GraphicsBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN);
 
   m_options_box->setLayout(m_options_layout);
 
@@ -143,9 +145,6 @@ void GeneralWidget::ConnectWidgets()
             g_Config.iAdapter = index;
             Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
           });
-
-  for (QCheckBox* checkbox : {m_enable_fullscreen, m_render_main_window, m_autoadjust_window_size})
-    connect(checkbox, &QCheckBox::toggled, this, &GeneralWidget::SaveSettings);
 }
 
 void GeneralWidget::LoadSettings()
@@ -153,15 +152,6 @@ void GeneralWidget::LoadSettings()
   // Video Backend
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
       QVariant(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend))));
-
-  // Enable Fullscreen
-  m_enable_fullscreen->setChecked(SConfig::GetInstance().bFullscreen);
-
-  // Render to Main Window
-  m_render_main_window->setChecked(SConfig::GetInstance().bRenderToMain);
-
-  // Autoadjust window size
-  m_autoadjust_window_size->setChecked(SConfig::GetInstance().bRenderWindowAutoSize);
 }
 
 void GeneralWidget::SaveSettings()
@@ -190,13 +180,6 @@ void GeneralWidget::SaveSettings()
     }
     emit BackendChanged(QString::fromStdString(current_backend));
   }
-
-  // Enable Fullscreen
-  SConfig::GetInstance().bFullscreen = m_enable_fullscreen->isChecked();
-  // Autoadjust window size
-  SConfig::GetInstance().bRenderWindowAutoSize = m_autoadjust_window_size->isChecked();
-  // Render To Main
-  SConfig::GetInstance().bRenderToMain = m_render_main_window->isChecked();
 }
 
 void GeneralWidget::OnEmulationStateChanged(bool running)
