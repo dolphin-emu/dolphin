@@ -85,6 +85,8 @@ void Statistics::Display()
   DRAW_STAT("Index streamed", "%i kB", stats.thisFrame.bytesIndexStreamed / 1024);
   DRAW_STAT("Uniform streamed", "%i kB", stats.thisFrame.bytesUniformStreamed / 1024);
   DRAW_STAT("Vertex Loaders", "%d", stats.numVertexLoaders);
+  DRAW_STAT("EFB peeks:", "%d", stats.thisFrame.numEFBPeeks);
+  DRAW_STAT("EFB pokes:", "%d", stats.thisFrame.numEFBPokes);
 
 #undef DRAW_STAT
 
