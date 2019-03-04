@@ -13,7 +13,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -23,6 +22,7 @@
 
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings/WiiPane.h"
 
 #include "UICommon/USBUtils.h"
@@ -129,9 +129,8 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   if (!IsValidUSBIDString(vid_string))
   {
     // i18n: Here, VID means Vendor ID (for a USB device).
-    QMessageBox vid_warning_box(this);
+    ModalMessageBox vid_warning_box(this);
     vid_warning_box.setIcon(QMessageBox::Warning);
-    vid_warning_box.setWindowModality(Qt::WindowModal);
     vid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
     // i18n: Here, VID means Vendor ID (for a USB device).
     vid_warning_box.setText(tr("The entered VID is invalid."));
@@ -142,9 +141,8 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   if (!IsValidUSBIDString(pid_string))
   {
     // i18n: Here, PID means Product ID (for a USB device).
-    QMessageBox pid_warning_box(this);
+    ModalMessageBox pid_warning_box(this);
     pid_warning_box.setIcon(QMessageBox::Warning);
-    pid_warning_box.setWindowModality(Qt::WindowModal);
     pid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
     // i18n: Here, PID means Product ID (for a USB device).
     pid_warning_box.setText(tr("The entered PID is invalid."));
@@ -158,12 +156,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 
   if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
   {
-    QMessageBox error_box(this);
-    error_box.setIcon(QMessageBox::Warning);
-    error_box.setWindowModality(Qt::WindowModal);
-    error_box.setWindowTitle(tr("USB Whitelist Error"));
-    error_box.setText(tr("This USB device is already whitelisted."));
-    error_box.exec();
+    ModalMessageBox::critical(this, tr("Error"), tr("This USB device is already whitelisted."));
     return;
   }
   SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);

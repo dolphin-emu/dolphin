@@ -4,6 +4,12 @@
 
 #include "DolphinQt/Debugger/WatchWidget.h"
 
+#include <QHeaderView>
+#include <QMenu>
+#include <QTableWidget>
+#include <QToolBar>
+#include <QVBoxLayout>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -11,15 +17,9 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
-
-#include <QHeaderView>
-#include <QMenu>
-#include <QMessageBox>
-#include <QTableWidget>
-#include <QToolBar>
-#include <QVBoxLayout>
 
 WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 {
@@ -306,7 +306,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       }
       else
       {
-        QMessageBox::critical(this, tr("Error"), tr("Invalid input provided"));
+        ModalMessageBox::critical(this, tr("Error"), tr("Invalid input provided"));
       }
       break;
     }

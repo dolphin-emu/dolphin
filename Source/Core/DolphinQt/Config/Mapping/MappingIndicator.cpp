@@ -10,7 +10,6 @@
 
 #include <QAction>
 #include <QDateTime>
-#include <QMessageBox>
 #include <QPainter>
 #include <QTimer>
 
@@ -23,6 +22,7 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 // Color constants to keep things looking consistent:
@@ -480,11 +480,9 @@ CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
     if (*std::max_element(m_calibration_data.begin(), m_calibration_data.end()) > 0.5)
       return;
 
-    QMessageBox msg(QMessageBox::Information, tr("Calibration"),
-                    tr("For best results please slowly move your input to all possible regions."),
-                    QMessageBox::Ok, this);
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::information(
+        this, tr("Calibration"),
+        tr("For best results please slowly move your input to all possible regions."));
   });
   m_informative_timer->setSingleShot(true);
 }

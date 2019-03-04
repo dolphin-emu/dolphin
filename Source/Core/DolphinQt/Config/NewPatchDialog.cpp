@@ -9,13 +9,13 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
 
 #include "Core/PatchEngine.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     : QDialog(parent), m_patch(patch)
@@ -191,7 +191,7 @@ void NewPatchDialog::accept()
 {
   if (m_name_edit->text().isEmpty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("You have to enter a name."));
+    ModalMessageBox::critical(this, tr("Error"), tr("You have to enter a name."));
     return;
   }
 
@@ -206,7 +206,7 @@ void NewPatchDialog::accept()
 
   if (!valid)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         this, tr("Error"),
         tr("Some values you provided are invalid.\nPlease check the highlighted values."));
     return;

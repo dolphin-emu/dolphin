@@ -8,12 +8,12 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHeaderView>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "UICommon/ResourcePack/Manager.h"
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
@@ -196,7 +196,7 @@ void ResourcePackManager::Install()
 
   if (!success)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         this, tr("Error"),
         tr("Failed to install pack: %1").arg(QString::fromStdString(item.GetError())));
   }
@@ -217,7 +217,7 @@ void ResourcePackManager::Uninstall()
 
   if (!success)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         this, tr("Error"),
         tr("Failed to uninstall pack: %1").arg(QString::fromStdString(item.GetError())));
   }
@@ -232,7 +232,7 @@ void ResourcePackManager::Remove()
   if (items.empty())
     return;
 
-  QMessageBox box(this);
+  ModalMessageBox box(this);
   box.setWindowTitle(tr("Confirmation"));
   box.setText(tr("Are you sure you want to delete this pack?"));
   box.setIcon(QMessageBox::Warning);

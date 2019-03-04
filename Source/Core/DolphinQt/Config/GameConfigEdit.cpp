@@ -10,7 +10,6 @@
 #include <QFile>
 #include <QMenu>
 #include <QMenuBar>
-#include <QMessageBox>
 #include <QScrollBar>
 #include <QStringListModel>
 #include <QTextCursor>
@@ -20,6 +19,7 @@
 #include <QWhatsThis>
 
 #include "DolphinQt/Config/GameConfigHighlighter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 GameConfigEdit::GameConfigEdit(QWidget* parent, const QString& path, bool read_only)
     : m_path(path), m_read_only(read_only)
@@ -122,14 +122,14 @@ void GameConfigEdit::SaveFile()
 
   if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
   {
-    QMessageBox::warning(this, tr("Warning"), tr("Failed to open config file!"));
+    ModalMessageBox::warning(this, tr("Warning"), tr("Failed to open config file!"));
     return;
   }
 
   const QByteArray contents = m_edit->toPlainText().toUtf8();
 
   if (file.write(contents) == -1)
-    QMessageBox::warning(this, tr("Warning"), tr("Failed to write config file!"));
+    ModalMessageBox::warning(this, tr("Warning"), tr("Failed to write config file!"));
 }
 
 void GameConfigEdit::ConnectWidgets()

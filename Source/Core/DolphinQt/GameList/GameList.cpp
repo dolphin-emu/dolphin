@@ -20,7 +20,6 @@
 #include <QListView>
 #include <QMap>
 #include <QMenu>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
@@ -44,6 +43,7 @@
 #include "DolphinQt/GameList/ListProxyModel.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
@@ -442,19 +442,12 @@ void GameList::ExportWiiSave()
     QString failed_str;
     for (const std::string& str : failed)
       failed_str.append(QStringLiteral("\n")).append(QString::fromStdString(str));
-    QMessageBox msg(QMessageBox::Critical, tr("Save Export"),
-                    tr("Failed to export the following save files:") + failed_str, QMessageBox::Ok,
-                    this);
-
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::critical(this, tr("Save Export"),
+                              tr("Failed to export the following save files:") + failed_str);
   }
   else
   {
-    QMessageBox msg(QMessageBox::Information, tr("Save Export"),
-                    tr("Successfully exported save files"), QMessageBox::Ok, this);
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
   }
 }
 
@@ -493,9 +486,8 @@ void GameList::CompressISO(bool decompress)
 
     if (!wii_warning_given && !decompress && file->GetPlatform() == DiscIO::Platform::WiiDisc)
     {
-      QMessageBox wii_warning(this);
+      ModalMessageBox wii_warning(this);
       wii_warning.setIcon(QMessageBox::Warning);
-      wii_warning.setWindowModality(Qt::WindowModal);
       wii_warning.setWindowTitle(tr("Confirm"));
       wii_warning.setText(tr("Are you sure?"));
       wii_warning.setInformativeText(tr(
@@ -554,9 +546,8 @@ void GameList::CompressISO(bool decompress)
       QFileInfo dst_info = QFileInfo(dst_path);
       if (dst_info.exists())
       {
-        QMessageBox confirm_replace(this);
+        ModalMessageBox confirm_replace(this);
         confirm_replace.setIcon(QMessageBox::Warning);
-        confirm_replace.setWindowModality(Qt::WindowModal);
         confirm_replace.setWindowTitle(tr("Confirm"));
         confirm_replace.setText(tr("The file %1 already exists.\n"
                                    "Do you wish to replace it?")
@@ -602,13 +593,10 @@ void GameList::CompressISO(bool decompress)
     }
   }
 
-  QMessageBox msg(QMessageBox::Information, tr("Success"),
-                  decompress ? tr("Successfully decompressed %n image(s).", "", files.size()) :
-                               tr("Successfully compressed %n image(s).", "", files.size()),
-                  QMessageBox::Ok, this);
-
-  msg.setWindowModality(Qt::WindowModal);
-  msg.exec();
+  ModalMessageBox::information(this, tr("Success"),
+                               decompress ?
+                                   tr("Successfully decompressed %n image(s).", "", files.size()) :
+                                   tr("Successfully compressed %n image(s).", "", files.size()));
 }
 
 void GameList::InstallWAD()
@@ -617,12 +605,11 @@ void GameList::InstallWAD()
   if (!game)
     return;
 
-  QMessageBox result_dialog(this);
+  ModalMessageBox result_dialog(this);
 
   const bool success = WiiUtils::InstallWAD(game->GetFilePath());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setWindowModality(Qt::WindowModal);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
                                   tr("Failed to install this title to the NAND."));
@@ -635,10 +622,9 @@ void GameList::UninstallWAD()
   if (!game)
     return;
 
-  QMessageBox warning_dialog(this);
+  ModalMessageBox warning_dialog(this);
 
   warning_dialog.setIcon(QMessageBox::Information);
-  warning_dialog.setWindowModality(Qt::WindowModal);
   warning_dialog.setWindowTitle(tr("Confirm"));
   warning_dialog.setText(tr("Uninstalling the WAD will remove the currently installed version of "
                             "this title from the NAND without deleting its save data. Continue?"));
@@ -647,12 +633,11 @@ void GameList::UninstallWAD()
   if (warning_dialog.exec() == QMessageBox::No)
     return;
 
-  QMessageBox result_dialog(this);
+  ModalMessageBox result_dialog(this);
 
   const bool success = WiiUtils::UninstallTitle(game->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setWindowModality(Qt::WindowModal);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
@@ -692,12 +677,10 @@ void GameList::OpenSaveFolder()
 
 void GameList::DeleteFile()
 {
-  QMessageBox confirm_dialog(this);
+  ModalMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
-  confirm_dialog.setWindowModality(Qt::WindowModal);
   confirm_dialog.setWindowTitle(tr("Confirm"));
-  confirm_dialog.setWindowModality(Qt::WindowModal);
   confirm_dialog.setText(tr("Are you sure you want to delete this file?"));
   confirm_dialog.setInformativeText(tr("This cannot be undone!"));
   confirm_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
@@ -718,10 +701,9 @@ void GameList::DeleteFile()
         }
         else
         {
-          QMessageBox error_dialog(this);
+          ModalMessageBox error_dialog(this);
 
           error_dialog.setIcon(QMessageBox::Critical);
-          error_dialog.setWindowModality(Qt::WindowModal);
           error_dialog.setWindowTitle(tr("Failure"));
           error_dialog.setText(tr("Failed to delete the selected file."));
           error_dialog.setInformativeText(tr("Check whether you have the permissions required to "
