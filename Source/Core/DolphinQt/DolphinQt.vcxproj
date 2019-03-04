@@ -154,6 +154,7 @@
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
     <QtMoc Include="QtUtils\FlowLayout.h" />
+    <QtMoc Include="QtUtils\ModalMessageBox.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -245,6 +246,7 @@
     <ClCompile Include="$(QtMocOutPrefix)MemoryViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MemoryWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ModalMessageBox.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NewBreakpointDialog.cpp" />
@@ -371,6 +373,7 @@
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
+    <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
