@@ -30,17 +30,8 @@ QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margi
                       std::max(recommended_height, to_resize->height()));
   }
 
-#if defined(_WIN32) || defined(__APPLE__)
-  // Transparency can cause unwanted side-effects on OSes other than Windows / macOS
-
-  // Make sure the background color stays consistent with the parent widget
-  QPalette p = wrapped_widget->palette();
-
-  p.setColor(QPalette::Window, QColor(0, 0, 0, 0));
-
-  wrapped_widget->setPalette(p);
-  scroll->setPalette(p);
-#endif
+  scroll->viewport()->setAutoFillBackground(false);
+  wrapped_widget->setAutoFillBackground(false);
 
   return scroll;
 }
