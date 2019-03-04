@@ -103,7 +103,6 @@ void BlendingState::Generate(const BPMemory& bp)
   colorupdate = bp.blendmode.colorupdate && alpha_test_may_success;
   alphaupdate = bp.blendmode.alphaupdate && target_has_alpha && alpha_test_may_success;
   dstalpha = bp.dstalpha.enable && alphaupdate;
-  usedualsrc = true;
 
   // The subtract bit has the highest priority
   if (bp.blendmode.subtract)
@@ -264,7 +263,6 @@ BlendingState GetInvalidBlendingState()
 BlendingState GetNoBlendingBlendState()
 {
   BlendingState state = {};
-  state.usedualsrc = false;
   state.blendenable = false;
   state.srcfactor = BlendMode::ONE;
   state.srcfactoralpha = BlendMode::ONE;
@@ -279,7 +277,6 @@ BlendingState GetNoBlendingBlendState()
 BlendingState GetNoColorWriteBlendState()
 {
   BlendingState state = {};
-  state.usedualsrc = false;
   state.blendenable = false;
   state.srcfactor = BlendMode::ONE;
   state.srcfactoralpha = BlendMode::ONE;

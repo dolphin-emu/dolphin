@@ -165,9 +165,6 @@ PixelShaderUid GetPixelShaderUid()
   pixel_shader_uid_data* uid_data = out.GetUidData<pixel_shader_uid_data>();
   memset(uid_data, 0, sizeof(*uid_data));
 
-  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-                          bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
@@ -175,7 +172,13 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
   uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
-  uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+
+  // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
+  // Therefore, it is not necessary to use a uint output on these backends. We also disable the
+  // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
+  if (g_ActiveConfig.backend_info.api_type == APIType::D3D &&
+      g_ActiveConfig.backend_info.bSupportsLogicOp)
+    uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -322,16 +325,33 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
-      !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                          bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
+  if (state.IsDualSourceBlend())
   {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-    uid_data->blend_dst_factor = state.dstfactor;
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-    uid_data->blend_subtract = state.subtract;
-    uid_data->blend_subtract_alpha = state.subtractAlpha;
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+        !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
+    {
+      // hardware blend
+      uid_data->dualSrcBlend = true;
+    }
+    else if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+    {
+      // shader blend
+      uid_data->blend_enable = state.blendenable;
+      uid_data->blend_src_factor = state.srcfactor;
+      uid_data->blend_src_factor_alpha = state.srcfactoralpha;
+      uid_data->blend_dst_factor = state.dstfactor;
+      uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
+      uid_data->blend_subtract = state.subtract;
+      uid_data->blend_subtract_alpha = state.subtractAlpha;
+    }
+    else
+    {
+      // don't support dual src blend
+      uid_data->useDstAlpha = false;
+    }
   }
 
   return out;
@@ -347,6 +367,38 @@ void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (ApiType != APIType::D3D || !host_config.backend_logic_op)
     uid_data->uint_output = 0;
+
+  if (host_config.backend_dual_source_blend &&
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
+  {
+    uid_data->blend_enable = 0;
+    uid_data->blend_src_factor = 0;
+    uid_data->blend_src_factor_alpha = 0;
+    uid_data->blend_dst_factor = 0;
+    uid_data->blend_dst_factor_alpha = 0;
+    uid_data->blend_subtract = 0;
+    uid_data->blend_subtract_alpha = 0;
+  }
+  else
+  {
+    uid_data->dualSrcBlend = 0;
+  }
+
+  if (!host_config.backend_shader_framebuffer_fetch)
+  {
+    uid_data->blend_enable = 0;
+    uid_data->blend_src_factor = 0;
+    uid_data->blend_src_factor_alpha = 0;
+    uid_data->blend_dst_factor = 0;
+    uid_data->blend_dst_factor_alpha = 0;
+    uid_data->blend_subtract = 0;
+    uid_data->blend_subtract_alpha = 0;
+  }
+
+  if (!g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  {
+    uid_data->forced_early_z = 0;
+  }
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
@@ -489,7 +541,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   WritePixelShaderCommonHeader(out, ApiType, uid_data->genMode_numtexgens, host_config,
                                uid_data->bounding_box);
 
-  if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  if (uid_data->forced_early_z)
   {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
     // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
@@ -537,12 +589,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   }
 
   // Only use dual-source blending when required on drivers that don't support it very well.
-  const bool use_dual_source =
-      host_config.backend_dual_source_blend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->useDstAlpha);
-  const bool use_shader_blend =
-      !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
+  bool use_dual_source = uid_data->dualSrcBlend;
+  bool use_shader_blend = uid_data->blend_enable;
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -565,14 +613,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       // intermediate value with multiple reads & modifications, so pull out the "real" output value
       // and use a temporary for calculations, then set the output value once at the end of the
       // shader
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
-      }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
-      }
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
     }
     else
     {

@@ -18,7 +18,8 @@ struct pixel_shader_uid_data
   u32 num_values;  // TODO: Shouldn't be a u32
   u32 NumValues() const { return num_values; }
   u32 components : 2;
-  u32 pad0 : 2;
+  u32 pad0 : 1;
+  u32 dualSrcBlend : 1;
   u32 useDstAlpha : 1;
   u32 Pretest : 2;
   u32 nIndirectStagesUsed : 4;

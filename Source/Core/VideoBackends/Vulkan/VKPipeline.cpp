@@ -134,7 +134,7 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
   vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
   vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
 
-  if (state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (state.IsDualSourceBlend() && g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
     static constexpr std::array<VkBlendFactor, 8> src_factors = {
         {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
