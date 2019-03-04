@@ -10,11 +10,11 @@
 #include <QFile>
 #include <QMenu>
 #include <QMenuBar>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QStringListModel>
 #include <QTextCursor>
 #include <QTextEdit>
-#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWhatsThis>
 
@@ -85,12 +85,11 @@ void GameConfigEdit::CreateWidgets()
 
   auto* layout = new QVBoxLayout;
 
-  auto* menu_button = new QToolButton;
+  auto* menu_button = new QPushButton;
 
-  menu_button->setText(tr("Presets") + QStringLiteral(" "));
+  menu_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+  menu_button->setText(tr("Presets"));
   menu_button->setMenu(m_menu);
-
-  connect(menu_button, &QToolButton::pressed, [menu_button] { menu_button->showMenu(); });
 
   layout->addWidget(menu_button);
   layout->addWidget(m_edit);
