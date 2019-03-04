@@ -11,7 +11,6 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
-#include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
 #include <QStackedWidget>
@@ -83,6 +82,7 @@
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -142,7 +142,7 @@ static WindowSystemType GetWindowSystemType()
   else if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
 
-  QMessageBox::critical(
+  ModalMessageBox::critical(
       nullptr, QStringLiteral("Error"),
       QString::asprintf("Unknown Qt platform: %s", platform_name.toStdString().c_str()));
   return WindowSystemType::Headless;
@@ -227,16 +227,17 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
-    QMessageBox::critical(this, tr("Error"), tr("Error occured while loading some texture packs"));
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("Error occured while loading some texture packs"));
 
   for (auto& pack : ResourcePack::GetPacks())
   {
     if (!pack.IsValid())
     {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("Invalid Pack %1 provided: %2")
-                                .arg(QString::fromStdString(pack.GetPath()))
-                                .arg(QString::fromStdString(pack.GetError())));
+      ModalMessageBox::critical(this, tr("Error"),
+                                tr("Invalid Pack %1 provided: %2")
+                                    .arg(QString::fromStdString(pack.GetPath()))
+                                    .arg(QString::fromStdString(pack.GetError())));
       return;
     }
   }
@@ -759,13 +760,12 @@ bool MainWindow::RequestStop()
     if (pause)
       Core::SetState(Core::State::Paused);
 
-    QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(this, tr("Confirm"),
-                                    m_stop_requested ?
-                                        tr("A shutdown is already in progress. Unsaved data "
-                                           "may be lost if you stop the current emulation "
-                                           "before it completes. Force stop?") :
-                                        tr("Do you want to stop the current emulation?"));
+    auto confirm = ModalMessageBox::question(
+        this, tr("Confirm"),
+        m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
+                              "may be lost if you stop the current emulation "
+                              "before it completes. Force stop?") :
+                           tr("Do you want to stop the current emulation?"));
 
     if (confirm != QMessageBox::Yes)
     {
@@ -908,7 +908,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   if (!BootManager::BootCore(std::move(parameters),
                              GetWindowSystemInfo(m_render_widget->windowHandle())))
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     HideRenderWidget();
     return;
   }
@@ -1231,7 +1231,7 @@ bool MainWindow::NetPlayJoin()
 {
   if (Core::IsRunning())
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
@@ -1239,8 +1239,8 @@ bool MainWindow::NetPlayJoin()
 
   if (m_netplay_dialog->isVisible())
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1302,7 +1302,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 {
   if (Core::IsRunning())
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
@@ -1310,8 +1310,8 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   if (m_netplay_dialog->isVisible())
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1334,7 +1334,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Failed to open server"),
         QObject::tr(
             "Failed to listen on port %1. Is another instance of the NetPlay server running?")
@@ -1404,7 +1404,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 
     if (!file_info.exists() || !file_info.isReadable())
     {
-      QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+      ModalMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
       return;
     }
 
@@ -1424,7 +1424,7 @@ void MainWindow::dropEvent(QDropEvent* event)
     {
       if (show_confirm)
       {
-        if (QMessageBox::question(
+        if (ModalMessageBox::question(
                 this, tr("Confirm"),
                 tr("Do you want to add \"%1\" to the list of Game Paths?").arg(folder)) !=
             QMessageBox::Yes)
@@ -1447,7 +1447,7 @@ void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
 
 void MainWindow::OnImportNANDBackup()
 {
-  auto response = QMessageBox::question(
+  auto response = ModalMessageBox::question(
       this, tr("Question"),
       tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
          "and savegames that already exist. This process is not reversible, so it is "

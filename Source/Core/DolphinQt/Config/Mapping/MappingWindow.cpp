@@ -9,7 +9,6 @@
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -36,6 +35,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuGeneral.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -161,19 +161,17 @@ void MappingWindow::OnDeleteProfilePressed()
 
   if (!File::Exists(profile_path.toStdString()))
   {
-    QMessageBox error(this);
+    ModalMessageBox error(this);
     error.setIcon(QMessageBox::Critical);
-    error.setWindowModality(Qt::WindowModal);
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(profile_name));
     error.exec();
     return;
   }
 
-  QMessageBox confirm(this);
+  ModalMessageBox confirm(this);
 
   confirm.setIcon(QMessageBox::Warning);
-  confirm.setWindowModality(Qt::WindowModal);
   confirm.setWindowTitle(tr("Confirm"));
   confirm.setText(tr("Are you sure that you want to delete '%1'?").arg(profile_name));
   confirm.setInformativeText(tr("This cannot be undone!"));
@@ -188,7 +186,7 @@ void MappingWindow::OnDeleteProfilePressed()
 
   File::Delete(profile_path.toStdString());
 
-  QMessageBox result(this);
+  ModalMessageBox result(this);
   result.setIcon(QMessageBox::Information);
   result.setWindowModality(Qt::WindowModal);
   result.setWindowTitle(tr("Success"));

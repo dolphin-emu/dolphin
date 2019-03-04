@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QRadioButton>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
@@ -23,6 +22,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/VideoUtils.h"
@@ -172,10 +172,9 @@ void GeneralWidget::SaveSettings()
   {
     if (current_backend == "Software Renderer")
     {
-      QMessageBox confirm_sw(this);
+      ModalMessageBox confirm_sw(this);
 
       confirm_sw.setIcon(QMessageBox::Warning);
-      confirm_sw.setWindowModality(Qt::WindowModal);
       confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       confirm_sw.setWindowTitle(tr("Confirm backend change"));
       confirm_sw.setText(tr("The software renderer is significantly slower than other "

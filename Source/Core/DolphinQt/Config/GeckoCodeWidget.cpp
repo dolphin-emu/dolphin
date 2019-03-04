@@ -9,7 +9,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -22,6 +21,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "UICommon/GameFile.h"
 
@@ -255,13 +255,13 @@ void GeckoCodeWidget::DownloadCodes()
 
   if (!success)
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
     return;
   }
 
   if (codes.empty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
+    ModalMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
     return;
   }
 
@@ -281,7 +281,8 @@ void GeckoCodeWidget::DownloadCodes()
   UpdateList();
   SaveCodes();
 
-  QMessageBox::information(this, tr("Download complete"),
-                           tr("Downloaded %1 codes. (added %2)")
-                               .arg(QString::number(codes.size()), QString::number(added_count)));
+  ModalMessageBox::information(
+      this, tr("Download complete"),
+      tr("Downloaded %1 codes. (added %2)")
+          .arg(QString::number(codes.size()), QString::number(added_count)));
 }

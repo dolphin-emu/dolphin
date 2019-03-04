@@ -12,30 +12,33 @@
 #include <OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
-#include <QMessageBox>
 #include <QObject>
 #include <QPushButton>
 #include <QWidget>
 
 #include "Common/MsgHandler.h"
+
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Translation.h"
 #include "DolphinQt/Updater.h"
+
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
 {
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
-    QMessageBox message_box(QApplication::activeWindow());
+    ModalMessageBox message_box(QApplication::activeWindow());
     message_box.setWindowTitle(QString::fromUtf8(caption));
     message_box.setText(QString::fromUtf8(text));
 
@@ -162,7 +165,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-      QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
+      ModalMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
     }
   }
   else if (!args.empty())
@@ -183,10 +186,9 @@ int main(int argc, char* argv[])
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)
     {
-      QMessageBox analytics_prompt(&win);
+      ModalMessageBox analytics_prompt(&win);
 
       analytics_prompt.setIcon(QMessageBox::Question);
-      analytics_prompt.setWindowModality(Qt::WindowModal);
       analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       analytics_prompt.setWindowTitle(QObject::tr("Allow Usage Statistics Reporting"));
       analytics_prompt.setText(

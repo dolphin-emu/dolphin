@@ -11,7 +11,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -27,6 +26,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
@@ -399,13 +399,13 @@ void MemoryWidget::OnSetValue()
 
   if (!good_address)
   {
-    QMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
     return;
   }
 
   if (m_data_edit->text().isEmpty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("No value provided."));
+    ModalMessageBox::critical(this, tr("Error"), tr("No value provided."));
     return;
   }
 
@@ -423,7 +423,7 @@ void MemoryWidget::OnSetValue()
 
     if (!good_value)
     {
-      QMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
+      ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
       return;
     }
 
@@ -455,7 +455,7 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
   if (!f)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Failed to dump %1: Can't open file").arg(QString::fromStdString(filename)));
     return;
@@ -463,9 +463,9 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
   if (!f.WriteBytes(data, length))
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("Failed to dump %1: Failed to write to file")
-                              .arg(QString::fromStdString(filename)));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("Failed to dump %1: Failed to write to file")
+                                  .arg(QString::fromStdString(filename)));
   }
 }
 

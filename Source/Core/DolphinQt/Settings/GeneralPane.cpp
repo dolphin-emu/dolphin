@@ -11,7 +11,6 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
@@ -25,6 +24,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/AutoUpdate.h"
@@ -324,9 +324,8 @@ void GeneralPane::GenerateNewIdentity()
 {
   DolphinAnalytics::Instance()->GenerateNewIdentity();
   DolphinAnalytics::Instance()->ReloadConfig();
-  QMessageBox message_box(this);
+  ModalMessageBox message_box(this);
   message_box.setIcon(QMessageBox::Information);
-  message_box.setWindowModality(Qt::WindowModal);
   message_box.setWindowTitle(tr("Identity Generation"));
   message_box.setText(tr("New identity generated."));
   message_box.exec();

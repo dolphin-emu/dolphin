@@ -11,11 +11,11 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QRadioButton>
 #include <QVBoxLayout>
 
 #include "DolphinQt/Debugger/BreakpointWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 NewBreakpointDialog::NewBreakpointDialog(BreakpointWidget* parent)
     : QDialog(parent), m_parent(parent)
@@ -138,7 +138,8 @@ void NewBreakpointDialog::OnAddressTypeChanged()
 void NewBreakpointDialog::accept()
 {
   auto invalid_input = [this](QString field) {
-    QMessageBox::critical(this, tr("Error"), tr("Invalid input for the field \"%1\"").arg(field));
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("Invalid input for the field \"%1\"").arg(field));
   };
 
   bool instruction = m_instruction_bp->isChecked();

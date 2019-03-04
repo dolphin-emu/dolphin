@@ -16,7 +16,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QSignalBlocker>
@@ -48,6 +47,7 @@
 #include "DolphinQt/NetPlay/MD5Dialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
 #include "DolphinQt/QtUtils/FlowLayout.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Resources.h"
@@ -383,15 +383,15 @@ void NetPlayDialog::OnStart()
 {
   if (!Settings::Instance().GetNetPlayClient()->DoAllPlayersHaveGame())
   {
-    if (QMessageBox::question(this, tr("Warning"),
-                              tr("Not all players have the game. Do you really want to start?")) ==
-        QMessageBox::No)
+    if (ModalMessageBox::question(
+            this, tr("Warning"),
+            tr("Not all players have the game. Do you really want to start?")) == QMessageBox::No)
       return;
   }
 
   if (m_strict_settings_sync_box->isChecked() && Config::Get(Config::GFX_EFB_SCALE) == 0)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         this, tr("Error"),
         tr("Auto internal resolution is not allowed in strict sync mode, as it depends on window "
            "size.\n\nPlease select a specific internal resolution."));
@@ -491,8 +491,8 @@ void NetPlayDialog::OnStart()
 
 void NetPlayDialog::reject()
 {
-  if (QMessageBox::question(this, tr("Confirmation"),
-                            tr("Are you sure you want to quit NetPlay?")) == QMessageBox::Yes)
+  if (ModalMessageBox::question(this, tr("Confirmation"),
+                                tr("Are you sure you want to quit NetPlay?")) == QMessageBox::Yes)
   {
     QDialog::reject();
   }
@@ -922,8 +922,8 @@ void NetPlayDialog::OnConnectionLost()
 void NetPlayDialog::OnConnectionError(const std::string& message)
 {
   QueueOnObject(this, [this, message] {
-    QMessageBox::critical(this, tr("Error"),
-                          tr("Failed to connect to server: %1").arg(tr(message.c_str())));
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("Failed to connect to server: %1").arg(tr(message.c_str())));
   });
 }
 
@@ -933,12 +933,12 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
     switch (error)
     {
     case TraversalClient::FailureReason::BadHost:
-      QMessageBox::critical(this, tr("Traversal Error"), tr("Couldn't look up central server"));
+      ModalMessageBox::critical(this, tr("Traversal Error"), tr("Couldn't look up central server"));
       QDialog::reject();
       break;
     case TraversalClient::FailureReason::VersionTooOld:
-      QMessageBox::critical(this, tr("Traversal Error"),
-                            tr("Dolphin is too old for traversal server"));
+      ModalMessageBox::critical(this, tr("Traversal Error"),
+                                tr("Dolphin is too old for traversal server"));
       QDialog::reject();
       break;
     case TraversalClient::FailureReason::ServerForgotAboutUs:

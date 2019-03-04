@@ -10,7 +10,6 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <QStandardItemModel>
 #include <QStyleFactory>
@@ -23,6 +22,7 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 
 #include "UICommon/UICommon.h"
@@ -199,9 +199,10 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
         return;
 
       if (ExtractSystemData(partition, folder))
-        QMessageBox::information(this, tr("Success"), tr("Successfully extracted system data."));
+        ModalMessageBox::information(this, tr("Success"),
+                                     tr("Successfully extracted system data."));
       else
-        QMessageBox::critical(this, tr("Error"), tr("Failed to extract system data."));
+        ModalMessageBox::critical(this, tr("Error"), tr("Failed to extract system data."));
     });
   }
 
@@ -323,9 +324,9 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 
   if (success)
-    QMessageBox::information(this, tr("Success"), tr("Successfully extracted file."));
+    ModalMessageBox::information(this, tr("Success"), tr("Successfully extracted file."));
   else
-    QMessageBox::critical(this, tr("Error"), tr("Failed to extract file."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to extract file."));
 }
 
 void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
@@ -348,10 +349,14 @@ void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
   dialog->close();
 
   if (is_valid.get())
-    QMessageBox::information(this, tr("Success"),
-                             tr("Integrity check completed. No errors have been found."));
+  {
+    ModalMessageBox::information(this, tr("Success"),
+                                 tr("Integrity check completed. No errors have been found."));
+  }
   else
-    QMessageBox::critical(this, tr("Error"),
-                          tr("Integrity check for partition failed. The disc image is most "
-                             "likely corrupted or has been patched incorrectly."));
+  {
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("Integrity check for partition failed. The disc image is most "
+                                 "likely corrupted or has been patched incorrectly."));
+  }
 }

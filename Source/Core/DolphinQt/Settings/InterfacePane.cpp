@@ -10,7 +10,6 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -24,6 +23,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
@@ -269,12 +269,9 @@ void InterfacePane::OnSaveConfig()
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
   {
     SConfig::GetInstance().m_InterfaceLanguage = new_language;
-    QMessageBox msg(QMessageBox::Information, tr("Restart Required"),
-                    tr("You must restart Dolphin in order for the change to take effect."),
-                    QMessageBox::Ok, this);
-
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::information(
+        this, tr("Restart Required"),
+        tr("You must restart Dolphin in order for the change to take effect."));
   }
 
   const bool use_covers = m_checkbox_use_covers->isChecked();

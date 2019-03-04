@@ -15,7 +15,6 @@
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
 #include <QTableWidget>
@@ -26,6 +25,8 @@
 #include "Common/StringUtil.h"
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
+
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr u32 BANNER_WIDTH = 96;
 constexpr u32 ANIM_FRAME_WIDTH = 32;
@@ -306,10 +307,7 @@ void GCMemcardManager::ExportFiles(bool prompt)
 
   QString text = count == 1 ? tr("Successfully exported the save file.") :
                               tr("Successfully exported the %1 save files.").arg(count);
-  QMessageBox msg(QMessageBox::Information, tr("Success"), text, QMessageBox::Ok, this);
-  msg.setWindowModality(Qt::WindowModal);
-
-  msg.exec();
+  ModalMessageBox::information(this, tr("Success"), text);
 }
 
 void GCMemcardManager::ExportAllFiles()
@@ -333,10 +331,7 @@ void GCMemcardManager::ImportFile()
 
   if (result != SUCCESS)
   {
-    QMessageBox msg(QMessageBox::Critical, tr("Import failed"),
-                    tr("Failed to import \"%1\".").arg(path), QMessageBox::Ok, this);
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
     return;
   }
 
@@ -362,10 +357,7 @@ void GCMemcardManager::CopyFiles()
 
     if (result != SUCCESS)
     {
-      QMessageBox msg(QMessageBox::Warning, tr("Copy failed"), tr("Failed to copy file"),
-                      QMessageBox::Ok, this);
-      msg.setWindowModality(Qt::WindowModal);
-      msg.exec();
+      ModalMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
     }
   }
 
@@ -391,11 +383,8 @@ void GCMemcardManager::DeleteFiles()
     QString text = count == 1 ? tr("Do you want to delete the selected save file?") :
                                 tr("Do you want to delete the %1 selected save files?").arg(count);
 
-    QMessageBox msg(QMessageBox::Warning, tr("Question"), text,
-                    QMessageBox::Yes | QMessageBox::Abort, this);
-    msg.setWindowModality(Qt::WindowModal);
-
-    auto response = msg.exec();
+    auto response = ModalMessageBox::question(this, tr("Question"), text);
+    ;
 
     if (response == QMessageBox::Abort)
       return;
@@ -412,10 +401,7 @@ void GCMemcardManager::DeleteFiles()
   {
     if (memcard->RemoveFile(file_index) != SUCCESS)
     {
-      QMessageBox msg(QMessageBox::Warning, tr("Remove failed"), tr("Failed to remove file"),
-                      QMessageBox::Ok, this);
-      msg.setWindowModality(Qt::WindowModal);
-      msg.exec();
+      ModalMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
     }
   }
 
@@ -425,10 +411,7 @@ void GCMemcardManager::DeleteFiles()
   }
   else
   {
-    QMessageBox msg(QMessageBox::Information, tr("Success"), tr("Successfully deleted files."),
-                    QMessageBox::Ok, this);
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
   }
 
   UpdateSlotTable(m_active_slot);
