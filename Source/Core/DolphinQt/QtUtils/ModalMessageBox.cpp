@@ -9,6 +9,7 @@
 ModalMessageBox::ModalMessageBox(QWidget* parent) : QMessageBox(parent)
 {
   setWindowModality(Qt::WindowModal);
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   // No parent is still preferable to showing a hidden parent here.
   if (parent != nullptr && !parent->isVisible())
