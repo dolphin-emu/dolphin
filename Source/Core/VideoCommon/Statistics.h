@@ -61,6 +61,9 @@ struct Statistics
     int numVerticesLoaded;
     int tevPixelsIn;
     int tevPixelsOut;
+
+    int numEFBPeeks;
+    int numEFBPokes;
   };
   ThisFrame thisFrame;
   void ResetFrame();
