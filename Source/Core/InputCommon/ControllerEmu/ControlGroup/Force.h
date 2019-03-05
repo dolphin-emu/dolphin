@@ -6,18 +6,41 @@
 
 #include <array>
 #include <string>
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/Device.h"
+
+#include "Common/Matrix.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
 {
-class Force : public ControlGroup
+class Force : public ReshapableInput
 {
 public:
-  using StateData = std::array<ControlState, 3>;
+  using StateData = Common::Vec3;
 
   explicit Force(const std::string& name);
 
-  StateData GetState();
+  ReshapeData GetReshapableState(bool adjusted) final override;
+  ControlState GetGateRadiusAtAngle(double ang) const final override;
+
+  ControlState GetDefaultInputRadiusAtAngle(double angle) const final override;
+
+  StateData GetState(bool adjusted = true);
+
+  // Return jerk in m/s^3.
+  ControlState GetMaxJerk() const;
+
+  // Return twist angle in radians.
+  ControlState GetTwistAngle() const;
+
+  // Return swing distance in meters.
+  ControlState GetMaxDistance() const;
+
+private:
+  enum
+  {
+    SETTING_DISTANCE = ReshapableInput::SETTING_COUNT,
+    SETTING_JERK,
+    SETTING_ANGLE,
+  };
 };
 }  // namespace ControllerEmu

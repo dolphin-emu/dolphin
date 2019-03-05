@@ -583,6 +583,9 @@ void Wiimote::DoState(PointerWrap& p)
   GetActiveExtension()->DoState(p);
 
   // Dynamics
+  p.Do(m_swing_state);
+  p.Do(m_tilt_state);
+
   // TODO: clean this up:
   p.Do(m_shake_step);
 

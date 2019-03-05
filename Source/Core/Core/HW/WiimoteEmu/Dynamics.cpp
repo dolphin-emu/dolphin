@@ -11,29 +11,71 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
-namespace WiimoteEmu
+namespace
 {
 constexpr int SHAKE_FREQ = 6;
 // Frame count of one up/down shake
 // < 9 no shake detection in "Wario Land: Shake It"
 constexpr int SHAKE_STEP_MAX = ::Wiimote::UPDATE_FREQ / SHAKE_FREQ;
 
-void EmulateShake(NormalizedAccelData* const accel, ControllerEmu::Buttons* const buttons_group,
-                  const double intensity, u8* const shake_step)
+// Given a velocity, acceleration, and maximum jerk value,
+// calculate change in position after a stop in the shortest possible time.
+// Used to smoothly adjust acceleration and come to complete stops at precise positions.
+// Based on equations for motion with constant jerk.
+// s = s0 + v0 t + a0 t^2 / 2 + j t^3 / 6
+double CalculateStopDistance(double velocity, double acceleration, double max_jerk)
+{
+  // Math below expects velocity to be non-negative.
+  const auto velocity_flip = (velocity < 0 ? -1 : 1);
+
+  const auto v_0 = velocity * velocity_flip;
+  const auto a_0 = acceleration * velocity_flip;
+  const auto j = max_jerk;
+
+  // Time to reach zero acceleration.
+  const auto t_0 = a_0 / j;
+
+  // Distance to reach zero acceleration.
+  const auto d_0 = std::pow(a_0, 3) / (3 * j * j) + (a_0 * v_0) / j;
+
+  // Velocity at zero acceleration.
+  const auto v_1 = v_0 + a_0 * std::abs(t_0) - std::copysign(j * t_0 * t_0 / 2, t_0);
+
+  // Distance to complete stop.
+  const auto d_1 = std::copysign(std::pow(std::abs(v_1), 3.0 / 2), v_1) / std::sqrt(j);
+
+  return (d_0 + d_1) * velocity_flip;
+}
+
+double CalculateStopDistance(double velocity, double max_accel)
+{
+  return velocity * velocity / (2 * std::copysign(max_accel, velocity));
+}
+
+}  // namespace
+
+namespace WiimoteEmu
+{
+Common::Vec3 EmulateShake(ControllerEmu::Buttons* const buttons_group, const double intensity,
+                          u8* const shake_step)
 {
   // shake is a bitfield of X,Y,Z shake button states
   static const unsigned int btns[] = {0x01, 0x02, 0x04};
   unsigned int shake = 0;
   buttons_group->GetState(&shake, btns);
 
-  for (int i = 0; i != 3; ++i)
+  Common::Vec3 accel;
+
+  for (std::size_t i = 0; i != accel.data.size(); ++i)
   {
     if (shake & (1 << i))
     {
-      (&(accel->x))[i] += std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity;
+      accel.data[i] = std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity *
+                      GRAVITY_ACCELERATION;
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
     }
     else
@@ -41,18 +83,22 @@ void EmulateShake(NormalizedAccelData* const accel, ControllerEmu::Buttons* cons
       shake_step[i] = 0;
     }
   }
+
+  return accel;
 }
 
-void EmulateDynamicShake(NormalizedAccelData* const accel, DynamicData& dynamic_data,
-                         ControllerEmu::Buttons* const buttons_group,
-                         const DynamicConfiguration& config, u8* const shake_step)
+Common::Vec3 EmulateDynamicShake(DynamicData& dynamic_data,
+                                 ControllerEmu::Buttons* const buttons_group,
+                                 const DynamicConfiguration& config, u8* const shake_step)
 {
   // shake is a bitfield of X,Y,Z shake button states
   static const unsigned int btns[] = {0x01, 0x02, 0x04};
   unsigned int shake = 0;
   buttons_group->GetState(&shake, btns);
 
-  for (int i = 0; i != 3; ++i)
+  Common::Vec3 accel;
+
+  for (std::size_t i = 0; i != accel.data.size(); ++i)
   {
     if ((shake & (1 << i)) && dynamic_data.executing_frames_left[i] == 0)
     {
@@ -60,8 +106,8 @@ void EmulateDynamicShake(NormalizedAccelData* const accel, DynamicData& dynamic_
     }
     else if (dynamic_data.executing_frames_left[i] > 0)
     {
-      (&(accel->x))[i] +=
-          std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) * dynamic_data.intensity[i];
+      accel.data[i] = std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) *
+                      dynamic_data.intensity[i] * GRAVITY_ACCELERATION;
       shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
       dynamic_data.executing_frames_left[i]--;
     }
@@ -87,178 +133,160 @@ void EmulateDynamicShake(NormalizedAccelData* const accel, DynamicData& dynamic_
       shake_step[i] = 0;
     }
   }
+
+  return accel;
 }
 
-void EmulateTilt(NormalizedAccelData* const accel, ControllerEmu::Tilt* const tilt_group,
-                 const bool sideways, const bool upright)
+void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, float time_elapsed)
 {
-  // 180 degrees
-  const ControllerEmu::Tilt::StateData state = tilt_group->GetState();
-  const ControlState roll = state.x * MathUtil::PI;
-  const ControlState pitch = state.y * MathUtil::PI;
+  const auto target = tilt_group->GetState();
 
-  // Some notes that no one will understand but me :p
-  // left, forward, up
-  // lr/ left == negative for all orientations
-  // ud/ up == negative for upright longways
-  // fb/ forward == positive for (sideways flat)
+  // 180 degrees is currently the max tilt value.
+  const ControlState roll = target.x * MathUtil::PI;
+  const ControlState pitch = target.y * MathUtil::PI;
 
-  // Determine which axis is which direction
-  const u32 ud = upright ? (sideways ? 0 : 1) : 2;
-  const u32 lr = sideways;
-  const u32 fb = upright ? 2 : (sideways ? 0 : 1);
+  // TODO: expose this setting in UI:
+  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 50);
 
-  // Sign fix
-  std::array<int, 3> sgn{{-1, 1, 1}};
-  if (sideways && !upright)
-    sgn[fb] *= -1;
-  if (!sideways && upright)
-    sgn[ud] *= -1;
-
-  (&accel->x)[ud] = (sin((MathUtil::PI / 2) - std::max(fabs(roll), fabs(pitch)))) * sgn[ud];
-  (&accel->x)[lr] = -sin(roll) * sgn[lr];
-  (&accel->x)[fb] = sin(pitch) * sgn[fb];
+  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), MAX_ACCEL, time_elapsed);
 }
 
-void EmulateSwing(NormalizedAccelData* const accel, ControllerEmu::Force* const swing_group,
-                  const double intensity, const bool sideways, const bool upright)
+void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
 {
-  const ControllerEmu::Force::StateData swing = swing_group->GetState();
+  const auto target = swing_group->GetState();
 
-  // Determine which axis is which direction
-  const std::array<int, 3> axis_map{{
-      upright ? (sideways ? 0 : 1) : 2,  // up/down
-      sideways,                          // left/right
-      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
-  }};
+  // Note. Y/Z swapped because X/Y axis to the swing_group is X/Z to the wiimote.
+  // X is negated because Wiimote X+ is to the left.
+  ApproachPositionWithJerk(state, {-target.x, -target.z, target.y}, swing_group->GetMaxJerk(),
+                           time_elapsed);
 
-  // Some orientations have up as positive, some as negative
-  // same with forward
-  std::array<s8, 3> g_dir{{-1, -1, -1}};
-  if (sideways && !upright)
-    g_dir[axis_map[2]] *= -1;
-  if (!sideways && upright)
-    g_dir[axis_map[0]] *= -1;
+  // Just jump to our target angle scaled by our progress to the target position.
+  // TODO: If we wanted to be less hacky we could use ApproachAngleWithAccel.
+  const auto angle = state->position / swing_group->GetMaxDistance() * swing_group->GetTwistAngle();
 
-  for (std::size_t i = 0; i < swing.size(); ++i)
-    (&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * intensity;
+  const auto old_angle = state->angle;
+  state->angle = {-angle.z, 0, angle.x};
+
+  // Update velocity based on change in angle.
+  state->angular_velocity = state->angle - old_angle;
 }
 
-void EmulateDynamicSwing(NormalizedAccelData* const accel, DynamicData& dynamic_data,
-                         ControllerEmu::Force* const swing_group,
-                         const DynamicConfiguration& config, const bool sideways,
-                         const bool upright)
+WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
+                                                             u16 one_g)
 {
-  const ControllerEmu::Force::StateData swing = swing_group->GetState();
+  const auto scaled_accel = accel * (one_g - zero_g) / float(GRAVITY_ACCELERATION);
 
-  // Determine which axis is which direction
-  const std::array<int, 3> axis_map{{
-      upright ? (sideways ? 0 : 1) : 2,  // up/down
-      sideways,                          // left/right
-      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
-  }};
+  // 10-bit integers.
+  constexpr long MAX_VALUE = (1 << 10) - 1;
 
-  // Some orientations have up as positive, some as negative
-  // same with forward
-  std::array<s8, 3> g_dir{{-1, -1, -1}};
-  if (sideways && !upright)
-    g_dir[axis_map[2]] *= -1;
-  if (!sideways && upright)
-    g_dir[axis_map[0]] *= -1;
+  return {u16(MathUtil::Clamp(std::lround(scaled_accel.x + zero_g), 0l, MAX_VALUE)),
+          u16(MathUtil::Clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
+          u16(MathUtil::Clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))};
+}
 
-  for (std::size_t i = 0; i < swing.size(); ++i)
+Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group)
+{
+  const auto cursor = ir_group->GetState(true);
+
+  using Common::Matrix33;
+  using Common::Matrix44;
+
+  // Values are optimized for default settings in "Super Mario Galaxy 2"
+  // This seems to be acceptable for a good number of games.
+  constexpr float YAW_ANGLE = 0.1472f;
+  constexpr float PITCH_ANGLE = 0.121f;
+
+  // Nintendo recommends a distance of 1-3 meters.
+  constexpr float NEUTRAL_DISTANCE = 2.f;
+
+  constexpr float MOVE_DISTANCE = 1.f;
+
+  return Matrix44::Translate({0, MOVE_DISTANCE * float(cursor.z), 0}) *
+         Matrix44::FromMatrix33(Matrix33::RotateX(PITCH_ANGLE * cursor.y) *
+                                Matrix33::RotateZ(YAW_ANGLE * cursor.x)) *
+         Matrix44::Translate({0, -NEUTRAL_DISTANCE, 0});
+}
+
+void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,
+                            float max_accel, float time_elapsed)
+{
+  const auto stop_distance =
+      Common::Vec3(CalculateStopDistance(state->angular_velocity.x, max_accel),
+                   CalculateStopDistance(state->angular_velocity.y, max_accel),
+                   CalculateStopDistance(state->angular_velocity.z, max_accel));
+
+  const auto offset = angle_target - state->angle;
+  const auto stop_offset = offset - stop_distance;
+
+  const Common::Vec3 accel{std::copysign(max_accel, stop_offset.x),
+                           std::copysign(max_accel, stop_offset.y),
+                           std::copysign(max_accel, stop_offset.z)};
+
+  state->angular_velocity += accel * time_elapsed;
+
+  const auto change_in_angle =
+      state->angular_velocity * time_elapsed + accel * time_elapsed * time_elapsed / 2;
+
+  for (std::size_t i = 0; i != offset.data.size(); ++i)
   {
-    if (swing[i] > 0 && dynamic_data.executing_frames_left[i] == 0)
+    // If new velocity will overshoot assume we would have stopped right on target.
+    // TODO: Improve check to see if less accel would have caused undershoot.
+    if ((change_in_angle.data[i] / offset.data[i]) > 1.0)
     {
-      dynamic_data.timing[i]++;
+      state->angular_velocity.data[i] = 0;
+      state->angle.data[i] = angle_target.data[i];
     }
-    else if (dynamic_data.executing_frames_left[i] > 0)
+    else
     {
-      (&accel->x)[axis_map[i]] += g_dir[i] * dynamic_data.intensity[i];
-      dynamic_data.executing_frames_left[i]--;
-    }
-    else if (swing[i] == 0 && dynamic_data.timing[i] > 0)
-    {
-      if (dynamic_data.timing[i] > config.frames_needed_for_high_intensity)
-      {
-        dynamic_data.intensity[i] = config.high_intensity;
-      }
-      else if (dynamic_data.timing[i] < config.frames_needed_for_low_intensity)
-      {
-        dynamic_data.intensity[i] = config.low_intensity;
-      }
-      else
-      {
-        dynamic_data.intensity[i] = config.med_intensity;
-      }
-      dynamic_data.timing[i] = 0;
-      dynamic_data.executing_frames_left[i] = config.frames_to_execute;
+      state->angle.data[i] += change_in_angle.data[i];
     }
   }
 }
 
-WiimoteCommon::DataReportBuilder::AccelData DenormalizeAccelData(const NormalizedAccelData& accel,
-                                                                 u16 zero_g, u16 one_g)
+void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,
+                              float max_jerk, float time_elapsed)
 {
-  const u8 accel_range = one_g - zero_g;
+  const auto stop_distance =
+      Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk),
+                   CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk),
+                   CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk));
 
-  const s32 unclamped_x = (s32)(accel.x * accel_range + zero_g);
-  const s32 unclamped_y = (s32)(accel.y * accel_range + zero_g);
-  const s32 unclamped_z = (s32)(accel.z * accel_range + zero_g);
+  const auto offset = position_target - state->position;
+  const auto stop_offset = offset - stop_distance;
 
-  WiimoteCommon::DataReportBuilder::AccelData result;
+  const Common::Vec3 jerk{std::copysign(max_jerk, stop_offset.x),
+                          std::copysign(max_jerk, stop_offset.y),
+                          std::copysign(max_jerk, stop_offset.z)};
 
-  result.x = MathUtil::Clamp<u16>(unclamped_x, 0, 0x3ff);
-  result.y = MathUtil::Clamp<u16>(unclamped_y, 0, 0x3ff);
-  result.z = MathUtil::Clamp<u16>(unclamped_z, 0, 0x3ff);
+  state->acceleration += jerk * time_elapsed;
 
-  return result;
+  state->velocity += state->acceleration * time_elapsed + jerk * time_elapsed * time_elapsed / 2;
+
+  const auto change_in_position = state->velocity * time_elapsed +
+                                  state->acceleration * time_elapsed * time_elapsed / 2 +
+                                  jerk * time_elapsed * time_elapsed * time_elapsed / 6;
+
+  for (std::size_t i = 0; i != offset.data.size(); ++i)
+  {
+    // If new velocity will overshoot assume we would have stopped right on target.
+    // TODO: Improve check to see if less jerk would have caused undershoot.
+    if ((change_in_position.data[i] / offset.data[i]) > 1.0)
+    {
+      state->acceleration.data[i] = 0;
+      state->velocity.data[i] = 0;
+      state->position.data[i] = position_target.data[i];
+    }
+    else
+    {
+      state->position.data[i] += change_in_position.data[i];
+    }
+  }
 }
 
-void Wiimote::GetAccelData(NormalizedAccelData* accel)
+Common::Matrix33 GetRotationalMatrix(const Common::Vec3& angle)
 {
-  const bool is_sideways = IsSideways();
-  const bool is_upright = IsUpright();
-
-  EmulateTilt(accel, m_tilt, is_sideways, is_upright);
-
-  DynamicConfiguration swing_config;
-  swing_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW);
-  swing_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM);
-  swing_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST);
-  swing_config.frames_needed_for_high_intensity =
-      Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_FAST);
-  swing_config.frames_needed_for_low_intensity =
-      Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_SLOW);
-  swing_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_LENGTH);
-
-  EmulateSwing(accel, m_swing, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM),
-               is_sideways, is_upright);
-  EmulateSwing(accel, m_swing_slow, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW),
-               is_sideways, is_upright);
-  EmulateSwing(accel, m_swing_fast, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST),
-               is_sideways, is_upright);
-  EmulateDynamicSwing(accel, m_swing_dynamic_data, m_swing_dynamic, swing_config, is_sideways,
-                      is_upright);
-
-  DynamicConfiguration shake_config;
-  shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
-  shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
-  shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
-  shake_config.frames_needed_for_high_intensity =
-      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
-  shake_config.frames_needed_for_low_intensity =
-      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
-  shake_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_LENGTH);
-
-  EmulateShake(accel, m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM),
-               m_shake_step.data());
-  EmulateShake(accel, m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT),
-               m_shake_soft_step.data());
-  EmulateShake(accel, m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD),
-               m_shake_hard_step.data());
-  EmulateDynamicShake(accel, m_shake_dynamic_data, m_shake_dynamic, shake_config,
-                      m_shake_dynamic_step.data());
+  return Common::Matrix33::RotateZ(angle.z) * Common::Matrix33::RotateY(angle.y) *
+         Common::Matrix33::RotateX(angle.x);
 }
 
 }  // namespace WiimoteEmu

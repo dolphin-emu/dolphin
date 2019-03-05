@@ -18,6 +18,7 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -45,8 +46,11 @@ const QColor STICK_GATE_COLOR = Qt::lightGray;
 const QColor C_STICK_GATE_COLOR = Qt::yellow;
 const QColor CURSOR_TV_COLOR = 0xaed6f1;
 const QColor TILT_GATE_COLOR = 0xa2d9ce;
+const QColor SWING_GATE_COLOR = 0xcea2d9;
 
 constexpr int INPUT_DOT_RADIUS = 2;
+
+constexpr int INDICATOR_UPDATE_FREQ = 30;
 
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
 {
@@ -54,7 +58,7 @@ MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group
 
   const auto timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, [this] { repaint(); });
-  timer->start(1000 / 30);
+  timer->start(1000 / INDICATOR_UPDATE_FREQ);
 }
 
 namespace
@@ -250,7 +254,19 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   // We should probably hold the mutex for UI updates.
   Settings::Instance().SetControllerStateNeeded(true);
   const auto raw_coord = stick.GetReshapableState(false);
-  const auto adj_coord = stick.GetReshapableState(true);
+
+  Common::DVec2 adj_coord;
+  if (is_tilt)
+  {
+    WiimoteEmu::EmulateTilt(&m_motion_state, static_cast<ControllerEmu::Tilt*>(&stick),
+                            1.f / INDICATOR_UPDATE_FREQ);
+    adj_coord = Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
+  }
+  else
+  {
+    adj_coord = stick.GetReshapableState(true);
+  }
+
   Settings::Instance().SetControllerStateNeeded(false);
 
   UpdateCalibrationWidget(raw_coord);
@@ -408,6 +424,100 @@ void MappingIndicator::DrawMixedTriggers()
   }
 }
 
+void MappingIndicator::DrawForce(ControllerEmu::Force& force)
+{
+  const QColor gate_brush_color = SWING_GATE_COLOR;
+  const QColor gate_pen_color = gate_brush_color.darker(125);
+
+  // TODO: This SetControllerStateNeeded interface leaks input into the game
+  // We should probably hold the mutex for UI updates.
+  Settings::Instance().SetControllerStateNeeded(true);
+  const auto raw_coord = force.GetState(false);
+  WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
+  const auto& adj_coord = m_motion_state.position;
+  Settings::Instance().SetControllerStateNeeded(false);
+
+  UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
+
+  // Bounding box size:
+  const double scale = height() / 2.5;
+
+  QPainter p(this);
+  p.translate(width() / 2, height() / 2);
+
+  // Bounding box.
+  p.setBrush(BBOX_BRUSH_COLOR);
+  p.setPen(BBOX_PEN_COLOR);
+  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+
+  // UI y-axis is opposite that of stick.
+  p.scale(1.0, -1.0);
+
+  // Enable AA after drawing bounding box.
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+  if (IsCalibrating())
+  {
+    DrawCalibration(p, {raw_coord.x, raw_coord.y});
+    return;
+  }
+
+  // Deadzone for Z (forward/backward):
+  const double deadzone = force.numeric_settings[force.SETTING_DEADZONE]->GetValue();
+  if (deadzone > 0.0)
+  {
+    p.setPen(DEADZONE_COLOR);
+    p.setBrush(DEADZONE_BRUSH);
+    p.drawRect(QRectF(-scale, -deadzone * scale, scale * 2, deadzone * scale * 2));
+  }
+
+  // Raw Z:
+  p.setPen(Qt::NoPen);
+  p.setBrush(RAW_INPUT_COLOR);
+  p.drawRect(
+      QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
+
+  // Adjusted Z:
+  if (adj_coord.y)
+  {
+    p.setBrush(ADJ_INPUT_COLOR);
+    p.drawRect(
+        QRectF(-scale, adj_coord.y * -scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
+  }
+
+  // Draw "gate" shape.
+  p.setPen(gate_pen_color);
+  p.setBrush(gate_brush_color);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&force](double ang) { return force.GetGateRadiusAtAngle(ang); }, scale));
+
+  // Deadzone.
+  p.setPen(DEADZONE_COLOR);
+  p.setBrush(DEADZONE_BRUSH);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&force](double ang) { return force.GetDeadzoneRadiusAtAngle(ang); }, scale));
+
+  // Input shape.
+  p.setPen(INPUT_SHAPE_PEN);
+  p.setBrush(Qt::NoBrush);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&force](double ang) { return force.GetInputRadiusAtAngle(ang); }, scale));
+
+  // Raw stick position.
+  p.setPen(Qt::NoPen);
+  p.setBrush(RAW_INPUT_COLOR);
+  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+
+  // Adjusted position:
+  if (adj_coord.x || adj_coord.z)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(ADJ_INPUT_COLOR);
+    p.drawEllipse(QPointF{-adj_coord.x, adj_coord.z} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
+}
+
 void MappingIndicator::paintEvent(QPaintEvent*)
 {
   switch (m_group->type)
@@ -421,6 +531,9 @@ void MappingIndicator::paintEvent(QPaintEvent*)
     break;
   case ControllerEmu::GroupType::MixedTriggers:
     DrawMixedTriggers();
+    break;
+  case ControllerEmu::GroupType::Force:
+    DrawForce(*static_cast<ControllerEmu::Force*>(m_group));
     break;
   default:
     break;

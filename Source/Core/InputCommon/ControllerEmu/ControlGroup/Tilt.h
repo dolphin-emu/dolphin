@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <chrono>
 #include <string>
 
 #include "InputCommon/ControllerEmu/StickGate.h"
@@ -33,12 +32,5 @@ private:
   {
     SETTING_MAX_ANGLE = ReshapableInput::SETTING_COUNT,
   };
-
-  static constexpr int MAX_DEG_PER_SEC = 360 * 6;
-
-  StateData m_tilt;
-
-  using Clock = std::chrono::steady_clock;
-  Clock::time_point m_last_update;
 };
 }  // namespace ControllerEmu
