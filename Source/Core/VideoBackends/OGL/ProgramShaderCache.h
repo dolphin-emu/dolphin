@@ -72,6 +72,7 @@ public:
   static void BindVertexFormat(const GLVertexFormat* vertex_format);
   static bool IsValidVertexFormatBound();
   static void InvalidateVertexFormat();
+  static void InvalidateVertexFormatIfBound(GLuint vao);
   static void InvalidateLastProgram();
 
   static bool CompileComputeShader(SHADER& shader, const std::string& code);
