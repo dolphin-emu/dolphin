@@ -969,8 +969,6 @@ void MenuBar::InstallWAD()
   if (wad_file.isEmpty())
     return;
 
-  ModalMessageBox result_dialog(this);
-
   if (WiiUtils::InstallWAD(wad_file.toStdString()))
   {
     Settings::Instance().NANDRefresh();
