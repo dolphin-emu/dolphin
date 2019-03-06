@@ -45,7 +45,7 @@ int ModalMessageBox::information(QWidget* parent, const QString& title, const QS
 int ModalMessageBox::question(QWidget* parent, const QString& title, const QString& text,
                               StandardButtons buttons, StandardButton default_button)
 {
-  return ExecMessageBox(QMessageBox::Critical, parent, title, text, buttons, default_button);
+  return ExecMessageBox(QMessageBox::Warning, parent, title, text, buttons, default_button);
 }
 
 int ModalMessageBox::warning(QWidget* parent, const QString& title, const QString& text,
