@@ -89,20 +89,6 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     mPresenter.onAttach();
   }
 
-  /**
-   * This version of onAttach is needed for versions below Marshmallow.
-   *
-   * @param activity
-   */
-  @Override
-  public void onAttach(Activity activity)
-  {
-    super.onAttach(activity);
-
-    mActivity = (SettingsActivityView) activity;
-    mPresenter.onAttach();
-  }
-
   @Override
   public void onCreate(Bundle savedInstanceState)
   {
@@ -139,11 +125,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
     LinearLayoutManager manager = new LinearLayoutManager(getActivity());
 
-    RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list_settings);
+    RecyclerView recyclerView = view.findViewById(R.id.list_settings);
 
     recyclerView.setAdapter(mAdapter);
     recyclerView.setLayoutManager(manager);
-    recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), null));
+    recyclerView.addItemDecoration(new DividerItemDecoration(requireActivity(), null));
 
     SettingsActivityView activity = (SettingsActivityView) getActivity();
     mPresenter.onViewCreated(menuTag, activity.getSettings());

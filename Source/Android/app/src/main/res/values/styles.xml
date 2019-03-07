@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Inherit from the material theme -->
-    <style name="DolphinBase" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="DolphinBase" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Main theme colors -->
         <!-- Branding color for the app bar -->
         <item name="colorPrimary">@color/dolphin_blue</item>
@@ -19,7 +19,7 @@
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="DolphinSettingsBase" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="DolphinSettingsBase" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
@@ -29,7 +29,7 @@
 
     <!-- Inherit from the Base Dolphin Dialog Theme -->
 
-    <style name="DolphinEmulationBase" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="DolphinEmulationBase" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
@@ -43,7 +43,7 @@
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
-    <style name="DolphinEmulationTvBase" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="DolphinEmulationTvBase" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_purple</item>
@@ -111,7 +111,7 @@
         <item name="nnf_toolbarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
     </style>
 
-    <style name="FilePickerAlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+    <style name="FilePickerAlertDialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="colorAccent">@color/dolphin_accent_gamecube</item>

@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.adapters;
 import android.app.AlertDialog;
 import android.graphics.Rect;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -161,8 +162,9 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
     }
 
     @Override
-    public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
-            RecyclerView.State state)
+    public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
+            @NonNull RecyclerView parent,
+            @NonNull RecyclerView.State state)
     {
       outRect.left = space;
       outRect.right = space;

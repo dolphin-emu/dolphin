@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 /**
  * A service that spawns its own thread in order to copy several binary and shader files
  * from the Dolphin APK to the external file system.

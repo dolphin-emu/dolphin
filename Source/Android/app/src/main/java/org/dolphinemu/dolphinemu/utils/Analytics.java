@@ -14,6 +14,8 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 public class Analytics
 {
   private static final String analyticsAsked =

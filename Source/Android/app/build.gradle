@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -75,15 +75,11 @@ android {
     }
 }
 
-ext {
-    androidSupportVersion = '28.0.0'
-}
-
 dependencies {
-    implementation 'androidx.legacy:legacy-support-v13:1.0.0'
-    implementation 'androidx.exifinterface:exifinterface:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.exifinterface:exifinterface:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.google.android.material:material:1.0.0'
 
     // Android TV UI libraries.
@@ -91,12 +87,12 @@ dependencies {
     implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
     // For REST calls
-    implementation 'com.android.volley:volley:1.1.0'
+    implementation 'com.android.volley:volley:1.1.1'
 
     // For loading huge screenshots from the disk.
     implementation 'com.squareup.picasso:picasso:2.71828'
 
-    implementation 'com.nononsenseapps:filepicker:4.1.0'
+    implementation 'com.nononsenseapps:filepicker:4.2.1'
 }
 
 def getVersion() {
