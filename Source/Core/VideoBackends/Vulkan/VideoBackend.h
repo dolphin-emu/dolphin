@@ -16,14 +16,7 @@ public:
   void Shutdown() override;
 
   std::string GetName() const override { return "Vulkan"; }
-  std::string GetDisplayName() const override
-  {
-#ifdef __APPLE__
-    return _trans("Vulkan (MoltenVK)");
-#else
-    return _trans("Vulkan");
-#endif
-  }
+  std::string GetDisplayName() const override { return _trans("Vulkan"); }
   void InitBackendInfo() override;
   void PrepareWindow(const WindowSystemInfo& wsi) override;
 };
