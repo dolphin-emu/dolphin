@@ -6,6 +6,7 @@
 
 #include <QDialog>
 #include <QHash>
+#include <QPixmap>
 
 class AdvancedWidget;
 class EnhancementsWidget;
@@ -23,6 +24,12 @@ namespace X11Utils
 class XRRConfiguration;
 }
 
+struct Description
+{
+  QPixmap image;
+  const char* text;
+};
+
 class GraphicsWindow final : public QDialog
 {
   Q_OBJECT
@@ -37,10 +44,11 @@ signals:
 private:
   void CreateMainLayout();
   void OnBackendChanged(const QString& backend);
-  void OnDescriptionAdded(QWidget* widget, const char* description);
+  void OnDescriptionAdded(QWidget* widget, const char* description, const char* image = "");
 
   QTabWidget* m_tab_widget;
-  QLabel* m_description;
+  QLabel* m_description_image;
+  QLabel* m_description_text;
   QDialogButtonBox* m_button_box;
 
   AdvancedWidget* m_advanced_widget;
@@ -57,5 +65,5 @@ private:
 
   X11Utils::XRRConfiguration* m_xrr_config;
 
-  QHash<QObject*, const char*> m_widget_descriptions;
+  QHash<QObject*, Description> m_widget_descriptions;
 };

@@ -18,10 +18,10 @@ public:
   explicit GraphicsWidget(GraphicsWindow* parent);
 
 signals:
-  void DescriptionAdded(QWidget* widget, const char* description);
+  void DescriptionAdded(QWidget* widget, const char* description, const char* image);
 
 protected:
-  void AddDescription(QWidget* widget, const char* description);
+  void AddDescription(QWidget* widget, const char* description, const char* image = "");
 
   virtual void LoadSettings() = 0;
   virtual void SaveSettings() = 0;

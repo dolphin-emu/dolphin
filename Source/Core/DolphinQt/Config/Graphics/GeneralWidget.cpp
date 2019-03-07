@@ -284,8 +284,8 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_aspect_combo, TR_ASPECT_RATIO_DESCRIPTION);
   AddDescription(m_enable_vsync, TR_VSYNC_DESCRIPTION);
   AddDescription(m_enable_fullscreen, TR_FULLSCREEN_DESCRIPTION);
-  AddDescription(m_show_fps, TR_SHOW_FPS_DESCRIPTION);
-  AddDescription(m_show_ping, TR_SHOW_NETPLAY_PING_DESCRIPTION);
+  AddDescription(m_show_fps, TR_SHOW_FPS_DESCRIPTION, "show_fps");
+  AddDescription(m_show_ping, TR_SHOW_NETPLAY_PING_DESCRIPTION, "show_ping");
   AddDescription(m_log_render_time, TR_LOG_RENDERTIME_DESCRIPTION);
   AddDescription(m_autoadjust_window_size, TR_AUTOSIZE_DESCRIPTION);
   AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);

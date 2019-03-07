@@ -20,6 +20,7 @@
 #include "DolphinQt/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#include "DolphinQt/Resources.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -40,7 +41,8 @@ void GraphicsWindow::CreateMainLayout()
   auto* main_layout = new QVBoxLayout();
   auto* description_box = new QGroupBox(tr("Description"));
   auto* description_layout = new QVBoxLayout();
-  m_description =
+  m_description_image = new QLabel;
+  m_description_text =
       new QLabel(tr("Move the mouse pointer over an option to display a detailed description."));
   m_tab_widget = new QTabWidget();
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -50,11 +52,14 @@ void GraphicsWindow::CreateMainLayout()
   description_box->setLayout(description_layout);
   description_box->setFixedHeight(200);
 
-  m_description->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_description->setWordWrap(true);
-  m_description->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  m_description_text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_description_text->setWordWrap(true);
+  m_description_text->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-  description_layout->addWidget(m_description);
+  m_description_image->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+
+  description_layout->addWidget(m_description_text);
+  description_layout->addWidget(m_description_image);
 
   main_layout->addWidget(m_tab_widget);
   main_layout->addWidget(description_box);
@@ -122,8 +127,13 @@ void GraphicsWindow::RegisterWidget(GraphicsWidget* widget)
   connect(widget, &GraphicsWidget::DescriptionAdded, this, &GraphicsWindow::OnDescriptionAdded);
 }
 
-void GraphicsWindow::OnDescriptionAdded(QWidget* widget, const char* description)
+void GraphicsWindow::OnDescriptionAdded(QWidget* widget, const char* text, const char* image)
 {
+  Description description;
+  description.text = text;
+  if (!std::string(image).empty())
+    description.image = Resources::GetScaledPixmap(std::string("Explanation/") + image);
+
   m_widget_descriptions[widget] = description;
   widget->installEventFilter(this);
 }
@@ -135,13 +145,14 @@ bool GraphicsWindow::eventFilter(QObject* object, QEvent* event)
 
   if (event->type() == QEvent::Enter)
   {
-    m_description->setText(tr(m_widget_descriptions[object]));
+    m_description_text->setText(tr(m_widget_descriptions[object].text));
+    m_description_image->setPixmap(m_widget_descriptions[object].image);
     return false;
   }
 
   if (event->type() == QEvent::Leave)
   {
-    m_description->setText(
+    m_description_text->setText(
         tr("Move the mouse pointer over an option to display a detailed description."));
   }
 
