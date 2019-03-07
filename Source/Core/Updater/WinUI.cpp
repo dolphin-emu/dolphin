@@ -5,10 +5,12 @@
 #include "UpdaterCommon/UI.h"
 
 #include <string>
+#include <thread>
 
 #include <Windows.h>
 #include <CommCtrl.h>
 #include <ShObjIdl.h>
+#include <shellapi.h>
 
 #include "Common/Flag.h"
 #include "Common/StringUtil.h"
@@ -39,7 +41,7 @@ constexpr int PADDING_HEIGHT = 5;
 
 namespace UI
 {
-bool Init()
+bool InitWindow()
 {
   InitCommonControls();
 
@@ -200,7 +202,7 @@ void MessageLoop()
   request_stop.Clear();
   running.Set();
 
-  if (!Init())
+  if (!InitWindow())
   {
     running.Clear();
     MessageBox(nullptr, L"Window init failed!", L"", MB_ICONERROR);
@@ -224,6 +226,12 @@ void MessageLoop()
   Destroy();
 }
 
+void Init()
+{
+  std::thread thread(MessageLoop);
+  thread.detach();
+}
+
 void Stop()
 {
   if (!running.IsSet())
@@ -235,4 +243,29 @@ void Stop()
   {
   }
 }
+
+void LaunchApplication(std::string path)
+{
+  // Hack: Launching the updater over the explorer ensures that admin priviliges are dropped. Why?
+  // Ask Microsoft.
+  ShellExecuteW(nullptr, nullptr, L"explorer.exe", UTF8ToUTF16(path).c_str(), nullptr, SW_SHOW);
+}
+
+void Sleep(int sleep)
+{
+  ::Sleep(sleep * 1000);
+}
+
+void WaitForPID(u32 pid)
+{
+  HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
+  WaitForSingleObject(parent_handle, INFINITE);
+  CloseHandle(parent_handle);
+}
+
+void SetVisible(bool visible)
+{
+  ShowWindow(window_handle, visible ? SW_SHOW : SW_HIDE);
+}
+
 };  // namespace UI
