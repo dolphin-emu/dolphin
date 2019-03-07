@@ -398,7 +398,12 @@ void Renderer::CheckForConfigChanges()
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
   if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
+  {
+    // The existing shader must not be in use when it's destroyed
+    WaitForGPUIdle();
+
     m_post_processor->RecompileShader();
+  }
 
   // Determine which (if any) settings have changed.
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
