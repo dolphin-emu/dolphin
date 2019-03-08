@@ -104,7 +104,7 @@ void CameraLogic::Update(const Common::Matrix44& transform, bool sensor_bar_on_t
 
   std::array<CameraPoint, leds.size()> camera_points;
 
-  std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](auto& v) {
+  std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
     const auto point = camera_view * Vec4(v, 1.0);
 
     if (point.z > 0)
