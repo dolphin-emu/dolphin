@@ -496,11 +496,8 @@ void ControllersWindow::SaveSettings()
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     const int index = m_wiimote_boxes[i]->currentIndex();
-    g_wiimote_sources[i] = index;
     m_wiimote_buttons[i]->setEnabled(index != 0 && index != 2);
-
-    if (Core::IsRunning())
-      WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
+    WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
   }
 
   UICommon::SaveWiimoteSources();
