@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <array>
-
 #include <QEvent>
 #include <QWidget>
 
@@ -43,5 +41,5 @@ private:
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;
-  std::array<float, 2> m_last_mouse{};
+  QPoint m_last_mouse{};
 };

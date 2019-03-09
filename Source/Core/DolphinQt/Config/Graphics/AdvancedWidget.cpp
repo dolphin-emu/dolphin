@@ -191,7 +191,7 @@ void AdvancedWidget::AddDescriptions()
 #endif
   static const char TR_FREE_LOOK_DESCRIPTION[] = QT_TR_NOOP(
       "Allows manipulation of the in-game camera. Move the mouse while holding the right button "
-      "to pan or middle button to move.\n\nUse the WASD keys while holding SHIFT to move the "
+      "to pan or middle button to roll.\n\nUse the WASD keys while holding SHIFT to move the "
       "camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
       "to reset the camera or SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked. ");
   static const char TR_CROPPING_DESCRIPTION[] =
