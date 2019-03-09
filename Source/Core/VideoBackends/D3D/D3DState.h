@@ -34,10 +34,10 @@ public:
   static D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology(PrimitiveType primitive);
 
 private:
-  std::unordered_map<u32, ID3D11DepthStencilState*> m_depth;
-  std::unordered_map<u32, ID3D11RasterizerState*> m_raster;
-  std::unordered_map<u32, ID3D11BlendState*> m_blend;
-  std::unordered_map<SamplerState::StorageType, ID3D11SamplerState*> m_sampler;
+  std::unordered_map<u32, ComPtr<ID3D11DepthStencilState>> m_depth;
+  std::unordered_map<u32, ComPtr<ID3D11RasterizerState>> m_raster;
+  std::unordered_map<u32, ComPtr<ID3D11BlendState>> m_blend;
+  std::unordered_map<SamplerState::StorageType, ComPtr<ID3D11SamplerState>> m_sampler;
   std::mutex m_lock;
 };
 

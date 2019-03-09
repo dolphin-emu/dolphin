@@ -4,17 +4,14 @@
 
 #pragma once
 
-#include <d3d11.h>
-
 #include <array>
 #include <atomic>
 #include <memory>
 #include <vector>
 
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
-
-struct ID3D11Buffer;
 
 namespace DX11
 {
@@ -60,16 +57,16 @@ private:
 
   bool MapTexelBuffer(u32 required_size, D3D11_MAPPED_SUBRESOURCE& sr);
 
-  ID3D11Buffer* m_buffers[BUFFER_COUNT] = {};
+  ComPtr<ID3D11Buffer> m_buffers[BUFFER_COUNT] = {};
   u32 m_current_buffer = 0;
   u32 m_buffer_cursor = 0;
 
-  ID3D11Buffer* m_vertex_constant_buffer = nullptr;
-  ID3D11Buffer* m_geometry_constant_buffer = nullptr;
-  ID3D11Buffer* m_pixel_constant_buffer = nullptr;
+  ComPtr<ID3D11Buffer> m_vertex_constant_buffer = nullptr;
+  ComPtr<ID3D11Buffer> m_geometry_constant_buffer = nullptr;
+  ComPtr<ID3D11Buffer> m_pixel_constant_buffer = nullptr;
 
-  ID3D11Buffer* m_texel_buffer = nullptr;
-  std::array<ID3D11ShaderResourceView*, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views;
+  ComPtr<ID3D11Buffer> m_texel_buffer = nullptr;
+  std::array<ComPtr<ID3D11ShaderResourceView>, NUM_TEXEL_BUFFER_FORMATS> m_texel_buffer_views;
   u32 m_texel_buffer_offset = 0;
 };
 

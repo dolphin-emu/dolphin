@@ -170,7 +170,6 @@ DXStagingTexture::~DXStagingTexture()
 {
   if (IsMapped())
     DXStagingTexture::Unmap();
-  SAFE_RELEASE(m_tex);
 }
 
 std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType type,
@@ -197,13 +196,13 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
   CD3D11_TEXTURE2D_DESC desc(D3DCommon::GetDXGIFormatForAbstractFormat(config.format, false),
                              config.width, config.height, 1, 1, 0, usage, cpu_flags);
 
-  ID3D11Texture2D* texture;
+  ComPtr<ID3D11Texture2D> texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &texture);
   CHECK(SUCCEEDED(hr), "Create staging texture");
   if (FAILED(hr))
     return nullptr;
 
-  return std::unique_ptr<DXStagingTexture>(new DXStagingTexture(type, config, texture));
+  return std::unique_ptr<DXStagingTexture>(new DXStagingTexture(type, config, texture.Get()));
 }
 
 void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
@@ -226,14 +225,14 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
   {
     // Copy whole resource, needed for depth textures.
     D3D::context->CopySubresourceRegion(
-        m_tex, 0, 0, 0, 0, static_cast<const DXTexture*>(src)->GetD3DTexture(),
+        m_tex.Get(), 0, 0, 0, 0, static_cast<const DXTexture*>(src)->GetD3DTexture(),
         D3D11CalcSubresource(src_level, src_layer, src->GetLevels()), nullptr);
   }
   else
   {
     CD3D11_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, 1);
     D3D::context->CopySubresourceRegion(
-        m_tex, 0, static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0,
+        m_tex.Get(), 0, static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0,
         static_cast<const DXTexture*>(src)->GetD3DTexture(),
         D3D11CalcSubresource(src_level, src_layer, src->GetLevels()), &src_box);
   }
@@ -261,7 +260,8 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   {
     D3D::context->CopySubresourceRegion(
         static_cast<const DXTexture*>(dst)->GetD3DTexture(),
-        D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()), 0, 0, 0, m_tex, 0, nullptr);
+        D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()), 0, 0, 0, m_tex.Get(), 0,
+        nullptr);
   }
   else
   {
@@ -269,7 +269,8 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
     D3D::context->CopySubresourceRegion(
         static_cast<const DXTexture*>(dst)->GetD3DTexture(),
         D3D11CalcSubresource(dst_level, dst_layer, dst->GetLevels()),
-        static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0, m_tex, 0, &src_box);
+        static_cast<u32>(dst_rect.left), static_cast<u32>(dst_rect.top), 0, m_tex.Get(), 0,
+        &src_box);
   }
 }
 
@@ -287,7 +288,7 @@ bool DXStagingTexture::Map()
     map_type = D3D11_MAP_READ_WRITE;
 
   D3D11_MAPPED_SUBRESOURCE sr;
-  HRESULT hr = D3D::context->Map(m_tex, 0, map_type, 0, &sr);
+  HRESULT hr = D3D::context->Map(m_tex.Get(), 0, map_type, 0, &sr);
   CHECK(SUCCEEDED(hr), "Map readback texture");
   if (FAILED(hr))
     return false;
@@ -302,7 +303,7 @@ void DXStagingTexture::Unmap()
   if (!m_map_pointer)
     return;
 
-  D3D::context->Unmap(m_tex, 0);
+  D3D::context->Unmap(m_tex.Get(), 0);
   m_map_pointer = nullptr;
 }
 
@@ -323,15 +324,7 @@ DXFramebuffer::DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture*
 {
 }
 
-DXFramebuffer::~DXFramebuffer()
-{
-  if (m_rtv)
-    m_rtv->Release();
-  if (m_integer_rtv)
-    m_integer_rtv->Release();
-  if (m_dsv)
-    m_dsv->Release();
-}
+DXFramebuffer::~DXFramebuffer() = default;
 
 std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment,
                                                      DXTexture* depth_attachment)
@@ -349,8 +342,8 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
   const u32 layers = either_attachment->GetLayers();
   const u32 samples = either_attachment->GetSamples();
 
-  ID3D11RenderTargetView* rtv = nullptr;
-  ID3D11RenderTargetView* integer_rtv = nullptr;
+  ComPtr<ID3D11RenderTargetView> rtv;
+  ComPtr<ID3D11RenderTargetView> integer_rtv;
   if (color_attachment)
   {
     CD3D11_RENDER_TARGET_VIEW_DESC desc(
@@ -361,6 +354,8 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
     HRESULT hr =
         D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc, &rtv);
     CHECK(SUCCEEDED(hr), "Create render target view for framebuffer");
+    if (FAILED(hr))
+      return nullptr;
 
     // Only create the integer RTV on Win8+.
     DXGI_FORMAT integer_format =
@@ -374,7 +369,7 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
     }
   }
 
-  ID3D11DepthStencilView* dsv = nullptr;
+  ComPtr<ID3D11DepthStencilView> dsv;
   if (depth_attachment)
   {
     const CD3D11_DEPTH_STENCIL_VIEW_DESC desc(
@@ -385,11 +380,13 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
     HRESULT hr =
         D3D::device->CreateDepthStencilView(depth_attachment->GetD3DTexture(), &desc, &dsv);
     CHECK(SUCCEEDED(hr), "Create depth stencil view for framebuffer");
+    if (FAILED(hr))
+      return nullptr;
   }
 
   return std::make_unique<DXFramebuffer>(color_attachment, depth_attachment, color_format,
-                                         depth_format, width, height, layers, samples, rtv,
-                                         integer_rtv, dsv);
+                                         depth_format, width, height, layers, samples, rtv.Get(),
+                                         integer_rtv.Get(), dsv.Get());
 }
 
 }  // namespace DX11

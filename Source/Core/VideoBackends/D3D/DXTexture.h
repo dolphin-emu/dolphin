@@ -69,7 +69,7 @@ public:
 private:
   DXStagingTexture(StagingTextureType type, const TextureConfig& config, ID3D11Texture2D* tex);
 
-  ID3D11Texture2D* m_tex = nullptr;
+  ComPtr<ID3D11Texture2D> m_tex = nullptr;
 };
 
 class DXFramebuffer final : public AbstractFramebuffer
@@ -81,17 +81,17 @@ public:
                 ID3D11RenderTargetView* integer_rtv, ID3D11DepthStencilView* dsv);
   ~DXFramebuffer() override;
 
-  ID3D11RenderTargetView* const* GetRTVArray() const { return &m_rtv; }
-  ID3D11RenderTargetView* const* GetIntegerRTVArray() const { return &m_integer_rtv; }
+  ID3D11RenderTargetView* const* GetRTVArray() const { return m_rtv.GetAddressOf(); }
+  ID3D11RenderTargetView* const* GetIntegerRTVArray() const { return m_integer_rtv.GetAddressOf(); }
   UINT GetNumRTVs() const { return m_rtv ? 1 : 0; }
-  ID3D11DepthStencilView* GetDSV() const { return m_dsv; }
+  ID3D11DepthStencilView* GetDSV() const { return m_dsv.Get(); }
   static std::unique_ptr<DXFramebuffer> Create(DXTexture* color_attachment,
                                                DXTexture* depth_attachment);
 
 protected:
-  ID3D11RenderTargetView* m_rtv;
-  ID3D11RenderTargetView* m_integer_rtv;
-  ID3D11DepthStencilView* m_dsv;
+  ComPtr<ID3D11RenderTargetView> m_rtv;
+  ComPtr<ID3D11RenderTargetView> m_integer_rtv;
+  ComPtr<ID3D11DepthStencilView> m_dsv;
 };
 
 }  // namespace DX11

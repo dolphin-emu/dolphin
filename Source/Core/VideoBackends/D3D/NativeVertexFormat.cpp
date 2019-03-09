@@ -147,7 +147,8 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
 D3DVertexFormat::~D3DVertexFormat()
 {
   ID3D11InputLayout* layout = m_layout.load();
-  SAFE_RELEASE(layout);
+  if (layout)
+    layout->Release();
 }
 
 ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size_t vs_bytecode_size)
@@ -167,7 +168,9 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
   ID3D11InputLayout* expected = nullptr;
   if (!m_layout.compare_exchange_strong(expected, layout))
   {
-    SAFE_RELEASE(layout);
+    if (layout)
+      layout->Release();
+
     layout = expected;
   }
 

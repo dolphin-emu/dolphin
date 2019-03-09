@@ -3,9 +3,9 @@
 // Refer to the license.txt file included.
 
 #pragma once
-#include <d3d11.h>
 #include <memory>
 
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3DCommon/Shader.h"
 
 namespace DX11
@@ -26,7 +26,7 @@ public:
   static std::unique_ptr<DXShader> CreateFromBytecode(ShaderStage stage, BinaryData bytecode);
 
 private:
-  ID3D11DeviceChild* m_shader;
+  ComPtr<ID3D11DeviceChild> m_shader;
 };
 
 }  // namespace DX11
