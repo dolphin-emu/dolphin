@@ -40,6 +40,9 @@
     <ClCompile Include="DXPipeline.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -68,6 +71,9 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="DXPipeline.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

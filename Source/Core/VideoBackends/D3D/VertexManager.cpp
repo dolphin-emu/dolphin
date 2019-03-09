@@ -14,6 +14,7 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3DCommon/Common.h"
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -34,8 +35,11 @@ static ID3D11Buffer* AllocateConstantBuffer(u32 size)
                                   D3D11_CPU_ACCESS_WRITE);
   ID3D11Buffer* cbuf;
   const HRESULT hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &cbuf);
-  CHECK(hr == S_OK, "shader constant buffer (size=%u)", cbsize);
-  D3D::SetDebugObjectName(cbuf, "constant buffer used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "shader constant buffer (size=%u)", cbsize);
+  if (FAILED(hr))
+    return nullptr;
+
+  D3DCommon::SetDebugObjectName(cbuf, "constant buffer");
   return cbuf;
 }
 
@@ -88,7 +92,8 @@ bool VertexManager::Initialize()
   {
     CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i])),
           "Failed to create buffer.");
-    D3D::SetDebugObjectName(m_buffers[i], "Buffer of VertexManager");
+    if (m_buffers[i])
+      D3DCommon::SetDebugObjectName(m_buffers[i], "Buffer of VertexManager");
   }
 
   m_vertex_constant_buffer = AllocateConstantBuffer(sizeof(VertexShaderConstants));

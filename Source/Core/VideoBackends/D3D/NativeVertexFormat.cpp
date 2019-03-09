@@ -160,9 +160,7 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
 
   HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
                                               vs_bytecode_size, &layout);
-  if (FAILED(hr))
-    PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-  DX11::D3D::SetDebugObjectName(m_layout, "input layout used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Failed to create input layout");
 
   // This method can be called from multiple threads, so ensure that only one thread sets the
   // cached input layout pointer. If another thread beats this thread, use the existing layout.

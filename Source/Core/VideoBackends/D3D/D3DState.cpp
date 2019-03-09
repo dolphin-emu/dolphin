@@ -13,6 +13,7 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
+#include "VideoBackends/D3DCommon/Common.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -360,10 +361,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
   ID3D11SamplerState* res = nullptr;
   HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
-  if (FAILED(hr))
-    PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "sampler state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D sampler state failed");
   m_sampler.emplace(state.hex, res);
   return res;
 }
@@ -400,7 +398,6 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     HRESULT hr = D3D::device1->CreateBlendState1(&desc, &res);
     if (SUCCEEDED(hr))
     {
-      D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
       m_blend.emplace(state.hex, res);
       return res;
     }
@@ -443,10 +440,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   ID3D11BlendState* res = nullptr;
 
   HRESULT hr = D3D::device->CreateBlendState(&desc, &res);
-  if (FAILED(hr))
-    PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D blend state failed");
   m_blend.emplace(state.hex, res);
   return res;
 }
@@ -468,10 +462,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 
   ID3D11RasterizerState* res = nullptr;
   HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
-  if (FAILED(hr))
-    PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "rasterizer state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D rasterizer state failed");
   m_raster.emplace(state.hex, res);
   return res;
 }
@@ -515,13 +506,8 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   ID3D11DepthStencilState* res = nullptr;
 
   HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
-  if (SUCCEEDED(hr))
-    D3D::SetDebugObjectName(res, "depth-stencil state used to emulate the GX pipeline");
-  else
-    PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
-
+  CHECK(SUCCEEDED(hr), "Creating D3D depth stencil state failed");
   m_depth.emplace(state.hex, res);
-
   return res;
 }
 

@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3DCommon/Common.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -35,7 +36,7 @@ void BBox::Init()
     HRESULT hr;
     hr = D3D::device->CreateBuffer(&desc, &data, &s_bbox_buffer);
     CHECK(SUCCEEDED(hr), "Create BoundingBox Buffer.");
-    D3D::SetDebugObjectName(s_bbox_buffer, "BoundingBox Buffer");
+    D3DCommon::SetDebugObjectName(s_bbox_buffer, "BoundingBox Buffer");
 
     // Second to use as a staging buffer.
     desc.Usage = D3D11_USAGE_STAGING;
@@ -43,7 +44,7 @@ void BBox::Init()
     desc.BindFlags = 0;
     hr = D3D::device->CreateBuffer(&desc, nullptr, &s_bbox_staging_buffer);
     CHECK(SUCCEEDED(hr), "Create BoundingBox Staging Buffer.");
-    D3D::SetDebugObjectName(s_bbox_staging_buffer, "BoundingBox Staging Buffer");
+    D3DCommon::SetDebugObjectName(s_bbox_staging_buffer, "BoundingBox Staging Buffer");
 
     // UAV is required to allow concurrent access.
     D3D11_UNORDERED_ACCESS_VIEW_DESC UAVdesc = {};
@@ -54,7 +55,7 @@ void BBox::Init()
     UAVdesc.Buffer.NumElements = 4;
     hr = D3D::device->CreateUnorderedAccessView(s_bbox_buffer, &UAVdesc, &s_bbox_uav);
     CHECK(SUCCEEDED(hr), "Create BoundingBox UAV.");
-    D3D::SetDebugObjectName(s_bbox_uav, "BoundingBox UAV");
+    D3DCommon::SetDebugObjectName(s_bbox_uav, "BoundingBox UAV");
     D3D::stateman->SetOMUAV(s_bbox_uav);
   }
 }

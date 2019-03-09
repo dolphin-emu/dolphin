@@ -6,11 +6,11 @@
 #include <d3d11.h>
 #include <memory>
 
-#include "VideoCommon/AbstractShader.h"
+#include "VideoBackends/D3DCommon/Shader.h"
 
 namespace DX11
 {
-class DXShader final : public AbstractShader
+class DXShader final : public D3DCommon::Shader
 {
 public:
   DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader);
@@ -23,22 +23,10 @@ public:
   ID3D11PixelShader* GetD3DPixelShader() const;
   ID3D11ComputeShader* GetD3DComputeShader() const;
 
-  bool HasBinary() const override;
-  BinaryData GetBinary() const override;
-
-  // Creates a new shader object.
   static std::unique_ptr<DXShader> CreateFromBytecode(ShaderStage stage, BinaryData bytecode);
-  static bool CompileShader(BinaryData* out_bytecode, ShaderStage stage, const char* source,
-                            size_t length);
-
-  static std::unique_ptr<DXShader> CreateFromBinary(ShaderStage stage, const void* data,
-                                                    size_t length);
-  static std::unique_ptr<DXShader> CreateFromSource(ShaderStage stage, const char* source,
-                                                    size_t length);
 
 private:
   ID3D11DeviceChild* m_shader;
-  BinaryData m_bytecode;
 };
 
 }  // namespace DX11
