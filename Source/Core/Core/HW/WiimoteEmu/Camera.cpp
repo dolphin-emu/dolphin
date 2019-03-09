@@ -11,6 +11,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
+
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 namespace WiimoteEmu
@@ -51,7 +53,7 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   return RawWrite(&reg_data, addr, count, data_in);
 }
 
-void CameraLogic::Update(const Common::Matrix44& transform, bool sensor_bar_on_top)
+void CameraLogic::Update(const Common::Matrix44& transform)
 {
   using Common::Matrix33;
   using Common::Matrix44;
@@ -81,6 +83,9 @@ void CameraLogic::Update(const Common::Matrix44& transform, bool sensor_bar_on_t
   // Values are optimized for default settings in "Super Mario Galaxy 2"
   // This seems to be acceptable for a good number of games.
   constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
+
+  // Emulate a sensor bar height that matches the config.
+  const bool sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
   const float sensor_bar_height = sensor_bar_on_top ? 0.11 : -0.11;
 
   const std::array<Vec3, NUM_POINTS> leds{

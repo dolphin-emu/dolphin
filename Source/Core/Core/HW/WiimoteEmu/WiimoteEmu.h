@@ -268,9 +268,6 @@ private:
 
   bool m_speaker_mute;
 
-  // This is just for the IR Camera to compensate for the sensor bar position.
-  bool m_sensor_bar_on_top;
-
   WiimoteCommon::InputReportStatus m_status;
 
   ExtensionNumber m_active_extension;
