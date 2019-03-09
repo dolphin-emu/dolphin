@@ -294,6 +294,7 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
+  g_Config.VerifyValidity();
   UpdateActiveConfig();
 }
 
