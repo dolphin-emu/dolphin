@@ -966,8 +966,8 @@ void ShaderCache::QueueUberShaderPipelines()
     config.vs_uid = vs_uid;
     config.gs_uid = gs_uid;
     config.ps_uid = ps_uid;
-    config.rasterization_state =
-        RenderState::GetCullBackFaceRasterizationState(PrimitiveType::TriangleStrip);
+    config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
+        static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
     config.depth_state = RenderState::GetNoDepthTestingDepthState();
     config.blending_state = RenderState::GetNoBlendingBlendState();
 
