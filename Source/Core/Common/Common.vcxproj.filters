@@ -276,6 +276,8 @@
     <ClInclude Include="GL\GLContext.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
+    <ClInclude Include="VariantUtil.h" />
+    <ClInclude Include="DynamicLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -357,6 +359,7 @@
     <ClCompile Include="GL\GLContext.cpp">
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
