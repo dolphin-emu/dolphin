@@ -151,6 +151,11 @@ std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage sta
   return CreateShaderFromSource(stage, source.c_str(), source.size());
 }
 
+bool Renderer::EFBHasAlphaChannel() const
+{
+  return m_prev_efb_format == PEControl::RGBA6_Z24;
+}
+
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z)
 {
