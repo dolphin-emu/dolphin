@@ -93,6 +93,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui", "..\Externals\imgui
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UpdaterCommon", "Core\UpdaterCommon\UpdaterCommon.vcxproj", "{B001D13E-7EAB-4689-842D-801E5ACFFAC5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3DCommon", "Core\VideoBackends\D3DCommon\D3DCommon.vcxproj", "{DEA96CF2-F237-4A1A-B32F-C916769EFB50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -353,6 +355,12 @@ Global
 		{B001D13E-7EAB-4689-842D-801E5ACFFAC5}.Release|x64.ActiveCfg = Release|x64
 		{B001D13E-7EAB-4689-842D-801E5ACFFAC5}.Release|x64.Build.0 = Release|x64
 		{B001D13E-7EAB-4689-842D-801E5ACFFAC5}.Release|x86.ActiveCfg = Release|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Debug|x64.ActiveCfg = Debug|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Debug|x64.Build.0 = Debug|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Debug|x86.ActiveCfg = Debug|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Release|x64.ActiveCfg = Release|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Release|x64.Build.0 = Release|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -394,6 +402,7 @@ Global
 		{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{23114507-079A-4418-9707-CFA81A03CA99} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{4C3B2264-EA73-4A7B-9CFE-65B0FD635EBB} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50} = {AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {710976F2-1BC7-4F2A-B32D-5DD2BBCB44E1}
