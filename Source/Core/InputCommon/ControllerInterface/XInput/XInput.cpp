@@ -194,6 +194,11 @@ void Device::UpdateMotors()
   }
 }
 
+std::optional<int> Device::GetPreferredId() const
+{
+  return m_index;
+}
+
 // GET name/source/id
 
 std::string Device::Button::GetName() const

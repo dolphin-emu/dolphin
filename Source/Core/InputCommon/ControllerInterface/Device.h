@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -82,7 +83,7 @@ public:
   class Output : public Control
   {
   public:
-    virtual ~Output() {}
+    virtual ~Output() = default;
     virtual void SetState(ControlState state) = 0;
     Output* ToOutput() override { return this; }
   };
@@ -95,9 +96,17 @@ public:
   virtual std::string GetSource() const = 0;
   std::string GetQualifiedName() const;
   virtual void UpdateInput() {}
+
+  // May be overridden to implement hotplug removal.
+  // Currently handled on a per-backend basis but this could change.
   virtual bool IsValid() const { return true; }
+
+  // (e.g. Xbox 360 controllers have controller number LEDs which should match the ID we use.)
+  virtual std::optional<int> GetPreferredId() const;
+
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
+
   Input* FindInput(const std::string& name) const;
   Output* FindOutput(const std::string& name) const;
 

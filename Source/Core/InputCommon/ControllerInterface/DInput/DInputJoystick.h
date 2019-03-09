@@ -68,6 +68,8 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
 
+  bool IsValid() const final override;
+
 private:
   const LPDIRECTINPUTDEVICE8 m_device;
 
@@ -75,5 +77,5 @@ private:
 
   bool m_buffered;
 };
-}
-}
+}  // namespace DInput
+}  // namespace ciface
