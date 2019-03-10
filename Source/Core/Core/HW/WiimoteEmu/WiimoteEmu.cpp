@@ -243,13 +243,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_hotkeys->AddInput(_trans("Sideways Hold"), false);
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
-  auto config_change_callback = [this] {
-    m_sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
-  };
-  Config::AddConfigChangedCallback(config_change_callback);
-
-  config_change_callback();
-
   Reset();
 }
 
@@ -439,7 +432,7 @@ void Wiimote::SendDataReport()
     // IR Camera:
     if (rpt_builder.HasIR())
     {
-      m_camera_logic.Update(GetTransformation(), m_sensor_bar_on_top);
+      m_camera_logic.Update(GetTransformation());
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
