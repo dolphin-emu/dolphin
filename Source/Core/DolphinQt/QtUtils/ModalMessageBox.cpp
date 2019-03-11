@@ -6,13 +6,14 @@
 
 #include <QApplication>
 
-ModalMessageBox::ModalMessageBox(QWidget* parent) : QMessageBox(parent)
+ModalMessageBox::ModalMessageBox(QWidget* parent)
+    : QMessageBox(parent != nullptr ? parent->window() : nullptr)
 {
   setWindowModality(Qt::WindowModal);
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  setWindowFlags(Qt::Sheet | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
   // No parent is still preferable to showing a hidden parent here.
-  if (parent != nullptr && !parent->isVisible())
+  if (parent != nullptr && !parent->window()->isVisible())
     setParent(nullptr);
 }
 
