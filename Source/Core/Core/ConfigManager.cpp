@@ -710,8 +710,8 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   if (!DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    const std::string game_id = tmd.GetGameID();
-    SetRunningGameMetadata(game_id, game_id, tmd_title_id, tmd.GetTitleVersion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id,
+                           tmd.GetTitleVersion());
   }
 }
 
