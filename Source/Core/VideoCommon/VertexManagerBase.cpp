@@ -99,8 +99,7 @@ u32 VertexManagerBase::GetRemainingSize() const
 DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride,
                                                        bool cullall)
 {
-  // Flush all EFB pokes and invalidate the peek cache.
-  g_framebuffer_manager->InvalidatePeekCache();
+  // Flush all EFB pokes. Since the buffer is shared, we can't draw pokes+primitives concurrently.
   g_framebuffer_manager->FlushEFBPokes();
 
   // The SSE vertex loader can write up to 4 bytes past the end
@@ -449,6 +448,9 @@ void VertexManagerBase::Flush()
         g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
       OnDraw();
+
+      // The EFB cache is now potentially stale.
+      g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
     }
   }
 

@@ -386,6 +386,7 @@ void Renderer::CheckForConfigChanges()
   const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
   const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
@@ -394,6 +395,10 @@ void Renderer::CheckForConfigChanges()
 
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
+
+  // EFB tile cache doesn't need to notify the backend.
+  if (old_efb_access_tile_size != g_ActiveConfig.iEFBAccessTileSize)
+    g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
 
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.

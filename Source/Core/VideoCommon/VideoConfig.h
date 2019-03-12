@@ -112,6 +112,7 @@ struct VideoConfig final
 
   // Hacks
   bool bEFBAccessEnable;
+  bool bEFBAccessDeferInvalidation;
   bool bPerfQueriesEnable;
   bool bBBoxEnable;
   bool bForceProgressive;
@@ -128,6 +129,7 @@ struct VideoConfig final
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
   bool bVertexRounding;
+  int iEFBAccessTileSize;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
 
@@ -216,6 +218,7 @@ struct VideoConfig final
     bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
     bool bSupportsBackgroundCompiling;
     bool bSupportsLargePoints;
+    bool bSupportsPartialDepthCopies;
   } backend_info;
 
   // Utility

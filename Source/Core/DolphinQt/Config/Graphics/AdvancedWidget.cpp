@@ -105,9 +105,20 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 1, 1);
 #endif
 
+  // Experimental.
+  auto* experimental_box = new QGroupBox(tr("Experimental"));
+  auto* experimental_layout = new QGridLayout();
+  experimental_box->setLayout(experimental_layout);
+
+  m_defer_efb_access_invalidation =
+      new GraphicsBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+
+  experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
+
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(misc_box);
+  main_layout->addWidget(experimental_box);
   main_layout->addStretch();
 
   setLayout(main_layout);
@@ -194,6 +205,12 @@ void AdvancedWidget::AddDescriptions()
                  "this option may result in a performance improvement on systems with more than "
                  "two CPU cores. Currently, this is limited to the Vulkan backend.\n\nIf unsure, "
                  "leave this checked.");
+  static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] =
+      QT_TR_NOOP("Defers invalidation of the EFB access cache until a GPU synchronization command "
+                 "is executed. If disabled, the cache will be invalidated with every draw call. "
+                 "May improve performance in some games which rely on CPU EFB Access at the cost "
+                 "of stability.\n\nIf unsure, leave this unchecked.");
+
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
@@ -223,4 +240,5 @@ void AdvancedWidget::AddDescriptions()
 #ifdef _WIN32
   AddDescription(m_borderless_fullscreen, TR_BORDERLESS_FULLSCREEN_DESCRIPTION);
 #endif
+  AddDescription(m_defer_efb_access_invalidation, TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION);
 }

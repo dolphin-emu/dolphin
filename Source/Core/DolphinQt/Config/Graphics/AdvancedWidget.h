@@ -46,4 +46,7 @@ private:
   QCheckBox* m_enable_prog_scan;
   QCheckBox* m_backend_multithreading;
   QCheckBox* m_borderless_fullscreen;
+
+  // Experimental
+  QCheckBox* m_defer_efb_access_invalidation;
 };
