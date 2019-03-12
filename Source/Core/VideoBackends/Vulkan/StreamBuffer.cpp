@@ -307,6 +307,8 @@ bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
 
   // Wait until this fence is signaled. This will fire the callback, updating the GPU position.
   g_command_buffer_mgr->WaitForFence(iter->first);
+  if (m_current_offset == m_current_gpu_position)
+    m_current_gpu_position = 0;
   m_current_offset = new_offset;
   return true;
 }
