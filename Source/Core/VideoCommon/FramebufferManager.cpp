@@ -705,7 +705,7 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
 void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
 {
   // Flush if we exceeded the number of vertices per batch.
-  if ((m_color_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
+  if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
     FlushEFBPokes();
 
   CreatePokeVertices(&m_depth_poke_vertices, x, y, depth, 0);
