@@ -776,7 +776,7 @@ bool MainWindow::RequestStop()
     }
   }
 
-  // TODO: Add Movie shutdown
+  OnStopRecording();
   // TODO: Add Debugger shutdown
 
   if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
@@ -1565,8 +1565,8 @@ void MainWindow::OnStopRecording()
 {
   if (Movie::IsRecordingInput())
     OnExportRecording();
-
-  Movie::EndPlayInput(false);
+  if (Movie::IsMovieActive())
+    Movie::EndPlayInput(false);
   emit RecordingStatusChanged(true);
 }
 
