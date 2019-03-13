@@ -228,7 +228,7 @@ ControlState Device::Trigger::GetState() const
 
 ControlState Device::Axis::GetState() const
 {
-  return std::max(0.0, ControlState(m_axis) / m_range);
+  return ControlState(m_axis) / m_range;
 }
 
 void Device::Motor::SetState(ControlState state)
@@ -236,5 +236,5 @@ void Device::Motor::SetState(ControlState state)
   m_motor = (WORD)(state * m_range);
   m_parent->UpdateMotors();
 }
-}
-}
+}  // namespace XInput
+}  // namespace ciface

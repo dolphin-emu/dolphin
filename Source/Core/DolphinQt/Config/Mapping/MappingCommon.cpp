@@ -4,16 +4,23 @@
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 
+#include <tuple>
+
+#include <QApplication>
+#include <QPushButton>
 #include <QRegExp>
 #include <QString>
 
+#include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/Device.h"
+
+#include "Common/Thread.h"
 
 namespace MappingCommon
 {
 constexpr int INPUT_DETECT_TIME = 3000;
-constexpr int OUTPUT_DETECT_TIME = 2000;
+constexpr int OUTPUT_TEST_TIME = 2000;
 
 QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& control_device,
@@ -41,18 +48,56 @@ QString GetExpressionForControl(const QString& control_name,
   return expr;
 }
 
-QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
+QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+                         const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
-  const int ms = reference->IsInput() ? INPUT_DETECT_TIME : OUTPUT_DETECT_TIME;
+  button->installEventFilter(BlockUserInputFilter::Instance());
+  button->grabKeyboard();
+  button->grabMouse();
 
-  ciface::Core::Device::Control* const ctrl = reference->Detect(ms, device);
+  const auto old_text = button->text();
+  button->setText(QStringLiteral("..."));
 
-  if (ctrl)
-  {
-    return MappingCommon::GetExpressionForControl(QString::fromStdString(ctrl->GetName()),
-                                                  default_device, default_device, quote);
-  }
-  return QStringLiteral("");
+  // The button text won't be updated if we don't process events here
+  QApplication::processEvents();
+
+  // Avoid that the button press itself is registered as an event
+  Common::SleepCurrentThread(100);
+
+  std::shared_ptr<ciface::Core::Device> device;
+  ciface::Core::Device::Input* input;
+  std::tie(device, input) = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
+
+  button->releaseMouse();
+  button->releaseKeyboard();
+  button->removeEventFilter(BlockUserInputFilter::Instance());
+
+  button->setText(old_text);
+
+  if (!input)
+    return {};
+
+  ciface::Core::DeviceQualifier device_qualifier;
+  device_qualifier.FromDevice(device.get());
+
+  return MappingCommon::GetExpressionForControl(QString::fromStdString(input->GetName()),
+                                                device_qualifier, default_device, quote);
 }
+
+void TestOutput(QPushButton* button, OutputReference* reference)
+{
+  const auto old_text = button->text();
+  button->setText(QStringLiteral("..."));
+
+  // The button text won't be updated if we don't process events here
+  QApplication::processEvents();
+
+  reference->State(1.0);
+  Common::SleepCurrentThread(OUTPUT_TEST_TIME);
+  reference->State(0.0);
+
+  button->setText(old_text);
+}
+
 }  // namespace MappingCommon

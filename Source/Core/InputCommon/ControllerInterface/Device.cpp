@@ -4,22 +4,22 @@
 
 #include "InputCommon/ControllerInterface/Device.h"
 
+#include <cmath>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <tuple>
 
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 namespace ciface
 {
 namespace Core
 {
-//
-// Device :: ~Device
-//
-// Destructor, delete all inputs/outputs on device destruction
-//
+// Compared to an input's current state (ideally 1.0) minus abs(initial_state) (ideally 0.0).
+constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
+
 Device::~Device()
 {
   // delete inputs
@@ -66,6 +66,11 @@ Device::Output* Device::FindOutput(const std::string& name) const
   }
 
   return nullptr;
+}
+
+ControlState Device::FullAnalogSurface::GetState() const
+{
+  return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
 }
 
 //
@@ -214,5 +219,83 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
   const auto device = FindDevice(qualifier);
   return device != nullptr && device->IsValid();
 }
+
+// Wait for input on a particular device.
+// Inputs are considered if they are first seen in a neutral state.
+// This is useful for crazy flightsticks that have certain buttons that are always held down
+// and also properly handles detection when using "FullAnalogSurface" inputs.
+// Upon input, return the detected Device and Input, else return nullptrs
+std::pair<std::shared_ptr<Device>, Device::Input*>
+DeviceContainer::DetectInput(u32 wait_ms, std::vector<std::string> device_strings)
+{
+  struct InputState
+  {
+    ciface::Core::Device::Input& input;
+    ControlState initial_state;
+  };
+
+  struct DeviceState
+  {
+    std::shared_ptr<Device> device;
+
+    std::vector<InputState> input_states;
+  };
+
+  // Acquire devices and initial input states.
+  std::vector<DeviceState> device_states;
+  for (auto& device_string : device_strings)
+  {
+    DeviceQualifier dq;
+    dq.FromString(device_string);
+    auto device = FindDevice(dq);
+
+    if (!device)
+      continue;
+
+    std::vector<InputState> input_states;
+
+    for (auto* input : device->Inputs())
+    {
+      // Don't detect things like absolute cursor position.
+      if (!input->IsDetectable())
+        continue;
+
+      // Undesirable axes will have negative values here when trying to map a
+      // "FullAnalogSurface".
+      input_states.push_back({*input, input->GetState()});
+    }
+
+    if (!input_states.empty())
+      device_states.emplace_back(DeviceState{std::move(device), std::move(input_states)});
+  }
+
+  if (device_states.empty())
+    return {};
+
+  u32 time = 0;
+  while (time < wait_ms)
+  {
+    Common::SleepCurrentThread(10);
+    time += 10;
+
+    for (auto& device_state : device_states)
+    {
+      device_state.device->UpdateInput();
+      for (auto& input_state : device_state.input_states)
+      {
+        // We want an input that was initially 0.0 and currently 1.0.
+        const auto detection_score =
+            (input_state.input.GetState() - std::abs(input_state.initial_state));
+
+        if (detection_score > INPUT_DETECT_THRESHOLD)
+          return {device_state.device, &input_state.input};
+      }
+    }
+  }
+
+  // No input was detected. :'(
+  return {};
 }
-}
+
+}  // namespace Core
+}  // namespace ciface

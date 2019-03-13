@@ -2,8 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <future>
-#include <utility>
+#include "DolphinQt/Config/Mapping/MappingButton.h"
 
 #include <QApplication>
 #include <QFontMetrics>
@@ -11,8 +10,6 @@
 #include <QRegExp>
 #include <QString>
 #include <QTimer>
-
-#include "DolphinQt/Config/Mapping/MappingButton.h"
 
 #include "Common/Thread.h"
 #include "Core/Core.h"
@@ -103,96 +100,33 @@ void MappingButton::Detect()
   if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
 
-  installEventFilter(BlockUserInputFilter::Instance());
-  grabKeyboard();
+  const auto default_device_qualifier = m_parent->GetController()->GetDefaultDevice();
 
-  // Make sure that we don't block event handling
-  QueueOnObject(this, [this] {
-    setText(QStringLiteral("..."));
+  QString expression;
 
-    // The button text won't be updated if we don't process events here
-    QApplication::processEvents();
+  if (m_parent->GetParent()->IsMappingAllDevices())
+  {
+    expression = MappingCommon::DetectExpression(this, g_controller_interface,
+                                                 g_controller_interface.GetAllDeviceStrings(),
+                                                 default_device_qualifier);
+  }
+  else
+  {
+    expression = MappingCommon::DetectExpression(this, g_controller_interface,
+                                                 {default_device_qualifier.ToString()},
+                                                 default_device_qualifier);
+  }
 
-    // Avoid that the button press itself is registered as an event
-    Common::SleepCurrentThread(100);
+  if (expression.isEmpty())
+    return;
 
-    std::vector<std::future<std::pair<QString, QString>>> futures;
-    QString expr;
+  m_reference->SetExpression(expression.toStdString());
+  m_parent->SaveSettings();
+  Update();
+  m_parent->GetController()->UpdateReferences(g_controller_interface);
 
-    if (m_parent->GetParent()->IsMappingAllDevices())
-    {
-      for (const std::string& device_str : g_controller_interface.GetAllDeviceStrings())
-      {
-        ciface::Core::DeviceQualifier devq;
-        devq.FromString(device_str);
-
-        auto dev = g_controller_interface.FindDevice(devq);
-
-        auto future = std::async(std::launch::async, [this, devq, dev, device_str] {
-          return std::make_pair(
-              QString::fromStdString(device_str),
-              MappingCommon::DetectExpression(m_reference, dev.get(),
-                                              m_parent->GetController()->GetDefaultDevice()));
-        });
-
-        futures.push_back(std::move(future));
-      }
-
-      bool done = false;
-
-      while (!done)
-      {
-        for (auto& future : futures)
-        {
-          const auto status = future.wait_for(std::chrono::milliseconds(10));
-          if (status == std::future_status::ready)
-          {
-            const auto pair = future.get();
-
-            done = true;
-
-            if (pair.second.isEmpty())
-              break;
-
-            expr = QStringLiteral("`%1:%2`")
-                       .arg(pair.first)
-                       .arg(pair.second.startsWith(QLatin1Char('`')) ? pair.second.mid(1) :
-                                                                       pair.second);
-            break;
-          }
-        }
-      }
-    }
-    else
-    {
-      const auto dev = m_parent->GetDevice();
-      expr = MappingCommon::DetectExpression(m_reference, dev.get(),
-                                             m_parent->GetController()->GetDefaultDevice());
-    }
-
-    releaseKeyboard();
-    removeEventFilter(BlockUserInputFilter::Instance());
-
-    if (!expr.isEmpty())
-    {
-      m_reference->SetExpression(expr.toStdString());
-      m_parent->SaveSettings();
-      Update();
-      m_parent->GetController()->UpdateReferences(g_controller_interface);
-
-      if (m_parent->IsIterativeInput())
-        m_parent->NextButton(this);
-    }
-    else
-    {
-      OnButtonTimeout();
-    }
-  });
-}
-
-void MappingButton::OnButtonTimeout()
-{
-  setText(ToDisplayString(QString::fromStdString(m_reference->GetExpression())));
+  if (m_parent->IsIterativeInput())
+    m_parent->NextButton(this);
 }
 
 void MappingButton::Clear()
