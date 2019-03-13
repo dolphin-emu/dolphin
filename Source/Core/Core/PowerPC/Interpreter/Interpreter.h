@@ -288,9 +288,6 @@ private:
 
   static bool HandleFunctionHooking(u32 address);
 
-  // flag helper
-  static void Helper_UpdateCR0(u32 value);
-
   // address helper
   static u32 Helper_Get_EA(const UGeckoInstruction inst);
   static u32 Helper_Get_EA_U(const UGeckoInstruction inst);

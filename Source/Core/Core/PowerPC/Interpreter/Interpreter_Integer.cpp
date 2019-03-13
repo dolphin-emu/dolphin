@@ -9,13 +9,13 @@
 #include "Common/Logging/Log.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void Interpreter::Helper_UpdateCR0(u32 value)
+static void Helper_UpdateCR0(PowerPC::PowerPCState* ppcs, u32 value)
 {
   s64 sign_extended = (s64)(s32)value;
   u64 cr_val = (u64)sign_extended;
   cr_val = (cr_val & ~(1ull << 61)) | ((u64)PowerPC::GetXER_SO() << 61);
 
-  PowerPC::ppcState.cr.fields[0] = cr_val;
+  ppcs->cr.fields[0] = cr_val;
 }
 
 u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
@@ -43,7 +43,7 @@ void Interpreter::addic(UGeckoInstruction inst)
 void Interpreter::addic_rc(UGeckoInstruction inst)
 {
   addic(inst);
-  Helper_UpdateCR0(rGPR[inst.RD]);
+  Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RD]);
 }
 
 void Interpreter::addis(UGeckoInstruction inst)
@@ -57,13 +57,13 @@ void Interpreter::addis(UGeckoInstruction inst)
 void Interpreter::andi_rc(UGeckoInstruction inst)
 {
   rGPR[inst.RA] = rGPR[inst.RS] & inst.UIMM;
-  Helper_UpdateCR0(rGPR[inst.RA]);
+  Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::andis_rc(UGeckoInstruction inst)
 {
   rGPR[inst.RA] = rGPR[inst.RS] & ((u32)inst.UIMM << 16);
-  Helper_UpdateCR0(rGPR[inst.RA]);
+  Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::cmpi(UGeckoInstruction inst)
@@ -159,7 +159,7 @@ void Interpreter::rlwimix(UGeckoInstruction inst)
   rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::rlwinmx(UGeckoInstruction inst)
@@ -168,7 +168,7 @@ void Interpreter::rlwinmx(UGeckoInstruction inst)
   rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::rlwnmx(UGeckoInstruction inst)
@@ -177,7 +177,7 @@ void Interpreter::rlwnmx(UGeckoInstruction inst)
   rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::andx(UGeckoInstruction inst)
@@ -185,7 +185,7 @@ void Interpreter::andx(UGeckoInstruction inst)
   rGPR[inst.RA] = rGPR[inst.RS] & rGPR[inst.RB];
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::andcx(UGeckoInstruction inst)
@@ -193,7 +193,7 @@ void Interpreter::andcx(UGeckoInstruction inst)
   rGPR[inst.RA] = rGPR[inst.RS] & ~rGPR[inst.RB];
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::cmp(UGeckoInstruction inst)
@@ -249,7 +249,7 @@ void Interpreter::cntlzwx(UGeckoInstruction inst)
   rGPR[inst.RA] = i;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::eqvx(UGeckoInstruction inst)
@@ -257,7 +257,7 @@ void Interpreter::eqvx(UGeckoInstruction inst)
   rGPR[inst.RA] = ~(rGPR[inst.RS] ^ rGPR[inst.RB]);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::extsbx(UGeckoInstruction inst)
@@ -265,7 +265,7 @@ void Interpreter::extsbx(UGeckoInstruction inst)
   rGPR[inst.RA] = (u32)(s32)(s8)rGPR[inst.RS];
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::extshx(UGeckoInstruction inst)
@@ -273,15 +273,15 @@ void Interpreter::extshx(UGeckoInstruction inst)
   rGPR[inst.RA] = (u32)(s32)(s16)rGPR[inst.RS];
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
-void Interpreter::nandx(UGeckoInstruction _inst)
+void Interpreter::nandx(UGeckoInstruction inst)
 {
-  rGPR[_inst.RA] = ~(rGPR[_inst.RS] & rGPR[_inst.RB]);
+  rGPR[inst.RA] = ~(rGPR[inst.RS] & rGPR[inst.RB]);
 
-  if (_inst.Rc)
-    Helper_UpdateCR0(rGPR[_inst.RA]);
+  if (inst.Rc)
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::norx(UGeckoInstruction inst)
@@ -289,7 +289,7 @@ void Interpreter::norx(UGeckoInstruction inst)
   rGPR[inst.RA] = ~(rGPR[inst.RS] | rGPR[inst.RB]);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::orx(UGeckoInstruction inst)
@@ -297,7 +297,7 @@ void Interpreter::orx(UGeckoInstruction inst)
   rGPR[inst.RA] = rGPR[inst.RS] | rGPR[inst.RB];
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::orcx(UGeckoInstruction inst)
@@ -305,7 +305,7 @@ void Interpreter::orcx(UGeckoInstruction inst)
   rGPR[inst.RA] = rGPR[inst.RS] | (~rGPR[inst.RB]);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::slwx(UGeckoInstruction inst)
@@ -314,7 +314,7 @@ void Interpreter::slwx(UGeckoInstruction inst)
   rGPR[inst.RA] = (amount & 0x20) ? 0 : rGPR[inst.RS] << (amount & 0x1f);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::srawx(UGeckoInstruction inst)
@@ -344,7 +344,7 @@ void Interpreter::srawx(UGeckoInstruction inst)
   }
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::srawix(UGeckoInstruction inst)
@@ -357,7 +357,7 @@ void Interpreter::srawix(UGeckoInstruction inst)
   PowerPC::SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::srwx(UGeckoInstruction inst)
@@ -366,7 +366,7 @@ void Interpreter::srwx(UGeckoInstruction inst)
   rGPR[inst.RA] = (amount & 0x20) ? 0 : (rGPR[inst.RS] >> (amount & 0x1f));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 void Interpreter::tw(UGeckoInstruction inst)
@@ -391,7 +391,7 @@ void Interpreter::xorx(UGeckoInstruction inst)
   rGPR[inst.RA] = rGPR[inst.RS] ^ rGPR[inst.RB];
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RA]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RA]);
 }
 
 static bool HasAddOverflowed(u32 x, u32 y, u32 result)
@@ -413,7 +413,7 @@ void Interpreter::addx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::addcx(UGeckoInstruction inst)
@@ -429,7 +429,7 @@ void Interpreter::addcx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::addex(UGeckoInstruction inst)
@@ -446,7 +446,7 @@ void Interpreter::addex(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::addmex(UGeckoInstruction inst)
@@ -463,7 +463,7 @@ void Interpreter::addmex(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::addzex(UGeckoInstruction inst)
@@ -479,7 +479,7 @@ void Interpreter::addzex(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, 0, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::divwx(UGeckoInstruction inst)
@@ -504,7 +504,7 @@ void Interpreter::divwx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(overflow);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RD]);
 }
 
 void Interpreter::divwux(UGeckoInstruction inst)
@@ -526,7 +526,7 @@ void Interpreter::divwux(UGeckoInstruction inst)
     PowerPC::SetXER_OV(overflow);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RD]);
 }
 
 void Interpreter::mulhwx(UGeckoInstruction inst)
@@ -538,7 +538,7 @@ void Interpreter::mulhwx(UGeckoInstruction inst)
   rGPR[inst.RD] = d;
 
   if (inst.Rc)
-    Helper_UpdateCR0(d);
+    Helper_UpdateCR0(&PowerPC::ppcState, d);
 }
 
 void Interpreter::mulhwux(UGeckoInstruction inst)
@@ -550,7 +550,7 @@ void Interpreter::mulhwux(UGeckoInstruction inst)
   rGPR[inst.RD] = d;
 
   if (inst.Rc)
-    Helper_UpdateCR0(d);
+    Helper_UpdateCR0(&PowerPC::ppcState, d);
 }
 
 void Interpreter::mullwx(UGeckoInstruction inst)
@@ -565,7 +565,7 @@ void Interpreter::mullwx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(result < -0x80000000LL || result > 0x7FFFFFFFLL);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RD]);
 }
 
 void Interpreter::negx(UGeckoInstruction inst)
@@ -578,7 +578,7 @@ void Interpreter::negx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(a == 0x80000000);
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(&PowerPC::ppcState, rGPR[inst.RD]);
 }
 
 void Interpreter::subfx(UGeckoInstruction inst)
@@ -593,7 +593,7 @@ void Interpreter::subfx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::subfcx(UGeckoInstruction inst)
@@ -609,7 +609,7 @@ void Interpreter::subfcx(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 void Interpreter::subfex(UGeckoInstruction inst)
@@ -626,7 +626,7 @@ void Interpreter::subfex(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 // sub from minus one
@@ -644,7 +644,7 @@ void Interpreter::subfmex(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
 
 // sub from zero
@@ -661,5 +661,5 @@ void Interpreter::subfzex(UGeckoInstruction inst)
     PowerPC::SetXER_OV(HasAddOverflowed(a, 0, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(result);
+    Helper_UpdateCR0(&PowerPC::ppcState, result);
 }
