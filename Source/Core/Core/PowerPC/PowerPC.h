@@ -156,6 +156,13 @@ struct PowerPCState
   u32 pagetable_hashmask;
 
   InstructionCache iCache;
+
+  void UpdateCR1()
+  {
+    cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
+  }
+
+  void SetSR(u32 index, u32 value);
 };
 
 #if _M_X86_64
