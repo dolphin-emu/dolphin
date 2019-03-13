@@ -279,8 +279,6 @@ public:
   static void RunTable59(UGeckoInstruction inst);
   static void RunTable63(UGeckoInstruction inst);
 
-  static u32 Helper_Carry(u32 value1, u32 value2);
-
 private:
   void CheckExceptions();
 

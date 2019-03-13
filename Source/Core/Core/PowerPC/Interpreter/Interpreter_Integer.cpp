@@ -18,7 +18,7 @@ void Interpreter::Helper_UpdateCR0(u32 value)
   PowerPC::ppcState.cr.fields[0] = cr_val;
 }
 
-u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
+static u32 Helper_Carry(u32 value1, u32 value2)
 {
   return value2 > (~value1);
 }
