@@ -27,6 +27,7 @@ enum class RegisterType
   srr,         // Machine status save/restore register (SRR0 - SRR1)
   sr,          // Segment register (SR0 - SR15)
   gqr,         // Graphics quantization registers (GQR0 - GQR7)
+  hid,         // Hardware Implementation-Dependent registers (HID0-2, HID4)
   exceptions,  // Keeps track of currently triggered exceptions
   int_mask,    // ???
   int_cause,   // ???
