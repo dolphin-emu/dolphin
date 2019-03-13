@@ -61,7 +61,7 @@ void GeckoReturnTrampoline()
   GPR(1) = PowerPC::HostRead_U32(SP + 8);
   NPC = PowerPC::HostRead_U32(SP + 12);
   LR = PowerPC::HostRead_U32(SP + 16);
-  PowerPC::ExpandCR(PowerPC::HostRead_U32(SP + 20));
+  PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)
   {
     rPS(i).SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),

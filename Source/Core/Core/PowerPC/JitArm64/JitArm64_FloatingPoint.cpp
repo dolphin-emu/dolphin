@@ -293,7 +293,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   SetJumpTarget(pNaN);
 
-  MOVI2R(XA, PowerPC::PPCCRToInternal(PowerPC::CR_SO));
+  MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
 
   if (a != b)
   {
