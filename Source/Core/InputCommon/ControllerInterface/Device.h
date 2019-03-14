@@ -46,6 +46,10 @@ public:
     virtual ~Control() {}
     virtual Input* ToInput() { return nullptr; }
     virtual Output* ToOutput() { return nullptr; }
+
+    // May be overridden to allow multiple valid names.
+    // Useful for backwards-compatible configurations when names change.
+    virtual bool IsMatchingName(const std::string& name) const;
   };
 
   //
@@ -114,12 +118,13 @@ protected:
   void AddInput(Input* const i);
   void AddOutput(Output* const o);
 
-  class FullAnalogSurface : public Input
+  class FullAnalogSurface final : public Input
   {
   public:
     FullAnalogSurface(Input* low, Input* high) : m_low(*low), m_high(*high) {}
     ControlState GetState() const override;
-    std::string GetName() const override { return m_low.GetName() + *m_high.GetName().rbegin(); }
+    std::string GetName() const override;
+    bool IsMatchingName(const std::string& name) const override;
 
   private:
     Input& m_low;

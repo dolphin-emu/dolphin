@@ -55,7 +55,7 @@ Device::Input* Device::FindInput(const std::string& name) const
 {
   for (Input* input : m_inputs)
   {
-    if (input->GetName() == name)
+    if (input->IsMatchingName(name))
       return input;
   }
 
@@ -66,16 +66,40 @@ Device::Output* Device::FindOutput(const std::string& name) const
 {
   for (Output* output : m_outputs)
   {
-    if (output->GetName() == name)
+    if (output->IsMatchingName(name))
       return output;
   }
 
   return nullptr;
 }
 
+bool Device::Control::IsMatchingName(const std::string& name) const
+{
+  return GetName() == name;
+}
+
 ControlState Device::FullAnalogSurface::GetState() const
 {
   return (1 + std::max(0.0, m_high.GetState()) - std::max(0.0, m_low.GetState())) / 2;
+}
+
+std::string Device::FullAnalogSurface::GetName() const
+{
+  // E.g. "Full Axis X+"
+  return "Full " + m_high.GetName();
+}
+
+bool Device::FullAnalogSurface::IsMatchingName(const std::string& name) const
+{
+  if (Control::IsMatchingName(name))
+    return true;
+
+  // Old naming scheme was "Axis X-+" which is too visually similar to "Axis X+".
+  // This has caused countless problems for users with mysterious misconfigurations.
+  // We match this old name to support old configurations.
+  const auto old_name = m_low.GetName() + *m_high.GetName().rbegin();
+
+  return old_name == name;
 }
 
 //
