@@ -69,8 +69,9 @@ public final class SettingsFragmentPresenter
     }
   }
 
-  public void onViewCreated(Settings settings)
+  public void onViewCreated(MenuTag menuTag, Settings settings)
   {
+    this.mMenuTag = menuTag;
     setSettings(settings);
   }
 
