@@ -190,8 +190,8 @@ bool AVIDump::CreateVideoFile()
   s_codec_context->height = s_height;
   s_codec_context->time_base.num = 1;
   s_codec_context->time_base.den = VideoInterface::GetTargetRefreshRate();
-  s_codec_context->gop_size = 12;
-  s_codec_context->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
+  s_codec_context->gop_size = 1;
+  s_codec_context->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGR0 : AV_PIX_FMT_YUV420P;
 
   if (output_format->flags & AVFMT_GLOBALHEADER)
     s_codec_context->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
