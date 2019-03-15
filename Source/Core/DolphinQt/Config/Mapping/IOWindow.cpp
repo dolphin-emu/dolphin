@@ -40,7 +40,7 @@ IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controlle
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  Update();
+  ConfigChanged();
 }
 
 void IOWindow::CreateMainLayout()
@@ -115,8 +115,10 @@ void IOWindow::CreateMainLayout()
   setLayout(m_main_layout);
 }
 
-void IOWindow::Update()
+void IOWindow::ConfigChanged()
 {
+  const auto old_state = blockSignals(true);
+
   m_expression_text->setPlainText(QString::fromStdString(m_reference->GetExpression()));
   m_expression_text->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor);
   m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
@@ -126,6 +128,8 @@ void IOWindow::Update()
 
   UpdateDeviceList();
   UpdateOptionList();
+
+  blockSignals(old_state);
 }
 
 void IOWindow::ConnectWidgets()
@@ -173,6 +177,7 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   }
 
   m_reference->SetExpression(m_expression_text->toPlainText().toStdString());
+  m_controller->UpdateReferences(g_controller_interface);
 
   if (button != m_apply_button)
     accept();
@@ -234,21 +239,9 @@ void IOWindow::UpdateDeviceList()
 {
   m_devices_combo->clear();
 
-  Core::RunAsCPUThread([&] {
-    g_controller_interface.RefreshDevices();
-    m_controller->UpdateReferences(g_controller_interface);
+  for (const auto& name : g_controller_interface.GetAllDeviceStrings())
+    m_devices_combo->addItem(QString::fromStdString(name));
 
-    // Adding default device regardless if it's currently connected or not
-    const auto default_device = m_controller->GetDefaultDevice().ToString();
-
-    m_devices_combo->addItem(QString::fromStdString(default_device));
-
-    for (const auto& name : g_controller_interface.GetAllDeviceStrings())
-    {
-      if (name != default_device)
-        m_devices_combo->addItem(QString::fromStdString(name));
-    }
-
-    m_devices_combo->setCurrentIndex(0);
-  });
+  m_devices_combo->setCurrentText(
+      QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
 }

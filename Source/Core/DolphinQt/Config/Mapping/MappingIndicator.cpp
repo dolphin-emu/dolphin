@@ -23,6 +23,7 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+#include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
@@ -50,15 +51,9 @@ const QColor SWING_GATE_COLOR = 0xcea2d9;
 
 constexpr int INPUT_DOT_RADIUS = 2;
 
-constexpr int INDICATOR_UPDATE_FREQ = 30;
-
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
 {
   setMinimumHeight(128);
-
-  const auto timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, [this] { repaint(); });
-  timer->start(1000 / INDICATOR_UPDATE_FREQ);
 }
 
 namespace
@@ -133,12 +128,8 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   const QColor tv_brush_color = CURSOR_TV_COLOR;
   const QColor tv_pen_color = tv_brush_color.darker(125);
 
-  // TODO: This SetControllerStateNeeded interface leaks input into the game
-  // We should probably hold the mutex for UI updates.
-  Settings::Instance().SetControllerStateNeeded(true);
   const auto raw_coord = cursor.GetState(false);
   const auto adj_coord = cursor.GetState(true);
-  Settings::Instance().SetControllerStateNeeded(false);
 
   UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
 
@@ -250,9 +241,6 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
 
   const QColor gate_pen_color = gate_brush_color.darker(125);
 
-  // TODO: This SetControllerStateNeeded interface leaks input into the game
-  // We should probably hold the mutex for UI updates.
-  Settings::Instance().SetControllerStateNeeded(true);
   const auto raw_coord = stick.GetReshapableState(false);
 
   Common::DVec2 adj_coord;
@@ -266,8 +254,6 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   {
     adj_coord = stick.GetReshapableState(true);
   }
-
-  Settings::Instance().SetControllerStateNeeded(false);
 
   UpdateCalibrationWidget(raw_coord);
 
@@ -343,10 +329,8 @@ void MappingIndicator::DrawMixedTriggers()
   const std::array<u16, TRIGGER_COUNT> button_masks = {0x1, 0x2};
   u16 button_state = 0;
 
-  Settings::Instance().SetControllerStateNeeded(true);
   triggers.GetState(&button_state, button_masks.data(), raw_analog_state.data(), false);
   triggers.GetState(&button_state, button_masks.data(), adj_analog_state.data(), true);
-  Settings::Instance().SetControllerStateNeeded(false);
 
   // Rectangle sizes:
   const int trigger_height = 32;
@@ -429,13 +413,9 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
   const QColor gate_brush_color = SWING_GATE_COLOR;
   const QColor gate_pen_color = gate_brush_color.darker(125);
 
-  // TODO: This SetControllerStateNeeded interface leaks input into the game
-  // We should probably hold the mutex for UI updates.
-  Settings::Instance().SetControllerStateNeeded(true);
   const auto raw_coord = force.GetState(false);
   WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
   const auto& adj_coord = m_motion_state.position;
-  Settings::Instance().SetControllerStateNeeded(false);
 
   UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
 
@@ -520,6 +500,9 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
 
 void MappingIndicator::paintEvent(QPaintEvent*)
 {
+  // TODO: The SetControllerStateNeeded interface leaks input into the game.
+  Settings::Instance().SetControllerStateNeeded(true);
+
   switch (m_group->type)
   {
   case ControllerEmu::GroupType::Cursor:
@@ -538,6 +521,8 @@ void MappingIndicator::paintEvent(QPaintEvent*)
   default:
     break;
   }
+
+  Settings::Instance().SetControllerStateNeeded(false);
 }
 
 void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)

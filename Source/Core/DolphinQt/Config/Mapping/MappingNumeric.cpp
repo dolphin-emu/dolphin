@@ -10,25 +10,23 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-MappingNumeric::MappingNumeric(MappingWidget* widget, ControllerEmu::NumericSetting* setting)
-    : m_parent(widget), m_setting(setting)
+MappingNumeric::MappingNumeric(MappingWidget* parent, ControllerEmu::NumericSetting* setting)
+    : m_setting(*setting)
 {
   setRange(setting->m_low, setting->m_high);
-  Update();
-  Connect();
-}
 
-void MappingNumeric::Connect()
-{
   connect(this, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
-          [this](int value) {
-            m_setting->SetValue(static_cast<double>(value) / 100);
-            m_parent->SaveSettings();
-            m_parent->GetController()->UpdateReferences(g_controller_interface);
+          [this, parent](int value) {
+            m_setting.SetValue(static_cast<double>(value) / 100);
+            parent->SaveSettings();
           });
+
+  connect(parent, &MappingWidget::ConfigChanged, this, &MappingNumeric::ConfigChanged);
 }
 
-void MappingNumeric::Update()
+void MappingNumeric::ConfigChanged()
 {
-  setValue(m_setting->GetValue() * 100);
+  const bool old_state = blockSignals(true);
+  setValue(m_setting.GetValue() * 100);
+  blockSignals(old_state);
 }
