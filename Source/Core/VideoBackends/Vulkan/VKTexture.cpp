@@ -873,7 +873,7 @@ void VKStagingTexture::Flush()
     g_command_buffer_mgr->WaitForFence(m_flush_fence);
   }
 
-  DEBUG_ASSERT(m_flush_fence == VK_NULL_HANDLE);
+  m_flush_fence = VK_NULL_HANDLE;
   m_needs_flush = false;
 
   // For readback textures, invalidate the CPU cache as there is new data there.
