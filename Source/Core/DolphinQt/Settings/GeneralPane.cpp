@@ -175,6 +175,9 @@ void GeneralPane::CreateAutoUpdate()
   auto_update_group->setLayout(layout);
   m_main_layout->addWidget(auto_update_group);
 
+  layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
   m_combobox_update_track = new QComboBox(this);
 
   layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
