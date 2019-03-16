@@ -167,6 +167,11 @@ struct PowerPCState
 
   InstructionCache iCache;
 
+  // TODO: These should really be in the save state, although it's unlikely to matter much.
+  // They are for lwarx and its friend stwcxd.
+  bool reserve;
+  u32 reserve_address;
+
   void UpdateCR1()
   {
     cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);

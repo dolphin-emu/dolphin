@@ -175,6 +175,7 @@ static void ResetRegisters()
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
+  ppcState.reserve = false;
   for (auto& v : ppcState.cr.fields)
   {
     v = 0x8000000000000001;
