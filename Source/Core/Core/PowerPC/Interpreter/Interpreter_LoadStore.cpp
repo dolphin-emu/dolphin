@@ -15,9 +15,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
-bool Interpreter::m_reserve;
-u32 Interpreter::m_reserve_address;
-
 static u32 Helper_Get_EA(const PowerPC::PowerPCState& ppcs, const UGeckoInstruction inst)
 {
   return inst.RA ? (ppcs.gpr[inst.RA] + inst.SIMM_16) : (u32)inst.SIMM_16;
@@ -992,8 +989,8 @@ void Interpreter::lwarx(UGeckoInstruction inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    m_reserve = true;
-    m_reserve_address = address;
+    PowerPC::ppcState.reserve = true;
+    PowerPC::ppcState.reserve_address = address;
   }
 }
 
@@ -1008,14 +1005,14 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
     return;
   }
 
-  if (m_reserve)
+  if (PowerPC::ppcState.reserve)
   {
-    if (address == m_reserve_address)
+    if (address == PowerPC::ppcState.reserve_address)
     {
       PowerPC::Write_U32(rGPR[inst.RS], address);
       if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
       {
-        m_reserve = false;
+        PowerPC::ppcState.reserve = false;
         PowerPC::ppcState.cr.SetField(0, 2 | PowerPC::GetXER_SO());
         return;
       }
