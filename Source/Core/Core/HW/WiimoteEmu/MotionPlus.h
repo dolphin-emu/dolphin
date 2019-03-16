@@ -66,7 +66,7 @@ private:
     std::array<u8, 0x10> passthrough_ext_calib;
 
     // address 0x50
-    std::array<u8, 0x40> init_data;
+    std::array<u8, 0x40> challenge_data;
 
     u8 unknown_0x90[0x60];
 
@@ -74,10 +74,11 @@ private:
     u8 initialized;
 
     // address 0xF1
-    u8 init_stage;
+    // Value is either 0 or 1.
+    u8 challenge_type;
 
     // address 0xF2
-    // Games write 0x00 here twice to start and stop calibration.
+    // Games write 0x00 here to start and stop calibration.
     u8 calibration_trigger;
 
     // address 0xF3
@@ -93,12 +94,8 @@ private:
     // Real M+ changes this value from 0x4, 0x8, 0xc, and finally 0xe.
     // Games then trigger a 2nd stage via a write to 0xf1.
     // Real M+ changes this value to 0x14, 0x18, and finally 0x1a.
-
-    // Note: The speed of this value progression seems to be
-    // greatly increased by the reading of regular controller data.
-
     // Note: We don't progress like this. We jump to the final value as soon as possible.
-    u8 init_progress;
+    u8 challenge_progress;
 
     // address 0xF8
     // Values are taken from the extension on the passthrough port.
@@ -109,7 +106,6 @@ private:
     std::array<u8, 6> ext_identifier;
   };
 #pragma pack(pop)
-
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
   static_assert(0x100 == sizeof(Register), "Wrong size");
 
@@ -117,6 +113,21 @@ private:
   static constexpr u8 ACTIVE_DEVICE_ADDR = 0x52;
 
   static constexpr u8 PASSTHROUGH_MODE_OFFSET = 0xfe;
+
+  static constexpr int CALIBRATION_BITS = 16;
+
+  // static constexpr u16 CALIBRATION_ZERO = 1 << (CALIBRATION_BITS - 1);
+  static constexpr u16 CALIBRATION_ZERO = 1 << (CALIBRATION_BITS - 1);
+  // Values are similar to that of a typical real M+.
+  static constexpr u16 CALIBRATION_SCALE_OFFSET = 0x4400;
+  static constexpr u16 CALIBRATION_FAST_SCALE_DEGREES = 0x4b0;
+  static constexpr u16 CALIBRATION_SLOW_SCALE_DEGREES = 0x10e;
+
+  static constexpr u8 CHALLENGE_START = 0x02;
+  static constexpr u8 CHALLENGE_PREPARE_X = 0x04;
+  static constexpr u8 CHALLENGE_PREPARE_Y = 0x18;
+  static constexpr u8 CHALLENGE_X_READY = 0x0e;
+  static constexpr u8 CHALLENGE_Y_READY = 0x1a;
 
   enum class PassthroughMode : u8
   {

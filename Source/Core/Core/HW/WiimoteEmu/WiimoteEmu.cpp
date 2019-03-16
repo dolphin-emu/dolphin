@@ -699,7 +699,7 @@ Common::Vec3 Wiimote::GetAcceleration()
   if (IsUpright())
     orientation *= Common::Matrix33::RotateX(float(MathUtil::TAU / 4));
 
-  // TODO: cursor accel:
+  // TODO: Cursor movement should produce acceleration.
 
   Common::Vec3 accel =
       orientation *
