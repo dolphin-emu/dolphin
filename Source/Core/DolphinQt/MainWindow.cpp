@@ -776,7 +776,7 @@ bool MainWindow::RequestStop()
     }
   }
 
-  // TODO: Add Movie shutdown
+  OnStopRecording();
   // TODO: Add Debugger shutdown
 
   if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
@@ -1565,30 +1565,26 @@ void MainWindow::OnStopRecording()
 {
   if (Movie::IsRecordingInput())
     OnExportRecording();
-
-  Movie::EndPlayInput(false);
-  emit RecordingStatusChanged(true);
+  if (Movie::IsMovieActive())
+    Movie::EndPlayInput(false);
+  emit RecordingStatusChanged(false);
 }
 
 void MainWindow::OnExportRecording()
 {
   bool was_paused = Core::GetState() == Core::State::Paused;
 
-  if (was_paused)
+  if (!was_paused)
     Core::SetState(Core::State::Paused);
 
   QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
-  if (was_paused)
+  if (!dtm_file.isEmpty())
+    Movie::SaveRecording(dtm_file.toStdString());
+
+  if (!was_paused)
     Core::SetState(Core::State::Running);
-
-  if (dtm_file.isEmpty())
-    return;
-
-  Core::SetState(Core::State::Running);
-
-  Movie::SaveRecording(dtm_file.toStdString());
 }
 
 void MainWindow::ShowTASInput()
