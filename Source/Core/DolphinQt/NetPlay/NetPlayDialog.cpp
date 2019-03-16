@@ -238,6 +238,7 @@ void NetPlayDialog::CreatePlayersLayout()
   m_players_list->verticalHeader()->hide();
   m_players_list->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_players_list->horizontalHeader()->setStretchLastSection(true);
+  m_players_list->horizontalHeader()->setHighlightSections(false);
 
   for (int i = 0; i < 4; i++)
     m_players_list->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
