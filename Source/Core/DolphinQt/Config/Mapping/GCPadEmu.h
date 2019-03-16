@@ -6,13 +6,6 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
-class QCheckBox;
-class QFormLayout;
-class QGroupBox;
-class QHBoxLayout;
-class QLabel;
-class QVBoxLayout;
-
 class GCPadEmu final : public MappingWidget
 {
   Q_OBJECT
@@ -25,6 +18,4 @@ private:
   void LoadSettings() override;
   void SaveSettings() override;
   void CreateMainLayout();
-
-  QHBoxLayout* m_main_layout;
 };
