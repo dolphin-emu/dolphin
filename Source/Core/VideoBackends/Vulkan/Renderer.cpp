@@ -315,7 +315,7 @@ void Renderer::PresentBackbuffer()
   // Because this final command buffer is rendering to the swap chain, we need to wait for
   // the available semaphore to be signaled before executing the buffer. This final submission
   // can happen off-thread in the background while we're preparing the next frame.
-  g_command_buffer_mgr->SubmitCommandBuffer(true, m_swap_chain->GetSwapChain(),
+  g_command_buffer_mgr->SubmitCommandBuffer(true, false, m_swap_chain->GetSwapChain(),
                                             m_swap_chain->GetCurrentImageIndex());
 
   // New cmdbuffer, so invalidate state.
@@ -327,11 +327,7 @@ void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_comple
   StateTracker::GetInstance()->EndRenderPass();
   PerfQuery::GetInstance()->FlushQueries();
 
-  // If we're waiting for completion, don't bother waking the worker thread.
-  const VkFence pending_fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
-  g_command_buffer_mgr->SubmitCommandBuffer(submit_off_thread && wait_for_completion);
-  if (wait_for_completion)
-    g_command_buffer_mgr->WaitForFence(pending_fence);
+  g_command_buffer_mgr->SubmitCommandBuffer(submit_off_thread, wait_for_completion);
 
   StateTracker::GetInstance()->InvalidateCachedState();
 }
@@ -550,10 +546,6 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 
 void Renderer::ResetSamplerStates()
 {
-  // Ensure none of the sampler objects are in use.
-  // This assumes that none of the samplers are in use on the command list currently being recorded.
-  g_command_buffer_mgr->WaitForGPUIdle();
-
   // Invalidate all sampler states, next draw will re-initialize them.
   for (u32 i = 0; i < m_sampler_states.size(); i++)
   {

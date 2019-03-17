@@ -24,8 +24,6 @@ PerfQuery::PerfQuery() = default;
 
 PerfQuery::~PerfQuery()
 {
-  g_command_buffer_mgr->RemoveFenceSignaledCallback(this);
-
   if (m_query_pool != VK_NULL_HANDLE)
     vkDestroyQueryPool(g_vulkan_context->GetDevice(), m_query_pool, nullptr);
 }
@@ -48,9 +46,6 @@ bool PerfQuery::Initialize()
     PanicAlert("Failed to create readback buffer");
     return false;
   }
-
-  g_command_buffer_mgr->AddFenceSignaledCallback(
-      this, std::bind(&PerfQuery::OnFenceSignaled, this, std::placeholders::_1));
 
   return true;
 }
@@ -113,7 +108,7 @@ void PerfQuery::ResetQuery()
 
   for (auto& entry : m_query_buffer)
   {
-    entry.pending_fence = VK_NULL_HANDLE;
+    entry.fence_counter = 0;
     entry.available = false;
     entry.active = false;
   }
@@ -217,7 +212,7 @@ void PerfQuery::QueueCopyQueryResults(u32 start_index, u32 query_count)
   {
     u32 index = start_index + i;
     ActiveQuery& entry = m_query_buffer[index];
-    entry.pending_fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
+    entry.fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
     entry.available = true;
     entry.active = false;
   }
@@ -261,8 +256,10 @@ void PerfQuery::FlushQueries()
     QueueCopyQueryResults(copy_start_index, copy_count);
 }
 
-void PerfQuery::OnFenceSignaled(VkFence fence)
+void PerfQuery::ProcessPendingResults()
 {
+  const u64 completed_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
+
   // Need to save these since ProcessResults will modify them.
   u32 query_read_pos = m_query_read_pos;
   u32 query_count = m_query_count;
@@ -273,7 +270,7 @@ void PerfQuery::OnFenceSignaled(VkFence fence)
   for (u32 i = 0; i < query_count; i++)
   {
     u32 index = (query_read_pos + i) % PERF_QUERY_BUFFER_SIZE;
-    if (m_query_buffer[index].pending_fence != fence)
+    if (m_query_buffer[index].fence_counter > completed_fence_counter)
     {
       // These should be grouped together, at the end.
       break;
@@ -314,8 +311,8 @@ void PerfQuery::ProcessResults(u32 start_index, u32 query_count)
     ActiveQuery& entry = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).
-    ASSERT(entry.pending_fence != VK_NULL_HANDLE);
-    entry.pending_fence = VK_NULL_HANDLE;
+    ASSERT(entry.fence_counter != 0);
+    entry.fence_counter = 0;
     entry.available = false;
     entry.active = false;
 
@@ -340,9 +337,11 @@ void PerfQuery::NonBlockingPartialFlush()
     return;
 
   // Submit a command buffer in the background if the front query is not bound to one.
-  // Ideally this will complete before the buffer fills.
-  if (m_query_buffer[m_query_read_pos].pending_fence == VK_NULL_HANDLE)
+  ActiveQuery& entry = m_query_buffer[m_query_read_pos];
+  if (entry.fence_counter == g_command_buffer_mgr->GetCurrentFenceCounter())
     Renderer::GetInstance()->ExecuteCommandBuffer(true, false);
+
+  ProcessPendingResults();
 }
 
 void PerfQuery::BlockingPartialFlush()
@@ -352,17 +351,9 @@ void PerfQuery::BlockingPartialFlush()
 
   // If the first pending query is needing command buffer execution, do that.
   ActiveQuery& entry = m_query_buffer[m_query_read_pos];
-  if (entry.pending_fence == VK_NULL_HANDLE)
-  {
-    // This will callback OnCommandBufferQueued which will set the fence on the entry.
-    // We wait for completion, which will also call OnCommandBufferExecuted, and clear the fence.
+  if (entry.fence_counter == g_command_buffer_mgr->GetCurrentFenceCounter())
     Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
-  }
-  else
-  {
-    // The command buffer has been submitted, but is awaiting completion.
-    // Wait for the fence to complete, which will call OnCommandBufferExecuted.
-    g_command_buffer_mgr->WaitForFence(entry.pending_fence);
-  }
+
+  ProcessPendingResults();
 }
 }  // namespace Vulkan

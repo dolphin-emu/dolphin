@@ -36,8 +36,8 @@ public:
 private:
   struct ActiveQuery
   {
+    u64 fence_counter;
     PerfQueryType query_type;
-    VkFence pending_fence;
     bool available;
     bool active;
   };
@@ -45,10 +45,8 @@ private:
   bool CreateQueryPool();
   bool CreateReadbackBuffer();
   void QueueCopyQueryResults(u32 start_index, u32 query_count);
+  void ProcessPendingResults();
   void ProcessResults(u32 start_index, u32 query_count);
-
-  void OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fence);
-  void OnFenceSignaled(VkFence fence);
 
   void NonBlockingPartialFlush();
   void BlockingPartialFlush();

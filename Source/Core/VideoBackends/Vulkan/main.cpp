@@ -251,8 +251,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
-  if (g_command_buffer_mgr)
-    g_command_buffer_mgr->WaitForGPUIdle();
+  if (g_vulkan_context)
+    vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
   if (g_shader_cache)
     g_shader_cache->Shutdown();

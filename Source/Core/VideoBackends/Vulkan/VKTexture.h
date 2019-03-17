@@ -104,7 +104,7 @@ private:
                    std::unique_ptr<StagingBuffer> buffer);
 
   std::unique_ptr<StagingBuffer> m_staging_buffer;
-  VkFence m_flush_fence = VK_NULL_HANDLE;
+  u64 m_flush_fence_counter = 0;
 };
 
 class VKFramebuffer final : public AbstractFramebuffer
