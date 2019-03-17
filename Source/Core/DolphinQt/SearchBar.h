@@ -15,13 +15,17 @@ class SearchBar : public QWidget
 public:
   explicit SearchBar(QWidget* parent = nullptr);
 
-  void Toggle();
+  void Show();
+  void Hide();
+
 signals:
   void Search(const QString& serach);
 
 private:
   void CreateWidgets();
   void ConnectWidgets();
+
+  bool eventFilter(QObject* object, QEvent* event) final override;
 
   QLineEdit* m_search_edit;
   QPushButton* m_close_button;

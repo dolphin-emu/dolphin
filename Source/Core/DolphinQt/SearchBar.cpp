@@ -4,7 +4,9 @@
 
 #include "DolphinQt/SearchBar.h"
 
+#include <QEvent>
 #include <QHBoxLayout>
+#include <QKeyEvent>
 #include <QLineEdit>
 #include <QPushButton>
 
@@ -16,6 +18,8 @@ SearchBar::SearchBar(QWidget* parent) : QWidget(parent)
   setFixedHeight(32);
 
   setHidden(true);
+
+  installEventFilter(this);
 }
 
 void SearchBar::CreateWidgets()
@@ -34,20 +38,40 @@ void SearchBar::CreateWidgets()
   setLayout(layout);
 }
 
-void SearchBar::Toggle()
+void SearchBar::Show()
 {
-  m_search_edit->clear();
+  m_search_edit->setFocus();
+  m_search_edit->selectAll();
 
-  setHidden(isVisible());
+  // Re-apply the filter string.
+  emit Search(m_search_edit->text());
 
-  if (isVisible())
-    m_search_edit->setFocus();
-  else
-    m_search_edit->clearFocus();
+  show();
+}
+
+void SearchBar::Hide()
+{
+  // Clear the filter string.
+  emit Search(QString());
+
+  m_search_edit->clearFocus();
+
+  hide();
 }
 
 void SearchBar::ConnectWidgets()
 {
   connect(m_search_edit, &QLineEdit::textChanged, this, &SearchBar::Search);
-  connect(m_close_button, &QPushButton::pressed, this, &SearchBar::Toggle);
+  connect(m_close_button, &QPushButton::pressed, this, &SearchBar::Hide);
+}
+
+bool SearchBar::eventFilter(QObject* object, QEvent* event)
+{
+  if (event->type() == QEvent::KeyPress)
+  {
+    if (static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape)
+      Hide();
+  }
+
+  return false;
 }
