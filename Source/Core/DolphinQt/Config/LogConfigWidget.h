@@ -8,10 +8,7 @@
 
 class QCheckBox;
 class QCloseEvent;
-class QListWidget;
-class QPushButton;
-class QRadioButton;
-class QVBoxLayout;
+class QTreeView;
 
 class LogConfigWidget final : public QDockWidget
 {
@@ -29,16 +26,8 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  QRadioButton* m_verbosity_notice;
-  QRadioButton* m_verbosity_error;
-  QRadioButton* m_verbosity_warning;
-  QRadioButton* m_verbosity_info;
   QCheckBox* m_out_file;
   QCheckBox* m_out_console;
   QCheckBox* m_out_window;
-  QPushButton* m_types_toggle;
-  QListWidget* m_types_list;
-
-  bool m_all_enabled = true;
-  bool m_block_save = false;
+  QTreeView* m_log_types;
 };
