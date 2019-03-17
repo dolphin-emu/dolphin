@@ -323,7 +323,7 @@ void MainWindow::InitCoreCallbacks()
 
 static void InstallHotkeyFilter(QWidget* dialog)
 {
-  auto* filter = new WindowActivationEventFilter();
+  auto* filter = new WindowActivationEventFilter(dialog);
   dialog->installEventFilter(filter);
 
   filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,

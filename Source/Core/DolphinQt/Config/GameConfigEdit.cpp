@@ -63,7 +63,7 @@ GameConfigEdit::GameConfigEdit(QWidget* parent, const QString& path, bool read_o
 
   m_completer = new QCompleter(m_edit);
 
-  auto* completion_model = new QStringListModel;
+  auto* completion_model = new QStringListModel(m_completer);
   completion_model->setStringList(m_completions);
 
   m_completer->setModel(completion_model);
@@ -77,8 +77,6 @@ GameConfigEdit::GameConfigEdit(QWidget* parent, const QString& path, bool read_o
 
 void GameConfigEdit::CreateWidgets()
 {
-  m_menu = new QMenu;
-
   m_edit = new QTextEdit;
   m_edit->setReadOnly(m_read_only);
   m_edit->setAcceptRichText(false);
@@ -89,6 +87,8 @@ void GameConfigEdit::CreateWidgets()
 
   menu_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
   menu_button->setText(tr("Presets"));
+
+  m_menu = new QMenu(menu_button);
   menu_button->setMenu(m_menu);
 
   layout->addWidget(menu_button);
