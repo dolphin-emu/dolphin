@@ -197,6 +197,9 @@
     <ClCompile Include="FramebufferManager.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlayChatUI.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -385,6 +388,9 @@
     </ClInclude>
     <ClInclude Include="TextureConverterShaderGen.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlayChatUI.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -57,6 +57,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -522,6 +523,9 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bOverlayStats)
     Statistics::Display();
+
+  if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
+    g_netplay_chat_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
     Statistics::DisplayProj();

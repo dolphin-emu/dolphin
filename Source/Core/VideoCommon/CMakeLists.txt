@@ -22,6 +22,7 @@ add_library(videocommon
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
+  NetPlayChatUI.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
   PerfQueryBase.cpp
