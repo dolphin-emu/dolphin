@@ -304,7 +304,6 @@ void Renderer::PresentBackbuffer()
 {
   // End drawing to backbuffer
   StateTracker::GetInstance()->EndRenderPass();
-  PerfQuery::GetInstance()->FlushQueries();
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.
@@ -325,7 +324,6 @@ void Renderer::PresentBackbuffer()
 void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
 {
   StateTracker::GetInstance()->EndRenderPass();
-  PerfQuery::GetInstance()->FlushQueries();
 
   g_command_buffer_mgr->SubmitCommandBuffer(submit_off_thread, wait_for_completion);
 
