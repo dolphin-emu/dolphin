@@ -62,11 +62,13 @@ bool StateTracker::Initialize()
       VKTexture::Create(TextureConfig(1, 1, 1, 1, 1, AbstractTextureFormat::RGBA8, 0));
   if (!m_dummy_texture)
     return false;
+  m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Initialize all samplers to point by default
   for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
   {
-    m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
     m_bindings.samplers[i].sampler = g_object_cache->GetPointSampler();
   }
@@ -223,14 +225,14 @@ void StateTracker::UnbindTexture(VkImageView view)
     if (it.imageView == view)
     {
       it.imageView = m_dummy_texture->GetView();
-      it.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      it.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
   }
 
   if (m_bindings.image_texture.imageView == view)
   {
     m_bindings.image_texture.imageView = m_dummy_texture->GetView();
-    m_bindings.image_texture.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    m_bindings.image_texture.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   }
 }
 
