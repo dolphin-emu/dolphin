@@ -27,10 +27,10 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
-#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/FrameDump.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
@@ -337,14 +337,14 @@ private:
     int width;
     int height;
     int stride;
-    AVIDump::Frame state;
+    FrameDump::Frame state;
   } m_frame_dump_config;
 
   // Texture used for screenshot/frame dumping
   std::unique_ptr<AbstractTexture> m_frame_dump_render_texture;
   std::unique_ptr<AbstractFramebuffer> m_frame_dump_render_framebuffer;
   std::array<std::unique_ptr<AbstractStagingTexture>, 2> m_frame_dump_readback_textures;
-  AVIDump::Frame m_last_frame_state;
+  FrameDump::Frame m_last_frame_state;
   bool m_last_frame_exported = false;
 
   // Tracking of XFB textures so we don't render duplicate frames.
@@ -355,9 +355,9 @@ private:
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
 
   // NOTE: The methods below are called on the framedumping thread.
-  bool StartFrameDumpToAVI(const FrameDumpConfig& config);
-  void DumpFrameToAVI(const FrameDumpConfig& config);
-  void StopFrameDumpToAVI();
+  bool StartFrameDumpToFFMPEG(const FrameDumpConfig& config);
+  void DumpFrameToFFMPEG(const FrameDumpConfig& config);
+  void StopFrameDumpToFFMPEG();
   std::string GetFrameDumpNextImageFileName() const;
   bool StartFrameDumpToImage(const FrameDumpConfig& config);
   void DumpFrameToImage(const FrameDumpConfig& config);
@@ -376,7 +376,7 @@ private:
                         const MathUtil::Rectangle<int>& src_rect, u64 ticks);
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
-  void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state);
+  void DumpFrameData(const u8* data, int w, int h, int stride, const FrameDump::Frame& state);
 
   // Ensures all rendered frames are queued for encoding.
   void FlushFrameDump();

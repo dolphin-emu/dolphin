@@ -35,7 +35,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -192,7 +192,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("Gecko");
 
 #if defined(HAVE_FFMPEG)
-  AVIDump::DoState();
+  FrameDump::DoState();
 #endif
 }
 
