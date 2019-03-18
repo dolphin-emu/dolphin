@@ -6,6 +6,11 @@
 
 #include <QWidget>
 
+namespace AudioCommon
+{
+enum class DPL2Quality;
+}
+
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -35,6 +40,10 @@ private:
   void CheckNeedForLatencyControl();
   bool m_latency_control_supported;
 
+  QString GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const;
+  QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const;
+  void EnableDolbyQualityWidgets(bool enabled) const;
+
   QGridLayout* m_main_layout;
 
   // DSP Engine
@@ -50,6 +59,11 @@ private:
   QLabel* m_backend_label;
   QComboBox* m_backend_combo;
   QCheckBox* m_dolby_pro_logic;
+  QLabel* m_dolby_quality_label;
+  QSlider* m_dolby_quality_slider;
+  QLabel* m_dolby_quality_low_label;
+  QLabel* m_dolby_quality_highest_label;
+  QLabel* m_dolby_quality_latency_label;
   QLabel* m_latency_label;
   QSpinBox* m_latency_spin;
 #ifdef _WIN32
