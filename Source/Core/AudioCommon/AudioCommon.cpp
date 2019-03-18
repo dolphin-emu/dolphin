@@ -129,6 +129,8 @@ bool SupportsDPL2Decoder(const std::string& backend)
     return true;
   if (backend == BACKEND_PULSEAUDIO)
     return true;
+  if (backend == BACKEND_XAUDIO2)
+    return true;
   return false;
 }
 
