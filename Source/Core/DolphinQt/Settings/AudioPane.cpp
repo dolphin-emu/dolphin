@@ -107,7 +107,7 @@ void AudioPane::CreateWidgets()
       tr("Quality of the DPLII decoder. Audio latency increases with quality."));
   m_dolby_quality_slider->setTracking(true);
 
-  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Lowest));
+  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Low));
   m_dolby_quality_highest_label =
       new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Highest));
   m_dolby_quality_latency_label =
@@ -300,7 +300,7 @@ void AudioPane::SaveSettings()
                   static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()));
   m_dolby_quality_latency_label->setText(
       GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
+  if (AudioCommon::SupportsDPL2Decoder(backend))
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isChecked());
   }
@@ -380,7 +380,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_dsp_interpreter->setEnabled(!running);
   m_backend_label->setEnabled(!running);
   m_backend_combo->setEnabled(!running);
-  if (AudioCommon::SupportsDPL2Decoder(SConfig::GetInstance().sBackend) && !m_dsp_hle->isChecked())
+  if (AudioCommon::SupportsDPL2Decoder(SConfig::GetInstance().sBackend))
   {
     m_dolby_pro_logic->setEnabled(!running);
     EnableDolbyQualityWidgets(!running && m_dolby_pro_logic->isChecked());
@@ -413,10 +413,10 @@ QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
-  case AudioCommon::DPL2Quality::Lowest:
-    return tr("Lowest");
   case AudioCommon::DPL2Quality::Low:
     return tr("Low");
+  case AudioCommon::DPL2Quality::Medium:
+    return tr("Medium");
   case AudioCommon::DPL2Quality::Highest:
     return tr("Highest");
   default:
@@ -428,9 +428,9 @@ QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value
 {
   switch (value)
   {
-  case AudioCommon::DPL2Quality::Lowest:
-    return tr("Latency: ~10ms");
   case AudioCommon::DPL2Quality::Low:
+    return tr("Latency: ~10ms");
+  case AudioCommon::DPL2Quality::Medium:
     return tr("Latency: ~20ms");
   case AudioCommon::DPL2Quality::Highest:
     return tr("Latency: ~80ms");
