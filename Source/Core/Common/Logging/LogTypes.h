@@ -5,6 +5,16 @@
 // no header guard, we WANT to include this multiple times (with different implementation of the X
 // macro)
 
+#ifndef TYPE
+#error TYPE must be defined as a macro taking a log type identifier, short name and full name
+#endif
+#ifndef CATEGORY
+#error CATEGORY must be defined as a macro taking a log type identifier, a short name and a full name
+#endif
+#ifndef END_CATEGORY
+#error END_CATEGORY must be defined as a macro taking a log type identifier
+#endif
+
 // clang-format off
 TYPE(ACTIONREPLAY, "ActionReplay", "ActionReplay")
 TYPE(AUDIO, "Audio", "Audio Emulator")
