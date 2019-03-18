@@ -52,6 +52,11 @@ void Host_RefreshDSPDebuggerWindow()
 {
 }
 
+bool Host_UIBlocksControllerState()
+{
+  return false;
+}
+
 static Common::Event s_update_main_frame_event;
 void Host_Message(HostMessageID id)
 {

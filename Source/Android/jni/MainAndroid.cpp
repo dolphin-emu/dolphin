@@ -94,6 +94,10 @@ void Host_NotifyMapLoaded()
 void Host_RefreshDSPDebuggerWindow()
 {
 }
+bool Host_UIBlocksControllerState()
+{
+  return false;
+}
 
 void Host_Message(HostMessageID id)
 {

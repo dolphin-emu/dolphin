@@ -33,6 +33,7 @@ enum class HostMessageID
 };
 
 bool Host_UINeedsControllerState();
+bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererIsFullscreen();
 void Host_Message(HostMessageID id);

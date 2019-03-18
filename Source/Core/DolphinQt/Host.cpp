@@ -151,6 +151,12 @@ bool Host_UINeedsControllerState()
 {
   return Settings::Instance().IsControllerStateNeeded();
 }
+
+bool Host_UIBlocksControllerState()
+{
+  return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard;
+}
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }
