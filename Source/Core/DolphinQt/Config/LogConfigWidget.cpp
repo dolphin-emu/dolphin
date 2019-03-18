@@ -24,7 +24,7 @@ class LogTypeModel : public QAbstractItemModel
 public:
   LogTypeModel(QObject* parent = nullptr) : QAbstractItemModel(parent) {}
 
-  int columnCount(const QModelIndex& parent) const override { return 2; }
+  int columnCount(const QModelIndex& parent) const override { return 4; }
   QVariant data(const QModelIndex& index, int role) const override
   {
     if (!index.isValid())
@@ -35,13 +35,18 @@ public:
     {
       return QVariant();
     }
-    if (index.column() == 0)
+    switch (index.column())
     {
+    case 0:
       return QString::fromStdString(LogTypes::INFO[index.internalId()].long_name);
-    }
-    else
-    {
+    case 1:
       return LogManager::GetInstance()->GetLogLevel(LogTypes::LOG_TYPE(index.internalId()));
+    case 2:
+      return index.internalId();
+    case 3:
+      return LogTypes::INFO[index.internalId()].end;
+    default:
+      return QVariant();
     }
   }
   Qt::ItemFlags flags(const QModelIndex& index) const override
@@ -78,7 +83,7 @@ public:
   }
   QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
-    if (column < 0 || column > 1)
+    if (column < 0 || column > 3)
     {
       // have only 2 columns ⇒ invalid
       return QModelIndex();
@@ -91,7 +96,9 @@ public:
       }
       return createIndex(0, column, quintptr(0));
     }
-    auto child_type = LogTypes::FirstChild(LogTypes::LOG_TYPE(parent.internalId()));
+    auto par_type = LogTypes::LOG_TYPE(parent.internalId());
+    ASSERT(LogTypes::IsValid(par_type));
+    auto child_type = LogTypes::FirstChild(par_type);
     for (int count = 0; count < row; ++count)
     {
       ASSERT(LogTypes::IsValid(child_type));
