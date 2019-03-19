@@ -153,8 +153,10 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
 
   // Zero inputs:
   m_state_in = {};
+
   // Set hats to center:
-  std::fill(std::begin(m_state_in.rgdwPOV), std::end(m_state_in.rgdwPOV), 0xFF);
+  // "The center position is normally reported as -1" -MSDN
+  std::fill(std::begin(m_state_in.rgdwPOV), std::end(m_state_in.rgdwPOV), -1);
 }
 
 Joystick::~Joystick()
@@ -269,9 +271,11 @@ ControlState Joystick::Button::GetState() const
 
 ControlState Joystick::Hat::GetState() const
 {
-  // can this func be simplified ?
-  // hat centered code from MSDN
-  if (0xFFFF == LOWORD(m_hat))
+  // "Some drivers report the centered position of the POV indicator as 65,535.
+  // Determine whether the indicator is centered as follows" -MSDN
+  const bool is_centered = (0xffff == LOWORD(m_hat));
+
+  if (is_centered)
     return 0;
 
   return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
