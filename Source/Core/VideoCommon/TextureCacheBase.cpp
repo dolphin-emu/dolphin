@@ -398,6 +398,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
             static_cast<u32>(dst_x) >= entry_to_update->native_width ||
             static_cast<u32>(dst_y) >= entry_to_update->native_height)
         {
+          ++iter.first;
           continue;
         }
 
