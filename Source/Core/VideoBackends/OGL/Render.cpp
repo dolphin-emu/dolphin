@@ -837,49 +837,30 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 
 u16 Renderer::BBoxRead(int index)
 {
-  int swapped_index = index;
+  // swap 2 and 3 for top/bottom
   if (index >= 2)
-    swapped_index ^= 1;  // swap 2 and 3 for top/bottom
+    index ^= 1;
 
-  // Here we get the min/max value of the truncated position of the upscaled and swapped
-  // framebuffer.
-  // So we have to correct them to the unscaled EFB sizes.
-  int value = BoundingBox::Get(swapped_index);
-
-  if (index < 2)
-  {
-    // left/right
-    value = value * EFB_WIDTH / m_target_width;
-  }
-  else
+  int value = BoundingBox::Get(index);
+  if (index >= 2)
   {
     // up/down -- we have to swap up and down
-    value = value * EFB_HEIGHT / m_target_height;
-    value = EFB_HEIGHT - value - 1;
+    value = EFB_HEIGHT - value;
   }
-  if (index & 1)
-    value++;  // fix max values to describe the outer border
 
-  return value;
+  return static_cast<u16>(value);
 }
 
-void Renderer::BBoxWrite(int index, u16 _value)
+void Renderer::BBoxWrite(int index, u16 value)
 {
-  int value = _value;  // u16 isn't enough to multiply by the efb width
-  if (index & 1)
-    value--;
-  if (index < 2)
-  {
-    value = value * m_target_width / EFB_WIDTH;
-  }
-  else
+  s32 swapped_value = value;
+  if (index >= 2)
   {
     index ^= 1;  // swap 2 and 3 for top/bottom
-    value = EFB_HEIGHT - value - 1;
-    value = value * m_target_height / EFB_HEIGHT;
+    swapped_value = EFB_HEIGHT - swapped_value;
   }
 
-  BoundingBox::Set(index, value);
+  BoundingBox::Set(index, swapped_value);
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,

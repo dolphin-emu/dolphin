@@ -324,40 +324,11 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 
 u16 Renderer::BBoxRead(int index)
 {
-  // Here we get the min/max value of the truncated position of the upscaled framebuffer.
-  // So we have to correct them to the unscaled EFB sizes.
-  int value = BBox::Get(index);
-
-  if (index < 2)
-  {
-    // left/right
-    value = value * EFB_WIDTH / m_target_width;
-  }
-  else
-  {
-    // up/down
-    value = value * EFB_HEIGHT / m_target_height;
-  }
-  if (index & 1)
-    value++;  // fix max values to describe the outer border
-
-  return value;
+  return static_cast<u16>(BBox::Get(index));
 }
 
-void Renderer::BBoxWrite(int index, u16 _value)
+void Renderer::BBoxWrite(int index, u16 value)
 {
-  int value = _value;  // u16 isn't enough to multiply by the efb width
-  if (index & 1)
-    value--;
-  if (index < 2)
-  {
-    value = value * m_target_width / EFB_WIDTH;
-  }
-  else
-  {
-    value = value * m_target_height / EFB_HEIGHT;
-  }
-
   BBox::Set(index, value);
 }
 

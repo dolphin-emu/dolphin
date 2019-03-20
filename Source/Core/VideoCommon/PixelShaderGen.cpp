@@ -444,16 +444,46 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
 
   if (bounding_box)
   {
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-    {
-      out.Write("SSBO_BINDING(0) buffer BBox {\n"
-                "\tint bbox_left, bbox_right, bbox_top, bbox_bottom;\n"
-                "};\n");
-    }
-    else
-    {
-      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n");
-    }
+    out.Write(R"(
+#ifdef API_D3D
+globallycoherent RWBuffer<int> bbox_data : register(u2);
+#define atomicMin InterlockedMin
+#define atomicMax InterlockedMax
+#define bbox_left bbox_data[0]
+#define bbox_right bbox_data[1]
+#define bbox_top bbox_data[2]
+#define bbox_bottom bbox_data[3]
+#else
+SSBO_BINDING(0) buffer BBox {
+  int bbox_left, bbox_right, bbox_top, bbox_bottom;
+};
+#endif
+
+void UpdateBoundingBox(float2 rawpos) {
+  // The pixel center in the GameCube GPU is 7/12, not 0.5 (see VertexShaderGen.cpp)
+  // Adjust for this by unapplying the offset we added in the vertex shader.
+  const float PIXEL_CENTER_OFFSET = 7.0 / 12.0 - 0.5;
+  float2 offset = float2(PIXEL_CENTER_OFFSET, -PIXEL_CENTER_OFFSET);
+
+#ifdef API_OPENGL
+  // OpenGL lower-left origin means that Y goes in the opposite direction.
+  offset.y = -offset.y;
+#endif
+
+  // The bounding box register is exclusive of the right coordinate, hence the +1.
+  int2 pos = iround(rawpos * cefbscale + offset);
+  int2 pos_offset = pos + int2(1, 1);
+
+  if (bbox_left > pos.x)
+    atomicMin(bbox_left, pos.x);
+  if (bbox_right < pos_offset.x)
+    atomicMax(bbox_right, pos_offset.x);
+  if (bbox_top > pos.y)
+    atomicMin(bbox_top, pos.y);
+  if (bbox_bottom < pos_offset.y)
+    atomicMax(bbox_bottom, pos_offset.y);
+}
+)");
   }
 }
 
@@ -859,23 +889,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     WriteBlend(out, uid_data);
 
   if (uid_data->bounding_box)
-  {
-    if (ApiType == APIType::D3D)
-    {
-      out.Write(
-          "\tif(bbox_data[0] > int(rawpos.x)) InterlockedMin(bbox_data[0], int(rawpos.x));\n"
-          "\tif(bbox_data[1] < int(rawpos.x)) InterlockedMax(bbox_data[1], int(rawpos.x));\n"
-          "\tif(bbox_data[2] > int(rawpos.y)) InterlockedMin(bbox_data[2], int(rawpos.y));\n"
-          "\tif(bbox_data[3] < int(rawpos.y)) InterlockedMax(bbox_data[3], int(rawpos.y));\n");
-    }
-    else
-    {
-      out.Write("\tif(bbox_left > int(rawpos.x)) atomicMin(bbox_left, int(rawpos.x));\n"
-                "\tif(bbox_right < int(rawpos.x)) atomicMax(bbox_right, int(rawpos.x));\n"
-                "\tif(bbox_top > int(rawpos.y)) atomicMin(bbox_top, int(rawpos.y));\n"
-                "\tif(bbox_bottom < int(rawpos.y)) atomicMax(bbox_bottom, int(rawpos.y));\n");
-    }
-  }
+    out.Write("\tUpdateBoundingBox(rawpos.xy);\n");
 
   out.Write("}\n");
 
