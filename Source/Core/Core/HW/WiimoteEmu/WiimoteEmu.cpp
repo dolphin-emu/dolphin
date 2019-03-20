@@ -688,21 +688,10 @@ void Wiimote::StepDynamics()
 
 Common::Vec3 Wiimote::GetAcceleration()
 {
-  // Includes effects of:
-  // IR, Tilt, Swing, Orientation, Shake
-
-  auto orientation = Common::Matrix33::Identity();
-
-  if (IsSideways())
-    orientation *= Common::Matrix33::RotateZ(float(MathUtil::TAU / -4));
-
-  if (IsUpright())
-    orientation *= Common::Matrix33::RotateX(float(MathUtil::TAU / 4));
-
   // TODO: Cursor movement should produce acceleration.
 
   Common::Vec3 accel =
-      orientation *
+      GetOrientation() *
       GetTransformation().Transform(
           m_swing_state.acceleration + Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)), 0);
 
@@ -713,17 +702,8 @@ Common::Vec3 Wiimote::GetAcceleration()
 
 Common::Vec3 Wiimote::GetAngularVelocity()
 {
-  // TODO: make cursor movement produce angular velocity.
-
-  auto orientation = Common::Matrix33::Identity();
-
-  // TODO: make a function out of this:
-  if (IsSideways())
-    orientation *= Common::Matrix33::RotateZ(float(MathUtil::TAU / -4));
-  if (IsUpright())
-    orientation *= Common::Matrix33::RotateX(float(MathUtil::TAU / 4));
-
-  return orientation * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity);
+  return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
+                             m_cursor_state.angular_velocity);
 }
 
 Common::Matrix44 Wiimote::GetTransformation() const
@@ -736,6 +716,12 @@ Common::Matrix44 Wiimote::GetTransformation() const
          Common::Matrix44::FromMatrix33(GetRotationalMatrix(
              -m_tilt_state.angle - m_swing_state.angle - m_cursor_state.angle)) *
          Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
+}
+
+Common::Matrix33 Wiimote::GetOrientation() const
+{
+  return Common::Matrix33::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
+         Common::Matrix33::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
 }
 
 }  // namespace WiimoteEmu

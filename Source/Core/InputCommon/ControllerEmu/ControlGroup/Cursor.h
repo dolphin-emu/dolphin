@@ -20,6 +20,8 @@ public:
     ControlState x{};
     ControlState y{};
     ControlState z{};
+
+    bool IsVisible() const;
   };
 
   explicit Cursor(const std::string& name);

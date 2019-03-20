@@ -4,6 +4,10 @@
 
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 
+#include <algorithm>
+#include <cmath>
+
+#include <mbedtls/bignum.h>
 #include <zlib.h>
 
 #include "Common/BitUtils.h"
@@ -16,6 +20,39 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 
+namespace
+{
+// Minimal wrapper mainly to handle init/free
+struct MPI : mbedtls_mpi
+{
+  explicit MPI(const char* base_10_str) : MPI() { mbedtls_mpi_read_string(this, 10, base_10_str); }
+
+  MPI() { mbedtls_mpi_init(this); }
+  ~MPI() { mbedtls_mpi_free(this); }
+
+  mbedtls_mpi* Data() { return this; };
+
+  template <std::size_t N>
+  bool ReadBinary(const u8 (&in_data)[N])
+  {
+    return 0 == mbedtls_mpi_read_binary(this, std::begin(in_data), ArraySize(in_data));
+  }
+
+  template <std::size_t N>
+  bool WriteLittleEndianBinary(std::array<u8, N>* out_data)
+  {
+    if (mbedtls_mpi_write_binary(this, out_data->data(), out_data->size()))
+      return false;
+
+    std::reverse(out_data->begin(), out_data->end());
+    return true;
+  }
+
+  MPI(const MPI&) = delete;
+  MPI& operator=(const MPI&) = delete;
+};
+}  // namespace
+
 namespace WiimoteEmu
 {
 MotionPlus::MotionPlus() : Extension("MotionPlus")
@@ -26,7 +63,7 @@ void MotionPlus::Reset()
 {
   m_reg_data = {};
 
-  m_activation_progress = {};
+  m_progress_timer = {};
 
   // Seeing as we allow disconnection of the M+, we'll say we're not integrated.
   // (0x00 or 0x01)
@@ -69,21 +106,23 @@ void MotionPlus::Reset()
 
   static_assert(sizeof(CalibrationData) == 0x20, "Bad size.");
 
-  static_assert(CALIBRATION_FAST_SCALE_DEGREES % 6 == 0, "Value aught to be divisible by 6.");
-  static_assert(CALIBRATION_SLOW_SCALE_DEGREES % 6 == 0, "Value aught to be divisible by 6.");
+  static_assert(CALIBRATION_FAST_SCALE_DEGREES % 6 == 0, "Value should be divisible by 6.");
+  static_assert(CALIBRATION_SLOW_SCALE_DEGREES % 6 == 0, "Value should be divisible by 6.");
 
   CalibrationData calibration;
   calibration.fast.degrees_div_6 = CALIBRATION_FAST_SCALE_DEGREES / 6;
   calibration.slow.degrees_div_6 = CALIBRATION_SLOW_SCALE_DEGREES / 6;
 
   // From what I can tell, this value is only used to compare against a previously made copy.
-  // I've copied the values from my Wiimote+ just in case it's something relevant.
+  // If the value matches that of the last connected wiimote which passed the "challenge",
+  // then it seems the "challenge" is not performed a second time.
   calibration.uid_1 = 0x0b;
   calibration.uid_2 = 0xe9;
 
   // Update checksum (crc32 of all data other than the checksum itself):
-  const auto crc_result = crc32(crc32(0, reinterpret_cast<const u8*>(&calibration), 0xe),
-                                reinterpret_cast<const u8*>(&calibration) + 0x10, 0xe);
+  auto crc_result = crc32(0, Z_NULL, 0);
+  crc_result = crc32(crc_result, reinterpret_cast<const Bytef*>(&calibration), 0xe);
+  crc_result = crc32(crc_result, reinterpret_cast<const Bytef*>(&calibration) + 0x10, 0xe);
 
   calibration.crc32_lsb = u16(crc_result);
   calibration.crc32_msb = u16(crc_result >> 16);
@@ -94,25 +133,21 @@ void MotionPlus::Reset()
 void MotionPlus::DoState(PointerWrap& p)
 {
   p.Do(m_reg_data);
-  p.Do(m_activation_progress);
+  p.Do(m_progress_timer);
 }
 
 MotionPlus::ActivationStatus MotionPlus::GetActivationStatus() const
 {
-  // M+ takes a bit of time to activate. During which it is completely unresponsive.
-  constexpr int ACTIVATION_MS = 20;
-  constexpr u8 ACTIVATION_STEPS = ::Wiimote::UPDATE_FREQ * ACTIVATION_MS / 1000;
-
   if ((ACTIVE_DEVICE_ADDR << 1) == m_reg_data.ext_identifier[2])
   {
-    if (m_activation_progress < ACTIVATION_STEPS)
+    if (ChallengeState::Activating == m_reg_data.challenge_state)
       return ActivationStatus::Activating;
     else
       return ActivationStatus::Active;
   }
   else
   {
-    if (m_activation_progress != 0)
+    if (m_progress_timer != 0)
       return ActivationStatus::Deactivating;
     else
       return ActivationStatus::Inactive;
@@ -174,6 +209,8 @@ int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
       return m_i2c_bus.BusWrite(slave_addr, addr, count, data_in);
     }
 
+    DEBUG_LOG(WIIMOTE, "Inactive M+ write 0x%x : %s", addr, ArrayToString(data_in, count).c_str());
+
     auto const result = RawWrite(&m_reg_data, addr, count, data_in);
 
     if (PASSTHROUGH_MODE_OFFSET == addr)
@@ -193,30 +230,47 @@ int MotionPlus::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
       return 0;
     }
 
+    DEBUG_LOG(WIIMOTE, "Active M+ write 0x%x : %s", addr, ArrayToString(data_in, count).c_str());
+
     auto const result = RawWrite(&m_reg_data, addr, count, data_in);
 
     switch (addr)
     {
-    case offsetof(Register, initialized):
+    case offsetof(Register, init_trigger):
       // It seems a write of any value here triggers deactivation on a real M+.
       Deactivate();
 
       // Passthrough the write to the attached extension.
-      // The M+ deactivation signal is cleverly the same as EXT activation.
+      // The M+ deactivation signal is cleverly the same as EXT initialization.
       m_i2c_bus.BusWrite(slave_addr, addr, count, data_in);
       break;
 
     case offsetof(Register, challenge_type):
-      if (CHALLENGE_X_READY == m_reg_data.challenge_progress)
+      if (ChallengeState::ParameterXReady == m_reg_data.challenge_state)
       {
+        DEBUG_LOG(WIIMOTE, "M+ challenge: 0x%x", m_reg_data.challenge_type);
+
+        // After games read parameter x they write here to request y0 or y1.
         if (0 == m_reg_data.challenge_type)
         {
-          ERROR_LOG(WIIMOTE, "M+ parameter y0 is not yet supported! Deactivating.");
-
-          Deactivate();
+          // Preparing y0 on the real M+ is almost instant (30ms maybe).
+          constexpr int PREPARE_Y0_MS = 30;
+          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y0_MS / 1000;
+        }
+        else
+        {
+          // A real M+ takes about 1200ms to prepare y1.
+          // Games seem to not care that we don't take that long.
+          constexpr int PREPARE_Y1_MS = 500;
+          m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_Y1_MS / 1000;
         }
 
-        m_reg_data.challenge_progress = CHALLENGE_PREPARE_Y;
+        // Games give the M+ a bit of time to compute the value.
+        // y0 gets about half a second.
+        // y1 gets at about 9.5 seconds.
+        // After this the M+ will fail the "challenge".
+
+        m_reg_data.challenge_state = ChallengeState::PreparingY;
       }
       break;
 
@@ -267,10 +321,16 @@ void MotionPlus::Activate()
   DEBUG_LOG(WIIMOTE, "M+ has been activated.");
 
   m_reg_data.ext_identifier[2] = ACTIVE_DEVICE_ADDR << 1;
-  m_reg_data.challenge_progress = CHALLENGE_START;
 
-  // We must do this to reset our extension_connected flag:
+  // We must do this to reset our extension_connected and is_mp_data flags:
   m_reg_data.controller_data = {};
+
+  m_reg_data.challenge_state = ChallengeState::Activating;
+
+  // M+ takes a bit of time to activate. During which it is completely unresponsive.
+  // This also affects the device detect pin which results in wiimote status reports.
+  constexpr int ACTIVATION_MS = 20;
+  m_progress_timer = ::Wiimote::UPDATE_FREQ * ACTIVATION_MS / 1000;
 }
 
 void MotionPlus::Deactivate()
@@ -278,7 +338,11 @@ void MotionPlus::Deactivate()
   DEBUG_LOG(WIIMOTE, "M+ has been deactivated.");
 
   m_reg_data.ext_identifier[2] = INACTIVE_DEVICE_ADDR << 1;
-  m_reg_data.challenge_progress = 0x0;
+
+  // M+ takes a bit of time to deactivate. During which it is completely unresponsive.
+  // This also affects the device detect pin which results in wiimote status reports.
+  constexpr int DEACTIVATION_MS = 20;
+  m_progress_timer = ::Wiimote::UPDATE_FREQ * DEACTIVATION_MS / 1000;
 }
 
 bool MotionPlus::ReadDeviceDetectPin() const
@@ -306,69 +370,133 @@ bool MotionPlus::IsButtonPressed() const
 
 void MotionPlus::Update()
 {
-  switch (GetActivationStatus())
+  if (m_progress_timer)
+    --m_progress_timer;
+
+  if (!m_progress_timer && ActivationStatus::Activating == GetActivationStatus())
   {
-  case ActivationStatus::Activating:
-    ++m_activation_progress;
-    break;
+    // M+ is active now that the timer is up.
+    m_reg_data.challenge_state = ChallengeState::PreparingX;
 
-  case ActivationStatus::Deactivating:
-    --m_activation_progress;
-    break;
+    // Games give the M+ about a minute to prepare x before failure.
+    // A real M+ can take about 1500ms.
+    // The SDK seems to have a race condition that fails if a non-ready value is not read.
+    // A necessary delay preventing challenge failure is not inserted if x is immediately ready.
+    // So we must use at least a small delay.
+    // Note: This does not delay game start. The challenge takes place in the background.
+    constexpr int PREPARE_X_MS = 500;
+    m_progress_timer = ::Wiimote::UPDATE_FREQ * PREPARE_X_MS / 1000;
+  }
 
-  case ActivationStatus::Active:
+  if (ActivationStatus::Active != GetActivationStatus())
+    return;
+
+  u8* const data = m_reg_data.controller_data.data();
+  DataFormat mplus_data = Common::BitCastPtr<DataFormat>(data);
+
+  const bool is_ext_connected = m_extension_port.IsDeviceConnected();
+
+  // Check for extension change:
+  if (is_ext_connected != mplus_data.extension_connected)
   {
-    u8* const data = m_reg_data.controller_data.data();
-    DataFormat mplus_data = Common::BitCastPtr<DataFormat>(data);
-
-    const bool is_ext_connected = m_extension_port.IsDeviceConnected();
-
-    // Check for extension change:
-    if (is_ext_connected != mplus_data.extension_connected)
+    if (is_ext_connected)
     {
-      if (is_ext_connected)
+      DEBUG_LOG(WIIMOTE, "M+ initializing new extension.");
+
+      // The M+ automatically initializes an extension when attached.
+
+      // What we do here does not exactly match a real M+,
+      // but it's close enough for our emulated extensions which are not very picky.
+
+      // Disable encryption
       {
-        DEBUG_LOG(WIIMOTE, "M+ initializing new extension.");
-
-        // The M+ automatically initializes an extension when attached.
-
-        // What we do here does not exactly match a real M+,
-        // but it's close enough for our emulated extensions which are not very picky.
-
-        // Disable encryption
-        {
-          constexpr u8 INIT_OFFSET = offsetof(Register, initialized);
-          std::array<u8, 1> enc_data = {0x55};
-          m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, int(enc_data.size()),
-                             enc_data.data());
-        }
-
-        // Read identifier
-        {
-          constexpr u8 ID_OFFSET = offsetof(Register, ext_identifier);
-          std::array<u8, 6> id_data = {};
-          m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, int(id_data.size()), id_data.data());
-          m_reg_data.passthrough_ext_id_0 = id_data[0];
-          m_reg_data.passthrough_ext_id_4 = id_data[4];
-          m_reg_data.passthrough_ext_id_5 = id_data[5];
-        }
-
-        // Read calibration data
-        {
-          constexpr u8 CAL_OFFSET = offsetof(Register, calibration_data);
-          m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, CAL_OFFSET,
-                            int(m_reg_data.passthrough_ext_calib.size()),
-                            m_reg_data.passthrough_ext_calib.data());
-        }
+        constexpr u8 INIT_OFFSET = offsetof(Register, init_trigger);
+        std::array<u8, 1> enc_data = {0x55};
+        m_i2c_bus.BusWrite(ACTIVE_DEVICE_ADDR, INIT_OFFSET, int(enc_data.size()), enc_data.data());
       }
 
-      // Update flag in register:
-      mplus_data.extension_connected = is_ext_connected;
-      Common::BitCastPtr<DataFormat>(data) = mplus_data;
+      // Read identifier
+      {
+        constexpr u8 ID_OFFSET = offsetof(Register, ext_identifier);
+        std::array<u8, 6> id_data = {};
+        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, ID_OFFSET, int(id_data.size()), id_data.data());
+        m_reg_data.passthrough_ext_id_0 = id_data[0];
+        m_reg_data.passthrough_ext_id_4 = id_data[4];
+        m_reg_data.passthrough_ext_id_5 = id_data[5];
+      }
+
+      // Read calibration data
+      {
+        constexpr u8 CAL_OFFSET = offsetof(Register, calibration_data);
+        m_i2c_bus.BusRead(ACTIVE_DEVICE_ADDR, CAL_OFFSET,
+                          int(m_reg_data.passthrough_ext_calib.size()),
+                          m_reg_data.passthrough_ext_calib.data());
+      }
     }
 
+    // Update flag in register:
+    mplus_data.extension_connected = is_ext_connected;
+    Common::BitCastPtr<DataFormat>(data) = mplus_data;
+  }
+
+  // Only perform any of the following challenge logic if our timer is up.
+  if (m_progress_timer)
+    return;
+
+  // This is potentially any value that is less than cert_n and >= 2.
+  // A real M+ uses random values each run.
+  constexpr u8 magic[] = "DOLPHIN DOES WHAT NINTENDON'T.";
+
+  constexpr char cert_n[] =
+      "67614561104116375676885818084175632651294951727285593632649596941616763967271774525888270484"
+      "88546653264235848263182009106217734439508352645687684489830161";
+
+  constexpr char sqrt_v[] =
+      "22331959796794118515742337844101477131884013381589363004659408068948154670914705521646304758"
+      "02483462872732436570235909421331424649287229820640697259759264";
+
+  switch (m_reg_data.challenge_state)
+  {
+  case ChallengeState::PreparingX:
+  {
+    MPI param_x;
+    param_x.ReadBinary(magic);
+
+    mbedtls_mpi_mul_mpi(&param_x, &param_x, &param_x);
+    mbedtls_mpi_mod_mpi(&param_x, &param_x, MPI(cert_n).Data());
+
+    // Big-int little endian parameter x.
+    param_x.WriteLittleEndianBinary(&m_reg_data.challenge_data);
+
+    DEBUG_LOG(WIIMOTE, "M+ parameter x ready.");
+    m_reg_data.challenge_state = ChallengeState::ParameterXReady;
     break;
   }
+
+  case ChallengeState::PreparingY:
+    if (0 == m_reg_data.challenge_type)
+    {
+      MPI param_y0;
+      param_y0.ReadBinary(magic);
+
+      // Big-int little endian parameter y0.
+      param_y0.WriteLittleEndianBinary(&m_reg_data.challenge_data);
+    }
+    else
+    {
+      MPI param_y1;
+      param_y1.ReadBinary(magic);
+
+      mbedtls_mpi_mul_mpi(&param_y1, &param_y1, MPI(sqrt_v).Data());
+      mbedtls_mpi_mod_mpi(&param_y1, &param_y1, MPI(cert_n).Data());
+
+      // Big-int little endian parameter y1.
+      param_y1.WriteLittleEndianBinary(&m_reg_data.challenge_data);
+    }
+
+    DEBUG_LOG(WIIMOTE, "M+ parameter y ready.");
+    m_reg_data.challenge_state = ChallengeState::ParameterYReady;
+    break;
 
   default:
     break;
@@ -384,86 +512,31 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
 
   u8* const data = m_reg_data.controller_data.data();
 
-  // Try to alternate between M+ and EXT data:
-  // This flag is checked down below where the controller data is prepared.
+  // FYI: A real M+ seems to always send some garbage/mystery data for the first report,
+  // followed by a normal M+ data report, and then finally passhrough data (if enabled).
+  // Things seem to work without doing that so we'll just send normal M+ data right away.
   DataFormat mplus_data = Common::BitCastPtr<DataFormat>(data);
-  mplus_data.is_mp_data ^= true;
 
   // Maintain the current state of this bit rather than reading from the port.
   // We update this bit elsewhere and performs some tasks on change.
   const bool is_ext_connected = mplus_data.extension_connected;
 
-  switch (m_reg_data.challenge_progress)
-  {
-  case CHALLENGE_START:
-    // Activation starts the challenge_progress.
-    // Harness this to force non-passthrough data for the first report.
-    mplus_data.is_mp_data = true;
-
-    // Note: A real M+ seems to always send some garbage/mystery data for the first report.
-    // Things seem to work without doing that so we'll just send normal data.
-
-    m_reg_data.challenge_progress = CHALLENGE_PREPARE_X;
-    break;
-
-  case CHALLENGE_PREPARE_X:
-    // Force another report of M+ data.
-    // The second data report is regular M+ data, even if a passthrough mode is set.
-    mplus_data.is_mp_data = true;
-
-    // Big-int little endian parameter x.
-    m_reg_data.challenge_data = {
-        0x99, 0x1a, 0x07, 0x1b, 0x97, 0xf1, 0x11, 0x78, 0x0c, 0x42, 0x2b, 0x68, 0xdf,
-        0x44, 0x38, 0x0d, 0x2b, 0x7e, 0xd6, 0x84, 0x84, 0x58, 0x65, 0xc9, 0xf2, 0x95,
-        0xd9, 0xaf, 0xb6, 0xc4, 0x87, 0xd5, 0x18, 0xdb, 0x67, 0x3a, 0xc0, 0x71, 0xec,
-        0x3e, 0xf4, 0xe6, 0x7e, 0x35, 0xa3, 0x29, 0xf8, 0x1f, 0xc5, 0x7c, 0x3d, 0xb9,
-        0x56, 0x22, 0x95, 0x98, 0x8f, 0xfb, 0x66, 0x3e, 0x9a, 0xdd, 0xeb, 0x7e,
-    };
-
-    m_reg_data.challenge_progress = CHALLENGE_X_READY;
-    break;
-
-  case CHALLENGE_PREPARE_Y:
-    if (0 == m_reg_data.challenge_type)
-    {
-      // TODO: Prepare y0.
-    }
-    else
-    {
-      // Big-int little endian parameter y1.
-      m_reg_data.challenge_data = {
-          0xa5, 0x84, 0x1f, 0xd6, 0xbd, 0xdc, 0x7a, 0x4c, 0xf3, 0xc0, 0x24, 0xe0, 0x92,
-          0xef, 0x19, 0x28, 0x65, 0xe0, 0x62, 0x7c, 0x9b, 0x41, 0x6f, 0x12, 0xc3, 0xac,
-          0x78, 0xe4, 0xfc, 0x6b, 0x7b, 0x0a, 0xb4, 0x50, 0xd6, 0xf2, 0x45, 0xf7, 0x93,
-          0x04, 0xaf, 0xf2, 0xb7, 0x26, 0x94, 0xee, 0xad, 0x92, 0x05, 0x6d, 0xe5, 0xc6,
-          0xd6, 0x36, 0xdc, 0xa5, 0x69, 0x0f, 0xc8, 0x99, 0xf2, 0x1c, 0x4e, 0x0d,
-      };
-    }
-
-    // Note. A real M+ takes about 1200ms to reach this state (for y1)
-    // (y0 is almost instant)
-    m_reg_data.challenge_progress = CHALLENGE_Y_READY;
-    break;
-
-  default:
-    break;
-  }
-
-  // After the first two data reports it alternates between EXT and M+ data.
+  // After the first "garbage" report a real M+ alternates between M+ and EXT data.
   // Failure to read from the extension results in a fallback to M+ data.
-
-  // Real M+ only ever reads 6 bytes from the extension which is triggered by a read at 0x00.
-  // Data after 6 bytes seems to be zero-filled.
-  // After reading from the EXT, the real M+ uses that data for the next frame.
-  // But we are going to use it for the current frame, because we can.
-  constexpr int EXT_AMT = 6;
-  // Always read from 0x52 @ 0x00:
-  constexpr u8 EXT_SLAVE = ExtensionPort::REPORT_I2C_SLAVE;
-  constexpr u8 EXT_ADDR = ExtensionPort::REPORT_I2C_ADDR;
+  mplus_data.is_mp_data ^= true;
 
   // If the last frame had M+ data try to send some non-M+ data:
   if (!mplus_data.is_mp_data)
   {
+    // Real M+ only ever reads 6 bytes from the extension which is triggered by a read at 0x00.
+    // Data after 6 bytes seems to be zero-filled.
+    // After reading from the EXT, the real M+ uses that data for the next frame.
+    // But we are going to use it for the current frame, because we can.
+    constexpr int EXT_AMT = 6;
+    // Always read from 0x52 @ 0x00:
+    constexpr u8 EXT_SLAVE = ExtensionPort::REPORT_I2C_SLAVE;
+    constexpr u8 EXT_ADDR = ExtensionPort::REPORT_I2C_ADDR;
+
     switch (GetPassthroughMode())
     {
     case PassthroughMode::Disabled:

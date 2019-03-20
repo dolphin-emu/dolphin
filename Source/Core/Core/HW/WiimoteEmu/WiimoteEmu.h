@@ -148,6 +148,9 @@ private:
   // Does not include orientation transformations.
   Common::Matrix44 GetTransformation() const;
 
+  // Returns the world rotation from the effects of sideways/upright settings.
+  Common::Matrix33 GetOrientation() const;
+
   void HIDOutputReport(const void* data, u32 size);
 
   void HandleReportRumble(const WiimoteCommon::OutputReportRumble&);

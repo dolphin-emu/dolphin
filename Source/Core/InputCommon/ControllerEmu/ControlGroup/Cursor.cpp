@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -153,8 +154,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   // If auto-hide time is up or hide button is held:
   if (!m_auto_hide_timer || controls[6]->control_ref->State() > BUTTON_THRESHOLD)
   {
-    // TODO: Use NaN or something:
-    result.x = 10000;
+    result.x = std::numeric_limits<ControlState>::quiet_NaN();
     result.y = 0;
   }
 
@@ -174,6 +174,11 @@ ControlState Cursor::GetTotalPitch() const
 ControlState Cursor::GetVerticalOffset() const
 {
   return m_vertical_offset_setting.GetValue() / 100;
+}
+
+bool Cursor::StateData::IsVisible() const
+{
+  return !std::isnan(x);
 }
 
 }  // namespace ControllerEmu

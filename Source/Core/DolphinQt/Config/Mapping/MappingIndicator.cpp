@@ -217,7 +217,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
       QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
 
   // Adjusted Z (if not hidden):
-  if (adj_coord.z && adj_coord.x < 10000)
+  if (adj_coord.IsVisible())
   {
     p.setBrush(GetAdjustedInputColor());
     p.drawRect(
@@ -250,7 +250,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
   // Adjusted cursor position (if not hidden):
-  if (adj_coord.x < 10000)
+  if (adj_coord.IsVisible())
   {
     p.setPen(Qt::NoPen);
     p.setBrush(GetAdjustedInputColor());

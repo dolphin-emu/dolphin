@@ -131,8 +131,15 @@ WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3&
 
 void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
 {
-  using Common::Matrix33;
-  using Common::Matrix44;
+  const auto cursor = ir_group->GetState(true);
+
+  if (!cursor.IsVisible())
+  {
+    // Move the wiimote a kilometer forward so the sensor bar is always behind it.
+    *state = {};
+    state->position = {0, -1000, 0};
+    return;
+  }
 
   // Nintendo recommends a distance of 1-3 meters.
   constexpr float NEUTRAL_DISTANCE = 2.f;
@@ -147,21 +154,30 @@ void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float ti
   const float yaw_scale = ir_group->GetTotalYaw() / 2;
   const float pitch_scale = ir_group->GetTotalPitch() / 2;
 
-  const auto cursor = ir_group->GetState(true);
-
   // TODO: Move state out of ControllerEmu::Cursor
   // TODO: Use ApproachPositionWithJerk
   // TODO: Move forward/backward after rotation.
   const auto new_position =
-      Common::Vec3{0, NEUTRAL_DISTANCE - MOVE_DISTANCE * float(cursor.z), height};
+      Common::Vec3(0, NEUTRAL_DISTANCE - MOVE_DISTANCE * float(cursor.z), -height);
+
+  const auto target_angle = Common::Vec3(pitch_scale * -cursor.y, 0, yaw_scale * -cursor.x);
+
+  // If cursor was hidden, jump to the target position/angle immediately.
+  if (state->position.y < 0)
+  {
+    state->position = new_position;
+    state->angle = target_angle;
+
+    return;
+  }
+
   state->acceleration = new_position - state->position;
   state->position = new_position;
 
   // TODO: expose this setting in UI:
   constexpr auto MAX_ACCEL = float(MathUtil::TAU * 100);
 
-  ApproachAngleWithAccel(state, Common::Vec3(pitch_scale * -cursor.y, 0, yaw_scale * -cursor.x),
-                         MAX_ACCEL, time_elapsed);
+  ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
 }
 
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,
