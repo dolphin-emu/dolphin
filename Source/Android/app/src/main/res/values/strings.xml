@@ -298,7 +298,7 @@
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
-    <string name="emulation_controller_changed">You may have to reload the game after changing extensions.</string>
+    <string name="emulation_reload_wiimote_config">Reload Config</string>
     <string name="emulation_touch_button_help">Swipe down from the top of the screen to access the menu.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>

@@ -825,19 +825,20 @@ public final class EmulationActivity extends AppCompatActivity
               NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
                       getResources().getStringArray(R.array.controllersValues)[indexSelected]);
             });
+    builder.setNeutralButton(getString(R.string.emulation_reload_wiimote_config),
+      (dialogInterface, i) -> {
+        editor.apply();
+        mEmulationFragment.refreshInputOverlay();
+        NativeLibrary.ReloadWiimoteConfig();
+    });
     builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
     {
       editor.apply();
-
       mEmulationFragment.refreshInputOverlay();
-
-      Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT)
-              .show();
     });
 
     AlertDialog alertDialog = builder.create();
     alertDialog.show();
-
   }
 
   private void setIRSensitivity()
