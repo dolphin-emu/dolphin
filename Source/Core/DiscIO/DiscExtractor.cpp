@@ -29,6 +29,11 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
     return "UPDATE";
   case PARTITION_CHANNEL:
     return "CHANNEL";
+  case PARTITION_INSTALL:
+    // wit doesn't recognize the name "INSTALL", so we can't use it when naming partition folders
+    if (!include_prefix)
+      return "INSTALL";
+    // [[fallthrough]]
   default:
     const std::string type_as_game_id{static_cast<char>((partition_type >> 24) & 0xFF),
                                       static_cast<char>((partition_type >> 16) & 0xFF),

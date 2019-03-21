@@ -109,6 +109,7 @@
     <QtMoc Include="Config\PatchesWidget.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
+    <QtMoc Include="Config\VerifyWidget.h" />
     <QtMoc Include="DiscordHandler.h" />
     <QtMoc Include="DiscordJoinRequestDialog.h" />
     <QtMoc Include="FIFO\FIFOAnalyzer.h" />
@@ -267,6 +268,7 @@
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Updater.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)VerifyWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WatchWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiiPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiiTASInputWindow.cpp" />
@@ -329,6 +331,7 @@
     <ClCompile Include="Config\PatchesWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
+    <ClCompile Include="Config\VerifyWidget.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
     <ClCompile Include="Debugger\JITWidget.cpp" />

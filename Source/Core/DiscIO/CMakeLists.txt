@@ -16,6 +16,7 @@ add_library(discio
   Volume.cpp
   VolumeFileBlobReader.cpp
   VolumeGC.cpp
+  VolumeVerifier.cpp
   VolumeWad.cpp
   VolumeWii.cpp
   WiiSaveBanner.cpp
