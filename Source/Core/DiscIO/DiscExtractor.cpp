@@ -205,7 +205,7 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
   if (!size || !offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, *size, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, *size, export_filename);
 }
 
 bool ExportH3Hashes(const Volume& volume, const Partition& partition,
@@ -219,7 +219,7 @@ bool ExportH3Hashes(const Volume& volume, const Partition& partition,
   if (!offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, 0x18000, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, 0x18000, export_filename);
 }
 
 bool ExportHeader(const Volume& volume, const Partition& partition,
