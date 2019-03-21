@@ -96,7 +96,7 @@ signals:
   void ShowList();
   void ShowGrid();
   void PurgeGameListCache();
-  void ToggleSearch();
+  void ShowSearch();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
