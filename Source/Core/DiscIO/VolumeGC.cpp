@@ -179,6 +179,11 @@ u64 VolumeGC::GetSize() const
   return m_reader->GetDataSize();
 }
 
+bool VolumeGC::IsSizeAccurate() const
+{
+  return m_reader->IsDataSizeAccurate();
+}
+
 u64 VolumeGC::GetRawSize() const
 {
   return m_reader->GetRawSize();

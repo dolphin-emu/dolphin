@@ -379,6 +379,11 @@ u64 VolumeWii::GetSize() const
   return m_reader->GetDataSize();
 }
 
+bool VolumeWii::IsSizeAccurate() const
+{
+  return m_reader->IsDataSizeAccurate();
+}
+
 u64 VolumeWii::GetRawSize() const
 {
   return m_reader->GetRawSize();

@@ -175,6 +175,11 @@ u64 VolumeWAD::GetSize() const
   return m_reader->GetDataSize();
 }
 
+bool VolumeWAD::IsSizeAccurate() const
+{
+  return m_reader->IsDataSizeAccurate();
+}
+
 u64 VolumeWAD::GetRawSize() const
 {
   return m_reader->GetRawSize();

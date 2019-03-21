@@ -62,6 +62,7 @@ public:
   Country GetCountry(const Partition& partition) const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
+  bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
 
   static constexpr unsigned int BLOCK_HEADER_SIZE = 0x0400;

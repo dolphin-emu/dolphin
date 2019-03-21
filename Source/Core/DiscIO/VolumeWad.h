@@ -54,6 +54,7 @@ public:
 
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
+  bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
 
 private:
