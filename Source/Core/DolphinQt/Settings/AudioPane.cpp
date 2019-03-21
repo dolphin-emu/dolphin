@@ -6,6 +6,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -65,6 +66,7 @@ void AudioPane::CreateWidgets()
   m_volume_slider->setMaximum(100);
 
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
+  m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(tr("%1 %").arg(100)).width());
 
   volume_layout->addWidget(m_volume_slider, 0, Qt::AlignHCenter);
   volume_layout->addWidget(m_volume_indicator, 0, Qt::AlignHCenter);
