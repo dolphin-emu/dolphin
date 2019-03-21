@@ -271,7 +271,7 @@ void MenuBar::AddToolsMenu()
   m_perform_online_update_menu->addAction(tr("United States"), this,
                                           [this] { emit PerformOnlineUpdate("USA"); });
 
-  QMenu* menu = new QMenu(tr("Connect Wii Remotes"));
+  QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
   tools_menu->addSeparator();
   tools_menu->addMenu(menu);
