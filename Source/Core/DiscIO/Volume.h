@@ -69,6 +69,10 @@ public:
     return INVALID_TICKET;
   }
   virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
+  virtual const std::vector<u8>& GetCertificateChain(const Partition& partition) const
+  {
+    return INVALID_CERT_CHAIN;
+  }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
   virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
@@ -129,8 +133,9 @@ protected:
 
   static const IOS::ES::TicketReader INVALID_TICKET;
   static const IOS::ES::TMDReader INVALID_TMD;
+  static const std::vector<u8> INVALID_CERT_CHAIN;
 };
 
 std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
 
-}  // namespace
+}  // namespace DiscIO

@@ -97,6 +97,18 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         return IOS::ES::TMDReader{std::move(tmd_buffer)};
       };
 
+      auto get_cert_chain = [this, partition]() -> std::vector<u8> {
+        const std::optional<u32> size = m_reader->ReadSwapped<u32>(partition.offset + 0x2ac);
+        const std::optional<u64> address =
+            ReadSwappedAndShifted(partition.offset + 0x2b0, PARTITION_NONE);
+        if (!size || !address)
+          return {};
+        std::vector<u8> cert_chain(*size);
+        if (!m_reader->Read(partition.offset + *address, *size, cert_chain.data()))
+          return {};
+        return cert_chain;
+      };
+
       auto get_key = [this, partition]() -> std::unique_ptr<mbedtls_aes_context> {
         const IOS::ES::TicketReader& ticket = *m_partitions[partition].ticket;
         if (!ticket.IsValid())
@@ -120,6 +132,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
           partition, PartitionDetails{Common::Lazy<std::unique_ptr<mbedtls_aes_context>>(get_key),
                                       Common::Lazy<IOS::ES::TicketReader>(get_ticket),
                                       Common::Lazy<IOS::ES::TMDReader>(get_tmd),
+                                      Common::Lazy<std::vector<u8>>(get_cert_chain),
                                       Common::Lazy<std::unique_ptr<FileSystem>>(get_file_system),
                                       Common::Lazy<u64>(get_data_offset), *partition_type});
     }
@@ -237,6 +250,12 @@ const IOS::ES::TMDReader& VolumeWii::GetTMD(const Partition& partition) const
 {
   auto it = m_partitions.find(partition);
   return it != m_partitions.end() ? *it->second.tmd : INVALID_TMD;
+}
+
+const std::vector<u8>& VolumeWii::GetCertificateChain(const Partition& partition) const
+{
+  auto it = m_partitions.find(partition);
+  return it != m_partitions.end() ? *it->second.cert_chain : INVALID_CERT_CHAIN;
 }
 
 const FileSystem* VolumeWii::GetFileSystem(const Partition& partition) const
@@ -468,4 +487,4 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
   return true;
 }
 
-}  // namespace
+}  // namespace DiscIO

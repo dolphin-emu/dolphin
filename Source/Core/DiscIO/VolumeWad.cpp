@@ -32,14 +32,14 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
 
   // Source: http://wiibrew.org/wiki/WAD_files
   m_hdr_size = m_reader->ReadSwapped<u32>(0x00).value_or(0);
-  m_cert_size = m_reader->ReadSwapped<u32>(0x08).value_or(0);
+  m_cert_chain_size = m_reader->ReadSwapped<u32>(0x08).value_or(0);
   m_ticket_size = m_reader->ReadSwapped<u32>(0x10).value_or(0);
   m_tmd_size = m_reader->ReadSwapped<u32>(0x14).value_or(0);
   m_data_size = m_reader->ReadSwapped<u32>(0x18).value_or(0);
 
-  m_ticket_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40);
-  m_tmd_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40) +
-                 Common::AlignUp(m_ticket_size, 0x40);
+  m_cert_chain_offset = Common::AlignUp(m_hdr_size, 0x40);
+  m_ticket_offset = m_cert_chain_offset + Common::AlignUp(m_cert_chain_size, 0x40);
+  m_tmd_offset = m_ticket_offset + Common::AlignUp(m_ticket_size, 0x40);
   m_opening_bnr_offset =
       m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
 
@@ -56,6 +56,9 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   std::vector<u8> tmd_buffer(m_tmd_size);
   Read(m_tmd_offset, m_tmd_size, tmd_buffer.data());
   m_tmd.SetBytes(std::move(tmd_buffer));
+
+  m_cert_chain.resize(m_cert_chain_size);
+  Read(m_cert_chain_offset, m_cert_chain_size, m_cert_chain.data());
 }
 
 VolumeWAD::~VolumeWAD()
@@ -107,6 +110,11 @@ const IOS::ES::TicketReader& VolumeWAD::GetTicket(const Partition& partition) co
 const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const
 {
   return m_tmd;
+}
+
+const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition) const
+{
+  return m_cert_chain;
 }
 
 std::string VolumeWAD::GetGameID(const Partition& partition) const

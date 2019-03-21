@@ -40,6 +40,7 @@ public:
   std::optional<u64> GetTitleID(const Partition& partition) const override;
   const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
+  const std::vector<u8>& GetCertificateChain(const Partition& partition) const override;
   const FileSystem* GetFileSystem(const Partition& partition) const override;
   static u64 EncryptedPartitionOffsetToRawOffset(u64 offset, const Partition& partition,
                                                  u64 partition_data_offset);
@@ -78,6 +79,7 @@ private:
     Common::Lazy<std::unique_ptr<mbedtls_aes_context>> key;
     Common::Lazy<IOS::ES::TicketReader> ticket;
     Common::Lazy<IOS::ES::TMDReader> tmd;
+    Common::Lazy<std::vector<u8>> cert_chain;
     Common::Lazy<std::unique_ptr<FileSystem>> file_system;
     Common::Lazy<u64> data_offset;
     u32 type;
