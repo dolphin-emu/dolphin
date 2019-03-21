@@ -225,8 +225,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
         {
           if (const std::optional<u32> partition_type = m_volume->GetPartitionType(p))
           {
-            const std::string partition_name =
-                DiscIO::DirectoryNameForPartitionType(*partition_type);
+            const std::string partition_name = DiscIO::NameForPartitionType(*partition_type, true);
             ExtractPartition(p, folder + QChar(u'/') + QString::fromStdString(partition_name));
           }
         }
