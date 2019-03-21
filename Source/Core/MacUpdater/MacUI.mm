@@ -128,12 +128,12 @@ void UI::LaunchApplication(std::string path)
                                            encoding:[NSString defaultCStringEncoding]]];
 }
 
-// Stubs. These are only needed on Windows
-
-void UI::Init()
+void UI::Stop()
 {
+  run_on_main([] { [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0]; });
 }
 
-void UI::Stop()
+// Stub. Only needed on Windows
+void UI::Init()
 {
 }
