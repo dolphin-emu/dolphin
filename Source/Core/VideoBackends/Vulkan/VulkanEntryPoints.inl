@@ -59,6 +59,7 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateMacOSSurfaceMVK, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDestroyDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDebugReportMessageEXT, false)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceProperties2, false)
 
 #endif  // VULKAN_INSTANCE_ENTRY_POINT
 
