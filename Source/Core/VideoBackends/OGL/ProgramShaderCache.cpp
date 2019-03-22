@@ -719,6 +719,29 @@ void ProgramShaderCache::CreateHeader()
     break;
   }
 
+  std::string shader_shuffle_string;
+  if (g_ogl_config.bSupportsShaderThreadShuffleNV)
+  {
+    shader_shuffle_string = R"(
+#extension GL_NV_shader_thread_group : enable
+#extension GL_NV_shader_thread_shuffle : enable
+#define SUPPORTS_SUBGROUP_REDUCTION 1
+
+// The xor shuffle below produces incorrect results if all threads in a warp are not active.
+#define CAN_USE_SUBGROUP_REDUCTION (ballotThreadNV(true) == 0xFFFFFFFFu)
+
+#define IS_HELPER_INVOCATION gl_HelperThreadNV
+#define IS_FIRST_ACTIVE_INVOCATION (gl_ThreadInWarpNV == findLSB(ballotThreadNV(!gl_HelperThreadNV)))
+#define SUBGROUP_REDUCTION(func, value) value = func(value, shuffleXorNV(value, 16, 32)); \
+                                        value = func(value, shuffleXorNV(value, 8, 32)); \
+                                        value = func(value, shuffleXorNV(value, 4, 32)); \
+                                        value = func(value, shuffleXorNV(value, 2, 32)); \
+                                        value = func(value, shuffleXorNV(value, 1, 32));
+#define SUBGROUP_MIN(value) SUBGROUP_REDUCTION(min, value)
+#define SUBGROUP_MAX(value) SUBGROUP_REDUCTION(max, value)
+)";
+  }
+
   s_glsl_header = StringFromFormat(
       "%s\n"
       "%s\n"  // ubo
@@ -737,6 +760,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // ES dual source blend
       "%s\n"  // shader image load store
       "%s\n"  // shader framebuffer fetch
+      "%s\n"  // shader thread shuffle
 
       // Precision defines for GLSL ES
       "%s\n"
@@ -815,8 +839,9 @@ void ProgramShaderCache::CreateHeader()
               ((!is_glsles && v < Glsl430) || (is_glsles && v < GlslEs310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
-      framebuffer_fetch_string.c_str(), is_glsles ? "precision highp float;" : "",
-      is_glsles ? "precision highp int;" : "", is_glsles ? "precision highp sampler2DArray;" : "",
+      framebuffer_fetch_string.c_str(), shader_shuffle_string.c_str(),
+      is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
+      is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",

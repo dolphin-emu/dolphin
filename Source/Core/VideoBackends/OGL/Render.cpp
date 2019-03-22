@@ -661,6 +661,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
     g_ogl_config.max_samples = 1;
 
+  g_ogl_config.bSupportsShaderThreadShuffleNV =
+      GLExtensions::Supports("GL_NV_shader_thread_shuffle");
+
   // We require texel buffers, image load store, and compute shaders to enable GPU texture decoding.
   // If the driver doesn't expose the extensions, but supports GL4.3/GLES3.1, it will still be
   // enabled in the version check below.
