@@ -96,10 +96,11 @@ Country VolumeWAD::GetCountry(const Partition& partition) const
     return TypicalCountryForRegion(GetSysMenuRegion(m_tmd.GetTitleVersion()));
 
   const Region region = GetRegion();
-  if (CountryCodeToRegion(country_byte, Platform::WiiWAD, region) != region)
+  const std::optional<u16> revision = GetRevision();
+  if (CountryCodeToRegion(country_byte, Platform::WiiWAD, region, revision) != region)
     return TypicalCountryForRegion(region);
 
-  return CountryCodeToCountry(country_byte, Platform::WiiWAD, region);
+  return CountryCodeToCountry(country_byte, Platform::WiiWAD, region, revision);
 }
 
 const IOS::ES::TicketReader& VolumeWAD::GetTicket(const Partition& partition) const

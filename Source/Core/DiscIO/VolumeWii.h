@@ -45,22 +45,22 @@ public:
   static u64 EncryptedPartitionOffsetToRawOffset(u64 offset, const Partition& partition,
                                                  u64 partition_data_offset);
   u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const override;
-  std::string GetGameID(const Partition& partition) const override;
-  std::string GetGameTDBID(const Partition& partition) const override;
-  std::string GetMakerID(const Partition& partition) const override;
-  std::optional<u16> GetRevision(const Partition& partition) const override;
-  std::string GetInternalName(const Partition& partition) const override;
+  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
+  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition) const override;
-  std::optional<u8> GetDiscNumber(const Partition& partition) const override;
+  std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
   Platform GetVolumeType() const override;
   bool SupportsIntegrityCheck() const override { return true; }
   bool CheckIntegrity(const Partition& partition) const override;
 
   Region GetRegion() const override;
-  Country GetCountry(const Partition& partition) const override;
+  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;

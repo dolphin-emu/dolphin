@@ -316,11 +316,12 @@ Country VolumeWii::GetCountry(const Partition& partition) const
   // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
   const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
+  const std::optional<u16> revision = GetRevision();
 
-  if (CountryCodeToRegion(country_byte, Platform::WiiDisc, region) != region)
+  if (CountryCodeToRegion(country_byte, Platform::WiiDisc, region, revision) != region)
     return TypicalCountryForRegion(region);
 
-  return CountryCodeToCountry(country_byte, Platform::WiiDisc, region);
+  return CountryCodeToCountry(country_byte, Platform::WiiDisc, region, revision);
 }
 
 std::string VolumeWii::GetMakerID(const Partition& partition) const
