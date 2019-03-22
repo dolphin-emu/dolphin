@@ -459,6 +459,17 @@ SSBO_BINDING(0) buffer BBox {
 };
 #endif
 
+void UpdateBoundingBoxBuffer(float2 min_pos, float2 max_pos) {
+  if (bbox_left > int(min_pos.x))
+    atomicMin(bbox_left, int(min_pos.x));
+  if (bbox_right < int(max_pos.x))
+    atomicMax(bbox_right, int(max_pos.x));
+  if (bbox_top > int(min_pos.y))
+    atomicMin(bbox_top, int(min_pos.y));
+  if (bbox_bottom < int(max_pos.y))
+    atomicMax(bbox_bottom, int(max_pos.y));
+}
+
 void UpdateBoundingBox(float2 rawpos) {
   // The pixel center in the GameCube GPU is 7/12, not 0.5 (see VertexShaderGen.cpp)
   // Adjust for this by unapplying the offset we added in the vertex shader.
@@ -471,18 +482,25 @@ void UpdateBoundingBox(float2 rawpos) {
 #endif
 
   // The bounding box register is exclusive of the right coordinate, hence the +1.
-  int2 pos = iround(rawpos * cefbscale + offset);
-  int2 pos_offset = pos + int2(1, 1);
+  int2 min_pos = iround(rawpos * cefbscale + offset);
+  int2 max_pos = min_pos + int2(1, 1);
 
-  if (bbox_left > pos.x)
-    atomicMin(bbox_left, pos.x);
-  if (bbox_right < pos_offset.x)
-    atomicMax(bbox_right, pos_offset.x);
-  if (bbox_top > pos.y)
-    atomicMin(bbox_top, pos.y);
-  if (bbox_bottom < pos_offset.y)
-    atomicMax(bbox_bottom, pos_offset.y);
+#ifdef SUPPORTS_SUBGROUP_REDUCTION
+  if (CAN_USE_SUBGROUP_REDUCTION) {
+    min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : min_pos;
+    max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : max_pos;
+    SUBGROUP_MIN(min_pos);
+    SUBGROUP_MAX(max_pos);
+    if (IS_FIRST_ACTIVE_INVOCATION)
+      UpdateBoundingBoxBuffer(min_pos, max_pos);
+  } else {
+    UpdateBoundingBoxBuffer(min_pos, max_pos);
+  }
+#else
+  UpdateBoundingBoxBuffer(min_pos, max_pos);
+#endif
 }
+
 )");
   }
 }
@@ -1332,7 +1350,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (!uid_data->alpha_test_use_zcomploc_hack)
   {
     out.Write("\t\tdiscard;\n");
-    if (ApiType != APIType::D3D)
+    if (ApiType == APIType::D3D)
       out.Write("\t\treturn;\n");
   }
 
