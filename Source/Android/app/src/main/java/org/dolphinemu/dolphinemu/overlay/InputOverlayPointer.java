@@ -127,9 +127,11 @@ public class InputOverlayPointer
 
   public float[] getAxisValues()
   {
-    float[] ir = {0f, 0f};
-    ir[0] = axes[0];
-    ir[1] = axes[1];
-    return axes;
+    float[] iraxes = {0f, 0f, 0f, 0f};
+    iraxes[1] = axes[0];
+    iraxes[0] = axes[0];
+    iraxes[3] = axes[1];
+    iraxes[2] = axes[1];
+    return iraxes;
   }
 }
