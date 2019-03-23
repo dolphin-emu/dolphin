@@ -33,6 +33,8 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u64> GetTitleID(const Partition& partition = PARTITION_NONE) const override;
+  const IOS::ES::TicketReader&
+  GetTicket(const Partition& partition = PARTITION_NONE) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
@@ -59,13 +61,14 @@ public:
 
 private:
   std::unique_ptr<BlobReader> m_reader;
+  IOS::ES::TicketReader m_ticket;
   IOS::ES::TMDReader m_tmd;
-  u32 m_offset = 0;
+  u32 m_ticket_offset = 0;
   u32 m_tmd_offset = 0;
   u32 m_opening_bnr_offset = 0;
   u32 m_hdr_size = 0;
   u32 m_cert_size = 0;
-  u32 m_tick_size = 0;
+  u32 m_ticket_size = 0;
   u32 m_tmd_size = 0;
   u32 m_data_size = 0;
 };
