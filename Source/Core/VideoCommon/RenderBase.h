@@ -41,6 +41,7 @@ class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
 class NativeVertexFormat;
+class NetPlayChatUI;
 struct TextureConfig;
 struct ComputePipelineConfig;
 struct AbstractPipelineConfig;
@@ -384,6 +385,8 @@ private:
 
   // Ensures all encoded frames have been written to the output file.
   void FinishFrameData();
+
+  std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

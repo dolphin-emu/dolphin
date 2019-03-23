@@ -57,6 +57,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -523,6 +524,9 @@ void Renderer::DrawDebugText()
   if (g_ActiveConfig.bOverlayStats)
     Statistics::Display();
 
+  if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
+    g_netplay_chat_ui->Display();
+
   if (g_ActiveConfig.bOverlayProjStats)
     Statistics::DisplayProj();
 }
@@ -979,8 +983,7 @@ bool Renderer::InitializeImGui()
   pconfig.vertex_format = m_imgui_vertex_format.get();
   pconfig.vertex_shader = vertex_shader.get();
   pconfig.pixel_shader = pixel_shader.get();
-  pconfig.rasterization_state =
-      RenderState::GetCullBackFaceRasterizationState(PrimitiveType::Triangles);
+  pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
   pconfig.blending_state = RenderState::GetNoBlendingBlendState();
   pconfig.blending_state.blendenable = true;

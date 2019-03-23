@@ -14,8 +14,9 @@ using namespace ciface::ExpressionParser;
 
 bool ControlReference::InputGateOn()
 {
-  return SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus() ||
-         Host_UINeedsControllerState();
+  return (SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus() ||
+          Host_UINeedsControllerState()) &&
+         !Host_UIBlocksControllerState();
 }
 
 //

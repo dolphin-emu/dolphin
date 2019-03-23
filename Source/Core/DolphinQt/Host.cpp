@@ -8,6 +8,8 @@
 #include <QApplication>
 #include <QProgressDialog>
 
+#include <imgui.h>
+
 #include "Common/Common.h"
 
 #include "Core/ConfigManager.h"
@@ -149,8 +151,15 @@ void Host_RequestRenderWindowSize(int w, int h)
 
 bool Host_UINeedsControllerState()
 {
-  return Settings::Instance().IsControllerStateNeeded();
+  return Settings::Instance().IsControllerStateNeeded() ||
+         (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard);
 }
+
+bool Host_UIBlocksControllerState()
+{
+  return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard;
+}
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }

@@ -324,7 +324,7 @@ void RenderWidget::SetImGuiKeyMap()
                                    {ImGuiKey_Delete, Qt::Key_Delete},
                                    {ImGuiKey_Backspace, Qt::Key_Backspace},
                                    {ImGuiKey_Space, Qt::Key_Space},
-                                   {ImGuiKey_Enter, Qt::Key_Enter},
+                                   {ImGuiKey_Enter, Qt::Key_Return},
                                    {ImGuiKey_Escape, Qt::Key_Escape},
                                    {ImGuiKey_A, Qt::Key_A},
                                    {ImGuiKey_C, Qt::Key_C},
