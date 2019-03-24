@@ -39,8 +39,6 @@
 
 namespace OGL
 {
-static constexpr u32 UBO_LENGTH = 32 * 1024 * 1024;
-
 u32 ProgramShaderCache::s_ubo_buffer_size;
 s32 ProgramShaderCache::s_ubo_align;
 GLuint ProgramShaderCache::s_attributeless_VBO = 0;
@@ -497,7 +495,7 @@ void ProgramShaderCache::Init()
   // We multiply by *4*4 because we need to get down to basic machine units.
   // So multiply by four to get how many floats we have from vec4s
   // Then once more to get bytes
-  s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
+  s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, VertexManagerBase::UNIFORM_STREAM_BUFFER_SIZE);
 
   CreateHeader();
   CreateAttributelessVAO();
