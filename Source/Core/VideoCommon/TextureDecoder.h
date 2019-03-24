@@ -116,6 +116,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
                             TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth);
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
