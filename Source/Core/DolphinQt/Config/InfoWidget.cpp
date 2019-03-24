@@ -102,23 +102,22 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  m_name = CreateValueDisplay();
-  m_maker = CreateValueDisplay();
-  m_description = new QTextEdit(group);
-  m_description->setReadOnly(true);
   CreateLanguageSelector();
-
   layout->addRow(tr("Show Language:"), m_language_selector);
+
   if (m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc)
   {
-    layout->addRow(tr("Name:"), m_name);
-    layout->addRow(tr("Maker:"), m_maker);
-    layout->addRow(tr("Description:"), m_description);
+    layout->addRow(tr("Name:"), m_name = CreateValueDisplay());
+    layout->addRow(tr("Maker:"), m_maker = CreateValueDisplay());
+    layout->addRow(tr("Description:"), m_description = new QTextEdit());
+    m_description->setReadOnly(true);
   }
   else if (DiscIO::IsWii(m_game.GetPlatform()))
   {
-    layout->addRow(tr("Name:"), m_name);
+    layout->addRow(tr("Name:"), m_name = CreateValueDisplay());
   }
+
+  ChangeLanguage();
 
   QPixmap banner = ToQPixmap(m_game.GetBannerImage());
   if (!banner.isNull())
@@ -183,16 +182,21 @@ void InfoWidget::CreateLanguageSelector()
   connect(m_language_selector,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &InfoWidget::ChangeLanguage);
-  ChangeLanguage();
 }
 
 void InfoWidget::ChangeLanguage()
 {
   DiscIO::Language language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
-  m_name->setText(QString::fromStdString(m_game.GetLongName(language)));
-  m_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
-  m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
+
+  if (m_name)
+    m_name->setText(QString::fromStdString(m_game.GetLongName(language)));
+
+  if (m_maker)
+    m_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
+
+  if (m_description)
+    m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
 }
 
 QWidget* InfoWidget::CreateChecksumComputer()
