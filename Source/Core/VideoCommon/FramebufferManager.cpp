@@ -407,15 +407,19 @@ void FramebufferManager::InvalidatePeekCache(bool forced)
 {
   if (forced || m_efb_color_cache.out_of_date)
   {
+    if (m_efb_color_cache.valid)
+      std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(), false);
+
     m_efb_color_cache.valid = false;
     m_efb_color_cache.out_of_date = false;
-    std::fill(m_efb_color_cache.tiles.begin(), m_efb_color_cache.tiles.end(), false);
   }
   if (forced || m_efb_depth_cache.out_of_date)
   {
+    if (m_efb_depth_cache.valid)
+      std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(), false);
+
     m_efb_depth_cache.valid = false;
     m_efb_depth_cache.out_of_date = false;
-    std::fill(m_efb_depth_cache.tiles.begin(), m_efb_depth_cache.tiles.end(), false);
   }
 }
 
