@@ -858,7 +858,7 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
   DisplayMessage(m_host_input_authority && !IsHosting() ?
                      tr("Max buffer size changed to %1").arg(buffer) :
                      tr("Buffer size changed to %1").arg(buffer),
-                 "yellow");
+                 "darkcyan");
 
   m_buffer_size = static_cast<int>(buffer);
 }
