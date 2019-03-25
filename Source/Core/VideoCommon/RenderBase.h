@@ -244,6 +244,9 @@ public:
   void BeginUIFrame();
   void EndUIFrame();
 
+  // Draw the last console XFB frame
+  void DrawLastXFBFrame();
+
 protected:
   // Bitmask containing information about which configuration has changed for the backend.
   enum ConfigChangeBits : u32

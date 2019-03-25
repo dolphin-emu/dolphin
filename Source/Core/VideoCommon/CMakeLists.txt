@@ -26,6 +26,7 @@ add_library(videocommon
   NetPlayGolfUI.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
+  PauseScreen.cpp
   PerfQueryBase.cpp
   PixelEngine.cpp
   PixelShaderGen.cpp

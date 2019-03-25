@@ -1304,6 +1304,14 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil:
   }
 }
 
+void Renderer::DrawLastXFBFrame()
+{
+  if (m_last_xfb_texture)
+  {
+    RenderXFBToScreen(m_last_xfb_texture, m_last_xfb_region);
+  }
+}
+
 bool Renderer::IsFrameDumping()
 {
   if (m_screenshot_request.IsSet())

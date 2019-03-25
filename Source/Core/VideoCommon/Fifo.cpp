@@ -25,6 +25,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/PauseScreen.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -297,11 +298,23 @@ void RunGpuLoop()
 
   s_gpu_mainloop.Run(
       [] {
+        static std::unique_ptr<PauseScreen> pause_screen;
         const SConfig& param = SConfig::GetInstance();
 
-        // Do nothing while paused
+        // Display pause screen while paused
         if (!s_emu_running_state.IsSet())
+        {
+          if (!pause_screen)
+          {
+            pause_screen = std::make_unique<PauseScreen>();
+          }
+          pause_screen->Display();
           return;
+        }
+        else if (pause_screen)
+        {
+          pause_screen.reset();
+        }
 
         if (s_use_deterministic_gpu_thread)
         {
