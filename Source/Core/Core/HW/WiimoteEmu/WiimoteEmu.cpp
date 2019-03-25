@@ -20,6 +20,7 @@
 #include "Core/Config/WiimoteInputSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
@@ -30,7 +31,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
@@ -503,14 +503,6 @@ void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
 
   m_reporting_channel = channel_id;
 
-  // FYI: ControlChannel is piped through WiimoteEmu before WiimoteReal just so we can sync the
-  // channel on state load. This is ugly.
-  if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-  {
-    WiimoteReal::ControlChannel(m_index, channel_id, data, size);
-    return;
-  }
-
   const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
 
   DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
@@ -558,14 +550,6 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
   }
 
   m_reporting_channel = channel_id;
-
-  // FYI: InterruptChannel is piped through WiimoteEmu before WiimoteReal just so we can sync the
-  // channel on state load. This is ugly.
-  if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-  {
-    WiimoteReal::InterruptChannel(m_index, channel_id, data, size);
-    return;
-  }
 
   const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
 

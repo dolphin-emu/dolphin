@@ -35,12 +35,6 @@ class Output;
 class Tilt;
 }  // namespace ControllerEmu
 
-// Needed for friendship:
-namespace WiimoteReal
-{
-class Wiimote;
-}  // namespace WiimoteReal
-
 namespace WiimoteEmu
 {
 enum class WiimoteGroup
@@ -87,8 +81,6 @@ void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
 
 class Wiimote : public ControllerEmu::EmulatedController
 {
-  friend class WiimoteReal::Wiimote;
-
 public:
   enum : u8
   {
@@ -172,8 +164,6 @@ private:
   bool ProcessExtensionPortEvent();
   void SendDataReport();
   bool ProcessReadDataRequest();
-
-  void RealState();
 
   void SetRumble(bool on);
 
