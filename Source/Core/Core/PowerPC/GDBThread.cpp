@@ -26,7 +26,6 @@
 #include <string.h>
 #ifdef _WIN32
 #include <iphlpapi.h>
-#include <iphlpapi.h>
 #include <ws2tcpip.h>
 #else
 #include <netinet/in.h>
