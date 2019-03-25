@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -716,9 +717,9 @@ void GDBThread::GDBReadRegisters()
     }
     else if (32 <= id && id <= 63)
     {
-      WriteHexBE64(bufptr, riPS1(id - 32));
+      WriteHexBE64(bufptr, rPS(id - 32).PS1AsU64());
       bufptr += 16;
-      WriteHexBE64(bufptr, riPS0(id - 32));
+      WriteHexBE64(bufptr, rPS(id - 32).PS0AsU64());
       bufptr += 16;
     }
     else
@@ -730,11 +731,11 @@ void GDBThread::GDBReadRegisters()
         bufptr += 8;
         break;
       case 65:
-        WriteHexBE32(bufptr, MSR);
+        WriteHexBE32(bufptr, MSR.Hex);
         bufptr += 8;
         break;
       case 66:
-        WriteHexBE32(bufptr, PowerPC::GetCR());
+        WriteHexBE32(bufptr, PowerPC::ppcState.cr.Get());
         bufptr += 8;
         break;
       case 67:
@@ -782,9 +783,9 @@ void GDBThread::GDBWriteRegisters()
     }
     else if (32 <= id && id <= 63)
     {
-      riPS1(id - 32) = ReadHexBE64(bufptr);
+      rPS(id - 32).SetPS1(ReadHexBE64(bufptr));
       bufptr += 16;
-      riPS0(id - 32) = ReadHexBE64(bufptr);
+      rPS(id - 32).SetPS0(ReadHexBE64(bufptr));
       bufptr += 16;
     }
     else
@@ -796,11 +797,11 @@ void GDBThread::GDBWriteRegisters()
         bufptr += 8;
         break;
       case 65:
-        MSR = ReadHexBE32(bufptr);
+        MSR.Hex = ReadHexBE32(bufptr);
         bufptr += 8;
         break;
       case 66:
-        PowerPC::SetCR(ReadHexBE32(bufptr));
+        PowerPC::ppcState.cr.Set(ReadHexBE32(bufptr));
         bufptr += 8;
         break;
       case 67:
@@ -855,7 +856,7 @@ void GDBThread::GDBKill()
 
   GDBDeinit();
 
-  BootManager::Stop();
+  Core::Stop();
   NOTICE_LOG(GDB_THREAD, "killed by gdb");
 }
 
@@ -930,8 +931,8 @@ void GDBThread::GDBReadRegister()
   }
   else if (32 <= id && id <= 63)
   {
-    WriteHexBE64(reply, riPS1(id - 32));
-    WriteHexBE64(reply + 16, riPS0(id - 32));
+    WriteHexBE64(reply, rPS(id - 32).PS1AsU64());
+    WriteHexBE64(reply + 16, rPS(id - 32).PS0AsU64());
   }
   else
   {
@@ -941,10 +942,10 @@ void GDBThread::GDBReadRegister()
       WriteHexBE32(reply, PC);
       break;
     case 65:
-      WriteHexBE32(reply, MSR);
+      WriteHexBE32(reply, MSR.Hex);
       break;
     case 66:
-      WriteHexBE32(reply, PowerPC::GetCR());
+      WriteHexBE32(reply, PowerPC::ppcState.cr.Get());
       break;
     case 67:
       WriteHexBE32(reply, LR);
@@ -992,8 +993,8 @@ void GDBThread::GDBWriteRegister()
   }
   else if (32 <= id && id <= 63)
   {
-    riPS1(id - 32) = ReadHexBE64(bufptr);
-    riPS0(id - 32) = ReadHexBE64(bufptr + 16);
+    rPS(id - 32).SetPS1(ReadHexBE64(bufptr));
+    rPS(id - 32).SetPS0(ReadHexBE64(bufptr + 16));
   }
   else
   {
@@ -1003,10 +1004,10 @@ void GDBThread::GDBWriteRegister()
       PC = ReadHexBE32(bufptr);
       break;
     case 65:
-      MSR = ReadHexBE32(bufptr);
+      MSR.Hex = ReadHexBE32(bufptr);
       break;
     case 66:
-      PowerPC::SetCR(ReadHexBE32(bufptr));
+      PowerPC::ppcState.cr.Set(ReadHexBE32(bufptr));
       break;
     case 67:
       LR = ReadHexBE32(bufptr);

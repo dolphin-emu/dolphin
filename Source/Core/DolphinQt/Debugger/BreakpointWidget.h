@@ -53,4 +53,5 @@ private:
   QAction* m_clear;
   QAction* m_load;
   QAction* m_save;
+  QAction* m_refresh;
 };
