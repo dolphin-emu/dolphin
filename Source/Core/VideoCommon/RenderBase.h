@@ -242,6 +242,7 @@ public:
   // Begins/presents a "UI frame". UI frames do not draw any of the console XFB, but this could
   // change in the future.
   void BeginUIFrame();
+  void RenderUIFrame();
   void EndUIFrame();
 
   // Draw the last console XFB frame

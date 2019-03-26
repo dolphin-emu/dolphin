@@ -1136,13 +1136,14 @@ void Renderer::BeginUIFrame()
   BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
 }
 
+void Renderer::RenderUIFrame()
+{
+  auto lock = GetImGuiLock();
+  ImGui::Render();
+}
+
 void Renderer::EndUIFrame()
 {
-  {
-    auto lock = GetImGuiLock();
-    ImGui::Render();
-  }
-
   if (!IsHeadless())
   {
     DrawImGui();
