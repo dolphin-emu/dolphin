@@ -38,7 +38,6 @@ PauseScreen::~PauseScreen()
 void PauseScreen::Hide()
 {
   ImGuiIO& io = ImGui::GetIO();
-  // io.WantCaptureKeyboard = false;
   io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
   io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
@@ -86,7 +85,6 @@ void PauseScreen::Display()
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-    // io.WantCaptureKeyboard = true;
     g_controller_interface.UpdateInput();
     UpdateControls(io);
     g_renderer->EndUIFrame();
