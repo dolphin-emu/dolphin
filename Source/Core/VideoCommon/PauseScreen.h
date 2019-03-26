@@ -7,9 +7,10 @@
 class PauseScreen
 {
 public:
-  PauseScreen();
   ~PauseScreen();
   void Display();
+  void Hide();
+  bool IsVisible() const { return m_visible; }
 
 private:
   void DisplayMain();
@@ -27,4 +28,6 @@ private:
 
   // TODO: sync this with the cycler in HotkeyScheduler...
   InputProfile::ProfileCycler m_profile_cycler;
+
+  bool m_visible = false;
 };

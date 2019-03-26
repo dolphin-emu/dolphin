@@ -8,26 +8,32 @@
 
 #include "imgui.h"
 
-PauseScreen::PauseScreen()
+PauseScreen::~PauseScreen()
 {
-  m_state_stack.push(ScreenState::Main);
+  Hide();
 }
 
-PauseScreen::~PauseScreen()
+void PauseScreen::Hide()
 {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
   g_renderer->BeginUIFrame();
   g_renderer->EndUIFrame();
+  m_visible = false;
 }
 
 void PauseScreen::Display()
 {
+  if (!m_visible)
+  {
+    m_state_stack.push(ScreenState::Main);
+    m_visible = true;
+  }
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
   g_controller_interface.UpdateInput();
-  //io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
+  // io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
 
   g_renderer->BeginUIFrame();
 
