@@ -22,10 +22,12 @@ public:
   void Display();
   void AppendChat(const std::string& message, Color color);
   void SendMessage();
+  void Activate();
 
 private:
   char m_message_buf[256] = {};
   bool m_scroll_to_bottom = false;
+  bool m_activate = false;
   bool m_is_scrolled_to_bottom = true;
 
   std::deque<std::pair<std::string, Color>> m_messages;

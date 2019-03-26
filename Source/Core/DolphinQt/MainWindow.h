@@ -168,6 +168,7 @@ private:
   void OnStartRecording();
   void OnStopRecording();
   void OnExportRecording();
+  void OnActivateChat();
   void ShowTASInput();
 
   void ChangeDisc();

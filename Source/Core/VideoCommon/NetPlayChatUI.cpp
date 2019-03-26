@@ -60,7 +60,12 @@ void NetPlayChatUI::Display()
                        ImGuiInputTextFlags_EnterReturnsTrue))
   {
     SendMessage();
+  }
+
+  if (m_activate)
+  {
     ImGui::SetKeyboardFocusHere(-1);
+    m_activate = false;
   }
 
   ImGui::PopItemWidth();
@@ -96,4 +101,12 @@ void NetPlayChatUI::SendMessage()
     // 'Empty' the buffer
     m_message_buf[0] = '\0';
   }
+}
+
+void NetPlayChatUI::Activate()
+{
+  if (ImGui::IsItemFocused())
+    ImGui::SetWindowFocus(NULL);
+  else
+    m_activate = true;
 }

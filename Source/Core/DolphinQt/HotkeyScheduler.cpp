@@ -196,6 +196,10 @@ void HotkeyScheduler::Run()
 
       auto& settings = Settings::Instance();
 
+      // Toggle Chat
+      if (IsHotkey(HK_ACTIVATE_CHAT))
+        emit ActivateChat();
+
       // Recording
       if (IsHotkey(HK_START_RECORDING))
         emit StartRecording();
