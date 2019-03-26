@@ -4,6 +4,8 @@
 
 #include <stack>
 
+struct ImGuiIO;
+
 class PauseScreen
 {
 public:
@@ -13,6 +15,7 @@ public:
   bool IsVisible() const { return m_visible; }
 
 private:
+  void UpdateControls(ImGuiIO&);
   void DisplayMain();
   void DisplayOptions();
   void DisplayProfiles();
