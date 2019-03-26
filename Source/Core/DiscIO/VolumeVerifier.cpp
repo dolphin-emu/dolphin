@@ -14,6 +14,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -62,6 +63,9 @@ void VolumeVerifier::Start()
     CheckCorrectlySigned(PARTITION_NONE, GetStringT("This title is not correctly signed."));
   CheckDiscSize();
   CheckMisc();
+
+  std::sort(m_blocks.begin(), m_blocks.end(),
+            [](const BlockToVerify& b1, const BlockToVerify& b2) { return b1.offset < b2.offset; });
 }
 
 void VolumeVerifier::CheckPartitions()
@@ -164,18 +168,7 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   else if (*type == PARTITION_UPDATE)
     severity = Severity::Low;
 
-  std::string name = NameForPartitionType(*type, false);
-  if (ShouldHaveMasterpiecePartitions() && *type > 0xFF)
-  {
-    // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
-    // where you play demos of NES/SNES/N64 games. This string is referring to a specific such demo
-    // rather than the game mode as a whole, so please use the singular form. Official translations:
-    // 名作トライアル (Japanese), Masterpieces (English), Meisterstücke (German), Chefs-d'œuvre
-    // (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
-    // If your language is not one of the languages above, consider leaving the string untranslated
-    // so that people will recognize it as the name of the game mode.
-    name = StringFromFormat(GetStringT("%s (Masterpiece)").c_str(), name.c_str());
-  }
+  const std::string name = GetPartitionName(type);
 
   if (partition.offset % VolumeWii::BLOCK_TOTAL_SIZE != 0 ||
       m_volume.PartitionOffsetToRawOffset(0, partition) % VolumeWii::BLOCK_TOTAL_SIZE != 0)
@@ -188,6 +181,13 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   CheckCorrectlySigned(
       partition, StringFromFormat(GetStringT("The %s partition is not correctly signed.").c_str(),
                                   name.c_str()));
+
+  if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
+  {
+    const std::string text = StringFromFormat(
+        GetStringT("The H3 hash table for the %s partition is not correct.").c_str(), name.c_str());
+    AddProblem(Severity::Low, text);
+  }
 
   bool invalid_disc_header = false;
   std::vector<u8> disc_header(0x80);
@@ -262,7 +262,41 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     }
   }
 
+  // Prepare for hash verification in the Process step
+  if (m_volume.SupportsIntegrityCheck())
+  {
+    u64 offset = m_volume.PartitionOffsetToRawOffset(0, partition);
+    const std::optional<u64> size =
+        m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE);
+    const u64 end_offset = offset + size.value_or(0);
+
+    for (size_t i = 0; offset < end_offset; ++i, offset += VolumeWii::BLOCK_TOTAL_SIZE)
+      m_blocks.emplace_back(BlockToVerify{partition, offset, i});
+
+    m_block_errors.emplace(partition, 0);
+  }
+
   return true;
+}
+
+std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
+{
+  if (!type)
+    return "???";
+
+  std::string name = NameForPartitionType(*type, false);
+  if (ShouldHaveMasterpiecePartitions() && *type > 0xFF)
+  {
+    // i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
+    // where you play demos of NES/SNES/N64 games. This string is referring to a specific such demo
+    // rather than the game mode as a whole, so please use the singular form. Official translations:
+    // 名作トライアル (Japanese), Masterpieces (English), Meisterstücke (German), Chefs-d'œuvre
+    // (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
+    // If your language is not one of the languages above, consider leaving the string untranslated
+    // so that people will recognize it as the name of the game mode.
+    name = StringFromFormat(GetStringT("%s (Masterpiece)").c_str(), name.c_str());
+  }
+  return name;
 }
 
 void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, const std::string& error_text)
@@ -596,7 +630,30 @@ void VolumeVerifier::Process()
   if (m_progress == m_max_progress)
     return;
 
-  m_progress += std::min(m_max_progress - m_progress, BLOCK_SIZE);
+  u64 bytes_to_read = BLOCK_SIZE;
+  if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset == m_progress)
+  {
+    bytes_to_read = VolumeWii::BLOCK_TOTAL_SIZE;
+  }
+  else if (m_block_index + 1 < m_blocks.size() && m_blocks[m_block_index + 1].offset > m_progress)
+  {
+    bytes_to_read = std::min(bytes_to_read, m_blocks[m_block_index + 1].offset - m_progress);
+  }
+  bytes_to_read = std::min(bytes_to_read, m_max_progress - m_progress);
+
+  m_progress += bytes_to_read;
+
+  while (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset < m_progress)
+  {
+    if (!m_volume.CheckBlockIntegrity(m_blocks[m_block_index].block_index,
+                                      m_blocks[m_block_index].partition))
+    {
+      WARN_LOG(DISCIO, "Integrity check failed for block at 0x%" PRIx64,
+               m_blocks[m_block_index].offset);
+      m_block_errors[m_blocks[m_block_index].partition]++;
+    }
+    m_block_index++;
+  }
 }
 
 u64 VolumeVerifier::GetBytesProcessed() const
@@ -614,6 +671,18 @@ void VolumeVerifier::Finish()
   if (m_done)
     return;
   m_done = true;
+
+  for (auto pair : m_block_errors)
+  {
+    if (pair.second > 0)
+    {
+      const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
+      AddProblem(Severity::Medium,
+                 StringFromFormat(
+                     GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(),
+                     pair.second, name.c_str()));
+    }
+  }
 
   // Show the most serious problems at the top
   std::stable_sort(m_result.problems.begin(), m_result.problems.end(),

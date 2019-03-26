@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -64,8 +66,16 @@ public:
   const Result& GetResult() const;
 
 private:
+  struct BlockToVerify
+  {
+    Partition partition;
+    u64 offset;
+    u64 block_index;
+  };
+
   void CheckPartitions();
   bool CheckPartition(const Partition& partition);  // Returns false if partition should be ignored
+  std::string GetPartitionName(std::optional<u32> type) const;
   void CheckCorrectlySigned(const Partition& partition, const std::string& error_text);
   bool IsDebugSigned() const;
   bool ShouldHaveChannelPartition() const;
@@ -84,6 +94,10 @@ private:
   bool m_is_tgc;
   bool m_is_datel;
   bool m_is_not_retail;
+
+  std::vector<BlockToVerify> m_blocks;
+  size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition
+  std::map<Partition, size_t> m_block_errors;
 
   bool m_started;
   bool m_done;
