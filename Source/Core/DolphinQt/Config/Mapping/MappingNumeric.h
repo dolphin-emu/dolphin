@@ -19,11 +19,8 @@ class MappingNumeric : public QSpinBox
 public:
   MappingNumeric(MappingWidget* widget, ControllerEmu::NumericSetting* ref);
 
-  void Update();
-
 private:
-  void Connect();
+  void ConfigChanged();
 
-  MappingWidget* m_parent;
-  ControllerEmu::NumericSetting* m_setting;
+  ControllerEmu::NumericSetting& m_setting;
 };

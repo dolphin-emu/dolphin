@@ -9,7 +9,6 @@
 #include <QMouseEvent>
 #include <QRegExp>
 #include <QString>
-#include <QTimer>
 
 #include "Common/Thread.h"
 #include "Core/Core.h"
@@ -42,8 +41,8 @@ bool MappingButton::IsInput() const
   return m_reference->IsInput();
 }
 
-MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator)
-    : ElidedButton(ToDisplayString(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
+MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool indicator)
+    : ElidedButton(ToDisplayString(QString::fromStdString(ref->GetExpression()))), m_parent(parent),
       m_reference(ref)
 {
   // Force all mapping buttons to stay at a minimal height.
@@ -54,50 +53,30 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
 
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-  Connect();
   setToolTip(
       tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
-  if (!m_reference->IsInput() || !indicator)
-    return;
 
-  m_timer = new QTimer(this);
-  connect(m_timer, &QTimer::timeout, this, [this] {
-    if (!isActiveWindow())
-      return;
+  connect(this, &MappingButton::pressed, this, &MappingButton::Detect);
 
-    Settings::Instance().SetControllerStateNeeded(true);
+  if (indicator)
+    connect(parent, &MappingWidget::Update, this, &MappingButton::UpdateIndicator);
 
-    if (Core::GetState() == Core::State::Uninitialized || Core::GetState() == Core::State::Paused)
-      g_controller_interface.UpdateInput();
-
-    auto state = m_reference->State();
-
-    QFont f = m_parent->font();
-    QPalette p = m_parent->palette();
-
-    if (state > ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
-    {
-      f.setBold(true);
-      p.setColor(QPalette::ButtonText, Qt::red);
-    }
-
-    setFont(f);
-    setPalette(p);
-
-    Settings::Instance().SetControllerStateNeeded(false);
-  });
-
-  m_timer->start(1000 / 30);
+  connect(parent, &MappingWidget::ConfigChanged, this, &MappingButton::ConfigChanged);
 }
 
-void MappingButton::Connect()
+void MappingButton::AdvancedPressed()
 {
-  connect(this, &MappingButton::pressed, this, &MappingButton::Detect);
+  IOWindow io(this, m_parent->GetController(), m_reference,
+              m_reference->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
+  io.exec();
+
+  ConfigChanged();
+  m_parent->SaveSettings();
 }
 
 void MappingButton::Detect()
 {
-  if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
+  if (!m_reference->IsInput())
     return;
 
   const auto default_device_qualifier = m_parent->GetController()->GetDefaultDevice();
@@ -121,9 +100,10 @@ void MappingButton::Detect()
     return;
 
   m_reference->SetExpression(expression.toStdString());
-  m_parent->SaveSettings();
-  Update();
   m_parent->GetController()->UpdateReferences(g_controller_interface);
+
+  ConfigChanged();
+  m_parent->SaveSettings();
 
   if (m_parent->IsIterativeInput())
     m_parent->NextButton(this);
@@ -131,17 +111,37 @@ void MappingButton::Detect()
 
 void MappingButton::Clear()
 {
-  m_reference->SetExpression("");
   m_reference->range = 100.0 / SLIDER_TICK_COUNT;
+
+  m_reference->SetExpression("");
+  m_parent->GetController()->UpdateReferences(g_controller_interface);
+
   m_parent->SaveSettings();
-  Update();
+  ConfigChanged();
 }
 
-void MappingButton::Update()
+void MappingButton::UpdateIndicator()
 {
-  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
-  m_reference->UpdateReference(g_controller_interface,
-                               m_parent->GetController()->GetDefaultDevice());
+  if (!isActiveWindow())
+    return;
+
+  const auto state = m_reference->State();
+
+  QFont f = m_parent->font();
+  QPalette p = m_parent->palette();
+
+  if (state > ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
+  {
+    f.setBold(true);
+    p.setColor(QPalette::ButtonText, Qt::red);
+  }
+
+  setFont(f);
+  setPalette(p);
+}
+
+void MappingButton::ConfigChanged()
+{
   setText(ToDisplayString(QString::fromStdString(m_reference->GetExpression())));
 }
 
@@ -153,13 +153,13 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
     if (m_reference->IsInput())
       QPushButton::mouseReleaseEvent(event);
     else
-      emit AdvancedPressed();
+      AdvancedPressed();
     return;
   case Qt::MouseButton::MidButton:
     Clear();
     return;
   case Qt::MouseButton::RightButton:
-    emit AdvancedPressed();
+    AdvancedPressed();
     return;
   default:
     return;

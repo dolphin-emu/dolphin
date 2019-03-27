@@ -18,11 +18,8 @@ class MappingBool : public QCheckBox
 public:
   MappingBool(MappingWidget* widget, ControllerEmu::BooleanSetting* setting);
 
-  void Update();
-
 private:
-  void Connect();
+  void ConfigChanged();
 
-  MappingWidget* m_parent;
-  ControllerEmu::BooleanSetting* m_setting;
+  ControllerEmu::BooleanSetting& m_setting;
 };

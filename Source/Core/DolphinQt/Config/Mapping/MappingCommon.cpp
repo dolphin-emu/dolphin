@@ -67,6 +67,7 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
 
   std::shared_ptr<ciface::Core::Device> device;
   ciface::Core::Device::Input* input;
+
   std::tie(device, input) = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
 
   button->releaseMouse();

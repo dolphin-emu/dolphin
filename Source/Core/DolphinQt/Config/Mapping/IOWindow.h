@@ -43,7 +43,7 @@ public:
 private:
   void CreateMainLayout();
   void ConnectWidgets();
-  void Update();
+  void ConfigChanged();
 
   void OnDialogButtonPressed(QAbstractButton* button);
   void OnDeviceChanged(const QString& device);
