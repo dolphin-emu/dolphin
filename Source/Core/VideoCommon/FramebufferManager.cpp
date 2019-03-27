@@ -569,8 +569,12 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
         {native_rect.left * rcp_src_width, native_rect.top * rcp_src_height,
          native_rect.GetWidth() * rcp_src_width, native_rect.GetHeight() * rcp_src_height}};
     g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+    // Viewport will not be TILE_SIZExTILE_SIZE for the last row of tiles, assuming a tile size of
+    // 64, because 528 is not evenly divisible by 64.
     g_renderer->SetAndDiscardFramebuffer(data.framebuffer.get());
-    g_renderer->SetViewportAndScissor(data.framebuffer->GetRect());
+    g_renderer->SetViewportAndScissor(
+        MathUtil::Rectangle<int>(0, 0, rect.GetWidth(), rect.GetHeight()));
     g_renderer->SetPipeline(data.copy_pipeline.get());
     g_renderer->SetTexture(0, src_texture);
     g_renderer->SetSamplerState(0, depth ? RenderState::GetPointSamplerState() :
