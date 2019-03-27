@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
   {
     DolphinAnalytics::Instance()->ReportDolphinStart("qt");
 
-    MainWindow win{std::move(boot)};
+    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
