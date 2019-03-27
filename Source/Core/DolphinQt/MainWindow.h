@@ -63,7 +63,8 @@ class MainWindow final : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit MainWindow(std::unique_ptr<BootParameters> boot_parameters);
+  explicit MainWindow(std::unique_ptr<BootParameters> boot_parameters,
+                      const std::string& movie_path);
   ~MainWindow();
 
   void Show();

@@ -180,7 +180,9 @@ static std::vector<std::string> StringListToStdVector(QStringList list)
   return result;
 }
 
-MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
+MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
+                       const std::string& movie_path)
+    : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   setWindowIcon(Resources::GetAppIcon());
@@ -213,7 +215,15 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 #endif
 
   if (boot_parameters)
+  {
     m_pending_boot = std::move(boot_parameters);
+
+    if (!movie_path.empty())
+    {
+      if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
+        emit RecordingStatusChanged(true);
+    }
+  }
 
   QSettings& settings = Settings::GetQSettings();
 
