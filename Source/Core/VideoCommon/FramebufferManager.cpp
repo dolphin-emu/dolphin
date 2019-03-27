@@ -743,7 +743,7 @@ void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destinat
   const float x1 = static_cast<float>(x) * cs_pixel_width - 1.0f;
   const float y1 = 1.0f - static_cast<float>(y) * cs_pixel_height;
   const float x2 = x1 + cs_pixel_width;
-  const float y2 = y1 + cs_pixel_height;
+  const float y2 = y1 - cs_pixel_height;
   destination_list->push_back({{x1, y1, z, 1.0f}, color});
   destination_list->push_back({{x2, y1, z, 1.0f}, color});
   destination_list->push_back({{x1, y2, z, 1.0f}, color});
