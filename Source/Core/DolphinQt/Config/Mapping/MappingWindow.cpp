@@ -239,7 +239,7 @@ void MappingWindow::OnSaveProfilePressed()
   }
 }
 
-void MappingWindow::OnSelectDevice(int index)
+void MappingWindow::OnSelectDevice(int)
 {
   if (IsMappingAllDevices())
     return;

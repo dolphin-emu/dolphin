@@ -8,6 +8,7 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 struct GCPadStatus;
 
@@ -57,7 +58,8 @@ private:
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Buttons* m_mic;
   ControllerEmu::ControlGroup* m_options;
-  ControllerEmu::BooleanSetting* m_always_connected;
+
+  ControllerEmu::SettingValue<bool> m_always_connected_setting;
 
   const unsigned int m_index;
 };

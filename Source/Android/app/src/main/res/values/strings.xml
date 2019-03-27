@@ -330,8 +330,8 @@
     <string name="select_dir">Select This Directory</string>
 
     <!-- Misc -->
-    <string name="height">Height</string>
-    <string name="width">Width</string>
-    <string name="center">Center</string>
+    <string name="pitch">Total Pitch</string>
+    <string name="yaw">Total Yaw</string>
+    <string name="vertical_offset">Vertical Offset</string>
 
 </resources>

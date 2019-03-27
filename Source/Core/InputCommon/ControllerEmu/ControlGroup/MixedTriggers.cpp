@@ -14,22 +14,28 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
 MixedTriggers::MixedTriggers(const std::string& name_)
     : ControlGroup(name_, GroupType::MixedTriggers)
 {
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.9));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0.0, 0, 25));
+  AddSetting(&m_threshold_setting,
+             {_trans("Threshold"),
+              // i18n: The percent symbol.
+              _trans("%"),
+              // i18n: Refers to the "threshold" setting for pressure sensitive gamepad inputs.
+              _trans("Input strength required for activation.")},
+             90, 0, 100);
+
+  AddDeadzoneSetting(&m_deadzone_setting, 25);
 }
 
 void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
                              bool adjusted) const
 {
-  const ControlState threshold = numeric_settings[SETTING_THRESHOLD]->GetValue();
-  ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+  const ControlState threshold = GetThreshold();
+  ControlState deadzone = GetDeadzone();
 
   // Return raw values. (used in UI)
   if (!adjusted)
@@ -63,12 +69,12 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
 
 ControlState MixedTriggers::GetDeadzone() const
 {
-  return numeric_settings[SETTING_DEADZONE]->GetValue();
+  return m_deadzone_setting.GetValue() / 100;
 }
 
 ControlState MixedTriggers::GetThreshold() const
 {
-  return numeric_settings[SETTING_THRESHOLD]->GetValue();
+  return m_threshold_setting.GetValue() / 100;
 }
 
 }  // namespace ControllerEmu

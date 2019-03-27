@@ -7,26 +7,56 @@
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-MappingNumeric::MappingNumeric(MappingWidget* parent, ControllerEmu::NumericSetting* setting)
-    : m_setting(*setting)
+MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSetting<double>* setting)
+    : QDoubleSpinBox(parent), m_setting(*setting)
 {
-  setRange(setting->m_low, setting->m_high);
+  setRange(m_setting.GetMinValue(), m_setting.GetMaxValue());
+  setDecimals(2);
 
-  connect(this, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
-          [this, parent](int value) {
-            m_setting.SetValue(static_cast<double>(value) / 100);
+  if (const auto ui_suffix = m_setting.GetUISuffix())
+    setSuffix(QStringLiteral(" ") + tr(ui_suffix));
+
+  if (const auto ui_description = m_setting.GetUIDescription())
+    setToolTip(tr(ui_description));
+
+  connect(this, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+          [this, parent](double value) {
+            m_setting.SetValue(value);
             parent->SaveSettings();
           });
 
-  connect(parent, &MappingWidget::ConfigChanged, this, &MappingNumeric::ConfigChanged);
+  connect(parent, &MappingWidget::ConfigChanged, this, &MappingDouble::ConfigChanged);
 }
 
-void MappingNumeric::ConfigChanged()
+// Overriding QDoubleSpinBox's fixup to set the default value when input is cleared.
+void MappingDouble::fixup(QString& input) const
+{
+  input = QString::number(m_setting.GetDefaultValue());
+}
+
+void MappingDouble::ConfigChanged()
 {
   const bool old_state = blockSignals(true);
-  setValue(m_setting.GetValue() * 100);
+  setValue(m_setting.GetValue());
+  blockSignals(old_state);
+}
+
+MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bool>* setting)
+    : QCheckBox(parent), m_setting(*setting)
+{
+  connect(this, &QCheckBox::stateChanged, this, [this, parent](int value) {
+    m_setting.SetValue(value != 0);
+    parent->SaveSettings();
+  });
+
+  connect(parent, &MappingWidget::ConfigChanged, this, &MappingBool::ConfigChanged);
+}
+
+void MappingBool::ConfigChanged()
+{
+  const bool old_state = blockSignals(true);
+  setChecked(m_setting.GetValue());
   blockSignals(old_state);
 }

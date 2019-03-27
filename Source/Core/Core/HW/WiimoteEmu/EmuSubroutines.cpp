@@ -18,7 +18,6 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 
 namespace WiimoteEmu
 {
@@ -233,7 +232,7 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Max battery level seems to be 0xc8 (decimal 200)
   constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
 
-  m_status.battery = u8(std::lround(m_battery_setting->GetValue() * MAX_BATTERY_LEVEL));
+  m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
 
   if (Core::WantsDeterminism())
   {
@@ -394,7 +393,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     else
     {
       // Speaker Pan
-      const auto pan = m_options->numeric_settings[0]->GetValue();
+      const auto pan = m_speaker_pan_setting.GetValue() / 100;
 
       m_speaker_logic.SpeakerData(rpt.data, rpt.length, pan);
     }

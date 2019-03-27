@@ -153,9 +153,9 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_IR_FORWARD = "IRForward_";
   public static final String KEY_WIIBIND_IR_BACKWARD = "IRBackward_";
   public static final String KEY_WIIBIND_IR_HIDE = "IRHide_";
-  public static final String KEY_WIIBIND_IR_HEIGHT = "IRHeight";
-  public static final String KEY_WIIBIND_IR_WIDTH = "IRWidth";
-  public static final String KEY_WIIBIND_IR_CENTER = "IRCenter";
+  public static final String KEY_WIIBIND_IR_PITCH = "IRTotalPitch";
+  public static final String KEY_WIIBIND_IR_YAW = "IRTotalYaw";
+  public static final String KEY_WIIBIND_IR_VERTICAL_OFFSET = "IRVerticalOffset";
   public static final String KEY_WIIBIND_SWING_UP = "SwingUp_";
   public static final String KEY_WIIBIND_SWING_DOWN = "SwingDown_";
   public static final String KEY_WIIBIND_SWING_LEFT = "SwingLeft_";

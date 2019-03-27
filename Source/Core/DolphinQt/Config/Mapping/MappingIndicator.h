@@ -16,7 +16,6 @@ class Control;
 class ControlGroup;
 class Cursor;
 class Force;
-class NumericSetting;
 }  // namespace ControllerEmu
 
 class QPainter;

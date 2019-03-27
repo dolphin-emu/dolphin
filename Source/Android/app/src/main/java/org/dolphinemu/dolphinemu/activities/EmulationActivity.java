@@ -842,26 +842,26 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void setIRSensitivity()
   {
-    int irHeight = Integer.valueOf(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_HEIGHT + mSelectedGameId, "50"));
+    int ir_pitch = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
 
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
 
-    TextView mTextSliderValueHeight = (TextView) view.findViewById(R.id.text_ir_height);
-    TextView units = (TextView) view.findViewById(R.id.text_ir_height_units);
-    SeekBar seekbarHeight = view.findViewById(R.id.seekbar_height);
+    TextView text_slider_value_pitch = (TextView) view.findViewById(R.id.text_ir_pitch);
+    TextView units = (TextView) view.findViewById(R.id.text_ir_pitch_units);
+    SeekBar seekbar_pitch = view.findViewById(R.id.seekbar_pitch);
 
-    mTextSliderValueHeight.setText(String.valueOf(irHeight));
-    units.setText(getString(R.string.height));
-    seekbarHeight.setMax(100);
-    seekbarHeight.setProgress(irHeight);
-    seekbarHeight.setKeyProgressIncrement(5);
-    seekbarHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    text_slider_value_pitch.setText(String.valueOf(ir_pitch));
+    units.setText(getString(R.string.pitch));
+    seekbar_pitch.setMax(100);
+    seekbar_pitch.setProgress(ir_pitch);
+    seekbar_pitch.setKeyProgressIncrement(5);
+    seekbar_pitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
     {
       @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
       {
-        mTextSliderValueHeight.setText(String.valueOf(progress));
+        text_slider_value_pitch.setText(String.valueOf(progress));
       }
 
       @Override public void onStartTrackingTouch(SeekBar seekBar)
@@ -875,23 +875,23 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    int irWidth = Integer.valueOf(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_WIDTH + mSelectedGameId, "50"));
+    int ir_yaw = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId, "15"));
 
-    TextView mTextSliderValueWidth = (TextView) view.findViewById(R.id.text_ir_width);
-    TextView unitsWidth = (TextView) view.findViewById(R.id.text_ir_width_units);
-    SeekBar seekbarWidth = view.findViewById(R.id.seekbar_width);
+    TextView text_slider_value_yaw = (TextView) view.findViewById(R.id.text_ir_yaw);
+    TextView units_yaw = (TextView) view.findViewById(R.id.text_ir_yaw_units);
+    SeekBar seekbar_yaw = view.findViewById(R.id.seekbar_width);
 
-    mTextSliderValueWidth.setText(String.valueOf(irWidth));
-    unitsWidth.setText(getString(R.string.width));
-    seekbarWidth.setMax(100);
-    seekbarWidth.setProgress(irWidth);
-    seekbarWidth.setKeyProgressIncrement(5);
-    seekbarWidth.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    text_slider_value_yaw.setText(String.valueOf(ir_yaw));
+    units_yaw.setText(getString(R.string.yaw));
+    seekbar_yaw.setMax(100);
+    seekbar_yaw.setProgress(ir_yaw);
+    seekbar_yaw.setKeyProgressIncrement(5);
+    seekbar_yaw.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
     {
       @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
       {
-        mTextSliderValueWidth.setText(String.valueOf(progress));
+        text_slider_value_yaw.setText(String.valueOf(progress));
       }
 
       @Override public void onStartTrackingTouch(SeekBar seekBar)
@@ -906,23 +906,26 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
 
-    int irCenter = Integer.valueOf(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_CENTER + mSelectedGameId, "50"));
+    int ir_vertical_offset = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
+                    "10"));
 
-    TextView mTextSliderValueCenter = (TextView) view.findViewById(R.id.text_ir_center);
-    TextView unitsCenter = (TextView) view.findViewById(R.id.text_ir_center_units);
-    SeekBar seekbarCenter = view.findViewById(R.id.seekbar_center);
+    TextView text_slider_value_vertical_offset =
+            (TextView) view.findViewById(R.id.text_ir_vertical_offset);
+    TextView units_vertical_offset =
+            (TextView) view.findViewById(R.id.text_ir_vertical_offset_units);
+    SeekBar seekbar_vertical_offset = view.findViewById(R.id.seekbar_vertical_offset);
 
-    mTextSliderValueCenter.setText(String.valueOf(irCenter));
-    unitsCenter.setText(getString(R.string.center));
-    seekbarCenter.setMax(100);
-    seekbarCenter.setProgress(irCenter);
-    seekbarCenter.setKeyProgressIncrement(5);
-    seekbarCenter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    text_slider_value_vertical_offset.setText(String.valueOf(ir_vertical_offset));
+    units_vertical_offset.setText(getString(R.string.vertical_offset));
+    seekbar_vertical_offset.setMax(100);
+    seekbar_vertical_offset.setProgress(ir_vertical_offset);
+    seekbar_vertical_offset.setKeyProgressIncrement(5);
+    seekbar_vertical_offset.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
     {
       @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
       {
-        mTextSliderValueCenter.setText(String.valueOf(progress));
+        text_slider_value_vertical_offset.setText(String.valueOf(progress));
       }
 
       @Override public void onStartTrackingTouch(SeekBar seekBar)
@@ -942,21 +945,22 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_HEIGHT, mTextSliderValueHeight.getText().toString());
+              SettingsFile.KEY_WIIBIND_IR_PITCH, text_slider_value_pitch.getText().toString());
       SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_WIDTH, mTextSliderValueWidth.getText().toString());
+              SettingsFile.KEY_WIIBIND_IR_YAW, text_slider_value_yaw.getText().toString());
       SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_CENTER, mTextSliderValueCenter.getText().toString());
+              SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
+              text_slider_value_vertical_offset.getText().toString());
 
       NativeLibrary.ReloadWiimoteConfig();
 
       SharedPreferences.Editor editor = mPreferences.edit();
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_HEIGHT + mSelectedGameId,
-              mTextSliderValueHeight.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_WIDTH + mSelectedGameId,
-              mTextSliderValueWidth.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_CENTER + mSelectedGameId,
-              mTextSliderValueCenter.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId,
+              text_slider_value_pitch.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId,
+              text_slider_value_yaw.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
+              text_slider_value_vertical_offset.getText().toString());
       editor.apply();
     });
     builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->

@@ -10,7 +10,6 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/InputConfig.h"
 

@@ -13,6 +13,7 @@
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/InputProfile.h"
@@ -81,13 +82,13 @@ bool InputConfig::LoadConfig(bool isGC)
 #if defined(ANDROID)
     // For use on android touchscreen IR pointer
     // Check for IR values
-    if (control_section->Exists("IRWidth") && control_section->Exists("IRHeight") &&
-        control_section->Exists("IRCenter"))
+    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
+        control_section->Exists("IRVerticalOffset"))
     {
       use_ir_config = true;
-      control_section->Get("IRWidth", &ir_values[0]);
-      control_section->Get("IRHeight", &ir_values[1]);
-      control_section->Get("IRCenter", &ir_values[2]);
+      control_section->Get("IRTotalYaw", &ir_values[0]);
+      control_section->Get("IRTotalPitch", &ir_values[1]);
+      control_section->Get("IRVerticalOffset", &ir_values[2]);
     }
 #endif
   }
@@ -119,9 +120,9 @@ bool InputConfig::LoadConfig(bool isGC)
       // Only set for wii pads
       if (!isGC && use_ir_config)
       {
-        config.Set("IR/Width", ir_values[0]);
-        config.Set("IR/Height", ir_values[1]);
-        config.Set("IR/Center", ir_values[2]);
+        config.Set("IR/Total Yaw", ir_values[0]);
+        config.Set("IR/Total Pitch", ir_values[1]);
+        config.Set("IR/Vertical Offset", ir_values[2]);
       }
 #endif
       controller->LoadConfig(&config);

@@ -23,14 +23,12 @@ class PointerWrap;
 namespace ControllerEmu
 {
 class Attachments;
-class BooleanSetting;
 class Buttons;
 class ControlGroup;
 class Cursor;
 class Extension;
 class Force;
 class ModifySettingsButton;
-class NumericSetting;
 class Output;
 class Tilt;
 }  // namespace ControllerEmu
@@ -235,11 +233,13 @@ private:
   ControllerEmu::Output* m_motor;
   ControllerEmu::Attachments* m_attachments;
   ControllerEmu::ControlGroup* m_options;
-  ControllerEmu::BooleanSetting* m_sideways_setting;
-  ControllerEmu::BooleanSetting* m_upright_setting;
-  ControllerEmu::NumericSetting* m_battery_setting;
-  // ControllerEmu::BooleanSetting* m_motion_plus_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
+
+  ControllerEmu::SettingValue<bool> m_sideways_setting;
+  ControllerEmu::SettingValue<bool> m_upright_setting;
+  ControllerEmu::SettingValue<double> m_battery_setting;
+  ControllerEmu::SettingValue<double> m_speaker_pan_setting;
+  // ControllerEmu::SettingValue<bool> m_motion_plus_setting;
 
   SpeakerLogic m_speaker_logic;
   MotionPlus m_motion_plus;

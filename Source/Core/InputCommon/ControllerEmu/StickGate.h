@@ -11,6 +11,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
@@ -77,15 +78,11 @@ public:
 
   using ReshapeData = Common::DVec2;
 
-  enum
-  {
-    SETTING_DEADZONE,
-    SETTING_COUNT,
-  };
-
   // Angle is in radians and should be non-negative
   ControlState GetDeadzoneRadiusAtAngle(double angle) const;
   ControlState GetInputRadiusAtAngle(double angle) const;
+
+  ControlState GetDeadzonePercentage() const;
 
   virtual ControlState GetGateRadiusAtAngle(double angle) const = 0;
   virtual ReshapeData GetReshapableState(bool adjusted) = 0;
@@ -108,6 +105,7 @@ private:
   void SaveConfig(IniFile::Section*, const std::string&, const std::string&) override;
 
   CalibrationData m_calibration;
+  SettingValue<double> m_deadzone_setting;
 };
 
 }  // namespace ControllerEmu
