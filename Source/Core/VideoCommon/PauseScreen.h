@@ -18,13 +18,16 @@ private:
   void UpdateControls(ImGuiIO&);
   void DisplayMain();
   void DisplayOptions();
-  void DisplayProfiles();
+  void DisplayGraphics();
+  void DisplayControls();
+  void DisplayWiiControls();
 
   enum class ScreenState
   {
     Main,
     Options,
-    Profiles
+    Graphics,
+    Controls
   };
 
   std::stack<ScreenState> m_state_stack;

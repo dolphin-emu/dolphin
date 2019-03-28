@@ -1,12 +1,14 @@
 #include "PauseScreen.h"
 
+#include "Common/MsgHandler.h"
+
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
-#include "Common/MsgHandler.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -20,8 +22,9 @@
 
 namespace
 {
-static const u16 wiimote_dpad_bitmasks[] = {WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_DOWN,
-                                    WiimoteEmu::Wiimote::PAD_LEFT, WiimoteEmu::Wiimote::PAD_RIGHT};
+static const u16 wiimote_dpad_bitmasks[] = {
+    WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_DOWN, WiimoteEmu::Wiimote::PAD_LEFT,
+    WiimoteEmu::Wiimote::PAD_RIGHT};
 
 static const u16 wiimote_button_bitmasks[] = {
     WiimoteEmu::Wiimote::BUTTON_A,     WiimoteEmu::Wiimote::BUTTON_B,
@@ -59,7 +62,7 @@ void PauseScreen::Display()
   g_renderer->BeginUIFrame();
 
   const float scale = io.DisplayFramebufferScale.x;
-  ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 100.0f * scale), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(640.0f * scale, 480.0f * scale), ImGuiCond_Always);
   ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
   if (ImGui::Begin(GetStringT("Pause Screen").c_str(), nullptr,
                    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
@@ -74,8 +77,11 @@ void PauseScreen::Display()
     case ScreenState::Options:
       DisplayOptions();
       break;
-    case ScreenState::Profiles:
-      DisplayProfiles();
+    case ScreenState::Controls:
+      DisplayControls();
+      break;
+    case ScreenState::Graphics:
+      DisplayGraphics();
       break;
     }
 
@@ -111,6 +117,16 @@ void PauseScreen::UpdateControls(ImGuiIO& io)
     io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
   }
 
+  if ((wiimote_dpad_buttons & WiimoteEmu::Wiimote::PAD_LEFT) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
+  }
+
+  if ((wiimote_dpad_buttons & WiimoteEmu::Wiimote::PAD_RIGHT) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
+  }
+
   auto* wiimote_buttons_group = static_cast<ControllerEmu::Buttons*>(
       Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::Buttons));
 
@@ -120,6 +136,21 @@ void PauseScreen::UpdateControls(ImGuiIO& io)
   if ((wiimote_buttons & WiimoteEmu::Wiimote::BUTTON_A) != 0)
   {
     io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+  }
+
+  bool back = false;
+  if ((wiimote_buttons & WiimoteEmu::Wiimote::BUTTON_B) != 0)
+  {
+    back = true;
+  }
+
+  if (m_state_stack.size() > 1 && back)
+  {
+    m_state_stack.pop();
+  }
+  else if (back)
+  {
+    Core::SetState(Core::State::Running);
   }
 }
 
@@ -141,31 +172,114 @@ void PauseScreen::DisplayMain()
 
 void PauseScreen::DisplayOptions()
 {
-  if (ImGui::Button("Wii Controller Profiles"))
+  if (ImGui::Button("Graphics"))
   {
-    m_state_stack.push(ScreenState::Profiles);
+    m_state_stack.push(ScreenState::Graphics);
   }
-  else if (ImGui::Button("Back..."))
+  else if (ImGui::Button("Controls"))
   {
-    m_state_stack.pop();
+    m_state_stack.push(ScreenState::Controls);
   }
 }
 
-void PauseScreen::DisplayProfiles()
+void PauseScreen::DisplayGraphics()
 {
-  // TODO: Get current profile name...
-  // TODO: Handle multiple controllers...
+  // TODO:
+}
 
-  if (ImGui::Button("Previous Wiimote (1) Profile"))
+void PauseScreen::DisplayControls()
+{
+  if (SConfig::GetInstance().bWii && SConfig::GetInstance().m_bt_passthrough_enabled)
   {
-    m_profile_cycler.PreviousWiimoteProfile(0);
+    ImGui::Text("Bluetooth passthrough is currently enabled");
   }
-  else if (ImGui::Button("Next Wiimote (1) Profile"))
+  else
   {
-    m_profile_cycler.NextWiimoteProfile(0);
-  }
-  else if (ImGui::Button("Back..."))
-  {
-    m_state_stack.pop();
+    if (SConfig::GetInstance().bWii)
+    {
+      DisplayWiiControls();
+    }
+    else
+    {
+      ImGui::Text("Gamecube controllers are unavailable at this time");
+    }
   }
 }
+
+void PauseScreen::DisplayWiiControls()
+{
+  ImGui::Columns(4, "Wii Controls", true);
+  ImGui::Text("Controller");
+  ImGui::NextColumn();
+  ImGui::Text("Connected?");
+  ImGui::NextColumn();
+  ImGui::Text("Input Profile Name");
+  ImGui::NextColumn();
+  ImGui::Text("Input Profile Actions");
+  ImGui::NextColumn();
+  ImGui::Separator();
+  for (int i = 0; i < g_wiimote_sources.size(); i++)
+  {
+    if (i == WIIMOTE_BALANCE_BOARD)
+    {
+      ImGui::Text("Balance Board");
+    }
+    else
+    {
+      ImGui::Text("Wiimote %i", i + 1);
+    }
+    ImGui::NextColumn();
+
+    const auto& source = g_wiimote_sources[i];
+    if (source == WIIMOTE_SRC_NONE)
+    {
+      ImGui::Text("Not connected");
+      ImGui::NextColumn();
+      ImGui::Text("--");
+      ImGui::NextColumn();
+      ImGui::Text("--");
+      ImGui::NextColumn();
+    }
+    else if (source == WIIMOTE_SRC_REAL)
+    {
+      ImGui::Text("Connected (real)");
+      ImGui::NextColumn();
+      ImGui::Text("--");
+      ImGui::NextColumn();
+      ImGui::Text("--");
+      ImGui::NextColumn();
+    }
+    else
+    {
+      ImGui::Text("Connected (emulated)");
+      ImGui::NextColumn();
+      if (i == WIIMOTE_BALANCE_BOARD)
+      {
+        ImGui::Text("--");
+      }
+      else
+      {
+        ImGui::Text("PROFILE NAME");
+      }
+      ImGui::NextColumn();
+      if (i == WIIMOTE_BALANCE_BOARD)
+      {
+        ImGui::Text("--");
+      }
+      else
+      {
+        if (ImGui::Button("Prev"))
+        {
+          m_profile_cycler.PreviousWiimoteProfile(i);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Next"))
+        {
+          m_profile_cycler.NextWiimoteProfile(i);
+        }
+      }
+      ImGui::NextColumn();
+    }
+  }
+}
+
