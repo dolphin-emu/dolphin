@@ -53,7 +53,7 @@ public:
   virtual void OnConnectionError(const std::string& message) = 0;
   virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
   virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
-  virtual void OnSaveDataSyncFailure() = 0;
+  virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
 
   virtual bool IsRecording() = 0;

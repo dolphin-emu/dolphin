@@ -137,8 +137,9 @@ private:
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
   void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
-  void SetupIndex();
+  void ChunkedDataAbort();
 
+  void SetupIndex();
   bool PlayerHasControllerMapped(PlayerId pid) const;
 
   NetSettings m_settings;
@@ -185,6 +186,7 @@ private:
   std::thread m_chunked_data_thread;
   u32 m_next_chunked_data_id;
   std::unordered_map<u32, unsigned int> m_chunked_data_complete_count;
+  bool m_abort_chunked_data = false;
 
   ENetHost* m_server = nullptr;
   TraversalClient* m_traversal_client = nullptr;

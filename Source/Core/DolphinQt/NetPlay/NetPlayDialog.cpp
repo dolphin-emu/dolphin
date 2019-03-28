@@ -553,6 +553,8 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
 
+  SetOptionsEnabled(true);
+
   QDialog::show();
   UpdateGUI();
 }
@@ -973,7 +975,7 @@ void NetPlayDialog::OnTraversalStateChanged(TraversalClient::State state)
   }
 }
 
-void NetPlayDialog::OnSaveDataSyncFailure()
+void NetPlayDialog::OnGameStartAborted()
 {
   QueueOnObject(this, [this] { SetOptionsEnabled(true); });
 }

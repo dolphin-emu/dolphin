@@ -353,8 +353,8 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (npver != Common::scm_rev_git_str)
     return CON_ERR_VERSION_MISMATCH;
 
-  // game is currently running
-  if (m_is_running)
+  // game is currently running or game start is pending
+  if (m_is_running || m_start_pending)
     return CON_ERR_GAME_RUNNING;
 
   // too many players
@@ -481,6 +481,13 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
         break;
       }
     }
+  }
+
+  if (m_start_pending)
+  {
+    ChunkedDataAbort();
+    m_dialog->OnGameStartAborted();
+    m_start_pending = false;
   }
 
   sf::Packet spac;
@@ -1046,7 +1053,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       m_dialog->AppendChat(
           StringFromFormat(GetStringT("%s failed to synchronize.").c_str(), player.name.c_str()));
-      m_dialog->OnSaveDataSyncFailure();
+      m_dialog->OnGameStartAborted();
+      ChunkedDataAbort();
       m_start_pending = false;
     }
     break;
@@ -1089,6 +1097,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       m_dialog->AppendChat(StringFromFormat(GetStringT("%s failed to synchronize codes.").c_str(),
                                             player.name.c_str()));
+      m_dialog->OnGameStartAborted();
       m_start_pending = false;
     }
     break;
@@ -1954,10 +1963,21 @@ void NetPlayServer::ChunkedDataThreadFunc()
   {
     m_chunked_data_event.Wait();
 
+    if (m_abort_chunked_data)
+    {
+      // thread-safe clear
+      while (!m_chunked_data_queue.Empty())
+        m_chunked_data_queue.Pop();
+
+      m_abort_chunked_data = false;
+    }
+
     while (!m_chunked_data_queue.Empty())
     {
       if (!m_do_loop)
         return;
+      if (m_abort_chunked_data)
+        break;
       auto& e = m_chunked_data_queue.Front();
       const u32 id = m_next_chunked_data_id++;
 
@@ -1993,15 +2013,27 @@ void NetPlayServer::ChunkedDataThreadFunc()
       const float bytes_per_second =
           (std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
       const std::chrono::duration<double> send_interval(CHUNKED_DATA_UNIT_SIZE / bytes_per_second);
+      bool skip_wait = false;
       size_t index = 0;
       do
       {
         if (!m_do_loop)
           return;
+        if (m_abort_chunked_data)
+        {
+          sf::Packet pac;
+          pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_ABORT);
+          pac << id;
+          ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+          break;
+        }
         if (e.target_mode == TargetMode::Only)
         {
           if (m_players.find(e.target_pid) == m_players.end())
+          {
+            skip_wait = true;
             break;
+          }
         }
 
         auto start = std::chrono::steady_clock::now();
@@ -2022,6 +2054,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
       } while (index < e.packet.getDataSize());
 
+      if (!m_abort_chunked_data)
       {
         sf::Packet pac;
         pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_END);
@@ -2029,9 +2062,10 @@ void NetPlayServer::ChunkedDataThreadFunc()
         ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
       }
 
-      while (m_chunked_data_complete_count[id] < player_count && m_do_loop)
+      while (m_chunked_data_complete_count[id] < player_count && m_do_loop &&
+             !m_abort_chunked_data && !skip_wait)
         m_chunked_data_complete_event.Wait();
-      m_chunked_data_complete_count.erase(m_chunked_data_complete_count.find(id));
+      m_chunked_data_complete_count.erase(id);
       m_dialog->HideChunkedProgressDialog();
 
       m_chunked_data_queue.Pop();
@@ -2051,5 +2085,12 @@ void NetPlayServer::ChunkedDataSend(sf::Packet&& packet, const PlayerId pid,
   {
     SendAsyncToClients(std::move(packet), pid, CHUNKED_DATA_CHANNEL);
   }
+}
+
+void NetPlayServer::ChunkedDataAbort()
+{
+  m_abort_chunked_data = true;
+  m_chunked_data_event.Set();
+  m_chunked_data_complete_event.Set();
 }
 }  // namespace NetPlay
