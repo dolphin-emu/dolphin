@@ -14,8 +14,10 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/PerfQuery.h"
 #include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/SwapChain.h"
 #include "VideoBackends/D3D/VertexManager.h"
 #include "VideoBackends/D3D/VideoBackend.h"
+#include "VideoBackends/D3DCommon/Common.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
@@ -37,15 +39,15 @@ std::string VideoBackend::GetDisplayName() const
 
 void VideoBackend::InitBackendInfo()
 {
-  HRESULT hr = DX11::D3D::LoadDXGI();
-  if (SUCCEEDED(hr))
-    hr = DX11::D3D::LoadD3D();
-  if (FAILED(hr))
-  {
-    DX11::D3D::UnloadDXGI();
+  if (!D3DCommon::LoadLibraries())
     return;
-  }
 
+  FillBackendInfo();
+  D3DCommon::UnloadLibraries();
+}
+
+void VideoBackend::FillBackendInfo()
+{
   g_Config.backend_info.api_type = APIType::D3D;
   g_Config.backend_info.MaxTextureSize = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
   g_Config.backend_info.bUsesLowerLeftOrigin = false;
@@ -73,82 +75,36 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = true;
+  g_Config.backend_info.bSupportsST3CTextures = true;
+  g_Config.backend_info.bSupportsBPTCTextures = true;
+  g_Config.backend_info.bSupportsEarlyZ = true;
+  g_Config.backend_info.bSupportsBBox = true;
+  g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
+  g_Config.backend_info.bSupportsGSInstancing = true;
+  g_Config.backend_info.bSupportsSSAA = true;
 
-  IDXGIFactory2* factory;
-  IDXGIAdapter* ad;
-  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&factory);
-  if (FAILED(hr))
-    PanicAlert("Failed to create IDXGIFactory object");
-
-  // adapters
-  g_Config.backend_info.Adapters.clear();
-  g_Config.backend_info.AAModes.clear();
-  while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) !=
-         DXGI_ERROR_NOT_FOUND)
-  {
-    const size_t adapter_index = g_Config.backend_info.Adapters.size();
-
-    DXGI_ADAPTER_DESC desc;
-    ad->GetDesc(&desc);
-
-    // TODO: These don't get updated on adapter change, yet
-    if (adapter_index == g_Config.iAdapter)
-    {
-      std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
-      // First iteration will be 1. This equals no AA.
-      for (unsigned int i = 0; i < modes.size(); ++i)
-      {
-        g_Config.backend_info.AAModes.push_back(modes[i].Count);
-      }
-
-      D3D_FEATURE_LEVEL feature_level = D3D::GetFeatureLevel(ad);
-      bool shader_model_5_supported = feature_level >= D3D_FEATURE_LEVEL_11_0;
-      g_Config.backend_info.MaxTextureSize = D3D::GetMaxTextureSize(feature_level);
-
-      // Requires the earlydepthstencil attribute (only available in shader model 5)
-      g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
-
-      // Requires full UAV functionality (only available in shader model 5)
-      g_Config.backend_info.bSupportsBBox =
-          g_Config.backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
-
-      // Requires the instance attribute (only available in shader model 5)
-      g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
-
-      // Sample shading requires shader model 5
-      g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
-    }
-    g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
-    ad->Release();
-  }
-  factory->Release();
-
-  DX11::D3D::UnloadDXGI();
-  DX11::D3D::UnloadD3D();
+  g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
+  g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);
 }
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
+  if (!D3D::Create(g_Config.iAdapter, g_Config.bEnableValidationLayer))
+    return false;
+
+  FillBackendInfo();
   InitializeShared();
 
-  if (FAILED(D3D::Create(reinterpret_cast<HWND>(wsi.render_surface))))
+  std::unique_ptr<SwapChain> swap_chain;
+  if (wsi.render_surface && !(swap_chain = SwapChain::Create(wsi)))
   {
-    PanicAlert("Failed to create D3D device.");
+    PanicAlertT("Failed to create D3D swap chain");
+    ShutdownShared();
+    D3D::Destroy();
     return false;
   }
 
-  int backbuffer_width = 1, backbuffer_height = 1;
-  if (D3D::swapchain)
-  {
-    DXGI_SWAP_CHAIN_DESC1 desc = {};
-    D3D::swapchain->GetDesc1(&desc);
-    backbuffer_width = std::max(desc.Width, 1u);
-    backbuffer_height = std::max(desc.Height, 1u);
-  }
-
-  // internal interfaces
-  g_renderer =
-      std::make_unique<Renderer>(backbuffer_width, backbuffer_height, wsi.render_surface_scale);
+  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
   g_vertex_manager = std::make_unique<VertexManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
@@ -158,6 +114,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
       !g_shader_cache->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize())
   {
+    Shutdown();
     return false;
   }
 
@@ -181,7 +138,6 @@ void VideoBackend::Shutdown()
   g_renderer.reset();
 
   ShutdownShared();
-
-  D3D::Close();
+  D3D::Destroy();
 }
 }  // namespace DX11

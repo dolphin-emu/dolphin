@@ -26,6 +26,7 @@
 #include "VideoBackends/D3D/DXPipeline.h"
 #include "VideoBackends/D3D/DXShader.h"
 #include "VideoBackends/D3D/DXTexture.h"
+#include "VideoBackends/D3D/SwapChain.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/FramebufferManager.h"
@@ -48,11 +49,12 @@ typedef struct _Nv_Stereo_Image_Header
 
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
-Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale)
-    : ::Renderer(backbuffer_width, backbuffer_height, backbuffer_scale,
-                 AbstractTextureFormat::RGBA8)
+Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
+    : ::Renderer(swap_chain ? swap_chain->GetWidth() : 0, swap_chain ? swap_chain->GetHeight() : 0,
+                 backbuffer_scale,
+                 swap_chain ? swap_chain->GetFormat() : AbstractTextureFormat::Undefined),
+      m_swap_chain(std::move(swap_chain))
 {
-  m_last_fullscreen_state = D3D::GetFullscreenState();
 }
 
 Renderer::~Renderer() = default;
@@ -82,17 +84,13 @@ void Renderer::Create3DVisionTexture(int width, int height)
   ID3D11Texture2D* texture;
   HRESULT hr = D3D::device->CreateTexture2D(&texture_desc, &sys_data, &texture);
   CHECK(SUCCEEDED(hr), "Create 3D Vision Texture");
-  m_3d_vision_texture = std::make_unique<DXTexture>(TextureConfig(width * 2, height + 1, 1, 1, 1,
-                                                                  AbstractTextureFormat::RGBA8,
-                                                                  AbstractTextureFlag_RenderTarget),
-                                                    texture, nullptr, nullptr);
-  m_3d_vision_framebuffer =
-      DXFramebuffer::Create(static_cast<DXTexture*>(m_3d_vision_texture.get()), nullptr);
+  m_3d_vision_texture = DXTexture::CreateAdopted(texture);
+  m_3d_vision_framebuffer = DXFramebuffer::Create(m_3d_vision_texture.get(), nullptr);
 }
 
 bool Renderer::IsHeadless() const
 {
-  return D3D::swapchain == nullptr;
+  return !m_swap_chain;
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -116,13 +114,17 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
                                                                  const char* source, size_t length)
 {
-  return DXShader::CreateFromSource(stage, source, length);
+  DXShader::BinaryData bytecode;
+  if (!DXShader::CompileShader(D3D::feature_level, &bytecode, stage, source, length))
+    return nullptr;
+
+  return DXShader::CreateFromBytecode(stage, std::move(bytecode));
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
                                                                  const void* data, size_t length)
 {
-  return DXShader::CreateFromBinary(stage, data, length);
+  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length));
 }
 
 std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
@@ -196,64 +198,44 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groups_x,
 
 void Renderer::BindBackbuffer(const ClearColor& clear_color)
 {
-  CheckForSurfaceChange();
-  CheckForSurfaceResize();
-  SetAndClearFramebuffer(D3D::GetSwapChainFramebuffer(), clear_color);
+  CheckForSwapChainChanges();
+  SetAndClearFramebuffer(m_swap_chain->GetFramebuffer(), clear_color);
 }
 
 void Renderer::PresentBackbuffer()
 {
-  D3D::Present();
+  m_swap_chain->Present();
 }
 
 void Renderer::OnConfigChanged(u32 bits)
 {
+  // Quad-buffer changes require swap chain recreation.
+  if (bits & CONFIG_CHANGE_BIT_STEREO_MODE && m_swap_chain)
+    m_swap_chain->SetStereo(SwapChain::WantsStereo());
 }
 
-void Renderer::CheckForSurfaceChange()
+void Renderer::CheckForSwapChainChanges()
 {
-  if (!m_surface_changed.TestAndClear())
+  const bool surface_changed = m_surface_changed.TestAndClear();
+  const bool surface_resized =
+      m_surface_resized.TestAndClear() || m_swap_chain->CheckForFullscreenChange();
+  if (!surface_changed && !surface_resized)
     return;
 
-  m_3d_vision_framebuffer.reset();
-  m_3d_vision_texture.reset();
-
-  D3D::Reset(reinterpret_cast<HWND>(m_new_surface_handle));
-  m_new_surface_handle = nullptr;
-
-  UpdateBackbufferSize();
-}
-
-void Renderer::CheckForSurfaceResize()
-{
-  const bool fullscreen_state = D3D::GetFullscreenState();
-  const bool exclusive_fullscreen_changed = fullscreen_state != m_last_fullscreen_state;
-  if (!m_surface_resized.TestAndClear() && !exclusive_fullscreen_changed)
-    return;
-
-  m_3d_vision_framebuffer.reset();
-  m_3d_vision_texture.reset();
-
-  m_last_fullscreen_state = fullscreen_state;
-  if (D3D::swapchain)
-    D3D::ResizeSwapChain();
-  UpdateBackbufferSize();
-}
-
-void Renderer::UpdateBackbufferSize()
-{
-  if (D3D::swapchain)
+  if (surface_changed)
   {
-    DXGI_SWAP_CHAIN_DESC1 desc = {};
-    D3D::swapchain->GetDesc1(&desc);
-    m_backbuffer_width = std::max(desc.Width, 1u);
-    m_backbuffer_height = std::max(desc.Height, 1u);
+    m_swap_chain->ChangeSurface(m_new_surface_handle);
+    m_new_surface_handle = nullptr;
   }
   else
   {
-    m_backbuffer_width = 1;
-    m_backbuffer_height = 1;
+    m_swap_chain->ResizeSwapChain();
   }
+
+  m_backbuffer_width = m_swap_chain->GetWidth();
+  m_backbuffer_height = m_swap_chain->GetHeight();
+  m_3d_vision_framebuffer.reset();
+  m_3d_vision_texture.reset();
 }
 
 void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
@@ -363,22 +345,23 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectan
 
   // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
   // recognize the signature and automatically include the right eye frame.
-  const CD3D11_BOX box(0, 0, 0, m_backbuffer_width, m_backbuffer_height, 1);
-  D3D::context->CopySubresourceRegion(D3D::GetSwapChainTexture()->GetD3DTexture(), 0, 0, 0, 0,
+  const CD3D11_BOX box(0, 0, 0, m_swap_chain->GetWidth(), m_swap_chain->GetHeight(), 1);
+  D3D::context->CopySubresourceRegion(m_swap_chain->GetTexture()->GetD3DTexture(), 0, 0, 0, 0,
                                       m_3d_vision_texture->GetD3DTexture(), 0, &box);
 
   // Restore render target to backbuffer
-  SetFramebuffer(D3D::GetSwapChainFramebuffer());
+  SetFramebuffer(m_swap_chain->GetFramebuffer());
 }
 
 void Renderer::SetFullscreen(bool enable_fullscreen)
 {
-  D3D::SetFullscreenState(enable_fullscreen);
+  if (m_swap_chain)
+    m_swap_chain->SetFullscreen(enable_fullscreen);
 }
 
 bool Renderer::IsFullscreen() const
 {
-  return D3D::GetFullscreenState();
+  return m_swap_chain && m_swap_chain->GetFullscreen();
 }
 
 }  // namespace DX11

@@ -5,8 +5,7 @@
 #pragma once
 
 #include <array>
-#include <d3d11.h>
-
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace DX11
@@ -27,7 +26,7 @@ public:
 private:
   struct ActiveQuery
   {
-    ID3D11Query* query;
+    ComPtr<ID3D11Query> query;
     PerfQueryGroup query_type;
   };
 
@@ -43,4 +42,4 @@ private:
   int m_query_read_pos;
 };
 
-}  // namespace
+}  // namespace DX11

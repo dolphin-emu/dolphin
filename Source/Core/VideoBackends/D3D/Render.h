@@ -11,13 +11,14 @@
 
 namespace DX11
 {
+class SwapChain;
 class DXTexture;
 class DXFramebuffer;
 
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale);
+  Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale);
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
@@ -69,15 +70,12 @@ public:
 
 private:
   void Create3DVisionTexture(int width, int height);
-  void CheckForSurfaceChange();
-  void CheckForSurfaceResize();
-  void UpdateBackbufferSize();
+  void CheckForSwapChainChanges();
 
   StateCache m_state_cache;
 
+  std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<DXTexture> m_3d_vision_texture;
   std::unique_ptr<DXFramebuffer> m_3d_vision_framebuffer;
-
-  bool m_last_fullscreen_state = false;
 };
 }  // namespace DX11

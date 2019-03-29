@@ -13,13 +13,14 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
+#include "VideoBackends/D3DCommon/Common.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
 namespace D3D
 {
-StateManager* stateman;
+std::unique_ptr<StateManager> stateman;
 
 StateManager::StateManager() = default;
 StateManager::~StateManager() = default;
@@ -298,27 +299,14 @@ void StateManager::SyncComputeBindings()
 }
 }  // namespace D3D
 
-StateCache::~StateCache()
-{
-  for (auto& it : m_depth)
-    SAFE_RELEASE(it.second);
-
-  for (auto& it : m_raster)
-    SAFE_RELEASE(it.second);
-
-  for (auto& it : m_blend)
-    SAFE_RELEASE(it.second);
-
-  for (auto& it : m_sampler)
-    SAFE_RELEASE(it.second);
-}
+StateCache::~StateCache() = default;
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
   std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_sampler.find(state.hex);
   if (it != m_sampler.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_SAMPLER_DESC sampdc = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
   if (state.mipmap_filter == SamplerState::Filter::Linear)
@@ -358,14 +346,11 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
     sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
   }
 
-  ID3D11SamplerState* res = nullptr;
+  ComPtr<ID3D11SamplerState> res;
   HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
-  if (FAILED(hr))
-    PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "sampler state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D sampler state failed");
   m_sampler.emplace(state.hex, res);
-  return res;
+  return res.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendingState state)
@@ -373,7 +358,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
-    return it->second;
+    return it->second.Get();
 
   if (state.logicopenable && D3D::device1)
   {
@@ -400,7 +385,6 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     HRESULT hr = D3D::device1->CreateBlendState1(&desc, &res);
     if (SUCCEEDED(hr))
     {
-      D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
       m_blend.emplace(state.hex, res);
       return res;
     }
@@ -440,15 +424,11 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
   tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
-  ID3D11BlendState* res = nullptr;
-
+  ComPtr<ID3D11BlendState> res;
   HRESULT hr = D3D::device->CreateBlendState(&desc, &res);
-  if (FAILED(hr))
-    PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D blend state failed");
   m_blend.emplace(state.hex, res);
-  return res;
+  return res.Get();
 }
 
 ID3D11RasterizerState* StateCache::Get(RasterizationState state)
@@ -456,7 +436,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
   std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
-    return it->second;
+    return it->second.Get();
 
   static constexpr std::array<D3D11_CULL_MODE, 4> cull_modes = {
       {D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK}};
@@ -466,14 +446,11 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
   desc.CullMode = cull_modes[state.cullmode];
   desc.ScissorEnable = TRUE;
 
-  ID3D11RasterizerState* res = nullptr;
+  ComPtr<ID3D11RasterizerState> res;
   HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
-  if (FAILED(hr))
-    PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "rasterizer state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D rasterizer state failed");
   m_raster.emplace(state.hex, res);
-  return res;
+  return res.Get();
 }
 
 ID3D11DepthStencilState* StateCache::Get(DepthState state)
@@ -481,7 +458,7 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_depth.find(state.hex);
   if (it != m_depth.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_DEPTH_STENCIL_DESC depthdc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 
@@ -512,17 +489,11 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
     depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
   }
 
-  ID3D11DepthStencilState* res = nullptr;
-
+  ComPtr<ID3D11DepthStencilState> res;
   HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
-  if (SUCCEEDED(hr))
-    D3D::SetDebugObjectName(res, "depth-stencil state used to emulate the GX pipeline");
-  else
-    PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
-
+  CHECK(SUCCEEDED(hr), "Creating D3D depth stencil state failed");
   m_depth.emplace(state.hex, res);
-
-  return res;
+  return res.Get();
 }
 
 D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitive)

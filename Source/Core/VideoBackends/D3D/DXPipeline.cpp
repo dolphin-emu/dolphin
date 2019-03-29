@@ -28,39 +28,9 @@ DXPipeline::DXPipeline(ID3D11InputLayout* input_layout, ID3D11VertexShader* vert
       m_rasterizer_state(rasterizer_state), m_depth_state(depth_state), m_blend_state(blend_state),
       m_primitive_topology(primitive_topology), m_use_logic_op(use_logic_op)
 {
-  if (m_input_layout)
-    m_input_layout->AddRef();
-  if (m_vertex_shader)
-    m_vertex_shader->AddRef();
-  if (m_geometry_shader)
-    m_geometry_shader->AddRef();
-  if (m_pixel_shader)
-    m_pixel_shader->AddRef();
-  if (m_rasterizer_state)
-    m_rasterizer_state->AddRef();
-  if (m_depth_state)
-    m_depth_state->AddRef();
-  if (m_blend_state)
-    m_blend_state->AddRef();
 }
 
-DXPipeline::~DXPipeline()
-{
-  if (m_input_layout)
-    m_input_layout->Release();
-  if (m_vertex_shader)
-    m_vertex_shader->Release();
-  if (m_geometry_shader)
-    m_geometry_shader->Release();
-  if (m_pixel_shader)
-    m_pixel_shader->Release();
-  if (m_rasterizer_state)
-    m_rasterizer_state->Release();
-  if (m_depth_state)
-    m_depth_state->Release();
-  if (m_blend_state)
-    m_blend_state->Release();
-}
+DXPipeline::~DXPipeline() = default;
 
 std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config)
 {
@@ -71,12 +41,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   D3D11_PRIMITIVE_TOPOLOGY primitive_topology =
       StateCache::GetPrimitiveTopology(config.rasterization_state.primitive);
   if (!rasterizer_state || !depth_state || !blend_state)
-  {
-    SAFE_RELEASE(rasterizer_state);
-    SAFE_RELEASE(depth_state);
-    SAFE_RELEASE(blend_state);
     return nullptr;
-  }
 
   const DXShader* vertex_shader = static_cast<const DXShader*>(config.vertex_shader);
   const DXShader* geometry_shader = static_cast<const DXShader*>(config.geometry_shader);

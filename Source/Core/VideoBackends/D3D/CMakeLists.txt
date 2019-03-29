@@ -26,4 +26,5 @@ target_link_libraries(videod3d
 PUBLIC
   common
   videocommon
+  videod3dcommon
 )

@@ -54,9 +54,9 @@ public:
 
   // Streaming buffer sizes.
   // Texel buffer will fit the maximum size of an encoded GX texture. 1024x1024, RGBA8 = 4MB.
-  static constexpr u32 VERTEX_STREAM_BUFFER_SIZE = 40 * 1024 * 1024;
-  static constexpr u32 INDEX_STREAM_BUFFER_SIZE = 4 * 1024 * 1024;
-  static constexpr u32 UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
+  static constexpr u32 VERTEX_STREAM_BUFFER_SIZE = 48 * 1024 * 1024;
+  static constexpr u32 INDEX_STREAM_BUFFER_SIZE = 8 * 1024 * 1024;
+  static constexpr u32 UNIFORM_STREAM_BUFFER_SIZE = 32 * 1024 * 1024;
   static constexpr u32 TEXEL_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
 
   VertexManagerBase();

@@ -10,7 +10,7 @@ namespace DX11
 class BBox
 {
 public:
-  static ID3D11UnorderedAccessView*& GetUAV();
+  static ID3D11UnorderedAccessView* GetUAV();
   static void Init();
   static void Shutdown();
 

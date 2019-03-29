@@ -135,6 +135,8 @@ bool VideoBackend::InitializeGLExtensions(GLContext* context)
 
 bool VideoBackend::FillBackendInfo()
 {
+  InitBackendInfo();
+
   // check for the max vertex attributes
   GLint numvertexattribs = 0;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
@@ -162,10 +164,8 @@ bool VideoBackend::FillBackendInfo()
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
-  InitializeShared();
-
   std::unique_ptr<GLContext> main_gl_context =
-      GLContext::Create(wsi, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer, true, false,
+      GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
                         Config::Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
     return false;
@@ -173,6 +173,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
+  InitializeShared();
   g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
   ProgramShaderCache::Init();
   g_vertex_manager = std::make_unique<VertexManager>();

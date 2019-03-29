@@ -966,10 +966,16 @@ void ShaderCache::QueueUberShaderPipelines()
     config.vs_uid = vs_uid;
     config.gs_uid = gs_uid;
     config.ps_uid = ps_uid;
-    config.rasterization_state =
-        RenderState::GetCullBackFaceRasterizationState(PrimitiveType::TriangleStrip);
+    config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
+        static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
     config.depth_state = RenderState::GetNoDepthTestingDepthState();
     config.blending_state = RenderState::GetNoBlendingBlendState();
+    if (ps_uid.GetUidData()->uint_output)
+    {
+      // uint_output is only ever enabled when logic ops are enabled.
+      config.blending_state.logicopenable = true;
+      config.blending_state.logicmode = BlendMode::AND;
+    }
 
     auto iter = m_gx_uber_pipeline_cache.find(config);
     if (iter != m_gx_uber_pipeline_cache.end())
@@ -986,13 +992,15 @@ void ShaderCache::QueueUberShaderPipelines()
       if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens)
         return;
 
+      UberShader::PixelShaderUid cleared_puid = puid;
+      UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &cleared_puid);
       EnumerateGeometryShaderUids([&](const GeometryShaderUid& guid) {
         if (guid.GetUidData()->numTexGens != vuid.GetUidData()->num_texgens ||
             (!guid.GetUidData()->IsPassthrough() && !m_host_config.backend_geometry_shaders))
         {
           return;
         }
-        QueueDummyPipeline(vuid, guid, puid);
+        QueueDummyPipeline(vuid, guid, cleared_puid);
       });
     });
   });
