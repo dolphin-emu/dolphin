@@ -30,7 +30,6 @@ add_library(core
   Config/NetplaySettings.cpp
   Config/SYSCONFSettings.cpp
   Config/UISettings.cpp
-  Config/WiimoteInputSettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp

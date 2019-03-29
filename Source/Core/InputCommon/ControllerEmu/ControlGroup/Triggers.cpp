@@ -28,7 +28,7 @@ Triggers::StateData Triggers::GetState()
 
   StateData result(trigger_count);
   for (size_t i = 0; i < trigger_count; ++i)
-    result.data[i] = std::max(controls[i]->control_ref->State() - deadzone, 0.0) / (1 - deadzone);
+    result.data[i] = ApplyDeadzone(controls[i]->control_ref->State(), deadzone);
 
   return result;
 }

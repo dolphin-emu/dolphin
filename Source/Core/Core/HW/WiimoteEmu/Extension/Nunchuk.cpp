@@ -12,7 +12,6 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Core/Config/WiimoteInputSettings.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
@@ -50,24 +49,10 @@ Nunchuk::Nunchuk() : EncryptedExtension(_trans("Nunchuk"))
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
 
-  // shake
-  groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
-  // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("X")));
-  // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
-  // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
-
-  groups.emplace_back(m_shake_soft = new ControllerEmu::Buttons("ShakeSoft"));
-  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
-  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
-  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
-
-  groups.emplace_back(m_shake_hard = new ControllerEmu::Buttons("ShakeHard"));
-  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
-  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
-  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+  // Shake
+  // Inverse the default intensity so shake is opposite that of wiimote.
+  // This is needed by DKCR for proper shake action detection.
+  groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake"), -1));
 }
 
 void Nunchuk::Update()
@@ -104,6 +89,7 @@ void Nunchuk::Update()
   // Acceleration data:
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
 
   const auto transformation =
       GetRotationalMatrix(-m_tilt_state.angle) * GetRotationalMatrix(-m_swing_state.angle);
@@ -112,12 +98,7 @@ void Nunchuk::Update()
                                          Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));
 
   // shake
-  accel += EmulateShake(m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
-                        m_shake_step.data());
-  accel += EmulateShake(m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
-                        m_shake_soft_step.data());
-  accel += EmulateShake(m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
-                        m_shake_hard_step.data());
+  accel += m_shake_state.acceleration;
 
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
   const auto acc = ConvertAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
@@ -203,6 +184,7 @@ void Nunchuk::DoState(PointerWrap& p)
 
   p.Do(m_swing_state);
   p.Do(m_tilt_state);
+  p.Do(m_shake_state);
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
@@ -227,5 +209,9 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "Control_L");  // C
   m_buttons->SetControlExpression(1, "Shift_L");    // Z
 #endif
+
+  // Shake
+  for (int i = 0; i < 3; ++i)
+    m_shake->SetControlExpression(i, "Click 2");
 }
 }  // namespace WiimoteEmu

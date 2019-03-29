@@ -17,7 +17,6 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/Config/WiimoteInputSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -130,11 +129,7 @@ void Wiimote::Reset()
   // Dynamics:
   m_swing_state = {};
   m_tilt_state = {};
-
-  m_shake_step = {};
-  m_shake_soft_step = {};
-  m_shake_hard_step = {};
-  m_shake_dynamic_data = {};
+  m_shake_state = {};
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)
@@ -159,31 +154,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
 
   // shake
-  groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
-  // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("X")));
-  // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
-  // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
-
-  groups.emplace_back(m_shake_soft = new ControllerEmu::Buttons("ShakeSoft"));
-  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
-  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
-  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
-
-  groups.emplace_back(m_shake_hard = new ControllerEmu::Buttons("ShakeHard"));
-  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
-  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
-  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
-
-  groups.emplace_back(m_shake_dynamic = new ControllerEmu::Buttons("Shake Dynamic"));
-  m_shake_dynamic->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
-  m_shake_dynamic->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
-  m_shake_dynamic->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+  groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
 
   // extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
@@ -687,6 +658,7 @@ void Wiimote::StepDynamics()
 {
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
 
   // TODO: Move cursor state out of ControllerEmu::Cursor
   // const auto cursor_mtx = EmulateCursorMovement(m_ir);
@@ -710,24 +682,7 @@ Common::Vec3 Wiimote::GetAcceleration()
       GetTransformation().Transform(
           m_swing_state.acceleration + Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)), 0);
 
-  DynamicConfiguration shake_config;
-  shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
-  shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
-  shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
-  shake_config.frames_needed_for_high_intensity =
-      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
-  shake_config.frames_needed_for_low_intensity =
-      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
-  shake_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_LENGTH);
-
-  accel += EmulateShake(m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM),
-                        m_shake_step.data());
-  accel += EmulateShake(m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT),
-                        m_shake_soft_step.data());
-  accel += EmulateShake(m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD),
-                        m_shake_hard_step.data());
-  accel += EmulateDynamicShake(m_shake_dynamic_data, m_shake_dynamic, shake_config,
-                               m_shake_dynamic_step.data());
+  accel += m_shake_state.acceleration;
 
   return accel;
 }
@@ -735,9 +690,10 @@ Common::Vec3 Wiimote::GetAcceleration()
 Common::Matrix44 Wiimote::GetTransformation() const
 {
   // Includes positional and rotational effects of:
-  // IR, Swing, Tilt
+  // IR, Swing, Tilt, Shake
 
-  return Common::Matrix44::FromMatrix33(GetRotationalMatrix(-m_tilt_state.angle) *
+  return Common::Matrix44::Translate(-m_shake_state.position) *
+         Common::Matrix44::FromMatrix33(GetRotationalMatrix(-m_tilt_state.angle) *
                                         GetRotationalMatrix(-m_swing_state.angle)) *
          EmulateCursorMovement(m_ir) * Common::Matrix44::Translate(-m_swing_state.position);
 }

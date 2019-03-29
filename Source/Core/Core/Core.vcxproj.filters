@@ -874,9 +874,6 @@
     <ClCompile Include="Config\UISettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
-    <ClCompile Include="Config\WiimoteInputSettings.cpp">
-      <Filter>Config</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp" />
@@ -1590,9 +1587,6 @@
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClInclude>
     <ClInclude Include="Config\UISettings.h">
-      <Filter>Config</Filter>
-    </ClInclude>
-    <ClInclude Include="Config\WiimoteInputSettings.h">
       <Filter>Config</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\I2CBus.h">

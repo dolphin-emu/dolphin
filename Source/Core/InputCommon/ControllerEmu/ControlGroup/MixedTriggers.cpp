@@ -20,6 +20,8 @@ namespace ControllerEmu
 MixedTriggers::MixedTriggers(const std::string& name_)
     : ControlGroup(name_, GroupType::MixedTriggers)
 {
+  AddDeadzoneSetting(&m_deadzone_setting, 25);
+
   AddSetting(&m_threshold_setting,
              {_trans("Threshold"),
               // i18n: The percent symbol.
@@ -27,8 +29,6 @@ MixedTriggers::MixedTriggers(const std::string& name_)
               // i18n: Refers to the "threshold" setting for pressure sensitive gamepad inputs.
               _trans("Input strength required for activation.")},
              90, 0, 100);
-
-  AddDeadzoneSetting(&m_deadzone_setting, 25);
 }
 
 void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlState* analog,
@@ -46,12 +46,9 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
   const int trigger_count = int(controls.size() / 2);
   for (int i = 0; i != trigger_count; ++i)
   {
-    ControlState button_value = controls[i]->control_ref->State();
-    ControlState analog_value = controls[trigger_count + i]->control_ref->State();
-
-    // Apply deadzone:
-    analog_value = std::max(0.0, analog_value - deadzone) / (1.0 - deadzone);
-    button_value = std::max(0.0, button_value - deadzone) / (1.0 - deadzone);
+    const ControlState button_value = ApplyDeadzone(controls[i]->control_ref->State(), deadzone);
+    ControlState analog_value =
+        ApplyDeadzone(controls[trigger_count + i]->control_ref->State(), deadzone);
 
     // Apply threshold:
     if (button_value > threshold)

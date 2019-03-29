@@ -222,10 +222,7 @@ private:
   // Control groups for user input:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_dpad;
-  ControllerEmu::Buttons* m_shake;
-  ControllerEmu::Buttons* m_shake_soft;
-  ControllerEmu::Buttons* m_shake_hard;
-  ControllerEmu::Buttons* m_shake_dynamic;
+  ControllerEmu::Shake* m_shake;
   ControllerEmu::Cursor* m_ir;
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
@@ -270,12 +267,6 @@ private:
   // Dynamics:
   MotionState m_swing_state;
   RotationalState m_tilt_state;
-
-  // TODO: kill these:
-  std::array<u8, 3> m_shake_step{};
-  std::array<u8, 3> m_shake_soft_step{};
-  std::array<u8, 3> m_shake_hard_step{};
-  std::array<u8, 3> m_shake_dynamic_step{};
-  DynamicData m_shake_dynamic_data;
+  PositionalState m_shake_state;
 };
 }  // namespace WiimoteEmu
