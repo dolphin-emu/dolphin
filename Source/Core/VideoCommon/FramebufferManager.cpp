@@ -277,9 +277,12 @@ bool FramebufferManager::ReinterpretPixelData(EFBReinterpretType convtype)
     return false;
 
   // Draw to the secondary framebuffer.
+  // We don't discard here because discarding the framebuffer also throws away the depth
+  // buffer, which we want to preserve. If we find this to be hindering performance in the
+  // future (e.g. on mobile/tilers), it may be worth discarding only the color buffer.
   m_efb_color_texture->FinishedRendering();
   g_renderer->BeginUtilityDrawing();
-  g_renderer->SetAndDiscardFramebuffer(m_efb_convert_framebuffer.get());
+  g_renderer->SetFramebuffer(m_efb_convert_framebuffer.get());
   g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
   g_renderer->SetPipeline(m_format_conversion_pipelines[static_cast<u32>(convtype)].get());
   g_renderer->SetTexture(0, m_efb_color_texture.get());
