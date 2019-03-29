@@ -80,6 +80,8 @@ public:
   {
     return m_device_features.occlusionQueryPrecise == VK_TRUE;
   }
+  u32 GetShaderSubgroupSize() const { return m_shader_subgroup_size; }
+  bool SupportsShaderSubgroupOperations() const { return m_supports_shader_subgroup_operations; }
 
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
@@ -112,6 +114,7 @@ private:
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
+  void PopulateShaderSubgroupSupport();
 
   VkInstance m_instance = VK_NULL_HANDLE;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
@@ -128,6 +131,9 @@ private:
   VkPhysicalDeviceFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
+
+  u32 m_shader_subgroup_size = 1;
+  bool m_supports_shader_subgroup_operations = false;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;

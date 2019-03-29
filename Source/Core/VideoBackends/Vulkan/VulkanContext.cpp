@@ -384,6 +384,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
 
   // Initialize DriverDetails so that we can check for bugs to disable features if needed.
   context->InitDriverDetails();
+  context->PopulateShaderSubgroupSupport();
 
   // Enable debug reports if the "Host GPU" log category is enabled.
   if (enable_debug_reports)
@@ -863,5 +864,32 @@ void VulkanContext::InitDriverDetails()
   DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
                       static_cast<double>(m_device_properties.driverVersion),
                       DriverDetails::Family::UNKNOWN);
+}
+
+void VulkanContext::PopulateShaderSubgroupSupport()
+{
+  // If this function isn't available, we don't support Vulkan 1.1.
+  if (!vkGetPhysicalDeviceProperties2)
+    return;
+
+  VkPhysicalDeviceProperties2 device_properties_2 = {};
+  device_properties_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+
+  VkPhysicalDeviceSubgroupProperties subgroup_properties = {};
+  subgroup_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+  device_properties_2.pNext = &subgroup_properties;
+
+  vkGetPhysicalDeviceProperties2(m_physical_device, &device_properties_2);
+
+  m_shader_subgroup_size = subgroup_properties.subgroupSize;
+
+  // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
+  // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
+  constexpr VkSubgroupFeatureFlags required_operations = VK_SUBGROUP_FEATURE_BASIC_BIT |
+                                                         VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
+                                                         VK_SUBGROUP_FEATURE_BALLOT_BIT;
+  m_supports_shader_subgroup_operations =
+      (subgroup_properties.supportedOperations & required_operations) == required_operations &&
+      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
 }
 }  // namespace Vulkan

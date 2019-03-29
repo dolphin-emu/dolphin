@@ -70,6 +70,7 @@ struct VideoConfig
   bool bSupportsBitfield;
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
+  bool bSupportsShaderThreadShuffleNV;
 
   const char* gl_vendor;
   const char* gl_renderer;
