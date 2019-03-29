@@ -15,6 +15,7 @@ VULKAN_MODULE_ENTRY_POINT(vkGetInstanceProcAddr, true)
 VULKAN_MODULE_ENTRY_POINT(vkGetDeviceProcAddr, true)
 VULKAN_MODULE_ENTRY_POINT(vkEnumerateInstanceExtensionProperties, true)
 VULKAN_MODULE_ENTRY_POINT(vkEnumerateInstanceLayerProperties, true)
+VULKAN_MODULE_ENTRY_POINT(vkEnumerateInstanceVersion, false)
 
 #endif  // VULKAN_MODULE_ENTRY_POINT
 
