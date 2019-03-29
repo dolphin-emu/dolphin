@@ -202,6 +202,7 @@ QWidget* InfoWidget::CreateChecksumComputer()
   layout->setContentsMargins(0, 0, 0, 0);
 
   m_checksum_result = new QLineEdit();
+  m_checksum_result->setReadOnly(true);
   QPushButton* calculate = new QPushButton(tr("Compute"));
   connect(calculate, &QPushButton::clicked, this, &InfoWidget::ComputeChecksum);
   layout->addWidget(m_checksum_result);
