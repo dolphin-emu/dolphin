@@ -100,6 +100,19 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   app_info.engineVersion = VK_MAKE_VERSION(5, 0, 0);
   app_info.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
+  // Try for Vulkan 1.1 if the loader supports it.
+  if (vkEnumerateInstanceVersion)
+  {
+    u32 supported_api_version = 0;
+    VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
+    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
+                              VK_VERSION_MINOR(supported_api_version) >= 1))
+    {
+      // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
+      app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
+    }
+  }
+
   VkInstanceCreateInfo instance_create_info = {};
   instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   instance_create_info.pNext = nullptr;
@@ -868,9 +881,13 @@ void VulkanContext::InitDriverDetails()
 
 void VulkanContext::PopulateShaderSubgroupSupport()
 {
-  // If this function isn't available, we don't support Vulkan 1.1.
-  if (!vkGetPhysicalDeviceProperties2)
+  // Vulkan 1.1 support is required for vkGetPhysicalDeviceProperties2(), but we can't rely on the
+  // function pointer alone.
+  if (!vkGetPhysicalDeviceProperties2 || (VK_VERSION_MAJOR(m_device_properties.apiVersion) == 1 &&
+                                          VK_VERSION_MINOR(m_device_properties.apiVersion) < 1))
+  {
     return;
+  }
 
   VkPhysicalDeviceProperties2 device_properties_2 = {};
   device_properties_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
