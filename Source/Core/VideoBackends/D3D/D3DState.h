@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
@@ -296,7 +297,7 @@ private:
   ID3D11ComputeShader* m_compute_shader = nullptr;
 };
 
-extern StateManager* stateman;
+extern std::unique_ptr<StateManager> stateman;
 
 }  // namespace D3D
 

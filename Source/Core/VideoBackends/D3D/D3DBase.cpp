@@ -156,14 +156,13 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
   g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
 
-  stateman = new StateManager();
+  stateman = std::make_unique<StateManager>();
   return true;
 }
 
 void Destroy()
 {
-  delete stateman;
-  stateman = nullptr;
+  stateman.reset();
 
   context->ClearState();
   context->Flush();

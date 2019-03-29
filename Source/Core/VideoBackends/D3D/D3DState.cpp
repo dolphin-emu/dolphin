@@ -20,7 +20,7 @@ namespace DX11
 {
 namespace D3D
 {
-StateManager* stateman;
+std::unique_ptr<StateManager> stateman;
 
 StateManager::StateManager() = default;
 StateManager::~StateManager() = default;
