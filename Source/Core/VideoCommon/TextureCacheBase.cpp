@@ -2306,9 +2306,11 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
   }
 
   const auto scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
+  const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
+      scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   AbstractTexture* src_texture =
-      is_depth_copy ? g_framebuffer_manager->ResolveEFBDepthTexture(scaled_src_rect) :
-                      g_framebuffer_manager->ResolveEFBColorTexture(scaled_src_rect);
+      is_depth_copy ? g_framebuffer_manager->ResolveEFBDepthTexture(framebuffer_rect) :
+                      g_framebuffer_manager->ResolveEFBColorTexture(framebuffer_rect);
 
   g_renderer->BeginUtilityDrawing();
 
@@ -2324,8 +2326,6 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
     u32 padding;
   };
   Uniforms uniforms;
-  const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
-      scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   const float rcp_efb_width = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBWidth());
   const float rcp_efb_height = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBHeight());
   uniforms.src_left = framebuffer_rect.left * rcp_efb_width;
@@ -2372,9 +2372,11 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   }
 
   const auto scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
+  const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
+      scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   AbstractTexture* src_texture =
-      params.depth ? g_framebuffer_manager->ResolveEFBDepthTexture(scaled_src_rect) :
-                     g_framebuffer_manager->ResolveEFBColorTexture(scaled_src_rect);
+      params.depth ? g_framebuffer_manager->ResolveEFBDepthTexture(framebuffer_rect) :
+                     g_framebuffer_manager->ResolveEFBColorTexture(framebuffer_rect);
 
   g_renderer->BeginUtilityDrawing();
 
@@ -2390,8 +2392,6 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
     u32 padding;
   };
   Uniforms encoder_params;
-  const auto framebuffer_rect = g_renderer->ConvertFramebufferRectangle(
-      scaled_src_rect, g_framebuffer_manager->GetEFBFramebuffer());
   const float rcp_efb_height = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBHeight());
   encoder_params.position_uniform[0] = src_rect.left;
   encoder_params.position_uniform[1] = src_rect.top;
