@@ -131,49 +131,12 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 
 u16 Renderer::BBoxRead(int index)
 {
-  s32 value = m_bounding_box->Get(static_cast<size_t>(index));
-
-  // Here we get the min/max value of the truncated position of the upscaled framebuffer.
-  // So we have to correct them to the unscaled EFB sizes.
-  if (index < 2)
-  {
-    // left/right
-    value = value * EFB_WIDTH / m_target_width;
-  }
-  else
-  {
-    // up/down
-    value = value * EFB_HEIGHT / m_target_height;
-  }
-
-  // fix max values to describe the outer border
-  if (index & 1)
-    value++;
-
-  return static_cast<u16>(value);
+  return static_cast<u16>(m_bounding_box->Get(index));
 }
 
 void Renderer::BBoxWrite(int index, u16 value)
 {
-  s32 scaled_value = static_cast<s32>(value);
-
-  // fix max values to describe the outer border
-  if (index & 1)
-    scaled_value--;
-
-  // scale to internal resolution
-  if (index < 2)
-  {
-    // left/right
-    scaled_value = scaled_value * m_target_width / EFB_WIDTH;
-  }
-  else
-  {
-    // up/down
-    scaled_value = scaled_value * m_target_height / EFB_HEIGHT;
-  }
-
-  m_bounding_box->Set(static_cast<size_t>(index), scaled_value);
+  m_bounding_box->Set(index, value);
 }
 
 void Renderer::BBoxFlush()
