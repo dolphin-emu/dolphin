@@ -124,11 +124,10 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
   m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
   m_disable_bounding_box->setEnabled(bbox);
 
-  if (!gpu_texture_decoding)
-    m_gpu_texture_decoding->setToolTip(tr("%1 doesn't support this feature.").arg(backend_name));
+  const QString tooltip = tr("%1 doesn't support this feature on your system.").arg(backend_name);
 
-  if (!bbox)
-    m_disable_bounding_box->setToolTip(tr("%1 doesn't support this feature.").arg(backend_name));
+  m_gpu_texture_decoding->setToolTip(!gpu_texture_decoding ? tooltip : QStringLiteral(""));
+  m_disable_bounding_box->setToolTip(!bbox ? tooltip : QStringLiteral(""));
 }
 
 void HacksWidget::ConnectWidgets()

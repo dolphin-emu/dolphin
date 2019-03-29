@@ -91,10 +91,11 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsLargePoints = true;
   g_Config.backend_info.bSupportsPartialDepthCopies = true;
 
-  // TODO: There is a bug here, if texel buffers are not supported the graphics options
-  // will show the option when it is not supported. The only way around this would be
+  // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics
+  // options will show the option when it is not supported. The only way around this would be
   // creating a context when calling this function to determine what is available.
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
+  g_Config.backend_info.bSupportsBBox = true;
 
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
