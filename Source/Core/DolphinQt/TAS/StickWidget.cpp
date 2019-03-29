@@ -62,11 +62,13 @@ void StickWidget::paintEvent(QPaintEvent* event)
 void StickWidget::mousePressEvent(QMouseEvent* event)
 {
   handleMouseEvent(event);
+  m_ignore_movement = event->button() == Qt::RightButton;
 }
 
 void StickWidget::mouseMoveEvent(QMouseEvent* event)
 {
-  handleMouseEvent(event);
+  if (!m_ignore_movement)
+    handleMouseEvent(event);
 }
 
 void StickWidget::handleMouseEvent(QMouseEvent* event)

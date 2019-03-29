@@ -939,7 +939,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
                            u32 color, u32 z)
 {
   g_framebuffer_manager->FlushEFBPokes();
-  g_framebuffer_manager->InvalidatePeekCache();
+  g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
 
   u32 clear_mask = 0;
   if (colorEnable || alphaEnable)

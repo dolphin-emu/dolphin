@@ -5,8 +5,10 @@
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 
 #include <QCheckBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -52,26 +54,22 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   m_down_button = new QCheckBox(QStringLiteral("&Down"));
   m_right_button = new QCheckBox(QStringLiteral("R&ight"));
 
-  auto* buttons_layout1 = new QHBoxLayout;
-  buttons_layout1->addWidget(m_a_button);
-  buttons_layout1->addWidget(m_b_button);
-  buttons_layout1->addWidget(m_x_button);
-  buttons_layout1->addWidget(m_y_button);
-  buttons_layout1->addWidget(m_z_button);
-  buttons_layout1->addWidget(m_l_button);
-  buttons_layout1->addWidget(m_r_button);
+  auto* buttons_layout = new QGridLayout;
+  buttons_layout->addWidget(m_a_button, 0, 0);
+  buttons_layout->addWidget(m_b_button, 0, 1);
+  buttons_layout->addWidget(m_x_button, 0, 2);
+  buttons_layout->addWidget(m_y_button, 0, 3);
+  buttons_layout->addWidget(m_z_button, 0, 4);
+  buttons_layout->addWidget(m_l_button, 0, 5);
+  buttons_layout->addWidget(m_r_button, 0, 6);
 
-  auto* buttons_layout2 = new QHBoxLayout;
-  buttons_layout2->addWidget(m_start_button);
-  buttons_layout2->addWidget(m_left_button);
-  buttons_layout2->addWidget(m_up_button);
-  buttons_layout2->addWidget(m_down_button);
-  buttons_layout2->addWidget(m_right_button);
+  buttons_layout->addWidget(m_start_button, 1, 0);
+  buttons_layout->addWidget(m_left_button, 1, 1);
+  buttons_layout->addWidget(m_up_button, 1, 2);
+  buttons_layout->addWidget(m_down_button, 1, 3);
+  buttons_layout->addWidget(m_right_button, 1, 4);
 
-  auto* buttons_layout = new QVBoxLayout;
-  buttons_layout->setSizeConstraint(QLayout::SetFixedSize);
-  buttons_layout->addLayout(buttons_layout1);
-  buttons_layout->addLayout(buttons_layout2);
+  buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 7);
 
   m_buttons_box = new QGroupBox(tr("Buttons"));
   m_buttons_box->setLayout(buttons_layout);

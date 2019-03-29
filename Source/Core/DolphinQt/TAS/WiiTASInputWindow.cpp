@@ -5,8 +5,10 @@
 #include <cmath>
 
 #include <QCheckBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -173,32 +175,29 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_c_button = new QCheckBox(QStringLiteral("&C"));
   m_z_button = new QCheckBox(QStringLiteral("&Z"));
 
-  auto* buttons_layout1 = new QHBoxLayout;
-  buttons_layout1->addWidget(m_a_button);
-  buttons_layout1->addWidget(m_b_button);
-  buttons_layout1->addWidget(m_1_button);
-  buttons_layout1->addWidget(m_2_button);
-  buttons_layout1->addWidget(m_plus_button);
-  buttons_layout1->addWidget(m_minus_button);
+  auto* buttons_layout = new QGridLayout;
+  buttons_layout->addWidget(m_a_button, 0, 0);
+  buttons_layout->addWidget(m_b_button, 0, 1);
+  buttons_layout->addWidget(m_1_button, 0, 2);
+  buttons_layout->addWidget(m_2_button, 0, 3);
+  buttons_layout->addWidget(m_plus_button, 0, 4);
+  buttons_layout->addWidget(m_minus_button, 0, 5);
 
-  auto* buttons_layout2 = new QHBoxLayout;
-  buttons_layout2->addWidget(m_home_button);
-  buttons_layout2->addWidget(m_left_button);
-  buttons_layout2->addWidget(m_up_button);
-  buttons_layout2->addWidget(m_down_button);
-  buttons_layout2->addWidget(m_right_button);
+  buttons_layout->addWidget(m_home_button, 1, 0);
+  buttons_layout->addWidget(m_left_button, 1, 1);
+  buttons_layout->addWidget(m_up_button, 1, 2);
+  buttons_layout->addWidget(m_down_button, 1, 3);
+  buttons_layout->addWidget(m_right_button, 1, 4);
 
-  auto* remote_buttons_layout = new QVBoxLayout;
-  remote_buttons_layout->setSizeConstraint(QLayout::SetFixedSize);
-  remote_buttons_layout->addLayout(buttons_layout1);
-  remote_buttons_layout->addLayout(buttons_layout2);
+  buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 7);
 
   m_remote_buttons_box = new QGroupBox(tr("Wii Remote Buttons"));
-  m_remote_buttons_box->setLayout(remote_buttons_layout);
+  m_remote_buttons_box->setLayout(buttons_layout);
 
   auto* nunchuk_buttons_layout = new QHBoxLayout;
   nunchuk_buttons_layout->addWidget(m_c_button);
   nunchuk_buttons_layout->addWidget(m_z_button);
+  nunchuk_buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding));
 
   m_nunchuk_buttons_box = new QGroupBox(tr("Nunchuk Buttons"));
   m_nunchuk_buttons_box->setLayout(nunchuk_buttons_layout);
@@ -219,29 +218,25 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_classic_down_button = new QCheckBox(QStringLiteral("&Down"));
   m_classic_right_button = new QCheckBox(QStringLiteral("R&ight"));
 
-  auto* classic_buttons_layout1 = new QHBoxLayout;
-  classic_buttons_layout1->addWidget(m_classic_a_button);
-  classic_buttons_layout1->addWidget(m_classic_b_button);
-  classic_buttons_layout1->addWidget(m_classic_x_button);
-  classic_buttons_layout1->addWidget(m_classic_y_button);
-  classic_buttons_layout1->addWidget(m_classic_l_button);
-  classic_buttons_layout1->addWidget(m_classic_r_button);
-  classic_buttons_layout1->addWidget(m_classic_zl_button);
-  classic_buttons_layout1->addWidget(m_classic_zr_button);
+  auto* classic_buttons_layout = new QGridLayout;
+  classic_buttons_layout->addWidget(m_classic_a_button, 0, 0);
+  classic_buttons_layout->addWidget(m_classic_b_button, 0, 1);
+  classic_buttons_layout->addWidget(m_classic_x_button, 0, 2);
+  classic_buttons_layout->addWidget(m_classic_y_button, 0, 3);
+  classic_buttons_layout->addWidget(m_classic_l_button, 0, 4);
+  classic_buttons_layout->addWidget(m_classic_r_button, 0, 5);
+  classic_buttons_layout->addWidget(m_classic_zl_button, 0, 6);
+  classic_buttons_layout->addWidget(m_classic_zr_button, 0, 7);
 
-  auto* classic_buttons_layout2 = new QHBoxLayout;
-  classic_buttons_layout2->addWidget(m_classic_plus_button);
-  classic_buttons_layout2->addWidget(m_classic_minus_button);
-  classic_buttons_layout2->addWidget(m_classic_home_button);
-  classic_buttons_layout2->addWidget(m_classic_left_button);
-  classic_buttons_layout2->addWidget(m_classic_up_button);
-  classic_buttons_layout2->addWidget(m_classic_down_button);
-  classic_buttons_layout2->addWidget(m_classic_right_button);
+  classic_buttons_layout->addWidget(m_classic_plus_button, 1, 0);
+  classic_buttons_layout->addWidget(m_classic_minus_button, 1, 1);
+  classic_buttons_layout->addWidget(m_classic_home_button, 1, 2);
+  classic_buttons_layout->addWidget(m_classic_left_button, 1, 3);
+  classic_buttons_layout->addWidget(m_classic_up_button, 1, 4);
+  classic_buttons_layout->addWidget(m_classic_down_button, 1, 5);
+  classic_buttons_layout->addWidget(m_classic_right_button, 1, 6);
 
-  auto* classic_buttons_layout = new QVBoxLayout;
-  classic_buttons_layout->setSizeConstraint(QLayout::SetFixedSize);
-  classic_buttons_layout->addLayout(classic_buttons_layout1);
-  classic_buttons_layout->addLayout(classic_buttons_layout2);
+  classic_buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 8);
 
   m_classic_buttons_box = new QGroupBox(tr("Classic Buttons"));
   m_classic_buttons_box->setLayout(classic_buttons_layout);
@@ -255,7 +250,6 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   layout->addWidget(m_nunchuk_buttons_box);
   layout->addWidget(m_classic_buttons_box);
   layout->addWidget(m_use_controller);
-  layout->setAlignment(m_nunchuk_buttons_box, Qt::AlignLeft);
 
   setLayout(layout);
 

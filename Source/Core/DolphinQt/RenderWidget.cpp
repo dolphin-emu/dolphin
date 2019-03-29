@@ -10,7 +10,6 @@
 #include <QGuiApplication>
 #include <QIcon>
 #include <QKeyEvent>
-#include <QMessageBox>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPalette>
@@ -24,6 +23,7 @@
 #include "Core/State.h"
 
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -112,7 +112,7 @@ void RenderWidget::dropEvent(QDropEvent* event)
 
   if (!file_info.exists() || !file_info.isReadable())
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
     return;
   }
 
@@ -324,7 +324,7 @@ void RenderWidget::SetImGuiKeyMap()
                                    {ImGuiKey_Delete, Qt::Key_Delete},
                                    {ImGuiKey_Backspace, Qt::Key_Backspace},
                                    {ImGuiKey_Space, Qt::Key_Space},
-                                   {ImGuiKey_Enter, Qt::Key_Enter},
+                                   {ImGuiKey_Enter, Qt::Key_Return},
                                    {ImGuiKey_Escape, Qt::Key_Escape},
                                    {ImGuiKey_A, Qt::Key_A},
                                    {ImGuiKey_C, Qt::Key_C},

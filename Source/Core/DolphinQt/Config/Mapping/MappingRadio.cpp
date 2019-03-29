@@ -10,23 +10,20 @@
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-MappingRadio::MappingRadio(MappingWidget* widget, ControllerEmu::BooleanSetting* setting)
-    : QRadioButton(tr(setting->m_ui_name.c_str())), m_parent(widget), m_setting(setting)
+MappingRadio::MappingRadio(MappingWidget* parent, ControllerEmu::BooleanSetting* setting)
+    : QRadioButton(tr(setting->m_ui_name.c_str())), m_setting(*setting)
 {
-  Update();
-  Connect();
-}
-
-void MappingRadio::Connect()
-{
-  connect(this, &QRadioButton::toggled, this, [this](int value) {
-    m_setting->SetValue(value);
-    m_parent->SaveSettings();
-    m_parent->GetController()->UpdateReferences(g_controller_interface);
+  connect(this, &QRadioButton::toggled, this, [this, parent](int value) {
+    m_setting.SetValue(value);
+    parent->SaveSettings();
   });
+
+  connect(parent, &MappingWidget::ConfigChanged, this, &MappingRadio::ConfigChanged);
 }
 
-void MappingRadio::Update()
+void MappingRadio::ConfigChanged()
 {
-  setChecked(m_setting->GetValue());
+  const bool old_state = blockSignals(true);
+  setChecked(m_setting.GetValue());
+  blockSignals(old_state);
 }

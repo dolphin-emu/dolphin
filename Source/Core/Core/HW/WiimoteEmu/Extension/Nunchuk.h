@@ -7,6 +7,7 @@
 #include <array>
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -73,6 +74,7 @@ public:
   void Update() override;
   bool IsButtonPressed() const override;
   void Reset() override;
+  void DoState(PointerWrap& p) override;
 
   ControllerEmu::ControlGroup* GetGroup(NunchukGroup group);
 
@@ -101,8 +103,6 @@ private:
   ControllerEmu::Tilt* m_tilt;
 
   ControllerEmu::Force* m_swing;
-  ControllerEmu::Force* m_swing_slow;
-  ControllerEmu::Force* m_swing_fast;
 
   ControllerEmu::Buttons* m_shake;
   ControllerEmu::Buttons* m_shake_soft;
@@ -111,6 +111,11 @@ private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_stick;
 
+  // Dynamics:
+  MotionState m_swing_state;
+  RotationalState m_tilt_state;
+
+  // TODO: kill
   std::array<u8, 3> m_shake_step{};
   std::array<u8, 3> m_shake_soft_step{};
   std::array<u8, 3> m_shake_hard_step{};

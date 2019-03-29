@@ -4,12 +4,11 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 
-#include <cmath>
-#include <memory>
 #include <string>
 
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -17,7 +16,7 @@
 
 namespace ControllerEmu
 {
-Force::Force(const std::string& name_) : ControlGroup(name_, GroupType::Force)
+Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType::Force)
 {
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Up")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Down")));
@@ -26,26 +25,69 @@ Force::Force(const std::string& name_) : ControlGroup(name_, GroupType::Force)
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
 
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
+  // Maximum swing movement (centimeters).
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Distance"), 0.25, 1, 100));
+
+  // Maximum jerk (m/s^3).
+  // i18n: "Jerk" as it relates to physics. The time derivative of acceleration.
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Jerk"), 5.0, 1, 1000));
+
+  // Angle of twist applied at the extremities of the swing (degrees).
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.45, 0, 180));
 }
 
-Force::StateData Force::GetState()
+Force::ReshapeData Force::GetReshapableState(bool adjusted)
 {
-  StateData state_data;
-  const ControlState deadzone = numeric_settings[0]->GetValue();
+  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-  for (u32 i = 0; i < 6; i += 2)
+  // Return raw values. (used in UI)
+  if (!adjusted)
+    return {x, y};
+
+  return Reshape(x, y);
+}
+
+Force::StateData Force::GetState(bool adjusted)
+{
+  const auto state = GetReshapableState(adjusted);
+  ControlState z = controls[4]->control_ref->State() - controls[5]->control_ref->State();
+
+  if (adjusted)
   {
-    const ControlState state =
-        controls[i + 1]->control_ref->State() - controls[i]->control_ref->State();
-
-    ControlState tmpf = 0;
-    if (fabs(state) > deadzone)
-      tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
-
-    state_data[i / 2] = tmpf;
+    // Apply deadzone to z.
+    const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+    z = std::copysign(std::max(0.0, std::abs(z) - deadzone) / (1.0 - deadzone), z);
   }
 
-  return state_data;
+  return {float(state.x), float(state.y), float(z)};
 }
+
+ControlState Force::GetGateRadiusAtAngle(double) const
+{
+  // Just a circle of the configured distance:
+  return numeric_settings[SETTING_DISTANCE]->GetValue();
+}
+
+ControlState Force::GetMaxJerk() const
+{
+  return numeric_settings[SETTING_JERK]->GetValue() * 100;
+}
+
+ControlState Force::GetTwistAngle() const
+{
+  return numeric_settings[SETTING_ANGLE]->GetValue() * MathUtil::TAU / 3.60;
+}
+
+ControlState Force::GetMaxDistance() const
+{
+  return numeric_settings[SETTING_DISTANCE]->GetValue();
+}
+
+ControlState Force::GetDefaultInputRadiusAtAngle(double) const
+{
+  // Just a circle of radius 1.0.
+  return 1.0;
+}
+
 }  // namespace ControllerEmu

@@ -26,6 +26,7 @@ signals:
   void ChangeDisc();
 
   void ExitHotkey();
+  void ActivateChat();
   void FullScreenHotkey();
   void StopHotkey();
   void ResetHotkey();

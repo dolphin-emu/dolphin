@@ -284,25 +284,12 @@ bool CBoot::LoadMapFromFilename()
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 {
-  // CRC32 hashes of the IPL file; including source where known
-  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
-  constexpr u32 USA_v1_0 = 0x6D740AE7;
-  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
-  constexpr u32 USA_v1_1 = 0xD5E6FEEA;
-  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
-  constexpr u32 USA_v1_2 = 0x86573808;
-  // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
-  constexpr u32 BRA_v1_0 = 0x667D0B64;
-  // Redump
-  constexpr u32 JAP_v1_0 = 0x6DAC1F2A;
-  // https://bugs.dolphin-emu.org/issues/8936
-  constexpr u32 JAP_v1_1 = 0xD235E3F9;
-  constexpr u32 JAP_v1_2 = 0x8BDABBD4;
-  // Redump
+  // CRC32 hashes of the IPL file, obtained from Redump
+  constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
+  constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
+  constexpr u32 NTSC_v1_2 = 0x86573808;
+  constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
   constexpr u32 PAL_v1_0 = 0x4F319F43;
-  // https://forums.dolphin-emu.org/Thread-ipl-with-unknown-hash-dd8cab7c-problem-caused-by-my-pal-gamecube-bios?pid=435463#pid435463
-  constexpr u32 PAL_v1_1 = 0xDD8CAB7C;
-  // Redump
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
   // Load the whole ROM dump
@@ -313,36 +300,32 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   // Use zlibs crc32 implementation to compute the hash
   u32 ipl_hash = crc32(0L, Z_NULL, 0);
   ipl_hash = crc32(ipl_hash, (const Bytef*)data.data(), (u32)data.size());
-  DiscIO::Region ipl_region;
+  bool known_ipl = false;
+  bool pal_ipl = false;
   switch (ipl_hash)
   {
-  case USA_v1_0:
-  case USA_v1_1:
-  case USA_v1_2:
-  case BRA_v1_0:
-    ipl_region = DiscIO::Region::NTSC_U;
-    break;
-  case JAP_v1_0:
-  case JAP_v1_1:
-  case JAP_v1_2:
-    ipl_region = DiscIO::Region::NTSC_J;
+  case NTSC_v1_0:
+  case NTSC_v1_1:
+  case NTSC_v1_2:
+  case MPAL_v1_1:
+    known_ipl = true;
     break;
   case PAL_v1_0:
-  case PAL_v1_1:
   case PAL_v1_2:
-    ipl_region = DiscIO::Region::PAL;
+    pal_ipl = true;
+    known_ipl = true;
     break;
   default:
-    PanicAlertT("IPL with unknown hash %x", ipl_hash);
-    ipl_region = DiscIO::Region::Unknown;
+    PanicAlertT("The IPL file is not a known good dump. (CRC32: %x)", ipl_hash);
     break;
   }
 
   const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
-  if (ipl_region != DiscIO::Region::Unknown && boot_region != ipl_region)
+  if (known_ipl && pal_ipl != (boot_region == DiscIO::Region::PAL))
+  {
     PanicAlertT("%s IPL found in %s directory. The disc might not be recognized",
-                SConfig::GetDirectoryForRegion(ipl_region),
-                SConfig::GetDirectoryForRegion(boot_region));
+                pal_ipl ? "PAL" : "NTSC", SConfig::GetDirectoryForRegion(boot_region));
+  }
 
   // Run the descrambler over the encrypted section containing BS1/BS2
   ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);

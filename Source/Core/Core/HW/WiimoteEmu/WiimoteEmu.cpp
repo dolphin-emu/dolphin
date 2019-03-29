@@ -20,6 +20,7 @@
 #include "Core/Config/WiimoteInputSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
@@ -30,7 +31,6 @@
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
@@ -64,9 +64,6 @@ static const char* const named_buttons[] = {
 
 void Wiimote::Reset()
 {
-  // TODO: This value should be re-read if SYSCONF gets changed.
-  m_sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
-
   SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
@@ -133,10 +130,12 @@ void Wiimote::Reset()
   m_status.extension = m_extension_port.IsDeviceConnected();
 
   // Dynamics:
+  m_swing_state = {};
+  m_tilt_state = {};
+
   m_shake_step = {};
   m_shake_soft_step = {};
   m_shake_hard_step = {};
-  m_swing_dynamic_data = {};
   m_shake_dynamic_data = {};
 }
 
@@ -157,9 +156,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   // swing
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
-  groups.emplace_back(m_swing_slow = new ControllerEmu::Force("SwingSlow"));
-  groups.emplace_back(m_swing_fast = new ControllerEmu::Force("SwingFast"));
-  groups.emplace_back(m_swing_dynamic = new ControllerEmu::Force("Swing Dynamic"));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
@@ -349,11 +345,18 @@ void Wiimote::Update()
   if (0 == m_reporting_channel)
     return;
 
+  const auto lock = GetStateLock();
+
+  // Hotkey / settings modifier
+  // Data is later accessed in IsSideways and IsUpright
+  m_hotkeys->GetState();
+
+  StepDynamics();
+
   // Update buttons in the status struct which is sent in 99% of input reports.
   // FYI: Movies only sync button updates in data reports.
   if (!Core::WantsDeterminism())
   {
-    const auto lock = GetStateLock();
     UpdateButtonsStatus();
   }
 
@@ -405,14 +408,7 @@ void Wiimote::SendDataReport()
   }
   else
   {
-    const auto lock = GetStateLock();
-
-    // Hotkey / settings modifier
-    // Data is later accessed in IsSideways and IsUpright
-    m_hotkeys->GetState();
-
-    // CORE
-
+    // Core buttons:
     if (rpt_builder.HasCore())
     {
       if (Core::WantsDeterminism())
@@ -424,26 +420,19 @@ void Wiimote::SendDataReport()
       rpt_builder.SetCoreData(m_status.buttons);
     }
 
-    // ACCEL
-
-    // FYI: This data is also used to tilt the IR dots.
-    NormalizedAccelData norm_accel = {};
-    GetAccelData(&norm_accel);
-
+    // Acceleration:
     if (rpt_builder.HasAccel())
     {
       // Calibration values are 8-bit but we want 10-bit precision, so << 2.
       DataReportBuilder::AccelData accel =
-          DenormalizeAccelData(norm_accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+          ConvertAccelData(GetAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
       rpt_builder.SetAccelData(accel);
     }
 
-    // IR
-
+    // IR Camera:
     if (rpt_builder.HasIR())
     {
-      const auto cursor = m_ir->GetState(true);
-      m_camera_logic.Update(cursor, norm_accel, m_sensor_bar_on_top);
+      m_camera_logic.Update(GetTransformation());
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
@@ -453,8 +442,7 @@ void Wiimote::SendDataReport()
                         rpt_builder.GetIRDataPtr());
     }
 
-    // EXT
-
+    // Extension port:
     if (rpt_builder.HasExt())
     {
       // Update extension first as motion-plus may read from it.
@@ -515,14 +503,6 @@ void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
 
   m_reporting_channel = channel_id;
 
-  // FYI: ControlChannel is piped through WiimoteEmu before WiimoteReal just so we can sync the
-  // channel on state load. This is ugly.
-  if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-  {
-    WiimoteReal::ControlChannel(m_index, channel_id, data, size);
-    return;
-  }
-
   const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
 
   DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
@@ -570,14 +550,6 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
   }
 
   m_reporting_channel = channel_id;
-
-  // FYI: InterruptChannel is piped through WiimoteEmu before WiimoteReal just so we can sync the
-  // channel on state load. This is ugly.
-  if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-  {
-    WiimoteReal::InterruptChannel(m_index, channel_id, data, size);
-    return;
-  }
 
   const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
 
@@ -707,7 +679,67 @@ bool Wiimote::IsUpright() const
 
 void Wiimote::SetRumble(bool on)
 {
+  const auto lock = GetStateLock();
   m_motor->control_ref->State(on);
+}
+
+void Wiimote::StepDynamics()
+{
+  EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
+
+  // TODO: Move cursor state out of ControllerEmu::Cursor
+  // const auto cursor_mtx = EmulateCursorMovement(m_ir);
+}
+
+Common::Vec3 Wiimote::GetAcceleration()
+{
+  // Includes effects of:
+  // IR, Tilt, Swing, Orientation, Shake
+
+  auto orientation = Common::Matrix33::Identity();
+
+  if (IsSideways())
+    orientation *= Common::Matrix33::RotateZ(float(MathUtil::TAU / -4));
+
+  if (IsUpright())
+    orientation *= Common::Matrix33::RotateX(float(MathUtil::TAU / 4));
+
+  Common::Vec3 accel =
+      orientation *
+      GetTransformation().Transform(
+          m_swing_state.acceleration + Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)), 0);
+
+  DynamicConfiguration shake_config;
+  shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
+  shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
+  shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
+  shake_config.frames_needed_for_high_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
+  shake_config.frames_needed_for_low_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
+  shake_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_LENGTH);
+
+  accel += EmulateShake(m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM),
+                        m_shake_step.data());
+  accel += EmulateShake(m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT),
+                        m_shake_soft_step.data());
+  accel += EmulateShake(m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD),
+                        m_shake_hard_step.data());
+  accel += EmulateDynamicShake(m_shake_dynamic_data, m_shake_dynamic, shake_config,
+                               m_shake_dynamic_step.data());
+
+  return accel;
+}
+
+Common::Matrix44 Wiimote::GetTransformation() const
+{
+  // Includes positional and rotational effects of:
+  // IR, Swing, Tilt
+
+  return Common::Matrix44::FromMatrix33(GetRotationalMatrix(-m_tilt_state.angle) *
+                                        GetRotationalMatrix(-m_swing_state.angle)) *
+         EmulateCursorMovement(m_ir) * Common::Matrix44::Translate(-m_swing_state.position);
 }
 
 }  // namespace WiimoteEmu

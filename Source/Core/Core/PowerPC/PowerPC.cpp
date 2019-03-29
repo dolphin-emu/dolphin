@@ -94,24 +94,6 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
   return os;
 }
 
-u32 CompactCR()
-{
-  u32 new_cr = 0;
-  for (u32 i = 0; i < 8; i++)
-  {
-    new_cr |= GetCRField(i) << (28 - i * 4);
-  }
-  return new_cr;
-}
-
-void ExpandCR(u32 cr)
-{
-  for (u32 i = 0; i < 8; i++)
-  {
-    SetCRField(i, (cr >> (28 - i * 4)) & 0xF);
-  }
-}
-
 void DoState(PointerWrap& p)
 {
   // some of this code has been disabled, because
@@ -127,7 +109,7 @@ void DoState(PointerWrap& p)
   p.DoArray(ppcState.gpr);
   p.Do(ppcState.pc);
   p.Do(ppcState.npc);
-  p.DoArray(ppcState.cr_val);
+  p.DoArray(ppcState.cr.fields);
   p.Do(ppcState.msr);
   p.Do(ppcState.fpscr);
   p.Do(ppcState.Exceptions);
@@ -183,8 +165,10 @@ static void ResetRegisters()
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
-  for (auto& v : ppcState.cr_val)
+  for (auto& v : ppcState.cr.fields)
+  {
     v = 0x8000000000000001;
+  }
 
   DBATUpdated();
   IBATUpdated();

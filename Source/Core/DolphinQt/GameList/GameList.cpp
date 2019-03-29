@@ -20,7 +20,6 @@
 #include <QListView>
 #include <QMap>
 #include <QMenu>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
@@ -29,6 +28,7 @@
 
 #include "Common/FileUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -44,6 +44,7 @@
 #include "DolphinQt/GameList/ListProxyModel.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
@@ -195,7 +196,7 @@ void GameList::MakeEmptyView()
                       "Double-click here to set a games directory..."));
   m_empty->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
-  auto event_filter = new DoubleClickEventFilter{};
+  auto event_filter = new DoubleClickEventFilter{m_empty};
   m_empty->installEventFilter(event_filter);
   connect(event_filter, &DoubleClickEventFilter::doubleClicked, [this] {
     auto current_dir = QDir::currentPath();
@@ -355,12 +356,27 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
     {
+<<<<<<< HEAD
       menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenSaveFolder);
       menu->addAction(tr("Export Wii Save (Experimental)"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
+=======
+      menu->addAction(tr("Open Wii &save folder"), this, &GameList::OpenWiiSaveFolder);
+      menu->addAction(tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
+      menu->addSeparator();
+    }
+
+    if (platform == DiscIO::Platform::GameCubeDisc)
+    {
+      menu->addAction(tr("Open GameCube &save folder"), this, &GameList::OpenGCSaveFolder);
+      menu->addSeparator();
+    }
+
+    menu->addAction(tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
+>>>>>>> origin/master
     menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
 
     menu->addSeparator();
@@ -442,19 +458,12 @@ void GameList::ExportWiiSave()
     QString failed_str;
     for (const std::string& str : failed)
       failed_str.append(QStringLiteral("\n")).append(QString::fromStdString(str));
-    QMessageBox msg(QMessageBox::Critical, tr("Save Export"),
-                    tr("Failed to export the following save files:") + failed_str, QMessageBox::Ok,
-                    this);
-
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::critical(this, tr("Save Export"),
+                              tr("Failed to export the following save files:") + failed_str);
   }
   else
   {
-    QMessageBox msg(QMessageBox::Information, tr("Save Export"),
-                    tr("Successfully exported save files"), QMessageBox::Ok, this);
-    msg.setWindowModality(Qt::WindowModal);
-    msg.exec();
+    ModalMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
   }
 }
 
@@ -493,9 +502,8 @@ void GameList::CompressISO(bool decompress)
 
     if (!wii_warning_given && !decompress && file->GetPlatform() == DiscIO::Platform::WiiDisc)
     {
-      QMessageBox wii_warning(this);
+      ModalMessageBox wii_warning(this);
       wii_warning.setIcon(QMessageBox::Warning);
-      wii_warning.setWindowModality(Qt::WindowModal);
       wii_warning.setWindowTitle(tr("Confirm"));
       wii_warning.setText(tr("Are you sure?"));
       wii_warning.setInformativeText(tr(
@@ -554,9 +562,8 @@ void GameList::CompressISO(bool decompress)
       QFileInfo dst_info = QFileInfo(dst_path);
       if (dst_info.exists())
       {
-        QMessageBox confirm_replace(this);
+        ModalMessageBox confirm_replace(this);
         confirm_replace.setIcon(QMessageBox::Warning);
-        confirm_replace.setWindowModality(Qt::WindowModal);
         confirm_replace.setWindowTitle(tr("Confirm"));
         confirm_replace.setText(tr("The file %1 already exists.\n"
                                    "Do you wish to replace it?")
@@ -602,13 +609,10 @@ void GameList::CompressISO(bool decompress)
     }
   }
 
-  QMessageBox msg(QMessageBox::Information, tr("Success"),
-                  decompress ? tr("Successfully decompressed %n image(s).", "", files.size()) :
-                               tr("Successfully compressed %n image(s).", "", files.size()),
-                  QMessageBox::Ok, this);
-
-  msg.setWindowModality(Qt::WindowModal);
-  msg.exec();
+  ModalMessageBox::information(this, tr("Success"),
+                               decompress ?
+                                   tr("Successfully decompressed %n image(s).", "", files.size()) :
+                                   tr("Successfully compressed %n image(s).", "", files.size()));
 }
 
 void GameList::InstallWAD()
@@ -617,12 +621,11 @@ void GameList::InstallWAD()
   if (!game)
     return;
 
-  QMessageBox result_dialog(this);
+  ModalMessageBox result_dialog(this);
 
   const bool success = WiiUtils::InstallWAD(game->GetFilePath());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setWindowModality(Qt::WindowModal);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
                                   tr("Failed to install this title to the NAND."));
@@ -635,10 +638,9 @@ void GameList::UninstallWAD()
   if (!game)
     return;
 
-  QMessageBox warning_dialog(this);
+  ModalMessageBox warning_dialog(this);
 
   warning_dialog.setIcon(QMessageBox::Information);
-  warning_dialog.setWindowModality(Qt::WindowModal);
   warning_dialog.setWindowTitle(tr("Confirm"));
   warning_dialog.setText(tr("Uninstalling the WAD will remove the currently installed version of "
                             "this title from the NAND without deleting its save data. Continue?"));
@@ -647,12 +649,11 @@ void GameList::UninstallWAD()
   if (warning_dialog.exec() == QMessageBox::No)
     return;
 
-  QMessageBox result_dialog(this);
+  ModalMessageBox result_dialog(this);
 
   const bool success = WiiUtils::UninstallTitle(game->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setWindowModality(Qt::WindowModal);
   result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
@@ -680,7 +681,7 @@ void GameList::OpenContainingFolder()
   QDesktopServices::openUrl(url);
 }
 
-void GameList::OpenSaveFolder()
+void GameList::OpenWiiSaveFolder()
 {
   const auto game = GetSelectedGame();
   if (!game)
@@ -690,14 +691,69 @@ void GameList::OpenSaveFolder()
   QDesktopServices::openUrl(url);
 }
 
+void GameList::OpenGCSaveFolder()
+{
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  bool found = false;
+
+  for (int i = 0; i < 2; i++)
+  {
+    QUrl url;
+    switch (SConfig::GetInstance().m_EXIDevice[i])
+    {
+    case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
+    {
+      std::string path = StringFromFormat("%s/%s/%s", File::GetUserPath(D_GCUSER_IDX).c_str(),
+                                          SConfig::GetDirectoryForRegion(game->GetRegion()),
+                                          i == 0 ? "Card A" : "Card B");
+
+      std::string override_path = i == 0 ? Config::Get(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE) :
+                                           Config::Get(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
+
+      if (!override_path.empty())
+        path = override_path;
+
+      QDir dir(QString::fromStdString(path));
+
+      if (!dir.entryList({QStringLiteral("%1-%2-*.gci")
+                              .arg(QString::fromStdString(game->GetMakerID()))
+                              .arg(QString::fromStdString(game->GetGameID().substr(0, 4)))})
+               .empty())
+      {
+        url = QUrl::fromLocalFile(dir.absolutePath());
+      }
+      break;
+    }
+    case ExpansionInterface::EXIDEVICE_MEMORYCARD:
+      std::string memcard_path = i == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                          Config::Get(Config::MAIN_MEMCARD_B_PATH);
+
+      std::string memcard_dir;
+
+      SplitPath(memcard_path, &memcard_dir, nullptr, nullptr);
+      url = QUrl::fromLocalFile(QString::fromStdString(memcard_dir));
+      break;
+    }
+
+    found |= !url.isEmpty();
+
+    if (!url.isEmpty())
+      QDesktopServices::openUrl(url);
+  }
+
+  if (!found)
+    ModalMessageBox::information(this, tr("Information"), tr("No save data found."));
+}
+
 void GameList::DeleteFile()
 {
-  QMessageBox confirm_dialog(this);
+  ModalMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
-  confirm_dialog.setWindowModality(Qt::WindowModal);
   confirm_dialog.setWindowTitle(tr("Confirm"));
-  confirm_dialog.setWindowModality(Qt::WindowModal);
   confirm_dialog.setText(tr("Are you sure you want to delete this file?"));
   confirm_dialog.setInformativeText(tr("This cannot be undone!"));
   confirm_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
@@ -718,10 +774,9 @@ void GameList::DeleteFile()
         }
         else
         {
-          QMessageBox error_dialog(this);
+          ModalMessageBox error_dialog(this);
 
           error_dialog.setIcon(QMessageBox::Critical);
-          error_dialog.setWindowModality(Qt::WindowModal);
           error_dialog.setWindowTitle(tr("Failure"));
           error_dialog.setText(tr("Failed to delete the selected file."));
           error_dialog.setInformativeText(tr("Check whether you have the permissions required to "

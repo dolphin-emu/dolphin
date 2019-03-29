@@ -216,7 +216,7 @@ void CommonAsmRoutines::GenMfcr()
     if (i != 0)
       SHL(32, R(dst), Imm8(4));
 
-    MOV(64, R(cr_val), PPCSTATE(cr_val[i]));
+    MOV(64, R(cr_val), PPCSTATE(cr.fields[i]));
 
     // Upper bits of tmp need to be zeroed.
     // Note: tmp is used later for address calculations and thus

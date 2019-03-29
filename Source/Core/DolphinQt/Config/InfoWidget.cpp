@@ -104,7 +104,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
   m_name = CreateValueDisplay();
   m_maker = CreateValueDisplay();
-  m_description = new QTextEdit();
+  m_description = new QTextEdit(group);
   m_description->setReadOnly(true);
   CreateLanguageSelector();
 
@@ -153,7 +153,7 @@ void InfoWidget::SaveBanner()
 
 QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
 {
-  QLineEdit* value_display = new QLineEdit(value);
+  QLineEdit* value_display = new QLineEdit(value, this);
   value_display->setReadOnly(true);
   value_display->setCursorPosition(0);
   return value_display;

@@ -27,6 +27,14 @@ void ElidedButton::setElideMode(Qt::TextElideMode elide_mode)
   repaint();
 }
 
+QSize ElidedButton::sizeHint() const
+{
+  // Long text produces big sizeHints which is throwing layouts off
+  // even when setting fixed sizes. This seems like a Qt layout bug.
+  // Let's always return the sizeHint of an empty button to work around this.
+  return QPushButton(parentWidget()).sizeHint();
+}
+
 void ElidedButton::paintEvent(QPaintEvent* event)
 {
   QStyleOptionButton option;

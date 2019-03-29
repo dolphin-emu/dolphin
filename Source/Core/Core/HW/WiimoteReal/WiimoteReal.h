@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -105,19 +106,19 @@ public:
   void Prepare();
   bool PrepareOnThread();
 
-  void DisableDataReporting();
-  void EnableDataReporting(u8 mode);
-  void SetChannel(u16 channel);
+  void ResetDataReporting();
 
-  void QueueReport(u8 rpt_id, const void* data, unsigned int size);
+  void QueueReport(WiimoteCommon::OutputReportID rpt_id, const void* data, unsigned int size);
 
   int GetIndex() const;
 
 protected:
-  Wiimote();
-  int m_index;
-  Report m_last_input_report;
-  u16 m_channel;
+  Wiimote() = default;
+
+  int m_index = 0;
+  Report m_last_input_report = {};
+  u16 m_channel = 0;
+
   // If true, the Wiimote will be really disconnected when it is disconnected by Dolphin.
   // In any other case, data reporting is not paused to allow reconnecting on any button press.
   // This is not enabled on all platforms as connecting a Wiimote can be a pain on some platforms.
@@ -133,7 +134,12 @@ private:
 
   void ThreadFunc();
 
-  bool m_rumble_state;
+  // We track the speaker state to convert unnecessary speaker data into rumble reports.
+  bool m_speaker_enable = false;
+  bool m_speaker_mute = false;
+
+  // And we track the rumble state to drop unnecessary rumble reports.
+  bool m_rumble_state = false;
 
   std::thread m_wiimote_thread;
   // Whether to keep running the thread.
@@ -188,7 +194,7 @@ private:
 
 extern std::mutex g_wiimotes_mutex;
 extern WiimoteScanner g_wiimote_scanner;
-extern Wiimote* g_wiimotes[MAX_BBMOTES];
+extern std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
 
 void InterruptChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
 void ControlChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);

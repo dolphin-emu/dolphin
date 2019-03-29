@@ -583,28 +583,18 @@ void Wiimote::DoState(PointerWrap& p)
   GetActiveExtension()->DoState(p);
 
   // Dynamics
+  p.Do(m_swing_state);
+  p.Do(m_tilt_state);
+
   // TODO: clean this up:
   p.Do(m_shake_step);
 
   p.DoMarker("Wiimote");
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    RealState();
 }
 
 ExtensionNumber Wiimote::GetActiveExtensionNumber() const
 {
   return m_active_extension;
-}
-
-void Wiimote::RealState()
-{
-  using namespace WiimoteReal;
-
-  if (g_wiimotes[m_index])
-  {
-    g_wiimotes[m_index]->SetChannel(m_reporting_channel);
-  }
 }
 
 }  // namespace WiimoteEmu

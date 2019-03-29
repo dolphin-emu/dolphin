@@ -104,6 +104,7 @@ add_executable(dolphin-emu
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
   QtUtils/FlowLayout.cpp
+  QtUtils/ModalMessageBox.cpp
   QtUtils/ImageConverter.cpp
   QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp

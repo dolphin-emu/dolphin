@@ -5,6 +5,9 @@
 #include "UpdaterCommon/UpdaterCommon.h"
 
 #include <array>
+#include <optional>
+
+#include <OptionParser.h>
 #include <ed25519/ed25519.h>
 #include <mbedtls/base64.h>
 #include <mbedtls/sha256.h>
@@ -21,6 +24,8 @@
 #include <sys/types.h>
 #endif
 
+namespace
+{
 // Where to log updater output.
 FILE* log_fp = stderr;
 
@@ -31,13 +36,48 @@ const std::array<u8, 32> UPDATE_PUB_KEY = {
 
 const char UPDATE_TEMP_DIR[] = "TempUpdate";
 
-static bool ProgressCallback(double total, double now, double, double)
+struct Manifest
+{
+  using Filename = std::string;
+  using Hash = std::array<u8, 16>;
+  std::map<Filename, Hash> entries;
+};
+
+// Represent the operations to be performed by the updater.
+struct TodoList
+{
+  struct DownloadOp
+  {
+    Manifest::Filename filename;
+    Manifest::Hash hash;
+  };
+  std::vector<DownloadOp> to_download;
+
+  struct UpdateOp
+  {
+    Manifest::Filename filename;
+    std::optional<Manifest::Hash> old_hash;
+    Manifest::Hash new_hash;
+  };
+  std::vector<UpdateOp> to_update;
+
+  struct DeleteOp
+  {
+    Manifest::Filename filename;
+    Manifest::Hash old_hash;
+  };
+  std::vector<DeleteOp> to_delete;
+
+  void Log() const;
+};
+
+bool ProgressCallback(double total, double now, double, double)
 {
   UI::SetCurrentProgress(static_cast<int>(now), static_cast<int>(total));
   return true;
 }
 
-static std::string HexEncode(const u8* buffer, size_t size)
+std::string HexEncode(const u8* buffer, size_t size)
 {
   std::string out(size * 2, '\0');
 
@@ -50,7 +90,7 @@ static std::string HexEncode(const u8* buffer, size_t size)
   return out;
 }
 
-static bool HexDecode(const std::string& hex, u8* buffer, size_t size)
+bool HexDecode(const std::string& hex, u8* buffer, size_t size)
 {
   if (hex.size() != size * 2)
     return false;
@@ -79,7 +119,7 @@ static bool HexDecode(const std::string& hex, u8* buffer, size_t size)
   return true;
 }
 
-static std::optional<std::string> GzipInflate(const std::string& data)
+std::optional<std::string> GzipInflate(const std::string& data)
 {
   z_stream zstrm;
   zstrm.zalloc = nullptr;
@@ -115,7 +155,7 @@ static std::optional<std::string> GzipInflate(const std::string& data)
   return out;
 }
 
-static Manifest::Hash ComputeHash(const std::string& contents)
+Manifest::Hash ComputeHash(const std::string& contents)
 {
   std::array<u8, 32> full;
   mbedtls_sha256(reinterpret_cast<const u8*>(contents.data()), contents.size(), full.data(), false);
@@ -125,7 +165,7 @@ static Manifest::Hash ComputeHash(const std::string& contents)
   return out;
 }
 
-static bool VerifySignature(const std::string& data, const std::string& b64_signature)
+bool VerifySignature(const std::string& data, const std::string& b64_signature)
 {
   u8 signature[64];  // ed25519 sig size.
   size_t sig_size;
@@ -173,8 +213,8 @@ void TodoList::Log() const
   }
 }
 
-static bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
-                            const std::string& content_base_url, const std::string& temp_path)
+bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
+                     const std::string& content_base_url, const std::string& temp_path)
 {
   Common::HttpRequest req(std::chrono::seconds(30), ProgressCallback);
 
@@ -314,7 +354,7 @@ void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
   File::DeleteDir(temp_dir);
 }
 
-static bool BackupFile(const std::string& path)
+bool BackupFile(const std::string& path)
 {
   std::string backup_path = path + ".bak";
   fprintf(log_fp, "Backing up unknown pre-existing %s to .bak.\n", path.c_str());
@@ -326,8 +366,8 @@ static bool BackupFile(const std::string& path)
   return true;
 }
 
-static bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
-                                const std::string& install_base_path)
+bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete,
+                         const std::string& install_base_path)
 {
   for (const auto& op : to_delete)
   {
@@ -359,8 +399,8 @@ static bool DeleteObsoleteFiles(const std::vector<TodoList::DeleteOp>& to_delete
   return true;
 }
 
-static bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
-                        const std::string& install_base_path, const std::string& temp_path)
+bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
+                 const std::string& install_base_path, const std::string& temp_path)
 {
   for (const auto& op : to_update)
   {
@@ -459,7 +499,7 @@ void FatalError(const std::string& message)
   UI::Stop();
 }
 
-static std::optional<Manifest> ParseManifest(const std::string& manifest)
+std::optional<Manifest> ParseManifest(const std::string& manifest)
 {
   Manifest parsed;
   size_t pos = 0;
@@ -549,4 +589,194 @@ std::optional<Manifest> FetchAndParseManifest(const std::string& url)
   }
 
   return ParseManifest(decompressed);
+}
+
+struct Options
+{
+  std::string this_manifest_url;
+  std::string next_manifest_url;
+  std::string content_store_url;
+  std::string install_base_path;
+  std::optional<std::string> binary_to_restart;
+  std::optional<u32> parent_pid;
+  std::optional<std::string> log_file;
+};
+
+std::optional<Options> ParseCommandLine(std::vector<std::string>& args)
+{
+  using optparse::OptionParser;
+
+  OptionParser parser =
+      OptionParser().prog("Dolphin Updater").description("Dolphin Updater binary");
+
+  parser.add_option("--this-manifest-url")
+      .dest("this-manifest-url")
+      .help("URL to the update manifest for the currently installed version.")
+      .metavar("URL");
+  parser.add_option("--next-manifest-url")
+      .dest("next-manifest-url")
+      .help("URL to the update manifest for the to-be-installed version.")
+      .metavar("URL");
+  parser.add_option("--content-store-url")
+      .dest("content-store-url")
+      .help("Base URL of the content store where files to download are stored.")
+      .metavar("URL");
+  parser.add_option("--install-base-path")
+      .dest("install-base-path")
+      .help("Base path of the Dolphin install to be updated.")
+      .metavar("PATH");
+  parser.add_option("--binary-to-restart")
+      .dest("binary-to-restart")
+      .help("Binary to restart after the update is over.")
+      .metavar("PATH");
+  parser.add_option("--log-file")
+      .dest("log-file")
+      .help("File where to log updater debug output.")
+      .metavar("PATH");
+  parser.add_option("--parent-pid")
+      .dest("parent-pid")
+      .type("int")
+      .help("(optional) PID of the parent process. The updater will wait for this process to "
+            "complete before proceeding.")
+      .metavar("PID");
+
+  optparse::Values options = parser.parse_args(args);
+
+  Options opts;
+
+  // Required arguments.
+  std::vector<std::string> required{"this-manifest-url", "next-manifest-url", "content-store-url",
+                                    "install-base-path"};
+  for (const auto& req : required)
+  {
+    if (!options.is_set(req))
+    {
+      parser.print_help();
+      return {};
+    }
+  }
+  opts.this_manifest_url = options["this-manifest-url"];
+  opts.next_manifest_url = options["next-manifest-url"];
+  opts.content_store_url = options["content-store-url"];
+  opts.install_base_path = options["install-base-path"];
+
+  // Optional arguments.
+  if (options.is_set("binary-to-restart"))
+    opts.binary_to_restart = options["binary-to-restart"];
+  if (options.is_set("parent-pid"))
+    opts.parent_pid = static_cast<u32>(options.get("parent-pid"));
+  if (options.is_set("log-file"))
+    opts.log_file = options["log-file"];
+
+  return opts;
+}
+};  // namespace
+
+bool RunUpdater(std::vector<std::string> args)
+{
+  std::optional<Options> maybe_opts = ParseCommandLine(args);
+
+  if (!maybe_opts)
+  {
+    return false;
+  }
+
+  UI::Init();
+
+  Options opts = std::move(*maybe_opts);
+
+  if (opts.log_file)
+  {
+    log_fp = fopen(opts.log_file.value().c_str(), "w");
+    if (!log_fp)
+      log_fp = stderr;
+    else
+      atexit(FlushLog);
+  }
+
+  fprintf(log_fp, "Updating from: %s\n", opts.this_manifest_url.c_str());
+  fprintf(log_fp, "Updating to:   %s\n", opts.next_manifest_url.c_str());
+  fprintf(log_fp, "Install path:  %s\n", opts.install_base_path.c_str());
+
+  if (!File::IsDirectory(opts.install_base_path))
+  {
+    FatalError("Cannot find install base path, or not a directory.");
+    return false;
+  }
+
+  if (opts.parent_pid)
+  {
+    UI::SetDescription("Waiting for Dolphin to quit...");
+
+    fprintf(log_fp, "Waiting for parent PID %d to complete...\n", *opts.parent_pid);
+
+    auto pid = opts.parent_pid.value();
+
+    UI::WaitForPID(static_cast<u32>(pid));
+
+    fprintf(log_fp, "Completed! Proceeding with update.\n");
+  }
+
+  UI::SetVisible(true);
+
+  UI::SetDescription("Fetching and parsing manifests...");
+
+  Manifest this_manifest, next_manifest;
+  {
+    std::optional<Manifest> maybe_manifest = FetchAndParseManifest(opts.this_manifest_url);
+    if (!maybe_manifest)
+    {
+      FatalError("Could not fetch current manifest. Aborting.");
+      return false;
+    }
+    this_manifest = std::move(*maybe_manifest);
+
+    maybe_manifest = FetchAndParseManifest(opts.next_manifest_url);
+    if (!maybe_manifest)
+    {
+      FatalError("Could not fetch next manifest. Aborting.");
+      return false;
+    }
+    next_manifest = std::move(*maybe_manifest);
+  }
+
+  UI::SetDescription("Computing what to do...");
+
+  TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
+  todo.Log();
+
+  std::optional<std::string> maybe_temp_dir = FindOrCreateTempDir(opts.install_base_path);
+  if (!maybe_temp_dir)
+    return false;
+  std::string temp_dir = std::move(*maybe_temp_dir);
+
+  UI::SetDescription("Performing Update...");
+
+  bool ok = PerformUpdate(todo, opts.install_base_path, opts.content_store_url, temp_dir);
+  if (!ok)
+  {
+    FatalError("Failed to apply the update.");
+    CleanUpTempDir(temp_dir, todo);
+    return false;
+  }
+
+  UI::ResetCurrentProgress();
+  UI::ResetTotalProgress();
+  UI::SetCurrentMarquee(false);
+  UI::SetTotalMarquee(false);
+  UI::SetCurrentProgress(1, 1);
+  UI::SetTotalProgress(1, 1);
+  UI::SetDescription("Done!");
+
+  // Let the user process that we are done.
+  UI::Sleep(1);
+
+  if (opts.binary_to_restart)
+  {
+    UI::LaunchApplication(opts.binary_to_restart.value());
+  }
+
+  UI::Stop();
+
+  return true;
 }

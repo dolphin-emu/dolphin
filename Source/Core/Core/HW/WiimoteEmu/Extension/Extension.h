@@ -98,6 +98,8 @@ protected:
 
   Register m_reg = {};
 
+  void DoState(PointerWrap& p) override;
+
 private:
   static constexpr u8 ENCRYPTION_ENABLED = 0xaa;
 
@@ -105,8 +107,6 @@ private:
 
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
-
-  void DoState(PointerWrap& p) override;
 };
 
 }  // namespace WiimoteEmu

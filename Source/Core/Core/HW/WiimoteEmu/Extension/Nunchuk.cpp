@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Core/Config/WiimoteInputSettings.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -45,8 +46,6 @@ Nunchuk::Nunchuk() : EncryptedExtension(_trans("Nunchuk"))
 
   // swing
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
-  groups.emplace_back(m_swing_slow = new ControllerEmu::Force("SwingSlow"));
-  groups.emplace_back(m_swing_fast = new ControllerEmu::Force("SwingFast"));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
@@ -96,32 +95,32 @@ void Nunchuk::Update()
       ++nc_data.jy;
   }
 
-  NormalizedAccelData accel;
-
-  // tilt
-  EmulateTilt(&accel, m_tilt);
-
-  // swing
-  EmulateSwing(&accel, m_swing, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_MEDIUM));
-  EmulateSwing(&accel, m_swing_slow, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_SLOW));
-  EmulateSwing(&accel, m_swing_fast, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_FAST));
-
-  // shake
-  EmulateShake(&accel, m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
-               m_shake_step.data());
-  EmulateShake(&accel, m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
-               m_shake_soft_step.data());
-  EmulateShake(&accel, m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
-               m_shake_hard_step.data());
-
   // buttons
   m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
 
   // flip the button bits :/
   nc_data.bt.hex ^= 0x03;
 
+  // Acceleration data:
+  EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
+
+  const auto transformation =
+      GetRotationalMatrix(-m_tilt_state.angle) * GetRotationalMatrix(-m_swing_state.angle);
+
+  Common::Vec3 accel = transformation * (m_swing_state.acceleration +
+                                         Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));
+
+  // shake
+  accel += EmulateShake(m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
+                        m_shake_step.data());
+  accel += EmulateShake(m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
+                        m_shake_soft_step.data());
+  accel += EmulateShake(m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
+                        m_shake_hard_step.data());
+
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-  auto acc = DenormalizeAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
+  const auto acc = ConvertAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
 
   nc_data.ax = (acc.x >> 2) & 0xFF;
   nc_data.ay = (acc.y >> 2) & 0xFF;
@@ -144,6 +143,9 @@ void Nunchuk::Reset()
 {
   m_reg = {};
   m_reg.identifier = nunchuk_id;
+
+  m_swing_state = {};
+  m_tilt_state = {};
 
   // Build calibration data:
   m_reg.calibration = {{
@@ -193,6 +195,14 @@ ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
     assert(false);
     return nullptr;
   }
+}
+
+void Nunchuk::DoState(PointerWrap& p)
+{
+  EncryptedExtension::DoState(p);
+
+  p.Do(m_swing_state);
+  p.Do(m_tilt_state);
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

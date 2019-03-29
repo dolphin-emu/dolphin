@@ -9,6 +9,9 @@
 class WindowActivationEventFilter : public QObject
 {
   Q_OBJECT
+public:
+  explicit WindowActivationEventFilter(QObject* parent);
+
 signals:
   void windowActivated();
   void windowDeactivated();

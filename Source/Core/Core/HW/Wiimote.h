@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <array>
+#include <atomic>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
@@ -45,7 +48,7 @@ enum
   WIIMOTE_SRC_REAL = 2,
 };
 
-extern unsigned int g_wiimote_sources[MAX_BBMOTES];
+extern std::array<std::atomic<u32>, MAX_BBMOTES> g_wiimote_sources;
 
 namespace Wiimote
 {

@@ -11,7 +11,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpinBox>
@@ -20,6 +19,7 @@
 #include "Core/Config/NetplaySettings.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
@@ -203,6 +203,8 @@ void NetPlaySetupDialog::ConnectWidgets()
 
 void NetPlaySetupDialog::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
   Config::SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
                                                                     Config::NETPLAY_HOST_CODE,
@@ -267,7 +269,7 @@ void NetPlaySetupDialog::accept()
     auto items = m_host_games->selectedItems();
     if (items.empty())
     {
-      QMessageBox::critical(this, tr("Error"), tr("You must select a game to host!"));
+      ModalMessageBox::critical(this, tr("Error"), tr("You must select a game to host!"));
       return;
     }
 
@@ -308,7 +310,7 @@ void NetPlaySetupDialog::ResetTraversalHost()
   Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
                            Config::NETPLAY_TRAVERSAL_PORT.default_value);
 
-  QMessageBox::information(
+  ModalMessageBox::information(
       this, tr("Reset Traversal Server"),
       tr("Reset Traversal Server to %1:%2")
           .arg(QString::fromStdString(Config::NETPLAY_TRAVERSAL_SERVER.default_value),

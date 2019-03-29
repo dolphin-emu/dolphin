@@ -268,7 +268,7 @@ void RunCodeHandler()
   PowerPC::HostWrite_U32(SFP, SP + 8);  // Real stack frame
   PowerPC::HostWrite_U32(PC, SP + 12);
   PowerPC::HostWrite_U32(LR, SP + 16);
-  PowerPC::HostWrite_U32(PowerPC::CompactCR(), SP + 20);
+  PowerPC::HostWrite_U32(PowerPC::ppcState.cr.Get(), SP + 20);
   // Registers FPR0->13 are volatile
   for (int i = 0; i < 14; ++i)
   {

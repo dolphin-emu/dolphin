@@ -7,6 +7,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QPushButton>
+#include <QTimer>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingBool.h"
@@ -15,18 +16,32 @@
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt/Config/Mapping/MappingRadio.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 
-MappingWidget::MappingWidget(MappingWindow* window) : m_parent(window)
+MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 {
-  connect(window, &MappingWindow::Update, this, &MappingWidget::Update);
-  connect(window, &MappingWindow::Save, this, &MappingWidget::SaveSettings);
+  connect(parent, &MappingWindow::Update, this, &MappingWidget::Update);
+  connect(parent, &MappingWindow::Save, this, &MappingWidget::SaveSettings);
+  connect(parent, &MappingWindow::ConfigChanged, this, &MappingWidget::ConfigChanged);
+
+  const auto timer = new QTimer(this);
+  connect(timer, &QTimer::timeout, this, [this] {
+    // TODO: The SetControllerStateNeeded interface leaks input into the game.
+    const auto lock = m_parent->GetController()->GetStateLock();
+    Settings::Instance().SetControllerStateNeeded(true);
+    emit Update();
+    Settings::Instance().SetControllerStateNeeded(false);
+  });
+
+  timer->start(1000 / INDICATOR_UPDATE_FREQ);
 }
 
 MappingWindow* MappingWidget::GetParent() const
@@ -57,11 +72,6 @@ void MappingWidget::NextButton(MappingButton* button)
     NextButton(next);
 }
 
-std::shared_ptr<ciface::Core::Device> MappingWidget::GetDevice() const
-{
-  return m_parent->GetDevice();
-}
-
 int MappingWidget::GetPort() const
 {
   return m_parent->GetPort();
@@ -77,11 +87,13 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   const bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
                               group->type == ControllerEmu::GroupType::Stick ||
                               group->type == ControllerEmu::GroupType::Tilt ||
-                              group->type == ControllerEmu::GroupType::MixedTriggers;
+                              group->type == ControllerEmu::GroupType::MixedTriggers ||
+                              group->type == ControllerEmu::GroupType::Force;
 
   const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
                                 group->type == ControllerEmu::GroupType::Stick ||
-                                group->type == ControllerEmu::GroupType::Tilt;
+                                group->type == ControllerEmu::GroupType::Tilt ||
+                                group->type == ControllerEmu::GroupType::Force;
 
   for (auto& control : group->controls)
   {
@@ -94,19 +106,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
         translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
     form_layout->addRow(translated_name, button);
 
-    auto* control_ref = control->control_ref.get();
-
-    connect(button, &MappingButton::AdvancedPressed, [this, button, control_ref] {
-      if (m_parent->GetDevice() == nullptr)
-        return;
-
-      IOWindow io(this, m_parent->GetController(), control_ref,
-                  control_ref->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
-      io.exec();
-      SaveSettings();
-      button->Update();
-    });
-
     m_buttons.push_back(button);
   }
 
@@ -114,7 +113,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   {
     auto* spinbox = new MappingNumeric(this, numeric.get());
     form_layout->addRow(tr(numeric->m_name.c_str()), spinbox);
-    m_numerics.push_back(spinbox);
   }
 
   for (auto& boolean : group->boolean_settings)
@@ -125,7 +123,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     auto* checkbox = new MappingRadio(this, boolean.get());
 
     form_layout->addRow(checkbox);
-    m_radio.push_back(checkbox);
   }
 
   for (auto& boolean : group->boolean_settings)
@@ -136,12 +133,12 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     auto* checkbox = new MappingBool(this, boolean.get());
 
     form_layout->addRow(checkbox);
-    m_bools.push_back(checkbox);
   }
 
   if (need_indicator)
   {
     auto const indicator = new MappingIndicator(group);
+    connect(this, &MappingWidget::Update, indicator, QOverload<>::of(&MappingIndicator::update));
 
     if (need_calibration)
     {
@@ -155,23 +152,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   }
 
   return group_box;
-}
-
-void MappingWidget::Update()
-{
-  for (auto* button : m_buttons)
-    button->Update();
-
-  for (auto* spinbox : m_numerics)
-    spinbox->Update();
-
-  for (auto* checkbox : m_bools)
-    checkbox->Update();
-
-  for (auto* radio : m_radio)
-    radio->Update();
-
-  SaveSettings();
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const

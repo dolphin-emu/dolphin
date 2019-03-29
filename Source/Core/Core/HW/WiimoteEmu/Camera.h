@@ -10,6 +10,11 @@
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 
+namespace Common
+{
+class Matrix44;
+}
+
 namespace WiimoteEmu
 {
 // Four bytes for two objects. Filled with 0xFF if empty
@@ -66,8 +71,7 @@ public:
 
   void Reset();
   void DoState(PointerWrap& p);
-  void Update(const ControllerEmu::Cursor::StateData& cursor, const NormalizedAccelData& accel,
-              bool sensor_bar_on_top);
+  void Update(const Common::Matrix44& transform);
   void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;

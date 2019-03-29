@@ -57,6 +57,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -386,6 +387,7 @@ void Renderer::CheckForConfigChanges()
   const StereoMode old_stereo = g_ActiveConfig.stereo_mode;
   const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
   const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
@@ -395,10 +397,19 @@ void Renderer::CheckForConfigChanges()
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
+  // EFB tile cache doesn't need to notify the backend.
+  if (old_efb_access_tile_size != g_ActiveConfig.iEFBAccessTileSize)
+    g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
+
   // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
   // the post-processor. Note that options are applied every frame, so no need to check those.
   if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
+  {
+    // The existing shader must not be in use when it's destroyed
+    WaitForGPUIdle();
+
     m_post_processor->RecompileShader();
+  }
 
   // Determine which (if any) settings have changed.
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
@@ -512,6 +523,9 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bOverlayStats)
     Statistics::Display();
+
+  if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
+    g_netplay_chat_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
     Statistics::DisplayProj();
@@ -969,8 +983,7 @@ bool Renderer::InitializeImGui()
   pconfig.vertex_format = m_imgui_vertex_format.get();
   pconfig.vertex_shader = vertex_shader.get();
   pconfig.pixel_shader = pixel_shader.get();
-  pconfig.rasterization_state =
-      RenderState::GetCullBackFaceRasterizationState(PrimitiveType::Triangles);
+  pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
   pconfig.blending_state = RenderState::GetNoBlendingBlendState();
   pconfig.blending_state.blendenable = true;

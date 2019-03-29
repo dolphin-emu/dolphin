@@ -320,9 +320,14 @@ bool ResourcePack::Uninstall(const std::string& path)
   return true;
 }
 
-bool ResourcePack::operator==(const ResourcePack& pack)
+bool ResourcePack::operator==(const ResourcePack& pack) const
 {
   return pack.GetPath() == m_path;
+}
+
+bool ResourcePack::operator!=(const ResourcePack& pack) const
+{
+  return !operator==(pack);
 }
 
 }  // namespace ResourcePack

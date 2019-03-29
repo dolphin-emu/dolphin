@@ -49,12 +49,14 @@ public:
   explicit MappingWindow(QWidget* parent, Type type, int port_num);
 
   int GetPort() const;
-  std::shared_ptr<ciface::Core::Device> GetDevice() const;
   ControllerEmu::EmulatedController* GetController() const;
   bool IsIterativeInput() const;
   bool IsMappingAllDevices() const;
 
 signals:
+  // Emitted when config has changed so widgets can update to reflect the change.
+  void ConfigChanged();
+  // Emitted at 30hz for real-time indicators to be updated.
   void Update();
   void Save();
 
@@ -75,7 +77,7 @@ private:
   void OnSaveProfilePressed();
   void OnDefaultFieldsPressed();
   void OnClearFieldsPressed();
-  void OnDeviceChanged(int index);
+  void OnSelectDevice(int index);
   void OnGlobalDevicesChanged();
 
   ControllerEmu::EmulatedController* m_controller = nullptr;

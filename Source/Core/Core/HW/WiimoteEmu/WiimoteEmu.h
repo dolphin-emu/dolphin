@@ -35,12 +35,6 @@ class Output;
 class Tilt;
 }  // namespace ControllerEmu
 
-// Needed for friendship:
-namespace WiimoteReal
-{
-class Wiimote;
-}  // namespace WiimoteReal
-
 namespace WiimoteEmu
 {
 enum class WiimoteGroup
@@ -87,8 +81,6 @@ void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
 
 class Wiimote : public ControllerEmu::EmulatedController
 {
-  friend class WiimoteReal::Wiimote;
-
 public:
   enum : u8
   {
@@ -125,6 +117,7 @@ public:
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
 
   void Update();
+  void StepDynamics();
 
   void InterruptChannel(u16 channel_id, const void* data, u32 size);
   void ControlChannel(u16 channel_id, const void* data, u32 size);
@@ -146,7 +139,9 @@ private:
 
   void UpdateButtonsStatus();
 
-  void GetAccelData(NormalizedAccelData* accel);
+  Common::Vec3 GetAcceleration();
+  // Used for simulating camera data. Does not include orientation transformations.
+  Common::Matrix44 GetTransformation() const;
 
   void HIDOutputReport(const void* data, u32 size);
 
@@ -169,8 +164,6 @@ private:
   bool ProcessExtensionPortEvent();
   void SendDataReport();
   bool ProcessReadDataRequest();
-
-  void RealState();
 
   void SetRumble(bool on);
 
@@ -238,9 +231,6 @@ private:
   ControllerEmu::Cursor* m_ir;
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
-  ControllerEmu::Force* m_swing_slow;
-  ControllerEmu::Force* m_swing_fast;
-  ControllerEmu::Force* m_swing_dynamic;
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Output* m_motor;
   ControllerEmu::Attachments* m_attachments;
@@ -268,9 +258,6 @@ private:
 
   bool m_speaker_mute;
 
-  // This is just for the IR Camera to compensate for the sensor bar position.
-  bool m_sensor_bar_on_top;
-
   WiimoteCommon::InputReportStatus m_status;
 
   ExtensionNumber m_active_extension;
@@ -281,11 +268,14 @@ private:
   UsableEEPROMData m_eeprom;
 
   // Dynamics:
+  MotionState m_swing_state;
+  RotationalState m_tilt_state;
+
+  // TODO: kill these:
   std::array<u8, 3> m_shake_step{};
   std::array<u8, 3> m_shake_soft_step{};
   std::array<u8, 3> m_shake_hard_step{};
   std::array<u8, 3> m_shake_dynamic_step{};
-  DynamicData m_swing_dynamic_data;
   DynamicData m_shake_dynamic_data;
 };
 }  // namespace WiimoteEmu

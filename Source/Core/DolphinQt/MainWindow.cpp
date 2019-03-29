@@ -11,7 +11,6 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
-#include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
 #include <QStackedWidget>
@@ -83,6 +82,7 @@
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -106,6 +106,7 @@
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -142,7 +143,7 @@ static WindowSystemType GetWindowSystemType()
   else if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
 
-  QMessageBox::critical(
+  ModalMessageBox::critical(
       nullptr, QStringLiteral("Error"),
       QString::asprintf("Unknown Qt platform: %s", platform_name.toStdString().c_str()));
   return WindowSystemType::Headless;
@@ -180,7 +181,9 @@ static std::vector<std::string> StringListToStdVector(QStringList list)
   return result;
 }
 
-MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
+MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
+                       const std::string& movie_path)
+    : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   setWindowIcon(Resources::GetAppIcon());
@@ -213,7 +216,15 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 #endif
 
   if (boot_parameters)
+  {
     m_pending_boot = std::move(boot_parameters);
+
+    if (!movie_path.empty())
+    {
+      if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
+        emit RecordingStatusChanged(true);
+    }
+  }
 
   QSettings& settings = Settings::GetQSettings();
 
@@ -227,16 +238,17 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
-    QMessageBox::critical(this, tr("Error"), tr("Error occured while loading some texture packs"));
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("Error occured while loading some texture packs"));
 
   for (auto& pack : ResourcePack::GetPacks())
   {
     if (!pack.IsValid())
     {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("Invalid Pack %1 provided: %2")
-                                .arg(QString::fromStdString(pack.GetPath()))
-                                .arg(QString::fromStdString(pack.GetError())));
+      ModalMessageBox::critical(this, tr("Error"),
+                                tr("Invalid Pack %1 provided: %2")
+                                    .arg(QString::fromStdString(pack.GetPath()))
+                                    .arg(QString::fromStdString(pack.GetError())));
       return;
     }
   }
@@ -322,7 +334,7 @@ void MainWindow::InitCoreCallbacks()
 
 static void InstallHotkeyFilter(QWidget* dialog)
 {
-  auto* filter = new WindowActivationEventFilter();
+  auto* filter = new WindowActivationEventFilter(dialog);
   dialog->installEventFilter(filter);
 
   filter->connect(filter, &WindowActivationEventFilter::windowDeactivated,
@@ -451,7 +463,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
   connect(m_menu_bar, &MenuBar::ShowGrid, m_game_list, &GameList::SetGridView);
   connect(m_menu_bar, &MenuBar::PurgeGameListCache, m_game_list, &GameList::PurgeCache);
-  connect(m_menu_bar, &MenuBar::ToggleSearch, m_search_bar, &SearchBar::Toggle);
+  connect(m_menu_bar, &MenuBar::ShowSearch, m_search_bar, &SearchBar::Show);
 
   connect(m_menu_bar, &MenuBar::ColumnVisibilityToggled, m_game_list,
           &GameList::OnColumnVisibilityToggled);
@@ -481,6 +493,7 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::EjectDisc, this, &MainWindow::EjectDisc);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
   connect(m_hotkey_scheduler, &HotkeyScheduler::TogglePauseHotkey, this, &MainWindow::TogglePause);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ActivateChat, this, &MainWindow::OnActivateChat);
   connect(m_hotkey_scheduler, &HotkeyScheduler::RefreshGameListHotkey, this,
           &MainWindow::RefreshGameList);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
@@ -759,13 +772,12 @@ bool MainWindow::RequestStop()
     if (pause)
       Core::SetState(Core::State::Paused);
 
-    QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(this, tr("Confirm"),
-                                    m_stop_requested ?
-                                        tr("A shutdown is already in progress. Unsaved data "
-                                           "may be lost if you stop the current emulation "
-                                           "before it completes. Force stop?") :
-                                        tr("Do you want to stop the current emulation?"));
+    auto confirm = ModalMessageBox::question(
+        this, tr("Confirm"),
+        m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
+                              "may be lost if you stop the current emulation "
+                              "before it completes. Force stop?") :
+                           tr("Do you want to stop the current emulation?"));
 
     if (confirm != QMessageBox::Yes)
     {
@@ -776,7 +788,7 @@ bool MainWindow::RequestStop()
     }
   }
 
-  // TODO: Add Movie shutdown
+  OnStopRecording();
   // TODO: Add Debugger shutdown
 
   if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
@@ -908,7 +920,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   if (!BootManager::BootCore(std::move(parameters),
                              GetWindowSystemInfo(m_render_widget->windowHandle())))
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     HideRenderWidget();
     return;
   }
@@ -1231,7 +1243,7 @@ bool MainWindow::NetPlayJoin()
 {
   if (Core::IsRunning())
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
@@ -1239,8 +1251,8 @@ bool MainWindow::NetPlayJoin()
 
   if (m_netplay_dialog->isVisible())
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1302,7 +1314,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 {
   if (Core::IsRunning())
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
@@ -1310,8 +1322,8 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   if (m_netplay_dialog->isVisible())
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1334,7 +1346,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Failed to open server"),
         QObject::tr(
             "Failed to listen on port %1. Is another instance of the NetPlay server running?")
@@ -1404,7 +1416,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 
     if (!file_info.exists() || !file_info.isReadable())
     {
-      QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+      ModalMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
       return;
     }
 
@@ -1424,7 +1436,7 @@ void MainWindow::dropEvent(QDropEvent* event)
     {
       if (show_confirm)
       {
-        if (QMessageBox::question(
+        if (ModalMessageBox::question(
                 this, tr("Confirm"),
                 tr("Do you want to add \"%1\" to the list of Game Paths?").arg(folder)) !=
             QMessageBox::Yes)
@@ -1447,7 +1459,7 @@ void MainWindow::OnBootGameCubeIPL(DiscIO::Region region)
 
 void MainWindow::OnImportNANDBackup()
 {
-  auto response = QMessageBox::question(
+  auto response = ModalMessageBox::question(
       this, tr("Question"),
       tr("Merging a new NAND over your currently selected NAND will overwrite any channels "
          "and savegames that already exist. This process is not reversible, so it is "
@@ -1565,30 +1577,32 @@ void MainWindow::OnStopRecording()
 {
   if (Movie::IsRecordingInput())
     OnExportRecording();
-
-  Movie::EndPlayInput(false);
-  emit RecordingStatusChanged(true);
+  if (Movie::IsMovieActive())
+    Movie::EndPlayInput(false);
+  emit RecordingStatusChanged(false);
 }
 
 void MainWindow::OnExportRecording()
 {
   bool was_paused = Core::GetState() == Core::State::Paused;
 
-  if (was_paused)
+  if (!was_paused)
     Core::SetState(Core::State::Paused);
 
   QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
-  if (was_paused)
+  if (!dtm_file.isEmpty())
+    Movie::SaveRecording(dtm_file.toStdString());
+
+  if (!was_paused)
     Core::SetState(Core::State::Running);
+}
 
-  if (dtm_file.isEmpty())
-    return;
-
-  Core::SetState(Core::State::Running);
-
-  Movie::SaveRecording(dtm_file.toStdString());
+void MainWindow::OnActivateChat()
+{
+  if (g_netplay_chat_ui)
+    g_netplay_chat_ui->Activate();
 }
 
 void MainWindow::ShowTASInput()
