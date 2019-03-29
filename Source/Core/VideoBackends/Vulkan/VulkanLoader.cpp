@@ -37,32 +37,32 @@ static void ResetVulkanLibraryFunctionPointers()
 
 static Common::DynamicLibrary s_vulkan_module;
 
-static std::string GetVulkanLibraryFilename()
+static bool OpenVulkanLibrary()
 {
 #ifdef __APPLE__
   // Check if a path to a specific Vulkan library has been specified.
   char* libvulkan_env = getenv("LIBVULKAN_PATH");
-  if (libvulkan_env)
-    return std::string(libvulkan_env);
+  if (libvulkan_env && s_vulkan_module.Open(libvulkan_env))
+    return true;
 
   // Use the libvulkan.dylib from the application bundle.
-  return File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+  std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+  return s_vulkan_module.Open(filename.c_str());
 #else
-  return Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
+  std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
+  if (s_vulkan_module.Open(filename.c_str()))
+    return true;
+
+  // Android devices may not have libvulkan.so.1, only libvulkan.so.
+  filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
+  return s_vulkan_module.Open(filename.c_str());
 #endif
 }
 
 bool LoadVulkanLibrary()
 {
-  if (!s_vulkan_module.IsOpen())
-  {
-    const std::string filename = GetVulkanLibraryFilename();
-    if (!s_vulkan_module.Open(filename.c_str()))
-    {
-      ERROR_LOG(VIDEO, "Failed to load %s", filename.c_str());
-      return false;
-    }
-  }
+  if (!s_vulkan_module.IsOpen() && !OpenVulkanLibrary())
+    return false;
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
   if (!s_vulkan_module.GetSymbol(#name, &name) && required)                                        \
