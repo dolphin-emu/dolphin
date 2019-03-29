@@ -60,11 +60,11 @@ VertexManager::~VertexManager()
 bool VertexManager::Initialize()
 {
   m_vertex_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VERTEX_STREAM_BUFFER_SIZE * 4);
+      StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VERTEX_STREAM_BUFFER_SIZE);
   m_index_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_STREAM_BUFFER_SIZE * 4);
+      StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, INDEX_STREAM_BUFFER_SIZE);
   m_uniform_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE * 4);
+      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, UNIFORM_STREAM_BUFFER_SIZE);
   if (!m_vertex_stream_buffer || !m_index_stream_buffer || !m_uniform_stream_buffer)
   {
     PanicAlert("Failed to allocate streaming buffers");

@@ -34,7 +34,7 @@ public:
 private:
   bool AllocateBuffer();
   void UpdateCurrentFencePosition();
-  void OnFenceSignaled(VkFence fence);
+  void UpdateGPUPosition();
 
   // Waits for as many fences as needed to allocate num_bytes bytes from the buffer.
   bool WaitForClearSpace(u32 num_bytes);
@@ -50,7 +50,7 @@ private:
   u8* m_host_pointer = nullptr;
 
   // List of fences and the corresponding positions in the buffer
-  std::deque<std::pair<VkFence, u32>> m_tracked_fences;
+  std::deque<std::pair<u64, u32>> m_tracked_fences;
 
   bool m_coherent_mapping = false;
 };
