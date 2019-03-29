@@ -65,6 +65,8 @@ public:
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
     layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
     layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
+    layer->Set(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE, m_settings.m_EFBAccessTileSize);
+    layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);
 
     if (m_settings.m_StrictSettingsSync)
     {

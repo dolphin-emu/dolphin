@@ -608,6 +608,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
       packet >> m_net_settings.m_EnableGPUTextureDecoding;
       packet >> m_net_settings.m_DeferEFBCopies;
+      packet >> m_net_settings.m_EFBAccessTileSize;
+      packet >> m_net_settings.m_EFBAccessDeferInvalidation;
       packet >> m_net_settings.m_StrictSettingsSync;
 
       m_initial_rtc = Common::PacketReadU64(packet);
