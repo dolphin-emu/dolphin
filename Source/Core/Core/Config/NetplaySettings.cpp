@@ -19,6 +19,15 @@ const ConfigInfo<std::string> NETPLAY_TRAVERSAL_SERVER{{System::Main, "NetPlay",
 const ConfigInfo<u16> NETPLAY_TRAVERSAL_PORT{{System::Main, "NetPlay", "TraversalPort"}, 6262};
 const ConfigInfo<std::string> NETPLAY_TRAVERSAL_CHOICE{{System::Main, "NetPlay", "TraversalChoice"},
                                                        "direct"};
+const ConfigInfo<std::string> NETPLAY_INDEX_URL{{System::Main, "NetPlay", "IndexServer"},
+                                                "https://dolphin-emu.org/lobby"};
+
+const ConfigInfo<bool> NETPLAY_USE_INDEX{{System::Main, "NetPlay", "UseIndex"}, false};
+const ConfigInfo<std::string> NETPLAY_INDEX_NAME{{System::Main, "NetPlay", "IndexName"}, ""};
+const ConfigInfo<std::string> NETPLAY_INDEX_REGION{{System::Main, "NetPlay", "IndexRegion"}, ""};
+const ConfigInfo<std::string> NETPLAY_INDEX_PASSWORD{{System::Main, "NetPlay", "IndexPassword"},
+                                                     ""};
+
 const ConfigInfo<std::string> NETPLAY_HOST_CODE{{System::Main, "NetPlay", "HostCode"}, "00000000"};
 
 const ConfigInfo<u16> NETPLAY_HOST_PORT{{System::Main, "NetPlay", "HostPort"}, DEFAULT_LISTEN_PORT};
