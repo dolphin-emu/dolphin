@@ -21,6 +21,7 @@
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
+#include "UICommon/NetPlayIndex.h"
 
 namespace NetPlay
 {
@@ -137,6 +138,7 @@ private:
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
   void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
+  void SetupIndex();
 
   NetSettings m_settings;
 
@@ -187,5 +189,6 @@ private:
   ENetHost* m_server = nullptr;
   TraversalClient* m_traversal_client = nullptr;
   NetPlayUI* m_dialog = nullptr;
+  NetPlayIndex m_index;
 };
 }  // namespace NetPlay

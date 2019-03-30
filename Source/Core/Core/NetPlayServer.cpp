@@ -24,6 +24,7 @@
 #include "Common/ENetUtil.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -132,6 +133,8 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
     m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
       m_server->intercept = ENetUtil::InterceptCallback;
+
+    SetupIndex();
   }
   if (m_server != nullptr)
   {
@@ -162,6 +165,45 @@ static void ClearPeerPlayerId(ENetPeer* peer)
   }
 }
 
+void NetPlayServer::SetupIndex()
+{
+  if (!Config::Get(Config::NETPLAY_USE_INDEX))
+    return;
+
+  NetPlaySession session;
+
+  session.name = Config::Get(Config::NETPLAY_INDEX_NAME);
+  session.region = Config::Get(Config::NETPLAY_INDEX_REGION);
+  session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
+  session.method = m_traversal_client ? "traversal" : "direct";
+  session.game_id = m_selected_game.empty() ? "UNKNOWN" : m_selected_game;
+  session.player_count = static_cast<int>(m_players.size());
+  session.in_game = m_is_running;
+  session.port = GetPort();
+
+  if (m_traversal_client)
+  {
+    session.server_id = std::string(g_TraversalClient->GetHostID().data(), 8);
+  }
+  else
+  {
+    Common::HttpRequest request;
+    // ENet does not support IPv6, so IPv4 has to be used
+    request.UseIPv4();
+    Common::HttpRequest::Response response =
+        request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+    if (!response.has_value())
+      return;
+
+    session.server_id = std::string(response->begin(), response->end());
+  }
+
+  session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
+
+  m_index.Add(session);
+}
+
 // called from ---NETPLAY--- thread
 void NetPlayServer::ThreadFunc()
 {
@@ -178,6 +220,11 @@ void NetPlayServer::ThreadFunc()
 
       m_ping_timer.Start();
       SendToClients(spac);
+
+      m_index.SetPlayerCount(static_cast<int>(m_players.size()));
+      m_index.SetGame(m_selected_game);
+      m_index.SetInGame(m_is_running);
+
       m_update_pings = false;
     }
 
@@ -283,7 +330,7 @@ void NetPlayServer::ThreadFunc()
     ClearPeerPlayerId(player_entry.second.socket);
     enet_peer_disconnect(player_entry.second.socket, 0);
   }
-}
+}  // namespace NetPlay
 
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
@@ -1017,10 +1064,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
+  const TraversalClient::State state = m_traversal_client->GetState();
+
+  if (g_TraversalClient->GetHostID()[0] != '\0')
+    SetupIndex();
+
   if (!m_dialog)
     return;
-
-  const TraversalClient::State state = m_traversal_client->GetState();
 
   if (state == TraversalClient::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
