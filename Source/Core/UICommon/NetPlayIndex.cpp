@@ -4,17 +4,19 @@
 
 #include "UICommon/NetPlayIndex.h"
 
+#include <numeric>
+#include <string>
+
 #include <picojson/picojson.h>
 
+#include "Common/Common.h"
 #include "Common/HttpRequest.h"
 #include "Common/Thread.h"
 #include "Common/Version.h"
 
 #include "Core/Config/NetplaySettings.h"
 
-NetPlayIndex::NetPlayIndex()
-{
-}
+NetPlayIndex::NetPlayIndex() = default;
 
 NetPlayIndex::~NetPlayIndex()
 {
@@ -45,16 +47,15 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 
   if (!filters.empty())
   {
-    list_url += "?";
+    list_url += '?';
     for (const auto& filter : filters)
     {
-      list_url += filter.first + "=" + request.EscapeComponent(filter.second) + "&";
+      list_url += filter.first + '=' + request.EscapeComponent(filter.second) + '&';
     }
-    list_url = list_url.substr(0, list_url.size() - 1);
+    list_url.pop_back();
   }
 
-  auto response = request.Get(list_url);
-
+  auto response = request.Get(list_url, {{"X-Is-Dolphin", "1"}});
   if (!response)
   {
     m_last_error = "NO_RESPONSE";
@@ -98,7 +99,9 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     if (!name.is<std::string>() || !region.is<std::string>() || !method.is<std::string>() ||
         !server_id.is<std::string>() || !game_id.is<std::string>() || !has_password.is<bool>() ||
         !player_count.is<double>() || !port.is<double>() || !in_game.is<bool>())
+    {
       continue;
+    }
 
     session.name = name.to_str();
     session.region = region.to_str();
@@ -110,7 +113,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     session.port = static_cast<int>(port.get<double>());
     session.in_game = in_game.get<bool>();
 
-    sessions.push_back(session);
+    sessions.push_back(std::move(session));
   }
 
   return sessions;
@@ -123,8 +126,9 @@ void NetPlayIndex::NotificationLoop()
     Common::HttpRequest request;
     auto response = request.Get(
         Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
-        "&player_count=" + std::to_string(m_player_count) +
-        "&game=" + request.EscapeComponent(m_game) + "&in_game=" + std::to_string(m_in_game));
+            "&player_count=" + std::to_string(m_player_count) +
+            "&game=" + request.EscapeComponent(m_game) + "&in_game=" + std::to_string(m_in_game),
+        {{"X-Is-Dolphin", "1"}});
 
     if (!response)
       continue;
@@ -142,7 +146,7 @@ void NetPlayIndex::NotificationLoop()
 
     if (status != "OK")
     {
-      m_last_error = status;
+      m_last_error = std::move(status);
       m_running.Set(false);
       return;
     }
@@ -156,14 +160,17 @@ bool NetPlayIndex::Add(NetPlaySession session)
   m_running.Set(true);
 
   Common::HttpRequest request;
-  auto response = request.Get(
-      Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/add?name=" +
-      request.EscapeComponent(session.name) + "&region=" + request.EscapeComponent(session.region) +
-      "&game=" + request.EscapeComponent(session.game_id) +
-      "&password=" + std::to_string(session.has_password) + "&method=" + session.method +
-      "&server_id=" + session.server_id + "&in_game=" + std::to_string(session.in_game) +
-      "&port=" + std::to_string(session.port) +
-      "&player_count=" + std::to_string(session.player_count) + "&version=" + Common::scm_desc_str);
+  auto response = request.Get(Config::Get(Config::NETPLAY_INDEX_URL) +
+                                  "/v0/session/add?name=" + request.EscapeComponent(session.name) +
+                                  "&region=" + request.EscapeComponent(session.region) +
+                                  "&game=" + request.EscapeComponent(session.game_id) +
+                                  "&password=" + std::to_string(session.has_password) +
+                                  "&method=" + session.method + "&server_id=" + session.server_id +
+                                  "&in_game=" + std::to_string(session.in_game) +
+                                  "&port=" + std::to_string(session.port) +
+                                  "&player_count=" + std::to_string(session.player_count) +
+                                  "&version=" + Common::scm_desc_str,
+                              {{"X-Is-Dolphin", "1"}});
 
   if (!response.has_value())
   {
@@ -183,7 +190,7 @@ bool NetPlayIndex::Add(NetPlaySession session)
 
   if (status != "OK")
   {
-    m_last_error = status;
+    m_last_error = std::move(status);
     return false;
   }
 
@@ -209,9 +216,9 @@ void NetPlayIndex::SetPlayerCount(int player_count)
   m_player_count = player_count;
 }
 
-void NetPlayIndex::SetGame(const std::string& game)
+void NetPlayIndex::SetGame(const std::string game)
 {
-  m_game = game;
+  m_game = std::move(game);
 }
 
 void NetPlayIndex::Remove()
@@ -226,16 +233,19 @@ void NetPlayIndex::Remove()
 
   // We don't really care whether this fails or not
   Common::HttpRequest request;
-  request.Get(Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret);
+  request.Get(Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
+              {{"X-Is-Dolphin", "1"}});
 
-  m_secret = "";
+  m_secret.clear();
 }
 
-std::vector<std::string> NetPlayIndex::GetRegions()
+std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
 {
-  static std::vector<std::string> regions{"AF", "CN", "EA", "EU", "NA", "OC"};
-
-  return regions;
+  return {
+      {"EA", _trans("East Asia")},     {"CN", _trans("China")},         {"EU", _trans("Europe")},
+      {"NA", _trans("North America")}, {"SA", _trans("South America")}, {"OC", _trans("Oceania")},
+      {"AF", _trans("Africa")},
+  };
 }
 
 // This encryption system uses simple XOR operations and a checksum
@@ -247,21 +257,16 @@ bool NetPlaySession::EncryptID(const std::string& password)
   if (password.empty())
     return false;
 
-  u8 i = 0;
-
   std::string to_encrypt = server_id;
 
   // Calculate and append checksum to ID
-  u8 sum = 0;
-
-  for (char c : to_encrypt)
-    sum += c;
-
+  const u8 sum = std::accumulate(to_encrypt.begin(), to_encrypt.end(), u8{0});
   to_encrypt += sum;
 
   std::string encrypted_id;
 
-  for (const char& byte : to_encrypt)
+  u8 i = 0;
+  for (const char byte : to_encrypt)
   {
     char c = byte ^ password[i % password.size()];
     c += i;
@@ -270,7 +275,7 @@ bool NetPlaySession::EncryptID(const std::string& password)
     ++i;
   }
 
-  server_id = encrypted_id;
+  server_id = std::move(encrypted_id);
 
   return true;
 }
@@ -301,13 +306,11 @@ std::optional<std::string> NetPlaySession::DecryptID(const std::string& password
   }
 
   // Verify checksum
-  u8 expected_sum = decoded[decoded.size() - 1];
+  const u8 expected_sum = decoded[decoded.size() - 1];
 
-  decoded = decoded.substr(0, decoded.size() - 1);
+  decoded.pop_back();
 
-  u8 sum = 0;
-  for (char c : decoded)
-    sum += c;
+  const u8 sum = std::accumulate(decoded.begin(), decoded.end(), u8{0});
 
   if (sum != expected_sum)
     return {};

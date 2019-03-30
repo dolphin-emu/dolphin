@@ -36,7 +36,7 @@ public:
 
   static int CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
                                   double ultotal);
-  const std::string EscapeComponent(const std::string& string);
+  std::string EscapeComponent(const std::string& string);
 
 private:
   static std::mutex s_curl_was_inited_mutex;
@@ -75,7 +75,7 @@ void HttpRequest::FollowRedirects(long max)
   m_impl->FollowRedirects(max);
 }
 
-const std::string HttpRequest::EscapeComponent(const std::string& string)
+std::string HttpRequest::EscapeComponent(const std::string& string)
 {
   return m_impl->EscapeComponent(string);
 }
@@ -165,7 +165,7 @@ void HttpRequest::Impl::FollowRedirects(long max)
   curl_easy_setopt(m_curl.get(), CURLOPT_MAXREDIRS, max);
 }
 
-const std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
+std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
 {
   return curl_easy_escape(m_curl.get(), string.c_str(), static_cast<int>(string.size()));
 }

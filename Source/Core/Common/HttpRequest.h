@@ -34,7 +34,7 @@ public:
   void SetCookies(const std::string& cookies);
   void UseIPv4();
   void FollowRedirects(long max = 1);
-  const std::string EscapeComponent(const std::string& string);
+  std::string EscapeComponent(const std::string& string);
   Response Get(const std::string& url, const Headers& headers = {});
   Response Post(const std::string& url, const std::vector<u8>& payload,
                 const Headers& headers = {});

@@ -22,6 +22,8 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/NetPlayIndex.h"
+
 NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
     : QDialog(parent), m_game_list_model(Settings::Instance().GetGameListModel())
 {
@@ -30,6 +32,10 @@ NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
 
   CreateMainLayout();
 
+  bool use_index = Config::Get(Config::NETPLAY_USE_INDEX);
+  std::string index_region = Config::Get(Config::NETPLAY_INDEX_REGION);
+  std::string index_name = Config::Get(Config::NETPLAY_INDEX_NAME);
+  std::string index_password = Config::Get(Config::NETPLAY_INDEX_PASSWORD);
   std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
   std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
   int connect_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
@@ -48,9 +54,20 @@ NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
   m_connect_port_box->setValue(connect_port);
   m_host_port_box->setValue(host_port);
 
-  m_host_force_port_check->setChecked(false);
   m_host_force_port_box->setValue(host_listen_port);
   m_host_force_port_box->setEnabled(false);
+
+  m_host_server_browser->setChecked(use_index);
+
+  m_host_server_region->setEnabled(use_index);
+  m_host_server_region->setCurrentIndex(
+      m_host_server_region->findData(QString::fromStdString(index_region)));
+
+  m_host_server_name->setEnabled(use_index);
+  m_host_server_name->setText(QString::fromStdString(index_name));
+
+  m_host_server_password->setEnabled(use_index);
+  m_host_server_password->setText(QString::fromStdString(index_password));
 
   m_host_chunked_upload_limit_check->setChecked(enable_chunked_upload_limit);
   m_host_chunked_upload_limit_box->setValue(chunked_upload_limit);
@@ -112,6 +129,10 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_force_port_box = new QSpinBox;
   m_host_chunked_upload_limit_check = new QCheckBox(tr("Limit Chunked Upload Speed:"));
   m_host_chunked_upload_limit_box = new QSpinBox;
+  m_host_server_browser = new QCheckBox(tr("Show in server browser"));
+  m_host_server_name = new QLineEdit;
+  m_host_server_password = new QLineEdit;
+  m_host_server_region = new QComboBox;
 
 #ifdef USE_UPNP
   m_host_upnp = new QCheckBox(tr("Forward port (UPnP)"));
@@ -128,17 +149,33 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_chunked_upload_limit_check->setToolTip(tr(
       "This will limit the speed of chunked uploading per client, which is used for save sync."));
 
+  m_host_server_name->setToolTip(tr("Name of your session shown in the server browser"));
+  m_host_server_name->setPlaceholderText(tr("Name"));
+  m_host_server_password->setToolTip(tr("Password for joining your game (leave empty for none)"));
+  m_host_server_password->setPlaceholderText(tr("Password"));
+
+  for (const auto& region : NetPlayIndex::GetRegions())
+  {
+    m_host_server_region->addItem(
+        tr("%1 (%2)").arg(tr(region.second.c_str())).arg(QString::fromStdString(region.first)),
+        QString::fromStdString(region.first));
+  }
+
   host_layout->addWidget(m_host_port_label, 0, 0);
   host_layout->addWidget(m_host_port_box, 0, 1);
 #ifdef USE_UPNP
   host_layout->addWidget(m_host_upnp, 0, 2);
 #endif
-  host_layout->addWidget(m_host_games, 1, 0, 1, -1);
-  host_layout->addWidget(m_host_force_port_check, 2, 0);
-  host_layout->addWidget(m_host_force_port_box, 2, 1, Qt::AlignLeft);
-  host_layout->addWidget(m_host_chunked_upload_limit_check, 3, 0);
-  host_layout->addWidget(m_host_chunked_upload_limit_box, 3, 1, Qt::AlignLeft);
-  host_layout->addWidget(m_host_button, 2, 2, 2, 1, Qt::AlignRight);
+  host_layout->addWidget(m_host_server_browser, 1, 0);
+  host_layout->addWidget(m_host_server_region, 1, 1);
+  host_layout->addWidget(m_host_server_name, 1, 2);
+  host_layout->addWidget(m_host_server_password, 1, 3);
+  host_layout->addWidget(m_host_games, 2, 0, 1, -1);
+  host_layout->addWidget(m_host_force_port_check, 3, 0);
+  host_layout->addWidget(m_host_force_port_box, 3, 1, Qt::AlignLeft);
+  host_layout->addWidget(m_host_chunked_upload_limit_check, 4, 0);
+  host_layout->addWidget(m_host_chunked_upload_limit_box, 4, 1, Qt::AlignLeft);
+  host_layout->addWidget(m_host_button, 4, 3, 2, 1, Qt::AlignRight);
 
   host_widget->setLayout(host_layout);
 
@@ -199,6 +236,11 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_reset_traversal_button, &QPushButton::clicked, this,
           &NetPlaySetupDialog::ResetTraversalHost);
+  connect(m_host_server_browser, &QCheckBox::toggled, this, [this](bool value) {
+    m_host_server_region->setEnabled(value);
+    m_host_server_name->setEnabled(value);
+    m_host_server_password->setEnabled(value);
+  });
 }
 
 void NetPlaySetupDialog::SaveSettings()
@@ -224,6 +266,13 @@ void NetPlaySetupDialog::SaveSettings()
                            m_host_chunked_upload_limit_check->isChecked());
   Config::SetBaseOrCurrent(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT,
                            m_host_chunked_upload_limit_box->value());
+
+  Config::SetBaseOrCurrent(Config::NETPLAY_USE_INDEX, m_host_server_browser->isChecked());
+  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_REGION,
+                           m_host_server_region->currentData().toString().toStdString());
+  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_NAME, m_host_server_name->text().toStdString());
+  Config::SetBaseOrCurrent(Config::NETPLAY_INDEX_PASSWORD,
+                           m_host_server_password->text().toStdString());
 }
 
 void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
@@ -270,6 +319,12 @@ void NetPlaySetupDialog::accept()
     if (items.empty())
     {
       ModalMessageBox::critical(this, tr("Error"), tr("You must select a game to host!"));
+      return;
+    }
+
+    if (m_host_server_browser->isChecked() && m_host_server_name->text().isEmpty())
+    {
+      ModalMessageBox::critical(this, tr("Error"), tr("You must provide a name for your session!"));
       return;
     }
 

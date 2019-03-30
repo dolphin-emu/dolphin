@@ -61,6 +61,7 @@ signals:
   void FrameAdvance();
   void Screenshot();
   void StartNetPlay();
+  void BrowseNetPlay();
   void StateLoad();
   void StateSave();
   void StateLoadSlot();

@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "Common/Flag.h"
@@ -39,14 +40,14 @@ public:
   std::optional<std::vector<NetPlaySession>>
   List(const std::map<std::string, std::string>& filters = {});
 
-  static std::vector<std::string> GetRegions();
+  static std::vector<std::pair<std::string, std::string>> GetRegions();
 
   bool Add(NetPlaySession session);
   void Remove();
 
   void SetPlayerCount(int player_count);
   void SetInGame(bool in_game);
-  void SetGame(const std::string& game);
+  void SetGame(std::string game);
 
   const std::string& GetLastError() const;
 

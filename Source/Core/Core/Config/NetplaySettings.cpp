@@ -20,7 +20,7 @@ const ConfigInfo<u16> NETPLAY_TRAVERSAL_PORT{{System::Main, "NetPlay", "Traversa
 const ConfigInfo<std::string> NETPLAY_TRAVERSAL_CHOICE{{System::Main, "NetPlay", "TraversalChoice"},
                                                        "direct"};
 const ConfigInfo<std::string> NETPLAY_INDEX_URL{{System::Main, "NetPlay", "IndexServer"},
-                                                "https://dolphin-emu.org/lobby"};
+                                                "https://lobby.dolphin-emu.org"};
 
 const ConfigInfo<bool> NETPLAY_USE_INDEX{{System::Main, "NetPlay", "UseIndex"}, false};
 const ConfigInfo<std::string> NETPLAY_INDEX_NAME{{System::Main, "NetPlay", "IndexName"}, ""};
