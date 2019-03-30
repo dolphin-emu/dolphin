@@ -231,7 +231,6 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   // It's not valid to resolve an out-of-range rectangle.
   MathUtil::Rectangle<int> clamped_region = region;
   clamped_region.ClampUL(0, 0, GetEFBWidth(), GetEFBHeight());
-  clamped_region = g_renderer->ConvertFramebufferRectangle(clamped_region, m_efb_framebuffer.get());
 
   // Resolve to our already-created texture.
   for (u32 layer = 0; layer < GetEFBLayers(); layer++)
@@ -255,7 +254,6 @@ AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rect
   // It's not valid to resolve an out-of-range rectangle.
   MathUtil::Rectangle<int> clamped_region = region;
   clamped_region.ClampUL(0, 0, GetEFBWidth(), GetEFBHeight());
-  clamped_region = g_renderer->ConvertFramebufferRectangle(clamped_region, m_efb_framebuffer.get());
 
   m_efb_depth_texture->FinishedRendering();
   g_renderer->BeginUtilityDrawing();
