@@ -260,7 +260,12 @@ void GameConfigEdit::OpenExternalEditor()
     file.close();
   }
 
-  QDesktopServices::openUrl(QUrl::fromLocalFile(m_path));
+  if (!QDesktopServices::openUrl(QUrl::fromLocalFile(m_path)))
+  {
+    ModalMessageBox::warning(this, tr("Error"),
+                             tr("Failed to open file in external editor.\nMake sure there's an "
+                                "application assigned to open INI files."));
+  }
 }
 
 void GameConfigEdit::keyPressEvent(QKeyEvent* e)
