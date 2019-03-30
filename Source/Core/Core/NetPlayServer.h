@@ -52,6 +52,7 @@ public:
   bool DoAllPlayersHaveIPLDump() const;
   bool StartGame();
   bool RequestStartGame();
+  void AbortGameStart();
 
   PadMappingArray GetPadMapping() const;
   void SetPadMapping(const PadMappingArray& mappings);

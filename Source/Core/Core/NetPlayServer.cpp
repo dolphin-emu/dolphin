@@ -1347,6 +1347,16 @@ bool NetPlayServer::StartGame()
   return true;
 }
 
+void NetPlayServer::AbortGameStart()
+{
+  if (m_start_pending)
+  {
+    m_dialog->OnGameStartAborted();
+    ChunkedDataAbort();
+    m_start_pending = false;
+  }
+}
+
 // called from ---GUI--- thread
 bool NetPlayServer::SyncSaveData()
 {

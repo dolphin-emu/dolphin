@@ -1096,7 +1096,7 @@ void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u6
 {
   QueueOnObject(this, [this, title, data_size, players] {
     if (m_chunked_progress_dialog->isVisible())
-      m_chunked_progress_dialog->close();
+      m_chunked_progress_dialog->done(QDialog::Accepted);
 
     m_chunked_progress_dialog->show(QString::fromStdString(title), data_size, players);
   });
@@ -1104,7 +1104,7 @@ void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u6
 
 void NetPlayDialog::HideChunkedProgressDialog()
 {
-  QueueOnObject(this, [this] { m_chunked_progress_dialog->close(); });
+  QueueOnObject(this, [this] { m_chunked_progress_dialog->done(QDialog::Accepted); });
 }
 
 void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
