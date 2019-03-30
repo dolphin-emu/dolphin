@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_set>
 
+#include <mbedtls/aes.h>
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
 #include <zlib.h>
@@ -630,7 +631,11 @@ void VolumeVerifier::CheckMisc()
 
 void VolumeVerifier::SetUpHashing()
 {
-  if (m_volume.GetVolumeType() == Platform::WiiDisc)
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
+  {
+    m_content_offsets = m_volume.GetContentOffsets();
+  }
+  else if (m_volume.GetVolumeType() == Platform::WiiDisc)
   {
     // Set up a DiscScrubber for checking whether blocks with errors are unused
     m_scrubber.SetupScrub(&m_volume, VolumeWii::BLOCK_TOTAL_SIZE);
@@ -663,14 +668,28 @@ void VolumeVerifier::Process()
   if (m_progress == m_max_progress)
     return;
 
+  IOS::ES::Content content;
+  bool content_read = false;
   u64 bytes_to_read = BLOCK_SIZE;
-  if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset == m_progress)
+  if (m_content_index < m_content_offsets.size() &&
+      m_content_offsets[m_content_index] == m_progress)
+  {
+    m_volume.GetTMD(PARTITION_NONE).GetContent(m_content_index, &content);
+    bytes_to_read = Common::AlignUp(content.size, 0x40);
+    content_read = true;
+  }
+  else if (m_content_index < m_content_offsets.size() &&
+           m_content_offsets[m_content_index] > m_progress)
+  {
+    bytes_to_read = std::min(bytes_to_read, m_content_offsets[m_content_index] - m_progress);
+  }
+  else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset == m_progress)
   {
     bytes_to_read = VolumeWii::BLOCK_TOTAL_SIZE;
   }
-  else if (m_block_index + 1 < m_blocks.size() && m_blocks[m_block_index + 1].offset > m_progress)
+  else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset > m_progress)
   {
-    bytes_to_read = std::min(bytes_to_read, m_blocks[m_block_index + 1].offset - m_progress);
+    bytes_to_read = std::min(bytes_to_read, m_blocks[m_block_index].offset - m_progress);
   }
   bytes_to_read = std::min(bytes_to_read, m_max_progress - m_progress);
 
@@ -700,6 +719,17 @@ void VolumeVerifier::Process()
 
   m_progress += bytes_to_read;
 
+  if (content_read)
+  {
+    if (!CheckContentIntegrity(content))
+    {
+      AddProblem(Severity::High,
+                 StringFromFormat(GetStringT("Content %08x is corrupt.").c_str(), content.id));
+    }
+
+    m_content_index++;
+  }
+
   while (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset < m_progress)
   {
     if (!m_volume.CheckBlockIntegrity(m_blocks[m_block_index].block_index,
@@ -719,6 +749,30 @@ void VolumeVerifier::Process()
     }
     m_block_index++;
   }
+}
+
+bool VolumeVerifier::CheckContentIntegrity(const IOS::ES::Content& content)
+{
+  const u64 padded_size = Common::AlignUp(content.size, 0x40);
+  std::vector<u8> encrypted_data(padded_size);
+  m_volume.Read(m_content_offsets[m_content_index], padded_size, encrypted_data.data(),
+                PARTITION_NONE);
+
+  mbedtls_aes_context context;
+  const std::array<u8, 16> key = m_volume.GetTicket(PARTITION_NONE).GetTitleKey();
+  mbedtls_aes_setkey_dec(&context, key.data(), 128);
+
+  std::array<u8, 16> iv{};
+  iv[0] = static_cast<u8>(content.index >> 8);
+  iv[1] = static_cast<u8>(content.index & 0xFF);
+
+  std::vector<u8> decrypted_data(padded_size);
+  mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, padded_size, iv.data(),
+                        encrypted_data.data(), decrypted_data.data());
+
+  std::array<u8, 20> sha1;
+  mbedtls_sha1(decrypted_data.data(), content.size, sha1.data());
+  return sha1 == content.sha1;
 }
 
 u64 VolumeVerifier::GetBytesProcessed() const

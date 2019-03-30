@@ -31,6 +31,7 @@
 
 namespace IOS::ES
 {
+struct Content;
 class SignedBlobReader;
 }
 
@@ -100,6 +101,7 @@ private:
   u64 GetBiggestUsedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void SetUpHashing();
+  bool CheckContentIntegrity(const IOS::ES::Content& content);
 
   void AddProblem(Severity severity, const std::string& text);
 
@@ -116,6 +118,8 @@ private:
   mbedtls_sha1_context m_sha1_context;
 
   DiscScrubber m_scrubber;
+  std::vector<u64> m_content_offsets;
+  u16 m_content_index = 0;
   std::vector<BlockToVerify> m_blocks;
   size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition
   std::map<Partition, size_t> m_block_errors;

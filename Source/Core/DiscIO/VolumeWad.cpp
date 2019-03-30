@@ -40,8 +40,8 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   m_cert_chain_offset = Common::AlignUp(m_hdr_size, 0x40);
   m_ticket_offset = m_cert_chain_offset + Common::AlignUp(m_cert_chain_size, 0x40);
   m_tmd_offset = m_ticket_offset + Common::AlignUp(m_ticket_size, 0x40);
-  m_opening_bnr_offset =
-      m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
+  m_data_offset = m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40);
+  m_opening_bnr_offset = m_data_offset + Common::AlignUp(m_data_size, 0x40);
 
   std::vector<u8> ticket_buffer(m_ticket_size);
   Read(m_ticket_offset, m_ticket_size, ticket_buffer.data());
@@ -116,6 +116,21 @@ const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const
 const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition) const
 {
   return m_cert_chain;
+}
+
+std::vector<u64> VolumeWAD::GetContentOffsets() const
+{
+  const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
+  std::vector<u64> content_offsets;
+  content_offsets.reserve(contents.size());
+  u64 offset = m_data_offset;
+  for (const IOS::ES::Content& content : contents)
+  {
+    content_offsets.emplace_back(offset);
+    offset += Common::AlignUp(content.size, 0x40);
+  }
+
+  return content_offsets;
 }
 
 std::string VolumeWAD::GetGameID(const Partition& partition) const
