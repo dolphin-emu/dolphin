@@ -259,7 +259,8 @@ void PauseScreen::DisplayWiiControls()
       }
       else
       {
-        ImGui::Text("PROFILE NAME");
+        const auto name = g_profile_manager.GetWiiDeviceProfileManager(i)->GetProfileName();
+        ImGui::Text(name.c_str());
       }
       ImGui::NextColumn();
       if (i == WIIMOTE_BALANCE_BOARD)
@@ -270,12 +271,12 @@ void PauseScreen::DisplayWiiControls()
       {
         if (ImGui::Button("Prev"))
         {
-          m_profile_cycler.PreviousWiimoteProfile(i);
+          g_profile_manager.GetWiiDeviceProfileManager(i)->PreviousProfile();
         }
         ImGui::SameLine();
         if (ImGui::Button("Next"))
         {
-          m_profile_cycler.NextWiimoteProfile(i);
+          g_profile_manager.GetWiiDeviceProfileManager(i)->NextProfile();
         }
       }
       ImGui::NextColumn();

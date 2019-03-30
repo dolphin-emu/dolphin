@@ -32,8 +32,5 @@ private:
 
   std::stack<ScreenState> m_state_stack;
 
-  // TODO: sync this with the cycler in HotkeyScheduler...
-  InputProfile::ProfileCycler m_profile_cycler;
-
   bool m_visible = false;
 };

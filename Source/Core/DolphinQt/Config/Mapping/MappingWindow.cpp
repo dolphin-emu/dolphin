@@ -43,6 +43,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/InputProfile.h"
 
 constexpr const char* PROFILES_DIR = "Profiles/";
 
@@ -224,13 +225,7 @@ void MappingWindow::OnLoadProfilePressed()
     return;
   }
 
-  const QString profile_path = m_profiles_combo->currentData().toString();
-
-  IniFile ini;
-  ini.Load(profile_path.toStdString());
-
-  m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
-  m_controller->UpdateReferences(g_controller_interface);
+  g_profile_manager.GetWiiDeviceProfileManager(GetPort())->SetProfile(m_profiles_combo->currentIndex() - 1);
 
   emit ConfigChanged();
 }
@@ -382,13 +377,14 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
   m_controller = m_config->GetController(GetPort());
 
-  const std::string profiles_path =
-      File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
-  for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
+  const auto profiles = InputProfile::DeviceProfileManager::GetProfilesForDevice(m_config);
+
+  for (const auto& profile_path : profiles)
   {
     std::string basename;
-    SplitPath(filename, nullptr, &basename, nullptr);
-    m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
+    SplitPath(profile_path, nullptr, &basename, nullptr);
+    m_profiles_combo->addItem(QString::fromStdString(basename),
+                              QString::fromStdString(profile_path));
   }
   m_profiles_combo->setCurrentIndex(-1);
 }
@@ -412,6 +408,7 @@ void MappingWindow::OnDefaultFieldsPressed()
 {
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
+  g_profile_manager.GetWiiDeviceProfileManager(GetPort())->SetDefault();
   emit ConfigChanged();
   emit Save();
 }
@@ -427,6 +424,7 @@ void MappingWindow::OnClearFieldsPressed()
   m_controller->SetDefaultDevice(default_device);
 
   m_controller->UpdateReferences(g_controller_interface);
+  g_profile_manager.GetWiiDeviceProfileManager(GetPort())->SetModified();
   emit ConfigChanged();
   emit Save();
 }

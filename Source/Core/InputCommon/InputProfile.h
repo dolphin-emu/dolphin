@@ -11,6 +11,7 @@ namespace ControllerEmu
 class EmulatedController;
 }
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -19,35 +20,57 @@ namespace InputProfile
 std::vector<std::string> GetProfilesFromSetting(const std::string& setting,
                                                 const std::string& root);
 
-enum class CycleDirection : int
-{
-  Forward = 1,
-  Backward = -1
-};
-
-class ProfileCycler
+class DeviceProfileManager
 {
 public:
-  void NextWiimoteProfile(int controller_index);
-  void PreviousWiimoteProfile(int controller_index);
-  void NextWiimoteProfileForGame(int controller_index);
-  void PreviousWiimoteProfileForGame(int controller_index);
+  DeviceProfileManager(InputConfig* device_configuration, int controller_index,
+                       std::string setting_name);
+
+  static std::vector<std::string> GetProfilesForDevice(InputConfig* device_configuration);
+
+  void NextProfile();
+  void PreviousProfile();
+  void NextProfileForGame();
+  void PreviousProfileForGame();
+
+  bool SetProfile(int profile_index);
+  bool SetGameProfile(int profile_index);
+
+  void SetDefault();
+  void SetModified();
+
+  std::string GetProfileName() const;
 
 private:
-  void CycleProfile(CycleDirection cycle_direction, InputConfig* device_configuration,
-                    int& profile_index, int controller_index);
-  void CycleProfileForGame(CycleDirection cycle_direction, InputConfig* device_configuration,
-                           int& profile_index, const std::string& setting, int controller_index);
-  std::vector<std::string> GetProfilesForDevice(InputConfig* device_configuration);
-  std::string GetProfile(CycleDirection cycle_direction, int& profile_index,
-                         const std::vector<std::string>& profiles);
+  bool UpdateProfile(int index);
+  bool UpdateProfileForGame(int index, const std::string& setting);
+  std::string GetProfile(int index, const std::vector<std::string>& profiles);
   std::vector<std::string> GetMatchingProfilesFromSetting(const std::string& setting,
-                                                          const std::vector<std::string>& profiles,
-                                                          InputConfig* device_configuration);
+                                                          const std::vector<std::string>& profiles);
   void UpdateToProfile(const std::string& profile_filename,
                        ControllerEmu::EmulatedController* controller);
-  std::string GetWiimoteInputProfilesForGame(int controller_index);
+  std::string GetInputProfilesForGame();
 
-  int m_wiimote_profile_index = 0;
+  bool m_modified = false;
+  bool m_default = true;
+  int m_profile_index = 0;
+  int m_controller_index = 0;
+  std::string m_profile_path;
+  std::string m_controller_setting_name;
+  InputConfig* m_device_configuration;
+};
+
+class ProfileManager
+{
+public:
+  ProfileManager();
+  DeviceProfileManager* GetGCDeviceProfileManager(int controller_index);
+  DeviceProfileManager* GetWiiDeviceProfileManager(int controller_index);
+
+private:
+  std::array<DeviceProfileManager, 4> m_wii_devices;
+  std::array<DeviceProfileManager, 4> m_gc_devices;
 };
 }  // namespace InputProfile
+
+extern InputProfile::ProfileManager g_profile_manager;

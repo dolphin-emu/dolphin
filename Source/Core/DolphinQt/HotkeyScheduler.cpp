@@ -256,44 +256,44 @@ void HotkeyScheduler::Run()
       }
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))
-        m_profile_cycler.PreviousWiimoteProfile(0);
+        g_profile_manager.GetWiiDeviceProfileManager(0)->PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_1))
-        m_profile_cycler.NextWiimoteProfile(0);
+        g_profile_manager.GetWiiDeviceProfileManager(0)->NextProfile();
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_2))
-        m_profile_cycler.PreviousWiimoteProfile(1);
+        g_profile_manager.GetWiiDeviceProfileManager(1)->PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_2))
-        m_profile_cycler.NextWiimoteProfile(1);
+        g_profile_manager.GetWiiDeviceProfileManager(1)->NextProfile();
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_3))
-        m_profile_cycler.PreviousWiimoteProfile(2);
+        g_profile_manager.GetWiiDeviceProfileManager(2)->PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_3))
-        m_profile_cycler.NextWiimoteProfile(2);
+        g_profile_manager.GetWiiDeviceProfileManager(2)->NextProfile();
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_4))
-        m_profile_cycler.PreviousWiimoteProfile(3);
+        g_profile_manager.GetWiiDeviceProfileManager(3)->PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_4))
-        m_profile_cycler.NextWiimoteProfile(3);
+        g_profile_manager.GetWiiDeviceProfileManager(3)->NextProfile();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_1))
-        m_profile_cycler.PreviousWiimoteProfileForGame(0);
+        g_profile_manager.GetWiiDeviceProfileManager(0)->PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_1))
-        m_profile_cycler.NextWiimoteProfileForGame(0);
+        g_profile_manager.GetWiiDeviceProfileManager(0)->NextProfileForGame();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_2))
-        m_profile_cycler.PreviousWiimoteProfileForGame(1);
+        g_profile_manager.GetWiiDeviceProfileManager(1)->PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_2))
-        m_profile_cycler.NextWiimoteProfileForGame(1);
+        g_profile_manager.GetWiiDeviceProfileManager(1)->NextProfileForGame();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_3))
-        m_profile_cycler.PreviousWiimoteProfileForGame(2);
+        g_profile_manager.GetWiiDeviceProfileManager(2)->PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_3))
-        m_profile_cycler.NextWiimoteProfileForGame(2);
+        g_profile_manager.GetWiiDeviceProfileManager(2)->NextProfileForGame();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_4))
-        m_profile_cycler.PreviousWiimoteProfileForGame(3);
+        g_profile_manager.GetWiiDeviceProfileManager(3)->PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
-        m_profile_cycler.NextWiimoteProfileForGame(3);
+        g_profile_manager.GetWiiDeviceProfileManager(3)->NextProfileForGame();
 
       auto ShowVolume = []() {
         OSD::AddMessage(std::string("Volume: ") +
