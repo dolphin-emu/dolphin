@@ -9,6 +9,9 @@
 #include <string>
 #include <vector>
 
+#include <mbedtls/md5.h>
+#include <mbedtls/sha1.h>
+
 #include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
@@ -51,13 +54,22 @@ public:
     std::string text;
   };
 
+  template <typename T>
+  struct Hashes
+  {
+    T crc32;
+    T md5;
+    T sha1;
+  };
+
   struct Result
   {
+    Hashes<std::vector<u8>> hashes;
     std::string summary_text;
     std::vector<Problem> problems;
   };
 
-  VolumeVerifier(const Volume& volume);
+  VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calculate);
   void Start();
   void Process();
   u64 GetBytesProcessed() const;
@@ -86,6 +98,7 @@ private:
   u64 GetBiggestUsedOffset();
   u64 GetBiggestUsedOffset(const FileInfo& file_info) const;
   void CheckMisc();
+  void SetUpHashing();
 
   void AddProblem(Severity severity, const std::string& text);
 
@@ -94,6 +107,12 @@ private:
   bool m_is_tgc;
   bool m_is_datel;
   bool m_is_not_retail;
+
+  Hashes<bool> m_hashes_to_calculate;
+  bool m_calculating_any_hash;
+  unsigned long m_crc32_context;
+  mbedtls_md5_context m_md5_context;
+  mbedtls_sha1_context m_sha1_context;
 
   std::vector<BlockToVerify> m_blocks;
   size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition

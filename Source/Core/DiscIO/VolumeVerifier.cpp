@@ -11,6 +11,10 @@
 #include <string>
 #include <unordered_set>
 
+#include <mbedtls/md5.h>
+#include <mbedtls/sha1.h>
+#include <zlib.h>
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -40,9 +44,11 @@ constexpr u64 DL_DVD_R_SIZE = 8543666176;  // Wii RVT-R
 
 constexpr u64 BLOCK_SIZE = 0x20000;
 
-VolumeVerifier::VolumeVerifier(const Volume& volume)
-    : m_volume(volume), m_started(false), m_done(false), m_progress(0),
-      m_max_progress(volume.GetSize())
+VolumeVerifier::VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calculate)
+    : m_volume(volume), m_hashes_to_calculate(hashes_to_calculate),
+      m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
+                             hashes_to_calculate.sha1),
+      m_started(false), m_done(false), m_progress(0), m_max_progress(volume.GetSize())
 {
 }
 
@@ -64,8 +70,7 @@ void VolumeVerifier::Start()
   CheckDiscSize();
   CheckMisc();
 
-  std::sort(m_blocks.begin(), m_blocks.end(),
-            [](const BlockToVerify& b1, const BlockToVerify& b2) { return b1.offset < b2.offset; });
+  SetUpHashing();
 }
 
 void VolumeVerifier::CheckPartitions()
@@ -622,6 +627,27 @@ void VolumeVerifier::CheckMisc()
   }
 }
 
+void VolumeVerifier::SetUpHashing()
+{
+  std::sort(m_blocks.begin(), m_blocks.end(),
+            [](const BlockToVerify& b1, const BlockToVerify& b2) { return b1.offset < b2.offset; });
+
+  if (m_hashes_to_calculate.crc32)
+    m_crc32_context = crc32(0, nullptr, 0);
+
+  if (m_hashes_to_calculate.md5)
+  {
+    mbedtls_md5_init(&m_md5_context);
+    mbedtls_md5_starts(&m_md5_context);
+  }
+
+  if (m_hashes_to_calculate.sha1)
+  {
+    mbedtls_sha1_init(&m_sha1_context);
+    mbedtls_sha1_starts(&m_sha1_context);
+  }
+}
+
 void VolumeVerifier::Process()
 {
   ASSERT(m_started);
@@ -640,6 +666,30 @@ void VolumeVerifier::Process()
     bytes_to_read = std::min(bytes_to_read, m_blocks[m_block_index + 1].offset - m_progress);
   }
   bytes_to_read = std::min(bytes_to_read, m_max_progress - m_progress);
+
+  if (m_calculating_any_hash)
+  {
+    std::vector<u8> data(bytes_to_read);
+    if (!m_volume.Read(m_progress, bytes_to_read, data.data(), PARTITION_NONE))
+    {
+      m_calculating_any_hash = false;
+    }
+    else
+    {
+      if (m_hashes_to_calculate.crc32)
+      {
+        // It would be nice to use crc32_z here instead of crc32, but it isn't available on Android
+        m_crc32_context =
+            crc32(m_crc32_context, data.data(), static_cast<unsigned int>(bytes_to_read));
+      }
+
+      if (m_hashes_to_calculate.md5)
+        mbedtls_md5_update(&m_md5_context, data.data(), bytes_to_read);
+
+      if (m_hashes_to_calculate.sha1)
+        mbedtls_sha1_update(&m_sha1_context, data.data(), bytes_to_read);
+    }
+  }
 
   m_progress += bytes_to_read;
 
@@ -671,6 +721,29 @@ void VolumeVerifier::Finish()
   if (m_done)
     return;
   m_done = true;
+
+  if (m_calculating_any_hash)
+  {
+    if (m_hashes_to_calculate.crc32)
+    {
+      m_result.hashes.crc32 = std::vector<u8>(4);
+      const u32 crc32_be = Common::swap32(m_crc32_context);
+      const u8* crc32_be_ptr = reinterpret_cast<const u8*>(&crc32_be);
+      std::copy(crc32_be_ptr, crc32_be_ptr + 4, m_result.hashes.crc32.begin());
+    }
+
+    if (m_hashes_to_calculate.md5)
+    {
+      m_result.hashes.md5 = std::vector<u8>(16);
+      mbedtls_md5_finish(&m_md5_context, m_result.hashes.md5.data());
+    }
+
+    if (m_hashes_to_calculate.sha1)
+    {
+      m_result.hashes.sha1 = std::vector<u8>(20);
+      mbedtls_sha1_finish(&m_sha1_context, m_result.hashes.sha1.data());
+    }
+  }
 
   for (auto pair : m_block_errors)
   {

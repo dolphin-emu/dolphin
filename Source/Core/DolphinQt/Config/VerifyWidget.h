@@ -6,7 +6,11 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
+#include <QCheckBox>
+#include <QFormLayout>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTextEdit>
@@ -25,6 +29,7 @@ public:
 
 private:
   void CreateWidgets();
+  std::pair<QCheckBox*, QLineEdit*> AddHashLine(QFormLayout* layout, QString text);
   void ConnectWidgets();
 
   void Verify();
@@ -33,5 +38,12 @@ private:
   std::shared_ptr<DiscIO::Volume> m_volume;
   QTableWidget* m_problems;
   QTextEdit* m_summary_text;
+  QFormLayout* m_hash_layout;
+  QCheckBox* m_crc32_checkbox;
+  QCheckBox* m_md5_checkbox;
+  QCheckBox* m_sha1_checkbox;
+  QLineEdit* m_crc32_line_edit;
+  QLineEdit* m_md5_line_edit;
+  QLineEdit* m_sha1_line_edit;
   QPushButton* m_verify_button;
 };
