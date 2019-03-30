@@ -84,6 +84,7 @@ void GCMemcardManager::CreateWidgets()
     m_slot_table[i]->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_slot_table[i]->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_slot_table[i]->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_slot_table[i]->horizontalHeader()->setHighlightSections(false);
     m_slot_table[i]->verticalHeader()->hide();
     m_slot_table[i]->setShowGrid(false);
 
