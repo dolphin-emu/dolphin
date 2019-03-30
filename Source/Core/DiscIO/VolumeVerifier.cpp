@@ -29,6 +29,7 @@
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -629,6 +630,12 @@ void VolumeVerifier::CheckMisc()
 
 void VolumeVerifier::SetUpHashing()
 {
+  if (m_volume.GetVolumeType() == Platform::WiiDisc)
+  {
+    // Set up a DiscScrubber for checking whether blocks with errors are unused
+    m_scrubber.SetupScrub(&m_volume, VolumeWii::BLOCK_TOTAL_SIZE);
+  }
+
   std::sort(m_blocks.begin(), m_blocks.end(),
             [](const BlockToVerify& b1, const BlockToVerify& b2) { return b1.offset < b2.offset; });
 
@@ -698,9 +705,17 @@ void VolumeVerifier::Process()
     if (!m_volume.CheckBlockIntegrity(m_blocks[m_block_index].block_index,
                                       m_blocks[m_block_index].partition))
     {
-      WARN_LOG(DISCIO, "Integrity check failed for block at 0x%" PRIx64,
-               m_blocks[m_block_index].offset);
-      m_block_errors[m_blocks[m_block_index].partition]++;
+      const u64 offset = m_blocks[m_block_index].offset;
+      if (m_scrubber.CanBlockBeScrubbed(offset))
+      {
+        WARN_LOG(DISCIO, "Integrity check failed for unused block at 0x%" PRIx64, offset);
+        m_unused_block_errors[m_blocks[m_block_index].partition]++;
+      }
+      else
+      {
+        WARN_LOG(DISCIO, "Integrity check failed for block at 0x%" PRIx64, offset);
+        m_block_errors[m_blocks[m_block_index].partition]++;
+      }
     }
     m_block_index++;
   }
@@ -750,10 +765,22 @@ void VolumeVerifier::Finish()
     if (pair.second > 0)
     {
       const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
-      AddProblem(Severity::Medium,
-                 StringFromFormat(
-                     GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(),
-                     pair.second, name.c_str()));
+      const std::string text = StringFromFormat(
+          GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(), pair.second,
+          name.c_str());
+      AddProblem(Severity::Medium, text);
+    }
+  }
+
+  for (auto pair : m_unused_block_errors)
+  {
+    if (pair.second > 0)
+    {
+      const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
+      const std::string text = StringFromFormat(
+          GetStringT("Errors were found in %zu unused blocks in the %s partition.").c_str(),
+          pair.second, name.c_str());
+      AddProblem(Severity::Low, text);
     }
   }
 

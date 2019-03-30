@@ -27,6 +27,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
@@ -181,9 +182,11 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   }
 
   DiscScrubber disc_scrubber;
+  std::unique_ptr<Volume> volume;
   if (sub_type == 1)
   {
-    if (!disc_scrubber.SetupScrub(infile_path, block_size))
+    volume = CreateVolumeFromFilename(infile_path);
+    if (!volume || !disc_scrubber.SetupScrub(volume.get(), block_size))
     {
       PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.",
                   infile_path.c_str());

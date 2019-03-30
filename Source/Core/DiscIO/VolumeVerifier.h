@@ -13,6 +13,7 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Volume.h"
 
 // To be used as follows:
@@ -114,9 +115,11 @@ private:
   mbedtls_md5_context m_md5_context;
   mbedtls_sha1_context m_sha1_context;
 
+  DiscScrubber m_scrubber;
   std::vector<BlockToVerify> m_blocks;
   size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition
   std::map<Partition, size_t> m_block_errors;
+  std::map<Partition, size_t> m_unused_block_errors;
 
   bool m_started;
   bool m_done;
