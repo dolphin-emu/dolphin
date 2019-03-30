@@ -31,6 +31,11 @@ Device::~Device()
     delete output;
 }
 
+std::optional<int> Device::GetPreferredId() const
+{
+  return {};
+}
+
 void Device::AddInput(Device::Input* const i)
 {
   m_inputs.push_back(i);

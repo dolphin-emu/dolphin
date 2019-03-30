@@ -29,12 +29,13 @@ static const struct
 #include "InputCommon/ControllerInterface/DInput/NamedKeys.h"  // NOLINT
 };
 
-// lil silly
-static HWND m_hwnd;
+// Prevent duplicate keyboard/mouse devices.
+static bool s_keyboard_mouse_exists = false;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8)
 {
-  m_hwnd = _hwnd;
+  if (s_keyboard_mouse_exists)
+    return;
 
   // mouse and keyboard are a combined device, to allow shift+click and stuff
   // if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from
@@ -63,6 +64,8 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
 
 KeyboardMouse::~KeyboardMouse()
 {
+  s_keyboard_mouse_exists = false;
+
   // kb
   m_kb_device->Unacquire();
   m_kb_device->Release();
@@ -75,6 +78,8 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
                              const LPDIRECTINPUTDEVICE8 mo_device)
     : m_kb_device(kb_device), m_mo_device(mo_device)
 {
+  s_keyboard_mouse_exists = true;
+
   m_kb_device->Acquire();
   m_mo_device->Acquire();
 
@@ -237,5 +242,5 @@ ControlState KeyboardMouse::Cursor::GetState() const
 {
   return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
 }
-}
-}
+}  // namespace DInput
+}  // namespace ciface

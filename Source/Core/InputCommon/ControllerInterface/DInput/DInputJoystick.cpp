@@ -4,8 +4,9 @@
 
 #include <algorithm>
 #include <limits>
-#include <map>
+#include <set>
 #include <sstream>
+#include <type_traits>
 
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -17,7 +18,19 @@ namespace ciface
 {
 namespace DInput
 {
-#define DATA_BUFFER_SIZE 32
+constexpr DWORD DATA_BUFFER_SIZE = 32;
+
+struct GUIDComparator
+{
+  bool operator()(const GUID& left, const GUID& right) const
+  {
+    static_assert(std::is_trivially_copyable_v<GUID>);
+
+    return memcmp(&left, &right, sizeof(left)) < 0;
+  }
+};
+
+static std::set<GUID, GUIDComparator> s_guids_in_use;
 
 void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
 {
@@ -28,8 +41,14 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   std::unordered_set<DWORD> xinput_guids = GetXInputGUIDS();
   for (DIDEVICEINSTANCE& joystick : joysticks)
   {
-    // skip XInput Devices
+    // Skip XInput Devices
     if (xinput_guids.count(joystick.guidProduct.Data1))
+    {
+      continue;
+    }
+
+    // Skip devices we are already using.
+    if (s_guids_in_use.count(joystick.guidInstance))
     {
       continue;
     }
@@ -55,7 +74,9 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
           }
         }
 
+        s_guids_in_use.insert(joystick.guidInstance);
         auto js = std::make_shared<Joystick>(js_device);
+
         // only add if it has some inputs/outputs
         if (js->Inputs().size() || js->Outputs().size())
           g_controller_interface.AddDevice(std::move(js));
@@ -161,6 +182,17 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
 
 Joystick::~Joystick()
 {
+  DIDEVICEINSTANCE info = {};
+  info.dwSize = sizeof(info);
+  if (SUCCEEDED(m_device->GetDeviceInfo(&info)))
+  {
+    s_guids_in_use.erase(info.guidInstance);
+  }
+  else
+  {
+    ERROR_LOG(PAD, "DInputJoystick: GetDeviceInfo failed.");
+  }
+
   DeInitForceFeedback();
 
   m_device->Unacquire();
@@ -177,7 +209,10 @@ std::string Joystick::GetSource() const
   return DINPUT_SOURCE_NAME;
 }
 
-// update IO
+bool Joystick::IsValid() const
+{
+  return SUCCEEDED(m_device->Acquire());
+}
 
 void Joystick::UpdateInput()
 {

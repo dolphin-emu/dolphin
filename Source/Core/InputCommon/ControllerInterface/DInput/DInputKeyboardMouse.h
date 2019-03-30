@@ -13,7 +13,7 @@ namespace ciface
 {
 namespace DInput
 {
-void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd);
+void InitKeyboardMouse(IDirectInput8* const idi8);
 
 class KeyboardMouse : public Core::Device
 {
@@ -98,5 +98,5 @@ private:
   DWORD m_last_update;
   State m_state_in;
 };
-}
-}
+}  // namespace DInput
+}  // namespace ciface

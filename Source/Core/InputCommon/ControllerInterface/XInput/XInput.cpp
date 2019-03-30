@@ -92,6 +92,8 @@ void PopulateDevices()
   if (!hXInput)
     return;
 
+  g_controller_interface.RemoveDevice([](const auto* dev) { return dev->GetSource() == "XInput"; });
+
   XINPUT_CAPABILITIES caps;
   for (int i = 0; i != 4; ++i)
     if (ERROR_SUCCESS == PXInputGetCapabilities(i, 0, &caps))
@@ -190,6 +192,11 @@ void Device::UpdateMotors()
     m_current_state_out = m_state_out;
     PXInputSetState(m_index, &m_state_out);
   }
+}
+
+std::optional<int> Device::GetPreferredId() const
+{
+  return m_index;
 }
 
 // GET name/source/id
