@@ -14,6 +14,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include "DolphinQt/TAS/TASCheckBox.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent)
@@ -41,18 +43,18 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   triggers_layout->addLayout(r_trigger_layout);
   m_triggers_box->setLayout(triggers_layout);
 
-  m_a_button = new QCheckBox(QStringLiteral("&A"));
-  m_b_button = new QCheckBox(QStringLiteral("&B"));
-  m_x_button = new QCheckBox(QStringLiteral("&X"));
-  m_y_button = new QCheckBox(QStringLiteral("&Y"));
-  m_z_button = new QCheckBox(QStringLiteral("&Z"));
-  m_l_button = new QCheckBox(QStringLiteral("&L"));
-  m_r_button = new QCheckBox(QStringLiteral("&R"));
-  m_start_button = new QCheckBox(QStringLiteral("&START"));
-  m_left_button = new QCheckBox(QStringLiteral("L&eft"));
-  m_up_button = new QCheckBox(QStringLiteral("&Up"));
-  m_down_button = new QCheckBox(QStringLiteral("&Down"));
-  m_right_button = new QCheckBox(QStringLiteral("R&ight"));
+  m_a_button = new TASCheckBox(QStringLiteral("&A"));
+  m_b_button = new TASCheckBox(QStringLiteral("&B"));
+  m_x_button = new TASCheckBox(QStringLiteral("&X"));
+  m_y_button = new TASCheckBox(QStringLiteral("&Y"));
+  m_z_button = new TASCheckBox(QStringLiteral("&Z"));
+  m_l_button = new TASCheckBox(QStringLiteral("&L"));
+  m_r_button = new TASCheckBox(QStringLiteral("&R"));
+  m_start_button = new TASCheckBox(QStringLiteral("&START"));
+  m_left_button = new TASCheckBox(QStringLiteral("L&eft"));
+  m_up_button = new TASCheckBox(QStringLiteral("&Up"));
+  m_down_button = new TASCheckBox(QStringLiteral("&Down"));
+  m_right_button = new TASCheckBox(QStringLiteral("R&ight"));
 
   auto* buttons_layout = new QGridLayout;
   buttons_layout->addWidget(m_a_button, 0, 0);
