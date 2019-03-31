@@ -225,13 +225,44 @@ static void BPWritten(const BPCmd& bp)
 
     // Here Width+1 like Height, otherwise some textures are corrupted already since the native
     // resolution.
-    // TODO: What's the behavior of out of bound access?
     srcRect.right = static_cast<int>(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
     srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
-    UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+    // Since the copy X and Y coordinates/sizes are 10-bit, the game can configure a copy region up
+    // to 1024x1024. Hardware tests have found that the number of bytes written does not depend on
+    // the configured stride, instead it is based on the size registers, writing beyond the length
+    // of a single row. The data written for the pixels which lie outside the EFB bounds does not
+    // wrap around instead returning different colors based on the pixel format of the EFB. This
+    // suggests it's not based on coordinates, but instead on memory addresses. The effect of a
+    // within-bounds size but out-of-bounds offset (e.g. offset 320,0, size 640,480) are the same.
+
+    // As it would be difficult to emulate the exact behavior of out-of-bounds reads, instead of
+    // writing the junk data, we don't write anything to RAM at all for over-sized copies, and clamp
+    // to the EFB borders for over-offset copies. The arcade virtual console games (e.g. 1942) are
+    // known for configuring these out-of-range copies.
+    int copy_width = srcRect.GetWidth();
+    int copy_height = srcRect.GetHeight();
+    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
+    {
+      WARN_LOG(VIDEO, "Oversized EFB copy: %dx%d (offset %d,%d stride %u)", copy_width, copy_height,
+               srcRect.left, srcRect.top, destStride);
+
+      // Adjust the copy size to fit within the EFB. So that we don't end up with a stretched image,
+      // instead of clamping the source rectangle, we reduce it by the over-sized amount.
+      if (copy_width > EFB_WIDTH)
+      {
+        srcRect.right -= copy_width - EFB_WIDTH;
+        copy_width = EFB_WIDTH;
+      }
+      if (copy_height > EFB_HEIGHT)
+      {
+        srcRect.bottom -= copy_height - EFB_HEIGHT;
+        copy_height = EFB_HEIGHT;
+      }
+    }
 
     // Check if we are to copy from the EFB or draw to the XFB
+    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
     if (PE_copy.copy_to_xfb == 0)
     {
       // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
@@ -240,8 +271,8 @@ static void BPWritten(const BPCmd& bp)
           {0, 0, 21, 22, 21, 0, 0}};
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
-          destAddr, PE_copy.tp_realFormat(), srcRect.GetWidth(), srcRect.GetHeight(), destStride,
-          is_depth_copy, srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f,
+          destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
+          srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f,
           bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom, filter_coefficients);
     }
     else
@@ -271,8 +302,8 @@ static void BPWritten(const BPCmd& bp)
 
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
-          destAddr, EFBCopyFormat::XFB, srcRect.GetWidth(), height, destStride, is_depth_copy,
-          srcRect, false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
+          destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
+          false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
           bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
 
       // This stays in to signal end of a "frame"
