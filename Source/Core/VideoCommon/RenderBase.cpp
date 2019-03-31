@@ -1154,8 +1154,7 @@ void Renderer::EndUIFrame()
   BeginImGuiFrame();
 }
 
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    u64 ticks)
+void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   const AspectMode suggested = g_ActiveConfig.suggested_aspect_mode;
   if (suggested == AspectMode::Analog || suggested == AspectMode::AnalogWide)
@@ -1188,33 +1187,15 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // behind the renderer.
   FlushFrameDump();
 
-  if (xfbAddr && fbWidth && fbStride && fbHeight)
+  if (xfb_addr && fb_width && fb_stride && fb_height)
   {
-    constexpr int force_safe_texture_cache_hash = 0;
     // Get the current XFB from texture cache
-    auto* xfb_entry = g_texture_cache->GetXFBTexture(
-        xfbAddr, fbStride, fbHeight, TextureFormat::XFB, force_safe_texture_cache_hash);
-
+    MathUtil::Rectangle<int> xfb_rect;
+    const auto* xfb_entry =
+        g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
-      const TextureConfig& texture_config = xfb_entry->texture->GetConfig();
-      m_last_xfb_texture = xfb_entry->texture.get();
       m_last_xfb_id = xfb_entry->id;
-      m_last_xfb_ticks = ticks;
-
-      auto xfb_rect = texture_config.GetRect();
-
-      // It's possible that the returned XFB texture is native resolution
-      // even when we're rendering at higher than native resolution
-      // if the XFB was was loaded entirely from console memory.
-      // If so, adjust the rectangle by native resolution instead of scaled resolution.
-      const u32 native_stride_width_difference = fbStride - fbWidth;
-      if (texture_config.width == xfb_entry->native_width)
-        xfb_rect.right -= native_stride_width_difference;
-      else
-        xfb_rect.right -= EFBToScaledX(native_stride_width_difference);
-
-      m_last_xfb_region = xfb_rect;
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
       // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
@@ -1247,7 +1228,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
         // Update the window size based on the frame that was just rendered.
         // Due to depending on guest state, we need to call this every frame.
-        SetWindowSize(texture_config.width, texture_config.height);
+        SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
       }
 
       m_fps_counter.Update();
@@ -1259,7 +1240,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       DolphinAnalytics::Instance()->ReportPerformanceInfo(std::move(perf_sample));
 
       if (IsFrameDumping())
-        DumpCurrentFrame();
+        DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
 
       // Begin new frame
       m_frame_count++;
@@ -1295,8 +1276,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
     }
 
     // Update our last xfb values
-    m_last_xfb_width = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    m_last_xfb_height = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+    m_last_xfb_width = (fb_width < 1 || fb_width > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_width;
+    m_last_xfb_height = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
   }
   else
   {
@@ -1333,8 +1314,11 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpCurrentFrame()
+void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
+                                const MathUtil::Rectangle<int>& src_rect, u64 ticks)
 {
+  int source_width = src_rect.GetWidth();
+  int source_height = src_rect.GetHeight();
   int target_width, target_height;
   if (!g_ActiveConfig.bInternalResolutionFrameDumps && !IsHeadless())
   {
@@ -1344,22 +1328,20 @@ void Renderer::DumpCurrentFrame()
   }
   else
   {
-    std::tie(target_width, target_height) = CalculateOutputDimensions(
-        m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+    std::tie(target_width, target_height) = CalculateOutputDimensions(source_width, source_height);
   }
 
   // We only need to render a copy if we need to stretch/scale the XFB copy.
-  const AbstractTexture* source_tex = m_last_xfb_texture;
-  MathUtil::Rectangle<int> source_rect = m_last_xfb_region;
-  if (source_rect.GetWidth() != target_width || source_rect.GetHeight() != target_height)
+  MathUtil::Rectangle<int> copy_rect = src_rect;
+  if (source_width != target_width || source_height != target_height)
   {
     if (!CheckFrameDumpRenderTexture(target_width, target_height))
       return;
 
-    source_tex = m_frame_dump_render_texture.get();
-    source_rect = MathUtil::Rectangle<int>(0, 0, target_width, target_height);
-    ScaleTexture(m_frame_dump_render_framebuffer.get(), source_rect, m_last_xfb_texture,
-                 m_last_xfb_region);
+    ScaleTexture(m_frame_dump_render_framebuffer.get(), m_frame_dump_render_framebuffer->GetRect(),
+                 src_texture, src_rect);
+    src_texture = m_frame_dump_render_texture.get();
+    copy_rect = src_texture->GetRect();
   }
 
   // Index 0 was just sent to AVI dump. Swap with the second texture.
@@ -1369,12 +1351,9 @@ void Renderer::DumpCurrentFrame()
   if (!CheckFrameDumpReadbackTexture(target_width, target_height))
     return;
 
-  const auto converted_region =
-      ConvertFramebufferRectangle(source_rect, source_tex->GetWidth(), source_tex->GetHeight());
-  m_frame_dump_readback_textures[0]->CopyFromTexture(
-      source_tex, converted_region, 0, 0,
-      MathUtil::Rectangle<int>(0, 0, target_width, target_height));
-  m_last_frame_state = AVIDump::FetchState(m_last_xfb_ticks);
+  m_frame_dump_readback_textures[0]->CopyFromTexture(src_texture, copy_rect, 0, 0,
+                                                     m_frame_dump_readback_textures[0]->GetRect());
+  m_last_frame_state = AVIDump::FetchState(ticks);
   m_last_frame_exported = true;
 }
 

@@ -113,7 +113,6 @@ void AsyncRequests::SetEnable(bool enable)
 
 void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 {
-  EFBRectangle rc;
   switch (e.type)
   {
   case Event::EFB_POKE_COLOR:
@@ -145,7 +144,7 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
   case Event::SWAP_EVENT:
     g_renderer->Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                     e.swap_event.fbHeight, rc, e.time);
+                     e.swap_event.fbHeight, e.time);
     break;
 
   case Event::BBOX_READ:
