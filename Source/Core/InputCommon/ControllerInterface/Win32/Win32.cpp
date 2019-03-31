@@ -6,6 +6,8 @@
 
 #include <windows.h>
 
+#include <array>
+#include <future>
 #include <thread>
 
 #include "Common/Event.h"
@@ -38,7 +40,12 @@ void ciface::Win32::Init(void* hwnd)
   s_hwnd = static_cast<HWND>(hwnd);
   XInput::Init();
 
-  s_thread = std::thread([] {
+  std::promise<HWND> message_window_promise;
+
+  s_thread = std::thread([&message_window_promise] {
+    HWND message_window = nullptr;
+    Common::ScopeGuard promise_guard([&] { message_window_promise.set_value(message_window); });
+
     if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)))
     {
       ERROR_LOG(SERIALINTERFACE, "CoInitializeEx failed: %i", GetLastError());
@@ -63,17 +70,17 @@ void ciface::Win32::Init(void* hwnd)
         ERROR_LOG(SERIALINTERFACE, "UnregisterClass failed: %i", GetLastError());
     });
 
-    s_message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
-                                      nullptr, nullptr);
-    if (!s_message_window)
+    message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
+                                    nullptr, nullptr);
+    promise_guard.Exit();
+    if (!message_window)
     {
       ERROR_LOG(SERIALINTERFACE, "CreateWindowEx failed: %i", GetLastError());
       return;
     }
-    Common::ScopeGuard destroy([] {
-      if (!DestroyWindow(s_message_window))
+    Common::ScopeGuard destroy([&] {
+      if (!DestroyWindow(message_window))
         ERROR_LOG(SERIALINTERFACE, "DestroyWindow failed: %i", GetLastError());
-      s_message_window = nullptr;
     });
 
     std::array<RAWINPUTDEVICE, 2> devices;
@@ -81,12 +88,12 @@ void ciface::Win32::Init(void* hwnd)
     devices[0].usUsagePage = 0x01;
     devices[0].usUsage = 0x05;
     devices[0].dwFlags = RIDEV_DEVNOTIFY;
-    devices[0].hwndTarget = s_message_window;
+    devices[0].hwndTarget = message_window;
     // joystick devices
     devices[1].usUsagePage = 0x01;
     devices[1].usUsage = 0x04;
     devices[1].dwFlags = RIDEV_DEVNOTIFY;
-    devices[1].hwndTarget = s_message_window;
+    devices[1].hwndTarget = message_window;
 
     if (!RegisterRawInputDevices(devices.data(), static_cast<UINT>(devices.size()),
                                  static_cast<UINT>(sizeof(decltype(devices)::value_type))))
@@ -104,6 +111,8 @@ void ciface::Win32::Init(void* hwnd)
         break;
     }
   });
+
+  s_message_window = message_window_promise.get_future().get();
 }
 
 void ciface::Win32::PopulateDevices(void* hwnd)
@@ -129,6 +138,7 @@ void ciface::Win32::DeInit()
   {
     PostMessage(s_message_window, WM_DOLPHIN_STOP, 0, 0);
     s_thread.join();
+    s_message_window = nullptr;
   }
 
   XInput::DeInit();
