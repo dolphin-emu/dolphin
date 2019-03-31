@@ -243,13 +243,13 @@ protected:
 
   virtual void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
                        u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                       const EFBRectangle& src_rect, bool scale_by_half, float y_scale, float gamma,
-                       bool clamp_top, bool clamp_bottom,
+                       const EFBRectangle& src_rect, bool scale_by_half, bool linear_filter,
+                       float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
                        const EFBCopyFilterCoefficients& filter_coefficients);
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    const EFBRectangle& src_rect, bool scale_by_half,
-                                   EFBCopyFormat dst_format, bool is_intensity, float gamma,
-                                   bool clamp_top, bool clamp_bottom,
+                                   bool linear_filter, EFBCopyFormat dst_format, bool is_intensity,
+                                   float gamma, bool clamp_top, bool clamp_bottom,
                                    const EFBCopyFilterCoefficients& filter_coefficients);
 
   alignas(16) u8* temp = nullptr;

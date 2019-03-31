@@ -1424,7 +1424,7 @@ void TextureCacheBase::StitchXFBCopy(TCacheEntry* stitched_entry)
     int dst_height = native_height;
 
     // Scale to internal resolution.
-    if (entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
+    if (entry->native_width != entry->GetWidth())
     {
       src_x = g_renderer->EFBToScaledX(src_x);
       src_y = g_renderer->EFBToScaledY(src_y);
@@ -1660,6 +1660,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     copy_to_vram = false;
   }
 
+  // We also linear filtering for both box filtering and downsampling higher resolutions to 1x.
+  // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
+  //       complex down filtering to average all pixels and produce the correct result.
+  const bool linear_filter =
+      !is_depth_copy && (scaleByHalf || g_renderer->GetEFBScale() != 1 || y_scale > 1.0f);
+
   TCacheEntry* entry = nullptr;
   if (copy_to_vram)
   {
@@ -1684,8 +1690,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity, gamma,
-                          clamp_top, clamp_bottom,
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter, dstFormat,
+                          isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
@@ -1719,7 +1725,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     if (staging_texture)
     {
       CopyEFB(staging_texture.get(), format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect,
-              scaleByHalf, y_scale, gamma, clamp_top, clamp_bottom, coefficients);
+              scaleByHalf, linear_filter, y_scale, gamma, clamp_top, clamp_bottom, coefficients);
 
       // We can't defer if there is no VRAM copy (since we need to update the hash).
       if (!copy_to_vram || !g_ActiveConfig.bDeferEFBCopies)
@@ -2153,8 +2159,9 @@ bool TextureCacheBase::CreateUtilityTextures()
 
 void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                            const EFBRectangle& src_rect, bool scale_by_half,
-                                           EFBCopyFormat dst_format, bool is_intensity, float gamma,
-                                           bool clamp_top, bool clamp_bottom,
+                                           bool linear_filter, EFBCopyFormat dst_format,
+                                           bool is_intensity, float gamma, bool clamp_top,
+                                           bool clamp_bottom,
                                            const EFBCopyFilterCoefficients& filter_coefficients)
 {
   // Flush EFB pokes first, as they're expected to be included.
@@ -2213,7 +2220,7 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
   g_renderer->SetViewportAndScissor(entry->framebuffer->GetRect());
   g_renderer->SetPipeline(copy_pipeline);
   g_renderer->SetTexture(0, src_texture);
-  g_renderer->SetSamplerState(0, scale_by_half ? RenderState::GetLinearSamplerState() :
+  g_renderer->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
                                                  RenderState::GetPointSamplerState());
   g_renderer->Draw(0, 3);
   g_renderer->EndUtilityDrawing();
@@ -2223,7 +2230,8 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
 void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params,
                                u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                                u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half,
-                               float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
+                               bool linear_filter, float y_scale, float gamma, bool clamp_top,
+                               bool clamp_bottom,
                                const EFBCopyFilterCoefficients& filter_coefficients)
 {
   // Flush EFB pokes first, as they're expected to be included.
@@ -2271,12 +2279,6 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   encoder_params.filter_coefficients[1] = filter_coefficients.middle;
   encoder_params.filter_coefficients[2] = filter_coefficients.lower;
   g_vertex_manager->UploadUtilityUniforms(&encoder_params, sizeof(encoder_params));
-
-  // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
-  // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
-  //       complex down filtering to average all pixels and produce the correct result.
-  const bool linear_filter =
-      (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 || y_scale > 1.0f;
 
   // Because the shader uses gl_FragCoord and we read it back, we must render to the lower-left.
   const u32 render_width = bytes_per_row / sizeof(u32);
