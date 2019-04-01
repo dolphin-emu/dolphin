@@ -36,7 +36,7 @@ struct NetSettings
   bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
-  std::array<ExpansionInterface::TEXIDevices, 2> m_EXIDevice;
+  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
   bool m_ForceProgressive;
