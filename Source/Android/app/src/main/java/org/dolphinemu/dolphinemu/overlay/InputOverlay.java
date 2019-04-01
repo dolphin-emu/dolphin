@@ -298,12 +298,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (!pressed && overlayPointer != null)
     {
       overlayPointer.onTouch(event);
-      float[] axises = overlayPointer.getAxisValues();
+      float[] axes = overlayPointer.getAxisValues();
 
-      NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, ButtonType.WIIMOTE_IR + 2,
-              axises[0]);
-      NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, ButtonType.WIIMOTE_IR + 4,
-              axises[1]);
+      for (int i = 0; i < 4; i++)
+      {
+        NativeLibrary
+                .onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, ButtonType.WIIMOTE_IR_UP + i,
+                        axes[i]);
+      }
     }
 
     invalidate();
