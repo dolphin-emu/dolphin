@@ -57,6 +57,12 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
     PartialFlush(do_resolve, blocking);
   }
 
+  // Ensure all state is applied before beginning the query.
+  // This is because we can't leave a query open when submitting a command list, and the draw
+  // call itself may need to execute a command list if we run out of descriptors. Note that
+  // this assumes that the caller has bound all required state prior to enabling the query.
+  Renderer::GetInstance()->ApplyState();
+
   if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
   {
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
