@@ -45,6 +45,10 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   if (m_query_count > m_query_buffer.size() / 2)
     PartialFlush(m_query_count == PERF_QUERY_BUFFER_SIZE);
 
+  // Ensure command buffer is ready to go before beginning the query, that way we don't submit
+  // a buffer with open queries.
+  StateTracker::GetInstance()->Bind();
+
   if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
   {
     ActiveQuery& entry = m_query_buffer[m_query_next_pos];
