@@ -152,9 +152,9 @@ void PerfQuery::ResolveQueries(u32 query_count)
   m_unresolved_queries -= query_count;
 }
 
-void PerfQuery::ReadbackQueries()
+void PerfQuery::ReadbackQueries(bool blocking)
 {
-  const u64 completed_fence_counter = g_dx_context->GetCompletedFenceValue();
+  u64 completed_fence_counter = g_dx_context->GetCompletedFenceValue();
 
   // Need to save these since ProcessResults will modify them.
   const u32 outstanding_queries = m_query_count;
@@ -163,13 +163,24 @@ void PerfQuery::ReadbackQueries()
   {
     u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
     const ActiveQuery& entry = m_query_buffer[index];
-    if (!entry.resolved || entry.fence_value > completed_fence_counter)
+    if (!entry.resolved)
       break;
+
+    if (entry.fence_value > completed_fence_counter)
+    {
+      // Query result isn't ready yet. Wait if blocking, otherwise we can't do any more yet.
+      if (!blocking)
+        break;
+
+      ASSERT(entry.fence_value != g_dx_context->GetCurrentFenceValue());
+      g_dx_context->WaitForFence(entry.fence_value);
+      completed_fence_counter = g_dx_context->GetCompletedFenceValue();
+    }
 
     // If this wrapped around, we need to flush the entries before the end of the buffer.
     if (index < m_query_readback_pos)
     {
-      ReadbackQueries(readback_count);
+      AccumulateQueriesFromBuffer(readback_count);
       DEBUG_ASSERT(m_query_readback_pos == 0);
       readback_count = 0;
     }
@@ -178,10 +189,10 @@ void PerfQuery::ReadbackQueries()
   }
 
   if (readback_count > 0)
-    ReadbackQueries(readback_count);
+    AccumulateQueriesFromBuffer(readback_count);
 }
 
-void PerfQuery::ReadbackQueries(u32 query_count)
+void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
 {
   // Should be at maximum query_count queries pending.
   ASSERT(query_count <= m_query_count &&
@@ -226,10 +237,10 @@ void PerfQuery::ReadbackQueries(u32 query_count)
 
 void PerfQuery::PartialFlush(bool resolve, bool blocking)
 {
-  // Submit a command buffer in the background if the front query is not bound to one.
-  if ((resolve || blocking) && !m_query_buffer[m_query_resolve_pos].resolved)
-    Renderer::GetInstance()->ExecuteCommandList(blocking);
+  // Submit a command buffer if there are unresolved queries (to write them to the buffer).
+  if (resolve && m_unresolved_queries > 0)
+    Renderer::GetInstance()->ExecuteCommandList(false);
 
-  ReadbackQueries();
+  ReadbackQueries(blocking);
 }
 }  // namespace DX12

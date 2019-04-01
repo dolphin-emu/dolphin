@@ -38,8 +38,8 @@ private:
   };
 
   void ResolveQueries(u32 query_count);
-  void ReadbackQueries();
-  void ReadbackQueries(u32 query_count);
+  void ReadbackQueries(bool blocking);
+  void AccumulateQueriesFromBuffer(u32 query_count);
 
   void PartialFlush(bool resolve, bool blocking);
 
