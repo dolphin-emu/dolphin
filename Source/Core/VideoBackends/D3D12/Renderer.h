@@ -89,6 +89,9 @@ public:
   void SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 stride, u32 size);
   void SetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 size, DXGI_FORMAT format);
 
+  // Binds all dirty state
+  bool ApplyState();
+
 protected:
   void OnConfigChanged(u32 bits) override;
 
@@ -131,8 +134,6 @@ private:
 
   void CheckForSwapChainChanges();
 
-  // Binds all dirty state
-  bool ApplyState();
   void BindFramebuffer(DXFramebuffer* fb);
   void SetRootSignatures();
   void SetDescriptorHeaps();
