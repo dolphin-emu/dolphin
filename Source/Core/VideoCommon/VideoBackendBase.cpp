@@ -21,6 +21,7 @@
 // TODO: ugly
 #ifdef _WIN32
 #include "VideoBackends/D3D/VideoBackend.h"
+#include "VideoBackends/D3D12/VideoBackend.h"
 #endif
 #include "VideoBackends/Null/VideoBackend.h"
 #include "VideoBackends/OGL/VideoBackend.h"
@@ -184,6 +185,7 @@ void VideoBackendBase::PopulateList()
   g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
 #ifdef _WIN32
   g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
+  g_available_video_backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
   g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
