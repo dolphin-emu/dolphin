@@ -37,6 +37,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Analytics.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -58,6 +59,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -531,6 +533,9 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
     g_netplay_chat_ui->Display();
+
+  if (Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
+    g_netplay_golf_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
     Statistics::DisplayProj();

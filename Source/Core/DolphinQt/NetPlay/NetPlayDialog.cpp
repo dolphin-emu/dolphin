@@ -55,6 +55,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -86,6 +87,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   const bool host_input_authority = Config::Get(Config::NETPLAY_HOST_INPUT_AUTHORITY);
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode = Config::Get(Config::NETPLAY_GOLF_MODE);
+  const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
 
   m_buffer_size_box->setValue(buffer_size);
   m_save_sd_action->setChecked(write_save_sdcard_data);
@@ -98,6 +100,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   m_host_input_authority_action->setChecked(host_input_authority);
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
   m_golf_mode_action->setChecked(golf_mode);
+  m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
 
   ConnectWidgets();
 
@@ -152,6 +155,8 @@ void NetPlayDialog::CreateMainLayout()
   m_other_menu = m_menu_bar->addMenu(tr("Other"));
   m_record_input_action = m_other_menu->addAction(tr("Record Inputs"));
   m_record_input_action->setCheckable(true);
+  m_golf_mode_overlay_action = m_other_menu->addAction(tr("Show Golf Mode Overlay"));
+  m_golf_mode_overlay_action->setCheckable(true);
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
@@ -362,6 +367,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_host_input_authority_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::SendMessage(const std::string& msg)
@@ -836,6 +842,11 @@ void NetPlayDialog::OnMsgStartGame()
   g_netplay_chat_ui =
       std::make_unique<NetPlayChatUI>([this](const std::string& message) { SendMessage(message); });
 
+  if (Settings::Instance().GetNetPlayClient()->GetNetSettings().m_GolfMode)
+  {
+    g_netplay_golf_ui = std::make_unique<NetPlayGolfUI>(Settings::Instance().GetNetPlayClient());
+  }
+
   QueueOnObject(this, [this] {
     auto client = Settings::Instance().GetNetPlayClient();
 
@@ -848,6 +859,7 @@ void NetPlayDialog::OnMsgStartGame()
 void NetPlayDialog::OnMsgStopGame()
 {
   g_netplay_chat_ui.reset();
+  g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
 }
 
@@ -1038,6 +1050,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_HOST_INPUT_AUTHORITY, m_host_input_authority_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE, m_golf_mode_action->isChecked());
+  Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)

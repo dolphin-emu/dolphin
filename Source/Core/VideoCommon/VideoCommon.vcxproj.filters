@@ -200,6 +200,9 @@
     <ClCompile Include="NetPlayChatUI.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlayGolfUI.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -390,6 +393,9 @@
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="NetPlayChatUI.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlayGolfUI.h">
       <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>

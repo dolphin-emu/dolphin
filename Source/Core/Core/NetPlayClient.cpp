@@ -2109,14 +2109,18 @@ void NetPlayClient::RequestGolfControl()
 }
 
 // called from ---GUI--- thread
+std::string NetPlayClient::GetCurrentGolfer()
+{
+  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  if (m_players.count(m_current_golfer))
+    return m_players[m_current_golfer].name;
+  return "";
+}
+
+// called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
-  const auto mapping_matches_player_id = [this](const PlayerId& mapping) {
-    return mapping == m_local_player->pid;
-  };
-
-  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
-         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+  return PlayerHasControllerMapped(m_local_player->pid);
 }
 
 bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
@@ -2167,6 +2171,19 @@ int NetPlayClient::LocalPadToInGamePad(int local_pad) const
   }
 
   return ingame_pad;
+}
+
+bool NetPlayClient::PlayerHasControllerMapped(const PlayerId pid) const
+{
+  const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
+
+  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
+         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+}
+
+bool NetPlayClient::IsLocalPlayer(const PlayerId pid) const
+{
+  return pid == m_local_player->pid;
 }
 
 void NetPlayClient::SendTimeBase()

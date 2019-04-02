@@ -46,5 +46,6 @@ extern const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC;
 extern const ConfigInfo<bool> NETPLAY_HOST_INPUT_AUTHORITY;
 extern const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES;
 extern const ConfigInfo<bool> NETPLAY_GOLF_MODE;
+extern const ConfigInfo<bool> NETPLAY_GOLF_MODE_OVERLAY;
 
 }  // namespace Config

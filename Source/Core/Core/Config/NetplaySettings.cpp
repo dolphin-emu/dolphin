@@ -56,5 +56,7 @@ const ConfigInfo<bool> NETPLAY_HOST_INPUT_AUTHORITY{{System::Main, "NetPlay", "H
 const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES{{System::Main, "NetPlay", "SyncAllWiiSaves"},
                                                   false};
 const ConfigInfo<bool> NETPLAY_GOLF_MODE{{System::Main, "NetPlay", "GolfMode"}, false};
+const ConfigInfo<bool> NETPLAY_GOLF_MODE_OVERLAY{{System::Main, "NetPlay", "GolfModeOverlay"},
+                                                 true};
 
 }  // namespace Config

@@ -133,6 +133,7 @@ private:
   QAction* m_host_input_authority_action;
   QAction* m_sync_all_wii_saves_action;
   QAction* m_golf_mode_action;
+  QAction* m_golf_mode_overlay_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 

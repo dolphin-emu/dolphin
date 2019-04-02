@@ -114,6 +114,7 @@ public:
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);
   void RequestGolfControl();
+  std::string GetCurrentGolfer();
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
@@ -130,6 +131,10 @@ public:
 
   int InGamePadToLocalPad(int ingame_pad) const;
   int LocalPadToInGamePad(int localPad) const;
+
+  bool PlayerHasControllerMapped(PlayerId pid) const;
+  bool LocalPlayerHasControllerMapped() const;
+  bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
@@ -208,8 +213,6 @@ private:
     Connected,
     Failure
   };
-
-  bool LocalPlayerHasControllerMapped() const;
 
   void SendStartGamePacket();
   void SendStopGamePacket();
