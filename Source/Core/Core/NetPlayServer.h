@@ -118,7 +118,6 @@ private:
   void CheckSyncAndStartGame();
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
-  void SendFirstReceivedToHost(PadIndex map, bool state);
 
   u64 GetInitialNetPlayRTC() const;
 
@@ -160,9 +159,6 @@ private:
 
   std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
   bool m_desync_detected;
-
-  std::array<GCPadStatus, 4> m_last_pad_status{};
-  std::array<bool, 4> m_first_pad_status_received{};
 
   struct
   {

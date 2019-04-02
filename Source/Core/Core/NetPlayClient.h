@@ -158,6 +158,7 @@ protected:
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::SPSCQueue<NetWiimote>, 4> m_wiimote_buffer;
 
+  std::array<GCPadStatus, 4> m_last_pad_status{};
   std::array<bool, 4> m_first_pad_status_received{};
 
   std::chrono::time_point<std::chrono::steady_clock> m_buffer_under_target_last;

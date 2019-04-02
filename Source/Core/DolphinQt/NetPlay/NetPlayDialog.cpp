@@ -300,7 +300,7 @@ void NetPlayDialog::ConnectWidgets()
 
             auto client = Settings::Instance().GetNetPlayClient();
             auto server = Settings::Instance().GetNetPlayServer();
-            if (server)
+            if (server && !m_host_input_authority)
               server->AdjustPadBufferSize(value);
             else
               client->AdjustPadBufferSize(value);
@@ -538,8 +538,6 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
-
-  m_buffer_label->setText(is_hosting ? tr("Buffer:") : tr("Max Buffer:"));
 
   QDialog::show();
   UpdateGUI();
@@ -857,9 +855,8 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
     const QSignalBlocker blocker(m_buffer_size_box);
     m_buffer_size_box->setValue(buffer);
   });
-  DisplayMessage(m_host_input_authority && !IsHosting() ?
-                     tr("Max buffer size changed to %1").arg(buffer) :
-                     tr("Buffer size changed to %1").arg(buffer),
+  DisplayMessage(m_host_input_authority ? tr("Max buffer size changed to %1").arg(buffer) :
+                                          tr("Buffer size changed to %1").arg(buffer),
                  "darkcyan");
 
   m_buffer_size = static_cast<int>(buffer);
@@ -867,6 +864,10 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 
 void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 {
+  m_host_input_authority = enabled;
+  DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
+                 "");
+
   QueueOnObject(this, [this, enabled] {
     const bool is_hosting = IsHosting();
     const bool enable_buffer = is_hosting != enabled;
@@ -878,7 +879,7 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
       m_buffer_size_box->setHidden(false);
       m_buffer_label->setHidden(false);
 
-      QSignalBlocker blocker(m_host_input_authority_action);
+      const QSignalBlocker blocker(m_host_input_authority_action);
       m_host_input_authority_action->setChecked(enabled);
     }
     else
@@ -887,15 +888,12 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
       m_buffer_label->setEnabled(true);
       m_buffer_size_box->setHidden(!enable_buffer);
       m_buffer_label->setHidden(!enable_buffer);
-
-      if (enabled)
-        m_buffer_size_box->setValue(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
     }
-  });
-  DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
-                 "");
 
-  m_host_input_authority = enabled;
+    m_buffer_label->setText(enabled ? tr("Max Buffer:") : tr("Buffer:"));
+    if (enabled)
+      m_buffer_size_box->setValue(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
+  });
 }
 
 void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
@@ -1002,14 +1000,10 @@ void NetPlayDialog::SaveSettings()
   Config::ConfigChangeCallbackGuard config_guard;
 
   if (m_host_input_authority)
-  {
-    if (!IsHosting())
-      Config::SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, m_buffer_size_box->value());
-  }
+    Config::SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, m_buffer_size_box->value());
   else
-  {
     Config::SetBase(Config::NETPLAY_BUFFER_SIZE, m_buffer_size_box->value());
-  }
+
   Config::SetBase(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA, m_save_sd_action->isChecked());
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_action->isChecked());

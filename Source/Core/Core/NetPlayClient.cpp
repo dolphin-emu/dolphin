@@ -442,6 +442,30 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_PAD_HOST_DATA:
+  {
+    while (!packet.endOfPacket())
+    {
+      PadIndex map;
+      packet >> map;
+
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      // Trusting server for good map value (>=0 && <4)
+      // write to last status
+      m_last_pad_status[map] = pad;
+
+      if (!m_first_pad_status_received[map])
+      {
+        m_first_pad_status_received[map] = true;
+        m_first_pad_status_received_event.Set();
+      }
+    }
+  }
+  break;
+
   case NP_MSG_WIIMOTE_DATA:
   {
     PadIndex map;
@@ -468,15 +492,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     m_target_buffer_size = size;
     m_dialog->OnPadBufferChanged(size);
-  }
-  break;
-
-  case NP_MSG_PAD_FIRST_RECEIVED:
-  {
-    PadIndex map;
-    packet >> map;
-    packet >> m_first_pad_status_received[map];
-    m_first_pad_status_received_event.Set();
   }
   break;
 
@@ -1865,9 +1880,18 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
 
   if (m_host_input_authority)
   {
-    // add to packet
-    AddPadStateToPacket(ingame_pad, pad_status, packet);
-    data_added = true;
+    if (!m_local_player->IsHost())
+    {
+      // add to packet
+      AddPadStateToPacket(ingame_pad, pad_status, packet);
+      data_added = true;
+    }
+    else
+    {
+      // set locally
+      m_last_pad_status[ingame_pad] = pad_status;
+      m_first_pad_status_received[ingame_pad] = true;
+    }
   }
   else
   {
@@ -1892,6 +1916,9 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
   if (!m_local_player->IsHost())
     return;
 
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PAD_HOST_DATA);
+
   if (pad_num < 0)
   {
     for (size_t i = 0; i < m_pad_map.size(); i++)
@@ -1907,6 +1934,16 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
         m_first_pad_status_received_event.Wait();
       }
     }
+
+    for (size_t i = 0; i < m_pad_map.size(); i++)
+    {
+      if (m_pad_map[i] == 0)
+        continue;
+
+      const GCPadStatus& pad_status = m_last_pad_status[i];
+      m_pad_buffer[i].Push(pad_status);
+      AddPadStateToPacket(static_cast<int>(i), pad_status, packet);
+    }
   }
   else if (m_pad_map[pad_num] != 0)
   {
@@ -1917,11 +1954,12 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 
       m_first_pad_status_received_event.Wait();
     }
+
+    const GCPadStatus& pad_status = m_last_pad_status[pad_num];
+    m_pad_buffer[pad_num].Push(pad_status);
+    AddPadStateToPacket(pad_num, pad_status, packet);
   }
 
-  sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_PAD_HOST_POLL);
-  packet << pad_num;
   SendAsync(std::move(packet));
 }
 

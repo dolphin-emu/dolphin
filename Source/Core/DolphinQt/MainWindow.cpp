@@ -1284,8 +1284,7 @@ bool MainWindow::NetPlayJoin()
   if (server)
   {
     server->SetHostInputAuthority(host_input_authority);
-    if (!host_input_authority)
-      server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
+    server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
   }
 
   // Create Client
