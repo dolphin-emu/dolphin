@@ -38,7 +38,7 @@ private:
   UICommon::GameFile m_game;
   QLineEdit* m_checksum_result;
   QComboBox* m_language_selector;
-  QLineEdit* m_name;
-  QLineEdit* m_maker;
-  QTextEdit* m_description;
+  QLineEdit* m_name = {};
+  QLineEdit* m_maker = {};
+  QTextEdit* m_description = {};
 };

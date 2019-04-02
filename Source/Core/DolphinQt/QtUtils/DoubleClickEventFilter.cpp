@@ -6,10 +6,6 @@
 
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 
-DoubleClickEventFilter::DoubleClickEventFilter(QObject* parent) : QObject(parent)
-{
-}
-
 bool DoubleClickEventFilter::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::MouseButtonDblClick)

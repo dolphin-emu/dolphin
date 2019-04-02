@@ -10,7 +10,7 @@ class DoubleClickEventFilter : public QObject
 {
   Q_OBJECT
 public:
-  explicit DoubleClickEventFilter(QObject* parent);
+  using QObject::QObject;
 
 signals:
   void doubleClicked();

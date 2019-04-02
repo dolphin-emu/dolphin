@@ -7,10 +7,6 @@
 
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
 
-WindowActivationEventFilter::WindowActivationEventFilter(QObject* parent) : QObject(parent)
-{
-}
-
 bool WindowActivationEventFilter::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::WindowDeactivate)
