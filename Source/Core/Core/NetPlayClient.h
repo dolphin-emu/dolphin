@@ -54,6 +54,7 @@ public:
   virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
   virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
   virtual void OnSaveDataSyncFailure() = 0;
+  virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
 
   virtual bool IsRecording() = 0;
   virtual std::string FindGame(const std::string& game) = 0;
@@ -111,6 +112,8 @@ public:
   void SendChatMessage(const std::string& msg);
   void RequestStopGame();
   void SendPowerButtonEvent();
+  void RequestGolfControl(PlayerId pid);
+  void RequestGolfControl();
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
@@ -179,6 +182,12 @@ protected:
   // speeding up the game to drain the buffer.
   unsigned int m_target_buffer_size = 20;
   bool m_host_input_authority = false;
+  PlayerId m_current_golfer = 1;
+
+  // This bool will stall the client at the start of GetNetPads, used for switching input control
+  // without deadlocking. Use the correspondingly named Event to wake it up.
+  bool m_wait_on_input;
+  bool m_wait_on_input_received;
 
   Player* m_local_player = nullptr;
 
@@ -239,6 +248,7 @@ private:
   Common::Event m_gc_pad_event;
   Common::Event m_wii_pad_event;
   Common::Event m_first_pad_status_received_event;
+  Common::Event m_wait_on_input_event;
   u8 m_sync_save_data_count = 0;
   u8 m_sync_save_data_success_count = 0;
   u16 m_sync_gecko_codes_count = 0;

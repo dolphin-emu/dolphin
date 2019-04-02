@@ -680,16 +680,22 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     }
 
     if (m_host_input_authority)
-      Send(m_players.at(1).socket, spac);
+    {
+      // Prevent crash before game stop if the golfer disconnects
+      if (m_current_golfer != 0 && m_players.find(m_current_golfer) != m_players.end())
+        Send(m_players.at(m_current_golfer).socket, spac);
+    }
     else
+    {
       SendToClients(spac, player.pid);
+    }
   }
   break;
 
   case NP_MSG_PAD_HOST_DATA:
   {
-    // Kick player if they're not the host.
-    if (!player.IsHost())
+    // Kick player if they're not the golfer.
+    if (m_current_golfer != 0 && player.pid != m_current_golfer)
       return 1;
 
     sf::Packet spac;
@@ -742,6 +748,63 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       spac << byte;
 
     SendToClients(spac, player.pid);
+  }
+  break;
+
+  case NP_MSG_GOLF_REQUEST:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    // Check if player ID is valid and sender isn't a spectator
+    if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
+      break;
+
+    if (m_host_input_authority && m_settings.m_GolfMode && m_pending_golfer == 0 &&
+        m_current_golfer != pid && PlayerHasControllerMapped(pid))
+    {
+      m_pending_golfer = pid;
+
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_PREPARE);
+      Send(m_players[pid].socket, spac);
+    }
+  }
+  break;
+
+  case NP_MSG_GOLF_RELEASE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_SWITCH);
+    spac << static_cast<PlayerId>(m_pending_golfer);
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_GOLF_ACQUIRE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    m_current_golfer = m_pending_golfer;
+    m_pending_golfer = 0;
+  }
+  break;
+
+  case NP_MSG_GOLF_PREPARE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    m_current_golfer = 0;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_SWITCH);
+    spac << static_cast<PlayerId>(0);
+    SendToClients(spac);
   }
   break;
 
@@ -1128,6 +1191,9 @@ bool NetPlayServer::StartGame()
   if (!m_host_input_authority)
     AdjustPadBufferSize(m_target_buffer_size);
 
+  m_current_golfer = 1;
+  m_pending_golfer = 0;
+
   const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
   const std::string region = SConfig::GetDirectoryForRegion(
@@ -1211,6 +1277,8 @@ bool NetPlayServer::StartGame()
             ->GetSelectedAttachment();
     spac << extension;
   }
+
+  spac << m_settings.m_GolfMode;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1745,6 +1813,14 @@ void NetPlayServer::KickPlayer(PlayerId player)
       return;
     }
   }
+}
+
+bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
+{
+  const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
+
+  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
+         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
 }
 
 u16 NetPlayServer::GetPort() const

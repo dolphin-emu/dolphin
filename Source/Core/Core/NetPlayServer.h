@@ -137,6 +137,8 @@ private:
   void ChunkedDataThreadFunc();
   void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
 
+  bool PlayerHasControllerMapped(PlayerId pid) const;
+
   NetSettings m_settings;
 
   bool m_is_running = false;
@@ -154,6 +156,8 @@ private:
   bool m_codes_synced = true;
   bool m_start_pending = false;
   bool m_host_input_authority = false;
+  PlayerId m_current_golfer = 1;
+  PlayerId m_pending_golfer = 0;
 
   std::map<PlayerId, Client> m_players;
 

@@ -502,6 +502,43 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_GOLF_SWITCH:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    const PlayerId previous_golfer = m_current_golfer;
+    m_current_golfer = pid;
+    m_dialog->OnGolferChanged(m_local_player->pid == pid, pid != 0 ? m_players[pid].name : "");
+
+    if (m_local_player->pid == previous_golfer)
+    {
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_RELEASE);
+      Send(spac);
+    }
+    else if (m_local_player->pid == pid)
+    {
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_ACQUIRE);
+      Send(spac);
+
+      // Pads are already calibrated so we can just ignore this
+      m_first_pad_status_received.fill(true);
+
+      m_wait_on_input = false;
+      m_wait_on_input_event.Set();
+    }
+  }
+  break;
+
+  case NP_MSG_GOLF_PREPARE:
+  {
+    m_wait_on_input_received = true;
+    m_wait_on_input = true;
+  }
+  break;
+
   case NP_MSG_CHANGE_GAME:
   {
     {
@@ -636,6 +673,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       for (int& extension : m_net_settings.m_WiimoteExtension)
         packet >> extension;
+
+      packet >> m_net_settings.m_GolfMode;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
@@ -1390,6 +1429,8 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
 
   m_timebase_frame = 0;
+  m_current_golfer = 1;
+  m_wait_on_input = false;
 
   m_is_running.Set();
   NetPlay_Enable(this);
@@ -1701,6 +1742,27 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
   // specific pad arbitrarily. In this case, we poll just that pad
   // and send it.
 
+  // When here when told to so we don't deadlock in certain situations
+  while (m_wait_on_input)
+  {
+    if (!m_is_running.IsSet())
+    {
+      return false;
+    }
+
+    if (m_wait_on_input_received)
+    {
+      // Tell the server we've acknowledged the message
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_PREPARE);
+      Send(spac);
+
+      m_wait_on_input_received = false;
+    }
+
+    m_wait_on_input_event.Wait();
+  }
+
   if (IsFirstInGamePad(pad_nb) && batching)
   {
     sf::Packet packet;
@@ -1735,22 +1797,30 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
       SendPadHostPoll(pad_nb);
   }
 
-  if (m_host_input_authority && !m_local_player->IsHost())
+  if (m_host_input_authority)
   {
-    // CoreTiming acts funny and causes what looks like frame skip if
-    // we toggle the emulation speed too quickly, so to prevent this
-    // we wait until the buffer has been over for at least 1 second.
-
-    const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
-    if (!buffer_over_target)
-      m_buffer_under_target_last = std::chrono::steady_clock::now();
-
-    std::chrono::duration<double> time_diff =
-        std::chrono::steady_clock::now() - m_buffer_under_target_last;
-    if (time_diff.count() >= 1.0 || !buffer_over_target)
+    if (m_local_player->pid != m_current_golfer)
     {
-      // run fast if the buffer is overfilled, otherwise run normal speed
-      SConfig::GetInstance().m_EmulationSpeed = buffer_over_target ? 0.0f : 1.0f;
+      // CoreTiming acts funny and causes what looks like frame skip if
+      // we toggle the emulation speed too quickly, so to prevent this
+      // we wait until the buffer has been over for at least 1 second.
+
+      const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
+      if (!buffer_over_target)
+        m_buffer_under_target_last = std::chrono::steady_clock::now();
+
+      std::chrono::duration<double> time_diff =
+          std::chrono::steady_clock::now() - m_buffer_under_target_last;
+      if (time_diff.count() >= 1.0 || !buffer_over_target)
+      {
+        // run fast if the buffer is overfilled, otherwise run normal speed
+        SConfig::GetInstance().m_EmulationSpeed = buffer_over_target ? 0.0f : 1.0f;
+      }
+    }
+    else
+    {
+      // Set normal speed when we're the host, otherwise it can get stuck at unlimited
+      SConfig::GetInstance().m_EmulationSpeed = 1.0f;
     }
   }
 
@@ -1880,7 +1950,7 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
 
   if (m_host_input_authority)
   {
-    if (!m_local_player->IsHost())
+    if (m_local_player->pid != m_current_golfer)
     {
       // add to packet
       AddPadStateToPacket(ingame_pad, pad_status, packet);
@@ -1913,7 +1983,7 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
 
 void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 {
-  if (!m_local_player->IsHost())
+  if (m_local_player->pid != m_current_golfer)
     return;
 
   sf::Packet packet;
@@ -1937,7 +2007,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 
     for (size_t i = 0; i < m_pad_map.size(); i++)
     {
-      if (m_pad_map[i] == 0)
+      if (m_pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
         continue;
 
       const GCPadStatus& pad_status = m_last_pad_status[i];
@@ -1955,9 +2025,12 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
       m_first_pad_status_received_event.Wait();
     }
 
-    const GCPadStatus& pad_status = m_last_pad_status[pad_num];
-    m_pad_buffer[pad_num].Push(pad_status);
-    AddPadStateToPacket(pad_num, pad_status, packet);
+    if (m_pad_buffer[pad_num].Size() == 0)
+    {
+      const GCPadStatus& pad_status = m_last_pad_status[pad_num];
+      m_pad_buffer[pad_num].Push(pad_status);
+      AddPadStateToPacket(pad_num, pad_status, packet);
+    }
   }
 
   SendAsync(std::move(packet));
@@ -1972,6 +2045,7 @@ bool NetPlayClient::StopGame()
   m_gc_pad_event.Set();
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
+  m_wait_on_input_event.Set();
 
   NetPlay_Disable();
 
@@ -1995,6 +2069,7 @@ void NetPlayClient::Stop()
   m_gc_pad_event.Set();
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
+  m_wait_on_input_event.Set();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
@@ -2015,6 +2090,22 @@ void NetPlayClient::SendPowerButtonEvent()
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
   SendAsync(std::move(packet));
+}
+
+void NetPlayClient::RequestGolfControl(const PlayerId pid)
+{
+  if (!m_host_input_authority || !m_net_settings.m_GolfMode)
+    return;
+
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_GOLF_REQUEST);
+  packet << pid;
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::RequestGolfControl()
+{
+  RequestGolfControl(m_local_player->pid);
 }
 
 // called from ---GUI--- thread

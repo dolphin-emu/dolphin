@@ -15,7 +15,7 @@ namespace ControllerEmu
 {
 class ControllerEmu;
 class Buttons;
-}
+}  // namespace ControllerEmu
 
 enum Hotkey
 {
@@ -30,6 +30,7 @@ enum Hotkey
   HK_SCREENSHOT,
   HK_EXIT,
   HK_ACTIVATE_CHAT,
+  HK_REQUEST_GOLF_CONTROL,
 
   HK_VOLUME_DOWN,
   HK_VOLUME_UP,
@@ -236,4 +237,4 @@ void GetStatus();
 bool IsEnabled();
 void Enable(bool enable_toggle);
 bool IsPressed(int Id, bool held);
-}
+}  // namespace HotkeyManagerEmu

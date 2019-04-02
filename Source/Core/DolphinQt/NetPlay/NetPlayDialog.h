@@ -58,6 +58,7 @@ public:
   void OnTraversalError(TraversalClient::FailureReason error) override;
   void OnTraversalStateChanged(TraversalClient::State state) override;
   void OnSaveDataSyncFailure() override;
+  void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
   bool IsRecording() override;
   std::string FindGame(const std::string& game) override;
@@ -131,6 +132,7 @@ private:
   QAction* m_strict_settings_sync_action;
   QAction* m_host_input_authority_action;
   QAction* m_sync_all_wii_saves_action;
+  QAction* m_golf_mode_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 

@@ -85,6 +85,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   const bool host_input_authority = Config::Get(Config::NETPLAY_HOST_INPUT_AUTHORITY);
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
+  const bool golf_mode = Config::Get(Config::NETPLAY_GOLF_MODE);
 
   m_buffer_size_box->setValue(buffer_size);
   m_save_sd_action->setChecked(write_save_sdcard_data);
@@ -96,6 +97,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   m_strict_settings_sync_action->setChecked(strict_settings_sync);
   m_host_input_authority_action->setChecked(host_input_authority);
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
+  m_golf_mode_action->setChecked(golf_mode);
 
   ConnectWidgets();
 
@@ -144,6 +146,8 @@ void NetPlayDialog::CreateMainLayout()
   m_reduce_polling_rate_action->setCheckable(true);
   m_host_input_authority_action = m_network_menu->addAction(tr("Host Input Authority"));
   m_host_input_authority_action->setCheckable(true);
+  m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
+  m_golf_mode_action->setCheckable(true);
 
   m_other_menu = m_menu_bar->addMenu(tr("Other"));
   m_record_input_action = m_other_menu->addAction(tr("Record Inputs"));
@@ -306,10 +310,12 @@ void NetPlayDialog::ConnectWidgets()
               client->AdjustPadBufferSize(value);
           });
 
-  connect(m_host_input_authority_action, &QAction::toggled, [](bool checked) {
+  connect(m_host_input_authority_action, &QAction::toggled, this, [=](bool checked) {
     auto server = Settings::Instance().GetNetPlayServer();
     if (server)
       server->SetHostInputAuthority(checked);
+
+    m_golf_mode_action->setEnabled(checked);
   });
 
   connect(m_start_button, &QPushButton::clicked, this, &NetPlayDialog::OnStart);
@@ -355,6 +361,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_strict_settings_sync_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_host_input_authority_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::SendMessage(const std::string& msg)
@@ -482,6 +489,7 @@ void NetPlayDialog::OnStart()
   settings.m_SyncCodes = m_sync_codes_action->isChecked();
   settings.m_SyncAllWiiSaves =
       m_sync_all_wii_saves_action->isChecked() && m_sync_save_data_action->isChecked();
+  settings.m_GolfMode = m_golf_mode_action->isChecked();
 
   // Unload GameINI to restore things to normal
   Config::RemoveLayer(Config::LayerType::GlobalGame);
@@ -815,6 +823,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_strict_settings_sync_action->setEnabled(enabled);
     m_host_input_authority_action->setEnabled(enabled);
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
+    m_golf_mode_action->setEnabled(enabled && m_host_input_authority_action->isChecked());
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -881,6 +890,7 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 
       const QSignalBlocker blocker(m_host_input_authority_action);
       m_host_input_authority_action->setChecked(enabled);
+      m_golf_mode_action->setEnabled(enabled);
     }
     else
     {
@@ -956,6 +966,20 @@ void NetPlayDialog::OnSaveDataSyncFailure()
   QueueOnObject(this, [this] { SetOptionsEnabled(true); });
 }
 
+void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& golfer_name)
+{
+  if (m_host_input_authority)
+  {
+    QueueOnObject(this, [this, is_golfer] {
+      m_buffer_size_box->setEnabled(!is_golfer);
+      m_buffer_label->setEnabled(!is_golfer);
+    });
+  }
+
+  if (!golfer_name.empty())
+    DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
+}
+
 bool NetPlayDialog::IsRecording()
 {
   std::optional<bool> is_recording = RunOnObject(m_record_input_action, &QAction::isChecked);
@@ -1013,6 +1037,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_HOST_INPUT_AUTHORITY, m_host_input_authority_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
+  Config::SetBase(Config::NETPLAY_GOLF_MODE, m_golf_mode_action->isChecked());
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)
