@@ -361,9 +361,9 @@ void NetPlayDialog::SendMessage(const std::string& msg)
 {
   Settings::Instance().GetNetPlayClient()->SendChatMessage(msg);
 
-  DisplayMessage(QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname).toHtmlEscaped(),
-                                              QString::fromStdString(msg).toHtmlEscaped()),
-                 "");
+  DisplayMessage(
+      QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname), QString::fromStdString(msg)),
+      "");
 }
 
 void NetPlayDialog::OnChat()
@@ -768,8 +768,8 @@ void NetPlayDialog::Update()
 void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color, int duration)
 {
   QueueOnObject(m_chat_edit, [this, color, msg] {
-    m_chat_edit->append(
-        QStringLiteral("<font color='%1'>%2</font>").arg(QString::fromStdString(color), msg));
+    m_chat_edit->append(QStringLiteral("<font color='%1'>%2</font>")
+                            .arg(QString::fromStdString(color), msg.toHtmlEscaped()));
   });
 
   QColor c(color.empty() ? QStringLiteral("white") : QString::fromStdString(color));
@@ -782,7 +782,7 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 
 void NetPlayDialog::AppendChat(const std::string& msg)
 {
-  DisplayMessage(QString::fromStdString(msg).toHtmlEscaped(), "");
+  DisplayMessage(QString::fromStdString(msg), "");
   QApplication::alert(this);
 }
 
