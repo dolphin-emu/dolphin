@@ -481,23 +481,23 @@ void UpdateBoundingBox(float2 rawpos) {
   offset.y = -offset.y;
 #endif
 
-  // The bounding box register is exclusive of the right coordinate, hence the +1.
-  int2 min_pos = iround(rawpos * cefbscale + offset);
-  int2 max_pos = min_pos + int2(1, 1);
+  // The rightmost shaded pixel is not included in the right bounding box register,
+  // such that width = right - left + 1. This has been verified on hardware.
+  int2 pos = iround(rawpos * cefbscale + offset);
 
 #ifdef SUPPORTS_SUBGROUP_REDUCTION
   if (CAN_USE_SUBGROUP_REDUCTION) {
-    min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : min_pos;
-    max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : max_pos;
+    int2 min_pos = IS_HELPER_INVOCATION ? int2(2147483647, 2147483647) : pos;
+    int2 max_pos = IS_HELPER_INVOCATION ? int2(-2147483648, -2147483648) : pos;
     SUBGROUP_MIN(min_pos);
     SUBGROUP_MAX(max_pos);
     if (IS_FIRST_ACTIVE_INVOCATION)
       UpdateBoundingBoxBuffer(min_pos, max_pos);
   } else {
-    UpdateBoundingBoxBuffer(min_pos, max_pos);
+    UpdateBoundingBoxBuffer(pos, pos);
   }
 #else
-  UpdateBoundingBoxBuffer(min_pos, max_pos);
+  UpdateBoundingBoxBuffer(pos, pos);
 #endif
 }
 
