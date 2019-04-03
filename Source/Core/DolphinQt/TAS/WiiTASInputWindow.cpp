@@ -31,6 +31,7 @@
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
+#include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
 
 #include "InputCommon/InputConfig.h"
@@ -161,19 +162,19 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   triggers_layout->addLayout(r_trigger_layout);
   m_triggers_box->setLayout(triggers_layout);
 
-  m_a_button = new QCheckBox(QStringLiteral("&A"));
-  m_b_button = new QCheckBox(QStringLiteral("&B"));
-  m_1_button = new QCheckBox(QStringLiteral("&1"));
-  m_2_button = new QCheckBox(QStringLiteral("&2"));
-  m_plus_button = new QCheckBox(QStringLiteral("&+"));
-  m_minus_button = new QCheckBox(QStringLiteral("&-"));
-  m_home_button = new QCheckBox(QStringLiteral("&HOME"));
-  m_left_button = new QCheckBox(QStringLiteral("&Left"));
-  m_up_button = new QCheckBox(QStringLiteral("&Up"));
-  m_down_button = new QCheckBox(QStringLiteral("&Down"));
-  m_right_button = new QCheckBox(QStringLiteral("&Right"));
-  m_c_button = new QCheckBox(QStringLiteral("&C"));
-  m_z_button = new QCheckBox(QStringLiteral("&Z"));
+  m_a_button = new TASCheckBox(QStringLiteral("&A"));
+  m_b_button = new TASCheckBox(QStringLiteral("&B"));
+  m_1_button = new TASCheckBox(QStringLiteral("&1"));
+  m_2_button = new TASCheckBox(QStringLiteral("&2"));
+  m_plus_button = new TASCheckBox(QStringLiteral("&+"));
+  m_minus_button = new TASCheckBox(QStringLiteral("&-"));
+  m_home_button = new TASCheckBox(QStringLiteral("&HOME"));
+  m_left_button = new TASCheckBox(QStringLiteral("&Left"));
+  m_up_button = new TASCheckBox(QStringLiteral("&Up"));
+  m_down_button = new TASCheckBox(QStringLiteral("&Down"));
+  m_right_button = new TASCheckBox(QStringLiteral("&Right"));
+  m_c_button = new TASCheckBox(QStringLiteral("&C"));
+  m_z_button = new TASCheckBox(QStringLiteral("&Z"));
 
   auto* buttons_layout = new QGridLayout;
   buttons_layout->addWidget(m_a_button, 0, 0);
@@ -202,21 +203,21 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_nunchuk_buttons_box = new QGroupBox(tr("Nunchuk Buttons"));
   m_nunchuk_buttons_box->setLayout(nunchuk_buttons_layout);
 
-  m_classic_a_button = new QCheckBox(QStringLiteral("&A"));
-  m_classic_b_button = new QCheckBox(QStringLiteral("&B"));
-  m_classic_x_button = new QCheckBox(QStringLiteral("&X"));
-  m_classic_y_button = new QCheckBox(QStringLiteral("&Y"));
-  m_classic_l_button = new QCheckBox(QStringLiteral("&L"));
-  m_classic_r_button = new QCheckBox(QStringLiteral("&R"));
-  m_classic_zl_button = new QCheckBox(QStringLiteral("&ZL"));
-  m_classic_zr_button = new QCheckBox(QStringLiteral("ZR"));
-  m_classic_plus_button = new QCheckBox(QStringLiteral("&+"));
-  m_classic_minus_button = new QCheckBox(QStringLiteral("&-"));
-  m_classic_home_button = new QCheckBox(QStringLiteral("&HOME"));
-  m_classic_left_button = new QCheckBox(QStringLiteral("L&eft"));
-  m_classic_up_button = new QCheckBox(QStringLiteral("&Up"));
-  m_classic_down_button = new QCheckBox(QStringLiteral("&Down"));
-  m_classic_right_button = new QCheckBox(QStringLiteral("R&ight"));
+  m_classic_a_button = new TASCheckBox(QStringLiteral("&A"));
+  m_classic_b_button = new TASCheckBox(QStringLiteral("&B"));
+  m_classic_x_button = new TASCheckBox(QStringLiteral("&X"));
+  m_classic_y_button = new TASCheckBox(QStringLiteral("&Y"));
+  m_classic_l_button = new TASCheckBox(QStringLiteral("&L"));
+  m_classic_r_button = new TASCheckBox(QStringLiteral("&R"));
+  m_classic_zl_button = new TASCheckBox(QStringLiteral("&ZL"));
+  m_classic_zr_button = new TASCheckBox(QStringLiteral("ZR"));
+  m_classic_plus_button = new TASCheckBox(QStringLiteral("&+"));
+  m_classic_minus_button = new TASCheckBox(QStringLiteral("&-"));
+  m_classic_home_button = new TASCheckBox(QStringLiteral("&HOME"));
+  m_classic_left_button = new TASCheckBox(QStringLiteral("L&eft"));
+  m_classic_up_button = new TASCheckBox(QStringLiteral("&Up"));
+  m_classic_down_button = new TASCheckBox(QStringLiteral("&Down"));
+  m_classic_right_button = new TASCheckBox(QStringLiteral("R&ight"));
 
   auto* classic_buttons_layout = new QGridLayout;
   classic_buttons_layout->addWidget(m_classic_a_button, 0, 0);

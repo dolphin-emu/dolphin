@@ -115,6 +115,7 @@
     <QtMoc Include="FIFO\FIFOPlayerWindow.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
     <QtMoc Include="TAS\WiiTASInputWindow.h" />
+    <QtMoc Include="TAS\TASCheckBox.h" />
     <QtMoc Include="TAS\TASInputWindow.h" />
     <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="TAS\IRWidget.h" />
@@ -263,6 +264,7 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)StickWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)TASCheckBox.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)TASInputWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)USBDeviceAddToWhitelistDialog.cpp" />
@@ -342,6 +344,7 @@
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
+    <ClCompile Include="TAS\TASCheckBox.cpp" />
     <ClCompile Include="TAS\TASInputWindow.cpp" />
     <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="TAS\IRWidget.cpp" />

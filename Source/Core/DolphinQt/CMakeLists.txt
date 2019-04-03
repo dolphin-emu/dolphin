@@ -111,7 +111,7 @@ add_executable(dolphin-emu
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
   QtUtils/AspectRatioWidget.cpp
-	ResourcePackManager.cpp
+  ResourcePackManager.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GameCubePane.cpp
@@ -122,6 +122,7 @@ add_executable(dolphin-emu
   Settings/USBDeviceAddToWhitelistDialog.cpp
   TAS/GCTASInputWindow.cpp
   TAS/WiiTASInputWindow.cpp
+  TAS/TASCheckBox.cpp
   TAS/TASInputWindow.cpp
   TAS/StickWidget.cpp
   TAS/IRWidget.cpp
