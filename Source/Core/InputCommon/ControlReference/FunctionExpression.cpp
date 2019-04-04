@@ -163,37 +163,6 @@ private:
   std::string GetFuncName() const override { return "minus"; }
 };
 
-// usage: !while(condition, expression)
-class WhileExpression : public FunctionExpression
-{
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
-  {
-    return 2 == args.size();
-  }
-
-  ControlState GetValue() const override
-  {
-    // Returns 1.0 on successful loop, 0.0 on reps exceeded. Sensible?
-
-    for (int i = 0; i != LOOP_MAX_REPS; ++i)
-    {
-      // Check condition of 1st argument:
-      const ControlState val = GetArg(0).GetValue();
-      if (val < CONDITION_THRESHOLD)
-        return 1.0;
-
-      // Evaluate 2nd argument:
-      GetArg(1).GetValue();
-    }
-
-    // Exceeded max reps:
-    return 0.0;
-  }
-
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "while"; }
-};
-
 // usage: !deadzone(input, amount)
 class DeadzoneExpression : public FunctionExpression
 {
@@ -213,13 +182,13 @@ class DeadzoneExpression : public FunctionExpression
   std::string GetFuncName() const override { return "deadzone"; }
 };
 
-// usage: !smooth(input, seconds)
+// usage: !smooth(input, seconds_up, seconds_down = seconds_up)
 // seconds is seconds to change from 0.0 to 1.0
 class SmoothExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 2 == args.size();
+    return 2 == args.size() || 3 == args.size();
   }
 
   ControlState GetValue() const override
@@ -229,8 +198,11 @@ class SmoothExpression : public FunctionExpression
     m_last_update = now;
 
     const ControlState desired_value = GetArg(0).GetValue();
-    const ControlState smooth = GetArg(1).GetValue();
 
+    const ControlState smooth_up = GetArg(1).GetValue();
+    const ControlState smooth_down = (3 == GetArgCount() ? GetArg(2).GetValue() : smooth_up);
+
+    const ControlState smooth = (desired_value < m_value) ? smooth_down : smooth_up;
     const ControlState max_move = std::chrono::duration_cast<FSec>(elapsed).count() / smooth;
 
     if (std::isinf(max_move))
@@ -473,8 +445,6 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
     return std::make_unique<TimerExpression>();
   else if ("toggle" == name)
     return std::make_unique<ToggleExpression>();
-  else if ("while" == name)
-    return std::make_unique<WhileExpression>();
   else if ("minus" == name)
     return std::make_unique<UnaryMinusExpression>();
   else if ("deadzone" == name)

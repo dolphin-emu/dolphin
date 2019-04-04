@@ -224,7 +224,6 @@ void IOWindow::CreateMainLayout()
   m_functions_combo->addItem(QStringLiteral("!sin"));
   m_functions_combo->addItem(QStringLiteral("!timer"));
   m_functions_combo->addItem(QStringLiteral("!toggle"));
-  m_functions_combo->addItem(QStringLiteral("!while"));
   m_functions_combo->addItem(QStringLiteral("!deadzone"));
   m_functions_combo->addItem(QStringLiteral("!smooth"));
   m_functions_combo->addItem(QStringLiteral("!hold"));
