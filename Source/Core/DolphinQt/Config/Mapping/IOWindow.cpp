@@ -81,7 +81,7 @@ QTextCharFormat GetVariableCharFormat()
   return format;
 }
 
-QTextCharFormat GetFunctionCharFormat()
+QTextCharFormat GetBarewordCharFormat()
 {
   QTextCharFormat format;
   format.setForeground(QBrush{Qt::darkCyan});
@@ -125,8 +125,8 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString& text)
     case TokenType::TOK_CONTROL:
       char_format = GetControlCharFormat();
       break;
-    case TokenType::TOK_FUNCTION:
-      char_format = GetFunctionCharFormat();
+    case TokenType::TOK_BAREWORD:
+      char_format = GetBarewordCharFormat();
       break;
     case TokenType::TOK_VARIABLE:
       char_format = GetVariableCharFormat();
@@ -220,16 +220,15 @@ void IOWindow::CreateMainLayout()
   m_functions_combo = new QComboBox();
   m_functions_combo->addItem(tr("Functions"));
   m_functions_combo->insertSeparator(1);
-  m_functions_combo->addItem(QStringLiteral("!if"));
-  m_functions_combo->addItem(QStringLiteral("!sin"));
-  m_functions_combo->addItem(QStringLiteral("!timer"));
-  m_functions_combo->addItem(QStringLiteral("!toggle"));
-  m_functions_combo->addItem(QStringLiteral("!deadzone"));
-  m_functions_combo->addItem(QStringLiteral("!smooth"));
-  m_functions_combo->addItem(QStringLiteral("!hold"));
-  m_functions_combo->addItem(QStringLiteral("!tap"));
-  m_functions_combo->addItem(QStringLiteral("!relative"));
-  m_functions_combo->addItem(QStringLiteral("!pulse"));
+  m_functions_combo->addItem(QStringLiteral("if"));
+  m_functions_combo->addItem(QStringLiteral("timer"));
+  m_functions_combo->addItem(QStringLiteral("toggle"));
+  m_functions_combo->addItem(QStringLiteral("deadzone"));
+  m_functions_combo->addItem(QStringLiteral("smooth"));
+  m_functions_combo->addItem(QStringLiteral("hold"));
+  m_functions_combo->addItem(QStringLiteral("tap"));
+  m_functions_combo->addItem(QStringLiteral("relative"));
+  m_functions_combo->addItem(QStringLiteral("pulse"));
 
   // Devices
   m_main_layout->addWidget(m_devices_combo);

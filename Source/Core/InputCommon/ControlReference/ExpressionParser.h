@@ -20,10 +20,11 @@ enum TokenType
   TOK_EOF,
   TOK_LPAREN,
   TOK_RPAREN,
-  TOK_FUNCTION,
+  TOK_NOT,
   TOK_CONTROL,
   TOK_LITERAL,
   TOK_VARIABLE,
+  TOK_BAREWORD,
   // Binary Ops:
   TOK_BINARY_OPS_BEGIN,
   TOK_AND = TOK_BINARY_OPS_BEGIN,
@@ -54,7 +55,6 @@ public:
   Token(TokenType type_, std::string data_);
 
   bool IsBinaryOperator() const;
-  operator std::string() const;
 };
 
 enum class ParseStatus
@@ -89,11 +89,10 @@ private:
 
   std::string FetchDelimString(char delim);
   std::string FetchWordChars();
-  Token GetFunction();
   Token GetDelimitedLiteral();
   Token GetVariable();
   Token GetFullyQualifiedControl();
-  Token GetBarewordsControl(char c);
+  Token GetBareword(char c);
   Token GetRealLiteral(char c);
 
   Token NextToken();
@@ -164,7 +163,6 @@ public:
   virtual void SetValue(ControlState state) = 0;
   virtual int CountNumControls() const = 0;
   virtual void UpdateReferences(ControlEnvironment& finder) = 0;
-  virtual operator std::string() const = 0;
 };
 
 class ParseResult

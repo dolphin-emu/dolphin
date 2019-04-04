@@ -17,7 +17,7 @@ constexpr ControlState CONDITION_THRESHOLD = 0.5;
 using Clock = std::chrono::steady_clock;
 using FSec = std::chrono::duration<ControlState>;
 
-// usage: !toggle(toggle_state_input, [clear_state_input])
+// usage: toggle(toggle_state_input, [clear_state_input])
 class ToggleExpression : public FunctionExpression
 {
 private:
@@ -49,14 +49,11 @@ private:
     return m_state;
   }
 
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "toggle"; }
-
   mutable bool m_released{};
   mutable bool m_state{};
 };
 
-// usage: !not(expression)
+// usage: not(expression)
 class NotExpression : public FunctionExpression
 {
 private:
@@ -67,10 +64,9 @@ private:
 
   ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
   void SetValue(ControlState value) override { GetArg(0).SetValue(1.0 - value); }
-  std::string GetFuncName() const override { return ""; }
 };
 
-// usage: !sin(expression)
+// usage: sin(expression)
 class SinExpression : public FunctionExpression
 {
 private:
@@ -80,11 +76,9 @@ private:
   }
 
   ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "sin"; }
 };
 
-// usage: !timer(seconds)
+// usage: timer(seconds)
 class TimerExpression : public FunctionExpression
 {
 private:
@@ -118,14 +112,12 @@ private:
 
     return progress;
   }
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "timer"; }
 
 private:
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
-// usage: !if(condition, true_expression, false_expression)
+// usage: if(condition, true_expression, false_expression)
 class IfExpression : public FunctionExpression
 {
 private:
@@ -139,12 +131,9 @@ private:
     return (GetArg(0).GetValue() > CONDITION_THRESHOLD) ? GetArg(1).GetValue() :
                                                           GetArg(2).GetValue();
   }
-
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "if"; }
 };
 
-// usage: !minus(expression)
+// usage: minus(expression)
 class UnaryMinusExpression : public FunctionExpression
 {
 private:
@@ -158,12 +147,9 @@ private:
     // Subtraction for clarity:
     return 0.0 - GetArg(0).GetValue();
   }
-
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "minus"; }
 };
 
-// usage: !deadzone(input, amount)
+// usage: deadzone(input, amount)
 class DeadzoneExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
@@ -177,12 +163,9 @@ class DeadzoneExpression : public FunctionExpression
     const ControlState deadzone = GetArg(1).GetValue();
     return std::copysign(std::max(0.0, std::abs(val) - deadzone) / (1.0 - deadzone), val);
   }
-
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "deadzone"; }
 };
 
-// usage: !smooth(input, seconds_up, seconds_down = seconds_up)
+// usage: smooth(input, seconds_up, seconds_down = seconds_up)
 // seconds is seconds to change from 0.0 to 1.0
 class SmoothExpression : public FunctionExpression
 {
@@ -218,15 +201,12 @@ class SmoothExpression : public FunctionExpression
     return m_value;
   }
 
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "smooth"; }
-
 private:
   mutable ControlState m_value = 0.0;
   mutable Clock::time_point m_last_update = Clock::now();
 };
 
-// usage: !hold(input, seconds)
+// usage: hold(input, seconds)
 class HoldExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
@@ -256,15 +236,12 @@ class HoldExpression : public FunctionExpression
     return m_state;
   }
 
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "smooth"; }
-
 private:
   mutable bool m_state = false;
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
-// usage: !tap(input, seconds, taps=2)
+// usage: tap(input, seconds, taps=2)
 class TapExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
@@ -313,16 +290,13 @@ class TapExpression : public FunctionExpression
     return 0.0;
   }
 
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "tap"; }
-
 private:
   mutable bool m_released = true;
   mutable u32 m_taps = 0;
   mutable Clock::time_point m_start_time = Clock::now();
 };
 
-// usage: !relative(input, speed, [max_abs_value, [shared_state]])
+// usage: relative(input, speed, [max_abs_value, [shared_state]])
 // speed is max movement per second
 class RelativeExpression : public FunctionExpression
 {
@@ -337,15 +311,15 @@ class RelativeExpression : public FunctionExpression
     //
     // e.g. A single mapping with a relatively adjusted value between 0.0 and 1.0
     // Potentially useful for a trigger input
-    //  !relative(`Up` - `Down`, 2.0)
+    //  relative(`Up` - `Down`, 2.0)
     //
     // e.g. A value with two mappings (such as analog stick Up/Down)
     // The shared state allows the two mappings to work together.
     // This mapping (for up) returns a value clamped between 0.0 and 1.0
-    //  !relative(`Up`, 2.0, 1.0, $y)
+    //  relative(`Up`, 2.0, 1.0, $y)
     // This mapping (for down) returns the negative value clamped between 0.0 and 1.0
     // (Adjustments created by `Down` are applied negatively to the shared state)
-    //  !relative(`Down`, 2.0, -1.0, $y)
+    //  relative(`Down`, 2.0, -1.0, $y)
 
     const auto now = Clock::now();
 
@@ -373,15 +347,12 @@ class RelativeExpression : public FunctionExpression
     return std::max(0.0, m_state * std::copysign(1.0, max_abs_value));
   }
 
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "relative"; }
-
 private:
   mutable ControlState m_state = 0.0;
   mutable Clock::time_point m_last_update = Clock::now();
 };
 
-// usage: !pulse(input, seconds)
+// usage: pulse(input, seconds)
 class PulseExpression : public FunctionExpression
 {
   virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
@@ -424,9 +395,6 @@ class PulseExpression : public FunctionExpression
     return m_state;
   }
 
-  void SetValue(ControlState value) override {}
-  std::string GetFuncName() const override { return "pulse"; }
-
 private:
   mutable bool m_released = false;
   mutable bool m_state = false;
@@ -435,7 +403,7 @@ private:
 
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
 {
-  if (name.empty())
+  if ("not" == name)
     return std::make_unique<NotExpression>();
   else if ("if" == name)
     return std::make_unique<IfExpression>();
@@ -479,16 +447,6 @@ void FunctionExpression::UpdateReferences(ControlEnvironment& env)
     arg->UpdateReferences(env);
 }
 
-FunctionExpression::operator std::string() const
-{
-  std::string result = '!' + GetFuncName();
-
-  for (auto& arg : m_args)
-    result += ' ' + static_cast<std::string>(*arg);
-
-  return result;
-}
-
 bool FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args)
 {
   m_args = std::move(args);
@@ -509,6 +467,10 @@ const Expression& FunctionExpression::GetArg(u32 number) const
 u32 FunctionExpression::GetArgCount() const
 {
   return u32(m_args.size());
+}
+
+void FunctionExpression::SetValue(ControlState)
+{
 }
 
 }  // namespace ExpressionParser

@@ -21,42 +21,6 @@ namespace ciface::ExpressionParser
 {
 using namespace ciface::Core;
 
-inline std::string OpName(TokenType op)
-{
-  switch (op)
-  {
-  case TOK_AND:
-    return "And";
-  case TOK_OR:
-    return "Or";
-  case TOK_FUNCTION:
-    return "Function";
-  case TOK_ADD:
-    return "Add";
-  case TOK_SUB:
-    return "Sub";
-  case TOK_MUL:
-    return "Mul";
-  case TOK_DIV:
-    return "Div";
-  case TOK_MOD:
-    return "Mod";
-  case TOK_ASSIGN:
-    return "Assign";
-  case TOK_LTHAN:
-    return "LThan";
-  case TOK_GTHAN:
-    return "GThan";
-  case TOK_COMMA:
-    return "Comma";
-  case TOK_VARIABLE:
-    return "Var";
-  default:
-    assert(false);
-    return "";
-  }
-}
-
 Token::Token(TokenType type_) : type(type_)
 {
 }
@@ -68,55 +32,6 @@ Token::Token(TokenType type_, std::string data_) : type(type_), data(std::move(d
 bool Token::IsBinaryOperator() const
 {
   return type >= TOK_BINARY_OPS_BEGIN && type < TOK_BINARY_OPS_END;
-}
-
-Token::operator std::string() const
-{
-  switch (type)
-  {
-  case TOK_DISCARD:
-    return "Discard";
-  case TOK_EOF:
-    return "EOF";
-  case TOK_LPAREN:
-    return "(";
-  case TOK_RPAREN:
-    return ")";
-  case TOK_AND:
-    return "&";
-  case TOK_OR:
-    return "|";
-  case TOK_FUNCTION:
-    return '!' + data;
-  case TOK_ADD:
-    return "+";
-  case TOK_SUB:
-    return "-";
-  case TOK_MUL:
-    return "*";
-  case TOK_DIV:
-    return "/";
-  case TOK_MOD:
-    return "%";
-  case TOK_ASSIGN:
-    return "=";
-  case TOK_LTHAN:
-    return "<";
-  case TOK_GTHAN:
-    return ">";
-  case TOK_COMMA:
-    return ",";
-  case TOK_CONTROL:
-    return "Device(" + data + ')';
-  case TOK_LITERAL:
-    return '\'' + data + '\'';
-  case TOK_VARIABLE:
-    return '$' + data;
-  default:
-    break;
-  }
-
-  return "Invalid";
 }
 
 Lexer::Lexer(const std::string& expr_) : expr(expr_)
@@ -134,19 +49,10 @@ std::string Lexer::FetchDelimString(char delim)
 
 std::string Lexer::FetchWordChars()
 {
-  // Words must start with a letter or underscore.
-  if (expr.end() == it || (!std::isalpha(*it, std::locale::classic()) && ('_' != *it)))
-    return "";
-
   // Valid word characters:
   std::regex rx(R"([a-z\d_])", std::regex_constants::icase);
 
   return FetchCharsWhile([&rx](char c) { return std::regex_match(std::string(1, c), rx); });
-}
-
-Token Lexer::GetFunction()
-{
-  return Token(TOK_FUNCTION, FetchWordChars());
 }
 
 Token Lexer::GetDelimitedLiteral()
@@ -164,21 +70,15 @@ Token Lexer::GetFullyQualifiedControl()
   return Token(TOK_CONTROL, FetchDelimString('`'));
 }
 
-Token Lexer::GetBarewordsControl(char c)
+Token Lexer::GetBareword(char first_char)
 {
-  std::string name;
-  name += c;
-  name += FetchCharsWhile([](char c) { return std::isalpha(c, std::locale::classic()); });
-
-  ControlQualifier qualifier;
-  qualifier.control_name = name;
-  return Token(TOK_CONTROL, qualifier);
+  return Token(TOK_BAREWORD, first_char + FetchWordChars());
 }
 
-Token Lexer::GetRealLiteral(char c)
+Token Lexer::GetRealLiteral(char first_char)
 {
   std::string value;
-  value += c;
+  value += first_char;
   value += FetchCharsWhile([](char c) { return isdigit(c, std::locale::classic()) || ('.' == c); });
 
   if (std::regex_match(value, std::regex(R"(\d+(\.\d+)?)")))
@@ -209,7 +109,7 @@ Token Lexer::NextToken()
   case '|':
     return Token(TOK_OR);
   case '!':
-    return GetFunction();
+    return Token(TOK_NOT);
   case '+':
     return Token(TOK_ADD);
   case '-':
@@ -236,7 +136,7 @@ Token Lexer::NextToken()
     return GetFullyQualifiedControl();
   default:
     if (isalpha(c, std::locale::classic()))
-      return GetBarewordsControl(c);
+      return GetBareword(c);
     else if (isdigit(c, std::locale::classic()))
       return GetRealLiteral(c);
     else
@@ -300,7 +200,6 @@ public:
     input = env.FindInput(qualifier);
     output = env.FindOutput(qualifier);
   }
-  operator std::string() const override { return "`" + static_cast<std::string>(qualifier) + "`"; }
 
 private:
   ControlQualifier qualifier;
@@ -384,11 +283,6 @@ public:
     lhs->UpdateReferences(env);
     rhs->UpdateReferences(env);
   }
-
-  operator std::string() const override
-  {
-    return OpName(op) + "(" + std::string(*lhs) + ", " + std::string(*rhs) + ")";
-  }
 };
 
 class LiteralExpression : public Expression
@@ -405,8 +299,6 @@ public:
   {
     // Nothing needed.
   }
-
-  operator std::string() const override { return '\'' + GetName() + '\''; }
 
 protected:
   virtual std::string GetName() const = 0;
@@ -450,8 +342,6 @@ public:
     m_value_ptr = env.GetVariablePtr(m_name);
   }
 
-  operator std::string() const override { return '$' + m_name; }
-
 protected:
   const std::string m_name;
   ControlState* m_value_ptr{};
@@ -471,12 +361,6 @@ public:
   void SetValue(ControlState value) override { GetActiveChild()->SetValue(value); }
 
   int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
-  operator std::string() const override
-  {
-    return "Coalesce(" + static_cast<std::string>(*m_lhs) + ", " +
-           static_cast<std::string>(*m_rhs) + ')';
-  }
-
   void UpdateReferences(ControlEnvironment& env) override
   {
     m_lhs->UpdateReferences(env);
@@ -566,19 +450,6 @@ public:
   }
 
 private:
-  struct FunctionArguments
-  {
-    FunctionArguments(ParseResult&& result_, std::vector<std::unique_ptr<Expression>>&& args_ = {})
-        : result(std::move(result_)), args(std::move(args_))
-    {
-    }
-
-    // Note: expression member isn't being used.
-    ParseResult result;
-
-    std::vector<std::unique_ptr<Expression>> args;
-  };
-
   const std::vector<Token>& tokens;
   std::vector<Token>::const_iterator m_it;
 
@@ -598,81 +469,91 @@ private:
     return tok.type == type;
   }
 
-  FunctionArguments ParseFunctionArguments()
+  ParseResult ParseFunctionArguments(std::unique_ptr<FunctionExpression>&& func,
+                                     const Token& func_tok)
   {
     std::vector<std::unique_ptr<Expression>> args;
 
     if (TOK_LPAREN != Peek().type)
     {
       // Single argument with no parens (useful for unary ! function)
-      auto arg = ParseAtom(Chew());
+      const auto tok = Chew();
+      auto arg = ParseAtom(tok);
       if (ParseStatus::Successful != arg.status)
-        return {std::move(arg)};
+        return arg;
 
       args.emplace_back(std::move(arg.expr));
-      return {ParseResult::MakeSuccessfulResult({}), std::move(args)};
     }
-
-    // Chew the L-Paren
-    Chew();
-
-    // Check for empty argument list:
-    if (TOK_RPAREN == Peek().type)
+    else
     {
+      // Chew the L-Paren
       Chew();
-      return {ParseResult::MakeSuccessfulResult({})};
+
+      // Check for empty argument list:
+      if (TOK_RPAREN == Peek().type)
+      {
+        Chew();
+      }
+      else
+      {
+        while (true)
+        {
+          // Read one argument.
+          // Grab an expression, but stop at comma.
+          auto arg = ParseBinary(BinaryOperatorPrecedence(TOK_COMMA));
+          if (ParseStatus::Successful != arg.status)
+            return arg;
+
+          args.emplace_back(std::move(arg.expr));
+
+          // Right paren is the end of our arguments.
+          const Token tok = Chew();
+          if (TOK_RPAREN == tok.type)
+            break;
+
+          // Comma before the next argument.
+          if (TOK_COMMA != tok.type)
+            return ParseResult::MakeErrorResult(tok, _trans("Expected comma."));
+        };
+      }
     }
 
-    while (true)
+    if (!func->SetArguments(std::move(args)))
     {
-      // Read one argument.
-      // Grab an expression, but stop at comma.
-      auto arg = ParseBinary(BinaryOperatorPrecedence(TOK_COMMA));
-      if (ParseStatus::Successful != arg.status)
-        return {std::move(arg)};
-
-      args.emplace_back(std::move(arg.expr));
-
-      // Right paren is the end of our arguments.
-      const Token tok = Chew();
-      if (TOK_RPAREN == tok.type)
-        return {ParseResult::MakeSuccessfulResult({}), std::move(args)};
-
-      // Comma before the next argument.
-      if (TOK_COMMA != tok.type)
-        return {ParseResult::MakeErrorResult(tok, _trans("Expected comma."))};
+      // TODO: It would be nice to output how many arguments are expected.
+      return ParseResult::MakeErrorResult(func_tok, _trans("Wrong number of arguments."));
     }
+
+    return ParseResult::MakeSuccessfulResult(std::move(func));
   }
 
   ParseResult ParseAtom(const Token& tok)
   {
     switch (tok.type)
     {
-    case TOK_FUNCTION:
+    case TOK_BAREWORD:
     {
       auto func = MakeFunctionExpression(tok.data);
 
       if (!func)
-        return ParseResult::MakeErrorResult(tok, _trans("Unknown function."));
-
-      auto args = ParseFunctionArguments();
-
-      if (ParseStatus::Successful != args.result.status)
-        return std::move(args.result);
-
-      if (!func->SetArguments(std::move(args.args)))
       {
-        // TODO: It would be nice to output how many arguments are expected.
-        return ParseResult::MakeErrorResult(tok, _trans("Wrong number of arguments."));
+        // Invalid function, interpret this as a bareword control.
+        Token control_tok(tok);
+        control_tok.type = TOK_CONTROL;
+        return ParseAtom(control_tok);
       }
 
-      return ParseResult::MakeSuccessfulResult(std::move(func));
+      return ParseFunctionArguments(std::move(func), tok);
     }
     case TOK_CONTROL:
     {
       ControlQualifier cq;
       cq.FromString(tok.data);
       return ParseResult::MakeSuccessfulResult(std::make_unique<ControlExpression>(cq));
+    }
+    case TOK_NOT:
+    {
+      return ParseFunctionArguments(MakeFunctionExpression("not"), tok);
     }
     case TOK_LITERAL:
     {
@@ -690,15 +571,12 @@ private:
     {
       // An atom was expected but we got a subtraction symbol.
       // Interpret it as a unary minus function.
-
-      // Make sure to copy the existing string position values for proper error results.
-      Token func = tok;
-      func.type = TOK_FUNCTION;
-      func.data = "minus";
-      return ParseAtom(std::move(func));
+      return ParseFunctionArguments(MakeFunctionExpression("minus"), tok);
     }
     default:
+    {
       return ParseResult::MakeErrorResult(tok, _trans("Expected start of expression."));
+    }
     }
   }
 
