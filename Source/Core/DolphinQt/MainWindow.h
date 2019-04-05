@@ -170,6 +170,7 @@ private:
   void OnStopRecording();
   void OnExportRecording();
   void OnActivateChat();
+  void OnRequestGolfControl();
   void ShowTASInput();
 
   void ChangeDisc();

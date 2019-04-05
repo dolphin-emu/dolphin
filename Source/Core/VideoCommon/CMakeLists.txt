@@ -23,6 +23,7 @@ add_library(videocommon
   IndexGenerator.cpp
   LightingShaderGen.cpp
   NetPlayChatUI.cpp
+  NetPlayGolfUI.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
   PerfQueryBase.cpp

@@ -28,6 +28,7 @@
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/RenderBase.h"
 
 Settings::Settings()
@@ -298,6 +299,7 @@ void Settings::ResetNetPlayClient(NetPlay::NetPlayClient* client)
   m_client.reset(client);
 
   g_netplay_chat_ui.reset();
+  g_netplay_golf_ui.reset();
 }
 
 std::shared_ptr<NetPlay::NetPlayServer> Settings::GetNetPlayServer()

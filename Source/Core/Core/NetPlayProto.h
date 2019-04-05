@@ -83,6 +83,9 @@ struct NetSettings
   std::string m_SaveDataRegion;
   bool m_SyncAllWiiSaves;
   std::array<int, 4> m_WiimoteExtension;
+  bool m_GolfMode;
+
+  // These aren't sent over the network directly
   bool m_IsHosting;
   bool m_HostInputAuthority;
 };
@@ -123,11 +126,16 @@ enum
   NP_MSG_PAD_DATA = 0x60,
   NP_MSG_PAD_MAPPING = 0x61,
   NP_MSG_PAD_BUFFER = 0x62,
-  NP_MSG_PAD_HOST_POLL = 0x63,
-  NP_MSG_PAD_FIRST_RECEIVED = 0x64,
+  NP_MSG_PAD_HOST_DATA = 0x63,
 
   NP_MSG_WIIMOTE_DATA = 0x70,
   NP_MSG_WIIMOTE_MAPPING = 0x71,
+
+  NP_MSG_GOLF_REQUEST = 0x90,
+  NP_MSG_GOLF_SWITCH = 0x91,
+  NP_MSG_GOLF_ACQUIRE = 0x92,
+  NP_MSG_GOLF_RELEASE = 0x93,
+  NP_MSG_GOLF_PREPARE = 0x94,
 
   NP_MSG_START_GAME = 0xA0,
   NP_MSG_CHANGE_GAME = 0xA1,

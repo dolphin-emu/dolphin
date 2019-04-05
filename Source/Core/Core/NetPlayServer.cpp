@@ -527,12 +527,16 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 
   m_target_buffer_size = size;
 
-  // tell clients to change buffer size
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
-  spac << static_cast<u32>(m_target_buffer_size);
+  // not needed on clients with host input authority
+  if (!m_host_input_authority)
+  {
+    // tell clients to change buffer size
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+    spac << static_cast<u32>(m_target_buffer_size);
 
-  SendAsyncToClients(std::move(spac));
+    SendAsyncToClients(std::move(spac));
+  }
 }
 
 void NetPlayServer::SetHostInputAuthority(const bool enable)
@@ -652,7 +656,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       break;
 
     sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+    spac << static_cast<MessageId>(m_host_input_authority ? NP_MSG_PAD_HOST_DATA : NP_MSG_PAD_DATA);
 
     while (!packet.endOfPacket())
     {
@@ -670,59 +674,48 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
           pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
 
-      if (m_host_input_authority)
-      {
-        m_last_pad_status[map] = pad;
-
-        if (!m_first_pad_status_received[map])
-        {
-          m_first_pad_status_received[map] = true;
-          SendFirstReceivedToHost(map, true);
-        }
-      }
-      else
-      {
-        spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
-             << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-             << pad.isConnected;
-      }
-    }
-
-    if (!m_host_input_authority)
-      SendToClients(spac, player.pid);
-  }
-  break;
-
-  case NP_MSG_PAD_HOST_POLL:
-  {
-    PadIndex pad_num;
-    packet >> pad_num;
-
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
-
-    if (pad_num < 0)
-    {
-      for (size_t i = 0; i < m_pad_map.size(); i++)
-      {
-        if (m_pad_map[i] == 0)
-          continue;
-
-        const GCPadStatus& pad = m_last_pad_status[i];
-        spac << static_cast<PadIndex>(i) << pad.button << pad.analogA << pad.analogB << pad.stickX
-             << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-             << pad.isConnected;
-      }
-    }
-    else if (m_pad_map.at(pad_num) != 0)
-    {
-      const GCPadStatus& pad = m_last_pad_status[pad_num];
-      spac << pad_num << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
            << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
            << pad.isConnected;
     }
 
-    SendToClients(spac);
+    if (m_host_input_authority)
+    {
+      // Prevent crash before game stop if the golfer disconnects
+      if (m_current_golfer != 0 && m_players.find(m_current_golfer) != m_players.end())
+        Send(m_players.at(m_current_golfer).socket, spac);
+    }
+    else
+    {
+      SendToClients(spac, player.pid);
+    }
+  }
+  break;
+
+  case NP_MSG_PAD_HOST_DATA:
+  {
+    // Kick player if they're not the golfer.
+    if (m_current_golfer != 0 && player.pid != m_current_golfer)
+      return 1;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+
+    while (!packet.endOfPacket())
+    {
+      PadIndex map;
+      packet >> map;
+
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+           << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
+           << pad.isConnected;
+    }
+
+    SendToClients(spac, player.pid);
   }
   break;
 
@@ -755,6 +748,63 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       spac << byte;
 
     SendToClients(spac, player.pid);
+  }
+  break;
+
+  case NP_MSG_GOLF_REQUEST:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    // Check if player ID is valid and sender isn't a spectator
+    if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
+      break;
+
+    if (m_host_input_authority && m_settings.m_GolfMode && m_pending_golfer == 0 &&
+        m_current_golfer != pid && PlayerHasControllerMapped(pid))
+    {
+      m_pending_golfer = pid;
+
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_PREPARE);
+      Send(m_players[pid].socket, spac);
+    }
+  }
+  break;
+
+  case NP_MSG_GOLF_RELEASE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_SWITCH);
+    spac << static_cast<PlayerId>(m_pending_golfer);
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_GOLF_ACQUIRE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    m_current_golfer = m_pending_golfer;
+    m_pending_golfer = 0;
+  }
+  break;
+
+  case NP_MSG_GOLF_PREPARE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    m_current_golfer = 0;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_SWITCH);
+    spac << static_cast<PlayerId>(0);
+    SendToClients(spac);
   }
   break;
 
@@ -1141,7 +1191,8 @@ bool NetPlayServer::StartGame()
   if (!m_host_input_authority)
     AdjustPadBufferSize(m_target_buffer_size);
 
-  m_first_pad_status_received.fill(false);
+  m_current_golfer = 1;
+  m_pending_golfer = 0;
 
   const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
@@ -1226,6 +1277,8 @@ bool NetPlayServer::StartGame()
             ->GetSelectedAttachment();
     spac << extension;
   }
+
+  spac << m_settings.m_GolfMode;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1720,15 +1773,6 @@ bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, s
   return true;
 }
 
-void NetPlayServer::SendFirstReceivedToHost(const PadIndex map, const bool state)
-{
-  sf::Packet pac;
-  pac << static_cast<MessageId>(NP_MSG_PAD_FIRST_RECEIVED);
-  pac << map;
-  pac << state;
-  Send(m_players.at(1).socket, pac);
-}
-
 u64 NetPlayServer::GetInitialNetPlayRTC() const
 {
   const auto& config = SConfig::GetInstance();
@@ -1769,6 +1813,14 @@ void NetPlayServer::KickPlayer(PlayerId player)
       return;
     }
   }
+}
+
+bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
+{
+  const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
+
+  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
+         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
 }
 
 u16 NetPlayServer::GetPort() const

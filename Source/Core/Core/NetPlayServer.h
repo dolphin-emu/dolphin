@@ -118,7 +118,6 @@ private:
   void CheckSyncAndStartGame();
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
-  void SendFirstReceivedToHost(PadIndex map, bool state);
 
   u64 GetInitialNetPlayRTC() const;
 
@@ -138,6 +137,8 @@ private:
   void ChunkedDataThreadFunc();
   void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
 
+  bool PlayerHasControllerMapped(PlayerId pid) const;
+
   NetSettings m_settings;
 
   bool m_is_running = false;
@@ -155,14 +156,13 @@ private:
   bool m_codes_synced = true;
   bool m_start_pending = false;
   bool m_host_input_authority = false;
+  PlayerId m_current_golfer = 1;
+  PlayerId m_pending_golfer = 0;
 
   std::map<PlayerId, Client> m_players;
 
   std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
   bool m_desync_detected;
-
-  std::array<GCPadStatus, 4> m_last_pad_status{};
-  std::array<bool, 4> m_first_pad_status_received{};
 
   struct
   {
