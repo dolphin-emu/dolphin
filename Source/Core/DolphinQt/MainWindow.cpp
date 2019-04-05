@@ -256,6 +256,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
 MainWindow::~MainWindow()
 {
+  // Shut down NetPlay first to avoid race condition segfault
+  Settings::Instance().ResetNetPlayClient();
+  Settings::Instance().ResetNetPlayServer();
+
   delete m_render_widget;
   delete m_netplay_dialog;
 
