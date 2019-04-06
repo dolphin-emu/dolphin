@@ -1,7 +1,9 @@
 #include "PauseScreen.h"
 
+#include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCPad.h"
@@ -184,7 +186,60 @@ void PauseScreen::DisplayOptions()
 
 void PauseScreen::DisplayGraphics()
 {
-  // TODO:
+  // IR selection
+  auto ir = Config::Get(Config::GFX_EFB_SCALE);
+  static const std::array<const char*, 9> ir_choices{
+      "Auto (Multiple of 640x528)",      "Native (640x528)",
+      "2x Native (1280x1056) for 720p",  "3x Native (1920x1584) for 1080p",
+      "4x Native (2560x2112) for 1440p", "5x Native (3200x2640)",
+      "6x Native (3840x3168) for 4K",    "7x Native (4480x3696)",
+      "8x Native (5120x4224) for 5K"};
+  ImGui::Text("Internal Resolution:");
+  ImGui::SameLine(0);
+  if (ImGui::ArrowButton("##l-ir", ImGuiDir_Left))
+  {
+    ir--;
+    if (ir < 0)
+    {
+      ir = 0;
+    }
+  }
+  ImGui::SameLine(0);
+  if (ir > ir_choices.size())
+  {
+    ImGui::Text("Custom");
+  }
+  else
+  {
+    ImGui::Text(ir_choices[ir]);
+  }
+  ImGui::SameLine(0);
+  if (ImGui::ArrowButton("##r-ir", ImGuiDir_Right))
+  {
+    ir++;
+  }
+  Config::SetBaseOrCurrent(Config::GFX_EFB_SCALE, ir);
+
+  // Anisotropy
+  auto anisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  static const std::array<const char*, 9> anisotropy_choices{"1x", "2x", "4x", "8x", "16x"};
+  ImGui::Text("Anisotropy:");
+  ImGui::SameLine(0);
+  if (ImGui::ArrowButton("##l-ani", ImGuiDir_Left))
+  {
+    anisotropy--;
+    anisotropy = std::clamp(anisotropy, 0, static_cast<int>(anisotropy_choices.size()));
+  }
+  ImGui::SameLine(0);
+  ImGui::Text(anisotropy_choices[anisotropy]);
+  ImGui::SameLine(0);
+  if (ImGui::ArrowButton("##r-ani", ImGuiDir_Right))
+  {
+    anisotropy++;
+    anisotropy = std::clamp(anisotropy, 0, static_cast<int>(anisotropy_choices.size()));
+  }
+  ImGui::SameLine(0);
+  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_MAX_ANISOTROPY, anisotropy);
 }
 
 void PauseScreen::DisplayControls()
@@ -283,4 +338,3 @@ void PauseScreen::DisplayWiiControls()
     }
   }
 }
-
