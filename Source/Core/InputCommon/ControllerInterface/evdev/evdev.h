@@ -90,8 +90,8 @@ private:
   public:
     enum class Motor : u8
     {
-      WEAK,
-      STRONG,
+      Weak,
+      Strong,
     };
 
     RumbleEffect(int fd, Motor motor);

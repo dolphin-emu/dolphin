@@ -256,8 +256,8 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
   // Rumble (i.e. Left/Right) (i.e. Strong/Weak) effect
   if (libevdev_has_event_code(m_dev, EV_FF, FF_RUMBLE))
   {
-    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::STRONG));
-    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::WEAK));
+    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::Strong));
+    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::Weak));
   }
 
   // TODO: Add leds as output devices
@@ -388,7 +388,7 @@ std::string evdevDevice::PeriodicEffect::GetName() const
 
 std::string evdevDevice::RumbleEffect::GetName() const
 {
-  return (Motor::STRONG == m_motor) ? "Strong" : "Weak";
+  return (Motor::Strong == m_motor) ? "Strong" : "Weak";
 }
 
 void evdevDevice::Effect::SetState(ControlState state)
@@ -482,7 +482,7 @@ bool evdevDevice::PeriodicEffect::UpdateParameters(ControlState state)
 
 bool evdevDevice::RumbleEffect::UpdateParameters(ControlState state)
 {
-  u16& value = (Motor::STRONG == m_motor) ? m_effect.u.rumble.strong_magnitude :
+  u16& value = (Motor::Strong == m_motor) ? m_effect.u.rumble.strong_magnitude :
                                             m_effect.u.rumble.weak_magnitude;
   const u16 old_value = value;
 
