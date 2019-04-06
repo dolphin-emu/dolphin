@@ -121,6 +121,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 
 void NetPlayIndex::NotificationLoop()
 {
+  std::lock_guard<std::mutex> guard(m_thread_running);
   while (m_running.IsSet())
   {
     Common::HttpRequest request;
@@ -151,7 +152,9 @@ void NetPlayIndex::NotificationLoop()
       return;
     }
 
-    Common::SleepCurrentThread(1000 * 5);
+    // Wait 5s in increments of 500ms, as otherwise we would have to wait 5s for Remove() to return
+    for (int i = 0; i < 10 && m_running.IsSet(); i++)
+      Common::SleepCurrentThread(500);
   }
 }
 
@@ -228,8 +231,8 @@ void NetPlayIndex::Remove()
 
   m_running.Set(false);
 
-  if (m_session_thread.joinable())
-    m_session_thread.join();
+  // Wait for the thread to stop
+  std::lock_guard<std::mutex> guard(m_thread_running);
 
   // We don't really care whether this fails or not
   Common::HttpRequest request;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <thread>
@@ -55,6 +56,7 @@ private:
   void NotificationLoop();
 
   Common::Flag m_running;
+  std::mutex m_thread_running;
 
   std::string m_secret;
   std::string m_game;
