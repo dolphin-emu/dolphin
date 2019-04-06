@@ -167,6 +167,10 @@ void HttpRequest::Impl::FollowRedirects(long max)
 
 std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
 {
+  // curl_easy_escape doesn't like empty strings
+  if (string.empty())
+    return "";
+
   return curl_easy_escape(m_curl.get(), string.c_str(), static_cast<int>(string.size()));
 }
 
