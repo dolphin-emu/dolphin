@@ -167,7 +167,11 @@ void HttpRequest::Impl::FollowRedirects(long max)
 
 std::string HttpRequest::Impl::EscapeComponent(const std::string& string)
 {
-  return curl_easy_escape(m_curl.get(), string.c_str(), static_cast<int>(string.size()));
+  char* escaped = curl_easy_escape(m_curl.get(), string.c_str(), static_cast<int>(string.size()));
+  std::string escaped_str(escaped);
+  curl_free(escaped);
+
+  return escaped_str;
 }
 
 static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* userdata)
