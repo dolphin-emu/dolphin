@@ -65,6 +65,10 @@ private:
   QSpinBox* m_host_force_port_box;
   QCheckBox* m_host_chunked_upload_limit_check;
   QSpinBox* m_host_chunked_upload_limit_box;
+  QCheckBox* m_host_server_browser;
+  QLineEdit* m_host_server_name;
+  QLineEdit* m_host_server_password;
+  QComboBox* m_host_server_region;
 
 #ifdef USE_UPNP
   QCheckBox* m_host_upnp;

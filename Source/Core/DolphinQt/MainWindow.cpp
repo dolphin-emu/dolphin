@@ -80,6 +80,7 @@
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -453,6 +454,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
+  connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
@@ -1129,6 +1131,13 @@ void MainWindow::ShowNetPlaySetupDialog()
   m_netplay_setup_dialog->show();
   m_netplay_setup_dialog->raise();
   m_netplay_setup_dialog->activateWindow();
+}
+
+void MainWindow::ShowNetPlayBrowser()
+{
+  auto* browser = new NetPlayBrowser(this);
+  connect(browser, &NetPlayBrowser::Join, this, &MainWindow::NetPlayJoin);
+  browser->exec();
 }
 
 void MainWindow::ShowFIFOPlayer()

@@ -98,6 +98,7 @@ add_executable(dolphin-emu
   NetPlay/ChunkedProgressDialog.cpp
   NetPlay/GameListDialog.cpp
   NetPlay/MD5Dialog.cpp
+  NetPlay/NetPlayBrowser.cpp
   NetPlay/NetPlayDialog.cpp
   NetPlay/NetPlaySetupDialog.cpp
   NetPlay/PadMappingDialog.cpp

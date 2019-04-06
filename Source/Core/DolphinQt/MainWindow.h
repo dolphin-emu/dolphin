@@ -148,6 +148,7 @@ private:
   void ShowAboutDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
+  void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
   void ShowResourcePackManager();
