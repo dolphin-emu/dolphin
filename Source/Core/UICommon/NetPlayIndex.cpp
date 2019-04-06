@@ -4,6 +4,7 @@
 
 #include "UICommon/NetPlayIndex.h"
 
+#include <chrono>
 #include <numeric>
 #include <string>
 
@@ -121,7 +122,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 
 void NetPlayIndex::NotificationLoop()
 {
-  while (m_running.IsSet())
+  while (!m_session_thread_exit_event.WaitFor(std::chrono::seconds(5)))
   {
     Common::HttpRequest request;
     auto response = request.Get(
@@ -138,7 +139,6 @@ void NetPlayIndex::NotificationLoop()
     if (!json)
     {
       m_last_error = "BAD_JSON";
-      m_running.Set(false);
       return;
     }
 
@@ -147,18 +147,13 @@ void NetPlayIndex::NotificationLoop()
     if (status != "OK")
     {
       m_last_error = std::move(status);
-      m_running.Set(false);
       return;
     }
-
-    Common::SleepCurrentThread(1000 * 5);
   }
 }
 
 bool NetPlayIndex::Add(NetPlaySession session)
 {
-  m_running.Set(true);
-
   Common::HttpRequest request;
   auto response = request.Get(Config::Get(Config::NETPLAY_INDEX_URL) +
                                   "/v0/session/add?name=" + request.EscapeComponent(session.name) +
@@ -201,8 +196,6 @@ bool NetPlayIndex::Add(NetPlaySession session)
 
   m_session_thread = std::thread([this] { NotificationLoop(); });
 
-  m_session_thread.detach();
-
   return true;
 }
 
@@ -226,7 +219,7 @@ void NetPlayIndex::Remove()
   if (m_secret.empty())
     return;
 
-  m_running.Set(false);
+  m_session_thread_exit_event.Set();
 
   if (m_session_thread.joinable())
     m_session_thread.join();

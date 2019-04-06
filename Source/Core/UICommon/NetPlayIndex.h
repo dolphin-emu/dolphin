@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-#include "Common/Flag.h"
+#include "Common/Event.h"
 
 struct NetPlaySession
 {
@@ -54,8 +54,6 @@ public:
 private:
   void NotificationLoop();
 
-  Common::Flag m_running;
-
   std::string m_secret;
   std::string m_game;
   int m_player_count = 0;
@@ -63,4 +61,6 @@ private:
 
   std::string m_last_error;
   std::thread m_session_thread;
+
+  Common::Event m_session_thread_exit_event;
 };
