@@ -47,8 +47,8 @@ struct MotionState : PositionalState, RotationalState
 // Build a rotational matrix from euler angles.
 Common::Matrix33 GetRotationalMatrix(const Common::Vec3& angle);
 
-void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& target, float max_jerk,
-                              float time_elapsed);
+void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& target,
+                              const Common::Vec3& max_jerk, float time_elapsed);
 
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, float max_accel,
                             float time_elapsed);

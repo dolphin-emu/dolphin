@@ -154,22 +154,66 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
 
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
 {
-  const auto target = swing_group->GetState();
+  const auto input_state = swing_group->GetState();
+  const float max_distance = swing_group->GetMaxDistance();
+  const float max_angle = swing_group->GetTwistAngle();
 
-  // Note. Y/Z swapped because X/Y axis to the swing_group is X/Z to the wiimote.
+  // Note: Y/Z swapped because X/Y axis to the swing_group is X/Z to the wiimote.
   // X is negated because Wiimote X+ is to the left.
-  ApproachPositionWithJerk(state, {-target.x, -target.z, target.y}, swing_group->GetMaxJerk(),
-                           time_elapsed);
+  const auto target_position = Common::Vec3{-input_state.x, -input_state.z, input_state.y};
 
-  // Just jump to our target angle scaled by our progress to the target position.
-  // TODO: If we wanted to be less hacky we could use ApproachAngleWithAccel.
-  const auto angle = state->position / swing_group->GetMaxDistance() * swing_group->GetTwistAngle();
+  // Jerk is scaled based on input distance from center.
+  // X and Z scale is connected for sane movement about the circle.
+  const auto xz_target_dist = Common::Vec2(target_position.x, target_position.z).Length();
+  const auto y_target_dist = std::abs(target_position.y);
+  const auto target_dist = Common::Vec3{xz_target_dist, y_target_dist, xz_target_dist};
+  const auto speed = MathUtil::Lerp(Common::Vec3{1, 1, 1} * float(swing_group->GetReturnSpeed()),
+                                    Common::Vec3{1, 1, 1} * float(swing_group->GetSpeed()),
+                                    target_dist / max_distance);
 
-  const auto old_angle = state->angle;
-  state->angle = {-angle.z, 0, angle.x};
+  // Convert our m/s "speed" to the jerk required to reach this speed when traveling 1 meter.
+  const auto max_jerk = speed * speed * speed * 4;
 
-  // Update velocity based on change in angle.
-  state->angular_velocity = state->angle - old_angle;
+  // How far we are into the complete swing in each axis.
+  const auto swing_progress = state->position / max_distance;
+
+  // Adjust target position backwards based on swing progress and max angle
+  // to simulate a swing with an outstretched arm.
+  const auto backwards_angle =
+      Common::Vec2{swing_progress.x, swing_progress.z}.Length() * max_angle;
+  const auto backwards_movement = float(1 - std::cos(backwards_angle)) * max_distance;
+  ApproachPositionWithJerk(state, target_position + Common::Vec3{0, backwards_movement, 0},
+                           max_jerk, time_elapsed);
+
+  // Clamp Left/Right/Up/Down movement within the configured circle.
+  const auto xz_progress =
+      Common::Vec2{state->position.x, state->position.z}.Length() / max_distance;
+  if (xz_progress > 1)
+  {
+    state->position.x /= xz_progress;
+    state->position.z /= xz_progress;
+    state->velocity.x = state->velocity.z = 0;
+    state->acceleration.x = state->acceleration.z = 0;
+  }
+
+  // Clamp Forward/Backward movement within the configured distance.
+  // We allow additional backwards movement for the back swing.
+  const auto y_progress = state->position.y / max_distance;
+  const auto max_y_progress = 2 - std::cos(max_angle);
+  if (y_progress > max_y_progress || y_progress < -1)
+  {
+    state->position.y =
+        MathUtil::Clamp(state->position.y, -1.f * max_distance, max_y_progress * max_distance);
+    state->velocity.y = 0;
+    state->acceleration.y = 0;
+  }
+
+  // We could calculate something sensible from max jerk, but this seems to work fine.
+  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 50);
+
+  // Apply rotation based on how far we are into the swing.
+  const auto target_angle = Common::Vec3{-swing_progress.z, 0, swing_progress.x} * max_angle;
+  ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
 }
 
 WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
@@ -221,10 +265,7 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
 
   const auto offset = angle_target - state->angle;
   const auto stop_offset = offset - stop_distance;
-
-  const Common::Vec3 accel{std::copysign(max_accel, stop_offset.x),
-                           std::copysign(max_accel, stop_offset.y),
-                           std::copysign(max_accel, stop_offset.z)};
+  const auto accel = MathUtil::Sign(stop_offset) * max_accel;
 
   state->angular_velocity += accel * time_elapsed;
 
@@ -248,19 +289,16 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,
-                              float max_jerk, float time_elapsed)
+                              const Common::Vec3& max_jerk, float time_elapsed)
 {
   const auto stop_distance =
-      Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk),
-                   CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk),
-                   CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk));
+      Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk.x),
+                   CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk.y),
+                   CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk.z));
 
   const auto offset = position_target - state->position;
   const auto stop_offset = offset - stop_distance;
-
-  const Common::Vec3 jerk{std::copysign(max_jerk, stop_offset.x),
-                          std::copysign(max_jerk, stop_offset.y),
-                          std::copysign(max_jerk, stop_offset.z)};
+  const auto jerk = MathUtil::Sign(stop_offset) * max_jerk;
 
   state->acceleration += jerk * time_elapsed;
 
