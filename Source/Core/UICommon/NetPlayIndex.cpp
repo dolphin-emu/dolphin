@@ -95,10 +95,12 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     const auto& player_count = entry.get("player_count");
     const auto& port = entry.get("port");
     const auto& in_game = entry.get("in_game");
+    const auto& version = entry.get("version");
 
     if (!name.is<std::string>() || !region.is<std::string>() || !method.is<std::string>() ||
         !server_id.is<std::string>() || !game_id.is<std::string>() || !has_password.is<bool>() ||
-        !player_count.is<double>() || !port.is<double>() || !in_game.is<bool>())
+        !player_count.is<double>() || !port.is<double>() || !in_game.is<bool>() ||
+        !version.is<std::string>())
     {
       continue;
     }
@@ -108,6 +110,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     session.game_id = game_id.to_str();
     session.server_id = server_id.to_str();
     session.method = method.to_str();
+    session.version = version.to_str();
     session.has_password = has_password.get<bool>();
     session.player_count = static_cast<int>(player_count.get<double>());
     session.port = static_cast<int>(port.get<double>());

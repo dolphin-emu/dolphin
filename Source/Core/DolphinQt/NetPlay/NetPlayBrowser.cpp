@@ -4,6 +4,7 @@
 
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -67,6 +68,9 @@ void NetPlayBrowser::CreateWidgets()
   m_button_refresh = new QPushButton(tr("Refresh"));
   m_edit_name = new QLineEdit;
   m_edit_game_id = new QLineEdit;
+  m_check_hide_incompatible = new QCheckBox(tr("Hide Incompatible Sessions"));
+
+  m_check_hide_incompatible->setChecked(true);
 
   m_radio_all = new QRadioButton(tr("Private and Public"));
   m_radio_private = new QRadioButton(tr("Private"));
@@ -88,6 +92,7 @@ void NetPlayBrowser::CreateWidgets()
   filter_layout->addWidget(m_radio_public, 3, 2);
   filter_layout->addWidget(m_radio_private, 3, 3);
   filter_layout->addItem(new QSpacerItem(4, 1, QSizePolicy::Expanding), 2, 4);
+  filter_layout->addWidget(m_check_hide_incompatible, 4, 1);
 
   layout->addWidget(m_table_widget);
   layout->addWidget(filter_box);
@@ -108,6 +113,7 @@ void NetPlayBrowser::ConnectWidgets()
 
   connect(m_radio_all, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
   connect(m_radio_private, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
+  connect(m_check_hide_incompatible, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
 
   connect(m_edit_name, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
   connect(m_edit_game_id, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
@@ -120,20 +126,26 @@ void NetPlayBrowser::Refresh()
   m_status_label->setText(tr("Refreshing..."));
 
   m_table_widget->clear();
-  m_table_widget->setColumnCount(6);
-  m_table_widget->setHorizontalHeaderLabels(
-      {tr("Region"), tr("Name"), tr("Password?"), tr("In-Game?"), tr("Game"), tr("Players")});
-  m_table_widget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-  m_table_widget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-  m_table_widget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-  m_table_widget->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-  m_table_widget->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
+  m_table_widget->setColumnCount(7);
+  m_table_widget->setHorizontalHeaderLabels({tr("Region"), tr("Name"), tr("Password?"),
+                                             tr("In-Game?"), tr("Game"), tr("Players"),
+                                             tr("Version")});
+
+  auto* hor_header = m_table_widget->horizontalHeader();
+
+  hor_header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(1, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(4, QHeaderView::Stretch);
+  hor_header->setHighlightSections(false);
 
   NetPlayIndex client;
 
   std::map<std::string, std::string> filters;
 
-  filters["version"] = Common::scm_desc_str;
+  if (m_check_hide_incompatible->isChecked())
+    filters["version"] = Common::scm_desc_str;
 
   if (!m_edit_name->text().isEmpty())
     filters["name"] = m_edit_name->text().toStdString();
@@ -170,9 +182,12 @@ void NetPlayBrowser::Refresh()
     auto* in_game = new QTableWidgetItem(entry.in_game ? tr("Yes") : tr("No"));
     auto* game_id = new QTableWidgetItem(QString::fromStdString(entry.game_id));
     auto* player_count = new QTableWidgetItem(QStringLiteral("%1").arg(entry.player_count));
+    auto* version = new QTableWidgetItem(QString::fromStdString(entry.version));
 
-    for (const auto& item : {region, name, password, game_id, player_count})
-      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    const bool enabled = Common::scm_desc_str == entry.version;
+
+    for (const auto& item : {region, name, password, in_game, game_id, player_count, version})
+      item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
 
     m_table_widget->setItem(i, 0, region);
     m_table_widget->setItem(i, 1, name);
@@ -180,6 +195,7 @@ void NetPlayBrowser::Refresh()
     m_table_widget->setItem(i, 3, in_game);
     m_table_widget->setItem(i, 4, game_id);
     m_table_widget->setItem(i, 5, player_count);
+    m_table_widget->setItem(i, 6, version);
   }
 
   m_status_label->setText(
