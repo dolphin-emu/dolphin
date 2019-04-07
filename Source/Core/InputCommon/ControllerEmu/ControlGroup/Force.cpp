@@ -31,16 +31,30 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
               _trans("cm"),
               // i18n: Refering to emulated wii remote swing movement.
               _trans("Distance of travel from neutral position.")},
-             25, 0, 100);
+             50, 1, 100);
 
-  AddSetting(&m_jerk_setting,
-             // i18n: "Jerk" as it relates to physics. The time derivative of acceleration.
-             {_trans("Jerk"),
-              // i18n: The symbol/abbreviation for meters per second to the 3rd power.
-              _trans("m/s³"),
+  // These speed settings are used to calculate a maximum jerk (change in acceleration).
+  // The calculation uses a travel distance of 1 meter.
+  // The maximum value of 40 m/s is the approximate speed of the head of a golf club.
+  // Games seem to not even properly detect motions at this speed.
+  // Values result in an exponentially increasing jerk.
+
+  AddSetting(&m_speed_setting,
+             {_trans("Speed"),
+              // i18n: The symbol/abbreviation for meters per second.
+              _trans("m/s"),
               // i18n: Refering to emulated wii remote swing movement.
-              _trans("Maximum change in acceleration.")},
-             500, 1, 1000);
+              _trans("Peak velocity of outward swing movements.")},
+             16, 1, 40);
+
+  // "Return Speed" allows for a "slow return" that won't trigger additional actions.
+  AddSetting(&m_return_speed_setting,
+             {_trans("Return Speed"),
+              // i18n: The symbol/abbreviation for meters per second.
+              _trans("m/s"),
+              // i18n: Refering to emulated wii remote swing movement.
+              _trans("Peak velocity of movements to neutral position.")},
+             2, 1, 40);
 
   AddSetting(&m_angle_setting,
              {_trans("Angle"),
@@ -48,7 +62,7 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
               _trans("°"),
               // i18n: Refering to emulated wii remote swing movement.
               _trans("Rotation applied at extremities of swing.")},
-             45, 0, 180);
+             90, 1, 180);
 }
 
 Force::ReshapeData Force::GetReshapableState(bool adjusted)
@@ -70,8 +84,8 @@ Force::StateData Force::GetState(bool adjusted)
 
   if (adjusted)
   {
-    // Apply deadzone to z.
-    z = ApplyDeadzone(z, GetDeadzonePercentage());
+    // Apply deadzone to z and scale.
+    z = ApplyDeadzone(z, GetDeadzonePercentage()) * GetMaxDistance();
   }
 
   return {float(state.x), float(state.y), float(z)};
@@ -83,9 +97,14 @@ ControlState Force::GetGateRadiusAtAngle(double) const
   return GetMaxDistance();
 }
 
-ControlState Force::GetMaxJerk() const
+ControlState Force::GetSpeed() const
 {
-  return m_jerk_setting.GetValue();
+  return m_speed_setting.GetValue();
+}
+
+ControlState Force::GetReturnSpeed() const
+{
+  return m_return_speed_setting.GetValue();
 }
 
 ControlState Force::GetTwistAngle() const

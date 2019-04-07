@@ -646,11 +646,6 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
     roll_value = MathUtil::Clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE);
     pitch_value = MathUtil::Clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE);
 
-    // TODO: Remove before merge.
-    // INFO_LOG(WIIMOTE, "M+ YAW: 0x%x slow:%d", yaw_value, mplus_data.yaw_slow);
-    // INFO_LOG(WIIMOTE, "M+ ROL: 0x%x slow:%d", roll_value, mplus_data.roll_slow);
-    // INFO_LOG(WIIMOTE, "M+ PIT: 0x%x slow:%d", pitch_value, mplus_data.pitch_slow);
-
     // Bits 0-7
     mplus_data.yaw1 = u8(yaw_value);
     mplus_data.roll1 = u8(roll_value);

@@ -26,8 +26,9 @@ public:
 
   StateData GetState(bool adjusted = true);
 
-  // Return jerk in m/s^3.
-  ControlState GetMaxJerk() const;
+  // Velocities returned in m/s.
+  ControlState GetSpeed() const;
+  ControlState GetReturnSpeed() const;
 
   // Return twist angle in radians.
   ControlState GetTwistAngle() const;
@@ -37,7 +38,8 @@ public:
 
 private:
   SettingValue<double> m_distance_setting;
-  SettingValue<double> m_jerk_setting;
+  SettingValue<double> m_speed_setting;
+  SettingValue<double> m_return_speed_setting;
   SettingValue<double> m_angle_setting;
 };
 
