@@ -48,6 +48,7 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/Uids.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "DiscIO/Enums.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -1490,6 +1491,28 @@ bool NetPlayServer::SyncSaveData()
     sf::Packet pac;
     pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
     pac << static_cast<MessageId>(SYNC_SAVE_DATA_WII);
+
+    // Shove the Mii data into the start the packet
+    {
+      auto file = configured_fs->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                          Common::GetMiiDatabasePath(), IOS::HLE::FS::Mode::Read);
+      if (file)
+      {
+        pac << true;
+
+        std::vector<u8> file_data(file->GetStatus()->size);
+        if (!file->Read(file_data.data(), file_data.size()))
+          return false;
+        if (!CompressBufferIntoPacket(file_data, pac))
+          return false;
+      }
+      else
+      {
+        pac << false;  // no mii data
+      }
+    }
+
+    // Carry on with the save files
     pac << static_cast<u32>(saves.size());
 
     for (const auto& pair : saves)

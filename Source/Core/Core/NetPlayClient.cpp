@@ -866,6 +866,31 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
       std::vector<u64> titles;
 
+      const IOS::HLE::FS::Modes fs_modes = {IOS::HLE::FS::Mode::ReadWrite,
+                                            IOS::HLE::FS::Mode::ReadWrite,
+                                            IOS::HLE::FS::Mode::ReadWrite};
+
+      // Read the Mii data
+      bool mii_data;
+      packet >> mii_data;
+      if (mii_data)
+      {
+        auto buffer = DecompressPacketIntoBuffer(packet);
+
+        temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, "/shared2/menu/FaceLib", 0,
+                                 fs_modes);
+        auto file = temp_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                               Common::GetMiiDatabasePath(), fs_modes);
+
+        if (!buffer || !file || !file->Write(buffer->data(), buffer->size()))
+        {
+          PanicAlertT("Failed to write Mii data.");
+          SyncSaveDataResponse(false);
+          return 0;
+        }
+      }
+
+      // Read the saves
       u32 save_count;
       packet >> save_count;
       for (u32 n = 0; n < save_count; n++)
@@ -873,9 +898,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         u64 title_id = Common::PacketReadU64(packet);
         titles.push_back(title_id);
         temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                 Common::GetTitleDataPath(title_id), 0,
-                                 {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                  IOS::HLE::FS::Mode::ReadWrite});
+                                 Common::GetTitleDataPath(title_id), 0, fs_modes);
         auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
 
         bool exists;
