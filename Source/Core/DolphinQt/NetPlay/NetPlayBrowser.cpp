@@ -63,6 +63,8 @@ void NetPlayBrowser::CreateWidgets()
         QString::fromStdString(region.first));
   }
 
+  m_region_combo->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+
   m_status_label = new QLabel;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   m_button_refresh = new QPushButton(tr("Refresh"));
@@ -83,7 +85,7 @@ void NetPlayBrowser::CreateWidgets()
   filter_box->setLayout(filter_layout);
 
   filter_layout->addWidget(new QLabel(tr("Region:")), 0, 0);
-  filter_layout->addWidget(m_region_combo, 0, 1);
+  filter_layout->addWidget(m_region_combo, 0, 1, 1, -1);
   filter_layout->addWidget(new QLabel(tr("Name:")), 1, 0);
   filter_layout->addWidget(m_edit_name, 1, 1, 1, -1);
   filter_layout->addWidget(new QLabel(tr("Game ID:")), 2, 0);
@@ -91,8 +93,8 @@ void NetPlayBrowser::CreateWidgets()
   filter_layout->addWidget(m_radio_all, 3, 1);
   filter_layout->addWidget(m_radio_public, 3, 2);
   filter_layout->addWidget(m_radio_private, 3, 3);
-  filter_layout->addItem(new QSpacerItem(4, 1, QSizePolicy::Expanding), 2, 4);
-  filter_layout->addWidget(m_check_hide_incompatible, 4, 1);
+  filter_layout->addItem(new QSpacerItem(4, 1, QSizePolicy::Expanding), 3, 4);
+  filter_layout->addWidget(m_check_hide_incompatible, 4, 1, 1, -1);
 
   layout->addWidget(m_table_widget);
   layout->addWidget(filter_box);
