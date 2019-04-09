@@ -85,6 +85,9 @@ NetPlayClient::~NetPlayClient()
       m_MD5_thread.join();
     m_do_loop.Clear();
     m_thread.join();
+
+    m_chunked_data_receive_queue.clear();
+    m_dialog->HideChunkedProgressDialog();
   }
 
   if (m_server)
@@ -365,14 +368,17 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 cid;
     packet >> cid;
 
-    OnData(m_chunked_data_receive_queue[cid]);
-    m_chunked_data_receive_queue.erase(m_chunked_data_receive_queue.find(cid));
-    m_dialog->HideChunkedProgressDialog();
+    if (m_chunked_data_receive_queue.count(cid))
+    {
+      OnData(m_chunked_data_receive_queue[cid]);
+      m_chunked_data_receive_queue.erase(cid);
+      m_dialog->HideChunkedProgressDialog();
 
-    sf::Packet complete_packet;
-    complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
-    complete_packet << cid;
-    Send(complete_packet, CHUNKED_DATA_CHANNEL);
+      sf::Packet complete_packet;
+      complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
+      complete_packet << cid;
+      Send(complete_packet, CHUNKED_DATA_CHANNEL);
+    }
   }
   break;
 
@@ -381,21 +387,37 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 cid;
     packet >> cid;
 
-    while (!packet.endOfPacket())
+    if (m_chunked_data_receive_queue.count(cid))
     {
-      u8 byte;
-      packet >> byte;
-      m_chunked_data_receive_queue[cid] << byte;
+      while (!packet.endOfPacket())
+      {
+        u8 byte;
+        packet >> byte;
+        m_chunked_data_receive_queue[cid] << byte;
+      }
+
+      m_dialog->SetChunkedProgress(m_local_player->pid,
+                                   m_chunked_data_receive_queue[cid].getDataSize());
+
+      sf::Packet progress_packet;
+      progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
+      progress_packet << cid;
+      progress_packet << sf::Uint64{m_chunked_data_receive_queue[cid].getDataSize()};
+      Send(progress_packet, CHUNKED_DATA_CHANNEL);
     }
+  }
+  break;
 
-    m_dialog->SetChunkedProgress(m_local_player->pid,
-                                 m_chunked_data_receive_queue[cid].getDataSize());
+  case NP_MSG_CHUNKED_DATA_ABORT:
+  {
+    u32 cid;
+    packet >> cid;
 
-    sf::Packet progress_packet;
-    progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
-    progress_packet << cid;
-    progress_packet << sf::Uint64{m_chunked_data_receive_queue[cid].getDataSize()};
-    Send(progress_packet, CHUNKED_DATA_CHANNEL);
+    if (m_chunked_data_receive_queue.count(cid))
+    {
+      m_chunked_data_receive_queue.erase(cid);
+      m_dialog->HideChunkedProgressDialog();
+    }
   }
   break;
 

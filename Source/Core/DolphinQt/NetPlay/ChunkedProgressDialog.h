@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 
+class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 class QProgressBar;
@@ -27,6 +28,8 @@ public:
   void show(const QString& title, u64 data_size, const std::vector<int>& players);
   void SetProgress(int pid, u64 progress);
 
+  void reject() override;
+
 private:
   void CreateWidgets();
   void ConnectWidgets();
@@ -38,4 +41,5 @@ private:
   QGroupBox* m_progress_box;
   QVBoxLayout* m_progress_layout;
   QVBoxLayout* m_main_layout;
+  QDialogButtonBox* m_button_box;
 };

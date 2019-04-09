@@ -53,15 +53,18 @@ void ChunkedProgressDialog::CreateWidgets()
   m_main_layout = new QVBoxLayout;
   m_progress_box = new QGroupBox;
   m_progress_layout = new QVBoxLayout;
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::NoButton);
 
   m_progress_box->setLayout(m_progress_layout);
 
   m_main_layout->addWidget(m_progress_box);
+  m_main_layout->addWidget(m_button_box);
   setLayout(m_main_layout);
 }
 
 void ChunkedProgressDialog::ConnectWidgets()
 {
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &ChunkedProgressDialog::reject);
 }
 
 void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
@@ -88,6 +91,21 @@ void ChunkedProgressDialog::show(const QString& title, const u64 data_size,
   auto client = Settings::Instance().GetNetPlayClient();
   if (!client)
     return;
+
+  if (Settings::Instance().GetNetPlayServer())
+  {
+    m_button_box->setStandardButtons(QDialogButtonBox::Cancel);
+    QPushButton* cancel_button = m_button_box->button(QDialogButtonBox::Cancel);
+    cancel_button->setAutoDefault(false);
+    cancel_button->setDefault(false);
+  }
+  else
+  {
+    m_button_box->setStandardButtons(QDialogButtonBox::Close);
+    QPushButton* close_button = m_button_box->button(QDialogButtonBox::Close);
+    close_button->setAutoDefault(false);
+    close_button->setDefault(false);
+  }
 
   for (const auto* player : client->GetPlayers())
   {
@@ -120,4 +138,14 @@ void ChunkedProgressDialog::SetProgress(const int pid, const u64 progress)
                                          QString::fromStdString(StringFromFormat("%.2f", acquired)),
                                          QString::fromStdString(StringFromFormat("%.2f", total))));
   m_progress_bars[pid]->setValue(prog);
+}
+
+void ChunkedProgressDialog::reject()
+{
+  auto server = Settings::Instance().GetNetPlayServer();
+
+  if (server)
+    server->AbortGameStart();
+
+  QDialog::reject();
 }
