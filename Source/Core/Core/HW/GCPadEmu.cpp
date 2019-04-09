@@ -15,7 +15,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 
 #include "InputCommon/GCPadStatus.h"
@@ -102,10 +101,10 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      // i18n: Treat a controller as always being connected regardless of what
-      // devices the user actually has plugged in
-      m_always_connected = new ControllerEmu::BooleanSetting(_trans("Always Connected"), false));
+  m_options->AddSetting(&m_always_connected_setting,
+                        // i18n: Treat a controller as always being connected regardless of what
+                        // devices the user actually has plugged in
+                        _trans("Always Connected"), false);
 }
 
 std::string GCPad::GetName() const
@@ -143,7 +142,7 @@ GCPadStatus GCPad::GetInput() const
   const auto lock = GetStateLock();
   GCPadStatus pad = {};
 
-  if (!(m_always_connected->GetValue() || IsDefaultDeviceConnected()))
+  if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected()))
   {
     pad.isConnected = false;
     return pad;

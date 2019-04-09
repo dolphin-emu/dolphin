@@ -10,11 +10,9 @@
 #include <QTimer>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
-#include "DolphinQt/Config/Mapping/MappingBool.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
-#include "DolphinQt/Config/Mapping/MappingRadio.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Settings.h"
 
@@ -22,7 +20,6 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 
@@ -109,30 +106,25 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     m_buttons.push_back(button);
   }
 
-  for (auto& numeric : group->numeric_settings)
+  for (auto& setting : group->numeric_settings)
   {
-    auto* spinbox = new MappingNumeric(this, numeric.get());
-    form_layout->addRow(tr(numeric->m_name.c_str()), spinbox);
-  }
+    QWidget* setting_widget = nullptr;
 
-  for (auto& boolean : group->boolean_settings)
-  {
-    if (!boolean->IsExclusive())
-      continue;
+    switch (setting->GetType())
+    {
+    case ControllerEmu::SettingType::Double:
+      setting_widget = new MappingDouble(
+          this, static_cast<ControllerEmu::NumericSetting<double>*>(setting.get()));
+      break;
 
-    auto* checkbox = new MappingRadio(this, boolean.get());
+    case ControllerEmu::SettingType::Bool:
+      setting_widget =
+          new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
+      break;
+    }
 
-    form_layout->addRow(checkbox);
-  }
-
-  for (auto& boolean : group->boolean_settings)
-  {
-    if (boolean->IsExclusive())
-      continue;
-
-    auto* checkbox = new MappingBool(this, boolean.get());
-
-    form_layout->addRow(checkbox);
+    if (setting_widget)
+      form_layout->addRow(tr(setting->GetUIName()), setting_widget);
   }
 
   if (need_indicator)

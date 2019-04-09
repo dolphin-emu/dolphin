@@ -6,6 +6,7 @@
 
 #include <string>
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
@@ -22,10 +23,7 @@ public:
   ControlState GetThreshold() const;
 
 private:
-  enum
-  {
-    SETTING_THRESHOLD,
-    SETTING_DEADZONE,
-  };
+  SettingValue<double> m_threshold_setting;
+  SettingValue<double> m_deadzone_setting;
 };
 }  // namespace ControllerEmu

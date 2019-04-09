@@ -16,7 +16,6 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
@@ -32,12 +31,36 @@ Cursor::Cursor(const std::string& name_)
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
+  // Default values are optimized for "Super Mario Galaxy 2".
+  // This seems to be acceptable for a good number of games.
 
-  boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Relative Input"), false));
-  boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Auto-Hide"), false));
+  AddSetting(&m_vertical_offset_setting,
+             // i18n: Refers to a positional offset applied to an emulated wiimote.
+             {_trans("Vertical Offset"),
+              // i18n: The symbol/abbreviation for centimeters.
+              _trans("cm")},
+             10, -100, 100);
+
+  AddSetting(&m_yaw_setting,
+             // i18n: Refers to an amount of rotational movement about the "yaw" axis.
+             {_trans("Total Yaw"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("°"),
+              // i18n: Refers to emulated wii remote movements.
+              _trans("Total rotation about the yaw axis.")},
+             15, 0, 180);
+
+  AddSetting(&m_pitch_setting,
+             // i18n: Refers to an amount of rotational movement about the "pitch" axis.
+             {_trans("Total Pitch"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("°"),
+              // i18n: Refers to emulated wii remote movements.
+              _trans("Total rotation about the pitch axis.")},
+             15, 0, 180);
+
+  AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
+  AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
 }
 
 Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
@@ -81,7 +104,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   const double max_z_step = STEP_Z_PER_SEC / 1000.0 * ms_since_update;
 
   // Apply deadzone to z:
-  const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+  const ControlState deadzone = GetDeadzonePercentage();
   z = std::copysign(std::max(0.0, std::abs(z) - deadzone) / (1.0 - deadzone), z);
 
   // Smooth out z movement:
@@ -89,7 +112,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   m_state.z += MathUtil::Clamp(z - m_state.z, -max_z_step, max_z_step);
 
   // Relative input:
-  if (boolean_settings[0]->GetValue())
+  if (m_relative_setting.GetValue())
   {
     // Recenter:
     if (controls[7]->control_ref->State() > BUTTON_THRESHOLD)
@@ -112,12 +135,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
 
   StateData result = m_state;
 
-  // Adjust cursor according to settings:
-  result.x *= (numeric_settings[SETTING_WIDTH]->GetValue() * 2);
-  result.y *= (numeric_settings[SETTING_HEIGHT]->GetValue() * 2);
-  result.y += (numeric_settings[SETTING_CENTER]->GetValue() - 0.5);
-
-  const bool autohide = boolean_settings[1]->GetValue();
+  const bool autohide = m_autohide_setting.GetValue();
 
   // Auto-hide timer:
   // TODO: should Z movement reset this?
@@ -142,6 +160,21 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   }
 
   return result;
+}
+
+ControlState Cursor::GetTotalYaw() const
+{
+  return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
+}
+
+ControlState Cursor::GetTotalPitch() const
+{
+  return m_pitch_setting.GetValue() * MathUtil::TAU / 360;
+}
+
+ControlState Cursor::GetVerticalOffset() const
+{
+  return m_vertical_offset_setting.GetValue() / 100;
 }
 
 }  // namespace ControllerEmu

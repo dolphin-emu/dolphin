@@ -100,13 +100,13 @@ std::optional<u32> SquareStickGate::GetIdealCalibrationSampleCount() const
 ReshapableInput::ReshapableInput(std::string name, std::string ui_name, GroupType type)
     : ControlGroup(std::move(name), std::move(ui_name), type)
 {
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
+  AddDeadzoneSetting(&m_deadzone_setting, 50);
 }
 
 ControlState ReshapableInput::GetDeadzoneRadiusAtAngle(double angle) const
 {
   // FYI: deadzone is scaled by input radius which allows the shape to match.
-  return GetInputRadiusAtAngle(angle) * numeric_settings[SETTING_DEADZONE]->GetValue();
+  return GetInputRadiusAtAngle(angle) * GetDeadzonePercentage();
 }
 
 ControlState ReshapableInput::GetInputRadiusAtAngle(double angle) const
@@ -118,6 +118,11 @@ ControlState ReshapableInput::GetInputRadiusAtAngle(double angle) const
   }
 
   return GetCalibrationDataRadiusAtAngle(m_calibration, angle);
+}
+
+ControlState ReshapableInput::GetDeadzonePercentage() const
+{
+  return m_deadzone_setting.GetValue() / 100;
 }
 
 ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationData& data,
@@ -267,7 +272,7 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   }
 
   // Apply deadzone as a percentage of the user-defined calibration shape/size:
-  const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+  const ControlState deadzone = GetDeadzonePercentage();
   dist = std::max(0.0, dist - deadzone) / (1.0 - deadzone);
 
   // Scale to the gate shape/radius:

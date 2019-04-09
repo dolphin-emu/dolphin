@@ -10,7 +10,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/KeyboardStatus.h"
 
 static const u16 keys0_bitmasks[] = {KEYMASK_HOME,       KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN,

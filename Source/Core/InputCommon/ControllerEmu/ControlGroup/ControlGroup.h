@@ -13,9 +13,16 @@
 
 namespace ControllerEmu
 {
-class BooleanSetting;
 class Control;
+
+class NumericSettingBase;
+struct NumericSettingDetails;
+
+template <typename T>
 class NumericSetting;
+
+template <typename T>
+class SettingValue;
 
 enum class GroupType
 {
@@ -46,12 +53,22 @@ public:
 
   void SetControlExpression(int index, const std::string& expression);
 
+  template <typename T>
+  void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,
+                  std::common_type_t<T> default_value, std::common_type_t<T> min_value = {},
+                  std::common_type_t<T> max_value = T(100))
+  {
+    numeric_settings.emplace_back(
+        std::make_unique<NumericSetting<T>>(value, details, default_value, min_value, max_value));
+  }
+
+  void AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone);
+
   const std::string name;
   const std::string ui_name;
   const GroupType type;
 
   std::vector<std::unique_ptr<Control>> controls;
-  std::vector<std::unique_ptr<NumericSetting>> numeric_settings;
-  std::vector<std::unique_ptr<BooleanSetting>> boolean_settings;
+  std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
 };
 }  // namespace ControllerEmu

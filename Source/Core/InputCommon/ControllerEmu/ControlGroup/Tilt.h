@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -28,9 +29,6 @@ public:
   StateData GetState();
 
 private:
-  enum
-  {
-    SETTING_MAX_ANGLE = ReshapableInput::SETTING_COUNT,
-  };
+  SettingValue<double> m_max_angle_setting;
 };
 }  // namespace ControllerEmu

@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "Common/MathUtil.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/WiimoteInputSettings.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -186,25 +187,28 @@ WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3&
 
 Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group)
 {
-  const auto cursor = ir_group->GetState(true);
-
   using Common::Matrix33;
   using Common::Matrix44;
 
-  // Values are optimized for default settings in "Super Mario Galaxy 2"
-  // This seems to be acceptable for a good number of games.
-  constexpr float YAW_ANGLE = 0.1472f;
-  constexpr float PITCH_ANGLE = 0.121f;
-
   // Nintendo recommends a distance of 1-3 meters.
   constexpr float NEUTRAL_DISTANCE = 2.f;
-
   constexpr float MOVE_DISTANCE = 1.f;
 
+  // When the sensor bar position is on bottom, apply the "offset" setting negatively.
+  // This is kinda odd but it does seem to maintain consistent cursor behavior.
+  const bool sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
+
+  const float height = ir_group->GetVerticalOffset() * (sensor_bar_on_top ? 1 : -1);
+
+  const float yaw_scale = ir_group->GetTotalYaw() / 2;
+  const float pitch_scale = ir_group->GetTotalPitch() / 2;
+
+  const auto cursor = ir_group->GetState(true);
+
   return Matrix44::Translate({0, MOVE_DISTANCE * float(cursor.z), 0}) *
-         Matrix44::FromMatrix33(Matrix33::RotateX(PITCH_ANGLE * cursor.y) *
-                                Matrix33::RotateZ(YAW_ANGLE * cursor.x)) *
-         Matrix44::Translate({0, -NEUTRAL_DISTANCE, 0});
+         Matrix44::FromMatrix33(Matrix33::RotateX(pitch_scale * cursor.y) *
+                                Matrix33::RotateZ(yaw_scale * cursor.x)) *
+         Matrix44::Translate({0, -NEUTRAL_DISTANCE, height});
 }
 
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,

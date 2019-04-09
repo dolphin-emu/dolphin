@@ -12,7 +12,6 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
-#include "Core/Config/SYSCONFSettings.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 namespace WiimoteEmu
@@ -84,13 +83,9 @@ void CameraLogic::Update(const Common::Matrix44& transform)
   // This seems to be acceptable for a good number of games.
   constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
 
-  // Emulate a sensor bar height that matches the config.
-  const bool sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
-  const float sensor_bar_height = sensor_bar_on_top ? 0.11 : -0.11;
-
   const std::array<Vec3, NUM_POINTS> leds{
-      Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, sensor_bar_height},
-      Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, sensor_bar_height},
+      Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
+      Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };
 
   const auto camera_view = Matrix44::Perspective(CAMERA_FOV_Y, CAMERA_ASPECT_RATIO, 0.001f, 1000) *

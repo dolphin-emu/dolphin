@@ -77,9 +77,6 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
-    <ClCompile Include="ControllerEmu\Setting\BooleanSetting.cpp">
-      <Filter>ControllerEmu\Setting</Filter>
-    </ClCompile>
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp">
       <Filter>ControllerEmu\Setting</Filter>
     </ClCompile>
@@ -170,13 +167,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerEmu\Setting\BooleanSetting.h">
-      <Filter>ControllerEmu\Setting</Filter>
-    </ClInclude>
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h">
-      <Filter>ControllerEmu\Setting</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\Setting\Setting.h">
       <Filter>ControllerEmu\Setting</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\DInput\DInput.h">

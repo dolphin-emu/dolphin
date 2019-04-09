@@ -36,11 +36,8 @@ public:
   ControlState GetMaxDistance() const;
 
 private:
-  enum
-  {
-    SETTING_DISTANCE = ReshapableInput::SETTING_COUNT,
-    SETTING_JERK,
-    SETTING_ANGLE,
-  };
+  SettingValue<double> m_distance_setting;
+  SettingValue<double> m_jerk_setting;
+  SettingValue<double> m_angle_setting;
 };
 }  // namespace ControllerEmu

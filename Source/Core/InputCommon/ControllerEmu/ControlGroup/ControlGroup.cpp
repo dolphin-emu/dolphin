@@ -11,7 +11,6 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
@@ -27,30 +26,26 @@ ControlGroup::ControlGroup(const std::string& name_, const std::string& ui_name_
 {
 }
 
+void ControlGroup::AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone)
+{
+  AddSetting(value,
+             {_trans("Dead Zone"),
+              // i18n: The percent symbol.
+              _trans("%"),
+              // i18n: Refers to the dead-zone setting of gamepad inputs.
+              _trans("Input strength to ignore.")},
+             0, 0, maximum_deadzone);
+}
+
 ControlGroup::~ControlGroup() = default;
 
 void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
-  std::string group(base + name + "/");
+  const std::string group(base + name + "/");
 
-  // settings
-  for (auto& s : numeric_settings)
-  {
-    if (s->m_type == SettingType::VIRTUAL)
-      continue;
-
-    sec->Get(group + s->m_name, &s->m_value, s->m_default_value * 100);
-    s->m_value /= 100;
-  }
-
-  for (auto& s : boolean_settings)
-  {
-    if (s->m_type == SettingType::VIRTUAL)
-      continue;
-
-    sec->Get(group + s->m_name, &s->m_value, s->m_default_value);
-  }
+  for (auto& setting : numeric_settings)
+    setting->LoadFromIni(*sec, group);
 
   for (auto& c : controls)
   {
@@ -92,23 +87,10 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
 void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
-  std::string group(base + name + "/");
+  const std::string group(base + name + "/");
 
-  for (auto& s : numeric_settings)
-  {
-    if (s->m_type == SettingType::VIRTUAL)
-      continue;
-
-    sec->Set(group + s->m_name, s->m_value * 100.0, s->m_default_value * 100.0);
-  }
-
-  for (auto& s : boolean_settings)
-  {
-    if (s->m_type == SettingType::VIRTUAL)
-      continue;
-
-    sec->Set(group + s->m_name, s->m_value, s->m_default_value);
-  }
+  for (auto& setting : numeric_settings)
+    setting->SaveToIni(*sec, group);
 
   for (auto& c : controls)
   {

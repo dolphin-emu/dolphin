@@ -24,7 +24,13 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
 
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.9, 0, 180));
+  AddSetting(&m_max_angle_setting,
+             {_trans("Angle"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("°"),
+              // i18n: Refers to emulated wii remote movement.
+              _trans("Maximum tilt angle.")},
+             90, 0, 180);
 }
 
 Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
@@ -48,7 +54,7 @@ Tilt::StateData Tilt::GetState()
 
 ControlState Tilt::GetGateRadiusAtAngle(double ang) const
 {
-  const ControlState max_tilt_angle = numeric_settings[SETTING_MAX_ANGLE]->GetValue() / 1.8;
+  const ControlState max_tilt_angle = m_max_angle_setting.GetValue() / 180;
   return SquareStickGate(max_tilt_angle).GetRadiusAtAngle(ang);
 }
 

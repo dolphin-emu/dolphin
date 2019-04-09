@@ -13,11 +13,9 @@
 class ControlGroupBox;
 class InputConfig;
 class IOWindow;
-class MappingBool;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;
-class MappingRadio;
 class QGroupBox;
 
 namespace ControllerEmu

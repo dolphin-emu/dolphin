@@ -52,7 +52,6 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Slider.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Tilt.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp" />
-    <ClCompile Include="ControllerEmu\Setting\BooleanSetting.cpp" />
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
     <ClCompile Include="ControllerInterface\Device.cpp" />
@@ -92,9 +91,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Slider.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Tilt.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h" />
-    <ClInclude Include="ControllerEmu\Setting\BooleanSetting.h" />
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h" />
-    <ClInclude Include="ControllerEmu\Setting\Setting.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />
     <ClInclude Include="ControllerInterface\Device.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h" />

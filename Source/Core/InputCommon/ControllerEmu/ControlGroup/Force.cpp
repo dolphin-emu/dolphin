@@ -25,15 +25,30 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
 
-  // Maximum swing movement (centimeters).
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Distance"), 0.25, 1, 100));
+  AddSetting(&m_distance_setting,
+             {_trans("Distance"),
+              // i18n: The symbol/abbreviation for centimeters.
+              _trans("cm"),
+              // i18n: Refering to emulated wii remote swing movement.
+              _trans("Distance of travel from neutral position.")},
+             25, 0, 100);
 
-  // Maximum jerk (m/s^3).
-  // i18n: "Jerk" as it relates to physics. The time derivative of acceleration.
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Jerk"), 5.0, 1, 1000));
+  AddSetting(&m_jerk_setting,
+             // i18n: "Jerk" as it relates to physics. The time derivative of acceleration.
+             {_trans("Jerk"),
+              // i18n: The symbol/abbreviation for meters per second to the 3rd power.
+              _trans("m/s³"),
+              // i18n: Refering to emulated wii remote swing movement.
+              _trans("Maximum change in acceleration.")},
+             500, 1, 1000);
 
-  // Angle of twist applied at the extremities of the swing (degrees).
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.45, 0, 180));
+  AddSetting(&m_angle_setting,
+             {_trans("Angle"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("°"),
+              // i18n: Refering to emulated wii remote swing movement.
+              _trans("Rotation applied at extremities of swing.")},
+             45, 0, 180);
 }
 
 Force::ReshapeData Force::GetReshapableState(bool adjusted)
@@ -56,7 +71,7 @@ Force::StateData Force::GetState(bool adjusted)
   if (adjusted)
   {
     // Apply deadzone to z.
-    const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+    const ControlState deadzone = GetDeadzonePercentage();
     z = std::copysign(std::max(0.0, std::abs(z) - deadzone) / (1.0 - deadzone), z);
   }
 
@@ -66,22 +81,22 @@ Force::StateData Force::GetState(bool adjusted)
 ControlState Force::GetGateRadiusAtAngle(double) const
 {
   // Just a circle of the configured distance:
-  return numeric_settings[SETTING_DISTANCE]->GetValue();
+  return GetMaxDistance();
 }
 
 ControlState Force::GetMaxJerk() const
 {
-  return numeric_settings[SETTING_JERK]->GetValue() * 100;
+  return m_jerk_setting.GetValue();
 }
 
 ControlState Force::GetTwistAngle() const
 {
-  return numeric_settings[SETTING_ANGLE]->GetValue() * MathUtil::TAU / 3.60;
+  return m_angle_setting.GetValue() * MathUtil::TAU / 360;
 }
 
 ControlState Force::GetMaxDistance() const
 {
-  return numeric_settings[SETTING_DISTANCE]->GetValue();
+  return m_distance_setting.GetValue() / 100;
 }
 
 ControlState Force::GetDefaultInputRadiusAtAngle(double) const

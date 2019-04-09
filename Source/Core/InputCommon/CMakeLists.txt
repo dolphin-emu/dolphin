@@ -17,7 +17,6 @@ add_library(inputcommon
   ControllerEmu/ControlGroup/Slider.cpp
   ControllerEmu/ControlGroup/Tilt.cpp
   ControllerEmu/ControlGroup/Triggers.cpp
-  ControllerEmu/Setting/BooleanSetting.cpp
   ControllerEmu/Setting/NumericSetting.cpp
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/Device.cpp

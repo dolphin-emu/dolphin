@@ -158,7 +158,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   }
 
   // Deadzone for Z (forward/backward):
-  const double deadzone = cursor.numeric_settings[cursor.SETTING_DEADZONE]->GetValue();
+  const double deadzone = cursor.GetDeadzonePercentage();
   if (deadzone > 0.0)
   {
     p.setPen(DEADZONE_COLOR);
@@ -181,23 +181,12 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   }
 
   // TV screen or whatever you want to call this:
-  constexpr double tv_scale = 0.75;
-  constexpr double center_scale = 2.0 / 3.0;
-
-  const double tv_center = (cursor.numeric_settings[cursor.SETTING_CENTER]->GetValue() - 0.5);
-  const double tv_width = cursor.numeric_settings[cursor.SETTING_WIDTH]->GetValue();
-  const double tv_height = cursor.numeric_settings[cursor.SETTING_HEIGHT]->GetValue();
+  constexpr double TV_SCALE = 0.75;
 
   p.setPen(tv_pen_color);
   p.setBrush(tv_brush_color);
-  auto gate_polygon = GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetGateRadiusAtAngle(ang); }, scale);
-  for (auto& pt : gate_polygon)
-  {
-    pt = {pt.x() * tv_width, pt.y() * tv_height + tv_center * center_scale * scale};
-    pt *= tv_scale;
-  }
-  p.drawPolygon(gate_polygon);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&cursor](double ang) { return cursor.GetGateRadiusAtAngle(ang); }, scale * TV_SCALE));
 
   // Deadzone.
   p.setPen(DEADZONE_COLOR);
@@ -221,8 +210,8 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   {
     p.setPen(Qt::NoPen);
     p.setBrush(ADJ_INPUT_COLOR);
-    const QPointF pt(adj_coord.x / 2.0, (adj_coord.y - tv_center) / 2.0 + tv_center * center_scale);
-    p.drawEllipse(pt * scale * tv_scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale * TV_SCALE, INPUT_DOT_RADIUS,
+                  INPUT_DOT_RADIUS);
   }
 }
 
@@ -444,7 +433,7 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
   }
 
   // Deadzone for Z (forward/backward):
-  const double deadzone = force.numeric_settings[force.SETTING_DEADZONE]->GetValue();
+  const double deadzone = force.GetDeadzonePercentage();
   if (deadzone > 0.0)
   {
     p.setPen(DEADZONE_COLOR);

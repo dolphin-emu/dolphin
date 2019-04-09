@@ -41,8 +41,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace WiimoteEmu
 {
@@ -212,26 +210,28 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
-  // m_options->boolean_settings.emplace_back(
-  //    m_motion_plus_setting =
-  //        new ControllerEmu::BooleanSetting("Attach MotionPlus", _trans("Attach MotionPlus"),
-  //        true,
-  //                                          ControllerEmu::SettingType::NORMAL, false));
+  m_options->AddSetting(&m_speaker_pan_setting,
+                        {_trans("Speaker Pan"),
+                         // i18n: The percent symbol.
+                         _trans("%")},
+                        0, -100, 100);
 
-  m_options->boolean_settings.emplace_back(
-      new ControllerEmu::BooleanSetting("Forward Wiimote", _trans("Forward Wii Remote"), true,
-                                        ControllerEmu::SettingType::NORMAL, true));
-  m_options->boolean_settings.emplace_back(m_upright_setting = new ControllerEmu::BooleanSetting(
-                                               "Upright Wiimote", _trans("Upright Wii Remote"),
-                                               false, ControllerEmu::SettingType::NORMAL, true));
-  m_options->boolean_settings.emplace_back(m_sideways_setting = new ControllerEmu::BooleanSetting(
-                                               "Sideways Wiimote", _trans("Sideways Wii Remote"),
-                                               false, ControllerEmu::SettingType::NORMAL, true));
+  m_options->AddSetting(&m_battery_setting,
+                        {_trans("Battery"),
+                         // i18n: The percent symbol.
+                         _trans("%")},
+                        95, 0, 100);
 
-  m_options->numeric_settings.emplace_back(
-      std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -100, 100));
-  m_options->numeric_settings.emplace_back(
-      m_battery_setting = new ControllerEmu::NumericSetting(_trans("Battery"), 95.0 / 100, 0, 100));
+  // m_options->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
+
+  // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
+  // orientation where the wiimote points towards the left with the buttons towards you.
+  m_options->AddSetting(&m_upright_setting,
+                        {"Upright Wiimote", nullptr, nullptr, _trans("Upright Wii Remote")}, false);
+
+  m_options->AddSetting(&m_sideways_setting,
+                        {"Sideways Wiimote", nullptr, nullptr, _trans("Sideways Wii Remote")},
+                        false);
 
   // hotkeys
   groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
@@ -667,14 +667,14 @@ bool Wiimote::IsSideways() const
 {
   const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
   const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
-  return m_sideways_setting->GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
+  return m_sideways_setting.GetValue() ^ sideways_modifier_toggle ^ sideways_modifier_switch;
 }
 
 bool Wiimote::IsUpright() const
 {
   const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
   const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
-  return m_upright_setting->GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
+  return m_upright_setting.GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 }
 
 void Wiimote::SetRumble(bool on)

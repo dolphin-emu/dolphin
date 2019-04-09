@@ -81,7 +81,6 @@
     <QtMoc Include="Config\Mapping\HotkeyTAS.h" />
     <QtMoc Include="Config\Mapping\HotkeyWii.h" />
     <QtMoc Include="Config\Mapping\IOWindow.h" />
-    <QtMoc Include="Config\Mapping\MappingBool.h" />
     <QtMoc Include="Config\Mapping\MappingButton.h" />
     <QtMoc Include="Config\Mapping\MappingIndicator.h" />
     <QtMoc Include="Config\Mapping\MappingNumeric.h" />
@@ -239,7 +238,6 @@
     <ClCompile Include="$(QtMocOutPrefix)LogWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MD5Dialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)MappingBool.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingIndicator.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingNumeric.cpp" />
@@ -316,12 +314,10 @@
     <ClCompile Include="Config\Mapping\HotkeyTAS.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyWii.cpp" />
     <ClCompile Include="Config\Mapping\IOWindow.cpp" />
-    <ClCompile Include="Config\Mapping\MappingBool.cpp" />
     <ClCompile Include="Config\Mapping\MappingButton.cpp" />
     <ClCompile Include="Config\Mapping\MappingCommon.cpp" />
     <ClCompile Include="Config\Mapping\MappingIndicator.cpp" />
     <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
-    <ClCompile Include="Config\Mapping\MappingRadio.cpp" />
     <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
     <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
@@ -402,7 +398,6 @@
   <!--Put standard C/C++ headers here. Headers that are listed in the QtMoc ItemGroup must NOT be listed here.-->
   <ItemGroup>
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
-    <ClInclude Include="Config\Mapping\MappingRadio.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />

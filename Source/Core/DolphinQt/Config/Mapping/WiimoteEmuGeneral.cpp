@@ -16,7 +16,6 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/InputConfig.h"
 
 WiimoteEmuGeneral::WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
