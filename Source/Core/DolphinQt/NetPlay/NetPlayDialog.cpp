@@ -846,7 +846,8 @@ void NetPlayDialog::OnMsgStartGame()
   g_netplay_chat_ui =
       std::make_unique<NetPlayChatUI>([this](const std::string& message) { SendMessage(message); });
 
-  if (Settings::Instance().GetNetPlayClient()->GetNetSettings().m_GolfMode)
+  if (m_host_input_authority &&
+      Settings::Instance().GetNetPlayClient()->GetNetSettings().m_GolfMode)
   {
     g_netplay_golf_ui = std::make_unique<NetPlayGolfUI>(Settings::Instance().GetNetPlayClient());
   }
