@@ -944,13 +944,15 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+      NativeLibrary.LoadGameIniFile(mSelectedGameId);
+      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
               SettingsFile.KEY_WIIBIND_IR_PITCH, text_slider_value_pitch.getText().toString());
-      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
               SettingsFile.KEY_WIIBIND_IR_YAW, text_slider_value_yaw.getText().toString());
-      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
               SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
               text_slider_value_vertical_offset.getText().toString());
+      NativeLibrary.SaveGameIniFile(mSelectedGameId);
 
       NativeLibrary.ReloadWiimoteConfig();
 
