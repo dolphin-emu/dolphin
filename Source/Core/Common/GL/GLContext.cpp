@@ -108,7 +108,7 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
   }
 #endif
 #if HAVE_EGL
-  if (wsi.type == WindowSystemType::Headless)
+  if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
     context = std::make_unique<GLContextEGL>();
 #endif
 

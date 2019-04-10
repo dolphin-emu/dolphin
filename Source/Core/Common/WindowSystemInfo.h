@@ -11,7 +11,8 @@ enum class WindowSystemType
   MacOS,
   Android,
   X11,
-  Wayland
+  Wayland,
+  FBDev,
 };
 
 struct WindowSystemInfo
