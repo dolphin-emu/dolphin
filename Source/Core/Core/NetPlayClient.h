@@ -64,6 +64,9 @@ public:
   virtual void SetMD5Result(int pid, const std::string& result) = 0;
   virtual void AbortMD5() = 0;
 
+  virtual void OnIndexAdded(bool success, std::string error) = 0;
+  virtual void OnIndexRefreshFailed(std::string error) = 0;
+
   virtual void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
                                          const std::vector<int>& players) = 0;
   virtual void HideChunkedProgressDialog() = 0;

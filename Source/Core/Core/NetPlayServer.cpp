@@ -183,6 +183,9 @@ void NetPlayServer::SetupIndex()
 
   if (m_traversal_client)
   {
+    if (m_traversal_client->GetState() != TraversalClient::Connected)
+      return;
+
     session.server_id = std::string(g_TraversalClient->GetHostID().data(), 8);
   }
   else
@@ -201,7 +204,13 @@ void NetPlayServer::SetupIndex()
 
   session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
 
-  m_index.Add(session);
+  if (m_dialog != nullptr)
+    m_dialog->OnIndexAdded(m_index.Add(session), m_index.GetLastError());
+
+  m_index.SetErrorCallback([this] {
+    if (m_dialog != nullptr)
+      m_dialog->OnIndexRefreshFailed(m_index.GetLastError());
+  });
 }
 
 // called from ---NETPLAY--- thread

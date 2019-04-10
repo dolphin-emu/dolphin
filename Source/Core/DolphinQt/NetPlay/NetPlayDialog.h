@@ -60,6 +60,9 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
+  void OnIndexAdded(bool success, const std::string error) override;
+  void OnIndexRefreshFailed(const std::string error) override;
+
   bool IsRecording() override;
   std::string FindGame(const std::string& game) override;
   std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) override;

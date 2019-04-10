@@ -142,6 +142,8 @@ void NetPlayIndex::NotificationLoop()
     if (!json)
     {
       m_last_error = "BAD_JSON";
+      m_secret.clear();
+      m_error_callback();
       return;
     }
 
@@ -150,6 +152,8 @@ void NetPlayIndex::NotificationLoop()
     if (status != "OK")
     {
       m_last_error = std::move(status);
+      m_secret.clear();
+      m_error_callback();
       return;
     }
   }
@@ -317,4 +321,14 @@ std::optional<std::string> NetPlaySession::DecryptID(const std::string& password
 const std::string& NetPlayIndex::GetLastError() const
 {
   return m_last_error;
+}
+
+bool NetPlayIndex::HasActiveSession() const
+{
+  return !m_secret.empty();
+}
+
+void NetPlayIndex::SetErrorCallback(std::function<void()> function)
+{
+  m_error_callback = function;
 }
