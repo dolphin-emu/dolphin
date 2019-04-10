@@ -600,6 +600,12 @@ void CheckBreakPoints()
   }
 }
 
+void PowerPCState::SetSR(u32 index, u32 value)
+{
+  DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", pc, index, value);
+  sr[index] = value;
+}
+
 // FPSCR update functions
 
 void UpdateFPRF(double dvalue)

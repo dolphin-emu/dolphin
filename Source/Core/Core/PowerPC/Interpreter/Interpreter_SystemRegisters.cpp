@@ -45,6 +45,13 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
   FPURoundMode::SetSIMDMode(fp.RN, fp.NI);
 }
 
+static void UpdateFPSCR(UReg_FPSCR* fpscr)
+{
+  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
+  fpscr->FEX = (fpscr->VX & fpscr->VE) | (fpscr->OX & fpscr->OE) | (fpscr->UX & fpscr->UE) |
+               (fpscr->ZX & fpscr->ZE) | (fpscr->XX & fpscr->XE);
+}
+
 void Interpreter::mtfsb0x(UGeckoInstruction inst)
 {
   u32 b = 0x80000000 >> inst.CRBD;
@@ -53,7 +60,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    Helper_UpdateCR1();
+    PowerPC::ppcState.UpdateCR1();
 }
 
 // This instruction can affect FX
@@ -63,14 +70,14 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
   const u32 b = 0x80000000 >> bit;
 
   if (b & FPSCR_ANY_X)
-    SetFPException(b);
+    SetFPException(&FPSCR, b);
   else
     FPSCR |= b;
 
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    Helper_UpdateCR1();
+    PowerPC::ppcState.UpdateCR1();
 }
 
 void Interpreter::mtfsfix(UGeckoInstruction inst)
@@ -85,7 +92,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    Helper_UpdateCR1();
+    PowerPC::ppcState.UpdateCR1();
 }
 
 void Interpreter::mtfsfx(UGeckoInstruction inst)
@@ -102,7 +109,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    Helper_UpdateCR1();
+    PowerPC::ppcState.UpdateCR1();
 }
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
@@ -187,13 +194,6 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 
 // Segment registers. MMU control.
 
-static void SetSR(u32 index, u32 value)
-{
-  DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index,
-            value);
-  PowerPC::ppcState.sr[index] = value;
-}
-
 void Interpreter::mtsr(UGeckoInstruction inst)
 {
   if (MSR.PR)
@@ -204,7 +204,7 @@ void Interpreter::mtsr(UGeckoInstruction inst)
 
   const u32 index = inst.SR;
   const u32 value = rGPR[inst.RS];
-  SetSR(index, value);
+  PowerPC::ppcState.SetSR(index, value);
 }
 
 void Interpreter::mtsrin(UGeckoInstruction inst)
@@ -217,7 +217,7 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
 
   const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
   const u32 value = rGPR[inst.RS];
-  SetSR(index, value);
+  PowerPC::ppcState.SetSR(index, value);
 }
 
 void Interpreter::mftb(UGeckoInstruction inst)
@@ -525,7 +525,7 @@ void Interpreter::isync(UGeckoInstruction inst)
 
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
-  UpdateFPSCR();
+  UpdateFPSCR(&FPSCR);
   u32 fpflags = ((FPSCR.Hex >> (4 * (7 - inst.CRFS))) & 0xF);
   switch (inst.CRFS)
   {
@@ -562,9 +562,9 @@ void Interpreter::mffsx(UGeckoInstruction inst)
   // load from FPSCR
   // TODO(ector): grab all overflow flags etc and set them in FPSCR
 
-  UpdateFPSCR();
+  UpdateFPSCR(&FPSCR);
   rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
 
   if (inst.Rc)
-    Helper_UpdateCR1();
+    PowerPC::ppcState.UpdateCR1();
 }
