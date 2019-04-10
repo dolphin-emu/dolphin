@@ -52,7 +52,7 @@ public:
                                            bool prefer_gles = false);
 
 protected:
-  virtual bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core);
+  virtual bool Initialize(const WindowSystemInfo& wsi, bool stereo, bool core);
 
   Mode m_opengl_mode = Mode::Detect;
 

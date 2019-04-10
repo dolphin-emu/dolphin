@@ -28,7 +28,7 @@ public:
   void* GetFuncAddress(const std::string& name) override;
 
 protected:
-  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
+  bool Initialize(const WindowSystemInfo& wsi, bool stereo, bool core) override;
 
   static HGLRC CreateCoreContext(HDC dc, HGLRC share_context);
   static bool CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,

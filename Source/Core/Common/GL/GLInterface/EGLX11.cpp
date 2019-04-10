@@ -21,7 +21,7 @@ void GLContextEGLX11::Update()
 
 EGLDisplay GLContextEGLX11::OpenEGLDisplay()
 {
-  return eglGetDisplay(static_cast<Display*>(m_host_display));
+  return eglGetDisplay(static_cast<Display*>(m_wsi.display_connection));
 }
 
 EGLNativeWindowType GLContextEGLX11::GetEGLNativeWindow(EGLConfig config)
@@ -33,14 +33,14 @@ EGLNativeWindowType GLContextEGLX11::GetEGLNativeWindow(EGLConfig config)
   visTemplate.visualid = vid;
 
   int nVisuals;
-  XVisualInfo* vi =
-      XGetVisualInfo(static_cast<Display*>(m_host_display), VisualIDMask, &visTemplate, &nVisuals);
+  XVisualInfo* vi = XGetVisualInfo(static_cast<Display*>(m_wsi.display_connection), VisualIDMask,
+                                   &visTemplate, &nVisuals);
 
   if (m_render_window)
     m_render_window.reset();
 
-  m_render_window = GLX11Window::Create(static_cast<Display*>(m_host_display),
-                                        reinterpret_cast<Window>(m_host_window), vi);
+  m_render_window = GLX11Window::Create(static_cast<Display*>(m_wsi.display_connection),
+                                        reinterpret_cast<Window>(m_wsi.render_surface), vi);
   m_backbuffer_width = m_render_window->GetWidth();
   m_backbuffer_height = m_render_window->GetHeight();
 

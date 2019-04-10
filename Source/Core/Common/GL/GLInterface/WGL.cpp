@@ -223,13 +223,13 @@ void* GLContextWGL::GetFuncAddress(const std::string& name)
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextWGL::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
+bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
-  if (!window_handle)
+  if (!wsi.render_surface)
     return false;
 
   RECT window_rect = {};
-  m_window_handle = reinterpret_cast<HWND>(window_handle);
+  m_window_handle = reinterpret_cast<HWND>(wsi.render_surface);
   if (!GetClientRect(m_window_handle, &window_rect))
     return false;
 

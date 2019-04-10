@@ -30,7 +30,7 @@ const std::array<std::pair<int, int>, 9> GLContext::s_desktop_opengl_versions = 
 
 GLContext::~GLContext() = default;
 
-bool GLContext::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
+bool GLContext::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
   return false;
 }
@@ -119,7 +119,7 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
   if (prefer_gles)
     context->m_opengl_mode = Mode::OpenGLES;
 
-  if (!context->Initialize(wsi.display_connection, wsi.render_surface, stereo, core))
+  if (!context->Initialize(wsi, stereo, core))
     return nullptr;
 
   return context;

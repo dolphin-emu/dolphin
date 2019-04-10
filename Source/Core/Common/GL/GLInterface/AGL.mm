@@ -69,7 +69,7 @@ void GLContextAGL::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextAGL::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
+bool GLContextAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
   NSOpenGLPixelFormatAttribute attr[] = {
       NSOpenGLPFADoubleBuffer,
@@ -92,10 +92,10 @@ bool GLContextAGL::Initialize(void* display_handle, void* window_handle, bool st
     return false;
   }
 
-  if (!window_handle)
+  if (!wsi.render_surface)
     return true;
 
-  m_view = static_cast<NSView*>(window_handle);
+  m_view = static_cast<NSView*>(wsi.render_surface);
   m_opengl_mode = Mode::OpenGL;
   if (!AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height))
     return false;
