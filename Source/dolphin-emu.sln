@@ -81,7 +81,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "picojson", "..\Externals\pi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ed25519", "..\externals\ed25519\ed25519.vcxproj", "{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Core\Updater\Updater.vcxproj", "{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinUpdater", "Core\WinUpdater\WinUpdater.vcxproj", "{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreeSurround", "..\Externals\FreeSurround\FreeSurround.vcxproj", "{8498F2FA-5CA6-4169-9971-DE5B1FE6132C}"
 EndProject
