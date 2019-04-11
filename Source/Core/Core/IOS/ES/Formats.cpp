@@ -441,6 +441,11 @@ u64 TicketReader::GetTitleId() const
   return Common::swap64(m_bytes.data() + offsetof(Ticket, title_id));
 }
 
+u8 TicketReader::GetCommonKeyIndex() const
+{
+  return m_bytes[offsetof(Ticket, common_key_index)];
+}
+
 std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
 {
   u8 iv[16] = {};

@@ -28,9 +28,11 @@ constexpr size_t CLUSTER_SIZE = 0x8000;
 DiscScrubber::DiscScrubber() = default;
 DiscScrubber::~DiscScrubber() = default;
 
-bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
+bool DiscScrubber::SetupScrub(const Volume* disc, int block_size)
 {
-  m_filename = filename;
+  if (!disc)
+    return false;
+  m_disc = disc;
   m_block_size = block_size;
 
   if (CLUSTER_SIZE % m_block_size != 0)
@@ -40,20 +42,13 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
     return false;
   }
 
-  m_disc = CreateVolumeFromFilename(filename);
-  if (!m_disc)
-    return false;
-
   m_file_size = m_disc->GetSize();
 
   const size_t num_clusters = static_cast<size_t>(m_file_size / CLUSTER_SIZE);
 
   // Warn if not DVD5 or DVD9 size
   if (num_clusters != 0x23048 && num_clusters != 0x46090)
-  {
-    WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%zx blocks)", filename.c_str(),
-             num_clusters);
-  }
+    WARN_LOG(DISCIO, "Not a standard sized Wii disc! (%zx blocks)", num_clusters);
 
   // Table of free blocks
   m_free_table.resize(num_clusters, 1);
@@ -61,8 +56,6 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
   // Fill out table of free blocks
   const bool success = ParseDisc();
 
-  // Done with it; need it closed for the next part
-  m_disc.reset();
   m_block_count = 0;
 
   m_is_scrubbing = success;
@@ -72,10 +65,9 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 size_t DiscScrubber::GetNextBlock(File::IOFile& in, u8* buffer)
 {
   const u64 current_offset = m_block_count * m_block_size;
-  const u64 i = current_offset / CLUSTER_SIZE;
 
   size_t read_bytes = 0;
-  if (m_is_scrubbing && m_free_table[i])
+  if (CanBlockBeScrubbed(current_offset))
   {
     DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, current_offset);
     std::fill(buffer, buffer + m_block_size, 0x00);
@@ -90,6 +82,11 @@ size_t DiscScrubber::GetNextBlock(File::IOFile& in, u8* buffer)
 
   m_block_count++;
   return read_bytes;
+}
+
+bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
+{
+  return m_is_scrubbing && m_free_table[offset / CLUSTER_SIZE];
 }
 
 void DiscScrubber::MarkAsUsed(u64 offset, u64 size)

@@ -52,6 +52,7 @@
     <ClCompile Include="Volume.cpp" />
     <ClCompile Include="VolumeFileBlobReader.cpp" />
     <ClCompile Include="VolumeGC.cpp" />
+    <ClCompile Include="VolumeVerifier.cpp" />
     <ClCompile Include="VolumeWad.cpp" />
     <ClCompile Include="VolumeWii.cpp" />
     <ClCompile Include="WbfsBlob.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="Volume.h" />
     <ClInclude Include="VolumeFileBlobReader.h" />
     <ClInclude Include="VolumeGC.h" />
+    <ClInclude Include="VolumeVerifier.h" />
     <ClInclude Include="VolumeWad.h" />
     <ClInclude Include="VolumeWii.h" />
     <ClInclude Include="WbfsBlob.h" />

@@ -40,8 +40,8 @@ enum class EntryType
 };
 Q_DECLARE_METATYPE(EntryType);
 
-FilesystemWidget::FilesystemWidget(const UICommon::GameFile& game)
-    : m_game(game), m_volume(DiscIO::CreateVolumeFromFilename(game.GetFilePath()))
+FilesystemWidget::FilesystemWidget(std::shared_ptr<DiscIO::Volume> volume)
+    : m_volume(std::move(volume))
 {
   CreateWidgets();
   ConnectWidgets();
@@ -225,8 +225,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
         {
           if (const std::optional<u32> partition_type = m_volume->GetPartitionType(p))
           {
-            const std::string partition_name =
-                DiscIO::DirectoryNameForPartitionType(*partition_type);
+            const std::string partition_name = DiscIO::NameForPartitionType(*partition_type, true);
             ExtractPartition(p, folder + QChar(u'/') + QString::fromStdString(partition_name));
           }
         }
@@ -239,12 +238,6 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
       if (!folder.isEmpty())
         ExtractPartition(partition, folder);
     });
-    if (m_volume->IsEncryptedAndHashed())
-    {
-      menu->addSeparator();
-      menu->addAction(tr("Check Partition Integrity"), this,
-                      [this, partition] { CheckIntegrity(partition); });
-    }
     break;
   case EntryType::File:
     menu->addAction(tr("Extract File..."), this, [this, partition, path] {
@@ -327,36 +320,4 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
     ModalMessageBox::information(this, tr("Success"), tr("Successfully extracted file."));
   else
     ModalMessageBox::critical(this, tr("Error"), tr("Failed to extract file."));
-}
-
-void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
-{
-  QProgressDialog* dialog = new QProgressDialog(this);
-  std::future<bool> is_valid = std::async(
-      std::launch::async, [this, partition] { return m_volume->CheckIntegrity(partition); });
-
-  dialog->setLabelText(tr("Verifying integrity of partition..."));
-  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  dialog->setWindowTitle(tr("Verifying partition"));
-
-  dialog->setMinimum(0);
-  dialog->setMaximum(0);
-  dialog->show();
-
-  while (is_valid.wait_for(std::chrono::milliseconds(50)) != std::future_status::ready)
-    QCoreApplication::processEvents();
-
-  dialog->close();
-
-  if (is_valid.get())
-  {
-    ModalMessageBox::information(this, tr("Success"),
-                                 tr("Integrity check completed. No errors have been found."));
-  }
-  else
-  {
-    ModalMessageBox::critical(this, tr("Error"),
-                              tr("Integrity check for partition failed. The disc image is most "
-                                 "likely corrupted or has been patched incorrectly."));
-  }
 }

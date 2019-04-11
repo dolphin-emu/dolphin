@@ -78,7 +78,6 @@ QGroupBox* InfoWidget::CreateISODetails()
   QLineEdit* maker =
       CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (" +
                          m_game.GetMakerID() + ")");
-  QWidget* checksum = CreateChecksumComputer();
 
   layout->addRow(tr("Name:"), internal_name);
   layout->addRow(tr("File:"), file_path);
@@ -88,8 +87,6 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   if (!m_game.GetApploaderDate().empty())
     layout->addRow(tr("Apploader Date:"), CreateValueDisplay(m_game.GetApploaderDate()));
-
-  layout->addRow(tr("MD5 Checksum:"), checksum);
 
   group->setLayout(layout);
   return group;
@@ -197,54 +194,4 @@ void InfoWidget::ChangeLanguage()
 
   if (m_description)
     m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
-}
-
-QWidget* InfoWidget::CreateChecksumComputer()
-{
-  QWidget* widget = new QWidget();
-  QHBoxLayout* layout = new QHBoxLayout();
-  layout->setContentsMargins(0, 0, 0, 0);
-
-  m_checksum_result = new QLineEdit();
-  m_checksum_result->setReadOnly(true);
-  QPushButton* calculate = new QPushButton(tr("Compute"));
-  connect(calculate, &QPushButton::clicked, this, &InfoWidget::ComputeChecksum);
-  layout->addWidget(m_checksum_result);
-  layout->addWidget(calculate);
-
-  widget->setLayout(layout);
-  return widget;
-}
-
-void InfoWidget::ComputeChecksum()
-{
-  QCryptographicHash hash(QCryptographicHash::Md5);
-  hash.reset();
-  std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(m_game.GetFilePath()));
-  std::vector<u8> file_data(8 * 1080 * 1080);  // read 1MB at a time
-  u64 game_size = file->GetDataSize();
-  u64 read_offset = 0;
-
-  // a maximum of 1000 is used instead of game_size because otherwise 8GB games overflow the int
-  // typed maximum parameter
-  QProgressDialog* progress =
-      new QProgressDialog(tr("Computing MD5 Checksum"), tr("Cancel"), 0, 1000, this);
-  progress->setWindowTitle(tr("Computing MD5 Checksum"));
-  progress->setWindowFlags(progress->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  progress->setMinimumDuration(500);
-  progress->setWindowModality(Qt::WindowModal);
-  while (read_offset < game_size)
-  {
-    progress->setValue(static_cast<double>(read_offset) / static_cast<double>(game_size) * 1000);
-    if (progress->wasCanceled())
-      return;
-
-    u64 read_size = std::min<u64>(file_data.size(), game_size - read_offset);
-    file->Read(read_offset, read_size, file_data.data());
-    hash.addData(reinterpret_cast<char*>(file_data.data()), read_size);
-    read_offset += read_size;
-  }
-  m_checksum_result->setText(QString::fromUtf8(hash.result().toHex()));
-  Q_ASSERT(read_offset == game_size);
-  progress->setValue(1000);
 }

@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/Volume.h"
 
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/FilesystemWidget.h"
@@ -16,6 +19,7 @@
 #include "DolphinQt/Config/InfoWidget.h"
 #include "DolphinQt/Config/PatchesWidget.h"
 #include "DolphinQt/Config/PropertiesDialog.h"
+#include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
@@ -54,11 +58,22 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
                      tr("Gecko Codes"));
   tab_widget->addTab(GetWrappedWidget(info, this, padding_width, padding_height), tr("Info"));
 
-  if (DiscIO::IsDisc(game.GetPlatform()))
+  if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
   {
-    FilesystemWidget* filesystem = new FilesystemWidget(game);
-    tab_widget->addTab(GetWrappedWidget(filesystem, this, padding_width, padding_height),
-                       tr("Filesystem"));
+    std::shared_ptr<DiscIO::Volume> volume = DiscIO::CreateVolumeFromFilename(game.GetFilePath());
+    if (volume)
+    {
+      VerifyWidget* verify = new VerifyWidget(volume);
+      tab_widget->addTab(GetWrappedWidget(verify, this, padding_width, padding_height),
+                         tr("Verify"));
+
+      if (DiscIO::IsDisc(game.GetPlatform()))
+      {
+        FilesystemWidget* filesystem = new FilesystemWidget(volume);
+        tab_widget->addTab(GetWrappedWidget(filesystem, this, padding_width, padding_height),
+                           tr("Filesystem"));
+      }
+    }
   }
 
   layout->addWidget(tab_widget);

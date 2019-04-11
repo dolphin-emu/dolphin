@@ -84,6 +84,9 @@
     <ClCompile Include="WiiSaveBanner.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
+    <ClCompile Include="VolumeVerifier.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="WiiSaveBanner.h">
       <Filter>NAND</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeVerifier.h">
+      <Filter>Volume</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

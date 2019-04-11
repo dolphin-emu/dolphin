@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -78,8 +79,10 @@ bool IsNTSC(Region region);
 Country TypicalCountryForRegion(Region region);
 // Avoid using this function if you can. Country codes aren't always reliable region indicators.
 Region CountryCodeToRegion(u8 country_code, Platform platform,
-                           Region expected_region = Region::Unknown);
-Country CountryCodeToCountry(u8 country_code, Platform platform, Region region = Region::Unknown);
+                           Region expected_region = Region::Unknown,
+                           std::optional<u16> revision = {});
+Country CountryCodeToCountry(u8 country_code, Platform platform, Region region = Region::Unknown,
+                             std::optional<u16> revision = {});
 
 Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);

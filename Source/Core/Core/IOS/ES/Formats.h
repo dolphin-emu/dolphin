@@ -240,6 +240,7 @@ public:
 
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
+  u8 GetCommonKeyIndex() const;
   // Get the decrypted title key.
   std::array<u8, 16> GetTitleKey(const HLE::IOSC& iosc) const;
   // Same as the above version, but guesses the console type depending on the issuer

@@ -69,6 +69,11 @@ public:
     return INVALID_TICKET;
   }
   virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
+  virtual const std::vector<u8>& GetCertificateChain(const Partition& partition) const
+  {
+    return INVALID_CERT_CHAIN;
+  }
+  virtual std::vector<u64> GetContentOffsets() const { return {}; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
   virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
@@ -95,12 +100,17 @@ public:
   }
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
-  virtual bool CheckIntegrity(const Partition& partition) const { return false; }
+  virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
+  virtual bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const
+  {
+    return false;
+  }
   virtual Region GetRegion() const = 0;
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (may be inaccurate depending on the blob type)
   virtual u64 GetSize() const = 0;
+  virtual bool IsSizeAccurate() const = 0;
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
 
@@ -128,8 +138,9 @@ protected:
 
   static const IOS::ES::TicketReader INVALID_TICKET;
   static const IOS::ES::TMDReader INVALID_TMD;
+  static const std::vector<u8> INVALID_CERT_CHAIN;
 };
 
 std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
 
-}  // namespace
+}  // namespace DiscIO

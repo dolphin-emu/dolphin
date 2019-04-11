@@ -40,29 +40,34 @@ public:
   std::optional<u64> GetTitleID(const Partition& partition) const override;
   const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
+  const std::vector<u8>& GetCertificateChain(const Partition& partition) const override;
   const FileSystem* GetFileSystem(const Partition& partition) const override;
   static u64 EncryptedPartitionOffsetToRawOffset(u64 offset, const Partition& partition,
                                                  u64 partition_data_offset);
   u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const override;
-  std::string GetGameID(const Partition& partition) const override;
-  std::string GetGameTDBID(const Partition& partition) const override;
-  std::string GetMakerID(const Partition& partition) const override;
-  std::optional<u16> GetRevision(const Partition& partition) const override;
-  std::string GetInternalName(const Partition& partition) const override;
+  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
+  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition) const override;
-  std::optional<u8> GetDiscNumber(const Partition& partition) const override;
+  std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
   Platform GetVolumeType() const override;
-  bool SupportsIntegrityCheck() const override { return true; }
-  bool CheckIntegrity(const Partition& partition) const override;
+  bool SupportsIntegrityCheck() const override { return m_encrypted; }
+  bool CheckH3TableIntegrity(const Partition& partition) const override;
+  bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const override;
 
   Region GetRegion() const override;
-  Country GetCountry(const Partition& partition) const override;
+  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
+  bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+
+  static constexpr unsigned int H3_TABLE_SIZE = 0x18000;
 
   static constexpr unsigned int BLOCK_HEADER_SIZE = 0x0400;
   static constexpr unsigned int BLOCK_DATA_SIZE = 0x7C00;
@@ -77,6 +82,8 @@ private:
     Common::Lazy<std::unique_ptr<mbedtls_aes_context>> key;
     Common::Lazy<IOS::ES::TicketReader> ticket;
     Common::Lazy<IOS::ES::TMDReader> tmd;
+    Common::Lazy<std::vector<u8>> cert_chain;
+    Common::Lazy<std::vector<u8>> h3_table;
     Common::Lazy<std::unique_ptr<FileSystem>> file_system;
     Common::Lazy<u64> data_offset;
     u32 type;

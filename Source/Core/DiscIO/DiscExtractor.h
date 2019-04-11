@@ -15,7 +15,12 @@ class FileInfo;
 struct Partition;
 class Volume;
 
-std::string DirectoryNameForPartitionType(u32 partition_type);
+constexpr u32 PARTITION_DATA = 0;
+constexpr u32 PARTITION_UPDATE = 1;
+constexpr u32 PARTITION_CHANNEL = 2;  // Mario Kart Wii, Wii Fit, Wii Fit Plus, Rabbids Go Home
+constexpr u32 PARTITION_INSTALL = 3;  // Dragon Quest X only
+
+std::string NameForPartitionType(u32 partition_type, bool include_prefix);
 
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
              u8* buffer, u64 max_buffer_size, u64 offset_in_file = 0);
