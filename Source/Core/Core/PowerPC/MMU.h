@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -118,4 +119,6 @@ inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
   *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
   return true;
 }
+
+std::optional<u32> GetTranslatedAddress(u32 address);
 }  // namespace PowerPC

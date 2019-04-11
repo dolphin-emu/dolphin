@@ -1302,4 +1302,14 @@ static TranslateAddressResult TranslateAddress(u32 address)
   return TranslatePageAddress(address, flag);
 }
 
-}  // namespace
+std::optional<u32> GetTranslatedAddress(u32 address)
+{
+  auto result = TranslateAddress<XCheckTLBFlag::NoException>(address);
+  if (!result.Success())
+  {
+    return std::nullopt;
+  }
+  return std::optional<u32>(result.address);
+}
+
+}  // namespace PowerPC

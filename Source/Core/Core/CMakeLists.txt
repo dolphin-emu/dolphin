@@ -71,6 +71,7 @@ add_library(core
   HLE/HLE_Misc.cpp
   HLE/HLE_OS.cpp
   HLE/HLE_VarArgs.cpp
+  HW/AddressSpace.cpp
   HW/AudioInterface.cpp
   HW/CPU.cpp
   HW/DSP.cpp

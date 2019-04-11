@@ -109,6 +109,7 @@
     <ClCompile Include="HLE\HLE_OS.cpp" />
     <ClCompile Include="HLE\HLE_VarArgs.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
+    <ClCompile Include="HW\AddressSpace.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\CPU.cpp" />
     <ClCompile Include="HW\DSP.cpp" />
@@ -373,6 +374,7 @@
     <ClInclude Include="HLE\HLE_VarArgs.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
+    <ClInclude Include="HW\AddressSpace.h" />
     <ClInclude Include="HW\AudioInterface.h" />
     <ClInclude Include="HW\CPU.h" />
     <ClInclude Include="HW\DSP.h" />
