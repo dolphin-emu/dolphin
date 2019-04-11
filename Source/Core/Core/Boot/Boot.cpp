@@ -531,10 +531,11 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     const SConfig& config;
   };
 
+  PatchEngine::LoadPatches();
+  
   if (!std::visit(BootTitle(), boot->parameters))
     return false;
 
-  PatchEngine::LoadPatches();
   HLE::PatchFixedFunctions();
   return true;
 }

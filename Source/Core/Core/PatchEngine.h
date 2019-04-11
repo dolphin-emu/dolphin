@@ -4,10 +4,14 @@
 
 #pragma once
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+
+#include "DiscIO/Volume.h"
 
 class IniFile;
 
@@ -32,6 +36,7 @@ struct PatchEntry
 struct Patch
 {
   std::string name;
+  std::string path;  // Only for file patches
   std::vector<PatchEntry> entries;
   bool active = false;
   bool user_defined = false;  // False if this code is shipped with Dolphin.
@@ -40,6 +45,7 @@ struct Patch
 const char* PatchTypeAsString(PatchType type);
 
 int GetSpeedhackCycles(const u32 addr);
+std::unique_ptr<std::map<u64, std::vector<u8>>> CalculateDiscPatches(const DiscIO::Volume& disc);
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
                       IniFile& localIni);
 void LoadPatches();

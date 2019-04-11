@@ -28,6 +28,9 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+
 namespace PatchEngine
 {
 constexpr std::array<const char*, 3> s_patch_type_strings{{
@@ -37,6 +40,7 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
 }};
 
 static std::vector<Patch> s_on_frame;
+static std::vector<Patch> s_file_patches;
 static std::map<u32, int> s_speed_hacks;
 
 const char* PatchTypeAsString(PatchType type)
@@ -87,6 +91,14 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         currentPatch.name = line.substr(1, line.size() - 1);
         currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
         currentPatch.user_defined = (ini == &localIni);
+      }
+      else if (line[0] == '/') {
+        // Split mult-file patches
+        if(!currentPatch.path.empty()) {
+          patches.push_back(currentPatch);
+        }
+        currentPatch.entries.clear();
+        currentPatch.path = line.substr(1, line.size() - 1);
       }
       else
       {
@@ -165,6 +177,7 @@ void LoadPatches()
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
+  LoadPatchSection("FilePatch", s_file_patches, globalIni, localIni);
 
   // Check if I'm syncing Codes
   if (Config::Get(Config::MAIN_CODE_SYNC_OVERRIDE))
@@ -209,6 +222,52 @@ static void ApplyPatches(const std::vector<Patch>& patches)
       }
     }
   }
+}
+
+std::unique_ptr<std::map<u64, std::vector<u8>>> CalculateDiscPatches(const DiscIO::Volume &disc) {
+  if (s_file_patches.empty())
+    return nullptr;
+
+  auto partition = disc.GetGamePartition();
+  const DiscIO::FileSystem *fs = disc.GetFileSystem(partition);
+
+  auto patches = std::make_unique<std::map<u64, std::vector<u8>>>();
+
+  for (const auto& patch : s_file_patches) {
+    if (!patch.active)
+      continue;
+
+    const auto& file = fs->FindFileInfo(patch.path);
+    if (file) {
+      for (const auto& entry : patch.entries) {
+        u64 disc_offset = disc.PartitionOffsetToRawOffset(file->GetOffset(), partition) + entry.address;
+        std::vector<u8> data;
+        switch (entry.type)
+        {
+          case PatchType::Patch32Bit:
+            data.push_back(static_cast<u8>(entry.value>>24));
+            data.push_back(static_cast<u8>(entry.value>>16));
+          case PatchType::Patch16Bit:
+            data.push_back(static_cast<u8>(entry.value>>8));
+          case PatchType::Patch8Bit:
+            data.push_back(static_cast<u8>(entry.value));
+            break;
+          default:
+            // unknown patch type
+            // In the future we could add support for larger patch entries.
+            break;
+        }
+
+        //std::reverse(data.begin(), data.end()); // Reverse for endianness
+        patches->emplace(disc_offset, data);
+      }
+
+      INFO_LOG(ACTIONREPLAY, "Applied patch '%s' to file '%s'", patch.name.c_str(), patch.path.c_str());
+    }
+  }
+
+  // Return null 
+  return patches->empty() ? nullptr : std::move(patches);
 }
 
 // Requires MSR.DR, MSR.IR
@@ -261,6 +320,7 @@ bool ApplyFramePatches()
 void Shutdown()
 {
   s_on_frame.clear();
+  s_file_patches.clear();
   s_speed_hacks.clear();
   ActionReplay::ApplyCodes({});
   Gecko::Shutdown();
