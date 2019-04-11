@@ -163,7 +163,7 @@ struct ReportCoreAccel : IncludeCore, IncludeAccel, NoIR, NoExt
   u32 GetDataSize() const override { return 5; }
 };
 
-struct ReportCoreExt8 : IncludeCore, NoAccel, NoIR, IncludeExt<5, 8>
+struct ReportCoreExt8 : IncludeCore, NoAccel, NoIR, IncludeExt<2, 8>
 {
 };
 
