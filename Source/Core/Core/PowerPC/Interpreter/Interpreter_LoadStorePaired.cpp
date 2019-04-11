@@ -170,14 +170,15 @@ void QuantizeAndStore(double ps0, double ps1, u32 addr, u32 instW, u32 stScale)
   }
 }
 
-void Interpreter::Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW)
+static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRS,
+                            u32 instW)
 {
-  const UGQR gqr(rSPR(SPR_GQR0 + instI));
+  const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   const EQuantizeType stType = gqr.st_type;
   const unsigned int stScale = gqr.st_scale;
 
-  const double ps0 = rPS(instRS).PS0AsDouble();
-  const double ps1 = rPS(instRS).PS1AsDouble();
+  const double ps0 = ppcs->ps[instRS].PS0AsDouble();
+  const double ps1 = ppcs->ps[instRS].PS1AsDouble();
 
   switch (stType)
   {
@@ -245,9 +246,10 @@ std::pair<float, float> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
   return {ps0, ps1};
 }
 
-void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
+static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRD,
+                              u32 instW)
 {
-  UGQR gqr(rSPR(SPR_GQR0 + instI));
+  UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
   EQuantizeType ldType = gqr.ld_type;
   unsigned int ldScale = gqr.ld_scale;
 
@@ -296,12 +298,12 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
     break;
   }
 
-  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  if (ppcs->Exceptions & EXCEPTION_DSI)
   {
     return;
   }
 
-  rPS(instRD).SetBoth(ps0, ps1);
+  ppcs->ps[instRD].SetBoth(ps0, ps1);
 }
 
 void Interpreter::psq_l(UGeckoInstruction inst)
@@ -313,7 +315,7 @@ void Interpreter::psq_l(UGeckoInstruction inst)
   }
 
   const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
-  Helper_Dequantize(EA, inst.I, inst.RD, inst.W);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 }
 
 void Interpreter::psq_lu(UGeckoInstruction inst)
@@ -325,7 +327,7 @@ void Interpreter::psq_lu(UGeckoInstruction inst)
   }
 
   const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
-  Helper_Dequantize(EA, inst.I, inst.RD, inst.W);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.I, inst.RD, inst.W);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
@@ -343,7 +345,7 @@ void Interpreter::psq_st(UGeckoInstruction inst)
   }
 
   const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
-  Helper_Quantize(EA, inst.I, inst.RS, inst.W);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 }
 
 void Interpreter::psq_stu(UGeckoInstruction inst)
@@ -355,7 +357,7 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
   }
 
   const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
-  Helper_Quantize(EA, inst.I, inst.RS, inst.W);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.I, inst.RS, inst.W);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
@@ -367,19 +369,19 @@ void Interpreter::psq_stu(UGeckoInstruction inst)
 void Interpreter::psq_lx(UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
-  Helper_Dequantize(EA, inst.Ix, inst.RD, inst.Wx);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 }
 
 void Interpreter::psq_stx(UGeckoInstruction inst)
 {
   const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
-  Helper_Quantize(EA, inst.Ix, inst.RS, inst.Wx);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 }
 
 void Interpreter::psq_lux(UGeckoInstruction inst)
 {
   const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
-  Helper_Dequantize(EA, inst.Ix, inst.RD, inst.Wx);
+  Helper_Dequantize(&PowerPC::ppcState, EA, inst.Ix, inst.RD, inst.Wx);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
@@ -391,7 +393,7 @@ void Interpreter::psq_lux(UGeckoInstruction inst)
 void Interpreter::psq_stux(UGeckoInstruction inst)
 {
   const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
-  Helper_Quantize(EA, inst.Ix, inst.RS, inst.Wx);
+  Helper_Quantize(&PowerPC::ppcState, EA, inst.Ix, inst.RS, inst.Wx);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
