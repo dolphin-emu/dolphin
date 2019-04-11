@@ -197,6 +197,11 @@ bool NetPlayIndex::Add(NetPlaySession session)
   m_player_count = session.player_count;
   m_game = session.game_id;
 
+  m_session_thread_exit_event.Set();
+  if (m_session_thread.joinable())
+    m_session_thread.join();
+  m_session_thread_exit_event.Reset();
+
   m_session_thread = std::thread([this] { NotificationLoop(); });
 
   return true;
