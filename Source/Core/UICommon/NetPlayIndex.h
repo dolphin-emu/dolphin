@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -46,11 +47,15 @@ public:
   bool Add(NetPlaySession session);
   void Remove();
 
+  bool HasActiveSession() const;
+
   void SetPlayerCount(int player_count);
   void SetInGame(bool in_game);
   void SetGame(std::string game);
 
   const std::string& GetLastError() const;
+
+  void SetErrorCallback(std::function<void()> callback);
 
 private:
   void NotificationLoop();
@@ -64,4 +69,6 @@ private:
   std::thread m_session_thread;
 
   Common::Event m_session_thread_exit_event;
+
+  std::function<void()> m_error_callback = nullptr;
 };

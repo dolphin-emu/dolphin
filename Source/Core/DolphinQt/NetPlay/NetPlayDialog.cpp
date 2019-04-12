@@ -393,6 +393,19 @@ void NetPlayDialog::OnChat()
   });
 }
 
+void NetPlayDialog::OnIndexAdded(bool success, const std::string error)
+{
+  DisplayMessage(success ? tr("Successfully added to the NetPlay index") :
+                           tr("Failed to add this session to the NetPlay index: %1")
+                               .arg(QString::fromStdString(error)),
+                 success ? "green" : "red");
+}
+
+void NetPlayDialog::OnIndexRefreshFailed(const std::string error)
+{
+  DisplayMessage(QString::fromStdString(error), "red");
+}
+
 void NetPlayDialog::OnStart()
 {
   if (!Settings::Instance().GetNetPlayClient()->DoAllPlayersHaveGame())
