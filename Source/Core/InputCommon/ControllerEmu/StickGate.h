@@ -97,6 +97,9 @@ public:
   const CalibrationData& GetCalibrationData() const;
   void SetCalibrationData(CalibrationData data);
 
+  const ReshapeData& GetCenter() const;
+  void SetCenter(ReshapeData center);
+
 protected:
   ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0);
 
@@ -106,6 +109,7 @@ private:
 
   CalibrationData m_calibration;
   SettingValue<double> m_deadzone_setting;
+  ReshapeData m_center;
 };
 
 }  // namespace ControllerEmu
