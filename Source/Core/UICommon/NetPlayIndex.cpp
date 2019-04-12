@@ -56,7 +56,8 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     list_url.pop_back();
   }
 
-  auto response = request.Get(list_url, {{"X-Is-Dolphin", "1"}});
+  auto response =
+      request.Get(list_url, {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
   if (!response)
   {
     m_last_error = "NO_RESPONSE";
@@ -132,7 +133,7 @@ void NetPlayIndex::NotificationLoop()
         Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/active?secret=" + m_secret +
             "&player_count=" + std::to_string(m_player_count) +
             "&game=" + request.EscapeComponent(m_game) + "&in_game=" + std::to_string(m_in_game),
-        {{"X-Is-Dolphin", "1"}});
+        {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
     if (!response)
       continue;
@@ -162,17 +163,16 @@ void NetPlayIndex::NotificationLoop()
 bool NetPlayIndex::Add(NetPlaySession session)
 {
   Common::HttpRequest request;
-  auto response = request.Get(Config::Get(Config::NETPLAY_INDEX_URL) +
-                                  "/v0/session/add?name=" + request.EscapeComponent(session.name) +
-                                  "&region=" + request.EscapeComponent(session.region) +
-                                  "&game=" + request.EscapeComponent(session.game_id) +
-                                  "&password=" + std::to_string(session.has_password) +
-                                  "&method=" + session.method + "&server_id=" + session.server_id +
-                                  "&in_game=" + std::to_string(session.in_game) +
-                                  "&port=" + std::to_string(session.port) +
-                                  "&player_count=" + std::to_string(session.player_count) +
-                                  "&version=" + Common::scm_desc_str,
-                              {{"X-Is-Dolphin", "1"}});
+  auto response = request.Get(
+      Config::Get(Config::NETPLAY_INDEX_URL) +
+          "/v0/session/add?name=" + request.EscapeComponent(session.name) +
+          "&region=" + request.EscapeComponent(session.region) +
+          "&game=" + request.EscapeComponent(session.game_id) +
+          "&password=" + std::to_string(session.has_password) + "&method=" + session.method +
+          "&server_id=" + session.server_id + "&in_game=" + std::to_string(session.in_game) +
+          "&port=" + std::to_string(session.port) + "&player_count=" +
+          std::to_string(session.player_count) + "&version=" + Common::scm_desc_str,
+      {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
   if (!response.has_value())
   {
@@ -239,7 +239,7 @@ void NetPlayIndex::Remove()
   // We don't really care whether this fails or not
   Common::HttpRequest request;
   request.Get(Config::Get(Config::NETPLAY_INDEX_URL) + "/v0/session/remove?secret=" + m_secret,
-              {{"X-Is-Dolphin", "1"}});
+              {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
   m_secret.clear();
 }
