@@ -1650,6 +1650,11 @@ void NetPlayClient::UpdateDevices()
       if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
       {
         SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
+
+        if (SConfig::GetInstance().m_SIDevice[local_pad] == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+        {
+          GCAdapter::ResetDeviceType(local_pad);
+        }
       }
       else
       {
