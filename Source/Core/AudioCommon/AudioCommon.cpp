@@ -79,7 +79,7 @@ void Init()
     s_sound_stream->Init();
   }
 
-  UpdateSoundStream();
+  UpdateVolume();
   SetSoundStreamRunning(true);
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
@@ -164,7 +164,7 @@ bool SupportsVolumeChanges(std::string_view backend)
   return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
-void UpdateSoundStream()
+void UpdateVolume()
 {
   if (s_sound_stream)
   {
@@ -237,7 +237,7 @@ void IncreaseVolume(unsigned short offset)
   currentVolume += offset;
   if (currentVolume > AUDIO_VOLUME_MAX)
     currentVolume = AUDIO_VOLUME_MAX;
-  UpdateSoundStream();
+  UpdateVolume();
 }
 
 void DecreaseVolume(unsigned short offset)
@@ -247,13 +247,13 @@ void DecreaseVolume(unsigned short offset)
   currentVolume -= offset;
   if (currentVolume < AUDIO_VOLUME_MIN)
     currentVolume = AUDIO_VOLUME_MIN;
-  UpdateSoundStream();
+  UpdateVolume();
 }
 
 void ToggleMuteVolume()
 {
   bool& isMuted = SConfig::GetInstance().m_IsMuted;
   isMuted = !isMuted;
-  UpdateSoundStream();
+  UpdateVolume();
 }
 }  // namespace AudioCommon

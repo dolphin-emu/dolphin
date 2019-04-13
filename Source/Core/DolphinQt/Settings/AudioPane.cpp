@@ -292,6 +292,7 @@ void AudioPane::SaveSettings()
   {
     settings.SetVolume(m_volume_slider->value());
     OnVolumeChanged(settings.GetVolume());
+    AudioCommon::UpdateVolume();
   }
 
   // DPL2
@@ -326,8 +327,6 @@ void AudioPane::SaveSettings()
 
   SConfig::GetInstance().sWASAPIDevice = device;
 #endif
-
-  AudioCommon::UpdateSoundStream();
 }
 
 void AudioPane::OnDspChanged()
