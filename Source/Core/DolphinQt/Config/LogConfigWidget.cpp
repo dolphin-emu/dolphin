@@ -47,6 +47,7 @@ void LogConfigWidget::CreateWidgets()
   m_verbosity_error = new QRadioButton(tr("Error"));
   m_verbosity_warning = new QRadioButton(tr("Warning"));
   m_verbosity_info = new QRadioButton(tr("Info"));
+  m_verbosity_debug = new QRadioButton(tr("Debug"));
 
   auto* outputs = new QGroupBox(tr("Logger Outputs"));
   auto* outputs_layout = new QVBoxLayout;
@@ -74,6 +75,10 @@ void LogConfigWidget::CreateWidgets()
   verbosity_layout->addWidget(m_verbosity_error);
   verbosity_layout->addWidget(m_verbosity_warning);
   verbosity_layout->addWidget(m_verbosity_info);
+  if (MAX_LOGLEVEL == LogTypes::LOG_LEVELS::LDEBUG)
+  {
+    verbosity_layout->addWidget(m_verbosity_debug);
+  }
 
   layout->addWidget(outputs);
   outputs_layout->addWidget(m_out_file);
@@ -97,6 +102,7 @@ void LogConfigWidget::ConnectWidgets()
   connect(m_verbosity_error, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_verbosity_warning, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_verbosity_info, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
+  connect(m_verbosity_debug, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
 
   connect(m_out_file, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_out_console, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
@@ -136,6 +142,7 @@ void LogConfigWidget::LoadSettings()
   m_verbosity_error->setChecked(verbosity == 2);
   m_verbosity_warning->setChecked(verbosity == 3);
   m_verbosity_info->setChecked(verbosity == 4);
+  m_verbosity_debug->setChecked(verbosity == 5);
 
   // Config - Outputs
   m_out_file->setChecked(logmanager->IsListenerEnabled(LogListener::FILE_LISTENER));
@@ -178,6 +185,9 @@ void LogConfigWidget::SaveSettings()
 
   if (m_verbosity_info->isChecked())
     verbosity = 4;
+
+  if (m_verbosity_debug->isChecked())
+    verbosity = 5;
 
   // Config - Verbosity
   LogManager::GetInstance()->SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));

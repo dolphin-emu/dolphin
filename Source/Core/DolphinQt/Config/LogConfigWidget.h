@@ -33,6 +33,8 @@ private:
   QRadioButton* m_verbosity_error;
   QRadioButton* m_verbosity_warning;
   QRadioButton* m_verbosity_info;
+  QRadioButton* m_verbosity_debug;
+
   QCheckBox* m_out_file;
   QCheckBox* m_out_console;
   QCheckBox* m_out_window;
