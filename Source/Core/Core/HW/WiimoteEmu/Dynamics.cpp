@@ -8,8 +8,6 @@
 
 #include "Common/MathUtil.h"
 #include "Core/Config/SYSCONFSettings.h"
-#include "Core/Config/WiimoteInputSettings.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
@@ -18,11 +16,6 @@
 
 namespace
 {
-constexpr int SHAKE_FREQ = 6;
-// Frame count of one up/down shake
-// < 9 no shake detection in "Wario Land: Shake It"
-constexpr int SHAKE_STEP_MAX = ::Wiimote::UPDATE_FREQ / SHAKE_FREQ;
-
 // Given a velocity, acceleration, and maximum jerk value,
 // calculate change in position after a stop in the shortest possible time.
 // Used to smoothly adjust acceleration and come to complete stops at precise positions.
@@ -61,81 +54,32 @@ double CalculateStopDistance(double velocity, double max_accel)
 
 namespace WiimoteEmu
 {
-Common::Vec3 EmulateShake(ControllerEmu::Buttons* const buttons_group, const double intensity,
-                          u8* const shake_step)
+void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
+                  float time_elapsed)
 {
-  // shake is a bitfield of X,Y,Z shake button states
-  static const unsigned int btns[] = {0x01, 0x02, 0x04};
-  unsigned int shake = 0;
-  buttons_group->GetState(&shake, btns);
-
-  Common::Vec3 accel;
-
-  for (std::size_t i = 0; i != accel.data.size(); ++i)
+  auto target_position = shake_group->GetState() * shake_group->GetIntensity() / 2;
+  for (std::size_t i = 0; i != target_position.data.size(); ++i)
   {
-    if (shake & (1 << i))
+    if (state->velocity.data[i] * std::copysign(1.f, target_position.data[i]) < 0 ||
+        state->position.data[i] / target_position.data[i] > 0.5)
     {
-      accel.data[i] = std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) * intensity *
-                      GRAVITY_ACCELERATION;
-      shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
-    }
-    else
-    {
-      shake_step[i] = 0;
+      target_position.data[i] *= -1;
     }
   }
 
-  return accel;
-}
+  // Time from "top" to "bottom" of one shake.
+  const auto travel_time = 1 / shake_group->GetFrequency() / 2;
 
-Common::Vec3 EmulateDynamicShake(DynamicData& dynamic_data,
-                                 ControllerEmu::Buttons* const buttons_group,
-                                 const DynamicConfiguration& config, u8* const shake_step)
-{
-  // shake is a bitfield of X,Y,Z shake button states
-  static const unsigned int btns[] = {0x01, 0x02, 0x04};
-  unsigned int shake = 0;
-  buttons_group->GetState(&shake, btns);
-
-  Common::Vec3 accel;
-
-  for (std::size_t i = 0; i != accel.data.size(); ++i)
+  Common::Vec3 jerk;
+  for (std::size_t i = 0; i != target_position.data.size(); ++i)
   {
-    if ((shake & (1 << i)) && dynamic_data.executing_frames_left[i] == 0)
-    {
-      dynamic_data.timing[i]++;
-    }
-    else if (dynamic_data.executing_frames_left[i] > 0)
-    {
-      accel.data[i] = std::sin(MathUtil::TAU * shake_step[i] / SHAKE_STEP_MAX) *
-                      dynamic_data.intensity[i] * GRAVITY_ACCELERATION;
-      shake_step[i] = (shake_step[i] + 1) % SHAKE_STEP_MAX;
-      dynamic_data.executing_frames_left[i]--;
-    }
-    else if (shake == 0 && dynamic_data.timing[i] > 0)
-    {
-      if (dynamic_data.timing[i] > config.frames_needed_for_high_intensity)
-      {
-        dynamic_data.intensity[i] = config.high_intensity;
-      }
-      else if (dynamic_data.timing[i] < config.frames_needed_for_low_intensity)
-      {
-        dynamic_data.intensity[i] = config.low_intensity;
-      }
-      else
-      {
-        dynamic_data.intensity[i] = config.med_intensity;
-      }
-      dynamic_data.timing[i] = 0;
-      dynamic_data.executing_frames_left[i] = config.frames_to_execute;
-    }
-    else
-    {
-      shake_step[i] = 0;
-    }
+    const auto half_distance =
+        std::max(std::abs(target_position.data[i]), std::abs(state->position.data[i]));
+
+    jerk.data[i] = half_distance / std::pow(travel_time / 2, 3);
   }
 
-  return accel;
+  ApproachPositionWithJerk(state, target_position, jerk, time_elapsed);
 }
 
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, float time_elapsed)
@@ -158,8 +102,8 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
 
   // Note. Y/Z swapped because X/Y axis to the swing_group is X/Z to the wiimote.
   // X is negated because Wiimote X+ is to the left.
-  ApproachPositionWithJerk(state, {-target.x, -target.z, target.y}, swing_group->GetMaxJerk(),
-                           time_elapsed);
+  ApproachPositionWithJerk(state, {-target.x, -target.z, target.y},
+                           Common::Vec3{1, 1, 1} * swing_group->GetMaxJerk(), time_elapsed);
 
   // Just jump to our target angle scaled by our progress to the target position.
   // TODO: If we wanted to be less hacky we could use ApproachAngleWithAccel.
@@ -248,19 +192,19 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,
-                              float max_jerk, float time_elapsed)
+                              const Common::Vec3& max_jerk, float time_elapsed)
 {
   const auto stop_distance =
-      Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk),
-                   CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk),
-                   CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk));
+      Common::Vec3(CalculateStopDistance(state->velocity.x, state->acceleration.x, max_jerk.x),
+                   CalculateStopDistance(state->velocity.y, state->acceleration.y, max_jerk.y),
+                   CalculateStopDistance(state->velocity.z, state->acceleration.z, max_jerk.z));
 
   const auto offset = position_target - state->position;
   const auto stop_offset = offset - stop_distance;
 
-  const Common::Vec3 jerk{std::copysign(max_jerk, stop_offset.x),
-                          std::copysign(max_jerk, stop_offset.y),
-                          std::copysign(max_jerk, stop_offset.z)};
+  const Common::Vec3 jerk{std::copysign(max_jerk.x, stop_offset.x),
+                          std::copysign(max_jerk.y, stop_offset.y),
+                          std::copysign(max_jerk.z, stop_offset.z)};
 
   state->acceleration += jerk * time_elapsed;
 

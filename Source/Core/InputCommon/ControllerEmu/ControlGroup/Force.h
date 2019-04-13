@@ -40,4 +40,28 @@ private:
   SettingValue<double> m_jerk_setting;
   SettingValue<double> m_angle_setting;
 };
+
+class Shake : public ControlGroup
+{
+public:
+  using StateData = Common::Vec3;
+
+  explicit Shake(const std::string& name, ControlState default_intensity_scale = 1);
+
+  StateData GetState(bool adjusted = true) const;
+
+  ControlState GetDeadzone() const;
+
+  // Return total travel distance in meters.
+  ControlState GetIntensity() const;
+
+  // Return frequency in Hz.
+  ControlState GetFrequency() const;
+
+private:
+  SettingValue<double> m_deadzone_setting;
+  SettingValue<double> m_intensity_setting;
+  SettingValue<double> m_frequency_setting;
+};
+
 }  // namespace ControllerEmu

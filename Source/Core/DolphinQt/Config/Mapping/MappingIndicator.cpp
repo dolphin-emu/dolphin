@@ -514,6 +514,95 @@ void MappingIndicator::paintEvent(QPaintEvent*)
   Settings::Instance().SetControllerStateNeeded(false);
 }
 
+ShakeMappingIndicator::ShakeMappingIndicator(ControllerEmu::Shake* group)
+    : MappingIndicator(group), m_shake_group(*group)
+{
+}
+
+void ShakeMappingIndicator::paintEvent(QPaintEvent*)
+{
+  Settings::Instance().SetControllerStateNeeded(true);
+  DrawShake();
+  Settings::Instance().SetControllerStateNeeded(false);
+}
+
+void ShakeMappingIndicator::DrawShake()
+{
+  constexpr std::size_t HISTORY_COUNT = INDICATOR_UPDATE_FREQ;
+
+  WiimoteEmu::EmulateShake(&m_motion_state, &m_shake_group, 1.f / INDICATOR_UPDATE_FREQ);
+
+  constexpr float MAX_DISTANCE = 0.5f;
+
+  m_position_samples.push_front(m_motion_state.position / MAX_DISTANCE);
+  // This also holds the current state so +1.
+  if (m_position_samples.size() > HISTORY_COUNT + 1)
+    m_position_samples.pop_back();
+
+  // Bounding box size:
+  const double scale = height() / 2.5;
+
+  QPainter p(this);
+  p.translate(width() / 2, height() / 2);
+
+  // Bounding box.
+  p.setBrush(BBOX_BRUSH_COLOR);
+  p.setPen(BBOX_PEN_COLOR);
+  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+
+  // UI y-axis is opposite that of acceleration Z.
+  p.scale(1.0, -1.0);
+
+  // Enable AA after drawing bounding box.
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+  // Deadzone.
+  p.setPen(DEADZONE_COLOR);
+  p.setBrush(DEADZONE_BRUSH);
+  p.drawRect(-scale, 0, scale * 2, m_shake_group.GetDeadzone() * scale);
+
+  // Raw input.
+  const auto raw_coord = m_shake_group.GetState(false);
+  p.setPen(Qt::NoPen);
+  p.setBrush(RAW_INPUT_COLOR);
+  for (std::size_t c = 0; c != raw_coord.data.size(); ++c)
+  {
+    p.drawEllipse(QPointF{-0.5 + c * 0.5, raw_coord.data[c]} * scale, INPUT_DOT_RADIUS,
+                  INPUT_DOT_RADIUS);
+  }
+
+  // Grid line.
+  if (m_grid_line_position ||
+      std::any_of(m_position_samples.begin(), m_position_samples.end(),
+                  [](const Common::Vec3& v) { return v.LengthSquared() != 0.0; }))
+  {
+    // Only start moving the line if there's non-zero data.
+    m_grid_line_position = (m_grid_line_position + 1) % HISTORY_COUNT;
+  }
+  const double grid_line_x = 1.0 - m_grid_line_position * 2.0 / HISTORY_COUNT;
+  p.setPen(RAW_INPUT_COLOR);
+  p.drawLine(QPointF{grid_line_x, -1.0} * scale, QPointF{grid_line_x, 1.0} * scale);
+
+  // Position history.
+  const QColor component_colors[] = {Qt::red, Qt::green, Qt::blue};
+  p.setBrush(Qt::NoBrush);
+  for (std::size_t c = 0; c != raw_coord.data.size(); ++c)
+  {
+    QPolygonF polyline;
+
+    int i = 0;
+    for (auto& sample : m_position_samples)
+    {
+      polyline.append(QPointF{1.0 - i * 2.0 / HISTORY_COUNT, sample.data[c]} * scale);
+      ++i;
+    }
+
+    p.setPen(component_colors[c]);
+    p.drawPolyline(polyline);
+  }
+}
+
 void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
   // TODO: Ugly magic number used in a few places in this file.

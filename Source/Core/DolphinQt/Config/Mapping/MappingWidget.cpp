@@ -85,7 +85,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
                               group->type == ControllerEmu::GroupType::Stick ||
                               group->type == ControllerEmu::GroupType::Tilt ||
                               group->type == ControllerEmu::GroupType::MixedTriggers ||
-                              group->type == ControllerEmu::GroupType::Force;
+                              group->type == ControllerEmu::GroupType::Force ||
+                              group->type == ControllerEmu::GroupType::Shake;
 
   const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
                                 group->type == ControllerEmu::GroupType::Stick ||
@@ -129,7 +130,19 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   if (need_indicator)
   {
-    auto const indicator = new MappingIndicator(group);
+    MappingIndicator* indicator;
+
+    switch (group->type)
+    {
+    case ControllerEmu::GroupType::Shake:
+      indicator = new ShakeMappingIndicator(static_cast<ControllerEmu::Shake*>(group));
+      break;
+
+    default:
+      indicator = new MappingIndicator(group);
+      break;
+    }
+
     connect(this, &MappingWidget::Update, indicator, QOverload<>::of(&MappingIndicator::update));
 
     if (need_calibration)

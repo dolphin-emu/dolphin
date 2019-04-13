@@ -272,8 +272,7 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   }
 
   // Apply deadzone as a percentage of the user-defined calibration shape/size:
-  const ControlState deadzone = GetDeadzonePercentage();
-  dist = std::max(0.0, dist - deadzone) / (1.0 - deadzone);
+  dist = ApplyDeadzone(dist, GetDeadzonePercentage());
 
   // Scale to the gate shape/radius:
   dist *= gate_max_dist;

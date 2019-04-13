@@ -7,6 +7,8 @@
 #include <QToolButton>
 #include <QWidget>
 
+#include <deque>
+
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 
@@ -31,6 +33,9 @@ public:
 
   void SetCalibrationWidget(CalibrationWidget* widget);
 
+protected:
+  WiimoteEmu::MotionState m_motion_state{};
+
 private:
   void DrawCursor(ControllerEmu::Cursor& cursor);
   void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
@@ -45,8 +50,21 @@ private:
 
   ControllerEmu::ControlGroup* const m_group;
   CalibrationWidget* m_calibration_widget{};
+};
 
-  WiimoteEmu::MotionState m_motion_state{};
+class ShakeMappingIndicator : public MappingIndicator
+{
+public:
+  explicit ShakeMappingIndicator(ControllerEmu::Shake* group);
+
+  void DrawShake();
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  std::deque<ControllerEmu::Shake::StateData> m_position_samples;
+  int m_grid_line_position = 0;
+
+  ControllerEmu::Shake& m_shake_group;
 };
 
 class CalibrationWidget : public QToolButton

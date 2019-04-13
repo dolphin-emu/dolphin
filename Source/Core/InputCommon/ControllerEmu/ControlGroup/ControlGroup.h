@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <cmath>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -35,7 +37,8 @@ enum class GroupType
   Tilt,
   Cursor,
   Triggers,
-  Slider
+  Slider,
+  Shake,
 };
 
 class ControlGroup
@@ -63,6 +66,12 @@ public:
   }
 
   void AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone);
+
+  template <typename T>
+  static T ApplyDeadzone(T input, std::common_type_t<T> deadzone)
+  {
+    return std::copysign(std::max(T{0}, std::abs(input) - deadzone) / (T{1} - deadzone), input);
+  }
 
   const std::string name;
   const std::string ui_name;

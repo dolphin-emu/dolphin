@@ -104,8 +104,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   const double max_z_step = STEP_Z_PER_SEC / 1000.0 * ms_since_update;
 
   // Apply deadzone to z:
-  const ControlState deadzone = GetDeadzonePercentage();
-  z = std::copysign(std::max(0.0, std::abs(z) - deadzone) / (1.0 - deadzone), z);
+  z = ApplyDeadzone(z, GetDeadzonePercentage());
 
   // Smooth out z movement:
   // FYI: Not using relative input for Z.
