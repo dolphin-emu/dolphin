@@ -53,7 +53,6 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
 
 static void DestroySoundStream()
 {
-  SetSoundStreamRunning(false);
   s_sound_stream.reset();
 }
 
@@ -79,7 +78,7 @@ void Init()
     s_sound_stream->Init();
   }
 
-  UpdateVolume();
+  RebuildSoundStream();
   SetSoundStreamRunning(true);
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
@@ -171,6 +170,19 @@ void UpdateVolume()
     int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
     s_sound_stream->SetVolume(volume);
   }
+}
+
+void RebuildSoundStream()
+{
+  if (!GetMixer())
+    return;
+
+  DestroySoundStream();
+  s_sound_stream = CreateSoundStreamForBackend(SConfig::GetInstance().sBackend);
+
+  // Bypass SetSoundStreamRunning, which has outdated state
+  s_sound_stream->SetRunning(s_sound_stream_running);
+  UpdateVolume();
 }
 
 void SetSoundStreamRunning(bool running)
