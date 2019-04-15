@@ -111,13 +111,11 @@ private:
   static constexpr size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
 
   void WaitForAsyncCompiler();
-  void LoadShaderCaches();
-  void ClearShaderCaches();
+  void LoadCaches();
+  void ClearCaches();
   void LoadPipelineUIDCache();
   void ClosePipelineUIDCache();
   void CompileMissingPipelines();
-  void InvalidateCachedPipelines();
-  void ClearPipelineCaches();
   void QueueUberShaderPipelines();
   bool CompileSharedPipelines();
 
@@ -149,7 +147,7 @@ private:
                       const RasterizationState& rasterization_state, const DepthState& depth_state,
                       const BlendingState& blending_state);
   std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXPipelineUid& uid);
-  std::optional<AbstractPipelineConfig> GetGXUberPipelineConfig(const GXUberPipelineUid& uid);
+  std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXUberPipelineUid& uid);
   const AbstractPipeline* InsertGXPipeline(const GXPipelineUid& config,
                                            std::unique_ptr<AbstractPipeline> pipeline);
   const AbstractPipeline* InsertGXUberPipeline(const GXUberPipelineUid& config,
@@ -164,6 +162,17 @@ private:
   void QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid, u32 priority);
   void QueuePipelineCompile(const GXPipelineUid& uid, u32 priority);
   void QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority);
+
+  // Populating various caches.
+  template <ShaderStage stage, typename K, typename T>
+  void LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid);
+  template <typename T>
+  void ClearShaderCache(T& cache);
+  template <typename KeyType, typename DiskKeyType, typename T>
+  void LoadPipelineCache(T& cache, LinearDiskCache<DiskKeyType, u8>& disk_cache, APIType api_type,
+                         const char* type, bool include_gameid);
+  template <typename T, typename Y>
+  void ClearPipelineCache(T& cache, Y& disk_cache);
 
   // Priorities for compiling. The lower the value, the sooner the pipeline is compiled.
   // The shader cache is compiled last, as it is the least likely to be required. On demand
@@ -213,6 +222,8 @@ private:
   std::map<GXUberPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
       m_gx_uber_pipeline_cache;
   File::IOFile m_gx_pipeline_uid_cache_file;
+  LinearDiskCache<SerializedGXPipelineUid, u8> m_gx_pipeline_disk_cache;
+  LinearDiskCache<SerializedGXUberPipelineUid, u8> m_gx_uber_pipeline_disk_cache;
 
   // EFB copy to VRAM/RAM pipelines
   std::map<TextureConversionShaderGen::TCShaderUid, std::unique_ptr<AbstractPipeline>>

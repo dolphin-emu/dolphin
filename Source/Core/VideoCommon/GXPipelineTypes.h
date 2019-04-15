@@ -99,6 +99,16 @@ struct SerializedGXPipelineUid
   u32 depth_state_bits;
   u32 blending_state_bits;
 };
+struct SerializedGXUberPipelineUid
+{
+  PortableVertexDeclaration vertex_decl;
+  UberShader::VertexShaderUid vs_uid;
+  GeometryShaderUid gs_uid;
+  UberShader::PixelShaderUid ps_uid;
+  u32 rasterization_state_bits;
+  u32 depth_state_bits;
+  u32 blending_state_bits;
+};
 #pragma pack(pop)
 
 }  // namespace VideoCommon
