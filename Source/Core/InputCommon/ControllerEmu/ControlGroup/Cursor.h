@@ -39,7 +39,7 @@ public:
 private:
   // This is used to reduce the cursor speed for relative input
   // to something that makes sense with the default range.
-  static constexpr double STEP_PER_SEC = 0.04 * 200;
+  static constexpr double STEP_PER_SEC = 0.01 * 200;
 
   // Smooth out forward/backward movements:
   static constexpr double STEP_Z_PER_SEC = 0.05 * 200;
