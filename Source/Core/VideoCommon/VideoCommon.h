@@ -3,11 +3,6 @@
 // Refer to the license.txt file included.
 
 #pragma once
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
@@ -30,34 +25,6 @@ const u32 MAX_XFB_WIDTH = 720;
 // vertical scaling by the EFB copy operation or copying to multiple XFB's
 // that are next to each other in memory (TODO: handle that situation).
 const u32 MAX_XFB_HEIGHT = 576;
-
-// This structure should only be used to represent a rectangle in EFB
-// coordinates, where the origin is at the upper left and the frame dimensions
-// are 640 x 528.
-typedef MathUtil::Rectangle<int> EFBRectangle;
-
-// This structure should only be used to represent a rectangle in standard target
-// coordinates, where the origin is at the lower left and the frame dimensions
-// depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
-// convert an EFBRectangle to a TargetRectangle.
-struct TargetRectangle : public MathUtil::Rectangle<int>
-{
-#ifdef _WIN32
-  // Only used by D3D backend.
-  const RECT* AsRECT() const
-  {
-    // The types are binary compatible so this works.
-    return (const RECT*)this;
-  }
-  RECT* AsRECT()
-  {
-    // The types are binary compatible so this works.
-    return (RECT*)this;
-  }
-#endif
-  TargetRectangle(const MathUtil::Rectangle<int>& other) : MathUtil::Rectangle<int>(other) {}
-  TargetRectangle() = default;
-};
 
 #ifdef _WIN32
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)

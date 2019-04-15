@@ -167,17 +167,17 @@ public:
 
   // EFB coordinate conversion functions
   // Use this to convert a whole native EFB rect to backbuffer coordinates
-  TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
+  MathUtil::Rectangle<int> ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc);
 
-  const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
+  const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
 
   // Use this to convert a single target rectangle to two stereo rectangles
-  std::tuple<TargetRectangle, TargetRectangle>
-  ConvertStereoRectangle(const TargetRectangle& rc) const;
+  std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
+  ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const;
 
   unsigned int GetEFBScale() const;
 
@@ -196,11 +196,11 @@ public:
   // ImGui initialization depends on being able to create textures and pipelines, so do it last.
   bool InitializeImGui();
 
-  virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                           u32 color, u32 z);
+  virtual void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                           bool zEnable, u32 color, u32 z);
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
-  void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
-                   float Gamma = 1.0f);
+  void RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
+                   u32 fbHeight, float Gamma = 1.0f);
 
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
@@ -217,7 +217,8 @@ public:
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
-  virtual void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc);
+  virtual void RenderXFBToScreen(const AbstractTexture* texture,
+                                 const MathUtil::Rectangle<int>& rc);
 
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 bits) {}
@@ -295,7 +296,7 @@ protected:
   int m_backbuffer_height = 0;
   float m_backbuffer_scale = 1.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
-  TargetRectangle m_target_rectangle = {};
+  MathUtil::Rectangle<int> m_target_rectangle = {};
   int m_frame_count = 0;
 
   FPSCounter m_fps_counter;

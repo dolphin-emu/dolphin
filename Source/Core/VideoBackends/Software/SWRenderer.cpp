@@ -94,7 +94,8 @@ std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipel
 }
 
 // Called on the GPU thread
-void SWRenderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& xfb_region)
+void SWRenderer::RenderXFBToScreen(const AbstractTexture* texture,
+                                   const MathUtil::Rectangle<int>& xfb_region)
 {
   if (!IsHeadless())
     m_window->ShowImage(texture, xfb_region);
@@ -136,7 +137,7 @@ void SWRenderer::BBoxWrite(int index, u16 value)
   BoundingBox::coords[index] = value;
 }
 
-void SWRenderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable,
+void SWRenderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                              bool zEnable, u32 color, u32 z)
 {
   EfbCopy::ClearEfb();

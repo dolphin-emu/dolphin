@@ -67,7 +67,8 @@ public:
   void Flush() override;
   void WaitForGPUIdle() override;
 
-  void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) override;
+  void RenderXFBToScreen(const AbstractTexture* texture,
+                         const MathUtil::Rectangle<int>& rc) override;
   void OnConfigChanged(u32 bits) override;
 
 private:

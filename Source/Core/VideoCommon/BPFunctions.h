@@ -20,7 +20,7 @@ void SetScissor();
 void SetViewport();
 void SetDepthMode();
 void SetBlendMode();
-void ClearScreen(const EFBRectangle& rc);
+void ClearScreen(const MathUtil::Rectangle<int>& rc);
 void OnPixelFormatChange();
 void SetInterlacingMode(const BPCmd& bp);
 }

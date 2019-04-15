@@ -932,8 +932,8 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groups_x,
     glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                           u32 color, u32 z)
+void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                           bool zEnable, u32 color, u32 z)
 {
   g_framebuffer_manager->FlushEFBPokes();
   g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
@@ -974,7 +974,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   BPFunctions::SetScissor();
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc)
+void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
 {
   // Quad-buffered stereo is annoying on GL.
   if (g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
