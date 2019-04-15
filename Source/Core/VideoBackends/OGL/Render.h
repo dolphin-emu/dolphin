@@ -48,7 +48,6 @@ enum class EsFbFetchType
 struct VideoConfig
 {
   bool bIsES;
-  bool bSupportsGLSLCache;
   bool bSupportsGLPinnedMemory;
   bool bSupportsGLSync;
   bool bSupportsGLBaseVertex;

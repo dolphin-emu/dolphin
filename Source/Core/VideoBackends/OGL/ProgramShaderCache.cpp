@@ -312,7 +312,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   if (shader.gsid)
     glAttachShader(shader.glprogid, shader.gsid);
 
-  if (g_ogl_config.bSupportsGLSLCache)
+  if (g_ActiveConfig.backend_info.bSupportsPipelineCacheData)
     glProgramParameteri(shader.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
   shader.SetProgramBindings(false);
@@ -562,10 +562,12 @@ void ProgramShaderCache::InvalidateLastProgram()
   CurrentProgram = 0;
 }
 
-const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* vertex_format,
-                                                              const OGLShader* vertex_shader,
-                                                              const OGLShader* geometry_shader,
-                                                              const OGLShader* pixel_shader)
+PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* vertex_format,
+                                                        const OGLShader* vertex_shader,
+                                                        const OGLShader* geometry_shader,
+                                                        const OGLShader* pixel_shader,
+                                                        const void* cache_data,
+                                                        size_t cache_data_size)
 {
   PipelineProgramKey key = {vertex_shader ? vertex_shader->GetID() : 0,
                             geometry_shader ? geometry_shader->GetID() : 0,
@@ -580,39 +582,69 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
     }
   }
 
-  // We temporarily change the vertex array to the pipeline's vertex format.
-  // This can prevent the NVIDIA OpenGL driver from recompiling on first use.
-  GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
-  if (s_is_shared_context || vao != s_last_VAO)
-    glBindVertexArray(vao);
-
   std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
   prog->key = key;
-
-  // Attach shaders.
-  ASSERT(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
-  ASSERT(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
   prog->shader.glprogid = glCreateProgram();
-  glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
-  glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
-  if (geometry_shader)
+
+  // Use the cache data, if present. If this fails, we want to return an error, so the shader cache
+  // doesn't attempt to use the same binary data in the future.
+  if (cache_data_size >= sizeof(u32))
   {
-    ASSERT(geometry_shader->GetStage() == ShaderStage::Geometry);
-    glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
+    u32 program_binary_type;
+    std::memcpy(&program_binary_type, cache_data, sizeof(u32));
+    glProgramBinary(prog->shader.glprogid, static_cast<GLenum>(program_binary_type),
+                    static_cast<const u8*>(cache_data) + sizeof(u32),
+                    static_cast<GLsizei>(cache_data_size - sizeof(u32)));
+
+    // Check the link status. If this fails, it means the binary was invalid.
+    GLint link_status;
+    glGetProgramiv(prog->shader.glprogid, GL_LINK_STATUS, &link_status);
+    if (link_status != GL_TRUE)
+    {
+      WARN_LOG(VIDEO, "Failed to create GL program from program binary.");
+      prog->shader.Destroy();
+      return nullptr;
+    }
+
+    // We don't want to retrieve this binary and duplicate entries in the cache again.
+    // See the explanation in OGLPipeline.cpp.
+    prog->binary_retrieved = true;
   }
-
-  // Link program.
-  prog->shader.SetProgramBindings(false);
-  glLinkProgram(prog->shader.glprogid);
-
-  // Restore VAO binding after linking.
-  if (!s_is_shared_context && vao != s_last_VAO)
-    glBindVertexArray(s_last_VAO);
-
-  if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
+  else
   {
-    prog->shader.Destroy();
-    return nullptr;
+    // We temporarily change the vertex array to the pipeline's vertex format.
+    // This can prevent the NVIDIA OpenGL driver from recompiling on first use.
+    GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
+    if (s_is_shared_context || vao != s_last_VAO)
+      glBindVertexArray(vao);
+
+    // Attach shaders.
+    ASSERT(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
+    ASSERT(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
+    glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
+    glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
+    if (geometry_shader)
+    {
+      ASSERT(geometry_shader->GetStage() == ShaderStage::Geometry);
+      glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
+    }
+
+    if (g_ActiveConfig.backend_info.bSupportsPipelineCacheData)
+      glProgramParameteri(prog->shader.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+
+    // Link program.
+    prog->shader.SetProgramBindings(false);
+    glLinkProgram(prog->shader.glprogid);
+
+    // Restore VAO binding after linking.
+    if (!s_is_shared_context && vao != s_last_VAO)
+      glBindVertexArray(s_last_VAO);
+
+    if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
+    {
+      prog->shader.Destroy();
+      return nullptr;
+    }
   }
 
   // Lock to insert. A duplicate program may have been created in the meantime.
@@ -639,16 +671,17 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
   return ip.first->second.get();
 }
 
-void ProgramShaderCache::ReleasePipelineProgram(const PipelineProgram* prog)
+void ProgramShaderCache::ReleasePipelineProgram(PipelineProgram* prog)
 {
+  if (--prog->reference_count > 0)
+    return;
+
+  prog->shader.Destroy();
+
+  std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
   auto iter = s_pipeline_programs.find(prog->key);
   ASSERT(iter != s_pipeline_programs.end() && prog == iter->second.get());
-
-  if (--iter->second->reference_count == 0)
-  {
-    iter->second->shader.Destroy();
-    s_pipeline_programs.erase(iter);
-  }
+  s_pipeline_programs.erase(iter);
 }
 
 void ProgramShaderCache::CreateHeader()

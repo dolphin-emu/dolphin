@@ -63,6 +63,7 @@ struct PipelineProgram
   PipelineProgramKey key;
   SHADER shader;
   std::atomic_size_t reference_count{1};
+  bool binary_retrieved = false;
 };
 
 class ProgramShaderCache
@@ -97,11 +98,12 @@ public:
   // pipeline do not match the pipeline configuration.
   static u64 GenerateShaderID();
 
-  static const PipelineProgram* GetPipelineProgram(const GLVertexFormat* vertex_format,
-                                                   const OGLShader* vertex_shader,
-                                                   const OGLShader* geometry_shader,
-                                                   const OGLShader* pixel_shader);
-  static void ReleasePipelineProgram(const PipelineProgram* prog);
+  static PipelineProgram* GetPipelineProgram(const GLVertexFormat* vertex_format,
+                                             const OGLShader* vertex_shader,
+                                             const OGLShader* geometry_shader,
+                                             const OGLShader* pixel_shader, const void* cache_data,
+                                             size_t cache_data_size);
+  static void ReleasePipelineProgram(PipelineProgram* prog);
 
 private:
   typedef std::unordered_map<PipelineProgramKey, std::unique_ptr<PipelineProgram>,

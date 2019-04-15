@@ -18,7 +18,7 @@ class OGLPipeline final : public AbstractPipeline
 public:
   explicit OGLPipeline(const GLVertexFormat* vertex_format,
                        const RasterizationState& rasterization_state, const DepthState& depth_state,
-                       const BlendingState& blending_state, const PipelineProgram* program,
+                       const BlendingState& blending_state, PipelineProgram* program,
                        GLenum gl_primitive);
   ~OGLPipeline() override;
 
@@ -29,14 +29,16 @@ public:
   const PipelineProgram* GetProgram() const { return m_program; }
   bool HasVertexInput() const { return m_vertex_format != nullptr; }
   GLenum GetGLPrimitive() const { return m_gl_primitive; }
-  static std::unique_ptr<OGLPipeline> Create(const AbstractPipelineConfig& config);
+  CacheData GetCacheData() const override;
+  static std::unique_ptr<OGLPipeline> Create(const AbstractPipelineConfig& config,
+                                             const void* cache_data, size_t cache_data_size);
 
 private:
   const GLVertexFormat* m_vertex_format;
   RasterizationState m_rasterization_state;
   DepthState m_depth_state;
   BlendingState m_blending_state;
-  const PipelineProgram* m_program;
+  PipelineProgram* m_program;
   GLenum m_gl_primitive;
 };
 
