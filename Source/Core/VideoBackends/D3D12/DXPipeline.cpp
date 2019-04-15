@@ -156,7 +156,8 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
   }
 }
 
-std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config)
+std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& config,
+                                               const void* cache_data, size_t cache_data_size)
 {
   DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 
@@ -202,16 +203,36 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
         D3DCommon::GetDSVFormatForAbstractFormat(config.framebuffer_state.depth_texture_format);
   desc.SampleDesc.Count = config.framebuffer_state.samples;
   desc.NodeMask = 1;
+  desc.CachedPSO.pCachedBlob = cache_data;
+  desc.CachedPSO.CachedBlobSizeInBytes = cache_data_size;
 
   ID3D12PipelineState* pso;
   HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
-  CHECK(SUCCEEDED(hr), "Create PSO");
   if (FAILED(hr))
+  {
+    WARN_LOG(VIDEO, "CreateGraphicsPipelineState() %sfailed with HRESULT %08X",
+             cache_data ? "with cache data " : "", hr);
     return nullptr;
+  }
 
   const bool use_integer_rtv =
       !config.blending_state.blendenable && config.blending_state.logicopenable;
   return std::make_unique<DXPipeline>(pso, desc.pRootSignature, config.usage,
                                       GetD3DTopology(config.rasterization_state), use_integer_rtv);
+}
+
+AbstractPipeline::CacheData DXPipeline::GetCacheData() const
+{
+  ComPtr<ID3DBlob> blob;
+  HRESULT hr = m_pipeline->GetCachedBlob(&blob);
+  if (FAILED(hr))
+  {
+    WARN_LOG(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed with HRESULT %08X", hr);
+    return {};
+  }
+
+  CacheData data(blob->GetBufferSize());
+  std::memcpy(data.data(), blob->GetBufferPointer(), blob->GetBufferSize());
+  return data;
 }
 }  // namespace DX12

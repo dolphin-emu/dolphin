@@ -103,7 +103,7 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
                                                            const void* cache_data,
                                                            size_t cache_data_length)
 {
-  return DXPipeline::Create(config);
+  return DXPipeline::Create(config, cache_data, cache_data_length);
 }
 
 u16 Renderer::BBoxRead(int index)
