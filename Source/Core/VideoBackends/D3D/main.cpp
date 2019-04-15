@@ -82,6 +82,8 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
   g_Config.backend_info.bSupportsGSInstancing = true;
   g_Config.backend_info.bSupportsSSAA = true;
+  g_Config.backend_info.bSupportsShaderBinaries = true;
+  g_Config.backend_info.bSupportsPipelineCacheData = false;
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);

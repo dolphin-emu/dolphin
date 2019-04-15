@@ -32,12 +32,6 @@ VKShader::~VKShader()
     vkDestroyPipeline(g_vulkan_context->GetDevice(), m_compute_pipeline, nullptr);
 }
 
-bool VKShader::HasBinary() const
-{
-  ASSERT(!m_spv.empty());
-  return true;
-}
-
 AbstractShader::BinaryData VKShader::GetBinary() const
 {
   BinaryData ret(sizeof(u32) * m_spv.size());

@@ -16,7 +16,6 @@ public:
 
   const BinaryData& GetByteCode() const { return m_bytecode; }
 
-  bool HasBinary() const override;
   BinaryData GetBinary() const override;
 
   static bool CompileShader(D3D_FEATURE_LEVEL feature_level, BinaryData* out_bytecode,

@@ -112,7 +112,9 @@ Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<VertexFormat>(vtx_decl);
 }
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
+                                                           const void* cache_data,
+                                                           size_t cache_data_length)
 {
   return VKPipeline::Create(config);
 }

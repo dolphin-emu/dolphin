@@ -74,6 +74,8 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = false;
   g_Config.backend_info.bSupportsLogicOp = true;
+  g_Config.backend_info.bSupportsShaderBinaries = false;
+  g_Config.backend_info.bSupportsPipelineCacheData = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

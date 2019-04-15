@@ -46,9 +46,6 @@ class NullShader final : public AbstractShader
 public:
   explicit NullShader(ShaderStage stage) : AbstractShader(stage) {}
   ~NullShader() = default;
-
-  bool HasBinary() const override { return false; }
-  BinaryData GetBinary() const override { return {}; }
 };
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
@@ -70,7 +67,9 @@ public:
   ~NullPipeline() override = default;
 };
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
+                                                           const void* cache_data,
+                                                           size_t cache_data_length)
 {
   return std::make_unique<NullPipeline>();
 }

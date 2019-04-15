@@ -23,11 +23,6 @@ Shader::Shader(ShaderStage stage, BinaryData bytecode)
 
 Shader::~Shader() = default;
 
-bool Shader::HasBinary() const
-{
-  return true;
-}
-
 AbstractShader::BinaryData Shader::GetBinary() const
 {
   return m_bytecode;

@@ -334,7 +334,7 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -356,7 +356,7 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -378,7 +378,7 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -400,7 +400,7 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -425,7 +425,7 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
