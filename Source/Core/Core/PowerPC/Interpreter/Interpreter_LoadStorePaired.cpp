@@ -226,7 +226,7 @@ static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 ins
 }
 
 template <typename T>
-std::pair<float, float> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
+std::pair<double, double> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
 {
   using U = std::make_unsigned_t<T>;
 
@@ -243,7 +243,8 @@ std::pair<float, float> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
     ps0 = (float)(T)(value.first) * m_dequantizeTable[ldScale];
     ps1 = (float)(T)(value.second) * m_dequantizeTable[ldScale];
   }
-  return {ps0, ps1};
+  // ps0 and ps1 always contain finite and normal numbers. So we can just cast them to double
+  return {static_cast<double>(ps0), static_cast<double>(ps1)};
 }
 
 static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, u32 instRD,
@@ -253,8 +254,8 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
   EQuantizeType ldType = gqr.ld_type;
   unsigned int ldScale = gqr.ld_scale;
 
-  float ps0 = 0.0f;
-  float ps1 = 0.0f;
+  double ps0 = 0.0;
+  double ps1 = 0.0;
 
   switch (ldType)
   {
@@ -262,14 +263,14 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
     if (instW)
     {
       const u32 value = ReadUnpaired<u32>(addr);
-      ps0 = Common::BitCast<float>(value);
-      ps1 = 1.0f;
+      ps0 = Common::BitCast<double>(ConvertToDouble(value));
+      ps1 = 1.0;
     }
     else
     {
       const std::pair<u32, u32> value = ReadPair<u32>(addr);
-      ps0 = Common::BitCast<float>(value.first);
-      ps1 = Common::BitCast<float>(value.second);
+      ps0 = Common::BitCast<double>(ConvertToDouble(value.first));
+      ps1 = Common::BitCast<double>(ConvertToDouble(value.second));
     }
     break;
 
@@ -293,8 +294,8 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
   case QUANTIZE_INVALID2:
   case QUANTIZE_INVALID3:
     ASSERT_MSG(POWERPC, 0, "PS dequantize - unknown type to read");
-    ps0 = 0.f;
-    ps1 = 0.f;
+    ps0 = 0.0;
+    ps1 = 0.0;
     break;
   }
 
