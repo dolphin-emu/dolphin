@@ -986,7 +986,6 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 alignas(16) static const u64 psDoubleExp[2] = {0x7FF0000000000000ULL, 0};
 alignas(16) static const u64 psDoubleFrac[2] = {0x000FFFFFFFFFFFFFULL, 0};
 alignas(16) static const u64 psDoubleNoSign[2] = {0x7FFFFFFFFFFFFFFFULL, 0};
-alignas(16) static const u64 psWhole[2] = {0xFFFFFFFFFFFFFFFFULL, 0};
 
 // TODO: it might be faster to handle FPRF in the same way as CR is currently handled for integer,
 // storing
@@ -1032,7 +1031,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
-    PTEST(xmm, MConst(psWhole));
+    PTEST(xmm, MConst(psDoubleNoSign));
     FixupBranch zero = J_CC(CC_Z);
 
     // No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
