@@ -93,11 +93,7 @@ void Jit64::bx(UGeckoInstruction inst)
 #endif
   if (js.op->branchIsIdleLoop)
   {
-    ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(CoreTiming::Idle);
-    ABI_PopRegistersAndAdjustStack({}, 0);
-    MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
-    WriteExceptionExit();
+    WriteIdleExit(js.op->branchTo);
   }
   else
   {
@@ -159,11 +155,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 
     if (js.op->branchIsIdleLoop)
     {
-      ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunction(CoreTiming::Idle);
-      ABI_PopRegistersAndAdjustStack({}, 0);
-      MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
-      WriteExceptionExit();
+      WriteIdleExit(js.op->branchTo);
     }
     else
     {
@@ -288,11 +280,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
     if (js.op->branchIsIdleLoop)
     {
-      ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunction(CoreTiming::Idle);
-      ABI_PopRegistersAndAdjustStack({}, 0);
-      MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
-      WriteExceptionExit();
+      WriteIdleExit(js.op->branchTo);
     }
     else
     {

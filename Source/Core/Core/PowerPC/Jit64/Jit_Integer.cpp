@@ -368,11 +368,7 @@ void Jit64::DoMergedBranch()
     if (next.LK)
       MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
 
-    ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(CoreTiming::Idle);
-    ABI_PopRegistersAndAdjustStack({}, 0);
-    MOV(32, PPCSTATE(pc), Imm32(js.op[1].branchTo));
-    WriteExceptionExit();
+    WriteIdleExit(js.op[1].branchTo);
   }
   else if (next.OPCD == 16)  // bcx
   {
