@@ -76,10 +76,13 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
   std::string line;
   while (std::getline(s, line))
   {
-    if (StringBeginsWith(line, u8"\uFEFF"))
+    // This is the UTF-8 representation of U+FEFF.
+    const std::string utf8_bom = "\xEF\xBB\xBF";
+
+    if (StringBeginsWith(line, utf8_bom))
     {
       WARN_LOG(BOOT, "UTF-8 BOM in file: %s", m3u_path.c_str());
-      line.erase(0, 3);
+      line.erase(0, utf8_bom.length());
     }
 
     if (!line.empty() && line.front() != '#')  // Comments start with #
