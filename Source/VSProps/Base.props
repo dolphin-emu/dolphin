@@ -40,7 +40,7 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)cubeb\include;$(ExternalsDir)cubeb\msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg-win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -53,6 +53,7 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)pugixml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)x264-win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
