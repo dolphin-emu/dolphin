@@ -195,7 +195,7 @@ public final class EmulationActivity extends AppCompatActivity
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
     launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME);
+    activity.startActivity(launcher);
   }
 
   @Override
