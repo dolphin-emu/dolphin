@@ -84,7 +84,7 @@ void EnhancementsWidget::CreateWidgets()
   m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
                                                   Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
 
-  enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
+  enhancements_layout->addWidget(new QLabel(tr("AI Upscaling:")), 0, 0);
   enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
   enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
@@ -282,9 +282,9 @@ void EnhancementsWidget::SaveSettings()
 void EnhancementsWidget::AddDescriptions()
 {
   static const char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
-      QT_TR_NOOP("Controls the rendering resolution. A high resolution greatly improves visual "
+      QT_TR_NOOP("Controls the AI upscaling goodness. A high resolution greatly improves visual "
                  "quality, but also greatly increases GPU load and can cause issues in "
-                 "certain games. Generally speaking, the lower the internal resolution, the "
+                 "certain games. Generally speaking, the lower the AI upscaling, the "
                  "better performance will be.\n\nIf unsure, select Native.");
 
   static const char TR_ANTIALIAS_DESCRIPTION[] = QT_TR_NOOP(
