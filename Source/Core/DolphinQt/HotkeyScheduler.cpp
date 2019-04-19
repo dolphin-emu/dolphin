@@ -203,6 +203,9 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_REQUEST_GOLF_CONTROL))
         emit RequestGolfControl();
 
+      if (IsHotkey(HK_OPEN_GRAPHICS_SETTINGS))
+        emit OpenGraphicsSettings();
+
       // Recording
       if (IsHotkey(HK_START_RECORDING))
         emit StartRecording();

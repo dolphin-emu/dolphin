@@ -28,6 +28,7 @@ signals:
   void ExitHotkey();
   void ActivateChat();
   void RequestGolfControl();
+  void OpenGraphicsSettings();
   void FullScreenHotkey();
   void StopHotkey();
   void ResetHotkey();

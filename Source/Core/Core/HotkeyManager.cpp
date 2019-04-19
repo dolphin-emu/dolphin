@@ -20,7 +20,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 133> s_hotkey_labels{{
+constexpr std::array<const char*, 134> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -33,6 +33,7 @@ constexpr std::array<const char*, 133> s_hotkey_labels{{
     _trans("Exit"),
     _trans("Activate NetPlay Chat"),
     _trans("Control NetPlay Golf Mode"),
+    _trans("Open Graphics Settings"),
 
     _trans("Volume Down"),
     _trans("Volume Up"),
@@ -276,7 +277,7 @@ struct HotkeyGroupInfo
 };
 
 constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
-    {{_trans("General"), HK_OPEN, HK_REQUEST_GOLF_CONTROL},
+    {{_trans("General"), HK_OPEN, HK_OPEN_GRAPHICS_SETTINGS},
      {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
      {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
      {_trans("Frame Advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
