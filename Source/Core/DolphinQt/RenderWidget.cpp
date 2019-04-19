@@ -28,7 +28,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
-#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/ImGuiManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -269,7 +269,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     const QKeyEvent* key_event = static_cast<const QKeyEvent*>(event);
     const bool is_down = event->type() == QEvent::KeyPress;
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
-    auto lock = g_renderer->GetImGuiLock();
+    auto lock = g_imgui_manager->GetStateLock();
     if (key < ArraySize(ImGui::GetIO().KeysDown))
       ImGui::GetIO().KeysDown[key] = is_down;
 
@@ -283,7 +283,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
 
   case QEvent::MouseMove:
   {
-    auto lock = g_renderer->GetImGuiLock();
+    auto lock = g_imgui_manager->GetStateLock();
 
     // Qt multiplies all coordinates by the scaling factor in highdpi mode, giving us "scaled" mouse
     // coordinates (as if the screen was standard dpi). We need to update the mouse position in
@@ -297,7 +297,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
   case QEvent::MouseButtonPress:
   case QEvent::MouseButtonRelease:
   {
-    auto lock = g_renderer->GetImGuiLock();
+    auto lock = g_imgui_manager->GetStateLock();
     const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
     for (size_t i = 0; i < ArraySize(ImGui::GetIO().MouseDown); i++)
       ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
@@ -332,7 +332,7 @@ void RenderWidget::SetImGuiKeyMap()
                                    {ImGuiKey_X, Qt::Key_X},
                                    {ImGuiKey_Y, Qt::Key_Y},
                                    {ImGuiKey_Z, Qt::Key_Z}};
-  auto lock = g_renderer->GetImGuiLock();
+  auto lock = g_imgui_manager->GetStateLock();
   for (size_t i = 0; i < ArraySize(key_map); i++)
     ImGui::GetIO().KeyMap[key_map[i][0]] = (key_map[i][1] & 0x1FF);
 }

@@ -20,6 +20,7 @@ add_library(videocommon
   HiresTextures.cpp
   HiresTextures_DDSLoader.cpp
   ImageWrite.cpp
+  ImGuiManager.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
   NetPlayChatUI.cpp

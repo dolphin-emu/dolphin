@@ -41,7 +41,6 @@ class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
 class NativeVertexFormat;
-class NetPlayChatUI;
 struct TextureConfig;
 struct ComputePipelineConfig;
 struct AbstractPipelineConfig;
@@ -54,7 +53,7 @@ enum class StagingTextureType;
 namespace VideoCommon
 {
 class PostProcessing;
-}
+}  // namespace VideoCommon
 
 struct EfbPokeData
 {
@@ -190,10 +189,6 @@ public:
 
   // Random utilities
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
-  void DrawDebugText();
-
-  // ImGui initialization depends on being able to create textures and pipelines, so do it last.
-  bool InitializeImGui();
 
   virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z);
@@ -225,7 +220,10 @@ public:
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
   bool EFBHasAlphaChannel() const;
+
+  FPSCounter* GetFPSCounter() { return &m_fps_counter; }
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
+
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
@@ -233,11 +231,6 @@ public:
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
-
-  // Returns a lock for the ImGui mutex, enabling data structures to be modified from outside.
-  // Use with care, only non-drawing functions should be called from outside the video thread,
-  // as the drawing is tied to a "frame".
-  std::unique_lock<std::mutex> GetImGuiLock();
 
   // Begins/presents a "UI frame". UI frames do not draw any of the console XFB, but this could
   // change in the future.
@@ -266,17 +259,6 @@ protected:
   void CheckFifoRecording();
   void RecordVideoMemory();
 
-  // Sets up ImGui state for the next frame.
-  // This function itself acquires the ImGui lock, so it should not be held.
-  void BeginImGuiFrame();
-
-  // Destroys all ImGui GPU resources, must do before shutdown.
-  void ShutdownImGui();
-
-  // Renders ImGui windows to the currently-bound framebuffer.
-  // Should be called with the ImGui lock held.
-  void DrawImGui();
-
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
 
@@ -299,20 +281,12 @@ protected:
   int m_frame_count = 0;
 
   FPSCounter m_fps_counter;
-
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
 
   void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
   std::mutex m_swap_mutex;
-
-  // ImGui resources.
-  std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
-  std::vector<std::unique_ptr<AbstractTexture>> m_imgui_textures;
-  std::unique_ptr<AbstractPipeline> m_imgui_pipeline;
-  std::mutex m_imgui_mutex;
-  u64 m_imgui_last_frame_time;
 
 private:
   void RunFrameDumps();
@@ -386,8 +360,6 @@ private:
 
   // Ensures all encoded frames have been written to the output file.
   void FinishFrameData();
-
-  std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;
