@@ -282,6 +282,11 @@ std::unique_lock<std::mutex> ImGuiManager::GetStateLock()
   return std::unique_lock<std::mutex>(m_state_mutex);
 }
 
+void ImGuiManager::ToggleGraphicsSettingsWindow()
+{
+  m_graphics_settings_window_open = !m_graphics_settings_window_open;
+}
+
 void ImGuiManager::EndFrame()
 {
   std::unique_lock<std::mutex> imgui_lock(m_state_mutex);
@@ -303,6 +308,9 @@ void ImGuiManager::Draw()
 {
   DrawFPSWindow();
   DrawMovieWindow();
+
+  if (m_graphics_settings_window_open)
+    DrawGraphicsSettingsWindow();
 
   if (g_ActiveConfig.bOverlayStats)
     Statistics::Display();

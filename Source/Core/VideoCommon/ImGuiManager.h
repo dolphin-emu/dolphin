@@ -42,10 +42,14 @@ public:
   // as the drawing is tied to a "frame".
   std::unique_lock<std::mutex> GetStateLock();
 
+  // Functions to re-open closable windows.
+  void ToggleGraphicsSettingsWindow();
+
 private:
   // Various window drawing functions.
   void DrawFPSWindow();
   void DrawMovieWindow();
+  void DrawGraphicsSettingsWindow();
 
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
   std::vector<std::unique_ptr<AbstractTexture>> m_imgui_textures;
@@ -56,6 +60,9 @@ private:
   // Mutex protecting global imgui state, use when injecting input events.
   std::mutex m_state_mutex;
   u64 m_last_frame_time;
+
+  // Closable window states.
+  bool m_graphics_settings_window_open = false;
 };
 }  // namespace VideoCommon
 

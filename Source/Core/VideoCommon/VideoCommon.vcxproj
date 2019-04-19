@@ -57,6 +57,7 @@
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="ImGuiManager.cpp" />
+    <ClCompile Include="ImGuiVideoConfig.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="NetPlayChatUI.cpp" />
     <ClCompile Include="NetPlayGolfUI.cpp" />

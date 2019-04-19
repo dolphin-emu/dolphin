@@ -206,6 +206,9 @@
     <ClCompile Include="ImGuiManager.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiVideoConfig.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />

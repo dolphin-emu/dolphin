@@ -70,6 +70,12 @@ void VideoConfig::Refresh()
     s_has_registered_callback = true;
   }
 
+  LoadSettings();
+  VerifyValidity();
+}
+
+void VideoConfig::LoadSettings()
+{
   bVSync = Config::Get(Config::GFX_VSYNC);
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
@@ -158,8 +164,6 @@ void VideoConfig::Refresh()
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
-
-  VerifyValidity();
 }
 
 void VideoConfig::VerifyValidity()
