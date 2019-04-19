@@ -235,21 +235,19 @@ bool RenderWidget::event(QEvent* event)
 
 void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
 {
-  if (event->buttons() & Qt::MidButton)
-  {
-    // Mouse Move
-    VertexShaderManager::TranslateView((event->x() - m_last_mouse[0]) / 50.0f,
-                                       (event->y() - m_last_mouse[1]) / 50.0f);
-  }
-  else if (event->buttons() & Qt::RightButton)
-  {
-    // Mouse Look
-    VertexShaderManager::RotateView((event->x() - m_last_mouse[0]) / 200.0f,
-                                    (event->y() - m_last_mouse[1]) / 200.0f);
-  }
+  const auto mouse_move = event->pos() - m_last_mouse;
+  m_last_mouse = event->pos();
 
-  m_last_mouse[0] = event->x();
-  m_last_mouse[1] = event->y();
+  if (event->buttons() & Qt::RightButton)
+  {
+    // Camera Pitch and Yaw:
+    VertexShaderManager::RotateView(mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f);
+  }
+  else if (event->buttons() & Qt::MidButton)
+  {
+    // Camera Roll:
+    VertexShaderManager::RotateView(0.f, 0.f, mouse_move.x() / 200.f);
+  }
 }
 
 void RenderWidget::PassEventToImGui(const QEvent* event)
