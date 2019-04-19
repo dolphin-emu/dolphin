@@ -56,6 +56,7 @@
     <ClCompile Include="HiresTextures.cpp" />
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
+    <ClCompile Include="ImGuiManager.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="NetPlayChatUI.cpp" />
     <ClCompile Include="NetPlayGolfUI.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="FramebufferShaderGen.h" />
     <ClInclude Include="GXPipelineTypes.h" />
+    <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="NetPlayChatUI.h" />
     <ClInclude Include="NetPlayGolfUI.h" />
     <ClInclude Include="ShaderCache.h" />
