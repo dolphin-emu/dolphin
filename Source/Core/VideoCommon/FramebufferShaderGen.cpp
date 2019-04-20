@@ -104,10 +104,23 @@ static void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
          << ";\n";
     if (position_input)
       ss << "ATTRIBUTE_LOCATION(" << SHADER_POSITION_ATTRIB << ") in float4 rawpos;\n";
-    for (u32 i = 0; i < num_tex_outputs; i++)
-      ss << "VARYING_LOCATION(" << i << ") out float3 v_tex" << i << ";\n";
-    for (u32 i = 0; i < num_color_outputs; i++)
-      ss << "VARYING_LOCATION(" << (num_tex_inputs + i) << ") out float4 v_col" << i << ";\n";
+
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) out VertexData {\n";
+      for (u32 i = 0; i < num_tex_outputs; i++)
+        ss << "  float3 v_tex" << i << ";\n";
+      for (u32 i = 0; i < num_color_outputs; i++)
+        ss << "  float4 v_col" << i << ";\n";
+      ss << "};\n";
+    }
+    else
+    {
+      for (u32 i = 0; i < num_tex_outputs; i++)
+        ss << "VARYING_LOCATION(" << i << ") out float3 v_tex" << i << ";\n";
+      for (u32 i = 0; i < num_color_outputs; i++)
+        ss << "VARYING_LOCATION(" << (num_tex_inputs + i) << ") out float4 v_col" << i << ";\n";
+    }
     ss << "#define opos gl_Position\n";
     ss << extra_inputs << "\n";
     ss << "void main()\n";
@@ -138,10 +151,23 @@ static void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
   case APIType::OpenGL:
   case APIType::Vulkan:
   {
-    for (u32 i = 0; i < num_tex_inputs; i++)
-      ss << "VARYING_LOCATION(" << i << ") in float3 v_tex" << i << ";\n";
-    for (u32 i = 0; i < num_color_inputs; i++)
-      ss << "VARYING_LOCATION(" << (num_tex_inputs + i) << ") in float4 v_col" << i << ";\n";
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) in VertexData {\n";
+      for (u32 i = 0; i < num_tex_inputs; i++)
+        ss << "  in float3 v_tex" << i << ";\n";
+      for (u32 i = 0; i < num_color_inputs; i++)
+        ss << "  in float4 v_col" << i << ";\n";
+      ss << "};\n";
+    }
+    else
+    {
+      for (u32 i = 0; i < num_tex_inputs; i++)
+        ss << "VARYING_LOCATION(" << i << ") in float3 v_tex" << i << ";\n";
+      for (u32 i = 0; i < num_color_inputs; i++)
+        ss << "VARYING_LOCATION(" << (num_tex_inputs + i) << ") in float4 v_col" << i << ";\n";
+    }
+
     ss << "FRAGMENT_OUTPUT_LOCATION(0) out " << output_type << " ocol0;\n";
     ss << extra_vars << "\n";
     ss << "void main()\n";
@@ -218,15 +244,20 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
   {
     ss << "layout(triangles) in;\n";
     ss << "layout(triangle_strip, max_vertices = 6) out;\n";
-    for (u32 i = 0; i < num_tex; i++)
+    if (num_tex > 0 || num_colors > 0)
     {
-      ss << "layout(location = " << i << ") in float3 v_tex" << i << "[];\n";
-      ss << "layout(location = " << i << ") out float3 out_tex" << i << ";\n";
-    }
-    for (u32 i = 0; i < num_colors; i++)
-    {
-      ss << "layout(location = " << (num_tex + i) << ") in float4 v_col" << i << "[];\n";
-      ss << "layout(location = " << (num_tex + i) << ") out float4 out_col" << i << ";\n";
+      ss << "VARYING_LOCATION(0) in VertexData {\n";
+      for (u32 i = 0; i < num_tex; i++)
+        ss << "  float3 v_tex" << i << ";\n";
+      for (u32 i = 0; i < num_colors; i++)
+        ss << "  float4 v_col" << i << ";\n";
+      ss << "} v_in[];\n";
+      ss << "VARYING_LOCATION(0) out VertexData {\n";
+      for (u32 i = 0; i < num_tex; i++)
+        ss << "  float3 v_tex" << i << ";\n";
+      for (u32 i = 0; i < num_colors; i++)
+        ss << "  float4 v_col" << i << ";\n";
+      ss << "} v_out;\n";
     }
     ss << "\n";
     ss << "void main()\n";
@@ -240,9 +271,10 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
     {
       ss << "    gl_Position = gl_in[" << v << "].gl_Position;\n";
       for (u32 i = 0; i < num_tex; i++)
-        ss << "    out_tex" << i << " = float3(v_tex" << i << "[" << v << "].xy, float(j));\n";
+        ss << "    v_out.v_tex" << i << " = float3(v_in[" << v << "].v_tex" << i
+           << ".xy, float(j));\n";
       for (u32 i = 0; i < num_colors; i++)
-        ss << "    out_col" << i << " = v_col" << i << "[" << v << "];\n";
+        ss << "    v_out.v_col" << i << " = v_in[" << v << "].v_col" << i << ";\n";
       ss << "    EmitVertex();\n\n";
     }
     ss << "    EndPrimitive();\n";
