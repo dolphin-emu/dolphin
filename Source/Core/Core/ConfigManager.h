@@ -14,7 +14,6 @@
 #include "Common/IniFile.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/TitleDatabase.h"
 
 namespace DiscIO
 {
