@@ -641,17 +641,19 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
   auto& entry = m_gx_pipeline_cache[config];
   entry.second = false;
   if (!entry.first && pipeline)
+  {
     entry.first = std::move(pipeline);
 
-  if (g_ActiveConfig.bShaderCache)
-  {
-    auto cache_data = entry.first->GetCacheData();
-    if (!cache_data.empty())
+    if (g_ActiveConfig.bShaderCache)
     {
-      SerializedGXPipelineUid disk_uid;
-      SerializePipelineUid(config, disk_uid);
-      m_gx_pipeline_disk_cache.Append(disk_uid, cache_data.data(),
-                                      static_cast<u32>(cache_data.size()));
+      auto cache_data = entry.first->GetCacheData();
+      if (!cache_data.empty())
+      {
+        SerializedGXPipelineUid disk_uid;
+        SerializePipelineUid(config, disk_uid);
+        m_gx_pipeline_disk_cache.Append(disk_uid, cache_data.data(),
+                                        static_cast<u32>(cache_data.size()));
+      }
     }
   }
 
@@ -665,17 +667,19 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
   auto& entry = m_gx_uber_pipeline_cache[config];
   entry.second = false;
   if (!entry.first && pipeline)
+  {
     entry.first = std::move(pipeline);
 
-  if (g_ActiveConfig.bShaderCache)
-  {
-    auto cache_data = entry.first->GetCacheData();
-    if (!cache_data.empty())
+    if (g_ActiveConfig.bShaderCache)
     {
-      SerializedGXUberPipelineUid disk_uid;
-      SerializePipelineUid(config, disk_uid);
-      m_gx_uber_pipeline_disk_cache.Append(disk_uid, cache_data.data(),
-                                           static_cast<u32>(cache_data.size()));
+      auto cache_data = entry.first->GetCacheData();
+      if (!cache_data.empty())
+      {
+        SerializedGXUberPipelineUid disk_uid;
+        SerializePipelineUid(config, disk_uid);
+        m_gx_uber_pipeline_disk_cache.Append(disk_uid, cache_data.data(),
+                                             static_cast<u32>(cache_data.size()));
+      }
     }
   }
 
