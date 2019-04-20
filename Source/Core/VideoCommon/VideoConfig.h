@@ -219,6 +219,8 @@ struct VideoConfig final
     bool bSupportsBackgroundCompiling;
     bool bSupportsLargePoints;
     bool bSupportsPartialDepthCopies;
+    bool bSupportsShaderBinaries;
+    bool bSupportsPipelineCacheData;
   } backend_info;
 
   // Utility

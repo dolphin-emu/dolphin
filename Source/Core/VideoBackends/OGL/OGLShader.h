@@ -24,8 +24,6 @@ public:
   GLenum GetGLShaderType() const { return m_type; }
   GLuint GetGLShaderID() const { return m_gl_id; }
   GLuint GetGLComputeProgramID() const { return m_gl_compute_program_id; }
-  bool HasBinary() const override;
-  BinaryData GetBinary() const override;
 
   static std::unique_ptr<OGLShader> CreateFromSource(ShaderStage stage, const char* source,
                                                      size_t length);

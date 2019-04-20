@@ -44,17 +44,6 @@ OGLShader::~OGLShader()
     glDeleteProgram(m_gl_compute_program_id);
 }
 
-bool OGLShader::HasBinary() const
-{
-  // NOTE: GL shaders do not have binaries, programs do.
-  return false;
-}
-
-AbstractShader::BinaryData OGLShader::GetBinary() const
-{
-  return {};
-}
-
 std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, const char* source,
                                                        size_t length)
 {

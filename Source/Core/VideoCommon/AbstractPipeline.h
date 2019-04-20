@@ -75,4 +75,10 @@ class AbstractPipeline
 public:
   AbstractPipeline() = default;
   virtual ~AbstractPipeline() = default;
+
+  // "Cache data" can be used to assist a driver with creating pipelines by using previously
+  // compiled shader ISA. The abstract shaders and creation struct are still required to create
+  // pipeline objects, the cache is optionally used by the driver to speed up compilation.
+  using CacheData = std::vector<u8>;
+  virtual CacheData GetCacheData() const { return {}; }
 };

@@ -127,7 +127,9 @@ std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage sta
   return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length));
 }
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
+                                                           const void* cache_data,
+                                                           size_t cache_data_length)
 {
   return DXPipeline::Create(config);
 }

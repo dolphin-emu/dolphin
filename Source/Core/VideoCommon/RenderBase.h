@@ -130,8 +130,9 @@ public:
   CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
   virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
-  virtual std::unique_ptr<AbstractPipeline>
-  CreatePipeline(const AbstractPipelineConfig& config) = 0;
+  virtual std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
+                                                           const void* cache_data = nullptr,
+                                                           size_t cache_data_length = 0) = 0;
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
                                                          const std::string& source);
 

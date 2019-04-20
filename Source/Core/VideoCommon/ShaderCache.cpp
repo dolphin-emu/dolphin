@@ -25,8 +25,7 @@ namespace VideoCommon
 ShaderCache::ShaderCache() = default;
 ShaderCache::~ShaderCache()
 {
-  ClearShaderCaches();
-  ClearPipelineCaches();
+  ClearCaches();
 }
 
 bool ShaderCache::Initialize()
@@ -48,7 +47,7 @@ void ShaderCache::InitializeShaderCache()
   // Load shader and UID caches.
   if (g_ActiveConfig.bShaderCache && m_api_type != APIType::Nothing)
   {
-    LoadShaderCaches();
+    LoadCaches();
     LoadPipelineUIDCache();
   }
 
@@ -69,11 +68,10 @@ void ShaderCache::Reload()
 {
   WaitForAsyncCompiler();
   ClosePipelineUIDCache();
-  InvalidateCachedPipelines();
-  ClearShaderCaches();
+  ClearCaches();
 
   if (g_ActiveConfig.bShaderCache)
-    LoadShaderCaches();
+    LoadCaches();
 
   // Switch to the precompiling shader configuration while we rebuild.
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
@@ -140,7 +138,7 @@ const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineU
     return it->second.first.get();
 
   std::unique_ptr<AbstractPipeline> pipeline;
-  std::optional<AbstractPipelineConfig> pipeline_config = GetGXUberPipelineConfig(uid);
+  std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
     pipeline = g_renderer->CreatePipeline(*pipeline_config);
   return InsertGXUberPipeline(uid, std::move(pipeline));
@@ -176,8 +174,34 @@ void ShaderCache::WaitForAsyncCompiler()
   }
 }
 
+template <typename SerializedUidType, typename UidType>
+static void SerializePipelineUid(const UidType& uid, SerializedUidType& serialized_uid)
+{
+  // Convert to disk format. Ensure all padding bytes are zero.
+  std::memset(&serialized_uid, 0, sizeof(serialized_uid));
+  serialized_uid.vertex_decl = uid.vertex_format->GetVertexDeclaration();
+  serialized_uid.vs_uid = uid.vs_uid;
+  serialized_uid.gs_uid = uid.gs_uid;
+  serialized_uid.ps_uid = uid.ps_uid;
+  serialized_uid.rasterization_state_bits = uid.rasterization_state.hex;
+  serialized_uid.depth_state_bits = uid.depth_state.hex;
+  serialized_uid.blending_state_bits = uid.blending_state.hex;
+}
+
+template <typename UidType, typename SerializedUidType>
+static void UnserializePipelineUid(const SerializedUidType& uid, UidType& real_uid)
+{
+  real_uid.vertex_format = VertexLoaderManager::GetOrCreateMatchingFormat(uid.vertex_decl);
+  real_uid.vs_uid = uid.vs_uid;
+  real_uid.gs_uid = uid.gs_uid;
+  real_uid.ps_uid = uid.ps_uid;
+  real_uid.rasterization_state.hex = uid.rasterization_state_bits;
+  real_uid.depth_state.hex = uid.depth_state_bits;
+  real_uid.blending_state.hex = uid.blending_state_bits;
+}
+
 template <ShaderStage stage, typename K, typename T>
-static void LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid)
+void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, bool include_gameid)
 {
   class CacheReader : public LinearDiskCacheReader<K, u8>
   {
@@ -219,38 +243,127 @@ static void LoadShaderCache(T& cache, APIType api_type, const char* type, bool i
 }
 
 template <typename T>
-static void ClearShaderCache(T& cache)
+void ShaderCache::ClearShaderCache(T& cache)
 {
   cache.disk_cache.Sync();
   cache.disk_cache.Close();
   cache.shader_map.clear();
 }
 
-void ShaderCache::LoadShaderCaches()
+template <typename KeyType, typename DiskKeyType, typename T>
+void ShaderCache::LoadPipelineCache(T& cache, LinearDiskCache<DiskKeyType, u8>& disk_cache,
+                                    APIType api_type, const char* type, bool include_gameid)
 {
-  // Ubershader caches, if present.
-  LoadShaderCache<ShaderStage::Vertex, UberShader::VertexShaderUid>(m_uber_vs_cache, m_api_type,
-                                                                    "uber-vs", false);
-  LoadShaderCache<ShaderStage::Pixel, UberShader::PixelShaderUid>(m_uber_ps_cache, m_api_type,
-                                                                  "uber-ps", false);
+  class CacheReader : public LinearDiskCacheReader<DiskKeyType, u8>
+  {
+  public:
+    CacheReader(ShaderCache* this_ptr_, T& cache_) : this_ptr(this_ptr_), cache(cache_) {}
+    bool AnyFailed() const { return failed; }
+    void Read(const DiskKeyType& key, const u8* value, u32 value_size)
+    {
+      KeyType real_uid;
+      UnserializePipelineUid(key, real_uid);
 
-  // We also share geometry shaders, as there aren't many variants.
-  if (m_host_config.backend_geometry_shaders)
-    LoadShaderCache<ShaderStage::Geometry, GeometryShaderUid>(m_gs_cache, m_api_type, "gs", false);
+      // Skip those which are already compiled.
+      if (failed || cache.find(real_uid) != cache.end())
+        return;
 
-  // Specialized shaders, gameid-specific.
-  LoadShaderCache<ShaderStage::Vertex, VertexShaderUid>(m_vs_cache, m_api_type, "specialized-vs",
-                                                        true);
-  LoadShaderCache<ShaderStage::Pixel, PixelShaderUid>(m_ps_cache, m_api_type, "specialized-ps",
-                                                      true);
+      auto config = this_ptr->GetGXPipelineConfig(real_uid);
+      if (!config)
+        return;
+
+      auto pipeline = g_renderer->CreatePipeline(*config, value, value_size);
+      if (!pipeline)
+      {
+        // If any of the pipelines fail to create, consider the cache stale.
+        failed = true;
+        return;
+      }
+
+      auto& entry = cache[real_uid];
+      entry.first = std::move(pipeline);
+      entry.second = false;
+    }
+
+  private:
+    ShaderCache* this_ptr;
+    T& cache;
+    bool failed = false;
+  };
+
+  std::string filename = GetDiskShaderCacheFileName(api_type, type, include_gameid, true);
+  CacheReader reader(this, cache);
+  u32 count = disk_cache.OpenAndRead(filename, reader);
+  INFO_LOG(VIDEO, "Loaded %u cached pipelines from %s", count, filename.c_str());
+
+  // If any of the pipelines in the cache failed to create, it's likely because of a change of
+  // driver version, or system configuration. In this case, when the UID cache picks up the pipeline
+  // later on, we'll write a duplicate entry to the pipeline cache. There's also no point in keeping
+  // the old cache data around, so discard and recreate the disk cache.
+  if (reader.AnyFailed())
+  {
+    WARN_LOG(VIDEO, "Failed to load one or more pipelines from cache '%s'. Discarding.",
+             filename.c_str());
+    disk_cache.Close();
+    File::Delete(filename);
+    disk_cache.OpenAndRead(filename, reader);
+  }
 }
 
-void ShaderCache::ClearShaderCaches()
+template <typename T, typename Y>
+void ShaderCache::ClearPipelineCache(T& cache, Y& disk_cache)
 {
+  disk_cache.Sync();
+  disk_cache.Close();
+
+  // Set the pending flag to false, and destroy the pipeline.
+  for (auto& it : cache)
+  {
+    it.second.first.reset();
+    it.second.second = false;
+  }
+}
+
+void ShaderCache::LoadCaches()
+{
+  // Ubershader caches, if present.
+  if (g_ActiveConfig.backend_info.bSupportsShaderBinaries)
+  {
+    LoadShaderCache<ShaderStage::Vertex, UberShader::VertexShaderUid>(m_uber_vs_cache, m_api_type,
+                                                                      "uber-vs", false);
+    LoadShaderCache<ShaderStage::Pixel, UberShader::PixelShaderUid>(m_uber_ps_cache, m_api_type,
+                                                                    "uber-ps", false);
+
+    // We also share geometry shaders, as there aren't many variants.
+    if (m_host_config.backend_geometry_shaders)
+      LoadShaderCache<ShaderStage::Geometry, GeometryShaderUid>(m_gs_cache, m_api_type, "gs",
+                                                                false);
+
+    // Specialized shaders, gameid-specific.
+    LoadShaderCache<ShaderStage::Vertex, VertexShaderUid>(m_vs_cache, m_api_type, "specialized-vs",
+                                                          true);
+    LoadShaderCache<ShaderStage::Pixel, PixelShaderUid>(m_ps_cache, m_api_type, "specialized-ps",
+                                                        true);
+  }
+
+  if (g_ActiveConfig.backend_info.bSupportsPipelineCacheData)
+  {
+    LoadPipelineCache<GXPipelineUid, SerializedGXPipelineUid>(
+        m_gx_pipeline_cache, m_gx_pipeline_disk_cache, m_api_type, "specialized-pipeline", true);
+    LoadPipelineCache<GXUberPipelineUid, SerializedGXUberPipelineUid>(
+        m_gx_uber_pipeline_cache, m_gx_uber_pipeline_disk_cache, m_api_type, "uber-pipeline",
+        false);
+  }
+}
+
+void ShaderCache::ClearCaches()
+{
+  ClearPipelineCache(m_gx_pipeline_cache, m_gx_pipeline_disk_cache);
   ClearShaderCache(m_vs_cache);
   ClearShaderCache(m_gs_cache);
   ClearShaderCache(m_ps_cache);
 
+  ClearPipelineCache(m_gx_uber_pipeline_cache, m_gx_uber_pipeline_disk_cache);
   ClearShaderCache(m_uber_vs_cache);
   ClearShaderCache(m_uber_ps_cache);
 
@@ -265,35 +378,14 @@ void ShaderCache::CompileMissingPipelines()
   // Queue all uids with a null pipeline for compilation.
   for (auto& it : m_gx_pipeline_cache)
   {
-    if (!it.second.second)
+    if (!it.second.first)
       QueuePipelineCompile(it.first, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
   }
   for (auto& it : m_gx_uber_pipeline_cache)
   {
-    if (!it.second.second)
+    if (!it.second.first)
       QueueUberPipelineCompile(it.first, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
   }
-}
-
-void ShaderCache::InvalidateCachedPipelines()
-{
-  // Set the pending flag to false, and destroy the pipeline.
-  for (auto& it : m_gx_pipeline_cache)
-  {
-    it.second.first.reset();
-    it.second.second = false;
-  }
-  for (auto& it : m_gx_uber_pipeline_cache)
-  {
-    it.second.first.reset();
-    it.second.second = false;
-  }
-}
-
-void ShaderCache::ClearPipelineCaches()
-{
-  m_gx_pipeline_cache.clear();
-  m_gx_uber_pipeline_cache.clear();
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexShaderUid& uid) const
@@ -334,7 +426,7 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -356,7 +448,7 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -378,7 +470,7 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -400,7 +492,7 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -425,7 +517,7 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
 
   if (shader && !entry.shader)
   {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
+    if (g_ActiveConfig.bShaderCache && g_ActiveConfig.backend_info.bSupportsShaderBinaries)
     {
       auto binary = shader->GetBinary();
       if (!binary.empty())
@@ -505,7 +597,7 @@ std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXP
 }
 
 std::optional<AbstractPipelineConfig>
-ShaderCache::GetGXUberPipelineConfig(const GXUberPipelineUid& config)
+ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config)
 {
   const AbstractShader* vs;
   auto vs_iter = m_uber_vs_cache.shader_map.find(config.vs_uid);
@@ -551,6 +643,18 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
   if (!entry.first && pipeline)
     entry.first = std::move(pipeline);
 
+  if (g_ActiveConfig.bShaderCache)
+  {
+    auto cache_data = entry.first->GetCacheData();
+    if (!cache_data.empty())
+    {
+      SerializedGXPipelineUid disk_uid;
+      SerializePipelineUid(config, disk_uid);
+      m_gx_pipeline_disk_cache.Append(disk_uid, cache_data.data(),
+                                      static_cast<u32>(cache_data.size()));
+    }
+  }
+
   return entry.first.get();
 }
 
@@ -562,6 +666,18 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
   entry.second = false;
   if (!entry.first && pipeline)
     entry.first = std::move(pipeline);
+
+  if (g_ActiveConfig.bShaderCache)
+  {
+    auto cache_data = entry.first->GetCacheData();
+    if (!cache_data.empty())
+    {
+      SerializedGXUberPipelineUid disk_uid;
+      SerializePipelineUid(config, disk_uid);
+      m_gx_uber_pipeline_disk_cache.Append(disk_uid, cache_data.data(),
+                                           static_cast<u32>(cache_data.size()));
+    }
+  }
 
   return entry.first.get();
 }
@@ -648,14 +764,8 @@ void ShaderCache::ClosePipelineUIDCache()
 
 void ShaderCache::AddSerializedGXPipelineUID(const SerializedGXPipelineUid& uid)
 {
-  GXPipelineUid real_uid = {};
-  real_uid.vertex_format = VertexLoaderManager::GetOrCreateMatchingFormat(uid.vertex_decl);
-  real_uid.vs_uid = uid.vs_uid;
-  real_uid.gs_uid = uid.gs_uid;
-  real_uid.ps_uid = uid.ps_uid;
-  real_uid.rasterization_state.hex = uid.rasterization_state_bits;
-  real_uid.depth_state.hex = uid.depth_state_bits;
-  real_uid.blending_state.hex = uid.blending_state_bits;
+  GXPipelineUid real_uid;
+  UnserializePipelineUid(uid, real_uid);
 
   auto iter = m_gx_pipeline_cache.find(real_uid);
   if (iter != m_gx_pipeline_cache.end())
@@ -671,16 +781,8 @@ void ShaderCache::AppendGXPipelineUID(const GXPipelineUid& config)
   if (!m_gx_pipeline_uid_cache_file.IsOpen())
     return;
 
-  // Convert to disk format. Ensure all padding bytes are zero.
   SerializedGXPipelineUid disk_uid;
-  std::memset(&disk_uid, 0, sizeof(disk_uid));
-  disk_uid.vertex_decl = config.vertex_format->GetVertexDeclaration();
-  disk_uid.vs_uid = config.vs_uid;
-  disk_uid.gs_uid = config.gs_uid;
-  disk_uid.ps_uid = config.ps_uid;
-  disk_uid.rasterization_state_bits = config.rasterization_state.hex;
-  disk_uid.depth_state_bits = config.depth_state.hex;
-  disk_uid.blending_state_bits = config.blending_state.hex;
+  SerializePipelineUid(config, disk_uid);
   if (!m_gx_pipeline_uid_cache_file.WriteBytes(&disk_uid, sizeof(disk_uid)))
   {
     WARN_LOG(VIDEO, "Writing pipeline UID to cache failed, closing file.");
@@ -885,7 +987,7 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
       // Check if all the stages required for this UberPipeline have been compiled.
       // If not, this work item becomes a no-op, and re-queues the UberPipeline for the next frame.
       if (SetStagesReady())
-        config = shader_cache->GetGXUberPipelineConfig(uid);
+        config = shader_cache->GetGXPipelineConfig(uid);
     }
 
     bool SetStagesReady()

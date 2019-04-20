@@ -48,7 +48,6 @@ enum class EsFbFetchType
 struct VideoConfig
 {
   bool bIsES;
-  bool bSupportsGLSLCache;
   bool bSupportsGLPinnedMemory;
   bool bSupportsGLSync;
   bool bSupportsGLBaseVertex;
@@ -102,7 +101,9 @@ public:
                                                          size_t length) override;
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
-  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
+                                                   const void* cache_data = nullptr,
+                                                   size_t cache_data_length = 0) override;
   std::unique_ptr<AbstractFramebuffer>
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
 
