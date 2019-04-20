@@ -17,7 +17,7 @@ class Force : public ReshapableInput
 public:
   using StateData = Common::Vec3;
 
-  explicit Force(const std::string& name);
+  Force(std::string name, std::string ui_name);
 
   ReshapeData GetReshapableState(bool adjusted) final override;
   ControlState GetGateRadiusAtAngle(double ang) const final override;

@@ -44,7 +44,7 @@ Nunchuk::Nunchuk() : EncryptedExtension(_trans("Nunchuk"))
                           new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // swing
-  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
+  groups.emplace_back(m_swing = new ControllerEmu::Force("Swing", _trans("Thrust")));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));

@@ -16,7 +16,8 @@
 
 namespace ControllerEmu
 {
-Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType::Force)
+Force::Force(std::string name, std::string ui_name)
+    : ReshapableInput(std::move(name), std::move(ui_name), GroupType::Force)
 {
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Up")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Down")));
