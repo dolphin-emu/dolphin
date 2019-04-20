@@ -347,6 +347,10 @@ void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (ApiType != APIType::D3D || !host_config.backend_logic_op)
     uid_data->uint_output = 0;
+
+  // If bounding box is enabled when a UID cache is created, then later disabled, we shouldn't
+  // emit the bounding box portion of the shader.
+  uid_data->bounding_box &= host_config.bounding_box;
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
