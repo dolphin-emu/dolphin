@@ -58,6 +58,8 @@ signals:
 
 protected:
   int GetPort() const;
+
+  QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
 
 private:

@@ -15,14 +15,13 @@
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(const std::string& name_, const GroupType type_)
-    : name(name_), ui_name(name_), type(type_)
+ControlGroup::ControlGroup(std::string name_, const GroupType type_)
+    : name(name_), ui_name(std::move(name_)), type(type_)
 {
 }
 
-ControlGroup::ControlGroup(const std::string& name_, const std::string& ui_name_,
-                           const GroupType type_)
-    : name(name_), ui_name(ui_name_), type(type_)
+ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupType type_)
+    : name(std::move(name_)), ui_name(std::move(ui_name_)), type(type_)
 {
 }
 

@@ -44,9 +44,8 @@ enum class GroupType
 class ControlGroup
 {
 public:
-  explicit ControlGroup(const std::string& name, GroupType type = GroupType::Other);
-  ControlGroup(const std::string& name, const std::string& ui_name,
-               GroupType type = GroupType::Other);
+  explicit ControlGroup(std::string name, GroupType type = GroupType::Other);
+  ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other);
   virtual ~ControlGroup();
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",

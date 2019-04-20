@@ -332,8 +332,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new WiimoteEmuGeneral(this, extension);
     setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
-    // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-    AddWidget(tr("Motion Controls and IR"), new WiimoteEmuMotionControl(this));
+    AddWidget(tr("Motion Controls"), new WiimoteEmuMotionControl(this));
     AddWidget(tr("Extension"), extension);
     break;
   }

@@ -136,7 +136,6 @@ Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group)
 
   // Nintendo recommends a distance of 1-3 meters.
   constexpr float NEUTRAL_DISTANCE = 2.f;
-  constexpr float MOVE_DISTANCE = 1.f;
 
   // When the sensor bar position is on bottom, apply the "offset" setting negatively.
   // This is kinda odd but it does seem to maintain consistent cursor behavior.
@@ -149,8 +148,7 @@ Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group)
 
   const auto cursor = ir_group->GetState(true);
 
-  return Matrix44::Translate({0, MOVE_DISTANCE * float(cursor.z), 0}) *
-         Matrix44::FromMatrix33(Matrix33::RotateX(pitch_scale * cursor.y) *
+  return Matrix44::FromMatrix33(Matrix33::RotateX(pitch_scale * cursor.y) *
                                 Matrix33::RotateZ(yaw_scale * cursor.x)) *
          Matrix44::Translate({0, -NEUTRAL_DISTANCE, height});
 }

@@ -134,7 +134,7 @@ void Wiimote::Reset()
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)
 {
-  // buttons
+  // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (const char* named_button : named_buttons)
   {
@@ -143,20 +143,14 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
         new ControllerEmu::Input(ControllerEmu::DoNotTranslate, named_button, ui_name));
   }
 
-  // ir
-  // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-  groups.emplace_back(m_ir = new ControllerEmu::Cursor(_trans("IR")));
-
-  // swing
+  // Pointing (IR)
+  // i18n: "Point" refers to the action of pointing a Wii Remote.
+  groups.emplace_back(m_ir = new ControllerEmu::Cursor("IR", _trans("Point")));
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
-
-  // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
-
-  // shake
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
 
-  // extension
+  // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Nunchuk>());
@@ -165,12 +159,12 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Drums>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Turntable>());
 
-  // rumble
+  // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
   m_rumble->controls.emplace_back(
       m_motor = new ControllerEmu::Output(ControllerEmu::Translate, _trans("Motor")));
 
-  // dpad
+  // D-Pad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
   {
@@ -178,7 +172,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
         new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
   }
 
-  // options
+  // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
   m_options->AddSetting(&m_speaker_pan_setting,
@@ -204,7 +198,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                         {"Sideways Wiimote", nullptr, nullptr, _trans("Sideways Wii Remote")},
                         false);
 
-  // hotkeys
+  // Hotkeys
   groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
   // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
   // this setting modifier is toggled
@@ -232,7 +226,7 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
     return m_dpad;
   case WiimoteGroup::Shake:
     return m_shake;
-  case WiimoteGroup::IR:
+  case WiimoteGroup::Point:
     return m_ir;
   case WiimoteGroup::Tilt:
     return m_tilt;
@@ -586,7 +580,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   for (int i = 0; i < 3; ++i)
     m_shake->SetControlExpression(i, "Click 2");
 
-  // IR
+  // Pointing (IR)
   m_ir->SetControlExpression(0, "Cursor Y-");
   m_ir->SetControlExpression(1, "Cursor Y+");
   m_ir->SetControlExpression(2, "Cursor X-");
@@ -667,7 +661,7 @@ void Wiimote::StepDynamics()
 Common::Vec3 Wiimote::GetAcceleration()
 {
   // Includes effects of:
-  // IR, Tilt, Swing, Orientation, Shake
+  // Pointing (IR), Tilt, Swing, Orientation, Shake
 
   auto orientation = Common::Matrix33::Identity();
 
@@ -690,7 +684,7 @@ Common::Vec3 Wiimote::GetAcceleration()
 Common::Matrix44 Wiimote::GetTransformation() const
 {
   // Includes positional and rotational effects of:
-  // IR, Swing, Tilt, Shake
+  // Pointing (IR), Swing, Tilt, Shake
 
   return Common::Matrix44::Translate(-m_shake_state.position) *
          Common::Matrix44::FromMatrix33(GetRotationalMatrix(-m_tilt_state.angle) *
