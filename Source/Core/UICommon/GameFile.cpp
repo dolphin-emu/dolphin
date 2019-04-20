@@ -60,6 +60,9 @@ static bool UseGameCovers()
 
 DiscIO::Language GameFile::GetConfigLanguage() const
 {
+  if (m_platform == DiscIO::Platform::GameCubeDisc && m_country == DiscIO::Country::Japan)
+    return DiscIO::Language::Japanese;
+
 #ifdef ANDROID
   // TODO: Make the Android app load the config at app start instead of emulation start
   // so that we can access the user's preference here

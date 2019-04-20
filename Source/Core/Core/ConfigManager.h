@@ -18,6 +18,7 @@
 
 namespace DiscIO
 {
+enum class Country;
 enum class Language;
 enum class Region;
 struct Partition;
@@ -368,7 +369,7 @@ private:
   void LoadJitDebugSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                              u64 title_id, u16 revision);
+                              u64 title_id, u16 revision, DiscIO::Country country);
 
   static SConfig* m_Instance;
 
