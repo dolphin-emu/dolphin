@@ -40,7 +40,7 @@ enum class WiimoteGroup
   Buttons,
   DPad,
   Shake,
-  IR,
+  Point,
   Tilt,
   Swing,
   Rumble,
