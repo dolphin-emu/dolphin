@@ -64,7 +64,7 @@ void PopulateDevices(HWND hwnd)
     return;
   }
 
-  InitKeyboardMouse(idi8);
+  InitKeyboardMouse(idi8, hwnd);
   InitJoystick(idi8, hwnd);
 
   idi8->Release();
