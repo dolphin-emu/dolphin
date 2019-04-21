@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <string>
 #include <vector>
 
@@ -79,6 +80,30 @@ enum class GCMemcardRemoveFileRetVal
   DELETE_FAIL,
 };
 
+enum class GCMemcardValidityIssues
+{
+  FAILED_TO_OPEN,
+  IO_ERROR,
+  INVALID_CARD_SIZE,
+  INVALID_CHECKSUM,
+  MISMATCHED_CARD_SIZE,
+  FREE_BLOCK_MISMATCH,
+  DATA_IN_UNUSED_AREA,
+  COUNT
+};
+
+class GCMemcardErrorCode
+{
+public:
+  bool HasCriticalErrors() const;
+  bool Test(GCMemcardValidityIssues code) const;
+  void Set(GCMemcardValidityIssues code);
+  GCMemcardErrorCode& operator|=(const GCMemcardErrorCode& other);
+
+private:
+  std::bitset<static_cast<size_t>(GCMemcardValidityIssues::COUNT)> m_errors;
+};
+
 // size of a single memory card block in bytes
 constexpr u32 BLOCK_SIZE = 0x2000;
 
@@ -106,7 +131,7 @@ constexpr u16 BAT_SIZE = 0xFFB;
 constexpr u16 MemCard59Mb = 0x04;
 constexpr u16 MemCard123Mb = 0x08;
 constexpr u16 MemCard251Mb = 0x10;
-constexpr u16 Memcard507Mb = 0x20;
+constexpr u16 Memcard507Mb = 0x20;  // FIXME: case
 constexpr u16 MemCard1019Mb = 0x40;
 constexpr u16 MemCard2043Mb = 0x80;
 
@@ -192,6 +217,8 @@ struct Header
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 
@@ -301,6 +328,8 @@ struct Directory
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  GCMemcardErrorCode CheckForErrors() const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
@@ -333,6 +362,8 @@ struct BlockAlloc
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  GCMemcardErrorCode CheckForErrors(u16 size_mbits) const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)
@@ -354,8 +385,9 @@ private:
   int m_active_directory;
   int m_active_bat;
 
+  GCMemcard();
+
   GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
-  void InitActiveDirBat();
 
   const Directory& GetActiveDirectory() const;
   const BlockAlloc& GetActiveBat() const;
@@ -364,8 +396,9 @@ private:
   void UpdateBat(const BlockAlloc& bat);
 
 public:
-  explicit GCMemcard(const std::string& fileName, bool forceCreation = false,
-                     bool shift_jis = false);
+  static std::optional<GCMemcard> Create(std::string filename, u16 size_mbits, bool shift_jis);
+
+  static std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> Open(std::string filename);
 
   GCMemcard(const GCMemcard&) = delete;
   GCMemcard& operator=(const GCMemcard&) = delete;
@@ -382,7 +415,6 @@ public:
   static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                    std::vector<GCMBlock>& FileBuffer);
 
-  u32 TestChecksums() const;
   bool FixChecksums();
 
   // get number of file entries in the directory

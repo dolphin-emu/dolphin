@@ -703,12 +703,12 @@ void MigrateFromMemcardFile(const std::string& directory_name, int card_index)
                                                 Config::Get(Config::MAIN_MEMCARD_B_PATH);
   if (File::Exists(ini_memcard))
   {
-    GCMemcard memcard(ini_memcard.c_str());
-    if (memcard.IsValid())
+    auto [error_code, memcard] = GCMemcard::Open(ini_memcard.c_str());
+    if (!error_code.HasCriticalErrors() && memcard && memcard->IsValid())
     {
       for (u8 i = 0; i < DIRLEN; i++)
       {
-        memcard.ExportGci(i, "", directory_name);
+        memcard->ExportGci(i, "", directory_name);
       }
     }
   }

@@ -212,9 +212,10 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (File::Exists(filename.toStdString()))
     {
-      GCMemcard mc(filename.toStdString());
+      // TODO: check error codes and give reasonable error messages
+      auto [error_code, mc] = GCMemcard::Open(filename.toStdString());
 
-      if (!mc.IsValid())
+      if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
       {
         ModalMessageBox::critical(this, tr("Error"),
                                   tr("Cannot use that file as a memory card.\n%1\n"

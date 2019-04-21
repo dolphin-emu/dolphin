@@ -241,13 +241,14 @@ void GCMemcardManager::UpdateActions()
 
 void GCMemcardManager::SetSlotFile(int slot, QString path)
 {
-  auto memcard = std::make_unique<GCMemcard>(path.toStdString());
+  // TODO: Check error codes and give reasonable error messages.
+  auto [error_code, memcard] = GCMemcard::Open(path.toStdString());
 
-  if (!memcard->IsValid())
+  if (error_code.HasCriticalErrors() || !memcard || !memcard->IsValid())
     return;
 
   m_slot_file_edit[slot]->setText(path);
-  m_slot_memcard[slot] = std::move(memcard);
+  m_slot_memcard[slot] = std::make_unique<GCMemcard>(std::move(*memcard));
 
   UpdateSlotTable(slot);
   UpdateActions();
