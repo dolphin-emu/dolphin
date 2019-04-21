@@ -80,7 +80,6 @@ void SConfig::SaveSettings()
 
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
-  SaveDisplaySettings(ini);
   SaveGameListSettings(ini);
   SaveCoreSettings(ini);
   SaveMovieSettings(ini);
@@ -149,22 +148,6 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DebugModeEnabled", bEnableDebugging);
-}
-
-void SConfig::SaveDisplaySettings(IniFile& ini)
-{
-  IniFile::Section* display = ini.GetOrCreateSection("Display");
-
-  display->Set("FullscreenDisplayRes", strFullscreenResolution);
-  display->Set("Fullscreen", bFullscreen);
-  display->Set("RenderToMain", bRenderToMain);
-  display->Set("RenderWindowXPos", iRenderWindowXPos);
-  display->Set("RenderWindowYPos", iRenderWindowYPos);
-  display->Set("RenderWindowWidth", iRenderWindowWidth);
-  display->Set("RenderWindowHeight", iRenderWindowHeight);
-  display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
-  display->Set("KeepWindowOnTop", bKeepWindowOnTop);
-  display->Set("DisableScreenSaver", bDisableScreenSaver);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -378,7 +361,6 @@ void SConfig::LoadSettings()
 
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
-  LoadDisplaySettings(ini);
   LoadGameListSettings(ini);
   LoadCoreSettings(ini);
   LoadMovieSettings(ini);
@@ -438,22 +420,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DebugModeEnabled", &bEnableDebugging, false);
-}
-
-void SConfig::LoadDisplaySettings(IniFile& ini)
-{
-  IniFile::Section* display = ini.GetOrCreateSection("Display");
-
-  display->Get("Fullscreen", &bFullscreen, false);
-  display->Get("FullscreenDisplayRes", &strFullscreenResolution, "Auto");
-  display->Get("RenderToMain", &bRenderToMain, false);
-  display->Get("RenderWindowXPos", &iRenderWindowXPos, -1);
-  display->Get("RenderWindowYPos", &iRenderWindowYPos, -1);
-  display->Get("RenderWindowWidth", &iRenderWindowWidth, 640);
-  display->Get("RenderWindowHeight", &iRenderWindowHeight, 480);
-  display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
-  display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
-  display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)

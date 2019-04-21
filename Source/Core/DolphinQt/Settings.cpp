@@ -220,13 +220,13 @@ void Settings::SetKeepWindowOnTop(bool top)
   if (IsKeepWindowOnTopEnabled() == top)
     return;
 
-  SConfig::GetInstance().bKeepWindowOnTop = top;
+  Config::SetBaseOrCurrent(Config::MAIN_KEEP_WINDOW_ON_TOP, top);
   emit KeepWindowOnTopChanged(top);
 }
 
 bool Settings::IsKeepWindowOnTopEnabled() const
 {
-  return SConfig::GetInstance().bKeepWindowOnTop;
+  return Config::Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
 }
 
 int Settings::GetVolume() const

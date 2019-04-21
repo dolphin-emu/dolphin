@@ -33,6 +33,14 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::MAIN_MEMCARD_B_PATH.location,
       Config::MAIN_AUTO_DISC_CHANGE.location,
 
+      // Main.Display
+      Config::MAIN_FULLSCREEN_DISPLAY_RES.location,
+      Config::MAIN_FULLSCREEN.location,
+      Config::MAIN_RENDER_TO_MAIN.location,
+      Config::MAIN_RENDER_WINDOW_AUTOSIZE.location,
+      Config::MAIN_KEEP_WINDOW_ON_TOP.location,
+      Config::MAIN_DISABLE_SCREENSAVER.location,
+
       // Graphics.Hardware
 
       Config::GFX_VSYNC.location,
