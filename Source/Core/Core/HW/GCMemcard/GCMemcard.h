@@ -351,6 +351,16 @@ struct BlockAlloc
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  enum class ValidityCheckErrorCode
+  {
+    VALID,
+    INVALID_CHECKSUM,
+    CARD_SIZE_TOO_LARGE,
+    FREE_BLOCK_MISMATCH,
+    DATA_IN_UNUSED_AREA,
+  };
+  ValidityCheckErrorCode SeemsValid(u16 size_mbits) const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)

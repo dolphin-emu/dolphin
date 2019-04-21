@@ -136,6 +136,15 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     return;
   }
 
+  BlockAlloc::ValidityCheckErrorCode bat_block_0_valid = m_bat_blocks[0].SeemsValid(m_size_mb);
+  BlockAlloc::ValidityCheckErrorCode bat_block_1_valid = m_bat_blocks[1].SeemsValid(m_size_mb);
+  if (bat_block_0_valid != BlockAlloc::ValidityCheckErrorCode::VALID &&
+      bat_block_1_valid != BlockAlloc::ValidityCheckErrorCode::VALID)
+  {
+    PanicAlertT("Both BAT blocks seem to be corrupted.");
+    return;
+  }
+
   u32 csums = TestChecksums();
 
   if (csums & 0x1)
@@ -689,6 +698,38 @@ std::pair<u16, u16> BlockAlloc::CalculateChecksums() const
   constexpr size_t checksum_area_end = sizeof(BlockAlloc);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
+}
+
+BlockAlloc::ValidityCheckErrorCode BlockAlloc::SeemsValid(u16 size_mbits) const
+{
+  // verify checksums
+  const auto [checksum_sum, checksum_inv] = CalculateChecksums();
+  if (checksum_sum != m_checksum)
+    return ValidityCheckErrorCode::INVALID_CHECKSUM;
+  if (checksum_inv != m_checksum_inv)
+    return ValidityCheckErrorCode::INVALID_CHECKSUM;
+
+  // maximum size of blocks that can be addressed
+  if (size_mbits > 256)
+    return ValidityCheckErrorCode::CARD_SIZE_TOO_LARGE;
+
+  // check if free block count matches the actual amount of free blocks in m_map
+  u16 total_available_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
+  u16 blocks_in_use = 0;
+  for (size_t i = 0; i < total_available_blocks; ++i)
+    if (m_map[i] != 0)
+      ++blocks_in_use;
+  u16 free_blocks = total_available_blocks - blocks_in_use;
+
+  if (free_blocks != m_free_blocks)
+    return ValidityCheckErrorCode::FREE_BLOCK_MISMATCH;
+
+  // remaining blocks map to nothing on hardware and must be empty
+  for (size_t i = total_available_blocks; i < m_map.size(); ++i)
+    if (m_map[i] != 0)
+      return ValidityCheckErrorCode::DATA_IN_UNUSED_AREA;
+
+  return ValidityCheckErrorCode::VALID;
 }
 
 GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
