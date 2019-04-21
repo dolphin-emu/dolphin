@@ -1275,12 +1275,6 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 
 bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
-  memset(&m_header_block, 0xFF, BLOCK_SIZE);
-  memset(&m_directory_blocks[0], 0xFF, BLOCK_SIZE);
-  memset(&m_directory_blocks[1], 0xFF, BLOCK_SIZE);
-  memset(&m_bat_blocks[0], 0, BLOCK_SIZE);
-  memset(&m_bat_blocks[1], 0, BLOCK_SIZE);
-
   m_header_block = Header(SLOT_A, SizeMb, shift_jis);
   m_directory_blocks[0] = m_directory_blocks[1] = Directory();
   m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(SizeMb);
