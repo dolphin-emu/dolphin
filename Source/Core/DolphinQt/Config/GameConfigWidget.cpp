@@ -35,20 +35,17 @@ constexpr const char* DETERMINISM_AUTO_STRING = "auto";
 constexpr const char* DETERMINISM_NONE_STRING = "none";
 constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
-static void PopulateTab(QTabWidget* tab, const std::string& path, std::string game_id,
-                        bool read_only)
+static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
+                        u16 revision, bool read_only)
 {
-  while (!game_id.empty())
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
   {
-    const std::string ini_path = path + game_id + ".ini";
+    const std::string ini_path = path + filename;
     if (File::Exists(ini_path))
     {
-      auto* edit =
-          new GameConfigEdit(nullptr, QString::fromStdString(path + game_id + ".ini"), read_only);
-      tab->addTab(edit, QString::fromStdString(game_id));
+      auto* edit = new GameConfigEdit(nullptr, QString::fromStdString(ini_path), read_only);
+      tab->addTab(edit, QString::fromStdString(filename));
     }
-
-    game_id = game_id.substr(0, game_id.size() - 1);
   }
 }
 
@@ -63,8 +60,10 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   LoadSettings();
   ConnectWidgets();
 
-  PopulateTab(m_default_tab, File::GetSysDirectory() + "GameSettings/", m_game_id, true);
-  PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, false);
+  PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
+              m_game.GetRevision(), true);
+  PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(),
+              false);
 
   // Always give the user the opportunity to create a new INI
   if (m_local_tab->count() == 0)
@@ -72,7 +71,7 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
     auto* edit = new GameConfigEdit(
         nullptr, QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
         false);
-    m_local_tab->addTab(edit, QString::fromStdString(m_game_id));
+    m_local_tab->addTab(edit, QString::fromStdString(m_game_id + ".ini"));
   }
 }
 
