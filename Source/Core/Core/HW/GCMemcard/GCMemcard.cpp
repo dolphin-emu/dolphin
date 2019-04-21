@@ -1420,6 +1420,16 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   return 1;
 }
 
+GCMBlock::GCMBlock()
+{
+  Erase();
+}
+
+void GCMBlock::Erase()
+{
+  memset(m_block.data(), 0xFF, m_block.size());
+}
+
 Header::Header(int slot, u16 size_mbits, bool shift_jis)
 {
   // Nintendo format algorithm.

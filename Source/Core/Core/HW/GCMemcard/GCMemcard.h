@@ -92,8 +92,8 @@ protected:
 
 struct GCMBlock
 {
-  GCMBlock() { Erase(); }
-  void Erase() { memset(m_block.data(), 0xFF, m_block.size()); }
+  GCMBlock();
+  void Erase();
   std::array<u8, BLOCK_SIZE> m_block;
 };
 
