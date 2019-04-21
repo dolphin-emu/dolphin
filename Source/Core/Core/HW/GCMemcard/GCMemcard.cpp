@@ -115,6 +115,15 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     return;
   }
 
+  Directory::ValidityCheckErrorCode dir_block_0_valid = m_directory_blocks[0].SeemsValid();
+  Directory::ValidityCheckErrorCode dir_block_1_valid = m_directory_blocks[1].SeemsValid();
+  if (dir_block_0_valid != Directory::ValidityCheckErrorCode::VALID &&
+      dir_block_1_valid != Directory::ValidityCheckErrorCode::VALID)
+  {
+    PanicAlertT("Both directory blocks seem to be corrupted.");
+    return;
+  }
+
   if (!mcdFile.ReadBytes(&m_bat_blocks[0], BLOCK_SIZE))
   {
     PanicAlertT("Failed to read 1st block allocation table block correctly\n(0x6000-0x7FFF)");
@@ -1535,4 +1544,20 @@ std::pair<u16, u16> Directory::CalculateChecksums() const
   constexpr size_t checksum_area_end = offsetof(Directory, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
+}
+
+Directory::ValidityCheckErrorCode Directory::SeemsValid() const
+{
+  // verify checksums
+  const auto [checksum_sum, checksum_inv] = CalculateChecksums();
+  if (checksum_sum != m_checksum)
+    return ValidityCheckErrorCode::INVALID_CHECKSUM;
+  if (checksum_inv != m_checksum_inv)
+    return ValidityCheckErrorCode::INVALID_CHECKSUM;
+
+  // unused area, should always be filled with 0xFF
+  if (std::any_of(m_padding.begin(), m_padding.end(), [](u8 val) { return val != 0xFF; }))
+    return ValidityCheckErrorCode::DATA_IN_UNUSED_AREA;
+
+  return ValidityCheckErrorCode::VALID;
 }

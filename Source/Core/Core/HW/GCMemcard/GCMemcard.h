@@ -311,6 +311,14 @@ struct Directory
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  enum class ValidityCheckErrorCode
+  {
+    VALID,
+    INVALID_CHECKSUM,
+    DATA_IN_UNUSED_AREA,
+  };
+  ValidityCheckErrorCode SeemsValid() const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
