@@ -393,18 +393,6 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
           dst_y = 0;
         }
 
-        // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
-        // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
-        // to the graphics driver, which can cause GPU resets.
-        if (static_cast<u32>(src_x) >= entry->native_width ||
-            static_cast<u32>(src_y) >= entry->native_height ||
-            static_cast<u32>(dst_x) >= entry_to_update->native_width ||
-            static_cast<u32>(dst_y) >= entry_to_update->native_height)
-        {
-          ++iter.first;
-          continue;
-        }
-
         u32 copy_width =
             std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
         u32 copy_height =
@@ -427,6 +415,18 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
           dst_y = g_renderer->EFBToScaledY(dst_y);
           copy_width = g_renderer->EFBToScaledX(copy_width);
           copy_height = g_renderer->EFBToScaledY(copy_height);
+        }
+
+        // If the source rectangle is outside of what we actually have in VRAM, skip the copy.
+        // The backend doesn't do any clamping, so if we don't, we'd pass out-of-range coordinates
+        // to the graphics driver, which can cause GPU resets.
+        if (static_cast<u32>(src_x + copy_width) > entry->GetWidth() ||
+            static_cast<u32>(src_y + copy_height) > entry->GetHeight() ||
+            static_cast<u32>(dst_x + copy_width) > entry_to_update->GetWidth() ||
+            static_cast<u32>(dst_y + copy_height) > entry_to_update->GetHeight())
+        {
+          ++iter.first;
+          continue;
         }
 
         MathUtil::Rectangle<int> srcrect, dstrect;
