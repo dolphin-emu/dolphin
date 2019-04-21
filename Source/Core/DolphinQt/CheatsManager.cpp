@@ -627,7 +627,7 @@ void CheatsManager::Update()
 
       name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
       address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      lock_item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
+      lock_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
       value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
       lock_item->setCheckState(m_watch[i].locked ? Qt::Checked : Qt::Unchecked);
