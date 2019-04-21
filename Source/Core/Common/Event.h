@@ -31,7 +31,18 @@ public:
   {
     if (m_flag.TestAndSet())
     {
-      std::lock_guard<std::mutex> lk(m_mutex);
+      // Lock and immediately unlock m_mutex.
+      {
+        // Holding the lock at any time between the change of our flag and notify call
+        // is sufficient to prevent a race where both of these actions
+        // happen between the other thread's predicate test and wait call
+        // which would cause wait to block until the next spurious wakeup or timeout.
+
+        // Unlocking before notification is a micro-optimization to prevent
+        // the notified thread from immediately blocking on the mutex.
+        std::lock_guard<std::mutex> lk(m_mutex);
+      }
+
       m_condvar.notify_one();
     }
   }
