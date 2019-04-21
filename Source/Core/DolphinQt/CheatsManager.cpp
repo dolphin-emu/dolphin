@@ -494,6 +494,29 @@ void CheatsManager::NextSearch()
   Update();
 }
 
+static QString GetResultValue(const Result& result)
+{
+  if (!PowerPC::HostIsRAMAddress(result.address))
+  {
+    return QStringLiteral("---");
+  }
+  switch (result.type)
+  {
+  case DataType::Byte:
+    return QStringLiteral("%1").arg(PowerPC::HostRead_U8(result.address), 2, 16, QLatin1Char('0'));
+  case DataType::Short:
+    return QStringLiteral("%1").arg(PowerPC::HostRead_U16(result.address), 4, 16, QLatin1Char('0'));
+  case DataType::Int:
+    return QStringLiteral("%1").arg(PowerPC::HostRead_U32(result.address), 8, 16, QLatin1Char('0'));
+  case DataType::Float:
+    return QString::number(PowerPC::HostRead_F32(result.address));
+  case DataType::Double:
+    return QString::number(PowerPC::HostRead_F64(result.address));
+  case DataType::String:
+    return QObject::tr("String Match");
+  }
+}
+
 void CheatsManager::Update()
 {
   m_match_table->clear();
@@ -528,37 +551,7 @@ void CheatsManager::Update()
       address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      if (PowerPC::HostIsRAMAddress(m_results[i].address))
-      {
-        switch (m_results[i].type)
-        {
-        case DataType::Byte:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_results[i].address),
-                                                       2, 16, QLatin1Char('0')));
-          break;
-        case DataType::Short:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_results[i].address),
-                                                       4, 16, QLatin1Char('0')));
-          break;
-        case DataType::Int:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_results[i].address),
-                                                       8, 16, QLatin1Char('0')));
-          break;
-        case DataType::Float:
-          value_item->setText(QString::number(PowerPC::HostRead_F32(m_results[i].address)));
-          break;
-        case DataType::Double:
-          value_item->setText(QString::number(PowerPC::HostRead_F64(m_results[i].address)));
-          break;
-        case DataType::String:
-          value_item->setText(tr("String Match"));
-          break;
-        }
-      }
-      else
-      {
-        value_item->setText(QStringLiteral("---"));
-      }
+      value_item->setText(GetResultValue(m_results[i]));
 
       address_item->setData(INDEX_ROLE, static_cast<int>(i));
       value_item->setData(INDEX_ROLE, static_cast<int>(i));
@@ -577,42 +570,10 @@ void CheatsManager::Update()
       auto* lock_item = new QTableWidgetItem;
       auto* value_item = new QTableWidgetItem;
 
-      if (PowerPC::HostIsRAMAddress(m_watch[i].address))
-      {
-        if (m_watch[i].locked)
-        {
-          PowerPC::debug_interface.SetPatch(m_watch[i].address, m_watch[i].locked_value);
-        }
+      value_item->setText(GetResultValue(m_results[i]));
 
-        switch (m_watch[i].type)
-        {
-        case DataType::Byte:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_watch[i].address), 2,
-                                                       16, QLatin1Char('0')));
-          break;
-        case DataType::Short:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_watch[i].address), 4,
-                                                       16, QLatin1Char('0')));
-          break;
-        case DataType::Int:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_watch[i].address), 8,
-                                                       16, QLatin1Char('0')));
-          break;
-        case DataType::Float:
-          value_item->setText(QString::number(PowerPC::HostRead_F32(m_watch[i].address)));
-          break;
-        case DataType::Double:
-          value_item->setText(QString::number(PowerPC::HostRead_F64(m_watch[i].address)));
-          break;
-        case DataType::String:
-          value_item->setText(tr("String Match"));
-          break;
-        }
-      }
-      else
-      {
-        value_item->setText(QStringLiteral("---"));
-      }
+      if (PowerPC::HostIsRAMAddress(m_watch[i].address) && m_watch[i].locked)
+        PowerPC::debug_interface.SetPatch(m_watch[i].address, m_watch[i].locked_value);
 
       name_item->setData(INDEX_ROLE, static_cast<int>(i));
       name_item->setData(COLUMN_ROLE, 0);
