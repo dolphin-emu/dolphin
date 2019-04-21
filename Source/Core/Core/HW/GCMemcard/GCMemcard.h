@@ -192,6 +192,16 @@ struct Header
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  enum class ValidityCheckErrorCode
+  {
+    VALID,
+    INVALID_CHECKSUM,
+    INVALID_CARD_SIZE,
+    INVALID_ENCODING,
+    DATA_IN_UNUSED_AREA,
+  };
+  ValidityCheckErrorCode SeemsValid(u16 card_size_mbits) const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 

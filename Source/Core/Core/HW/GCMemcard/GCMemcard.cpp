@@ -97,9 +97,9 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
     return;
   }
-  if (m_size_mb != m_header_block.m_size_mb)
+  if (m_header_block.SeemsValid(m_size_mb) != Header::ValidityCheckErrorCode::VALID)
   {
-    PanicAlertT("Memory card file size does not match the header size");
+    PanicAlertT("Memory card file header seems to be corrupted.");
     return;
   }
 
@@ -1474,6 +1474,31 @@ std::pair<u16, u16> Header::CalculateChecksums() const
   constexpr size_t checksum_area_end = offsetof(Header, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
+}
+
+Header::ValidityCheckErrorCode Header::SeemsValid(u16 card_size_mbits) const
+{
+  if (m_size_mb != card_size_mbits)
+    return ValidityCheckErrorCode::INVALID_CARD_SIZE;
+
+  // only known valid values are 0 for western and 1 for shift-jis
+  if (m_encoding >= 2)
+    return ValidityCheckErrorCode::INVALID_ENCODING;
+
+  // unused areas, should always be filled with 0xFF
+  if (std::any_of(m_unused_1.begin(), m_unused_1.end(), [](u8 val) { return val != 0xFF; }))
+    return ValidityCheckErrorCode::DATA_IN_UNUSED_AREA;
+  if (std::any_of(m_unused_2.begin(), m_unused_2.end(), [](u8 val) { return val != 0xFF; }))
+    return ValidityCheckErrorCode::DATA_IN_UNUSED_AREA;
+
+  // verify checksums
+  const auto [checksum_sum, checksum_inv] = CalculateChecksums();
+  if (checksum_sum != m_checksum)
+    return ValidityCheckErrorCode::INVALID_CHECKSUM;
+  if (checksum_inv != m_checksum_inv)
+    return ValidityCheckErrorCode::INVALID_CHECKSUM;
+
+  return ValidityCheckErrorCode::VALID;
 }
 
 Directory::Directory()
