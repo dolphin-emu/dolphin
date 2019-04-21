@@ -213,8 +213,7 @@ public:
   virtual void WaitForGPUIdle() {}
 
   // Finish up the current frame, print some stats
-  void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-            u64 ticks);
+  void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
@@ -350,10 +349,7 @@ private:
   bool m_last_frame_exported = false;
 
   // Tracking of XFB textures so we don't render duplicate frames.
-  AbstractTexture* m_last_xfb_texture = nullptr;
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
-  u64 m_last_xfb_ticks = 0;
-  EFBRectangle m_last_xfb_region;
 
   // Note: Only used for auto-ir
   u32 m_last_xfb_width = MAX_XFB_WIDTH;
@@ -377,7 +373,8 @@ private:
   bool CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height);
 
   // Fills the frame dump staging texture with the current XFB texture.
-  void DumpCurrentFrame();
+  void DumpCurrentFrame(const AbstractTexture* src_texture,
+                        const MathUtil::Rectangle<int>& src_rect, u64 ticks);
 
   // Asynchronously encodes the specified pointer of frame data to the frame dump.
   void DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state);

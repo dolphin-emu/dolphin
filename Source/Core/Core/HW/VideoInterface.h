@@ -374,6 +374,6 @@ u32 GetTicksPerField();
 float GetAspectRatio();
 
 // Create a fake VI mode for a fifolog
-void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height);
+void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height);
 
 }  // namespace VideoInterface
