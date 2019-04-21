@@ -1470,6 +1470,20 @@ void Header::CalculateSerial(u32* serial1, u32* serial2) const
   *serial2 = serial[1] ^ serial[3] ^ serial[5] ^ serial[7];
 }
 
+DEntry::DEntry()
+{
+  memset(this, 0xFF, DENTRY_SIZE);
+}
+
+std::string DEntry::GCI_FileName() const
+{
+  std::string filename =
+      std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
+      std::string(reinterpret_cast<const char*>(m_gamecode.data()), m_gamecode.size()) + '-' +
+      reinterpret_cast<const char*>(m_filename.data()) + ".gci";
+  return Common::EscapeFileName(filename);
+}
+
 Directory::Directory()
 {
   memset(this, 0xFF, BLOCK_SIZE);

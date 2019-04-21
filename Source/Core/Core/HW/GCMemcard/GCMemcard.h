@@ -154,15 +154,10 @@ static_assert(sizeof(Header) == BLOCK_SIZE);
 
 struct DEntry
 {
-  DEntry() { memset(this, 0xFF, DENTRY_SIZE); }
-  std::string GCI_FileName() const
-  {
-    std::string filename =
-        std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
-        std::string(reinterpret_cast<const char*>(m_gamecode.data()), m_gamecode.size()) + '-' +
-        reinterpret_cast<const char*>(m_filename.data()) + ".gci";
-    return Common::EscapeFileName(filename);
-  }
+  DEntry();
+
+  // TODO: This probably shouldn't be here at all?
+  std::string GCI_FileName() const;
 
   static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE{{0xFF, 0xFF, 0xFF, 0xFF}};
 
