@@ -243,6 +243,24 @@ void CheatsManager::GenerateARCode()
   m_ar_code->AddCode(ar_code);
 }
 
+static void UpdatePatch(Result result)
+{
+  PowerPC::debug_interface.UnsetPatch(result.address);
+  if (result.locked)
+  {
+    switch (result.type)
+    {
+    case DataType::Byte:
+      PowerPC::debug_interface.SetPatch(result.address,
+                                        std::vector<u8>{static_cast<u8>(result.locked_value)});
+      break;
+    default:
+      PowerPC::debug_interface.SetPatch(result.address, result.locked_value);
+      break;
+    }
+  }
+}
+
 void CheatsManager::OnWatchItemChanged(QTableWidgetItem* item)
 {
   if (m_updating)
@@ -256,15 +274,17 @@ void CheatsManager::OnWatchItemChanged(QTableWidgetItem* item)
   case 0:
     m_watch[index].name = item->text();
     break;
-  case 3:
+  case 2:
     m_watch[index].locked = item->checkState() == Qt::Checked;
+
+    UpdatePatch(m_watch[index]);
     break;
-  case 4:
+  case 3:
   {
     const auto text = item->text();
     u32 value = 0;
 
-    switch (static_cast<DataType>(m_match_length->currentIndex()))
+    switch (m_watch[index].type)
     {
     case DataType::Byte:
       value = text.toUShort(nullptr, 16) & 0xFF;
@@ -286,6 +306,9 @@ void CheatsManager::OnWatchItemChanged(QTableWidgetItem* item)
     }
 
     m_watch[index].locked_value = value;
+
+    UpdatePatch(m_watch[index]);
+
     break;
   }
   }
@@ -572,24 +595,22 @@ void CheatsManager::Update()
 
       value_item->setText(GetResultValue(m_results[i]));
 
-      if (PowerPC::HostIsRAMAddress(m_watch[i].address) && m_watch[i].locked)
-        PowerPC::debug_interface.SetPatch(m_watch[i].address, m_watch[i].locked_value);
-
       name_item->setData(INDEX_ROLE, static_cast<int>(i));
       name_item->setData(COLUMN_ROLE, 0);
+
       address_item->setData(INDEX_ROLE, static_cast<int>(i));
       address_item->setData(COLUMN_ROLE, 1);
-      value_item->setData(INDEX_ROLE, static_cast<int>(i));
-      value_item->setData(COLUMN_ROLE, 2);
+
       lock_item->setData(INDEX_ROLE, static_cast<int>(i));
-      lock_item->setData(COLUMN_ROLE, 3);
+      lock_item->setData(COLUMN_ROLE, 2);
+
       value_item->setData(INDEX_ROLE, static_cast<int>(i));
-      value_item->setData(COLUMN_ROLE, 4);
+      value_item->setData(COLUMN_ROLE, 3);
 
       name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
       address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       lock_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
-      value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 
       lock_item->setCheckState(m_watch[i].locked ? Qt::Checked : Qt::Unchecked);
 
