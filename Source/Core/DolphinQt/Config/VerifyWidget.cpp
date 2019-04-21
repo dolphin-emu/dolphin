@@ -21,7 +21,7 @@
 
 VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(std::move(volume))
 {
-  QVBoxLayout* layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout;
 
   CreateWidgets();
   ConnectWidgets();
@@ -50,7 +50,7 @@ void VerifyWidget::CreateWidgets()
   m_summary_text = new QTextEdit(this);
   m_summary_text->setReadOnly(true);
 
-  m_hash_layout = new QFormLayout(this);
+  m_hash_layout = new QFormLayout;
   std::tie(m_crc32_checkbox, m_crc32_line_edit) = AddHashLine(m_hash_layout, tr("CRC32:"));
   std::tie(m_md5_checkbox, m_md5_line_edit) = AddHashLine(m_hash_layout, tr("MD5:"));
   std::tie(m_sha1_checkbox, m_sha1_line_edit) = AddHashLine(m_hash_layout, tr("SHA-1:"));
@@ -65,7 +65,7 @@ std::pair<QCheckBox*, QLineEdit*> VerifyWidget::AddHashLine(QFormLayout* layout,
   QCheckBox* checkbox = new QCheckBox(tr("Calculate"), this);
   checkbox->setChecked(true);
 
-  QHBoxLayout* hbox_layout = new QHBoxLayout(this);
+  QHBoxLayout* hbox_layout = new QHBoxLayout;
   hbox_layout->addWidget(line_edit);
   hbox_layout->addWidget(checkbox);
 
