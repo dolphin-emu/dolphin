@@ -5,6 +5,7 @@
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cinttypes>
 #include <cstring>
 #include <vector>
@@ -270,54 +271,50 @@ bool GCMemcard::Save()
   return mcdFile.Close();
 }
 
-void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum)
+std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size)
 {
-  *csum = *inv_csum = 0;
+  assert(size % 2 == 0);
+  u16 csum = 0;
+  u16 inv_csum = 0;
 
-  for (u32 i = 0; i < length; ++i)
+  for (size_t i = 0; i < size; i += 2)
   {
-    // weird warnings here
-    *csum += BE16(buf[i]);
-    *inv_csum += BE16((u16)(buf[i] ^ 0xffff));
+    u16 d = Common::swap16(&data[i]);
+    csum += d;
+    inv_csum += static_cast<u16>(d ^ 0xffff);
   }
-  *csum = BE16(*csum);
-  *inv_csum = BE16(*inv_csum);
-  if (*csum == 0xffff)
-  {
-    *csum = 0;
-  }
-  if (*inv_csum == 0xffff)
-  {
-    *inv_csum = 0;
-  }
+
+  csum = Common::swap16(csum);
+  inv_csum = Common::swap16(inv_csum);
+
+  if (csum == 0xffff)
+    csum = 0;
+  if (inv_csum == 0xffff)
+    inv_csum = 0;
+
+  return std::make_pair(csum, inv_csum);
 }
 
 u32 GCMemcard::TestChecksums() const
 {
-  u16 csum = 0, csum_inv = 0;
+  const auto [csum_hdr, cinv_hdr] = m_header_block.CalculateChecksums();
+  const auto [csum_dir0, cinv_dir0] = m_directory_blocks[0].CalculateChecksums();
+  const auto [csum_dir1, cinv_dir1] = m_directory_blocks[1].CalculateChecksums();
+  const auto [csum_bat0, cinv_bat0] = m_bat_blocks[0].CalculateChecksums();
+  const auto [csum_bat1, cinv_bat1] = m_bat_blocks[1].CalculateChecksums();
 
   u32 results = 0;
-
-  calc_checksumsBE((u16*)&m_header_block, 0xFE, &csum, &csum_inv);
-  if ((m_header_block.m_checksum != csum) || (m_header_block.m_checksum_inv != csum_inv))
+  if ((m_header_block.m_checksum != csum_hdr) || (m_header_block.m_checksum_inv != cinv_hdr))
     results |= 1;
-
-  calc_checksumsBE((u16*)&m_directory_blocks[0], 0xFFE, &csum, &csum_inv);
-  if ((m_directory_blocks[0].m_checksum != csum) ||
-      (m_directory_blocks[0].m_checksum_inv != csum_inv))
+  if ((m_directory_blocks[0].m_checksum != csum_dir0) ||
+      (m_directory_blocks[0].m_checksum_inv != cinv_dir0))
     results |= 2;
-
-  calc_checksumsBE((u16*)&m_directory_blocks[1], 0xFFE, &csum, &csum_inv);
-  if ((m_directory_blocks[1].m_checksum != csum) ||
-      (m_directory_blocks[1].m_checksum_inv != csum_inv))
+  if ((m_directory_blocks[1].m_checksum != csum_dir1) ||
+      (m_directory_blocks[1].m_checksum_inv != cinv_dir1))
     results |= 4;
-
-  calc_checksumsBE((u16*)(((u8*)&m_bat_blocks[0]) + 4), 0xFFE, &csum, &csum_inv);
-  if ((m_bat_blocks[0].m_checksum != csum) || (m_bat_blocks[0].m_checksum_inv != csum_inv))
+  if ((m_bat_blocks[0].m_checksum != csum_bat0) || (m_bat_blocks[0].m_checksum_inv != cinv_bat0))
     results |= 8;
-
-  calc_checksumsBE((u16*)(((u8*)&m_bat_blocks[1]) + 4), 0xFFE, &csum, &csum_inv);
-  if ((m_bat_blocks[1].m_checksum != csum) || (m_bat_blocks[1].m_checksum_inv != csum_inv))
+  if ((m_bat_blocks[1].m_checksum != csum_bat1) || (m_bat_blocks[1].m_checksum_inv != cinv_bat1))
     results |= 16;
 
   return results;
@@ -328,16 +325,11 @@ bool GCMemcard::FixChecksums()
   if (!m_valid)
     return false;
 
-  calc_checksumsBE((u16*)&m_header_block, 0xFE, &m_header_block.m_checksum,
-                   &m_header_block.m_checksum_inv);
-  calc_checksumsBE((u16*)&m_directory_blocks[0], 0xFFE, &m_directory_blocks[0].m_checksum,
-                   &m_directory_blocks[0].m_checksum_inv);
-  calc_checksumsBE((u16*)&m_directory_blocks[1], 0xFFE, &m_directory_blocks[1].m_checksum,
-                   &m_directory_blocks[1].m_checksum_inv);
-  calc_checksumsBE((u16*)&m_bat_blocks[0] + 2, 0xFFE, &m_bat_blocks[0].m_checksum,
-                   &m_bat_blocks[0].m_checksum_inv);
-  calc_checksumsBE((u16*)&m_bat_blocks[1] + 2, 0xFFE, &m_bat_blocks[1].m_checksum,
-                   &m_bat_blocks[1].m_checksum_inv);
+  m_header_block.FixChecksums();
+  m_directory_blocks[0].FixChecksums();
+  m_directory_blocks[1].FixChecksums();
+  m_bat_blocks[0].FixChecksums();
+  m_bat_blocks[1].FixChecksums();
 
   return true;
 }
@@ -656,7 +648,7 @@ bool BlockAlloc::ClearBlocks(u16 starting_block, u16 block_count)
 
 void BlockAlloc::FixChecksums()
 {
-  calc_checksumsBE((u16*)&m_update_counter, 0xFFE, &m_checksum, &m_checksum_inv);
+  std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
 }
 
 u16 BlockAlloc::AssignBlocksContiguous(u16 length)
@@ -675,6 +667,19 @@ u16 BlockAlloc::AssignBlocksContiguous(u16 length)
   m_free_blocks = m_free_blocks - length;
   FixChecksums();
   return starting;
+}
+
+std::pair<u16, u16> BlockAlloc::CalculateChecksums() const
+{
+  static_assert(std::is_trivially_copyable<BlockAlloc>());
+
+  std::array<u8, sizeof(BlockAlloc)> raw;
+  memcpy(raw.data(), this, raw.size());
+
+  constexpr size_t checksum_area_start = offsetof(BlockAlloc, m_update_counter);
+  constexpr size_t checksum_area_end = sizeof(BlockAlloc);
+  constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
+  return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
 u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
@@ -1452,7 +1457,7 @@ Header::Header(int slot, u16 size_mbits, bool shift_jis)
   memset(m_unknown_2.data(), 0,
          m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
   m_device_id = 0;
-  calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
+  FixChecksums();
 }
 
 std::pair<u32, u32> Header::CalculateSerial() const
@@ -1487,6 +1492,24 @@ std::string DEntry::GCI_FileName() const
   return Common::EscapeFileName(filename);
 }
 
+void Header::FixChecksums()
+{
+  std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
+}
+
+std::pair<u16, u16> Header::CalculateChecksums() const
+{
+  static_assert(std::is_trivially_copyable<Header>());
+
+  std::array<u8, sizeof(Header)> raw;
+  memcpy(raw.data(), this, raw.size());
+
+  constexpr size_t checksum_area_start = offsetof(Header, m_serial);
+  constexpr size_t checksum_area_end = offsetof(Header, m_checksum);
+  constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
+  return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
+}
+
 Directory::Directory()
 {
   memset(this, 0xFF, BLOCK_SIZE);
@@ -1507,5 +1530,18 @@ bool Directory::Replace(const DEntry& entry, size_t index)
 
 void Directory::FixChecksums()
 {
-  calc_checksumsBE((u16*)this, 0xFFE, &m_checksum, &m_checksum_inv);
+  std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
+}
+
+std::pair<u16, u16> Directory::CalculateChecksums() const
+{
+  static_assert(std::is_trivially_copyable<Directory>());
+
+  std::array<u8, sizeof(Directory)> raw;
+  memcpy(raw.data(), this, raw.size());
+
+  constexpr size_t checksum_area_start = offsetof(Directory, m_dir_entries);
+  constexpr size_t checksum_area_end = offsetof(Directory, m_checksum);
+  constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
+  return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }

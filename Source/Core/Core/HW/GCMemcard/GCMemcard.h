@@ -97,8 +97,6 @@ struct GCMBlock
   std::array<u8, BLOCK_SIZE> m_block;
 };
 
-void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
-
 #pragma pack(push, 1)
 struct Header
 {
@@ -149,6 +147,9 @@ struct Header
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;
+
+  void FixChecksums();
+  std::pair<u16, u16> CalculateChecksums() const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 
@@ -257,6 +258,7 @@ struct Directory
   bool Replace(const DEntry& entry, size_t index);
 
   void FixChecksums();
+  std::pair<u16, u16> CalculateChecksums() const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
@@ -285,8 +287,10 @@ struct BlockAlloc
   u16 GetNextBlock(u16 block) const;
   u16 NextFreeBlock(u16 max_block, u16 starting_block = MC_FST_BLOCKS) const;
   bool ClearBlocks(u16 starting_block, u16 block_count);
-  void FixChecksums();
   u16 AssignBlocksContiguous(u16 length);
+
+  void FixChecksums();
+  std::pair<u16, u16> CalculateChecksums() const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)
