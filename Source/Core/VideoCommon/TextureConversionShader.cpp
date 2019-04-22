@@ -72,7 +72,16 @@ static void WriteHeader(char*& p, APIType ApiType)
     WRITE(p, "  float2 clamp_tb;\n");
     WRITE(p, "  float3 filter_coefficients;\n");
     WRITE(p, "};\n");
-    WRITE(p, "VARYING_LOCATION(0) in float3 v_tex0;\n");
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      WRITE(p, "VARYING_LOCATION(0) in VertexData {\n");
+      WRITE(p, "  float3 v_tex0;\n");
+      WRITE(p, "};\n");
+    }
+    else
+    {
+      WRITE(p, "VARYING_LOCATION(0) in float3 v_tex0;\n");
+    }
     WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
     WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n");
   }
@@ -1510,7 +1519,16 @@ float4 DecodePixel(int val)
   }
   else
   {
-    ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) in VertexData {\n";
+      ss << "  float3 v_tex0;\n";
+      ss << "};\n";
+    }
+    else
+    {
+      ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+    }
     ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
     ss << "void main() {\n";
     ss << "  float3 coords = v_tex0;\n";
