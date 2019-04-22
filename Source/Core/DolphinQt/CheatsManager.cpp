@@ -40,6 +40,10 @@ constexpr u32 MAX_RESULTS = 50;
 constexpr int INDEX_ROLE = Qt::UserRole;
 constexpr int COLUMN_ROLE = Qt::UserRole + 1;
 
+constexpr int AR_SET_BYTE_CMD = 0x00;
+constexpr int AR_SET_SHORT_CMD = 0x02;
+constexpr int AR_SET_INT_CMD = 0x04;
+
 enum class CompareType : int
 {
   Equal = 0,
@@ -109,14 +113,14 @@ static ActionReplay::AREntry ResultToAREntry(Result result)
   switch (result.type)
   {
   case DataType::Byte:
-    cmd = 0x00;
+    cmd = AR_SET_BYTE_CMD;
     break;
   case DataType::Short:
-    cmd = 0x02;
+    cmd = AR_SET_SHORT_CMD;
     break;
   default:
   case DataType::Int:
-    cmd = 0x04;
+    cmd = AR_SET_INT_CMD;
     break;
   }
 
