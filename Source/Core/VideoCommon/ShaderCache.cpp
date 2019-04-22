@@ -94,7 +94,9 @@ void ShaderCache::Shutdown()
 {
   // This may leave shaders uncommitted to the cache, but it's better than blocking shutdown
   // until everything has finished compiling.
-  m_async_shader_compiler->StopWorkerThreads();
+  if (m_async_shader_compiler)
+    m_async_shader_compiler->StopWorkerThreads();
+
   ClosePipelineUIDCache();
 }
 

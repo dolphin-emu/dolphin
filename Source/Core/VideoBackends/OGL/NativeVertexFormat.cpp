@@ -80,6 +80,7 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
 
 GLVertexFormat::~GLVertexFormat()
 {
+  ProgramShaderCache::InvalidateVertexFormatIfBound(VAO);
   glDeleteVertexArrays(1, &VAO);
 }
 }  // namespace OGL

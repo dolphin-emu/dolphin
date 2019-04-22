@@ -134,11 +134,12 @@ public:
 
   void Flush() override;
   void WaitForGPUIdle() override;
-  void RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc) override;
+  void RenderXFBToScreen(const AbstractTexture* texture,
+                         const MathUtil::Rectangle<int>& rc) override;
   void OnConfigChanged(u32 bits) override;
 
-  void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                   u32 color, u32 z) override;
+  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                   bool zEnable, u32 color, u32 z) override;
 
   std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 

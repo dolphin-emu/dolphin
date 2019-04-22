@@ -327,7 +327,7 @@ void Renderer::WaitForGPUIdle()
   D3D::context->Flush();
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc)
+void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
 {
   if (g_ActiveConfig.stereo_mode != StereoMode::Nvidia3DVision)
     return ::Renderer::RenderXFBToScreen(texture, rc);

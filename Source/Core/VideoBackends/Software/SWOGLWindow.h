@@ -25,7 +25,7 @@ public:
   bool IsHeadless() const;
 
   // Image to show, will be swapped immediately
-  void ShowImage(const AbstractTexture* image, const EFBRectangle& xfb_region);
+  void ShowImage(const AbstractTexture* image, const MathUtil::Rectangle<int>& xfb_region);
 
   static std::unique_ptr<SWOGLWindow> Create(const WindowSystemInfo& wsi);
 

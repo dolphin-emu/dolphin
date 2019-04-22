@@ -219,7 +219,7 @@ static void BPWritten(const BPCmd& bp)
     u32 destAddr = bpmem.copyTexDest << 5;
     u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
-    EFBRectangle srcRect;
+    MathUtil::Rectangle<int> srcRect;
     srcRect.left = static_cast<int>(bpmem.copyTexSrcXY.x);
     srcRect.top = static_cast<int>(bpmem.copyTexSrcXY.y);
 

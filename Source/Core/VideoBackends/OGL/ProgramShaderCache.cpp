@@ -267,73 +267,6 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
 }
 
-bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
-                                       const std::string& pcode, const std::string& gcode)
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
-  {
-    static int counter = 0;
-    std::string filename =
-        StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-    SaveData(filename, vcode.c_str());
-
-    filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-    SaveData(filename, pcode.c_str());
-
-    if (!gcode.empty())
-    {
-      filename =
-          StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-      SaveData(filename, gcode.c_str());
-    }
-  }
-#endif
-
-  shader.vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
-  shader.psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
-
-  // Optional geometry shader
-  shader.gsid = 0;
-  if (!gcode.empty())
-    shader.gsid = CompileSingleShader(GL_GEOMETRY_SHADER, gcode);
-
-  if (!shader.vsid || !shader.psid || (!gcode.empty() && !shader.gsid))
-  {
-    shader.Destroy();
-    return false;
-  }
-
-  // Create and link the program.
-  shader.glprogid = glCreateProgram();
-
-  glAttachShader(shader.glprogid, shader.vsid);
-  glAttachShader(shader.glprogid, shader.psid);
-  if (shader.gsid)
-    glAttachShader(shader.glprogid, shader.gsid);
-
-  if (g_ActiveConfig.backend_info.bSupportsPipelineCacheData)
-    glProgramParameteri(shader.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-
-  shader.SetProgramBindings(false);
-
-  glLinkProgram(shader.glprogid);
-
-  if (!CheckProgramLinkResult(shader.glprogid, vcode, pcode, gcode))
-  {
-    // Don't try to use this shader
-    shader.Destroy();
-    return false;
-  }
-
-  // For drivers that don't support binding layout, we need to bind it here.
-  shader.SetProgramVariables();
-
-  // Original shaders aren't needed any more.
-  shader.DestroyShaders();
-  return true;
-}
-
 bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string& code)
 {
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
@@ -358,7 +291,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
   // original shaders aren't needed any more
   glDeleteShader(shader_id);
 
-  if (!CheckProgramLinkResult(shader.glprogid, full_code, "", ""))
+  if (!CheckProgramLinkResult(shader.glprogid, &full_code, nullptr, nullptr))
   {
     shader.Destroy();
     return false;
@@ -441,8 +374,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
   return true;
 }
 
-bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vcode,
-                                                const std::string& pcode, const std::string& gcode)
+bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string* vcode,
+                                                const std::string* pcode, const std::string* gcode)
 {
   GLint linkStatus;
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
@@ -460,9 +393,13 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vc
           StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
-      file << s_glsl_header << vcode << s_glsl_header << pcode;
-      if (!gcode.empty())
-        file << s_glsl_header << gcode;
+      if (vcode)
+        file << s_glsl_header << *vcode << '\n';
+      if (gcode)
+        file << s_glsl_header << *gcode << '\n';
+      if (pcode)
+        file << s_glsl_header << *pcode << '\n';
+
       file << info_log;
       file.close();
 
@@ -557,6 +494,12 @@ void ProgramShaderCache::InvalidateVertexFormat()
   s_last_VAO = 0;
 }
 
+void ProgramShaderCache::InvalidateVertexFormatIfBound(GLuint vao)
+{
+  if (s_last_VAO == vao)
+    s_last_VAO = 0;
+}
+
 void ProgramShaderCache::InvalidateLastProgram()
 {
   CurrentProgram = 0;
@@ -640,7 +583,10 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     if (!s_is_shared_context && vao != s_last_VAO)
       glBindVertexArray(s_last_VAO);
 
-    if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
+    if (!ProgramShaderCache::CheckProgramLinkResult(
+            prog->shader.glprogid, vertex_shader ? &vertex_shader->GetSource() : nullptr,
+            geometry_shader ? &geometry_shader->GetSource() : nullptr,
+            pixel_shader ? &pixel_shader->GetSource() : nullptr))
     {
       prog->shader.Destroy();
       return nullptr;
@@ -906,6 +852,18 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
     return false;
 
   s_is_shared_context = true;
+
+  // Make the state match the main context to have a better chance of avoiding recompiles.
+  if (!context->IsGLES())
+    glEnable(GL_PROGRAM_POINT_SIZE);
+  if (g_ActiveConfig.backend_info.bSupportsClipControl)
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_CLIP_DISTANCE1);
+    glEnable(GL_DEPTH_CLAMP);
+  }
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(context);
 

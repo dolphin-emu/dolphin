@@ -132,7 +132,7 @@ void Renderer::WaitForGPUIdle()
   ExecuteCommandList(true);
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha_enable,
+void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
                            bool z_enable, u32 color, u32 z)
 {
   // Use a fast path without the shader if both color/alpha are enabled.

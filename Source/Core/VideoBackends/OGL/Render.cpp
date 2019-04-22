@@ -652,6 +652,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
     // Desktop OpenGL can't have the Android Extension Pack
     g_ogl_config.bSupportsAEP = false;
+
+    // Desktop GL requires GL_PROGRAM_POINT_SIZE set to use gl_PointSize in shaders.
+    // It is implicitly enabled in GLES.
+    glEnable(GL_PROGRAM_POINT_SIZE);
   }
 
   // Either method can do early-z tests. See PixelShaderGen for details.
@@ -932,8 +936,8 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groups_x,
     glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                           u32 color, u32 z)
+void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                           bool zEnable, u32 color, u32 z)
 {
   g_framebuffer_manager->FlushEFBPokes();
   g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
@@ -974,7 +978,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   BPFunctions::SetScissor();
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc)
+void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
 {
   // Quad-buffered stereo is annoying on GL.
   if (g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
@@ -1108,8 +1112,6 @@ void Renderer::CheckForSurfaceResize()
 void Renderer::BeginUtilityDrawing()
 {
   ::Renderer::BeginUtilityDrawing();
-
-  glEnable(GL_PROGRAM_POINT_SIZE);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
     glDisable(GL_CLIP_DISTANCE0);
@@ -1120,8 +1122,6 @@ void Renderer::BeginUtilityDrawing()
 void Renderer::EndUtilityDrawing()
 {
   ::Renderer::EndUtilityDrawing();
-
-  glDisable(GL_PROGRAM_POINT_SIZE);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);

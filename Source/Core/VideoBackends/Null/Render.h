@@ -37,8 +37,8 @@ public:
   u16 BBoxRead(int index) override { return 0; }
   void BBoxWrite(int index, u16 value) override {}
 
-  void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                   u32 color, u32 z) override
+  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                   bool zEnable, u32 color, u32 z) override
   {
   }
 

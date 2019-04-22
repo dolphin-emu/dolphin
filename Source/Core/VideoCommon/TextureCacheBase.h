@@ -213,9 +213,10 @@ public:
 
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
-                                 u32 dstStride, bool is_depth_copy, const EFBRectangle& srcRect,
-                                 bool isIntensity, bool scaleByHalf, float y_scale, float gamma,
-                                 bool clamp_top, bool clamp_bottom,
+                                 u32 dstStride, bool is_depth_copy,
+                                 const MathUtil::Rectangle<int>& srcRect, bool isIntensity,
+                                 bool scaleByHalf, float y_scale, float gamma, bool clamp_top,
+                                 bool clamp_bottom,
                                  const CopyFilterCoefficients::Values& filter_coefficients);
 
   void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
@@ -243,11 +244,11 @@ protected:
 
   virtual void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
                        u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                       const EFBRectangle& src_rect, bool scale_by_half, bool linear_filter,
-                       float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
-                       const EFBCopyFilterCoefficients& filter_coefficients);
+                       const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
+                       bool linear_filter, float y_scale, float gamma, bool clamp_top,
+                       bool clamp_bottom, const EFBCopyFilterCoefficients& filter_coefficients);
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
-                                   const EFBRectangle& src_rect, bool scale_by_half,
+                                   const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
                                    bool linear_filter, EFBCopyFormat dst_format, bool is_intensity,
                                    float gamma, bool clamp_top, bool clamp_bottom,
                                    const EFBCopyFilterCoefficients& filter_coefficients);

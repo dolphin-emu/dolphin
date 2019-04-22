@@ -158,8 +158,8 @@ bool Renderer::EFBHasAlphaChannel() const
   return m_prev_efb_format == PEControl::RGBA6_Z24;
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                           u32 color, u32 z)
+void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                           bool zEnable, u32 color, u32 z)
 {
   g_framebuffer_manager->ClearEFB(rc, colorEnable, alphaEnable, zEnable, color, z);
 }
@@ -258,8 +258,8 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
-                           float Gamma)
+void Renderer::RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
+                           u32 fbHeight, float Gamma)
 {
   CheckFifoRecording();
 
@@ -332,11 +332,11 @@ bool Renderer::CalculateTargetSize()
   return false;
 }
 
-std::tuple<TargetRectangle, TargetRectangle>
-Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
+std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
+Renderer::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
 {
   // Resize target to half its original size
-  TargetRectangle draw_rc = rc;
+  auto draw_rc = rc;
   if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     // The height may be negative due to flipped rectangles
@@ -352,8 +352,8 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
   }
 
   // Create two target rectangle offset to the sides of the backbuffer
-  TargetRectangle left_rc = draw_rc;
-  TargetRectangle right_rc = draw_rc;
+  auto left_rc = draw_rc;
+  auto right_rc = draw_rc;
   if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     left_rc.top -= m_backbuffer_height / 4;
@@ -649,9 +649,9 @@ MathUtil::Rectangle<int> Renderer::ConvertFramebufferRectangle(const MathUtil::R
   return ret;
 }
 
-TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
+MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle result;
+  MathUtil::Rectangle<int> result;
   result.left = EFBToScaledX(rc.left);
   result.top = EFBToScaledY(rc.top);
   result.right = EFBToScaledX(rc.right);
@@ -1285,13 +1285,13 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   }
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const EFBRectangle& rc)
+void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
 {
   const auto target_rc = GetTargetRectangle();
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
-    TargetRectangle left_rc, right_rc;
+    MathUtil::Rectangle<int> left_rc, right_rc;
     std::tie(left_rc, right_rc) = ConvertStereoRectangle(target_rc);
 
     m_post_processor->BlitFromTexture(left_rc, rc, texture, 0);

@@ -49,8 +49,8 @@ void SetScissor()
   const int xoff = bpmem.scissorOffset.x * 2;
   const int yoff = bpmem.scissorOffset.y * 2;
 
-  EFBRectangle native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
-                         bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
+  MathUtil::Rectangle<int> native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
+                                     bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
   native_rc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
   auto target_rc = g_renderer->ConvertEFBRectangle(native_rc);
@@ -172,7 +172,7 @@ void SetBlendMode()
     - convert the RGBA8 color to RGBA6/RGB8/RGB565 and convert it to RGBA8 again
     - convert the Z24 depth value to Z16 and back to Z24
 */
-void ClearScreen(const EFBRectangle& rc)
+void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
   bool colorEnable = (bpmem.blendmode.colorupdate != 0);
   bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);

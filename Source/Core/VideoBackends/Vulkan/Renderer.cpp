@@ -147,14 +147,14 @@ void Renderer::BBoxFlush()
   m_bounding_box->Invalidate();
 }
 
-void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha_enable,
+void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
                            bool z_enable, u32 color, u32 z)
 {
   g_framebuffer_manager->FlushEFBPokes();
   g_framebuffer_manager->FlagPeekCacheAsOutOfDate();
 
   // Native -> EFB coordinates
-  TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
+  MathUtil::Rectangle<int> target_rc = Renderer::ConvertEFBRectangle(rc);
 
   // Size we pass this size to vkBeginRenderPass, it has to be clamped to the framebuffer
   // dimensions. The other backends just silently ignore this case.
