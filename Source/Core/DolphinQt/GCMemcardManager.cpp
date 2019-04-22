@@ -128,7 +128,7 @@ void GCMemcardManager::ConnectWidgets()
   {
     connect(m_slot_file_edit[slot], &QLineEdit::textChanged, this,
             [this, slot](const QString& path) { SetSlotFile(slot, path); });
-    connect(m_slot_file_button[slot], &QPushButton::pressed, this,
+    connect(m_slot_file_button[slot], &QPushButton::clicked, this,
             [this, slot] { SetSlotFileInteractive(slot); });
     connect(m_slot_table[slot], &QTableWidget::itemSelectionChanged, this,
             &GCMemcardManager::UpdateActions);
