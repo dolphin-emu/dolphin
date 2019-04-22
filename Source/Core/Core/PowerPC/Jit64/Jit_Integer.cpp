@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/x64Emitter.h"
+#include "Core/CoreTiming.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
@@ -361,7 +362,15 @@ void Jit64::DoMergedBranch()
   // Code that handles successful PPC branching.
   const UGeckoInstruction& next = js.op[1].inst;
   const u32 nextPC = js.op[1].address;
-  if (next.OPCD == 16)  // bcx
+
+  if (js.op[1].branchIsIdleLoop)
+  {
+    if (next.LK)
+      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
+
+    WriteIdleExit(js.op[1].branchTo);
+  }
+  else if (next.OPCD == 16)  // bcx
   {
     if (next.LK)
       MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));

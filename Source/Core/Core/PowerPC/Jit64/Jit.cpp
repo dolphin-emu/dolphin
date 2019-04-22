@@ -646,6 +646,15 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
   JMP(asm_routines.dispatcher, true);
 }
 
+void Jit64::WriteIdleExit(u32 destination)
+{
+  ABI_PushRegistersAndAdjustStack({}, 0);
+  ABI_CallFunction(CoreTiming::Idle);
+  ABI_PopRegistersAndAdjustStack({}, 0);
+  MOV(32, PPCSTATE(pc), Imm32(destination));
+  WriteExceptionExit();
+}
+
 void Jit64::WriteExceptionExit()
 {
   Cleanup();
