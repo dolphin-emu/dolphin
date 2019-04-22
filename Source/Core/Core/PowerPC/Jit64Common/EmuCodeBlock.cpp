@@ -904,7 +904,10 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   // Check if the double is in the range of valid single subnormal
   SUB(16, R(RSCRATCH), Imm16(874));
   CMP(16, R(RSCRATCH), Imm16(896 - 874));
-  FixupBranch NoDenormalize = J_CC(CC_A);
+  FixupBranch DoDenormalize = J_CC(CC_NA, true);
+
+  SwitchToFarCode();
+  SetJumpTarget(DoDenormalize);
 
   // Denormalise
 
@@ -927,9 +930,9 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   PSRLQ(XMM0, 32);
   POR(XMM1, R(XMM0));
 
-  FixupBranch end = J(false);  // Goto end
+  FixupBranch end = J(true);  // Goto end
 
-  SetJumpTarget(NoDenormalize);
+  SwitchToNearCode();
 
   // Don't Denormalize
 
