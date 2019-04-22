@@ -55,6 +55,9 @@ void VerifyWidget::CreateWidgets()
   std::tie(m_md5_checkbox, m_md5_line_edit) = AddHashLine(m_hash_layout, tr("MD5:"));
   std::tie(m_sha1_checkbox, m_sha1_line_edit) = AddHashLine(m_hash_layout, tr("SHA-1:"));
 
+  // Extend line edits to their maximum possible widths (needed on macOS)
+  m_hash_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
   m_verify_button = new QPushButton(tr("Verify Integrity"), this);
 }
 
