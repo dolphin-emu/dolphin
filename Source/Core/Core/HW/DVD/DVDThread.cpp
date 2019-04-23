@@ -391,7 +391,7 @@ static void PatchReadRequest(std::vector<u8>& buffer, u64 offset)
       u64 start = it->first - offset;
       std::memmove(buffer.data() + start, it->second.data(),
                    std::min(it->second.size(), buffer.size() - start));
-      INFO_LOG(DVDINTERFACE, "patch applied at %08lx", offset + start);
+      INFO_LOG(DVDINTERFACE, "patch applied at %08llux", offset + start);
     }
     else if (it->first + it->second.size() > offset)
     {
@@ -399,7 +399,7 @@ static void PatchReadRequest(std::vector<u8>& buffer, u64 offset)
       u64 start = offset - it->first;
       std::memmove(buffer.data(), it->second.data() + start,
                    std::min(it->second.size() - start, buffer.size()));
-      INFO_LOG(DVDINTERFACE, "patch applied at %08lx", offset);
+      INFO_LOG(DVDINTERFACE, "patch applied at %08llux", offset);
     }
   }
 }
