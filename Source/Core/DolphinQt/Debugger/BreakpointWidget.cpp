@@ -48,6 +48,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     m_new->setEnabled(is_initialised);
     m_load->setEnabled(is_initialised);
     m_save->setEnabled(is_initialised);
+    m_refresh->setEnabled(is_initialised);
     if (!is_initialised)
     {
       PowerPC::breakpoints.Clear();
@@ -114,6 +115,8 @@ void BreakpointWidget::CreateWidgets()
   m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = m_toolbar->addAction(tr("Save"), this, &BreakpointWidget::OnSave);
 
+  m_refresh = m_toolbar->addAction(tr("Refresh"), this, &BreakpointWidget::OnRefresh);
+
   m_new->setEnabled(false);
   m_load->setEnabled(false);
   m_save->setEnabled(false);
@@ -131,6 +134,7 @@ void BreakpointWidget::UpdateIcons()
   m_clear->setIcon(Resources::GetScaledThemeIcon("debugger_clear"));
   m_load->setIcon(Resources::GetScaledThemeIcon("debugger_load"));
   m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
+  m_refresh->setIcon(Resources::GetScaledThemeIcon("refresh"));
 }
 
 void BreakpointWidget::closeEvent(QCloseEvent*)
@@ -291,6 +295,11 @@ void BreakpointWidget::OnSave()
   ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
   ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
+}
+
+void BreakpointWidget::OnRefresh()
+{
+  Update();
 }
 
 void BreakpointWidget::AddBP(u32 addr)

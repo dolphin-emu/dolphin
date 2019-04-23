@@ -304,6 +304,7 @@ void Interpreter::Run()
             }
 #endif
             INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
+            PowerPC::breakpoints.SetBreakpointTriggered(true);
             CPU::Break();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);

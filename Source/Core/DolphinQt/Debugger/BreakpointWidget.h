@@ -42,6 +42,7 @@ private:
   void OnNewBreakpoint();
   void OnLoad();
   void OnSave();
+  void OnRefresh();
 
   void UpdateIcons();
 
@@ -52,4 +53,5 @@ private:
   QAction* m_clear;
   QAction* m_load;
   QAction* m_save;
+  QAction* m_refresh;
 };
