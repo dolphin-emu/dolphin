@@ -30,11 +30,15 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
 
+  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
 
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged,
@@ -52,8 +56,6 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
-
-  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   CreateWidgets();
   ConnectWidgets();

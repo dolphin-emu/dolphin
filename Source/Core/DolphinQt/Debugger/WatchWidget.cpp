@@ -28,11 +28,15 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Watch"));
   setObjectName(QStringLiteral("watch"));
 
+  setHidden(!Settings::Instance().IsWatchVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("watchwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("watchwidget/floating")).toBool());
 
   CreateWidgets();
@@ -57,8 +61,6 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);
   UpdateIcons();
-
-  setHidden(!Settings::Instance().IsWatchVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   Update();
 }

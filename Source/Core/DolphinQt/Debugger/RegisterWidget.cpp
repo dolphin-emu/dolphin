@@ -21,11 +21,17 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Registers"));
   setObjectName(QStringLiteral("registers"));
+
+  setHidden(!Settings::Instance().IsRegistersVisible() ||
+            !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("registerwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("registerwidget/floating")).toBool());
 
   CreateWidgets();
@@ -47,9 +53,6 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsRegistersVisible());
   });
-
-  setHidden(!Settings::Instance().IsRegistersVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
 }
 
 RegisterWidget::~RegisterWidget()

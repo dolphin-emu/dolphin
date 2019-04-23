@@ -34,6 +34,8 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
 
+  setHidden(!Settings::Instance().IsMemoryVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   CreateWidgets();
@@ -41,6 +43,8 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   QSettings& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("memorywidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("memorywidget/floating")).toBool());
   m_splitter->restoreState(settings.value(QStringLiteral("codewidget/splitter")).toByteArray());
 
@@ -51,8 +55,6 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
-
-  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   LoadSettings();
 
