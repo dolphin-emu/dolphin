@@ -120,19 +120,14 @@ void MappingWindow::CreateMainLayout()
 {
   m_main_layout = new QVBoxLayout();
   m_config_layout = new QHBoxLayout();
-  m_iterative_input = new QCheckBox(tr("Iterative Input"));
   m_tab_widget = new QTabWidget();
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
-
-  m_iterative_input->setToolTip(tr("Automatically progress one button after another during "
-                                   "configuration. Useful for first-time setup."));
 
   m_config_layout->addWidget(m_devices_box);
   m_config_layout->addWidget(m_reset_box);
   m_config_layout->addWidget(m_profiles_box);
 
   m_main_layout->addLayout(m_config_layout);
-  m_main_layout->addWidget(m_iterative_input);
   m_main_layout->addWidget(m_tab_widget);
   m_main_layout->addWidget(m_button_box);
 
@@ -416,9 +411,4 @@ void MappingWindow::OnClearFieldsPressed()
   m_controller->UpdateReferences(g_controller_interface);
   emit ConfigChanged();
   emit Save();
-}
-
-bool MappingWindow::IsIterativeInput() const
-{
-  return m_iterative_input->isChecked();
 }
