@@ -532,7 +532,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   };
 
   PatchEngine::LoadPatches();
-  
+
   if (!std::visit(BootTitle(), boot->parameters))
     return false;
 

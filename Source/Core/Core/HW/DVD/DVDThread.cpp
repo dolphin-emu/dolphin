@@ -89,7 +89,7 @@ static Common::SPSCQueue<ReadResult, false> s_result_queue;
 static std::map<u64, ReadResult> s_result_map;
 
 static std::unique_ptr<DiscIO::Volume> s_disc;
-static std::unique_ptr<std::map<u64, std::vector<u8>>> s_disc_patches;
+static std::map<u64, std::vector<u8>> s_disc_patches;
 
 void Start()
 {
@@ -368,32 +368,37 @@ static void FinishRead(u64 id, s64 cycles_late)
   DVDInterface::FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
-static void PatchReadRequest(std::vector<u8> &buffer, u64 offset) {
-  if(!s_disc_patches)
-    return;
-
+static void PatchReadRequest(std::vector<u8>& buffer, u64 offset)
+{
   u64 end_offset = offset + buffer.size();
 
   // Scan through patches which might overlap our current read request and apply them
-  for (auto it = s_disc_patches->begin(); it != s_disc_patches->end(); it++) {
-    if (it->first > end_offset) // Patch starts after the end of the read request
+
+  // Because the patches are variably sized, we scan in reverse order to take advantage
+  // of upper_bound, which gives us the first patch that starts after the read buffer.
+  auto it = s_disc_patches.upper_bound(end_offset);
+
+  while (it-- != s_disc_patches.begin())  // Loop backwards until start of s_disc_patches
+  {
+    if (it->first + it->second.size() < offset)
     {
+      // Patch is before the read request, we can stop searching
       return;
     }
-    else if (it->first >= offset) // Patch starts inside the read request
+    else if (it->first >= offset)
     {
+      // Patch starts inside the read request
       u64 start = it->first - offset;
-      u32 old_data;
-      u32 new_data;
-      std::memcpy(&old_data, buffer.data() + start, 4);
-      std::memmove(buffer.data() + start, it->second.data(), std::min(it->second.size(), buffer.size() - start));
-      std::memcpy(&new_data, buffer.data() + start, 4);
-      INFO_LOG(DVDINTERFACE, "patch applied at %08lx - old: %08x new: %08x", offset + start, old_data, new_data);
+      std::memmove(buffer.data() + start, it->second.data(),
+                   std::min(it->second.size(), buffer.size() - start));
+      INFO_LOG(DVDINTERFACE, "patch applied at %08lx", offset + start);
     }
-    else if (it->first + it->second.size() > offset) // Patch overlaps the start of the read request
+    else if (it->first + it->second.size() > offset)
     {
+      // Patch overlaps with the start of the read request
       u64 start = offset - it->first;
-      std::memmove(buffer.data(), it->second.data() + start, std::min(it->second.size() - start, buffer.size()));
+      std::memmove(buffer.data(), it->second.data() + start,
+                   std::min(it->second.size() - start, buffer.size()));
       INFO_LOG(DVDINTERFACE, "patch applied at %08lx", offset);
     }
   }
@@ -420,7 +425,6 @@ static void DVDThread()
         buffer.resize(0);
       else
         PatchReadRequest(buffer, request.dvd_offset);
-      
 
       request.realtime_done_us = Common::Timer::GetTimeUs();
 

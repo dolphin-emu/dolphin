@@ -92,9 +92,11 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
         currentPatch.user_defined = (ini == &localIni);
       }
-      else if (line[0] == '/') {
-        // Split mult-file patches
-        if(!currentPatch.path.empty()) {
+      else if (line[0] == '/')
+      {
+        // Split multi-file patches
+        if (!currentPatch.path.empty())
+        {
           patches.push_back(currentPatch);
         }
         currentPatch.entries.clear();
@@ -224,50 +226,55 @@ static void ApplyPatches(const std::vector<Patch>& patches)
   }
 }
 
-std::unique_ptr<std::map<u64, std::vector<u8>>> CalculateDiscPatches(const DiscIO::Volume &disc) {
-  if (s_file_patches.empty())
-    return nullptr;
-
+std::map<u64, std::vector<u8>> CalculateDiscPatches(const DiscIO::Volume& disc)
+{
   auto partition = disc.GetGamePartition();
-  const DiscIO::FileSystem *fs = disc.GetFileSystem(partition);
+  const DiscIO::FileSystem* fs = disc.GetFileSystem(partition);
 
-  auto patches = std::make_unique<std::map<u64, std::vector<u8>>>();
+  auto patches = std::map<u64, std::vector<u8>>();
 
-  for (const auto& patch : s_file_patches) {
+  for (const auto& patch : s_file_patches)
+  {
     if (!patch.active)
       continue;
 
     const auto& file = fs->FindFileInfo(patch.path);
-    if (file) {
-      for (const auto& entry : patch.entries) {
-        u64 disc_offset = disc.PartitionOffsetToRawOffset(file->GetOffset(), partition) + entry.address;
+    if (file)
+    {
+      for (const auto& entry : patch.entries)
+      {
+        u64 disc_offset =
+            disc.PartitionOffsetToRawOffset(file->GetOffset(), partition) + entry.address;
         std::vector<u8> data;
         switch (entry.type)
         {
-          case PatchType::Patch32Bit:
-            data.push_back(static_cast<u8>(entry.value>>24));
-            data.push_back(static_cast<u8>(entry.value>>16));
-          case PatchType::Patch16Bit:
-            data.push_back(static_cast<u8>(entry.value>>8));
-          case PatchType::Patch8Bit:
-            data.push_back(static_cast<u8>(entry.value));
-            break;
-          default:
-            // unknown patch type
-            // In the future we could add support for larger patch entries.
-            break;
-        }
+        case PatchType::Patch32Bit:
+          data.push_back(static_cast<u8>(entry.value >> 24));
+          data.push_back(static_cast<u8>(entry.value >> 16));
+          // [[fallthrough]];
+        case PatchType::Patch16Bit:
+          data.push_back(static_cast<u8>(entry.value >> 8));
+          // [[fallthrough]];
+        case PatchType::Patch8Bit:
+          data.push_back(static_cast<u8>(entry.value));
+          break;
+        default:
+          // unknown patch type
+          // In the future we could add support for larger patch entries.
 
-        //std::reverse(data.begin(), data.end()); // Reverse for endianness
-        patches->emplace(disc_offset, data);
+          // Downstream code deals with vectors of bytes which could be arbitrary length
+          break;
+        }
+        patches.emplace(disc_offset, data);
       }
 
-      INFO_LOG(ACTIONREPLAY, "Applied patch '%s' to file '%s'", patch.name.c_str(), patch.path.c_str());
+      INFO_LOG(ACTIONREPLAY, "Applied patch '%s' to file '%s'", patch.name.c_str(),
+               patch.path.c_str());
     }
   }
 
-  // Return null 
-  return patches->empty() ? nullptr : std::move(patches);
+  // Return null
+  return patches;
 }
 
 // Requires MSR.DR, MSR.IR

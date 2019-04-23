@@ -11,8 +11,10 @@
 
 #include "Common/CommonTypes.h"
 
-#include "DiscIO/Volume.h"
-
+namespace DiscIO
+{
+class Volume;
+}
 class IniFile;
 
 namespace PatchEngine
@@ -45,7 +47,7 @@ struct Patch
 const char* PatchTypeAsString(PatchType type);
 
 int GetSpeedhackCycles(const u32 addr);
-std::unique_ptr<std::map<u64, std::vector<u8>>> CalculateDiscPatches(const DiscIO::Volume& disc);
+std::map<u64, std::vector<u8>> CalculateDiscPatches(const DiscIO::Volume& disc);
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
                       IniFile& localIni);
 void LoadPatches();
