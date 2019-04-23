@@ -64,6 +64,7 @@ void NetPlayBrowser::CreateWidgets()
 
   m_table_widget->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table_widget->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_table_widget->setWordWrap(false);
 
   m_region_combo = new QComboBox;
 
