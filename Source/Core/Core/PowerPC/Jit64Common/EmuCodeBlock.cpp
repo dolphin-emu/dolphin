@@ -894,7 +894,7 @@ alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffff
 // unless the exponent is in the range of 874 to 896.
 void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 {
-  MOVSD(XMM1, R(src));
+  MOVAPD(XMM1, R(src));
 
   // Grab Exponent
   PAND(XMM1, MConst(double_exponent));
@@ -914,7 +914,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   PSUBQ(XMM0, R(XMM1));
 
   // xmm1 = fraction | 0x0010000000000000
-  MOVSD(XMM1, R(src));
+  MOVAPD(XMM1, R(src));
   PAND(XMM1, MConst(double_fraction));
   POR(XMM1, MConst(double_explicit_top_bit));
 
@@ -922,7 +922,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   PSRLQ(XMM1, R(XMM0));
 
   // OR the sign bit in.
-  MOVSD(XMM0, R(src));
+  MOVAPD(XMM0, R(src));
   PAND(XMM0, MConst(double_sign_bit));
   PSRLQ(XMM0, 32);
   POR(XMM1, R(XMM0));
@@ -934,12 +934,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   // Don't Denormalize
 
   // We want bits 0, 1
-  MOVSD(XMM1, R(src));
+  MOVAPD(XMM1, R(src));
   PAND(XMM1, MConst(double_top_two_bits));
   PSRLQ(XMM1, 32);
 
   // And 5 through to 34
-  MOVSD(XMM0, R(src));
+  MOVAPD(XMM0, R(src));
   PAND(XMM0, MConst(double_bottom_bits));
   PSRLQ(XMM0, 29);
 
