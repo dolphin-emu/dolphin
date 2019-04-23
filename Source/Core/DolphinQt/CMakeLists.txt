@@ -84,6 +84,7 @@ add_executable(dolphin-emu
   Debugger/MemoryViewWidget.cpp
   Debugger/MemoryWidget.cpp
   Debugger/NewBreakpointDialog.cpp
+  Debugger/PatchInstructionDialog.cpp
   Debugger/RegisterColumn.cpp
   Debugger/RegisterWidget.cpp
   Debugger/WatchWidget.cpp
