@@ -19,6 +19,7 @@ public:
 
   bool event(QEvent* event) override;
   void showFullScreen();
+  QPaintEngine* paintEngine() const override;
 
 signals:
   void EscapePressed();
