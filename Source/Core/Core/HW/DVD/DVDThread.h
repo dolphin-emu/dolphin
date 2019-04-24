@@ -40,6 +40,7 @@ void Stop();
 void DoState(PointerWrap& p);
 
 void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
+DiscIO::Volume* GetDiscVolume();
 bool HasDisc();
 
 bool IsEncryptedAndHashed();

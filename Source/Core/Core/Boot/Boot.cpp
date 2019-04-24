@@ -43,6 +43,7 @@ namespace fs = std::filesystem;
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
@@ -229,9 +230,8 @@ BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
 static const DiscIO::VolumeDisc* SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
                                          std::vector<std::string> auto_disc_change_paths = {})
 {
-  const DiscIO::VolumeDisc* pointer = disc.get();
   DVDInterface::SetDisc(std::move(disc), auto_disc_change_paths);
-  return pointer;
+  return DVDThread::GetDiscVolume();
 }
 
 bool CBoot::DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address, u32 length,
@@ -411,6 +411,9 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) ||
                          (config.bWii && Config::Get(Config::SYSCONF_PAL60)));
 
+  // Must load the patches before setting any discs.
+  PatchEngine::LoadPatches();
+
   struct BootTitle
   {
     BootTitle() : config(SConfig::GetInstance()) {}
@@ -530,8 +533,6 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   private:
     const SConfig& config;
   };
-
-  PatchEngine::LoadPatches();
 
   if (!std::visit(BootTitle(), boot->parameters))
     return false;

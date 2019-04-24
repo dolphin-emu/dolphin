@@ -43,6 +43,11 @@ static std::vector<Patch> s_on_frame;
 static std::vector<Patch> s_file_patches;
 static std::map<u32, int> s_speed_hacks;
 
+std::vector<Patch>& GetFilePatches()
+{
+  return s_file_patches;
+}
+
 const char* PatchTypeAsString(PatchType type)
 {
   return s_patch_type_strings.at(static_cast<int>(type));
@@ -224,57 +229,6 @@ static void ApplyPatches(const std::vector<Patch>& patches)
       }
     }
   }
-}
-
-std::map<u64, std::vector<u8>> CalculateDiscPatches(const DiscIO::Volume& disc)
-{
-  auto partition = disc.GetGamePartition();
-  const DiscIO::FileSystem* fs = disc.GetFileSystem(partition);
-
-  auto patches = std::map<u64, std::vector<u8>>();
-
-  for (const auto& patch : s_file_patches)
-  {
-    if (!patch.active)
-      continue;
-
-    const auto& file = fs->FindFileInfo(patch.path);
-    if (file)
-    {
-      for (const auto& entry : patch.entries)
-      {
-        u64 disc_offset =
-            disc.PartitionOffsetToRawOffset(file->GetOffset(), partition) + entry.address;
-        std::vector<u8> data;
-        switch (entry.type)
-        {
-        case PatchType::Patch32Bit:
-          data.push_back(static_cast<u8>(entry.value >> 24));
-          data.push_back(static_cast<u8>(entry.value >> 16));
-          // [[fallthrough]];
-        case PatchType::Patch16Bit:
-          data.push_back(static_cast<u8>(entry.value >> 8));
-          // [[fallthrough]];
-        case PatchType::Patch8Bit:
-          data.push_back(static_cast<u8>(entry.value));
-          break;
-        default:
-          // unknown patch type
-          // In the future we could add support for larger patch entries.
-
-          // Downstream code deals with vectors of bytes which could be arbitrary length
-          break;
-        }
-        patches.emplace(disc_offset, data);
-      }
-
-      INFO_LOG(ACTIONREPLAY, "Applied patch '%s' to file '%s'", patch.name.c_str(),
-               patch.path.c_str());
-    }
-  }
-
-  // Return null
-  return patches;
 }
 
 // Requires MSR.DR, MSR.IR

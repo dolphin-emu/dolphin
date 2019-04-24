@@ -132,6 +132,7 @@ public:
   virtual bool IsSizeAccurate() const = 0;
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
+  virtual u32 GetOffsetShift() const { return 0; }
 
 protected:
   template <u32 N>
@@ -146,7 +147,6 @@ protected:
       return CP1252ToUTF8(string);
   }
 
-  virtual u32 GetOffsetShift() const { return 0; }
   static std::map<Language, std::string> ReadWiiNames(const std::vector<char16_t>& data);
 
   static const size_t NUMBER_OF_LANGUAGES = 10;

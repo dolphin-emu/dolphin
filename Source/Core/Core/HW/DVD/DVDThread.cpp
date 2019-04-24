@@ -34,6 +34,7 @@
 #include "Core/PatchEngine.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/OverlayVolume.h"
 #include "DiscIO/Volume.h"
 
 namespace DVDThread
@@ -179,11 +180,21 @@ void DoState(PointerWrap& p)
 
 void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 {
+  // Apply any file patches
+  auto filePatches = PatchEngine::GetFilePatches();
+  if (!filePatches.empty() && disc)
+  {
+    disc = std::make_unique<DiscIO::OverlayVolume>(std::move(disc), filePatches);
+  }
+
   WaitUntilIdle();
   s_disc = std::move(disc);
+}
 
-  // Apply any file patches
-  s_disc_patches = PatchEngine::CalculateDiscPatches(*s_disc);
+// UGLY, but at least this makes it obvious what is actually happening.
+DiscIO::Volume* GetDiscVolume()
+{
+  return s_disc.get();
 }
 
 bool HasDisc()
@@ -368,42 +379,6 @@ static void FinishRead(u64 id, s64 cycles_late)
   DVDInterface::FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
-static void PatchReadRequest(std::vector<u8>& buffer, u64 offset)
-{
-  u64 end_offset = offset + buffer.size();
-
-  // Scan through patches which might overlap our current read request and apply them
-
-  // Because the patches are variably sized, we scan in reverse order to take advantage
-  // of upper_bound, which gives us the first patch that starts after the read buffer.
-  auto it = s_disc_patches.upper_bound(end_offset);
-
-  while (it-- != s_disc_patches.begin())  // Loop backwards until start of s_disc_patches
-  {
-    if (it->first + it->second.size() < offset)
-    {
-      // Patch is before the read request, we can stop searching
-      return;
-    }
-    else if (it->first >= offset)
-    {
-      // Patch starts inside the read request
-      u64 start = it->first - offset;
-      std::memmove(buffer.data() + start, it->second.data(),
-                   std::min(it->second.size(), buffer.size() - start));
-      INFO_LOG(DVDINTERFACE, "patch applied at %08llux", offset + start);
-    }
-    else if (it->first + it->second.size() > offset)
-    {
-      // Patch overlaps with the start of the read request
-      u64 start = offset - it->first;
-      std::memmove(buffer.data(), it->second.data() + start,
-                   std::min(it->second.size() - start, buffer.size()));
-      INFO_LOG(DVDINTERFACE, "patch applied at %08llux", offset);
-    }
-  }
-}
-
 static void DVDThread()
 {
   Common::SetCurrentThreadName("DVD thread");
@@ -423,8 +398,6 @@ static void DVDThread()
       std::vector<u8> buffer(request.length);
       if (!s_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
         buffer.resize(0);
-      else
-        PatchReadRequest(buffer, request.dvd_offset);
 
       request.realtime_done_us = Common::Timer::GetTimeUs();
 
