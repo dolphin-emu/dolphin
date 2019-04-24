@@ -104,9 +104,6 @@ void MappingButton::Detect()
 
   ConfigChanged();
   m_parent->SaveSettings();
-
-  if (m_parent->IsIterativeInput())
-    m_parent->NextButton(this);
 }
 
 void MappingButton::Clear()

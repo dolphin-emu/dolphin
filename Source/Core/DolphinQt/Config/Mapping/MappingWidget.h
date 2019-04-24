@@ -45,9 +45,6 @@ public:
 
   MappingWindow* GetParent() const;
 
-  bool IsIterativeInput() const;
-  void NextButton(MappingButton* button);
-
   virtual void LoadSettings() = 0;
   virtual void SaveSettings() = 0;
   virtual InputConfig* GetConfig() = 0;
