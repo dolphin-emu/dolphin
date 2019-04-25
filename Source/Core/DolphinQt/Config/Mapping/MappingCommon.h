@@ -7,9 +7,12 @@
 #include <string>
 #include <vector>
 
-class QString;
 class OutputReference;
 class QPushButton;
+class QString;
+class QWidget;
+
+constexpr int INDICATOR_UPDATE_FREQ = 30;
 
 namespace ciface::Core
 {
@@ -30,7 +33,7 @@ QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& default_device,
                                 Quote quote = Quote::On);
 
-QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+QString DetectExpression(QWidget* widget, ciface::Core::DeviceContainer& device_container,
                          const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device,
                          Quote quote = Quote::On);

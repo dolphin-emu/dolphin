@@ -28,8 +28,6 @@ class EmulatedController;
 class NumericSettingBase;
 }  // namespace ControllerEmu
 
-constexpr int INDICATOR_UPDATE_FREQ = 30;
-
 class MappingWidget : public QWidget
 {
   Q_OBJECT

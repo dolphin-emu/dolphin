@@ -33,6 +33,7 @@
 #include "DolphinQt/Config/Mapping/HotkeyStatesOther.h"
 #include "DolphinQt/Config/Mapping/HotkeyTAS.h"
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
+#include "DolphinQt/Config/Mapping/Visual/GCMappingWidget.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
@@ -49,6 +50,7 @@
 #include "InputCommon/InputConfig.h"
 
 constexpr const char* PROFILES_DIR = "Profiles/";
+constexpr int INDICATOR_UPDATE_FREQ = 30;
 
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)
@@ -346,10 +348,14 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_STEERINGWHEEL:
   case Type::MAPPING_GC_DANCEMAT:
   case Type::MAPPING_GCPAD:
+  {
     widget = new GCPadEmu(this);
+    auto* visual = new VisualGCMappingWidget(this, GetPort());
     setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
     AddWidget(tr("GameCube Controller"), widget);
+    AddWidget(tr("Visual Configuration"), visual);
     break;
+  }
   case Type::MAPPING_GC_MICROPHONE:
     widget = new GCMicrophone(this);
     setWindowTitle(tr("GameCube Microphone Slot %1")

@@ -6,12 +6,19 @@ if (NOT Qt5_DIR AND MSVC)
   endif()
 endif()
 
-find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets Quick QuickWidgets)
+find_package(Qt5 CONFIG QUIET OPTIONAL_COMPONENTS QuickCompiler)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 set(CMAKE_AUTOMOC ON)
+
+if (NOT Qt5QuickCompiler_DIR STREQUAL "Qt5QuickCompiler_DIR-NOTFOUND")
+  message(STATUS "Found Qt Quick Compiler")
+  qtquick_compiler_add_resources(RCC_SOURCES Resources/Resources.qrc)
+endif()
+set_property(SOURCE ${RCC_SOURCES} PROPERTY SKIP_AUTOMOC ON)
 
 add_executable(dolphin-emu
   AboutDialog.cpp
@@ -142,6 +149,7 @@ add_executable(dolphin-emu
   Config/Mapping/MappingWidget.h
   Config/Mapping/MappingWindow.cpp
   Config/Mapping/MappingWindow.h
+  Config/Mapping/Visual/GCMappingWidget.cpp
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuExtension.h
   Config/Mapping/WiimoteEmuExtensionMotionInput.cpp
@@ -266,6 +274,7 @@ add_executable(dolphin-emu
   TAS/IRWidget.h
   Updater.cpp
   Updater.h
+  ${RCC_SOURCES}
 )
 
 if (NOT WIN32)
@@ -286,12 +295,16 @@ target_include_directories(dolphin-emu
 PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}
   ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
+  ${Qt5Quick_PRIVATE_INCLUDE_DIRS}
+  ${Qt5QuickWidgets_PRIVATE_INCLUDE_DIRS}
 )
 
 target_link_libraries(dolphin-emu
 PRIVATE
   core
   Qt5::Widgets
+  Qt5::Quick
+  Qt5::QuickWidgets
   uicommon
   imgui
 )
@@ -348,6 +361,7 @@ if(WIN32)
     COMMAND "${CMAKE_COMMAND}" -E env PATH="${QT_BINARY_DIRECTORY}"
             "${WINDEPLOYQT_EXE}" --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
                                  --plugindir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
+                                 --qmldir="${CMAKE_CURRENT_SOURCE_DIR}/Resources"
                                  $<IF:$<CONFIG:Debug>,--debug,--release>
                                  --no-translations
                                  --no-compiler-runtime

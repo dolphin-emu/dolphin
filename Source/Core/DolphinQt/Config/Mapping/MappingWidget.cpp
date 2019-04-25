@@ -12,6 +12,7 @@
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
+#include "DolphinQt/Config/Mapping/MappingCommon.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
