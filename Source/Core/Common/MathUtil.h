@@ -25,6 +25,18 @@ constexpr T Clamp(const T val, const T& min, const T& max)
 }
 
 template <typename T>
+constexpr auto Sign(const T& val) -> decltype((T{} < val) - (val < T{}))
+{
+  return (T{} < val) - (val < T{});
+}
+
+template <typename T, typename F>
+constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) * a)
+{
+  return x + (y - x) * a;
+}
+
+template <typename T>
 constexpr bool IsPow2(T imm)
 {
   return imm > 0 && (imm & (imm - 1)) == 0;

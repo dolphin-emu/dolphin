@@ -91,8 +91,7 @@ void Nunchuk::Update()
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
 
-  const auto transformation =
-      GetRotationalMatrix(-m_tilt_state.angle) * GetRotationalMatrix(-m_swing_state.angle);
+  const auto transformation = GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle);
 
   Common::Vec3 accel = transformation * (m_swing_state.acceleration +
                                          Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));

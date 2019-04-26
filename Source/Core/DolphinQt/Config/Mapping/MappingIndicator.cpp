@@ -217,7 +217,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
       QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
 
   // Adjusted Z (if not hidden):
-  if (adj_coord.z && adj_coord.x < 10000)
+  if (adj_coord.IsVisible())
   {
     p.setBrush(GetAdjustedInputColor());
     p.drawRect(
@@ -250,7 +250,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
   // Adjusted cursor position (if not hidden):
-  if (adj_coord.x < 10000)
+  if (adj_coord.IsVisible())
   {
     p.setPen(Qt::NoPen);
     p.setBrush(GetAdjustedInputColor());
@@ -492,11 +492,19 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
       QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
 
   // Adjusted Z:
-  if (adj_coord.y)
+  const auto curve_point =
+      std::max(std::abs(m_motion_state.angle.x), std::abs(m_motion_state.angle.z)) / MathUtil::TAU;
+  if (adj_coord.y || curve_point)
   {
-    p.setBrush(GetAdjustedInputColor());
-    p.drawRect(
-        QRectF(-scale, adj_coord.y * -scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
+    // Show off the angle somewhat with a curved line.
+    QPainterPath path;
+    path.moveTo(-scale, (adj_coord.y + curve_point) * -scale);
+    path.quadTo({0, (adj_coord.y - curve_point) * -scale},
+                {scale, (adj_coord.y + curve_point) * -scale});
+
+    p.setBrush(Qt::NoBrush);
+    p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS));
+    p.drawPath(path);
   }
 
   // Draw "gate" shape.

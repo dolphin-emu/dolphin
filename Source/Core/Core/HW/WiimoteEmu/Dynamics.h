@@ -19,14 +19,19 @@ constexpr double GRAVITY_ACCELERATION = 9.80665;
 
 struct PositionalState
 {
+  // meters
   Common::Vec3 position;
+  // meters/second
   Common::Vec3 velocity;
+  // meters/second^2
   Common::Vec3 acceleration;
 };
 
 struct RotationalState
 {
+  // radians
   Common::Vec3 angle;
+  // radians/second
   Common::Vec3 angular_velocity;
 };
 
@@ -47,11 +52,10 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
+void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
 
 // Convert m/s/s acceleration data to the format used by Wiimote/Nunchuk (10-bit unsigned integers).
 WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
                                                              u16 one_g);
-
-Common::Matrix44 EmulateCursorMovement(ControllerEmu::Cursor* ir_group);
 
 }  // namespace WiimoteEmu
