@@ -21,7 +21,6 @@
 #include <QSplitter>
 #include <QTableWidget>
 #include <QTextBrowser>
-#include <QToolButton>
 
 #include <sstream>
 
@@ -122,7 +121,6 @@ void NetPlayDialog::CreateMainLayout()
 {
   m_main_layout = new QGridLayout;
   m_game_button = new QPushButton;
-  m_md5_button = new QToolButton;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
   m_buffer_label = new QLabel(tr("Buffer:"));
@@ -152,6 +150,20 @@ void NetPlayDialog::CreateMainLayout()
   m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
   m_golf_mode_action->setCheckable(true);
 
+  m_md5_menu = m_menu_bar->addMenu(tr("Checksum"));
+  m_md5_menu->addAction(tr("Current game"), this, [this] {
+    Settings::Instance().GetNetPlayServer()->ComputeMD5(m_current_game);
+  });
+  m_md5_menu->addAction(tr("Other game..."), this, [this] {
+    GameListDialog gld(this);
+
+    if (gld.exec() != QDialog::Accepted)
+      return;
+    Settings::Instance().GetNetPlayServer()->ComputeMD5(gld.GetSelectedUniqueID().toStdString());
+  });
+  m_md5_menu->addAction(tr("SD Card"), this,
+                        [] { Settings::Instance().GetNetPlayServer()->ComputeMD5(WII_SDCARD); });
+
   m_other_menu = m_menu_bar->addMenu(tr("Other"));
   m_record_input_action = m_other_menu->addAction(tr("Record Inputs"));
   m_record_input_action->setCheckable(true);
@@ -164,37 +176,9 @@ void NetPlayDialog::CreateMainLayout()
   m_sync_save_data_action->setChecked(true);
   m_sync_codes_action->setChecked(true);
 
-  auto* default_button = new QAction(tr("Calculate MD5 hash"), m_md5_button);
-
-  auto* menu = new QMenu(this);
-
-  auto* other_game_button = new QAction(tr("Other game"), this);
-  auto* sdcard_button = new QAction(tr("SD Card"), this);
-
-  menu->addAction(other_game_button);
-  menu->addAction(sdcard_button);
-
-  connect(default_button, &QAction::triggered,
-          [this] { Settings::Instance().GetNetPlayServer()->ComputeMD5(m_current_game); });
-  connect(other_game_button, &QAction::triggered, [this] {
-    GameListDialog gld(this);
-
-    if (gld.exec() == QDialog::Accepted)
-    {
-      Settings::Instance().GetNetPlayServer()->ComputeMD5(gld.GetSelectedUniqueID().toStdString());
-    }
-  });
-  connect(sdcard_button, &QAction::triggered,
-          [] { Settings::Instance().GetNetPlayServer()->ComputeMD5(WII_SDCARD); });
-
-  m_md5_button->setDefaultAction(default_button);
-  m_md5_button->setPopupMode(QToolButton::MenuButtonPopup);
-  m_md5_button->setMenu(menu);
-
   m_main_layout->setMenuBar(m_menu_bar);
 
-  m_main_layout->addWidget(m_game_button, 0, 0);
-  m_main_layout->addWidget(m_md5_button, 0, 1);
+  m_main_layout->addWidget(m_game_button, 0, 0, 1, -1);
   m_main_layout->addWidget(m_splitter, 1, 0, 1, -1);
 
   m_splitter->addWidget(m_chat_box);
@@ -561,7 +545,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_start_button->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
   m_assign_ports_button->setHidden(!is_hosting);
-  m_md5_button->setHidden(!is_hosting);
+  m_md5_menu->setHidden(!is_hosting);
   m_room_box->setHidden(!is_hosting);
   m_hostcode_label->setHidden(!is_hosting);
   m_hostcode_action_button->setHidden(!is_hosting);
@@ -1074,7 +1058,7 @@ void NetPlayDialog::SaveSettings()
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)
 {
   QueueOnObject(this, [this, file_identifier] {
-    m_md5_button->setEnabled(false);
+    m_md5_menu->setEnabled(false);
 
     if (m_md5_dialog->isVisible())
       m_md5_dialog->close();
@@ -1095,7 +1079,7 @@ void NetPlayDialog::SetMD5Result(int pid, const std::string& result)
 {
   QueueOnObject(this, [this, pid, result] {
     m_md5_dialog->SetResult(pid, result);
-    m_md5_button->setEnabled(true);
+    m_md5_menu->setEnabled(true);
   });
 }
 
@@ -1103,7 +1087,7 @@ void NetPlayDialog::AbortMD5()
 {
   QueueOnObject(this, [this] {
     m_md5_dialog->close();
-    m_md5_button->setEnabled(true);
+    m_md5_menu->setEnabled(true);
   });
 }
 

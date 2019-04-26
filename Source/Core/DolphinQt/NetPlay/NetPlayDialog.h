@@ -26,7 +26,6 @@ class QSpinBox;
 class QSplitter;
 class QTableWidget;
 class QTextEdit;
-class QToolButton;
 
 class NetPlayDialog : public QDialog, public NetPlay::NetPlayUI
 {
@@ -120,9 +119,9 @@ private:
   QMenuBar* m_menu_bar;
   QMenu* m_data_menu;
   QMenu* m_network_menu;
+  QMenu* m_md5_menu;
   QMenu* m_other_menu;
   QPushButton* m_game_button;
-  QToolButton* m_md5_button;
   QPushButton* m_start_button;
   QLabel* m_buffer_label;
   QSpinBox* m_buffer_size_box;
