@@ -48,10 +48,7 @@ void WiimoteEmuGeneral::CreateMainLayout()
   m_extension_combo = new QComboBox();
 
   for (const auto& attachment : ce_extension->GetAttachmentList())
-  {
-    // TODO: Figure out how to localize this
-    m_extension_combo->addItem(QString::fromStdString(attachment->GetName()));
-  }
+    m_extension_combo->addItem(tr(attachment->GetName().c_str()));
 
   extension->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -74,30 +71,21 @@ void WiimoteEmuGeneral::Connect(MappingWindow* window)
 {
   connect(m_extension_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &WiimoteEmuGeneral::OnAttachmentChanged);
-  connect(window, &MappingWindow::Update, this, &WiimoteEmuGeneral::Update);
+  connect(window, &MappingWindow::ConfigChanged, this, &WiimoteEmuGeneral::ConfigChanged);
 }
 
 void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
 {
-  const QString value = m_extension_combo->currentText();
-
-  static const QMap<QString, WiimoteEmuExtension::Type> value_map = {
-      {QStringLiteral("None"), WiimoteEmuExtension::Type::NONE},
-      {QStringLiteral("Classic"), WiimoteEmuExtension::Type::CLASSIC_CONTROLLER},
-      {QStringLiteral("Drums"), WiimoteEmuExtension::Type::DRUMS},
-      {QStringLiteral("Guitar"), WiimoteEmuExtension::Type::GUITAR},
-      {QStringLiteral("Nunchuk"), WiimoteEmuExtension::Type::NUNCHUK},
-      {QStringLiteral("Turntable"), WiimoteEmuExtension::Type::TURNTABLE}};
-
-  m_extension_widget->ChangeExtensionType(value_map[value]);
+  m_extension_widget->ChangeExtensionType(extension);
 
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
   ce_extension->SetSelectedAttachment(extension);
+
   SaveSettings();
 }
 
-void WiimoteEmuGeneral::Update()
+void WiimoteEmuGeneral::ConfigChanged()
 {
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Attachments));
@@ -107,7 +95,6 @@ void WiimoteEmuGeneral::Update()
 
 void WiimoteEmuGeneral::LoadSettings()
 {
-  Update();
   Wiimote::LoadConfig();
 }
 
