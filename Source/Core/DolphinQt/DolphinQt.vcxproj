@@ -126,6 +126,7 @@
     <QtMoc Include="Debugger\MemoryWidget.h" />
     <QtMoc Include="Debugger\MemoryViewWidget.h" />
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
+    <QtMoc Include="Debugger\PatchInstructionDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
     <QtMoc Include="Debugger\WatchWidget.h" />
     <QtMoc Include="GCMemcardManager.h" />
@@ -255,6 +256,7 @@
     <ClCompile Include="$(QtMocOutPrefix)NewPatchDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PatchesWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)PatchInstructionDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PathPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PostProcessingConfigWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
@@ -351,6 +353,7 @@
     <ClCompile Include="TAS\IRWidget.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\NewBreakpointDialog.cpp" />
+    <ClCompile Include="Debugger\PatchInstructionDialog.cpp" />
     <ClCompile Include="Debugger\RegisterColumn.cpp" />
     <ClCompile Include="Debugger\RegisterWidget.cpp" />
     <ClCompile Include="Debugger\WatchWidget.cpp" />
