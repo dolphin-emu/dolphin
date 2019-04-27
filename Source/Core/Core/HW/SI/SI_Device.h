@@ -12,29 +12,20 @@ class PointerWrap;
 namespace SerialInterface
 {
 // Devices can reply with these
-enum
-{
-  SI_ERROR_NO_RESPONSE = 0x0008,  // Nothing is attached
-  SI_ERROR_UNKNOWN = 0x0040,      // Unknown device is attached
-  SI_ERROR_BUSY = 0x0080          // Still detecting
-};
+constexpr u32 SI_ERROR_NO_RESPONSE = 0x0008;  // Nothing is attached
+constexpr u32 SI_ERROR_UNKNOWN = 0x0040;      // Unknown device is attached
+constexpr u32 SI_ERROR_BUSY = 0x0080;         // Still detecting
 
 // Device types
-enum
-{
-  SI_TYPE_MASK = 0x18000000,  // ???
-  SI_TYPE_GC = 0x08000000
-};
+constexpr u32 SI_TYPE_MASK = 0x18000000;  // ???
+constexpr u32 SI_TYPE_GC = 0x08000000;
 
 // GC Controller types
-enum
-{
-  SI_GC_NOMOTOR = 0x20000000,  // No rumble motor
-  SI_GC_STANDARD = 0x01000000
-};
+constexpr u32 SI_GC_NOMOTOR = 0x20000000;  // No rumble motor
+constexpr u32 SI_GC_STANDARD = 0x01000000;
 
 // SI Device IDs for emulator use
-enum TSIDevices
+enum TSIDevices : u32
 {
   SI_NONE = SI_ERROR_NO_RESPONSE,
   SI_N64_MIC = 0x00010000,
