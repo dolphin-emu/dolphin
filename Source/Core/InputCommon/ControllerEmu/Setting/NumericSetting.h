@@ -79,6 +79,7 @@ public:
       : NumericSettingBase(details), m_value(*value), m_default_value(default_value),
         m_min_value(min_value), m_max_value(max_value)
   {
+    m_value.SetValue(m_default_value);
   }
 
   void LoadFromIni(const IniFile::Section& section, const std::string& group_name) override
@@ -124,7 +125,7 @@ private:
   void SetValue(ValueType value) { m_value = value; }
 
   // Values are R/W by both UI and CPU threads.
-  std::atomic<ValueType> m_value;
+  std::atomic<ValueType> m_value = {};
 };
 
 }  // namespace ControllerEmu
