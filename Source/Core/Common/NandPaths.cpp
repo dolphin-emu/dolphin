@@ -60,6 +60,11 @@ std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from)
   return GetTitleContentPath(title_id, from) + "/title.tmd";
 }
 
+std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from)
+{
+  return StringFromFormat("%s/shared2/menu/FaceLib/RFL_DB.dat", RootUserPath(from).c_str());
+}
+
 bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64* title_id)
 {
   std::string expected_prefix = RootUserPath(from) + "/title/";
@@ -145,4 +150,4 @@ std::string UnescapeFileName(const std::string& filename)
 
   return result;
 }
-}
+}  // namespace Common
