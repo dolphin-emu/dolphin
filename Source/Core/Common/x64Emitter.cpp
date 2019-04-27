@@ -2429,8 +2429,14 @@ void XEmitter::MOVDDUP(X64Reg regOp, const OpArg& arg)
   }
   else
   {
-    if (!arg.IsSimpleReg(regOp))
+    if (!arg.IsSimpleReg())
+    {
       MOVSD(regOp, arg);
+    }
+    else if (regOp != arg.GetSimpleReg())
+    {
+      MOVAPD(regOp, arg);
+    }
     UNPCKLPD(regOp, R(regOp));
   }
 }
