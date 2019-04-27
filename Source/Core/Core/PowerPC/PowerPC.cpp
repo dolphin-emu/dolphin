@@ -169,6 +169,7 @@ static void ResetRegisters()
   {
     v = 0x8000000000000001;
   }
+  SetXER({});
 
   DBATUpdated();
   IBATUpdated();
