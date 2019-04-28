@@ -1282,10 +1282,9 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
 
   if (g_ActiveConfig.bDumpXFBTarget)
   {
-    // While this isn't really an xfb copy, we can treat it as such
-    // for dumping purposes
+    // While this isn't really an xfb copy, we can treat it as such for dumping purposes
     static int xfb_count = 0;
-    entry->texture->Save(StringFromFormat("loaded_xfb_%i.png",
+    entry->texture->Save(StringFromFormat("%sxfb_loaded_%i.png",
                                           File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
                                           xfb_count++),
                          0);
