@@ -87,6 +87,25 @@ void VideoBackend::FillBackendInfo()
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);
+
+  // Override optional features if we are actually booting.
+  if (D3D::device)
+  {
+    g_Config.backend_info.bSupportsST3CTextures =
+        D3D::SupportsTextureFormat(DXGI_FORMAT_BC1_UNORM) &&
+        D3D::SupportsTextureFormat(DXGI_FORMAT_BC2_UNORM) &&
+        D3D::SupportsTextureFormat(DXGI_FORMAT_BC3_UNORM);
+    g_Config.backend_info.bSupportsBPTCTextures = D3D::SupportsTextureFormat(DXGI_FORMAT_BC7_UNORM);
+
+    // Features only supported with a FL11.0+ device.
+    const bool shader_model_5_supported = D3D::feature_level >= D3D_FEATURE_LEVEL_11_0;
+    g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
+    g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
+    g_Config.backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
+    g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
+    g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
+    g_Config.backend_info.bSupportsGPUTextureDecoding = shader_model_5_supported;
+  }
 }
 
 bool VideoBackend::Initialize(const WindowSystemInfo& wsi)

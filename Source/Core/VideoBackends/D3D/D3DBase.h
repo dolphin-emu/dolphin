@@ -40,6 +40,9 @@ void Destroy();
 // Returns a list of supported AA modes for the current device.
 std::vector<u32> GetAAModes(u32 adapter_index);
 
+// Checks for support of the given texture format.
+bool SupportsTextureFormat(DXGI_FORMAT format);
+
 }  // namespace D3D
 
 }  // namespace DX11
