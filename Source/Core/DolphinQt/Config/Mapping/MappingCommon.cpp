@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QRegExp>
 #include <QString>
+#include <QTimer>
 
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -52,7 +53,9 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
                          const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
-  button->installEventFilter(BlockUserInputFilter::Instance());
+  const auto filter = new BlockUserInputFilter(button);
+
+  button->installEventFilter(filter);
   button->grabKeyboard();
   button->grabMouse();
 
@@ -63,16 +66,23 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
   QApplication::processEvents();
 
   // Avoid that the button press itself is registered as an event
-  Common::SleepCurrentThread(100);
+  Common::SleepCurrentThread(50);
 
   std::shared_ptr<ciface::Core::Device> device;
   ciface::Core::Device::Input* input;
 
   std::tie(device, input) = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
 
-  button->releaseMouse();
-  button->releaseKeyboard();
-  button->removeEventFilter(BlockUserInputFilter::Instance());
+  const auto timer = new QTimer(button);
+
+  button->connect(timer, &QTimer::timeout, [button, filter] {
+    button->releaseMouse();
+    button->releaseKeyboard();
+    button->removeEventFilter(filter);
+  });
+
+  // Prevent mappings of "space", "return", or mouse clicks from re-activating detection.
+  timer->start(500);
 
   button->setText(old_text);
 

@@ -56,7 +56,7 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool 
   setToolTip(
       tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
 
-  connect(this, &MappingButton::pressed, this, &MappingButton::Detect);
+  connect(this, &MappingButton::clicked, this, &MappingButton::Detect);
 
   if (indicator)
     connect(parent, &MappingWidget::Update, this, &MappingButton::UpdateIndicator);
