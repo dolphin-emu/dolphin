@@ -561,6 +561,19 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
   VkRect2D scissor = {{rc.left, rc.top},
                       {static_cast<u32>(rc.GetWidth()), static_cast<u32>(rc.GetHeight())}};
+
+  // See Vulkan spec for vkCmdSetScissor:
+  // The x and y members of offset must be greater than or equal to 0.
+  if (scissor.offset.x < 0)
+  {
+    scissor.extent.width -= -scissor.offset.x;
+    scissor.offset.x = 0;
+  }
+  if (scissor.offset.y < 0)
+  {
+    scissor.extent.height -= -scissor.offset.y;
+    scissor.offset.y = 0;
+  }
   StateTracker::GetInstance()->SetScissor(scissor);
 }
 

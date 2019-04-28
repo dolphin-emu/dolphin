@@ -223,10 +223,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
 {
   // Return the normal EFB texture if multisampling is off.
   if (!IsEFBMultisampled())
-  {
-    m_efb_color_texture->FinishedRendering();
     return m_efb_color_texture.get();
-  }
 
   // It's not valid to resolve an out-of-range rectangle.
   MathUtil::Rectangle<int> clamped_region = region;
@@ -246,10 +243,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
 AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region)
 {
   if (!IsEFBMultisampled())
-  {
-    m_efb_depth_texture->FinishedRendering();
     return m_efb_depth_texture.get();
-  }
 
   // It's not valid to resolve an out-of-range rectangle.
   MathUtil::Rectangle<int> clamped_region = region;
@@ -566,6 +560,7 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
     // Downsample from internal resolution to 1x.
     // TODO: This won't produce correct results at IRs above 2x. More samples are required.
     // This is the same issue as with EFB copies.
+    src_texture->FinishedRendering();
     g_renderer->BeginUtilityDrawing();
 
     const float rcp_src_width = 1.0f / m_efb_framebuffer->GetWidth();
