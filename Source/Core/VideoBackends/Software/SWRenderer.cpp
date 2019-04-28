@@ -94,11 +94,12 @@ std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipel
 }
 
 // Called on the GPU thread
-void SWRenderer::RenderXFBToScreen(const AbstractTexture* texture,
-                                   const MathUtil::Rectangle<int>& xfb_region)
+void SWRenderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                   const AbstractTexture* source_texture,
+                                   const MathUtil::Rectangle<int>& source_rc)
 {
   if (!IsHeadless())
-    m_window->ShowImage(texture, xfb_region);
+    m_window->ShowImage(source_texture, source_rc);
 }
 
 u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)

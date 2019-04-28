@@ -223,8 +223,9 @@ public:
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
-  virtual void RenderXFBToScreen(const AbstractTexture* texture,
-                                 const MathUtil::Rectangle<int>& rc);
+  virtual void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc);
 
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 bits) {}

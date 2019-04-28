@@ -327,10 +327,12 @@ void Renderer::WaitForGPUIdle()
   D3D::context->Flush();
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
 {
   if (g_ActiveConfig.stereo_mode != StereoMode::Nvidia3DVision)
-    return ::Renderer::RenderXFBToScreen(texture, rc);
+    return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
 
   if (!m_3d_vision_texture)
     Create3DVisionTexture(m_backbuffer_width, m_backbuffer_height);
@@ -338,14 +340,11 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil:
   // Render to staging texture which is double the width of the backbuffer
   SetAndClearFramebuffer(m_3d_vision_framebuffer.get());
 
-  auto adjusted_rc = rc;
-  auto target_rc = GetTargetRectangle();
-  AdjustRectanglesToFitBounds(&target_rc, &adjusted_rc, m_backbuffer_width, m_backbuffer_height);
-  m_post_processor->BlitFromTexture(target_rc, adjusted_rc, texture, 0);
+  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
   m_post_processor->BlitFromTexture(
       MathUtil::Rectangle<int>(target_rc.left + m_backbuffer_width, target_rc.top,
                                target_rc.right + m_backbuffer_width, target_rc.bottom),
-      adjusted_rc, texture, 1);
+      source_rc, source_texture, 1);
 
   // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
   // recognize the signature and automatically include the right eye frame.
