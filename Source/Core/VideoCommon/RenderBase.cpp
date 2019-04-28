@@ -561,6 +561,40 @@ float Renderer::CalculateDrawAspectRatio() const
   }
 }
 
+void Renderer::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
+                                           MathUtil::Rectangle<int>* source_rect, int fb_width,
+                                           int fb_height)
+{
+  const int orig_target_width = target_rect->GetWidth();
+  const int orig_target_height = target_rect->GetHeight();
+  const int orig_source_width = source_rect->GetWidth();
+  const int orig_source_height = source_rect->GetHeight();
+  if (target_rect->left < 0)
+  {
+    const int offset = -target_rect->left;
+    target_rect->left = 0;
+    source_rect->left += offset * orig_source_width / orig_target_width;
+  }
+  if (target_rect->right > fb_width)
+  {
+    const int offset = target_rect->right - fb_width;
+    target_rect->right -= offset;
+    source_rect->right -= offset * orig_source_width / orig_target_width;
+  }
+  if (target_rect->top < 0)
+  {
+    const int offset = -target_rect->top;
+    target_rect->top = 0;
+    source_rect->top += offset * orig_source_height / orig_target_height;
+  }
+  if (target_rect->bottom > fb_height)
+  {
+    const int offset = target_rect->bottom - fb_height;
+    target_rect->right -= offset;
+    source_rect->right -= offset * orig_source_height / orig_target_height;
+  }
+}
+
 bool Renderer::IsHeadless() const
 {
   return true;
@@ -1287,19 +1321,21 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
 void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
 {
-  const auto target_rc = GetTargetRectangle();
+  auto adjusted_rc = rc;
+  auto target_rc = GetTargetRectangle();
+  AdjustRectanglesToFitBounds(&target_rc, &adjusted_rc, m_backbuffer_width, m_backbuffer_height);
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     MathUtil::Rectangle<int> left_rc, right_rc;
     std::tie(left_rc, right_rc) = ConvertStereoRectangle(target_rc);
 
-    m_post_processor->BlitFromTexture(left_rc, rc, texture, 0);
-    m_post_processor->BlitFromTexture(right_rc, rc, texture, 1);
+    m_post_processor->BlitFromTexture(left_rc, adjusted_rc, texture, 0);
+    m_post_processor->BlitFromTexture(right_rc, adjusted_rc, texture, 1);
   }
   else
   {
-    m_post_processor->BlitFromTexture(target_rc, rc, texture, 0);
+    m_post_processor->BlitFromTexture(target_rc, adjusted_rc, texture, 0);
   }
 }
 

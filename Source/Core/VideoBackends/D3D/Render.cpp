@@ -338,12 +338,14 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil:
   // Render to staging texture which is double the width of the backbuffer
   SetAndClearFramebuffer(m_3d_vision_framebuffer.get());
 
-  const auto target_rc = GetTargetRectangle();
-  m_post_processor->BlitFromTexture(target_rc, rc, texture, 0);
+  auto adjusted_rc = rc;
+  auto target_rc = GetTargetRectangle();
+  AdjustRectanglesToFitBounds(&target_rc, &adjusted_rc, m_backbuffer_width, m_backbuffer_height);
+  m_post_processor->BlitFromTexture(target_rc, adjusted_rc, texture, 0);
   m_post_processor->BlitFromTexture(
       MathUtil::Rectangle<int>(target_rc.left + m_backbuffer_width, target_rc.top,
                                target_rc.right + m_backbuffer_width, target_rc.bottom),
-      rc, texture, 1);
+      adjusted_rc, texture, 1);
 
   // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
   // recognize the signature and automatically include the right eye frame.

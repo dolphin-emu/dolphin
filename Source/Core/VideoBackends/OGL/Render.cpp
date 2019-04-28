@@ -984,13 +984,15 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil:
   if (g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
     return ::Renderer::RenderXFBToScreen(texture, rc);
 
-  const auto target_rc = GetTargetRectangle();
+  auto adjusted_rc = rc;
+  auto target_rc = GetTargetRectangle();
+  AdjustRectanglesToFitBounds(&target_rc, &adjusted_rc, m_backbuffer_width, m_backbuffer_height);
 
   glDrawBuffer(GL_BACK_LEFT);
-  m_post_processor->BlitFromTexture(target_rc, rc, texture, 0);
+  m_post_processor->BlitFromTexture(target_rc, adjusted_rc, texture, 0);
 
   glDrawBuffer(GL_BACK_RIGHT);
-  m_post_processor->BlitFromTexture(target_rc, rc, texture, 1);
+  m_post_processor->BlitFromTexture(target_rc, adjusted_rc, texture, 1);
 
   glDrawBuffer(GL_BACK);
 }
