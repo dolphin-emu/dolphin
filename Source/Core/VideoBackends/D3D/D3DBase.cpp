@@ -33,29 +33,6 @@ static ComPtr<ID3D11Debug> s_debug;
 static constexpr D3D_FEATURE_LEVEL s_supported_feature_levels[] = {
     D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0};
 
-static bool SupportsS3TCTextures()
-{
-  UINT bc1_support, bc2_support, bc3_support;
-  if (FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support)) ||
-      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support)) ||
-      FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support)))
-  {
-    return false;
-  }
-
-  return ((bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
-}
-
-static bool SupportsBPTCTextures()
-{
-  // Currently, we only care about BC7. This could be extended to BC6H in the future.
-  UINT bc7_support;
-  if (FAILED(device->CheckFormatSupport(DXGI_FORMAT_BC7_UNORM, &bc7_support)))
-    return false;
-
-  return (bc7_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
-}
-
 bool Create(u32 adapter_index, bool enable_debug_layer)
 {
   PFN_D3D11_CREATE_DEVICE d3d11_create_device;
@@ -145,17 +122,6 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
     g_Config.backend_info.bSupportsLogicOp = false;
   }
 
-  g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures();
-  g_Config.backend_info.bSupportsBPTCTextures = SupportsBPTCTextures();
-
-  // Features only supported with a FL11.0+ device.
-  const bool shader_model_5_supported = feature_level >= D3D_FEATURE_LEVEL_11_0;
-  g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
-  g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
-  g_Config.backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
-  g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
-  g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
-
   stateman = std::make_unique<StateManager>();
   return true;
 }
@@ -241,6 +207,16 @@ std::vector<u32> GetAAModes(u32 adapter_index)
 
   return aa_modes;
 }
+
+bool SupportsTextureFormat(DXGI_FORMAT format)
+{
+  UINT support;
+  if (FAILED(device->CheckFormatSupport(format, &support)))
+    return false;
+
+  return (support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
 }  // namespace D3D
 
 }  // namespace DX11
