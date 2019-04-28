@@ -369,8 +369,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     SplitPath(filename, nullptr, &basename, nullptr);
     m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
-
-  RefreshDevices();
 }
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
