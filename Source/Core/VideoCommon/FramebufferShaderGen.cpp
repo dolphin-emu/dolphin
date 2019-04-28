@@ -410,10 +410,13 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
 {
   std::stringstream ss;
   EmitSamplerDeclarations(ss, 0, 1, samples > 1);
-  EmitPixelMainDeclaration(ss, 1, 0, "float4",
-                           GetAPIType() == APIType::D3D ?
-                               "in float4 ipos : SV_Position, in uint isample : SV_SampleIndex, " :
-                               "");
+  EmitPixelMainDeclaration(
+      ss, 1, 0, "float4",
+      GetAPIType() == APIType::D3D ?
+          (g_ActiveConfig.bSSAA ?
+               "in float4 ipos : SV_Position, in uint isample : SV_SampleIndex, " :
+               "in float4 ipos : SV_Position, ") :
+          "");
   ss << "{\n";
   ss << "  int layer = int(v_tex0.z);\n";
   if (GetAPIType() == APIType::D3D)
