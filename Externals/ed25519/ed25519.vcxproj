@@ -10,27 +10,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="add_scalar.c" />
-    <ClCompile Include="fe.c" />
-    <ClCompile Include="ge.c" />
-    <ClCompile Include="keypair.c" />
-    <ClCompile Include="key_exchange.c" />
-    <ClCompile Include="sc.c" />
-    <ClCompile Include="seed.c" />
-    <ClCompile Include="sha512.c" />
-    <ClCompile Include="sign.c" />
-    <ClCompile Include="verify.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ed25519.h" />
-    <ClInclude Include="fe.h" />
-    <ClInclude Include="fixedint.h" />
-    <ClInclude Include="ge.h" />
-    <ClInclude Include="precomp_data.h" />
-    <ClInclude Include="sc.h" />
-    <ClInclude Include="sha512.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
@@ -56,6 +35,27 @@
     <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="add_scalar.c" />
+    <ClCompile Include="fe.c" />
+    <ClCompile Include="ge.c" />
+    <ClCompile Include="keypair.c" />
+    <ClCompile Include="key_exchange.c" />
+    <ClCompile Include="sc.c" />
+    <ClCompile Include="seed.c" />
+    <ClCompile Include="sha512.c" />
+    <ClCompile Include="sign.c" />
+    <ClCompile Include="verify.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ed25519.h" />
+    <ClInclude Include="fe.h" />
+    <ClInclude Include="fixedint.h" />
+    <ClInclude Include="ge.h" />
+    <ClInclude Include="precomp_data.h" />
+    <ClInclude Include="sc.h" />
+    <ClInclude Include="sha512.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
