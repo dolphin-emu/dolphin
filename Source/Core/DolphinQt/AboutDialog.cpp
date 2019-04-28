@@ -30,9 +30,6 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text.append(small + tr("Revision: ") + QString::fromUtf8(Common::scm_rev_git_str.c_str()) +
               QStringLiteral("</p>"));
 
-  text.append(medium + tr("Check for updates: ") +
-              QStringLiteral(
-                  "<a href='https://dolphin-emu.org/download'>dolphin-emu.org/download</a></p>"));
   // i18n: The word "free" in the standard phrase "free and open source"
   // is "free" as in "freedom" - it refers to certain properties of the
   // software's license, not the software's price. (It is true that Dolphin
