@@ -117,7 +117,7 @@ void IOWindow::CreateMainLayout()
 
 void IOWindow::ConfigChanged()
 {
-  const auto old_state = blockSignals(true);
+  const QSignalBlocker blocker(this);
 
   m_expression_text->setPlainText(QString::fromStdString(m_reference->GetExpression()));
   m_expression_text->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor);
@@ -128,8 +128,6 @@ void IOWindow::ConfigChanged()
 
   UpdateDeviceList();
   UpdateOptionList();
-
-  blockSignals(old_state);
 }
 
 void IOWindow::ConnectWidgets()

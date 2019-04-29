@@ -29,7 +29,7 @@ WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(
   CreateTurntableLayout();
   CreateMainLayout();
 
-  ChangeExtensionType(Type::NONE);
+  ChangeExtensionType(WiimoteEmu::ExtensionNumber::NONE);
 }
 
 void WiimoteEmuExtension::CreateClassicLayout()
@@ -210,12 +210,14 @@ InputConfig* WiimoteEmuExtension::GetConfig()
   return Wiimote::GetConfig();
 }
 
-void WiimoteEmuExtension::ChangeExtensionType(WiimoteEmuExtension::Type type)
+void WiimoteEmuExtension::ChangeExtensionType(u32 type)
 {
-  m_classic_box->setHidden(type != Type::CLASSIC_CONTROLLER);
-  m_drums_box->setHidden(type != Type::DRUMS);
-  m_guitar_box->setHidden(type != Type::GUITAR);
-  m_none_box->setHidden(type != Type::NONE);
-  m_nunchuk_box->setHidden(type != Type::NUNCHUK);
-  m_turntable_box->setHidden(type != Type::TURNTABLE);
+  using WiimoteEmu::ExtensionNumber;
+
+  m_none_box->setHidden(type != ExtensionNumber::NONE);
+  m_nunchuk_box->setHidden(type != ExtensionNumber::NUNCHUK);
+  m_classic_box->setHidden(type != ExtensionNumber::CLASSIC);
+  m_guitar_box->setHidden(type != ExtensionNumber::GUITAR);
+  m_drums_box->setHidden(type != ExtensionNumber::DRUMS);
+  m_turntable_box->setHidden(type != ExtensionNumber::TURNTABLE);
 }

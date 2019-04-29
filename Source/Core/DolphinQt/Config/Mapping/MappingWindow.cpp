@@ -258,7 +258,7 @@ void MappingWindow::RefreshDevices()
 
 void MappingWindow::OnGlobalDevicesChanged()
 {
-  const auto old_state = m_devices_combo->blockSignals(true);
+  const QSignalBlocker blocker(m_devices_combo);
 
   m_devices_combo->clear();
 
@@ -292,8 +292,6 @@ void MappingWindow::OnGlobalDevicesChanged()
   }
 
   m_devices_combo->addItem(tr("All devices"));
-
-  m_devices_combo->blockSignals(old_state);
 }
 
 void MappingWindow::SetMappingType(MappingWindow::Type type)

@@ -23,7 +23,7 @@ private:
   void CreateMainLayout();
   void Connect(MappingWindow* window);
   void OnAttachmentChanged(int index);
-  void Update();
+  void ConfigChanged();
 
   // Extensions
   QComboBox* m_extension_combo;
