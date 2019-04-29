@@ -62,6 +62,7 @@ class EncryptedExtension : public Extension
 {
 public:
   static constexpr u8 I2C_ADDR = 0x52;
+  static constexpr int CONTROLLER_DATA_BYTES = 21;
 
   using Extension::Extension;
 
@@ -76,7 +77,7 @@ protected:
   struct Register
   {
     // 21 bytes of possible extension data
-    u8 controller_data[21];
+    u8 controller_data[CONTROLLER_DATA_BYTES];
 
     u8 unknown2[11];
 
