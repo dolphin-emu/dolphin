@@ -30,6 +30,7 @@ public:
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
+  void FontBasedSizing();
   void Update();
 
   void ToggleBreakpoint();
@@ -48,6 +49,8 @@ private:
     NOP
   };
 
+  bool IsInstructionLoadStore(std::string instruction);
+
   void ReplaceAddress(u32 address, ReplaceWith replace);
 
   void resizeEvent(QResizeEvent*) override;
@@ -63,6 +66,8 @@ private:
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
+  void OnCopyTargetAddress();
+  void OnBreakpointTargetAddress();
   void OnRenameSymbol();
   void OnSelectionChanged();
   void OnSetSymbolSize();

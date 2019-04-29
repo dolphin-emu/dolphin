@@ -53,6 +53,8 @@ private:
   void OnDumpExRAM();
   void OnDumpFakeVMEM();
 
+  void OnFloatToHex(bool float_in);
+
   std::vector<u8> GetValueData() const;
 
   void FindValue(bool next);
@@ -62,17 +64,21 @@ private:
   MemoryViewWidget* m_memory_view;
   QSplitter* m_splitter;
   QLineEdit* m_search_address;
+  QLineEdit* m_search_address_offset;
   QLineEdit* m_data_edit;
+  QLabel* m_data_preview;
   QPushButton* m_set_value;
   QPushButton* m_dump_mram;
   QPushButton* m_dump_exram;
   QPushButton* m_dump_fake_vmem;
 
   // Search
+  QCheckBox* m_ignore_case;
   QPushButton* m_find_next;
   QPushButton* m_find_previous;
-  QRadioButton* m_find_ascii;
-  QRadioButton* m_find_hex;
+  QRadioButton* m_input_ascii;
+  QRadioButton* m_input_float;
+  QRadioButton* m_input_hex;
   QLabel* m_result_label;
 
   // Datatypes
@@ -81,10 +87,13 @@ private:
   QRadioButton* m_type_u32;
   QRadioButton* m_type_ascii;
   QRadioButton* m_type_float;
-
+  QCheckBox* m_mem_view_style;
   // Breakpoint options
   QRadioButton* m_bp_read_write;
   QRadioButton* m_bp_read_only;
   QRadioButton* m_bp_write_only;
   QCheckBox* m_bp_log_check;
+  // Float to Hex conversion
+  QLineEdit* m_float_convert;
+  QLineEdit* m_hex_convert;
 };

@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <cctype>
 #include <string>
 
 #include <QCheckBox>
@@ -19,6 +20,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "Common/BitUtils.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
@@ -85,11 +87,32 @@ void MemoryWidget::CreateWidgets()
 
   // Search
   m_search_address = new QLineEdit;
+  m_search_address_offset = new QLineEdit;
   m_data_edit = new QLineEdit;
   m_set_value = new QPushButton(tr("Set &Value"));
+  m_data_preview = new QLabel;
+
+  m_search_address->setMaxLength(8);
+  m_search_address_offset->setMaxLength(8);
+  m_data_preview->setBackgroundRole(QPalette::Base);
+  m_data_preview->setAutoFillBackground(true);
 
   m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_address_offset->setPlaceholderText(tr("Offset"));
   m_data_edit->setPlaceholderText(tr("Value"));
+
+  // Input types
+  auto* input_group = new QGroupBox(tr("Input Type"));
+  auto* input_layout = new QGridLayout;
+  m_input_ascii = new QRadioButton(tr("ASCII"));
+  m_input_float = new QRadioButton(tr("Float"));
+  m_input_hex = new QRadioButton(tr("Hex"));
+
+  input_group->setLayout(input_layout);
+  input_layout->addWidget(m_input_ascii, 0, 0);
+  input_layout->addWidget(m_input_float, 0, 1);
+  input_layout->addWidget(m_input_hex, 1, 0);
+  input_layout->setSpacing(1);
 
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
@@ -101,12 +124,12 @@ void MemoryWidget::CreateWidgets()
   auto* search_layout = new QVBoxLayout;
   search_group->setLayout(search_layout);
 
+  m_ignore_case = new QCheckBox(tr("Ignore Case"));
   m_find_next = new QPushButton(tr("Find &Next"));
   m_find_previous = new QPushButton(tr("Find &Previous"));
-  m_find_ascii = new QRadioButton(tr("ASCII"));
-  m_find_hex = new QRadioButton(tr("Hex"));
   m_result_label = new QLabel;
 
+  search_layout->addWidget(m_ignore_case);
   search_layout->addWidget(m_find_next);
   search_layout->addWidget(m_find_previous);
   search_layout->addWidget(m_result_label);
@@ -122,12 +145,14 @@ void MemoryWidget::CreateWidgets()
   m_type_u32 = new QRadioButton(tr("U&32"));
   m_type_ascii = new QRadioButton(tr("ASCII"));
   m_type_float = new QRadioButton(tr("Float"));
+  m_mem_view_style = new QCheckBox(tr("Alternate View"));
 
   datatype_layout->addWidget(m_type_u8);
   datatype_layout->addWidget(m_type_u16);
   datatype_layout->addWidget(m_type_u32);
   datatype_layout->addWidget(m_type_ascii);
   datatype_layout->addWidget(m_type_float);
+  datatype_layout->addWidget(m_mem_view_style);
   datatype_layout->setSpacing(1);
 
   // MBP options
@@ -155,6 +180,21 @@ void MemoryWidget::CreateWidgets()
   bp_layout->addWidget(m_bp_log_check);
   bp_layout->setSpacing(1);
 
+  // Search Address
+  auto* searchaddr_layout = new QHBoxLayout;
+  searchaddr_layout->addWidget(m_search_address);
+  searchaddr_layout->addWidget(m_search_address_offset);
+
+  // Float to Hex Converter
+  m_float_convert = new QLineEdit();
+  m_float_convert->setPlaceholderText(tr("Float"));
+  m_hex_convert = new QLineEdit();
+  m_hex_convert->setPlaceholderText(tr("Hex"));
+
+  auto* conversion_layout = new QHBoxLayout;
+  conversion_layout->addWidget(m_float_convert);
+  conversion_layout->addWidget(m_hex_convert);
+
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
@@ -162,10 +202,10 @@ void MemoryWidget::CreateWidgets()
 
   sidebar->setLayout(sidebar_layout);
 
-  sidebar_layout->addWidget(m_search_address);
+  sidebar_layout->addLayout(searchaddr_layout);
   sidebar_layout->addWidget(m_data_edit);
-  sidebar_layout->addWidget(m_find_ascii);
-  sidebar_layout->addWidget(m_find_hex);
+  sidebar_layout->addWidget(m_data_preview);
+  sidebar_layout->addWidget(input_group);
   sidebar_layout->addWidget(m_set_value);
   sidebar_layout->addItem(new QSpacerItem(1, 32));
   sidebar_layout->addWidget(m_dump_mram);
@@ -175,6 +215,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(datatype_group);
   sidebar_layout->addWidget(bp_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
+  sidebar_layout->addLayout(conversion_layout);
 
   // Splitter
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -198,11 +239,14 @@ void MemoryWidget::CreateWidgets()
 
 void MemoryWidget::ConnectWidgets()
 {
-  connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
-
+  connect(m_search_address, &QLineEdit::textEdited, this, &MemoryWidget::OnSearchAddress);
+  connect(m_search_address_offset, &QLineEdit::textEdited, this, &MemoryWidget::OnSearchAddress);
+  connect(m_float_convert, &QLineEdit::textEdited, [this]() { OnFloatToHex(true); });
+  connect(m_hex_convert, &QLineEdit::textEdited, [this]() { OnFloatToHex(false); });
   connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
-  connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
-  connect(m_find_hex, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
+
+  for (auto* radio : {m_input_ascii, m_input_float, m_input_hex})
+    connect(radio, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
 
   connect(m_set_value, &QPushButton::pressed, this, &MemoryWidget::OnSetValue);
 
@@ -216,12 +260,18 @@ void MemoryWidget::ConnectWidgets()
   for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
 
+  connect(m_mem_view_style, &QCheckBox::toggled, this, &MemoryWidget::OnTypeChanged);
+
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
+  connect(m_memory_view, &MemoryViewWidget::SendSearchValue, m_search_address, &QLineEdit::setText);
+  connect(m_memory_view, &MemoryViewWidget::SendSearchValue, m_search_address_offset,
+          &QLineEdit::clear);
+  connect(m_memory_view, &MemoryViewWidget::SendDataValue, m_data_edit, &QLineEdit::setText);
   connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
 }
 
@@ -243,21 +293,27 @@ void MemoryWidget::LoadSettings()
   const bool search_ascii =
       settings.value(QStringLiteral("memorywidget/searchascii"), true).toBool();
   const bool search_hex = settings.value(QStringLiteral("memorywidget/searchhex"), false).toBool();
+  const bool search_float =
+      settings.value(QStringLiteral("memorywidget/searchfloat"), false).toBool();
 
-  m_find_ascii->setChecked(search_ascii);
-  m_find_hex->setChecked(search_hex);
+  m_input_ascii->setChecked(search_ascii);
+  m_input_hex->setChecked(search_hex);
+  m_input_float->setChecked(search_float);
 
   const bool type_u8 = settings.value(QStringLiteral("memorywidget/typeu8"), true).toBool();
   const bool type_u16 = settings.value(QStringLiteral("memorywidget/typeu16"), false).toBool();
   const bool type_u32 = settings.value(QStringLiteral("memorywidget/typeu32"), false).toBool();
   const bool type_float = settings.value(QStringLiteral("memorywidget/typefloat"), false).toBool();
   const bool type_ascii = settings.value(QStringLiteral("memorywidget/typeascii"), false).toBool();
+  const bool mem_view_style =
+      settings.value(QStringLiteral("memorywidget/memviewstyle"), false).toBool();
 
   m_type_u8->setChecked(type_u8);
   m_type_u16->setChecked(type_u16);
   m_type_u32->setChecked(type_u32);
   m_type_float->setChecked(type_float);
   m_type_ascii->setChecked(type_ascii);
+  m_mem_view_style->setChecked(mem_view_style);
 
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
@@ -281,14 +337,16 @@ void MemoryWidget::SaveSettings()
 {
   QSettings& settings = Settings::GetQSettings();
 
-  settings.setValue(QStringLiteral("memorywidget/searchascii"), m_find_ascii->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/searchhex"), m_find_hex->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/searchascii"), m_input_ascii->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/searchhex"), m_input_hex->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/searchfloat"), m_input_float->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/typeu8"), m_type_u8->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeu16"), m_type_u16->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeu32"), m_type_u32->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeascii"), m_type_ascii->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typefloat"), m_type_float->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/memviewstyle"), m_mem_view_style->isChecked());
 
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
@@ -299,8 +357,11 @@ void MemoryWidget::SaveSettings()
 void MemoryWidget::OnTypeChanged()
 {
   MemoryViewWidget::Type type;
-
-  if (m_type_u8->isChecked())
+  if (m_mem_view_style->isChecked() && m_type_ascii->isChecked())
+    type = MemoryViewWidget::Type::U32xASCII;
+  else if (m_mem_view_style->isChecked() && m_type_float->isChecked())
+    type = MemoryViewWidget::Type::U32xFloat32;
+  else if (m_type_u8->isChecked())
     type = MemoryViewWidget::Type::U8;
   else if (m_type_u16->isChecked())
     type = MemoryViewWidget::Type::U16;
@@ -352,16 +413,20 @@ void MemoryWidget::SetAddress(u32 address)
 
 void MemoryWidget::OnSearchAddress()
 {
-  bool good;
-  u32 addr = m_search_address->text().toUInt(&good, 16);
+  bool good_address;
+  bool good_offset;
+  u32 addr = m_search_address->text().toUInt(&good_address, 16);
+  u32 offset = m_search_address_offset->text().toInt(&good_offset, 16);
+
+  if (good_offset)
+    addr += offset;
 
   QFont font;
   QPalette palette;
 
-  if (good || m_search_address->text().isEmpty())
+  if (good_address)
   {
-    if (good)
-      m_memory_view->SetAddress(addr);
+    m_memory_view->SetAddress(addr);
   }
   else
   {
@@ -377,18 +442,73 @@ void MemoryWidget::ValidateSearchValue()
 {
   QFont font;
   QPalette palette;
+  m_data_preview->clear();
+  QString hex_string;
+  bool good;
 
-  if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
+  if (m_input_ascii->isChecked())
   {
-    bool good;
-    m_data_edit->text().toULongLong(&good, 16);
+    const QByteArray bytes = m_data_edit->text().toUtf8();
+    hex_string = QString::fromUtf8(bytes);
+  }
+  else if (m_input_float->isChecked())
+  {
+    const float float_in = m_data_edit->text().toFloat(&good);
 
     if (!good)
     {
       font.setBold(true);
       palette.setColor(QPalette::Text, Qt::red);
     }
+    else
+    {
+      const u32 hex_out = Common::BitCast<u32>(float_in);
+      hex_string = QStringLiteral("%1").arg(hex_out, 8, 16, QLatin1Char('0')).toUpper();
+
+      int hsize = hex_string.size();
+      for (int i = 2; i < hsize; i += 2)
+        hex_string.insert(hsize - i, QLatin1Char{' '});
+    }
   }
+  else if (m_input_hex->isChecked() && !m_data_edit->text().isEmpty())
+  {
+    u64 value = m_data_edit->text().toULongLong(&good, 16);
+
+    if (!good)
+    {
+      font.setBold(true);
+      palette.setColor(QPalette::Text, Qt::red);
+    }
+    else
+    {
+      const int data_length = m_data_edit->text().size();
+      int field_width = 8;
+
+      if (data_length > 8)
+      {
+        field_width = 16;
+      }
+      else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+      {
+        field_width = data_length > 2 ? 4 : 2;
+      }
+      else if (m_type_u16->isChecked() && data_length <= 4)
+      {
+        field_width = 4;
+      }
+
+      hex_string = QStringLiteral("%1").arg(value, field_width, 16, QLatin1Char('0')).toUpper();
+      int hsize = hex_string.size();
+      for (int i = 2; i < hsize; i += 2)
+        hex_string.insert(hsize - i, QLatin1Char{' '});
+    }
+  }
+  else
+  {
+    return;
+  }
+
+  m_data_preview->setText(hex_string);
 
   m_data_edit->setFont(font);
   m_data_edit->setPalette(palette);
@@ -397,7 +517,12 @@ void MemoryWidget::ValidateSearchValue()
 void MemoryWidget::OnSetValue()
 {
   bool good_address;
+  bool good_offset;
   u32 addr = m_search_address->text().toUInt(&good_address, 16);
+  u32 offset = m_search_address_offset->text().toInt(&good_offset, 16);
+
+  if (good_offset)
+    addr += offset;
 
   if (!good_address)
   {
@@ -411,12 +536,21 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
-  if (m_find_ascii->isChecked())
+  if (m_input_ascii->isChecked())
   {
     const QByteArray bytes = m_data_edit->text().toUtf8();
 
     for (char c : bytes)
       PowerPC::HostWrite_U8(static_cast<u8>(c), addr++);
+  }
+  else if (m_input_float->isChecked())
+  {
+    bool good;
+    const float float_in = m_data_edit->text().toFloat(&good);
+    if (!good)
+      return;
+    const u32 hex_out = Common::BitCast<u32>(float_in);
+    PowerPC::HostWrite_U32(hex_out, addr);
   }
   else
   {
@@ -429,20 +563,27 @@ void MemoryWidget::OnSetValue()
       return;
     }
 
-    if (value == static_cast<u8>(value))
+    const int data_length = m_data_edit->text().size();
+
+    if (data_length > 8)
     {
-      PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      PowerPC::HostWrite_U64(value, addr);
     }
-    else if (value == static_cast<u16>(value))
+    else if ((m_type_u8->isChecked() || m_type_ascii->isChecked()) && data_length < 5)
+    {
+      if (data_length > 2)
+        PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      else
+        PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+    }
+    else if (m_type_u16->isChecked() && data_length <= 4)
     {
       PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
     }
-    else if (value == static_cast<u32>(value))
+    else
     {
       PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
     }
-    else
-      PowerPC::HostWrite_U64(value, addr);
   }
 
   Update();
@@ -495,34 +636,37 @@ void MemoryWidget::OnDumpFakeVMEM()
 
 std::vector<u8> MemoryWidget::GetValueData() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  // Series of bytes we want to look for.
+  std::vector<u8> search_for;
 
-  if (m_find_ascii->isChecked())
+  if (m_input_ascii->isChecked())
   {
     const QByteArray bytes = m_data_edit->text().toUtf8();
     search_for.assign(bytes.begin(), bytes.end());
   }
-  else
+  else if (m_input_float->isChecked())
   {
     bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
+    const float float_in = m_data_edit->text().toFloat(&good);
 
     if (!good)
       return {};
 
-    int size;
+    const u32 hex_out = Common::BitCast<u32>(float_in);
 
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
+    for (int i = 3; i >= 0; i--)
+      search_for.push_back(hex_out >> (i * 8));
+  }
+  else
+  {
+    // Accepts any amount of bytes.
+    std::string search_prep = m_data_edit->text().toStdString();
+    for (size_t i = 0; i <= search_prep.length() - 2; i = i + 2)
+    {
+      if (!isxdigit(search_prep[i]) || !isxdigit(search_prep[i + 1]))
+        return {};
+      search_for.push_back(std::stoi((search_prep.substr(i, 2)), nullptr, 16));
+    }
   }
 
   return search_for;
@@ -530,6 +674,12 @@ std::vector<u8> MemoryWidget::GetValueData() const
 
 void MemoryWidget::FindValue(bool next)
 {
+  if (m_input_hex->isChecked() && (m_data_edit->text().length() % 2 != 0))
+  {
+    m_result_label->setText(tr("Hex input requires whole bytes"));
+    return;
+  }
+
   std::vector<u8> search_for = GetValueData();
 
   if (search_for.empty())
@@ -577,15 +727,27 @@ void MemoryWidget::FindValue(bool next)
   const u8* ptr;
   const u8* end;
 
+  auto compare_toupper = [](char ch1, char ch2) {
+    return (ch1 == ch2 || std::toupper(ch1) == std::toupper(ch2));
+  };
+
   if (next)
   {
     end = &ram_ptr[ram_size - search_for.size() + 1];
-    ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end());
+
+    if (m_ignore_case->isChecked())
+      ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end(), compare_toupper);
+    else
+      ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end());
   }
   else
   {
-    end = &ram_ptr[addr + search_for.size() - 1];
-    ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
+    end = &ram_ptr[addr - 1];
+
+    if (m_ignore_case->isChecked())
+      ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end(), compare_toupper);
+    else
+      ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
   }
 
   if (ptr != end)
@@ -612,4 +774,27 @@ void MemoryWidget::OnFindNextValue()
 void MemoryWidget::OnFindPreviousValue()
 {
   FindValue(false);
+}
+
+void MemoryWidget::OnFloatToHex(bool float_in)
+{
+  float float_val;
+  bool good;
+
+  if (float_in)
+  {
+    float_val = m_float_convert->text().toFloat(&good);
+    if (!good)
+      return;
+    u32* out = (u32*)&float_val;
+    m_hex_convert->setText(QStringLiteral("%1").arg(*out, 0, 16));
+  }
+  else
+  {
+    u32 hex_val = m_hex_convert->text().toUInt(&good, 16);
+    if (!good || m_hex_convert->text().size() != 8)
+      return;
+    float_val = *((float*)&hex_val);
+    m_float_convert->setText(QString::number(float_val));
+  }
 }

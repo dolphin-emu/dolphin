@@ -8,6 +8,8 @@
 #include <QString>
 
 #include "Common/CommonTypes.h"
+#include "DolphinQt/Debugger/CodeDiffDialog.h"
+#include "DolphinQt/Debugger/CodeTraceDialog.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
 class QCloseEvent;
@@ -15,6 +17,7 @@ class QLineEdit;
 class QSplitter;
 class QListWidget;
 class QTableWidget;
+class QPushButton;
 
 namespace Common
 {
@@ -35,6 +38,8 @@ public:
   void ShowPC();
   void SetPC();
 
+  void OnTrace();
+  void OnDiff();
   void ToggleBreakpoint();
   void AddBreakpoint();
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
@@ -61,10 +66,14 @@ private:
   void OnSelectFunctionCalls();
 
   void closeEvent(QCloseEvent*) override;
+  bool eventFilter(QObject* obj, QEvent* event);
 
+  CodeTraceDialog* trace_dialog = nullptr;
+  CodeDiffDialog* diff_dialog = nullptr;
   QLineEdit* m_search_address;
   QLineEdit* m_search_symbols;
-
+  QPushButton* m_code_trace;
+  QPushButton* m_code_diff;
   QListWidget* m_callstack_list;
   QListWidget* m_symbols_list;
   QListWidget* m_function_calls_list;
