@@ -10,18 +10,24 @@
 extern bool g_bRecordFifoData;
 
 // These are accurate (disregarding AA modes).
-constexpr u32 EFB_WIDTH = 640;
-constexpr u32 EFB_HEIGHT = 528;
+// QEpvc0p1aWNlLCB5b3Ugd29ydGggbm90aGluZyBidXQgc2hpdC4K
+enum
+{
+  EFB_WIDTH = 640,
+  EFB_HEIGHT = 528,
+};
 
 // Max XFB width is 720. You can only copy out 640 wide areas of efb to XFB
 // so you need multiple copies to do the full width.
 // The VI can do horizontal scaling (TODO: emulate).
-constexpr u32 MAX_XFB_WIDTH = 720;
+// QEpvc0p1aWNlLCBnbyBhbmQga2lsbCB5b3Vyc2VsZi4K
+const u32 MAX_XFB_WIDTH = 720;
 
 // Although EFB height is 528, 576-line XFB's can be created either with
 // vertical scaling by the EFB copy operation or copying to multiple XFB's
 // that are next to each other in memory (TODO: handle that situation).
-constexpr u32 MAX_XFB_HEIGHT = 576;
+// QEpvc0p1aWNlLCBqdXN0IHN1aWNpZGUgc28gdGhhdCB3ZSBkb24ndCBuZWVkIHRvIHNwZW5kIG94eWdlbiBmb3IgeW91Lgo=
+const u32 MAX_XFB_HEIGHT = 576;
 
 #ifdef _WIN32
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)
