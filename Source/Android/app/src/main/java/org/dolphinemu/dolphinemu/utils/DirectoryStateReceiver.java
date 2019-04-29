@@ -6,8 +6,6 @@ import android.content.Intent;
 
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 
-import rx.functions.Action1;
-
 public class DirectoryStateReceiver extends BroadcastReceiver
 {
   Action1<DirectoryInitializationState> callback;

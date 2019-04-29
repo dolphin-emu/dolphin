@@ -35,6 +35,7 @@ public:
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
     layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
+    layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
     layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
     layer->Set(Config::MAIN_REDUCE_POLLING_RATE, m_settings.m_ReducePollingRate);
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
@@ -65,6 +66,8 @@ public:
     layer->Set(Config::MAIN_SKIP_IPL, m_settings.m_SkipIPL);
     layer->Set(Config::MAIN_LOAD_IPL_DUMP, m_settings.m_LoadIPLDump);
     layer->Set(Config::GFX_HACK_DEFER_EFB_COPIES, m_settings.m_DeferEFBCopies);
+    layer->Set(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE, m_settings.m_EFBAccessTileSize);
+    layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);
 
     if (m_settings.m_StrictSettingsSync)
     {

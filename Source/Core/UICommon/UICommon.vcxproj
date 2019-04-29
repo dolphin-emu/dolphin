@@ -53,6 +53,7 @@
     <ClCompile Include="AutoUpdate.cpp" />
     <ClCompile Include="CommandLineParse.cpp" />
     <ClCompile Include="DiscordPresence.cpp" />
+    <ClCompile Include="NetPlayIndex.cpp" />
     <ClCompile Include="ResourcePack\Manager.cpp" />
     <ClCompile Include="ResourcePack\Manifest.cpp" />
     <ClCompile Include="ResourcePack\ResourcePack.cpp" />
@@ -69,6 +70,7 @@
     <ClInclude Include="AutoUpdate.h" />
     <ClInclude Include="CommandLineParse.h" />
     <ClInclude Include="DiscordPresence.h" />
+    <ClInclude Include="NetPlayIndex.h" />
     <ClInclude Include="ResourcePack\Manager.h" />
     <ClInclude Include="ResourcePack\Manifest.h" />
     <ClInclude Include="ResourcePack\ResourcePack.h" />

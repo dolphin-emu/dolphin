@@ -105,9 +105,20 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 1, 1);
 #endif
 
+  // Experimental.
+  auto* experimental_box = new QGroupBox(tr("Experimental"));
+  auto* experimental_layout = new QGridLayout();
+  experimental_box->setLayout(experimental_layout);
+
+  m_defer_efb_access_invalidation =
+      new GraphicsBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+
+  experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
+
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
   main_layout->addWidget(misc_box);
+  main_layout->addWidget(experimental_box);
   main_layout->addStretch();
 
   setLayout(main_layout);
@@ -145,72 +156,73 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
 void AdvancedWidget::AddDescriptions()
 {
   static const char TR_WIREFRAME_DESCRIPTION[] =
-      QT_TR_NOOP("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Renders the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
   static const char TR_SHOW_STATS_DESCRIPTION[] =
-      QT_TR_NOOP("Show various rendering statistics.\n\nIf unsure, leave this unchecked.");
-  static const char TR_TEXTURE_FORMAT_DECRIPTION[] =
-      QT_TR_NOOP("Modify textures to show the format they're encoded in. Needs an emulation reset "
-                 "in most cases.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Shows various rendering statistics.\n\nIf unsure, leave this unchecked.");
+  static const char TR_TEXTURE_FORMAT_DESCRIPTION[] = QT_TR_NOOP(
+      "Modifies textures to show the format they're encoded in. May require an emulation reset to "
+      "apply.\n\nIf unsure, leave this unchecked.");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
                  "debugging graphical issues.\n\nIf unsure, leave this unchecked.");
-  static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
-                 "this unchecked.");
+  static const char TR_DUMP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+      "Dumps decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
+      "this unchecked.");
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this "
+      "Loads custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this "
       "unchecked.");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Cache custom textures to system RAM on startup.\nThis can require exponentially "
+      QT_TR_NOOP("Caches custom textures to system RAM on startup.\nThis can require exponentially "
                  "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
-  static const char TR_DUMP_EFB_DESCRIPTION[] =
-      QT_TR_NOOP("Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this "
-                 "unchecked.");
+  static const char TR_DUMP_EFB_DESCRIPTION[] = QT_TR_NOOP(
+      "Dumps the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this "
+      "unchecked.");
   static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
                  "upscaling.\n\nIf unsure, leave this unchecked.");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
+      "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than "
       "the size of the window it is displayed within. If the aspect ratio is widescreen, the "
-      "output "
-      "image will be scaled horizontally to preserve the vertical resolution.\n\nIf unsure, leave "
-      "this unchecked.");
+      "output image will be scaled horizontally to preserve the vertical resolution.\n\nIf "
+      "unsure, leave this unchecked.");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
   static const char TR_FREE_LOOK_DESCRIPTION[] = QT_TR_NOOP(
-      "This feature allows you to change the game's camera.\nMove the mouse while holding the "
-      "right "
-      "mouse button to pan and while holding the middle button to move.\nHold SHIFT and press "
-      "one of "
-      "the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and "
-      "SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the "
-      "speed.\n\nIf unsure, leave this unchecked.");
+      "Allows manipulation of the in-game camera. Move the mouse while holding the right button "
+      "to pan or middle button to roll.\n\nUse the WASD keys while holding SHIFT to move the "
+      "camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
+      "to reset the camera or SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked. ");
   static const char TR_CROPPING_DESCRIPTION[] =
-      QT_TR_NOOP("Crop the picture from its native aspect ratio to 4:3 or "
+      QT_TR_NOOP("Crops the picture from its native aspect ratio to 4:3 or "
                  "16:9.\n\nIf unsure, leave this unchecked.");
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
-      "Enables progressive scan if supported by the emulated software.\nMost games don't "
-      "care about this.\n\nIf unsure, leave this unchecked.");
+      "Enables progressive scan if supported by the emulated software. Most games don't have "
+      "any issue with this.\n\nIf unsure, leave this unchecked.");
   static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
       QT_TR_NOOP("Enables multi-threaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
                  "two CPU cores. Currently, this is limited to the Vulkan backend.\n\nIf unsure, "
                  "leave this checked.");
+  static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] =
+      QT_TR_NOOP("Defers invalidation of the EFB access cache until a GPU synchronization command "
+                 "is executed. If disabled, the cache will be invalidated with every draw call. "
+                 "May improve performance in some games which rely on CPU EFB Access at the cost "
+                 "of stability.\n\nIf unsure, leave this unchecked.");
+
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
-      "Implement fullscreen mode with a borderless window spanning the whole screen instead of "
-      "using "
-      "exclusive mode.\nAllows for faster transitions between fullscreen and windowed mode, but "
-      "slightly increases input latency, makes movement less smooth and slightly decreases "
-      "performance.\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D "
+      "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
+      "using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, "
+      "but slightly increases input latency, makes movement less smooth and slightly decreases "
+      "performance.\n\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D "
       "backend.\n\nIf unsure, leave this unchecked.");
 #endif
 
   AddDescription(m_enable_wireframe, TR_WIREFRAME_DESCRIPTION);
   AddDescription(m_show_statistics, TR_SHOW_STATS_DESCRIPTION);
-  AddDescription(m_enable_format_overlay, TR_TEXTURE_FORMAT_DECRIPTION);
+  AddDescription(m_enable_format_overlay, TR_TEXTURE_FORMAT_DESCRIPTION);
   AddDescription(m_enable_api_validation, TR_VALIDATION_LAYER_DESCRIPTION);
   AddDescription(m_dump_textures, TR_DUMP_TEXTURE_DESCRIPTION);
   AddDescription(m_load_custom_textures, TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION);
@@ -228,4 +240,5 @@ void AdvancedWidget::AddDescriptions()
 #ifdef _WIN32
   AddDescription(m_borderless_fullscreen, TR_BORDERLESS_FULLSCREEN_DESCRIPTION);
 #endif
+  AddDescription(m_defer_efb_access_invalidation, TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION);
 }

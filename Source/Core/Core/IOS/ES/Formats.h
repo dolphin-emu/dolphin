@@ -205,8 +205,14 @@ public:
 
   // Constructs a 6-character game ID in the format typically used by Dolphin.
   // If the 6-character game ID would contain unprintable characters,
-  // the title ID converted to hexadecimal is returned instead.
+  // the title ID converted to 16 hexadecimal digits is returned instead.
   std::string GetGameID() const;
+
+  // Constructs a 4-character game ID in the format typically used by GameTDB.
+  // If the 4-character game ID would contain unprintable characters,
+  // the title ID converted to 16 hexadecimal digits is returned instead
+  // (a format which GameTDB does not actually use).
+  std::string GetGameTDBID() const;
 
   u16 GetNumContents() const;
   bool GetContent(u16 index, Content* content) const;
@@ -234,6 +240,7 @@ public:
 
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
+  u8 GetCommonKeyIndex() const;
   // Get the decrypted title key.
   std::array<u8, 16> GetTitleKey(const HLE::IOSC& iosc) const;
   // Same as the above version, but guesses the console type depending on the issuer

@@ -52,14 +52,13 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
-  const bool bounding_box =
-      host_config.bounding_box && g_ActiveConfig.BBoxUseFragmentShaderImplementation();
+  const bool bounding_box = host_config.bounding_box;
   const u32 numTexgen = uid_data->num_texgens;
   ShaderCode out;
 
   out.Write("// Pixel UberShader for %u texgens%s%s\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
-  WritePixelShaderCommonHeader(out, ApiType, numTexgen, per_pixel_lighting, bounding_box);
+  WritePixelShaderCommonHeader(out, ApiType, numTexgen, host_config, bounding_box);
   WriteUberShaderCommonHeader(out, ApiType, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -103,10 +102,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     if (per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
-      GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting,
+      GenerateVSOutputMembers(out, ApiType, numTexgen, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
       if (stereo)
@@ -116,17 +115,26 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
-      // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
-      for (u32 i = 0; i < numTexgen; ++i)
-        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
-      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      for (unsigned int i = 0; i < numTexgen; ++i)
+      {
+        out.Write("VARYING_LOCATION(%u) %s in float3 tex%d;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
+      }
+      if (!host_config.fast_depth_calc)
+        out.Write("VARYING_LOCATION(%u) %s in float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
     }
   }
@@ -709,8 +717,11 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     for (u32 i = 0; i < numTexgen; ++i)
       out.Write(",\n  in %s float3 tex%u : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa), i,
                 i);
-    out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
-              numTexgen);
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
+                numTexgen);
+    }
     if (per_pixel_lighting)
     {
       out.Write(",\n  in %s float3 Normal : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
@@ -1046,7 +1057,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (host_config.fast_depth_calc)
   {
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("  int zCoord = int(rawpos.z * 16777216.0);\n");
@@ -1101,7 +1112,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("  // If early depth is enabled, write to zbuffer before depth textures\n");
     out.Write("  // If early depth isn't enabled, we write to the zbuffer here\n");
     out.Write("  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
     else
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
@@ -1239,24 +1250,9 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (bounding_box)
   {
-    out.Write("  if (bpmem_bounding_box) {\n");
-    if (ApiType == APIType::D3D)
-    {
-      out.Write(
-          "    if(bbox_data[0] > int(rawpos.x)) InterlockedMin(bbox_data[0], int(rawpos.x));\n"
-          "    if(bbox_data[1] < int(rawpos.x)) InterlockedMax(bbox_data[1], int(rawpos.x));\n"
-          "    if(bbox_data[2] > int(rawpos.y)) InterlockedMin(bbox_data[2], int(rawpos.y));\n"
-          "    if(bbox_data[3] < int(rawpos.y)) InterlockedMax(bbox_data[3], int(rawpos.y));\n");
-    }
-    else
-    {
-      out.Write("\tif(bbox_left > int(rawpos.x)) atomicMin(bbox_left, int(rawpos.x));\n"
-                "\tif(bbox_right < int(rawpos.x)) atomicMax(bbox_right, int(rawpos.x));\n"
-                "\tif(bbox_top > int(rawpos.y)) atomicMin(bbox_top, int(rawpos.y));\n"
-                "\tif(bbox_bottom < int(rawpos.y)) atomicMax(bbox_bottom, int(rawpos.y));\n");
-    }
-
-    out.Write("  }\n");
+    out.Write("  if (bpmem_bounding_box) {\n"
+              "    UpdateBoundingBox(rawpos.xy);\n"
+              "  }\n");
   }
 
   if (use_shader_blend)

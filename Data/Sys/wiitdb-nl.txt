@@ -1,4 +1,4 @@
-TITLES = https://www.gametdb.com (type: Wii language: NL_unique version: 20180527221407)
+TITLES = https://www.gametdb.com (type: Wii language: NL_unique version: 20190127013913)
 R23P52 = Barbie en De Drie Musketiers
 R25PWR = LEGO Harry Potter: Jaren 1-4
 R27X54 = Dora redt het Land van Kristal
@@ -181,6 +181,7 @@ SHDP52 = Hoe Tem Je Een Draak
 SIAP52 = Ice Age 4: Continental Drift
 SIIP8P = Mario & Sonic op de Olympische Spelen – Londen 2012
 SJ2PWR = Scooby-Doo! En Het Spookmoeras
+SJXD41 = Just Dance 4
 SK4P52 = Shrek Voor Eeuwig En Altijd
 SLHPWR = LEGO Harry Potter: Jaren 5-7
 SM4PXT = Monster Trucks

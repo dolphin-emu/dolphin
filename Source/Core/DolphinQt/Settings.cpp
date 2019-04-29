@@ -7,7 +7,6 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
-#include <QSettings>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -27,6 +26,10 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+
+#include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/NetPlayGolfUI.h"
+#include "VideoCommon/RenderBase.h"
 
 Settings::Settings()
 {
@@ -217,13 +220,13 @@ void Settings::SetKeepWindowOnTop(bool top)
   if (IsKeepWindowOnTopEnabled() == top)
     return;
 
-  SConfig::GetInstance().bKeepWindowOnTop = top;
+  Config::SetBaseOrCurrent(Config::MAIN_KEEP_WINDOW_ON_TOP, top);
   emit KeepWindowOnTopChanged(top);
 }
 
 bool Settings::IsKeepWindowOnTopEnabled() const
 {
-  return SConfig::GetInstance().bKeepWindowOnTop;
+  return Config::Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
 }
 
 int Settings::GetVolume() const
@@ -294,6 +297,9 @@ std::shared_ptr<NetPlay::NetPlayClient> Settings::GetNetPlayClient()
 void Settings::ResetNetPlayClient(NetPlay::NetPlayClient* client)
 {
   m_client.reset(client);
+
+  g_netplay_chat_ui.reset();
+  g_netplay_golf_ui.reset();
 }
 
 std::shared_ptr<NetPlay::NetPlayServer> Settings::GetNetPlayServer()

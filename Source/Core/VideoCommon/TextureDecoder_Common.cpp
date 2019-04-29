@@ -751,3 +751,41 @@ void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb,
     }
   }
 }
+
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride)
+{
+  const u8* src_ptr = src;
+  u8* dst_ptr = dst;
+
+  for (u32 y = 0; y < height; y++)
+  {
+    const u8* row_ptr = src_ptr;
+    for (u32 x = 0; x < width; x += 2)
+    {
+      // We do this one color sample (aka 2 RGB pixels) at a time
+      int Y1 = int(*(row_ptr++)) - 16;
+      int U = int(*(row_ptr++)) - 128;
+      int Y2 = int(*(row_ptr++)) - 16;
+      int V = int(*(row_ptr++)) - 128;
+
+      // We do the inverse BT.601 conversion for YCbCr to RGB
+      // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+      u8 R1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
+      u8 G1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
+      u8 B1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));
+
+      u8 R2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 + 1.596f * V), 0, 255));
+      u8 G2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255));
+      u8 B2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 + 2.017f * U), 0, 255));
+
+      u32 rgba = 0xff000000 | B1 << 16 | G1 << 8 | R1;
+      std::memcpy(dst_ptr, &rgba, sizeof(rgba));
+      dst_ptr += sizeof(rgba);
+      rgba = 0xff000000 | B2 << 16 | G2 << 8 | R2;
+      std::memcpy(dst_ptr, &rgba, sizeof(rgba));
+      dst_ptr += sizeof(rgba);
+    }
+
+    src_ptr += stride;
+  }
+}

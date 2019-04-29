@@ -4,6 +4,12 @@
 
 #include "DolphinQt/Debugger/WatchWidget.h"
 
+#include <QHeaderView>
+#include <QMenu>
+#include <QTableWidget>
+#include <QToolBar>
+#include <QVBoxLayout>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
@@ -11,15 +17,9 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
-
-#include <QHeaderView>
-#include <QMenu>
-#include <QMessageBox>
-#include <QTableWidget>
-#include <QToolBar>
-#include <QVBoxLayout>
 
 WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 {
@@ -28,11 +28,15 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Watch"));
   setObjectName(QStringLiteral("watch"));
 
+  setHidden(!Settings::Instance().IsWatchVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("watchwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("watchwidget/floating")).toBool());
 
   CreateWidgets();
@@ -57,8 +61,6 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);
   UpdateIcons();
-
-  setHidden(!Settings::Instance().IsWatchVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   Update();
 }
@@ -232,7 +234,7 @@ void WatchWidget::ShowContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  if (m_table->selectedItems().size())
+  if (!m_table->selectedItems().empty())
   {
     auto row_variant = m_table->selectedItems()[0]->data(Qt::UserRole);
 
@@ -306,7 +308,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       }
       else
       {
-        QMessageBox::critical(this, tr("Error"), tr("Invalid input provided"));
+        ModalMessageBox::critical(this, tr("Error"), tr("Invalid input provided"));
       }
       break;
     }

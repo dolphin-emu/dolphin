@@ -18,6 +18,7 @@
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/StickWidget.h"
+#include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/TASInputWindow.h"
 
 #include "InputCommon/GCPadStatus.h"
@@ -130,7 +131,7 @@ QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, u16 max,
 }
 
 template <typename UX>
-void TASInputWindow::GetButton(QCheckBox* checkbox, UX& buttons, UX mask)
+void TASInputWindow::GetButton(TASCheckBox* checkbox, UX& buttons, UX mask)
 {
   const bool pressed = (buttons & mask) != 0;
   if (m_use_controller->isChecked())
@@ -147,13 +148,13 @@ void TASInputWindow::GetButton(QCheckBox* checkbox, UX& buttons, UX mask)
     }
   }
 
-  if (checkbox->isChecked())
+  if (checkbox->GetValue())
     buttons |= mask;
   else
     buttons &= ~mask;
 }
-template void TASInputWindow::GetButton<u8>(QCheckBox* button, u8& pad, u8 mask);
-template void TASInputWindow::GetButton<u16>(QCheckBox* button, u16& pad, u16 mask);
+template void TASInputWindow::GetButton<u8>(TASCheckBox* button, u8& pad, u8 mask);
+template void TASInputWindow::GetButton<u16>(TASCheckBox* button, u16& pad, u16 mask);
 
 void TASInputWindow::GetSpinBoxU8(QSpinBox* spin, u8& controller_value)
 {

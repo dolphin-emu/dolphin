@@ -549,8 +549,8 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
   return &efb[GetColorOffset(x, y)];
 }
 
-void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale,
-               float gamma)
+void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>& source_rect,
+               float y_scale, float gamma)
 {
   if (!xfb_in_ram)
   {
@@ -588,8 +588,9 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rec
     //
     //         In our implementation, the garbage just so happens to be the top or bottom row.
     //         Statistically, that could happen.
-    u16 y_prev = static_cast<u16>(std::max(clamp_top ? source_rect.top : 0, y - 1));
-    u16 y_next = static_cast<u16>(std::min(clamp_bottom ? source_rect.bottom : EFB_HEIGHT, y + 1));
+    const u16 y_prev = static_cast<u16>(std::max(clamp_top ? source_rect.top : 0, y - 1));
+    const u16 y_next =
+        static_cast<u16>(std::min<int>(clamp_bottom ? source_rect.bottom : EFB_HEIGHT, y + 1));
 
     // Get a scanline of YUV pixels in 4:4:4 format
     for (int i = 1, x = left; x < right; i++, x++)
@@ -628,8 +629,9 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rec
     src_ptr += memory_stride;
   }
 
-  auto dest_rect = EFBRectangle{source_rect.left, source_rect.top, source_rect.right,
-                                static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)};
+  auto dest_rect =
+      MathUtil::Rectangle<int>{source_rect.left, source_rect.top, source_rect.right,
+                               static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)};
 
   const std::size_t destination_size = dest_rect.GetWidth() * dest_rect.GetHeight() * 2;
   static std::vector<yuv422_packed> destination;

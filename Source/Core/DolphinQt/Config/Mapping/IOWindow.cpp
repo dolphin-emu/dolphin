@@ -40,7 +40,7 @@ IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controlle
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  Update();
+  ConfigChanged();
 }
 
 void IOWindow::CreateMainLayout()
@@ -115,8 +115,10 @@ void IOWindow::CreateMainLayout()
   setLayout(m_main_layout);
 }
 
-void IOWindow::Update()
+void IOWindow::ConfigChanged()
 {
+  const QSignalBlocker blocker(this);
+
   m_expression_text->setPlainText(QString::fromStdString(m_reference->GetExpression()));
   m_expression_text->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor);
   m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
@@ -136,8 +138,8 @@ void IOWindow::ConnectWidgets()
   connect(m_or_button, &QPushButton::clicked, [this] { AppendSelectedOption(" | "); });
   connect(m_not_button, &QPushButton::clicked, [this] { AppendSelectedOption("!"); });
 
-  connect(m_type == IOWindow::Type::Input ? m_detect_button : m_test_button, &QPushButton::clicked,
-          this, &IOWindow::OnDetectButtonPressed);
+  connect(m_detect_button, &QPushButton::clicked, this, &IOWindow::OnDetectButtonPressed);
+  connect(m_test_button, &QPushButton::clicked, this, &IOWindow::OnTestButtonPressed);
 
   connect(m_button_box, &QDialogButtonBox::clicked, this, &IOWindow::OnDialogButtonPressed);
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
@@ -173,6 +175,7 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   }
 
   m_reference->SetExpression(m_expression_text->toPlainText().toStdString());
+  m_controller->UpdateReferences(g_controller_interface);
 
   if (button != m_apply_button)
     accept();
@@ -180,35 +183,22 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
 
 void IOWindow::OnDetectButtonPressed()
 {
-  installEventFilter(BlockUserInputFilter::Instance());
-  grabKeyboard();
-  grabMouse();
+  const auto expression =
+      MappingCommon::DetectExpression(m_detect_button, g_controller_interface, {m_devq.ToString()},
+                                      m_devq, MappingCommon::Quote::Off);
 
-  std::thread([this] {
-    auto* btn = m_type == IOWindow::Type::Input ? m_detect_button : m_test_button;
-    const auto old_label = btn->text();
+  if (expression.isEmpty())
+    return;
 
-    btn->setText(QStringLiteral("..."));
+  const auto list = m_option_list->findItems(expression, Qt::MatchFixedString);
 
-    const auto expr = MappingCommon::DetectExpression(
-        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq,
-        MappingCommon::Quote::Off);
+  if (!list.empty())
+    m_option_list->setCurrentItem(list[0]);
+}
 
-    btn->setText(old_label);
-
-    if (!expr.isEmpty())
-    {
-      const auto list = m_option_list->findItems(expr, Qt::MatchFixedString);
-
-      if (list.size() > 0)
-        m_option_list->setCurrentItem(list[0]);
-    }
-
-    releaseMouse();
-    releaseKeyboard();
-    removeEventFilter(BlockUserInputFilter::Instance());
-  })
-      .detach();
+void IOWindow::OnTestButtonPressed()
+{
+  MappingCommon::TestOutput(m_test_button, static_cast<OutputReference*>(m_reference));
 }
 
 void IOWindow::OnRangeChanged(int value)
@@ -247,21 +237,9 @@ void IOWindow::UpdateDeviceList()
 {
   m_devices_combo->clear();
 
-  Core::RunAsCPUThread([&] {
-    g_controller_interface.RefreshDevices();
-    m_controller->UpdateReferences(g_controller_interface);
+  for (const auto& name : g_controller_interface.GetAllDeviceStrings())
+    m_devices_combo->addItem(QString::fromStdString(name));
 
-    // Adding default device regardless if it's currently connected or not
-    const auto default_device = m_controller->GetDefaultDevice().ToString();
-
-    m_devices_combo->addItem(QString::fromStdString(default_device));
-
-    for (const auto& name : g_controller_interface.GetAllDeviceStrings())
-    {
-      if (name != default_device)
-        m_devices_combo->addItem(QString::fromStdString(name));
-    }
-
-    m_devices_combo->setCurrentIndex(0);
-  });
+  m_devices_combo->setCurrentText(
+      QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
 }

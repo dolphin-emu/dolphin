@@ -63,7 +63,6 @@
 #define STYLES_DIR "Styles"
 #define ANAGLYPH_DIR "Anaglyph"
 #define PIPES_DIR "Pipes"
-#define MEMORYWATCHER_DIR "MemoryWatcher"
 #define WFSROOT_DIR "WFS"
 #define BACKUP_DIR "Backup"
 #define RESOURCEPACK_DIR "ResourcePacks"
@@ -94,10 +93,6 @@
 #define RAM_DUMP "ram.raw"
 #define ARAM_DUMP "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
-
-// Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
-#define MEMORYWATCHER_LOCATIONS "Locations.txt"
-#define MEMORYWATCHER_SOCKET "MemoryWatcher"
 
 // Sys files
 #define TOTALDB "totaldb.dsy"

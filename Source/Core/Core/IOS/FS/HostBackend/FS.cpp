@@ -53,8 +53,6 @@ HostFileSystem::~HostFileSystem() = default;
 
 void HostFileSystem::DoState(PointerWrap& p)
 {
-  p.Do(m_root_path);
-
   // Temporarily close the file, to prevent any issues with the savestating of /tmp
   for (Handle& handle : m_handles)
     handle.host_file.reset();

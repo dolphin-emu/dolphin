@@ -12,26 +12,8 @@
     <ClCompile Include="D3DBase.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="D3DBlob.cpp">
-      <Filter>D3D</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DShader.cpp">
-      <Filter>D3D</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DTexture.cpp">
-      <Filter>D3D</Filter>
-    </ClCompile>
-    <ClCompile Include="D3DUtil.cpp">
-      <Filter>D3D</Filter>
-    </ClCompile>
     <ClCompile Include="D3DState.cpp">
       <Filter>D3D</Filter>
-    </ClCompile>
-    <ClCompile Include="FramebufferManager.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="GeometryShaderCache.cpp">
-      <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="NativeVertexFormat.cpp">
       <Filter>Render</Filter>
@@ -39,22 +21,10 @@
     <ClCompile Include="PerfQuery.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="PixelShaderCache.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="PSTextureEncoder.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="TextureCache.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="VertexManager.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
@@ -70,51 +40,24 @@
     <ClCompile Include="DXPipeline.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="D3DBlob.h">
-      <Filter>D3D</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DShader.h">
-      <Filter>D3D</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DTexture.h">
-      <Filter>D3D</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DUtil.h">
-      <Filter>D3D</Filter>
-    </ClInclude>
     <ClInclude Include="D3DState.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="FramebufferManager.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="GeometryShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="PerfQuery.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="PixelShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="PSTextureEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Render.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="TextureCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="VertexManager.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="VideoBackend.h" />
@@ -128,6 +71,9 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="DXPipeline.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

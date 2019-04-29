@@ -43,6 +43,11 @@ Visual Studio 2017 is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK 10.0.17134.0 must be installed when building.
 
+Make sure to check out the Qt submodule before building:
+```sh
+git submodule update --init
+```
+
 The "Release" solution configuration includes performance optimizations for the best user experience but complicates debugging Dolphin.
 The "Debug" solution configuration is significantly slower, more verbose and less permissive but makes debugging Dolphin easier.
 

@@ -24,6 +24,7 @@
 #include "Common/ENetUtil.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/SFMLHelper.h"
@@ -42,12 +43,17 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/Uids.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "DiscIO/Enums.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 
 #if !defined(_WIN32)
@@ -103,8 +109,8 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
     PanicAlertT("Enet Didn't Initialize");
   }
 
-  m_pad_map.fill(-1);
-  m_wiimote_map.fill(-1);
+  m_pad_map.fill(0);
+  m_wiimote_map.fill(0);
 
   if (traversal_config.use_traversal)
   {
@@ -128,6 +134,8 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
     m_server = enet_host_create(&serverAddr, 10, CHANNEL_COUNT, 0, 0);
     if (m_server != nullptr)
       m_server->intercept = ENetUtil::InterceptCallback;
+
+    SetupIndex();
   }
   if (m_server != nullptr)
   {
@@ -142,6 +150,68 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
       UPnP::TryPortmapping(port);
 #endif
   }
+}
+
+static PlayerId* PeerPlayerId(ENetPeer* peer)
+{
+  return static_cast<PlayerId*>(peer->data);
+}
+
+static void ClearPeerPlayerId(ENetPeer* peer)
+{
+  if (peer->data)
+  {
+    delete PeerPlayerId(peer);
+    peer->data = nullptr;
+  }
+}
+
+void NetPlayServer::SetupIndex()
+{
+  if (!Config::Get(Config::NETPLAY_USE_INDEX))
+    return;
+
+  NetPlaySession session;
+
+  session.name = Config::Get(Config::NETPLAY_INDEX_NAME);
+  session.region = Config::Get(Config::NETPLAY_INDEX_REGION);
+  session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
+  session.method = m_traversal_client ? "traversal" : "direct";
+  session.game_id = m_selected_game.empty() ? "UNKNOWN" : m_selected_game;
+  session.player_count = static_cast<int>(m_players.size());
+  session.in_game = m_is_running;
+  session.port = GetPort();
+
+  if (m_traversal_client)
+  {
+    if (m_traversal_client->GetState() != TraversalClient::Connected)
+      return;
+
+    session.server_id = std::string(g_TraversalClient->GetHostID().data(), 8);
+  }
+  else
+  {
+    Common::HttpRequest request;
+    // ENet does not support IPv6, so IPv4 has to be used
+    request.UseIPv4();
+    Common::HttpRequest::Response response =
+        request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+    if (!response.has_value())
+      return;
+
+    session.server_id = std::string(response->begin(), response->end());
+  }
+
+  session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
+
+  if (m_dialog != nullptr)
+    m_dialog->OnIndexAdded(m_index.Add(session), m_index.GetLastError());
+
+  m_index.SetErrorCallback([this] {
+    if (m_dialog != nullptr)
+      m_dialog->OnIndexRefreshFailed(m_index.GetLastError());
+  });
 }
 
 // called from ---NETPLAY--- thread
@@ -160,6 +230,11 @@ void NetPlayServer::ThreadFunc()
 
       m_ping_timer.Start();
       SendToClients(spac);
+
+      m_index.SetPlayerCount(static_cast<int>(m_players.size()));
+      m_index.SetGame(m_selected_game);
+      m_index.SetInGame(m_is_running);
+
       m_update_pings = false;
     }
 
@@ -191,26 +266,10 @@ void NetPlayServer::ThreadFunc()
       {
       case ENET_EVENT_TYPE_CONNECT:
       {
-        ENetPeer* accept_peer = netEvent.peer;
-        unsigned int error;
-        {
-          std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-          error = OnConnect(accept_peer);
-        }
-
-        if (error)
-        {
-          sf::Packet spac;
-          spac << (MessageId)error;
-          // don't need to lock, this client isn't in the client map
-          Send(accept_peer, spac);
-          if (netEvent.peer->data)
-          {
-            delete (PlayerId*)netEvent.peer->data;
-            netEvent.peer->data = nullptr;
-          }
-          enet_peer_disconnect_later(accept_peer, 0);
-        }
+        // Actual client initialization is deferred to the receive event, so here
+        // we'll just log the new connection.
+        INFO_LOG(NETPLAY, "Peer connected from: %x:%u", netEvent.peer->address.host,
+                 netEvent.peer->address.port);
       }
       break;
       case ENET_EVENT_TYPE_RECEIVE:
@@ -218,18 +277,37 @@ void NetPlayServer::ThreadFunc()
         sf::Packet rpac;
         rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 
-        auto it = m_players.find(*(PlayerId*)netEvent.peer->data);
-        Client& client = it->second;
-        if (OnData(rpac, client) != 0)
+        if (!netEvent.peer->data)
         {
-          // if a bad packet is received, disconnect the client
-          std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-          OnDisconnect(client);
-
-          if (netEvent.peer->data)
+          // uninitialized client, we'll assume this is their initialization packet
+          unsigned int error;
           {
-            delete (PlayerId*)netEvent.peer->data;
-            netEvent.peer->data = nullptr;
+            std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+            error = OnConnect(netEvent.peer, rpac);
+          }
+
+          if (error)
+          {
+            sf::Packet spac;
+            spac << static_cast<MessageId>(error);
+            // don't need to lock, this client isn't in the client map
+            Send(netEvent.peer, spac);
+
+            ClearPeerPlayerId(netEvent.peer);
+            enet_peer_disconnect_later(netEvent.peer, 0);
+          }
+        }
+        else
+        {
+          auto it = m_players.find(*PeerPlayerId(netEvent.peer));
+          Client& client = it->second;
+          if (OnData(rpac, client) != 0)
+          {
+            // if a bad packet is received, disconnect the client
+            std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+            OnDisconnect(client);
+
+            ClearPeerPlayerId(netEvent.peer);
           }
         }
         enet_packet_destroy(netEvent.packet);
@@ -240,17 +318,13 @@ void NetPlayServer::ThreadFunc()
         std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
         if (!netEvent.peer->data)
           break;
-        auto it = m_players.find(*(PlayerId*)netEvent.peer->data);
+        auto it = m_players.find(*PeerPlayerId(netEvent.peer));
         if (it != m_players.end())
         {
           Client& client = it->second;
           OnDisconnect(client);
 
-          if (netEvent.peer->data)
-          {
-            delete (PlayerId*)netEvent.peer->data;
-            netEvent.peer->data = nullptr;
-          }
+          ClearPeerPlayerId(netEvent.peer);
         }
       }
       break;
@@ -263,23 +337,14 @@ void NetPlayServer::ThreadFunc()
   // close listening socket and client sockets
   for (auto& player_entry : m_players)
   {
-    delete (PlayerId*)player_entry.second.socket->data;
-    player_entry.second.socket->data = nullptr;
+    ClearPeerPlayerId(player_entry.second.socket);
     enet_peer_disconnect(player_entry.second.socket, 0);
   }
-}
+}  // namespace NetPlay
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
+unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 {
-  sf::Packet rpac;
-  ENetPacket* epack;
-  do
-  {
-    epack = enet_peer_receive(socket, nullptr);
-  } while (epack == nullptr);
-  rpac.append(epack->data, epack->dataLength);
-
   // give new client first available id
   PlayerId pid = 1;
   for (auto i = m_players.begin(); i != m_players.end(); ++i)
@@ -298,8 +363,8 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   if (npver != Common::scm_rev_git_str)
     return CON_ERR_VERSION_MISMATCH;
 
-  // game is currently running
-  if (m_is_running)
+  // game is currently running or game start is pending
+  if (m_is_running || m_start_pending)
     return CON_ERR_GAME_RUNNING;
 
   // too many players
@@ -316,11 +381,10 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   rpac >> player.revision;
   rpac >> player.name;
 
-  enet_packet_destroy(epack);
   // try to automatically assign new user a pad
-  for (PadMapping& mapping : m_pad_map)
+  for (PlayerId& mapping : m_pad_map)
   {
-    if (mapping == -1)
+    if (mapping == 0)
     {
       mapping = player.pid;
       break;
@@ -340,7 +404,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   Send(player.socket, spac);
 
   // send new client the selected game
-  if (m_selected_game != "")
+  if (!m_selected_game.empty())
   {
     spac.clear();
     spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
@@ -398,7 +462,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   // add client to the player list
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-    m_players.emplace(*(PlayerId*)player.socket->data, std::move(player));
+    m_players.emplace(*PeerPlayerId(player.socket), std::move(player));
     UpdatePadMapping();  // sync pad mappings with everyone
     UpdateWiimoteMapping();
   }
@@ -413,7 +477,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
 
   if (m_is_running)
   {
-    for (PadMapping mapping : m_pad_map)
+    for (PlayerId& mapping : m_pad_map)
     {
       if (mapping == pid && pid != 1)
       {
@@ -423,10 +487,17 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
         sf::Packet spac;
         spac << (MessageId)NP_MSG_DISABLE_GAME;
         // this thread doesn't need players lock
-        SendToClients(spac, static_cast<PlayerId>(-1));
+        SendToClients(spac);
         break;
       }
     }
+  }
+
+  if (m_start_pending)
+  {
+    ChunkedDataAbort();
+    m_dialog->OnGameStartAborted();
+    m_start_pending = false;
   }
 
   sf::Packet spac;
@@ -443,20 +514,20 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
   // alert other players of disconnect
   SendToClients(spac);
 
-  for (PadMapping& mapping : m_pad_map)
+  for (PlayerId& mapping : m_pad_map)
   {
     if (mapping == pid)
     {
-      mapping = -1;
+      mapping = 0;
       UpdatePadMapping();
     }
   }
 
-  for (PadMapping& mapping : m_wiimote_map)
+  for (PlayerId& mapping : m_wiimote_map)
   {
     if (mapping == pid)
     {
-      mapping = -1;
+      mapping = 0;
       UpdateWiimoteMapping();
     }
   }
@@ -494,7 +565,7 @@ void NetPlayServer::UpdatePadMapping()
 {
   sf::Packet spac;
   spac << (MessageId)NP_MSG_PAD_MAPPING;
-  for (PadMapping mapping : m_pad_map)
+  for (PlayerId mapping : m_pad_map)
   {
     spac << mapping;
   }
@@ -506,7 +577,7 @@ void NetPlayServer::UpdateWiimoteMapping()
 {
   sf::Packet spac;
   spac << (MessageId)NP_MSG_WIIMOTE_MAPPING;
-  for (PadMapping mapping : m_wiimote_map)
+  for (PlayerId mapping : m_wiimote_map)
   {
     spac << mapping;
   }
@@ -520,12 +591,16 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 
   m_target_buffer_size = size;
 
-  // tell clients to change buffer size
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
-  spac << static_cast<u32>(m_target_buffer_size);
+  // not needed on clients with host input authority
+  if (!m_host_input_authority)
+  {
+    // tell clients to change buffer size
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+    spac << static_cast<u32>(m_target_buffer_size);
 
-  SendAsyncToClients(std::move(spac));
+    SendAsyncToClients(std::move(spac));
+  }
 }
 
 void NetPlayServer::SetHostInputAuthority(const bool enable)
@@ -645,11 +720,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       break;
 
     sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+    spac << static_cast<MessageId>(m_host_input_authority ? NP_MSG_PAD_HOST_DATA : NP_MSG_PAD_DATA);
 
     while (!packet.endOfPacket())
     {
-      PadMapping map;
+      PadIndex map;
       packet >> map;
 
       // If the data is not from the correct player,
@@ -663,59 +738,48 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
           pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
 
-      if (m_host_input_authority)
-      {
-        m_last_pad_status[map] = pad;
-
-        if (!m_first_pad_status_received[map])
-        {
-          m_first_pad_status_received[map] = true;
-          SendFirstReceivedToHost(map, true);
-        }
-      }
-      else
-      {
-        spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
-             << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-             << pad.isConnected;
-      }
-    }
-
-    if (!m_host_input_authority)
-      SendToClients(spac, player.pid);
-  }
-  break;
-
-  case NP_MSG_PAD_HOST_POLL:
-  {
-    PadMapping pad_num;
-    packet >> pad_num;
-
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
-
-    if (pad_num < 0)
-    {
-      for (size_t i = 0; i < m_pad_map.size(); i++)
-      {
-        if (m_pad_map[i] == -1)
-          continue;
-
-        const GCPadStatus& pad = m_last_pad_status[i];
-        spac << static_cast<PadMapping>(i) << pad.button << pad.analogA << pad.analogB << pad.stickX
-             << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-             << pad.isConnected;
-      }
-    }
-    else if (m_pad_map.at(pad_num) != -1)
-    {
-      const GCPadStatus& pad = m_last_pad_status[pad_num];
-      spac << pad_num << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
            << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
            << pad.isConnected;
     }
 
-    SendToClients(spac);
+    if (m_host_input_authority)
+    {
+      // Prevent crash before game stop if the golfer disconnects
+      if (m_current_golfer != 0 && m_players.find(m_current_golfer) != m_players.end())
+        Send(m_players.at(m_current_golfer).socket, spac);
+    }
+    else
+    {
+      SendToClients(spac, player.pid);
+    }
+  }
+  break;
+
+  case NP_MSG_PAD_HOST_DATA:
+  {
+    // Kick player if they're not the golfer.
+    if (m_current_golfer != 0 && player.pid != m_current_golfer)
+      return 1;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+
+    while (!packet.endOfPacket())
+    {
+      PadIndex map;
+      packet >> map;
+
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+           << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
+           << pad.isConnected;
+    }
+
+    SendToClients(spac, player.pid);
   }
   break;
 
@@ -725,7 +789,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (player.current_game != m_current_game)
       break;
 
-    PadMapping map = 0;
+    PadIndex map;
     u8 size;
     packet >> map >> size;
     std::vector<u8> data(size);
@@ -748,6 +812,63 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       spac << byte;
 
     SendToClients(spac, player.pid);
+  }
+  break;
+
+  case NP_MSG_GOLF_REQUEST:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    // Check if player ID is valid and sender isn't a spectator
+    if (!m_players.count(pid) || !PlayerHasControllerMapped(player.pid))
+      break;
+
+    if (m_host_input_authority && m_settings.m_GolfMode && m_pending_golfer == 0 &&
+        m_current_golfer != pid && PlayerHasControllerMapped(pid))
+    {
+      m_pending_golfer = pid;
+
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_PREPARE);
+      Send(m_players[pid].socket, spac);
+    }
+  }
+  break;
+
+  case NP_MSG_GOLF_RELEASE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_SWITCH);
+    spac << static_cast<PlayerId>(m_pending_golfer);
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_GOLF_ACQUIRE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    m_current_golfer = m_pending_golfer;
+    m_pending_golfer = 0;
+  }
+  break;
+
+  case NP_MSG_GOLF_PREPARE:
+  {
+    if (m_pending_golfer == 0)
+      break;
+
+    m_current_golfer = 0;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_SWITCH);
+    spac << static_cast<PlayerId>(0);
+    SendToClients(spac);
   }
   break;
 
@@ -846,7 +967,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
             return pair.second == timebases[0].second;
           }))
       {
-        int pid_to_blame = -1;
+        int pid_to_blame = 0;
         for (auto pair : timebases)
         {
           if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
@@ -942,7 +1063,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       m_dialog->AppendChat(
           StringFromFormat(GetStringT("%s failed to synchronize.").c_str(), player.name.c_str()));
-      m_dialog->OnSaveDataSyncFailure();
+      m_dialog->OnGameStartAborted();
+      ChunkedDataAbort();
       m_start_pending = false;
     }
     break;
@@ -985,6 +1107,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       m_dialog->AppendChat(StringFromFormat(GetStringT("%s failed to synchronize codes.").c_str(),
                                             player.name.c_str()));
+      m_dialog->OnGameStartAborted();
       m_start_pending = false;
     }
     break;
@@ -1010,10 +1133,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
+  const TraversalClient::State state = m_traversal_client->GetState();
+
+  if (g_TraversalClient->GetHostID()[0] != '\0')
+    SetupIndex();
+
   if (!m_dialog)
     return;
-
-  const TraversalClient::State state = m_traversal_client->GetState();
 
   if (state == TraversalClient::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
@@ -1108,7 +1234,7 @@ bool NetPlayServer::RequestStartGame()
     m_start_pending = true;
     if (!SyncCodes())
     {
-      PanicAlertT("Error synchronizing save gecko codes!");
+      PanicAlertT("Error synchronizing cheat codes!");
       m_start_pending = false;
       return false;
     }
@@ -1134,7 +1260,8 @@ bool NetPlayServer::StartGame()
   if (!m_host_input_authority)
     AdjustPadBufferSize(m_target_buffer_size);
 
-  m_first_pad_status_received.fill(false);
+  m_current_golfer = 1;
+  m_pending_golfer = 0;
 
   const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
@@ -1159,8 +1286,10 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
   spac << m_settings.m_ReducePollingRate;
-  spac << m_settings.m_EXIDevice[0];
-  spac << m_settings.m_EXIDevice[1];
+
+  for (auto& device : m_settings.m_EXIDevice)
+    spac << device;
+
   spac << m_settings.m_EFBAccessEnable;
   spac << m_settings.m_BBoxEnable;
   spac << m_settings.m_ForceProgressive;
@@ -1199,6 +1328,8 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
   spac << m_settings.m_EnableGPUTextureDecoding;
   spac << m_settings.m_DeferEFBCopies;
+  spac << m_settings.m_EFBAccessTileSize;
+  spac << m_settings.m_EFBAccessDeferInvalidation;
   spac << m_settings.m_StrictSettingsSync;
   spac << initial_rtc;
   spac << m_settings.m_SyncSaveData;
@@ -1206,12 +1337,34 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_SyncCodes;
   spac << m_settings.m_SyncAllWiiSaves;
 
+  for (size_t i = 0; i < m_settings.m_WiimoteExtension.size(); i++)
+  {
+    const int extension =
+        static_cast<ControllerEmu::Attachments*>(
+            static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
+                ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
+            ->GetSelectedAttachment();
+    spac << extension;
+  }
+
+  spac << m_settings.m_GolfMode;
+
   SendAsyncToClients(std::move(spac));
 
   m_start_pending = false;
   m_is_running = true;
 
   return true;
+}
+
+void NetPlayServer::AbortGameStart()
+{
+  if (m_start_pending)
+  {
+    m_dialog->OnGameStartAborted();
+    ChunkedDataAbort();
+    m_start_pending = false;
+  }
 }
 
 // called from ---GUI--- thread
@@ -1366,6 +1519,28 @@ bool NetPlayServer::SyncSaveData()
     sf::Packet pac;
     pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
     pac << static_cast<MessageId>(SYNC_SAVE_DATA_WII);
+
+    // Shove the Mii data into the start the packet
+    {
+      auto file = configured_fs->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                          Common::GetMiiDatabasePath(), IOS::HLE::FS::Mode::Read);
+      if (file)
+      {
+        pac << true;
+
+        std::vector<u8> file_data(file->GetStatus()->size);
+        if (!file->Read(file_data.data(), file_data.size()))
+          return false;
+        if (!CompressBufferIntoPacket(file_data, pac))
+          return false;
+      }
+      else
+      {
+        pac << false;  // no mii data
+      }
+    }
+
+    // Carry on with the save files
     pac << static_cast<u32>(saves.size());
 
     for (const auto& pair : saves)
@@ -1699,15 +1874,6 @@ bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, s
   return true;
 }
 
-void NetPlayServer::SendFirstReceivedToHost(const PadMapping map, const bool state)
-{
-  sf::Packet pac;
-  pac << static_cast<MessageId>(NP_MSG_PAD_FIRST_RECEIVED);
-  pac << map;
-  pac << state;
-  Send(m_players.at(1).socket, pac);
-}
-
 u64 NetPlayServer::GetInitialNetPlayRTC() const
 {
   const auto& config = SConfig::GetInstance();
@@ -1748,6 +1914,14 @@ void NetPlayServer::KickPlayer(PlayerId player)
       return;
     }
   }
+}
+
+bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
+{
+  const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
+
+  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
+         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
 }
 
 u16 NetPlayServer::GetPort() const
@@ -1831,10 +2005,21 @@ void NetPlayServer::ChunkedDataThreadFunc()
   {
     m_chunked_data_event.Wait();
 
+    if (m_abort_chunked_data)
+    {
+      // thread-safe clear
+      while (!m_chunked_data_queue.Empty())
+        m_chunked_data_queue.Pop();
+
+      m_abort_chunked_data = false;
+    }
+
     while (!m_chunked_data_queue.Empty())
     {
       if (!m_do_loop)
         return;
+      if (m_abort_chunked_data)
+        break;
       auto& e = m_chunked_data_queue.Front();
       const u32 id = m_next_chunked_data_id++;
 
@@ -1870,15 +2055,27 @@ void NetPlayServer::ChunkedDataThreadFunc()
       const float bytes_per_second =
           (std::max(Config::Get(Config::NETPLAY_CHUNKED_UPLOAD_LIMIT), 1u) / 8.0f) * 1024.0f;
       const std::chrono::duration<double> send_interval(CHUNKED_DATA_UNIT_SIZE / bytes_per_second);
+      bool skip_wait = false;
       size_t index = 0;
       do
       {
         if (!m_do_loop)
           return;
+        if (m_abort_chunked_data)
+        {
+          sf::Packet pac;
+          pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_ABORT);
+          pac << id;
+          ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
+          break;
+        }
         if (e.target_mode == TargetMode::Only)
         {
           if (m_players.find(e.target_pid) == m_players.end())
+          {
+            skip_wait = true;
             break;
+          }
         }
 
         auto start = std::chrono::steady_clock::now();
@@ -1899,6 +2096,7 @@ void NetPlayServer::ChunkedDataThreadFunc()
         }
       } while (index < e.packet.getDataSize());
 
+      if (!m_abort_chunked_data)
       {
         sf::Packet pac;
         pac << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_END);
@@ -1906,9 +2104,10 @@ void NetPlayServer::ChunkedDataThreadFunc()
         ChunkedDataSend(std::move(pac), e.target_pid, e.target_mode);
       }
 
-      while (m_chunked_data_complete_count[id] < player_count && m_do_loop)
+      while (m_chunked_data_complete_count[id] < player_count && m_do_loop &&
+             !m_abort_chunked_data && !skip_wait)
         m_chunked_data_complete_event.Wait();
-      m_chunked_data_complete_count.erase(m_chunked_data_complete_count.find(id));
+      m_chunked_data_complete_count.erase(id);
       m_dialog->HideChunkedProgressDialog();
 
       m_chunked_data_queue.Pop();
@@ -1928,5 +2127,12 @@ void NetPlayServer::ChunkedDataSend(sf::Packet&& packet, const PlayerId pid,
   {
     SendAsyncToClients(std::move(packet), pid, CHUNKED_DATA_CHANNEL);
   }
+}
+
+void NetPlayServer::ChunkedDataAbort()
+{
+  m_abort_chunked_data = true;
+  m_chunked_data_event.Set();
+  m_chunked_data_complete_event.Set();
 }
 }  // namespace NetPlay

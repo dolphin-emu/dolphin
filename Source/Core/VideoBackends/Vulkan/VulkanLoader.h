@@ -8,17 +8,18 @@
 
 #if defined(WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
-#elif defined(HAVE_X11)
-// Currently we're getting xlib handles passed to the backend.
-// If this ever changes to xcb, it's a simple change here.
+#endif
+
+#if defined(HAVE_X11)
 #define VK_USE_PLATFORM_XLIB_KHR
-//#define VK_USE_PLATFORM_XCB_KHR
-#elif defined(ANDROID)
+#endif
+
+#if defined(ANDROID)
 #define VK_USE_PLATFORM_ANDROID_KHR
-#elif defined(__APPLE__)
+#endif
+
+#if defined(__APPLE__)
 #define VK_USE_PLATFORM_MACOS_MVK
-#else
-//#warning Unknown platform
 #endif
 
 #include "vulkan/vulkan.h"

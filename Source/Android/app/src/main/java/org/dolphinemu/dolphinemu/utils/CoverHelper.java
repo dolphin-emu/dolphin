@@ -12,10 +12,7 @@ public final class CoverHelper
 
   public static String buildGameTDBUrl(GameFile game, String region)
   {
-    String gameId = game.getGameId();
-    if (game.getPlatform() == 2) // WiiWare
-      gameId = gameId.substring(0, 4);
-    return String.format(baseUrl, region, gameId);
+    return String.format(baseUrl, region, game.getGameTdbId());
   }
 
   public static String getRegion(GameFile game)

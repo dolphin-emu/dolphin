@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -45,6 +46,7 @@ public final class SettingsFile
   public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
   public static final String KEY_VIDEO_BACKEND = "GFXBackend";
   public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+  public static final String KEY_AUTO_DISC_CHANGE = "AutoDiscChange";
   public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
   public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
@@ -71,6 +73,7 @@ public final class SettingsFile
   public static final String KEY_ARBITRARY_MIPMAP_DETECTION = "ArbitraryMipmapDetection";
   public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
   public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
+  public static final String KEY_BACKEND_MULTITHREADING = "BackendMultithreading";
 
   public static final String KEY_STEREO_MODE = "StereoMode";
   public static final String KEY_STEREO_DEPTH = "StereoDepth";
@@ -89,6 +92,16 @@ public final class SettingsFile
   public static final String KEY_ASPECT_RATIO = "AspectRatio";
   public static final String KEY_SHADER_COMPILATION_MODE = "ShaderCompilationMode";
   public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
+
+  public static final String KEY_DEBUG_JITOFF = "JitOff";
+  public static final String KEY_DEBUG_JITLOADSTOREOFF = "JitLoadStoreOff";
+  public static final String KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF = "JitLoadStoreFloatingOff";
+  public static final String KEY_DEBUG_JITLOADSTOREPAIREDOFF = "JitLoadStorePairedOff";
+  public static final String KEY_DEBUG_JITFLOATINGPOINTOFF = "JitFloatingPointOff";
+  public static final String KEY_DEBUG_JITINTEGEROFF = "JitIntegerOff";
+  public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
+  public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
+  public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
 
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
@@ -140,6 +153,9 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_IR_FORWARD = "IRForward_";
   public static final String KEY_WIIBIND_IR_BACKWARD = "IRBackward_";
   public static final String KEY_WIIBIND_IR_HIDE = "IRHide_";
+  public static final String KEY_WIIBIND_IR_PITCH = "IRTotalPitch";
+  public static final String KEY_WIIBIND_IR_YAW = "IRTotalYaw";
+  public static final String KEY_WIIBIND_IR_VERTICAL_OFFSET = "IRVerticalOffset";
   public static final String KEY_WIIBIND_SWING_UP = "SwingUp_";
   public static final String KEY_WIIBIND_SWING_DOWN = "SwingDown_";
   public static final String KEY_WIIBIND_SWING_LEFT = "SwingLeft_";
@@ -705,20 +721,17 @@ public final class SettingsFile
     for (String key : sortedKeySet)
     {
       Setting setting = settings.get(key);
-      String settingString = settingAsString(setting);
-
-      writer.println(settingString);
+      String valueAsString = setting.getValueAsString();
+      if (!TextUtils.isEmpty(valueAsString))
+      {
+        writer.println(setting.getKey() + " = " + valueAsString);
+      }
     }
   }
 
   private static String sectionAsString(SettingSection section)
   {
     return "[" + section.getName() + "]";
-  }
-
-  private static String settingAsString(Setting setting)
-  {
-    return setting.getKey() + " = " + setting.getValueAsString();
   }
 
   private static String customWiimoteExtSettingAsString(Setting setting)

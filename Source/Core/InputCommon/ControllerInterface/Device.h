@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -16,13 +17,17 @@ typedef double ControlState;
 
 namespace ciface
 {
+// 100Hz which homebrew docs very roughly imply is within WiiMote normal
+// range, used for periodic haptic effects though often ignored by devices
+// TODO: Make this configurable.
+constexpr int RUMBLE_PERIOD_MS = 10;
+// This needs to be at least as long as the longest rumble that might ever be played.
+// Too short and it's going to stop in the middle of a long effect.
+// Infinite values are invalid for ramp effects and probably not sensible.
+constexpr int RUMBLE_LENGTH_MS = 1000 * 10;
+
 namespace Core
 {
-//
-// Device
-//
-// A device class
-//
 class Device
 {
 public:
@@ -41,6 +46,10 @@ public:
     virtual ~Control() {}
     virtual Input* ToInput() { return nullptr; }
     virtual Output* ToOutput() { return nullptr; }
+
+    // May be overridden to allow multiple valid names.
+    // Useful for backwards-compatible configurations when names change.
+    virtual bool IsMatchingName(const std::string& name) const;
   };
 
   //
@@ -51,9 +60,22 @@ public:
   class Input : public Control
   {
   public:
-    // things like absolute axes/ absolute mouse position will override this
+    // Things like absolute axes/ absolute mouse position should override this to prevent
+    // undesirable behavior in our mapping logic.
     virtual bool IsDetectable() { return true; }
+
+    // Implementations should return a value from 0.0 to 1.0 across their normal range.
+    // One input should be provided for each "direction". (e.g. 2 for each axis)
+    // If possible, negative values may be returned in situations where an opposing input is
+    // activated. (e.g. When an underlying axis, X, is currently negative, "Axis X-", will return a
+    // positive value and "Axis X+" may return a negative value.)
+    // Doing so is solely to allow our input detection logic to better detect false positives.
+    // This is necessary when making use of "FullAnalogSurface" as multiple inputs will be seen
+    // increasing from 0.0 to 1.0 as a user tries to map just one. The negative values provide a
+    // view of the underlying axis. (Negative values are clamped off before they reach
+    // expression-parser or controller-emu)
     virtual ControlState GetState() const = 0;
+
     Input* ToInput() override { return this; }
   };
 
@@ -65,7 +87,7 @@ public:
   class Output : public Control
   {
   public:
-    virtual ~Output() {}
+    virtual ~Output() = default;
     virtual void SetState(ControlState state) = 0;
     Output* ToOutput() override { return this; }
   };
@@ -78,9 +100,17 @@ public:
   virtual std::string GetSource() const = 0;
   std::string GetQualifiedName() const;
   virtual void UpdateInput() {}
+
+  // May be overridden to implement hotplug removal.
+  // Currently handled on a per-backend basis but this could change.
   virtual bool IsValid() const { return true; }
+
+  // (e.g. Xbox 360 controllers have controller number LEDs which should match the ID we use.)
+  virtual std::optional<int> GetPreferredId() const;
+
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
+
   Input* FindInput(const std::string& name) const;
   Output* FindOutput(const std::string& name) const;
 
@@ -88,16 +118,13 @@ protected:
   void AddInput(Input* const i);
   void AddOutput(Output* const o);
 
-  class FullAnalogSurface : public Input
+  class FullAnalogSurface final : public Input
   {
   public:
     FullAnalogSurface(Input* low, Input* high) : m_low(*low), m_high(*high) {}
-    ControlState GetState() const override
-    {
-      return (1 + m_high.GetState() - m_low.GetState()) / 2;
-    }
-
-    std::string GetName() const override { return m_low.GetName() + *m_high.GetName().rbegin(); }
+    ControlState GetState() const override;
+    std::string GetName() const override;
+    bool IsMatchingName(const std::string& name) const override;
 
   private:
     Input& m_low;
@@ -159,9 +186,12 @@ public:
 
   bool HasConnectedDevice(const DeviceQualifier& qualifier) const;
 
+  std::pair<std::shared_ptr<Device>, Device::Input*>
+  DetectInput(u32 wait_ms, std::vector<std::string> device_strings);
+
 protected:
   mutable std::mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
-}
-}
+}  // namespace Core
+}  // namespace ciface

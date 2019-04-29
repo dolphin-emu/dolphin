@@ -8,8 +8,10 @@
 #include <memory>
 #include <string>
 
-#include <QMenu>
 #include <QMenuBar>
+#include <QPointer>
+
+class QMenu;
 
 namespace Core
 {
@@ -31,14 +33,16 @@ class MenuBar final : public QMenuBar
   Q_OBJECT
 
 public:
+  static MenuBar* GetMenuBar() { return s_menu_bar; }
+
   explicit MenuBar(QWidget* parent = nullptr);
 
   void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
 
-#ifdef _WIN32
+  QMenu* GetListColumnsMenu() const { return m_cols_menu; }
+
   void InstallUpdateManually();
-#endif
 
 signals:
   // File
@@ -57,6 +61,7 @@ signals:
   void FrameAdvance();
   void Screenshot();
   void StartNetPlay();
+  void BrowseNetPlay();
   void StateLoad();
   void StateSave();
   void StateLoadSlot();
@@ -92,7 +97,7 @@ signals:
   void ShowList();
   void ShowGrid();
   void PurgeGameListCache();
-  void ToggleSearch();
+  void ShowSearch();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
@@ -169,6 +174,8 @@ private:
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
 
+  static QPointer<MenuBar> s_menu_bar;
+
   // File
   QAction* m_open_action;
   QAction* m_exit_action;
@@ -225,6 +232,7 @@ private:
   QAction* m_show_breakpoints;
   QAction* m_show_memory;
   QAction* m_show_jit;
+  QMenu* m_cols_menu;
 
   // JIT
   QMenu* m_jit;

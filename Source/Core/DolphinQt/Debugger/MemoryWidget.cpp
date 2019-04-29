@@ -12,7 +12,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -29,12 +28,15 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Memory"));
   setObjectName(QStringLiteral("memory"));
+
+  setHidden(!Settings::Instance().IsMemoryVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
@@ -43,6 +45,8 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   QSettings& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("memorywidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("memorywidget/floating")).toBool());
   m_splitter->restoreState(settings.value(QStringLiteral("codewidget/splitter")).toByteArray());
 
@@ -53,8 +57,6 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
-
-  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   LoadSettings();
 
@@ -524,13 +526,13 @@ void MemoryWidget::OnSetValue()
 
   if (!good_address)
   {
-    QMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
     return;
   }
 
   if (m_data_edit->text().isEmpty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("No value provided."));
+    ModalMessageBox::critical(this, tr("Error"), tr("No value provided."));
     return;
   }
 
@@ -557,7 +559,7 @@ void MemoryWidget::OnSetValue()
 
     if (!good_value)
     {
-      QMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
+      ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
       return;
     }
 
@@ -596,7 +598,7 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
   if (!f)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Failed to dump %1: Can't open file").arg(QString::fromStdString(filename)));
     return;
@@ -604,9 +606,9 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
   if (!f.WriteBytes(data, length))
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("Failed to dump %1: Failed to write to file")
-                              .arg(QString::fromStdString(filename)));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
+                              QObject::tr("Failed to dump %1: Failed to write to file")
+                                  .arg(QString::fromStdString(filename)));
   }
 }
 

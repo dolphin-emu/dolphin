@@ -161,6 +161,10 @@ public final class SettingsFragmentPresenter
         addHackSettings(sl);
         break;
 
+      case DEBUG:
+        addDebugSettings(sl);
+        break;
+
       case GCPAD_1:
       case GCPAD_2:
       case GCPAD_3:
@@ -202,6 +206,7 @@ public final class SettingsFragmentPresenter
 
     sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
     sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, 0, MenuTag.CONFIG_WII));
+    sl.add(new SubmenuSetting(null, null, R.string.debug_submenu, 0, MenuTag.DEBUG));
     sl.add(new HeaderSetting(null, null, R.string.gametdb_thanks, 0));
   }
 
@@ -213,6 +218,7 @@ public final class SettingsFragmentPresenter
     Setting overclock = null;
     Setting speedLimit = null;
     Setting audioStretch = null;
+    Setting autoDiscChange = null;
     Setting analytics = null;
     Setting enableSaveState;
     Setting lockToLandscape;
@@ -225,6 +231,7 @@ public final class SettingsFragmentPresenter
     overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
     speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
     audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+    autoDiscChange = coreSection.getSetting(SettingsFile.KEY_AUTO_DISC_CHANGE);
     analytics = analyticsSection.getSetting(SettingsFile.KEY_ANALYTICS_ENABLED);
     enableSaveState = coreSection.getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
     lockToLandscape = coreSection.getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
@@ -264,6 +271,8 @@ public final class SettingsFragmentPresenter
             R.string.speed_limit, 0, 200, "%", 100, speedLimit));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
             R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_AUTO_DISC_CHANGE, Settings.SECTION_INI_CORE,
+            R.string.auto_disc_change, 0, false, autoDiscChange));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_SAVE_STATES, Settings.SECTION_INI_CORE,
             R.string.enable_save_states, R.string.enable_save_states_description, false,
             enableSaveState));
@@ -404,7 +413,7 @@ public final class SettingsFragmentPresenter
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_general, 0));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
-            R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries,
+            R.string.video_backend, 0, R.array.videoBackendEntries,
             R.array.videoBackendValues, 0, videoBackend));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, Settings.SECTION_GFX_SETTINGS,
             R.string.show_fps, R.string.show_fps_description, false, showFps));
@@ -443,12 +452,13 @@ public final class SettingsFragmentPresenter
             enhancementSection.getSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION);
     Setting wideScreenHack = gfxSection.getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
     Setting force24BitColor = enhancementSection.getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
+    Setting backendMultithreading = gfxSection.getSetting(SettingsFile.KEY_BACKEND_MULTITHREADING);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, Settings.SECTION_GFX_SETTINGS,
             R.string.internal_resolution, R.string.internal_resolution_description,
             R.array.internalResolutionEntries, R.array.internalResolutionValues, 1, resolution));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, Settings.SECTION_GFX_SETTINGS,
-            R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 0,
+            R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 1,
             fsaa));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_ANISOTROPY, Settings.SECTION_GFX_ENHANCEMENTS,
             R.string.anisotropic_filtering, R.string.anisotropic_filtering_description,
@@ -466,7 +476,7 @@ public final class SettingsFragmentPresenter
     shaderListValues[0] = "";
     sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_POST_SHADER,
             Settings.SECTION_GFX_ENHANCEMENTS, R.string.post_processing_shader,
-            R.string.post_processing_shader_description, shaderListEntries, shaderListValues, "",
+            0, shaderListEntries, shaderListValues, "",
             shader));
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, Settings.SECTION_GFX_HACKS,
@@ -492,12 +502,16 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_SETTINGS,
             R.string.wide_screen_hack, R.string.wide_screen_hack_description, false,
             wideScreenHack));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_BACKEND_MULTITHREADING,
+            Settings.SECTION_GFX_SETTINGS,
+            R.string.backend_multithreading, R.string.backend_multithreading_description, false,
+            backendMultithreading));
 
-		 /*
-		 Check if we support stereo
-		 If we support desktop GL then we must support at least OpenGL 3.2
-		 If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
-		 */
+     /*
+     Check if we support stereo
+     If we support desktop GL then we must support at least OpenGL 3.2
+     If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
+     */
     EGLHelper helper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
 
     if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
@@ -525,7 +539,7 @@ public final class SettingsFragmentPresenter
       if (shaderFiles != null)
       {
         String[] result = new String[shaderFiles.length + 1];
-        result[0] = "Off";
+        result[0] = mView.getActivity().getString(R.string.off);
         for (int i = 0; i < shaderFiles.length; i++)
         {
           String name = shaderFiles[i].getName();
@@ -604,6 +618,57 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, Settings.SECTION_GFX_SETTINGS,
             R.string.fast_depth_calculation, R.string.fast_depth_calculation_description, true,
             fastDepth));
+  }
+
+  private void addDebugSettings(ArrayList<SettingsItem> sl)
+  {
+    SettingSection debugSection = mSettings.getSection(Settings.SECTION_DEBUG);
+
+    Setting jitOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITOFF);
+    Setting jitLoadStoreOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITLOADSTOREOFF);
+    Setting jitLoadStoreFloatingPointOff =
+            debugSection.getSetting(SettingsFile.KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF);
+    Setting jitLoadStorePairedOff =
+            debugSection.getSetting(SettingsFile.KEY_DEBUG_JITLOADSTOREPAIREDOFF);
+    Setting jitFloatingPointOff =
+            debugSection.getSetting(SettingsFile.KEY_DEBUG_JITFLOATINGPOINTOFF);
+    Setting jitIntegerOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITINTEGEROFF);
+    Setting jitPairedOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITPAIREDOFF);
+    Setting jitSystemRegistersOff =
+            debugSection.getSetting(SettingsFile.KEY_DEBUG_JITSYSTEMREGISTEROFF);
+    Setting jitBranchOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITBRANCHOFF);
+
+    sl.add(new HeaderSetting(null, null, R.string.debug_warning, 0));
+
+    sl.add(new HeaderSetting(null, null, R.string.debug_jit_header, 0));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitoff, 0, false,
+            jitOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITLOADSTOREOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitloadstoreoff, 0, false,
+            jitLoadStoreOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF,
+            Settings.SECTION_DEBUG,
+            R.string.debug_jitloadstorefloatingoff, 0, false,
+            jitLoadStoreFloatingPointOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITLOADSTOREPAIREDOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitloadstorepairedoff, 0, false,
+            jitLoadStorePairedOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITFLOATINGPOINTOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitfloatingpointoff, 0, false,
+            jitFloatingPointOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITINTEGEROFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitintegeroff, 0, false,
+            jitIntegerOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITPAIREDOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitpairedoff, 0, false,
+            jitPairedOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITSYSTEMREGISTEROFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitsystemregistersoffr, 0, false,
+            jitSystemRegistersOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITBRANCHOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitbranchoff, 0, false,
+            jitBranchOff));
   }
 
   private void addStereoSettings(ArrayList<SettingsItem> sl)
@@ -815,7 +880,7 @@ public final class SettingsFragmentPresenter
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
       sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
               Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), R.string.wiimote_extensions,
-              R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
+              0, R.array.wiimoteExtensionsEntries,
               R.array.wiimoteExtensionsValues, 0, extension,
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
     }
@@ -827,7 +892,7 @@ public final class SettingsFragmentPresenter
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
       sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
               Settings.SECTION_CONTROLS, R.string.wiimote_extensions,
-              R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries,
+              0, R.array.wiimoteExtensionsEntries,
               R.array.wiimoteExtensionsValues, 0, extension,
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
     }

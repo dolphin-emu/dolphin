@@ -23,7 +23,6 @@ public:
   explicit InfoWidget(const UICommon::GameFile& game);
 
 private:
-  void ComputeChecksum();
   void ChangeLanguage();
   void SaveBanner();
 
@@ -31,14 +30,12 @@ private:
   QGroupBox* CreateISODetails();
   QLineEdit* CreateValueDisplay(const QString& value);
   QLineEdit* CreateValueDisplay(const std::string& value = "");
-  QWidget* CreateChecksumComputer();
   void CreateLanguageSelector();
   QWidget* CreateBannerGraphic(const QPixmap& image);
 
   UICommon::GameFile m_game;
-  QLineEdit* m_checksum_result;
   QComboBox* m_language_selector;
-  QLineEdit* m_name;
-  QLineEdit* m_maker;
-  QTextEdit* m_description;
+  QLineEdit* m_name = {};
+  QLineEdit* m_maker = {};
+  QTextEdit* m_description = {};
 };

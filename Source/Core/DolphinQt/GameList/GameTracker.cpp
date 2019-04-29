@@ -73,7 +73,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
           [this](const std::shared_ptr<const UICommon::GameFile>& game) {
             emit GameUpdated(game);
           });
-      QueueOnObject(this, [this] { Settings::Instance().NotifyMetadataRefreshComplete(); });
+      QueueOnObject(this, [] { Settings::Instance().NotifyMetadataRefreshComplete(); });
       break;
     case CommandType::PurgeCache:
       m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
@@ -136,7 +136,7 @@ void GameTracker::StartInternal()
   if (cache_updated)
     m_cache.Save();
 
-  QueueOnObject(this, [this] { Settings::Instance().NotifyMetadataRefreshComplete(); });
+  QueueOnObject(this, [] { Settings::Instance().NotifyMetadataRefreshComplete(); });
 }
 
 bool GameTracker::AddPath(const QString& dir)

@@ -32,16 +32,20 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
 
   // Source: http://wiibrew.org/wiki/WAD_files
   m_hdr_size = m_reader->ReadSwapped<u32>(0x00).value_or(0);
-  m_cert_size = m_reader->ReadSwapped<u32>(0x08).value_or(0);
-  m_tick_size = m_reader->ReadSwapped<u32>(0x10).value_or(0);
+  m_cert_chain_size = m_reader->ReadSwapped<u32>(0x08).value_or(0);
+  m_ticket_size = m_reader->ReadSwapped<u32>(0x10).value_or(0);
   m_tmd_size = m_reader->ReadSwapped<u32>(0x14).value_or(0);
   m_data_size = m_reader->ReadSwapped<u32>(0x18).value_or(0);
 
-  m_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40);
-  m_tmd_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40) +
-                 Common::AlignUp(m_tick_size, 0x40);
-  m_opening_bnr_offset =
-      m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
+  m_cert_chain_offset = Common::AlignUp(m_hdr_size, 0x40);
+  m_ticket_offset = m_cert_chain_offset + Common::AlignUp(m_cert_chain_size, 0x40);
+  m_tmd_offset = m_ticket_offset + Common::AlignUp(m_ticket_size, 0x40);
+  m_data_offset = m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40);
+  m_opening_bnr_offset = m_data_offset + Common::AlignUp(m_data_size, 0x40);
+
+  std::vector<u8> ticket_buffer(m_ticket_size);
+  Read(m_ticket_offset, m_ticket_size, ticket_buffer.data());
+  m_ticket.SetBytes(std::move(ticket_buffer));
 
   if (!IOS::ES::IsValidTMDSize(m_tmd_size))
   {
@@ -52,6 +56,9 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   std::vector<u8> tmd_buffer(m_tmd_size);
   Read(m_tmd_offset, m_tmd_size, tmd_buffer.data());
   m_tmd.SetBytes(std::move(tmd_buffer));
+
+  m_cert_chain.resize(m_cert_chain_size);
+  Read(m_cert_chain_offset, m_cert_chain_size, m_cert_chain.data());
 }
 
 VolumeWAD::~VolumeWAD()
@@ -89,10 +96,16 @@ Country VolumeWAD::GetCountry(const Partition& partition) const
     return TypicalCountryForRegion(GetSysMenuRegion(m_tmd.GetTitleVersion()));
 
   const Region region = GetRegion();
-  if (CountryCodeToRegion(country_byte, Platform::WiiWAD, region) != region)
+  const std::optional<u16> revision = GetRevision();
+  if (CountryCodeToRegion(country_byte, Platform::WiiWAD, region, revision) != region)
     return TypicalCountryForRegion(region);
 
-  return CountryCodeToCountry(country_byte, Platform::WiiWAD, region);
+  return CountryCodeToCountry(country_byte, Platform::WiiWAD, region, revision);
+}
+
+const IOS::ES::TicketReader& VolumeWAD::GetTicket(const Partition& partition) const
+{
+  return m_ticket;
 }
 
 const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const
@@ -100,9 +113,34 @@ const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const
   return m_tmd;
 }
 
+const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition) const
+{
+  return m_cert_chain;
+}
+
+std::vector<u64> VolumeWAD::GetContentOffsets() const
+{
+  const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
+  std::vector<u64> content_offsets;
+  content_offsets.reserve(contents.size());
+  u64 offset = m_data_offset;
+  for (const IOS::ES::Content& content : contents)
+  {
+    content_offsets.emplace_back(offset);
+    offset += Common::AlignUp(content.size, 0x40);
+  }
+
+  return content_offsets;
+}
+
 std::string VolumeWAD::GetGameID(const Partition& partition) const
 {
   return m_tmd.GetGameID();
+}
+
+std::string VolumeWAD::GetGameTDBID(const Partition& partition) const
+{
+  return m_tmd.GetGameTDBID();
 }
 
 std::string VolumeWAD::GetMakerID(const Partition& partition) const
@@ -121,7 +159,7 @@ std::string VolumeWAD::GetMakerID(const Partition& partition) const
 
 std::optional<u64> VolumeWAD::GetTitleID(const Partition& partition) const
 {
-  return ReadSwapped<u64>(m_offset + 0x01DC, partition);
+  return ReadSwapped<u64>(m_ticket_offset + 0x01DC, partition);
 }
 
 std::optional<u16> VolumeWAD::GetRevision(const Partition& partition) const
@@ -168,6 +206,11 @@ BlobType VolumeWAD::GetBlobType() const
 u64 VolumeWAD::GetSize() const
 {
   return m_reader->GetDataSize();
+}
+
+bool VolumeWAD::IsSizeAccurate() const
+{
+  return m_reader->IsDataSizeAccurate();
 }
 
 u64 VolumeWAD::GetRawSize() const

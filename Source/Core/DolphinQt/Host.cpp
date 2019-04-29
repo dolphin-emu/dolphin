@@ -8,8 +8,11 @@
 #include <QApplication>
 #include <QProgressDialog>
 
+#include <imgui.h>
+
 #include "Common/Common.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -56,7 +59,7 @@ void Host::SetRenderFocus(bool focus)
   m_render_focus = focus;
   if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
     Core::RunAsCPUThread([focus] {
-      if (!SConfig::GetInstance().bRenderToMain)
+      if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
         g_renderer->SetFullscreen(focus);
     });
 }
@@ -149,8 +152,15 @@ void Host_RequestRenderWindowSize(int w, int h)
 
 bool Host_UINeedsControllerState()
 {
-  return Settings::Instance().IsControllerStateNeeded();
+  return Settings::Instance().IsControllerStateNeeded() ||
+         (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard);
 }
+
+bool Host_UIBlocksControllerState()
+{
+  return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard;
+}
+
 void Host_RefreshDSPDebuggerWindow()
 {
 }

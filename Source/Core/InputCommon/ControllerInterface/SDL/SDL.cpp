@@ -5,8 +5,6 @@
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
 #include <algorithm>
-#include <map>
-#include <sstream>
 #include <thread>
 
 #include <SDL_events.h>
@@ -25,12 +23,6 @@ namespace ciface
 {
 namespace SDL
 {
-// 10ms = 100Hz which homebrew docs very roughly imply is within WiiMote normal
-// range, used for periodic haptic effects though often ignored by devices
-static const u16 RUMBLE_PERIOD = 10;
-static const u16 RUMBLE_LENGTH_MAX =
-    500;  // ms: enough to span multiple frames at low FPS, but still finite
-
 static std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -42,7 +34,7 @@ static std::string GetJoystickName(int index)
 
 static void OpenAndAddDevice(int index)
 {
-  SDL_Joystick* dev = SDL_JoystickOpen(index);
+  SDL_Joystick* const dev = SDL_JoystickOpen(index);
   if (dev)
   {
     auto js = std::make_shared<Joystick>(dev, index);
@@ -64,7 +56,6 @@ static bool HandleEventAndContinue(const SDL_Event& e)
   if (e.type == SDL_JOYDEVICEADDED)
   {
     OpenAndAddDevice(e.jdevice.which);
-    g_controller_interface.InvokeDevicesChangedCallbacks();
   }
   else if (e.type == SDL_JOYDEVICEREMOVED)
   {
@@ -72,7 +63,6 @@ static bool HandleEventAndContinue(const SDL_Event& e)
       const Joystick* joystick = dynamic_cast<const Joystick*>(device);
       return joystick && SDL_JoystickInstanceID(joystick->GetSDLJoystick()) == e.jdevice.which;
     });
-    g_controller_interface.InvokeDevicesChangedCallbacks();
   }
   else if (e.type == s_populate_event_type)
   {
@@ -111,7 +101,7 @@ void Init()
         return;
       }
 
-      Uint32 custom_events_start = SDL_RegisterEvents(2);
+      const Uint32 custom_events_start = SDL_RegisterEvents(2);
       if (custom_events_start == static_cast<Uint32>(-1))
       {
         ERROR_LOG(SERIALINTERFACE, "SDL failed to register custom events");
@@ -229,34 +219,37 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
   }
 
 #ifdef USE_SDL_HAPTIC
-  // try to get supported ff effects
   m_haptic = SDL_HapticOpenFromJoystick(m_joystick);
-  if (m_haptic)
+  if (!m_haptic)
+    return;
+
+  const unsigned int supported_effects = SDL_HapticQuery(m_haptic);
+
+  // Disable autocenter:
+  if (supported_effects & SDL_HAPTIC_AUTOCENTER)
+    SDL_HapticSetAutocenter(m_haptic, 0);
+
+  // Constant
+  if (supported_effects & SDL_HAPTIC_CONSTANT)
+    AddOutput(new ConstantEffect(m_haptic));
+
+  // Ramp
+  if (supported_effects & SDL_HAPTIC_RAMP)
+    AddOutput(new RampEffect(m_haptic));
+
+  // Periodic
+  for (auto waveform :
+       {SDL_HAPTIC_SINE, SDL_HAPTIC_TRIANGLE, SDL_HAPTIC_SAWTOOTHUP, SDL_HAPTIC_SAWTOOTHDOWN})
   {
-    // SDL_HapticSetGain( m_haptic, 1000 );
-    // SDL_HapticSetAutocenter( m_haptic, 0 );
+    if (supported_effects & waveform)
+      AddOutput(new PeriodicEffect(m_haptic, waveform));
+  }
 
-    const unsigned int supported_effects = SDL_HapticQuery(m_haptic);
-
-    // constant effect
-    if (supported_effects & SDL_HAPTIC_CONSTANT)
-      AddOutput(new ConstantEffect(m_haptic));
-
-    // ramp effect
-    if (supported_effects & SDL_HAPTIC_RAMP)
-      AddOutput(new RampEffect(m_haptic));
-
-    // sine effect
-    if (supported_effects & SDL_HAPTIC_SINE)
-      AddOutput(new SineEffect(m_haptic));
-
-    // triangle effect
-    if (supported_effects & SDL_HAPTIC_TRIANGLE)
-      AddOutput(new TriangleEffect(m_haptic));
-
-    // left-right effect
-    if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
-      AddOutput(new LeftRightEffect(m_haptic));
+  // LeftRight
+  if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
+  {
+    AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Strong));
+    AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
   }
 #endif
 }
@@ -278,24 +271,82 @@ Joystick::~Joystick()
 }
 
 #ifdef USE_SDL_HAPTIC
-void Joystick::HapticEffect::Update()
+void Joystick::HapticEffect::UpdateEffect()
 {
-  if (m_id == -1 && m_effect.type > 0)
+  if (m_effect.type != DISABLED_EFFECT_TYPE)
   {
-    m_id = SDL_HapticNewEffect(m_haptic, &m_effect);
-    if (m_id > -1)
-      SDL_HapticRunEffect(m_haptic, m_id, 1);
+    if (m_id < 0)
+    {
+      // Upload and try to play the effect.
+      m_id = SDL_HapticNewEffect(m_haptic, &m_effect);
+
+      if (m_id >= 0)
+        SDL_HapticRunEffect(m_haptic, m_id, 1);
+    }
+    else
+    {
+      // Effect is already playing. Update parameters.
+      SDL_HapticUpdateEffect(m_haptic, m_id, &m_effect);
+    }
   }
-  else if (m_id > -1 && m_effect.type == 0)
+  else if (m_id >= 0)
   {
+    // Stop and remove the effect.
     SDL_HapticStopEffect(m_haptic, m_id);
     SDL_HapticDestroyEffect(m_haptic, m_id);
     m_id = -1;
   }
-  else if (m_id > -1)
-  {
-    SDL_HapticUpdateEffect(m_haptic, m_id, &m_effect);
-  }
+}
+
+Joystick::HapticEffect::HapticEffect(SDL_Haptic* haptic) : m_haptic(haptic)
+{
+  // FYI: type is set within UpdateParameters.
+  m_effect.type = DISABLED_EFFECT_TYPE;
+}
+
+Joystick::HapticEffect::~HapticEffect()
+{
+  m_effect.type = DISABLED_EFFECT_TYPE;
+  UpdateEffect();
+}
+
+void Joystick::HapticEffect::SetDirection(SDL_HapticDirection* dir)
+{
+  // Left direction (for wheels)
+  dir->type = SDL_HAPTIC_CARTESIAN;
+  dir->dir[0] = -1;
+}
+
+Joystick::ConstantEffect::ConstantEffect(SDL_Haptic* haptic) : HapticEffect(haptic)
+{
+  m_effect.constant = {};
+  SetDirection(&m_effect.constant.direction);
+  m_effect.constant.length = RUMBLE_LENGTH_MS;
+}
+
+Joystick::RampEffect::RampEffect(SDL_Haptic* haptic) : HapticEffect(haptic)
+{
+  m_effect.ramp = {};
+  SetDirection(&m_effect.ramp.direction);
+  m_effect.ramp.length = RUMBLE_LENGTH_MS;
+}
+
+Joystick::PeriodicEffect::PeriodicEffect(SDL_Haptic* haptic, u16 waveform)
+    : HapticEffect(haptic), m_waveform(waveform)
+{
+  m_effect.periodic = {};
+  SetDirection(&m_effect.periodic.direction);
+  m_effect.periodic.length = RUMBLE_LENGTH_MS;
+  m_effect.periodic.period = RUMBLE_PERIOD_MS;
+  m_effect.periodic.offset = 0;
+  m_effect.periodic.phase = 0;
+}
+
+Joystick::LeftRightEffect::LeftRightEffect(SDL_Haptic* haptic, Motor motor)
+    : HapticEffect(haptic), m_motor(motor)
+{
+  m_effect.leftright = {};
+  m_effect.leftright.length = RUMBLE_LENGTH_MS;
 }
 
 std::string Joystick::ConstantEffect::GetName() const
@@ -308,87 +359,91 @@ std::string Joystick::RampEffect::GetName() const
   return "Ramp";
 }
 
-std::string Joystick::SineEffect::GetName() const
+std::string Joystick::PeriodicEffect::GetName() const
 {
-  return "Sine";
-}
-
-std::string Joystick::TriangleEffect::GetName() const
-{
-  return "Triangle";
+  switch (m_waveform)
+  {
+  case SDL_HAPTIC_SINE:
+    return "Sine";
+  case SDL_HAPTIC_TRIANGLE:
+    return "Triangle";
+  case SDL_HAPTIC_SAWTOOTHUP:
+    return "Sawtooth Up";
+  case SDL_HAPTIC_SAWTOOTHDOWN:
+    return "Sawtooth Down";
+  default:
+    return "Unknown";
+  }
 }
 
 std::string Joystick::LeftRightEffect::GetName() const
 {
-  return "LeftRight";
+  return (Motor::Strong == m_motor) ? "Strong" : "Weak";
 }
 
 void Joystick::HapticEffect::SetState(ControlState state)
 {
-  memset(&m_effect, 0, sizeof(m_effect));
-  if (state)
+  // Maximum force value for all SDL effects:
+  constexpr s16 MAX_FORCE_VALUE = 0x7fff;
+
+  if (UpdateParameters(s16(state * MAX_FORCE_VALUE)))
   {
-    SetSDLHapticEffect(state);
+    UpdateEffect();
   }
-  else
-  {
-    // this module uses type==0 to indicate 'off'
-    m_effect.type = 0;
-  }
-  Update();
 }
 
-void Joystick::ConstantEffect::SetSDLHapticEffect(ControlState state)
+bool Joystick::ConstantEffect::UpdateParameters(s16 value)
 {
-  m_effect.type = SDL_HAPTIC_CONSTANT;
-  m_effect.constant.length = RUMBLE_LENGTH_MAX;
-  m_effect.constant.level = (Sint16)(state * 0x7FFF);
+  s16& level = m_effect.constant.level;
+  const s16 old_level = level;
+
+  level = value;
+
+  m_effect.type = level ? SDL_HAPTIC_CONSTANT : DISABLED_EFFECT_TYPE;
+  return level != old_level;
 }
 
-void Joystick::RampEffect::SetSDLHapticEffect(ControlState state)
+bool Joystick::RampEffect::UpdateParameters(s16 value)
 {
-  m_effect.type = SDL_HAPTIC_RAMP;
-  m_effect.ramp.length = RUMBLE_LENGTH_MAX;
-  m_effect.ramp.start = (Sint16)(state * 0x7FFF);
+  s16& level = m_effect.ramp.start;
+  const s16 old_level = level;
+
+  level = value;
+  // FYI: Setting end to same as start is odd,
+  // but so is using Ramp effects for rumble simulation.
+  m_effect.ramp.end = level;
+
+  m_effect.type = level ? SDL_HAPTIC_RAMP : DISABLED_EFFECT_TYPE;
+  return level != old_level;
 }
 
-void Joystick::SineEffect::SetSDLHapticEffect(ControlState state)
+bool Joystick::PeriodicEffect::UpdateParameters(s16 value)
 {
-  m_effect.type = SDL_HAPTIC_SINE;
-  m_effect.periodic.period = RUMBLE_PERIOD;
-  m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
-  m_effect.periodic.offset = 0;
-  m_effect.periodic.phase = 18000;
-  m_effect.periodic.length = RUMBLE_LENGTH_MAX;
-  m_effect.periodic.delay = 0;
-  m_effect.periodic.attack_length = 0;
+  s16& level = m_effect.periodic.magnitude;
+  const s16 old_level = level;
+
+  level = value;
+
+  m_effect.type = level ? m_waveform : DISABLED_EFFECT_TYPE;
+  return level != old_level;
 }
 
-void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state)
+bool Joystick::LeftRightEffect::UpdateParameters(s16 value)
 {
-  m_effect.type = SDL_HAPTIC_TRIANGLE;
-  m_effect.periodic.period = RUMBLE_PERIOD;
-  m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
-  m_effect.periodic.offset = 0;
-  m_effect.periodic.phase = 18000;
-  m_effect.periodic.length = RUMBLE_LENGTH_MAX;
-  m_effect.periodic.delay = 0;
-  m_effect.periodic.attack_length = 0;
-}
+  u16& level = (Motor::Strong == m_motor) ? m_effect.leftright.large_magnitude :
+                                            m_effect.leftright.small_magnitude;
+  const u16 old_level = level;
 
-void Joystick::LeftRightEffect::SetSDLHapticEffect(ControlState state)
-{
-  m_effect.type = SDL_HAPTIC_LEFTRIGHT;
-  m_effect.leftright.length = RUMBLE_LENGTH_MAX;
-  // max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360 controller
-  m_effect.leftright.large_magnitude = (Uint16)(state * 0x4000);
-  m_effect.leftright.small_magnitude = (Uint16)(state * 0xFFFF);
+  level = value;
+
+  m_effect.type = level ? SDL_HAPTIC_LEFTRIGHT : DISABLED_EFFECT_TYPE;
+  return level != old_level;
 }
 #endif
 
 void Joystick::UpdateInput()
 {
-  // each joystick is doin this, o well
+  // TODO: Don't call this for every Joystick, only once per ControllerInterface::UpdateInput()
   SDL_JoystickUpdate();
 }
 
@@ -409,25 +464,17 @@ SDL_Joystick* Joystick::GetSDLJoystick() const
 
 std::string Joystick::Button::GetName() const
 {
-  std::ostringstream ss;
-  ss << "Button " << (int)m_index;
-  return ss.str();
+  return "Button " + std::to_string(m_index);
 }
 
 std::string Joystick::Axis::GetName() const
 {
-  std::ostringstream ss;
-  ss << "Axis " << (int)m_index << (m_range < 0 ? '-' : '+');
-  return ss.str();
+  return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
 }
 
 std::string Joystick::Hat::GetName() const
 {
-  static char tmpstr[] = "Hat . .";
-  // I don't think more than 10 hats are supported
-  tmpstr[4] = (char)('0' + m_index);
-  tmpstr[6] = "NESW"[m_direction];
-  return tmpstr;
+  return "Hat " + std::to_string(m_index) + ' ' + "NESW"[m_direction];
 }
 
 ControlState Joystick::Button::GetState() const
@@ -437,12 +484,12 @@ ControlState Joystick::Button::GetState() const
 
 ControlState Joystick::Axis::GetState() const
 {
-  return std::max(0.0, ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range);
+  return ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range;
 }
 
 ControlState Joystick::Hat::GetState() const
 {
   return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
 }
-}
-}
+}  // namespace SDL
+}  // namespace ciface

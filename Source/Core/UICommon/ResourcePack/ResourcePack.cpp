@@ -126,8 +126,8 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
     if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
       continue;
 
-    // If a texture is compressed, abort.
-    if (texture_info.compression_method != 0)
+    // If a texture is compressed and the manifest doesn't state that, abort.
+    if (!m_manifest->IsCompressed() && texture_info.compression_method != 0)
     {
       m_valid = false;
       m_error = "Texture " + filename + " is compressed!";
@@ -265,8 +265,9 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Check if a higher priority pack already provides a given texture, don't delete it
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
-      if (std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
-          pack->GetTextures().end())
+      if (::ResourcePack::IsInstalled(*pack) &&
+          std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
+              pack->GetTextures().end())
       {
         provided_by_other_pack = true;
         break;
@@ -279,8 +280,9 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Check if a lower priority pack provides a given texture - if so, install it.
     for (auto& pack : lower)
     {
-      if (std::find(pack->GetTextures().rbegin(), pack->GetTextures().rend(), texture) !=
-          pack->GetTextures().rend())
+      if (::ResourcePack::IsInstalled(*pack) &&
+          std::find(pack->GetTextures().rbegin(), pack->GetTextures().rend(), texture) !=
+              pack->GetTextures().rend())
       {
         pack->Install(path);
 
@@ -318,9 +320,14 @@ bool ResourcePack::Uninstall(const std::string& path)
   return true;
 }
 
-bool ResourcePack::operator==(const ResourcePack& pack)
+bool ResourcePack::operator==(const ResourcePack& pack) const
 {
   return pack.GetPath() == m_path;
+}
+
+bool ResourcePack::operator!=(const ResourcePack& pack) const
+{
+  return !operator==(pack);
 }
 
 }  // namespace ResourcePack

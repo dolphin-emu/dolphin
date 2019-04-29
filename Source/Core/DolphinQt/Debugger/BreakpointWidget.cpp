@@ -26,11 +26,16 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Breakpoints"));
   setObjectName(QStringLiteral("breakpoints"));
 
+  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
+            !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
 
   CreateWidgets();
@@ -60,9 +65,6 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &BreakpointWidget::UpdateIcons);
   UpdateIcons();
-
-  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
 
   Update();
 }
@@ -223,7 +225,7 @@ void BreakpointWidget::Update()
 
 void BreakpointWidget::OnDelete()
 {
-  if (m_table->selectedItems().size() == 0)
+  if (m_table->selectedItems().empty())
     return;
 
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();

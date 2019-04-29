@@ -11,7 +11,6 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
@@ -25,6 +24,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/AutoUpdate.h"
@@ -96,6 +96,7 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
@@ -137,6 +138,9 @@ void GeneralPane::CreateBasic()
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
   basic_group_layout->addWidget(m_checkbox_cheats);
 
+  m_checkbox_auto_disc_change = new QCheckBox(tr("Change Discs Automatically"));
+  basic_group_layout->addWidget(m_checkbox_auto_disc_change);
+
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
   basic_group_layout->addWidget(m_checkbox_discord_presence);
@@ -170,6 +174,9 @@ void GeneralPane::CreateAutoUpdate()
   auto* layout = new QFormLayout;
   auto_update_group->setLayout(layout);
   m_main_layout->addWidget(auto_update_group);
+
+  layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   m_combobox_update_track = new QComboBox(this);
 
@@ -236,6 +243,7 @@ void GeneralPane::LoadConfig()
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
+  m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
@@ -277,6 +285,8 @@ static QString UpdateTrackFromIndex(int index)
 
 void GeneralPane::OnSaveConfig()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   auto& settings = SConfig::GetInstance();
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
@@ -295,6 +305,7 @@ void GeneralPane::OnSaveConfig()
   settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
+  Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
 
@@ -316,7 +327,7 @@ void GeneralPane::GenerateNewIdentity()
 {
   DolphinAnalytics::Instance()->GenerateNewIdentity();
   DolphinAnalytics::Instance()->ReloadConfig();
-  QMessageBox message_box(this);
+  ModalMessageBox message_box(this);
   message_box.setIcon(QMessageBox::Information);
   message_box.setWindowTitle(tr("Identity Generation"));
   message_box.setText(tr("New identity generated."));

@@ -56,6 +56,7 @@
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
     <ClInclude Include="MsgHandler.h" />
@@ -275,6 +276,8 @@
     <ClInclude Include="GL\GLContext.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
+    <ClInclude Include="VariantUtil.h" />
+    <ClInclude Include="DynamicLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -291,6 +294,7 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
     <ClCompile Include="MsgHandler.cpp" />
@@ -355,6 +359,7 @@
     <ClCompile Include="GL\GLContext.cpp">
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

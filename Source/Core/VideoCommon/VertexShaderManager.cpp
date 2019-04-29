@@ -13,7 +13,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "VideoCommon/BPFunctions.h"
@@ -27,7 +27,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-alignas(16) static float g_fProjectionMatrix[16];
+alignas(16) static std::array<float, 16> g_fProjectionMatrix;
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -38,11 +38,8 @@ static int nNormalMatricesChanged[2];         // min,max
 static int nPostTransformMatricesChanged[2];  // min,max
 static int nLightsChanged[2];                 // min,max
 
-static Matrix44 s_viewportCorrection;
-static Matrix33 s_viewRotationMatrix;
-static Matrix33 s_viewInvRotationMatrix;
-static float s_fViewTranslationVector[3];
-static float s_fViewRotation[2];
+static Common::Matrix44 s_viewportCorrection;
+static Common::Matrix44 s_freelook_matrix;
 
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
@@ -57,7 +54,7 @@ bool VertexShaderManager::dirty;
 // [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
 // [         0         0     1                              0   ]
 // [         0         0     0                              1   ]
-static void ViewportCorrectionMatrix(Matrix44& result)
+static void ViewportCorrectionMatrix(Common::Matrix44& result)
 {
   int scissorXOff = bpmem.scissorOffset.x * 2;
   int scissorYOff = bpmem.scissorOffset.y * 2;
@@ -86,7 +83,7 @@ static void ViewportCorrectionMatrix(Matrix44& result)
   float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
   float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
 
-  Matrix44::LoadIdentity(result);
+  result = Common::Matrix44::Identity();
   if (Wd == 0 || Ht == 0)
     return;
 
@@ -121,10 +118,8 @@ void VertexShaderManager::Init()
   ResetView();
 
   // TODO: should these go inside ResetView()?
-  Matrix44::LoadIdentity(s_viewportCorrection);
-  memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
-  for (int i = 0; i < 4; ++i)
-    g_fProjectionMatrix[i * 5] = 1.0f;
+  s_viewportCorrection = Common::Matrix44::Identity();
+  g_fProjectionMatrix = Common::Matrix44::Identity().data;
 
   dirty = true;
 }
@@ -452,29 +447,12 @@ void VertexShaderManager::SetConstants()
     PRIM_LOG("Projection: %f %f %f %f %f %f", rawProjection[0], rawProjection[1], rawProjection[2],
              rawProjection[3], rawProjection[4], rawProjection[5]);
 
+    auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
+
     if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
-    {
-      Matrix44 mtxA;
-      Matrix44 mtxB;
-      Matrix44 viewMtx;
+      corrected_matrix *= s_freelook_matrix;
 
-      Matrix44::Translate(mtxA, s_fViewTranslationVector);
-      Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-      Matrix44::Multiply(mtxB, mtxA, viewMtx);  // view = rotation x translation
-      Matrix44::Set(mtxB, g_fProjectionMatrix);
-      Matrix44::Multiply(mtxB, viewMtx, mtxA);               // mtxA = projection x view
-      Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB);  // mtxB = viewportCorrection x mtxA
-      memcpy(constants.projection.data(), mtxB.data, 4 * sizeof(float4));
-    }
-    else
-    {
-      Matrix44 projMtx;
-      Matrix44::Set(projMtx, g_fProjectionMatrix);
-
-      Matrix44 correctedMtx;
-      Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-      memcpy(constants.projection.data(), correctedMtx.data, 4 * sizeof(float4));
-    }
+    memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 
     dirty = true;
   }
@@ -661,42 +639,25 @@ void VertexShaderManager::SetMaterialColorChanged(int index)
 
 void VertexShaderManager::TranslateView(float x, float y, float z)
 {
-  float result[3];
-  float vector[3] = {x, z, y};
-
-  Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
-
-  for (size_t i = 0; i < ArraySize(result); i++)
-    s_fViewTranslationVector[i] += result[i];
+  s_freelook_matrix = Common::Matrix44::Translate({x, z, y}) * s_freelook_matrix;
 
   bProjectionChanged = true;
 }
 
-void VertexShaderManager::RotateView(float x, float y)
+void VertexShaderManager::RotateView(float x, float y, float z)
 {
-  s_fViewRotation[0] += x;
-  s_fViewRotation[1] += y;
+  using Common::Matrix33;
 
-  Matrix33 mx;
-  Matrix33 my;
-  Matrix33::RotateX(mx, s_fViewRotation[1]);
-  Matrix33::RotateY(my, s_fViewRotation[0]);
-  Matrix33::Multiply(mx, my, s_viewRotationMatrix);
-
-  // reverse rotation
-  Matrix33::RotateX(mx, -s_fViewRotation[1]);
-  Matrix33::RotateY(my, -s_fViewRotation[0]);
-  Matrix33::Multiply(my, mx, s_viewInvRotationMatrix);
+  s_freelook_matrix = Common::Matrix44::FromMatrix33(Matrix33::RotateX(x) * Matrix33::RotateY(y) *
+                                                     Matrix33::RotateZ(z)) *
+                      s_freelook_matrix;
 
   bProjectionChanged = true;
 }
 
 void VertexShaderManager::ResetView()
 {
-  memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
-  Matrix33::LoadIdentity(s_viewRotationMatrix);
-  Matrix33::LoadIdentity(s_viewInvRotationMatrix);
-  s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
+  s_freelook_matrix = Common::Matrix44::Identity();
 
   bProjectionChanged = true;
 }
@@ -749,10 +710,7 @@ void VertexShaderManager::DoState(PointerWrap& p)
 {
   p.Do(g_fProjectionMatrix);
   p.Do(s_viewportCorrection);
-  p.Do(s_viewRotationMatrix);
-  p.Do(s_viewInvRotationMatrix);
-  p.Do(s_fViewTranslationVector);
-  p.Do(s_fViewRotation);
+  p.Do(s_freelook_matrix);
 
   p.Do(nTransformMatricesChanged);
   p.Do(nNormalMatricesChanged);

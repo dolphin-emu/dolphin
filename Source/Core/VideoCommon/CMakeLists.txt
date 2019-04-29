@@ -10,11 +10,11 @@ add_library(videocommon
   BPStructs.cpp
   CPMemory.cpp
   CommandProcessor.cpp
-  Debugger.cpp
   DriverDetails.cpp
   Fifo.cpp
   FPSCounter.cpp
-  FramebufferManagerBase.cpp
+  FramebufferManager.cpp
+  FramebufferShaderGen.cpp
   GeometryShaderGen.cpp
   GeometryShaderManager.cpp
   HiresTextures.cpp
@@ -22,6 +22,8 @@ add_library(videocommon
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
+  NetPlayChatUI.cpp
+  NetPlayGolfUI.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
   PerfQueryBase.cpp
@@ -65,6 +67,7 @@ PUBLIC
 PRIVATE
   png
   xxhash
+  imgui
 )
 
 if(_M_X86)

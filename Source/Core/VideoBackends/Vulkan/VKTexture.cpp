@@ -13,23 +13,35 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/FramebufferManager.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/Texture2D.h"
-#include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/TextureConfig.h"
-
 namespace Vulkan
 {
-VKTexture::VKTexture(const TextureConfig& tex_config, std::unique_ptr<Texture2D> texture,
-                     VkFramebuffer framebuffer)
-    : AbstractTexture(tex_config), m_texture(std::move(texture)), m_framebuffer(framebuffer)
+VKTexture::VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
+                     VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
+                     ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
+    : AbstractTexture(tex_config), m_device_memory(device_memory), m_image(image), m_layout(layout),
+      m_compute_layout(compute_layout)
 {
+}
+
+VKTexture::~VKTexture()
+{
+  StateTracker::GetInstance()->UnbindTexture(m_view);
+  g_command_buffer_mgr->DeferImageViewDestruction(m_view);
+
+  // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
+  if (m_device_memory != VK_NULL_HANDLE)
+  {
+    g_command_buffer_mgr->DeferImageDestruction(m_image);
+    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_device_memory);
+  }
 }
 
 std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
@@ -37,91 +49,192 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
   // Determine image usage, we need to flag as an attachment if it can be used as a rendertarget.
   VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                             VK_IMAGE_USAGE_SAMPLED_BIT;
-  if (tex_config.rendertarget)
-    usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-  // Allocate texture object
-  VkFormat vk_format = Util::GetVkFormatForHostTextureFormat(tex_config.format);
-  auto texture =
-      Texture2D::Create(tex_config.width, tex_config.height, tex_config.levels, tex_config.layers,
-                        vk_format, static_cast<VkSampleCountFlagBits>(tex_config.samples),
-                        VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
-
-  if (!texture)
+  if (tex_config.IsRenderTarget())
   {
+    usage |= IsDepthFormat(tex_config.format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT :
+                                                VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  }
+  if (tex_config.IsComputeImage())
+    usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+  VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                  nullptr,
+                                  0,
+                                  VK_IMAGE_TYPE_2D,
+                                  GetVkFormatForHostTextureFormat(tex_config.format),
+                                  {tex_config.width, tex_config.height, 1},
+                                  tex_config.levels,
+                                  tex_config.layers,
+                                  static_cast<VkSampleCountFlagBits>(tex_config.samples),
+                                  VK_IMAGE_TILING_OPTIMAL,
+                                  usage,
+                                  VK_SHARING_MODE_EXCLUSIVE,
+                                  0,
+                                  nullptr,
+                                  VK_IMAGE_LAYOUT_UNDEFINED};
+
+  VkImage image = VK_NULL_HANDLE;
+  VkResult res = vkCreateImage(g_vulkan_context->GetDevice(), &image_info, nullptr, &image);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
     return nullptr;
   }
 
-  // If this is a render target (for efb copies), allocate a framebuffer
-  VkFramebuffer framebuffer = VK_NULL_HANDLE;
-  if (tex_config.rendertarget)
+  // Allocate memory to back this texture, we want device local memory in this case
+  VkMemoryRequirements memory_requirements;
+  vkGetImageMemoryRequirements(g_vulkan_context->GetDevice(), image, &memory_requirements);
+
+  VkMemoryAllocateInfo memory_info = {
+      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
+      g_vulkan_context->GetMemoryType(memory_requirements.memoryTypeBits,
+                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)};
+
+  VkDeviceMemory device_memory;
+  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_info, nullptr, &device_memory);
+  if (res != VK_SUCCESS)
   {
-    VkImageView framebuffer_attachments[] = {texture->GetView()};
-    VkRenderPass render_pass =
-        g_object_cache->GetRenderPass(texture->GetFormat(), VK_FORMAT_UNDEFINED, tex_config.samples,
-                                      VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-    VkFramebufferCreateInfo framebuffer_info = {
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        nullptr,
-        0,
-        render_pass,
-        static_cast<u32>(ArraySize(framebuffer_attachments)),
-        framebuffer_attachments,
-        texture->GetWidth(),
-        texture->GetHeight(),
-        texture->GetLayers()};
-
-    VkResult res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
-                                       &framebuffer);
-    if (res != VK_SUCCESS)
-    {
-      LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
-      return nullptr;
-    }
-
-    if (!IsDepthFormat(tex_config.format))
-    {
-      // Clear render targets before use to prevent reading uninitialized memory.
-      VkClearColorValue clear_value = {{0.0f, 0.0f, 0.0f, 1.0f}};
-      VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, tex_config.levels, 0,
-                                             tex_config.layers};
-      texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-      vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), texture->GetImage(),
-                           texture->GetLayout(), &clear_value, 1, &clear_range);
-    }
-    else
-    {
-      // Clear render targets before use to prevent reading uninitialized memory.
-      VkClearDepthStencilValue clear_value = {0.0f, 0};
-      VkImageSubresourceRange clear_range = {Util::GetImageAspectForFormat(vk_format), 0,
-                                             tex_config.levels, 0, tex_config.layers};
-      texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-      vkCmdClearDepthStencilImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                  texture->GetImage(), texture->GetLayout(), &clear_value, 1,
-                                  &clear_range);
-    }
+    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
+    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
+    return nullptr;
   }
 
-  return std::unique_ptr<VKTexture>(new VKTexture(tex_config, std::move(texture), framebuffer));
+  res = vkBindImageMemory(g_vulkan_context->GetDevice(), image, device_memory, 0);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
+    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
+    vkFreeMemory(g_vulkan_context->GetDevice(), device_memory, nullptr);
+    return nullptr;
+  }
+
+  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
+      tex_config, device_memory, image, VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
+  if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
+    return nullptr;
+
+  return texture;
 }
 
-VKTexture::~VKTexture()
+std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_config, VkImage image,
+                                                    VkImageViewType view_type, VkImageLayout layout)
 {
-  // Texture is automatically cleaned up, however, we don't want to leave it bound.
-  g_renderer->UnbindTexture(this);
-  if (m_framebuffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
+  std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
+      tex_config, nullptr, image, layout, ComputeImageLayout::Undefined);
+  if (!texture->CreateView(view_type))
+    return nullptr;
+
+  return texture;
 }
 
-Texture2D* VKTexture::GetRawTexIdentifier() const
+bool VKTexture::CreateView(VkImageViewType type)
 {
-  return m_texture.get();
+  VkImageViewCreateInfo view_info = {
+      VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      nullptr,
+      0,
+      m_image,
+      type,
+      GetVkFormat(),
+      {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+       VK_COMPONENT_SWIZZLE_IDENTITY},
+      {GetImageAspectForFormat(GetFormat()), 0, GetLevels(), 0, GetLayers()}};
+
+  VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
+    return false;
+  }
+
+  return true;
 }
-VkFramebuffer VKTexture::GetFramebuffer() const
+
+VkFormat VKTexture::GetLinearFormat(VkFormat format)
 {
-  return m_framebuffer;
+  switch (format)
+  {
+  case VK_FORMAT_R8_SRGB:
+    return VK_FORMAT_R8_UNORM;
+  case VK_FORMAT_R8G8_SRGB:
+    return VK_FORMAT_R8G8_UNORM;
+  case VK_FORMAT_R8G8B8_SRGB:
+    return VK_FORMAT_R8G8B8_UNORM;
+  case VK_FORMAT_R8G8B8A8_SRGB:
+    return VK_FORMAT_R8G8B8A8_UNORM;
+  case VK_FORMAT_B8G8R8_SRGB:
+    return VK_FORMAT_B8G8R8_UNORM;
+  case VK_FORMAT_B8G8R8A8_SRGB:
+    return VK_FORMAT_B8G8R8A8_UNORM;
+  default:
+    return format;
+  }
+}
+
+VkFormat VKTexture::GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::DXT1:
+    return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+
+  case AbstractTextureFormat::DXT3:
+    return VK_FORMAT_BC2_UNORM_BLOCK;
+
+  case AbstractTextureFormat::DXT5:
+    return VK_FORMAT_BC3_UNORM_BLOCK;
+
+  case AbstractTextureFormat::BPTC:
+    return VK_FORMAT_BC7_UNORM_BLOCK;
+
+  case AbstractTextureFormat::RGBA8:
+    return VK_FORMAT_R8G8B8A8_UNORM;
+
+  case AbstractTextureFormat::BGRA8:
+    return VK_FORMAT_B8G8R8A8_UNORM;
+
+  case AbstractTextureFormat::R16:
+    return VK_FORMAT_R16_UNORM;
+
+  case AbstractTextureFormat::D16:
+    return VK_FORMAT_D16_UNORM;
+
+  case AbstractTextureFormat::D24_S8:
+    return VK_FORMAT_D24_UNORM_S8_UINT;
+
+  case AbstractTextureFormat::R32F:
+    return VK_FORMAT_R32_SFLOAT;
+
+  case AbstractTextureFormat::D32F:
+    return VK_FORMAT_D32_SFLOAT;
+
+  case AbstractTextureFormat::D32F_S8:
+    return VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+  case AbstractTextureFormat::Undefined:
+    return VK_FORMAT_UNDEFINED;
+
+  default:
+    PanicAlert("Unhandled texture format.");
+    return VK_FORMAT_R8G8B8A8_UNORM;
+  }
+}
+
+VkImageAspectFlags VKTexture::GetImageAspectForFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::D24_S8:
+  case AbstractTextureFormat::D32F_S8:
+    return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+  case AbstractTextureFormat::D16:
+  case AbstractTextureFormat::D32F:
+    return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+  default:
+    return VK_IMAGE_ASPECT_COLOR_BIT;
+  }
 }
 
 void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
@@ -129,7 +242,7 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                          u32 dst_layer, u32 dst_level)
 {
-  Texture2D* src_texture = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
+  const VKTexture* src_texture = static_cast<const VKTexture*>(src);
 
   ASSERT_MSG(VIDEO,
              static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
@@ -151,67 +264,18 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   // Must be called outside of a render pass.
   StateTracker::GetInstance()->EndRenderPass();
 
+  const VkImageLayout old_src_layout = src_texture->GetLayout();
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-  vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->GetImage(),
-                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_texture->GetImage(),
+  vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->m_image,
+                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image,
                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
-  // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-}
-
-void VKTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
-                                          const MathUtil::Rectangle<int>& src_rect,
-                                          const MathUtil::Rectangle<int>& dst_rect)
-{
-  Texture2D* src_texture = static_cast<const VKTexture*>(source)->GetRawTexIdentifier();
-
-  // Can't do this within a game render pass.
-  StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->SetPendingRebind();
-
-  // Can't render to a non-rendertarget (no framebuffer).
-  ASSERT_MSG(VIDEO, m_config.rendertarget,
-             "Destination texture for partial copy is not a rendertarget");
-
-  // Render pass expects dst_texture to be in COLOR_ATTACHMENT_OPTIMAL state.
-  // src_texture should already be in SHADER_READ_ONLY state, but transition in case (XFB).
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-  VkRenderPass render_pass = g_object_cache->GetRenderPass(
-      m_texture->GetFormat(), VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
-                         g_shader_cache->GetPassthroughVertexShader(),
-                         g_shader_cache->GetPassthroughGeometryShader(),
-                         TextureCache::GetInstance()->GetCopyShader());
-
-  VkRect2D region = {
-      {dst_rect.left, dst_rect.top},
-      {static_cast<u32>(dst_rect.GetWidth()), static_cast<u32>(dst_rect.GetHeight())}};
-  draw.BeginRenderPass(m_framebuffer, region);
-  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
-  draw.DrawQuad(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight(),
-                src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
-                static_cast<int>(src_texture->GetWidth()),
-                static_cast<int>(src_texture->GetHeight()));
-  draw.EndRenderPass();
-
-  // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
-  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  // Only restore the source layout. Destination is restored by FinishedRendering().
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
 }
 
 void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
@@ -225,11 +289,11 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
 
   // Resolving is considered to be a transfer operation.
   StateTracker::GetInstance()->EndRenderPass();
-  VkImageLayout old_src_layout = srcentry->m_texture->GetLayout();
-  srcentry->m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  VkImageLayout old_src_layout = srcentry->m_layout;
+  srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   VkImageResolve resolve = {
       {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // srcSubresource
@@ -238,23 +302,18 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
       {rect.left, rect.top, 0},                                                   // dstOffset
       {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight()), 1}  // extent
   };
-  vkCmdResolveImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                    srcentry->m_texture->GetImage(), srcentry->m_texture->GetLayout(),
-                    m_texture->GetImage(), m_texture->GetLayout(), 1, &resolve);
+  vkCmdResolveImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), srcentry->m_image,
+                    srcentry->m_layout, m_image, m_layout, 1, &resolve);
 
-  // Restore old source texture layout. Destination is assumed to be bound as a shader resource.
-  srcentry->m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                          old_src_layout);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  srcentry->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_src_layout);
 }
 
 void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                      size_t buffer_size)
 {
   // Can't copy data larger than the texture extents.
-  width = std::max(1u, std::min(width, m_texture->GetWidth() >> level));
-  height = std::max(1u, std::min(height, m_texture->GetHeight() >> level));
+  width = std::max(1u, std::min(width, GetWidth() >> level));
+  height = std::max(1u, std::min(height, GetHeight() >> level));
 
   // We don't care about the existing contents of the texture, so we could the image layout to
   // VK_IMAGE_LAYOUT_UNDEFINED here. However, under section 2.2.1, Queue Operation of the Vulkan
@@ -272,30 +331,29 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   // When the last mip level is uploaded, we transition to SHADER_READ_ONLY, ready for use. This is
   // because we can't transition in a render pass, and we don't necessarily know when this texture
   // is going to be used.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // For unaligned textures, we can save some memory in the transfer buffer by skipping the rows
   // that lie outside of the texture's dimensions.
-  u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
-  u32 block_size = Util::GetBlockSize(m_texture->GetFormat());
-  u32 num_rows = Common::AlignUp(height, block_size) / block_size;
-  size_t source_pitch = CalculateStrideForFormat(m_config.format, row_length);
-  size_t upload_size = source_pitch * num_rows;
+  const u32 upload_alignment = static_cast<u32>(g_vulkan_context->GetBufferImageGranularity());
+  const u32 block_size = GetBlockSizeForFormat(GetFormat());
+  const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
+  const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
+  const u32 upload_size = source_pitch * num_rows;
   std::unique_ptr<StagingBuffer> temp_buffer;
   VkBuffer upload_buffer;
   VkDeviceSize upload_buffer_offset;
 
   // Does this texture data fit within the streaming buffer?
-  if (upload_size <= STAGING_TEXTURE_UPLOAD_THRESHOLD &&
-      upload_size <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
+  if (upload_size <= STAGING_TEXTURE_UPLOAD_THRESHOLD)
   {
-    StreamBuffer* stream_buffer = TextureCache::GetInstance()->GetTextureUploadBuffer();
+    StreamBuffer* stream_buffer = g_object_cache->GetTextureUploadBuffer();
     if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
     {
       // Execute the command buffer first.
       WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
-      Util::ExecuteCurrentCommandsAndRestoreState(false);
+      Renderer::GetInstance()->ExecuteCommandBuffer(false);
 
       // Try allocating again. This may cause a fence wait.
       if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
@@ -334,15 +392,280 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
       {width, height, 1}                         // VkExtent3D                  imageExtent
   };
   vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), upload_buffer,
-                         m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
-                         &image_copy);
+                         m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
-  // Last mip level? We shouldn't be doing any further uploads now, so transition for rendering.
+  // Preemptively transition to shader read only after uploading the last mip level, as we're
+  // likely finished with writes to this texture for now. We can't do this in common with a
+  // FinishedRendering() call because the upload happens in the init command buffer, and we
+  // don't want to interrupt the render pass with calls which were executed ages before.
   if (level == (m_config.levels - 1))
   {
-    m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
+}
+
+void VKTexture::FinishedRendering()
+{
+  if (m_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    return;
+
+  StateTracker::GetInstance()->EndRenderPass();
+  TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+void VKTexture::OverrideImageLayout(VkImageLayout new_layout)
+{
+  m_layout = new_layout;
+}
+
+void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout) const
+{
+  if (m_layout == new_layout)
+    return;
+
+  VkImageMemoryBarrier barrier = {
+      VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // VkStructureType            sType
+      nullptr,                                 // const void*                pNext
+      0,                                       // VkAccessFlags              srcAccessMask
+      0,                                       // VkAccessFlags              dstAccessMask
+      m_layout,                                // VkImageLayout              oldLayout
+      new_layout,                              // VkImageLayout              newLayout
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
+      m_image,                                 // VkImage                    image
+      {GetImageAspectForFormat(GetFormat()), 0, GetLevels(), 0,
+       GetLayers()}  // VkImageSubresourceRange    subresourceRange
+  };
+
+  // srcStageMask -> Stages that must complete before the barrier
+  // dstStageMask -> Stages that must wait for after the barrier before beginning
+  VkPipelineStageFlags srcStageMask, dstStageMask;
+  switch (m_layout)
+  {
+  case VK_IMAGE_LAYOUT_UNDEFINED:
+    // Layout undefined therefore contents undefined, and we don't care what happens to it.
+    barrier.srcAccessMask = 0;
+    srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_PREINITIALIZED:
+    // Image has been pre-initialized by the host, so ensure all writes have completed.
+    barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_HOST_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+    // Image was being used as a color attachment, so ensure all writes have completed.
+    barrier.srcAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+    // Image was being used as a depthstencil attachment, so ensure all writes have completed.
+    barrier.srcAccessMask =
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    srcStageMask =
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+    // Image was being used as a shader resource, make sure all reads have finished.
+    barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+    // Image was being used as a copy source, ensure all reads have finished.
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+    // Image was being used as a copy destination, ensure all writes have finished.
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    break;
+
+  default:
+    srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    break;
+  }
+
+  switch (new_layout)
+  {
+  case VK_IMAGE_LAYOUT_UNDEFINED:
+    barrier.dstAccessMask = 0;
+    dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+    barrier.dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+    barrier.dstAccessMask =
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dstStageMask =
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+    srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    break;
+
+  default:
+    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    break;
+  }
+
+  // If we were using a compute layout, the stages need to reflect that
+  switch (m_compute_layout)
+  {
+  case ComputeImageLayout::Undefined:
+    break;
+  case ComputeImageLayout::ReadOnly:
+    barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    break;
+  case ComputeImageLayout::WriteOnly:
+    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    break;
+  case ComputeImageLayout::ReadWrite:
+    barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    break;
+  }
+  m_compute_layout = ComputeImageLayout::Undefined;
+
+  vkCmdPipelineBarrier(command_buffer, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
+                       &barrier);
+
+  m_layout = new_layout;
+}
+
+void VKTexture::TransitionToLayout(VkCommandBuffer command_buffer,
+                                   ComputeImageLayout new_layout) const
+{
+  ASSERT(new_layout != ComputeImageLayout::Undefined);
+  if (m_compute_layout == new_layout)
+    return;
+
+  VkImageMemoryBarrier barrier = {
+      VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // VkStructureType            sType
+      nullptr,                                 // const void*                pNext
+      0,                                       // VkAccessFlags              srcAccessMask
+      0,                                       // VkAccessFlags              dstAccessMask
+      m_layout,                                // VkImageLayout              oldLayout
+      VK_IMAGE_LAYOUT_GENERAL,                 // VkImageLayout              newLayout
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
+      m_image,                                 // VkImage                    image
+      {GetImageAspectForFormat(GetFormat()), 0, GetLevels(), 0,
+       GetLayers()}  // VkImageSubresourceRange    subresourceRange
+  };
+
+  VkPipelineStageFlags srcStageMask, dstStageMask;
+  switch (m_layout)
+  {
+  case VK_IMAGE_LAYOUT_UNDEFINED:
+    // Layout undefined therefore contents undefined, and we don't care what happens to it.
+    barrier.srcAccessMask = 0;
+    srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_PREINITIALIZED:
+    // Image has been pre-initialized by the host, so ensure all writes have completed.
+    barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_HOST_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+    // Image was being used as a color attachment, so ensure all writes have completed.
+    barrier.srcAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+    // Image was being used as a depthstencil attachment, so ensure all writes have completed.
+    barrier.srcAccessMask =
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    srcStageMask =
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+    // Image was being used as a shader resource, make sure all reads have finished.
+    barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+    // Image was being used as a copy source, ensure all reads have finished.
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    break;
+
+  case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+    // Image was being used as a copy destination, ensure all writes have finished.
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    break;
+
+  default:
+    srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    break;
+  }
+
+  switch (new_layout)
+  {
+  case ComputeImageLayout::ReadOnly:
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    break;
+  case ComputeImageLayout::WriteOnly:
+    barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+    dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    break;
+  case ComputeImageLayout::ReadWrite:
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+    barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+    dstStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    break;
+  default:
+    dstStageMask = 0;
+    break;
+  }
+
+  m_layout = barrier.newLayout;
+  m_compute_layout = new_layout;
+
+  vkCmdPipelineBarrier(command_buffer, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1,
+                       &barrier);
 }
 
 VKStagingTexture::VKStagingTexture(StagingTextureType type, const TextureConfig& config,
@@ -351,11 +674,7 @@ VKStagingTexture::VKStagingTexture(StagingTextureType type, const TextureConfig&
 {
 }
 
-VKStagingTexture::~VKStagingTexture()
-{
-  if (m_needs_flush)
-    VKStagingTexture::Flush();
-}
+VKStagingTexture::~VKStagingTexture() = default;
 
 std::unique_ptr<VKStagingTexture> VKStagingTexture::Create(StagingTextureType type,
                                                            const TextureConfig& config)
@@ -407,38 +726,24 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
+  const VKTexture* src_tex = static_cast<const VKTexture*>(src);
   ASSERT(m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
-  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
-         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src_tex->GetWidth() &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src_tex->GetHeight());
   ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
          dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
 
-  Texture2D* src_tex = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
-  CopyFromTexture(src_tex, src_rect, src_layer, src_level, dst_rect);
-}
+  StateTracker::GetInstance()->EndRenderPass();
 
-void VKStagingTexture::CopyFromTexture(Texture2D* src, const MathUtil::Rectangle<int>& src_rect,
-                                       u32 src_layer, u32 src_level,
-                                       const MathUtil::Rectangle<int>& dst_rect)
-{
-  if (m_needs_flush)
-  {
-    // Drop copy before reusing it.
-    g_command_buffer_mgr->RemoveFencePointCallback(this);
-    m_flush_fence = VK_NULL_HANDLE;
-    m_needs_flush = false;
-  }
-
-  VkImageLayout old_layout = src->GetLayout();
-  src->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  VkImageLayout old_layout = src_tex->GetLayout();
+  src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   // Issue the image->buffer copy, but delay it for now.
   VkBufferImageCopy image_copy = {};
-  VkImageAspectFlags aspect =
-      Util::IsDepthFormat(src->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+  const VkImageAspectFlags aspect = VKTexture::GetImageAspectForFormat(src_tex->GetFormat());
   image_copy.bufferOffset =
       static_cast<VkDeviceSize>(static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
                                 static_cast<size_t>(dst_rect.left) * m_texel_size);
@@ -448,58 +753,34 @@ void VKStagingTexture::CopyFromTexture(Texture2D* src, const MathUtil::Rectangle
   image_copy.imageOffset = {src_rect.left, src_rect.top, 0};
   image_copy.imageExtent = {static_cast<u32>(src_rect.GetWidth()),
                             static_cast<u32>(src_rect.GetHeight()), 1u};
-  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src->GetImage(),
+  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_tex->GetImage(),
                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_staging_buffer->GetBuffer(), 1,
                          &image_copy);
 
   // Restore old source texture layout.
-  src->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
+  src_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
 
   m_needs_flush = true;
-  g_command_buffer_mgr->AddFencePointCallback(this,
-                                              [this](VkCommandBuffer buf, VkFence fence) {
-                                                ASSERT(m_needs_flush);
-                                                if (m_flush_fence != VK_NULL_HANDLE)
-                                                  return;
-
-                                                m_flush_fence = fence;
-                                              },
-                                              [this](VkFence fence) {
-                                                if (m_flush_fence != fence)
-                                                  return;
-
-                                                m_flush_fence = VK_NULL_HANDLE;
-                                                m_needs_flush = false;
-                                                g_command_buffer_mgr->RemoveFencePointCallback(
-                                                    this);
-                                                m_staging_buffer->InvalidateCPUCache();
-                                              });
+  m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
 }
 
 void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, AbstractTexture* dst,
                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                      u32 dst_level)
 {
+  const VKTexture* dst_tex = static_cast<const VKTexture*>(dst);
   ASSERT(m_type == StagingTextureType::Upload || m_type == StagingTextureType::Mutable);
   ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
          src_rect.GetHeight() == dst_rect.GetHeight());
   ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
          src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
-  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
-         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
-
-  if (m_needs_flush)
-  {
-    // Drop copy before reusing it.
-    g_command_buffer_mgr->RemoveFencePointCallback(this);
-    m_flush_fence = VK_NULL_HANDLE;
-    m_needs_flush = false;
-  }
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst_tex->GetWidth() &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst_tex->GetHeight());
 
   // Flush caches before copying.
   m_staging_buffer->FlushCPUCache();
+  StateTracker::GetInstance()->EndRenderPass();
 
-  Texture2D* dst_tex = static_cast<const VKTexture*>(dst)->GetRawTexIdentifier();
   VkImageLayout old_layout = dst_tex->GetLayout();
   dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -523,23 +804,7 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   dst_tex->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), old_layout);
 
   m_needs_flush = true;
-  g_command_buffer_mgr->AddFencePointCallback(this,
-                                              [this](VkCommandBuffer buf, VkFence fence) {
-                                                ASSERT(m_needs_flush);
-                                                if (m_flush_fence != VK_NULL_HANDLE)
-                                                  return;
-
-                                                m_flush_fence = fence;
-                                              },
-                                              [this](VkFence fence) {
-                                                if (m_flush_fence != fence)
-                                                  return;
-
-                                                m_flush_fence = VK_NULL_HANDLE;
-                                                m_needs_flush = false;
-                                                g_command_buffer_mgr->RemoveFencePointCallback(
-                                                    this);
-                                              });
+  m_flush_fence_counter = g_command_buffer_mgr->GetCurrentFenceCounter();
 }
 
 bool VKStagingTexture::Map()
@@ -558,37 +823,35 @@ void VKStagingTexture::Flush()
   if (!m_needs_flush)
     return;
 
-  // Either of the below two calls will cause the callback to fire.
-  g_command_buffer_mgr->RemoveFencePointCallback(this);
-  if (m_flush_fence != VK_NULL_HANDLE)
+  // Is this copy in the current command buffer?
+  if (g_command_buffer_mgr->GetCurrentFenceCounter() == m_flush_fence_counter)
   {
-    // WaitForFence should fire the callback.
-    g_command_buffer_mgr->WaitForFence(m_flush_fence);
-    m_flush_fence = VK_NULL_HANDLE;
+    // Execute the command buffer and wait for it to finish.
+    Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
   }
   else
   {
-    // We don't have a fence, and are pending. That means the readback is in the current
-    // command buffer, and must execute it to populate the staging texture.
-    Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+    // Wait for the GPU to finish with it.
+    g_command_buffer_mgr->WaitForFenceCounter(m_flush_fence_counter);
   }
-  m_needs_flush = false;
 
   // For readback textures, invalidate the CPU cache as there is new data there.
   if (m_type == StagingTextureType::Readback || m_type == StagingTextureType::Mutable)
     m_staging_buffer->InvalidateCPUCache();
+
+  m_needs_flush = false;
 }
 
-VKFramebuffer::VKFramebuffer(const VKTexture* color_attachment, const VKTexture* depth_attachment,
-                             u32 width, u32 height, u32 layers, u32 samples, VkFramebuffer fb,
+VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment, u32 width,
+                             u32 height, u32 layers, u32 samples, VkFramebuffer fb,
                              VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
                              VkRenderPass clear_render_pass)
     : AbstractFramebuffer(
+          color_attachment, depth_attachment,
           color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined,
           depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined,
           width, height, layers, samples),
-      m_color_attachment(color_attachment), m_depth_attachment(depth_attachment), m_fb(fb),
-      m_load_render_pass(load_render_pass), m_discard_render_pass(discard_render_pass),
+      m_fb(fb), m_load_render_pass(load_render_pass), m_discard_render_pass(discard_render_pass),
       m_clear_render_pass(clear_render_pass)
 {
 }
@@ -598,16 +861,16 @@ VKFramebuffer::~VKFramebuffer()
   g_command_buffer_mgr->DeferFramebufferDestruction(m_fb);
 }
 
-std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(const VKTexture* color_attachment,
-                                                     const VKTexture* depth_attachment)
+std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment,
+                                                     VKTexture* depth_attachment)
 {
   if (!ValidateConfig(color_attachment, depth_attachment))
     return nullptr;
 
   const VkFormat vk_color_format =
-      color_attachment ? color_attachment->GetRawTexIdentifier()->GetFormat() : VK_FORMAT_UNDEFINED;
+      color_attachment ? color_attachment->GetVkFormat() : VK_FORMAT_UNDEFINED;
   const VkFormat vk_depth_format =
-      depth_attachment ? depth_attachment->GetRawTexIdentifier()->GetFormat() : VK_FORMAT_UNDEFINED;
+      depth_attachment ? depth_attachment->GetVkFormat() : VK_FORMAT_UNDEFINED;
   const VKTexture* either_attachment = color_attachment ? color_attachment : depth_attachment;
   const u32 width = either_attachment->GetWidth();
   const u32 height = either_attachment->GetHeight();
@@ -618,10 +881,10 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(const VKTexture* color_atta
   u32 num_attachments = 0;
 
   if (color_attachment)
-    attachment_views[num_attachments++] = color_attachment->GetRawTexIdentifier()->GetView();
+    attachment_views[num_attachments++] = color_attachment->GetView();
 
   if (depth_attachment)
-    attachment_views[num_attachments++] = depth_attachment->GetRawTexIdentifier()->GetView();
+    attachment_views[num_attachments++] = depth_attachment->GetView();
 
   VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
       vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_LOAD);
@@ -659,38 +922,20 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(const VKTexture* color_atta
                                          clear_render_pass);
 }
 
-void VKFramebuffer::TransitionForRender() const
+void VKFramebuffer::TransitionForRender()
 {
   if (m_color_attachment)
   {
-    m_color_attachment->GetRawTexIdentifier()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    static_cast<VKTexture*>(m_color_attachment)
+        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   }
 
   if (m_depth_attachment)
   {
-    m_depth_attachment->GetRawTexIdentifier()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(),
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    static_cast<VKTexture*>(m_depth_attachment)
+        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   }
 }
-
-void VKFramebuffer::TransitionForSample() const
-{
-  if (StateTracker::GetInstance()->GetFramebuffer() == m_fb)
-    StateTracker::GetInstance()->EndRenderPass();
-
-  if (m_color_attachment)
-  {
-    m_color_attachment->GetRawTexIdentifier()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  }
-
-  if (m_depth_attachment)
-  {
-    m_depth_attachment->GetRawTexIdentifier()->TransitionToLayout(
-        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  }
-}
-
 }  // namespace Vulkan

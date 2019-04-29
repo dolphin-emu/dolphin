@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QMenuBar>
 
 #include "Common/Lazy.h"
 #include "Core/NetPlayClient.h"
@@ -25,7 +26,6 @@ class QSpinBox;
 class QSplitter;
 class QTableWidget;
 class QTextEdit;
-class QToolButton;
 
 class NetPlayDialog : public QDialog, public NetPlay::NetPlayUI
 {
@@ -56,7 +56,11 @@ public:
   void OnConnectionError(const std::string& message) override;
   void OnTraversalError(TraversalClient::FailureReason error) override;
   void OnTraversalStateChanged(TraversalClient::State state) override;
-  void OnSaveDataSyncFailure() override;
+  void OnGameStartAborted() override;
+  void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
+
+  void OnIndexAdded(bool success, const std::string error) override;
+  void OnIndexRefreshFailed(const std::string error) override;
 
   bool IsRecording() override;
   std::string FindGame(const std::string& game) override;
@@ -94,6 +98,8 @@ private:
 
   void SetGame(const QString& game_path);
 
+  void SendMessage(const std::string& message);
+
   // Chat
   QGroupBox* m_chat_box;
   QTextEdit* m_chat_edit;
@@ -110,20 +116,26 @@ private:
   QPushButton* m_assign_ports_button;
 
   // Other
+  QMenuBar* m_menu_bar;
+  QMenu* m_data_menu;
+  QMenu* m_network_menu;
+  QMenu* m_md5_menu;
+  QMenu* m_other_menu;
   QPushButton* m_game_button;
-  QToolButton* m_md5_button;
   QPushButton* m_start_button;
   QLabel* m_buffer_label;
   QSpinBox* m_buffer_size_box;
-  QCheckBox* m_save_sd_box;
-  QCheckBox* m_load_wii_box;
-  QCheckBox* m_sync_save_data_box;
-  QCheckBox* m_sync_codes_box;
-  QCheckBox* m_record_input_box;
-  QCheckBox* m_reduce_polling_rate_box;
-  QCheckBox* m_strict_settings_sync_box;
-  QCheckBox* m_host_input_authority_box;
-  QCheckBox* m_sync_all_wii_saves_box;
+  QAction* m_save_sd_action;
+  QAction* m_load_wii_action;
+  QAction* m_sync_save_data_action;
+  QAction* m_sync_codes_action;
+  QAction* m_record_input_action;
+  QAction* m_reduce_polling_rate_action;
+  QAction* m_strict_settings_sync_action;
+  QAction* m_host_input_authority_action;
+  QAction* m_sync_all_wii_saves_action;
+  QAction* m_golf_mode_action;
+  QAction* m_golf_mode_overlay_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 

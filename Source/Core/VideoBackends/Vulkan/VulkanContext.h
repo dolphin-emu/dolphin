@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -23,7 +24,7 @@ public:
   static bool CheckValidationLayerAvailablility();
 
   // Helper method to create a Vulkan instance.
-  static VkInstance CreateVulkanInstance(bool enable_surface, bool enable_debug_report,
+  static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
                                          bool enable_validation_layer);
 
   // Returns a list of Vulkan-compatible GPUs.
@@ -75,14 +76,12 @@ public:
   {
     return m_device_features.samplerAnisotropy == VK_TRUE;
   }
-  bool SupportsGeometryShaders() const { return m_device_features.geometryShader == VK_TRUE; }
-  bool SupportsDualSourceBlend() const { return m_device_features.dualSrcBlend == VK_TRUE; }
-  bool SupportsLogicOps() const { return m_device_features.logicOp == VK_TRUE; }
-  bool SupportsBoundingBox() const { return m_device_features.fragmentStoresAndAtomics == VK_TRUE; }
   bool SupportsPreciseOcclusionQueries() const
   {
     return m_device_features.occlusionQueryPrecise == VK_TRUE;
   }
+  u32 GetShaderSubgroupSize() const { return m_shader_subgroup_size; }
+  bool SupportsShaderSubgroupOperations() const { return m_supports_shader_subgroup_operations; }
 
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
@@ -109,12 +108,13 @@ public:
 
 private:
   using ExtensionList = std::vector<const char*>;
-  static bool SelectInstanceExtensions(ExtensionList* extension_list, bool enable_surface,
+  static bool SelectInstanceExtensions(ExtensionList* extension_list, WindowSystemType wstype,
                                        bool enable_debug_report);
   bool SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
+  void PopulateShaderSubgroupSupport();
 
   VkInstance m_instance = VK_NULL_HANDLE;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
@@ -131,6 +131,9 @@ private:
   VkPhysicalDeviceFeatures m_device_features = {};
   VkPhysicalDeviceProperties m_device_properties = {};
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
+
+  u32 m_shader_subgroup_size = 1;
+  bool m_supports_shader_subgroup_operations = false;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;

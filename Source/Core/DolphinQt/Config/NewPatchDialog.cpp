@@ -9,13 +9,13 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
 
 #include "Core/PatchEngine.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     : QDialog(parent), m_patch(patch)
@@ -28,7 +28,7 @@ NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
 
   for (size_t i = 0; i < m_patch.entries.size(); i++)
   {
-    m_entry_layout->addWidget(CreateEntry(static_cast<int>(i)));
+    m_entry_layout->addWidget(CreateEntry(m_patch.entries[i]));
   }
 
   if (m_patch.entries.empty())
@@ -81,10 +81,24 @@ void NewPatchDialog::AddEntry()
 {
   m_patch.entries.emplace_back();
 
-  m_entry_layout->addWidget(CreateEntry(static_cast<int>(m_patch.entries.size() - 1)));
+  m_entry_layout->addWidget(CreateEntry(m_patch.entries[m_patch.entries.size() - 1]));
 }
 
-QGroupBox* NewPatchDialog::CreateEntry(int index)
+static bool PatchEq(const PatchEngine::PatchEntry& a, const PatchEngine::PatchEntry& b)
+{
+  if (a.address != b.address)
+    return false;
+
+  if (a.type != b.type)
+    return false;
+
+  if (a.value != b.value)
+    return false;
+
+  return true;
+}
+
+QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
 {
   QGroupBox* box = new QGroupBox();
 
@@ -117,9 +131,9 @@ QGroupBox* NewPatchDialog::CreateEntry(int index)
   box->setLayout(layout);
 
   connect(offset, static_cast<void (QLineEdit::*)(const QString&)>(&QLineEdit::textEdited),
-          [this, index, offset](const QString& text) {
+          [&entry, offset](const QString& text) {
             bool okay = true;
-            m_patch.entries[index].address = text.toUInt(&okay, 16);
+            entry.address = text.toUInt(&okay, 16);
 
             QFont font;
             QPalette palette;
@@ -134,9 +148,9 @@ QGroupBox* NewPatchDialog::CreateEntry(int index)
           });
 
   connect(value, static_cast<void (QLineEdit::*)(const QString&)>(&QLineEdit::textEdited),
-          [this, index, value](const QString& text) {
+          [&entry, value](const QString& text) {
             bool okay;
-            m_patch.entries[index].value = text.toUInt(&okay, 16);
+            entry.value = text.toUInt(&okay, 16);
 
             QFont font;
             QPalette palette;
@@ -150,39 +164,39 @@ QGroupBox* NewPatchDialog::CreateEntry(int index)
             value->setPalette(palette);
           });
 
-  connect(remove, &QPushButton::pressed, [this, box, index] {
+  connect(remove, &QPushButton::pressed, [this, box, entry] {
     if (m_patch.entries.size() > 1)
     {
+      box->setVisible(false);
       m_entry_layout->removeWidget(box);
-      m_patch.entries.erase(m_patch.entries.begin() + index);
-      m_id--;
+      box->deleteLater();
+      m_patch.entries.erase(
+          std::find_if(m_patch.entries.begin(), m_patch.entries.end(),
+                       [entry](const PatchEngine::PatchEntry& e) { return PatchEq(e, entry); }));
     }
   });
 
-  connect(byte, &QRadioButton::toggled, [this, index](bool checked) {
+  connect(byte, &QRadioButton::toggled, [&entry](bool checked) {
     if (checked)
-      m_patch.entries[index].type = PatchEngine::PatchType::Patch8Bit;
+      entry.type = PatchEngine::PatchType::Patch8Bit;
   });
 
-  connect(word, &QRadioButton::toggled, [this, index](bool checked) {
+  connect(word, &QRadioButton::toggled, [&entry](bool checked) {
     if (checked)
-      m_patch.entries[index].type = PatchEngine::PatchType::Patch16Bit;
+      entry.type = PatchEngine::PatchType::Patch16Bit;
   });
 
-  connect(dword, &QRadioButton::toggled, [this, index](bool checked) {
+  connect(dword, &QRadioButton::toggled, [&entry](bool checked) {
     if (checked)
-      m_patch.entries[index].type = PatchEngine::PatchType::Patch32Bit;
+      entry.type = PatchEngine::PatchType::Patch32Bit;
   });
 
-  auto entry_type = m_patch.entries[index].type;
+  byte->setChecked(entry.type == PatchEngine::PatchType::Patch8Bit);
+  word->setChecked(entry.type == PatchEngine::PatchType::Patch16Bit);
+  dword->setChecked(entry.type == PatchEngine::PatchType::Patch32Bit);
 
-  byte->setChecked(entry_type == PatchEngine::PatchType::Patch8Bit);
-  word->setChecked(entry_type == PatchEngine::PatchType::Patch16Bit);
-  dword->setChecked(entry_type == PatchEngine::PatchType::Patch32Bit);
-
-  offset->setText(
-      QStringLiteral("%1").arg(m_patch.entries[index].address, 10, 16, QLatin1Char('0')));
-  value->setText(QStringLiteral("%1").arg(m_patch.entries[index].value, 10, 16, QLatin1Char('0')));
+  offset->setText(QStringLiteral("%1").arg(entry.address, 8, 16, QLatin1Char('0')));
+  value->setText(QStringLiteral("%1").arg(entry.value, 8, 16, QLatin1Char('0')));
 
   return box;
 }
@@ -191,7 +205,7 @@ void NewPatchDialog::accept()
 {
   if (m_name_edit->text().isEmpty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("You have to enter a name."));
+    ModalMessageBox::critical(this, tr("Error"), tr("You have to enter a name."));
     return;
   }
 
@@ -206,7 +220,7 @@ void NewPatchDialog::accept()
 
   if (!valid)
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         this, tr("Error"),
         tr("Some values you provided are invalid.\nPlease check the highlighted values."));
     return;

@@ -12,6 +12,7 @@ namespace Config
 {
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
+static u32 s_callback_guards = 0;
 
 Layers* GetLayers()
 {
@@ -53,6 +54,9 @@ void AddConfigChangedCallback(ConfigChangedCallback func)
 
 void InvokeConfigChangedCallbacks()
 {
+  if (s_callback_guards)
+    return;
+
   for (const auto& callback : s_callbacks)
     callback();
 }
@@ -137,4 +141,18 @@ LayerType GetActiveLayerForConfig(const ConfigLocation& config)
   // If config is not present in any layer, base layer is considered active.
   return LayerType::Base;
 }
+
+ConfigChangeCallbackGuard::ConfigChangeCallbackGuard()
+{
+  ++s_callback_guards;
 }
+
+ConfigChangeCallbackGuard::~ConfigChangeCallbackGuard()
+{
+  if (--s_callback_guards)
+    return;
+
+  InvokeConfigChangedCallbacks();
+}
+
+}  // namespace Config

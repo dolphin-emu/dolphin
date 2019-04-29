@@ -22,14 +22,7 @@ PerfQuery::PerfQuery() : m_query_read_pos()
   ResetQuery();
 }
 
-PerfQuery::~PerfQuery()
-{
-  for (ActiveQuery& entry : m_query_buffer)
-  {
-    // TODO: EndQuery?
-    entry.query->Release();
-  }
-}
+PerfQuery::~PerfQuery() = default;
 
 void PerfQuery::EnableQuery(PerfQueryGroup type)
 {
@@ -49,7 +42,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   {
     auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % m_query_buffer.size()];
 
-    D3D::context->Begin(entry.query);
+    D3D::context->Begin(entry.query.Get());
     entry.query_type = type;
 
     ++m_query_count;
@@ -63,7 +56,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
   {
     auto& entry = m_query_buffer[(m_query_read_pos + m_query_count + m_query_buffer.size() - 1) %
                                  m_query_buffer.size()];
-    D3D::context->End(entry.query);
+    D3D::context->End(entry.query.Get());
   }
 }
 
@@ -98,7 +91,7 @@ void PerfQuery::FlushOne()
   while (hr != S_OK)
   {
     // TODO: Might cause us to be stuck in an infinite loop!
-    hr = D3D::context->GetData(entry.query, &result, sizeof(result), 0);
+    hr = D3D::context->GetData(entry.query.Get(), &result, sizeof(result), 0);
   }
 
   // NOTE: Reported pixel metrics should be referenced to native resolution
@@ -125,8 +118,8 @@ void PerfQuery::WeakFlush()
     auto& entry = m_query_buffer[m_query_read_pos];
 
     UINT64 result = 0;
-    HRESULT hr =
-        D3D::context->GetData(entry.query, &result, sizeof(result), D3D11_ASYNC_GETDATA_DONOTFLUSH);
+    HRESULT hr = D3D::context->GetData(entry.query.Get(), &result, sizeof(result),
+                                       D3D11_ASYNC_GETDATA_DONOTFLUSH);
 
     if (hr == S_OK)
     {
@@ -149,4 +142,4 @@ bool PerfQuery::IsFlushed() const
   return 0 == m_query_count;
 }
 
-}  // namespace
+}  // namespace DX11

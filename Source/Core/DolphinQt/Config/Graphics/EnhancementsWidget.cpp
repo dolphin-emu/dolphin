@@ -152,11 +152,9 @@ void EnhancementsWidget::ConnectWidgets()
 void EnhancementsWidget::LoadPPShaders()
 {
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
-  std::vector<std::string> shaders =
-      g_Config.stereo_mode == StereoMode::Anaglyph ?
-          PostProcessingShaderImplementation::GetAnaglyphShaderList(
-              g_Config.backend_info.api_type) :
-          PostProcessingShaderImplementation::GetShaderList(g_Config.backend_info.api_type);
+  std::vector<std::string> shaders = anaglyph ?
+                                         VideoCommon::PostProcessing::GetAnaglyphShaderList() :
+                                         VideoCommon::PostProcessing::GetShaderList();
 
   m_pp_effect->clear();
 
@@ -188,7 +186,7 @@ void EnhancementsWidget::LoadPPShaders()
                               tr("%1 doesn't support this feature.")
                                   .arg(tr(g_video_backend->GetDisplayName().c_str())));
 
-  PostProcessingShaderConfiguration pp_shader;
+  VideoCommon::PostProcessingConfiguration pp_shader;
   if (selected_shader != "(off)" && supports_postprocessing)
   {
     pp_shader.LoadShader(selected_shader);
@@ -261,11 +259,13 @@ void EnhancementsWidget::SaveSettings()
 
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
-  Config::SetBaseOrCurrent(
-      Config::GFX_ENHANCE_POST_SHADER,
-      m_pp_effect->currentIndex() == 0 ? "(off)" : m_pp_effect->currentText().toStdString());
+  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
+  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
+                           (!anaglyph && m_pp_effect->currentIndex() == 0) ?
+                               "(off)" :
+                               m_pp_effect->currentText().toStdString());
 
-  PostProcessingShaderConfiguration pp_shader;
+  VideoCommon::PostProcessingConfiguration pp_shader;
   if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
   {
     pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
@@ -282,78 +282,78 @@ void EnhancementsWidget::SaveSettings()
 void EnhancementsWidget::AddDescriptions()
 {
   static const char TR_INTERNAL_RESOLUTION_DESCRIPTION[] =
-      QT_TR_NOOP("Specifies the resolution used to render at. A high resolution greatly improves "
-                 "visual quality, but also greatly increases GPU load and can cause issues in "
-                 "certain games. Generally speaking, the lower the internal resolution is, the "
-                 "better your performance will be.\n\nIf unsure, select Native.");
+      QT_TR_NOOP("Controls the rendering resolution. A high resolution greatly improves visual "
+                 "quality, but also greatly increases GPU load and can cause issues in "
+                 "certain games. Generally speaking, the lower the internal resolution, the "
+                 "better performance will be.\n\nIf unsure, select Native.");
 
-  static const char TR_ANTIALIAS_DESCRIPTION[] =
-      QT_TR_NOOP("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths "
-                 "out jagged edges on objects.\nIncreases GPU load and sometimes causes graphical "
-                 "issues. SSAA is significantly more demanding than MSAA, but provides top quality "
-                 "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
-                 "effects, and textures.\n\nIf unsure, select None.");
+  static const char TR_ANTIALIAS_DESCRIPTION[] = QT_TR_NOOP(
+      "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
+      "in smoother edges on objects. Increases GPU load and sometimes causes graphical "
+      "issues.\n\nSSAA is significantly more demanding than MSAA, but provides top quality "
+      "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
+      "effects, and textures.\n\nIf unsure, select None.");
 
   static const char TR_ANISOTROPIC_FILTERING_DESCRIPTION[] = QT_TR_NOOP(
-      "Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique "
-      "viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
+      "Enables anisotropic filtering, which enhances the visual quality of textures that "
+      "are at oblique viewing angles.\n\nMight cause issues in a small "
+      "number of games.\n\nIf unsure, select 1x.");
 
   static const char TR_POSTPROCESSING_DESCRIPTION[] = QT_TR_NOOP(
-      "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
+      "Applies a post-processing effect after rendering a frame.\n\nIf unsure, select (off).");
 
-  static const char TR_SCALED_EFB_COPY_DESCRIPTION[] = QT_TR_NOOP(
-      "Greatly increases quality of textures generated using render-to-texture "
-      "effects.\nRaising the "
-      "internal resolution will improve the effect of this setting.\nSlightly increases GPU "
-      "load and "
-      "causes relatively few graphical issues.\n\nIf unsure, leave this checked.");
+  static const char TR_SCALED_EFB_COPY_DESCRIPTION[] =
+      QT_TR_NOOP("Greatly increases the quality of textures generated using render-to-texture "
+                 "effects. Slightly increases GPU load and causes relatively few graphical issues. "
+                 "Raising the internal resolution will improve the effect of this setting.\n\nIf "
+                 "unsure, leave this checked.");
   static const char TR_PER_PIXEL_LIGHTING_DESCRIPTION[] = QT_TR_NOOP(
       "Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the "
       "appearance of lit polygons and making individual triangles less noticeable.\nRarely causes "
       "slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
   static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
-      "Forces the game to output graphics for any aspect ratio.\nUse with \"Aspect Ratio\" set to "
-      "\"Force 16:9\" to force 4:3-only games to run at 16:9.\nRarely produces good results and "
-      "often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any "
+      "Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to "
+      "\"Force 16:9\" to force 4:3-only games to run at 16:9.\n\nRarely produces good results and "
+      "often partially breaks graphics and game UIs. Unnecessary (and detrimental) if using any "
       "AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
   static const char TR_REMOVE_FOG_DESCRIPTION[] =
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
-                 "detail.\nDisabling fog will break some games which rely on proper fog "
+                 "detail.\n\nDisabling fog will break some games which rely on proper fog "
                  "emulation.\n\nIf unsure, leave this unchecked.");
   static const char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
-      "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
+      "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling "
+      "of depth if the necessary hardware is present.\n\nSide-by-Side and Top-and-Bottom are "
       "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
-      "used when your monitor supports 3D display resolutions.\nHeavily decreases "
+      "used when the monitor supports 3D display resolutions.\n\nHeavily decreases "
       "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
-  static const char TR_3D_DEPTH_DESCRIPTION[] =
-      QT_TR_NOOP("Controls the separation distance between the virtual cameras.\nA higher value "
-                 "creates a stronger feeling of depth while a lower value is more comfortable.");
+  static const char TR_3D_DEPTH_DESCRIPTION[] = QT_TR_NOOP(
+      "Controls the separation distance between the virtual cameras. \n\nA higher "
+      "value creates a stronger feeling of depth while a lower value is more comfortable.");
   static const char TR_3D_CONVERGENCE_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the distance of the convergence plane. This is the distance at which "
-      "virtual objects will appear to be in front of the screen.\nA higher value creates "
+      "virtual objects will appear to be in front of the screen.\n\nA higher value creates "
       "stronger out-of-screen effects while a lower value is more comfortable.");
   static const char TR_3D_SWAP_EYES_DESCRIPTION[] =
-      QT_TR_NOOP("Swaps the left and right eye. Mostly useful if you want to view side-by-side "
-                 "cross-eyed.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Swaps the left and right eye. Most useful in side-by-side stereoscopy "
+                 "mode.\n\nIf unsure, leave this unchecked.");
   static const char TR_FORCE_24BIT_DESCRIPTION[] =
       QT_TR_NOOP("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
-                 "quality by reducing color banding.\nIt has no impact on performance and causes "
+                 "quality by reducing color banding. Has no impact on performance and causes "
                  "few graphical issues.\n\nIf unsure, leave this checked.");
   static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] =
-      QT_TR_NOOP("Filter all textures, including any that the game explicitly set as "
+      QT_TR_NOOP("Filters all textures, including any that the game explicitly set as "
                  "unfiltered.\nMay improve quality of certain textures in some games, but will "
                  "cause issues in others.\n\nIf unsure, leave this unchecked.");
   static const char TR_DISABLE_COPY_FILTER_DESCRIPTION[] =
       QT_TR_NOOP("Disables the blending of adjacent rows when copying the EFB. This is known in "
-                 "some games as \"deflickering\" or \"smoothing\". Disabling the filter has no "
-                 "effect on performance, but may result in a sharper image, and causes few "
+                 "some games as \"deflickering\" or \"smoothing\". \n\nDisabling the filter has no "
+                 "effect on performance, but may result in a sharper image. Causes few "
                  "graphical issues.\n\nIf unsure, leave this checked.");
   static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Enables detection of arbitrary mipmaps, which some games use for special distance-based "
-      "effects. May have false positives that result in blurry textures at increased internal "
-      "resolution, such as in games that use very low resolution mipmaps.\nDisabling this can also "
-      "reduce stutter in games that frequently load new textures.\nThis feature is not compatible "
+      "effects.\n\nMay have false positives that result in blurry textures at increased internal "
+      "resolution, such as in games that use very low resolution mipmaps. Disabling this can also "
+      "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.\n\nIf unsure, leave this checked.");
 
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);

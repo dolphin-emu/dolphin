@@ -36,7 +36,7 @@ struct NetSettings
   bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
-  ExpansionInterface::TEXIDevices m_EXIDevice[2];
+  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
   bool m_ForceProgressive;
@@ -75,11 +75,17 @@ struct NetSettings
   float m_ArbitraryMipmapDetectionThreshold;
   bool m_EnableGPUTextureDecoding;
   bool m_DeferEFBCopies;
+  bool m_EFBAccessTileSize;
+  bool m_EFBAccessDeferInvalidation;
   bool m_StrictSettingsSync;
   bool m_SyncSaveData;
   bool m_SyncCodes;
   std::string m_SaveDataRegion;
   bool m_SyncAllWiiSaves;
+  std::array<int, 4> m_WiimoteExtension;
+  bool m_GolfMode;
+
+  // These aren't sent over the network directly
   bool m_IsHosting;
   bool m_HostInputAuthority;
 };
@@ -116,15 +122,21 @@ enum
   NP_MSG_CHUNKED_DATA_PAYLOAD = 0x42,
   NP_MSG_CHUNKED_DATA_PROGRESS = 0x43,
   NP_MSG_CHUNKED_DATA_COMPLETE = 0x44,
+  NP_MSG_CHUNKED_DATA_ABORT = 0x45,
 
   NP_MSG_PAD_DATA = 0x60,
   NP_MSG_PAD_MAPPING = 0x61,
   NP_MSG_PAD_BUFFER = 0x62,
-  NP_MSG_PAD_HOST_POLL = 0x63,
-  NP_MSG_PAD_FIRST_RECEIVED = 0x64,
+  NP_MSG_PAD_HOST_DATA = 0x63,
 
   NP_MSG_WIIMOTE_DATA = 0x70,
   NP_MSG_WIIMOTE_MAPPING = 0x71,
+
+  NP_MSG_GOLF_REQUEST = 0x90,
+  NP_MSG_GOLF_SWITCH = 0x91,
+  NP_MSG_GOLF_ACQUIRE = 0x92,
+  NP_MSG_GOLF_RELEASE = 0x93,
+  NP_MSG_GOLF_PREPARE = 0x94,
 
   NP_MSG_START_GAME = 0xA0,
   NP_MSG_CHANGE_GAME = 0xA1,
@@ -195,8 +207,8 @@ using NetWiimote = std::vector<u8>;
 using MessageId = u8;
 using PlayerId = u8;
 using FrameNum = u32;
-using PadMapping = s8;
-using PadMappingArray = std::array<PadMapping, 4>;
+using PadIndex = s8;
+using PadMappingArray = std::array<PlayerId, 4>;
 
 bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
@@ -209,4 +221,5 @@ void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();
+void SetupWiimotes();
 }  // namespace NetPlay

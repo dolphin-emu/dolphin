@@ -21,6 +21,7 @@
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
+#include "UICommon/NetPlayIndex.h"
 
 namespace NetPlay
 {
@@ -51,6 +52,7 @@ public:
   bool DoAllPlayersHaveIPLDump() const;
   bool StartGame();
   bool RequestStartGame();
+  void AbortGameStart();
 
   PadMappingArray GetPadMapping() const;
   void SetPadMapping(const PadMappingArray& mappings);
@@ -118,14 +120,13 @@ private:
   void CheckSyncAndStartGame();
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
-  void SendFirstReceivedToHost(PadMapping map, bool state);
 
   u64 GetInitialNetPlayRTC() const;
 
   void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
   void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
-  unsigned int OnConnect(ENetPeer* socket);
+  unsigned int OnConnect(ENetPeer* socket, sf::Packet& rpac);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
 
@@ -137,6 +138,10 @@ private:
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
   void ChunkedDataThreadFunc();
   void ChunkedDataSend(sf::Packet&& packet, PlayerId pid, const TargetMode target_mode);
+  void ChunkedDataAbort();
+
+  void SetupIndex();
+  bool PlayerHasControllerMapped(PlayerId pid) const;
 
   NetSettings m_settings;
 
@@ -155,14 +160,13 @@ private:
   bool m_codes_synced = true;
   bool m_start_pending = false;
   bool m_host_input_authority = false;
+  PlayerId m_current_golfer = 1;
+  PlayerId m_pending_golfer = 0;
 
   std::map<PlayerId, Client> m_players;
 
   std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
   bool m_desync_detected;
-
-  std::array<GCPadStatus, 4> m_last_pad_status{};
-  std::array<bool, 4> m_first_pad_status_received{};
 
   struct
   {
@@ -183,9 +187,11 @@ private:
   std::thread m_chunked_data_thread;
   u32 m_next_chunked_data_id;
   std::unordered_map<u32, unsigned int> m_chunked_data_complete_count;
+  bool m_abort_chunked_data = false;
 
   ENetHost* m_server = nullptr;
   TraversalClient* m_traversal_client = nullptr;
   NetPlayUI* m_dialog = nullptr;
+  NetPlayIndex m_index;
 };
 }  // namespace NetPlay

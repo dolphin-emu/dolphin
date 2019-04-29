@@ -71,73 +71,72 @@ private:
   class HapticEffect : public Output
   {
   public:
-    HapticEffect(SDL_Haptic* haptic) : m_haptic(haptic), m_id(-1) {}
-    ~HapticEffect()
-    {
-      m_effect.type = 0;
-      Update();
-    }
+    HapticEffect(SDL_Haptic* haptic);
+    ~HapticEffect();
 
   protected:
-    void Update();
-    virtual void SetSDLHapticEffect(ControlState state) = 0;
+    virtual bool UpdateParameters(s16 value) = 0;
+    static void SetDirection(SDL_HapticDirection* dir);
 
-    SDL_HapticEffect m_effect;
-    SDL_Haptic* m_haptic;
-    int m_id;
+    SDL_HapticEffect m_effect = {};
+
+    static constexpr u16 DISABLED_EFFECT_TYPE = 0;
 
   private:
     virtual void SetState(ControlState state) override final;
+    void UpdateEffect();
+    SDL_Haptic* const m_haptic;
+    int m_id = -1;
   };
 
   class ConstantEffect : public HapticEffect
   {
   public:
-    ConstantEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+    ConstantEffect(SDL_Haptic* haptic);
     std::string GetName() const override;
 
   private:
-    void SetSDLHapticEffect(ControlState state) override;
+    bool UpdateParameters(s16 value) override;
   };
 
   class RampEffect : public HapticEffect
   {
   public:
-    RampEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+    RampEffect(SDL_Haptic* haptic);
     std::string GetName() const override;
 
   private:
-    void SetSDLHapticEffect(ControlState state) override;
+    bool UpdateParameters(s16 value) override;
   };
 
-  class SineEffect : public HapticEffect
+  class PeriodicEffect : public HapticEffect
   {
   public:
-    SineEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+    PeriodicEffect(SDL_Haptic* haptic, u16 waveform);
     std::string GetName() const override;
 
   private:
-    void SetSDLHapticEffect(ControlState state) override;
-  };
+    bool UpdateParameters(s16 value) override;
 
-  class TriangleEffect : public HapticEffect
-  {
-  public:
-    TriangleEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
-    std::string GetName() const override;
-
-  private:
-    void SetSDLHapticEffect(ControlState state) override;
+    const u16 m_waveform;
   };
 
   class LeftRightEffect : public HapticEffect
   {
   public:
-    LeftRightEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+    enum class Motor : u8
+    {
+      Weak,
+      Strong,
+    };
+
+    LeftRightEffect(SDL_Haptic* haptic, Motor motor);
     std::string GetName() const override;
 
   private:
-    void SetSDLHapticEffect(ControlState state) override;
+    bool UpdateParameters(s16 value) override;
+
+    const Motor m_motor;
   };
 #endif
 
@@ -159,5 +158,5 @@ private:
   SDL_Haptic* m_haptic;
 #endif
 };
-}
-}
+}  // namespace SDL
+}  // namespace ciface

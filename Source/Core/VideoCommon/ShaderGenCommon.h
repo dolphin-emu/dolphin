@@ -181,7 +181,8 @@ union ShaderHostConfig
     u32 backend_dynamic_sampler_indexing : 1;
     u32 backend_shader_framebuffer_fetch : 1;
     u32 backend_logic_op : 1;
-    u32 pad : 10;
+    u32 backend_palette_conversion : 1;
+    u32 pad : 9;
   };
 
   static ShaderHostConfig GetCurrent();
@@ -214,18 +215,19 @@ inline void DefineOutputMember(T& object, APIType api_type, const char* qualifie
 
 template <class T>
 inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
-                                    bool per_pixel_lighting, const char* qualifier)
+                                    const ShaderHostConfig& host_config, const char* qualifier)
 {
-  DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
+  DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "SV_Position");
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
   for (unsigned int i = 0; i < texgens; ++i)
     DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
+  if (!host_config.fast_depth_calc)
+    DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
 
-  if (per_pixel_lighting)
+  if (host_config.per_pixel_lighting)
   {
     DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD",
                        texgens + 1);
@@ -233,13 +235,16 @@ inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
                        texgens + 2);
   }
 
-  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
-  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
+  if (host_config.backend_geometry_shaders)
+  {
+    DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
+    DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
+  }
 }
 
 template <class T>
 inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 texgens,
-                                  bool per_pixel_lighting)
+                                  const ShaderHostConfig& host_config)
 {
   object.Write("\t%s.pos = %s.pos;\n", a, b);
   object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
@@ -248,16 +253,20 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 t
   for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
 
-  object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
+  if (!host_config.fast_depth_calc)
+    object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
-  if (per_pixel_lighting)
+  if (host_config.per_pixel_lighting)
   {
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
   }
 
-  object.Write("\t%s.clipDist0 = %s.clipDist0;\n", a, b);
-  object.Write("\t%s.clipDist1 = %s.clipDist1;\n", a, b);
+  if (host_config.backend_geometry_shaders)
+  {
+    object.Write("\t%s.clipDist0 = %s.clipDist0;\n", a, b);
+    object.Write("\t%s.clipDist1 = %s.clipDist1;\n", a, b);
+  }
 }
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the

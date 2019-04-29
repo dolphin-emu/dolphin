@@ -54,9 +54,14 @@ bool Init()
   {
     const auto& path = pack_list[i];
 
-    error |= !Add(path);
+    if (!Add(path))
+    {
+      error = true;
+      continue;
+    }
 
-    order->Set(packs[i].GetManifest()->GetID(), static_cast<u64>(i));
+    if (i < packs.size())
+      order->Set(packs[i].GetManifest()->GetID(), static_cast<u64>(i));
   }
 
   file.Save(packs_path);
@@ -106,6 +111,9 @@ bool Add(const std::string& path, int offset)
     offset = static_cast<int>(packs.size());
 
   ResourcePack pack(path);
+
+  if (!pack.IsValid())
+    return false;
 
   IniFile file = GetPackConfig();
 

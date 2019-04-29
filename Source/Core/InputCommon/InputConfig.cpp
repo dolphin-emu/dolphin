@@ -13,6 +13,7 @@
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/InputProfile.h"
@@ -32,6 +33,11 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
   std::string profile[MAX_BBMOTES];
   std::string path;
+
+#if defined(ANDROID)
+  bool use_ir_config = false;
+  std::string ir_values[3];
+#endif
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
@@ -73,6 +79,18 @@ bool InputConfig::LoadConfig(bool isGC)
         }
       }
     }
+#if defined(ANDROID)
+    // For use on android touchscreen IR pointer
+    // Check for IR values
+    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
+        control_section->Exists("IRVerticalOffset"))
+    {
+      use_ir_config = true;
+      control_section->Get("IRTotalYaw", &ir_values[0]);
+      control_section->Get("IRTotalPitch", &ir_values[1]);
+      control_section->Get("IRVerticalOffset", &ir_values[2]);
+    }
+#endif
   }
 
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
@@ -80,6 +98,7 @@ bool InputConfig::LoadConfig(bool isGC)
     int n = 0;
     for (auto& controller : m_controllers)
     {
+      IniFile::Section config;
       // Load settings from ini
       if (useProfile[n])
       {
@@ -91,13 +110,22 @@ bool InputConfig::LoadConfig(bool isGC)
 
         IniFile profile_ini;
         profile_ini.Load(profile[n]);
-        controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+        config = *profile_ini.GetOrCreateSection("Profile");
       }
       else
       {
-        controller->LoadConfig(inifile.GetOrCreateSection(controller->GetName()));
+        config = *inifile.GetOrCreateSection(controller->GetName());
       }
-
+#if defined(ANDROID)
+      // Only set for wii pads
+      if (!isGC && use_ir_config)
+      {
+        config.Set("IR/Total Yaw", ir_values[0]);
+        config.Set("IR/Total Pitch", ir_values[1]);
+        config.Set("IR/Vertical Offset", ir_values[2]);
+      }
+#endif
+      controller->LoadConfig(&config);
       // Update refs
       controller->UpdateReferences(g_controller_interface);
 
@@ -145,6 +173,21 @@ bool InputConfig::ControllersNeedToBeCreated() const
 std::size_t InputConfig::GetControllerCount() const
 {
   return m_controllers.size();
+}
+
+void InputConfig::RegisterHotplugCallback()
+{
+  // Update control references on all controllers
+  // as configured devices may have been added or removed.
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
+    for (auto& controller : m_controllers)
+      controller->UpdateReferences(g_controller_interface);
+  });
+}
+
+void InputConfig::UnregisterHotplugCallback()
+{
+  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

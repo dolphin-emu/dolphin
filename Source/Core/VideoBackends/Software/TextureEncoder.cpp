@@ -1422,7 +1422,7 @@ static void EncodeZ24halfscale(u8* dst, const u8* src, EFBCopyFormat format)
 namespace
 {
 void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
-                   u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+                   u32 num_blocks_y, u32 memory_stride, const MathUtil::Rectangle<int>& src_rect,
                    bool scale_by_half)
 {
   const u8* src = EfbInterface::GetPixelPointer(src_rect.left, src_rect.top, params.depth);
@@ -1471,8 +1471,9 @@ void EncodeEfbCopy(u8* dst, const EFBCopyParams& params, u32 native_width, u32 b
 }
 
 void Encode(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
-            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
-            bool scale_by_half, float y_scale, float gamma)
+            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+            const MathUtil::Rectangle<int>& src_rect, bool scale_by_half, float y_scale,
+            float gamma)
 {
   // HACK: Override the memory stride for this staging texture with new copy stride.
   // This is required because the texture encoder assumes that we're writing directly to memory,

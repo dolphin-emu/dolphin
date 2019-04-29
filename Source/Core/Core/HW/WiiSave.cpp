@@ -311,17 +311,20 @@ public:
           std::string{file_hdr.name.data(), strnlen(file_hdr.name.data(), file_hdr.name.size())};
       if (type == SaveFile::Type::File)
       {
-        const u32 rounded_size = Common::AlignUp<u32>(file_hdr.size, BLOCK_SZ);
+        const u32 size = file_hdr.size;
+        const u32 rounded_size = Common::AlignUp<u32>(size, BLOCK_SZ);
         const u64 pos = m_file.Tell();
         std::array<u8, 0x10> iv = file_hdr.iv;
 
-        save_file.data = [this, rounded_size, iv, pos]() mutable -> std::optional<std::vector<u8>> {
+        save_file.data = [this, size, rounded_size, iv,
+                          pos]() mutable -> std::optional<std::vector<u8>> {
           std::vector<u8> file_data(rounded_size);
           if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
             return {};
 
           m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
                          file_data.data(), IOS::PID_ES);
+          file_data.resize(size);
           return file_data;
         };
         m_file.Seek(pos + rounded_size, SEEK_SET);

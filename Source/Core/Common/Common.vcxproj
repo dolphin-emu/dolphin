@@ -63,6 +63,7 @@
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="Debug\MemoryPatches.h" />
     <ClInclude Include="Debug\Watches.h" />
+    <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="File.h" />
@@ -134,6 +135,7 @@
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
@@ -183,6 +185,7 @@
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp" />
     <ClCompile Include="Debug\Watches.cpp" />
+    <ClCompile Include="DynamicLibrary.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />
@@ -201,6 +204,7 @@
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />

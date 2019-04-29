@@ -30,6 +30,8 @@ add_executable(dolphin-emu
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GameConfigEdit.cpp
+  Config/GameConfigHighlighter.cpp
   Config/GameConfigWidget.cpp
   Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
@@ -61,12 +63,10 @@ add_executable(dolphin-emu
   Config/Mapping/HotkeyTAS.cpp
   Config/Mapping/HotkeyWii.cpp
   Config/Mapping/IOWindow.cpp
-  Config/Mapping/MappingBool.cpp
   Config/Mapping/MappingButton.cpp
   Config/Mapping/MappingCommon.cpp
   Config/Mapping/MappingIndicator.cpp
   Config/Mapping/MappingNumeric.cpp
-  Config/Mapping/MappingRadio.cpp
   Config/Mapping/MappingWidget.cpp
   Config/Mapping/MappingWindow.cpp
   Config/Mapping/WiimoteEmuExtension.cpp
@@ -76,6 +76,7 @@ add_executable(dolphin-emu
   Config/PatchesWidget.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  Config/VerifyWidget.cpp
   Debugger/BreakpointWidget.cpp
 	Debugger/CodeTraceDialog.cpp
 	Debugger/CodeDiffDialog.cpp
@@ -85,6 +86,7 @@ add_executable(dolphin-emu
   Debugger/MemoryViewWidget.cpp
   Debugger/MemoryWidget.cpp
   Debugger/NewBreakpointDialog.cpp
+  Debugger/PatchInstructionDialog.cpp
   Debugger/RegisterColumn.cpp
   Debugger/RegisterWidget.cpp
   Debugger/WatchWidget.cpp
@@ -98,19 +100,21 @@ add_executable(dolphin-emu
   NetPlay/ChunkedProgressDialog.cpp
   NetPlay/GameListDialog.cpp
   NetPlay/MD5Dialog.cpp
+  NetPlay/NetPlayBrowser.cpp
   NetPlay/NetPlayDialog.cpp
   NetPlay/NetPlaySetupDialog.cpp
   NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
   QtUtils/FlowLayout.cpp
+  QtUtils/ModalMessageBox.cpp
   QtUtils/ImageConverter.cpp
   QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
   QtUtils/AspectRatioWidget.cpp
-	ResourcePackManager.cpp
+  ResourcePackManager.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GameCubePane.cpp
@@ -121,6 +125,7 @@ add_executable(dolphin-emu
   Settings/USBDeviceAddToWhitelistDialog.cpp
   TAS/GCTASInputWindow.cpp
   TAS/WiiTASInputWindow.cpp
+  TAS/TASCheckBox.cpp
   TAS/TASInputWindow.cpp
   TAS/StickWidget.cpp
   TAS/IRWidget.cpp
@@ -145,6 +150,7 @@ PRIVATE
   core
   Qt5::Widgets
   uicommon
+  imgui
 )
 
 if(WIN32)

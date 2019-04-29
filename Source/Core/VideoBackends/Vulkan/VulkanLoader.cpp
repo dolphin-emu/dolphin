@@ -7,19 +7,12 @@
 #include <cstdlib>
 
 #include "Common/CommonFuncs.h"
+#include "Common/DynamicLibrary.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
-
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-#include <Windows.h>
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_MACOS_MVK) ||                  \
-    defined(USE_HEADLESS)
-#include <dlfcn.h>
-#endif
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required) PFN_##name name;
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required) PFN_##name name;
@@ -42,160 +35,55 @@ static void ResetVulkanLibraryFunctionPointers()
 #undef VULKAN_MODULE_ENTRY_POINT
 }
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+static Common::DynamicLibrary s_vulkan_module;
 
-static HMODULE vulkan_module;
-static std::atomic_int vulkan_module_ref_count = {0};
-
-bool LoadVulkanLibrary()
+static bool OpenVulkanLibrary()
 {
-  // Not thread safe if a second thread calls the loader whilst the first is still in-progress.
-  if (vulkan_module)
-  {
-    vulkan_module_ref_count++;
-    return true;
-  }
-
-  vulkan_module = LoadLibraryA("vulkan-1.dll");
-  if (!vulkan_module)
-  {
-    ERROR_LOG(VIDEO, "Failed to load vulkan-1.dll");
-    return false;
-  }
-
-  bool required_functions_missing = false;
-  auto LoadFunction = [&](FARPROC* func_ptr, const char* name, bool is_required) {
-    *func_ptr = GetProcAddress(vulkan_module, name);
-    if (!(*func_ptr) && is_required)
-    {
-      ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", name);
-      required_functions_missing = true;
-    }
-  };
-
-#define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
-  LoadFunction(reinterpret_cast<FARPROC*>(&name), #name, required);
-#include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
-#undef VULKAN_MODULE_ENTRY_POINT
-
-  if (required_functions_missing)
-  {
-    ResetVulkanLibraryFunctionPointers();
-    FreeLibrary(vulkan_module);
-    vulkan_module = nullptr;
-    return false;
-  }
-
-  vulkan_module_ref_count++;
-  return true;
-}
-
-void UnloadVulkanLibrary()
-{
-  if ((--vulkan_module_ref_count) > 0)
-    return;
-
-  ResetVulkanLibraryFunctionPointers();
-  FreeLibrary(vulkan_module);
-  vulkan_module = nullptr;
-}
-
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_MACOS_MVK) ||                  \
-    defined(USE_HEADLESS)
-
-static void* vulkan_module;
-static std::atomic_int vulkan_module_ref_count = {0};
-
-bool LoadVulkanLibrary()
-{
-  // Not thread safe if a second thread calls the loader whilst the first is still in-progress.
-  if (vulkan_module)
-  {
-    vulkan_module_ref_count++;
-    return true;
-  }
-
-#if defined(__APPLE__)
+#ifdef __APPLE__
   // Check if a path to a specific Vulkan library has been specified.
   char* libvulkan_env = getenv("LIBVULKAN_PATH");
-  if (libvulkan_env)
-    vulkan_module = dlopen(libvulkan_env, RTLD_NOW);
-  if (!vulkan_module)
-  {
-    // Use the libvulkan.dylib from the application bundle.
-    std::string path = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
-    vulkan_module = dlopen(path.c_str(), RTLD_NOW);
-  }
+  if (libvulkan_env && s_vulkan_module.Open(libvulkan_env))
+    return true;
+
+  // Use the libvulkan.dylib from the application bundle.
+  std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+  return s_vulkan_module.Open(filename.c_str());
 #else
-  // Names of libraries to search. Desktop should use libvulkan.so.1 or libvulkan.so.
-  static const char* search_lib_names[] = {"libvulkan.so.1", "libvulkan.so"};
-  for (size_t i = 0; i < ArraySize(search_lib_names); i++)
-  {
-    vulkan_module = dlopen(search_lib_names[i], RTLD_NOW);
-    if (vulkan_module)
-      break;
-  }
+  std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
+  if (s_vulkan_module.Open(filename.c_str()))
+    return true;
+
+  // Android devices may not have libvulkan.so.1, only libvulkan.so.
+  filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
+  return s_vulkan_module.Open(filename.c_str());
 #endif
+}
 
-  if (!vulkan_module)
-  {
-    ERROR_LOG(VIDEO, "Failed to load or locate libvulkan.so");
+bool LoadVulkanLibrary()
+{
+  if (!s_vulkan_module.IsOpen() && !OpenVulkanLibrary())
     return false;
-  }
-
-  bool required_functions_missing = false;
-  auto LoadFunction = [&](void** func_ptr, const char* name, bool is_required) {
-    *func_ptr = dlsym(vulkan_module, name);
-    if (!(*func_ptr) && is_required)
-    {
-      ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", name);
-      required_functions_missing = true;
-    }
-  };
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
-  LoadFunction(reinterpret_cast<void**>(&name), #name, required);
+  if (!s_vulkan_module.GetSymbol(#name, &name) && required)                                        \
+  {                                                                                                \
+    ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", #name);                 \
+    ResetVulkanLibraryFunctionPointers();                                                          \
+    s_vulkan_module.Close();                                                                       \
+    return false;                                                                                  \
+  }
 #include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
 #undef VULKAN_MODULE_ENTRY_POINT
 
-  if (required_functions_missing)
-  {
-    ResetVulkanLibraryFunctionPointers();
-    dlclose(vulkan_module);
-    vulkan_module = nullptr;
-    return false;
-  }
-
-  vulkan_module_ref_count++;
   return true;
 }
 
 void UnloadVulkanLibrary()
 {
-  if ((--vulkan_module_ref_count) > 0)
-    return;
-
-  ResetVulkanLibraryFunctionPointers();
-  dlclose(vulkan_module);
-  vulkan_module = nullptr;
+  s_vulkan_module.Close();
+  if (!s_vulkan_module.IsOpen())
+    ResetVulkanLibraryFunctionPointers();
 }
-
-#else
-
-//#warning Unknown platform, not compiling loader.
-
-bool LoadVulkanLibrary()
-{
-  return false;
-}
-
-void UnloadVulkanLibrary()
-{
-  ResetVulkanLibraryFunctionPointers();
-}
-
-#endif
 
 bool LoadVulkanInstanceFunctions(VkInstance instance)
 {

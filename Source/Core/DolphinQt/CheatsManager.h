@@ -8,7 +8,6 @@
 #include <vector>
 
 #include <QDialog>
-#include <QString>
 
 #include "Common/CommonTypes.h"
 

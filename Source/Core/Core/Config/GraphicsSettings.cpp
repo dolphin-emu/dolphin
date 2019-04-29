@@ -71,8 +71,15 @@ const ConfigInfo<bool> GFX_BORDERLESS_FULLSCREEN{{System::GFX, "Settings", "Bord
                                                  false};
 const ConfigInfo<bool> GFX_ENABLE_VALIDATION_LAYER{
     {System::GFX, "Settings", "EnableValidationLayer"}, false};
+
+#if defined(ANDROID)
+const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING{
+    {System::GFX, "Settings", "BackendMultithreading"}, false};
+#else
 const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING{
     {System::GFX, "Settings", "BackendMultithreading"}, true};
+#endif
+
 const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
     {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 100};
 const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};
@@ -129,9 +136,11 @@ const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE{
 // Graphics.Hacks
 
 const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, true};
+const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION{
+    {System::GFX, "Hacks", "EFBAccessDeferInvalidation"}, false};
+const ConfigInfo<int> GFX_HACK_EFB_ACCESS_TILE_SIZE{{System::GFX, "Hacks", "EFBAccessTileSize"},
+                                                    64};
 const ConfigInfo<bool> GFX_HACK_BBOX_ENABLE{{System::GFX, "Hacks", "BBoxEnable"}, false};
-const ConfigInfo<bool> GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION{
-    {System::GFX, "Hacks", "BBoxPreferStencilImplementation"}, false};
 const ConfigInfo<bool> GFX_HACK_FORCE_PROGRESSIVE{{System::GFX, "Hacks", "ForceProgressive"}, true};
 const ConfigInfo<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM{{System::GFX, "Hacks", "EFBToTextureEnable"},
                                                      true};

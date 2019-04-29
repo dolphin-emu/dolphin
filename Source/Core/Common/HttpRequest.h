@@ -19,6 +19,12 @@ namespace Common
 class HttpRequest final
 {
 public:
+  enum class AllowedReturnCodes : u8
+  {
+    Ok_Only,
+    All
+  };
+
   // Return false to abort the request
   using ProgressCallback =
       std::function<bool(double dlnow, double dltotal, double ulnow, double ultotal)>;
@@ -33,10 +39,14 @@ public:
 
   void SetCookies(const std::string& cookies);
   void UseIPv4();
-  Response Get(const std::string& url, const Headers& headers = {});
-  Response Post(const std::string& url, const std::vector<u8>& payload,
-                const Headers& headers = {});
-  Response Post(const std::string& url, const std::string& payload, const Headers& headers = {});
+  void FollowRedirects(long max = 1);
+  std::string EscapeComponent(const std::string& string);
+  Response Get(const std::string& url, const Headers& headers = {},
+               AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+  Response Post(const std::string& url, const std::vector<u8>& payload, const Headers& headers = {},
+                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
+  Response Post(const std::string& url, const std::string& payload, const Headers& headers = {},
+                AllowedReturnCodes codes = AllowedReturnCodes::Ok_Only);
 
 private:
   class Impl;

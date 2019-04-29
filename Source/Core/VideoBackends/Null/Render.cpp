@@ -9,12 +9,13 @@
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Null
 {
 // Init functions
-Renderer::Renderer() : ::Renderer(1, 1, AbstractTextureFormat::RGBA8)
+Renderer::Renderer() : ::Renderer(1, 1, 1.0f, AbstractTextureFormat::RGBA8)
 {
   UpdateActiveConfig();
 }
@@ -45,9 +46,6 @@ class NullShader final : public AbstractShader
 public:
   explicit NullShader(ShaderStage stage) : AbstractShader(stage) {}
   ~NullShader() = default;
-
-  bool HasBinary() const override { return false; }
-  BinaryData GetBinary() const override { return {}; }
 };
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
@@ -69,37 +67,23 @@ public:
   ~NullPipeline() override = default;
 };
 
-std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
+                                                           const void* cache_data,
+                                                           size_t cache_data_length)
 {
   return std::make_unique<NullPipeline>();
 }
 
-std::unique_ptr<AbstractFramebuffer>
-Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
-                            const AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
+                                                                 AbstractTexture* depth_attachment)
 {
-  return NullFramebuffer::Create(static_cast<const NullTexture*>(color_attachment),
-                                 static_cast<const NullTexture*>(depth_attachment));
+  return NullFramebuffer::Create(static_cast<NullTexture*>(color_attachment),
+                                 static_cast<NullTexture*>(depth_attachment));
 }
 
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
+std::unique_ptr<NativeVertexFormat>
+Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  NOTICE_LOG(VIDEO, "RenderText: %s", text.c_str());
+  return std::make_unique<NativeVertexFormat>(vtx_decl);
 }
-
-TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
-{
-  TargetRectangle result;
-  result.left = rc.left;
-  result.top = rc.top;
-  result.right = rc.right;
-  result.bottom = rc.bottom;
-  return result;
-}
-
-void Renderer::SwapImpl(AbstractTexture*, const EFBRectangle&, u64)
-{
-  UpdateActiveConfig();
-}
-
 }  // namespace Null

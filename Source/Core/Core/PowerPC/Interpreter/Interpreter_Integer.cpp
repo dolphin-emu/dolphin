@@ -15,7 +15,7 @@ void Interpreter::Helper_UpdateCR0(u32 value)
   u64 cr_val = (u64)sign_extended;
   cr_val = (cr_val & ~(1ull << 61)) | ((u64)PowerPC::GetXER_SO() << 61);
 
-  PowerPC::ppcState.cr_val[0] = cr_val;
+  PowerPC::ppcState.cr.fields[0] = cr_val;
 }
 
 u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
@@ -82,7 +82,7 @@ void Interpreter::cmpi(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     f |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, f);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, f);
 }
 
 void Interpreter::cmpli(UGeckoInstruction inst)
@@ -101,7 +101,7 @@ void Interpreter::cmpli(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     f |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, f);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, f);
 }
 
 void Interpreter::mulli(UGeckoInstruction inst)
@@ -212,7 +212,7 @@ void Interpreter::cmp(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     temp |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, temp);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, temp);
 }
 
 void Interpreter::cmpl(UGeckoInstruction inst)
@@ -231,7 +231,7 @@ void Interpreter::cmpl(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     temp |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, temp);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, temp);
 }
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)

@@ -48,15 +48,17 @@
     <ClCompile Include="BPStructs.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CPMemory.cpp" />
-    <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DriverDetails.cpp" />
     <ClCompile Include="Fifo.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
-    <ClCompile Include="FramebufferManagerBase.cpp" />
+    <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="FramebufferShaderGen.cpp" />
     <ClCompile Include="HiresTextures.cpp" />
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
+    <ClCompile Include="NetPlayChatUI.cpp" />
+    <ClCompile Include="NetPlayGolfUI.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
@@ -114,12 +116,14 @@
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CPMemory.h" />
     <ClInclude Include="DataReader.h" />
-    <ClInclude Include="Debugger.h" />
     <ClInclude Include="DriverDetails.h" />
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
-    <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="FramebufferShaderGen.h" />
     <ClInclude Include="GXPipelineTypes.h" />
+    <ClInclude Include="NetPlayChatUI.h" />
+    <ClInclude Include="NetPlayGolfUI.h" />
     <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />
@@ -182,6 +186,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\imgui\imgui.vcxproj">
+      <Project>{4c3b2264-ea73-4a7b-9cfe-65b0fd635ebb}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

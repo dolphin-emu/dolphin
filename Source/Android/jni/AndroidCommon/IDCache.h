@@ -14,6 +14,8 @@ JavaVM* GetJavaVM();
 
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
+jmethodID GetDoRumble();
+jmethodID GetUpdateTouchPointer();
 
 jclass GetAnalyticsClass();
 jmethodID GetSendAnalyticsReport();

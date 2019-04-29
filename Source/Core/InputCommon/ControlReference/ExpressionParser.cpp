@@ -217,7 +217,19 @@ public:
   std::shared_ptr<Device> m_device;
 
   explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
-  ControlState GetValue() const override { return control ? control->ToInput()->GetState() : 0.0; }
+  ControlState GetValue() const override
+  {
+    if (!control)
+      return 0.0;
+
+    // Note: Inputs may return negative values in situations where opposing directions are
+    // activated. We clamp off the negative values here.
+
+    // FYI: Clamping values greater than 1.0 is purposely not done to support unbounded values in
+    // the future. (e.g. raw accelerometer/gyro data)
+
+    return std::max(0.0, control->ToInput()->GetState());
+  }
   void SetValue(ControlState value) override
   {
     if (control)
@@ -340,11 +352,7 @@ public:
   }
 
   ControlState GetValue() const override { return GetActiveChild()->GetValue(); }
-  void SetValue(ControlState value) override
-  {
-    m_lhs->SetValue(GetActiveChild() == m_lhs ? value : 0.0);
-    m_rhs->SetValue(GetActiveChild() == m_rhs ? value : 0.0);
-  }
+  void SetValue(ControlState value) override { GetActiveChild()->SetValue(value); }
 
   int CountNumControls() const override { return GetActiveChild()->CountNumControls(); }
   operator std::string() const override
@@ -549,5 +557,5 @@ std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::s
                                                             std::move(complex_result.expr));
   return std::make_pair(complex_result.status, std::move(combined_expr));
 }
-}
-}
+}  // namespace ExpressionParser
+}  // namespace ciface

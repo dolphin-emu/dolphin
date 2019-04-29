@@ -139,7 +139,7 @@ Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestGPR(size_t preg)
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestCR(size_t preg)
 {
   ASSERT(preg < GUEST_CR_COUNT);
-  return {64, PPCSTATE_OFF(cr_val[preg]), m_guest_registers[GUEST_CR_OFFSET + preg]};
+  return {64, PPCSTATE_OFF(cr.fields[preg]), m_guest_registers[GUEST_CR_OFFSET + preg]};
 }
 
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestByIndex(size_t index)

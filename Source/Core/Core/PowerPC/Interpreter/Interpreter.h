@@ -291,16 +291,6 @@ private:
   // flag helper
   static void Helper_UpdateCR0(u32 value);
 
-  // address helper
-  static u32 Helper_Get_EA(const UGeckoInstruction inst);
-  static u32 Helper_Get_EA_U(const UGeckoInstruction inst);
-  static u32 Helper_Get_EA_X(const UGeckoInstruction inst);
-  static u32 Helper_Get_EA_UX(const UGeckoInstruction inst);
-
-  // paired helper
-  static void Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW);
-  static void Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW);
-
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
 

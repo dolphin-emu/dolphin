@@ -382,6 +382,11 @@ bool DeviceConnected(int chan)
   return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
 }
 
+void ResetDeviceType(int chan)
+{
+  s_controller_type[chan] = ControllerTypes::CONTROLLER_NONE;
+}
+
 bool UseAdapter()
 {
   const auto& si_devices = SConfig::GetInstance().m_SIDevice;

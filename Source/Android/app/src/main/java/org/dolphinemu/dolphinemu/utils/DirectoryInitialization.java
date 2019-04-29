@@ -34,6 +34,7 @@ public final class DirectoryInitialization
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
   public static final String EXTRA_STATE = "directoryState";
+  private static final Integer WiimoteNewVersion = 2;
   private static volatile DirectoryInitializationState directoryState = null;
   private static String userPath;
   private static String internalPath;
@@ -145,7 +146,20 @@ public final class DirectoryInitialization
     createWiimoteProfileDirectory(profileDirectory);
 
     copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true, context);
-    copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false, context);
+
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    if (prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion)
+    {
+      copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), true, context);
+      SharedPreferences.Editor sPrefsEditor = prefs.edit();
+      sPrefsEditor.putInt("WiimoteNewVersion", WiimoteNewVersion);
+      sPrefsEditor.apply();
+    }
+    else
+    {
+      copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false, context);
+    }
+
     copyAsset("WiimoteProfile.ini", new File(profileDirectory, "WiimoteProfile.ini"), true,
             context);
   }

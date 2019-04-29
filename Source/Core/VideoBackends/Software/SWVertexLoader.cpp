@@ -14,6 +14,7 @@
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
+#include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
@@ -27,48 +28,9 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-class NullNativeVertexFormat : public NativeVertexFormat
-{
-public:
-  NullNativeVertexFormat(const PortableVertexDeclaration& _vtx_decl) { vtx_decl = _vtx_decl; }
-};
+SWVertexLoader::SWVertexLoader() = default;
 
-std::unique_ptr<NativeVertexFormat>
-SWVertexLoader::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
-{
-  return std::make_unique<NullNativeVertexFormat>(vtx_decl);
-}
-
-SWVertexLoader::SWVertexLoader()
-    : m_local_vertex_buffer(MAXVBUFFERSIZE), m_local_index_buffer(MAXIBUFFERSIZE)
-{
-}
-
-SWVertexLoader::~SWVertexLoader()
-{
-}
-
-void SWVertexLoader::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
-{
-}
-
-void SWVertexLoader::ResetBuffer(u32 vertex_stride, bool cull_all)
-{
-  m_cur_buffer_pointer = m_base_buffer_pointer = m_local_vertex_buffer.data();
-  m_end_buffer_pointer = m_cur_buffer_pointer + m_local_vertex_buffer.size();
-  IndexGenerator::Start(m_local_index_buffer.data());
-}
-
-void SWVertexLoader::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
-                                  u32* out_base_vertex, u32* out_base_index)
-{
-  *out_base_vertex = 0;
-  *out_base_index = 0;
-}
-
-void SWVertexLoader::UploadConstants()
-{
-}
+SWVertexLoader::~SWVertexLoader() = default;
 
 void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
@@ -104,7 +66,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 
   for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++)
   {
-    const u16 index = m_local_index_buffer[i];
+    const u16 index = m_cpu_index_buffer[i];
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
 
     // Super Mario Sunshine requires those to be zero for those debug boxes.
@@ -224,8 +186,8 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
 
 void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int index)
 {
-  DataReader src(m_local_vertex_buffer.data(),
-                 m_local_vertex_buffer.data() + m_local_vertex_buffer.size());
+  DataReader src(m_cpu_vertex_buffer.data(),
+                 m_cpu_vertex_buffer.data() + m_cpu_vertex_buffer.size());
   src.Skip(index * vdec.stride);
 
   ReadVertexAttribute<float>(&m_vertex.position[0], src, vdec.position, 0, 3, false);

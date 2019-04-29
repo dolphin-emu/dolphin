@@ -10,7 +10,6 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -24,6 +23,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
@@ -162,7 +162,7 @@ void InterfacePane::CreateUI()
 
 void InterfacePane::CreateInGame()
 {
-  auto* groupbox = new QGroupBox(tr("In Game"));
+  auto* groupbox = new QGroupBox(tr("In-Game"));
   auto* groupbox_layout = new QVBoxLayout;
   groupbox->setLayout(groupbox_layout);
   m_main_layout->addWidget(groupbox);
@@ -269,7 +269,7 @@ void InterfacePane::OnSaveConfig()
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
   {
     SConfig::GetInstance().m_InterfaceLanguage = new_language;
-    QMessageBox::information(
+    ModalMessageBox::information(
         this, tr("Restart Required"),
         tr("You must restart Dolphin in order for the change to take effect."));
   }

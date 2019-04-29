@@ -44,24 +44,62 @@ private:
   private:
     const u16 m_code;
     const u8 m_index;
-    const bool m_upper;
     int m_range;
-    int m_min;
+    int m_base;
     libevdev* m_dev;
   };
 
-  class ForceFeedback : public Core::Device::Output
+  class Effect : public Core::Device::Output
   {
   public:
-    std::string GetName() const override;
-    ForceFeedback(u16 type, libevdev* dev) : m_type(type), m_id(-1) { m_fd = libevdev_get_fd(dev); }
-    ~ForceFeedback();
+    Effect(int fd);
+    ~Effect();
     void SetState(ControlState state) override;
 
+  protected:
+    virtual bool UpdateParameters(ControlState state) = 0;
+
+    ff_effect m_effect = {};
+
+    static constexpr int DISABLED_EFFECT_TYPE = 0;
+
   private:
-    const u16 m_type;
-    int m_fd;
-    int m_id;
+    void UpdateEffect();
+
+    int const m_fd;
+  };
+
+  class ConstantEffect : public Effect
+  {
+  public:
+    ConstantEffect(int fd);
+    bool UpdateParameters(ControlState state) override;
+    std::string GetName() const override;
+  };
+
+  class PeriodicEffect : public Effect
+  {
+  public:
+    PeriodicEffect(int fd, u16 waveform);
+    bool UpdateParameters(ControlState state) override;
+    std::string GetName() const override;
+  };
+
+  class RumbleEffect : public Effect
+  {
+  public:
+    enum class Motor : u8
+    {
+      Weak,
+      Strong,
+    };
+
+    RumbleEffect(int fd, Motor motor);
+    bool UpdateParameters(ControlState state) override;
+    std::string GetName() const override;
+
+  private:
+    const Motor m_motor;
   };
 
 public:
@@ -73,15 +111,14 @@ public:
 
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }
-  bool IsInteresting() const { return m_initialized && m_interesting; }
+  bool IsInteresting() const { return m_interesting; }
 
 private:
   const std::string m_devfile;
   int m_fd;
   libevdev* m_dev;
   std::string m_name;
-  bool m_initialized;
-  bool m_interesting;
+  bool m_interesting = false;
 };
-}
-}
+}  // namespace evdev
+}  // namespace ciface

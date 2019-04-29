@@ -40,6 +40,10 @@ constexpr u32 MAX_RESULTS = 50;
 constexpr int INDEX_ROLE = Qt::UserRole;
 constexpr int COLUMN_ROLE = Qt::UserRole + 1;
 
+constexpr int AR_SET_BYTE_CMD = 0x00;
+constexpr int AR_SET_SHORT_CMD = 0x02;
+constexpr int AR_SET_INT_CMD = 0x04;
+
 enum class CompareType : int
 {
   Equal = 0,
@@ -68,6 +72,84 @@ struct Result
   bool locked = false;
   u32 locked_value;
 };
+
+static u32 GetResultValue(Result result)
+{
+  switch (result.type)
+  {
+  case DataType::Byte:
+    return PowerPC::HostRead_U8(result.address);
+  case DataType::Short:
+    return PowerPC::HostRead_U16(result.address);
+  case DataType::Int:
+    return PowerPC::HostRead_U32(result.address);
+  default:
+    return 0;
+  }
+}
+
+static void UpdatePatch(Result result)
+{
+  PowerPC::debug_interface.UnsetPatch(result.address);
+  if (result.locked)
+  {
+    switch (result.type)
+    {
+    case DataType::Byte:
+      PowerPC::debug_interface.SetPatch(result.address,
+                                        std::vector<u8>{static_cast<u8>(result.locked_value)});
+      break;
+    default:
+      PowerPC::debug_interface.SetPatch(result.address, result.locked_value);
+      break;
+    }
+  }
+}
+
+static ActionReplay::AREntry ResultToAREntry(Result result)
+{
+  u8 cmd;
+
+  switch (result.type)
+  {
+  case DataType::Byte:
+    cmd = AR_SET_BYTE_CMD;
+    break;
+  case DataType::Short:
+    cmd = AR_SET_SHORT_CMD;
+    break;
+  default:
+  case DataType::Int:
+    cmd = AR_SET_INT_CMD;
+    break;
+  }
+
+  u32 address = result.address & 0xffffff;
+
+  return ActionReplay::AREntry(cmd << 24 | address, result.locked_value);
+}
+
+template <typename T>
+static bool Compare(T mem_value, T value, CompareType op)
+{
+  switch (op)
+  {
+  case CompareType::Equal:
+    return mem_value == value;
+  case CompareType::NotEqual:
+    return mem_value != value;
+  case CompareType::Less:
+    return mem_value < value;
+  case CompareType::LessEqual:
+    return mem_value <= value;
+  case CompareType::More:
+    return mem_value > value;
+  case CompareType::MoreEqual:
+    return mem_value >= value;
+  default:
+    return false;
+  }
+}
 
 CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
 {
@@ -191,35 +273,14 @@ void CheatsManager::OnMatchContextMenu()
 
     int index = item->data(INDEX_ROLE).toInt();
 
+    m_results[index].locked_value = GetResultValue(m_results[index]);
+
     m_watch.push_back(m_results[index]);
 
     Update();
   });
 
   menu->exec(QCursor::pos());
-}
-
-static ActionReplay::AREntry ResultToAREntry(Result result)
-{
-  u8 cmd;
-
-  switch (result.type)
-  {
-  case DataType::Byte:
-    cmd = 0x00;
-    break;
-  case DataType::Short:
-    cmd = 0x02;
-    break;
-  default:
-  case DataType::Int:
-    cmd = 0x04;
-    break;
-  }
-
-  u32 address = result.address & 0xffffff;
-
-  return ActionReplay::AREntry(cmd << 24 | address, result.locked_value);
 }
 
 void CheatsManager::GenerateARCode()
@@ -256,15 +317,20 @@ void CheatsManager::OnWatchItemChanged(QTableWidgetItem* item)
   case 0:
     m_watch[index].name = item->text();
     break;
-  case 3:
+  case 2:
     m_watch[index].locked = item->checkState() == Qt::Checked;
+
+    if (m_watch[index].locked)
+      m_watch[index].locked_value = GetResultValue(m_results[index]);
+
+    UpdatePatch(m_watch[index]);
     break;
-  case 4:
+  case 3:
   {
     const auto text = item->text();
     u32 value = 0;
 
-    switch (static_cast<DataType>(m_match_length->currentIndex()))
+    switch (m_watch[index].type)
     {
     case DataType::Byte:
       value = text.toUShort(nullptr, 16) & 0xFF;
@@ -286,6 +352,9 @@ void CheatsManager::OnWatchItemChanged(QTableWidgetItem* item)
     }
 
     m_watch[index].locked_value = value;
+
+    UpdatePatch(m_watch[index]);
+
     break;
   }
   }
@@ -385,28 +454,6 @@ size_t CheatsManager::GetTypeSize() const
   }
 }
 
-template <typename T>
-static bool Compare(T mem_value, T value, CompareType op)
-{
-  switch (op)
-  {
-  case CompareType::Equal:
-    return mem_value == value;
-  case CompareType::NotEqual:
-    return mem_value != value;
-  case CompareType::Less:
-    return mem_value < value;
-  case CompareType::LessEqual:
-    return mem_value <= value;
-  case CompareType::More:
-    return mem_value > value;
-  case CompareType::MoreEqual:
-    return mem_value >= value;
-  default:
-    return false;
-  }
-}
-
 bool CheatsManager::MatchesSearch(u32 addr) const
 {
   const auto text = m_match_value->text();
@@ -494,6 +541,32 @@ void CheatsManager::NextSearch()
   Update();
 }
 
+static QString GetResultString(const Result& result)
+{
+  if (!PowerPC::HostIsRAMAddress(result.address))
+  {
+    return QStringLiteral("---");
+  }
+  switch (result.type)
+  {
+  case DataType::Byte:
+    return QStringLiteral("%1").arg(PowerPC::HostRead_U8(result.address), 2, 16, QLatin1Char('0'));
+  case DataType::Short:
+    return QStringLiteral("%1").arg(PowerPC::HostRead_U16(result.address), 4, 16, QLatin1Char('0'));
+  case DataType::Int:
+    return QStringLiteral("%1").arg(PowerPC::HostRead_U32(result.address), 8, 16, QLatin1Char('0'));
+  case DataType::Float:
+    return QString::number(PowerPC::HostRead_F32(result.address));
+  case DataType::Double:
+    return QString::number(PowerPC::HostRead_F64(result.address));
+  case DataType::String:
+    return QObject::tr("String Match");
+  default:
+    // Make MSVC happy
+    return QStringLiteral("");
+  }
+}
+
 void CheatsManager::Update()
 {
   m_match_table->clear();
@@ -528,37 +601,7 @@ void CheatsManager::Update()
       address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      if (PowerPC::HostIsRAMAddress(m_results[i].address))
-      {
-        switch (m_results[i].type)
-        {
-        case DataType::Byte:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_results[i].address),
-                                                       2, 16, QLatin1Char('0')));
-          break;
-        case DataType::Short:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_results[i].address),
-                                                       4, 16, QLatin1Char('0')));
-          break;
-        case DataType::Int:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_results[i].address),
-                                                       8, 16, QLatin1Char('0')));
-          break;
-        case DataType::Float:
-          value_item->setText(QString::number(PowerPC::HostRead_F32(m_results[i].address)));
-          break;
-        case DataType::Double:
-          value_item->setText(QString::number(PowerPC::HostRead_F64(m_results[i].address)));
-          break;
-        case DataType::String:
-          value_item->setText(tr("String Match"));
-          break;
-        }
-      }
-      else
-      {
-        value_item->setText(QStringLiteral("---"));
-      }
+      value_item->setText(GetResultString(m_results[i]));
 
       address_item->setData(INDEX_ROLE, static_cast<int>(i));
       value_item->setData(INDEX_ROLE, static_cast<int>(i));
@@ -577,58 +620,24 @@ void CheatsManager::Update()
       auto* lock_item = new QTableWidgetItem;
       auto* value_item = new QTableWidgetItem;
 
-      if (PowerPC::HostIsRAMAddress(m_watch[i].address))
-      {
-        if (m_watch[i].locked)
-        {
-          PowerPC::debug_interface.SetPatch(m_watch[i].address, m_watch[i].locked_value);
-        }
-
-        switch (m_watch[i].type)
-        {
-        case DataType::Byte:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_watch[i].address), 2,
-                                                       16, QLatin1Char('0')));
-          break;
-        case DataType::Short:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_watch[i].address), 4,
-                                                       16, QLatin1Char('0')));
-          break;
-        case DataType::Int:
-          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_watch[i].address), 8,
-                                                       16, QLatin1Char('0')));
-          break;
-        case DataType::Float:
-          value_item->setText(QString::number(PowerPC::HostRead_F32(m_watch[i].address)));
-          break;
-        case DataType::Double:
-          value_item->setText(QString::number(PowerPC::HostRead_F64(m_watch[i].address)));
-          break;
-        case DataType::String:
-          value_item->setText(tr("String Match"));
-          break;
-        }
-      }
-      else
-      {
-        value_item->setText(QStringLiteral("---"));
-      }
+      value_item->setText(GetResultString(m_results[i]));
 
       name_item->setData(INDEX_ROLE, static_cast<int>(i));
       name_item->setData(COLUMN_ROLE, 0);
+
       address_item->setData(INDEX_ROLE, static_cast<int>(i));
       address_item->setData(COLUMN_ROLE, 1);
-      value_item->setData(INDEX_ROLE, static_cast<int>(i));
-      value_item->setData(COLUMN_ROLE, 2);
+
       lock_item->setData(INDEX_ROLE, static_cast<int>(i));
-      lock_item->setData(COLUMN_ROLE, 3);
+      lock_item->setData(COLUMN_ROLE, 2);
+
       value_item->setData(INDEX_ROLE, static_cast<int>(i));
-      value_item->setData(COLUMN_ROLE, 4);
+      value_item->setData(COLUMN_ROLE, 3);
 
       name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
       address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      lock_item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
-      value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      lock_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
+      value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 
       lock_item->setCheckState(m_watch[i].locked ? Qt::Checked : Qt::Unchecked);
 

@@ -19,13 +19,17 @@
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace SW
+{
 SWRenderer::SWRenderer(std::unique_ptr<SWOGLWindow> window)
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT),
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT), 1.0f,
                  AbstractTextureFormat::RGBA8),
       m_window(std::move(window))
 {
@@ -38,26 +42,20 @@ bool SWRenderer::IsHeadless() const
 
 std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
 {
-  return std::make_unique<SW::SWTexture>(config);
+  return std::make_unique<SWTexture>(config);
 }
 
 std::unique_ptr<AbstractStagingTexture>
 SWRenderer::CreateStagingTexture(StagingTextureType type, const TextureConfig& config)
 {
-  return std::make_unique<SW::SWStagingTexture>(type, config);
+  return std::make_unique<SWStagingTexture>(type, config);
 }
 
 std::unique_ptr<AbstractFramebuffer>
-SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
-                              const AbstractTexture* depth_attachment)
+SWRenderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment)
 {
-  return SW::SWFramebuffer::Create(static_cast<const SW::SWTexture*>(color_attachment),
-                                   static_cast<const SW::SWTexture*>(depth_attachment));
-}
-
-void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
-{
-  m_window->PrintText(pstr, left, top, color);
+  return SWFramebuffer::Create(static_cast<SWTexture*>(color_attachment),
+                               static_cast<SWTexture*>(depth_attachment));
 }
 
 class SWShader final : public AbstractShader
@@ -66,7 +64,6 @@ public:
   explicit SWShader(ShaderStage stage) : AbstractShader(stage) {}
   ~SWShader() = default;
 
-  bool HasBinary() const override { return false; }
   BinaryData GetBinary() const override { return {}; }
 };
 
@@ -89,23 +86,19 @@ public:
   ~SWPipeline() override = default;
 };
 
-std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipelineConfig& config)
+std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipelineConfig& config,
+                                                             const void* cache_data,
+                                                             size_t cache_data_length)
 {
   return std::make_unique<SWPipeline>();
 }
 
 // Called on the GPU thread
-void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks)
+void SWRenderer::RenderXFBToScreen(const AbstractTexture* texture,
+                                   const MathUtil::Rectangle<int>& xfb_region)
 {
-  OSD::DoCallbacks(OSD::CallbackType::OnFrame);
-
   if (!IsHeadless())
-  {
-    DrawDebugText();
     m_window->ShowImage(texture, xfb_region);
-  }
-
-  UpdateActiveConfig();
 }
 
 u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
@@ -144,18 +137,15 @@ void SWRenderer::BBoxWrite(int index, u16 value)
   BoundingBox::coords[index] = value;
 }
 
-TargetRectangle SWRenderer::ConvertEFBRectangle(const EFBRectangle& rc)
-{
-  TargetRectangle result;
-  result.left = rc.left;
-  result.top = rc.top;
-  result.right = rc.right;
-  result.bottom = rc.bottom;
-  return result;
-}
-
-void SWRenderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable,
+void SWRenderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                              bool zEnable, u32 color, u32 z)
 {
   EfbCopy::ClearEfb();
 }
+
+std::unique_ptr<NativeVertexFormat>
+SWRenderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+{
+  return std::make_unique<NativeVertexFormat>(vtx_decl);
+}
+}  // namespace SW

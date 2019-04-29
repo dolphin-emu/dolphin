@@ -23,7 +23,6 @@ public:
 
   VkShaderModule GetShaderModule() const { return m_module; }
   VkPipeline GetComputePipeline() const { return m_compute_pipeline; }
-  bool HasBinary() const override;
   BinaryData GetBinary() const override;
 
   static std::unique_ptr<VKShader> CreateFromSource(ShaderStage stage, const char* source,

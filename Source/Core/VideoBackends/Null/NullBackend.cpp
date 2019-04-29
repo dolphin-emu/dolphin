@@ -13,7 +13,9 @@
 #include "VideoBackends/Null/VertexManager.h"
 #include "VideoBackends/Null/VideoBackend.h"
 
-#include "VideoCommon/FramebufferManagerBase.h"
+#include "Common/MsgHandler.h"
+
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -48,6 +50,10 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = false;
   g_Config.backend_info.bSupportsLogicOp = false;
+  g_Config.backend_info.bSupportsLargePoints = false;
+  g_Config.backend_info.bSupportsPartialDepthCopies = false;
+  g_Config.backend_info.bSupportsShaderBinaries = false;
+  g_Config.backend_info.bSupportsPipelineCacheData = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();
@@ -61,10 +67,21 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_renderer = std::make_unique<Renderer>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
-  g_framebuffer_manager = std::make_unique<FramebufferManagerBase>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  return g_renderer->Initialize() && g_shader_cache->Initialize();
+
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize())
+  {
+    PanicAlert("Failed to initialize renderer classes");
+    Shutdown();
+    return false;
+  }
+
+  g_shader_cache->InitializeShaderCache();
+  return true;
 }
 
 void VideoBackend::Shutdown()

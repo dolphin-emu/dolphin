@@ -24,8 +24,9 @@ public:
   static std::unique_ptr<DriveReader> Create(const std::string& drive);
   ~DriveReader();
   BlobType GetBlobType() const override { return BlobType::DRIVE; }
-  u64 GetDataSize() const override { return m_size; }
   u64 GetRawSize() const override { return m_size; }
+  u64 GetDataSize() const override { return m_size; }
+  bool IsDataSizeAccurate() const override { return true; }
 
 private:
   DriveReader(const std::string& drive);

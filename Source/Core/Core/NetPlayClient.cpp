@@ -43,6 +43,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/WiiSaveStructs.h"
+#include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -52,13 +53,17 @@
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
+#include "InputCommon/InputConfig.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace NetPlay
 {
+using namespace WiimoteCommon;
+
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
@@ -80,6 +85,9 @@ NetPlayClient::~NetPlayClient()
       m_MD5_thread.join();
     m_do_loop.Clear();
     m_thread.join();
+
+    m_chunked_data_receive_queue.clear();
+    m_dialog->HideChunkedProgressDialog();
   }
 
   if (m_server)
@@ -360,14 +368,17 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 cid;
     packet >> cid;
 
-    OnData(m_chunked_data_receive_queue[cid]);
-    m_chunked_data_receive_queue.erase(m_chunked_data_receive_queue.find(cid));
-    m_dialog->HideChunkedProgressDialog();
+    if (m_chunked_data_receive_queue.count(cid))
+    {
+      OnData(m_chunked_data_receive_queue[cid]);
+      m_chunked_data_receive_queue.erase(cid);
+      m_dialog->HideChunkedProgressDialog();
 
-    sf::Packet complete_packet;
-    complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
-    complete_packet << cid;
-    Send(complete_packet, CHUNKED_DATA_CHANNEL);
+      sf::Packet complete_packet;
+      complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
+      complete_packet << cid;
+      Send(complete_packet, CHUNKED_DATA_CHANNEL);
+    }
   }
   break;
 
@@ -376,27 +387,43 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 cid;
     packet >> cid;
 
-    while (!packet.endOfPacket())
+    if (m_chunked_data_receive_queue.count(cid))
     {
-      u8 byte;
-      packet >> byte;
-      m_chunked_data_receive_queue[cid] << byte;
+      while (!packet.endOfPacket())
+      {
+        u8 byte;
+        packet >> byte;
+        m_chunked_data_receive_queue[cid] << byte;
+      }
+
+      m_dialog->SetChunkedProgress(m_local_player->pid,
+                                   m_chunked_data_receive_queue[cid].getDataSize());
+
+      sf::Packet progress_packet;
+      progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
+      progress_packet << cid;
+      progress_packet << sf::Uint64{m_chunked_data_receive_queue[cid].getDataSize()};
+      Send(progress_packet, CHUNKED_DATA_CHANNEL);
     }
+  }
+  break;
 
-    m_dialog->SetChunkedProgress(m_local_player->pid,
-                                 m_chunked_data_receive_queue[cid].getDataSize());
+  case NP_MSG_CHUNKED_DATA_ABORT:
+  {
+    u32 cid;
+    packet >> cid;
 
-    sf::Packet progress_packet;
-    progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
-    progress_packet << cid;
-    progress_packet << sf::Uint64{m_chunked_data_receive_queue[cid].getDataSize()};
-    Send(progress_packet, CHUNKED_DATA_CHANNEL);
+    if (m_chunked_data_receive_queue.count(cid))
+    {
+      m_chunked_data_receive_queue.erase(cid);
+      m_dialog->HideChunkedProgressDialog();
+    }
   }
   break;
 
   case NP_MSG_PAD_MAPPING:
   {
-    for (PadMapping& mapping : m_pad_map)
+    for (PlayerId& mapping : m_pad_map)
     {
       packet >> mapping;
     }
@@ -409,7 +436,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_WIIMOTE_MAPPING:
   {
-    for (PadMapping& mapping : m_wiimote_map)
+    for (PlayerId& mapping : m_wiimote_map)
     {
       packet >> mapping;
     }
@@ -422,7 +449,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     while (!packet.endOfPacket())
     {
-      PadMapping map;
+      PadIndex map;
       packet >> map;
 
       GCPadStatus pad;
@@ -437,9 +464,33 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_PAD_HOST_DATA:
+  {
+    while (!packet.endOfPacket())
+    {
+      PadIndex map;
+      packet >> map;
+
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      // Trusting server for good map value (>=0 && <4)
+      // write to last status
+      m_last_pad_status[map] = pad;
+
+      if (!m_first_pad_status_received[map])
+      {
+        m_first_pad_status_received[map] = true;
+        m_first_pad_status_received_event.Set();
+      }
+    }
+  }
+  break;
+
   case NP_MSG_WIIMOTE_DATA:
   {
-    PadMapping map = 0;
+    PadIndex map;
     NetWiimote nw;
     u8 size;
     packet >> map >> size;
@@ -466,19 +517,47 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
-  case NP_MSG_PAD_FIRST_RECEIVED:
-  {
-    PadMapping map;
-    packet >> map;
-    packet >> m_first_pad_status_received[map];
-    m_first_pad_status_received_event.Set();
-  }
-  break;
-
   case NP_MSG_HOST_INPUT_AUTHORITY:
   {
     packet >> m_host_input_authority;
     m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
+  }
+  break;
+
+  case NP_MSG_GOLF_SWITCH:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    const PlayerId previous_golfer = m_current_golfer;
+    m_current_golfer = pid;
+    m_dialog->OnGolferChanged(m_local_player->pid == pid, pid != 0 ? m_players[pid].name : "");
+
+    if (m_local_player->pid == previous_golfer)
+    {
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_RELEASE);
+      Send(spac);
+    }
+    else if (m_local_player->pid == pid)
+    {
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_ACQUIRE);
+      Send(spac);
+
+      // Pads are already calibrated so we can just ignore this
+      m_first_pad_status_received.fill(true);
+
+      m_wait_on_input = false;
+      m_wait_on_input_event.Set();
+    }
+  }
+  break;
+
+  case NP_MSG_GOLF_PREPARE:
+  {
+    m_wait_on_input_received = true;
+    m_wait_on_input = true;
   }
   break;
 
@@ -558,11 +637,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_OCFactor;
       packet >> m_net_settings.m_ReducePollingRate;
 
-      int tmp;
-      packet >> tmp;
-      m_net_settings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
-      packet >> tmp;
-      m_net_settings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      for (auto& device : m_net_settings.m_EXIDevice)
+      {
+        int tmp;
+        packet >> tmp;
+        device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      }
 
       packet >> m_net_settings.m_EFBAccessEnable;
       packet >> m_net_settings.m_BBoxEnable;
@@ -602,6 +682,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
       packet >> m_net_settings.m_EnableGPUTextureDecoding;
       packet >> m_net_settings.m_DeferEFBCopies;
+      packet >> m_net_settings.m_EFBAccessTileSize;
+      packet >> m_net_settings.m_EFBAccessDeferInvalidation;
       packet >> m_net_settings.m_StrictSettingsSync;
 
       m_initial_rtc = Common::PacketReadU64(packet);
@@ -610,6 +692,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_SaveDataRegion;
       packet >> m_net_settings.m_SyncCodes;
       packet >> m_net_settings.m_SyncAllWiiSaves;
+
+      for (int& extension : m_net_settings.m_WiimoteExtension)
+        packet >> extension;
+
+      packet >> m_net_settings.m_GolfMode;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
@@ -801,6 +888,31 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
       std::vector<u64> titles;
 
+      const IOS::HLE::FS::Modes fs_modes = {IOS::HLE::FS::Mode::ReadWrite,
+                                            IOS::HLE::FS::Mode::ReadWrite,
+                                            IOS::HLE::FS::Mode::ReadWrite};
+
+      // Read the Mii data
+      bool mii_data;
+      packet >> mii_data;
+      if (mii_data)
+      {
+        auto buffer = DecompressPacketIntoBuffer(packet);
+
+        temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, "/shared2/menu/FaceLib", 0,
+                                 fs_modes);
+        auto file = temp_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                               Common::GetMiiDatabasePath(), fs_modes);
+
+        if (!buffer || !file || !file->Write(buffer->data(), buffer->size()))
+        {
+          PanicAlertT("Failed to write Mii data.");
+          SyncSaveDataResponse(false);
+          return 0;
+        }
+      }
+
+      // Read the saves
       u32 save_count;
       packet >> save_count;
       for (u32 n = 0; n < save_count; n++)
@@ -808,9 +920,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         u64 title_id = Common::PacketReadU64(packet);
         titles.push_back(title_id);
         temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                 Common::GetTitleDataPath(title_id), 0,
-                                 {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                  IOS::HLE::FS::Mode::ReadWrite});
+                                 Common::GetTitleDataPath(title_id), 0, fs_modes);
         auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
 
         bool exists;
@@ -1312,7 +1422,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus& pad,
                                         sf::Packet& packet)
 {
-  packet << static_cast<PadMapping>(in_game_pad);
+  packet << static_cast<PadIndex>(in_game_pad);
   packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
          << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
 }
@@ -1322,7 +1432,7 @@ void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw
 {
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  packet << static_cast<PadMapping>(in_game_pad);
+  packet << static_cast<PadIndex>(in_game_pad);
   packet << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
@@ -1364,6 +1474,8 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
 
   m_timebase_frame = 0;
+  m_current_golfer = 1;
+  m_wait_on_input = false;
 
   m_is_running.Set();
   NetPlay_Enable(this);
@@ -1430,7 +1542,7 @@ void NetPlayClient::SyncCodeResponse(const bool success)
   // If something failed, immediately report back that code sync failed
   if (!success)
   {
-    m_dialog->AppendChat(GetStringT("Error processing Codes."));
+    m_dialog->AppendChat(GetStringT("Error processing codes."));
 
     sf::Packet response_packet;
     response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
@@ -1560,21 +1672,26 @@ void NetPlayClient::UpdateDevices()
     {
       if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
       {
-        SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
+        SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
+
+        if (SConfig::GetInstance().m_SIDevice[local_pad] == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+        {
+          GCAdapter::ResetDeviceType(local_pad);
+        }
       }
       else
       {
-        SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+        SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
       }
       local_pad++;
     }
     else if (player_id > 0)
     {
-      SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
+      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
-      SerialInterface::AddDevice(SerialInterface::SIDEVICE_NONE, pad);
+      SerialInterface::ChangeDevice(SerialInterface::SIDEVICE_NONE, pad);
     }
     pad++;
   }
@@ -1675,6 +1792,27 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
   // specific pad arbitrarily. In this case, we poll just that pad
   // and send it.
 
+  // When here when told to so we don't deadlock in certain situations
+  while (m_wait_on_input)
+  {
+    if (!m_is_running.IsSet())
+    {
+      return false;
+    }
+
+    if (m_wait_on_input_received)
+    {
+      // Tell the server we've acknowledged the message
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_GOLF_PREPARE);
+      Send(spac);
+
+      m_wait_on_input_received = false;
+    }
+
+    m_wait_on_input_event.Wait();
+  }
+
   if (IsFirstInGamePad(pad_nb) && batching)
   {
     sf::Packet packet;
@@ -1709,22 +1847,30 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
       SendPadHostPoll(pad_nb);
   }
 
-  if (m_host_input_authority && !m_local_player->IsHost())
+  if (m_host_input_authority)
   {
-    // CoreTiming acts funny and causes what looks like frame skip if
-    // we toggle the emulation speed too quickly, so to prevent this
-    // we wait until the buffer has been over for at least 1 second.
-
-    const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
-    if (!buffer_over_target)
-      m_buffer_under_target_last = std::chrono::steady_clock::now();
-
-    std::chrono::duration<double> time_diff =
-        std::chrono::steady_clock::now() - m_buffer_under_target_last;
-    if (time_diff.count() >= 1.0 || !buffer_over_target)
+    if (m_local_player->pid != m_current_golfer)
     {
-      // run fast if the buffer is overfilled, otherwise run normal speed
-      SConfig::GetInstance().m_EmulationSpeed = buffer_over_target ? 0.0f : 1.0f;
+      // CoreTiming acts funny and causes what looks like frame skip if
+      // we toggle the emulation speed too quickly, so to prevent this
+      // we wait until the buffer has been over for at least 1 second.
+
+      const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
+      if (!buffer_over_target)
+        m_buffer_under_target_last = std::chrono::steady_clock::now();
+
+      std::chrono::duration<double> time_diff =
+          std::chrono::steady_clock::now() - m_buffer_under_target_last;
+      if (time_diff.count() >= 1.0 || !buffer_over_target)
+      {
+        // run fast if the buffer is overfilled, otherwise run normal speed
+        SConfig::GetInstance().m_EmulationSpeed = buffer_over_target ? 0.0f : 1.0f;
+      }
+    }
+    else
+    {
+      // Set normal speed when we're the host, otherwise it can get stuck at unlimited
+      SConfig::GetInstance().m_EmulationSpeed = 1.0f;
     }
   }
 
@@ -1854,9 +2000,18 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
 
   if (m_host_input_authority)
   {
-    // add to packet
-    AddPadStateToPacket(ingame_pad, pad_status, packet);
-    data_added = true;
+    if (m_local_player->pid != m_current_golfer)
+    {
+      // add to packet
+      AddPadStateToPacket(ingame_pad, pad_status, packet);
+      data_added = true;
+    }
+    else
+    {
+      // set locally
+      m_last_pad_status[ingame_pad] = pad_status;
+      m_first_pad_status_received[ingame_pad] = true;
+    }
   }
   else
   {
@@ -1876,10 +2031,13 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   return data_added;
 }
 
-void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
+void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 {
-  if (!m_local_player->IsHost())
+  if (m_local_player->pid != m_current_golfer)
     return;
+
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PAD_HOST_DATA);
 
   if (pad_num < 0)
   {
@@ -1896,8 +2054,18 @@ void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
         m_first_pad_status_received_event.Wait();
       }
     }
+
+    for (size_t i = 0; i < m_pad_map.size(); i++)
+    {
+      if (m_pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
+        continue;
+
+      const GCPadStatus& pad_status = m_last_pad_status[i];
+      m_pad_buffer[i].Push(pad_status);
+      AddPadStateToPacket(static_cast<int>(i), pad_status, packet);
+    }
   }
-  else if (m_pad_map[pad_num] > 0)
+  else if (m_pad_map[pad_num] != 0)
   {
     while (!m_first_pad_status_received[pad_num])
     {
@@ -1906,11 +2074,15 @@ void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
 
       m_first_pad_status_received_event.Wait();
     }
+
+    if (m_pad_buffer[pad_num].Size() == 0)
+    {
+      const GCPadStatus& pad_status = m_last_pad_status[pad_num];
+      m_pad_buffer[pad_num].Push(pad_status);
+      AddPadStateToPacket(pad_num, pad_status, packet);
+    }
   }
 
-  sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_PAD_HOST_POLL);
-  packet << pad_num;
   SendAsync(std::move(packet));
 }
 
@@ -1923,6 +2095,7 @@ bool NetPlayClient::StopGame()
   m_gc_pad_event.Set();
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
+  m_wait_on_input_event.Set();
 
   NetPlay_Disable();
 
@@ -1946,6 +2119,7 @@ void NetPlayClient::Stop()
   m_gc_pad_event.Set();
   m_wii_pad_event.Set();
   m_first_pad_status_received_event.Set();
+  m_wait_on_input_event.Set();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
@@ -1968,15 +2142,35 @@ void NetPlayClient::SendPowerButtonEvent()
   SendAsync(std::move(packet));
 }
 
+void NetPlayClient::RequestGolfControl(const PlayerId pid)
+{
+  if (!m_host_input_authority || !m_net_settings.m_GolfMode)
+    return;
+
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_GOLF_REQUEST);
+  packet << pid;
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::RequestGolfControl()
+{
+  RequestGolfControl(m_local_player->pid);
+}
+
+// called from ---GUI--- thread
+std::string NetPlayClient::GetCurrentGolfer()
+{
+  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+  if (m_players.count(m_current_golfer))
+    return m_players[m_current_golfer].name;
+  return "";
+}
+
 // called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
-  const auto mapping_matches_player_id = [this](const PadMapping& mapping) {
-    return mapping == m_local_player->pid;
-  };
-
-  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
-         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+  return PlayerHasControllerMapped(m_local_player->pid);
 }
 
 bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
@@ -2027,6 +2221,19 @@ int NetPlayClient::LocalPadToInGamePad(int local_pad) const
   }
 
   return ingame_pad;
+}
+
+bool NetPlayClient::PlayerHasControllerMapped(const PlayerId pid) const
+{
+  const auto mapping_matches_player_id = [pid](const PlayerId& mapping) { return mapping == pid; };
+
+  return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
+         std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+}
+
+bool NetPlayClient::IsLocalPlayer(const PlayerId pid) const
+{
+  return pid == m_local_player->pid;
 }
 
 void NetPlayClient::SendTimeBase()
@@ -2171,6 +2378,23 @@ bool IsSyncingAllWiiSaves()
     return netplay_client->GetNetSettings().m_SyncAllWiiSaves;
 
   return false;
+}
+
+void SetupWiimotes()
+{
+  ASSERT(IsNetPlayRunning());
+  const NetSettings& netplay_settings = netplay_client->GetNetSettings();
+  const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
+  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
+  {
+    if (wiimote_map[i] > 0)
+    {
+      static_cast<ControllerEmu::Attachments*>(
+          static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(int(i)))
+              ->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::Attachments))
+          ->SetSelectedAttachment(netplay_settings.m_WiimoteExtension[i]);
+    }
+  }
 }
 
 void NetPlay_Enable(NetPlayClient* const np)
