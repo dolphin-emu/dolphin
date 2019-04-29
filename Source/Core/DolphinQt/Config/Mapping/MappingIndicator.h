@@ -48,6 +48,8 @@ protected:
   QColor GetAltTextColor() const;
   QColor GetGateColor() const;
 
+  double GetScale() const;
+
 private:
   void DrawCursor(ControllerEmu::Cursor& cursor);
   void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);

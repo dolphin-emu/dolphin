@@ -97,7 +97,18 @@ QColor MappingIndicator::GetGateColor() const
 
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
 {
-  setMinimumHeight(128);
+  // TODO: Make these magic numbers less ugly.
+  int required_height = 106;
+
+  if (ControllerEmu::GroupType::MixedTriggers == group->type)
+    required_height = 64 + 1;
+
+  setFixedHeight(required_height);
+}
+
+double MappingIndicator::GetScale() const
+{
+  return height() / 2 - 2;
 }
 
 namespace
@@ -178,7 +189,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
 
   // Bounding box size:
-  const double scale = height() / 2.5;
+  const double scale = GetScale();
 
   QPainter p(this);
   p.translate(width() / 2, height() / 2);
@@ -291,7 +302,7 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   UpdateCalibrationWidget(raw_coord);
 
   // Bounding box size:
-  const double scale = height() / 2.5;
+  const double scale = GetScale();
 
   QPainter p(this);
   p.translate(width() / 2, height() / 2);
@@ -453,7 +464,7 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
   UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
 
   // Bounding box size:
-  const double scale = height() / 2.5;
+  const double scale = GetScale();
 
   QPainter p(this);
   p.translate(width() / 2, height() / 2);
@@ -592,7 +603,7 @@ void ShakeMappingIndicator::DrawShake()
     m_position_samples.pop_back();
 
   // Bounding box size:
-  const double scale = height() / 2.5;
+  const double scale = GetScale();
 
   QPainter p(this);
   p.translate(width() / 2, height() / 2);
@@ -657,8 +668,8 @@ void ShakeMappingIndicator::DrawShake()
 
 void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
-  // TODO: Ugly magic number used in a few places in this file.
-  const double scale = height() / 2.5;
+  // Bounding box size:
+  const double scale = GetScale();
 
   // Input shape.
   p.setPen(GetInputShapePen());

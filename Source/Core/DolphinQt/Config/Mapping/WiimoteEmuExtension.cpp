@@ -40,7 +40,10 @@ void WiimoteEmuExtension::CreateClassicLayout()
   layout->addWidget(
       CreateGroupBox(tr("Buttons"),
                      Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Buttons)),
-      0, 0, -1, 1);
+      0, 0);
+  layout->addWidget(CreateGroupBox(tr("D-Pad"), Wiimote::GetClassicGroup(
+                                                    GetPort(), WiimoteEmu::ClassicGroup::DPad)),
+                    1, 0);
   layout->addWidget(
       CreateGroupBox(tr("Left Stick"),
                      Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::LeftStick)),
@@ -49,14 +52,10 @@ void WiimoteEmuExtension::CreateClassicLayout()
       CreateGroupBox(tr("Right Stick"),
                      Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::RightStick)),
       0, 2, -1, 1);
-
-  layout->addWidget(CreateGroupBox(tr("D-Pad"), Wiimote::GetClassicGroup(
-                                                    GetPort(), WiimoteEmu::ClassicGroup::DPad)),
-                    0, 3);
   layout->addWidget(
       CreateGroupBox(tr("Triggers"),
                      Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Triggers)),
-      1, 3);
+      0, 3, -1, 1);
 
   m_classic_box->setLayout(layout);
 }
@@ -97,23 +96,22 @@ void WiimoteEmuExtension::CreateNunchukLayout()
   auto* layout = new QGridLayout();
   m_nunchuk_box = new QGroupBox(tr("Nunchuk"), this);
 
-  layout->addWidget(CreateGroupBox(tr("Stick"), Wiimote::GetNunchukGroup(
-                                                    GetPort(), WiimoteEmu::NunchukGroup::Stick)),
-                    0, 0, -1, 1);
-  layout->addWidget(CreateGroupBox(tr("Tilt"), Wiimote::GetNunchukGroup(
-                                                   GetPort(), WiimoteEmu::NunchukGroup::Tilt)),
-                    0, 1, -1, 1);
-  layout->addWidget(CreateGroupBox(tr("Swing"), Wiimote::GetNunchukGroup(
-                                                    GetPort(), WiimoteEmu::NunchukGroup::Swing)),
-                    0, 2, -1, 1);
-
+  layout->addWidget(CreateGroupBox(tr("Shake"), Wiimote::GetNunchukGroup(
+                                                    GetPort(), WiimoteEmu::NunchukGroup::Shake)),
+                    0, 0);
   layout->addWidget(
       CreateGroupBox(tr("Buttons"),
                      Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Buttons)),
-      0, 3);
-  layout->addWidget(CreateGroupBox(tr("Shake"), Wiimote::GetNunchukGroup(
-                                                    GetPort(), WiimoteEmu::NunchukGroup::Shake)),
-                    1, 3);
+      1, 0);
+  layout->addWidget(CreateGroupBox(tr("Stick"), Wiimote::GetNunchukGroup(
+                                                    GetPort(), WiimoteEmu::NunchukGroup::Stick)),
+                    0, 1, -1, 1);
+  layout->addWidget(CreateGroupBox(tr("Tilt"), Wiimote::GetNunchukGroup(
+                                                   GetPort(), WiimoteEmu::NunchukGroup::Tilt)),
+                    0, 2, -1, 1);
+  layout->addWidget(CreateGroupBox(tr("Swing"), Wiimote::GetNunchukGroup(
+                                                    GetPort(), WiimoteEmu::NunchukGroup::Swing)),
+                    0, 3, -1, 1);
 
   m_nunchuk_box->setLayout(layout);
 }
