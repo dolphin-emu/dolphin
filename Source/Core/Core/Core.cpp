@@ -32,16 +32,11 @@
 #include "Common/Timer.h"
 
 #include "Core/Analytics.h"
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/Host.h"
-#include "Core/MemTools.h"
-#ifdef USE_MEMORYWATCHER
-#include "Core/MemoryWatcher.h"
-#endif
-#include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
@@ -53,7 +48,9 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/Host.h"
 #include "Core/IOS/IOS.h"
+#include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -269,10 +266,6 @@ void Stop()  // - Hammertime!
   }
 
   ResetRumble();
-
-#ifdef USE_MEMORYWATCHER
-  MemoryWatcher::Shutdown();
-#endif
 }
 
 void DeclareAsCPUThread()
@@ -314,10 +307,6 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
-
-#ifdef USE_MEMORYWATCHER
-  MemoryWatcher::Init();
-#endif
 
   if (savestate_path)
   {
