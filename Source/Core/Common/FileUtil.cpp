@@ -42,6 +42,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
+#include <mach-o/dyld.h>
 #include <sys/param.h>
 #endif
 
@@ -683,6 +684,10 @@ std::string GetExePath()
       dolphin_path = TStrToUTF8(dolphin_exe_expanded_path);
     else
       dolphin_path = TStrToUTF8(dolphin_exe_path);
+#elif defined(__APPLE__)
+    dolphin_path = GetBundleDirectory();
+    dolphin_path =
+        dolphin_path.substr(0, dolphin_path.find_last_of("Dolphin.app/Contents/MacOS") + 1);
 #else
     char dolphin_exe_path[PATH_MAX];
     ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
@@ -794,12 +799,6 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
     s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + DIR_SEP WII_SDCARD;
-
-    s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
-    s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =
-        s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
-    s_user_paths[F_MEMORYWATCHERSOCKET_IDX] =
-        s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
 
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.

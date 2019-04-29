@@ -20,13 +20,8 @@ public:
     ControlState x{};
     ControlState y{};
     ControlState z{};
-  };
 
-  enum
-  {
-    SETTING_CENTER = ReshapableInput::SETTING_COUNT,
-    SETTING_WIDTH,
-    SETTING_HEIGHT,
+    bool IsVisible() const;
   };
 
   explicit Cursor(const std::string& name);
@@ -36,10 +31,19 @@ public:
 
   StateData GetState(bool adjusted);
 
+  // Yaw movement in radians.
+  ControlState GetTotalYaw() const;
+
+  // Pitch movement in radians.
+  ControlState GetTotalPitch() const;
+
+  // Vertical offset in meters.
+  ControlState GetVerticalOffset() const;
+
 private:
   // This is used to reduce the cursor speed for relative input
   // to something that makes sense with the default range.
-  static constexpr double STEP_PER_SEC = 0.04 * 200;
+  static constexpr double STEP_PER_SEC = 0.01 * 200;
 
   // Smooth out forward/backward movements:
   static constexpr double STEP_Z_PER_SEC = 0.05 * 200;
@@ -59,5 +63,12 @@ private:
 
   using Clock = std::chrono::steady_clock;
   Clock::time_point m_last_update;
+
+  SettingValue<double> m_yaw_setting;
+  SettingValue<double> m_pitch_setting;
+  SettingValue<double> m_vertical_offset_setting;
+
+  SettingValue<bool> m_relative_setting;
+  SettingValue<bool> m_autohide_setting;
 };
 }  // namespace ControllerEmu

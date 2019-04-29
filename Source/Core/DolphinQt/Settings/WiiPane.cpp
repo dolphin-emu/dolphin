@@ -79,7 +79,7 @@ void WiiPane::ConnectLayout()
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
-  connect(m_whitelist_usb_add_button, &QPushButton::pressed, this,
+  connect(m_whitelist_usb_add_button, &QPushButton::clicked, this,
           &WiiPane::OnUSBWhitelistAddButton);
   connect(m_whitelist_usb_remove_button, &QPushButton::pressed, this,
           &WiiPane::OnUSBWhitelistRemoveButton);
@@ -221,6 +221,8 @@ void WiiPane::LoadConfig()
 
 void WiiPane::OnSaveConfig()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
   Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());

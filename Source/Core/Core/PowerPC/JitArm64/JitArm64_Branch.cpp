@@ -76,12 +76,6 @@ void JitArm64::bx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  u32 destination;
-  if (inst.AA)
-    destination = SignExt26(inst.LI << 2);
-  else
-    destination = js.compilerPC + SignExt26(inst.LI << 2);
-
   if (inst.LK)
   {
     ARM64Reg WA = gpr.GetReg();
@@ -105,7 +99,7 @@ void JitArm64::bx(UGeckoInstruction inst)
   gpr.Flush(FlushMode::FLUSH_ALL);
   fpr.Flush(FlushMode::FLUSH_ALL);
 
-  if (destination == js.compilerPC)
+  if (js.op->branchIsIdleLoop)
   {
     // make idle loops go faster
     ARM64Reg WA = gpr.GetReg();
@@ -115,11 +109,11 @@ void JitArm64::bx(UGeckoInstruction inst)
     BLR(XA);
     gpr.Unlock(WA);
 
-    WriteExceptionExit(js.compilerPC);
+    WriteExceptionExit(js.op->branchTo);
     return;
   }
 
-  WriteExit(destination, inst.LK, js.compilerPC + 4);
+  WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
 }
 
 void JitArm64::bcx(UGeckoInstruction inst)
@@ -160,16 +154,25 @@ void JitArm64::bcx(UGeckoInstruction inst)
   }
   gpr.Unlock(WA);
 
-  u32 destination;
-  if (inst.AA)
-    destination = SignExt16(inst.BD << 2);
-  else
-    destination = js.compilerPC + SignExt16(inst.BD << 2);
-
   gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
   fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 
-  WriteExit(destination, inst.LK, js.compilerPC + 4);
+  if (js.op->branchIsIdleLoop)
+  {
+    // make idle loops go faster
+    ARM64Reg WA = gpr.GetReg();
+    ARM64Reg XA = EncodeRegTo64(WA);
+
+    MOVP2R(XA, &CoreTiming::Idle);
+    BLR(XA);
+    gpr.Unlock(WA);
+
+    WriteExceptionExit(js.op->branchTo);
+  }
+  else
+  {
+    WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+  }
 
   SwitchToNearCode();
 
@@ -275,7 +278,20 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   gpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
   fpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
 
-  WriteBLRExit(WA);
+  if (js.op->branchIsIdleLoop)
+  {
+    // make idle loops go faster
+    ARM64Reg XA = EncodeRegTo64(WA);
+
+    MOVP2R(XA, &CoreTiming::Idle);
+    BLR(XA);
+
+    WriteExceptionExit(js.op->branchTo);
+  }
+  else
+  {
+    WriteBLRExit(WA);
+  }
 
   gpr.Unlock(WA);
 

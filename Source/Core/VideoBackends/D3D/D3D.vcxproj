@@ -38,51 +38,36 @@
   <ItemGroup>
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="D3DBase.cpp" />
-    <ClCompile Include="D3DBlob.cpp" />
-    <ClCompile Include="D3DShader.cpp" />
     <ClCompile Include="D3DState.cpp" />
-    <ClCompile Include="D3DTexture.cpp" />
-    <ClCompile Include="D3DUtil.cpp" />
     <ClCompile Include="DXPipeline.cpp" />
     <ClCompile Include="DXShader.cpp" />
     <ClCompile Include="DXTexture.cpp" />
-    <ClCompile Include="FramebufferManager.cpp" />
-    <ClCompile Include="GeometryShaderCache.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NativeVertexFormat.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
-    <ClCompile Include="PixelShaderCache.cpp" />
-    <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
-    <ClCompile Include="TextureCache.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="VertexManager.cpp" />
-    <ClCompile Include="VertexShaderCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
-    <ClInclude Include="D3DBlob.h" />
-    <ClInclude Include="D3DShader.h" />
     <ClInclude Include="D3DState.h" />
-    <ClInclude Include="D3DTexture.h" />
-    <ClInclude Include="D3DUtil.h" />
     <ClInclude Include="DXPipeline.h" />
     <ClInclude Include="DXShader.h" />
     <ClInclude Include="DXTexture.h" />
-    <ClInclude Include="FramebufferManager.h" />
-    <ClInclude Include="GeometryShaderCache.h" />
     <ClInclude Include="PerfQuery.h" />
-    <ClInclude Include="PixelShaderCache.h" />
-    <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
-    <ClInclude Include="TextureCache.h" />
+    <ClInclude Include="SwapChain.h" />
     <ClInclude Include="VertexManager.h" />
-    <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\D3DCommon\D3DCommon.vcxproj">
+      <Project>{dea96cf2-f237-4a1a-b32f-c916769efb50}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

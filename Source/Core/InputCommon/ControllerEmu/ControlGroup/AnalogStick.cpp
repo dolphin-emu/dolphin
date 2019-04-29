@@ -30,11 +30,6 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
     controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
 
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
-
-  // Default input radius to that of the gate radius (no resizing)
-  // Default input shape to an octagon (no reshaping)
-  // Max deadzone to 50%
-  AddReshapingSettings(GetGateRadiusAtAngle(0.0), 0.0, 50);
 }
 
 AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)

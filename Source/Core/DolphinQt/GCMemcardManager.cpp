@@ -15,7 +15,6 @@
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
 #include <QTableWidget>
@@ -26,6 +25,8 @@
 #include "Common/StringUtil.h"
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
+
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr u32 BANNER_WIDTH = 96;
 constexpr u32 ANIM_FRAME_WIDTH = 32;
@@ -83,6 +84,7 @@ void GCMemcardManager::CreateWidgets()
     m_slot_table[i]->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_slot_table[i]->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_slot_table[i]->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_slot_table[i]->horizontalHeader()->setHighlightSections(false);
     m_slot_table[i]->verticalHeader()->hide();
     m_slot_table[i]->setShowGrid(false);
 
@@ -126,7 +128,7 @@ void GCMemcardManager::ConnectWidgets()
   {
     connect(m_slot_file_edit[slot], &QLineEdit::textChanged, this,
             [this, slot](const QString& path) { SetSlotFile(slot, path); });
-    connect(m_slot_file_button[slot], &QPushButton::pressed, this,
+    connect(m_slot_file_button[slot], &QPushButton::clicked, this,
             [this, slot] { SetSlotFileInteractive(slot); });
     connect(m_slot_table[slot], &QTableWidget::itemSelectionChanged, this,
             &GCMemcardManager::UpdateActions);
@@ -199,10 +201,12 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     auto* icon = new QTableWidgetItem;
     icon->setData(Qt::DecorationRole, frames[0]);
 
-    DEntry d;
-    memcard->GetDEntry(file_index, d);
+    std::optional<DEntry> entry = memcard->GetDEntry(file_index);
 
-    const auto speed = ((d.AnimSpeed[0] & 1) << 2) + (d.AnimSpeed[1] & 1);
+    // TODO: This is wrong, the animation speed is not static and is already correctly calculated in
+    // GetIconFromSaveFile(), just not returned
+    const u16 animation_speed = entry ? entry->m_animation_speed : 1;
+    const auto speed = (((animation_speed >> 8) & 1) << 2) + (animation_speed & 1);
 
     m_slot_active_icons[slot].push_back({speed, frames});
 
@@ -304,7 +308,7 @@ void GCMemcardManager::ExportFiles(bool prompt)
 
   QString text = count == 1 ? tr("Successfully exported the save file.") :
                               tr("Successfully exported the %1 save files.").arg(count);
-  QMessageBox::information(this, tr("Success"), text);
+  ModalMessageBox::information(this, tr("Success"), text);
 }
 
 void GCMemcardManager::ExportAllFiles()
@@ -328,7 +332,7 @@ void GCMemcardManager::ImportFile()
 
   if (result != SUCCESS)
   {
-    QMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
+    ModalMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
     return;
   }
 
@@ -353,7 +357,9 @@ void GCMemcardManager::CopyFiles()
     const auto result = m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
 
     if (result != SUCCESS)
-      QMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
+    {
+      ModalMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
+    }
   }
 
   for (int i = 0; i < SLOT_COUNT; i++)
@@ -377,8 +383,9 @@ void GCMemcardManager::DeleteFiles()
   {
     QString text = count == 1 ? tr("Do you want to delete the selected save file?") :
                                 tr("Do you want to delete the %1 selected save files?").arg(count);
-    auto response =
-        QMessageBox::warning(this, tr("Question"), text, QMessageBox::Yes | QMessageBox::Abort);
+
+    auto response = ModalMessageBox::question(this, tr("Question"), text);
+    ;
 
     if (response == QMessageBox::Abort)
       return;
@@ -394,13 +401,19 @@ void GCMemcardManager::DeleteFiles()
   for (int file_index : file_indices)
   {
     if (memcard->RemoveFile(file_index) != SUCCESS)
-      QMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
+    {
+      ModalMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
+    }
   }
 
   if (!memcard->Save())
+  {
     PanicAlertT("File write failed");
+  }
   else
-    QMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
+  {
+    ModalMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
+  }
 
   UpdateSlotTable(m_active_slot);
   UpdateActions();

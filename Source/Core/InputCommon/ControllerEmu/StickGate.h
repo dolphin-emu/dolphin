@@ -4,8 +4,14 @@
 
 #pragma once
 
+#include <optional>
+#include <vector>
+
+#include "Common/Matrix.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
@@ -15,6 +21,10 @@ class StickGate
 public:
   // Angle is in radians and should be non-negative
   virtual ControlState GetRadiusAtAngle(double ang) const = 0;
+
+  // This is provided purely as an optimization for ReshapableInput to produce a minimal amount of
+  // calibration points that are saved in our config.
+  virtual std::optional<u32> GetIdealCalibrationSampleCount() const;
 
   virtual ~StickGate() = default;
 };
@@ -26,6 +36,7 @@ public:
   // Radius of circumscribed circle
   explicit OctagonStickGate(ControlState radius);
   ControlState GetRadiusAtAngle(double ang) const override final;
+  std::optional<u32> GetIdealCalibrationSampleCount() const override final;
 
 private:
   const ControlState m_radius;
@@ -48,6 +59,7 @@ class SquareStickGate : public StickGate
 public:
   explicit SquareStickGate(ControlState half_width);
   ControlState GetRadiusAtAngle(double ang) const override final;
+  std::optional<u32> GetIdealCalibrationSampleCount() const override final;
 
 private:
   const ControlState m_half_width;
@@ -56,37 +68,44 @@ private:
 class ReshapableInput : public ControlGroup
 {
 public:
+  // This is the number of samples we generate but any number could be loaded from config.
+  static constexpr int CALIBRATION_SAMPLE_COUNT = 32;
+
+  // Contains input radius maximums at evenly-spaced angles.
+  using CalibrationData = std::vector<ControlState>;
+
   ReshapableInput(std::string name, std::string ui_name, GroupType type);
 
-  struct ReshapeData
-  {
-    ControlState x{};
-    ControlState y{};
-  };
-
-  enum
-  {
-    SETTING_INPUT_RADIUS,
-    SETTING_INPUT_SHAPE,
-    SETTING_DEADZONE,
-    SETTING_COUNT,
-  };
+  using ReshapeData = Common::DVec2;
 
   // Angle is in radians and should be non-negative
-  ControlState GetDeadzoneRadiusAtAngle(double ang) const;
-  ControlState GetInputRadiusAtAngle(double ang) const;
+  ControlState GetDeadzoneRadiusAtAngle(double angle) const;
+  ControlState GetInputRadiusAtAngle(double angle) const;
 
-  virtual ControlState GetGateRadiusAtAngle(double ang) const = 0;
+  ControlState GetDeadzonePercentage() const;
+
+  virtual ControlState GetGateRadiusAtAngle(double angle) const = 0;
   virtual ReshapeData GetReshapableState(bool adjusted) = 0;
+  virtual ControlState GetDefaultInputRadiusAtAngle(double ang) const;
+
+  void SetCalibrationToDefault();
+  void SetCalibrationFromGate(const StickGate& gate);
+
+  static void UpdateCalibrationData(CalibrationData& data, Common::DVec2 point);
+  static ControlState GetCalibrationDataRadiusAtAngle(const CalibrationData& data, double angle);
+
+  const CalibrationData& GetCalibrationData() const;
+  void SetCalibrationData(CalibrationData data);
 
 protected:
-  void AddReshapingSettings(ControlState default_radius, ControlState default_shape,
-                            int max_deadzone);
-
   ReshapeData Reshape(ControlState x, ControlState y, ControlState modifier = 0.0);
 
 private:
-  ControlState CalculateInputShapeRadiusAtAngle(double ang) const;
+  void LoadConfig(IniFile::Section*, const std::string&, const std::string&) override;
+  void SaveConfig(IniFile::Section*, const std::string&, const std::string&) override;
+
+  CalibrationData m_calibration;
+  SettingValue<double> m_deadzone_setting;
 };
 
 }  // namespace ControllerEmu

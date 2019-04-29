@@ -39,7 +39,10 @@ add_subdirectory(Core)
 if (ANDROID)
   add_subdirectory(Android/jni)
 endif()
-add_subdirectory(UnitTests)
+
+if (ENABLE_TESTS)
+  add_subdirectory(UnitTests)
+endif()
 
 if (DSPTOOL)
   add_subdirectory(DSPTool)

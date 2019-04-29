@@ -25,9 +25,11 @@ public:
   virtual ~AbstractShader() = default;
 
   ShaderStage GetStage() const { return m_stage; }
+
+  // Shader binaries represent the input source code in a lower-level form. e.g. SPIR-V or DXBC.
+  // The shader source code is not required to create a shader object from the binary.
   using BinaryData = std::vector<u8>;
-  virtual bool HasBinary() const = 0;
-  virtual BinaryData GetBinary() const = 0;
+  virtual BinaryData GetBinary() const { return {}; }
 
 protected:
   ShaderStage m_stage;

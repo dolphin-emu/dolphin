@@ -5,6 +5,7 @@ add_library(uicommon
   DiscordPresence.cpp
   GameFile.cpp
   GameFileCache.cpp
+  NetPlayIndex.cpp
   ResourcePack/Manager.cpp
   ResourcePack/Manifest.cpp
   ResourcePack/ResourcePack.cpp

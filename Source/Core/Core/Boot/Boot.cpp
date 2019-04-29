@@ -4,6 +4,12 @@
 
 #include "Core/Boot/Boot.h"
 
+#ifdef _MSC_VER
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#define HAS_STD_FILESYSTEM
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -54,6 +60,58 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
+static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
+                                            const std::string& folder_path)
+{
+#ifndef HAS_STD_FILESYSTEM
+  ASSERT(folder_path.back() == '/');
+#endif
+
+  std::vector<std::string> result;
+  std::vector<std::string> nonexistent;
+
+  std::ifstream s;
+  File::OpenFStream(s, m3u_path, std::ios_base::in);
+
+  std::string line;
+  while (std::getline(s, line))
+  {
+    // This is the UTF-8 representation of U+FEFF.
+    const std::string utf8_bom = "\xEF\xBB\xBF";
+
+    if (StringBeginsWith(line, utf8_bom))
+    {
+      WARN_LOG(BOOT, "UTF-8 BOM in file: %s", m3u_path.c_str());
+      line.erase(0, utf8_bom.length());
+    }
+
+    if (!line.empty() && line.front() != '#')  // Comments start with #
+    {
+#ifdef HAS_STD_FILESYSTEM
+      const fs::path path_line = fs::u8path(line);
+      const std::string path_to_add =
+          path_line.is_relative() ? fs::u8path(folder_path).append(path_line).u8string() : line;
+#else
+      const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
+#endif
+
+      (File::Exists(path_to_add) ? result : nonexistent).push_back(path_to_add);
+    }
+  }
+
+  if (!nonexistent.empty())
+  {
+    PanicAlertT("Files specified in the M3U file \"%s\" were not found:\n%s", m3u_path.c_str(),
+                JoinStrings(nonexistent, "\n").c_str());
+    return {};
+  }
+
+  if (result.empty())
+    PanicAlertT("No paths found in the M3U file \"%s\"", m3u_path.c_str());
+
+  return result;
+}
+
 BootParameters::BootParameters(Parameters&& parameters_,
                                const std::optional<std::string>& savestate_path_)
     : parameters(std::move(parameters_)), savestate_path(savestate_path_)
@@ -61,21 +119,45 @@ BootParameters::BootParameters(Parameters&& parameters_,
 }
 
 std::unique_ptr<BootParameters>
-BootParameters::GenerateFromFile(const std::string& path,
+BootParameters::GenerateFromFile(std::string boot_path,
                                  const std::optional<std::string>& savestate_path)
 {
-  const bool is_drive = Common::IsCDROMDevice(path);
+  return GenerateFromFile(std::vector<std::string>{std::move(boot_path)}, savestate_path);
+}
+
+std::unique_ptr<BootParameters>
+BootParameters::GenerateFromFile(std::vector<std::string> paths,
+                                 const std::optional<std::string>& savestate_path)
+{
+  ASSERT(!paths.empty());
+
+  const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
-  if (!is_drive && !File::Exists(path))
+  if (!is_drive && !File::Exists(paths.front()))
   {
-    PanicAlertT("The specified file \"%s\" does not exist", path.c_str());
+    PanicAlertT("The specified file \"%s\" does not exist", paths.front().c_str());
     return {};
   }
 
+  std::string folder_path;
   std::string extension;
-  SplitPath(path, nullptr, nullptr, &extension);
+  SplitPath(paths.front(), &folder_path, nullptr, &extension);
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+  if (extension == ".m3u" || extension == ".m3u8")
+  {
+    paths = ReadM3UFile(paths.front(), folder_path);
+    if (paths.empty())
+      return {};
+
+    SplitPath(paths.front(), nullptr, nullptr, &extension);
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+  }
+
+  const std::string path = paths.front();
+  if (paths.size() == 1)
+    paths.clear();
 
   static const std::unordered_set<std::string> disc_image_extensions = {
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".dol", ".elf"}};
@@ -83,18 +165,21 @@ BootParameters::GenerateFromFile(const std::string& path,
   {
     std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolumeFromFilename(path);
     if (volume)
-      return std::make_unique<BootParameters>(Disc{path, std::move(volume)}, savestate_path);
+    {
+      return std::make_unique<BootParameters>(Disc{std::move(path), std::move(volume), paths},
+                                              savestate_path);
+    }
 
     if (extension == ".elf")
     {
-      return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)},
-                                              savestate_path);
+      return std::make_unique<BootParameters>(
+          Executable{std::move(path), std::make_unique<ElfReader>(path)}, savestate_path);
     }
 
     if (extension == ".dol")
     {
-      return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)},
-                                              savestate_path);
+      return std::make_unique<BootParameters>(
+          Executable{std::move(path), std::make_unique<DolReader>(path)}, savestate_path);
     }
 
     if (is_drive)
@@ -113,10 +198,10 @@ BootParameters::GenerateFromFile(const std::string& path,
   }
 
   if (extension == ".dff")
-    return std::make_unique<BootParameters>(DFF{path}, savestate_path);
+    return std::make_unique<BootParameters>(DFF{std::move(path)}, savestate_path);
 
   if (extension == ".wad")
-    return std::make_unique<BootParameters>(DiscIO::WiiWAD{path}, savestate_path);
+    return std::make_unique<BootParameters>(DiscIO::WiiWAD{std::move(path)}, savestate_path);
 
   PanicAlertT("Could not recognize file %s", path.c_str());
   return {};
@@ -136,10 +221,11 @@ BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
 // Inserts a disc into the emulated disc drive and returns a pointer to it.
 // The returned pointer must only be used while we are still booting,
 // because DVDThread can do whatever it wants to the disc after that.
-static const DiscIO::Volume* SetDisc(std::unique_ptr<DiscIO::Volume> volume)
+static const DiscIO::Volume* SetDisc(std::unique_ptr<DiscIO::Volume> volume,
+                                     std::vector<std::string> auto_disc_change_paths = {})
 {
   const DiscIO::Volume* pointer = volume.get();
-  DVDInterface::SetDisc(std::move(volume));
+  DVDInterface::SetDisc(std::move(volume), auto_disc_change_paths);
   return pointer;
 }
 
@@ -201,25 +287,12 @@ bool CBoot::LoadMapFromFilename()
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 {
-  // CRC32 hashes of the IPL file; including source where known
-  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
-  constexpr u32 USA_v1_0 = 0x6D740AE7;
-  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
-  constexpr u32 USA_v1_1 = 0xD5E6FEEA;
-  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
-  constexpr u32 USA_v1_2 = 0x86573808;
-  // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
-  constexpr u32 BRA_v1_0 = 0x667D0B64;
-  // Redump
-  constexpr u32 JAP_v1_0 = 0x6DAC1F2A;
-  // https://bugs.dolphin-emu.org/issues/8936
-  constexpr u32 JAP_v1_1 = 0xD235E3F9;
-  constexpr u32 JAP_v1_2 = 0x8BDABBD4;
-  // Redump
+  // CRC32 hashes of the IPL file, obtained from Redump
+  constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
+  constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
+  constexpr u32 NTSC_v1_2 = 0x86573808;
+  constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
   constexpr u32 PAL_v1_0 = 0x4F319F43;
-  // https://forums.dolphin-emu.org/Thread-ipl-with-unknown-hash-dd8cab7c-problem-caused-by-my-pal-gamecube-bios?pid=435463#pid435463
-  constexpr u32 PAL_v1_1 = 0xDD8CAB7C;
-  // Redump
   constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
   // Load the whole ROM dump
@@ -230,36 +303,32 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   // Use zlibs crc32 implementation to compute the hash
   u32 ipl_hash = crc32(0L, Z_NULL, 0);
   ipl_hash = crc32(ipl_hash, (const Bytef*)data.data(), (u32)data.size());
-  DiscIO::Region ipl_region;
+  bool known_ipl = false;
+  bool pal_ipl = false;
   switch (ipl_hash)
   {
-  case USA_v1_0:
-  case USA_v1_1:
-  case USA_v1_2:
-  case BRA_v1_0:
-    ipl_region = DiscIO::Region::NTSC_U;
-    break;
-  case JAP_v1_0:
-  case JAP_v1_1:
-  case JAP_v1_2:
-    ipl_region = DiscIO::Region::NTSC_J;
+  case NTSC_v1_0:
+  case NTSC_v1_1:
+  case NTSC_v1_2:
+  case MPAL_v1_1:
+    known_ipl = true;
     break;
   case PAL_v1_0:
-  case PAL_v1_1:
   case PAL_v1_2:
-    ipl_region = DiscIO::Region::PAL;
+    pal_ipl = true;
+    known_ipl = true;
     break;
   default:
-    PanicAlertT("IPL with unknown hash %x", ipl_hash);
-    ipl_region = DiscIO::Region::Unknown;
+    PanicAlertT("The IPL file is not a known good dump. (CRC32: %x)", ipl_hash);
     break;
   }
 
   const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
-  if (ipl_region != DiscIO::Region::Unknown && boot_region != ipl_region)
+  if (known_ipl && pal_ipl != (boot_region == DiscIO::Region::PAL))
+  {
     PanicAlertT("%s IPL found in %s directory. The disc might not be recognized",
-                SConfig::GetDirectoryForRegion(ipl_region),
-                SConfig::GetDirectoryForRegion(boot_region));
+                pal_ipl ? "PAL" : "NTSC", SConfig::GetDirectoryForRegion(boot_region));
+  }
 
   // Run the descrambler over the encrypted section containing BS1/BS2
   ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
@@ -326,7 +395,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     bool operator()(BootParameters::Disc& disc) const
     {
       NOTICE_LOG(BOOT, "Booting from disc: %s", disc.path.c_str());
-      const DiscIO::Volume* volume = SetDisc(std::move(disc.volume));
+      const DiscIO::Volume* volume = SetDisc(std::move(disc.volume), disc.auto_disc_change_paths);
 
       if (!volume)
         return false;
@@ -420,7 +489,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (ipl.disc)
       {
         NOTICE_LOG(BOOT, "Inserting disc: %s", ipl.disc->path.c_str());
-        SetDisc(DiscIO::CreateVolumeFromFilename(ipl.disc->path));
+        SetDisc(DiscIO::CreateVolumeFromFilename(ipl.disc->path), ipl.disc->auto_disc_change_paths);
       }
 
       if (LoadMapFromFilename())

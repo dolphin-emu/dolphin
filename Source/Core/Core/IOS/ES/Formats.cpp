@@ -323,6 +323,20 @@ std::string TMDReader::GetGameID() const
   return StringFromFormat("%016" PRIx64, GetTitleId());
 }
 
+std::string TMDReader::GetGameTDBID() const
+{
+  const u8* begin = m_bytes.data() + offsetof(TMDHeader, title_id) + 4;
+  const u8* end = begin + 4;
+
+  const bool all_printable =
+      std::all_of(begin, end, [](char c) { return std::isprint(c, std::locale::classic()); });
+
+  if (all_printable)
+    return std::string(begin, end);
+
+  return StringFromFormat("%016" PRIx64, GetTitleId());
+}
+
 u16 TMDReader::GetNumContents() const
 {
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, num_contents));
@@ -425,6 +439,11 @@ u32 TicketReader::GetDeviceId() const
 u64 TicketReader::GetTitleId() const
 {
   return Common::swap64(m_bytes.data() + offsetof(Ticket, title_id));
+}
+
+u8 TicketReader::GetCommonKeyIndex() const
+{
+  return m_bytes[offsetof(Ticket, common_key_index)];
 }
 
 std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const

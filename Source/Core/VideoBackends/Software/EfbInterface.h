@@ -54,8 +54,8 @@ u32 GetDepth(u16 x, u16 y);
 
 u8* GetPixelPointer(u16 x, u16 y, bool depth);
 
-void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale,
-               float gamma);
+void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>& source_rect,
+               float y_scale, float gamma);
 
 u32 GetPerfQueryResult(PerfQueryType type);
 void ResetPerfQuery();

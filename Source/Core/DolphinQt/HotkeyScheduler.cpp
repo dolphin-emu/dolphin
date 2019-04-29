@@ -5,6 +5,7 @@
 #include "DolphinQt/HotkeyScheduler.h"
 
 #include <algorithm>
+#include <cmath>
 #include <thread>
 
 #include <QCoreApplication>
@@ -26,6 +27,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -194,6 +196,13 @@ void HotkeyScheduler::Run()
 
       auto& settings = Settings::Instance();
 
+      // Toggle Chat
+      if (IsHotkey(HK_ACTIVATE_CHAT))
+        emit ActivateChat();
+
+      if (IsHotkey(HK_REQUEST_GOLF_CONTROL))
+        emit RequestGolfControl();
+
       // Recording
       if (IsHotkey(HK_START_RECORDING))
         emit StartRecording();
@@ -286,43 +295,62 @@ void HotkeyScheduler::Run()
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
         m_profile_cycler.NextWiimoteProfileForGame(3);
 
-      const auto show_msg = [](OSDMessage message) {
-        if (g_renderer)
-          g_renderer->ShowOSDMessage(message);
+      auto ShowVolume = []() {
+        OSD::AddMessage(std::string("Volume: ") +
+                        (SConfig::GetInstance().m_IsMuted ?
+                             "Muted" :
+                             std::to_string(SConfig::GetInstance().m_Volume)) +
+                        "%");
       };
 
       // Volume
       if (IsHotkey(HK_VOLUME_DOWN))
       {
-        show_msg(OSDMessage::VolumeChanged);
         settings.DecreaseVolume(3);
+        ShowVolume();
       }
 
       if (IsHotkey(HK_VOLUME_UP))
       {
-        show_msg(OSDMessage::VolumeChanged);
         settings.IncreaseVolume(3);
+        ShowVolume();
       }
 
       if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
       {
-        show_msg(OSDMessage::VolumeChanged);
         AudioCommon::ToggleMuteVolume();
+        ShowVolume();
       }
 
       // Graphics
       const auto efb_scale = Config::Get(Config::GFX_EFB_SCALE);
+      auto ShowEFBScale = []() {
+        switch (Config::Get(Config::GFX_EFB_SCALE))
+        {
+        case EFB_SCALE_AUTO_INTEGRAL:
+          OSD::AddMessage("Internal Resolution: Auto (integral)");
+          break;
+        case 1:
+          OSD::AddMessage("Internal Resolution: Native");
+          break;
+        default:
+          OSD::AddMessage("Internal Resolution: %dx", g_Config.iEFBScale);
+          break;
+        }
+      };
 
       if (IsHotkey(HK_INCREASE_IR))
       {
-        show_msg(OSDMessage::IRChanged);
         Config::SetCurrent(Config::GFX_EFB_SCALE, efb_scale + 1);
+        ShowEFBScale();
       }
       if (IsHotkey(HK_DECREASE_IR))
       {
-        show_msg(OSDMessage::IRChanged);
         if (efb_scale > EFB_SCALE_AUTO_INTEGRAL)
+        {
           Config::SetCurrent(Config::GFX_EFB_SCALE, efb_scale - 1);
+          ShowEFBScale();
+        }
       }
 
       if (IsHotkey(HK_TOGGLE_CROP))
@@ -330,34 +358,55 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_TOGGLE_AR))
       {
-        show_msg(OSDMessage::ARToggled);
         const int aspect_ratio = (static_cast<int>(Config::Get(Config::GFX_ASPECT_RATIO)) + 1) & 3;
         Config::SetCurrent(Config::GFX_ASPECT_RATIO, static_cast<AspectMode>(aspect_ratio));
+        switch (static_cast<AspectMode>(aspect_ratio))
+        {
+        case AspectMode::Stretch:
+          OSD::AddMessage("Stretch");
+          break;
+        case AspectMode::Analog:
+          OSD::AddMessage("Force 4:3");
+          break;
+        case AspectMode::AnalogWide:
+          OSD::AddMessage("Force 16:9");
+          break;
+        case AspectMode::Auto:
+        default:
+          OSD::AddMessage("Auto");
+          break;
+        }
       }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
       {
-        show_msg(OSDMessage::EFBCopyToggled);
-        Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
-                           !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
+        const bool new_value = !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+        Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, new_value);
+        OSD::AddMessage(StringFromFormat("Copy EFB: %s", new_value ? "to Texture" : "to RAM"));
       }
+
+      auto ShowXFBCopies = []() {
+        OSD::AddMessage(StringFromFormat(
+            "Copy XFB: %s%s", Config::Get(Config::GFX_HACK_IMMEDIATE_XFB) ? " (Immediate)" : "",
+            Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM) ? "to Texture" : "to RAM"));
+      };
 
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
       {
-        show_msg(OSDMessage::XFBChanged);
         Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
                            !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
+        ShowXFBCopies();
       }
       if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
       {
-        show_msg(OSDMessage::XFBChanged);
-
         Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
                            !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
+        ShowXFBCopies();
       }
       if (IsHotkey(HK_TOGGLE_FOG))
       {
-        show_msg(OSDMessage::FogToggled);
-        Config::SetCurrent(Config::GFX_DISABLE_FOG, !Config::Get(Config::GFX_DISABLE_FOG));
+        const bool new_value = !Config::Get(Config::GFX_DISABLE_FOG);
+        Config::SetCurrent(Config::GFX_DISABLE_FOG, new_value);
+        OSD::AddMessage(StringFromFormat("Fog: %s", new_value ? "Enabled" : "Disabled"));
       }
 
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
@@ -368,22 +417,28 @@ void HotkeyScheduler::Run()
 
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 
+      auto ShowEmulationSpeed = []() {
+        OSD::AddMessage(
+            SConfig::GetInstance().m_EmulationSpeed <= 0 ?
+                "Speed Limit: Unlimited" :
+                StringFromFormat("Speed Limit: %li%%",
+                                 std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)));
+      };
+
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
-        show_msg(OSDMessage::SpeedChanged);
-
         auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
         speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
         SConfig::GetInstance().m_EmulationSpeed = speed;
+        ShowEmulationSpeed();
       }
 
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
-        show_msg(OSDMessage::SpeedChanged);
-
         auto speed = SConfig::GetInstance().m_EmulationSpeed + 0.1;
         speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
         SConfig::GetInstance().m_EmulationSpeed = speed;
+        ShowEmulationSpeed();
       }
 
       // Slot Saving / Loading

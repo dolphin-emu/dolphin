@@ -20,7 +20,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 131> s_hotkey_labels{{
+constexpr std::array<const char*, 133> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -31,6 +31,8 @@ constexpr std::array<const char*, 131> s_hotkey_labels{{
     _trans("Toggle Fullscreen"),
     _trans("Take Screenshot"),
     _trans("Exit"),
+    _trans("Activate NetPlay Chat"),
+    _trans("Control NetPlay Golf Mode"),
 
     _trans("Volume Down"),
     _trans("Volume Up"),
@@ -238,7 +240,7 @@ void Initialize()
   if (s_config.ControllersNeedToBeCreated())
     s_config.CreateController<HotkeyManager>();
 
-  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
+  s_config.RegisterHotplugCallback();
 
   // load the saved controller config
   s_config.LoadConfig(true);
@@ -260,9 +262,11 @@ ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
 
 void Shutdown()
 {
+  s_config.UnregisterHotplugCallback();
+
   s_config.ClearControllers();
 }
-}
+}  // namespace HotkeyManagerEmu
 
 struct HotkeyGroupInfo
 {
@@ -272,7 +276,7 @@ struct HotkeyGroupInfo
 };
 
 constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
-    {{_trans("General"), HK_OPEN, HK_EXIT},
+    {{_trans("General"), HK_OPEN, HK_REQUEST_GOLF_CONTROL},
      {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
      {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
      {_trans("Frame Advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
@@ -385,18 +389,18 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 
   // General hotkeys
   set_key_expression(HK_OPEN, CTRL + " & O");
-  set_key_expression(HK_PLAY_PAUSE, "`F10`");
+  set_key_expression(HK_PLAY_PAUSE, NON + " & `F10`");
 #ifdef _WIN32
-  set_key_expression(HK_STOP, "ESCAPE");
+  set_key_expression(HK_STOP, NON + " & ESCAPE");
   set_key_expression(HK_FULLSCREEN, ALT + " & RETURN");
 #else
-  set_key_expression(HK_STOP, "Escape");
+  set_key_expression(HK_STOP, NON + " & Escape");
   set_key_expression(HK_FULLSCREEN, ALT + " & Return");
 #endif
   set_key_expression(HK_STEP, NON + " & `F11`");
-  set_key_expression(HK_STEP_OVER, NON + " & `F10`");
+  set_key_expression(HK_STEP_OVER, SHIFT + " & `F10`");
   set_key_expression(HK_STEP_OUT, SHIFT + " & `F11`");
-  set_key_expression(HK_BP_TOGGLE, NON + " & `F9`");
+  set_key_expression(HK_BP_TOGGLE, SHIFT + " & `F9`");
   set_key_expression(HK_SCREENSHOT, NON + " & `F9`");
   set_key_expression(HK_WIIMOTE1_CONNECT, ALT + " & `F5`");
   set_key_expression(HK_WIIMOTE2_CONNECT, ALT + " & `F6`");
@@ -404,9 +408,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_WIIMOTE4_CONNECT, ALT + " & `F8`");
   set_key_expression(HK_BALANCEBOARD_CONNECT, ALT + " & `F9`");
 #ifdef _WIN32
-  set_key_expression(HK_TOGGLE_THROTTLE, "TAB");
+  set_key_expression(HK_TOGGLE_THROTTLE, NON + " & TAB");
 #else
-  set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
+  set_key_expression(HK_TOGGLE_THROTTLE, NON + " & Tab");
 #endif
 
   // Freelook

@@ -5,9 +5,7 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-# Note that the SDK determines the maximum version of which optional
-# features can be used, not the minimum required version to run.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10.0" CACHE STRING "")
 
 project(dolphin-emu)
 
@@ -25,6 +23,7 @@ endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
+option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
 option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
@@ -32,6 +31,7 @@ option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
+option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -365,6 +365,10 @@ if(ANDROID)
   message(STATUS "Building for Android")
   if(NOT ENABLE_HEADLESS)
     add_definitions(-DANDROID)
+    if(ENABLE_NOGUI)
+      message(STATUS "Building Android app, disabling NoGUI frontend.")
+      set(ENABLE_NOGUI 0)
+    endif()
   else()
     # Lie to cmake a bit. We are cross compiling to Android
     # but not as a shared library. We want an executable.
@@ -385,7 +389,6 @@ if(ENABLE_HEADLESS)
   message(STATUS "Enabling Headless! Disabling GUI.")
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
-  add_definitions(-DUSE_HEADLESS)
 endif()
 
 # Set file offset size to 64 bits.
@@ -478,8 +481,6 @@ endif()
 if(UNIX)
   message(STATUS "Using named pipes as controller inputs")
   add_definitions(-DUSE_PIPES=1)
-  message(STATUS "Watching game memory for changes")
-  add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
 if(ENABLE_ANALYTICS)
@@ -586,6 +587,16 @@ else()
   message(STATUS "Using static libpng from Externals")
   add_subdirectory(Externals/libpng)
   set(PNG png)
+endif()
+
+# Using static FreeSurround from Externals
+# There is no system FreeSurround library.
+message(STATUS "Using static FreeSurround from Externals")
+add_subdirectory(Externals/FreeSurround)
+
+if (APPLE)
+  message(STATUS "Using ed25519 from Externals")
+  add_subdirectory(Externals/ed25519)
 endif()
 
 # Using static soundtouch from Externals
@@ -720,8 +731,12 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 ########################################
 # Unit testing.
 #
-message(STATUS "Using static gtest from Externals")
-add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+if(ENABLE_TESTS)
+  message(STATUS "Using static gtest from Externals")
+  add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+else()
+  message(STATUS "Unit tests are disabled")
+endif()
 
 ########################################
 # Process Dolphin source now that all setup is complete

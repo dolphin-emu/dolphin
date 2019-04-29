@@ -4,12 +4,6 @@
     <Filter Include="ControllerInterface">
       <UniqueIdentifier>{3a755a86-0efa-4396-bf79-bb3a1910764d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ControllerInterface\DInput">
-      <UniqueIdentifier>{0289ef91-50f5-4c16-9fa4-ff4c4d8208e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ControllerInterface\XInput">
-      <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ControllerInterface\ForceFeedback">
       <UniqueIdentifier>{e10ce316-283c-4be0-848d-578dec2b6404}</UniqueIdentifier>
     </Filter>
@@ -24,6 +18,15 @@
     </Filter>
     <Filter Include="ControllerEmu\Setting">
       <UniqueIdentifier>{ce661cb4-f23f-4ab2-952d-402d381735e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\Win32">
+      <UniqueIdentifier>{6ca06b20-d8f6-4622-97ab-eefbc66edbd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\DInput">
+      <UniqueIdentifier>{0289ef91-50f5-4c16-9fa4-ff4c4d8208e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\XInput">
+      <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -56,9 +59,6 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Cursor.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
-    <ClCompile Include="ControllerEmu\ControlGroup\Extension.cpp">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClCompile>
     <ClCompile Include="ControllerEmu\ControlGroup\Force.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
@@ -76,9 +76,6 @@
     </ClCompile>
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerEmu\Setting\BooleanSetting.cpp">
-      <Filter>ControllerEmu\Setting</Filter>
     </ClCompile>
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp">
       <Filter>ControllerEmu\Setting</Filter>
@@ -107,6 +104,9 @@
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerInterface\Win32\Win32.cpp">
+      <Filter>ControllerInterface\Win32</Filter>
+    </ClCompile>
     <ClCompile Include="ControlReference\ExpressionParser.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
@@ -114,6 +114,9 @@
       <Filter>ControllerInterface</Filter>
     </ClCompile>
     <ClCompile Include="InputProfile.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -146,9 +149,6 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Cursor.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerEmu\ControlGroup\Extension.h">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClInclude>
     <ClInclude Include="ControllerEmu\ControlGroup\Force.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
@@ -167,13 +167,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerEmu\Setting\BooleanSetting.h">
-      <Filter>ControllerEmu\Setting</Filter>
-    </ClInclude>
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h">
-      <Filter>ControllerEmu\Setting</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\Setting\Setting.h">
       <Filter>ControllerEmu\Setting</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\DInput\DInput.h">
@@ -203,6 +197,9 @@
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h">
       <Filter>ControllerInterface\DInput</Filter>
     </ClInclude>
+    <ClInclude Include="ControllerInterface\Win32\Win32.h">
+      <Filter>ControllerInterface\Win32</Filter>
+    </ClInclude>
     <ClInclude Include="ControlReference\ExpressionParser.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
@@ -210,6 +207,9 @@
       <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="InputProfile.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

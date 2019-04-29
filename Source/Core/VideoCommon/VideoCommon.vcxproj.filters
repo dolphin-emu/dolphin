@@ -29,12 +29,6 @@
     <ClCompile Include="PixelEngine.cpp" />
     <ClCompile Include="VideoBackendBase.cpp" />
     <ClCompile Include="VideoConfig.cpp" />
-    <ClCompile Include="Debugger.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="FramebufferManagerBase.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="PerfQueryBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -197,6 +191,18 @@
     <ClCompile Include="ShaderCache.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="FramebufferShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="FramebufferManager.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlayChatUI.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlayGolfUI.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -206,12 +212,6 @@
     <ClInclude Include="VideoBackendBase.h" />
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
-    <ClInclude Include="Debugger.h">
-      <Filter>Base</Filter>
-    </ClInclude>
-    <ClInclude Include="FramebufferManagerBase.h">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="PerfQueryBase.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -374,7 +374,6 @@
     <ClInclude Include="AbstractPipeline.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="AbstractFramebuffer.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -383,6 +382,21 @@
     </ClInclude>
     <ClInclude Include="ShaderCache.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="FramebufferShaderGen.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="FramebufferManager.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConverterShaderGen.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlayChatUI.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlayGolfUI.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

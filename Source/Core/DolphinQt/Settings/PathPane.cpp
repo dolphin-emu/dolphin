@@ -43,7 +43,7 @@ void PathPane::BrowseDefaultGame()
 {
   QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
       this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;"
          "All Files (*)")));
 
   if (!file.isEmpty())
@@ -143,7 +143,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   connect(auto_checkbox, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetAutoRefreshEnabled);
 
-  connect(add, &QPushButton::pressed, this, &PathPane::Browse);
+  connect(add, &QPushButton::clicked, this, &PathPane::Browse);
   connect(m_remove_path, &QPushButton::pressed, this, &PathPane::RemovePath);
 
   game_box->setLayout(vlayout);

@@ -146,6 +146,7 @@ public:
   BlobType GetBlobType() const override;
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
+  bool IsDataSizeAccurate() const override { return true; }
 
 private:
   struct PartitionWithType

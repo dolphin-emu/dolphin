@@ -35,6 +35,10 @@ bool Host_UINeedsControllerState()
 {
   return false;
 }
+bool Host_UIBlocksControllerState()
+{
+  return false;
+}
 bool Host_RendererHasFocus()
 {
   return false;

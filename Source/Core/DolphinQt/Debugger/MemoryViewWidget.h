@@ -18,7 +18,9 @@ public:
     U16,
     U32,
     ASCII,
-    Float32
+    U32xASCII,
+    Float32,
+    U32xFloat32
   };
 
   enum class BPType
@@ -31,6 +33,7 @@ public:
   explicit MemoryViewWidget(QWidget* parent = nullptr);
 
   void Update();
+  const u32 PCTargetMemory();
   void ToggleBreakpoint();
   void ToggleRowBreakpoint(bool row);
 
@@ -49,6 +52,8 @@ public:
 
 signals:
   void BreakpointsChanged();
+  void SendSearchValue(const QString);
+  void SendDataValue(const QString);
   void ShowCode(u32 address);
 
 private:

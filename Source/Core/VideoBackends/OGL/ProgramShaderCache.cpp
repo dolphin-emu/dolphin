@@ -4,6 +4,7 @@
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
+#include <atomic>
 #include <limits>
 #include <memory>
 #include <string>
@@ -27,7 +28,6 @@
 #include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
-#include "VideoCommon/Debugger.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
@@ -39,8 +39,6 @@
 
 namespace OGL
 {
-static constexpr u32 UBO_LENGTH = 32 * 1024 * 1024;
-
 u32 ProgramShaderCache::s_ubo_buffer_size;
 s32 ProgramShaderCache::s_ubo_align;
 GLuint ProgramShaderCache::s_attributeless_VBO = 0;
@@ -54,6 +52,7 @@ static GLuint CurrentProgram = 0;
 ProgramShaderCache::PipelineProgramMap ProgramShaderCache::s_pipeline_programs;
 std::mutex ProgramShaderCache::s_pipeline_program_lock;
 static std::string s_glsl_header = "";
+static std::atomic<u64> s_shader_counter{0};
 static thread_local bool s_is_shared_context = false;
 
 static std::string GetGLSLVersionString()
@@ -109,13 +108,13 @@ void SHADER::SetProgramVariables()
     glUniformBlockBinding(glprogid, UBERBlock_id, 4);
 
   // Bind Texture Samplers
-  for (int a = 0; a < 10; ++a)
+  for (int a = 0; a < 8; ++a)
   {
-    std::string name = StringFromFormat(a < 8 ? "samp[%d]" : "samp%d", a);
-
     // Still need to get sampler locations since we aren't binding them statically in the shaders
-    int loc = glGetUniformLocation(glprogid, name.c_str());
-    if (loc != -1)
+    int loc = glGetUniformLocation(glprogid, StringFromFormat("samp[%d]", a).c_str());
+    if (loc < 0)
+      loc = glGetUniformLocation(glprogid, StringFromFormat("samp%d", a).c_str());
+    if (loc >= 0)
       glUniform1i(loc, a);
   }
 
@@ -191,21 +190,22 @@ bool PipelineProgramKey::operator!=(const PipelineProgramKey& rhs) const
 
 bool PipelineProgramKey::operator==(const PipelineProgramKey& rhs) const
 {
-  return std::tie(vertex_shader, geometry_shader, pixel_shader) ==
-         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+  return std::tie(vertex_shader_id, geometry_shader_id, pixel_shader_id) ==
+         std::tie(rhs.vertex_shader_id, rhs.geometry_shader_id, rhs.pixel_shader_id);
 }
 
 bool PipelineProgramKey::operator<(const PipelineProgramKey& rhs) const
 {
-  return std::tie(vertex_shader, geometry_shader, pixel_shader) <
-         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+  return std::tie(vertex_shader_id, geometry_shader_id, pixel_shader_id) <
+         std::tie(rhs.vertex_shader_id, rhs.geometry_shader_id, rhs.pixel_shader_id);
 }
 
 std::size_t PipelineProgramKeyHash::operator()(const PipelineProgramKey& key) const
 {
   // We would really want std::hash_combine for this..
-  std::hash<const void*> hasher;
-  return hasher(key.vertex_shader) + hasher(key.geometry_shader) + hasher(key.pixel_shader);
+  std::hash<u64> hasher;
+  return hasher(key.vertex_shader_id) + hasher(key.geometry_shader_id) +
+         hasher(key.pixel_shader_id);
 }
 
 StreamBuffer* ProgramShaderCache::GetUniformBuffer()
@@ -216,13 +216,6 @@ StreamBuffer* ProgramShaderCache::GetUniformBuffer()
 u32 ProgramShaderCache::GetUniformBufferAlignment()
 {
   return s_ubo_align;
-}
-
-void ProgramShaderCache::InvalidateConstants()
-{
-  VertexShaderManager::dirty = true;
-  GeometryShaderManager::dirty = true;
-  PixelShaderManager::dirty = true;
 }
 
 void ProgramShaderCache::UploadConstants()
@@ -274,73 +267,6 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
 }
 
-bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
-                                       const std::string& pcode, const std::string& gcode)
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
-  {
-    static int counter = 0;
-    std::string filename =
-        StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-    SaveData(filename, vcode.c_str());
-
-    filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-    SaveData(filename, pcode.c_str());
-
-    if (!gcode.empty())
-    {
-      filename =
-          StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-      SaveData(filename, gcode.c_str());
-    }
-  }
-#endif
-
-  shader.vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
-  shader.psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
-
-  // Optional geometry shader
-  shader.gsid = 0;
-  if (!gcode.empty())
-    shader.gsid = CompileSingleShader(GL_GEOMETRY_SHADER, gcode);
-
-  if (!shader.vsid || !shader.psid || (!gcode.empty() && !shader.gsid))
-  {
-    shader.Destroy();
-    return false;
-  }
-
-  // Create and link the program.
-  shader.glprogid = glCreateProgram();
-
-  glAttachShader(shader.glprogid, shader.vsid);
-  glAttachShader(shader.glprogid, shader.psid);
-  if (shader.gsid)
-    glAttachShader(shader.glprogid, shader.gsid);
-
-  if (g_ogl_config.bSupportsGLSLCache)
-    glProgramParameteri(shader.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-
-  shader.SetProgramBindings(false);
-
-  glLinkProgram(shader.glprogid);
-
-  if (!CheckProgramLinkResult(shader.glprogid, vcode, pcode, gcode))
-  {
-    // Don't try to use this shader
-    shader.Destroy();
-    return false;
-  }
-
-  // For drivers that don't support binding layout, we need to bind it here.
-  shader.SetProgramVariables();
-
-  // Original shaders aren't needed any more.
-  shader.DestroyShaders();
-  return true;
-}
-
 bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string& code)
 {
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
@@ -365,7 +291,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
   // original shaders aren't needed any more
   glDeleteShader(shader_id);
 
-  if (!CheckProgramLinkResult(shader.glprogid, full_code, "", ""))
+  if (!CheckProgramLinkResult(shader.glprogid, &full_code, nullptr, nullptr))
   {
     shader.Destroy();
     return false;
@@ -448,8 +374,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
   return true;
 }
 
-bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vcode,
-                                                const std::string& pcode, const std::string& gcode)
+bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string* vcode,
+                                                const std::string* pcode, const std::string* gcode)
 {
   GLint linkStatus;
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
@@ -467,9 +393,13 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vc
           StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
-      file << s_glsl_header << vcode << s_glsl_header << pcode;
-      if (!gcode.empty())
-        file << s_glsl_header << gcode;
+      if (vcode)
+        file << s_glsl_header << *vcode << '\n';
+      if (gcode)
+        file << s_glsl_header << *gcode << '\n';
+      if (pcode)
+        file << s_glsl_header << *pcode << '\n';
+
       file << info_log;
       file.close();
 
@@ -502,7 +432,7 @@ void ProgramShaderCache::Init()
   // We multiply by *4*4 because we need to get down to basic machine units.
   // So multiply by four to get how many floats we have from vec4s
   // Then once more to get bytes
-  s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
+  s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, VertexManagerBase::UNIFORM_STREAM_BUFFER_SIZE);
 
   CreateHeader();
   CreateAttributelessVAO();
@@ -564,17 +494,27 @@ void ProgramShaderCache::InvalidateVertexFormat()
   s_last_VAO = 0;
 }
 
+void ProgramShaderCache::InvalidateVertexFormatIfBound(GLuint vao)
+{
+  if (s_last_VAO == vao)
+    s_last_VAO = 0;
+}
+
 void ProgramShaderCache::InvalidateLastProgram()
 {
   CurrentProgram = 0;
 }
 
-const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* vertex_format,
-                                                              const OGLShader* vertex_shader,
-                                                              const OGLShader* geometry_shader,
-                                                              const OGLShader* pixel_shader)
+PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* vertex_format,
+                                                        const OGLShader* vertex_shader,
+                                                        const OGLShader* geometry_shader,
+                                                        const OGLShader* pixel_shader,
+                                                        const void* cache_data,
+                                                        size_t cache_data_size)
 {
-  PipelineProgramKey key = {vertex_shader, geometry_shader, pixel_shader};
+  PipelineProgramKey key = {vertex_shader ? vertex_shader->GetID() : 0,
+                            geometry_shader ? geometry_shader->GetID() : 0,
+                            pixel_shader ? pixel_shader->GetID() : 0};
   {
     std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
     auto iter = s_pipeline_programs.find(key);
@@ -585,39 +525,72 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
     }
   }
 
-  // We temporarily change the vertex array to the pipeline's vertex format.
-  // This can prevent the NVIDIA OpenGL driver from recompiling on first use.
-  GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
-  if (s_is_shared_context || vao != s_last_VAO)
-    glBindVertexArray(vao);
-
   std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
   prog->key = key;
-
-  // Attach shaders.
-  ASSERT(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
-  ASSERT(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
   prog->shader.glprogid = glCreateProgram();
-  glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
-  glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
-  if (geometry_shader)
+
+  // Use the cache data, if present. If this fails, we want to return an error, so the shader cache
+  // doesn't attempt to use the same binary data in the future.
+  if (cache_data_size >= sizeof(u32))
   {
-    ASSERT(geometry_shader->GetStage() == ShaderStage::Geometry);
-    glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
+    u32 program_binary_type;
+    std::memcpy(&program_binary_type, cache_data, sizeof(u32));
+    glProgramBinary(prog->shader.glprogid, static_cast<GLenum>(program_binary_type),
+                    static_cast<const u8*>(cache_data) + sizeof(u32),
+                    static_cast<GLsizei>(cache_data_size - sizeof(u32)));
+
+    // Check the link status. If this fails, it means the binary was invalid.
+    GLint link_status;
+    glGetProgramiv(prog->shader.glprogid, GL_LINK_STATUS, &link_status);
+    if (link_status != GL_TRUE)
+    {
+      WARN_LOG(VIDEO, "Failed to create GL program from program binary.");
+      prog->shader.Destroy();
+      return nullptr;
+    }
+
+    // We don't want to retrieve this binary and duplicate entries in the cache again.
+    // See the explanation in OGLPipeline.cpp.
+    prog->binary_retrieved = true;
   }
-
-  // Link program.
-  prog->shader.SetProgramBindings(false);
-  glLinkProgram(prog->shader.glprogid);
-
-  // Restore VAO binding after linking.
-  if (!s_is_shared_context && vao != s_last_VAO)
-    glBindVertexArray(s_last_VAO);
-
-  if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
+  else
   {
-    prog->shader.Destroy();
-    return nullptr;
+    // We temporarily change the vertex array to the pipeline's vertex format.
+    // This can prevent the NVIDIA OpenGL driver from recompiling on first use.
+    GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
+    if (s_is_shared_context || vao != s_last_VAO)
+      glBindVertexArray(vao);
+
+    // Attach shaders.
+    ASSERT(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
+    ASSERT(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
+    glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
+    glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
+    if (geometry_shader)
+    {
+      ASSERT(geometry_shader->GetStage() == ShaderStage::Geometry);
+      glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
+    }
+
+    if (g_ActiveConfig.backend_info.bSupportsPipelineCacheData)
+      glProgramParameteri(prog->shader.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+
+    // Link program.
+    prog->shader.SetProgramBindings(false);
+    glLinkProgram(prog->shader.glprogid);
+
+    // Restore VAO binding after linking.
+    if (!s_is_shared_context && vao != s_last_VAO)
+      glBindVertexArray(s_last_VAO);
+
+    if (!ProgramShaderCache::CheckProgramLinkResult(
+            prog->shader.glprogid, vertex_shader ? &vertex_shader->GetSource() : nullptr,
+            geometry_shader ? &geometry_shader->GetSource() : nullptr,
+            pixel_shader ? &pixel_shader->GetSource() : nullptr))
+    {
+      prog->shader.Destroy();
+      return nullptr;
+    }
   }
 
   // Lock to insert. A duplicate program may have been created in the meantime.
@@ -644,16 +617,17 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
   return ip.first->second.get();
 }
 
-void ProgramShaderCache::ReleasePipelineProgram(const PipelineProgram* prog)
+void ProgramShaderCache::ReleasePipelineProgram(PipelineProgram* prog)
 {
+  if (--prog->reference_count > 0)
+    return;
+
+  prog->shader.Destroy();
+
+  std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
   auto iter = s_pipeline_programs.find(prog->key);
   ASSERT(iter != s_pipeline_programs.end() && prog == iter->second.get());
-
-  if (--iter->second->reference_count == 0)
-  {
-    iter->second->shader.Destroy();
-    s_pipeline_programs.erase(iter);
-  }
+  s_pipeline_programs.erase(iter);
 }
 
 void ProgramShaderCache::CreateHeader()
@@ -722,6 +696,29 @@ void ProgramShaderCache::CreateHeader()
     break;
   }
 
+  std::string shader_shuffle_string;
+  if (g_ogl_config.bSupportsShaderThreadShuffleNV)
+  {
+    shader_shuffle_string = R"(
+#extension GL_NV_shader_thread_group : enable
+#extension GL_NV_shader_thread_shuffle : enable
+#define SUPPORTS_SUBGROUP_REDUCTION 1
+
+// The xor shuffle below produces incorrect results if all threads in a warp are not active.
+#define CAN_USE_SUBGROUP_REDUCTION (ballotThreadNV(true) == 0xFFFFFFFFu)
+
+#define IS_HELPER_INVOCATION gl_HelperThreadNV
+#define IS_FIRST_ACTIVE_INVOCATION (gl_ThreadInWarpNV == findLSB(ballotThreadNV(!gl_HelperThreadNV)))
+#define SUBGROUP_REDUCTION(func, value) value = func(value, shuffleXorNV(value, 16, 32)); \
+                                        value = func(value, shuffleXorNV(value, 8, 32)); \
+                                        value = func(value, shuffleXorNV(value, 4, 32)); \
+                                        value = func(value, shuffleXorNV(value, 2, 32)); \
+                                        value = func(value, shuffleXorNV(value, 1, 32));
+#define SUBGROUP_MIN(value) SUBGROUP_REDUCTION(min, value)
+#define SUBGROUP_MAX(value) SUBGROUP_REDUCTION(max, value)
+)";
+  }
+
   s_glsl_header = StringFromFormat(
       "%s\n"
       "%s\n"  // ubo
@@ -740,6 +737,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // ES dual source blend
       "%s\n"  // shader image load store
       "%s\n"  // shader framebuffer fetch
+      "%s\n"  // shader thread shuffle
 
       // Precision defines for GLSL ES
       "%s\n"
@@ -750,6 +748,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"
 
       // Silly differences
+      "#define API_OPENGL 1\n"
       "#define float2 vec2\n"
       "#define float3 vec3\n"
       "#define float4 vec4\n"
@@ -759,8 +758,6 @@ void ProgramShaderCache::CreateHeader()
       "#define int2 ivec2\n"
       "#define int3 ivec3\n"
       "#define int4 ivec4\n"
-
-      // hlsl to glsl function translation
       "#define frac fract\n"
       "#define lerp mix\n"
 
@@ -782,12 +779,17 @@ void ProgramShaderCache::CreateHeader()
           "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
           "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
           "#define SAMPLER_BINDING(x) layout(binding = x)\n"
-          "#define SSBO_BINDING(x) layout(binding = x)\n" :
+          "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(binding = x)\n"
+          "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n" :
           "#define ATTRIBUTE_LOCATION(x)\n"
           "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
           "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
           "#define UBO_BINDING(packing, x) layout(packing)\n"
-          "#define SAMPLER_BINDING(x)\n",
+          "#define SAMPLER_BINDING(x)\n"
+          "#define TEXEL_BUFFER_BINDING(x)\n"
+          "#define SSBO_BINDING(x)\n"
+          "#define IMAGE_BINDING(format, x) layout(format)\n",
       // Input/output blocks are matched by name during program linking
       "#define VARYING_LOCATION(x)\n",
       !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
@@ -814,13 +816,19 @@ void ProgramShaderCache::CreateHeader()
               ((!is_glsles && v < Glsl430) || (is_glsles && v < GlslEs310)) ?
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
-      framebuffer_fetch_string.c_str(), is_glsles ? "precision highp float;" : "",
-      is_glsles ? "precision highp int;" : "", is_glsles ? "precision highp sampler2DArray;" : "",
+      framebuffer_fetch_string.c_str(), shader_shuffle_string.c_str(),
+      is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
+      is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
       v > GlslEs300 ? "precision highp sampler2DMS;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
+}
+
+u64 ProgramShaderCache::GenerateShaderID()
+{
+  return s_shader_counter++;
 }
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
@@ -844,6 +852,18 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
     return false;
 
   s_is_shared_context = true;
+
+  // Make the state match the main context to have a better chance of avoiding recompiles.
+  if (!context->IsGLES())
+    glEnable(GL_PROGRAM_POINT_SIZE);
+  if (g_ActiveConfig.backend_info.bSupportsClipControl)
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_CLIP_DISTANCE1);
+    glEnable(GL_DEPTH_CLAMP);
+  }
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(context);
 

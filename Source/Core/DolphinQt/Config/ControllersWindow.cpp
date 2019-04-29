@@ -14,7 +14,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScreen>
@@ -34,6 +33,7 @@
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -328,11 +328,9 @@ void ControllersWindow::OnBluetoothPassthroughResetPressed()
 
   if (!ios)
   {
-    QMessageBox error(this);
-    error.setIcon(QMessageBox::Warning);
-    error.setWindowTitle(tr("Warning"));
-    error.setText(tr("Saved Wii Remote pairings can only be reset when a Wii game is running."));
-    error.exec();
+    ModalMessageBox::warning(
+        this, tr("Warning"),
+        tr("Saved Wii Remote pairings can only be reset when a Wii game is running."));
     return;
   }
 
@@ -349,11 +347,8 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
 
   if (!ios)
   {
-    QMessageBox error(this);
-    error.setIcon(QMessageBox::Warning);
-    error.setWindowTitle(tr("Warning"));
-    error.setText(tr("A sync can only be triggered when a Wii game is running."));
-    error.exec();
+    ModalMessageBox::warning(this, tr("Warning"),
+                             tr("A sync can only be triggered when a Wii game is running."));
     return;
   }
 
@@ -501,11 +496,8 @@ void ControllersWindow::SaveSettings()
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     const int index = m_wiimote_boxes[i]->currentIndex();
-    g_wiimote_sources[i] = index;
     m_wiimote_buttons[i]->setEnabled(index != 0 && index != 2);
-
-    if (Core::IsRunning())
-      WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
+    WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
   }
 
   UICommon::SaveWiimoteSources();

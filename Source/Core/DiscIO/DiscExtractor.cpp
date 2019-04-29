@@ -19,16 +19,21 @@
 
 namespace DiscIO
 {
-std::string DirectoryNameForPartitionType(u32 partition_type)
+std::string NameForPartitionType(u32 partition_type, bool include_prefix)
 {
   switch (partition_type)
   {
-  case 0:
+  case PARTITION_DATA:
     return "DATA";
-  case 1:
+  case PARTITION_UPDATE:
     return "UPDATE";
-  case 2:
+  case PARTITION_CHANNEL:
     return "CHANNEL";
+  case PARTITION_INSTALL:
+    // wit doesn't recognize the name "INSTALL", so we can't use it when naming partition folders
+    if (!include_prefix)
+      return "INSTALL";
+    // [[fallthrough]]
   default:
     const std::string type_as_game_id{static_cast<char>((partition_type >> 24) & 0xFF),
                                       static_cast<char>((partition_type >> 16) & 0xFF),
@@ -37,10 +42,10 @@ std::string DirectoryNameForPartitionType(u32 partition_type)
     if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(),
                     [](char c) { return std::isalnum(c, std::locale::classic()); }))
     {
-      return "P-" + type_as_game_id;
+      return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
 
-    return StringFromFormat("P%u", partition_type);
+    return StringFromFormat(include_prefix ? "P%u" : "%u", partition_type);
   }
 }
 
@@ -205,7 +210,7 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
   if (!size || !offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, *size, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, *size, export_filename);
 }
 
 bool ExportH3Hashes(const Volume& volume, const Partition& partition,
@@ -219,7 +224,7 @@ bool ExportH3Hashes(const Volume& volume, const Partition& partition,
   if (!offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, 0x18000, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, 0x18000, export_filename);
 }
 
 bool ExportHeader(const Volume& volume, const Partition& partition,

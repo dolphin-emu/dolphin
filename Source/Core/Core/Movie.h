@@ -15,11 +15,15 @@ struct BootParameters;
 
 struct GCPadStatus;
 class PointerWrap;
-struct wiimote_key;
+
+namespace WiimoteCommon
+{
+class DataReportBuilder;
+}
 
 namespace WiimoteEmu
 {
-struct ReportFeatures;
+class EncryptionKey;
 }
 
 // Per-(video )Movie actions
@@ -152,7 +156,7 @@ bool IsNetPlayRecording();
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 bool IsUsingBongo(int controller);
-void ChangePads(bool instantly = false);
+void ChangePads();
 void ChangeWiiPads(bool instantly = false);
 
 void SetReadOnly(bool bEnabled);
@@ -165,27 +169,27 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 void LoadInput(const std::string& movie_path);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext,
-                 const wiimote_key key);
+bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
+                 const WiimoteEmu::EncryptionKey& key);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
 void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, const u8* data, const struct WiimoteEmu::ReportFeatures& rptf,
-                        int ext, const wiimote_key key);
+void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt, int ext,
+                        const WiimoteEmu::EncryptionKey& key);
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
 
 // Done this way to avoid mixing of core and gui code
 using GCManipFunction = std::function<void(GCPadStatus*, int)>;
-using WiiManipFunction =
-    std::function<void(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key)>;
+using WiiManipFunction = std::function<void(WiimoteCommon::DataReportBuilder&, int, int,
+                                            const WiimoteEmu::EncryptionKey&)>;
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
-void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
-                       const wiimote_key key);
+void CallWiiInputManip(WiimoteCommon::DataReportBuilder& rpt, int controllerID, int ext,
+                       const WiimoteEmu::EncryptionKey& key);
 }  // namespace Movie

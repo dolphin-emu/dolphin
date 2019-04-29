@@ -9,7 +9,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -22,12 +21,13 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "UICommon/GameFile.h"
 
 GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision()),
-      m_restart_required(restart_required)
+    : m_game(game), m_game_id(game.GetGameID()), m_gametdb_id(game.GetGameTDBID()),
+      m_game_revision(game.GetRevision()), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -251,17 +251,17 @@ void GeckoCodeWidget::DownloadCodes()
 {
   bool success;
 
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_game_id, &success);
+  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
 
   if (!success)
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
     return;
   }
 
   if (codes.empty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
+    ModalMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
     return;
   }
 
@@ -281,7 +281,8 @@ void GeckoCodeWidget::DownloadCodes()
   UpdateList();
   SaveCodes();
 
-  QMessageBox::information(this, tr("Download complete"),
-                           tr("Downloaded %1 codes. (added %2)")
-                               .arg(QString::number(codes.size()), QString::number(added_count)));
+  ModalMessageBox::information(
+      this, tr("Download complete"),
+      tr("Downloaded %1 codes. (added %2)")
+          .arg(QString::number(codes.size()), QString::number(added_count)));
 }

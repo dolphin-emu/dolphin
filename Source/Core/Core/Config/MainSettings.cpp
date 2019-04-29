@@ -104,6 +104,24 @@ const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCVal
 const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS{{System::Main, "Core", "EnableSignatureChecks"},
                                                     true};
 const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE{{System::Main, "Core", "ReducePollingRate"}, false};
+const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
+
+// Main.Display
+
+const ConfigInfo<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
+    {System::Main, "Display", "FullscreenDisplayRes"}, "Auto"};
+const ConfigInfo<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, false};
+const ConfigInfo<bool> MAIN_RENDER_TO_MAIN{{System::Main, "Display", "RenderToMain"}, false};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowXPos"}, -1};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_WIDTH{{System::Main, "Display", "RenderWindowWidth"}, 640};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_HEIGHT{{System::Main, "Display", "RenderWindowHeight"},
+                                                480};
+const ConfigInfo<bool> MAIN_RENDER_WINDOW_AUTOSIZE{
+    {System::Main, "Display", "RenderWindowAutoSize"}, false};
+const ConfigInfo<bool> MAIN_KEEP_WINDOW_ON_TOP{{System::Main, "Display", "KeepWindowOnTop"}, false};
+const ConfigInfo<bool> MAIN_DISABLE_SCREENSAVER{{System::Main, "Display", "DisableScreenSaver"},
+                                                false};
 
 // Main.DSP
 

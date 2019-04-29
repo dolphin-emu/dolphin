@@ -10,6 +10,8 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMouseEvent>
+#include <QPushButton>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QWidget>
@@ -30,11 +32,15 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
 
+  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
 
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged,
@@ -51,9 +57,13 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
-
-  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this]() {
+    if (Core::GetState() == Core::State::Paused)
+    {
+      SetAddress(PC, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      Update();
+    }
+  });
 
   CreateWidgets();
   ConnectWidgets();
@@ -90,9 +100,12 @@ void CodeWidget::CreateWidgets()
 
   m_search_address = new QLineEdit;
   m_search_symbols = new QLineEdit;
+  m_code_trace = new QPushButton(tr("Trace"));
+  m_code_diff = new QPushButton(tr("Diff"));
   m_code_view = new CodeViewWidget;
 
   m_search_address->setPlaceholderText(tr("Search Address"));
+  m_search_address->installEventFilter(this);
   m_search_symbols->setPlaceholderText(tr("Filter Symbols"));
 
   // Callstack
@@ -141,6 +154,8 @@ void CodeWidget::CreateWidgets()
 
   layout->addWidget(m_search_address, 0, 0);
   layout->addWidget(m_search_symbols, 0, 1);
+  layout->addWidget(m_code_trace, 0, 2);
+  layout->addWidget(m_code_diff, 0, 3);
   layout->addWidget(m_code_splitter, 1, 0, -1, -1);
 
   QWidget* widget = new QWidget(this);
@@ -148,13 +163,27 @@ void CodeWidget::CreateWidgets()
   setWidget(widget);
 }
 
+bool CodeWidget::eventFilter(QObject* obj, QEvent* event)
+{
+  // QLineEdit doesn't have an easy way to emit a signal when clicked. Without this we have to
+  // change the search address every time we want to refocus on it.
+  if (obj == m_search_address && event->type() == QEvent::MouseButtonPress)
+  {
+    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+    if (mouseEvent->button() == Qt::LeftButton)
+      OnSearchAddress();
+  }
+  return QObject::eventFilter(obj, event);
+}
+
 void CodeWidget::ConnectWidgets()
 {
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
-
   connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
   connect(m_callstack_list, &QListWidget::itemPressed, this,
+  connect(m_code_trace, &QPushButton::pressed, this, &CodeWidget::OnTrace);
+  connect(m_code_diff, &QPushButton::pressed, this, &CodeWidget::OnDiff);
           &CodeWidget::OnSelectCallstack);
   connect(m_function_calls_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCalls);
@@ -170,8 +199,31 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::ShowMemory, this, &CodeWidget::ShowMemory);
 }
 
+void CodeWidget::OnTrace()
+{
+  if (!trace_dialog)
+    trace_dialog = new CodeTraceDialog(this);
+  trace_dialog->setWindowFlag(Qt::WindowMinimizeButtonHint);
+  trace_dialog->show();
+  trace_dialog->raise();
+  trace_dialog->activateWindow();
+}
+
+void CodeWidget::OnDiff()
+{
+  if (!diff_dialog)
+    diff_dialog = new CodeDiffDialog(this);
+  diff_dialog->setWindowFlag(Qt::WindowMinimizeButtonHint);
+  diff_dialog->show();
+  diff_dialog->raise();
+  diff_dialog->activateWindow();
+}
+
 void CodeWidget::OnSearchAddress()
 {
+  if (m_search_address->text().size() != 8)
+    return;
+
   bool good = true;
   u32 address = m_search_address->text().toUInt(&good, 16);
 
@@ -416,7 +468,8 @@ static bool WillInstructionReturn(UGeckoInstruction inst)
   if (inst.hex == 0x4C000064u)
     return true;
   bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
-  bool condition = inst.BO_2 >> 4 != 0 || PowerPC::GetCRBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
+  bool condition =
+      inst.BO_2 >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !inst.LK_3;
 }

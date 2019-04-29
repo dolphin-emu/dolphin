@@ -116,7 +116,7 @@ public:
   template <typename T>
   void Do(std::vector<T>& x)
   {
-    DoContainer(x);
+    DoContiguousContainer(x);
   }
 
   template <typename T>
@@ -134,7 +134,7 @@ public:
   template <typename T>
   void Do(std::basic_string<T>& x)
   {
-    DoContainer(x);
+    DoContiguousContainer(x);
   }
 
   template <typename T, typename U>
@@ -147,14 +147,20 @@ public:
   template <typename T, std::size_t N>
   void DoArray(std::array<T, N>& x)
   {
-    DoArray(x.data(), (u32)x.size());
+    DoArray(x.data(), static_cast<u32>(x.size()));
   }
 
-  template <typename T>
+  template <typename T, typename std::enable_if_t<IsTriviallyCopyable<T>, int> = 0>
   void DoArray(T* x, u32 count)
   {
-    static_assert(IsTriviallyCopyable<T>, "Only sane for trivially copyable types");
     DoVoid(x, count * sizeof(T));
+  }
+
+  template <typename T, typename std::enable_if_t<!IsTriviallyCopyable<T>, int> = 0>
+  void DoArray(T* x, u32 count)
+  {
+    for (u32 i = 0; i < count; ++i)
+      Do(x[i]);
   }
 
   template <typename T, std::size_t N>
@@ -249,6 +255,17 @@ public:
   }
 
 private:
+  template <typename T>
+  void DoContiguousContainer(T& container)
+  {
+    u32 size = static_cast<u32>(container.size());
+    Do(size);
+    container.resize(size);
+
+    if (size > 0)
+      DoArray(&container[0], size);
+  }
+
   template <typename T>
   void DoContainer(T& x)
   {

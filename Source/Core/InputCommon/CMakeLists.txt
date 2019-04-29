@@ -7,17 +7,16 @@ add_library(inputcommon
   ControllerEmu/Control/Input.cpp
   ControllerEmu/Control/Output.cpp
   ControllerEmu/ControlGroup/AnalogStick.cpp
+  ControllerEmu/ControlGroup/Attachments.cpp
   ControllerEmu/ControlGroup/Buttons.cpp
   ControllerEmu/ControlGroup/ControlGroup.cpp
   ControllerEmu/ControlGroup/Cursor.cpp
-  ControllerEmu/ControlGroup/Extension.cpp
   ControllerEmu/ControlGroup/Force.cpp
   ControllerEmu/ControlGroup/MixedTriggers.cpp
   ControllerEmu/ControlGroup/ModifySettingsButton.cpp
   ControllerEmu/ControlGroup/Slider.cpp
   ControllerEmu/ControlGroup/Tilt.cpp
   ControllerEmu/ControlGroup/Triggers.cpp
-  ControllerEmu/Setting/BooleanSetting.cpp
   ControllerEmu/Setting/NumericSetting.cpp
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/Device.cpp
@@ -35,6 +34,7 @@ if(WIN32)
     ControllerInterface/DInput/DInputJoystick.cpp
     ControllerInterface/DInput/DInputKeyboardMouse.cpp
     ControllerInterface/DInput/XInputFilter.cpp
+    ControllerInterface/Win32/Win32.cpp
     ControllerInterface/XInput/XInput.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
   )

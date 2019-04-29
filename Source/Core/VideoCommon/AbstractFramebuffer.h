@@ -18,13 +18,16 @@ class AbstractTexture;
 class AbstractFramebuffer
 {
 public:
-  AbstractFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+  AbstractFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                      AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
                       u32 width, u32 height, u32 layers, u32 samples);
   virtual ~AbstractFramebuffer();
 
   static bool ValidateConfig(const AbstractTexture* color_attachment,
                              const AbstractTexture* depth_attachment);
 
+  AbstractTexture* GetColorAttachment() const { return m_color_attachment; }
+  AbstractTexture* GetDepthAttachment() const { return m_depth_attachment; }
   AbstractTextureFormat GetColorFormat() const { return m_color_format; }
   AbstractTextureFormat GetDepthFormat() const { return m_depth_format; }
   bool HasColorBuffer() const { return m_color_format != AbstractTextureFormat::Undefined; }
@@ -36,6 +39,8 @@ public:
   MathUtil::Rectangle<int> GetRect() const;
 
 protected:
+  AbstractTexture* m_color_attachment;
+  AbstractTexture* m_depth_attachment;
   AbstractTextureFormat m_color_format;
   AbstractTextureFormat m_depth_format;
   u32 m_width;

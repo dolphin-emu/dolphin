@@ -239,9 +239,7 @@ void Touchscreen::Motor::Rumble(int padID, double state)
 {
   JNIEnv* env;
   IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
-  jmethodID rumbleMethod =
-      env->GetStaticMethodID(IDCache::GetNativeLibraryClass(), "rumble", "(ID)V");
-  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), rumbleMethod, padID, state);
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDoRumble(), padID, state);
   IDCache::GetJavaVM()->DetachCurrentThread();
 }
 }

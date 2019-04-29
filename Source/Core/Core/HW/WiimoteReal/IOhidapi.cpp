@@ -10,6 +10,9 @@
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 
+using namespace WiimoteCommon;
+using namespace WiimoteReal;
+
 static bool IsDeviceUsable(const std::string& device_path)
 {
   hid_device* handle = hid_open_path(device_path.c_str());
@@ -24,7 +27,7 @@ static bool IsDeviceUsable(const std::string& device_path)
   // Some third-party adapters (DolphinBar) always expose all four Wii Remotes as HIDs
   // even when they are not connected, which causes an endless error loop when we try to use them.
   // Try to write a report to the device to see if this Wii Remote is really usable.
-  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
+  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
   const int result = hid_write(handle, report, sizeof(report));
   // The DolphinBar uses EPIPE to signal the absence of a Wii Remote connected to this HID.
   if (result == -1 && errno != EPIPE)
@@ -145,4 +148,4 @@ int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
   }
   return (result == 0) ? 1 : result;
 }
-};  // WiimoteReal
+};  // namespace WiimoteReal

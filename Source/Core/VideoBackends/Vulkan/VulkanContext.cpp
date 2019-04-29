@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 
 #include "Common/Assert.h"
@@ -83,11 +84,11 @@ bool VulkanContext::CheckValidationLayerAvailablility()
           }) != layer_list.end());
 }
 
-VkInstance VulkanContext::CreateVulkanInstance(bool enable_surface, bool enable_debug_report,
+VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
                                                bool enable_validation_layer)
 {
   ExtensionList enabled_extensions;
-  if (!SelectInstanceExtensions(&enabled_extensions, enable_surface, enable_debug_report))
+  if (!SelectInstanceExtensions(&enabled_extensions, wstype, enable_debug_report))
     return VK_NULL_HANDLE;
 
   VkApplicationInfo app_info = {};
@@ -98,6 +99,19 @@ VkInstance VulkanContext::CreateVulkanInstance(bool enable_surface, bool enable_
   app_info.pEngineName = "Dolphin Emulator";
   app_info.engineVersion = VK_MAKE_VERSION(5, 0, 0);
   app_info.apiVersion = VK_MAKE_VERSION(1, 0, 0);
+
+  // Try for Vulkan 1.1 if the loader supports it.
+  if (vkEnumerateInstanceVersion)
+  {
+    u32 supported_api_version = 0;
+    VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
+    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
+                              VK_VERSION_MINOR(supported_api_version) >= 1))
+    {
+      // The device itself may not support 1.1, so we check that before using any 1.1 functionality.
+      app_info.apiVersion = VK_MAKE_VERSION(1, 1, 0);
+    }
+  }
 
   VkInstanceCreateInfo instance_create_info = {};
   instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -128,7 +142,7 @@ VkInstance VulkanContext::CreateVulkanInstance(bool enable_surface, bool enable_
   return instance;
 }
 
-bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool enable_surface,
+bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, WindowSystemType wstype,
                                              bool enable_debug_report)
 {
   u32 extension_count = 0;
@@ -171,24 +185,39 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
   };
 
   // Common extensions
-  if (enable_surface && !SupportsExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
+  if (wstype != WindowSystemType::Headless &&
+      !SupportsExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
+  {
     return false;
+  }
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
-  if (enable_surface && !SupportsExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, true))
+  if (wstype == WindowSystemType::Windows &&
+      !SupportsExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, true))
+  {
     return false;
-#elif defined(VK_USE_PLATFORM_XLIB_KHR)
-  if (enable_surface && !SupportsExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
+  }
+#endif
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
+  if (wstype == WindowSystemType::X11 &&
+      !SupportsExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
+  {
     return false;
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-  if (enable_surface && !SupportsExtension(VK_KHR_XCB_SURFACE_EXTENSION_NAME, true))
+  }
+#endif
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+  if (wstype == WindowSystemType::Android &&
+      !SupportsExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
+  {
     return false;
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-  if (enable_surface && !SupportsExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
+  }
+#endif
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+  if (wstype == WindowSystemType::MacOS &&
+      !SupportsExtension(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, true))
+  {
     return false;
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-  if (enable_surface && !SupportsExtension(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, true))
-    return false;
+  }
 #endif
 
   // VK_EXT_debug_report
@@ -236,9 +265,13 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsComputeShaders = true;        // Assumed support.
   config->backend_info.bSupportsGPUTextureDecoding = true;    // Assumed support.
   config->backend_info.bSupportsBitfield = true;              // Assumed support.
+  config->backend_info.bSupportsPartialDepthCopies = true;    // Assumed support.
+  config->backend_info.bSupportsShaderBinaries = true;        // Assumed support.
+  config->backend_info.bSupportsPipelineCacheData = false;    // Handled via pipeline caches.
   config->backend_info.bSupportsDynamicSamplerIndexing = true;     // Assumed support.
   config->backend_info.bSupportsPostProcessing = true;             // Assumed support.
   config->backend_info.bSupportsBackgroundCompiling = true;        // Assumed support.
+  config->backend_info.bSupportsCopyToVram = true;                 // Assumed support.
   config->backend_info.bSupportsDualSourceBlend = false;           // Dependent on features.
   config->backend_info.bSupportsGeometryShaders = false;           // Dependent on features.
   config->backend_info.bSupportsGSInstancing = false;              // Dependent on features.
@@ -248,10 +281,10 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsDepthClamp = false;                // Dependent on features.
   config->backend_info.bSupportsST3CTextures = false;              // Dependent on features.
   config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
+  config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
+  config->backend_info.bSupportsLargePoints = false;               // Dependent on features.
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
-  config->backend_info.bSupportsLogicOp = false;             // Dependent on features.
-  config->backend_info.bSupportsCopyToVram = true;           // Assumed support.
-  config->backend_info.bSupportsFramebufferFetch = false;
+  config->backend_info.bSupportsFramebufferFetch = false;    // No support.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -270,6 +303,7 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
                                                 const VkPhysicalDeviceFeatures& features)
 {
   config->backend_info.MaxTextureSize = properties.limits.maxImageDimension2D;
+  config->backend_info.bUsesLowerLeftOrigin = false;
   config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
   config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
@@ -295,6 +329,13 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsST3CTextures = supports_bc;
   config->backend_info.bSupportsBPTCTextures = supports_bc;
 
+  // Some devices don't support point sizes >1 (e.g. Adreno).
+  // If we can't use a point size above our maximum IR, use triangles instead for EFB pokes.
+  // This means a 6x increase in the size of the vertices, though.
+  config->backend_info.bSupportsLargePoints = features.largePoints &&
+                                              properties.limits.pointSizeRange[0] <= 1.0f &&
+                                              properties.limits.pointSizeRange[1] >= 16;
+
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
   if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
@@ -307,11 +348,11 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
   // Query image support for the EFB texture formats.
   VkImageFormatProperties efb_color_properties = {};
   vkGetPhysicalDeviceImageFormatProperties(
-      gpu, EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+      gpu, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 0, &efb_color_properties);
   VkImageFormatProperties efb_depth_properties = {};
   vkGetPhysicalDeviceImageFormatProperties(
-      gpu, EFB_DEPTH_TEXTURE_FORMAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+      gpu, VK_FORMAT_D32_SFLOAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 0, &efb_depth_properties);
 
   // We can only support MSAA if it's supported on our render target formats.
@@ -358,6 +399,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
 
   // Initialize DriverDetails so that we can check for bugs to disable features if needed.
   context->InitDriverDetails();
+  context->PopulateShaderSubgroupSupport();
 
   // Enable debug reports if the "Host GPU" log category is enabled.
   if (enable_debug_reports)
@@ -439,15 +481,6 @@ bool VulkanContext::SelectDeviceFeatures()
     WARN_LOG(VIDEO, "Vulkan: Missing large points feature. CPU EFB writes will be slower.");
   if (!available_features.occlusionQueryPrecise)
     WARN_LOG(VIDEO, "Vulkan: Missing precise occlusion queries. Perf queries will be inaccurate.");
-
-  // Check push constant size.
-  if (properties.limits.maxPushConstantsSize < static_cast<u32>(PUSH_CONSTANT_BUFFER_SIZE))
-  {
-    PanicAlert("Vulkan: Push contant buffer size %u is below minimum %u.",
-               properties.limits.maxPushConstantsSize, static_cast<u32>(PUSH_CONSTANT_BUFFER_SIZE));
-
-    return false;
-  }
 
   // Enable the features we use.
   m_device_features.dualSrcBlend = available_features.dualSrcBlend;
@@ -847,4 +880,35 @@ void VulkanContext::InitDriverDetails()
                       static_cast<double>(m_device_properties.driverVersion),
                       DriverDetails::Family::UNKNOWN);
 }
+
+void VulkanContext::PopulateShaderSubgroupSupport()
+{
+  // Vulkan 1.1 support is required for vkGetPhysicalDeviceProperties2(), but we can't rely on the
+  // function pointer alone.
+  if (!vkGetPhysicalDeviceProperties2 || (VK_VERSION_MAJOR(m_device_properties.apiVersion) == 1 &&
+                                          VK_VERSION_MINOR(m_device_properties.apiVersion) < 1))
+  {
+    return;
+  }
+
+  VkPhysicalDeviceProperties2 device_properties_2 = {};
+  device_properties_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+
+  VkPhysicalDeviceSubgroupProperties subgroup_properties = {};
+  subgroup_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+  device_properties_2.pNext = &subgroup_properties;
+
+  vkGetPhysicalDeviceProperties2(m_physical_device, &device_properties_2);
+
+  m_shader_subgroup_size = subgroup_properties.subgroupSize;
+
+  // We require basic ops (for gl_SubgroupInvocationID), ballot (for subgroupBallot,
+  // subgroupBallotFindLSB), and arithmetic (for subgroupMin/subgroupMax).
+  constexpr VkSubgroupFeatureFlags required_operations = VK_SUBGROUP_FEATURE_BASIC_BIT |
+                                                         VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
+                                                         VK_SUBGROUP_FEATURE_BALLOT_BIT;
+  m_supports_shader_subgroup_operations =
+      (subgroup_properties.supportedOperations & required_operations) == required_operations &&
+      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
 }
+}  // namespace Vulkan

@@ -217,7 +217,19 @@ public:
   std::shared_ptr<Device> m_device;
 
   explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
-  ControlState GetValue() const override { return control ? control->ToInput()->GetState() : 0.0; }
+  ControlState GetValue() const override
+  {
+    if (!control)
+      return 0.0;
+
+    // Note: Inputs may return negative values in situations where opposing directions are
+    // activated. We clamp off the negative values here.
+
+    // FYI: Clamping values greater than 1.0 is purposely not done to support unbounded values in
+    // the future. (e.g. raw accelerometer/gyro data)
+
+    return std::max(0.0, control->ToInput()->GetState());
+  }
   void SetValue(ControlState value) override
   {
     if (control)

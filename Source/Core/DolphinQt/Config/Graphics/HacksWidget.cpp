@@ -124,11 +124,10 @@ void HacksWidget::OnBackendChanged(const QString& backend_name)
   m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
   m_disable_bounding_box->setEnabled(bbox);
 
-  if (!gpu_texture_decoding)
-    m_gpu_texture_decoding->setToolTip(tr("%1 doesn't support this feature.").arg(backend_name));
+  const QString tooltip = tr("%1 doesn't support this feature on your system.").arg(backend_name);
 
-  if (!bbox)
-    m_disable_bounding_box->setToolTip(tr("%1 doesn't support this feature.").arg(backend_name));
+  m_gpu_texture_decoding->setToolTip(!gpu_texture_decoding ? tooltip : QStringLiteral(""));
+  m_disable_bounding_box->setToolTip(!bbox ? tooltip : QStringLiteral(""));
 }
 
 void HacksWidget::ConnectWidgets()
@@ -199,36 +198,36 @@ void HacksWidget::SaveSettings()
 void HacksWidget::AddDescriptions()
 {
   static const char TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION[] =
-      QT_TR_NOOP("Ignore any requests from the CPU to read from or write to the EFB.\nImproves "
-                 "performance in some games, but might disable some gameplay-related features or "
-                 "graphical effects.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Ignores any requests from the CPU to read from or write to the EFB. "
+                 "\n\nImproves performance in some games, but will disable all EFB-based "
+                 "graphical effects or gameplay-related features.\n\nIf unsure, "
+                 "leave this unchecked.");
   static const char TR_IGNORE_FORMAT_CHANGE_DESCRIPTION[] = QT_TR_NOOP(
-      "Ignore any changes to the EFB format.\nImproves performance in many games without "
+      "Ignores any changes to the EFB format.\n\nImproves performance in many games without "
       "any negative effect. Causes graphical defects in a small number of other "
       "games.\n\nIf unsure, leave this checked.");
   static const char TR_STORE_EFB_TO_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
+      "Stores EFB copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
       "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to "
-      "RAM "
-      "(and Texture)\n\nIf unsure, leave this checked.");
+      "RAM (and Texture)\n\nIf unsure, leave this checked.");
   static const char TR_DEFER_EFB_COPIES_DESCRIPTION[] = QT_TR_NOOP(
       "Waits until the game synchronizes with the emulated GPU before writing the contents of EFB "
-      "copies to RAM. Reduces the overhead of EFB RAM copies, provides a performance boost in many "
-      "games, at the risk of breaking those which do not safely synchronize with the emulated "
-      "GPU.\n\nIf unsure, leave this checked.");
+      "copies to RAM. Reduces the overhead of EFB RAM copies, providing a performance boost in "
+      "many games, at the risk of breaking those which do not safely synchronize with the "
+      "emulated GPU.\n\nIf unsure, leave this checked.");
   static const char TR_ACCUARCY_DESCRIPTION[] = QT_TR_NOOP(
+      "Adjusts the accuracy at which the GPU receives texture updates from RAM.\n\n "
       "The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
-      "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
-      "games.\n\nIf unsure, use the rightmost value.");
+      "from RAM. Lower accuracies cause in-game text to appear garbled in certain "
+      "games.\n\nIf unsure, select the rightmost value.");
 
   static const char TR_STORE_XFB_TO_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
-      "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to "
-      "Texture\nDisabled = XFB Copies to RAM "
-      "(and Texture)\n\nIf unsure, leave this checked.");
+      "Stores XFB copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
+      "in a small number of games.\n\nEnabled = XFB Copies to "
+      "Texture\nDisabled = XFB Copies to RAM (and Texture)\n\nIf unsure, leave this checked.");
 
   static const char TR_IMMEDIATE_XFB_DESCRIPTION[] =
-      QT_TR_NOOP("Displays the XFB copies as soon as they are created, without waiting for "
+      QT_TR_NOOP("Displays XFB copies as soon as they are created, instead of waiting for "
                  "scanout. Can cause graphical defects "
                  "in some games if the game doesn't expect all XFB copies to be displayed. "
                  "However, turning this setting on reduces latency."
@@ -240,14 +239,14 @@ void HacksWidget::AddDescriptions()
                  "bottleneck.\n\nIf unsure, leave this unchecked.");
 
   static const char TR_FAST_DEPTH_CALC_DESCRIPTION[] = QT_TR_NOOP(
-      "Use a less accurate algorithm to calculate depth values.\nCauses issues in a few "
-      "games, but can give a decent speedup depending on the game and/or your GPU.\n\nIf "
-      "unsure, leave this checked.");
+      "Uses a less accurate algorithm to calculate depth values.\n\nCauses issues in a few "
+      "games, but can result in a decent speed increase depending on the game and/or "
+      "GPU.\n\nIf unsure, leave this checked.");
   static const char TR_DISABLE_BOUNDINGBOX_DESCRIPTION[] =
-      QT_TR_NOOP("Disable the bounding box emulation.\nThis may improve the GPU performance a lot, "
-                 "but some games will break.\n\nIf unsure, leave this checked.");
+      QT_TR_NOOP("Disables bounding box emulation.\n\nThis may improve GPU performance "
+                 "significantly, but some games will break.\n\nIf unsure, leave this checked.");
   static const char TR_VERTEX_ROUNDING_DESCRIPTION[] =
-      QT_TR_NOOP("Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at "
+      QT_TR_NOOP("Rounds 2D vertices to whole pixels.\n\nFixes graphical problems in some games at "
                  "higher internal resolutions. This setting has no effect when native internal "
                  "resolution is used.\n\nIf unsure, leave this unchecked.");
 

@@ -19,11 +19,19 @@ VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 static bool s_has_registered_callback = false;
 
+static bool IsVSyncActive(bool enabled)
+{
+  // Vsync is disabled when the throttler is disabled by the tab key.
+  return enabled && !Core::GetIsThrottlerTempDisabled() &&
+         SConfig::GetInstance().m_EmulationSpeed == 1.0;
+}
+
 void UpdateActiveConfig()
 {
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
     Movie::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
+  g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
 }
 
 VideoConfig::VideoConfig()
@@ -41,7 +49,12 @@ VideoConfig::VideoConfig()
   backend_info.bSupportsBPTCTextures = false;
 
   bEnableValidationLayer = false;
+
+#if defined(ANDROID)
+  bBackendMultithreading = false;
+#else
   bBackendMultithreading = true;
+#endif
 }
 
 void VideoConfig::Refresh()
@@ -61,12 +74,8 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  const AspectMode config_aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
+  aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
   suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
-  if (config_aspect_mode == AspectMode::Auto)
-    aspect_mode = suggested_aspect_mode;
-  else
-    aspect_mode = config_aspect_mode;
   bCrop = Config::Get(Config::GFX_CROP);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
@@ -135,9 +144,8 @@ void VideoConfig::Refresh()
   iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
 
   bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
   bBBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
-  bBBoxPreferStencilImplementation =
-      Config::Get(Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION);
   bForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
   bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
   bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
@@ -147,6 +155,7 @@ void VideoConfig::Refresh()
   bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
+  iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
@@ -173,12 +182,6 @@ void VideoConfig::VerifyValidity()
       stereo_mode = StereoMode::Off;
     }
   }
-}
-
-bool VideoConfig::IsVSync() const
-{
-  return bVSync && !Core::GetIsThrottlerTempDisabled() &&
-         SConfig::GetInstance().m_EmulationSpeed == 1.0;
 }
 
 bool VideoConfig::UsingUberShaders() const

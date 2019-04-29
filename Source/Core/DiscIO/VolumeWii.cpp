@@ -97,6 +97,31 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         return IOS::ES::TMDReader{std::move(tmd_buffer)};
       };
 
+      auto get_cert_chain = [this, partition]() -> std::vector<u8> {
+        const std::optional<u32> size = m_reader->ReadSwapped<u32>(partition.offset + 0x2ac);
+        const std::optional<u64> address =
+            ReadSwappedAndShifted(partition.offset + 0x2b0, PARTITION_NONE);
+        if (!size || !address)
+          return {};
+        std::vector<u8> cert_chain(*size);
+        if (!m_reader->Read(partition.offset + *address, *size, cert_chain.data()))
+          return {};
+        return cert_chain;
+      };
+
+      auto get_h3_table = [this, partition]() -> std::vector<u8> {
+        if (!m_encrypted)
+          return {};
+        const std::optional<u64> h3_table_offset =
+            ReadSwappedAndShifted(partition.offset + 0x2b4, PARTITION_NONE);
+        if (!h3_table_offset)
+          return {};
+        std::vector<u8> h3_table(H3_TABLE_SIZE);
+        if (!m_reader->Read(partition.offset + *h3_table_offset, H3_TABLE_SIZE, h3_table.data()))
+          return {};
+        return h3_table;
+      };
+
       auto get_key = [this, partition]() -> std::unique_ptr<mbedtls_aes_context> {
         const IOS::ES::TicketReader& ticket = *m_partitions[partition].ticket;
         if (!ticket.IsValid())
@@ -120,6 +145,8 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
           partition, PartitionDetails{Common::Lazy<std::unique_ptr<mbedtls_aes_context>>(get_key),
                                       Common::Lazy<IOS::ES::TicketReader>(get_ticket),
                                       Common::Lazy<IOS::ES::TMDReader>(get_tmd),
+                                      Common::Lazy<std::vector<u8>>(get_cert_chain),
+                                      Common::Lazy<std::vector<u8>>(get_h3_table),
                                       Common::Lazy<std::unique_ptr<FileSystem>>(get_file_system),
                                       Common::Lazy<u64>(get_data_offset), *partition_type});
     }
@@ -239,6 +266,12 @@ const IOS::ES::TMDReader& VolumeWii::GetTMD(const Partition& partition) const
   return it != m_partitions.end() ? *it->second.tmd : INVALID_TMD;
 }
 
+const std::vector<u8>& VolumeWii::GetCertificateChain(const Partition& partition) const
+{
+  auto it = m_partitions.find(partition);
+  return it != m_partitions.end() ? *it->second.cert_chain : INVALID_CERT_CHAIN;
+}
+
 const FileSystem* VolumeWii::GetFileSystem(const Partition& partition) const
 {
   auto it = m_partitions.find(partition);
@@ -278,6 +311,11 @@ std::string VolumeWii::GetGameID(const Partition& partition) const
   return DecodeString(id);
 }
 
+std::string VolumeWii::GetGameTDBID(const Partition& partition) const
+{
+  return GetGameID(partition);
+}
+
 Region VolumeWii::GetRegion() const
 {
   const std::optional<u32> region_code = m_reader->ReadSwapped<u32>(0x4E000);
@@ -292,11 +330,12 @@ Country VolumeWii::GetCountry(const Partition& partition) const
   // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
   const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
+  const std::optional<u16> revision = GetRevision();
 
-  if (CountryCodeToRegion(country_byte, Platform::WiiDisc, region) != region)
+  if (CountryCodeToRegion(country_byte, Platform::WiiDisc, region, revision) != region)
     return TypicalCountryForRegion(region);
 
-  return CountryCodeToCountry(country_byte, Platform::WiiDisc, region);
+  return CountryCodeToCountry(country_byte, Platform::WiiDisc, region, revision);
 }
 
 std::string VolumeWii::GetMakerID(const Partition& partition) const
@@ -374,88 +413,95 @@ u64 VolumeWii::GetSize() const
   return m_reader->GetDataSize();
 }
 
+bool VolumeWii::IsSizeAccurate() const
+{
+  return m_reader->IsDataSizeAccurate();
+}
+
 u64 VolumeWii::GetRawSize() const
 {
   return m_reader->GetRawSize();
 }
 
-bool VolumeWii::CheckIntegrity(const Partition& partition) const
+bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
 {
-  if (!m_encrypted)
-    return false;
-
-  // Get the decryption key for the partition
   auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
   const PartitionDetails& partition_details = it->second;
+
+  const std::vector<u8>& h3_table = *partition_details.h3_table;
+  if (h3_table.size() != H3_TABLE_SIZE)
+    return false;
+
+  const IOS::ES::TMDReader& tmd = *partition_details.tmd;
+  if (!tmd.IsValid())
+    return false;
+
+  const std::vector<IOS::ES::Content> contents = tmd.GetContents();
+  if (contents.size() != 1)
+    return false;
+
+  std::array<u8, 20> h3_table_sha1;
+  mbedtls_sha1(h3_table.data(), h3_table.size(), h3_table_sha1.data());
+  return h3_table_sha1 == contents[0].sha1;
+}
+
+bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition) const
+{
+  auto it = m_partitions.find(partition);
+  if (it == m_partitions.end())
+    return false;
+  const PartitionDetails& partition_details = it->second;
+
+  constexpr size_t SHA1_SIZE = 20;
+  if (block_index / 64 * SHA1_SIZE >= partition_details.h3_table->size())
+    return false;
+
   mbedtls_aes_context* aes_context = partition_details.key->get();
   if (!aes_context)
     return false;
 
-  // Get partition data size
-  const auto part_data_size = ReadSwappedAndShifted(partition.offset + 0x2BC, PARTITION_NONE);
-  if (!part_data_size)
+  const u64 cluster_offset =
+      partition.offset + *partition_details.data_offset + block_index * BLOCK_TOTAL_SIZE;
+
+  // Read and decrypt the cluster metadata
+  u8 cluster_metadata_crypted[BLOCK_HEADER_SIZE];
+  u8 cluster_metadata[BLOCK_HEADER_SIZE];
+  u8 iv[16] = {0};
+  if (!m_reader->Read(cluster_offset, BLOCK_HEADER_SIZE, cluster_metadata_crypted))
+    return false;
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_HEADER_SIZE, iv,
+                        cluster_metadata_crypted, cluster_metadata);
+
+  u8 cluster_data[BLOCK_DATA_SIZE];
+  if (!Read(block_index * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE, cluster_data, partition))
     return false;
 
-  const u32 num_clusters = static_cast<u32>(part_data_size.value() / 0x8000);
-  for (u32 cluster_id = 0; cluster_id < num_clusters; ++cluster_id)
+  for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
-    const u64 cluster_offset =
-        partition.offset + *partition_details.data_offset + static_cast<u64>(cluster_id) * 0x8000;
-
-    // Read and decrypt the cluster metadata
-    u8 cluster_metadata_crypted[0x400];
-    u8 cluster_metadata[0x400];
-    u8 iv[16] = {0};
-    if (!m_reader->Read(cluster_offset, sizeof(cluster_metadata_crypted), cluster_metadata_crypted))
-    {
-      WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", cluster_id);
+    u8 h0_hash[SHA1_SIZE];
+    mbedtls_sha1(cluster_data + hash_index * 0x400, 0x400, h0_hash);
+    if (memcmp(h0_hash, cluster_metadata + hash_index * SHA1_SIZE, SHA1_SIZE))
       return false;
-    }
-    mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(cluster_metadata), iv,
-                          cluster_metadata_crypted, cluster_metadata);
-
-    // Some clusters have invalid data and metadata because they aren't
-    // meant to be read by the game (for example, holes between files). To
-    // try to avoid reporting errors because of these clusters, we check
-    // the 0x00 paddings in the metadata.
-    //
-    // This may cause some false negatives though: some bad clusters may be
-    // skipped because they are *too* bad and are not even recognized as
-    // valid clusters. To be improved.
-    const u8* pad_begin = cluster_metadata + 0x26C;
-    const u8* pad_end = pad_begin + 0x14;
-    const bool meaningless = std::any_of(pad_begin, pad_end, [](u8 val) { return val != 0; });
-
-    if (meaningless)
-      continue;
-
-    u8 cluster_data[0x7C00];
-    if (!Read(cluster_id * sizeof(cluster_data), sizeof(cluster_data), cluster_data, partition))
-    {
-      WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", cluster_id);
-      return false;
-    }
-
-    for (u32 hash_id = 0; hash_id < 31; ++hash_id)
-    {
-      u8 hash[20];
-
-      mbedtls_sha1(cluster_data + hash_id * sizeof(cluster_metadata), sizeof(cluster_metadata),
-                   hash);
-
-      // Note that we do not use strncmp here
-      if (memcmp(hash, cluster_metadata + hash_id * sizeof(hash), sizeof(hash)))
-      {
-        WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", cluster_id,
-                 hash_id);
-        return false;
-      }
-    }
   }
+
+  u8 h1_hash[SHA1_SIZE];
+  mbedtls_sha1(cluster_metadata, SHA1_SIZE * 31, h1_hash);
+  if (memcmp(h1_hash, cluster_metadata + 0x280 + (block_index % 8) * SHA1_SIZE, SHA1_SIZE))
+    return false;
+
+  u8 h2_hash[SHA1_SIZE];
+  mbedtls_sha1(cluster_metadata + 0x280, SHA1_SIZE * 8, h2_hash);
+  if (memcmp(h2_hash, cluster_metadata + 0x340 + (block_index / 8 % 8) * SHA1_SIZE, SHA1_SIZE))
+    return false;
+
+  u8 h3_hash[SHA1_SIZE];
+  mbedtls_sha1(cluster_metadata + 0x340, SHA1_SIZE * 8, h3_hash);
+  if (memcmp(h3_hash, partition_details.h3_table->data() + block_index / 64 * SHA1_SIZE, SHA1_SIZE))
+    return false;
 
   return true;
 }
 
-}  // namespace
+}  // namespace DiscIO

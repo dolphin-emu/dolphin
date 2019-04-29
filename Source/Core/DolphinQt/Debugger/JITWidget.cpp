@@ -22,6 +22,8 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("JIT Blocks"));
   setObjectName(QStringLiteral("jitwidget"));
 
+  setHidden(!Settings::Instance().IsJITVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
@@ -29,6 +31,8 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
   CreateWidgets();
 
   restoreGeometry(settings.value(QStringLiteral("jitwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("jitwidget/floating")).toBool());
 
   m_table_splitter->restoreState(
@@ -43,8 +47,6 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &JITWidget::Update);
-
-  setHidden(!Settings::Instance().IsJITVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   ConnectWidgets();
 

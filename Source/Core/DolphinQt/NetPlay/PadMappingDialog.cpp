@@ -35,12 +35,12 @@ void PadMappingDialog::CreateWidgets()
     m_wii_boxes[i] = new QComboBox;
 
     m_main_layout->addWidget(new QLabel(tr("GC Port %1").arg(i + 1)), 0, i);
-    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 0, 4 + i);
     m_main_layout->addWidget(m_gc_boxes[i], 1, i);
-    m_main_layout->addWidget(m_wii_boxes[i], 1, 4 + i);
+    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 2, i);
+    m_main_layout->addWidget(m_wii_boxes[i], 3, i);
   }
 
-  m_main_layout->addWidget(m_button_box, 2, 0, 1, -1);
+  m_main_layout->addWidget(m_button_box, 4, 0, 1, -1);
 
   setLayout(m_main_layout);
 }
@@ -90,7 +90,7 @@ int PadMappingDialog::exec()
 
       const auto index = gc ? m_pad_mapping[i] : m_wii_mapping[i];
 
-      combo->setCurrentIndex(index == -1 ? 0 : index);
+      combo->setCurrentIndex(index);
     }
   }
 
@@ -114,7 +114,7 @@ void PadMappingDialog::OnMappingChanged()
     int gc_id = m_gc_boxes[i]->currentIndex();
     int wii_id = m_wii_boxes[i]->currentIndex();
 
-    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : -1;
-    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : -1;
+    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
+    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : 0;
   }
 }

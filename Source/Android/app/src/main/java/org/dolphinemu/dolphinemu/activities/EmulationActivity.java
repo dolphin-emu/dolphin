@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -37,6 +38,9 @@ import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -73,12 +77,14 @@ public final class EmulationActivity extends AppCompatActivity
 
   private boolean activityRecreated;
   private String mSelectedTitle;
+  private String mSelectedGameId;
   private int mPlatform;
-  private String mPath;
+  private String[] mPaths;
   private boolean backPressedOnce = false;
 
-  public static final String EXTRA_SELECTED_GAME = "SelectedGame";
+  public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
+  public static final String EXTRA_SELECTED_GAMEID = "SelectedGameId";
   public static final String EXTRA_PLATFORM = "Platform";
 
   @Retention(SOURCE)
@@ -90,7 +96,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP})
   public @interface MenuAction
   {
   }
@@ -122,6 +128,8 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
   public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
+  public static final int MENU_SET_IR_SENSITIVITY = 27;
+  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -164,20 +172,30 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
     buttonsActionsMap
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
+    buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
+            EmulationActivity.MENU_SET_IR_SENSITIVITY);
+    buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
+            EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
+  }
+
+  private static String[] scanForSecondDisc(GameFile gameFile)
+  {
+    GameFile secondFile = GameFileCacheService.findSecondDisc(gameFile);
+    if (secondFile == null)
+      return new String[]{gameFile.getPath()};
+    else
+      return new String[]{gameFile.getPath(), secondFile.getPath()};
   }
 
   public static void launch(FragmentActivity activity, GameFile gameFile)
   {
     Intent launcher = new Intent(activity, EmulationActivity.class);
 
-    launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
+    launcher.putExtra(EXTRA_SELECTED_GAMES, scanForSecondDisc(gameFile));
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
+    launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    Bundle options = new Bundle();
-
-    // I believe this warning is a bug. Activities are FragmentActivity from the support lib
-    //noinspection RestrictedApi
-    activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options);
+    activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME);
   }
 
   @Override
@@ -193,15 +211,16 @@ public final class EmulationActivity extends AppCompatActivity
     {
       // Get params we were passed
       Intent gameToEmulate = getIntent();
-      mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
+      mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
+      mSelectedGameId = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAMEID);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       activityRecreated = false;
     }
     else
     {
       // Could have recreated the activity(rotate) before creating the fragment. If the fragment
-      // doesn't exist, treat this as a new start. 
+      // doesn't exist, treat this as a new start.
       activityRecreated = mEmulationFragment != null;
       restoreState(savedInstanceState);
     }
@@ -264,7 +283,7 @@ public final class EmulationActivity extends AppCompatActivity
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) &&
             mEmulationFragment == null)
     {
-      mEmulationFragment = EmulationFragment.newInstance(mPath);
+      mEmulationFragment = EmulationFragment.newInstance(mPaths);
       getSupportFragmentManager().beginTransaction()
               .add(R.id.frame_emulation_fragment, mEmulationFragment)
               .commit();
@@ -286,16 +305,18 @@ public final class EmulationActivity extends AppCompatActivity
     {
       mEmulationFragment.saveTemporaryState();
     }
-    outState.putString(EXTRA_SELECTED_GAME, mPath);
+    outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
+    outState.putString(EXTRA_SELECTED_GAMEID, mSelectedGameId);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
     super.onSaveInstanceState(outState);
   }
 
   protected void restoreState(Bundle savedInstanceState)
   {
-    mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
+    mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
+    mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
   }
 
@@ -303,7 +324,6 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onStop()
   {
     super.onStop();
-    Rumble.clear();
   }
 
   @Override
@@ -572,6 +592,14 @@ public final class EmulationActivity extends AppCompatActivity
         FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
         return;
 
+      case MENU_SET_IR_SENSITIVITY:
+        setIRSensitivity();
+        return;
+
+      case MENU_ACTION_CHOOSE_DOUBLETAP:
+        chooseDoubleTapButton();
+        return;
+
       case MENU_ACTION_EXIT:
         // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
         if (TvUtil.isLeanback(getApplicationContext()))
@@ -702,6 +730,39 @@ public final class EmulationActivity extends AppCompatActivity
     alertDialog.show();
   }
 
+  public void chooseDoubleTapButton()
+  {
+    final SharedPreferences.Editor editor = mPreferences.edit();
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+    int currentController =
+            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUCK);
+
+    int currentValue = mPreferences.getInt("doubleTapButton",
+            InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
+
+    int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
+            R.array.doubleTapWithClassic : R.array.doubleTap;
+
+    if (currentController != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+            currentValue == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
+    {
+      currentValue = InputOverlay.OVERLAY_WIIMOTE;
+    }
+
+    builder.setSingleChoiceItems(buttonList, currentValue, (DialogInterface dialog, int which) ->
+            editor.putInt("doubleTapButton", InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
+
+    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    {
+      editor.commit();
+      mEmulationFragment.initInputPointer();
+    });
+
+    AlertDialog alertDialog = builder.create();
+    alertDialog.show();
+  }
+
   private void adjustScale()
   {
     LayoutInflater inflater = LayoutInflater.from(this);
@@ -777,6 +838,136 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog alertDialog = builder.create();
     alertDialog.show();
 
+  }
+
+  private void setIRSensitivity()
+  {
+    int ir_pitch = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
+
+    LayoutInflater inflater = LayoutInflater.from(this);
+    View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
+
+    TextView text_slider_value_pitch = (TextView) view.findViewById(R.id.text_ir_pitch);
+    TextView units = (TextView) view.findViewById(R.id.text_ir_pitch_units);
+    SeekBar seekbar_pitch = view.findViewById(R.id.seekbar_pitch);
+
+    text_slider_value_pitch.setText(String.valueOf(ir_pitch));
+    units.setText(getString(R.string.pitch));
+    seekbar_pitch.setMax(100);
+    seekbar_pitch.setProgress(ir_pitch);
+    seekbar_pitch.setKeyProgressIncrement(5);
+    seekbar_pitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        text_slider_value_pitch.setText(String.valueOf(progress));
+      }
+
+      @Override public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      @Override public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+    int ir_yaw = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId, "15"));
+
+    TextView text_slider_value_yaw = (TextView) view.findViewById(R.id.text_ir_yaw);
+    TextView units_yaw = (TextView) view.findViewById(R.id.text_ir_yaw_units);
+    SeekBar seekbar_yaw = view.findViewById(R.id.seekbar_width);
+
+    text_slider_value_yaw.setText(String.valueOf(ir_yaw));
+    units_yaw.setText(getString(R.string.yaw));
+    seekbar_yaw.setMax(100);
+    seekbar_yaw.setProgress(ir_yaw);
+    seekbar_yaw.setKeyProgressIncrement(5);
+    seekbar_yaw.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        text_slider_value_yaw.setText(String.valueOf(progress));
+      }
+
+      @Override public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      @Override public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+
+    int ir_vertical_offset = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
+                    "10"));
+
+    TextView text_slider_value_vertical_offset =
+            (TextView) view.findViewById(R.id.text_ir_vertical_offset);
+    TextView units_vertical_offset =
+            (TextView) view.findViewById(R.id.text_ir_vertical_offset_units);
+    SeekBar seekbar_vertical_offset = view.findViewById(R.id.seekbar_vertical_offset);
+
+    text_slider_value_vertical_offset.setText(String.valueOf(ir_vertical_offset));
+    units_vertical_offset.setText(getString(R.string.vertical_offset));
+    seekbar_vertical_offset.setMax(100);
+    seekbar_vertical_offset.setProgress(ir_vertical_offset);
+    seekbar_vertical_offset.setKeyProgressIncrement(5);
+    seekbar_vertical_offset.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        text_slider_value_vertical_offset.setText(String.valueOf(progress));
+      }
+
+      @Override public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      @Override public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(getString(R.string.emulation_ir_sensitivity));
+    builder.setView(view);
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+    {
+      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+              SettingsFile.KEY_WIIBIND_IR_PITCH, text_slider_value_pitch.getText().toString());
+      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+              SettingsFile.KEY_WIIBIND_IR_YAW, text_slider_value_yaw.getText().toString());
+      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+              SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
+              text_slider_value_vertical_offset.getText().toString());
+
+      NativeLibrary.ReloadWiimoteConfig();
+
+      SharedPreferences.Editor editor = mPreferences.edit();
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId,
+              text_slider_value_pitch.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId,
+              text_slider_value_yaw.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
+              text_slider_value_vertical_offset.getText().toString());
+      editor.apply();
+    });
+    builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->
+    {
+      // Do nothing
+    });
+    builder.show();
   }
 
   private void resetOverlay()
@@ -875,5 +1066,11 @@ public final class EmulationActivity extends AppCompatActivity
   public Settings getSettings()
   {
     return mSettings;
+  }
+
+  public void initInputPointer()
+  {
+    if (deviceHasTouchScreen())
+      mEmulationFragment.initInputPointer();
   }
 }

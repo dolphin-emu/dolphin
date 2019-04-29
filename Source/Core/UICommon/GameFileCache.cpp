@@ -27,7 +27,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 14;  // Last changed in PR 7441
+static constexpr u32 CACHE_REVISION = 15;  // Last changed in PR 7816
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -232,7 +232,7 @@ bool GameFileCache::SyncCacheFile(bool save)
   else
   {
     std::vector<u8> buffer(f.GetSize());
-    if (buffer.size() && f.ReadBytes(buffer.data(), buffer.size()))
+    if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
     {
       u8* ptr = buffer.data();
       PointerWrap p(&ptr, PointerWrap::MODE_READ);

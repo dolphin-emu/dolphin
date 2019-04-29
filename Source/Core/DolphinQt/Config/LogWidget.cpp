@@ -20,6 +20,7 @@
 
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 // Delay in ms between calls of UpdateLog()
@@ -188,35 +189,40 @@ void LogWidget::SaveSettings()
 
 void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
-  std::lock_guard<std::mutex> lock(m_log_mutex);
-
-  const char* color = "white";
-
-  switch (level)
-  {
-  case LogTypes::LOG_LEVELS::LERROR:
-    color = "red";
-    break;
-  case LogTypes::LOG_LEVELS::LWARNING:
-    color = "yellow";
-    break;
-  case LogTypes::LOG_LEVELS::LNOTICE:
-    color = "lime";
-    break;
-  case LogTypes::LOG_LEVELS::LINFO:
-    color = "cyan";
-    break;
-  case LogTypes::LOG_LEVELS::LDEBUG:
-    color = "lightgrey";
-    break;
-  }
-
+  // The text has to be copied here as it will be deallocated after this method has returned
   std::string str(text);
-  StringPopBackIf(&str, '\n');
-  m_log_queue.push(QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
-                       .arg(QString::fromStdString(str.substr(0, TIMESTAMP_LENGTH)),
-                            QString::fromStdString(color),
-                            QString::fromStdString(str.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
+
+  QueueOnObject(this, [this, level, str]() mutable {
+    std::lock_guard<std::mutex> lock(m_log_mutex);
+
+    const char* color = "white";
+
+    switch (level)
+    {
+    case LogTypes::LOG_LEVELS::LERROR:
+      color = "red";
+      break;
+    case LogTypes::LOG_LEVELS::LWARNING:
+      color = "yellow";
+      break;
+    case LogTypes::LOG_LEVELS::LNOTICE:
+      color = "lime";
+      break;
+    case LogTypes::LOG_LEVELS::LINFO:
+      color = "cyan";
+      break;
+    case LogTypes::LOG_LEVELS::LDEBUG:
+      color = "lightgrey";
+      break;
+    }
+
+    StringPopBackIf(&str, '\n');
+    m_log_queue.push(
+        QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
+            .arg(QString::fromStdString(str.substr(0, TIMESTAMP_LENGTH)),
+                 QString::fromStdString(color),
+                 QString::fromStdString(str.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
+  });
 }
 
 void LogWidget::closeEvent(QCloseEvent*)

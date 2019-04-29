@@ -173,6 +173,8 @@ LogManager::~LogManager()
 
 void LogManager::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));

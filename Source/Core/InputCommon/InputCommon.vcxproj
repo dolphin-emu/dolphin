@@ -45,14 +45,13 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Buttons.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\ControlGroup.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Cursor.cpp" />
-    <ClCompile Include="ControllerEmu\ControlGroup\Extension.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Force.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\MixedTriggers.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\ModifySettingsButton.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Slider.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Tilt.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp" />
-    <ClCompile Include="ControllerEmu\Setting\BooleanSetting.cpp" />
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
     <ClCompile Include="ControllerInterface\Device.cpp" />
@@ -63,6 +62,7 @@
     <ClCompile Include="ControlReference\ControlReference.cpp" />
     <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
+    <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="GCAdapter.cpp">
       <!--
@@ -84,16 +84,14 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Buttons.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\ControlGroup.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Cursor.h" />
-    <ClInclude Include="ControllerEmu\ControlGroup\Extension.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Force.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\MixedTriggers.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\ModifySettingsButton.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Slider.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Tilt.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h" />
-    <ClInclude Include="ControllerEmu\Setting\BooleanSetting.h" />
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h" />
-    <ClInclude Include="ControllerEmu\Setting\Setting.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />
     <ClInclude Include="ControllerInterface\Device.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h" />
@@ -104,6 +102,7 @@
     <ClInclude Include="ControlReference\ControlReference.h" />
     <ClInclude Include="ControlReference\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
+    <ClInclude Include="ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />

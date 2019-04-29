@@ -15,7 +15,9 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 #define WRITE p += sprintf
 
@@ -59,21 +61,10 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
 
 static void WriteHeader(char*& p, APIType ApiType)
 {
-  if (ApiType == APIType::OpenGL)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
     // left, top, of source rectangle within source texture
     // width of the destination rectangle, scale_factor (1 or 2)
-    WRITE(p, "uniform int4 position;\n");
-    WRITE(p, "uniform float y_scale;\n");
-    WRITE(p, "uniform float gamma_rcp;\n");
-    WRITE(p, "uniform float2 clamp_tb;\n");
-    WRITE(p, "uniform float3 filter_coefficients;\n");
-    WRITE(p, "#define samp0 samp9\n");
-    WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
-    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
-  }
-  else if (ApiType == APIType::Vulkan)
-  {
     WRITE(p, "UBO_BINDING(std140, 1) uniform PSBlock {\n");
     WRITE(p, "  int4 position;\n");
     WRITE(p, "  float y_scale;\n");
@@ -81,8 +72,18 @@ static void WriteHeader(char*& p, APIType ApiType)
     WRITE(p, "  float2 clamp_tb;\n");
     WRITE(p, "  float3 filter_coefficients;\n");
     WRITE(p, "};\n");
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      WRITE(p, "VARYING_LOCATION(0) in VertexData {\n");
+      WRITE(p, "  float3 v_tex0;\n");
+      WRITE(p, "};\n");
+    }
+    else
+    {
+      WRITE(p, "VARYING_LOCATION(0) in float3 v_tex0;\n");
+    }
     WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n");
   }
   else  // D3D
   {
@@ -147,7 +148,7 @@ static void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType A
     else
     {
       // Handle D3D depth inversion.
-      if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+      if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
         WRITE(p, "1.0 - (");
       else
         WRITE(p, "(");
@@ -225,7 +226,9 @@ static void WriteSwizzler(char*& p, const EFBCopyParams& params, EFBCopyFormat f
   else  // D3D
   {
     WRITE(p, "void main(\n");
-    WRITE(p, "  out float4 ocol0 : SV_Target, in float4 rawpos : SV_Position)\n");
+    WRITE(p, "  in float3 v_tex0 : TEXCOORD0,\n");
+    WRITE(p, "  in float4 rawpos : SV_Position,\n");
+    WRITE(p, "  out float4 ocol0 : SV_Target)\n");
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(rawpos.xy);\n");
@@ -846,38 +849,65 @@ const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
 
 // NOTE: In these uniforms, a row refers to a row of blocks, not texels.
 static const char decoding_shader_header[] = R"(
-#ifdef VULKAN
+#if defined(PALETTE_FORMAT_IA8) || defined(PALETTE_FORMAT_RGB565) || defined(PALETTE_FORMAT_RGB5A3)
+#define HAS_PALETTE 1
+#endif
 
-layout(std140, push_constant) uniform PushConstants {
-  uvec2 dst_size;
-  uvec2 src_size;
-  uint src_offset;
-  uint src_row_stride;
-  uint palette_offset;
-} push_constants;
-#define u_dst_size (push_constants.dst_size)
-#define u_src_size (push_constants.src_size)
-#define u_src_offset (push_constants.src_offset)
-#define u_src_row_stride (push_constants.src_row_stride)
-#define u_palette_offset (push_constants.palette_offset)
+#ifdef API_D3D
+cbuffer UBO : register(b0) {
+#else
+UBO_BINDING(std140, 1) uniform UBO {
+#endif
+  uint2 u_dst_size;
+  uint2 u_src_size;
+  uint u_src_offset;
+  uint u_src_row_stride;
+  uint u_palette_offset;
+};
 
-TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer s_input_buffer;
-TEXEL_BUFFER_BINDING(1) uniform usamplerBuffer s_palette_buffer;
+#ifdef API_D3D
 
-IMAGE_BINDING(rgba8, 0) uniform writeonly image2DArray output_image;
+Buffer<uint4> s_input_buffer : register(t0);
+#ifdef HAS_PALETTE
+Buffer<uint4> s_palette_buffer : register(t1);
+#endif
+
+RWTexture2DArray<unorm float4> output_image : register(u0);
+
+// Helpers for reading/writing.
+#define texelFetch(buffer, pos) buffer.Load(pos)
+#define imageStore(image, coords, value) image[coords] = value
+#define GROUP_MEMORY_BARRIER_WITH_SYNC GroupMemoryBarrierWithGroupSync();
+#define GROUP_SHARED groupshared
+
+#define DEFINE_MAIN(lx, ly) \
+  [numthreads(lx, ly, 1)] \
+  void main(uint3 gl_WorkGroupID : SV_GroupId, \
+            uint3 gl_LocalInvocationID : SV_GroupThreadID, \
+            uint3 gl_GlobalInvocationID : SV_DispatchThreadID)
+
+uint bitfieldExtract(uint val, int off, int size)
+{
+  // This built-in function is only support in OpenGL 4.0+ and ES 3.1+\n"
+  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract instruction.
+  uint mask = uint((1 << size) - 1);
+  return uint(val >> off) & mask;
+}
 
 #else
 
-uniform uvec2 u_dst_size;
-uniform uvec2 u_src_size;
-uniform uint u_src_offset;
-uniform uint u_src_row_stride;
-uniform uint u_palette_offset;
+TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer s_input_buffer;
+#ifdef HAS_PALETTE
+TEXEL_BUFFER_BINDING(1) uniform usamplerBuffer s_palette_buffer;
+#endif
+IMAGE_BINDING(rgba8, 0) uniform writeonly image2DArray output_image;
 
-SAMPLER_BINDING(9) uniform usamplerBuffer s_input_buffer;
-SAMPLER_BINDING(10) uniform usamplerBuffer s_palette_buffer;
+#define GROUP_MEMORY_BARRIER_WITH_SYNC memoryBarrierShared(); barrier();
+#define GROUP_SHARED shared
 
-layout(rgba8, binding = 0) uniform writeonly image2DArray output_image;
+#define DEFINE_MAIN(lx, ly) \
+  layout(local_size_x = lx, local_size_y = ly) in; \
+  void main()
 
 #endif
 
@@ -908,10 +938,10 @@ uint Convert6To8(uint v)
   return (v << 2) | (v >> 4);
 }
 
-uint GetTiledTexelOffset(uvec2 block_size, uvec2 coords)
+uint GetTiledTexelOffset(uint2 block_size, uint2 coords)
 {
-  uvec2 block = coords / block_size;
-  uvec2 offset = coords % block_size;
+  uint2 block = coords / block_size;
+  uint2 offset = coords % block_size;
   uint buffer_pos = u_src_offset;
   buffer_pos += block.y * u_src_row_stride;
   buffer_pos += block.x * (block_size.x * block_size.y);
@@ -920,16 +950,16 @@ uint GetTiledTexelOffset(uvec2 block_size, uvec2 coords)
   return buffer_pos;
 }
 
-uvec4 GetPaletteColor(uint index)
+uint4 GetPaletteColor(uint index)
 {
   // Fetch and swap BE to LE.
   uint val = Swap16(texelFetch(s_palette_buffer, int(u_palette_offset + index)).x);
 
-  uvec4 color;
+  uint4 color;
 #if defined(PALETTE_FORMAT_IA8)
   uint a = bitfieldExtract(val, 8, 8);
   uint i = bitfieldExtract(val, 0, 8);
-  color = uvec4(i, i, i, a);
+  color = uint4(i, i, i, a);
 #elif defined(PALETTE_FORMAT_RGB565)
   color.x = Convert5To8(bitfieldExtract(val, 11, 5));
   color.y = Convert6To8(bitfieldExtract(val, 5, 6));
@@ -953,29 +983,27 @@ uvec4 GetPaletteColor(uint index)
   }
 #else
   // Not used.
-  color = uvec4(0, 0, 0, 0);
+  color = uint4(0, 0, 0, 0);
 #endif
 
   return color;
 }
 
-vec4 GetPaletteColorNormalized(uint index)
+float4 GetPaletteColorNormalized(uint index)
 {
-  uvec4 color = GetPaletteColor(index);
-  return vec4(color) / 255.0;
+  uint4 color = GetPaletteColor(index);
+  return float4(color) / 255.0;
 }
 
 )";
 
 static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
     {TextureFormat::I4,
-     {BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 8x8 blocks, 4 bits per pixel
         // We need to do the tiling manually here because the texel size is smaller than
@@ -996,108 +1024,98 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         else
           i = Convert4To8((val & 0x0Fu));
 
-        uvec4 color = uvec4(i, i, i, i);
-        vec4 norm_color = vec4(color) / 255.0;
+        uint4 color = uint4(i, i, i, i);
+        float4 norm_color = float4(color) / 255.0;
 
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
 
       )"}},
     {TextureFormat::IA4,
-     {BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 8x4 blocks, 8 bits per pixel
-        uint buffer_pos = GetTiledTexelOffset(uvec2(8u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(8u, 4u), coords);
         uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
         uint i = Convert4To8((val & 0x0Fu));
         uint a = Convert4To8((val >> 4));
-        uvec4 color = uvec4(i, i, i, a);
-        vec4 norm_color = vec4(color) / 255.0;
+        uint4 color = uint4(i, i, i, a);
+        float4 norm_color = float4(color) / 255.0;
 
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
     {TextureFormat::I8,
-     {BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R8_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 8x4 blocks, 8 bits per pixel
-        uint buffer_pos = GetTiledTexelOffset(uvec2(8u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(8u, 4u), coords);
         uint i = texelFetch(s_input_buffer, int(buffer_pos)).x;
-        uvec4 color = uvec4(i, i, i, i);
-        vec4 norm_color = vec4(color) / 255.0;
+        uint4 color = uint4(i, i, i, i);
+        float4 norm_color = float4(color) / 255.0;
 
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
     {TextureFormat::IA8,
-     {BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 4x4 blocks, 16 bits per pixel
-        uint buffer_pos = GetTiledTexelOffset(uvec2(4u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
         uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
         uint a = (val & 0xFFu);
         uint i = (val >> 8);
-        uvec4 color = uvec4(i, i, i, a);
-        vec4 norm_color = vec4(color) / 255.0;
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        uint4 color = uint4(i, i, i, a);
+        float4 norm_color = float4(color) / 255.0;
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
     {TextureFormat::RGB565,
-     {BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 4x4 blocks
-        uint buffer_pos = GetTiledTexelOffset(uvec2(4u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
         uint val = Swap16(texelFetch(s_input_buffer, int(buffer_pos)).x);
 
-        uvec4 color;
+        uint4 color;
         color.x = Convert5To8(bitfieldExtract(val, 11, 5));
         color.y = Convert6To8(bitfieldExtract(val, 5, 6));
         color.z = Convert5To8(bitfieldExtract(val, 0, 5));
         color.a = 255u;
 
-        vec4 norm_color = vec4(color) / 255.0;
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        float4 norm_color = float4(color) / 255.0;
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
 
       )"}},
     {TextureFormat::RGB5A3,
-     {BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 4x4 blocks
-        uint buffer_pos = GetTiledTexelOffset(uvec2(4u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
         uint val = Swap16(texelFetch(s_input_buffer, int(buffer_pos)).x);
 
-        uvec4 color;
+        uint4 color;
         if ((val & 0x8000u) != 0u)
         {
           color.x = Convert5To8(bitfieldExtract(val, 10, 5));
@@ -1113,19 +1131,17 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
           color.b = Convert4To8(bitfieldExtract(val, 0, 4));
         }
 
-        vec4 norm_color = vec4(color) / 255.0;
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        float4 norm_color = float4(color) / 255.0;
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
 
       )"}},
     {TextureFormat::RGBA8,
-     {BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_R16_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 4x4 blocks
         // We can't use the normal calculation function, as these are packed as the AR channels
@@ -1144,18 +1160,18 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         uint val1 = texelFetch(s_input_buffer, int(buffer_pos + 0u)).x;
         uint val2 = texelFetch(s_input_buffer, int(buffer_pos + 16u)).x;
 
-        uvec4 color;
+        uint4 color;
         color.a = (val1 & 0xFFu);
         color.r = (val1 >> 8);
         color.g = (val2 & 0xFFu);
         color.b = (val2 >> 8);
 
-        vec4 norm_color = vec4(color) / 255.0;
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        float4 norm_color = float4(color) / 255.0;
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
     {TextureFormat::CMPR,
-     {BUFFER_FORMAT_R32G32_UINT, 0, 64, 1, true,
+     {TEXEL_BUFFER_FORMAT_R32G32_UINT, 0, 64, 1, true,
       R"(
       // In the compute version of this decoder, we flatten the blocks to a one-dimension array.
       // Each group is subdivided into 16, and the first thread in each group fetches the DXT data.
@@ -1167,17 +1183,15 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       #define BLOCK_SIZE (BLOCK_SIZE_X * BLOCK_SIZE_Y)
       #define BLOCKS_PER_GROUP (GROUP_SIZE / BLOCK_SIZE)
 
-      layout(local_size_x = GROUP_SIZE, local_size_y = 1) in;
-
-      shared uvec2 shared_temp[BLOCKS_PER_GROUP];
-
       uint DXTBlend(uint v1, uint v2)
       {
         // 3/8 blend, which is close to 1/3
         return ((v1 * 3u + v2 * 5u) >> 3);
       }
 
-      void main()
+      GROUP_SHARED uint2 shared_temp[BLOCKS_PER_GROUP];
+
+      DEFINE_MAIN(GROUP_SIZE, 8)
       {
         uint local_thread_id = gl_LocalInvocationID.x;
         uint block_in_group = local_thread_id / BLOCK_SIZE;
@@ -1188,7 +1202,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // from the block size of the overall texture (4 vs 8). We can however use a multiply and
         // subtraction to avoid the modulo for calculating the block's X coordinate.
         uint blocks_wide = u_src_size.x / BLOCK_SIZE_X;
-        uvec2 block_coords;
+        uint2 block_coords;
         block_coords.y = block_index / blocks_wide;
         block_coords.x = block_index - (block_coords.y * blocks_wide);
 
@@ -1196,8 +1210,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         if (thread_in_block == 0u)
         {
           // Calculate tiled block coordinates.
-          uvec2 tile_block_coords = block_coords / 2u;
-          uvec2 subtile_block_coords = block_coords % 2u;
+          uint2 tile_block_coords = block_coords / 2u;
+          uint2 subtile_block_coords = block_coords % 2u;
           uint buffer_pos = u_src_offset;
           buffer_pos += tile_block_coords.y * u_src_row_stride;
           buffer_pos += tile_block_coords.x * 4u;
@@ -1205,16 +1219,15 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
           buffer_pos += subtile_block_coords.x;
 
           // Read the entire DXT block to shared memory.
-          uvec2 raw_data = texelFetch(s_input_buffer, int(buffer_pos)).xy;
+          uint2 raw_data = texelFetch(s_input_buffer, int(buffer_pos)).xy;
           shared_temp[block_in_group] = raw_data;
         }
 
         // Ensure store is completed before the remaining threads in the block continue.
-        memoryBarrierShared();
-        barrier();
+        GROUP_MEMORY_BARRIER_WITH_SYNC;
 
         // Unpack colors and swap BE to LE.
-        uvec2 raw_data = shared_temp[block_in_group];
+        uint2 raw_data = shared_temp[block_in_group];
         uint swapped = ((raw_data.x & 0xFF00FF00u) >> 8) | ((raw_data.x & 0x00FF00FFu) << 8);
         uint c1 = swapped & 0xFFFFu;
         uint c2 = swapped >> 16;
@@ -1230,18 +1243,18 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // Determine the four colors the block can use.
         // It's quicker to just precalculate all four colors rather than branching on the index.
         // NOTE: These must be masked with 0xFF. This is done at the normalization stage below.
-        uvec4 color0, color1, color2, color3;
-        color0 = uvec4(red1, green1, blue1, 255u);
-        color1 = uvec4(red2, green2, blue2, 255u);
+        uint4 color0, color1, color2, color3;
+        color0 = uint4(red1, green1, blue1, 255u);
+        color1 = uint4(red2, green2, blue2, 255u);
         if (c1 > c2)
         {
-          color2 = uvec4(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255u);
-          color3 = uvec4(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255u);
+          color2 = uint4(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255u);
+          color3 = uint4(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255u);
         }
         else
         {
-          color2 = uvec4((red1 + red2) / 2u, (green1 + green2) / 2u, (blue1 + blue2) / 2u, 255u);
-          color3 = uvec4((red1 + red2) / 2u, (green1 + green2) / 2u, (blue1 + blue2) / 2u, 0u);
+          color2 = uint4((red1 + red2) / 2u, (green1 + green2) / 2u, (blue1 + blue2) / 2u, 255u);
+          color3 = uint4((red1 + red2) / 2u, (green1 + green2) / 2u, (blue1 + blue2) / 2u, 0u);
         }
 
         // Calculate the texel coordinates that we will write to.
@@ -1257,7 +1270,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Select the un-normalized color from the precalculated color array.
         // Using a switch statement here removes the need for dynamic indexing of an array.
-        uvec4 color;
+        uint4 color;
         switch (index)
         {
         case 0u:  color = color0;   break;
@@ -1268,19 +1281,17 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         }
 
         // Normalize and write to the output image.
-        vec4 norm_color = vec4(color & 0xFFu) / 255.0;
-        imageStore(output_image, ivec3(ivec2(uvec2(global_x, global_y)), 0), norm_color);
+        float4 norm_color = float4(color & 0xFFu) / 255.0;
+        imageStore(output_image, int3(int2(uint2(global_x, global_y)), 0), norm_color);
       }
       )"}},
     {TextureFormat::C4,
-     {BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C4)), 8, 8,
-      false,
+     {TEXEL_BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C4)),
+      8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 8x8 blocks, 4 bits per pixel
         // We need to do the tiling manually here because the texel size is smaller than
@@ -1296,90 +1307,72 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
         // Select high nibble for odd texels, low for even.
         uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
         uint index = ((coords.x & 1u) == 0u) ? (val >> 4) : (val & 0x0Fu);
-        vec4 norm_color = GetPaletteColorNormalized(index);
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        float4 norm_color = GetPaletteColorNormalized(index);
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
 
       )"}},
     {TextureFormat::C8,
-     {BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C8)), 8, 8,
-      false,
+     {TEXEL_BUFFER_FORMAT_R8_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C8)),
+      8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 8x4 blocks, 8 bits per pixel
-        uint buffer_pos = GetTiledTexelOffset(uvec2(8u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(8u, 4u), coords);
         uint index = texelFetch(s_input_buffer, int(buffer_pos)).x;
-        vec4 norm_color = GetPaletteColorNormalized(index);
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        float4 norm_color = GetPaletteColorNormalized(index);
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
     {TextureFormat::C14X2,
-     {BUFFER_FORMAT_R16_UINT, static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C14X2)), 8,
-      8, false,
+     {TEXEL_BUFFER_FORMAT_R16_UINT,
+      static_cast<u32>(TexDecoder_GetPaletteSize(TextureFormat::C14X2)), 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 coords = gl_GlobalInvocationID.xy;
+        uint2 coords = gl_GlobalInvocationID.xy;
 
         // Tiled in 4x4 blocks, 16 bits per pixel
-        uint buffer_pos = GetTiledTexelOffset(uvec2(4u, 4u), coords);
+        uint buffer_pos = GetTiledTexelOffset(uint2(4u, 4u), coords);
         uint index = Swap16(texelFetch(s_input_buffer, int(buffer_pos)).x) & 0x3FFFu;
-        vec4 norm_color = GetPaletteColorNormalized(index);
-        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+        float4 norm_color = GetPaletteColorNormalized(index);
+        imageStore(output_image, int3(int2(coords), 0), norm_color);
       }
       )"}},
 
     // We do the inverse BT.601 conversion for YCbCr to RGB
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
     {TextureFormat::XFB,
-     {BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
+     {TEXEL_BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
       R"(
-      layout(local_size_x = 8, local_size_y = 8) in;
-
-      void main()
+      DEFINE_MAIN(8, 8)
       {
-        uvec2 uv = gl_GlobalInvocationID.xy;
+        uint2 uv = gl_GlobalInvocationID.xy;
         int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2u));
-        vec4 yuyv = vec4(texelFetch(s_input_buffer, buffer_pos));
+        float4 yuyv = float4(texelFetch(s_input_buffer, buffer_pos));
 
-        float y = mix(yuyv.r, yuyv.b, (uv.x & 1u) == 1u);
+        float y = (uv.x & 1u) != 0u ? yuyv.b : yuyv.r;
 
         float yComp = 1.164 * (y - 16.0);
         float uComp = yuyv.g - 128.0;
         float vComp = yuyv.a - 128.0;
 
-        vec4 rgb = vec4(yComp + (1.596 * vComp),
+        float4 rgb = float4(yComp + (1.596 * vComp),
                         yComp - (0.813 * vComp) - (0.391 * uComp),
                         yComp + (2.018 * uComp),
                         255.0);
-        vec4 rgba_norm = rgb / 255.0;
-        imageStore(output_image, ivec3(ivec2(uv), 0), rgba_norm);
+        float4 rgba_norm = rgb / 255.0;
+        imageStore(output_image, int3(int2(uv), 0), rgba_norm);
       }
       )"}}};
-
-static const std::array<u32, BUFFER_FORMAT_COUNT> s_buffer_bytes_per_texel = {{
-    1,  // BUFFER_FORMAT_R8_UINT
-    2,  // BUFFER_FORMAT_R16_UINT
-    8,  // BUFFER_FORMAT_R32G32_UINT
-    4,  // BUFFER_FORMAT_RGBA8_UINT
-}};
 
 const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format)
 {
   auto iter = s_decoding_shader_info.find(format);
   return iter != s_decoding_shader_info.end() ? &iter->second : nullptr;
-}
-
-u32 GetBytesPerBufferElement(BufferFormat buffer_format)
-{
-  return s_buffer_bytes_per_texel[buffer_format];
 }
 
 std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, u32 height)
@@ -1415,6 +1408,137 @@ std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_form
 
   ss << decoding_shader_header;
   ss << info->shader_body;
+
+  return ss.str();
+}
+
+std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
+{
+  std::stringstream ss;
+
+  ss << R"(
+int Convert3To8(int v)
+{
+  // Swizzle bits: 00000123 -> 12312312
+  return (v << 5) | (v << 2) | (v >> 1);
+}
+int Convert4To8(int v)
+{
+  // Swizzle bits: 00001234 -> 12341234
+  return (v << 4) | v;
+}
+int Convert5To8(int v)
+{
+  // Swizzle bits: 00012345 -> 12345123
+  return (v << 3) | (v >> 2);
+}
+int Convert6To8(int v)
+{
+  // Swizzle bits: 00123456 -> 12345612
+  return (v << 2) | (v >> 4);
+})";
+
+  switch (palette_format)
+  {
+  case TLUTFormat::IA8:
+    ss << R"(
+float4 DecodePixel(int val)
+{
+  int i = val & 0xFF;
+  int a = val >> 8;
+  return float4(i, i, i, a) / 255.0;
+})";
+    break;
+
+  case TLUTFormat::RGB565:
+    ss << R"(
+float4 DecodePixel(int val)
+{
+  int r, g, b, a;
+  r = Convert5To8((val >> 11) & 0x1f);
+  g = Convert6To8((val >> 5) & 0x3f);
+  b = Convert5To8((val) & 0x1f);
+  a = 0xFF;
+  return float4(r, g, b, a) / 255.0;
+})";
+    break;
+
+  case TLUTFormat::RGB5A3:
+    ss << R"(
+float4 DecodePixel(int val)
+{
+  int r,g,b,a;
+  if ((val&0x8000) > 0)
+  {
+    r=Convert5To8((val>>10) & 0x1f);
+    g=Convert5To8((val>>5 ) & 0x1f);
+    b=Convert5To8((val    ) & 0x1f);
+    a=0xFF;
+  }
+  else
+  {
+    a=Convert3To8((val>>12) & 0x7);
+    r=Convert4To8((val>>8 ) & 0xf);
+    g=Convert4To8((val>>4 ) & 0xf);
+    b=Convert4To8((val    ) & 0xf);
+  }
+  return float4(r, g, b, a) / 255.0;
+})";
+    break;
+
+  default:
+    PanicAlert("Unknown format");
+    break;
+  }
+
+  ss << "\n";
+
+  if (api_type == APIType::D3D)
+  {
+    ss << "Buffer<uint> tex0 : register(t0);\n";
+    ss << "Texture2DArray tex1 : register(t1);\n";
+    ss << "SamplerState samp1 : register(s1);\n";
+    ss << "cbuffer PSBlock : register(b0) {\n";
+  }
+  else
+  {
+    ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
+    ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
+    ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
+  }
+
+  ss << "  float multiplier;\n";
+  ss << "  int texel_buffer_offset;\n";
+  ss << "};\n";
+
+  if (api_type == APIType::D3D)
+  {
+    ss << "void main(in float3 v_tex0 : TEXCOORD0, out float4 ocol0 : SV_Target) {\n";
+    ss << "  int src = int(round(tex1.Sample(samp1, v_tex0).r * multiplier));\n";
+    ss << "  src = int(tex0.Load(src + texel_buffer_offset).r);\n";
+  }
+  else
+  {
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) in VertexData {\n";
+      ss << "  float3 v_tex0;\n";
+      ss << "};\n";
+    }
+    else
+    {
+      ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+    }
+    ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
+    ss << "void main() {\n";
+    ss << "  float3 coords = v_tex0;\n";
+    ss << "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
+    ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
+  }
+
+  ss << "  src = ((src << 8) & 0xFF00) | (src >> 8);\n";
+  ss << "  ocol0 = DecodePixel(src);\n";
+  ss << "}\n";
 
   return ss.str();
 }

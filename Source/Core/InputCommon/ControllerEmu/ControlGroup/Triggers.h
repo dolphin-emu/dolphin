@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
@@ -26,5 +27,8 @@ public:
   explicit Triggers(const std::string& name);
 
   StateData GetState();
+
+private:
+  SettingValue<double> m_deadzone_setting;
 };
 }  // namespace ControllerEmu

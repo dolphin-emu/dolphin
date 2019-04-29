@@ -390,11 +390,11 @@ std::string GekkoDisassembler::fd_ra_rb(u32 in, int mask)
   if (mask)
   {
     if (mask & 4)
-      result += StringFromFormat("f%d,", (int)PPCGETD(in));
+      result += StringFromFormat("f%d, ", (int)PPCGETD(in));
     if (mask & 2)
-      result += StringFromFormat("%s,", regnames[(int)PPCGETA(in)]);
+      result += StringFromFormat("%s, ", regnames[(int)PPCGETA(in)]);
     if (mask & 1)
-      result += StringFromFormat("%s,", regnames[(int)PPCGETB(in)]);
+      result += StringFromFormat("%s, ", regnames[(int)PPCGETB(in)]);
 
     // Drop the trailing comma
     result.pop_back();
@@ -905,25 +905,22 @@ void GekkoDisassembler::fdabc(u32 in, const char* name, int mask, unsigned char 
 
   m_flags |= dmode;
   m_opcode = StringFromFormat("f%s%s", name, rcsel[in & 1]);
-  m_operands += StringFromFormat("f%d,", (int)PPCGETD(in));
+  m_operands += StringFromFormat("f%d", (int)PPCGETD(in));
 
   if (mask & 4)
-    m_operands += StringFromFormat("f%d,", (int)PPCGETA(in));
+    m_operands += StringFromFormat(", f%d", (int)PPCGETA(in));
   else if ((mask & 8) == 0)
     err |= (int)PPCGETA(in);
 
   if (mask & 2)
-    m_operands += StringFromFormat("f%d,", (int)PPCGETC(in));
+    m_operands += StringFromFormat(", f%d", (int)PPCGETC(in));
   else if (PPCGETC(in) && (mask & 8) == 0)
     err |= (int)PPCGETC(in);
 
   if (mask & 1)
-    m_operands += StringFromFormat("f%d,", (int)PPCGETB(in));
+    m_operands += StringFromFormat(", f%d", (int)PPCGETB(in));
   else if (!(mask & 8))
     err |= (int)PPCGETB(in);
-
-  // Drop the trailing comma
-  m_operands.pop_back();
 
   if (err)
     ill(in);
@@ -952,7 +949,7 @@ void GekkoDisassembler::fcmp(u32 in, char c)
   {
     m_opcode = StringFromFormat("fcmp%c", c);
     m_operands =
-        StringFromFormat("cr%d,f%d,f%d", (int)PPCGETCRD(in), (int)PPCGETA(in), (int)PPCGETB(in));
+        StringFromFormat("cr%d, f%d, f%d", (int)PPCGETCRD(in), (int)PPCGETA(in), (int)PPCGETB(in));
   }
 }
 
@@ -1026,7 +1023,7 @@ void GekkoDisassembler::ps(u32 inst)
   {
   case 6:
     m_opcode = inst & 0x40 ? "psq_lux" : "psq_lx";
-    m_operands = StringFromFormat("p%u, (r%u + r%u), %d, qr%d", FD, RA, RB, WX, IX);
+    m_operands = StringFromFormat("p%u, r%u, r%u, %d, qr%d", FD, RA, RB, WX, IX);
     return;
 
   case 7:
@@ -1158,22 +1155,22 @@ void GekkoDisassembler::ps(u32 inst)
   }
   case 528:
     m_opcode = "ps_merge00";
-    m_operands = StringFromFormat("p%u, p%u[0],p%u[0]", FD, FA, FB);
+    m_operands = StringFromFormat("p%u, p%u[0], p%u[0]", FD, FA, FB);
     return;
 
   case 560:
     m_opcode = "ps_merge01";
-    m_operands = StringFromFormat("p%u, p%u[0],p%u[1]", FD, FA, FB);
+    m_operands = StringFromFormat("p%u, p%u[0], p%u[1]", FD, FA, FB);
     return;
 
   case 592:
     m_opcode = "ps_merge10";
-    m_operands = StringFromFormat("p%u, p%u[1],p%u[0]", FD, FA, FB);
+    m_operands = StringFromFormat("p%u, p%u[1], p%u[0]", FD, FA, FB);
     return;
 
   case 624:
     m_opcode = "ps_merge11";
-    m_operands = StringFromFormat("p%u, p%u[1],p%u[1]", FD, FA, FB);
+    m_operands = StringFromFormat("p%u, p%u[1], p%u[1]", FD, FA, FB);
     return;
 
   case 1014:
@@ -1195,23 +1192,26 @@ void GekkoDisassembler::ps_mem(u32 inst)
   {
   case 56:
     m_opcode = "psq_l";
-    m_operands = StringFromFormat("p%u, %i(r%u), %d, qr%d", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands =
+        StringFromFormat("p%u, %s (r%u), %d, qr%d", RS, psq_offs(inst & 0xfff).c_str(), RA, W, I);
     break;
 
   case 57:
     m_opcode = "psq_lu";
-    m_operands = StringFromFormat("p%u, %i(r%u), %d, qr%d", RS, SEX12(inst & 0xFFF), RA, W, I);
-    ;
+    m_operands =
+        StringFromFormat("p%u, %s (r%u), %d, qr%d", RS, psq_offs(inst & 0xfff).c_str(), RA, W, I);
     break;
 
   case 60:
     m_opcode = "psq_st";
-    m_operands = StringFromFormat("p%u, %i(r%u), %d, qr%d", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands =
+        StringFromFormat("p%u, %s (r%u), %d, qr%d", RS, psq_offs(inst & 0xfff).c_str(), RA, W, I);
     break;
 
   case 61:
     m_opcode = "psq_stu";
-    m_operands = StringFromFormat("p%u, %i(r%u), %d, qr%d", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands =
+        StringFromFormat("p%u, %s (r%u), %d, qr%d", RS, psq_offs(inst & 0xfff).c_str(), RA, W, I);
     break;
   }
 }

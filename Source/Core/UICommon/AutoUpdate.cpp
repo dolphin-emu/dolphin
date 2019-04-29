@@ -19,23 +19,50 @@
 #include <Windows.h>
 #endif
 
+#ifdef __APPLE__
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
+#if defined _WIN32 || defined __APPLE__
+#define OS_SUPPORTS_UPDATER
+#endif
+
 namespace
 {
 #ifdef _WIN32
 
 const char UPDATER_FILENAME[] = "Updater.exe";
 const char UPDATER_RELOC_FILENAME[] = "Updater.2.exe";
+
+#elif defined(__APPLE__)
+
+const char UPDATER_FILENAME[] = "Dolphin Updater.app";
+const char UPDATER_RELOC_FILENAME[] = ".Dolphin Updater.2.app";
+
+#endif
+
 const char UPDATER_LOG_FILE[] = "Updater.log";
 
-std::wstring MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
+#ifdef OS_SUPPORTS_UPDATER
+std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
-  std::wstring cmdline = UTF8ToUTF16(UPDATER_FILENAME) + L" ";  // Start with a fake argv[0].
+#ifdef __APPLE__
+  std::string cmdline = "\"" + File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME +
+                        "/Contents/MacOS/Dolphin Updater\"";
+#else
+  std::string cmdline = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+#endif
+
+  cmdline += " ";
+
   for (const auto& pair : flags)
   {
     std::string value = "--" + pair.first + "=" + pair.second;
     value = ReplaceAll(value, "\"", "\\\"");  // Escape double quotes.
     value = "\"" + value + "\" ";
-    cmdline += UTF8ToUTF16(value);
+    cmdline += value;
   }
   return cmdline;
 }
@@ -44,7 +71,12 @@ std::wstring MakeUpdaterCommandLine(const std::map<std::string, std::string>& fl
 void CleanupFromPreviousUpdate()
 {
   std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+
+#ifdef __APPLE__
+  File::DeleteDirRecursively(reloc_updater_path);
+#else
   File::Delete(reloc_updater_path);
+#endif
 }
 #endif
 
@@ -93,10 +125,21 @@ std::string GenerateChangelog(const picojson::array& versions)
 
 bool AutoUpdateChecker::SystemSupportsAutoUpdates()
 {
-#ifdef _WIN32
+#if defined _WIN32 || defined __APPLE__
   return true;
 #else
   return false;
+#endif
+}
+
+static std::string GetPlatformID()
+{
+#if defined _WIN32
+  return "win";
+#elif defined __APPLE__
+  return "macos";
+#else
+  return "unknown";
 #endif
 }
 
@@ -106,15 +149,16 @@ void AutoUpdateChecker::CheckForUpdate()
   if (!SystemSupportsAutoUpdates() || SConfig::GetInstance().m_auto_update_track.empty())
     return;
 
-#ifdef _WIN32
+#ifdef OS_SUPPORTS_UPDATER
   CleanupFromPreviousUpdate();
 #endif
 
   std::string version_hash = SConfig::GetInstance().m_auto_update_hash_override.empty() ?
                                  SCM_REV_STR :
                                  SConfig::GetInstance().m_auto_update_hash_override;
-  std::string url = "https://dolphin-emu.org/update/check/v0/" +
-                    SConfig::GetInstance().m_auto_update_track + "/" + version_hash;
+  std::string url = "https://dolphin-emu.org/update/check/v1/" +
+                    SConfig::GetInstance().m_auto_update_track + "/" + version_hash + "/" +
+                    GetPlatformID();
 
   Common::HttpRequest req{std::chrono::seconds{10}};
   auto resp = req.Get(url);
@@ -157,12 +201,16 @@ void AutoUpdateChecker::CheckForUpdate()
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
                                       AutoUpdateChecker::RestartMode restart_mode)
 {
-#ifdef _WIN32
+#ifdef OS_SUPPORTS_UPDATER
   std::map<std::string, std::string> updater_flags;
   updater_flags["this-manifest-url"] = info.this_manifest_url;
   updater_flags["next-manifest-url"] = info.next_manifest_url;
   updater_flags["content-store-url"] = info.content_store_url;
+#ifdef _WIN32
   updater_flags["parent-pid"] = std::to_string(GetCurrentProcessId());
+#else
+  updater_flags["parent-pid"] = std::to_string(getpid());
+#endif
   updater_flags["install-base-path"] = File::GetExeDirectory();
   updater_flags["log-file"] = File::GetExeDirectory() + DIR_SEP + UPDATER_LOG_FILE;
 
@@ -172,19 +220,35 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   // Copy the updater so it can update itself if needed.
   std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
   std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+
+#ifdef __APPLE__
+  File::CopyDir(updater_path, reloc_updater_path);
+  chmod((reloc_updater_path + "/Contents/MacOS/Dolphin Updater").c_str(), 0700);
+#else
   File::Copy(updater_path, reloc_updater_path);
+#endif
 
   // Run the updater!
-  std::wstring command_line = MakeUpdaterCommandLine(updater_flags);
+  std::string command_line = MakeUpdaterCommandLine(updater_flags);
+
+  INFO_LOG(COMMON, "Updater command line: %s", command_line.c_str());
+
+#ifdef _WIN32
   STARTUPINFO sinfo = {sizeof(info)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
-  INFO_LOG(COMMON, "Updater command line: %s", UTF16ToUTF8(command_line).c_str());
   if (!CreateProcessW(UTF8ToUTF16(reloc_updater_path).c_str(),
-                      const_cast<wchar_t*>(command_line.c_str()), nullptr, nullptr, FALSE, 0,
-                      nullptr, nullptr, &sinfo, &pinfo))
+                      const_cast<wchar_t*>(UTF8ToUTF16(command_line).c_str()), nullptr, nullptr,
+                      FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
   {
     ERROR_LOG(COMMON, "Could not start updater process: error=%d", GetLastError());
   }
+#else
+  if (popen(command_line.c_str(), "r") == nullptr)
+  {
+    ERROR_LOG(COMMON, "Could not start updater process: error=%d", errno);
+  }
+#endif
+
 #endif
 }

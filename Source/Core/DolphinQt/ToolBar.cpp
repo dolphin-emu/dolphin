@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <QAction>
 #include <QIcon>
 
 #include "Core/Core.h"

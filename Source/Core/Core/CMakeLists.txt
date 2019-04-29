@@ -30,7 +30,6 @@ add_library(core
   Config/NetplaySettings.cpp
   Config/SYSCONFSettings.cpp
   Config/UISettings.cpp
-  Config/WiimoteInputSettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp
@@ -133,16 +132,22 @@ add_library(core
   HW/VideoInterface.cpp
   HW/WII_IPC.cpp
   HW/Wiimote.cpp
+  HW/WiimoteCommon/DataReport.cpp
   HW/WiimoteEmu/WiimoteEmu.cpp
-  HW/WiimoteEmu/Attachment/Classic.cpp
-  HW/WiimoteEmu/Attachment/Attachment.cpp
-  HW/WiimoteEmu/Attachment/Nunchuk.cpp
-  HW/WiimoteEmu/Attachment/Drums.cpp
-  HW/WiimoteEmu/Attachment/Guitar.cpp
-  HW/WiimoteEmu/Attachment/Turntable.cpp
+  HW/WiimoteEmu/Camera.cpp
+  HW/WiimoteEmu/Dynamics.cpp
   HW/WiimoteEmu/EmuSubroutines.cpp
   HW/WiimoteEmu/Encryption.cpp
+  HW/WiimoteEmu/ExtensionPort.cpp
+  HW/WiimoteEmu/I2CBus.cpp
+  HW/WiimoteEmu/MotionPlus.cpp
   HW/WiimoteEmu/Speaker.cpp
+  HW/WiimoteEmu/Extension/Classic.cpp
+  HW/WiimoteEmu/Extension/Extension.cpp
+  HW/WiimoteEmu/Extension/Nunchuk.cpp
+  HW/WiimoteEmu/Extension/Drums.cpp
+  HW/WiimoteEmu/Extension/Guitar.cpp
+  HW/WiimoteEmu/Extension/Turntable.cpp
   HW/WiimoteReal/WiimoteReal.cpp
   HW/WiiSave.cpp
   IOS/Device.cpp
@@ -209,6 +214,7 @@ add_library(core
   PowerPC/JitInterface.cpp
   PowerPC/CachedInterpreter/CachedInterpreter.cpp
   PowerPC/CachedInterpreter/InterpreterBlockCache.cpp
+  PowerPC/ConditionRegister.cpp
   PowerPC/Interpreter/Interpreter_Branch.cpp
   PowerPC/Interpreter/Interpreter.cpp
   PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
@@ -329,6 +335,7 @@ if(WIN32)
   )
   target_link_libraries(core PUBLIC
     videod3d
+    videod3d12
     setupapi.lib
     iphlpapi.lib
   )
@@ -371,8 +378,4 @@ endif()
 
 if(GDBSTUB)
   target_sources(core PRIVATE PowerPC/GDBStub.cpp)
-endif()
-
-if(UNIX)
-  target_sources(core PRIVATE MemoryWatcher.cpp)
 endif()
