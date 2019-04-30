@@ -17,8 +17,6 @@
 
 class ControllerInterface;
 
-#define sign(x) ((x) ? (x) < 0 ? -1 : 1 : 0)
-
 const char* const named_directions[] = {_trans("Up"), _trans("Down"), _trans("Left"),
                                         _trans("Right")};
 
