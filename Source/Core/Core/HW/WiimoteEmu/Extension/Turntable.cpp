@@ -45,7 +45,7 @@ constexpr std::array<const char*, 6> turntable_button_names{{
     _trans("Blue Right"),
 }};
 
-Turntable::Turntable() : EncryptedExtension(_trans("Turntable"))
+Turntable::Turntable() : Extension1stParty(_trans("Turntable"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -148,7 +148,8 @@ bool Turntable::IsButtonPressed() const
 
 void Turntable::Reset()
 {
-  m_reg = {};
+  EncryptedExtension::Reset();
+
   m_reg.identifier = turntable_id;
 
   // TODO: Is there calibration data?

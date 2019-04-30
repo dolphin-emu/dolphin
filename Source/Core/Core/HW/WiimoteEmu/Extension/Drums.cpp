@@ -44,7 +44,7 @@ constexpr std::array<u16, 2> drum_button_bitmasks{{
     Drums::BUTTON_PLUS,
 }};
 
-Drums::Drums() : EncryptedExtension(_trans("Drums"))
+Drums::Drums() : Extension1stParty(_trans("Drums"))
 {
   // pads
   groups.emplace_back(m_pads = new ControllerEmu::Buttons(_trans("Pads")));
@@ -106,7 +106,8 @@ bool Drums::IsButtonPressed() const
 
 void Drums::Reset()
 {
-  m_reg = {};
+  EncryptedExtension::Reset();
+
   m_reg.identifier = drums_id;
 
   // TODO: Is there calibration data?

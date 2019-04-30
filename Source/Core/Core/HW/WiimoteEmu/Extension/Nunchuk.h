@@ -30,7 +30,7 @@ enum class NunchukGroup
   Shake
 };
 
-class Nunchuk : public EncryptedExtension
+class Nunchuk : public Extension1stParty
 {
 public:
   union ButtonFormat

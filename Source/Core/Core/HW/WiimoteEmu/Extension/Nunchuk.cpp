@@ -31,7 +31,7 @@ constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
     Nunchuk::BUTTON_Z,
 }};
 
-Nunchuk::Nunchuk() : EncryptedExtension(_trans("Nunchuk"))
+Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -121,7 +121,8 @@ bool Nunchuk::IsButtonPressed() const
 
 void Nunchuk::Reset()
 {
-  m_reg = {};
+  EncryptedExtension::Reset();
+
   m_reg.identifier = nunchuk_id;
 
   m_swing_state = {};

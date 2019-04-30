@@ -27,8 +27,8 @@ enum class GuitarGroup
   SliderBar
 };
 
-// TODO: Does the guitar ever use encryption?
-class Guitar : public EncryptedExtension
+// The Guitar uses the "1st-party" extension encryption scheme.
+class Guitar : public Extension1stParty
 {
 public:
   struct DataFormat
