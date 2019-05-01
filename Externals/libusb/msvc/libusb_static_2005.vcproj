@@ -298,6 +298,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\libusb\os\poll_windows.c"
+				>
+			</File>
+			<File
 				RelativePath="..\libusb\strerror.c"
 				>
 			</File>
@@ -310,7 +314,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libusb\os\poll_windows.c"
+				RelativePath="..\libusb\os\windows_nt_common.c"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\os\windows_usbdk.c"
 				>
 			</File>
 			<File
@@ -340,19 +348,39 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libusb\os\threads_windows.h"
-				>
-			</File>
-			<File
 				RelativePath="..\libusb\os\poll_windows.h"
 				>
 			</File>
 			<File
-				RelativePath="..\libusb\os\windows_winusb.h"
+				RelativePath="..\libusb\os\threads_windows.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\version.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\version_nano.h"
 				>
 			</File>
 			<File
 				RelativePath="..\libusb\os\windows_common.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\os\windows_nt_common.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\os\windows_nt_shared_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\os\windows_usbdk.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\os\windows_winusb.h"
 				>
 			</File>
 		</Filter>

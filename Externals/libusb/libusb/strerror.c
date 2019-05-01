@@ -38,7 +38,7 @@ static size_t usbi_locale = 0;
  * How to add a new \ref libusb_strerror() translation:
  * <ol>
  * <li> Download the latest \c strerror.c from:<br>
- *      https://raw.github.com/libusb/libusb/master/libusb/sterror.c </li>
+ *      https://raw.github.com/libusb/libusb/master/libusb/strerror.c </li>
  * <li> Open the file in an UTF-8 capable editor </li>
  * <li> Add the 2 letter <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO 639-1</a>
  *      code for your locale at the end of \c usbi_locale_supported[]<br>
@@ -60,7 +60,7 @@ static size_t usbi_locale = 0;
  * </ol>
  */
 
-static const char* usbi_locale_supported[] = { "en", "nl", "fr", "ru" };
+static const char* usbi_locale_supported[] = { "en", "nl", "fr", "ru", "de", "hu" };
 static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUSB_ERROR_COUNT] = {
 	{ /* English (en) */
 		"Success",
@@ -122,6 +122,37 @@ static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUS
 		"Память исчерпана",
 		"Операция не поддерживается данной платформой",
 		"Неизвестная ошибка"
+	
+	}, { /* German (de) */
+		"Erfolgreich",
+		"Eingabe-/Ausgabefehler",
+		"Ungültiger Parameter",
+		"Keine Berechtigung (Zugriffsrechte fehlen)",
+		"Kein passendes Gerät gefunden (es könnte entfernt worden sein)",
+		"Entität nicht gefunden",
+		"Die Ressource ist belegt",
+		"Die Wartezeit für die Operation ist abgelaufen",
+		"Mehr Daten empfangen als erwartet",
+		"Datenübergabe unterbrochen (broken pipe)",
+		"Unterbrechung während des Betriebssystemaufrufs",
+		"Nicht genügend Hauptspeicher verfügbar",
+		"Die Operation wird nicht unterstützt oder ist auf dieser Platform nicht implementiert",
+		"Allgemeiner Fehler",
+	}, { /* Hungarian (hu) */
+		"Sikeres",
+		"Be-/kimeneti hiba",
+		"Érvénytelen paraméter",
+		"Hozzáférés megtagadva",
+		"Az eszköz nem található (eltávolították?)",
+		"Nem található",
+		"Az erőforrás foglalt",
+		"Időtúllépés",
+		"Túlcsordulás",
+		"Törött adatcsatorna",
+		"Rendszerhívás megszakítva",
+		"Nincs elég memória",
+		"A művelet nem támogatott ezen a rendszeren",
+		"Általános hiba",
 	}
 };
 
