@@ -31,7 +31,7 @@ constexpr std::array<const char*, 2> udraw_tablet_button_names{{
     _trans("Rocker Down"),
 }};
 
-UDrawTablet::UDrawTablet() : Extension3rdParty(_trans("uDraw"))
+UDrawTablet::UDrawTablet() : Extension3rdParty("uDraw", _trans("uDraw GameTablet"))
 {
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));

@@ -72,7 +72,7 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
     Classic::PAD_RIGHT,
 }};
 
-Classic::Classic() : Extension1stParty(_trans("Classic"))
+Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));

@@ -48,7 +48,7 @@ void WiimoteEmuGeneral::CreateMainLayout()
   m_extension_combo = new QComboBox();
 
   for (const auto& attachment : ce_extension->GetAttachmentList())
-    m_extension_combo->addItem(tr(attachment->GetName().c_str()));
+    m_extension_combo->addItem(tr(attachment->GetDisplayName().c_str()));
 
   extension->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 

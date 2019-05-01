@@ -65,7 +65,7 @@ void WiimoteEmuExtension::CreateClassicLayout()
 void WiimoteEmuExtension::CreateDrumsLayout()
 {
   auto* layout = new QGridLayout();
-  m_drums_box = new QGroupBox(tr("Drums"), this);
+  m_drums_box = new QGroupBox(tr("Drum Kit"), this);
 
   layout->addWidget(
       CreateGroupBox(tr("Stick"), Wiimote::GetDrumsGroup(GetPort(), WiimoteEmu::DrumsGroup::Stick)),
@@ -150,7 +150,7 @@ void WiimoteEmuExtension::CreateGuitarLayout()
 void WiimoteEmuExtension::CreateTurntableLayout()
 {
   auto* layout = new QGridLayout();
-  m_turntable_box = new QGroupBox(tr("Turntable"), this);
+  m_turntable_box = new QGroupBox(tr("DJ Turntable"), this);
 
   layout->addWidget(CreateGroupBox(tr("Stick"), Wiimote::GetTurntableGroup(
                                                     GetPort(), WiimoteEmu::TurntableGroup::Stick)),

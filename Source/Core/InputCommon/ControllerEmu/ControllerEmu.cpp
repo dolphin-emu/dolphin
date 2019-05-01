@@ -20,6 +20,11 @@ namespace ControllerEmu
 {
 static std::recursive_mutex s_get_state_mutex;
 
+std::string EmulatedController::GetDisplayName() const
+{
+  return GetName();
+}
+
 EmulatedController::~EmulatedController() = default;
 
 // This should be called before calling GetState() or State() on a control reference
