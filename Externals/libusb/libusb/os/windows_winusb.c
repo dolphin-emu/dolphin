@@ -2474,7 +2474,7 @@ static int winusbx_submit_control_transfer(int sub_api, struct usbi_transfer *it
 		return LIBUSB_ERROR_INVALID_PARAM;
 
 	if ((setup->RequestType & 0x1F) == LIBUSB_RECIPIENT_INTERFACE)
-		current_interface = check_valid_interface(transfer->dev_handle, setup->Index, USB_API_WINUSBX);
+		current_interface = check_valid_interface(transfer->dev_handle, setup->Index & 0xff, USB_API_WINUSBX);
 	else
 		current_interface = get_valid_interface(transfer->dev_handle, USB_API_WINUSBX);
 	if (current_interface < 0) {
