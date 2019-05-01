@@ -19,6 +19,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -40,6 +41,12 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   connect(this, &MemoryViewWidget::customContextMenuRequested, this,
           &MemoryViewWidget::OnContextMenu);
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
+
+  // Update on stepping. Is there a better way than this?
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
+    if (Core::GetState() == Core::State::Paused)
+      Update();
+  });
 
   setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -101,7 +108,9 @@ void MemoryViewWidget::Update()
     if (addr == m_address)
       addr_item->setSelected(true);
 
-    if (Core::GetState() != Core::State::Paused || !PowerPC::HostIsRAMAddress(addr))
+    // Don't update values unless game is started
+    if ((Core::GetState() != Core::State::Paused && Core::GetState() != Core::State::Running) ||
+        !PowerPC::HostIsRAMAddress(addr))
     {
       for (int c = 2; c < columnCount(); c++)
       {
