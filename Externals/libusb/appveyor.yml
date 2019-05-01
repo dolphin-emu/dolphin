@@ -1,0 +1,41 @@
+version: 1.0.{build}
+configuration:
+- Debug
+- Release
+platform:
+- x64
+- Win32
+build:
+  project: msvc\libusb_2013.sln
+  parallel: true
+  verbosity: detailed
+environment:
+  matrix:
+  - libusb_2015: msvc\libusb_2015.sln
+    libusb_2013: msvc\libusb_2013.sln
+    libusb_2012: msvc\libusb_2012.sln
+    libusb_2010: msvc\libusb_2010.sln
+install:
+
+- cmd: >-
+    rem Copying libusb to cygwin home directory
+
+    xcopy /S C:\projects\libusb C:\cygwin\home\appveyor\
+
+    rem Copying libusb to MinGW home directory
+
+    xcopy /S C:\projects\libusb C:\msys64\home\appveyor\
+
+build_script:
+- cmd: >-
+    msbuild %libusb_2015% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+    msbuild %libusb_2013% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+    msbuild %libusb_2012% /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+    msvc/appveyor.bat
+
+    appveyor_minGW.bat
+
+    appveyor_cygwin.bat

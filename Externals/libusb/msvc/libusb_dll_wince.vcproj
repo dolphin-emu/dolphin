@@ -1191,6 +1191,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\libusb\hotplug.h"
+				>
+			</File>
+			<File
 				RelativePath="..\libusb\libusb.h"
 				>
 			</File>
@@ -1215,11 +1219,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libusb\os\wince_usb.h"
+				RelativePath="..\libusb\version_nano.h"
 				>
 			</File>
 			<File
 				RelativePath="..\libusb\os\windows_common.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libusb\os\wince_usb.h"
 				>
 			</File>
 		</Filter>

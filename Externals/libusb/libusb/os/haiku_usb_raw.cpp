@@ -29,6 +29,9 @@
 USBRoster gUsbRoster;
 int32 gInitCount = 0;
 
+static int haiku_get_config_descriptor(struct libusb_device *, uint8_t,
+    unsigned char *, size_t, int *);
+
 static int
 haiku_init(struct libusb_context *ctx)
 {
@@ -38,8 +41,9 @@ haiku_init(struct libusb_context *ctx)
 }
 
 static void
-haiku_exit(void)
+haiku_exit(struct libusb_context *ctx)
 {
+	UNUSED(ctx);
 	if (atomic_add(&gInitCount, -1) == 1)
 		gUsbRoster.Stop();
 }
@@ -82,12 +86,7 @@ static int
 haiku_get_active_config_descriptor(struct libusb_device *device, unsigned char *buffer, size_t len, int *host_endian)
 {
 	USBDevice *dev = *((USBDevice **)device->os_priv);
-	const usb_configuration_descriptor *act_config = dev->ActiveConfiguration();
-	if (len > act_config->total_length)
-		return LIBUSB_ERROR_OVERFLOW;
-	memcpy(buffer, act_config, len);
-	*host_endian = 0;
-	return LIBUSB_SUCCESS;
+	return haiku_get_config_descriptor(device, dev->ActiveConfigurationIndex(), buffer, len, host_endian);
 }
 
 static int
@@ -99,8 +98,9 @@ haiku_get_config_descriptor(struct libusb_device *device, uint8_t config_index, 
 		usbi_err(DEVICE_CTX(device), "failed getting configuration descriptor");
 		return LIBUSB_ERROR_INVALID_PARAM;
 	}
-	if (len > config->total_length)
+	if (len > config->total_length) {
 		len = config->total_length;
+	}
 	memcpy(buffer, config, len);
 	*host_endian = 0;
 	return len;
@@ -195,56 +195,59 @@ haiku_clock_gettime(int clkid, struct timespec *tp)
 	return LIBUSB_ERROR_INVALID_PARAM;
 }
 
-const struct usbi_os_backend haiku_usb_raw_backend = {
-	/*.name =*/ "Haiku usbfs",
-	/*.caps =*/ 0,
-	/*.init =*/ haiku_init,
-	/*.exit =*/ haiku_exit,
-	/*.get_device_list =*/ NULL,
-	/*.hotplug_poll =*/ NULL,
-	/*.open =*/ haiku_open,
-	/*.close =*/ haiku_close,
-	/*.get_device_descriptor =*/ haiku_get_device_descriptor,
-	/*.get_active_config_descriptor =*/ haiku_get_active_config_descriptor,
-	/*.get_config_descriptor =*/ haiku_get_config_descriptor,
-	/*.get_config_descriptor_by_value =*/ NULL,
+const struct usbi_os_backend usbi_backend = {
+	.name = "Haiku usbfs",
+	.caps = 0,
+	.init = haiku_init,
+	.exit = haiku_exit,
+	.set_option = NULL,
+	.get_device_list = NULL,
+	.hotplug_poll = NULL,
+	.wrap_sys_device = NULL,
+	.open = haiku_open,
+	.close = haiku_close,
+	.get_device_descriptor = haiku_get_device_descriptor,
+	.get_active_config_descriptor = haiku_get_active_config_descriptor,
+	.get_config_descriptor = haiku_get_config_descriptor,
+	.get_config_descriptor_by_value = NULL,
 
 
-	/*.get_configuration =*/ NULL,
-	/*.set_configuration =*/ haiku_set_configuration,
-	/*.claim_interface =*/ haiku_claim_interface,
-	/*.release_interface =*/ haiku_release_interface,
+	.get_configuration = NULL,
+	.set_configuration = haiku_set_configuration,
+	.claim_interface = haiku_claim_interface,
+	.release_interface = haiku_release_interface,
 
-	/*.set_interface_altsetting =*/ haiku_set_altsetting,
-	/*.clear_halt =*/ NULL,
-	/*.reset_device =*/ NULL,
+	.set_interface_altsetting = haiku_set_altsetting,
+	.clear_halt = NULL,
+	.reset_device = NULL,
 
-	/*.alloc_streams =*/ NULL,
-	/*.free_streams =*/ NULL,
+	.alloc_streams = NULL,
+	.free_streams = NULL,
 
-	/*.dev_mem_alloc =*/ NULL,
-	/*.dev_mem_free =*/ NULL,
+	.dev_mem_alloc = NULL,
+	.dev_mem_free = NULL,
 
-	/*.kernel_driver_active =*/ NULL,
-	/*.detach_kernel_driver =*/ NULL,
-	/*.attach_kernel_driver =*/ NULL,
+	.kernel_driver_active = NULL,
+	.detach_kernel_driver = NULL,
+	.attach_kernel_driver = NULL,
 
-	/*.destroy_device =*/ NULL,
+	.destroy_device = NULL,
 
-	/*.submit_transfer =*/ haiku_submit_transfer,
-	/*.cancel_transfer =*/ haiku_cancel_transfer,
-	/*.clear_transfer_priv =*/ haiku_clear_transfer_priv,
+	.submit_transfer = haiku_submit_transfer,
+	.cancel_transfer = haiku_cancel_transfer,
+	.clear_transfer_priv = haiku_clear_transfer_priv,
 
-	/*.handle_events =*/ NULL,
-	/*.handle_transfer_completion =*/ haiku_handle_transfer_completion,
+	.handle_events = NULL,
+	.handle_transfer_completion = haiku_handle_transfer_completion,
 
-	/*.clock_gettime =*/ haiku_clock_gettime,
+	.clock_gettime = haiku_clock_gettime,
 
 #ifdef USBI_TIMERFD_AVAILABLE
-	/*.get_timerfd_clockid =*/ NULL,
+	.get_timerfd_clockid = NULL,
 #endif
 
-	/*.device_priv_size =*/ sizeof(USBDevice *),
-	/*.device_handle_priv_size =*/ sizeof(USBDeviceHandle *),
-	/*.transfer_priv_size =*/ sizeof(USBTransfer *),
+	.context_priv_size = 0,
+	.device_priv_size = sizeof(USBDevice *),
+	.device_handle_priv_size = sizeof(USBDeviceHandle *),
+	.transfer_priv_size = sizeof(USBTransfer *),
 };
