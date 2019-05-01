@@ -18,6 +18,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
@@ -184,11 +185,19 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   if (!m_device_attached)
     return LIBUSB_ERROR_NOT_FOUND;
 
+  DEBUG_LOG(IOS_USB,
+            "[%04x:%04x %d] Control: bRequestType=%02x bRequest=%02x wValue=%04x"
+            " wIndex=%04x wLength=%04x",
+            m_vid, m_pid, m_active_interface, cmd->request_type, cmd->request, cmd->value,
+            cmd->index, cmd->length);
+
   switch ((cmd->request_type << 8) | cmd->request)
   {
   // The following requests have to go through libusb and cannot be directly sent to the device.
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_INTERFACE, REQUEST_SET_INTERFACE):
   {
+    INFO_LOG(IOS_USB, "[%04x:%04x %d] REQUEST_SET_INTERFACE index=%04x value=%04x", m_vid, m_pid,
+             m_active_interface, cmd->index, cmd->value);
     if (static_cast<u8>(cmd->index) != m_active_interface)
     {
       const int ret = ChangeInterface(static_cast<u8>(cmd->index));
@@ -206,6 +215,8 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<CtrlMessage> cmd)
   }
   case USBHDR(DIR_HOST2DEVICE, TYPE_STANDARD, REC_DEVICE, REQUEST_SET_CONFIGURATION):
   {
+    INFO_LOG(IOS_USB, "[%04x:%04x %d] REQUEST_SET_CONFIGURATION index=%04x value=%04x", m_vid,
+             m_pid, m_active_interface, cmd->index, cmd->value);
     const int ret = libusb_set_configuration(m_handle, cmd->value);
     if (ret == 0)
       m_ios.EnqueueIPCReply(cmd->ios_request, cmd->length);
@@ -230,6 +241,9 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<BulkMessage> cmd)
   if (!m_device_attached)
     return LIBUSB_ERROR_NOT_FOUND;
 
+  DEBUG_LOG(IOS_USB, "[%04x:%04x %d] Bulk: length=%04x endpoint=%02x", m_vid, m_pid,
+            m_active_interface, cmd->length, cmd->endpoint);
+
   libusb_transfer* transfer = libusb_alloc_transfer(0);
   libusb_fill_bulk_transfer(transfer, m_handle, cmd->endpoint,
                             cmd->MakeBuffer(cmd->length).release(), cmd->length, TransferCallback,
@@ -244,6 +258,9 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<IntrMessage> cmd)
   if (!m_device_attached)
     return LIBUSB_ERROR_NOT_FOUND;
 
+  DEBUG_LOG(IOS_USB, "[%04x:%04x %d] Interrupt: length=%04x endpoint=%02x", m_vid, m_pid,
+            m_active_interface, cmd->length, cmd->endpoint);
+
   libusb_transfer* transfer = libusb_alloc_transfer(0);
   libusb_fill_interrupt_transfer(transfer, m_handle, cmd->endpoint,
                                  cmd->MakeBuffer(cmd->length).release(), cmd->length,
@@ -257,6 +274,9 @@ int LibusbDevice::SubmitTransfer(std::unique_ptr<IsoMessage> cmd)
 {
   if (!m_device_attached)
     return LIBUSB_ERROR_NOT_FOUND;
+
+  DEBUG_LOG(IOS_USB, "[%04x:%04x %d] Isochronous: length=%04x endpoint=%02x num_packets=%02x",
+            m_vid, m_pid, m_active_interface, cmd->length, cmd->endpoint, cmd->num_packets);
 
   libusb_transfer* transfer = libusb_alloc_transfer(cmd->num_packets);
   transfer->buffer = cmd->MakeBuffer(cmd->length).release();
