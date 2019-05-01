@@ -213,13 +213,13 @@ static void InitializeCPUCore(CPUCore cpu_core)
 const std::vector<CPUCore>& AvailableCPUCores()
 {
   static const std::vector<CPUCore> cpu_cores = {
-      CPUCore::Interpreter,
-      CPUCore::CachedInterpreter,
 #ifdef _M_X86_64
       CPUCore::JIT64,
 #elif defined(_M_ARM_64)
       CPUCore::JITARM64,
 #endif
+      CPUCore::CachedInterpreter,
+      CPUCore::Interpreter,
   };
 
   return cpu_cores;
