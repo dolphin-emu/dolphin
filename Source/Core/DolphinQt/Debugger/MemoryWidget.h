@@ -81,7 +81,7 @@ private:
   QRadioButton* m_type_u32;
   QRadioButton* m_type_ascii;
   QRadioButton* m_type_float;
-
+  QCheckBox* m_mem_view_style;
   // Breakpoint options
   QRadioButton* m_bp_read_write;
   QRadioButton* m_bp_read_only;
