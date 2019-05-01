@@ -2412,6 +2412,9 @@ static int get_valid_interface(struct libusb_device_handle *dev_handle, int api_
 */
 static int check_valid_interface(struct libusb_device_handle *dev_handle, unsigned short interface, int api_id)
 {
+	if (interface >= USB_MAXINTERFACES)
+		return -1;
+
 	struct winusb_device_handle_priv *handle_priv = _device_handle_priv(dev_handle);
 	struct winusb_device_priv *priv = _device_priv(dev_handle->dev);
 
