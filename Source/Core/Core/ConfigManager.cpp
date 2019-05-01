@@ -35,6 +35,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/PatchEngine.h"
@@ -724,7 +725,11 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   if (Core::IsRunning())
   {
     // TODO: have a callback mechanism for title changes?
-    g_symbolDB.Clear();
+    if (!g_symbolDB.IsEmpty())
+    {
+      g_symbolDB.Clear();
+      Host_NotifyMapLoaded();
+    }
     CBoot::LoadMapFromFilename();
     HLE::Reload();
     PatchEngine::Reload();

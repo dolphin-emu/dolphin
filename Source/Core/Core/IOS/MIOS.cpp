@@ -20,6 +20,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -52,11 +53,16 @@ bool Load()
   NOTICE_LOG(IOS, "Reinitialised hardware.");
 
   // Load symbols for the IPL if they exist.
-  g_symbolDB.Clear();
+  if (!g_symbolDB.IsEmpty())
+  {
+    g_symbolDB.Clear();
+    Host_NotifyMapLoaded();
+  }
   if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions();
+    Host_NotifyMapLoaded();
   }
 
   const PowerPC::CoreMode core_mode = PowerPC::GetMode();

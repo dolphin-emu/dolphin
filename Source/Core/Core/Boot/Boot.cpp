@@ -383,7 +383,11 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 {
   SConfig& config = SConfig::GetInstance();
 
-  g_symbolDB.Clear();
+  if (!g_symbolDB.IsEmpty())
+  {
+    g_symbolDB.Clear();
+    UpdateDebugger_MapLoaded();
+  }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) ||
