@@ -35,6 +35,8 @@ namespace DolphinWatch {
 	static int hijacksWii[NUM_WIIMOTES];
 	static int hijacksGC[NUM_GCPADS];
 
+  static std::locale locale = std::locale::classic();
+
 	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(i_wiimote));
 	}
@@ -62,7 +64,7 @@ namespace DolphinWatch {
 		data[0] = 0xA1; // input (wiimote -> wii)
 		data[1] = 0x37; // mode: Core Buttons and Accelerometer with 16 Extension Bytes
 			            // because just core buttons does not work for some reason.
-		((wm_buttons*)(data + 2))->hex |= _buttons;
+    ((WiimoteCommon::ButtonData*)(data + 2))->hex |= _buttons;
 
 		// Only filling in button data breaks button inputs with the wii-cursor being active somehow
 
@@ -150,23 +152,6 @@ namespace DolphinWatch {
 		}
 	}
 
-  void ExecuteSafely(std::function<void()> function) {
-    std::function<bool()> inner_function = [&] {
-      UReg_MSR msr = MSR;
-      if (!msr.DR || !msr.IR) {
-        WARN_LOG(DOLPHINWATCH, "paused in state with MSR.DR not set (address resolution would be disabled), resuming a bit...");
-        return false; // wrong CPU configuration, try again later
-      }
-      function();
-      return true;
-    };
-    bool success = false;
-    while (!success) {
-      success = Core::RunAsCPUThread(inner_function);
-      if (!success) Common::SleepCurrentThread(1);
-    }
-  }
-
 	void Init(unsigned short port) {
 		running = true;
 		server.listen(port);
@@ -178,13 +163,11 @@ namespace DolphinWatch {
 		thrMemory = std::thread([]() {
 			while (running) {
 				{
-                    if (!Memory::IsInitialized()) continue;
-                    ExecuteSafely([&] {
-                      for (Client& client : clients) {
-                        // check subscriptions
-                        CheckSubs(client);
-                      }
-                    });
+          if (!Memory::IsInitialized()) continue;
+          for (Client& client : clients) {
+            // check subscriptions
+            CheckSubs(client);
+          }
 				}
 				Common::SleepCurrentThread(WATCH_TIMEOUT);
 				CheckHijacks();
@@ -269,21 +252,19 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
-      ExecuteSafely([&] {
-        switch (mode) {
-        case 8:
-          PowerPC::HostWrite_U8(val, addr);
-          break;
-        case 16:
-          PowerPC::HostWrite_U16(val, addr);
-          break;
-        case 32:
-          PowerPC::HostWrite_U32(val, addr);
-          break;
-        default:
-          ERROR_LOG(DOLPHINWATCH, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
-        }
-      });
+      switch (mode) {
+      case 8:
+        PowerPC::HostWrite_U8(val, addr);
+        break;
+      case 16:
+        PowerPC::HostWrite_U16(val, addr);
+        break;
+      case 32:
+        PowerPC::HostWrite_U32(val, addr);
+        break;
+      default:
+        ERROR_LOG(DOLPHINWATCH, "Wrong mode for writing, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+      }
 		}
 		else if (cmd == "WRITE_MULTI") {
 
@@ -305,12 +286,10 @@ namespace DolphinWatch {
 			} while ((parts >> val));
 
 			// Parsing OK
-      ExecuteSafely([&] {
-        for (u32 v : vals) {
-          PowerPC::HostWrite_U8(v, addr);
-          addr++;
-        }
-      });
+      for (u32 v : vals) {
+        PowerPC::HostWrite_U8(v, addr);
+        addr++;
+      }
 		}
 		else if (cmd == "READ") {
 
@@ -327,24 +306,23 @@ namespace DolphinWatch {
 			}
 
 			// Parsing OK
-      ExecuteSafely([&] {
-        switch (mode) {
-        case 8:
-          val = PowerPC::HostRead_U8(addr);
-          break;
-        case 16:
-          val = PowerPC::HostRead_U16(addr);
-          break;
-        case 32:
-          val = PowerPC::HostRead_U32(addr);
-          break;
-        default:
-          ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
-          return;
-        }
-      });
+      switch (mode) {
+      case 8:
+        val = PowerPC::HostRead_U8(addr);
+        break;
+      case 16:
+        val = PowerPC::HostRead_U16(addr);
+        break;
+      case 32:
+        val = PowerPC::HostRead_U32(addr);
+        break;
+      default:
+        ERROR_LOG(DOLPHINWATCH, "Wrong mode for reading, 8/16/32 required as 1st parameter. Command: %s", line.c_str());
+        return;
+      }
 
 			std::ostringstream message;
+      message.imbue(locale);
 			message << "MEM " << addr << " " << val << std::endl;
 			std::string messagestr = message.str();
 			Send(*(client.socket), messagestr);
@@ -591,6 +569,7 @@ namespace DolphinWatch {
 
 	void SendFeedback(Client& client, bool success) {
 		std::ostringstream msg;
+    msg.imbue(locale);
 		if (success) msg << "SUCCESS";
 		else msg << "FAIL";
 		msg << std::endl;
@@ -608,6 +587,7 @@ namespace DolphinWatch {
 			if (val != sub.prev) {
 				sub.prev = val;
 				std::ostringstream message;
+        message.imbue(locale);
 				message << "MEM " << sub.addr << " " << val << std::endl;
 				std::string messagestr = message.str();
 				Send(*(client.socket), messagestr);
@@ -621,6 +601,7 @@ namespace DolphinWatch {
 			if (val != sub.prev) {
 				sub.prev = val;
 				std::ostringstream message;
+        message.imbue(locale);
 				message << "MEM_MULTI " << sub.addr << " ";
 				for (size_t i = 0; i < val.size(); ++i) {
 					if (i != 0) message << " ";

@@ -589,7 +589,7 @@ bool Wiimote::CheckForButtonPress()
 }
 
 void Wiimote::SetReportingAuto(bool b) {
-	m_reporting_auto = b;
+  m_reporting_continuous = b;
 }
 
 u16 Wiimote::GetReportingChannel() {

@@ -22,6 +22,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/DolphinWatch.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -183,6 +184,13 @@ int main(int argc, char* argv[])
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
 
+    if (options.is_set("watch"))
+    {
+      u32 dw_port = options.get("watch");
+      NOTICE_LOG(DOLPHINWATCH, "watch server on port %d", dw_port);
+      DolphinWatch::Init(dw_port);
+    }
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)
     {
@@ -217,6 +225,11 @@ int main(int argc, char* argv[])
     updater->start();
 
     retval = app.exec();
+  }
+
+  if (options.is_set("watch"))
+  {
+    DolphinWatch::Shutdown();
   }
 
   Core::Shutdown();
