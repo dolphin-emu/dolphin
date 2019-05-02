@@ -52,7 +52,7 @@ constexpr std::array<u8, 2> drum_button_bitmasks{{
     Drums::BUTTON_PLUS,
 }};
 
-Drums::Drums() : Extension1stParty(_trans("Drums"))
+Drums::Drums() : Extension1stParty("Drums", _trans("Drum Kit"))
 {
   // Pads.
   groups.emplace_back(m_pads = new ControllerEmu::Buttons(_trans("Pads")));

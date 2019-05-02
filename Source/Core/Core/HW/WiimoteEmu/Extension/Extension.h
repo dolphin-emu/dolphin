@@ -21,8 +21,10 @@ class Extension : public ControllerEmu::EmulatedController, public I2CSlave
 {
 public:
   explicit Extension(const char* name);
+  Extension(const char* config_name, const char* display_name);
 
   std::string GetName() const override;
+  std::string GetDisplayName() const override;
 
   // Used by the wiimote to detect extension changes.
   // The normal extensions short this pin so it's always connected,
@@ -35,7 +37,8 @@ public:
   virtual void Update() = 0;
 
 private:
-  const char* const m_name;
+  const char* const m_config_name;
+  const char* const m_display_name;
 };
 
 class None : public Extension
@@ -60,7 +63,7 @@ class EncryptedExtension : public Extension
 public:
   static constexpr u8 I2C_ADDR = 0x52;
 
-  EncryptedExtension(const char* name);
+  using Extension::Extension;
 
   // TODO: This is public for TAS reasons.
   // TODO: TAS handles encryption poorly.

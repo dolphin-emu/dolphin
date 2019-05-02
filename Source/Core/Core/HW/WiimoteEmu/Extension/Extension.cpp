@@ -16,13 +16,23 @@
 
 namespace WiimoteEmu
 {
-Extension::Extension(const char* name) : m_name(name)
+Extension::Extension(const char* name) : Extension(name, name)
+{
+}
+
+Extension::Extension(const char* config_name, const char* display_name)
+    : m_config_name(config_name), m_display_name(display_name)
 {
 }
 
 std::string Extension::GetName() const
 {
-  return m_name;
+  return m_config_name;
+}
+
+std::string Extension::GetDisplayName() const
+{
+  return m_display_name;
 }
 
 None::None() : Extension("None")
@@ -62,10 +72,6 @@ int None::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 int None::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 {
   return 0;
-}
-
-EncryptedExtension::EncryptedExtension(const char* name) : Extension(name)
-{
 }
 
 bool EncryptedExtension::ReadDeviceDetectPin() const
