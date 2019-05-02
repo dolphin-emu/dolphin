@@ -45,6 +45,8 @@ protected:
 
   WindowSystemInfo m_wsi = {};
 
+  EGLNativeWindowType m_native_window = {};
+
   EGLConfig m_config;
   bool m_supports_surfaceless = false;
   std::vector<int> m_attribs;

@@ -292,8 +292,8 @@ bool GLContextEGL::CreateWindowSurface()
 {
   if (!IsHeadless())
   {
-    EGLNativeWindowType native_window = GetEGLNativeWindow(m_config);
-    m_egl_surface = eglCreateWindowSurface(m_egl_display, m_config, native_window, nullptr);
+    m_native_window = GetEGLNativeWindow(m_config);
+    m_egl_surface = eglCreateWindowSurface(m_egl_display, m_config, m_native_window, nullptr);
     if (!m_egl_surface)
     {
       INFO_LOG_FMT(VIDEO, "Error: eglCreateWindowSurface failed");
