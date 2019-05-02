@@ -30,6 +30,9 @@
 #if defined(USE_PIPES)
 #define CIFACE_USE_PIPES
 #endif
+#if defined(HAVE_WAYLAND)
+#define CIFACE_USE_WAYLAND
+#endif
 #define CIFACE_USE_DUALSHOCKUDPCLIENT
 #if defined(HAVE_SDL2)
 #define CIFACE_USE_SDL
