@@ -14,6 +14,7 @@
 #include <windows.h>
 #endif
 
+#include "stdio.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/GekkoDisassembler.h"
@@ -328,6 +329,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
 
 void Jit64::Init()
 {
+  printf("Entering Jit64::Init()\n");
   InitializeInstructionTables();
   EnableBlockLink();
 
@@ -708,6 +710,7 @@ void Jit64::Trace()
 
 void Jit64::Jit(u32 em_address)
 {
+  //printf("Entering Jit(...):\t0x%x\n", em_address);
   if (m_cleanup_after_stackfault)
   {
     ClearCache();
@@ -727,6 +730,8 @@ void Jit64::Jit(u32 em_address)
           IsAlmostFull() ? "main" : m_far_code.IsAlmostFull() ? "far" : "trampoline";
       WARN_LOG(POWERPC, "flushing %s code cache, please report if this happens a lot", reason);
     }
+    for(int i = 0; i < 10; i++)
+    printf("FLUSHING CODE CACHE--------------\n");
     ClearCache();
   }
 

@@ -14,6 +14,7 @@
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "stdio.h"
 
 using namespace Arm64Gen;
 
@@ -83,6 +84,7 @@ void JitArm64::GenerateAsm()
 
   if (assembly_dispatcher)
   {
+    printf("Entering assembly dispatcher\n");
     // set the mem_base based on MSR flags
     LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
     FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);

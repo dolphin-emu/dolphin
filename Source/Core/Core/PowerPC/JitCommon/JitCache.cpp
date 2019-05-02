@@ -16,6 +16,7 @@
 #include <map>
 #include <set>
 #include <utility>
+#include <stdio.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
@@ -67,6 +68,7 @@ void JitBaseBlockCache::Clear()
   m_jit.js.pairedQuantizeAddresses.clear();
   for (auto& e : block_map)
   {
+    printf("BLOCK TOTAL RUN\t0x%x\t%d\n",e.second.effectiveAddress, e.second.profile_data.runCount);
     DestroyBlock(e.second);
   }
   block_map.clear();
@@ -173,14 +175,21 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 
 const u8* JitBaseBlockCache::Dispatch()
 {
+  //printf("Entering Dispatch()\n");
   JitBlock* block = fast_block_map[FastLookupIndexForAddress(PC)];
 
   if (!block || block->effectiveAddress != PC || block->msrBits != (MSR.Hex & JIT_CACHE_MSR_MASK))
+  {
     block = MoveBlockIntoFastCache(PC, MSR.Hex & JIT_CACHE_MSR_MASK);
+    //block->profile_data.runCount++;
+   // printf("DISPATCH:\t0x%x\t%d\n", PC, block->profile_data.runCount);
+  }
 
   if (!block)
     return nullptr;
 
+  block->profile_data.runCount++;
+  //printf("DISPATCH:\t0x%x\t%d\n", PC, block->profile_data.runCount);
   return block->normalEntry;
 }
 
