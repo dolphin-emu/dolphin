@@ -1133,6 +1133,12 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     return;
   }
 
+  // dtm files don't save the mic button or error bit. not sure if they're actually used, but better
+  // safe than sorry
+  signed char e = PadStatus->err;
+  memset(PadStatus, 0, sizeof(GCPadStatus));
+  PadStatus->err = e;
+
   memcpy(&s_padState, &s_temp_input[s_currentByte], sizeof(ControllerState));
   s_currentByte += sizeof(ControllerState);
 

@@ -201,6 +201,8 @@ InputConfig* GetConfig()
 
 void GetStatus()
 {
+  s_hotkey.err = PAD_ERR_NONE;
+
   // Get input
   static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey);
 }
