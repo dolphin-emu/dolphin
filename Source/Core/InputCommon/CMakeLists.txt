@@ -118,15 +118,6 @@ elseif(APPLE)
     ${FORCEFEEDBACK_LIBRARY}
     ${IOK_LIBRARY}
   )
-elseif(X11_FOUND)
-  target_sources(inputcommon PRIVATE
-    ControllerInterface/Xlib/XInput2.cpp
-    ControllerInterface/Xlib/XInput2.h
-  )
-  target_link_libraries(inputcommon PUBLIC
-    ${X11_LIBRARIES}
-    ${X11_INPUT_LIBRARIES}
-  )
 elseif(ANDROID)
   target_compile_definitions(inputcommon PRIVATE -DCIFACE_USE_ANDROID)
   target_sources(inputcommon PRIVATE
@@ -137,6 +128,27 @@ elseif(ANDROID)
     ControllerInterface/Touch/Touchscreen.cpp
     ControllerInterface/Touch/Touchscreen.h
   )
+else()
+  if(ENABLE_X11 AND X11_FOUND)
+    target_sources(inputcommon PRIVATE
+      ControllerInterface/Xlib/XInput2.cpp
+      ControllerInterface/Xlib/XInput2.h
+    )
+    target_link_libraries(inputcommon PUBLIC
+      ${X11_LIBRARIES}
+      ${X11_INPUT_LIBRARIES}
+    )
+  endif()
+  if(ENABLE_WAYLAND AND WAYLAND_FOUND)
+    target_sources(inputcommon PRIVATE
+      ControllerInterface/Wayland/Wayland.cpp
+      ControllerInterface/Wayland/Wayland.h
+    )
+    target_include_directories(inputcommon PRIVATE
+      ${WAYLAND_INCLUDE_DIR} ${XKBCOMMON_INCLUDE_DIR})
+    target_link_libraries(inputcommon PRIVATE
+      ${WAYLAND_LIBRARIES} ${XKBCOMMON_LIBRARIES})
+  endif()
 endif()
 
 if(ANDROID)
