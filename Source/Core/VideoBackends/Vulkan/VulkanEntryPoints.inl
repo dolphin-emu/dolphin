@@ -49,6 +49,11 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateXlibSurfaceKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXlibPresentationSupportKHR, false)
 #endif
 
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+VULKAN_INSTANCE_ENTRY_POINT(vkCreateWaylandSurfaceKHR, false)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceWaylandPresentationSupportKHR, false)
+#endif
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateAndroidSurfaceKHR, false)
 #endif
