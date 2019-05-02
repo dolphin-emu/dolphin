@@ -37,8 +37,8 @@ public:
   virtual bool MakeCurrent();
   virtual bool ClearCurrent();
 
-  virtual void Update();
-  virtual void UpdateSurface(void* window_handle);
+  virtual void UpdateDimensions(int window_width, int window_height);
+  virtual void UpdateSurface(void* window_handle, int window_width, int window_height);
 
   virtual void Swap();
   virtual void SwapInterval(int interval);

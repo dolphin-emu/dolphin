@@ -1094,7 +1094,7 @@ void Renderer::CheckForSurfaceChange()
   if (!m_surface_changed.TestAndClear())
     return;
 
-  m_main_gl_context->UpdateSurface(m_new_surface_handle);
+  m_main_gl_context->UpdateSurface(m_new_surface_handle, m_new_surface_width, m_new_surface_height);
   m_new_surface_handle = nullptr;
 
   // With a surface change, the window likely has new dimensions.
@@ -1108,7 +1108,7 @@ void Renderer::CheckForSurfaceResize()
   if (!m_surface_resized.TestAndClear())
     return;
 
-  m_main_gl_context->Update();
+  m_main_gl_context->UpdateDimensions(m_new_surface_width, m_new_surface_height);
   m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
   m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
   m_system_framebuffer->UpdateDimensions(m_backbuffer_width, m_backbuffer_height);

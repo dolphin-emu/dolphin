@@ -58,11 +58,11 @@ bool GLContext::ClearCurrent()
   return false;
 }
 
-void GLContext::Update()
+void GLContext::UpdateDimensions(int window_width, int window_height)
 {
 }
 
-void GLContext::UpdateSurface(void* window_handle)
+void GLContext::UpdateSurface(void* window_handle, int window_width, int window_height)
 {
 }
 

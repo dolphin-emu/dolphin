@@ -21,6 +21,10 @@ public:
   GLContext* GetContext() const { return m_gl_context.get(); }
   bool IsHeadless() const;
 
+  u32 GetWidth() const;
+  u32 GetHeight() const;
+  void UpdateDimensions(int window_width, int window_height);
+
   // Image to show, will be swapped immediately
   void ShowImage(const AbstractTexture* image, const MathUtil::Rectangle<int>& xfb_region);
 

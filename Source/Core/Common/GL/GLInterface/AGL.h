@@ -26,7 +26,7 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
-  void Update() override;
+  void UpdateDimensions(int window_width, int window_height) override;
 
   void Swap() override;
   void SwapInterval(int interval) override;

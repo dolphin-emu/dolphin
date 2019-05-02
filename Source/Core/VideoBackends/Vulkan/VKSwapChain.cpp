@@ -16,7 +16,6 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-#include "VideoCommon/RenderBase.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
@@ -266,8 +265,8 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
-    size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
+    size.width = static_cast<u32>(m_wsi.render_surface_width);
+    size.height = static_cast<u32>(m_wsi.render_surface_height);
   }
   size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
                           surface_capabilities.maxImageExtent.width);
@@ -464,9 +463,11 @@ VkResult SwapChain::AcquireNextImage()
   return res;
 }
 
-bool SwapChain::ResizeSwapChain()
+bool SwapChain::ResizeSwapChain(int window_width, int window_height)
 {
   DestroySwapChainImages();
+  m_wsi.render_surface_width = window_width;
+  m_wsi.render_surface_height = window_height;
   if (!CreateSwapChain() || !SetupSwapChainImages())
   {
     PanicAlertFmt("Failed to re-configure swap chain images, this is fatal (for now)");
@@ -532,7 +533,7 @@ bool SwapChain::SetFullscreenState(bool state)
 #endif
 }
 
-bool SwapChain::RecreateSurface(void* native_handle)
+bool SwapChain::RecreateSurface(void* native_handle, int window_width, int window_height)
 {
   // Destroy the old swap chain, images, and surface.
   DestroySwapChainImages();
@@ -541,6 +542,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // Re-create the surface with the new native handle
   m_wsi.render_surface = native_handle;
+  m_wsi.render_surface_width = window_width;
+  m_wsi.render_surface_height = window_height;
   m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_wsi);
   if (m_surface == VK_NULL_HANDLE)
     return false;

@@ -238,8 +238,8 @@ public:
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
-  void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface();
+  void ChangeSurface(void* new_surface_handle, int new_width, int new_height);
+  void ResizeSurface(int new_width, int new_height);
   bool UseVertexDepthRange() const;
   void DoState(PointerWrap& p);
 
@@ -329,6 +329,8 @@ protected:
   std::unique_ptr<VideoCommon::PostProcessing> m_post_processor;
 
   void* m_new_surface_handle = nullptr;
+  int m_new_surface_width = 0;
+  int m_new_surface_height = 0;
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;
   std::mutex m_swap_mutex;

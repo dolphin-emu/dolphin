@@ -23,7 +23,8 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
-  void UpdateSurface(void* window_handle) override;
+  void UpdateDimensions(int window_width, int window_height);
+  void UpdateSurface(void* window_handle, int window_width, int window_height) override;
 
   void Swap() override;
   void SwapInterval(int interval) override;
@@ -40,6 +41,7 @@ protected:
   void DestroyWindowSurface();
   void DetectMode();
   void DestroyContext();
+  void QueryDimensions();
 
   WindowSystemInfo m_wsi = {};
 
