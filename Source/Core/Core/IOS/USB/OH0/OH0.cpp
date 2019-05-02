@@ -252,8 +252,10 @@ std::pair<ReturnCode, u64> OH0::DeviceOpen(const u16 vid, const u16 pid)
     has_device_with_vid_pid = true;
 
     if (m_opened_devices.find(device.second->GetId()) != m_opened_devices.cend() ||
-        !device.second->Attach(0))
+        !device.second->Attach())
+    {
       continue;
+    }
 
     m_opened_devices.emplace(device.second->GetId());
     return {IPC_SUCCESS, device.second->GetId()};

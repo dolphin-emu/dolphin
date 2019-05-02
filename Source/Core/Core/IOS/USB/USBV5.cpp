@@ -140,7 +140,7 @@ IPCCommandResult USBV5ResourceManager::SetAlternateSetting(USBV5Device& device,
                                                            const IOCtlRequest& request)
 {
   const auto host_device = GetDeviceById(device.host_id);
-  if (!host_device->Attach(device.interface_number))
+  if (!host_device->AttachAndChangeInterface(device.interface_number))
     return GetDefaultReply(-1);
 
   const u8 alt_setting = Memory::Read_U8(request.buffer_in + 2 * sizeof(s32));

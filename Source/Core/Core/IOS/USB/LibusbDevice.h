@@ -48,7 +48,8 @@ public:
   std::vector<InterfaceDescriptor> GetInterfaces(u8 config) const override;
   std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 interface, u8 alt) const override;
   std::string GetErrorName(int error_code) const override;
-  bool Attach(u8 interface) override;
+  bool Attach() override;
+  bool AttachAndChangeInterface(u8 interface) override;
   int CancelTransfer(u8 endpoint) override;
   int ChangeInterface(u8 interface) override;
   int GetNumberOfAltSettings(u8 interface) override;
@@ -85,8 +86,9 @@ private:
   static void CtrlTransferCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
 
-  int AttachInterface(u8 interface);
-  int DetachInterface();
+  int ClaimAllInterfaces(u8 config_num) const;
+  int ReleaseAllInterfaces(u8 config_num) const;
+  int ReleaseAllInterfacesForCurrentConfig() const;
 };
 }  // namespace IOS::HLE::USB
 #endif
