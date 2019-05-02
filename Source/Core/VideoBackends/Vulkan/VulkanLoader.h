@@ -14,6 +14,10 @@
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 
+#if defined(HAVE_WAYLAND)
+#define VK_USE_PLATFORM_WAYLAND_KHR
+#endif
+
 #if defined(ANDROID)
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif

@@ -25,7 +25,8 @@ namespace Vulkan
 {
 SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
     : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync),
-      m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface))
+      m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface)),
+      m_width(wsi.render_surface_width), m_height(wsi.render_surface_height)
 {
 }
 
@@ -77,6 +78,29 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateXlibSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+  if (wsi.type == WindowSystemType::Wayland)
+  {
+    VkWaylandSurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
+        nullptr,                                            // const void*                    pNext
+        0,  // VkWaylandSurfaceCreateFlagsKHR    flags
+        static_cast<wl_display*>(wsi.display_connection),  // struct wl_display* display
+        static_cast<wl_surface*>(wsi.render_surface)  // struct wl_surface*                surface
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateWaylandSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateWaylandSurfaceKHR failed: ");
       return VK_NULL_HANDLE;
     }
 
