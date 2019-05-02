@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
@@ -48,9 +49,16 @@ V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
   num_packets = Memory::Read_U8(ioctlv.in_vectors[0].address + 16);
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address + 17);
   packet_sizes_addr = ioctlv.GetVector(1)->address;
+  u32 total_packet_size = 0;
   for (size_t i = 0; i < num_packets; ++i)
-    packet_sizes.push_back(Memory::Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16))));
+  {
+    const u32 packet_size = Memory::Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16)));
+    packet_sizes.push_back(packet_size);
+    total_packet_size += packet_size;
+  }
   length = ioctlv.GetVector(2)->size;
+  ASSERT_MSG(IOS_USB, length == total_packet_size, "Wrong buffer size (0x%x != 0x%x)", length,
+             total_packet_size);
 }
 }  // namespace USB
 
