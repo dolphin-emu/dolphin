@@ -127,14 +127,14 @@ struct CtrlMessage : TransferCommand
 
 struct BulkMessage : TransferCommand
 {
-  u16 length = 0;
+  u32 length = 0;
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;
 };
 
 struct IntrMessage : TransferCommand
 {
-  u16 length = 0;
+  u32 length = 0;
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;
 };
@@ -143,7 +143,7 @@ struct IsoMessage : TransferCommand
 {
   u32 packet_sizes_addr = 0;
   std::vector<u16> packet_sizes;
-  u16 length = 0;
+  u32 length = 0;
   u8 num_packets = 0;
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;

@@ -31,14 +31,14 @@ V5CtrlMessage::V5CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
 V5BulkMessage::V5BulkMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : BulkMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  length = static_cast<u16>(ioctlv.GetVector(1)->size);
+  length = ioctlv.GetVector(1)->size;
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address + 18);
 }
 
 V5IntrMessage::V5IntrMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : IntrMessage(ios, ioctlv, ioctlv.GetVector(1)->address)
 {
-  length = static_cast<u16>(ioctlv.GetVector(1)->size);
+  length = ioctlv.GetVector(1)->size;
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address + 14);
 }
 
@@ -50,7 +50,7 @@ V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
   packet_sizes_addr = ioctlv.GetVector(1)->address;
   for (size_t i = 0; i < num_packets; ++i)
     packet_sizes.push_back(Memory::Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16))));
-  length = static_cast<u16>(ioctlv.GetVector(2)->size);
+  length = ioctlv.GetVector(2)->size;
 }
 }  // namespace USB
 
