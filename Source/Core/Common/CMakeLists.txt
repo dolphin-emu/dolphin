@@ -263,11 +263,20 @@ if(ENABLE_EGL AND EGL_FOUND)
       GL/GLInterface/EGLAndroid.cpp
       GL/GLInterface/EGLAndroid.h
     )
-  elseif(ENABLE_X11 AND X11_FOUND)
-    target_sources(common PRIVATE
-      GL/GLInterface/EGLX11.cpp
-      GL/GLInterface/EGLX11.h
-    )
+  else()
+      if(ENABLE_X11 AND X11_FOUND)
+        target_sources(common PRIVATE
+          GL/GLInterface/EGLX11.cpp
+          GL/GLInterface/EGLX11.h
+        )
+      endif()
+      if(ENABLE_WAYLAND AND WAYLAND_FOUND)
+        target_sources(common PRIVATE
+          GL/GLInterface/EGLWayland.cpp
+          GL/GLInterface/EGLWayland.h
+        )
+        target_link_libraries(common PRIVATE Wayland::Egl)
+      endif()
   endif()
   target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS})
   target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
