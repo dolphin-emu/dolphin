@@ -252,27 +252,28 @@ void CleanUpWiiFileSystemContents()
     WARN_LOG(CORE, "Failed to copy Mii database to the NAND");
   }
 
-  const u64 title_id = SConfig::GetInstance().GetTitleID();
-
-  const auto session_save = WiiSave::MakeNandStorage(ios->GetFS().get(), title_id);
-
-  // FS won't write the save if the directory doesn't exist
-  const std::string title_path = Common::GetTitleDataPath(title_id);
-  if (!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path))
+  for (const u64 title_id : ios->GetES()->GetInstalledTitles())
   {
-    configured_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path, 0,
-                                   {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                    IOS::HLE::FS::Mode::ReadWrite});
+    const auto session_save = WiiSave::MakeNandStorage(ios->GetFS().get(), title_id);
+
+    // FS won't write the save if the directory doesn't exist
+    const std::string title_path = Common::GetTitleDataPath(title_id);
+    if (!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path))
+    {
+      configured_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path, 0,
+                                     {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
+                                      IOS::HLE::FS::Mode::ReadWrite});
+    }
+
+    const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
+
+    const std::string backup_path =
+        File::GetUserPath(D_BACKUP_IDX) + StringFromFormat("/%016" PRIx64 ".bin", title_id);
+    const auto backup_save = WiiSave::MakeDataBinStorage(&ios->GetIOSC(), backup_path, "w+b");
+
+    // Backup the existing save just in case it's still needed.
+    WiiSave::Copy(user_save.get(), backup_save.get());
+    WiiSave::Copy(session_save.get(), user_save.get());
   }
-
-  const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
-
-  const std::string backup_path =
-      File::GetUserPath(D_BACKUP_IDX) + StringFromFormat("/%016" PRIx64 ".bin", title_id);
-  const auto backup_save = WiiSave::MakeDataBinStorage(&ios->GetIOSC(), backup_path, "w+b");
-
-  // Backup the existing save just in case it's still needed.
-  WiiSave::Copy(user_save.get(), backup_save.get());
-  WiiSave::Copy(session_save.get(), user_save.get());
 }
 }  // namespace Core

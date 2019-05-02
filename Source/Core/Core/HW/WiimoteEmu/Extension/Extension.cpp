@@ -12,6 +12,8 @@
 #include "Common/Compiler.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "Common/Logging/Log.h"
+
 namespace WiimoteEmu
 {
 Extension::Extension(const char* name) : m_name(name)
@@ -85,15 +87,16 @@ int EncryptedExtension::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
 
   auto const result = RawRead(&m_reg, addr, count, data_out);
 
-  // Encrypt data read from extension register
+  // Encrypt data read from extension register.
   if (ENCRYPTION_ENABLED == m_reg.encryption)
   {
-    // INFO_LOG(WIIMOTE, "Encrypted read.");
-    ext_key.Encrypt(data_out, addr, (u8)count);
-  }
-  else
-  {
-    // INFO_LOG(WIIMOTE, "Unencrypted read.");
+    if (m_is_key_dirty)
+    {
+      UpdateEncryptionKey();
+      m_is_key_dirty = false;
+    }
+
+    ext_key.Encrypt(data_out, addr, count);
   }
 
   return result;
@@ -106,24 +109,48 @@ int EncryptedExtension::BusWrite(u8 slave_addr, u8 addr, int count, const u8* da
 
   auto const result = RawWrite(&m_reg, addr, count, data_in);
 
-  // TODO: make this check less ugly:
-  if (addr + count > 0x40 && addr < 0x50)
+  constexpr u8 ENCRYPTION_KEY_DATA_BEGIN = offsetof(Register, encryption_key_data);
+  constexpr u8 ENCRYPTION_KEY_DATA_END = ENCRYPTION_KEY_DATA_BEGIN + 0x10;
+
+  if (addr + count > ENCRYPTION_KEY_DATA_BEGIN && addr < ENCRYPTION_KEY_DATA_END)
   {
-    // Run the key generation on all writes in the key area, it doesn't matter
-    //  that we send it parts of a key, only the last full key will have an effect
-    ext_key.Generate(m_reg.encryption_key_data);
+    // FYI: Real extensions seem to require the key data written in specifically sized chunks.
+    // We just run the key generation on all writes to the key area.
+    m_is_key_dirty = true;
   }
 
   return result;
+}
+
+void EncryptedExtension::Reset()
+{
+  // Clear register state.
+  m_reg = {};
+
+  // Clear encryption key state.
+  ext_key = {};
+  m_is_key_dirty = true;
 }
 
 void EncryptedExtension::DoState(PointerWrap& p)
 {
   p.Do(m_reg);
 
-  // No need to sync this when we can regenerate it:
   if (p.GetMode() == PointerWrap::MODE_READ)
-    ext_key.Generate(m_reg.encryption_key_data);
+  {
+    // No need to sync the key when we can just regenerate it.
+    m_is_key_dirty = true;
+  }
+}
+
+void Extension1stParty::UpdateEncryptionKey()
+{
+  ext_key = KeyGen1stParty().GenerateFromExtensionKeyData(m_reg.encryption_key_data);
+}
+
+void Extension3rdParty::UpdateEncryptionKey()
+{
+  ext_key = KeyGen3rdParty().GenerateFromExtensionKeyData(m_reg.encryption_key_data);
 }
 
 }  // namespace WiimoteEmu

@@ -64,7 +64,7 @@ public:
 
   // TODO: This is public for TAS reasons.
   // TODO: TAS handles encryption poorly.
-  WiimoteEmu::EncryptionKey ext_key = {};
+  EncryptionKey ext_key;
 
 protected:
   static constexpr int CALIBRATION_CHECKSUM_BYTES = 2;
@@ -82,7 +82,7 @@ protected:
     u8 unknown3[0x10];
 
     // address 0x40
-    u8 encryption_key_data[0x10];
+    std::array<u8, 0x10> encryption_key_data;
     u8 unknown4[0xA0];
 
     // address 0xF0
@@ -98,15 +98,38 @@ protected:
 
   Register m_reg = {};
 
+  void Reset() override;
   void DoState(PointerWrap& p) override;
 
+  virtual void UpdateEncryptionKey() = 0;
+
 private:
+  bool m_is_key_dirty = true;
+
   static constexpr u8 ENCRYPTION_ENABLED = 0xaa;
 
   bool ReadDeviceDetectPin() const override;
 
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
+};
+
+class Extension1stParty : public EncryptedExtension
+{
+protected:
+  using EncryptedExtension::EncryptedExtension;
+
+private:
+  void UpdateEncryptionKey() final override;
+};
+
+class Extension3rdParty : public EncryptedExtension
+{
+protected:
+  using EncryptedExtension::EncryptedExtension;
+
+private:
+  void UpdateEncryptionKey() final override;
 };
 
 }  // namespace WiimoteEmu

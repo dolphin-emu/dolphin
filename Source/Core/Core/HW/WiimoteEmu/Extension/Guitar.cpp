@@ -62,7 +62,7 @@ constexpr std::array<u16, 2> guitar_strum_bitmasks{{
     Guitar::BAR_DOWN,
 }};
 
-Guitar::Guitar() : EncryptedExtension(_trans("Guitar"))
+Guitar::Guitar() : Extension1stParty(_trans("Guitar"))
 {
   // frets
   groups.emplace_back(m_frets = new ControllerEmu::Buttons(_trans("Frets")));
@@ -152,7 +152,8 @@ bool Guitar::IsButtonPressed() const
 
 void Guitar::Reset()
 {
-  m_reg = {};
+  EncryptedExtension::Reset();
+
   m_reg.identifier = guitar_id;
 
   // TODO: Is there calibration data?

@@ -72,7 +72,7 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
     Classic::PAD_RIGHT,
 }};
 
-Classic::Classic() : EncryptedExtension(_trans("Classic"))
+Classic::Classic() : Extension1stParty(_trans("Classic"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -172,7 +172,8 @@ bool Classic::IsButtonPressed() const
 
 void Classic::Reset()
 {
-  m_reg = {};
+  EncryptedExtension::Reset();
+
   m_reg.identifier = classic_id;
 
   // Build calibration data:

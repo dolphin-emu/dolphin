@@ -66,6 +66,12 @@ ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::Turntable
       ->GetTurntableGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetUDrawTabletGroup(group);
+}
+
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();
