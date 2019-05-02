@@ -726,16 +726,20 @@ bool Renderer::IsHeadless() const
   return true;
 }
 
-void Renderer::ChangeSurface(void* new_surface_handle)
+void Renderer::ChangeSurface(void* new_surface_handle, int new_width, int new_height)
 {
   std::lock_guard<std::mutex> lock(m_swap_mutex);
   m_new_surface_handle = new_surface_handle;
+  m_new_surface_width = new_width;
+  m_new_surface_height = new_height;
   m_surface_changed.Set();
 }
 
-void Renderer::ResizeSurface()
+void Renderer::ResizeSurface(int new_width, int new_height)
 {
   std::lock_guard<std::mutex> lock(m_swap_mutex);
+  m_new_surface_width = new_width;
+  m_new_surface_height = new_height;
   m_surface_resized.Set();
 }
 

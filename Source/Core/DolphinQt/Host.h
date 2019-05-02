@@ -30,7 +30,7 @@ public:
   bool GetGBAFocus();
 
   void SetMainWindowHandle(void* handle);
-  void SetRenderHandle(void* handle);
+  void SetRenderHandle(void* handle, int width, int height);
   void SetRenderFocus(bool focus);
   void SetRenderFullFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);

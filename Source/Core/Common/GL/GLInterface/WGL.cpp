@@ -480,7 +480,7 @@ bool GLContextWGL::ClearCurrent()
 }
 
 // Update window width, size and etc. Called from Render.cpp
-void GLContextWGL::Update()
+void GLContextWGL::UpdateDimensions(int window_width, int window_height)
 {
   RECT rcWindow;
   GetClientRect(m_window_handle, &rcWindow);

@@ -266,7 +266,10 @@ void PlatformX11::ProcessEvents()
     case ConfigureNotify:
     {
       if (g_renderer)
-        g_renderer->ResizeSurface();
+      {
+        UpdateWindowPosition();
+        g_renderer->ResizeSurface(m_window_width, m_window_height);
+      }
     }
     break;
     }

@@ -64,6 +64,8 @@ protected:
   std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
+  void CheckForSurfaceResize();
+
   std::unique_ptr<SWOGLWindow> m_window;
 };
 }  // namespace SW

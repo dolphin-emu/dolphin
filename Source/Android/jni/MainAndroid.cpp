@@ -443,7 +443,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
 
   if (g_renderer)
-    g_renderer->ChangeSurface(s_surf);
+  {
+    g_renderer->ChangeSurface(s_surf, ANativeWindow_getWidth(s_surf),
+                              ANativeWindow_getHeight(s_surf));
+  }
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv*,
@@ -470,7 +473,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
   std::lock_guard surface_guard(s_surface_lock);
 
   if (g_renderer)
-    g_renderer->ChangeSurface(nullptr);
+    g_renderer->ChangeSurface(nullptr, 0, 0);
 
   if (s_surf)
   {
