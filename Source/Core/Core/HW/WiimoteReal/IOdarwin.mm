@@ -21,6 +21,11 @@
 
 namespace WiimoteReal
 {
+WiimoteScannerDarwin::~WiimoteScannerDarwin()
+{
+  stopScanning = true;
+}
+
 void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
                                         Wiimote*& found_board)
 {
@@ -54,8 +59,8 @@ void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 
   do
   {
-    CFRunLoopRun();
-  } while (!sbt->done);
+    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
+  } while (!sbt->done && !stopScanning);
 
   int found_devices = [[bti foundDevices] count];
 
@@ -255,7 +260,6 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
                       aborted:(BOOL)aborted
 {
   done = true;
-  CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
 - (void)deviceInquiryDeviceFound:(IOBluetoothDeviceInquiry*)sender device:(IOBluetoothDevice*)device
@@ -280,7 +284,7 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 
   for (int i = 0; i < MAX_WIIMOTES; i++)
   {
-    wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
+    wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i].get());
     if (!wm)
       continue;
     if ([device isEqual:wm->m_btd])
@@ -294,7 +298,7 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
     return;
   }
 
-  if (length > MAX_PAYLOAD)
+  if (length > WiimoteCommon::MAX_PAYLOAD)
   {
     WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, too large", wm->GetIndex() + 1);
     return;
@@ -321,7 +325,7 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 
   for (int i = 0; i < MAX_WIIMOTES; i++)
   {
-    wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
+    wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i].get());
     if (!wm)
       continue;
     if ([device isEqual:wm->m_btd])

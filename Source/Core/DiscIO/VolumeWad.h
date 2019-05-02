@@ -14,10 +14,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
 
-// --- this volume type is used for Wad files ---
-// Some of this code might look redundant with the NANDContentLoader class, however,
-// We do not do any decryption here, we do raw read, so things are -Faster-
-
 namespace DiscIO
 {
 class BlobReader;
@@ -37,8 +33,14 @@ public:
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u64> GetTitleID(const Partition& partition = PARTITION_NONE) const override;
+  const IOS::ES::TicketReader&
+  GetTicket(const Partition& partition = PARTITION_NONE) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition = PARTITION_NONE) const override;
+  const std::vector<u8>&
+  GetCertificateChain(const Partition& partition = PARTITION_NONE) const override;
+  std::vector<u64> GetContentOffsets() const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
   std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override
@@ -46,29 +48,33 @@ public:
     return "";
   }
   std::map<Language, std::string> GetLongNames() const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override
   {
     return "";
   }
   Platform GetVolumeType() const override;
-  // Provides a best guess for the region. Might be inaccurate or UNKNOWN_REGION.
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
+  bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
 
 private:
   std::unique_ptr<BlobReader> m_reader;
+  IOS::ES::TicketReader m_ticket;
   IOS::ES::TMDReader m_tmd;
-  u32 m_offset = 0;
+  std::vector<u8> m_cert_chain;
+  u32 m_cert_chain_offset = 0;
+  u32 m_ticket_offset = 0;
   u32 m_tmd_offset = 0;
+  u32 m_data_offset = 0;
   u32 m_opening_bnr_offset = 0;
   u32 m_hdr_size = 0;
-  u32 m_cert_size = 0;
-  u32 m_tick_size = 0;
+  u32 m_cert_chain_size = 0;
+  u32 m_ticket_size = 0;
   u32 m_tmd_size = 0;
   u32 m_data_size = 0;
 };

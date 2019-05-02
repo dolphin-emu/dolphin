@@ -10,6 +10,7 @@
 #include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/OpenSLESStream.h"
 #include "AudioCommon/PulseAudioStream.h"
+#include "AudioCommon/WASAPIStream.h"
 #include "AudioCommon/XAudio2Stream.h"
 #include "AudioCommon/XAudio2_7Stream.h"
 #include "Common/Common.h"
@@ -21,6 +22,7 @@
 std::unique_ptr<SoundStream> g_sound_stream;
 
 static bool s_audio_dump_start = false;
+static bool s_sound_stream_running = false;
 
 namespace AudioCommon
 {
@@ -49,24 +51,18 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
     g_sound_stream = std::make_unique<OpenSLESStream>();
+  else if (backend == BACKEND_WASAPI && WASAPIStream::isValid())
+    g_sound_stream = std::make_unique<WASAPIStream>();
 
-  if (!g_sound_stream)
+  if (!g_sound_stream || !g_sound_stream->Init())
   {
     WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.", backend.c_str(),
              BACKEND_NULLSOUND);
     g_sound_stream = std::make_unique<NullSound>();
   }
 
-  if (!g_sound_stream->Start())
-  {
-    ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
-              BACKEND_NULLSOUND);
-
-    g_sound_stream = std::make_unique<NullSound>();
-    g_sound_stream->Start();
-  }
-
   UpdateSoundStream();
+  SetSoundStreamRunning(true);
 
   if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
     StartAudioDump();
@@ -76,15 +72,11 @@ void ShutdownSoundStream()
 {
   INFO_LOG(AUDIO, "Shutting down sound stream");
 
-  if (g_sound_stream)
-  {
-    g_sound_stream->Stop();
+  if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+    StopAudioDump();
 
-    if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
-      StopAudioDump();
-
-    g_sound_stream.reset();
-  }
+  SetSoundStreamRunning(false);
+  g_sound_stream.reset();
 
   INFO_LOG(AUDIO, "Done shutting down sound stream");
 }
@@ -121,6 +113,9 @@ std::vector<std::string> GetSoundBackends()
     backends.push_back(BACKEND_OPENAL);
   if (OpenSLESStream::isValid())
     backends.push_back(BACKEND_OPENSLES);
+  if (WASAPIStream::isValid())
+    backends.push_back(BACKEND_WASAPI);
+
   return backends;
 }
 
@@ -134,12 +129,14 @@ bool SupportsDPL2Decoder(const std::string& backend)
     return true;
   if (backend == BACKEND_PULSEAUDIO)
     return true;
+  if (backend == BACKEND_XAUDIO2)
+    return true;
   return false;
 }
 
 bool SupportsLatencyControl(const std::string& backend)
 {
-  return backend == BACKEND_OPENAL;
+  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
 bool SupportsVolumeChanges(const std::string& backend)
@@ -147,7 +144,8 @@ bool SupportsVolumeChanges(const std::string& backend)
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2;
+  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2 ||
+         backend == BACKEND_WASAPI;
 }
 
 void UpdateSoundStream()
@@ -159,10 +157,21 @@ void UpdateSoundStream()
   }
 }
 
-void ClearAudioBuffer(bool mute)
+void SetSoundStreamRunning(bool running)
 {
-  if (g_sound_stream)
-    g_sound_stream->Clear(mute);
+  if (!g_sound_stream)
+    return;
+
+  if (s_sound_stream_running == running)
+    return;
+  s_sound_stream_running = running;
+
+  if (g_sound_stream->SetRunning(running))
+    return;
+  if (running)
+    ERROR_LOG(AUDIO, "Error starting stream.");
+  else
+    ERROR_LOG(AUDIO, "Error stopping stream.");
 }
 
 void SendAIBuffer(const short* samples, unsigned int num_samples)
@@ -198,6 +207,8 @@ void StartAudioDump()
 
 void StopAudioDump()
 {
+  if (!g_sound_stream)
+    return;
   g_sound_stream->GetMixer()->StopLogDTKAudio();
   g_sound_stream->GetMixer()->StopLogDSPAudio();
   s_audio_dump_start = false;
@@ -229,4 +240,4 @@ void ToggleMuteVolume()
   isMuted = !isMuted;
   UpdateSoundStream();
 }
-}
+}  // namespace AudioCommon

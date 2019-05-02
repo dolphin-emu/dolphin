@@ -299,8 +299,6 @@ void RunGpuLoop()
       [] {
         const SConfig& param = SConfig::GetInstance();
 
-        g_video_backend->PeekMessages();
-
         // Do nothing while paused
         if (!s_emu_running_state.IsSet())
           return;
@@ -344,10 +342,10 @@ void RunGpuLoop()
             else
               readPtr += 32;
 
-            _assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0,
-                         "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
-                         "instability in the game. Please report it.",
-                         fifo.CPReadWriteDistance - 32);
+            ASSERT_MSG(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0,
+                       "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
+                       "instability in the game. Please report it.",
+                       fifo.CPReadWriteDistance - 32);
 
             u8* write_ptr = s_video_buffer_write_ptr;
             s_video_buffer_read_ptr = OpcodeDecoder::Run(
@@ -500,13 +498,13 @@ void UpdateWantDeterminism(bool want)
   bool gpu_thread = false;
   switch (param.m_GPUDeterminismMode)
   {
-  case GPU_DETERMINISM_AUTO:
+  case GPUDeterminismMode::Auto:
     gpu_thread = want;
     break;
-  case GPU_DETERMINISM_NONE:
+  case GPUDeterminismMode::Disabled:
     gpu_thread = false;
     break;
-  case GPU_DETERMINISM_FAKE_COMPLETION:
+  case GPUDeterminismMode::FakeCompletion:
     gpu_thread = true;
     break;
   }

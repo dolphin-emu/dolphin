@@ -22,11 +22,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 LibusbDevice::LibusbDevice(Kernel& ios, libusb_device* device,
                            const libusb_device_descriptor& descriptor)
@@ -109,9 +105,9 @@ LibusbDevice::GetEndpoints(const u8 config, const u8 interface_number, const u8 
     ERROR_LOG(IOS_USB, "Invalid config descriptor %u for %04x:%04x", config, m_vid, m_pid);
     return descriptors;
   }
-  _assert_(interface_number < m_config_descriptors[config]->Get()->bNumInterfaces);
+  ASSERT(interface_number < m_config_descriptors[config]->Get()->bNumInterfaces);
   const auto& interface = m_config_descriptors[config]->Get()->interface[interface_number];
-  _assert_(alt_setting < interface.num_altsetting);
+  ASSERT(alt_setting < interface.num_altsetting);
   const libusb_interface_descriptor& interface_descriptor = interface.altsetting[alt_setting];
   for (u8 i = 0; i < interface_descriptor.bNumEndpoints; ++i)
   {
@@ -436,6 +432,4 @@ LibusbConfigDescriptor::~LibusbConfigDescriptor()
   if (m_descriptor != nullptr)
     libusb_free_config_descriptor(m_descriptor);
 }
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB

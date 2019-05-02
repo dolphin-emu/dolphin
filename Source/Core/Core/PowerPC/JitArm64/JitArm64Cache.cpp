@@ -7,6 +7,8 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+using namespace Arm64Gen;
+
 JitArm64BlockCache::JitArm64BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 {
 }
@@ -68,7 +70,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 void JitArm64BlockCache::WriteDestroyBlock(const JitBlock& block)
 {
   // Only clear the entry points as we might still be within this block.
-  ARM64XEmitter emit((u8*)block.checkedEntry);
+  ARM64XEmitter emit(block.checkedEntry);
 
   while (emit.GetWritableCodePtr() <= block.normalEntry)
     emit.BRK(0x123);

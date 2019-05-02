@@ -13,7 +13,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.msaa = g_ActiveConfig.iMultisamples > 1;
   bits.ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA &&
               g_ActiveConfig.backend_info.bSupportsSSAA;
-  bits.stereo = g_ActiveConfig.iStereoMode > 0;
+  bits.stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   bits.wireframe = g_ActiveConfig.bWireFrame;
   bits.per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   bits.vertex_rounding = g_ActiveConfig.UseVertexRounding();
@@ -32,32 +32,38 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_bitfield = g_ActiveConfig.backend_info.bSupportsBitfield;
   bits.backend_dynamic_sampler_indexing =
       g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing;
+  bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+  bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
+  bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
   return bits;
 }
 
 std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config)
+                                       bool include_host_config, bool include_api)
 {
   if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
     File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
   std::string filename = File::GetUserPath(D_SHADERCACHE_IDX);
-  switch (api_type)
+  if (include_api)
   {
-  case APIType::D3D:
-    filename += "D3D";
-    break;
-  case APIType::OpenGL:
-    filename += "OpenGL";
-    break;
-  case APIType::Vulkan:
-    filename += "Vulkan";
-    break;
-  default:
-    break;
+    switch (api_type)
+    {
+    case APIType::D3D:
+      filename += "D3D";
+      break;
+    case APIType::OpenGL:
+      filename += "OpenGL";
+      break;
+    case APIType::Vulkan:
+      filename += "Vulkan";
+      break;
+    default:
+      break;
+    }
+    filename += '-';
   }
 
-  filename += '-';
   filename += type;
 
   if (include_gameid)
@@ -68,9 +74,9 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
 
   if (include_host_config)
   {
-    // We're using 20 bits, so 5 hex characters.
+    // We're using 21 bits, so 6 hex characters.
     ShaderHostConfig host_config = ShaderHostConfig::GetCurrent();
-    filename += StringFromFormat("-%05X", host_config.bits);
+    filename += StringFromFormat("-%06X", host_config.bits);
   }
 
   filename += ".cache";

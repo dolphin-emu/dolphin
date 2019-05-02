@@ -77,3 +77,9 @@ set(ZLIB_SRCS
 )
 
 add_library(z STATIC ${ZLIB_SRCS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+add_library(ZLIB::ZLIB ALIAS z)
+
+target_include_directories(z
+PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)

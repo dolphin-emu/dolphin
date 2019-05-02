@@ -13,7 +13,6 @@
 #pragma once
 
 #include <array>
-#include <memory>
 #include <string>
 #include <vector>
 #include "Common/CommonTypes.h"
@@ -35,8 +34,9 @@ public:
   DiscScrubber();
   ~DiscScrubber();
 
-  bool SetupScrub(const std::string& filename, int block_size);
+  bool SetupScrub(const Volume* disc, int block_size);
   size_t GetNextBlock(File::IOFile& in, u8* buffer);
+  bool CanBlockBeScrubbed(u64 offset) const;
 
 private:
   struct PartitionHeader final
@@ -61,14 +61,14 @@ private:
 
   void MarkAsUsed(u64 offset, u64 size);
   void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
+  u64 ToClusterOffset(u64 offset) const;
   bool ReadFromVolume(u64 offset, u32& buffer, const Partition& partition);
   bool ReadFromVolume(u64 offset, u64& buffer, const Partition& partition);
   bool ParseDisc();
   bool ParsePartitionData(const Partition& partition, PartitionHeader* header);
   void ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory);
 
-  std::string m_filename;
-  std::unique_ptr<Volume> m_disc;
+  const Volume* m_disc;
 
   std::vector<u8> m_free_table;
   u64 m_file_size = 0;

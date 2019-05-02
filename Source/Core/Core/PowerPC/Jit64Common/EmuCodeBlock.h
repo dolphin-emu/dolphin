@@ -19,10 +19,13 @@ namespace MMIO
 class Mapping;
 }
 
+class Jit64;
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
+  explicit EmuCodeBlock(Jit64& jit) : m_jit{jit} {}
   void MemoryExceptionCheck();
 
   // Simple functions to switch between near and far code emitting
@@ -61,7 +64,6 @@ public:
 
   bool UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset,
                        bool signExtend, Gen::MovInfo* info = nullptr);
-  void UnsafeWriteGatherPipe(int accessSize);
 
   // Generate a load/write from the MMIO handler for a given address. Only
   // call for known addresses in MMIO range (MMIO::IsMMIOAddress).
@@ -78,6 +80,8 @@ public:
     // Force slowmem (used when generating fallbacks in trampolines)
     SAFE_LOADSTORE_FORCE_SLOWMEM = 16,
     SAFE_LOADSTORE_DR_ON = 32,
+    // Generated from a context that doesn't have the PC of the instruction that caused it
+    SAFE_LOADSTORE_NO_UPDATE_PC = 64,
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
@@ -124,6 +128,7 @@ public:
   void Clear();
 
 protected:
+  Jit64& m_jit;
   ConstantPool m_const_pool;
   FarCodeCache m_far_code;
   u8* m_near_code;  // Backed up when we switch to far code.

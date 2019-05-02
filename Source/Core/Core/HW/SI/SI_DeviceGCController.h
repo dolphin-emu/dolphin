@@ -65,10 +65,9 @@ protected:
   };
 
   // struct to compare input against
-  // Set on connection and (standard pad only) on button combo
-  SOrigin m_origin;
-
-  bool m_calibrated = false;
+  // Set on connection to perfect neutral values
+  // (standard pad only) Set on button combo to current input state
+  SOrigin m_origin = {};
 
   // PADAnalogMode
   // Dunno if we need to do this, game/lib should set it?
@@ -79,12 +78,8 @@ protected:
   //   Technically, the above is only on standard pad, wavebird does not support it for example
   // b, x, start for 3 seconds triggers reset (PI reset button interrupt)
   u64 m_timer_button_combo_start = 0;
-  u64 m_timer_button_combo = 0;
   // Type of button combo from the last/current poll
   EButtonCombo m_last_button_combo = COMBO_NONE;
-
-  // Set this if we want to simulate the "TaruKonga" DK Bongo controller
-  bool m_simulate_konga = false;
 
 public:
   // Constructor
@@ -114,18 +109,20 @@ public:
   static void Rumble(int pad_num, ControlState strength);
 
 protected:
-  void Calibrate();
   void HandleMoviePadStatus(GCPadStatus* pad_status);
+  void SetOrigin(const GCPadStatus& pad_status);
 };
 
 // "TaruKonga", the DK Bongo controller
 class CSIDevice_TaruKonga : public CSIDevice_GCController
 {
 public:
-  CSIDevice_TaruKonga(SIDevices device, int device_number)
-      : CSIDevice_GCController(device, device_number)
-  {
-    m_simulate_konga = true;
-  }
+  CSIDevice_TaruKonga(SIDevices device, int device_number);
+
+  bool GetData(u32& hi, u32& low) override;
+
+  static const u32 HI_BUTTON_MASK =
+      (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_BUTTON_START | PAD_TRIGGER_R)
+      << 16;
 };
 }  // namespace SerialInterface

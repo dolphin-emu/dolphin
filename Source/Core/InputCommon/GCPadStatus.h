@@ -6,14 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-enum PadError
-{
-  PAD_ERR_NONE = 0,
-  PAD_ERR_NO_CONTROLLER = -1,
-  PAD_ERR_NOT_READY = -2,
-  PAD_ERR_TRANSFER = -3,
-};
-
 enum
 {
   PAD_USE_ORIGIN = 0x0080,
@@ -48,7 +40,7 @@ struct GCPadStatus
   u8 triggerRight;  // 0 <= triggerRight <= 255
   u8 analogA;       // 0 <= analogA      <= 255
   u8 analogB;       // 0 <= analogB      <= 255
-  s8 err;           // one of PAD_ERR_* number
+  bool isConnected{true};
 
   static const u8 MAIN_STICK_CENTER_X = 0x80;
   static const u8 MAIN_STICK_CENTER_Y = 0x80;

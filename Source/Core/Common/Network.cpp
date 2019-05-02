@@ -2,72 +2,75 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Network.h"
+
+#include <algorithm>
 #include <cctype>
 #include <cstring>
 #include <ctime>
-#include <random>
 
-#include "Common/Network.h"
+#include "Common/Random.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 
 namespace Common
 {
-void GenerateMacAddress(const MACConsumer type, u8* mac)
+MACAddress GenerateMacAddress(const MACConsumer type)
 {
-  memset(mac, 0, MAC_ADDRESS_SIZE);
+  constexpr std::array<u8, 3> oui_bba{{0x00, 0x09, 0xbf}};
+  constexpr std::array<u8, 3> oui_ios{{0x00, 0x17, 0xab}};
 
-  u8 const oui_bba[] = {0x00, 0x09, 0xbf};
-  u8 const oui_ios[] = {0x00, 0x17, 0xab};
+  MACAddress mac{};
 
   switch (type)
   {
   case MACConsumer::BBA:
-    memcpy(mac, oui_bba, 3);
+    std::copy(oui_bba.begin(), oui_bba.end(), mac.begin());
     break;
   case MACConsumer::IOS:
-    memcpy(mac, oui_ios, 3);
+    std::copy(oui_ios.begin(), oui_ios.end(), mac.begin());
     break;
   }
 
   // Generate the 24-bit NIC-specific portion of the MAC address.
-  std::default_random_engine generator(Common::Timer::GetTimeMs());
-  std::uniform_int_distribution<int> distribution(0x00, 0xFF);
-  mac[3] = static_cast<u8>(distribution(generator));
-  mac[4] = static_cast<u8>(distribution(generator));
-  mac[5] = static_cast<u8>(distribution(generator));
+  Random::Generate(&mac[3], 3);
+  return mac;
 }
 
-std::string MacAddressToString(const u8* mac)
+std::string MacAddressToString(const MACAddress& mac)
 {
   return StringFromFormat("%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4],
                           mac[5]);
 }
 
-bool StringToMacAddress(const std::string& mac_string, u8* mac)
+std::optional<MACAddress> StringToMacAddress(const std::string& mac_string)
 {
-  bool success = false;
-  if (!mac_string.empty())
-  {
-    int x = 0;
-    memset(mac, 0, MAC_ADDRESS_SIZE);
+  if (mac_string.empty())
+    return {};
 
-    for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
+  int x = 0;
+  MACAddress mac{};
+
+  for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
+  {
+    char c = tolower(mac_string.at(i));
+    if (c >= '0' && c <= '9')
     {
-      char c = tolower(mac_string.at(i));
-      if (c >= '0' && c <= '9')
-      {
-        mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
-        ++x;
-      }
-      else if (c >= 'a' && c <= 'f')
-      {
-        mac[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4);
-        ++x;
-      }
+      mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
+      ++x;
     }
-    success = x / 2 == MAC_ADDRESS_SIZE;
+    else if (c >= 'a' && c <= 'f')
+    {
+      mac[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4);
+      ++x;
+    }
   }
-  return success;
+
+  // A valid 48-bit MAC address consists of 6 octets, where each
+  // nibble is a character in the MAC address, making 12 characters
+  // in total.
+  if (x / 2 != MAC_ADDRESS_SIZE)
+    return {};
+
+  return std::make_optional(mac);
 }
 }  // namespace Common

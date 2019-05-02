@@ -20,7 +20,7 @@ public:
 
   void Run() override;
   void ClearCache() override;
-  const char* GetName() override;
+  const char* GetName() const override;
 
   static void unknown_instruction(UGeckoInstruction inst);
 
@@ -282,27 +282,19 @@ public:
   static u32 Helper_Carry(u32 value1, u32 value2);
 
 private:
+  void CheckExceptions();
+
   static void InitializeInstructionTables();
+
+  static bool HandleFunctionHooking(u32 address);
 
   // flag helper
   static void Helper_UpdateCR0(u32 value);
-  static void Helper_UpdateCR1();
-
-  // address helper
-  static u32 Helper_Get_EA(const UGeckoInstruction inst);
-  static u32 Helper_Get_EA_U(const UGeckoInstruction inst);
-  static u32 Helper_Get_EA_X(const UGeckoInstruction inst);
-  static u32 Helper_Get_EA_UX(const UGeckoInstruction inst);
-
-  // paired helper
-  static void Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW);
-  static void Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW);
-
-  // other helper
-  static u32 Helper_Mask(int mb, int me);
 
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
+
+  UGeckoInstruction m_prev_inst{};
 
   static bool m_end_block;
 

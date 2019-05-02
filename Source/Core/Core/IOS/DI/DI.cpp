@@ -20,11 +20,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 DI::DI(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -98,8 +94,8 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
   {
   case DVDInterface::DVDLowOpenPartition:
   {
-    _dbg_assert_msg_(IOS_DI, request.in_vectors[1].address == 0, "DVDLowOpenPartition with ticket");
-    _dbg_assert_msg_(IOS_DI, request.in_vectors[2].address == 0,
+    DEBUG_ASSERT_MSG(IOS_DI, request.in_vectors[1].address == 0, "DVDLowOpenPartition with ticket");
+    DEBUG_ASSERT_MSG(IOS_DI, request.in_vectors[2].address == 0,
                      "DVDLowOpenPartition with cert chain");
 
     const u64 partition_offset =
@@ -113,7 +109,7 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     const IOS::ES::TMDReader tmd = DVDThread::GetTMD(partition);
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
-    ES::DIVerify(tmd, DVDThread::GetTicket(partition));
+    m_ios.GetES()->DIVerify(tmd, DVDThread::GetTicket(partition));
 
     return_value = 1;
     break;
@@ -123,6 +119,4 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
   }
   return GetDefaultReply(return_value);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -7,51 +7,59 @@
 #include <array>
 #include <string>
 
-#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLContext.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/RenderBase.h"
-
-struct XFBSourceBase;
 
 namespace OGL
 {
-void ClearEFBCache();
+class OGLFramebuffer;
+class OGLPipeline;
+class OGLTexture;
 
-enum GLSL_VERSION
+enum GlslVersion
 {
-  GLSL_130,
-  GLSL_140,
-  GLSL_150,
-  GLSL_330,
-  GLSL_400,  // and above
-  GLSL_430,
-  GLSLES_300,  // GLES 3.0
-  GLSLES_310,  // GLES 3.1
-  GLSLES_320,  // GLES 3.2
+  Glsl130,
+  Glsl140,
+  Glsl150,
+  Glsl330,
+  Glsl400,  // and above
+  Glsl430,
+  GlslEs300,  // GLES 3.0
+  GlslEs310,  // GLES 3.1
+  GlslEs320,  // GLES 3.2
 };
-enum class ES_TEXBUF_TYPE
+enum class EsTexbufType
 {
-  TEXBUF_NONE,
-  TEXBUF_CORE,
-  TEXBUF_OES,
-  TEXBUF_EXT
+  TexbufNone,
+  TexbufCore,
+  TexbufOes,
+  TexbufExt
+};
+
+enum class EsFbFetchType
+{
+  FbFetchNone,
+  FbFetchExt,
+  FbFetchArm,
 };
 
 // ogl-only config, so not in VideoConfig.h
 struct VideoConfig
 {
-  bool bSupportsGLSLCache;
+  bool bIsES;
   bool bSupportsGLPinnedMemory;
   bool bSupportsGLSync;
   bool bSupportsGLBaseVertex;
   bool bSupportsGLBufferStorage;
   bool bSupportsMSAA;
-  GLSL_VERSION eSupportedGLSLVersion;
+  GlslVersion eSupportedGLSLVersion;
   bool bSupportViewportFloat;
   bool bSupportsAEP;
   bool bSupportsDebug;
   bool bSupportsCopySubImage;
   u8 SupportedESPointSize;
-  ES_TEXBUF_TYPE SupportedESTextureBuffer;
+  EsTexbufType SupportedESTextureBuffer;
   bool bSupportsTextureStorage;
   bool bSupports2DTextureStorageMultisample;
   bool bSupports3DTextureStorageMultisample;
@@ -59,6 +67,9 @@ struct VideoConfig
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;
   bool bSupportsBitfield;
+  bool bSupportsTextureSubImage;
+  EsFbFetchType SupportedFramebufferFetch;
+  bool bSupportsShaderThreadShuffleNV;
 
   const char* gl_vendor;
   const char* gl_renderer;
@@ -71,83 +82,100 @@ extern VideoConfig g_ogl_config;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer();
+  Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_scale);
   ~Renderer() override;
 
-  void Init();
-  void Shutdown();
+  static Renderer* GetInstance() { return static_cast<Renderer*>(g_renderer.get()); }
 
-  void SetBlendingState(const BlendingState& state) override;
-  void SetScissorRect(const EFBRectangle& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
+  bool IsHeadless() const override;
+
+  bool Initialize() override;
+  void Shutdown() override;
+
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                         size_t length) override;
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
+                                                   const void* cache_data = nullptr,
+                                                   size_t cache_data_length = 0) override;
+  std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
+
+  void SetPipeline(const AbstractPipeline* pipeline) override;
+  void SetFramebuffer(AbstractFramebuffer* framebuffer) override;
+  void SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer) override;
+  void SetAndClearFramebuffer(AbstractFramebuffer* framebuffer, const ClearColor& color_value = {},
+                              float depth_value = 0.0f) override;
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
+  void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
-  void SetInterlacingMode() override;
-  void SetViewport() override;
-
-  void RenderText(const std::string& text, int left, int top, u32 color) override;
-
-  u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
-  void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
+  void SetComputeImageTexture(AbstractTexture* texture, bool read, bool write) override;
+  void UnbindTexture(const AbstractTexture* texture) override;
+  void SetViewport(float x, float y, float width, float height, float near_depth,
+                   float far_depth) override;
+  void Draw(u32 base_vertex, u32 num_vertices) override;
+  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
+  void DispatchComputeShader(const AbstractShader* shader, u32 groups_x, u32 groups_y,
+                             u32 groups_z) override;
+  void BindBackbuffer(const ClearColor& clear_color = {}) override;
+  void PresentBackbuffer() override;
 
   u16 BBoxRead(int index) override;
   void BBoxWrite(int index, u16 value) override;
 
-  void ResetAPIState() override;
-  void RestoreAPIState() override;
+  void BeginUtilityDrawing() override;
+  void EndUtilityDrawing() override;
 
-  TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
+  void Flush() override;
+  void WaitForGPUIdle() override;
+  void RenderXFBToScreen(const AbstractTexture* texture,
+                         const MathUtil::Rectangle<int>& rc) override;
+  void OnConfigChanged(u32 bits) override;
 
-  void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                u64 ticks, float Gamma) override;
+  void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                   bool zEnable, u32 color, u32 z) override;
 
-  void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                   u32 color, u32 z) override;
+  std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 
-  void ReinterpretPixelData(unsigned int convtype) override;
+  // Only call methods from this on the GPU thread.
+  GLContext* GetMainGLContext() const { return m_main_gl_context.get(); }
+  bool IsGLES() const { return m_main_gl_context->IsGLES(); }
 
-  void ChangeSurface(void* new_surface_handle) override;
+  // Invalidates a cached texture binding. Required for texel buffers when they borrow the units.
+  void InvalidateTextureBinding(u32 index) { m_bound_textures[index] = nullptr; }
+
+  // The shared framebuffer exists for copying textures when extensions are not available. It is
+  // slower, but the only way to do these things otherwise.
+  GLuint GetSharedReadFramebuffer() const { return m_shared_read_framebuffer; }
+  GLuint GetSharedDrawFramebuffer() const { return m_shared_draw_framebuffer; }
+  void BindSharedReadFramebuffer();
+  void BindSharedDrawFramebuffer();
+
+  // Restores FBO binding after it's been changed.
+  void RestoreFramebufferBinding();
 
 private:
-  void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
-                      const TargetRectangle& targetPixelRc, const void* data);
+  void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
 
-  // Draw either the EFB, or specified XFB sources to the currently-bound framebuffer.
-  void DrawFrame(GLuint framebuffer, const TargetRectangle& target_rc,
-                 const EFBRectangle& source_rc, u32 xfb_addr,
-                 const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                 u32 fb_stride, u32 fb_height);
-  void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc, const EFBRectangle& source_rc);
-  void DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc, u32 xfb_addr,
-                      const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                      u32 fb_stride, u32 fb_height);
-  void DrawRealXFB(GLuint framebuffer, const TargetRectangle& target_rc,
-                   const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                   u32 fb_stride, u32 fb_height);
+  void ApplyRasterizationState(const RasterizationState state);
+  void ApplyDepthState(const DepthState state);
+  void ApplyBlendingState(const BlendingState state);
 
-  void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
-                  int src_height);
-
-  void FlushFrameDump();
-  void DumpFrame(const TargetRectangle& flipped_trc, u64 ticks);
-  void DumpFrameUsingFBO(const EFBRectangle& source_rc, u32 xfb_addr,
-                         const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                         u32 fb_stride, u32 fb_height, u64 ticks);
-
-  // Frame dumping framebuffer, we render to this, then read it back
-  void PrepareFrameDumpRenderTexture(u32 width, u32 height);
-  void DestroyFrameDumpResources();
-  GLuint m_frame_dump_render_texture = 0;
-  GLuint m_frame_dump_render_framebuffer = 0;
-  u32 m_frame_dump_render_texture_width = 0;
-  u32 m_frame_dump_render_texture_height = 0;
-
-  // avi dumping state to delay one frame
-  std::array<u32, 2> m_frame_dumping_pbo = {};
-  std::array<bool, 2> m_frame_pbo_is_mapped = {};
-  std::array<int, 2> m_last_frame_width = {};
-  std::array<int, 2> m_last_frame_height = {};
-  bool m_last_frame_exported = false;
-  AVIDump::Frame m_last_frame_state;
+  std::unique_ptr<GLContext> m_main_gl_context;
+  std::unique_ptr<OGLFramebuffer> m_system_framebuffer;
+  std::array<const OGLTexture*, 8> m_bound_textures{};
+  AbstractTexture* m_bound_image_texture = nullptr;
+  RasterizationState m_current_rasterization_state;
+  DepthState m_current_depth_state;
+  BlendingState m_current_blend_state;
+  GLuint m_shared_read_framebuffer = 0;
+  GLuint m_shared_draw_framebuffer = 0;
 };
-}
+}  // namespace OGL

@@ -5,20 +5,120 @@
 #include <map>
 #include <string>
 
+#include "Common/Assert.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "DiscIO/Enums.h"
 
 namespace DiscIO
 {
+std::string GetName(Country country, bool translate)
+{
+  std::string name;
+
+  switch (country)
+  {
+  case Country::Europe:
+    name = _trans("Europe");
+    break;
+  case Country::Japan:
+    name = _trans("Japan");
+    break;
+  case Country::USA:
+    name = _trans("USA");
+    break;
+  case Country::Australia:
+    name = _trans("Australia");
+    break;
+  case Country::France:
+    name = _trans("France");
+    break;
+  case Country::Germany:
+    name = _trans("Germany");
+    break;
+  case Country::Italy:
+    name = _trans("Italy");
+    break;
+  case Country::Korea:
+    name = _trans("Korea");
+    break;
+  case Country::Netherlands:
+    name = _trans("Netherlands");
+    break;
+  case Country::Russia:
+    name = _trans("Russia");
+    break;
+  case Country::Spain:
+    name = _trans("Spain");
+    break;
+  case Country::Taiwan:
+    name = _trans("Taiwan");
+    break;
+  case Country::World:
+    name = _trans("World");
+    break;
+  default:
+    name = _trans("Unknown");
+    break;
+  }
+
+  return translate ? GetStringT(name.c_str()) : name;
+}
+
+std::string GetName(Language language, bool translate)
+{
+  std::string name;
+
+  switch (language)
+  {
+  case Language::Japanese:
+    name = _trans("Japanese");
+    break;
+  case Language::English:
+    name = _trans("English");
+    break;
+  case Language::German:
+    name = _trans("German");
+    break;
+  case Language::French:
+    name = _trans("French");
+    break;
+  case Language::Spanish:
+    name = _trans("Spanish");
+    break;
+  case Language::Italian:
+    name = _trans("Italian");
+    break;
+  case Language::Dutch:
+    name = _trans("Dutch");
+    break;
+  case Language::SimplifiedChinese:
+    name = _trans("Simplified Chinese");
+    break;
+  case Language::TraditionalChinese:
+    name = _trans("Traditional Chinese");
+    break;
+  case Language::Korean:
+    name = _trans("Korean");
+    break;
+  default:
+    name = _trans("Unknown");
+    break;
+  }
+
+  return translate ? GetStringT(name.c_str()) : name;
+}
+
 bool IsDisc(Platform volume_type)
 {
-  return volume_type == Platform::GAMECUBE_DISC || volume_type == Platform::WII_DISC;
+  return volume_type == Platform::GameCubeDisc || volume_type == Platform::WiiDisc;
 }
 
 bool IsWii(Platform volume_type)
 {
-  return volume_type == Platform::WII_DISC || volume_type == Platform::WII_WAD;
+  return volume_type == Platform::WiiDisc || volume_type == Platform::WiiWAD;
 }
 
 bool IsNTSC(Region region)
@@ -26,44 +126,67 @@ bool IsNTSC(Region region)
   return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
 }
 
-// Increment CACHE_REVISION (GameListCtrl.cpp) if the code below is modified
+// Increment CACHE_REVISION (GameFileCache.cpp) if the code below is modified
 
 Country TypicalCountryForRegion(Region region)
 {
   switch (region)
   {
   case Region::NTSC_J:
-    return Country::COUNTRY_JAPAN;
+    return Country::Japan;
   case Region::NTSC_U:
-    return Country::COUNTRY_USA;
+    return Country::USA;
   case Region::PAL:
-    return Country::COUNTRY_EUROPE;
+    return Country::Europe;
   case Region::NTSC_K:
-    return Country::COUNTRY_KOREA;
+    return Country::Korea;
   default:
-    return Country::COUNTRY_UNKNOWN;
+    return Country::Unknown;
   }
 }
 
-Region RegionSwitchGC(u8 country_code)
-{
-  Region region = RegionSwitchWii(country_code);
-  return region == Region::NTSC_K ? Region::NTSC_J : region;
-}
-
-Region RegionSwitchWii(u8 country_code)
+Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_region,
+                           std::optional<u16> revision)
 {
   switch (country_code)
   {
   case 'J':
-  case 'W':
     return Region::NTSC_J;
 
-  case 'B':
+  case 'W':
+    if (expected_region == Region::PAL)
+      return Region::PAL;  // Only the Nordic version of Ratatouille (Wii)
+    else
+      return Region::NTSC_J;  // Korean GC games in English or Taiwanese Wii games
+
   case 'E':
+    if (platform != Platform::GameCubeDisc)
+      return Region::NTSC_U;  // The most common country code for NTSC-U
+
+    if (revision)
+    {
+      if (*revision >= 0x30)
+        return Region::NTSC_J;  // Korean GC games in English
+      else
+        return Region::NTSC_U;  // The most common country code for NTSC-U
+    }
+    else
+    {
+      if (expected_region == Region::NTSC_J)
+        return Region::NTSC_J;  // Korean GC games in English
+      else
+        return Region::NTSC_U;  // The most common country code for NTSC-U
+    }
+
+  case 'B':
   case 'N':
-  case 'Z':
     return Region::NTSC_U;
+
+  case 'X':
+  case 'Y':
+  case 'Z':
+    // Additional language versions, store-exclusive versions, other special versions
+    return expected_region == Region::NTSC_U ? Region::NTSC_U : Region::PAL;
 
   case 'D':
   case 'F':
@@ -75,87 +198,113 @@ Region RegionSwitchWii(u8 country_code)
   case 'R':
   case 'S':
   case 'U':
-  case 'X':
-  case 'Y':
+  case 'V':
     return Region::PAL;
 
   case 'K':
   case 'Q':
   case 'T':
-    return Region::NTSC_K;
+    // All of these country codes are Korean, but the NTSC-K region doesn't exist on GC
+    return platform == Platform::GameCubeDisc ? Region::NTSC_J : Region::NTSC_K;
 
   default:
-    return Region::UNKNOWN_REGION;
+    return Region::Unknown;
   }
 }
 
-Country CountrySwitch(u8 country_code)
+Country CountryCodeToCountry(u8 country_code, Platform platform, Region region,
+                             std::optional<u16> revision)
 {
   switch (country_code)
   {
   // Worldwide
   case 'A':
-    return Country::COUNTRY_WORLD;
+    return Country::World;
+
+  // Mixed regions
+  case 'X':
+  case 'Y':
+  case 'Z':
+    // Additional language versions, store-exclusive versions, other special versions
+    return region == Region::NTSC_U ? Country::USA : Country::Europe;
+
+  case 'W':
+    if (platform == Platform::GameCubeDisc)
+      return Country::Korea;  // GC games in English released in Korea
+    else if (region == Region::PAL)
+      return Country::Europe;  // Only the Nordic version of Ratatouille (Wii)
+    else
+      return Country::Taiwan;  // Wii games in traditional Chinese released in Taiwan
 
   // PAL
   case 'D':
-    return Country::COUNTRY_GERMANY;
+    return Country::Germany;
 
-  case 'X':  // Used by a couple PAL games
-  case 'Y':  // German, French
-  case 'L':  // Japanese import to PAL regions
-  case 'M':  // Japanese import to PAL regions
-  case 'P':
-    return Country::COUNTRY_EUROPE;
+  case 'L':  // NTSC-J games released on PAL VC
+  case 'M':  // NTSC-U games released on PAL VC
+  case 'V':  // Used by some Nordic Wii releases
+  case 'P':  // The most common country code for PAL
+    return Country::Europe;
 
   case 'U':
-    return Country::COUNTRY_AUSTRALIA;
+    return Country::Australia;
 
   case 'F':
-    return Country::COUNTRY_FRANCE;
+    return Country::France;
 
   case 'I':
-    return Country::COUNTRY_ITALY;
+    return Country::Italy;
 
   case 'H':
-    return Country::COUNTRY_NETHERLANDS;
+    return Country::Netherlands;
 
   case 'R':
-    return Country::COUNTRY_RUSSIA;
+    return Country::Russia;
 
   case 'S':
-    return Country::COUNTRY_SPAIN;
+    return Country::Spain;
 
   // NTSC
   case 'E':
-  case 'N':  // Japanese import to USA and other NTSC regions
-  case 'Z':  // Prince of Persia - The Forgotten Sands (Wii)
-  case 'B':  // Ufouria: The Saga (Virtual Console)
-    return Country::COUNTRY_USA;
+    if (platform != Platform::GameCubeDisc)
+      return Country::USA;  // The most common country code for NTSC-U
+
+    if (revision)
+    {
+      if (*revision >= 0x30)
+        return Country::Korea;  // GC games in English released in Korea
+      else
+        return Country::USA;  // The most common country code for NTSC-U
+    }
+    else
+    {
+      if (region == Region::NTSC_J)
+        return Country::Korea;  // GC games in English released in Korea
+      else
+        return Country::USA;  // The most common country code for NTSC-U
+    }
+
+  case 'B':  // PAL games released on NTSC-U VC
+  case 'N':  // NTSC-J games released on NTSC-U VC
+    return Country::USA;
 
   case 'J':
-    return Country::COUNTRY_JAPAN;
+    return Country::Japan;
 
-  case 'K':
-  case 'Q':  // Korea with Japanese language
-  case 'T':  // Korea with English language
-    return Country::COUNTRY_KOREA;
-
-  case 'W':
-    return Country::COUNTRY_TAIWAN;
+  case 'K':  // Games in Korean released in Korea
+  case 'Q':  // NTSC-J games released on NTSC-K VC
+  case 'T':  // NTSC-U games released on NTSC-K VC
+    return Country::Korea;
 
   default:
     if (country_code > 'A')  // Silently ignore IOS wads
       WARN_LOG(DISCIO, "Unknown Country Code! %c", country_code);
-    return Country::COUNTRY_UNKNOWN;
+    return Country::Unknown;
   }
 }
 
 Region GetSysMenuRegion(u16 title_version)
 {
-  if (title_version == 33)
-    return Region::UNKNOWN_REGION;  // 1.0 uses 33 as the version number in all regions
-
   switch (title_version & 0xf)
   {
   case 0:
@@ -167,15 +316,12 @@ Region GetSysMenuRegion(u16 title_version)
   case 6:
     return Region::NTSC_K;
   default:
-    return Region::UNKNOWN_REGION;
+    return Region::Unknown;
   }
 }
 
 std::string GetSysMenuVersionString(u16 title_version)
 {
-  if (title_version == 33)
-    return "1.0";  // 1.0 uses 33 as the version number in all regions
-
   std::string region_letter;
 
   switch (GetSysMenuRegion(title_version))
@@ -192,13 +338,15 @@ std::string GetSysMenuVersionString(u16 title_version)
   case Region::NTSC_K:
     region_letter = "K";
     break;
-  case Region::UNKNOWN_REGION:
+  case Region::Unknown:
     WARN_LOG(DISCIO, "Unknown region for Wii Menu version %u", title_version);
     break;
   }
 
   switch (title_version & ~0xf)
   {
+  case 32:
+    return "1.0" + region_letter;
   case 96:
   case 128:
     return "2.0" + region_letter;
@@ -230,412 +378,298 @@ std::string GetSysMenuVersionString(u16 title_version)
   }
 }
 
-std::string GetCompanyFromID(const std::string& company_id)
+const std::string& GetCompanyFromID(const std::string& company_id)
 {
   static const std::map<std::string, std::string> companies = {
       {"01", "Nintendo"},
-      {"02", "Rocket Games / Ajinomoto"},
-      {"03", "Imagineer-Zoom"},
-      {"04", "Gray Matter"},
-      {"05", "Zamuse"},
-      {"06", "Falcom"},
-      {"07", "Enix"},
+      {"02", "Nintendo"},
       {"08", "Capcom"},
-      {"09", "Hot B Co."},
-      {"0A", "Jaleco"},
-      {"0B", "Coconuts Japan"},
-      {"0C", "Coconuts Japan / GX Media"},
-      {"0D", "Micronet"},
-      {"0E", "Technos"},
-      {"0F", "Mebio Software"},
-      {"0G", "Shouei System"},
-      {"0H", "Starfish"},
-      {"0J", "Mitsui Fudosan / Dentsu"},
-      {"0L", "Warashi Inc."},
-      {"0N", "Nowpro"},
-      {"0P", "Game Village"},
+      {"0A", "Jaleco Entertainment"},
+      {"0M", "Entertainment Software Publishing"},
       {"0Q", "IE Institute"},
-      {"12", "Infocom"},
-      {"13", "Electronic Arts Japan"},
-      {"15", "Cobra Team"},
-      {"16", "Human / Field"},
-      {"17", "KOEI"},
-      {"18", "Hudson Soft"},
-      {"19", "S.C.P."},
-      {"1A", "Yanoman"},
-      {"1C", "Tecmo Products"},
-      {"1D", "Japan Glary Business"},
-      {"1E", "Forum / OpenSystem"},
-      {"1F", "Virgin Games (Japan)"},
-      {"1G", "SMDE"},
-      {"1J", "Daikokudenki"},
-      {"1P", "Creatures Inc."},
-      {"1Q", "TDK Deep Impresion"},
-      {"20", "Zoo"},
-      {"21", "Sunsoft / Tokai Engineering"},
-      {"22", "Planning Office Wada / VR1 Japan"},
-      {"23", "Micro World"},
-      {"25", "San-X"},
-      {"26", "Enix"},
-      {"27", "Loriciel / Electro Brain"},
-      {"28", "Kemco Japan"},
-      {"29", "Seta"},
-      {"2A", "Culture Brain"},
-      {"2C", "Palsoft"},
-      {"2D", "Visit Co., Ltd."},
-      {"2E", "Intec"},
-      {"2F", "System Sacom"},
-      {"2G", "Poppo"},
-      {"2H", "Ubisoft Japan"},
-      {"2J", "Media Works"},
-      {"2K", "NEC InterChannel"},
-      {"2L", "Tam"},
-      {"2M", "Jordan"},
-      {"2N", "Smilesoft / Rocket"},
-      {"2Q", "Mediakite"},
-      {"30", "Viacom"},
-      {"31", "Carrozzeria"},
-      {"32", "Dynamic"},
-      {"34", "Magifact"},
-      {"35", "Hect"},
+      {"13", "Electronic Arts / EA Sports"},
+      {"18", "Hudson Entertainment"},
+      {"1K", "Titus Software"},
+      {"20", "DSI Games / ZOO Digital Publishing"},
+      {"28", "Kemco"},
+      {"29", "SETA"},
+      {"2K", "NEC Interchannel"},
+      {"2L", "Agatsuma Entertainment"},
+      {"2M", "Jorudan"},
+      {"2N", "Rocket Company"},
+      {"2Q", "MediaKite"},
       {"36", "Codemasters"},
-      {"37", "Taito / GAGA Communications"},
-      {"38", "Laguna"},
-      {"39", "Telstar / Event / Taito "},
-      {"3B", "Arcade Zone Ltd."},
-      {"3C", "Entertainment International / Empire Software"},
-      {"3D", "Loriciel"},
-      {"3E", "Gremlin Graphics"},
-      {"3F", "K. Amusement Leasing Co."},
-      {"40", "Seika Corp."},
-      {"41", "Ubisoft Entertainment"},
-      {"42", "Sunsoft US"},
-      {"44", "Life Fitness"},
-      {"46", "System 3"},
-      {"47", "Spectrum Holobyte"},
-      {"49", "IREM"},
-      {"4B", "Raya Systems"},
-      {"4C", "Renovation Products"},
-      {"4D", "Malibu Games"},
-      {"4F", "Eidos"},
-      {"4G", "Playmates Interactive"},
-      {"4J", "Fox Interactive"},
-      {"4K", "Time Warner Interactive"},
-      {"4Q", "Disney Interactive"},
-      {"4S", "Black Pearl"},
-      {"4U", "Advanced Productions"},
-      {"4X", "GT Interactive"},
-      {"4Y", "Rare"},
-      {"4Z", "Crave Entertainment"},
-      {"50", "Absolute Entertainment"},
-      {"51", "Acclaim"},
-      {"52", "Activision"},
-      {"53", "American Sammy"},
-      {"54", "Take 2 Interactive / GameTek"},
-      {"55", "Hi Tech"},
-      {"56", "LJN Ltd."},
-      {"58", "Mattel"},
-      {"5A", "Mindscape / Red Orb Entertainment"},
-      {"5B", "Romstar"},
-      {"5C", "Taxan"},
-      {"5D", "Midway / Tradewest"},
-      {"5F", "American Softworks"},
-      {"5G", "Majesco Sales Inc."},
-      {"5H", "3DO"},
-      {"5K", "Hasbro"},
+      {"41", "Ubisoft"},
+      {"4F", "Eidos Interactive"},
+      {"4Q", "Disney Interactive Studios / Buena Vista Games"},
+      {"4Z", "Crave Entertainment / Red Wagon Games"},
+      {"51", "Acclaim Entertainment"},
+      {"52", "Activision / Activision Value / RedOctane"},
+      {"54", "Rockstar Games / 2K Play / Global Star Software"},
+      {"5D", "Midway Games"},
+      {"5G", "Majesco Entertainment"},
+      {"5H", "3DO / Global Star Software"},
       {"5L", "NewKidCo"},
-      {"5M", "Telegames"},
-      {"5N", "Metro3D"},
-      {"5P", "Vatical Entertainment"},
-      {"5Q", "LEGO Media"},
-      {"5S", "Xicat Interactive"},
-      {"5T", "Cryo Interactive"},
+      {"5S", "Evolved Games / Xicat Interactive"},
       {"5V", "Agetec"},
-      {"5W", "Red Storm Entertainment"},
-      {"5X", "Microids"},
-      {"5Z", "Data Design / Conspiracy / Swing"},
-      {"60", "Titus"},
-      {"61", "Virgin Interactive"},
-      {"62", "Maxis"},
-      {"64", "LucasArts Entertainment"},
-      {"67", "Ocean"},
-      {"68", "Bethesda Softworks"},
-      {"69", "Electronic Arts"},
-      {"6B", "Laser Beam"},
-      {"6E", "Elite Systems"},
-      {"6F", "Electro Brain"},
-      {"6G", "The Learning Company"},
-      {"6H", "BBC"},
-      {"6J", "Software 2000"},
+      {"5Z", "Conspiracy Entertainment"},
+      {"60", "Titus Software"},
+      {"64", "LucasArts"},
+      {"68", "Bethesda Softworks / Mud Duck Productions / Vir2L Studios"},
+      {"69", "Electronic Arts / EA Sports / MTV Games"},
+      {"6E", "Sega"},
       {"6K", "UFO Interactive Games"},
       {"6L", "BAM! Entertainment"},
-      {"6M", "Studio 3"},
-      {"6Q", "Classified Games"},
+      {"6M", "System 3"},
+      {"6N", "Midas Interactive Entertainment"},
       {"6S", "TDK Mediactive"},
-      {"6U", "DreamCatcher"},
-      {"6V", "JoWood Produtions"},
+      {"6U", "The Adventure Company / DreamCatcher Interactive"},
+      {"6V", "JoWooD Entertainment"},
       {"6W", "Sega"},
-      {"6X", "Wannado Edition"},
-      {"6Y", "LSP (Light & Shadow Prod.)"},
-      {"6Z", "ITE Media"},
-      {"70", "Atari (Infogrames)"},
-      {"71", "Interplay"},
-      {"72", "JVC (US)"},
-      {"73", "Parker Brothers"},
-      {"75", "Sales Curve (Storm / SCI)"},
-      {"78", "THQ"},
-      {"79", "Accolade"},
-      {"7A", "Triffix Entertainment"},
-      {"7C", "Microprose Software"},
-      {"7D", "Sierra / Universal Interactive"},
+      {"6X", "Wanadoo Edition"},
+      {"6Z", "NDS Software"},
+      {"70", "Atari"},
+      {"71", "Interplay Entertainment"},
+      {"75", "SCi"},
+      {"78", "THQ / Play THQ"},
+      {"7D", "Sierra Entertainment / Vivendi Games / Universal Interactive Studios"},
       {"7F", "Kemco"},
       {"7G", "Rage Software"},
-      {"7H", "Encore"},
-      {"7J", "Zoo"},
-      {"7K", "Kiddinx"},
+      {"7H", "Encore Software"},
+      {"7J", "Zushi Games / ZOO Digital Publishing"},
+      {"7K", "Kiddinx Entertainment"},
       {"7L", "Simon & Schuster Interactive"},
-      {"7M", "Asmik Ace Entertainment Inc."},
-      {"7N", "Empire Interactive"},
-      {"7Q", "Jester Interactive"},
+      {"7N", "Empire Interactive / Xplosiv"},
       {"7S", "Rockstar Games"},
       {"7T", "Scholastic"},
       {"7U", "Ignition Entertainment"},
-      {"7V", "Summitsoft"},
-      {"7W", "Stadlbauer"},
-      {"80", "Misawa"},
-      {"81", "Teichiku"},
-      {"82", "Namco Ltd."},
-      {"83", "LOZC"},
-      {"84", "KOEI"},
-      {"86", "Tokuma Shoten Intermedia"},
-      {"87", "Tsukuda Original"},
-      {"88", "DATAM-Polystar"},
-      {"8B", "Bullet-Proof Software"},
-      {"8C", "Vic Tokai Inc."},
-      {"8E", "Character Soft"},
-      {"8F", "I'Max"},
-      {"8G", "Saurus"},
-      {"8J", "General Entertainment"},
+      {"82", "Namco"},
+      {"8G", "NEC Interchannel"},
+      {"8J", "Kadokawa Shoten"},
+      {"8M", "CyberFront"},
       {"8N", "Success"},
-      {"8P", "Sega Japan"},
-      {"90", "Takara Amusement"},
+      {"8P", "Sega"},
       {"91", "Chunsoft"},
-      {"92", "Video System / Mc O' River"},
-      {"93", "BEC"},
-      {"95", "Varie"},
-      {"96", "Yonezawa / S'pal"},
-      {"97", "Kaneko"},
-      {"99", "Marvelous Entertainment"},
-      {"9A", "Nichibutsu / Nihon Bussan"},
+      {"99", "Marvelous Entertainment / Victor Entertainment / Pack-In-Video / Rising Star Games"},
       {"9B", "Tecmo"},
-      {"9C", "Imagineer"},
-      {"9F", "Nova"},
-      {"9G", "Take2 / Den'Z / Global Star"},
-      {"9H", "Bottom Up"},
-      {"9J", "Technical Group Laboratory"},
-      {"9L", "Hasbro Japan"},
-      {"9N", "Marvelous Entertainment"},
-      {"9P", "Keynet Inc."},
-      {"9Q", "Hands-On Entertainment"},
-      {"A0", "Telenet"},
-      {"A1", "Hori"},
+      {"9G", "Take-Two Interactive / Gotham Games / Gathering of Developers"},
       {"A4", "Konami"},
-      {"A5", "K. Amusement Leasing Co."},
-      {"A6", "Kawada"},
-      {"A7", "Takara"},
-      {"A9", "Technos Japan Corp."},
-      {"AA", "JVC / Victor"},
-      {"AC", "Toei Animation"},
-      {"AD", "Toho"},
-      {"AF", "Namco"},
-      {"AG", "Media Rings Corporation"},
-      {"AH", "J-Wing"},
-      {"AJ", "Pioneer LDC"},
-      {"AK", "KID"},
-      {"AL", "Mediafactory"},
-      {"AP", "Infogrames / Hudson"},
-      {"AQ", "Kiratto Ludic Inc."},
-      {"B0", "Acclaim Japan"},
-      {"B1", "ASCII"},
-      {"B2", "Bandai"},
-      {"B4", "Enix"},
-      {"B6", "HAL Laboratory"},
-      {"B7", "SNK"},
-      {"B9", "Pony Canyon"},
-      {"BA", "Culture Brain"},
-      {"BB", "Sunsoft"},
-      {"BC", "Toshiba EMI"},
-      {"BD", "Sony Imagesoft"},
-      {"BF", "Sammy"},
-      {"BG", "Magical"},
-      {"BH", "Visco"},
-      {"BJ", "Compile"},
-      {"BL", "MTO Inc."},
+      {"A7", "Takara / Takara Tomy"},
+      {"AF", "Namco Bandai Games"},
+      {"AU", "Alternative Software"},
+      {"B0", "Acclaim Entertainment"},
+      {"B2", "Bandai Games"},
+      {"BB", "Gaijinworks"},
+      {"BL", "MTO"},
       {"BN", "Sunrise Interactive"},
       {"BP", "Global A Entertainment"},
-      {"BQ", "Fuuki"},
       {"C0", "Taito"},
-      {"C2", "Kemco"},
-      {"C3", "Square"},
-      {"C4", "Tokuma Shoten"},
-      {"C5", "Data East"},
-      {"C6", "Tonkin House / Tokyo Shoseki"},
       {"C8", "Koei"},
-      {"CA", "Konami / Ultra / Palcom"},
-      {"CB", "NTVIC / VAP"},
-      {"CC", "Use Co., Ltd."},
-      {"CD", "Meldac"},
-      {"CE", "Pony Canyon / FCI "},
-      {"CF", "Angel / Sotsu Agency / Sunrise"},
-      {"CG", "Yumedia / Aroma Co., Ltd"},
-      {"CJ", "Boss"},
-      {"CK", "Axela / Crea-Tech"},
-      {"CL", "Sekaibunka-Sha / Sumire Kobo / Marigul Management Inc."},
-      {"CM", "Konami Computer Entertainment Osaka"},
-      {"CN", "NEC Interchannel"},
-      {"CP", "Enterbrain"},
+      {"CM", "Konami"},
       {"CQ", "From Software"},
-      {"D0", "Taito / Disco"},
-      {"D1", "Sofel"},
-      {"D2", "Quest / Bothtec"},
-      {"D3", "Sigma"},
-      {"D4", "Ask Kodansha"},
-      {"D6", "Naxat"},
-      {"D7", "Copya System"},
-      {"D8", "Capcom Co., Ltd."},
       {"D9", "Banpresto"},
-      {"DA", "Tomy"},
-      {"DB", "LJN Japan"},
-      {"DD", "NCS"},
-      {"DE", "Human Entertainment"},
-      {"DF", "Altron"},
-      {"DG", "Jaleco"},
-      {"DH", "Gaps Inc."},
-      {"DN", "Elf"},
-      {"DQ", "Compile Heart"},
-      {"E0", "Jaleco"},
-      {"E2", "Yutaka"},
-      {"E3", "Varie"},
-      {"E4", "T&E Soft"},
+      {"DA", "Takara Tomy"},
+      {"DQ", "Compile Heart / Idea Factory"},
       {"E5", "Epoch"},
       {"E7", "Athena"},
-      {"E8", "Asmik"},
+      {"E8", "Asmik Ace Entertainment"},
       {"E9", "Natsume"},
-      {"EA", "King Records"},
       {"EB", "Atlus"},
-      {"EC", "Epic / Sony Records"},
-      {"EE", "Information Global Service"},
-      {"EG", "Chatnoir"},
-      {"EH", "Right Stuff"},
       {"EL", "Spike"},
-      {"EM", "Konami Computer Entertainment Tokyo"},
-      {"EN", "Alphadream Corporation"},
-      {"EP", "Sting"},
-      {"ES", "Star-Fish"},
-      {"F0", "A Wave"},
-      {"F1", "Motown Software"},
-      {"F2", "Left Field Entertainment"},
-      {"F3", "Extreme Ent. Grp."},
-      {"F4", "TecMagik"},
-      {"F9", "Cybersoft"},
-      {"FB", "Psygnosis"},
-      {"FE", "Davidson / Western Tech."},
+      {"EM", "Konami"},
+      {"EP", "Sting Entertainment"},
+      {"ES", "Starfish SD"},
+      {"EY", "Vblank Entertainment"},
+      {"FH", "Easy Interactive"},
+      {"FJ", "Virtual Toys"},
       {"FK", "The Game Factory"},
-      {"FL", "Hip Games"},
-      {"FM", "Aspyr"},
       {"FP", "Mastiff"},
-      {"FQ", "iQue"},
       {"FR", "Digital Tainment Pool"},
-      {"FS", "XS Games / Jack Of All Games"},
-      {"FT", "Daiwon"},
+      {"FS", "XS Games"},
       {"G0", "Alpha Unit"},
-      {"G1", "PCCW Japan"},
-      {"G2", "Yuke's Media Creations"},
-      {"G4", "KiKi Co., Ltd."},
-      {"G5", "Open Sesame Inc."},
-      {"G6", "Sims"},
-      {"G7", "Broccoli"},
-      {"G8", "Avex"},
+      {"G2", "Yuke's"},
       {"G9", "D3 Publisher"},
-      {"GB", "Konami Computer Entertainment Japan"},
-      {"GD", "Square-Enix"},
-      {"GE", "KSG"},
-      {"GF", "Micott & Basara Inc."},
-      {"GH", "Orbital Media"},
-      {"GJ", "Detn8 Games"},
+      {"GA", "PIN Change"},
+      {"GD", "Square Enix"},
+      {"GE", "Kids Station"},
+      {"GG", "O3 Entertainment"},
+      {"GJ", "Detn8"},
       {"GL", "Gameloft / Ubisoft"},
       {"GM", "Gamecock Media Group"},
       {"GN", "Oxygen Games"},
+      {"GR", "GSP"},
       {"GT", "505 Games"},
       {"GX", "Commodore"},
       {"GY", "The Game Factory"},
-      {"H1", "Treasure"},
-      {"H2", "Aruze"},
-      {"H3", "Ertain"},
+      {"GZ", "Gammick Entertainment"},
+      {"H3", "Zen United"},
       {"H4", "SNK Playmore"},
+      {"HA", "Nobilis"},
       {"HF", "Level-5"},
+      {"HG", "Graffiti Entertainment"},
       {"HH", "Focus Home Interactive"},
       {"HJ", "Genius Products"},
+      {"HL", "Frontier Developments"},
+      {"HM", "HMH Interactive"},
+      {"HN", "High Voltage Software"},
+      {"HQ", "Abstraction Games"},
+      {"HS", "Tru Blu"},
+      {"HU", "Ghostfire Games"},
+      {"HW", "Incredible Technologies"},
       {"HY", "Reef Entertainment"},
       {"HZ", "Nordcurrent"},
-      {"IH", "Yojigen"},
-      {"J8", "SNK Playmore"},
+      {"J8", "D4 Enterprise"},
       {"J9", "AQ Interactive"},
+      {"JD", "SKONEC Entertainment"},
+      {"JE", "E Frontier"},
       {"JF", "Arc System Works"},
+      {"JG", "The Games Company"},
       {"JH", "City Interactive"},
       {"JJ", "Deep Silver"},
-      {"JW", "Atari"},
-      {"JX", "Shin'en"},
+      {"JR", "Engine Software"},
+      {"JS", "Digital Leisure"},
+      {"JT", "Empty Clip Studios"},
+      {"JW", "BigBen Interactive"},
+      {"JX", "Shin'en Multimedia"},
+      {"JZ", "505 Games"},
+      {"K3", "Yudo"},
       {"K6", "Nihon System"},
-      {"KB", "NIS America"},
+      {"KB", "Nippon Ichi Software America"},
+      {"KG", "Kando Games"},
+      {"KJ", "Studio Zan"},
+      {"KL", "Abylight"},
       {"KM", "Deep Silver"},
       {"KP", "Purple Hills"},
-      {"LH", "Trend Verlag / East Entertainment"},
+      {"KQ", "Over the Top Games"},
+      {"KR", "KREA Medie"},
+      {"KW", "Semnat Studios"},
+      {"L3", "G-Mode"},
+      {"LG", "Black Bean Games"},
+      {"LJ", "Legendo Entertainment"},
+      {"LL", "HB Studios"},
+      {"LP", "Left Field Productions"},
+      {"LR", "Koch Media"},
       {"LT", "Legacy Interactive"},
+      {"LY", "Icon Games"},
+      {"MD", "Ateam"},
+      {"MH", "Mentor Interactive"},
       {"MJ", "Mumbo Jumbo"},
+      {"ML", "DTP Young Entertainment"},
+      {"MM", "Big John Games"},
       {"MR", "Mindscape"},
-      {"MS", "Milestone / UFO Interactive"},
-      {"MT", "Blast!"},
-      {"N9", "Terabox"},
+      {"MS", "Milestone / UFO Interactive Games"},
+      {"MT", "Blast! Entertainment"},
+      {"MV", "Marvelous Entertainment"},
+      {"MZ", "Mad Catz"},
+      {"N9", "Tera Box"},
       {"NG", "Nordic Games"},
-      {"NK", "Neko Entertainment / Diffusion / Naps team"},
+      {"NH", "Gevo Entertainment"},
+      {"NJ", "Enjoy Gaming"},
+      {"NK", "Neko Entertainment"},
+      {"NL", "Nordic Softsales"},
       {"NP", "Nobilis"},
-      {"NQ", "Namco Bandai"},
-      {"NR", "Data Design / Destineer Studios"},
-      {"NS", "NIS America"},
-      {"PL", "Playlogic"},
-      {"QC", "Kadokawa Shoten"},
+      {"NQ", "Namco Bandai Partners"},
+      {"NR", "Bold Games / Destineer Games"},
+      {"NS", "Nippon Ichi Software"},
+      {"NV", "Nicalis"},
+      {"NW", "Deep Fried Entertainment"},
+      {"NX", "Barnstorm Games"},
+      {"NY", "Nicalis"},
+      {"PH", "Playful Entertainment"},
+      {"PK", "Knowledge Adventure"},
+      {"PL", "Playlogic Entertainment"},
+      {"PM", "Warner Bros. Interactive Entertainment"},
+      {"PN", "P2 Games"},
+      {"PQ", "PopCap Games"},
+      {"PZ", "GameMill Publishing"},
+      {"Q4", "Hamster"},
+      {"QC", "Kadokawa Shoten / Enterbrain"},
+      {"QH", "Virtual Play Games"},
+      {"QK", "MACHINE Studios"},
+      {"QM", "Object Vision Software"},
+      {"QT", "CALARIS"},
+      {"QU", "QubicGames"},
+      {"QX", "Press Play"},
+      {"RA", "Office Create"},
+      {"RG", "Ronimo Games"},
       {"RM", "Rondomedia"},
-      {"RS", "Warner Bros. Interactive Entertainment Inc."},
-      {"RT", "RTL Games"},
-      {"RW", "RealNetworks"},
-      {"S5", "Southpeak Interactive"},
+      {"RN", "Mastiff / N3V Games"},
+      {"RS", "Brash Entertainment"},
+      {"RT", "RTL Enterprises"},
+      {"RV", "bitComposer Games"},
+      {"RW", "RealArcade"},
+      {"RZ", "Akaoni Studio"},
+      {"S5", "SouthPeak Games"},
+      {"SJ", "Cosmonaut Games"},
       {"SP", "Blade Interactive Studios"},
-      {"SV", "SevenGames"},
-      {"SZ", "Storm City"},
-      {"TK", "Tasuke / Works"},
+      {"SQ", "Sonalysts"},
+      {"SU", "Slitherine"},
+      {"SV", "7G//AMES"},
+      {"SZ", "Storm City Games"},
+      {"TJ", "Broken Rules"},
       {"TL", "Telltale Games"},
       {"TR", "Tetris Online"},
       {"TV", "Tivola"},
-      {"UG", "Metro 3D / Data Design"},
+      {"TW", "Two Tribes"},
+      {"TY", "Teyon"},
+      {"UG", "Data Design Interactive / Popcorn Arcade / Metro 3D"},
+      {"UH", "Intenium Console"},
+      {"UJ", "Ghostlight"},
+      {"UN", "Chillingo"},
+      {"UP", "EnjoyUp Games"},
+      {"UR", "Sudden Games"},
+      {"UU", "Onteca"},
+      {"UW", "Coresoft"},
+      {"VL", "Eko Software"},
       {"VN", "Valcon Games"},
       {"VP", "Virgin Play"},
+      {"VS", "Korner Entertainment"},
+      {"VT", "Microforum Games"},
+      {"VV", "Pixonauts"},
       {"VZ", "Little Orbit"},
-      {"WR", "Warner Bros. Interactive Entertainment Inc."},
-      {"XJ", "Xseed Games"},
+      {"WG", "2D Boy"},
+      {"WH", "NinjaBee"},
+      {"WJ", "Studio Walljump"},
+      {"WN", "tons of bits"},
+      {"WR", "Warner Bros. Interactive Entertainment"},
+      {"WS", "MonkeyPaw Games"},
+      {"WW", "Slang Publishing"},
+      {"WY", "WayForward Technologies"},
+      {"WZ", "Wizarbox"},
+      {"X3", "CK Games"},
+      {"X4", "Easy Interactive"},
+      {"XG", "XGen Studios"},
+      {"XJ", "XSEED Games"},
+      {"XK", "Exkee"},
+      {"XM", "DreamBox Games"},
       {"XS", "Aksys Games"},
+      {"XT", "Funbox Media"},
+      {"XV", "Keystone Game Studio"},
+      {"XW", "Lemon Games"},
+      {"Y1", "Tubby Games"},
+      {"Y5", "Easy Interactive"},
+      {"Y6", "Motiviti"},
+      {"YC", "NECA"},
+      {"YD", "Infinite Dreams"},
+      {"YF", "Oxygene"},
+      {"YG", "Maximum Family Games"},
       {"YT", "Valcon Games"},
+      {"YY", "FDG Entertainment"},
       {"Z4", "Ntreev Soft"},
       {"ZA", "WBA Interactive"},
+      {"ZG", "Zallag"},
       {"ZH", "Internal Engine"},
-      {"ZS", "Zinkia"},
+      {"ZJ", "Performance Designed Products"},
+      {"ZK", "Anima Game Studio"},
+      {"ZS", "Zinkia Entertainment"},
       {"ZW", "Judo Baby"},
-      {"ZX", "Topware Interactive"}};
+      {"ZX", "TopWare Interactive"}};
 
+  static const std::string EMPTY_STRING;
   auto iterator = companies.find(company_id);
   if (iterator != companies.end())
     return iterator->second;
   else
-    return "";
+    return EMPTY_STRING;
 }
 }

@@ -4,8 +4,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -46,6 +48,9 @@ int TexDecoder_GetTexelSizeInNibbles(TextureFormat format)
   // Compressed format
   case TextureFormat::CMPR:
     return 1;
+  // Special formats
+  case TextureFormat::XFB:
+    return 4;
   default:
     PanicAlert("Invalid Texture Format (0x%X)! (GetTexelSizeInNibbles)", static_cast<int>(format));
     return 1;
@@ -82,6 +87,9 @@ int TexDecoder_GetBlockWidthInTexels(TextureFormat format)
   // Compressed format
   case TextureFormat::CMPR:
     return 8;
+  // Special formats
+  case TextureFormat::XFB:
+    return 16;
   default:
     PanicAlert("Invalid Texture Format (0x%X)! (GetBlockWidthInTexels)", static_cast<int>(format));
     return 8;
@@ -113,6 +121,9 @@ int TexDecoder_GetBlockHeightInTexels(TextureFormat format)
   // Compressed format
   case TextureFormat::CMPR:
     return 8;
+  // Special formats
+  case TextureFormat::XFB:
+    return 1;
   default:
     PanicAlert("Invalid Texture Format (0x%X)! (GetBlockHeightInTexels)", static_cast<int>(format));
     return 4;
@@ -144,6 +155,9 @@ int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format)
   // 32-bit formats
   case EFBCopyFormat::RGBA8:
     return 4;
+  // Special formats
+  case EFBCopyFormat::XFB:
+    return 16;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEFBCopyBlockWidthInTexels)",
                static_cast<int>(format));
@@ -176,6 +190,9 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
   // 32-bit formats
   case EFBCopyFormat::RGBA8:
     return 4;
+  // Special formats
+  case EFBCopyFormat::XFB:
+    return 1;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEFBCopyBlockHeightInTexels)",
                static_cast<int>(format));
@@ -226,6 +243,8 @@ TextureFormat TexDecoder_GetEFBCopyBaseFormat(EFBCopyFormat format)
     return TextureFormat::RGB5A3;
   case EFBCopyFormat::RGBA8:
     return TextureFormat::RGBA8;
+  case EFBCopyFormat::XFB:
+    return TextureFormat::XFB;
   default:
     PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEFBCopyBaseFormat)", static_cast<int>(format));
     return static_cast<TextureFormat>(format);
@@ -240,17 +259,73 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 
 static const char* texfmt[] = {
     // pixel
-    "I4", "I8", "IA4", "IA8", "RGB565", "RGB5A3", "RGBA8", "0x07", "C4", "C8", "C14X2", "0x0B",
-    "0x0C", "0x0D", "CMPR", "0x0F",
+    "I4",
+    "I8",
+    "IA4",
+    "IA8",
+    "RGB565",
+    "RGB5A3",
+    "RGBA8",
+    "0x07",
+    "C4",
+    "C8",
+    "C14X2",
+    "0x0B",
+    "0x0C",
+    "0x0D",
+    "CMPR",
+    "0x0F",
     // Z-buffer
-    "0x10", "Z8", "0x12", "Z16", "0x14", "0x15", "Z24X8", "0x17", "0x18", "0x19", "0x1A", "0x1B",
-    "0x1C", "0x1D", "0x1E", "0x1F",
+    "0x10",
+    "Z8",
+    "0x12",
+    "Z16",
+    "0x14",
+    "0x15",
+    "Z24X8",
+    "0x17",
+    "0x18",
+    "0x19",
+    "0x1A",
+    "0x1B",
+    "0x1C",
+    "0x1D",
+    "0x1E",
+    "0x1F",
     // pixel + copy
-    "CR4", "0x21", "CRA4", "CRA8", "0x24", "0x25", "CYUVA8", "CA8", "CR8", "CG8", "CB8", "CRG8",
-    "CGB8", "0x2D", "0x2E", "0x2F",
+    "CR4",
+    "0x21",
+    "CRA4",
+    "CRA8",
+    "0x24",
+    "0x25",
+    "CYUVA8",
+    "CA8",
+    "CR8",
+    "CG8",
+    "CB8",
+    "CRG8",
+    "CGB8",
+    "0x2D",
+    "0x2E",
+    "XFB",
     // Z + copy
-    "CZ4", "0x31", "0x32", "0x33", "0x34", "0x35", "0x36", "0x37", "0x38", "CZ8M", "CZ8L", "0x3B",
-    "CZ16L", "0x3D", "0x3E", "0x3F",
+    "CZ4",
+    "0x31",
+    "0x32",
+    "0x33",
+    "0x34",
+    "0x35",
+    "0x36",
+    "0x37",
+    "0x38",
+    "CZ8M",
+    "CZ8L",
+    "0x3B",
+    "CZ16L",
+    "0x3D",
+    "0x3E",
+    "0x3F",
 };
 
 static void TexDecoder_DrawOverlay(u8* dst, int width, int height, TextureFormat texformat)
@@ -619,6 +694,23 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
     *((u32*)dst) = color;
   }
   break;
+  case TextureFormat::XFB:
+  {
+    size_t offset = (t * imageWidth + (s & (~1))) * 2;
+
+    // We do this one color sample (aka 2 RGB pixles) at a time
+    int Y = int((s & 1) == 0 ? src[offset] : src[offset + 2]) - 16;
+    int U = int(src[offset + 1]) - 128;
+    int V = int(src[offset + 3]) - 128;
+
+    // We do the inverse BT.601 conversion for YCbCr to RGB
+    // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+    u8 R = MathUtil::Clamp(int(1.164f * Y + 1.596f * V), 0, 255);
+    u8 G = MathUtil::Clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
+    u8 B = MathUtil::Clamp(int(1.164f * Y + 2.017f * U), 0, 255);
+    dst[t * imageWidth + s] = 0xff000000 | B << 16 | G << 8 | R;
+  }
+  break;
   }
 }
 
@@ -657,5 +749,43 @@ void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb,
       TexDecoder_DecodeTexelRGBA8FromTmem(dst, src_ar, src_gb, x, y, width - 1);
       dst += 4;
     }
+  }
+}
+
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride)
+{
+  const u8* src_ptr = src;
+  u8* dst_ptr = dst;
+
+  for (u32 y = 0; y < height; y++)
+  {
+    const u8* row_ptr = src_ptr;
+    for (u32 x = 0; x < width; x += 2)
+    {
+      // We do this one color sample (aka 2 RGB pixels) at a time
+      int Y1 = int(*(row_ptr++)) - 16;
+      int U = int(*(row_ptr++)) - 128;
+      int Y2 = int(*(row_ptr++)) - 16;
+      int V = int(*(row_ptr++)) - 128;
+
+      // We do the inverse BT.601 conversion for YCbCr to RGB
+      // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+      u8 R1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
+      u8 G1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
+      u8 B1 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));
+
+      u8 R2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 + 1.596f * V), 0, 255));
+      u8 G2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255));
+      u8 B2 = static_cast<u8>(MathUtil::Clamp(int(1.164f * Y2 + 2.017f * U), 0, 255));
+
+      u32 rgba = 0xff000000 | B1 << 16 | G1 << 8 | R1;
+      std::memcpy(dst_ptr, &rgba, sizeof(rgba));
+      dst_ptr += sizeof(rgba);
+      rgba = 0xff000000 | B2 << 16 | G2 << 8 | R2;
+      std::memcpy(dst_ptr, &rgba, sizeof(rgba));
+      dst_ptr += sizeof(rgba);
+    }
+
+    src_ptr += stride;
   }
 }

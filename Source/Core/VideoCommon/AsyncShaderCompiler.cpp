@@ -17,11 +17,10 @@ AsyncShaderCompiler::~AsyncShaderCompiler()
 {
   // Pending work can be left at shutdown.
   // The work item classes are expected to clean up after themselves.
-  _assert_(!HasWorkerThreads());
-  _assert_(m_completed_work.empty());
+  ASSERT(!HasWorkerThreads());
 }
 
-void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item)
+void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item, u32 priority)
 {
   // If no worker threads are available, compile synchronously.
   if (!HasWorkerThreads())
@@ -32,7 +31,7 @@ void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item)
   else
   {
     std::lock_guard<std::mutex> guard(m_pending_work_lock);
-    m_pending_work.push_back(std::move(item));
+    m_pending_work.emplace(priority, std::move(item));
     m_worker_thread_wake.notify_one();
   }
 }
@@ -58,6 +57,12 @@ bool AsyncShaderCompiler::HasPendingWork()
   return !m_pending_work.empty() || m_busy_workers.load() != 0;
 }
 
+bool AsyncShaderCompiler::HasCompletedWork()
+{
+  std::lock_guard<std::mutex> guard(m_completed_work_lock);
+  return !m_completed_work.empty();
+}
+
 void AsyncShaderCompiler::WaitUntilCompletion()
 {
   while (HasPendingWork())
@@ -72,7 +77,7 @@ void AsyncShaderCompiler::WaitUntilCompletion(
 
   // Wait a second before opening a progress dialog.
   // This way, if the operation completes quickly, we don't annoy the user.
-  constexpr u32 CHECK_INTERVAL_MS = 50;
+  constexpr u32 CHECK_INTERVAL_MS = 1000 / 30;
   constexpr auto CHECK_INTERVAL = std::chrono::milliseconds(CHECK_INTERVAL_MS);
   for (u32 i = 0; i < (1000 / CHECK_INTERVAL_MS); i++)
   {
@@ -214,8 +219,9 @@ void AsyncShaderCompiler::WorkerThreadRun()
     while (!m_pending_work.empty() && !m_exit_flag.IsSet())
     {
       m_busy_workers++;
-      WorkItemPtr item(std::move(m_pending_work.front()));
-      m_pending_work.pop_front();
+      auto iter = m_pending_work.begin();
+      WorkItemPtr item(std::move(iter->second));
+      m_pending_work.erase(iter);
       pending_lock.unlock();
 
       if (item->Compile())

@@ -67,7 +67,7 @@
 
 #ifdef _WIN32
 
-#if _MSC_FULL_VER < 191025017
+#if _MSC_FULL_VER < 191426433
 #error Please update your build environment to the latest Visual Studio 2017!
 #endif
 

@@ -35,8 +35,6 @@ const u32 m_os = OS_ALL | OS_LINUX;
 const u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
 const u32 m_os = OS_ALL | OS_OPENBSD;
-#elif __HAIKU__
-const u32 m_os = OS_ALL | OS_HAIKU;
 #endif
 
 static API m_api = API_OPENGL;
@@ -52,8 +50,6 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_BUFFER_STREAM, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_BROKEN_NEGATED_BOOLEAN, -1.0, -1.0, true},
-    {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
-     BUG_BROKEN_EXPLICIT_FLUSH, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_BUFFER_STREAM, -1.0,
      -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_VSYNC, -1.0, -1.0,
@@ -82,13 +78,15 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_UNSYNC_MAPPING, -1.0, -1.0, true},
     {API_OPENGL, OS_LINUX, VENDOR_NVIDIA, DRIVER_NVIDIA, Family::UNKNOWN, BUG_BROKEN_UNSYNC_MAPPING,
      -1.0, -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_UNSYNC_MAPPING, -1.0,
+     -1.0, true},
     {API_OPENGL, OS_WINDOWS, VENDOR_INTEL, DRIVER_INTEL, Family::UNKNOWN,
      BUG_INTEL_BROKEN_BUFFER_STORAGE, 101810.3907, 101810.3960, true},
     {API_OPENGL, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_SLOW_GETBUFFERSUBDATA, -1.0,
      -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN, BUG_BROKEN_CLIP_DISTANCE, -1.0,
      -1.0, true},
-    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
+    {API_VULKAN, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
      BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION, -1.0, -1.0, true},
     {API_OPENGL, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
@@ -96,7 +94,9 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, 108.4693462, true},
-    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
+    {API_VULKAN, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0,
+     -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
      true},
     {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN,
      BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
@@ -106,7 +106,8 @@ static BugInfo m_known_bugs[] = {
      -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_CLEAR_LOADOP_RENDERPASS, -1.0, -1.0, true},
-};
+    {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN, BUG_BROKEN_D32F_CLEAR,
+     -1.0, -1.0, true}};
 
 static std::map<Bug, BugInfo> m_bugs;
 
@@ -165,34 +166,4 @@ bool HasBug(Bug bug)
     return false;
   return it->second.m_hasbug;
 }
-
-Vendor TranslatePCIVendorID(u32 vendor_id)
-{
-  switch (vendor_id)
-  {
-  case 0x10DE:
-    return VENDOR_NVIDIA;
-
-  case 0x1002:
-  case 0x1022:
-    return VENDOR_ATI;
-
-  case 0x8086:
-  case 0x8087:
-    return VENDOR_INTEL;
-
-  // TODO: Is this correct for Mali?
-  case 0x13B6:
-    return VENDOR_ARM;
-
-  case 0x5143:
-    return VENDOR_QUALCOMM;
-
-  case 0x1010:
-    return VENDOR_IMGTEC;
-
-  default:
-    return VENDOR_UNKNOWN;
-  }
-}
-}
+}  // namespace DriverDetails

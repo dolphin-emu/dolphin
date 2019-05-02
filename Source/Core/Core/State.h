@@ -43,15 +43,12 @@ std::string GetInfoStringOfSlot(int slot, bool translate = true);
 // Slots from 0-99.
 void Save(int slot, bool wait = false);
 void Load(int slot);
-void Verify(int slot);
 
 void SaveAs(const std::string& filename, bool wait = false);
 bool LoadAs(const std::string& filename);
-void VerifyAt(const std::string& filename);
 
 void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
-void VerifyBuffer(std::vector<u8>& buffer);
 
 void LoadLastSaved(int i = 1);
 void SaveFirstSaved();

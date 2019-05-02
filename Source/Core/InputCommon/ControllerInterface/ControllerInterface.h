@@ -4,29 +4,24 @@
 
 #pragma once
 
-#include <algorithm>
+#include <atomic>
 #include <functional>
-#include <map>
-#include <sstream>
-#include <string>
-#include <vector>
+#include <list>
+#include <memory>
+#include <mutex>
 
-#include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // enable disable sources
 #ifdef _WIN32
-#define CIFACE_USE_XINPUT
-#define CIFACE_USE_DINPUT
+#define CIFACE_USE_WIN32
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 #define CIFACE_USE_XLIB
 #endif
 #if defined(__APPLE__)
 #define CIFACE_USE_OSX
-#endif
-#if defined(HAVE_SDL) && HAVE_SDL
-#define CIFACE_USE_SDL
 #endif
 #if defined(HAVE_LIBEVDEV) && defined(HAVE_LIBUDEV)
 #define CIFACE_USE_EVDEV
@@ -44,8 +39,11 @@
 class ControllerInterface : public ciface::Core::DeviceContainer
 {
 public:
-  ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
-  void Initialize(void* const hwnd);
+  using HotplugCallbackHandle = std::list<std::function<void()>>::iterator;
+
+  ControllerInterface() : m_is_init(false) {}
+  void Initialize(const WindowSystemInfo& wsi);
+  void ChangeWindow(void* hwnd);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
@@ -53,13 +51,16 @@ public:
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 
-  void RegisterHotplugCallback(std::function<void(void)> callback);
-  void InvokeHotplugCallbacks() const;
+  HotplugCallbackHandle RegisterDevicesChangedCallback(std::function<void(void)> callback);
+  void UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle);
+  void InvokeDevicesChangedCallbacks() const;
 
 private:
-  std::vector<std::function<void()>> m_hotplug_callbacks;
-  bool m_is_init;
-  void* m_hwnd;
+  std::list<std::function<void()>> m_devices_changed_callbacks;
+  mutable std::mutex m_callbacks_mutex;
+  std::atomic<bool> m_is_init;
+  std::atomic<bool> m_is_populating_devices{false};
+  WindowSystemInfo m_wsi;
 };
 
 extern ControllerInterface g_controller_interface;

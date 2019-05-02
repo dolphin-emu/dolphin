@@ -8,14 +8,19 @@
 #include <atomic>
 
 #include "AudioCommon/AudioStretcher.h"
+#include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
+
+class PointerWrap;
 
 class Mixer final
 {
 public:
   explicit Mixer(unsigned int BackendSampleRate);
   ~Mixer();
+
+  void DoState(PointerWrap& p);
 
   // Called from audio threads
   unsigned int Mix(short* samples, unsigned int numSamples);
@@ -40,6 +45,7 @@ public:
 
   float GetCurrentSpeed() const { return m_speed.load(); }
   void UpdateSpeed(float val) { m_speed.store(val); }
+
 private:
   static constexpr u32 MAX_SAMPLES = 1024 * 4;  // 128 ms
   static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
@@ -47,12 +53,16 @@ private:
   static constexpr float CONTROL_FACTOR = 0.2f;
   static constexpr u32 CONTROL_AVG = 32;  // In freq_shift per FIFO size offset
 
+  const unsigned int SURROUND_CHANNELS = 6;
+  const unsigned int SURROUND_BLOCK_SIZE = 512;
+
   class MixerFifo final
   {
   public:
     MixerFifo(Mixer* mixer, unsigned sample_rate) : m_mixer(mixer), m_input_sample_rate(sample_rate)
     {
     }
+    void DoState(PointerWrap& p);
     void PushSamples(const short* samples, unsigned int num_samples);
     unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
     void SetInputSampleRate(unsigned int rate);
@@ -80,8 +90,8 @@ private:
 
   bool m_is_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
+  AudioCommon::SurroundDecoder m_surround_decoder;
   std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
-  std::array<float, MAX_SAMPLES * 2> m_float_conversion_buffer;
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;

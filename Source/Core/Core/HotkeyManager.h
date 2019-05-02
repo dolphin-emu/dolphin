@@ -15,7 +15,7 @@ namespace ControllerEmu
 {
 class ControllerEmu;
 class Buttons;
-}
+}  // namespace ControllerEmu
 
 enum Hotkey
 {
@@ -29,6 +29,8 @@ enum Hotkey
   HK_FULLSCREEN,
   HK_SCREENSHOT,
   HK_EXIT,
+  HK_ACTIVATE_CHAT,
+  HK_REQUEST_GOLF_CONTROL,
 
   HK_VOLUME_DOWN,
   HK_VOLUME_UP,
@@ -66,10 +68,30 @@ enum Hotkey
   HK_WIIMOTE3_CONNECT,
   HK_WIIMOTE4_CONNECT,
   HK_BALANCEBOARD_CONNECT,
+  HK_TOGGLE_USB_KEYBOARD,
+
+  HK_NEXT_WIIMOTE_PROFILE_1,
+  HK_PREV_WIIMOTE_PROFILE_1,
+  HK_NEXT_GAME_WIIMOTE_PROFILE_1,
+  HK_PREV_GAME_WIIMOTE_PROFILE_1,
+  HK_NEXT_WIIMOTE_PROFILE_2,
+  HK_PREV_WIIMOTE_PROFILE_2,
+  HK_NEXT_GAME_WIIMOTE_PROFILE_2,
+  HK_PREV_GAME_WIIMOTE_PROFILE_2,
+  HK_NEXT_WIIMOTE_PROFILE_3,
+  HK_PREV_WIIMOTE_PROFILE_3,
+  HK_NEXT_GAME_WIIMOTE_PROFILE_3,
+  HK_PREV_GAME_WIIMOTE_PROFILE_3,
+  HK_NEXT_WIIMOTE_PROFILE_4,
+  HK_PREV_WIIMOTE_PROFILE_4,
+  HK_NEXT_GAME_WIIMOTE_PROFILE_4,
+  HK_PREV_GAME_WIIMOTE_PROFILE_4,
 
   HK_TOGGLE_CROP,
   HK_TOGGLE_AR,
   HK_TOGGLE_EFBCOPIES,
+  HK_TOGGLE_XFBCOPIES,
+  HK_TOGGLE_IMMEDIATE_XFB,
   HK_TOGGLE_FOG,
   HK_TOGGLE_DUMPTEXTURES,
   HK_TOGGLE_TEXTURES,
@@ -164,6 +186,7 @@ enum HotkeyGroup : int
   HKGP_PC,
   HKGP_BREAKPOINT,
   HKGP_WII,
+  HKGP_CONTROLLER_PROFILE,
   HKGP_GRAPHICS_TOGGLES,
   HKGP_IR,
   HKGP_FREELOOK,
@@ -178,16 +201,9 @@ enum HotkeyGroup : int
   NUM_HOTKEY_GROUPS,
 };
 
-struct HotkeyGroupInfo
-{
-  std::string name;
-  Hotkey first;
-  Hotkey last;
-};
-
 struct HotkeyStatus
 {
-  u32 button[NUM_HOTKEY_GROUPS];
+  std::array<u32, NUM_HOTKEY_GROUPS> button;
   s8 err;
 };
 
@@ -205,7 +221,7 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  ControllerEmu::Buttons* m_keys[NUM_HOTKEY_GROUPS];
+  std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys;
   std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups;
 };
 
@@ -221,4 +237,4 @@ void GetStatus();
 bool IsEnabled();
 void Enable(bool enable_toggle);
 bool IsPressed(int Id, bool held);
-}
+}  // namespace HotkeyManagerEmu

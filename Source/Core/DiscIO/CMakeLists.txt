@@ -1,4 +1,4 @@
-set(SRCS
+add_library(discio
   Blob.cpp
   CISOBlob.cpp
   WbfsBlob.cpp
@@ -11,15 +11,19 @@ set(SRCS
   FileBlob.cpp
   FileSystemGCWii.cpp
   Filesystem.cpp
-  NANDContentLoader.cpp
   NANDImporter.cpp
   TGCBlob.cpp
   Volume.cpp
   VolumeFileBlobReader.cpp
   VolumeGC.cpp
+  VolumeVerifier.cpp
   VolumeWad.cpp
   VolumeWii.cpp
+  WiiSaveBanner.cpp
   WiiWad.cpp
 )
 
-add_dolphin_library(discio "${SRCS}" "")
+target_link_libraries(discio
+PRIVATE
+  ZLIB::ZLIB
+)

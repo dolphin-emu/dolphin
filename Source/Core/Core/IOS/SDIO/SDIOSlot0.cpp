@@ -18,35 +18,12 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/VersionInfo.h"
 
-namespace IOS
+namespace IOS::HLE::Device
 {
-namespace HLE
-{
-namespace Device
-{
-constexpr bool SupportsSDHC(u32 ios_version)
-{
-  switch (ios_version)
-  {
-  // Known versions to support SDHC
-  case 48:
-  case 56:
-  case 57:
-  case 58:
-  case 59:
-  case 60:
-  case 61:
-  case 70:
-  case 80:
-    return true;
-  default:
-    return false;
-  };
-}
-
 SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name)
-    : Device(ios, device_name), m_sdhc_supported(SupportsSDHC(ios.GetVersion()))
+    : Device(ios, device_name), m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
 {
 }
 
@@ -86,7 +63,7 @@ void SDIOSlot0::OpenInternal()
   if (!m_card)
   {
     WARN_LOG(IOS_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
-    if (SDCardCreate(128, filename))
+    if (Common::SDCardCreate(128, filename))
     {
       INFO_LOG(IOS_SD, "Successfully created %s", filename.c_str());
       m_card.Open(filename, "r+b");
@@ -99,17 +76,17 @@ void SDIOSlot0::OpenInternal()
   }
 }
 
-ReturnCode SDIOSlot0::Open(const OpenRequest& request)
+IPCCommandResult SDIOSlot0::Open(const OpenRequest& request)
 {
   OpenInternal();
   m_registers.fill(0);
 
   m_is_active = true;
 
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode SDIOSlot0::Close(u32 fd)
+IPCCommandResult SDIOSlot0::Close(u32 fd)
 {
   m_card.Close();
   m_block_length = 0;
@@ -439,7 +416,7 @@ IPCCommandResult SDIOSlot0::GetStatus(const IOCtlRequest& request)
   // Since IOS does the SD initialization itself, we just say we're always initialized.
   if (m_card)
   {
-    if (m_card.GetSize() < SDHC_BYTES)
+    if (m_card.GetSize() <= SDSC_MAX_SIZE)
     {
       // No further initialization required.
       m_status |= CARD_INITIALIZED;
@@ -580,7 +557,9 @@ std::array<u32, 4> SDIOSlot0::GetCSDv1() const
 
   // Form the csd using the description above
   return {{
-      0x007f003, 0x5b5f8000 | (c_size >> 2), 0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
+      0x007f003,
+      0x5b5f8000 | (c_size >> 2),
+      0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
       0x07c04001 | (crc << 1),
   }};
 }
@@ -635,7 +614,10 @@ std::array<u32, 4> SDIOSlot0::GetCSDv2() const
 
   // Form the csd using the description above
   return {{
-      0x400e005a, 0x5f590000 | (c_size >> 16), 0x00007f80 | (c_size << 16), 0x0a400001 | (crc << 1),
+      0x400e005a,
+      0x5f590000 | (c_size >> 16),
+      0x00007f80 | (c_size << 16),
+      0x0a400001 | (crc << 1),
   }};
 }
 
@@ -653,6 +635,4 @@ void SDIOSlot0::InitSDHC()
   m_status |= CARD_INITIALIZED;
 }
 
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

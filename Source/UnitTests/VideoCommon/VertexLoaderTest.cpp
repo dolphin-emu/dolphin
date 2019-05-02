@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>  // NOLINT
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
-#include "Common/MathUtil.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -72,14 +72,15 @@ protected:
     m_src.Write<T, true>(val);
   }
 
-  void ExpectOut(float val)
+  void ExpectOut(float expected)
   {
     // Read unswapped.
-    MathUtil::IntFloat expected(val), actual(m_dst.Read<float, false>());
-    if (!actual.f || actual.f != actual.f)
-      EXPECT_EQ(expected.i, actual.i);
+    const float actual = m_dst.Read<float, false>();
+
+    if (!actual || actual != actual)
+      EXPECT_EQ(Common::BitCast<u32>(expected), Common::BitCast<u32>(actual));
     else
-      EXPECT_EQ(expected.f, actual.f);
+      EXPECT_EQ(expected, actual);
   }
 
   void RunVertices(int count, int expected_count = -1)
@@ -109,7 +110,6 @@ class VertexLoaderParamTest : public VertexLoaderTest,
                               public ::testing::WithParamInterface<std::tuple<int, int, int, int>>
 {
 };
-extern int gtest_AllCombinationsVertexLoaderParamTest_dummy_;
 INSTANTIATE_TEST_CASE_P(AllCombinations, VertexLoaderParamTest,
                         ::testing::Combine(::testing::Values(DIRECT, INDEX8, INDEX16),
                                            ::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
@@ -249,7 +249,6 @@ class VertexLoaderSpeedTest : public VertexLoaderTest,
                               public ::testing::WithParamInterface<std::tuple<int, int>>
 {
 };
-extern int gtest_FormatsAndElementsVertexLoaderSpeedTest_dummy_;
 INSTANTIATE_TEST_CASE_P(FormatsAndElements, VertexLoaderSpeedTest,
                         ::testing::Combine(::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
                                                              FORMAT_USHORT, FORMAT_SHORT,

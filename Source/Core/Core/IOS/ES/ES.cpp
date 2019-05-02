@@ -11,11 +11,7 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/ChunkFile.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -25,67 +21,55 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOSC.h"
-#include "Core/ec_wii.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "Core/IOS/Uids.h"
+#include "Core/IOS/VersionInfo.h"
 
-namespace IOS
+namespace IOS::HLE::Device
 {
-namespace HLE
-{
-namespace Device
-{
-// TODO: drop this and convert the title context into a member once the WAD launch hack is gone.
-static std::string s_content_file;
-static TitleContext s_title_context;
-
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
 
 struct DirectoryToCreate
 {
   const char* path;
-  u32 attributes;
-  OpenMode owner_perm;
-  OpenMode group_perm;
-  OpenMode other_perm;
+  FS::FileAttribute attribute;
+  FS::Modes modes;
+  FS::Uid uid = PID_KERNEL;
+  FS::Gid gid = PID_KERNEL;
 };
 
+constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
 constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
-    {"/sys", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/ticket", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/title", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_READ},
-    {"/shared1", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/shared2", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
-    {"/tmp", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
-    {"/import", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/meta", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
-    {"/wfs", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE, OpenMode::IOS_OPEN_NONE},
+    {"/sys", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/ticket", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/title", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read}},
+    {"/shared1", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/shared2", 0, public_modes},
+    {"/tmp", 0, public_modes},
+    {"/import", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/meta", 0, public_modes, SYSMENU_UID, SYSMENU_GID},
+    {"/wfs", 0, {FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None}, PID_UNKNOWN, PID_UNKNOWN},
 }};
 
 ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (const auto& directory : s_directories_to_create)
   {
-    const std::string path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + directory.path;
+    // Note: ES sets its own UID and GID to 0/0 at boot, so all filesystem accesses in ES are done
+    // as UID 0 even though its PID is 1.
+    const auto result = m_ios.GetFS()->CreateDirectory(PID_KERNEL, PID_KERNEL, directory.path,
+                                                       directory.attribute, directory.modes);
+    if (result != FS::ResultCode::Success && result != FS::ResultCode::AlreadyExists)
+      ERROR_LOG(IOS_ES, "Failed to create %s: error %d", directory.path, FS::ConvertResult(result));
 
-    // Create the directory if it does not exist.
-    if (File::IsDirectory(path))
-      continue;
-
-    File::CreateFullPath(path);
-    if (File::CreateDir(path))
-      INFO_LOG(IOS_ES, "Created %s (at %s)", directory.path, path.c_str());
-    else
-      ERROR_LOG(IOS_ES, "Failed to create %s (at %s)", directory.path, path.c_str());
-
-    // TODO: Set permissions.
+    // Now update the UID/GID and other attributes.
+    m_ios.GetFS()->SetMetadata(0, directory.path, directory.uid, directory.gid, directory.attribute,
+                               directory.modes);
   }
 
   FinishAllStaleImports();
-
-  s_content_file = "";
-  s_title_context = TitleContext{};
 
   if (s_title_to_launch != 0)
   {
@@ -93,11 +77,6 @@ ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
     LaunchTitle(s_title_to_launch, true);
     s_title_to_launch = 0;
   }
-}
-
-TitleContext& ES::GetTitleContext()
-{
-  return s_title_context;
 }
 
 void TitleContext::Clear()
@@ -112,13 +91,6 @@ void TitleContext::DoState(PointerWrap& p)
   ticket.DoState(p);
   tmd.DoState(p);
   p.Do(active);
-}
-
-void TitleContext::Update(const DiscIO::NANDContentLoader& content_loader)
-{
-  if (!content_loader.IsValid())
-    return;
-  Update(content_loader.GetTMD(), content_loader.GetTicket());
 }
 
 void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
@@ -141,16 +113,6 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   }
 }
 
-void ES::LoadWAD(const std::string& _rContentFile)
-{
-  s_content_file = _rContentFile;
-  // XXX: Ideally, this should be done during a launch, but because we support launching WADs
-  // without installing them (which is a bit of a hack), we have to do this manually here.
-  const auto& content_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
-  s_title_context.Update(content_loader);
-  INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
-}
-
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
@@ -167,9 +129,9 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 
 ReturnCode ES::GetTitleId(u64* title_id) const
 {
-  if (!s_title_context.active)
+  if (!m_title_context.active)
     return ES_EINVAL;
-  *title_id = s_title_context.tmd.GetTitleId();
+  *title_id = m_title_context.tmd.GetTitleId();
   return IPC_SUCCESS;
 }
 
@@ -191,7 +153,7 @@ IPCCommandResult ES::GetTitleId(const IOCtlVRequest& request)
 
 static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 {
-  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_sys{kernel.GetFS()};
   const u64 title_id = tmd.GetTitleId();
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (!uid)
@@ -204,9 +166,9 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
+static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid)
 {
-  IOS::ES::UIDSys uid_map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_map{kernel.GetFS()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
@@ -220,7 +182,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
-  const s32 ret = CheckIsAllowedToSetUID(uid);
+  const s32 ret = CheckIsAllowedToSetUID(m_ios, uid);
   if (ret < 0)
   {
     ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
@@ -242,19 +204,13 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
 bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
-  s_title_context.Clear();
+  m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_Launch: Title context changed: (none)");
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  // ES_Launch should probably reset the whole state, which at least means closing all open files.
-  // leaving them open through ES_Launch may cause hangs and other funky behavior
-  // (supposedly when trying to re-open those files).
-  DiscIO::NANDContentManager::Access().ClearCache();
-
-  u32 device_id;
-  if (title_id == Titles::SHOP &&
-      (GetDeviceId(&device_id) != IPC_SUCCESS || device_id == DEFAULT_WII_DEVICE_ID))
+  if ((title_id == Titles::SHOP || title_id == Titles::KOREAN_SHOP) &&
+      m_ios.GetIOSC().IsUsingDefaultId())
   {
     ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
     CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."
@@ -275,13 +231,48 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
 bool ES::LaunchIOS(u64 ios_title_id)
 {
+  // A real Wii goes through several steps before getting to MIOS.
+  //
+  // * The System Menu detects a GameCube disc and launches BC (1-100) instead of the game.
+  // * BC (similar to boot1) lowers the clock speed to the Flipper's and then launches boot2.
+  // * boot2 sees the lowered clock speed and launches MIOS (1-101) instead of the System Menu.
+  //
+  // Because we don't have boot1 and boot2, and BC is only ever used to launch MIOS
+  // (indirectly via boot2), we can just launch MIOS when BC is launched.
+  if (ios_title_id == Titles::BC)
+  {
+    NOTICE_LOG(IOS, "BC: Launching MIOS...");
+    return LaunchIOS(Titles::MIOS);
+  }
+
+  // IOS checks whether the system title is installed and returns an error if it isn't.
+  // Unfortunately, we can't rely on titles being installed as we don't require system titles,
+  // so only have this check for MIOS (for which having the binary is *required*).
+  if (ios_title_id == Titles::MIOS)
+  {
+    const IOS::ES::TMDReader tmd = FindInstalledTMD(ios_title_id);
+    const IOS::ES::TicketReader ticket = FindSignedTicket(ios_title_id);
+    IOS::ES::Content content;
+    if (!tmd.IsValid() || !ticket.IsValid() || !tmd.GetContent(tmd.GetBootIndex(), &content) ||
+        !m_ios.BootIOS(ios_title_id, GetContentPath(ios_title_id, content)))
+    {
+      PanicAlertT("Could not launch IOS %016" PRIx64 " because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.",
+                  ios_title_id);
+      return false;
+    }
+    return true;
+  }
+
   return m_ios.BootIOS(ios_title_id);
 }
 
 bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
-  const DiscIO::NANDContentLoader& content_loader = AccessContentDevice(title_id);
-  if (!content_loader.IsValid())
+  const IOS::ES::TMDReader tmd = FindInstalledTMD(title_id);
+  const IOS::ES::TicketReader ticket = FindSignedTicket(title_id);
+
+  if (!tmd.IsValid() || !ticket.IsValid())
   {
     if (title_id == Titles::SYSTEM_MENU)
     {
@@ -297,33 +288,33 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return false;
   }
 
-  if (!content_loader.GetTMD().IsValid() || !content_loader.GetTicket().IsValid())
-    return false;
-
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
   // again with the reload skipped, and the PPC will be bootstrapped then.
   if (!skip_reload)
   {
     s_title_to_launch = title_id;
-    const u64 required_ios = content_loader.GetTMD().GetIOSId();
+    const u64 required_ios = tmd.GetIOSId();
     return LaunchTitle(required_ios);
   }
 
-  s_title_context.Update(content_loader);
-  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
-           s_title_context.tmd.GetTitleId());
+  m_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
   // are installed, we can only do this for PPC titles.
-  if (!UpdateUIDAndGID(m_ios, s_title_context.tmd))
+  if (!UpdateUIDAndGID(m_ios, m_title_context.tmd))
   {
-    s_title_context.Clear();
+    m_title_context.Clear();
     INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: (none)");
     return false;
   }
 
-  return m_ios.BootstrapPPC(content_loader);
+  IOS::ES::Content content;
+  if (!tmd.GetContent(tmd.GetBootIndex(), &content))
+    return false;
+
+  return m_ios.BootstrapPPC(GetContentPath(tmd.GetTitleId(), content));
 }
 
 void ES::Context::DoState(PointerWrap& p)
@@ -339,9 +330,17 @@ void ES::Context::DoState(PointerWrap& p)
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  p.Do(s_content_file);
-  p.Do(m_content_table);
-  s_title_context.DoState(p);
+
+  for (auto& entry : m_content_table)
+  {
+    p.Do(entry.m_opened);
+    p.Do(entry.m_title_id);
+    p.Do(entry.m_content);
+    p.Do(entry.m_fd);
+    p.Do(entry.m_uid);
+  }
+
+  m_title_context.DoState(p);
 
   for (auto& context : m_contexts)
     context.DoState(p);
@@ -359,11 +358,11 @@ ES::ContextArray::iterator ES::FindInactiveContext()
                       [](const auto& context) { return !context.active; });
 }
 
-ReturnCode ES::Open(const OpenRequest& request)
+IPCCommandResult ES::Open(const OpenRequest& request)
 {
   auto context = FindInactiveContext();
   if (context == m_contexts.end())
-    return ES_FD_EXHAUSTED;
+    return GetDefaultReply(ES_FD_EXHAUSTED);
 
   context->active = true;
   context->uid = request.uid;
@@ -372,20 +371,18 @@ ReturnCode ES::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-ReturnCode ES::Close(u32 fd)
+IPCCommandResult ES::Close(u32 fd)
 {
   auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
-    return ES_EINVAL;
+    return GetDefaultReply(ES_EINVAL);
 
   context->active = false;
   context->ipc_fd = -1;
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
-  // clear the NAND content cache to make sure nothing remains open.
-  DiscIO::NANDContentManager::Access().ClearCache();
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
@@ -521,6 +518,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetDeviceCertificate(request);
   case IOCTL_ES_SIGN:
     return Sign(request);
+  case IOCTL_ES_VERIFYSIGN:
+    return VerifySign(request);
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
 
@@ -536,7 +535,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_DELETE_STREAM_KEY:
     return DeleteStreamKey(request);
 
-  case IOCTL_ES_VERIFYSIGN:
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
@@ -576,6 +574,10 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   INFO_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
            TitleID, view, ticketid, devicetype, titleid, access);
 
+  // Prevent loading installed IOSes that are not emulated.
+  if (!IOS::HLE::IsEmulated(TitleID))
+    return GetDefaultReply(FS_ENOENT);
+
   // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
   // Note: Launch will potentially reset the whole IOS state -- including this ES instance.
   if (!LaunchTitle(TitleID))
@@ -603,21 +605,6 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
   return GetNoReply();
 }
 
-const DiscIO::NANDContentLoader& ES::AccessContentDevice(u64 title_id)
-{
-  // for WADs, the passed title id and the stored title id match; along with s_content_file
-  // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
-  // in those cases, since the WAD need not be installed in the NAND, but it could be opened
-  // directly from a WAD file anywhere on disk.
-  if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
-      !s_content_file.empty())
-  {
-    return DiscIO::NANDContentManager::Access().GetNANDLoader(s_content_file);
-  }
-
-  return DiscIO::NANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
-}
-
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
 // used from the PowerPC (for unpatched and up-to-date IOSes anyway).
 // So we block access to it from the IPC interface.
@@ -626,9 +613,33 @@ IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
   return GetDefaultReply(ES_EINVAL);
 }
 
-s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
+static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd)
 {
-  s_title_context.Clear();
+  const std::string temp_path = "/tmp/title.tmd";
+  fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
+  constexpr FS::Modes internal_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None};
+  {
+    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, internal_modes);
+    if (!file)
+      return FS::ConvertResult(file.Error());
+    if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
+      return ES_EIO;
+  }
+
+  const std::string tmd_dir = Common::GetTitleContentPath(tmd.GetTitleId());
+  const std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId());
+  constexpr FS::Modes parent_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read};
+  const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, tmd_path, 0, parent_modes);
+  if (result != FS::ResultCode::Success)
+    return FS::ConvertResult(result);
+
+  fs->SetMetadata(PID_KERNEL, tmd_dir, PID_KERNEL, PID_KERNEL, 0, internal_modes);
+  return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
+}
+
+ReturnCode ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
+{
+  m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
   if (!tmd.IsValid() || !ticket.IsValid())
@@ -637,37 +648,34 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   if (tmd.GetTitleId() != ticket.GetTitleId())
     return ES_EINVAL;
 
-  s_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
-  std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+  // XXX: We are supposed to verify the TMD and ticket here, but cannot because
+  // this may cause issues with custom/patched games.
 
-  File::CreateFullPath(tmd_path);
-  File::CreateFullPath(Common::GetTitleDataPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
-
-  if (!File::Exists(tmd_path))
+  const auto fs = m_ios.GetFS();
+  if (!FindInstalledTMD(tmd.GetTitleId()).IsValid())
   {
-    // XXX: We are supposed to verify the TMD and ticket here, but cannot because
-    // this may cause issues with custom/patched games.
-
-    File::IOFile tmd_file(tmd_path, "wb");
-    const std::vector<u8>& tmd_bytes = tmd.GetBytes();
-    if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
-      ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
+    if (const ReturnCode ret = WriteTmdForDiVerify(fs.get(), tmd))
+    {
+      ERROR_LOG(IOS_ES, "DiVerify failed to write disc TMD to NAND.");
+      return ret;
+    }
   }
-  // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
-  // clear the cache to avoid content access mismatches.
-  DiscIO::NANDContentManager::Access().ClearCache();
 
-  if (!UpdateUIDAndGID(*GetIOS(), s_title_context.tmd))
+  if (!UpdateUIDAndGID(*GetIOS(), m_title_context.tmd))
   {
     return ES_SHORT_READ;
   }
 
-  return IPC_SUCCESS;
+  const std::string data_dir = Common::GetTitleDataPath(tmd.GetTitleId());
+  // Might already exist, so we only need to check whether the second operation succeeded.
+  constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
+  fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, data_dir_modes);
+  return FS::ConvertResult(
+      fs->SetMetadata(0, data_dir, m_ios.GetUidForPPC(), m_ios.GetGidForPPC(), 0, data_dir_modes));
 }
-
-constexpr u32 FIRST_PPC_UID = 0x1000;
 
 ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
                                          const IOS::ES::TMDReader& tmd) const
@@ -724,7 +732,7 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
   // Find a signed ticket from the view.
   const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
   const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
-  const IOS::ES::TicketReader installed_ticket = DiscIO::FindSignedTicket(title_id);
+  const IOS::ES::TicketReader installed_ticket = FindSignedTicket(title_id);
   // Unlike the other "get ticket from view" function, this returns a FS error, not ES_NO_TICKET.
   if (!installed_ticket.IsValid())
     return FS_ENOENT;
@@ -803,10 +811,10 @@ IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
 
 bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
 {
-  if (!GetTitleContext().active)
+  if (!m_title_context.active)
     return false;
 
-  const u32 title_identifier = static_cast<u32>(GetTitleContext().tmd.GetTitleId());
+  const u32 title_identifier = static_cast<u32>(m_title_context.tmd.GetTitleId());
   const u32 permitted_title_mask =
       Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
   const u32 permitted_title_id =
@@ -829,15 +837,20 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
   }
 }
 
+static const std::string CERT_STORE_PATH = "/sys/cert.sys";
+
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
-  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
-  File::IOFile store_file{store_path, "rb"};
-  if (!store_file)
-    return FS_ENOENT;
+  if (!SConfig::GetInstance().m_enable_signature_checks)
+    return IPC_SUCCESS;
 
-  buffer->resize(store_file.GetSize());
-  if (!store_file.ReadBytes(buffer->data(), buffer->size()))
+  const auto store_file =
+      m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
+  if (!store_file)
+    return FS::ConvertResult(store_file.Error());
+
+  buffer->resize(store_file->GetStatus()->size);
+  if (!store_file->Read(buffer->data(), buffer->size()))
     return ES_SHORT_READ;
   return IPC_SUCCESS;
 }
@@ -856,16 +869,20 @@ ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
   }
 
   // Otherwise, write the new cert at the end of the store.
-  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
-  File::IOFile store_file{store_path, "ab"};
-  if (!store_file || !store_file.WriteBytes(cert.GetBytes().data(), cert.GetBytes().size()))
+  const auto store_file =
+      m_ios.GetFS()->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH,
+                                       {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read});
+  if (!store_file || !store_file->Seek(0, FS::SeekMode::End) ||
+      !store_file->Write(cert.GetBytes().data(), cert.GetBytes().size()))
+  {
     return ES_EIO;
+  }
   return IPC_SUCCESS;
 }
 
 ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
                                const IOS::ES::SignedBlobReader& signed_blob,
-                               const std::vector<u8>& cert_chain, u32 iosc_handle)
+                               const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
   if (!SConfig::GetInstance().m_enable_signature_checks)
     return IPC_SUCCESS;
@@ -904,9 +921,12 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(handle, PID_ES); }};
-  ret = iosc.ImportCertificate(ca_cert.GetBytes().data(), IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
+  ret = iosc.ImportCertificate(ca_cert, IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error %d", ret);
     return ret;
+  }
 
   IOSC::Handle issuer_handle;
   const IOSC::ObjectSubType subtype =
@@ -915,22 +935,21 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard issuer_guard{[&] { iosc.DeleteObject(issuer_handle, PID_ES); }};
-  ret = iosc.ImportCertificate(issuer_cert.GetBytes().data(), handle, issuer_handle, PID_ES);
+  ret = iosc.ImportCertificate(issuer_cert, handle, issuer_handle, PID_ES);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(issuer) failed with error %d", ret);
     return ret;
-
-  // Calculate the SHA1 of the signed blob.
-  const size_t skip = type == VerifyContainerType::Device ? offsetof(SignatureECC, issuer) :
-                                                            offsetof(SignatureRSA2048, issuer);
-  std::array<u8, 20> sha1;
-  mbedtls_sha1(signed_blob.GetBytes().data() + skip, signed_blob.GetBytes().size() - skip,
-               sha1.data());
+  }
 
   // Verify the signature.
   const std::vector<u8> signature = signed_blob.GetSignatureData();
-  ret = iosc.VerifyPublicKeySign(sha1, issuer_handle, signature.data(), PID_ES);
+  ret = iosc.VerifyPublicKeySign(signed_blob.GetSha1(), issuer_handle, signature, PID_ES);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error %d", ret);
     return ret;
+  }
 
   if (mode == VerifyMode::UpdateCertStore)
   {
@@ -943,12 +962,27 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
       ERROR_LOG(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code %d", ret);
   }
 
-  // Import the signed blob to iosc_handle (if a handle was passed to us).
-  if (ret == IPC_SUCCESS && iosc_handle)
-    ret = iosc.ImportCertificate(signed_blob.GetBytes().data(), issuer_handle, iosc_handle, PID_ES);
+  if (ret == IPC_SUCCESS && issuer_handle_out)
+  {
+    *issuer_handle_out = issuer_handle;
+    issuer_guard.Dismiss();
+  }
 
   return ret;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+
+ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                               const IOS::ES::CertReader& cert, const std::vector<u8>& cert_chain,
+                               u32 certificate_iosc_handle)
+{
+  IOSC::Handle issuer_handle;
+  ReturnCode ret = VerifyContainer(type, mode, cert, cert_chain, &issuer_handle);
+  // Import the signed blob.
+  if (ret == IPC_SUCCESS)
+  {
+    ret = m_ios.GetIOSC().ImportCertificate(cert, issuer_handle, certificate_iosc_handle, PID_ES);
+    m_ios.GetIOSC().DeleteObject(issuer_handle, PID_ES);
+  }
+  return ret;
+}
+}  // namespace IOS::HLE::Device

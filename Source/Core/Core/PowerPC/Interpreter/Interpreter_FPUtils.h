@@ -7,17 +7,17 @@
 #include <cmath>
 #include <limits>
 
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
+#include "Common/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
 
-const u64 PPC_NAN_U64 = 0x7ff8000000000000ull;
-const double PPC_NAN = *(double* const) & PPC_NAN_U64;
+constexpr double PPC_NAN = std::numeric_limits<double>::quiet_NaN();
 
 // the 4 less-significand bits in FPSCR[FPRF]
-enum FPCC
+enum class FPCC
 {
   FL = 8,  // <
   FG = 4,  // >
@@ -25,202 +25,344 @@ enum FPCC
   FU = 1,  // ?
 };
 
-inline void SetFPException(u32 mask)
+inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 {
-  if ((FPSCR.Hex & mask) != mask)
+  if ((fpscr->Hex & mask) != mask)
   {
-    FPSCR.FX = 1;
+    fpscr->FX = 1;
   }
-  FPSCR.Hex |= mask;
+
+  fpscr->Hex |= mask;
+  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
 }
 
-inline void SetFI(int FI)
-{
-  if (FI)
-  {
-    SetFPException(FPSCR_XX);
-  }
-  FPSCR.FI = FI;
-}
-
-inline void UpdateFPSCR()
-{
-  FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
-  FPSCR.FEX = 0;  // we assume that "?E" bits are always 0
-}
-
-inline double ForceSingle(double value)
+inline double ForceSingle(const UReg_FPSCR& fpscr, double value)
 {
   // convert to float...
   float x = (float)value;
-  if (!cpu_info.bFlushToZero && FPSCR.NI)
+  if (!cpu_info.bFlushToZero && fpscr.NI)
   {
-    x = MathUtil::FlushToZero(x);
+    x = Common::FlushToZero(x);
   }
   // ...and back to double:
   return x;
 }
 
-inline double ForceDouble(double d)
+inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
 {
-  if (!cpu_info.bFlushToZero && FPSCR.NI)
+  if (!cpu_info.bFlushToZero && fpscr.NI)
   {
-    d = MathUtil::FlushToZero(d);
+    d = Common::FlushToZero(d);
   }
   return d;
 }
 
 inline double Force25Bit(double d)
 {
-  MathUtil::IntDouble x(d);
-  x.i = (x.i & 0xFFFFFFFFF8000000ULL) + (x.i & 0x8000000);
-  return x.d;
+  u64 integral = Common::BitCast<u64>(d);
+
+  integral = (integral & 0xFFFFFFFFF8000000ULL) + (integral & 0x8000000);
+
+  return Common::BitCast<double>(integral);
 }
 
 inline double MakeQuiet(double d)
 {
-  MathUtil::IntDouble x(d);
-  x.i |= MathUtil::DOUBLE_QBIT;
-  return x.d;
+  const u64 integral = Common::BitCast<u64>(d) | Common::DOUBLE_QBIT;
+
+  return Common::BitCast<double>(integral);
 }
 
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
-inline double NI_mul(double a, double b)
+struct FPResult
 {
-  double t = a * b;
-  if (std::isnan(t))
+  bool HasNoInvalidExceptions() const { return (exception & FPSCR_VX_ANY) == 0; }
+
+  void SetException(UReg_FPSCR* fpscr, FPSCRExceptionFlag flag)
   {
-    if (std::isnan(a))
-      return MakeQuiet(a);
-    if (std::isnan(b))
-      return MakeQuiet(b);
-    SetFPException(FPSCR_VXIMZ);
-    return PPC_NAN;
+    exception = flag;
+    SetFPException(fpscr, flag);
   }
-  return t;
+
+  double value = 0.0;
+  FPSCRExceptionFlag exception{};
+};
+
+inline FPResult NI_mul(UReg_FPSCR* fpscr, double a, double b)
+{
+  FPResult result{a * b};
+
+  if (std::isnan(result.value))
+  {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    {
+      result.SetException(fpscr, FPSCR_VXSNAN);
+    }
+
+    fpscr->ClearFIFR();
+
+    if (std::isnan(a))
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
+    if (std::isnan(b))
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
+
+    result.value = PPC_NAN;
+    result.SetException(fpscr, FPSCR_VXIMZ);
+    return result;
+  }
+
+  return result;
 }
 
-inline double NI_div(double a, double b)
+inline FPResult NI_div(UReg_FPSCR* fpscr, double a, double b)
 {
-  double t = a / b;
-  if (std::isnan(t))
+  FPResult result{a / b};
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
+
     if (b == 0.0)
     {
-      SetFPException(FPSCR_ZX);
       if (a == 0.0)
-        SetFPException(FPSCR_VXZDZ);
+      {
+        result.SetException(fpscr, FPSCR_VXZDZ);
+      }
+      else
+      {
+        result.SetException(fpscr, FPSCR_ZX);
+      }
     }
     else if (std::isinf(a) && std::isinf(b))
     {
-      SetFPException(FPSCR_VXIDI);
+      result.SetException(fpscr, FPSCR_VXIDI);
     }
-    return PPC_NAN;
+
+    result.value = PPC_NAN;
+    return result;
   }
-  return t;
+
+  return result;
 }
 
-inline double NI_add(double a, double b)
+inline FPResult NI_add(UReg_FPSCR* fpscr, double a, double b)
 {
-  double t = a + b;
-  if (std::isnan(t))
+  FPResult result{a + b};
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
+
+    result.SetException(fpscr, FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
-  return t;
+
+  if (std::isinf(a) || std::isinf(b))
+    fpscr->ClearFIFR();
+
+  return result;
 }
 
-inline double NI_sub(double a, double b)
+inline FPResult NI_sub(UReg_FPSCR* fpscr, double a, double b)
 {
-  double t = a - b;
-  if (std::isnan(t))
+  FPResult result{a - b};
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
+
+    result.SetException(fpscr, FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
-  return t;
+
+  if (std::isinf(a) || std::isinf(b))
+    fpscr->ClearFIFR();
+
+  return result;
 }
 
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline double NI_madd(double a, double c, double b)
+inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
 {
-  double t = a * c;
-  if (std::isnan(t))
+  FPResult result{a * c};
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);  // !
+    {
+      result.value = MakeQuiet(b);  // !
+      return result;
+    }
     if (std::isnan(c))
-      return MakeQuiet(c);
-    SetFPException(FPSCR_VXIMZ);
-    return PPC_NAN;
+    {
+      result.value = MakeQuiet(c);
+      return result;
+    }
+
+    result.SetException(fpscr, FPSCR_VXIMZ);
+    result.value = PPC_NAN;
+    return result;
   }
-  t += b;
-  if (std::isnan(t))
+
+  result.value += b;
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(b))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(b))
-      return MakeQuiet(b);
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
+
+    result.SetException(fpscr, FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
-  return t;
+
+  if (std::isinf(a) || std::isinf(b) || std::isinf(c))
+    fpscr->ClearFIFR();
+
+  return result;
 }
 
-inline double NI_msub(double a, double c, double b)
+inline FPResult NI_msub(UReg_FPSCR* fpscr, double a, double c, double b)
 {
-  double t = a * c;
-  if (std::isnan(t))
+  FPResult result{a * c};
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);  // !
+    {
+      result.value = MakeQuiet(b);  // !
+      return result;
+    }
     if (std::isnan(c))
-      return MakeQuiet(c);
-    SetFPException(FPSCR_VXIMZ);
-    return PPC_NAN;
+    {
+      result.value = MakeQuiet(c);
+      return result;
+    }
+
+    result.SetException(fpscr, FPSCR_VXIMZ);
+    result.value = PPC_NAN;
+    return result;
   }
 
-  t -= b;
-  if (std::isnan(t))
+  result.value -= b;
+
+  if (std::isnan(result.value))
   {
+    if (Common::IsSNAN(b))
+      result.SetException(fpscr, FPSCR_VXSNAN);
+
+    fpscr->ClearFIFR();
+
     if (std::isnan(b))
-      return MakeQuiet(b);
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
+
+    result.SetException(fpscr, FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
-  return t;
+
+  if (std::isinf(a) || std::isinf(b) || std::isinf(c))
+    fpscr->ClearFIFR();
+
+  return result;
 }
 
 // used by stfsXX instructions and ps_rsqrte
 inline u32 ConvertToSingle(u64 x)
 {
   u32 exp = (x >> 52) & 0x7ff;
-  if (exp > 896 || (x & ~MathUtil::DOUBLE_SIGN) == 0)
+  if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
     return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
   }
   else if (exp >= 874)
   {
-    u32 t = (u32)(0x80000000 | ((x & MathUtil::DOUBLE_FRAC) >> 21));
+    u32 t = (u32)(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
     t = t >> (905 - exp);
     t |= (x >> 32) & 0x80000000;
     return t;
@@ -237,7 +379,7 @@ inline u32 ConvertToSingle(u64 x)
 inline u32 ConvertToSingleFTZ(u64 x)
 {
   u32 exp = (x >> 52) & 0x7ff;
-  if (exp > 896 || (x & ~MathUtil::DOUBLE_SIGN) == 0)
+  if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
     return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
   }

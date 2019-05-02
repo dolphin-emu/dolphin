@@ -8,7 +8,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/VertexManagerBase.h"
 
 enum class APIType;
 

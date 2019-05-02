@@ -10,7 +10,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 class DebugInterface;
+}
 
 struct TBreakPoint
 {
@@ -35,14 +38,8 @@ struct TMemCheck
   u32 num_hits = 0;
 
   // returns whether to break
-  bool Action(DebugInterface* dbg_interface, u32 value, u32 addr, bool write, size_t size, u32 pc);
-};
-
-struct TWatch
-{
-  std::string name;
-  u32 address = 0;
-  bool is_enabled = false;
+  bool Action(Common::DebugInterface* dbg_interface, u32 value, u32 addr, bool write, size_t size,
+              u32 pc);
 };
 
 // Code breakpoints.
@@ -88,38 +85,12 @@ public:
 
   // memory breakpoint
   TMemCheck* GetMemCheck(u32 address, size_t size = 1);
-  bool OverlapsMemcheck(u32 address, u32 length);
+  bool OverlapsMemcheck(u32 address, u32 length) const;
   void Remove(u32 address);
 
   void Clear() { m_mem_checks.clear(); }
   bool HasAny() const { return !m_mem_checks.empty(); }
+
 private:
   TMemChecks m_mem_checks;
-};
-
-class Watches
-{
-public:
-  using TWatches = std::vector<TWatch>;
-  using TWatchesStr = std::vector<std::string>;
-
-  const TWatches& GetWatches() const { return m_watches; }
-  TWatchesStr GetStrings() const;
-  void AddFromStrings(const TWatchesStr& watch_strings);
-
-  bool IsAddressWatch(u32 address) const;
-
-  // Add watch
-  void Add(u32 address);
-  void Add(const TWatch& watch);
-
-  void Update(int count, u32 address);
-  void UpdateName(int count, const std::string name);
-
-  // Remove watch
-  void Remove(u32 address);
-  void Clear();
-
-private:
-  TWatches m_watches;
 };

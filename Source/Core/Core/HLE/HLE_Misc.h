@@ -6,7 +6,6 @@
 
 namespace HLE_Misc
 {
-void HLEPanicAlert();
 void UnimplementedFunction();
 void HBReload();
 void GeckoCodeHandlerICacheFlush();

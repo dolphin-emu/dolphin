@@ -18,14 +18,18 @@ public:
   NANDImporter();
   ~NANDImporter();
 
-  void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback);
+  // Extract a NAND image to the configured NAND root.
+  // If the associated OTP/SEEPROM dump (keys.bin) is not included in the image,
+  // get_otp_dump_path will be called to get a path to it.
+  void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback,
+                     std::function<std::string()> get_otp_dump_path);
   bool ExtractCertificates(const std::string& nand_root);
 
 private:
 #pragma pack(push, 1)
   struct NANDFSTEntry
   {
-    u8 name[12];
+    char name[12];
     u8 mode;   // 0x0C
     u8 attr;   // 0x0D
     u16 sub;   // 0x0E
@@ -38,7 +42,7 @@ private:
   };
 #pragma pack(pop)
 
-  bool ReadNANDBin(const std::string& path_to_bin);
+  bool ReadNANDBin(const std::string& path_to_bin, std::function<std::string()> get_otp_dump_path);
   void FindSuperblock();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);

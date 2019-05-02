@@ -5,7 +5,7 @@
 #include "Common/ColorUtil.h"
 #include "Common/Swap.h"
 
-namespace ColorUtil
+namespace Common
 {
 static const int s_lut5to8[] = {0x00, 0x08, 0x10, 0x18, 0x20, 0x29, 0x31, 0x39, 0x41, 0x4A, 0x52,
                                 0x5A, 0x62, 0x6A, 0x73, 0x7B, 0x83, 0x8B, 0x94, 0x9C, 0xA4, 0xAC,
@@ -40,7 +40,7 @@ static u32 Decode5A3(u16 val)
   return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-void decode5A3image(u32* dst, const u16* src, int width, int height)
+void Decode5A3Image(u32* dst, const u16* src, int width, int height)
 {
   for (int y = 0; y < height; y += 4)
   {
@@ -58,7 +58,7 @@ void decode5A3image(u32* dst, const u16* src, int width, int height)
   }
 }
 
-void decodeCI8image(u32* dst, const u8* src, const u16* pal, int width, int height)
+void DecodeCI8Image(u32* dst, const u8* src, const u16* pal, int width, int height)
 {
   for (int y = 0; y < height; y += 4)
   {
@@ -70,11 +70,10 @@ void decodeCI8image(u32* dst, const u8* src, const u16* pal, int width, int heig
         for (int ix = 0; ix < 8; ix++)
         {
           // huh, this seems wrong. CI8, not 5A3, no?
-          tdst[ix] = ColorUtil::Decode5A3(Common::swap16(pal[src[ix]]));
+          tdst[ix] = Decode5A3(Common::swap16(pal[src[ix]]));
         }
       }
     }
   }
 }
-
-}  // namespace
+}  // namespace Common

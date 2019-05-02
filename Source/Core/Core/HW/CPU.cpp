@@ -45,7 +45,7 @@ static bool s_state_system_request_stepping = false;
 static bool s_state_cpu_step_instruction = false;
 static Common::Event* s_state_cpu_step_instruction_sync = nullptr;
 
-void Init(int cpu_core)
+void Init(PowerPC::CPUCore cpu_core)
 {
   PowerPC::Init(cpu_core);
   s_state = State::Stepping;
@@ -147,7 +147,7 @@ static void RunAdjacentSystems(bool running)
 {
   // NOTE: We're assuming these will not try to call Break or EnableStepping.
   Fifo::EmulatorState(running);
-  AudioCommon::ClearAudioBuffer(!running);
+  AudioCommon::SetSoundStreamRunning(running);
 }
 
 void Stop()

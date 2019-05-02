@@ -4,58 +4,58 @@
 
 #include <memory>
 
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/SWOGLWindow.h"
+#include "VideoBackends/Software/SWTexture.h"
 
-std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
+SWOGLWindow::SWOGLWindow() = default;
+SWOGLWindow::~SWOGLWindow() = default;
 
-void SWOGLWindow::Init(void* window_handle)
+std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
 {
-  InitInterface();
-  GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle))
+  std::unique_ptr<SWOGLWindow> window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
+  if (!window->Initialize(wsi))
   {
-    ERROR_LOG(VIDEO, "GLInterface::Create failed.");
+    PanicAlert("Failed to create OpenGL window");
+    return nullptr;
   }
 
-  s_instance.reset(new SWOGLWindow());
+  return window;
 }
 
-void SWOGLWindow::Shutdown()
+bool SWOGLWindow::IsHeadless() const
 {
-  GLInterface->Shutdown();
-  GLInterface.reset();
-
-  s_instance.reset();
+  return m_gl_context->IsHeadless();
 }
 
-void SWOGLWindow::Prepare()
+bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
 {
-  if (m_init)
-    return;
-  m_init = true;
+  m_gl_context = GLContext::Create(wsi);
+  if (!m_gl_context)
+    return false;
 
   // Init extension support.
-  if (!GLExtensions::Init())
+  if (!GLExtensions::Init(m_gl_context.get()))
   {
     ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
-    return;
+    return false;
   }
   else if (GLExtensions::Version() < 310)
   {
     ERROR_LOG(VIDEO, "OpenGL Version %d detected, but at least 3.1 is required.",
               GLExtensions::Version());
-    return;
+    return false;
   }
 
   std::string frag_shader = "in vec2 TexCoord;\n"
                             "out vec4 ColorOut;\n"
-                            "uniform sampler2D Texture;\n"
+                            "uniform sampler2D samp;\n"
                             "void main() {\n"
-                            "	ColorOut = texture(Texture, TexCoord);\n"
+                            "	ColorOut = texture(samp, TexCoord);\n"
                             "}\n";
 
   std::string vertex_shader = "out vec2 TexCoord;\n"
@@ -65,64 +65,52 @@ void SWOGLWindow::Prepare()
                               "	TexCoord = vec2(rawpos.x, -rawpos.y);\n"
                               "}\n";
 
-  std::string header = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL ?
-                           "#version 140\n" :
-                           "#version 300 es\n"
-                           "precision highp float;\n";
+  std::string header = m_gl_context->IsGLES() ? "#version 300 es\n"
+                                                "precision highp float;\n" :
+                                                "#version 140\n";
 
-  m_image_program = OpenGL_CompileProgram(header + vertex_shader, header + frag_shader);
+  m_image_program = GLUtil::CompileProgram(header + vertex_shader, header + frag_shader);
 
   glUseProgram(m_image_program);
 
-  glUniform1i(glGetUniformLocation(m_image_program, "Texture"), 0);
-
+  glUniform1i(glGetUniformLocation(m_image_program, "samp"), 0);
   glGenTextures(1, &m_image_texture);
   glBindTexture(GL_TEXTURE_2D, m_image_texture);
+
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glGenVertexArrays(1, &m_image_vao);
+  return true;
 }
 
-void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
+void SWOGLWindow::ShowImage(const AbstractTexture* image,
+                            const MathUtil::Rectangle<int>& xfb_region)
 {
-  m_text.push_back({text, x, y, color});
-}
+  const SW::SWTexture* sw_image = static_cast<const SW::SWTexture*>(image);
+  m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
-void SWOGLWindow::ShowImage(const u8* data, int stride, int width, int height, float aspect)
-{
-  GLInterface->MakeCurrent();
-  GLInterface->Update();
-  Prepare();
-
-  GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
-  GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
+  GLsizei glWidth = (GLsizei)m_gl_context->GetBackBufferWidth();
+  GLsizei glHeight = (GLsizei)m_gl_context->GetBackBufferHeight();
 
   glViewport(0, 0, glWidth, glHeight);
 
+  glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D, m_image_texture);
 
+  // TODO: Apply xfb_region
+
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / 4);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, data);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, sw_image->GetConfig().width);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(sw_image->GetConfig().width),
+               static_cast<GLsizei>(sw_image->GetConfig().height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               sw_image->GetData());
 
   glUseProgram(m_image_program);
 
   glBindVertexArray(m_image_vao);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  // TODO: implement OSD
-  //	for (TextData& text : m_text)
-  //	{
-  //	}
-  m_text.clear();
-
-  GLInterface->Swap();
-  GLInterface->ClearCurrent();
-}
-
-int SWOGLWindow::PeekMessages()
-{
-  return GLInterface->PeekMessages();
+  m_gl_context->Swap();
 }

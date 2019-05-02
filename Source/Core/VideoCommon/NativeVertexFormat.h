@@ -91,7 +91,7 @@ struct hash<PortableVertexDeclaration>
 {
   size_t operator()(const PortableVertexDeclaration& decl) const
   {
-    return HashFletcher((u8*)&decl, sizeof(decl));
+    return Common::HashFletcher(reinterpret_cast<const u8*>(&decl), sizeof(decl));
   }
 };
 }
@@ -104,16 +104,17 @@ struct hash<PortableVertexDeclaration>
 class NativeVertexFormat
 {
 public:
+  NativeVertexFormat(const PortableVertexDeclaration& vtx_decl) : m_decl(vtx_decl) {}
   virtual ~NativeVertexFormat() {}
+
   NativeVertexFormat(const NativeVertexFormat&) = delete;
   NativeVertexFormat& operator=(const NativeVertexFormat&) = delete;
   NativeVertexFormat(NativeVertexFormat&&) = default;
   NativeVertexFormat& operator=(NativeVertexFormat&&) = default;
 
-  u32 GetVertexStride() const { return vtx_decl.stride; }
-  const PortableVertexDeclaration& GetVertexDeclaration() const { return vtx_decl; }
+  u32 GetVertexStride() const { return m_decl.stride; }
+  const PortableVertexDeclaration& GetVertexDeclaration() const { return m_decl; }
+
 protected:
-  // Let subclasses construct.
-  NativeVertexFormat() {}
-  PortableVertexDeclaration vtx_decl;
+  PortableVertexDeclaration m_decl;
 };

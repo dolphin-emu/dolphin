@@ -40,14 +40,14 @@ static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state st
 {
 }
 
-static long data_callback(cubeb_stream* stream, void* user_data, const void* inputbuffer,
-                          void* /*outputbuffer*/, long nframes)
+long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
+                           void* /*output_buffer*/, long nframes)
 {
   CEXIMic* mic = static_cast<CEXIMic*>(user_data);
 
   std::lock_guard<std::mutex> lk(mic->ring_lock);
 
-  const s16* buff_in = static_cast<const s16*>(inputbuffer);
+  const s16* buff_in = static_cast<const s16*>(input_buffer);
   for (long i = 0; i < nframes; i++)
   {
     mic->stream_buffer[mic->stream_wpos] = buff_in[i];
@@ -80,14 +80,14 @@ void CEXIMic::StreamStart()
   params.layout = CUBEB_LAYOUT_MONO;
 
   u32 minimum_latency;
-  if (cubeb_get_min_latency(m_cubeb_ctx.get(), params, &minimum_latency) != CUBEB_OK)
+  if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
   {
     WARN_LOG(EXPANSIONINTERFACE, "Error getting minimum latency");
   }
 
   if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated GameCube Microphone",
                         nullptr, &params, nullptr, nullptr,
-                        std::max<u32>(buff_size_samples, minimum_latency), data_callback,
+                        std::max<u32>(buff_size_samples, minimum_latency), DataCallback,
                         state_callback, this) != CUBEB_OK)
   {
     ERROR_LOG(EXPANSIONINTERFACE, "Error initializing cubeb stream");

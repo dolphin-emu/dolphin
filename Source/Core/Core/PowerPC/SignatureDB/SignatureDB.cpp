@@ -10,8 +10,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 
 // Format Handlers
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
@@ -109,10 +109,10 @@ void HashSignatureDB::List() const
 {
   for (const auto& entry : m_database)
   {
-    DEBUG_LOG(OSHLE, "%s : %i bytes, hash = %08x", entry.second.name.c_str(), entry.second.size,
+    DEBUG_LOG(SYMBOLS, "%s : %i bytes, hash = %08x", entry.second.name.c_str(), entry.second.size,
               entry.first);
   }
-  INFO_LOG(OSHLE, "%zu functions known in current database.", m_database.size());
+  INFO_LOG(SYMBOLS, "%zu functions known in current database.", m_database.size());
 }
 
 void HashSignatureDB::Clear()
@@ -130,12 +130,12 @@ void HashSignatureDB::Apply(PPCSymbolDB* symbol_db) const
       function->Rename(entry.second.name);
       if (entry.second.size == static_cast<unsigned int>(function->size))
       {
-        INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(),
+        INFO_LOG(SYMBOLS, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(),
                  function->address, function->size);
       }
       else
       {
-        ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
+        ERROR_LOG(SYMBOLS, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
                   entry.second.name.c_str(), function->address, function->size, entry.second.size);
       }
     }

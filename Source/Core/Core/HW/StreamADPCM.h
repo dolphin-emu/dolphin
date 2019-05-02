@@ -8,6 +8,8 @@
 
 #include "Common/CommonTypes.h"
 
+class PointerWrap;
+
 namespace StreamADPCM
 {
 enum
@@ -16,6 +18,17 @@ enum
   SAMPLES_PER_BLOCK = 28
 };
 
-void InitFilter();
-void DecodeBlock(s16* pcm, const u8* adpcm);
+class ADPCMDecoder
+{
+public:
+  void ResetFilter();
+  void DoState(PointerWrap& p);
+  void DecodeBlock(s16* pcm, const u8* adpcm);
+
+private:
+  s32 m_histl1 = 0;
+  s32 m_histl2 = 0;
+  s32 m_histr1 = 0;
+  s32 m_histr2 = 0;
+};
 }

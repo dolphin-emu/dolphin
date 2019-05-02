@@ -54,7 +54,7 @@ bool DSYSignatureDB::Save(const std::string& file_path) const
 
   if (!f)
   {
-    ERROR_LOG(OSHLE, "Database save failed");
+    ERROR_LOG(SYMBOLS, "Database save failed");
     return false;
   }
   u32 fcount = static_cast<u32>(m_database.size());
@@ -69,6 +69,6 @@ bool DSYSignatureDB::Save(const std::string& file_path) const
     f.WriteArray(&temp, 1);
   }
 
-  INFO_LOG(OSHLE, "Database save successful");
+  INFO_LOG(SYMBOLS, "Database save successful");
   return true;
 }

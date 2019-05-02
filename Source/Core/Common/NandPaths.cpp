@@ -2,19 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/NandPaths.h"
+
 #include <algorithm>
 #include <string>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 namespace Common
 {
@@ -24,41 +21,51 @@ std::string RootUserPath(FromWhichRoot from)
   return File::GetUserPath(idx);
 }
 
-std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
+static std::string RootUserPath(std::optional<FromWhichRoot> from)
+{
+  return from ? RootUserPath(*from) : "";
+}
+
+std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
 {
   return RootUserPath(from) + StringFromFormat("/import/%08x/%08x",
                                                static_cast<u32>(title_id >> 32),
                                                static_cast<u32>(title_id));
 }
 
-std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
+std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from)
 {
   return StringFromFormat("%s/ticket/%08x/%08x.tik", RootUserPath(from).c_str(),
-                          (u32)(_titleID >> 32), (u32)_titleID);
-}
-
-std::string GetTitlePath(u64 title_id, FromWhichRoot from)
-{
-  return StringFromFormat("%s/title/%08x/%08x/", RootUserPath(from).c_str(),
                           static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
+std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return GetTitlePath(_titleID, from) + "data/";
+  return StringFromFormat("%s/title/%08x/%08x", RootUserPath(from).c_str(),
+                          static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
+std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return GetTitlePath(_titleID, from) + "content/";
+  return GetTitlePath(title_id, from) + "/data";
 }
 
-std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
+std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return GetTitleContentPath(_titleID, from) + "title.tmd";
+  return GetTitlePath(title_id, from) + "/content";
 }
 
-bool IsTitlePath(const std::string& path, FromWhichRoot from, u64* title_id)
+std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from)
+{
+  return GetTitleContentPath(title_id, from) + "/title.tmd";
+}
+
+std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from)
+{
+  return StringFromFormat("%s/shared2/menu/FaceLib/RFL_DB.dat", RootUserPath(from).c_str());
+}
+
+bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64* title_id)
 {
   std::string expected_prefix = RootUserPath(from) + "/title/";
   if (!StringBeginsWith(path, expected_prefix))
@@ -143,4 +150,4 @@ std::string UnescapeFileName(const std::string& filename)
 
   return result;
 }
-}
+}  // namespace Common

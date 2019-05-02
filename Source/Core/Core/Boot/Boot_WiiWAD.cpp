@@ -2,65 +2,44 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstddef>
+#include <cinttypes>
 #include <memory>
-#include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
+#include "Core/WiiUtils.h"
+#include "DiscIO/WiiWad.h"
 
-#include "DiscIO/NANDContentLoader.h"
-
-bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
+bool CBoot::BootNANDTitle(const u64 title_id)
 {
   UpdateStateFlags([](StateFlags* state) {
-    state->type = 0x03;  // TYPE_RETURN
+    state->type = 0x04;  // TYPE_NANDBOOT
   });
 
-  const DiscIO::NANDContentLoader& ContentLoader =
-      DiscIO::NANDContentManager::Access().GetNANDLoader(_pFilename);
-  if (!ContentLoader.IsValid())
-    return false;
+  auto es = IOS::HLE::GetIOS()->GetES();
+  const IOS::ES::TicketReader ticket = es->FindSignedTicket(title_id);
+  auto console_type = IOS::HLE::IOSC::ConsoleType::Retail;
+  if (ticket.IsValid())
+    console_type = ticket.GetConsoleType();
+  else
+    ERROR_LOG(BOOT, "No ticket was found for %016" PRIx64, title_id);
+  SetupWiiMemory(console_type);
+  return es->LaunchTitle(title_id);
+}
 
-  u64 titleID = ContentLoader.GetTMD().GetTitleId();
-
-  if (!IOS::ES::IsChannel(titleID))
+bool CBoot::Boot_WiiWAD(const DiscIO::WiiWAD& wad)
+{
+  if (!WiiUtils::InstallWAD(*IOS::HLE::GetIOS(), wad, WiiUtils::InstallType::Temporary))
   {
-    PanicAlertT("This WAD is not bootable.");
+    PanicAlertT("Cannot boot this WAD because it could not be installed to the NAND.");
     return false;
   }
-
-  // create data directory
-  File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
-
-  if (titleID == Titles::SYSTEM_MENU)
-    IOS::HLE::CreateVirtualFATFilesystem();
-  // setup Wii memory
-
-  if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
-    return false;
-
-  IOS::HLE::Device::ES::LoadWAD(_pFilename);
-
-  // TODO: kill these manual calls and just use ES_Launch here, as soon as the direct WAD
-  //       launch hack is dropped.
-  auto* ios = IOS::HLE::GetIOS();
-  IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
-  ios->SetUidForPPC(uid_map.GetOrInsertUIDForTitle(titleID));
-  ios->SetGidForPPC(ContentLoader.GetTMD().GetGroupId());
-
-  if (!ios->BootstrapPPC(ContentLoader))
-    return false;
-
-  return true;
+  return BootNANDTitle(wad.GetTMD().GetTitleId());
 }

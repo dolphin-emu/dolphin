@@ -18,83 +18,309 @@ const std::string touchScreenKey = "Touchscreen";
 std::unordered_map<std::string, InputDevice*> m_controllers;
 std::vector<std::string> configStrings = {
     // GC
-    "InputA", "InputB", "InputStart", "InputX", "InputY", "InputZ", "DPadUp", "DPadDown",
-    "DPadLeft", "DPadRight", "MainUp", "MainDown", "MainLeft", "MainRight", "CStickUp",
-    "CStickDown", "CStickLeft", "CStickRight", "InputL", "InputR",
+    "InputA",
+    "InputB",
+    "InputStart",
+    "InputX",
+    "InputY",
+    "InputZ",
+    "DPadUp",
+    "DPadDown",
+    "DPadLeft",
+    "DPadRight",
+    "MainUp",
+    "MainDown",
+    "MainLeft",
+    "MainRight",
+    "CStickUp",
+    "CStickDown",
+    "CStickLeft",
+    "CStickRight",
+    "InputL",
+    "InputR",
     // Wiimote
-    "WiimoteA", "WiimoteB", "WiimoteMinus", "WiimotePlus", "WiimoteHome", "Wiimote1", "Wiimote2",
-    "WiimoteUp", "WiimoteDown", "WiimoteLeft", "WiimoteRight", "IRUp", "IRDown", "IRLeft",
-    "IRRight", "IRForward", "IRBackward", "IRHide", "SwingUp", "SwingDown", "SwingLeft",
-    "SwingRight", "SwingForward", "SwingBackward", "TiltForward", "TiltBackward", "TiltLeft",
-    "TiltRight", "TiltModifier", "ShakeX", "ShakeY", "ShakeZ",
+    "WiimoteA",
+    "WiimoteB",
+    "WiimoteMinus",
+    "WiimotePlus",
+    "WiimoteHome",
+    "Wiimote1",
+    "Wiimote2",
+    "WiimoteUp",
+    "WiimoteDown",
+    "WiimoteLeft",
+    "WiimoteRight",
+    "IRUp",
+    "IRDown",
+    "IRLeft",
+    "IRRight",
+    "IRForward",
+    "IRBackward",
+    "IRHide",
+    "SwingUp",
+    "SwingDown",
+    "SwingLeft",
+    "SwingRight",
+    "SwingForward",
+    "SwingBackward",
+    "TiltForward",
+    "TiltBackward",
+    "TiltLeft",
+    "TiltRight",
+    "TiltModifier",
+    "ShakeX",
+    "ShakeY",
+    "ShakeZ",
     // Nunchuk
-    "NunchukC", "NunchukZ", "NunchukUp", "NunchukDown", "NunchukLeft", "NunchukRight",
-    "NunchukSwingUp", "NunchukSwingDown", "NunchukSwingLeft", "NunchukSwingRight",
-    "NunchukSwingForward", "NunchukSwingBackward", "NunchukTiltForward", "NunchukTiltBackward",
-    "NunchukTiltLeft", "NunchukTiltRight", "NunchukTiltModifier", "NunchukShakeX", "NunchukShakeY",
+    "NunchukC",
+    "NunchukZ",
+    "NunchukUp",
+    "NunchukDown",
+    "NunchukLeft",
+    "NunchukRight",
+    "NunchukSwingUp",
+    "NunchukSwingDown",
+    "NunchukSwingLeft",
+    "NunchukSwingRight",
+    "NunchukSwingForward",
+    "NunchukSwingBackward",
+    "NunchukTiltForward",
+    "NunchukTiltBackward",
+    "NunchukTiltLeft",
+    "NunchukTiltRight",
+    "NunchukTiltModifier",
+    "NunchukShakeX",
+    "NunchukShakeY",
     "NunchukShakeZ",
     // Classic
-    "ClassicA", "ClassicB", "ClassicX", "ClassicY", "ClassicMinus", "ClassicPlus", "ClassicHome",
-    "ClassicZL", "ClassicZR", "ClassicUp", "ClassicDown", "ClassicLeft", "ClassicRight",
-    "ClassicLeftStickUp", "ClassicLeftStickDown", "ClassicLeftStickLeft", "ClassicLeftStickRight",
-    "ClassicRightStickUp", "ClassicRightStickDown", "ClassicRightStickLeft",
-    "ClassicRightStickRight", "ClassicTriggerL", "ClassicTriggerR",
+    "ClassicA",
+    "ClassicB",
+    "ClassicX",
+    "ClassicY",
+    "ClassicMinus",
+    "ClassicPlus",
+    "ClassicHome",
+    "ClassicZL",
+    "ClassicZR",
+    "ClassicUp",
+    "ClassicDown",
+    "ClassicLeft",
+    "ClassicRight",
+    "ClassicLeftStickUp",
+    "ClassicLeftStickDown",
+    "ClassicLeftStickLeft",
+    "ClassicLeftStickRight",
+    "ClassicRightStickUp",
+    "ClassicRightStickDown",
+    "ClassicRightStickLeft",
+    "ClassicRightStickRight",
+    "ClassicTriggerL",
+    "ClassicTriggerR",
     // Guitar
-    "GuitarMinus", "GuitarPlus", "GuitarGreen", "GuitarRed", "GuitarYellow", "GuitarBue",
-    "GuitarOrange", "GuitarStrumUp", "GuitarStrumDown", "GuitarUp", "GuitarDown", "GuitarLeft",
-    "GuitarRight", "GuitarWhammy",
+    "GuitarMinus",
+    "GuitarPlus",
+    "GuitarGreen",
+    "GuitarRed",
+    "GuitarYellow",
+    "GuitarBlue",
+    "GuitarOrange",
+    "GuitarStrumUp",
+    "GuitarStrumDown",
+    "GuitarUp",
+    "GuitarDown",
+    "GuitarLeft",
+    "GuitarRight",
+    "GuitarWhammy",
     // Drums
-    "DrumsMinus", "DrumsPlus", "DrumsRed", "DrumsYellow", "DrumsBlue", "DrumsGreen", "DrumsOrange",
-    "DrumsBass", "DrumsUp", "DrumsDown", "DrumsLeft", "DrumsRight",
+    "DrumsMinus",
+    "DrumsPlus",
+    "DrumsRed",
+    "DrumsYellow",
+    "DrumsBlue",
+    "DrumsGreen",
+    "DrumsOrange",
+    "DrumsBass",
+    "DrumsUp",
+    "DrumsDown",
+    "DrumsLeft",
+    "DrumsRight",
     // Turntable
-    "TurntableGreenLeft", "TurntableRedLeft", "TurntableBlueLeft", "TurntableGreenRight",
-    "TurntableRedRight", "TurntableBlueRight", "TurntableMinus", "TurntablePlus", "TurntableHome",
-    "TurntableEuphoria", "TurntableLeftTLeft", "TurntableLeftTRight", "TurntableRightTLeft",
-    "TurntableRightTRight", "TurntableUp", "TurntableDown", "TurntableLeft", "TurntableRight",
-    "TurntableEffDial", "TurntableCrossLeft", "TurntableCrossRight",
+    "TurntableGreenLeft",
+    "TurntableRedLeft",
+    "TurntableBlueLeft",
+    "TurntableGreenRight",
+    "TurntableRedRight",
+    "TurntableBlueRight",
+    "TurntableMinus",
+    "TurntablePlus",
+    "TurntableHome",
+    "TurntableEuphoria",
+    "TurntableLeftTLeft",
+    "TurntableLeftTRight",
+    "TurntableRightTLeft",
+    "TurntableRightTRight",
+    "TurntableUp",
+    "TurntableDown",
+    "TurntableLeft",
+    "TurntableRight",
+    "TurntableEffDial",
+    "TurntableCrossLeft",
+    "TurntableCrossRight",
+    // Rumble
+    "Rumble",
 };
 std::vector<ButtonType> configTypes = {
     // GC
-    BUTTON_A, BUTTON_B, BUTTON_START, BUTTON_X, BUTTON_Y, BUTTON_Z, BUTTON_UP, BUTTON_DOWN,
-    BUTTON_LEFT, BUTTON_RIGHT, STICK_MAIN_UP, STICK_MAIN_DOWN, STICK_MAIN_LEFT, STICK_MAIN_RIGHT,
-    STICK_C_UP, STICK_C_DOWN, STICK_C_LEFT, STICK_C_RIGHT, TRIGGER_L, TRIGGER_R,
+    BUTTON_A,
+    BUTTON_B,
+    BUTTON_START,
+    BUTTON_X,
+    BUTTON_Y,
+    BUTTON_Z,
+    BUTTON_UP,
+    BUTTON_DOWN,
+    BUTTON_LEFT,
+    BUTTON_RIGHT,
+    STICK_MAIN_UP,
+    STICK_MAIN_DOWN,
+    STICK_MAIN_LEFT,
+    STICK_MAIN_RIGHT,
+    STICK_C_UP,
+    STICK_C_DOWN,
+    STICK_C_LEFT,
+    STICK_C_RIGHT,
+    TRIGGER_L,
+    TRIGGER_R,
     // Wiimote
-    WIIMOTE_BUTTON_A, WIIMOTE_BUTTON_B, WIIMOTE_BUTTON_MINUS, WIIMOTE_BUTTON_PLUS,
-    WIIMOTE_BUTTON_HOME, WIIMOTE_BUTTON_1, WIIMOTE_BUTTON_2, WIIMOTE_UP, WIIMOTE_DOWN, WIIMOTE_LEFT,
-    WIIMOTE_RIGHT, WIIMOTE_IR_UP, WIIMOTE_IR_DOWN, WIIMOTE_IR_LEFT, WIIMOTE_IR_RIGHT,
-    WIIMOTE_IR_FORWARD, WIIMOTE_IR_BACKWARD, WIIMOTE_IR_HIDE, WIIMOTE_SWING_UP, WIIMOTE_SWING_DOWN,
-    WIIMOTE_SWING_LEFT, WIIMOTE_SWING_RIGHT, WIIMOTE_SWING_FORWARD, WIIMOTE_SWING_BACKWARD,
-    WIIMOTE_TILT_FORWARD, WIIMOTE_TILT_BACKWARD, WIIMOTE_TILT_LEFT, WIIMOTE_TILT_RIGHT,
-    WIIMOTE_TILT_MODIFIER, WIIMOTE_SHAKE_X, WIIMOTE_SHAKE_Y, WIIMOTE_SHAKE_Z,
+    WIIMOTE_BUTTON_A,
+    WIIMOTE_BUTTON_B,
+    WIIMOTE_BUTTON_MINUS,
+    WIIMOTE_BUTTON_PLUS,
+    WIIMOTE_BUTTON_HOME,
+    WIIMOTE_BUTTON_1,
+    WIIMOTE_BUTTON_2,
+    WIIMOTE_UP,
+    WIIMOTE_DOWN,
+    WIIMOTE_LEFT,
+    WIIMOTE_RIGHT,
+    WIIMOTE_IR_UP,
+    WIIMOTE_IR_DOWN,
+    WIIMOTE_IR_LEFT,
+    WIIMOTE_IR_RIGHT,
+    WIIMOTE_IR_FORWARD,
+    WIIMOTE_IR_BACKWARD,
+    WIIMOTE_IR_HIDE,
+    WIIMOTE_SWING_UP,
+    WIIMOTE_SWING_DOWN,
+    WIIMOTE_SWING_LEFT,
+    WIIMOTE_SWING_RIGHT,
+    WIIMOTE_SWING_FORWARD,
+    WIIMOTE_SWING_BACKWARD,
+    WIIMOTE_TILT_FORWARD,
+    WIIMOTE_TILT_BACKWARD,
+    WIIMOTE_TILT_LEFT,
+    WIIMOTE_TILT_RIGHT,
+    WIIMOTE_TILT_MODIFIER,
+    WIIMOTE_SHAKE_X,
+    WIIMOTE_SHAKE_Y,
+    WIIMOTE_SHAKE_Z,
     // Nunchuk
-    NUNCHUK_BUTTON_C, NUNCHUK_BUTTON_Z, NUNCHUK_STICK_UP, NUNCHUK_STICK_DOWN, NUNCHUK_STICK_LEFT,
-    NUNCHUK_STICK_RIGHT, NUNCHUK_SWING_UP, NUNCHUK_SWING_DOWN, NUNCHUK_SWING_LEFT,
-    NUNCHUK_SWING_RIGHT, NUNCHUK_SWING_FORWARD, NUNCHUK_SWING_BACKWARD, NUNCHUK_TILT_FORWARD,
-    NUNCHUK_TILT_BACKWARD, NUNCHUK_TILT_LEFT, NUNCHUK_TILT_RIGHT, NUNCHUK_TILT_MODIFIER,
-    NUNCHUK_SHAKE_X, NUNCHUK_SHAKE_Y, NUNCHUK_SHAKE_Z,
+    NUNCHUK_BUTTON_C,
+    NUNCHUK_BUTTON_Z,
+    NUNCHUK_STICK_UP,
+    NUNCHUK_STICK_DOWN,
+    NUNCHUK_STICK_LEFT,
+    NUNCHUK_STICK_RIGHT,
+    NUNCHUK_SWING_UP,
+    NUNCHUK_SWING_DOWN,
+    NUNCHUK_SWING_LEFT,
+    NUNCHUK_SWING_RIGHT,
+    NUNCHUK_SWING_FORWARD,
+    NUNCHUK_SWING_BACKWARD,
+    NUNCHUK_TILT_FORWARD,
+    NUNCHUK_TILT_BACKWARD,
+    NUNCHUK_TILT_LEFT,
+    NUNCHUK_TILT_RIGHT,
+    NUNCHUK_TILT_MODIFIER,
+    NUNCHUK_SHAKE_X,
+    NUNCHUK_SHAKE_Y,
+    NUNCHUK_SHAKE_Z,
     // Classic
-    CLASSIC_BUTTON_A, CLASSIC_BUTTON_B, CLASSIC_BUTTON_X, CLASSIC_BUTTON_Y, CLASSIC_BUTTON_MINUS,
-    CLASSIC_BUTTON_PLUS, CLASSIC_BUTTON_HOME, CLASSIC_BUTTON_ZL, CLASSIC_BUTTON_ZR, CLASSIC_DPAD_UP,
-    CLASSIC_DPAD_DOWN, CLASSIC_DPAD_LEFT, CLASSIC_DPAD_RIGHT, CLASSIC_STICK_LEFT_UP,
-    CLASSIC_STICK_LEFT_DOWN, CLASSIC_STICK_LEFT_LEFT, CLASSIC_STICK_LEFT_RIGHT,
-    CLASSIC_STICK_RIGHT_UP, CLASSIC_STICK_RIGHT_DOWN, CLASSIC_STICK_RIGHT_LEFT,
-    CLASSIC_STICK_RIGHT_RIGHT, CLASSIC_TRIGGER_L, CLASSIC_TRIGGER_R,
+    CLASSIC_BUTTON_A,
+    CLASSIC_BUTTON_B,
+    CLASSIC_BUTTON_X,
+    CLASSIC_BUTTON_Y,
+    CLASSIC_BUTTON_MINUS,
+    CLASSIC_BUTTON_PLUS,
+    CLASSIC_BUTTON_HOME,
+    CLASSIC_BUTTON_ZL,
+    CLASSIC_BUTTON_ZR,
+    CLASSIC_DPAD_UP,
+    CLASSIC_DPAD_DOWN,
+    CLASSIC_DPAD_LEFT,
+    CLASSIC_DPAD_RIGHT,
+    CLASSIC_STICK_LEFT_UP,
+    CLASSIC_STICK_LEFT_DOWN,
+    CLASSIC_STICK_LEFT_LEFT,
+    CLASSIC_STICK_LEFT_RIGHT,
+    CLASSIC_STICK_RIGHT_UP,
+    CLASSIC_STICK_RIGHT_DOWN,
+    CLASSIC_STICK_RIGHT_LEFT,
+    CLASSIC_STICK_RIGHT_RIGHT,
+    CLASSIC_TRIGGER_L,
+    CLASSIC_TRIGGER_R,
     // Guitar
-    GUITAR_BUTTON_MINUS, GUITAR_BUTTON_PLUS, GUITAR_FRET_GREEN, GUITAR_FRET_RED, GUITAR_FRET_YELLOW,
-    GUITAR_FRET_BLUE, GUITAR_FRET_ORANGE, GUITAR_STRUM_UP, GUITAR_STRUM_DOWN, GUITAR_STICK_UP,
-    GUITAR_STICK_DOWN, GUITAR_STICK_LEFT, GUITAR_STICK_RIGHT, GUITAR_WHAMMY_BAR,
+    GUITAR_BUTTON_MINUS,
+    GUITAR_BUTTON_PLUS,
+    GUITAR_FRET_GREEN,
+    GUITAR_FRET_RED,
+    GUITAR_FRET_YELLOW,
+    GUITAR_FRET_BLUE,
+    GUITAR_FRET_ORANGE,
+    GUITAR_STRUM_UP,
+    GUITAR_STRUM_DOWN,
+    GUITAR_STICK_UP,
+    GUITAR_STICK_DOWN,
+    GUITAR_STICK_LEFT,
+    GUITAR_STICK_RIGHT,
+    GUITAR_WHAMMY_BAR,
     // Drums
-    DRUMS_BUTTON_MINUS, DRUMS_BUTTON_PLUS, DRUMS_PAD_RED, DRUMS_PAD_YELLOW, DRUMS_PAD_BLUE,
-    DRUMS_PAD_GREEN, DRUMS_PAD_ORANGE, DRUMS_PAD_BASS, DRUMS_STICK_UP, DRUMS_STICK_DOWN,
-    DRUMS_STICK_LEFT, DRUMS_STICK_RIGHT,
+    DRUMS_BUTTON_MINUS,
+    DRUMS_BUTTON_PLUS,
+    DRUMS_PAD_RED,
+    DRUMS_PAD_YELLOW,
+    DRUMS_PAD_BLUE,
+    DRUMS_PAD_GREEN,
+    DRUMS_PAD_ORANGE,
+    DRUMS_PAD_BASS,
+    DRUMS_STICK_UP,
+    DRUMS_STICK_DOWN,
+    DRUMS_STICK_LEFT,
+    DRUMS_STICK_RIGHT,
     // Turntable
-    TURNTABLE_BUTTON_GREEN_LEFT, TURNTABLE_BUTTON_RED_LEFT, TURNTABLE_BUTTON_BLUE_LEFT,
-    TURNTABLE_BUTTON_GREEN_RIGHT, TURNTABLE_BUTTON_RED_RIGHT, TURNTABLE_BUTTON_BLUE_RIGHT,
-    TURNTABLE_BUTTON_MINUS, TURNTABLE_BUTTON_PLUS, TURNTABLE_BUTTON_HOME, TURNTABLE_BUTTON_EUPHORIA,
-    TURNTABLE_TABLE_LEFT_LEFT, TURNTABLE_TABLE_LEFT_RIGHT, TURNTABLE_TABLE_RIGHT_LEFT,
-    TURNTABLE_TABLE_RIGHT_RIGHT, TURNTABLE_STICK_UP, TURNTABLE_STICK_DOWN, TURNTABLE_STICK_LEFT,
-    TURNTABLE_STICK_RIGHT, TURNTABLE_EFFECT_DIAL, TURNTABLE_CROSSFADE_LEFT,
+    TURNTABLE_BUTTON_GREEN_LEFT,
+    TURNTABLE_BUTTON_RED_LEFT,
+    TURNTABLE_BUTTON_BLUE_LEFT,
+    TURNTABLE_BUTTON_GREEN_RIGHT,
+    TURNTABLE_BUTTON_RED_RIGHT,
+    TURNTABLE_BUTTON_BLUE_RIGHT,
+    TURNTABLE_BUTTON_MINUS,
+    TURNTABLE_BUTTON_PLUS,
+    TURNTABLE_BUTTON_HOME,
+    TURNTABLE_BUTTON_EUPHORIA,
+    TURNTABLE_TABLE_LEFT_LEFT,
+    TURNTABLE_TABLE_LEFT_RIGHT,
+    TURNTABLE_TABLE_RIGHT_LEFT,
+    TURNTABLE_TABLE_RIGHT_RIGHT,
+    TURNTABLE_STICK_UP,
+    TURNTABLE_STICK_DOWN,
+    TURNTABLE_STICK_LEFT,
+    TURNTABLE_STICK_RIGHT,
+    TURNTABLE_EFFECT_DIAL,
+    TURNTABLE_CROSSFADE_LEFT,
     TURNTABLE_CROSSFADE_RIGHT,
+    // Rumble
+    RUMBLE,
 };
 
 static void AddBind(const std::string& dev, sBind* bind)
@@ -109,10 +335,10 @@ static void AddBind(const std::string& dev, sBind* bind)
   m_controllers[dev]->AddBind(bind);
 }
 
-void Init()
+void Init(const std::string& gameId)
 {
-  // Initialize our touchScreenKey buttons
-  for (int a = 0; a < 8; ++a)
+  // Initialize pad 0(gc 1) and pad 4(wii 1) as touch overlay controller
+  for (int a = 0; a < 5; a += 4)
   {
     // GC
     AddBind(touchScreenKey, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
@@ -366,7 +592,42 @@ void Init()
                 new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
     }
   }
+
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"));
+  for (u32 a = 0; a < configStrings.size(); ++a)
+  {
+    for (int padID = 0; padID < 8; ++padID)
+    {
+      std::ostringstream config;
+      config << configStrings[a] << "_" << padID;
+      BindType type;
+      int bindnum;
+      char dev[128];
+      bool hasbind = false;
+      char modifier = '+';
+      std::string value;
+      ini.GetOrCreateSection("Android")->Get(config.str(), &value, "None");
+      if (value == "None")
+        continue;
+      if (std::string::npos != value.find("Axis"))
+      {
+        hasbind = true;
+        type = BIND_AXIS;
+        sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
+      }
+      else if (std::string::npos != value.find("Button"))
+      {
+        hasbind = true;
+        type = BIND_BUTTON;
+        sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
+      }
+      if (hasbind)
+        AddBind(std::string(dev),
+                new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
+    }
+  }
 }
+
 bool GetButtonPressed(int padID, ButtonType button)
 {
   bool pressed = m_controllers[touchScreenKey]->ButtonValue(padID, button);
@@ -376,6 +637,7 @@ bool GetButtonPressed(int padID, ButtonType button)
 
   return pressed;
 }
+
 float GetAxisValue(int padID, ButtonType axis)
 {
   float value = m_controllers[touchScreenKey]->AxisValue(padID, axis);
@@ -390,6 +652,7 @@ float GetAxisValue(int padID, ButtonType axis)
   }
   return value;
 }
+
 bool GamepadEvent(const std::string& dev, int button, int action)
 {
   auto it = m_controllers.find(dev);
@@ -397,12 +660,14 @@ bool GamepadEvent(const std::string& dev, int button, int action)
     return it->second->PressEvent(button, action);
   return false;
 }
+
 void GamepadAxisEvent(const std::string& dev, int axis, float value)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
     it->second->AxisEvent(axis, value);
 }
+
 void Shutdown()
 {
   for (const auto& controller : m_controllers)
@@ -427,6 +692,7 @@ bool InputDevice::PressEvent(int button, int action)
   }
   return handled;
 }
+
 void InputDevice::AxisEvent(int axis, float value)
 {
   for (const auto& binding : _inputbinds)
@@ -440,6 +706,7 @@ void InputDevice::AxisEvent(int axis, float value)
     }
   }
 }
+
 bool InputDevice::ButtonValue(int padID, ButtonType button)
 {
   const auto& binding = _inputbinds.find(std::make_pair(padID, button));
@@ -451,6 +718,7 @@ bool InputDevice::ButtonValue(int padID, ButtonType button)
   else
     return (_axises[binding->second->_buttontype] * binding->second->_neg) > 0.5f;
 }
+
 float InputDevice::AxisValue(int padID, ButtonType axis)
 {
   const auto& binding = _inputbinds.find(std::make_pair(padID, axis));

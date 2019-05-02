@@ -4,12 +4,12 @@
 
 #include "Core/HLE/HLE_Misc.h"
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace HLE_Misc
@@ -21,19 +21,11 @@ void UnimplementedFunction()
   NPC = LR;
 }
 
-// If you want a function to panic, you can rename it PanicAlert :p
-// Don't know if this is worth keeping.
-void HLEPanicAlert()
-{
-  ::PanicAlert("HLE: PanicAlert %08x", LR);
-  NPC = LR;
-}
-
 void HBReload()
 {
   // There isn't much we can do. Just stop cleanly.
   CPU::Break();
-  Host_Message(WM_USER_STOP);
+  Host_Message(HostMessageID::WMUserStop);
 }
 
 void GeckoCodeHandlerICacheFlush()
@@ -69,11 +61,11 @@ void GeckoReturnTrampoline()
   GPR(1) = PowerPC::HostRead_U32(SP + 8);
   NPC = PowerPC::HostRead_U32(SP + 12);
   LR = PowerPC::HostRead_U32(SP + 16);
-  PowerPC::ExpandCR(PowerPC::HostRead_U32(SP + 20));
+  PowerPC::ppcState.cr.Set(PowerPC::HostRead_U32(SP + 20));
   for (int i = 0; i < 14; ++i)
   {
-    riPS0(i) = PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64));
-    riPS1(i) = PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64));
+    rPS(i).SetBoth(PowerPC::HostRead_U64(SP + 24 + 2 * i * sizeof(u64)),
+                   PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
   }
 }
 }

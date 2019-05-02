@@ -12,11 +12,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 static std::unique_ptr<IOCtlRequest> s_event_hook_request;
 
@@ -66,10 +62,9 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-ReturnCode STMEventHook::Close(u32 fd)
+STMEventHook::~STMEventHook()
 {
   s_event_hook_request.reset();
-  return Device::Close(fd);
 }
 
 IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
@@ -122,6 +117,4 @@ void STMEventHook::PowerButton() const
 {
   TriggerEvent(STM_EVENT_POWER);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

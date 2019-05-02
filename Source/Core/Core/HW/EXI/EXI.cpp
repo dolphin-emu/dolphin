@@ -20,7 +20,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 
-SRAM g_SRAM;
+Sram g_SRAM;
 bool g_SRAM_netplay_initialized = false;
 
 namespace ExpansionInterface
@@ -107,7 +107,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
-    _dbg_assert_(EXPANSIONINTERFACE, g_Channels[i] != nullptr);
+    DEBUG_ASSERT(g_Channels[i] != nullptr);
     // Each channel has 5 32 bit registers assigned to it. We offset the
     // base that we give to each channel for registration.
     //

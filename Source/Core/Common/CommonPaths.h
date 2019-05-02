@@ -22,24 +22,10 @@
 #elif defined ANDROID
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
+#define NOMEDIA_FILE ".nomedia"
 #else
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "dolphin-emu"
-#endif
-
-// Shared data dirs (Sys and shared User for Linux)
-#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-#define SYSDATA_DIR "Sys"
-#elif defined __APPLE__
-#define SYSDATA_DIR "Contents/Resources/Sys"
-#elif defined ANDROID
-#define SYSDATA_DIR "/sdcard/dolphin-emu"
-#else
-#ifdef DATA_DIR
-#define SYSDATA_DIR DATA_DIR "sys"
-#else
-#define SYSDATA_DIR "sys"
-#endif
 #endif
 
 // Dirs in both User and Sys
@@ -54,6 +40,7 @@
 #define GAMESETTINGS_DIR "GameSettings"
 #define MAPS_DIR "Maps"
 #define CACHE_DIR "Cache"
+#define COVERCACHE_DIR "GameCovers"
 #define SHADERCACHE_DIR "Shaders"
 #define STATESAVES_DIR "StateSaves"
 #define SCREENSHOTS_DIR "ScreenShots"
@@ -62,6 +49,7 @@
 #define DUMP_DIR "Dump"
 #define DUMP_TEXTURES_DIR "Textures"
 #define DUMP_FRAMES_DIR "Frames"
+#define DUMP_OBJECTS_DIR "Objects"
 #define DUMP_AUDIO_DIR "Audio"
 #define DUMP_DSP_DIR "DSP"
 #define DUMP_SSL_DIR "SSL"
@@ -72,11 +60,12 @@
 #define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
 #define RESOURCES_DIR "Resources"
 #define THEMES_DIR "Themes"
+#define STYLES_DIR "Styles"
 #define ANAGLYPH_DIR "Anaglyph"
 #define PIPES_DIR "Pipes"
-#define MEMORYWATCHER_DIR "MemoryWatcher"
 #define WFSROOT_DIR "WFS"
 #define BACKUP_DIR "Backup"
+#define RESOURCEPACK_DIR "ResourcePacks"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -93,7 +82,6 @@
 #define GFX_CONFIG "GFX.ini"
 #define DEBUGGER_CONFIG "Debugger.ini"
 #define LOGGER_CONFIG "Logger.ini"
-#define UI_CONFIG "UI.ini"
 
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
 #define MAIN_LOG "dolphin.log"
@@ -105,10 +93,6 @@
 #define RAM_DUMP "ram.raw"
 #define ARAM_DUMP "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
-
-// Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
-#define MEMORYWATCHER_LOCATIONS "Locations.txt"
-#define MEMORYWATCHER_SOCKET "MemoryWatcher"
 
 // Sys files
 #define TOTALDB "totaldb.dsy"
@@ -123,6 +107,7 @@
 #define GC_SRAM "SRAM.raw"
 #define GC_MEMCARDA "MemoryCardA"
 #define GC_MEMCARDB "MemoryCardB"
+#define GC_MEMCARD_NETPLAY "NetPlayTemp"
 
 #define WII_STATE "state.dat"
 

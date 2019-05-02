@@ -55,11 +55,11 @@ class OpenALStream final : public SoundStream
 #ifdef _WIN32
 public:
   OpenALStream() : m_source(0) {}
-  bool Start() override;
+  ~OpenALStream() override;
+  bool Init() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
-  void Stop() override;
-  void Clear(bool mute) override;
+  bool SetRunning(bool running) override;
   void Update() override;
 
   static bool isValid();

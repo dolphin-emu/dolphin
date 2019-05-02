@@ -13,6 +13,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/CommandProcessor.h"
 
 namespace GPFifo
@@ -31,17 +32,14 @@ namespace GPFifo
 // More room for the fastmodes
 alignas(32) static u8 s_gather_pipe[GATHER_PIPE_SIZE * 16];
 
-// pipe pointer
-u8* g_gather_pipe_ptr = s_gather_pipe;
-
 static size_t GetGatherPipeCount()
 {
-  return g_gather_pipe_ptr - s_gather_pipe;
+  return PowerPC::ppcState.gather_pipe_ptr - s_gather_pipe;
 }
 
 static void SetGatherPipeCount(size_t size)
 {
-  g_gather_pipe_ptr = s_gather_pipe + size;
+  PowerPC::ppcState.gather_pipe_ptr = s_gather_pipe + size;
 }
 
 void DoState(PointerWrap& p)
@@ -55,6 +53,7 @@ void DoState(PointerWrap& p)
 void Init()
 {
   ResetGatherPipe();
+  PowerPC::ppcState.gather_pipe_base_ptr = s_gather_pipe;
   memset(s_gather_pipe, 0, sizeof(s_gather_pipe));
 }
 
@@ -68,7 +67,7 @@ void ResetGatherPipe()
   SetGatherPipeCount(0);
 }
 
-static void UpdateGatherPipe()
+void UpdateGatherPipe()
 {
   size_t pipe_count = GetGatherPipeCount();
   size_t processed;
@@ -144,29 +143,29 @@ void Write64(const u64 value)
 
 void FastWrite8(const u8 value)
 {
-  *g_gather_pipe_ptr = value;
-  g_gather_pipe_ptr += sizeof(u8);
+  *PowerPC::ppcState.gather_pipe_ptr = value;
+  PowerPC::ppcState.gather_pipe_ptr += sizeof(u8);
 }
 
 void FastWrite16(u16 value)
 {
   value = Common::swap16(value);
-  std::memcpy(g_gather_pipe_ptr, &value, sizeof(u16));
-  g_gather_pipe_ptr += sizeof(u16);
+  std::memcpy(PowerPC::ppcState.gather_pipe_ptr, &value, sizeof(u16));
+  PowerPC::ppcState.gather_pipe_ptr += sizeof(u16);
 }
 
 void FastWrite32(u32 value)
 {
   value = Common::swap32(value);
-  std::memcpy(g_gather_pipe_ptr, &value, sizeof(u32));
-  g_gather_pipe_ptr += sizeof(u32);
+  std::memcpy(PowerPC::ppcState.gather_pipe_ptr, &value, sizeof(u32));
+  PowerPC::ppcState.gather_pipe_ptr += sizeof(u32);
 }
 
 void FastWrite64(u64 value)
 {
   value = Common::swap64(value);
-  std::memcpy(g_gather_pipe_ptr, &value, sizeof(u64));
-  g_gather_pipe_ptr += sizeof(u64);
+  std::memcpy(PowerPC::ppcState.gather_pipe_ptr, &value, sizeof(u64));
+  PowerPC::ppcState.gather_pipe_ptr += sizeof(u64);
 }
 
 }  // end of namespace GPFifo

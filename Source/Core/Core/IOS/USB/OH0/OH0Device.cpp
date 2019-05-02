@@ -14,11 +14,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/OH0/OH0.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 static void GetVidPidFromDevicePath(const std::string& device_path, u16& vid, u16& pid)
 {
@@ -55,23 +51,19 @@ void OH0Device::DoState(PointerWrap& p)
   p.Do(m_device_id);
 }
 
-ReturnCode OH0Device::Open(const OpenRequest& request)
+IPCCommandResult OH0Device::Open(const OpenRequest& request)
 {
-  const u32 ios_major_version = m_ios.GetVersion();
-  if (ios_major_version == 57 || ios_major_version == 58 || ios_major_version == 59)
-    return IPC_ENOENT;
-
   if (m_vid == 0 && m_pid == 0)
-    return IPC_ENOENT;
+    return GetDefaultReply(IPC_ENOENT);
 
   m_oh0 = std::static_pointer_cast<OH0>(GetIOS()->GetDeviceByName("/dev/usb/oh0"));
 
   ReturnCode return_code;
   std::tie(return_code, m_device_id) = m_oh0->DeviceOpen(m_vid, m_pid);
-  return return_code;
+  return GetDefaultReply(return_code);
 }
 
-ReturnCode OH0Device::Close(u32 fd)
+IPCCommandResult OH0Device::Close(u32 fd)
 {
   m_oh0->DeviceClose(m_device_id);
   return Device::Close(fd);
@@ -86,6 +78,4 @@ IPCCommandResult OH0Device::IOCtlV(const IOCtlVRequest& request)
 {
   return m_oh0->DeviceIOCtlV(m_device_id, request);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

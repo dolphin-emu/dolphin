@@ -18,6 +18,8 @@ public:
 
   static void AddIndices(int primitive, u32 numVertices);
 
+  static void AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices);
+
   // returns numprimitives
   static u32 GetNumVerts() { return base_index; }
   static u32 GetIndexLen() { return (u32)(index_buffer_current - BASEIptr); }

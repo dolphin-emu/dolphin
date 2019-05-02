@@ -20,21 +20,21 @@ struct TGCHeader
 {
   u32 magic;
   u32 unknown_1;
-  u32 header_size;
-  u32 unknown_2;
+  u32 tgc_header_size;
+  u32 disc_header_area_size;
 
-  u32 fst_offset;
+  u32 fst_real_offset;
   u32 fst_size;
   u32 fst_max_size;
-  u32 dol_offset;
+  u32 dol_real_offset;
 
   u32 dol_size;
-  u32 unknown_important_1;
+  u32 file_area_real_offset;
+  u32 unknown_2;
   u32 unknown_3;
-  u32 unknown_4;
 
-  u32 unknown_5;
-  u32 unknown_important_2;
+  u32 unknown_4;
+  u32 file_area_virtual_offset;
 };
 
 class TGCFileReader final : public BlobReader
@@ -43,8 +43,9 @@ public:
   static std::unique_ptr<TGCFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::TGC; }
-  u64 GetDataSize() const override;
   u64 GetRawSize() const override { return m_size; }
+  u64 GetDataSize() const override;
+  bool IsDataSizeAccurate() const override { return true; }
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
@@ -55,7 +56,7 @@ private:
   File::IOFile m_file;
   u64 m_size;
 
-  u64 m_file_offset;
+  s64 m_file_area_shift;
 
   // Stored as big endian in memory, regardless of the host endianness
   TGCHeader m_header = {};

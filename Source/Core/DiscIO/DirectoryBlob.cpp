@@ -54,6 +54,8 @@ enum class PartitionType : u32
 // 0xFF is an arbitrarily picked value. Note that we can't use 0x00, because that means NTSC-J
 constexpr u32 INVALID_REGION = 0xFF;
 
+constexpr u32 PARTITION_DATA_OFFSET = 0x20000;
+
 constexpr u8 ENTRY_SIZE = 0x0c;
 constexpr u8 FILE_ENTRY = 0;
 constexpr u8 DIRECTORY_ENTRY = 1;
@@ -92,7 +94,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   if (m_size == 0)
     return true;
 
-  _dbg_assert_(DISCIO, *offset >= m_offset);
+  DEBUG_ASSERT(*offset >= m_offset);
   const u64 offset_in_content = *offset - m_offset;
 
   if (offset_in_content < m_size)
@@ -160,7 +162,7 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
       return false;
 
     ++it;
-    _dbg_assert_(DISCIO, it == m_contents.end() || it->GetOffset() >= offset);
+    DEBUG_ASSERT(it == m_contents.end() || it->GetOffset() >= offset);
   }
 
   // Zero fill if we went beyond the last DiscContent
@@ -508,8 +510,8 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
 
     const u64 partition_data_size = partitions[i].partition.GetDataSize();
     m_partitions.emplace(partition_address, std::move(partitions[i].partition));
-    const u64 unaligned_next_partition_address =
-        VolumeWii::PartitionOffsetToRawOffset(partition_data_size, Partition(partition_address));
+    const u64 unaligned_next_partition_address = VolumeWii::EncryptedPartitionOffsetToRawOffset(
+        partition_data_size, Partition(partition_address), PARTITION_DATA_OFFSET);
     partition_address = Common::AlignUp(unaligned_next_partition_address, 0x10000ull);
   }
   m_data_size = partition_address;
@@ -546,7 +548,6 @@ void DirectoryBlobReader::SetPartitionHeader(const DirectoryBlobPartition& parti
                                           partition_root + "h3.bin");
 
   constexpr u32 PARTITION_HEADER_SIZE = 0x1c;
-  constexpr u32 DATA_OFFSET = 0x20000;
   const u64 data_size = Common::AlignUp(partition.GetDataSize(), 0x7c00) / 0x7c00 * 0x8000;
   m_partition_headers.emplace_back(PARTITION_HEADER_SIZE);
   std::vector<u8>& partition_header = m_partition_headers.back();
@@ -555,7 +556,7 @@ void DirectoryBlobReader::SetPartitionHeader(const DirectoryBlobPartition& parti
   Write32(static_cast<u32>(cert_size), 0x8, &partition_header);
   Write32(static_cast<u32>(cert_offset >> 2), 0x0C, &partition_header);
   Write32(H3_OFFSET >> 2, 0x10, &partition_header);
-  Write32(DATA_OFFSET >> 2, 0x14, &partition_header);
+  Write32(PARTITION_DATA_OFFSET >> 2, 0x14, &partition_header);
   Write32(static_cast<u32>(data_size >> 2), 0x18, &partition_header);
 
   m_nonpartition_contents.Add(partition_address + TICKET_SIZE, partition_header);
@@ -688,7 +689,7 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
                  name_table_offset);
 
   // overflow check, compare the aligned name offset with the aligned name table size
-  _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
+  ASSERT(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
   Write32((u32)(fst_address >> m_address_shift), 0x0424, &m_disc_header);
@@ -731,12 +732,13 @@ void DirectoryBlobPartition::WriteDirectory(const File::FSTEntry& parent_entry, 
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
   // Sort for determinism
-  std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
-                                                             const File::FSTEntry& two) {
-    const std::string one_upper = ASCIIToUppercase(one.virtualName);
-    const std::string two_upper = ASCIIToUppercase(two.virtualName);
-    return one_upper == two_upper ? one.virtualName < two.virtualName : one_upper < two_upper;
-  });
+  std::sort(sorted_entries.begin(), sorted_entries.end(),
+            [](const File::FSTEntry& one, const File::FSTEntry& two) {
+              const std::string one_upper = ASCIIToUppercase(one.virtualName);
+              const std::string two_upper = ASCIIToUppercase(two.virtualName);
+              return one_upper == two_upper ? one.virtualName < two.virtualName :
+                                              one_upper < two_upper;
+            });
 
   for (const File::FSTEntry& entry : sorted_entries)
   {

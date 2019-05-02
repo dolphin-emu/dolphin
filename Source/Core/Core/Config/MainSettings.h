@@ -8,12 +8,19 @@
 
 #include "Common/Config/Config.h"
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 namespace Config
 {
 // Main.Core
 
 extern const ConfigInfo<bool> MAIN_SKIP_IPL;
-extern const ConfigInfo<int> MAIN_CPU_CORE;
+extern const ConfigInfo<bool> MAIN_LOAD_IPL_DUMP;
+extern const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE;
+extern const ConfigInfo<bool> MAIN_JIT_FOLLOW_BRANCH;
 extern const ConfigInfo<bool> MAIN_FASTMEM;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const ConfigInfo<bool> MAIN_DSP_HLE;
@@ -32,6 +39,10 @@ extern const ConfigInfo<std::string> MAIN_MEMCARD_A_PATH;
 extern const ConfigInfo<std::string> MAIN_MEMCARD_B_PATH;
 extern const ConfigInfo<std::string> MAIN_AGP_CART_A_PATH;
 extern const ConfigInfo<std::string> MAIN_AGP_CART_B_PATH;
+extern const ConfigInfo<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE;
+extern const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE;
+extern const ConfigInfo<bool> MAIN_CODE_SYNC_OVERRIDE;
+extern const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY;
 extern const ConfigInfo<int> MAIN_SLOT_A;
 extern const ConfigInfo<int> MAIN_SLOT_B;
 extern const ConfigInfo<int> MAIN_SERIAL_PORT_1;
@@ -40,6 +51,7 @@ ConfigInfo<u32> GetInfoForSIDevice(u32 channel);
 ConfigInfo<bool> GetInfoForAdapterRumble(u32 channel);
 ConfigInfo<bool> GetInfoForSimulateKonga(u32 channel);
 extern const ConfigInfo<bool> MAIN_WII_SD_CARD;
+extern const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE;
 extern const ConfigInfo<bool> MAIN_WII_KEYBOARD;
 extern const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const ConfigInfo<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
@@ -52,7 +64,6 @@ extern const ConfigInfo<int> MAIN_SYNC_GPU_MAX_DISTANCE;
 extern const ConfigInfo<int> MAIN_SYNC_GPU_MIN_DISTANCE;
 extern const ConfigInfo<float> MAIN_SYNC_GPU_OVERCLOCK;
 extern const ConfigInfo<bool> MAIN_FAST_DISC_SPEED;
-extern const ConfigInfo<bool> MAIN_DCBZ;
 extern const ConfigInfo<bool> MAIN_LOW_DCBZ_HACK;
 extern const ConfigInfo<bool> MAIN_FPRF;
 extern const ConfigInfo<bool> MAIN_ACCURATE_NANS;
@@ -66,6 +77,8 @@ extern const ConfigInfo<std::string> MAIN_PERF_MAP_DIR;
 extern const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE;
 extern const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS;
+extern const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE;
+extern const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE;
 
 // Main.DSP
 
@@ -76,5 +89,24 @@ extern const ConfigInfo<bool> MAIN_DUMP_AUDIO_SILENT;
 extern const ConfigInfo<bool> MAIN_DUMP_UCODE;
 extern const ConfigInfo<std::string> MAIN_AUDIO_BACKEND;
 extern const ConfigInfo<int> MAIN_AUDIO_VOLUME;
+
+// Main.Display
+
+extern const ConfigInfo<std::string> MAIN_FULLSCREEN_DISPLAY_RES;
+extern const ConfigInfo<bool> MAIN_FULLSCREEN;
+extern const ConfigInfo<bool> MAIN_RENDER_TO_MAIN;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_XPOS;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_YPOS;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_WIDTH;
+extern const ConfigInfo<int> MAIN_RENDER_WINDOW_HEIGHT;
+extern const ConfigInfo<bool> MAIN_RENDER_WINDOW_AUTOSIZE;
+extern const ConfigInfo<bool> MAIN_KEEP_WINDOW_ON_TOP;
+extern const ConfigInfo<bool> MAIN_DISABLE_SCREENSAVER;
+
+// Main.General
+
+extern const ConfigInfo<std::string> MAIN_DUMP_PATH;
+extern const ConfigInfo<std::string> MAIN_FS_PATH;
+extern const ConfigInfo<std::string> MAIN_SD_PATH;
 
 }  // namespace Config

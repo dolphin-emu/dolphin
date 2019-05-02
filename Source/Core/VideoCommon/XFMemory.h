@@ -10,6 +10,8 @@
 
 class DataReader;
 
+constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
+
 // Lighting
 
 // Projection
@@ -249,43 +251,44 @@ struct Projection
 
 struct XFMemory
 {
-  float posMatrices[256];      // 0x0000 - 0x00ff
-  u32 unk0[768];               // 0x0100 - 0x03ff
-  float normalMatrices[96];    // 0x0400 - 0x045f
-  u32 unk1[160];               // 0x0460 - 0x04ff
-  float postMatrices[256];     // 0x0500 - 0x05ff
-  Light lights[8];             // 0x0600 - 0x067f
-  u32 unk2[2432];              // 0x0680 - 0x0fff
-  u32 error;                   // 0x1000
-  u32 diag;                    // 0x1001
-  u32 state0;                  // 0x1002
-  u32 state1;                  // 0x1003
-  u32 xfClock;                 // 0x1004
-  u32 clipDisable;             // 0x1005
-  u32 perf0;                   // 0x1006
-  u32 perf1;                   // 0x1007
-  INVTXSPEC hostinfo;          // 0x1008 number of textures,colors,normals from vertex input
-  NumColorChannel numChan;     // 0x1009
-  u32 ambColor[2];             // 0x100a, 0x100b
-  u32 matColor[2];             // 0x100c, 0x100d
-  LitChannel color[2];         // 0x100e, 0x100f
-  LitChannel alpha[2];         // 0x1010, 0x1011
-  DualTexInfo dualTexTrans;    // 0x1012
-  u32 unk3;                    // 0x1013
-  u32 unk4;                    // 0x1014
-  u32 unk5;                    // 0x1015
-  u32 unk6;                    // 0x1016
-  u32 unk7;                    // 0x1017
-  TMatrixIndexA MatrixIndexA;  // 0x1018
-  TMatrixIndexB MatrixIndexB;  // 0x1019
-  Viewport viewport;           // 0x101a - 0x101f
-  Projection projection;       // 0x1020 - 0x1026
-  u32 unk8[24];                // 0x1027 - 0x103e
-  NumTexGen numTexGen;         // 0x103f
-  TexMtxInfo texMtxInfo[8];    // 0x1040 - 0x1047
-  u32 unk9[8];                 // 0x1048 - 0x104f
-  PostMtxInfo postMtxInfo[8];  // 0x1050 - 0x1057
+  float posMatrices[256];    // 0x0000 - 0x00ff
+  u32 unk0[768];             // 0x0100 - 0x03ff
+  float normalMatrices[96];  // 0x0400 - 0x045f
+  u32 unk1[160];             // 0x0460 - 0x04ff
+  float postMatrices[256];   // 0x0500 - 0x05ff
+  Light lights[8];           // 0x0600 - 0x067f
+  u32 unk2[2432];            // 0x0680 - 0x0fff
+  u32 error;                 // 0x1000
+  u32 diag;                  // 0x1001
+  u32 state0;                // 0x1002
+  u32 state1;                // 0x1003
+  u32 xfClock;               // 0x1004
+  u32 clipDisable;           // 0x1005
+  u32 perf0;                 // 0x1006
+  u32 perf1;                 // 0x1007
+  INVTXSPEC hostinfo;        // 0x1008 number of textures,colors,normals from vertex input
+  NumColorChannel numChan;   // 0x1009
+  u32 ambColor[NUM_XF_COLOR_CHANNELS];      // 0x100a, 0x100b
+  u32 matColor[NUM_XF_COLOR_CHANNELS];      // 0x100c, 0x100d
+  LitChannel color[NUM_XF_COLOR_CHANNELS];  // 0x100e, 0x100f
+  LitChannel alpha[NUM_XF_COLOR_CHANNELS];  // 0x1010, 0x1011
+  DualTexInfo dualTexTrans;                 // 0x1012
+  u32 unk3;                                 // 0x1013
+  u32 unk4;                                 // 0x1014
+  u32 unk5;                                 // 0x1015
+  u32 unk6;                                 // 0x1016
+  u32 unk7;                                 // 0x1017
+  TMatrixIndexA MatrixIndexA;               // 0x1018
+  TMatrixIndexB MatrixIndexB;               // 0x1019
+  Viewport viewport;                        // 0x101a - 0x101f
+  Projection projection;                    // 0x1020 - 0x1026
+  u32 unk8[24];                             // 0x1027 - 0x103e
+  NumTexGen numTexGen;                      // 0x103f
+  TexMtxInfo texMtxInfo[8];                 // 0x1040 - 0x1047
+  u32 unk9[8];                              // 0x1048 - 0x104f
+  PostMtxInfo postMtxInfo[8];               // 0x1050 - 0x1057
 };
+static_assert(sizeof(XFMemory) == sizeof(u32) * 0x1058);
 
 extern XFMemory xfmem;
 

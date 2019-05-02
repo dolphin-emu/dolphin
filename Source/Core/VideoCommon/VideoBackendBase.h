@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO
@@ -35,29 +36,32 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual unsigned int PeekMessages() = 0;
-
-  virtual bool Initialize(void* window_handle) = 0;
+  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
   virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  void ShowConfig(void*);
   virtual void InitBackendInfo() = 0;
 
-  virtual void Video_Prepare() = 0;
+  // Prepares a native window for rendering. This is called on the main thread, or the
+  // thread which owns the window.
+  virtual void PrepareWindow(const WindowSystemInfo& wsi) {}
+
   void Video_ExitLoop();
-  virtual void Video_Cleanup() = 0;  // called from gl/d3d thread
 
-  void Video_BeginField(u32, u32, u32, u32, u64);
+  void Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
-  u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+  u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 
   static void PopulateList();
   static void ClearList();
   static void ActivateBackend(const std::string& name);
+
+  // Fills the backend_info fields with the capabilities of the selected backend/device.
+  // Called by the UI thread when the graphics config is opened.
+  static void PopulateBackendInfo();
 
   // the implementation needs not do synchronization logic, because calls to it are surrounded by
   // PauseAndLock now
@@ -68,7 +72,6 @@ public:
 protected:
   void InitializeShared();
   void ShutdownShared();
-  void CleanupShared();
 
   bool m_initialized = false;
   bool m_invalid = false;

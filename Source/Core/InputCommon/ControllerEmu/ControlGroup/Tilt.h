@@ -4,21 +4,31 @@
 
 #pragma once
 
-#include <array>
 #include <string>
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
 {
-class Tilt : public ControlGroup
+class Tilt : public ReshapableInput
 {
 public:
+  using StateData = ReshapeData;
+
   explicit Tilt(const std::string& name);
 
-  void GetState(ControlState* x, ControlState* y, bool step = true);
+  ReshapeData GetReshapableState(bool adjusted) final override;
+  ControlState GetGateRadiusAtAngle(double angle) const final override;
+
+  // Tilt is using the gate radius to adjust the tilt angle so we must provide an unadjusted value
+  // for the default input radius.
+  ControlState GetDefaultInputRadiusAtAngle(double angle) const final override;
+
+  StateData GetState();
 
 private:
-  std::array<ControlState, 2> m_tilt{};
+  SettingValue<double> m_max_angle_setting;
 };
 }  // namespace ControllerEmu

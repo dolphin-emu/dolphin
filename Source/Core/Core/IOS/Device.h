@@ -13,9 +13,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 enum ReturnCode : s32
 {
@@ -156,6 +154,7 @@ struct IOCtlVRequest final : Request
   // merging them into a single std::vector would make using the first out vector more complicated.
   std::vector<IOVector> in_vectors;
   std::vector<IOVector> io_vectors;
+  const IOVector* GetVector(size_t index) const;
   explicit IOCtlVRequest(u32 address);
   bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
   void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
@@ -172,7 +171,6 @@ public:
   enum class DeviceType : u32
   {
     Static,  // Devices which appear in s_device_map.
-    FileIO,  // FileIO devices which are created dynamically.
     OH0,     // OH0 child devices which are created dynamically.
   };
 
@@ -187,8 +185,8 @@ public:
   const std::string& GetDeviceName() const { return m_name; }
   // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
   // not by the devices themselves.
-  virtual ReturnCode Open(const OpenRequest& request);
-  virtual ReturnCode Close(u32 fd);
+  virtual IPCCommandResult Open(const OpenRequest& request);
+  virtual IPCCommandResult Close(u32 fd);
   virtual IPCCommandResult Seek(const SeekRequest& seek) { return Unsupported(seek); }
   virtual IPCCommandResult Read(const ReadWriteRequest& read) { return Unsupported(read); }
   virtual IPCCommandResult Write(const ReadWriteRequest& write) { return Unsupported(write); }
@@ -213,5 +211,4 @@ private:
   IPCCommandResult Unsupported(const Request& request);
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

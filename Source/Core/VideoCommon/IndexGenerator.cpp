@@ -3,9 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <cstring>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 #include "Common/Logging/Log.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -56,9 +57,17 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
   base_index += numVerts;
 }
 
+void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices)
+{
+  std::memcpy(index_buffer_current, indices, sizeof(u16) * num_indices);
+  index_buffer_current += num_indices;
+  base_index += num_vertices;
+}
+
 // Triangles
 template <bool pr>
-__forceinline u16* IndexGenerator::WriteTriangle(u16* Iptr, u32 index1, u32 index2, u32 index3)
+DOLPHIN_FORCE_INLINE u16* IndexGenerator::WriteTriangle(u16* Iptr, u32 index1, u32 index2,
+                                                        u32 index3)
 {
   *Iptr++ = index1;
   *Iptr++ = index2;

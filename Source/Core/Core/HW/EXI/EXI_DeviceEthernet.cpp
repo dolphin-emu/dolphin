@@ -5,6 +5,7 @@
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "Common/ChunkFile.h"
@@ -26,37 +27,27 @@ CEXIETHERNET::CEXIETHERNET()
 {
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
   mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
-
   mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
-  mRecvBufferLength = 0;
 
   MXHardReset();
 
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
   std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
-  u8 mac_addr[Common::MAC_ADDRESS_SIZE] = {0};
+  std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
-  if (!Common::StringToMacAddress(mac_addr_setting, mac_addr))
+  if (!mac_addr)
   {
-    Common::GenerateMacAddress(Common::MACConsumer::BBA, mac_addr);
-    mac_addr_setting = Common::MacAddressToString(mac_addr);
+    mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+    mac_addr_setting = Common::MacAddressToString(mac_addr.value());
     SConfig::GetInstance().SaveSettings();
   }
 
-  memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, Common::MAC_ADDRESS_SIZE);
+  const auto& mac = mac_addr.value();
+  memcpy(&mBbaMem[BBA_NAFR_PAR0], mac.data(), mac.size());
 
   // HACK: .. fully established 100BASE-T link
   mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;
-
-#if defined(_WIN32)
-  mHAdapter = INVALID_HANDLE_VALUE;
-  memset(&mReadOverlapped, 0, sizeof(mReadOverlapped));
-  memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
-  mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__)
-  fd = -1;
-#endif
 }
 
 CEXIETHERNET::~CEXIETHERNET()

@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Common/Hash.h"
+
 #include <algorithm>
 #include <cstring>
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
@@ -13,6 +15,8 @@
 #include <arm_acle.h>
 #endif
 
+namespace Common
+{
 static u64 (*ptrHashFunction)(const u8* src, u32 len, u32 samples) = nullptr;
 
 // uint32_t
@@ -117,15 +121,15 @@ static u64 getblock(const u64* p, int i)
 static void bmix64(u64& h1, u64& h2, u64& k1, u64& k2, u64& c1, u64& c2)
 {
   k1 *= c1;
-  k1 = _rotl64(k1, 23);
+  k1 = Common::RotateLeft(k1, 23);
   k1 *= c2;
   h1 ^= k1;
   h1 += h2;
 
-  h2 = _rotl64(h2, 41);
+  h2 = Common::RotateLeft(h2, 41);
 
   k2 *= c2;
-  k2 = _rotl64(k2, 23);
+  k2 = Common::RotateLeft(k2, 23);
   k2 *= c1;
   h2 ^= k2;
   h2 += h1;
@@ -332,64 +336,6 @@ static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 
 #endif
 
-/*
- * NOTE: This hash function is used for custom texture loading/dumping, so
- * it should not be changed, which would require all custom textures to be
- * recalculated for their new hash values. If the hashing function is
- * changed, make sure this one is still used when the legacy parameter is
- * true.
- */
-u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
-{
-  const u64 m = 0xc6a4a7935bd1e995;
-  u64 h = len * m;
-  const int r = 47;
-  u32 Step = (len / 8);
-  const u64* data = (const u64*)src;
-  const u64* end = data + Step;
-  if (samples == 0)
-    samples = std::max(Step, 1u);
-  Step = Step / samples;
-  if (Step < 1)
-    Step = 1;
-  while (data < end)
-  {
-    u64 k = data[0];
-    data += Step;
-    k *= m;
-    k ^= k >> r;
-    k *= m;
-    h ^= k;
-    h *= m;
-  }
-
-  const u8* data2 = (const u8*)end;
-
-  switch (len & 7)
-  {
-  case 7:
-    h ^= u64(data2[6]) << 48;
-  case 6:
-    h ^= u64(data2[5]) << 40;
-  case 5:
-    h ^= u64(data2[4]) << 32;
-  case 4:
-    h ^= u64(data2[3]) << 24;
-  case 3:
-    h ^= u64(data2[2]) << 16;
-  case 2:
-    h ^= u64(data2[1]) << 8;
-  case 1:
-    h ^= u64(data2[0]);
-    h *= m;
-  };
-
-  h ^= h >> r;
-  h *= m;
-  h ^= h >> r;
-
-  return h;
-}
 #else
 
 // CRC32 hash using the SSE4.2 instruction
@@ -454,15 +400,15 @@ static u32 fmix32(u32 h)
 static void bmix32(u32& h1, u32& h2, u32& k1, u32& k2, u32& c1, u32& c2)
 {
   k1 *= c1;
-  k1 = _rotl(k1, 11);
+  k1 = Common::RotateLeft(k1, 11);
   k1 *= c2;
   h1 ^= k1;
   h1 += h2;
 
-  h2 = _rotl(h2, 17);
+  h2 = Common::RotateLeft(h2, 17);
 
   k2 *= c2;
-  k2 = _rotl(k2, 11);
+  k2 = Common::RotateLeft(k2, 11);
   k2 *= c1;
   h2 ^= k2;
   h2 += h1;
@@ -553,63 +499,6 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 
   return *((u64*)&out);
 }
-
-/*
- * FIXME: The old 32-bit version of this hash made different hashes than the
- * 64-bit version. Until someone can make a new version of the 32-bit one that
- * makes identical hashes, this is just a c/p of the 64-bit one.
- */
-u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
-{
-  const u64 m = 0xc6a4a7935bd1e995ULL;
-  u64 h = len * m;
-  const int r = 47;
-  u32 Step = (len / 8);
-  const u64* data = (const u64*)src;
-  const u64* end = data + Step;
-  if (samples == 0)
-    samples = std::max(Step, 1u);
-  Step = Step / samples;
-  if (Step < 1)
-    Step = 1;
-  while (data < end)
-  {
-    u64 k = data[0];
-    data += Step;
-    k *= m;
-    k ^= k >> r;
-    k *= m;
-    h ^= k;
-    h *= m;
-  }
-
-  const u8* data2 = (const u8*)end;
-
-  switch (len & 7)
-  {
-  case 7:
-    h ^= u64(data2[6]) << 48;
-  case 6:
-    h ^= u64(data2[5]) << 40;
-  case 5:
-    h ^= u64(data2[4]) << 32;
-  case 4:
-    h ^= u64(data2[3]) << 24;
-  case 3:
-    h ^= u64(data2[2]) << 16;
-  case 2:
-    h ^= u64(data2[1]) << 8;
-  case 1:
-    h ^= u64(data2[0]);
-    h *= m;
-  };
-
-  h ^= h >> r;
-  h *= m;
-  h ^= h >> r;
-
-  return h;
-}
 #endif
 
 u64 GetHash64(const u8* src, u32 len, u32 samples)
@@ -637,3 +526,4 @@ void SetHash64Function()
     ptrHashFunction = &GetMurmurHash3;
   }
 }
+}  // namespace Common

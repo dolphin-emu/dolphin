@@ -13,9 +13,7 @@
 #include "Core/IOS/IOS.h"
 #include "DiscIO/Volume.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace WFS
 {
@@ -41,6 +39,7 @@ public:
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
   s32 Rename(std::string source, std::string dest) const;
+  void SetHomeDir(const std::string& home_dir);
 
 private:
   // WFS device name, e.g. msc01/msc02.
@@ -107,5 +106,4 @@ private:
   std::vector<u32> m_hanging;
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

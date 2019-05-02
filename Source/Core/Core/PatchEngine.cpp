@@ -9,6 +9,8 @@
 #include "Core/PatchEngine.h"
 
 #include <algorithm>
+#include <array>
+#include <iterator>
 #include <map>
 #include <set>
 #include <string>
@@ -19,19 +21,28 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace PatchEngine
 {
-const char* PatchTypeStrings[] = {
-    "byte", "word", "dword",
-};
+constexpr std::array<const char*, 3> s_patch_type_strings{{
+    "byte",
+    "word",
+    "dword",
+}};
 
-static std::vector<Patch> onFrame;
-static std::map<u32, int> speedHacks;
+static std::vector<Patch> s_on_frame;
+static std::map<u32, int> s_speed_hacks;
+
+const char* PatchTypeAsString(PatchType type)
+{
+  return s_patch_type_strings.at(static_cast<int>(type));
+}
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
                       IniFile& localIni)
@@ -43,7 +54,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
   localIni.GetLines(enabledSectionName, &enabledLines);
   for (const std::string& line : enabledLines)
   {
-    if (line.size() != 0 && line[0] == '$')
+    if (!line.empty() && line[0] == '$')
     {
       std::string name = line.substr(1, line.size() - 1);
       enabledNames.insert(name);
@@ -60,13 +71,13 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 
     for (std::string& line : lines)
     {
-      if (line.size() == 0)
+      if (line.empty())
         continue;
 
       if (line[0] == '$')
       {
         // Take care of the previous code
-        if (currentPatch.name.size())
+        if (!currentPatch.name.empty())
         {
           patches.push_back(currentPatch);
         }
@@ -95,8 +106,10 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
           success &= TryParse(items[0], &pE.address);
           success &= TryParse(items[2], &pE.value);
 
-          pE.type = PatchType(std::find(PatchTypeStrings, PatchTypeStrings + 3, items[1]) -
-                              PatchTypeStrings);
+          const auto iter =
+              std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
+          pE.type = PatchType(std::distance(s_patch_type_strings.begin(), iter));
+
           success &= (pE.type != (PatchType)3);
           if (success)
           {
@@ -106,7 +119,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
       }
     }
 
-    if (currentPatch.name.size() && currentPatch.entries.size())
+    if (!currentPatch.name.empty() && !currentPatch.entries.empty())
     {
       patches.push_back(currentPatch);
     }
@@ -130,7 +143,7 @@ static void LoadSpeedhacks(const std::string& section, IniFile& ini)
       success &= TryParse(value, &cycles);
       if (success)
       {
-        speedHacks[address] = (int)cycles;
+        s_speed_hacks[address] = static_cast<int>(cycles);
       }
     }
   }
@@ -138,11 +151,11 @@ static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 
 int GetSpeedhackCycles(const u32 addr)
 {
-  std::map<u32, int>::const_iterator iter = speedHacks.find(addr);
-  if (iter == speedHacks.end())
+  const auto iter = s_speed_hacks.find(addr);
+  if (iter == s_speed_hacks.end())
     return 0;
-  else
-    return iter->second;
+
+  return iter->second;
 }
 
 void LoadPatches()
@@ -151,10 +164,19 @@ void LoadPatches()
   IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
-  LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
 
-  Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+  // Check if I'm syncing Codes
+  if (Config::Get(Config::MAIN_CODE_SYNC_OVERRIDE))
+  {
+    Gecko::SetSyncedCodesAsActive();
+    ActionReplay::SetSyncedCodesAsActive();
+  }
+  else
+  {
+    Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+    ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  }
 
   LoadSpeedhacks("Speedhacks", merged);
 }
@@ -171,13 +193,13 @@ static void ApplyPatches(const std::vector<Patch>& patches)
         u32 value = entry.value;
         switch (entry.type)
         {
-        case PATCH_8BIT:
-          PowerPC::HostWrite_U8((u8)value, addr);
+        case PatchType::Patch8Bit:
+          PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
           break;
-        case PATCH_16BIT:
-          PowerPC::HostWrite_U16((u16)value, addr);
+        case PatchType::Patch16Bit:
+          PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
           break;
-        case PATCH_32BIT:
+        case PatchType::Patch32Bit:
           PowerPC::HostWrite_U32(value, addr);
           break;
         default:
@@ -194,7 +216,7 @@ static void ApplyPatches(const std::vector<Patch>& patches)
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackSane()
 {
-  _dbg_assert_(ACTIONREPLAY, UReg_MSR(MSR).DR && UReg_MSR(MSR).IR);
+  DEBUG_ASSERT(MSR.DR && MSR.IR);
 
   // Check the stack pointer
   u32 SP = GPR(1);
@@ -218,17 +240,16 @@ bool ApplyFramePatches()
   // callback hook we can end up catching the game in an exception vector.
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
-  UReg_MSR msr = MSR;
-  if (!msr.DR || !msr.IR || !IsStackSane())
+  if (!MSR.DR || !MSR.IR || !IsStackSane())
   {
     DEBUG_LOG(
         ACTIONREPLAY,
         "Need to retry later. CPU configuration is currently incorrect. PC = 0x%08X, MSR = 0x%08X",
-        PC, MSR);
+        PC, MSR.Hex);
     return false;
   }
 
-  ApplyPatches(onFrame);
+  ApplyPatches(s_on_frame);
 
   // Run the Gecko code handler
   Gecko::RunCodeHandler();
@@ -239,8 +260,8 @@ bool ApplyFramePatches()
 
 void Shutdown()
 {
-  onFrame.clear();
-  speedHacks.clear();
+  s_on_frame.clear();
+  s_speed_hacks.clear();
   ActionReplay::ApplyCodes({});
   Gecko::Shutdown();
 }

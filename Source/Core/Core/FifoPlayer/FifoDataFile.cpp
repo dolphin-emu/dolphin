@@ -72,6 +72,11 @@ FifoDataFile::FifoDataFile() = default;
 
 FifoDataFile::~FifoDataFile() = default;
 
+bool FifoDataFile::ShouldGenerateFakeVIUpdates() const
+{
+  return true;
+}
+
 bool FifoDataFile::HasBrokenEFBCopies() const
 {
   return m_Version < 2;

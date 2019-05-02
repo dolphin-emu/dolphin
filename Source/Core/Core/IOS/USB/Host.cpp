@@ -25,17 +25,13 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/LibusbDevice.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 #ifdef __LIBUSB__
   const int ret = libusb_init(&m_libusb_context);
-  _dbg_assert_msg_(IOS_USB, ret == 0, "Failed to init libusb for USB passthrough.");
+  DEBUG_ASSERT_MSG(IOS_USB, ret == 0, "Failed to init libusb for USB passthrough.");
 #endif
 }
 
@@ -47,7 +43,7 @@ USBHost::~USBHost()
 #endif
 }
 
-ReturnCode USBHost::Open(const OpenRequest& request)
+IPCCommandResult USBHost::Open(const OpenRequest& request)
 {
   // Force a device scan to complete, because some games (including Your Shape) only care
   // about the initial device list (in the first GETDEVICECHANGE reply).
@@ -55,7 +51,7 @@ ReturnCode USBHost::Open(const OpenRequest& request)
   {
   }
   StartThreads();
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 void USBHost::UpdateWantDeterminism(const bool new_want_determinism)
@@ -272,6 +268,4 @@ IPCCommandResult USBHost::HandleTransfer(std::shared_ptr<USB::Device> device, u3
             device->GetPid(), request, device->GetErrorName(ret).c_str());
   return GetDefaultReply(ret <= 0 ? ret : IPC_EINVAL);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

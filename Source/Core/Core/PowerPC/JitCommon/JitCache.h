@@ -30,9 +30,9 @@ struct JitBlock
 
   // A special entry point for block linking; usually used to check the
   // downcount.
-  const u8* checkedEntry;
+  u8* checkedEntry;
   // The normal entry point for the block, returned by Dispatch().
-  const u8* normalEntry;
+  u8* normalEntry;
 
   // The effective address (PC) for the beginning of the block.
   u32 effectiveAddress;

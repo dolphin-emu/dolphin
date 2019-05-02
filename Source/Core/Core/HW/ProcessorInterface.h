@@ -73,7 +73,7 @@ inline u32 GetCause()
   return m_InterruptCause;
 }
 
-void SetInterrupt(u32 _causemask, bool _bSet = true);
+void SetInterrupt(u32 cause_mask, bool set = true);
 
 // Thread-safe func which sets and clears reset button state automagically
 void ResetButton_Tap();

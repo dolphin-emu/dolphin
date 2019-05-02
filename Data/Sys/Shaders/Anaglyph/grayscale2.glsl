@@ -1,5 +1,5 @@
 // Anaglyph Red-Cyan luma grayscale shader
-// Info: http://www.oreillynet.com/cs/user/view/cs_msg/8691
+// Info: https://web.archive.org/web/20040101053504/http://www.oreillynet.com:80/cs/user/view/cs_msg/8691
 
 void main()
 {

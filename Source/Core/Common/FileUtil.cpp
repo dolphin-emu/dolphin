@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
@@ -23,6 +24,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <Shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
@@ -40,6 +42,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
+#include <mach-o/dyld.h>
 #include <sys/param.h>
 #endif
 
@@ -52,6 +55,10 @@
 // REMEMBER: strdup considered harmful!
 namespace File
 {
+#ifdef ANDROID
+static std::string s_android_sys_directory;
+#endif
+
 #ifdef _WIN32
 FileInfo::FileInfo(const std::string& path)
 {
@@ -106,7 +113,11 @@ bool Exists(const std::string& path)
 // Returns true if the path exists and is a directory
 bool IsDirectory(const std::string& path)
 {
+#ifdef _WIN32
+  return PathIsDirectory(UTF8ToUTF16(path).c_str());
+#else
   return FileInfo(path).IsDirectory();
+#endif
 }
 
 // Returns true if the path exists and is a file
@@ -659,43 +670,71 @@ std::string GetBundleDirectory()
 }
 #endif
 
-std::string& GetExeDirectory()
+std::string GetExePath()
 {
-  static std::string DolphinPath;
-  if (DolphinPath.empty())
+  static std::string dolphin_path;
+  if (dolphin_path.empty())
   {
 #ifdef _WIN32
-    TCHAR Dolphin_exe_Path[2048];
-    TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
-    GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
-    if (_tfullpath(Dolphin_exe_Clean_Path, Dolphin_exe_Path, MAX_PATH) != nullptr)
-      DolphinPath = TStrToUTF8(Dolphin_exe_Clean_Path);
+    TCHAR dolphin_exe_path[2048];
+    TCHAR dolphin_exe_expanded_path[MAX_PATH];
+    GetModuleFileName(nullptr, dolphin_exe_path, ARRAYSIZE(dolphin_exe_path));
+    if (_tfullpath(dolphin_exe_expanded_path, dolphin_exe_path,
+                   ARRAYSIZE(dolphin_exe_expanded_path)) != nullptr)
+      dolphin_path = TStrToUTF8(dolphin_exe_expanded_path);
     else
-      DolphinPath = TStrToUTF8(Dolphin_exe_Path);
-    DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+      dolphin_path = TStrToUTF8(dolphin_exe_path);
+#elif defined(__APPLE__)
+    dolphin_path = GetBundleDirectory();
+    dolphin_path =
+        dolphin_path.substr(0, dolphin_path.find_last_of("Dolphin.app/Contents/MacOS") + 1);
 #else
-    char Dolphin_exe_Path[PATH_MAX];
-    ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
-    if (len == -1 || len == sizeof(Dolphin_exe_Path))
+    char dolphin_exe_path[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
+    if (len == -1 || len == sizeof(dolphin_exe_path))
     {
       len = 0;
     }
-    Dolphin_exe_Path[len] = '\0';
-    DolphinPath = Dolphin_exe_Path;
-    DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
+    dolphin_exe_path[len] = '\0';
+    dolphin_path = dolphin_exe_path;
 #endif
   }
-  return DolphinPath;
+  return dolphin_path;
+}
+
+std::string GetExeDirectory()
+{
+  std::string exe_path = GetExePath();
+#ifdef _WIN32
+  return exe_path.substr(0, exe_path.rfind('\\'));
+#else
+  return exe_path.substr(0, exe_path.rfind('/'));
+#endif
 }
 
 std::string GetSysDirectory()
 {
   std::string sysDir;
 
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#define SYSDATA_DIR "Sys"
+#elif defined __APPLE__
+#define SYSDATA_DIR "Contents/Resources/Sys"
+#else
+#ifdef DATA_DIR
+#define SYSDATA_DIR DATA_DIR "sys"
+#else
+#define SYSDATA_DIR "sys"
+#endif
+#endif
+
 #if defined(__APPLE__)
   sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
   sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
+#elif defined ANDROID
+  sysDir = s_android_sys_directory;
+  ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
 #else
   sysDir = SYSDATA_DIR;
 #endif
@@ -704,6 +743,14 @@ std::string GetSysDirectory()
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
 }
+
+#ifdef ANDROID
+void SetSysDirectory(const std::string& path)
+{
+  INFO_LOG(COMMON, "Setting Sys directory to %s", path.c_str());
+  s_android_sys_directory = path;
+}
+#endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];
 static void RebuildUserDirectories(unsigned int dir_index)
@@ -717,6 +764,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
     s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
     s_user_paths[D_CACHE_IDX] = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+    s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERS_IDX] = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
     s_user_paths[D_STATESAVES_IDX] = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
@@ -725,6 +773,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_HIRESTEXTURES_IDX] = s_user_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMP_IDX] = s_user_paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
     s_user_paths[D_DUMPFRAMES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+    s_user_paths[D_DUMPOBJECTS_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_OBJECTS_DIR DIR_SEP;
     s_user_paths[D_DUMPAUDIO_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
@@ -732,9 +781,11 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_LOGS_IDX] = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
     s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
     s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+    s_user_paths[D_STYLES_IDX] = s_user_paths[D_USER_IDX] + STYLES_DIR DIR_SEP;
     s_user_paths[D_PIPES_IDX] = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
     s_user_paths[D_WFSROOT_IDX] = s_user_paths[D_USER_IDX] + WFSROOT_DIR DIR_SEP;
     s_user_paths[D_BACKUP_IDX] = s_user_paths[D_USER_IDX] + BACKUP_DIR DIR_SEP;
+    s_user_paths[D_RESOURCEPACK_IDX] = s_user_paths[D_USER_IDX] + RESOURCEPACK_DIR DIR_SEP;
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
     s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
@@ -742,19 +793,12 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
     s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-    s_user_paths[F_UICONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
     s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
     s_user_paths[F_RAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
     s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + DIR_SEP WII_SDCARD;
-
-    s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
-    s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =
-        s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
-    s_user_paths[F_MEMORYWATCHERSOCKET_IDX] =
-        s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
 
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
@@ -768,10 +812,10 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
     s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-    s_user_paths[F_UICONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + UI_CONFIG;
     break;
 
   case D_CACHE_IDX:
+    s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
     break;
 
@@ -781,6 +825,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
   case D_DUMP_IDX:
     s_user_paths[D_DUMPFRAMES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+    s_user_paths[D_DUMPOBJECTS_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_OBJECTS_DIR DIR_SEP;
     s_user_paths[D_DUMPAUDIO_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
@@ -842,16 +887,12 @@ bool WriteStringToFile(const std::string& str, const std::string& filename)
 bool ReadFileToString(const std::string& filename, std::string& str)
 {
   File::IOFile file(filename, "rb");
-  auto const f = file.GetHandle();
 
-  if (!f)
+  if (!file)
     return false;
 
-  size_t read_size;
-  str.resize(GetSize(f));
-  bool retval = file.ReadArray(&str[0], str.size(), &read_size);
-
-  return retval;
+  str.resize(file.GetSize());
+  return file.ReadArray(&str[0], str.size());
 }
 
-}  // namespace
+}  // namespace File

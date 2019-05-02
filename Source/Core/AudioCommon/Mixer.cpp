@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "AudioCommon/DPL2Decoder.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -15,14 +15,21 @@
 #include "Core/ConfigManager.h"
 
 Mixer::Mixer(unsigned int BackendSampleRate)
-    : m_sampleRate(BackendSampleRate), m_stretcher(BackendSampleRate)
+    : m_sampleRate(BackendSampleRate), m_stretcher(BackendSampleRate),
+      m_surround_decoder(BackendSampleRate, SURROUND_BLOCK_SIZE)
 {
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
-  DPL2Reset();
 }
 
 Mixer::~Mixer()
 {
+}
+
+void Mixer::DoState(PointerWrap& p)
+{
+  m_dma_mixer.DoState(p);
+  m_streaming_mixer.DoState(p);
+  m_wiimote_speaker_mixer.DoState(p);
 }
 
 // Executed from sound stream thread
@@ -159,20 +166,23 @@ unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
   if (!num_samples)
     return 0;
 
-  memset(samples, 0, num_samples * 6 * sizeof(float));
+  memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(float));
 
-  // Mix() may also use m_scratch_buffer internally, but is safe because it alternates reads and
-  // writes.
-  unsigned int available_samples = Mix(m_scratch_buffer.data(), num_samples);
-  for (size_t i = 0; i < static_cast<size_t>(available_samples) * 2; ++i)
+  size_t needed_frames = m_surround_decoder.QueryFramesNeededForSurroundOutput(num_samples);
+
+  // Mix() may also use m_scratch_buffer internally, but is safe because it alternates reads
+  // and writes.
+  size_t available_frames = Mix(m_scratch_buffer.data(), static_cast<u32>(needed_frames));
+  if (available_frames != needed_frames)
   {
-    m_float_conversion_buffer[i] =
-        m_scratch_buffer[i] / static_cast<float>(std::numeric_limits<short>::max());
+    ERROR_LOG(AUDIO, "Error decoding surround frames.");
+    return 0;
   }
 
-  DPL2Decode(m_float_conversion_buffer.data(), available_samples, samples);
+  m_surround_decoder.PutFrames(m_scratch_buffer.data(), needed_frames);
+  m_surround_decoder.ReceiveFrames(samples, num_samples);
 
-  return available_samples;
+  return num_samples;
 }
 
 void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
@@ -331,6 +341,13 @@ void Mixer::StopLogDSPAudio()
   {
     WARN_LOG(AUDIO, "DSP Audio logging has already been stopped");
   }
+}
+
+void Mixer::MixerFifo::DoState(PointerWrap& p)
+{
+  p.Do(m_input_sample_rate);
+  p.Do(m_LVolume);
+  p.Do(m_RVolume);
 }
 
 void Mixer::MixerFifo::SetInputSampleRate(unsigned int rate)

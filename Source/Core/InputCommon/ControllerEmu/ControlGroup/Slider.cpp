@@ -13,31 +13,27 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
-Slider::Slider(const std::string& name, const std::string& ui_name)
-    : ControlGroup(name, ui_name, GroupType::Slider)
+Slider::Slider(const std::string& name_, const std::string& ui_name_)
+    : ControlGroup(name_, ui_name_, GroupType::Slider)
 {
-  controls.emplace_back(std::make_unique<Input>("Left"));
-  controls.emplace_back(std::make_unique<Input>("Right"));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Left")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Right")));
 
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
+  AddDeadzoneSetting(&m_deadzone_setting, 50);
 }
 
-Slider::Slider(const std::string& name) : Slider(name, name)
+Slider::Slider(const std::string& name_) : Slider(name_, name_)
 {
 }
 
-void Slider::GetState(ControlState* const slider)
+Slider::StateData Slider::GetState()
 {
-  const ControlState deadzone = numeric_settings[0]->GetValue();
+  const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
   const ControlState state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
 
-  if (fabs(state) > deadzone)
-    *slider = (state - (deadzone * sign(state))) / (1 - deadzone);
-  else
-    *slider = 0;
+  return {ApplyDeadzone(state, deadzone)};
 }
 }  // namespace ControllerEmu

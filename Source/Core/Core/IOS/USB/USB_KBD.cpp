@@ -14,16 +14,13 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
+#include "InputCommon/ControlReference/ControlReference.h"  // For background input check
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
 {
@@ -44,7 +41,7 @@ USB_KBD::USB_KBD(Kernel& ios, const std::string& device_name) : Device(ios, devi
 {
 }
 
-ReturnCode USB_KBD::Open(const OpenRequest& request)
+IPCCommandResult USB_KBD::Open(const OpenRequest& request)
 {
   INFO_LOG(IOS, "USB_KBD: Open");
   IniFile ini;
@@ -60,8 +57,7 @@ ReturnCode USB_KBD::Open(const OpenRequest& request)
   m_OldModifiers = 0x00;
 
   // m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
-  m_is_active = true;
-  return IPC_SUCCESS;
+  return Device::Open(request);
 }
 
 IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
@@ -72,7 +68,8 @@ IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
 
 IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() && !m_MessageQueue.empty())
+  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
+      ControlReference::InputGateOn() && !m_MessageQueue.empty())
   {
     Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
     m_MessageQueue.pop();
@@ -325,6 +322,4 @@ u8 USB_KBD::m_KeyCodesQWERTY[256] = {0};
 
 u8 USB_KBD::m_KeyCodesAZERTY[256] = {0};
 #endif
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

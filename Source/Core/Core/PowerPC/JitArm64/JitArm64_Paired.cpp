@@ -61,7 +61,7 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
     m_float_emit.TRN2(size, VD, VA, VB);
     break;
   default:
-    _assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
+    ASSERT_MSG(DYNA_REC, 0, "ps_merge - invalid op");
     break;
   }
 }
@@ -144,7 +144,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     m_float_emit.FNEG(size, VD, VD);
     break;
   default:
-    _assert_msg_(DYNA_REC, 0, "ps_madd - invalid op");
+    ASSERT_MSG(DYNA_REC, 0, "ps_madd - invalid op");
     break;
   }
   fpr.FixSinglePrecision(d);

@@ -11,18 +11,14 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class USB_KBD : public Device
 {
 public:
   USB_KBD(Kernel& ios, const std::string& device_name);
 
-  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
   IPCCommandResult Write(const ReadWriteRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void Update() override;
@@ -64,6 +60,4 @@ private:
   static u8 m_KeyCodesQWERTY[256];
   static u8 m_KeyCodesAZERTY[256];
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

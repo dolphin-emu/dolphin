@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 
 static Jit64::Instruction dynaOpTable[64];
 static Jit64::Instruction dynaOpTable4[1024];

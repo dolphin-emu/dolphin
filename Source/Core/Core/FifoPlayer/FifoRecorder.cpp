@@ -63,6 +63,11 @@ void FifoRecorder::StopRecording()
   m_RequestedRecordingEnd = true;
 }
 
+bool FifoRecorder::IsRecordingDone() const
+{
+  return m_WasRecording && m_File != nullptr;
+}
+
 FifoDataFile* FifoRecorder::GetRecordedFile() const
 {
   return m_File.get();
@@ -87,7 +92,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
     memcpy(&m_FifoData[currentSize], data, size);
   }
 
-  if (m_FrameEnded && m_FifoData.size() > 0)
+  if (m_FrameEnded && !m_FifoData.empty())
   {
     m_CurrentFrame.fifoData = m_FifoData;
 

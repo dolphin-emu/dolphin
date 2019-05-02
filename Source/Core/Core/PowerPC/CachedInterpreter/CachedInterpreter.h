@@ -29,15 +29,17 @@ public:
   void Jit(u32 address) override;
 
   JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }
-  const char* GetName() override { return "Cached Interpreter"; }
+  const char* GetName() const override { return "Cached Interpreter"; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
+
 private:
   struct Instruction;
 
-  const u8* GetCodePtr() const;
+  u8* GetCodePtr();
   void ExecuteOneBlock();
+
+  bool HandleFunctionHooking(u32 address);
 
   BlockCache m_block_cache{*this};
   std::vector<Instruction> m_code;
-  PPCAnalyst::CodeBuffer code_buffer;
 };

@@ -102,7 +102,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     // The recorder should have expanded display lists into the fifo stream and skipped the call to
     // start them
     // That is done to make it easier to track where memory is updated
-    _assert_(false);
+    ASSERT(false);
     data += 8;
     break;
 
@@ -170,17 +170,17 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
     break;
 
   case 0x70:
-    _assert_((subCmd & 0x0F) < 8);
+    ASSERT((subCmd & 0x0F) < 8);
     cpMem.vtxAttr[subCmd & 7].g0.Hex = value;
     break;
 
   case 0x80:
-    _assert_((subCmd & 0x0F) < 8);
+    ASSERT((subCmd & 0x0F) < 8);
     cpMem.vtxAttr[subCmd & 7].g1.Hex = value;
     break;
 
   case 0x90:
-    _assert_((subCmd & 0x0F) < 8);
+    ASSERT((subCmd & 0x0F) < 8);
     cpMem.vtxAttr[subCmd & 7].g2.Hex = value;
     break;
 
@@ -267,7 +267,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMe
         size = 4;
         break;
       default:
-        _assert_(0);
+        ASSERT(0);
         break;
       }
       break;

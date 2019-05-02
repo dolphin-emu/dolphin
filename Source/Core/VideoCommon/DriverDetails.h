@@ -27,7 +27,6 @@ enum OS
   OS_ANDROID = (1 << 4),
   OS_FREEBSD = (1 << 5),
   OS_OPENBSD = (1 << 6),
-  OS_HAIKU = (1 << 7),
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences
@@ -50,19 +49,20 @@ enum Vendor
 enum Driver
 {
   DRIVER_ALL = 0,
-  DRIVER_NVIDIA,     // Official Nvidia, including mobile GPU
-  DRIVER_NOUVEAU,    // OSS nouveau
-  DRIVER_ATI,        // Official ATI
-  DRIVER_R600,       // OSS Radeon
-  DRIVER_INTEL,      // Official Intel
-  DRIVER_I965,       // OSS Intel
-  DRIVER_ARM,        // Official Mali driver
-  DRIVER_LIMA,       // OSS Mali driver
-  DRIVER_QUALCOMM,   // Official Adreno driver
-  DRIVER_FREEDRENO,  // OSS Adreno driver
-  DRIVER_IMGTEC,     // Official PowerVR driver
-  DRIVER_VIVANTE,    // Official Vivante driver
-  DRIVER_UNKNOWN     // Unknown driver, default to official hardware driver
+  DRIVER_NVIDIA,       // Official Nvidia, including mobile GPU
+  DRIVER_NOUVEAU,      // OSS nouveau
+  DRIVER_ATI,          // Official ATI
+  DRIVER_R600,         // OSS Radeon
+  DRIVER_INTEL,        // Official Intel
+  DRIVER_I965,         // OSS Intel
+  DRIVER_ARM,          // Official Mali driver
+  DRIVER_LIMA,         // OSS Mali driver
+  DRIVER_QUALCOMM,     // Official Adreno driver
+  DRIVER_FREEDRENO,    // OSS Adreno driver
+  DRIVER_IMGTEC,       // Official PowerVR driver
+  DRIVER_VIVANTE,      // Official Vivante driver
+  DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
+  DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 
 enum class Family
@@ -125,13 +125,17 @@ enum Bug
   // Intel HD 4000 series isn't affected by the bug
   BUG_PRIMITIVE_RESTART,
   // Bug: unsync mapping doesn't work fine
-  // Affected devices: Nvidia driver
+  // Affected devices: Nvidia driver, ARM Mali
   // Started Version: -1
   // Ended Version: -1
   // The Nvidia driver (both Windows + Linux) doesn't like unsync mapping performance wise.
   // Because of their threaded behavior, they seem not to handle unsync mapping complete unsync,
   // in fact, they serialize the driver which adds a much bigger overhead.
   // Workaround: Use BufferSubData
+  // The Mali behavior is even worse: They just ignore the unsychronized flag and stall the GPU.
+  // Workaround: As they were even too lazy to implement asynchronous buffer updates,
+  //             BufferSubData stalls as well, so we have to use the slowest possible path:
+  //             Alloc one buffer per draw call with BufferData.
   // TODO: some Windows AMD driver/GPU combination seems also affected
   //       but as they all support pinned memory, it doesn't matter
   BUG_BROKEN_UNSYNC_MAPPING,
@@ -196,15 +200,6 @@ enum Bug
   // Causes misrenderings on a large amount of things that draw lines.
   BUG_BROKEN_GEOMETRY_SHADERS,
 
-  // Bug: Explicit flush is very slow on Qualcomm
-  // Started Version: -1
-  // Ended Version: -1
-  // Our ARB_buffer_storage code uses explicit flush to avoid coherent mapping.
-  // Qualcomm seems to have lots of overhead on explicit flushing, but the coherent mapping path is
-  // fine.
-  // So let's use coherent mapping there.
-  BUG_BROKEN_EXPLICIT_FLUSH,
-
   // Bug: glGetBufferSubData for bounding box reads is slow on AMD drivers
   // Started Version: -1
   // Ended Version: -1
@@ -248,8 +243,11 @@ enum Bug
   // the negated value to a temporary variable then using that in the bitwise op.
   BUG_BROKEN_BITWISE_OP_NEGATION,
 
-  // Bug: Shaders are recompiled on the main thread after being previously compiled on
-  // a worker thread on Mesa i965.
+  // BUG: The GPU shader code appears to be context-specific on Mesa/i965.
+  // This means that if we compiled the ubershaders asynchronously, they will be recompiled
+  // on the main thread the first time they are used, causing stutter. For now, disable
+  // asynchronous compilation on Mesa i965. On nouveau, our use of glFinish() can cause
+  // crashes and/or lockups.
   // Started version: -1
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,
@@ -271,6 +269,13 @@ enum Bug
   // Started Version: 1.7
   // Ended Version: 1.10
   BUG_BROKEN_CLEAR_LOADOP_RENDERPASS,
+
+  // BUG: 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
+  // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
+  // We still resolve this to a R32F texture, as there is no 24-bit format.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_D32F_CLEAR,
 };
 
 // Initializes our internal vendor, device family, and driver version
@@ -279,7 +284,4 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.
 bool HasBug(Bug bug);
-
-// Attempts to map a PCI vendor ID to our Vendor enumeration
-Vendor TranslatePCIVendorID(u32 vendor_id);
-}
+}  // namespace DriverDetails

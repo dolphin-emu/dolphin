@@ -13,6 +13,8 @@
 #include <byteswap.h>
 #elif defined(__FreeBSD__)
 #include <sys/endian.h>
+#elif defined(__OpenBSD__)
+#include <endian.h>
 #endif
 
 #include "Common/CommonTypes.h"
@@ -164,4 +166,21 @@ inline T FromBigEndian(T data)
   swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
   return data;
 }
+
+template <typename value_type>
+struct BigEndianValue
+{
+  static_assert(std::is_arithmetic<value_type>(), "value_type must be an arithmetic type");
+  BigEndianValue() = default;
+  explicit BigEndianValue(value_type val) { *this = val; }
+  operator value_type() const { return FromBigEndian(raw); }
+  BigEndianValue& operator=(value_type v)
+  {
+    raw = FromBigEndian(v);
+    return *this;
+  }
+
+private:
+  value_type raw;
+};
 }  // Namespace Common

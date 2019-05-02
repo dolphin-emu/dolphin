@@ -33,6 +33,7 @@ public:
 
   bool operator==(const VertexLoaderUID& rh) const { return vid == rh.vid; }
   size_t GetHash() const { return hash; }
+
 private:
   size_t CalculateHash() const
   {

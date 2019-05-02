@@ -4,13 +4,16 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include "Common/CommonTypes.h"
 
-namespace IOS
+namespace IOS::HLE
 {
-namespace HLE
+namespace FS
 {
+class FileSystem;
+}
 namespace NWC24
 {
 enum ErrorCode : s32
@@ -41,7 +44,7 @@ public:
     MAX_PASSWORD_LENGTH = 0x20,
   };
 
-  NWC24Config();
+  explicit NWC24Config(std::shared_ptr<FS::FileSystem> fs);
 
   void ReadConfig();
   void WriteConfig() const;
@@ -94,9 +97,8 @@ private:
   };
 #pragma pack(pop)
 
-  std::string m_path;
+  std::shared_ptr<FS::FileSystem> m_fs;
   ConfigData m_data;
 };
 }  // namespace NWC24
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

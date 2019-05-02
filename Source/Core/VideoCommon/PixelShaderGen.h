@@ -44,7 +44,13 @@ struct pixel_shader_uid_data
   u32 rgba6_format : 1;
   u32 dither : 1;
   u32 uint_output : 1;
-  u32 pad : 15;
+  u32 blend_enable : 1;            // Only used with shader_framebuffer_fetch blend
+  u32 blend_src_factor : 3;        // Only used with shader_framebuffer_fetch blend
+  u32 blend_src_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
+  u32 blend_dst_factor : 3;        // Only used with shader_framebuffer_fetch blend
+  u32 blend_dst_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
+  u32 blend_subtract : 1;          // Only used with shader_framebuffer_fetch blend
+  u32 blend_subtract_alpha : 1;    // Only used with shader_framebuffer_fetch blend
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
@@ -161,6 +167,7 @@ typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data);
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
-                                  bool per_pixel_lighting, bool bounding_box);
-void ClearUnusedPixelShaderUidBits(APIType ApiType, PixelShaderUid* uid);
+                                  const ShaderHostConfig& host_config, bool bounding_box);
+void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
+                                   PixelShaderUid* uid);
 PixelShaderUid GetPixelShaderUid();

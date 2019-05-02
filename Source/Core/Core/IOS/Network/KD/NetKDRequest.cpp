@@ -16,16 +16,14 @@
 
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Network/Socket.h"
-#include "Core/ec_wii.h"
+#include "Core/IOS/Uids.h"
 
-namespace IOS
+namespace IOS::HLE::Device
 {
-namespace HLE
-{
-namespace Device
-{
-NetKDRequest::NetKDRequest(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetKDRequest::NetKDRequest(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name), config{ios.GetFS()}
 {
 }
 
@@ -83,26 +81,29 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
     if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
     {
-      const std::string settings_file_path(
-          Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
-      SettingsHandler gen;
+      const std::string settings_file_path =
+          Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING;
       std::string area, model;
-      bool got_settings = false;
 
-      if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
+      const auto fs = m_ios.GetFS();
+      if (const auto file = fs->OpenFile(PID_KD, PID_KD, settings_file_path, FS::Mode::Read))
       {
-        area = gen.GetValue("AREA");
-        model = gen.GetValue("MODEL");
-        got_settings = true;
+        Common::SettingsHandler::Buffer data;
+        if (file->Read(data.data(), data.size()))
+        {
+          const Common::SettingsHandler gen{std::move(data)};
+          area = gen.GetValue("AREA");
+          model = gen.GetValue("MODEL");
+        }
       }
-      if (got_settings)
+
+      if (!area.empty() && !model.empty())
       {
         u8 area_code = GetAreaCode(area);
         u8 id_ctr = config.IdGen();
         u8 hardware_model = GetHardwareModel(model);
 
-        const EcWii& ec = EcWii::GetInstance();
-        u32 HollywoodID = ec.GetNGID();
+        u32 HollywoodID = m_ios.GetIOSC().GetDeviceId();
         u64 UserID = 0;
 
         s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);
@@ -167,7 +168,10 @@ u8 NetKDRequest::GetAreaCode(const std::string& area) const
 u8 NetKDRequest::GetHardwareModel(const std::string& model) const
 {
   static const std::map<std::string, u8> models = {
-      {"RVL", MODEL_RVL}, {"RVT", MODEL_RVT}, {"RVV", MODEL_RVV}, {"RVD", MODEL_RVD},
+      {"RVL", MODEL_RVL},
+      {"RVT", MODEL_RVT},
+      {"RVV", MODEL_RVV},
+      {"RVD", MODEL_RVD},
   };
 
   auto entryPos = models.find(model);
@@ -241,6 +245,4 @@ s32 NetKDRequest::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u
 
   return NWC24::WC24_OK;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

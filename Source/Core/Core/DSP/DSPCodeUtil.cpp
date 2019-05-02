@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
@@ -102,42 +103,45 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
-void CodeToBinaryStringBE(const std::vector<u16>& code, std::string& str)
+std::string CodeToBinaryStringBE(const std::vector<u16>& code)
 {
-  str.resize(code.size() * 2);
+  std::string str(code.size() * 2, '\0');
+
   for (size_t i = 0; i < code.size(); i++)
   {
     str[i * 2 + 0] = code[i] >> 8;
     str[i * 2 + 1] = code[i] & 0xff;
   }
+
+  return str;
 }
 
-void BinaryStringBEToCode(const std::string& str, std::vector<u16>& code)
+std::vector<u16> BinaryStringBEToCode(const std::string& str)
 {
-  code.resize(str.size() / 2);
+  std::vector<u16> code(str.size() / 2);
+
   for (size_t i = 0; i < code.size(); i++)
   {
     code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
   }
+
+  return code;
 }
 
-bool LoadBinary(const std::string& filename, std::vector<u16>& code)
+std::optional<std::vector<u16>> LoadBinary(const std::string& filename)
 {
   std::string buffer;
   if (!File::ReadFileToString(filename, buffer))
-    return false;
+    return std::nullopt;
 
-  BinaryStringBEToCode(buffer, code);
-  return true;
+  return std::make_optional(BinaryStringBEToCode(buffer));
 }
 
 bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
 {
-  std::string buffer;
-  CodeToBinaryStringBE(code, buffer);
-  if (!File::WriteStringToFile(buffer, filename))
-    return false;
-  return true;
+  const std::string buffer = CodeToBinaryStringBE(code);
+
+  return File::WriteStringToFile(buffer, filename);
 }
 
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)

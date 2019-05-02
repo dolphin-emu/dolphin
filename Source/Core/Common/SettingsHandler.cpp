@@ -4,58 +4,41 @@
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
+#include "Common/SettingsHandler.h"
+
 #include <cstddef>
-#include <cstdio>
-#include <cstring>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 #include <string>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <mmsystem.h>
-#include <sys/timeb.h>
-#endif
-
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
-#include "Common/SettingsHandler.h"
-#include "Common/Timer.h"
 
+namespace Common
+{
 SettingsHandler::SettingsHandler()
 {
   Reset();
 }
 
-bool SettingsHandler::Open(const std::string& settings_file_path)
+SettingsHandler::SettingsHandler(Buffer&& buffer)
+{
+  SetBytes(std::move(buffer));
+}
+
+const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
+{
+  return m_buffer;
+}
+
+void SettingsHandler::SetBytes(Buffer&& buffer)
 {
   Reset();
-
-  File::IOFile file{settings_file_path, "rb"};
-  if (!file.ReadBytes(m_buffer.data(), m_buffer.size()))
-    return false;
-
+  m_buffer = std::move(buffer);
   Decrypt();
-  return true;
 }
 
-bool SettingsHandler::Save(const std::string& destination_file_path) const
-{
-  if (!File::CreateFullPath(destination_file_path))
-    return false;
-
-  File::IOFile file{destination_file_path, "wb"};
-  return file.WriteBytes(m_buffer.data(), m_buffer.size());
-}
-
-const u8* SettingsHandler::GetData() const
-{
-  return m_buffer.data();
-}
-
-const std::string SettingsHandler::GetValue(const std::string& key)
+std::string SettingsHandler::GetValue(const std::string& key) const
 {
   std::string delim = std::string("\r\n");
   std::string toFind = delim + key + "=";
@@ -145,3 +128,4 @@ std::string SettingsHandler::GenerateSerialNumber()
   stream << std::put_time(std::localtime(&t), "%j%H%M%S");
   return stream.str();
 }
+}  // namespace Common

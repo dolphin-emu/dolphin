@@ -30,6 +30,7 @@ private:
   {
   public:
     std::string GetName() const;
+    bool IsDetectable() override { return false; }
     Axis(int padID, ButtonManager::ButtonType index, float neg = 1.0f)
         : _padID(padID), _index(index), _neg(neg)
     {
@@ -40,6 +41,19 @@ private:
     const int _padID;
     const ButtonManager::ButtonType _index;
     const float _neg;
+  };
+  class Motor : public Core::Device::Output
+  {
+  public:
+    Motor(int padID, ButtonManager::ButtonType index) : _padID(padID), _index(index) {}
+    ~Motor();
+    std::string GetName() const override;
+    void SetState(ControlState state) override;
+
+  private:
+    const int _padID;
+    const ButtonManager::ButtonType _index;
+    static void Rumble(int padID, double state);
   };
 
 public:

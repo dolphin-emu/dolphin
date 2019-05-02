@@ -8,4 +8,8 @@ namespace Core
 {
 void InitializeWiiRoot(bool use_temporary);
 void ShutdownWiiRoot();
-}
+
+// Initialize or clean up the filesystem contents.
+void InitializeWiiFileSystemContents();
+void CleanUpWiiFileSystemContents();
+}  // namespace Core

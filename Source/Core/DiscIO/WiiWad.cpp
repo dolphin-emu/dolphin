@@ -74,7 +74,7 @@ bool WiiWAD::ParseWAD()
   }
 
   if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)
-    _dbg_assert_msg_(BOOT, *reserved == 0x00, "WiiWAD: Reserved must be 0x00");
+    DEBUG_ASSERT_MSG(BOOT, *reserved == 0x00, "WiiWAD: Reserved must be 0x00");
 
   u32 offset = 0x40;
   m_certificate_chain = CreateWADEntry(*m_reader, *certificate_chain_size, offset);

@@ -13,9 +13,10 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/RenderBase.h"
@@ -26,7 +27,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-alignas(16) static float g_fProjectionMatrix[16];
+alignas(16) static std::array<float, 16> g_fProjectionMatrix;
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -37,96 +38,11 @@ static int nNormalMatricesChanged[2];         // min,max
 static int nPostTransformMatricesChanged[2];  // min,max
 static int nLightsChanged[2];                 // min,max
 
-static Matrix44 s_viewportCorrection;
-static Matrix33 s_viewRotationMatrix;
-static Matrix33 s_viewInvRotationMatrix;
-static float s_fViewTranslationVector[3];
-static float s_fViewRotation[2];
+static Common::Matrix44 s_viewportCorrection;
+static Common::Matrix44 s_freelook_matrix;
 
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
-
-struct ProjectionHack
-{
-  float sign;
-  float value;
-  ProjectionHack() {}
-  ProjectionHack(float new_sign, float new_value) : sign(new_sign), value(new_value) {}
-};
-
-namespace
-{
-// Control Variables
-static ProjectionHack g_proj_hack_near;
-static ProjectionHack g_proj_hack_far;
-}  // Namespace
-
-static float PHackValue(std::string sValue)
-{
-  float f = 0;
-  bool fp = false;
-  const char* cStr = sValue.c_str();
-  char* c = new char[strlen(cStr) + 1];
-  std::istringstream sTof("");
-
-  for (unsigned int i = 0; i <= strlen(cStr); ++i)
-  {
-    if (i == 20)
-    {
-      c[i] = '\0';
-      break;
-    }
-
-    c[i] = (cStr[i] == ',') ? '.' : *(cStr + i);
-    if (c[i] == '.')
-      fp = true;
-  }
-
-  cStr = c;
-  sTof.str(cStr);
-  sTof >> f;
-
-  if (!fp)
-    f /= 0xF4240;
-
-  delete[] c;
-  return f;
-}
-
-void UpdateProjectionHack(const ProjectionHackConfig& config)
-{
-  float near_value = 0, far_value = 0;
-  float near_sign = 1.0, far_sign = 1.0;
-
-  if (config.m_enable)
-  {
-    const char* near_sign_str = "";
-    const char* far_sign_str = "";
-
-    NOTICE_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
-
-    if (config.m_sznear)
-    {
-      near_sign *= -1.0f;
-      near_sign_str = " * (-1)";
-    }
-    if (config.m_szfar)
-    {
-      far_sign *= -1.0f;
-      far_sign_str = " * (-1)";
-    }
-
-    near_value = PHackValue(config.m_znear);
-    NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", near_value, near_sign_str);
-
-    far_value = PHackValue(config.m_zfar);
-    NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", far_value, far_sign_str);
-  }
-
-  // Set the projections hacks
-  g_proj_hack_near = ProjectionHack(near_sign, near_value);
-  g_proj_hack_far = ProjectionHack(far_sign, far_value);
-}
 
 // Viewport correction:
 // In D3D, the viewport rectangle must fit within the render target.
@@ -138,7 +54,7 @@ void UpdateProjectionHack(const ProjectionHackConfig& config)
 // [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
 // [         0         0     1                              0   ]
 // [         0         0     0                              1   ]
-static void ViewportCorrectionMatrix(Matrix44& result)
+static void ViewportCorrectionMatrix(Common::Matrix44& result)
 {
   int scissorXOff = bpmem.scissorOffset.x * 2;
   int scissorYOff = bpmem.scissorOffset.y * 2;
@@ -167,7 +83,7 @@ static void ViewportCorrectionMatrix(Matrix44& result)
   float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
   float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
 
-  Matrix44::LoadIdentity(result);
+  result = Common::Matrix44::Identity();
   if (Wd == 0 || Ht == 0)
     return;
 
@@ -197,15 +113,13 @@ void VertexShaderManager::Init()
   bTexMtxInfoChanged = false;
   bLightingConfigChanged = false;
 
-  std::memset(&xfmem, 0, sizeof(xfmem));
+  std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
   constants = {};
   ResetView();
 
   // TODO: should these go inside ResetView()?
-  Matrix44::LoadIdentity(s_viewportCorrection);
-  memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
-  for (int i = 0; i < 4; ++i)
-    g_fProjectionMatrix[i * 5] = 1.0f;
+  s_viewportCorrection = Common::Matrix44::Identity();
+  g_fProjectionMatrix = Common::Matrix44::Identity().data;
 
   dirty = true;
 }
@@ -420,8 +334,7 @@ void VertexShaderManager::SetConstants()
     }
 
     dirty = true;
-    // This is so implementation-dependent that we can't have it here.
-    g_renderer->SetViewport();
+    BPFunctions::SetViewport();
 
     // Update projection if the viewport isn't 1:1 useable
     if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
@@ -454,7 +367,6 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[8] = 0.0f;
       g_fProjectionMatrix[9] = 0.0f;
       g_fProjectionMatrix[10] = rawProjection[4];
-
       g_fProjectionMatrix[11] = rawProjection[5];
 
       g_fProjectionMatrix[12] = 0.0f;
@@ -495,10 +407,8 @@ void VertexShaderManager::SetConstants()
 
       g_fProjectionMatrix[8] = 0.0f;
       g_fProjectionMatrix[9] = 0.0f;
-      g_fProjectionMatrix[10] = (g_proj_hack_near.value + rawProjection[4]) *
-                                ((g_proj_hack_near.sign == 0) ? 1.0f : g_proj_hack_near.sign);
-      g_fProjectionMatrix[11] = (g_proj_hack_far.value + rawProjection[5]) *
-                                ((g_proj_hack_far.sign == 0) ? 1.0f : g_proj_hack_far.sign);
+      g_fProjectionMatrix[10] = rawProjection[4];
+      g_fProjectionMatrix[11] = rawProjection[5];
 
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
@@ -537,29 +447,12 @@ void VertexShaderManager::SetConstants()
     PRIM_LOG("Projection: %f %f %f %f %f %f", rawProjection[0], rawProjection[1], rawProjection[2],
              rawProjection[3], rawProjection[4], rawProjection[5]);
 
+    auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
+
     if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
-    {
-      Matrix44 mtxA;
-      Matrix44 mtxB;
-      Matrix44 viewMtx;
+      corrected_matrix *= s_freelook_matrix;
 
-      Matrix44::Translate(mtxA, s_fViewTranslationVector);
-      Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-      Matrix44::Multiply(mtxB, mtxA, viewMtx);  // view = rotation x translation
-      Matrix44::Set(mtxB, g_fProjectionMatrix);
-      Matrix44::Multiply(mtxB, viewMtx, mtxA);               // mtxA = projection x view
-      Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB);  // mtxB = viewportCorrection x mtxA
-      memcpy(constants.projection.data(), mtxB.data, 4 * sizeof(float4));
-    }
-    else
-    {
-      Matrix44 projMtx;
-      Matrix44::Set(projMtx, g_fProjectionMatrix);
-
-      Matrix44 correctedMtx;
-      Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-      memcpy(constants.projection.data(), correctedMtx.data, 4 * sizeof(float4));
-    }
+    memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 
     dirty = true;
   }
@@ -746,42 +639,25 @@ void VertexShaderManager::SetMaterialColorChanged(int index)
 
 void VertexShaderManager::TranslateView(float x, float y, float z)
 {
-  float result[3];
-  float vector[3] = {x, z, y};
-
-  Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
-
-  for (size_t i = 0; i < ArraySize(result); i++)
-    s_fViewTranslationVector[i] += result[i];
+  s_freelook_matrix = Common::Matrix44::Translate({x, z, y}) * s_freelook_matrix;
 
   bProjectionChanged = true;
 }
 
-void VertexShaderManager::RotateView(float x, float y)
+void VertexShaderManager::RotateView(float x, float y, float z)
 {
-  s_fViewRotation[0] += x;
-  s_fViewRotation[1] += y;
+  using Common::Matrix33;
 
-  Matrix33 mx;
-  Matrix33 my;
-  Matrix33::RotateX(mx, s_fViewRotation[1]);
-  Matrix33::RotateY(my, s_fViewRotation[0]);
-  Matrix33::Multiply(mx, my, s_viewRotationMatrix);
-
-  // reverse rotation
-  Matrix33::RotateX(mx, -s_fViewRotation[1]);
-  Matrix33::RotateY(my, -s_fViewRotation[0]);
-  Matrix33::Multiply(my, mx, s_viewInvRotationMatrix);
+  s_freelook_matrix = Common::Matrix44::FromMatrix33(Matrix33::RotateX(x) * Matrix33::RotateY(y) *
+                                                     Matrix33::RotateZ(z)) *
+                      s_freelook_matrix;
 
   bProjectionChanged = true;
 }
 
 void VertexShaderManager::ResetView()
 {
-  memset(s_fViewTranslationVector, 0, sizeof(s_fViewTranslationVector));
-  Matrix33::LoadIdentity(s_viewRotationMatrix);
-  Matrix33::LoadIdentity(s_viewInvRotationMatrix);
-  s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
+  s_freelook_matrix = Common::Matrix44::Identity();
 
   bProjectionChanged = true;
 }
@@ -834,10 +710,7 @@ void VertexShaderManager::DoState(PointerWrap& p)
 {
   p.Do(g_fProjectionMatrix);
   p.Do(s_viewportCorrection);
-  p.Do(s_viewRotationMatrix);
-  p.Do(s_viewInvRotationMatrix);
-  p.Do(s_fViewTranslationVector);
-  p.Do(s_fViewRotation);
+  p.Do(s_freelook_matrix);
 
   p.Do(nTransformMatricesChanged);
   p.Do(nNormalMatricesChanged);

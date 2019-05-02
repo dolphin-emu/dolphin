@@ -10,7 +10,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/KeyboardStatus.h"
 
 static const u16 keys0_bitmasks[] = {KEYMASK_HOME,       KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN,
@@ -56,32 +55,30 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
   // buttons
   groups.emplace_back(m_keys0x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys0)
-    m_keys0x->controls.emplace_back(new ControllerEmu::Input(key));
+    m_keys0x->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, key));
 
   groups.emplace_back(m_keys1x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys1)
-    m_keys1x->controls.emplace_back(new ControllerEmu::Input(key));
+    m_keys1x->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, key));
 
   groups.emplace_back(m_keys2x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys2)
-    m_keys2x->controls.emplace_back(new ControllerEmu::Input(key));
+    m_keys2x->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, key));
 
   groups.emplace_back(m_keys3x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys3)
-    m_keys3x->controls.emplace_back(new ControllerEmu::Input(key));
+    m_keys3x->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, key));
 
   groups.emplace_back(m_keys4x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys4)
-    m_keys4x->controls.emplace_back(new ControllerEmu::Input(key));
+    m_keys4x->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, key));
 
   groups.emplace_back(m_keys5x = new ControllerEmu::Buttons(_trans("Keys")));
   for (const char* key : named_keys5)
-    m_keys5x->controls.emplace_back(new ControllerEmu::Input(key));
+    m_keys5x->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, key));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
-      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
 
 std::string GCKeyboard::GetName() const

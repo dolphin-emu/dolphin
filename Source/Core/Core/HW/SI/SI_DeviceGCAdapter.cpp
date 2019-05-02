@@ -18,6 +18,9 @@ namespace SerialInterface
 CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
     : CSIDevice_GCController(device, device_number)
 {
+  // Make sure PAD_GET_ORIGIN gets set due to a newly connected device.
+  GCAdapter::ResetDeviceType(m_device_number);
+
   // get the correct pad number that should rumble locally when using netplay
   const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
   if (pad_num < 4)
@@ -36,6 +39,11 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
   }
 
   HandleMoviePadStatus(&pad_status);
+
+  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
+  // Watch for this to calibrate real controllers on connection.
+  if (pad_status.button & PAD_GET_ORIGIN)
+    SetOrigin(pad_status);
 
   return pad_status;
 }
@@ -58,6 +66,18 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
     }
   }
   return CSIDevice_GCController::RunBuffer(buffer, length);
+}
+
+bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
+{
+  CSIDevice_GCController::GetData(hi, low);
+
+  if (m_simulate_konga)
+  {
+    hi &= CSIDevice_TaruKonga::HI_BUTTON_MASK;
+  }
+
+  return true;
 }
 
 void CSIDevice_GCController::Rumble(int pad_num, ControlState strength)

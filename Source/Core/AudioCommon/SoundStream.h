@@ -13,18 +13,15 @@ class SoundStream
 {
 protected:
   std::unique_ptr<Mixer> m_mixer;
-  bool m_muted;
 
 public:
-  SoundStream() : m_mixer(new Mixer(48000)), m_muted(false) {}
+  SoundStream() : m_mixer(new Mixer(48000)) {}
   virtual ~SoundStream() {}
   static bool isValid() { return false; }
   Mixer* GetMixer() const { return m_mixer.get(); }
-  virtual bool Start() { return false; }
+  virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
   virtual void SoundLoop() {}
-  virtual void Stop() {}
   virtual void Update() {}
-  virtual void Clear(bool mute) { m_muted = mute; }
-  bool IsMuted() const { return m_muted; }
+  virtual bool SetRunning(bool running) { return false; }
 };

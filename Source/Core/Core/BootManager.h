@@ -5,19 +5,15 @@
 #pragma once
 
 #include <memory>
-#include <string>
-
-#include "Core/ConfigManager.h"
 
 struct BootParameters;
+struct WindowSystemInfo;
 
 namespace BootManager
 {
-bool BootCore(std::unique_ptr<BootParameters> parameters);
+bool BootCore(std::unique_ptr<BootParameters> parameters, const WindowSystemInfo& wsi);
 
-// Stop the emulation core and restore the configuration.
-void Stop();
 // Synchronise Dolphin's configuration with the SYSCONF (which may have changed during emulation),
 // and restore settings that were overriden by per-game INIs or for some other reason.
 void RestoreConfig();
-}
+}  // namespace BootManager

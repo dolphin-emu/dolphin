@@ -11,11 +11,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 NetKDTime::NetKDTime(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -91,6 +87,4 @@ void NetKDTime::SetAdjustedUTC(u64 wii_utc)
   utcdiff = ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH) -
             wii_utc;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>ciso</string>
+                <string>dol</string>
+                <string>elf</string>
+                <string>gcm</string>
+                <string>gcz</string>
+                <string>iso</string>
+                <string>m3u</string>
+                <string>tgc</string>
+                <string>wad</string>
+                <string>wbfs</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>Dolphin.icns</string>
+            <key>CFBundleTypeName</key>
+            <string>Nintendo GC/Wii file</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+        </dict>
+    </array>
+    <key>CFBundleExecutable</key>
+    <string>Dolphin</string>
+    <key>CFBundleIconFile</key>
+    <string>Dolphin.icns</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.dolphin-emu.dolphin</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${DOLPHIN_WC_DESCRIBE}</string>
+    <key>CFBundleLongVersionString</key>
+    <string>${DOLPHIN_WC_REVISION}</string>
+    <key>CFBundleVersion</key>
+    <string>${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Licensed under GPL version 2 or later (GPLv2+)</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>CSResourcesFileMapped</key>
+    <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <true/>
+</dict>
+</plist>

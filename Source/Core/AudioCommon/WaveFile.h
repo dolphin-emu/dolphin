@@ -37,6 +37,7 @@ public:
   void SetSkipSilence(bool skip) { skip_silence = skip; }
   void AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate);  // big endian
   u32 GetAudioSize() const { return audio_size; }
+
 private:
   static constexpr size_t BUFFER_SIZE = 32 * 1024;
 

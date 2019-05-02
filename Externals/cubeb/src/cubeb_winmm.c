@@ -19,7 +19,6 @@
 #include <math.h>
 #include "cubeb/cubeb.h"
 #include "cubeb-internal.h"
-#include "cubeb_utils.h"
 
 /* This is missing from the MinGW headers. Use a safe fallback. */
 #if !defined(MEMORY_ALLOCATION_ALIGNMENT)
@@ -1017,6 +1016,26 @@ winmm_enumerate_devices(cubeb * context, cubeb_device_type type,
   return CUBEB_OK;
 }
 
+static int
+winmm_device_collection_destroy(cubeb * ctx,
+                                cubeb_device_collection * collection)
+{
+  uint32_t i;
+  XASSERT(collection);
+
+  (void) ctx;
+
+  for (i = 0; i < collection->count; i++) {
+    free((void *) collection->device[i].device_id);
+    free((void *) collection->device[i].friendly_name);
+    free((void *) collection->device[i].group_id);
+    free((void *) collection->device[i].vendor_name);
+  }
+
+  free(collection->device);
+  return CUBEB_OK;
+}
+
 static struct cubeb_ops const winmm_ops = {
   /*.init =*/ winmm_init,
   /*.get_backend_id =*/ winmm_get_backend_id,
@@ -1025,12 +1044,13 @@ static struct cubeb_ops const winmm_ops = {
   /*.get_preferred_sample_rate =*/ winmm_get_preferred_sample_rate,
   /*.get_preferred_channel_layout =*/ NULL,
   /*.enumerate_devices =*/ winmm_enumerate_devices,
-  /*.device_collection_destroy =*/ cubeb_utils_default_device_collection_destroy,
+  /*.device_collection_destroy =*/ winmm_device_collection_destroy,
   /*.destroy =*/ winmm_destroy,
   /*.stream_init =*/ winmm_stream_init,
   /*.stream_destroy =*/ winmm_stream_destroy,
   /*.stream_start =*/ winmm_stream_start,
   /*.stream_stop =*/ winmm_stream_stop,
+  /*.stream_reset_default_device =*/ NULL,
   /*.stream_get_position =*/ winmm_stream_get_position,
   /*.stream_get_latency = */ winmm_stream_get_latency,
   /*.stream_set_volume =*/ winmm_stream_set_volume,

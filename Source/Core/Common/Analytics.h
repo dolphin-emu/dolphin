@@ -14,9 +14,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/FifoQueue.h"
 #include "Common/Flag.h"
 #include "Common/HttpRequest.h"
+#include "Common/SPSCQueue.h"
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also
@@ -95,6 +95,15 @@ public:
     return *this;
   }
 
+  template <typename T>
+  AnalyticsReportBuilder& AddData(const std::string& key, const std::vector<T>& value)
+  {
+    std::lock_guard<std::mutex> lk(m_lock);
+    AppendSerializedValue(&m_report, key);
+    AppendSerializedValueVector(&m_report, value);
+    return *this;
+  }
+
   std::string Get() const
   {
     std::lock_guard<std::mutex> lk(m_lock);
@@ -117,6 +126,8 @@ protected:
   static void AppendSerializedValue(std::string* report, u32 v);
   static void AppendSerializedValue(std::string* report, s32 v);
   static void AppendSerializedValue(std::string* report, float v);
+
+  static void AppendSerializedValueVector(std::string* report, const std::vector<u32>& v);
 
   // Should really be a std::shared_mutex, unfortunately that's C++17 only.
   mutable std::mutex m_lock;
@@ -148,6 +159,7 @@ public:
 
   // For convenience.
   void Send(AnalyticsReportBuilder& report) { Send(std::move(report)); }
+
 protected:
   void ThreadProc();
 
@@ -157,7 +169,7 @@ protected:
   std::thread m_reporter_thread;
   Common::Event m_reporter_event;
   Common::Flag m_reporter_stop_request;
-  FifoQueue<std::string> m_reports_queue;
+  SPSCQueue<std::string> m_reports_queue;
 };
 
 // Analytics backend to be used for debugging purpose, which dumps reports to
@@ -182,5 +194,4 @@ protected:
   std::string m_endpoint;
   HttpRequest m_http{std::chrono::seconds{5}};
 };
-
 }  // namespace Common

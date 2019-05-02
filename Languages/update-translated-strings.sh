@@ -7,4 +7,4 @@
 
 cd "$(dirname "$0")/.."
 POTFILE=./Languages/po/dolphin-emu.pot
-find ./Languages/po -name '*.po' -exec msgmerge --quiet --update --backup=none -s {} $POTFILE \;
+find ./Languages/po -name '*.po' -exec msgmerge --quiet --update -N --backup=none -s {} $POTFILE \;

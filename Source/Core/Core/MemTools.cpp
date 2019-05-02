@@ -28,7 +28,7 @@ namespace EMM
 {
 #ifdef _WIN32
 
-LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
+static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
   switch (pPtrs->ExceptionRecord->ExceptionCode)
   {
@@ -232,6 +232,9 @@ void UninstallExceptionHandler()
 
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
 
+static struct sigaction old_sa_segv;
+static struct sigaction old_sa_bus;
+
 static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
 {
   if (sig != SIGSEGV && sig != SIGBUS)
@@ -264,10 +267,38 @@ static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
                                  ))
   {
     // retry and crash
-    signal(SIGSEGV, SIG_DFL);
-#ifdef __APPLE__
-    signal(SIGBUS, SIG_DFL);
-#endif
+    // According to the sigaction man page, if sa_flags "SA_SIGINFO" is set to the sigaction
+    // function pointer, otherwise sa_handler contains one of:
+    // SIG_DEF: The 'default' action is performed
+    // SIG_IGN: The signal is ignored
+    // Any other value is a function pointer to a signal handler
+
+    struct sigaction* old_sa;
+    if (sig == SIGSEGV)
+    {
+      old_sa = &old_sa_segv;
+    }
+    else
+    {
+      old_sa = &old_sa_bus;
+    }
+
+    if (old_sa->sa_flags & SA_SIGINFO)
+    {
+      old_sa->sa_sigaction(sig, info, raw_context);
+      return;
+    }
+    if (old_sa->sa_handler == SIG_DFL)
+    {
+      signal(sig, SIG_DFL);
+      return;
+    }
+    if (old_sa->sa_handler == SIG_IGN)
+    {
+      // Ignore signal
+      return;
+    }
+    old_sa->sa_handler(sig);
   }
 }
 
@@ -288,9 +319,9 @@ void InstallExceptionHandler()
   sa.sa_sigaction = &sigsegv_handler;
   sa.sa_flags = SA_SIGINFO;
   sigemptyset(&sa.sa_mask);
-  sigaction(SIGSEGV, &sa, nullptr);
+  sigaction(SIGSEGV, &sa, &old_sa_segv);
 #ifdef __APPLE__
-  sigaction(SIGBUS, &sa, nullptr);
+  sigaction(SIGBUS, &sa, &old_sa_bus);
 #endif
 }
 
@@ -302,6 +333,10 @@ void UninstallExceptionHandler()
   {
     free(old_stack.ss_sp);
   }
+  sigaction(SIGSEGV, &old_sa_segv, nullptr);
+#ifdef __APPLE__
+  sigaction(SIGBUS, &old_sa_bus, nullptr);
+#endif
 }
 #else  // _M_GENERIC or unsupported platform
 

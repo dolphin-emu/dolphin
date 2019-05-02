@@ -8,15 +8,18 @@
 
 #if defined(WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
-#elif defined(HAVE_X11)
-// Currently we're getting xlib handles passed to the backend.
-// If this ever changes to xcb, it's a simple change here.
+#endif
+
+#if defined(HAVE_X11)
 #define VK_USE_PLATFORM_XLIB_KHR
-//#define VK_USE_PLATFORM_XCB_KHR
-#elif defined(ANDROID)
+#endif
+
+#if defined(ANDROID)
 #define VK_USE_PLATFORM_ANDROID_KHR
-#else
-//#warning Unknown platform
+#endif
+
+#if defined(__APPLE__)
+#define VK_USE_PLATFORM_MACOS_MVK
 #endif
 
 #include "vulkan/vulkan.h"
@@ -40,6 +43,6 @@ void UnloadVulkanLibrary();
 const char* VkResultToString(VkResult res);
 void LogVulkanResult(int level, const char* func_name, VkResult res, const char* msg, ...);
 
-#define LOG_VULKAN_ERROR(res, ...) LogVulkanResult(2, __FUNCTION__, res, __VA_ARGS__)
+#define LOG_VULKAN_ERROR(res, ...) LogVulkanResult(2, __func__, res, __VA_ARGS__)
 
 }  // namespace Vulkan

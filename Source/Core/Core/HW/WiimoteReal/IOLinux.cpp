@@ -258,8 +258,9 @@ int WiimoteLinux::IORead(u8* buf)
     if (errno == ENOTCONN)
     {
       // This can happen if the Bluetooth dongle is disconnected
-      ERROR_LOG(WIIMOTE, "Bluetooth appears to be disconnected.  "
-                         "Wiimote %i will be disconnected.",
+      ERROR_LOG(WIIMOTE,
+                "Bluetooth appears to be disconnected.  "
+                "Wiimote %i will be disconnected.",
                 m_index + 1);
     }
 

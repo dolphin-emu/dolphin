@@ -9,6 +9,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
+#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -1484,6 +1485,10 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
 
   case TextureFormat::CMPR:
     TexDecoder_DecodeImpl_CMPR(dst, src, width, height, texformat, tlut, tlutfmt, Wsteps4, Wsteps8);
+    break;
+
+  case TextureFormat::XFB:
+    TexDecoder_DecodeXFB(reinterpret_cast<u8*>(dst), src, width, height, width * 2);
     break;
 
   default:

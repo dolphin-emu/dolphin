@@ -13,7 +13,7 @@
 
 #include <cstddef>
 
-namespace std
+namespace mpark
 {
 struct in_place_t
 {
@@ -32,6 +32,7 @@ struct in_place_type_t
   explicit in_place_type_t() = default;
 };
 
+#ifdef MPARK_VARIABLE_TEMPLATES
 constexpr in_place_t in_place{};
 
 template <std::size_t I>
@@ -39,5 +40,6 @@ constexpr in_place_index_t<I> in_place_index{};
 
 template <typename T>
 constexpr in_place_type_t<T> in_place_type{};
+#endif
 
-}  // namespace std
+}  // namespace mpark

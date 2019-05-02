@@ -62,9 +62,10 @@ inline bool IsMMIOAddress(u32 address)
 // The block ID can easily be computed by simply checking bit 24 (CC vs. CD).
 inline u32 UniqueID(u32 address)
 {
-  _dbg_assert_msg_(MEMMAP, ((address & 0xFFFF0000) == 0x0C000000) ||
-                               ((address & 0xFFFF0000) == 0x0D000000) ||
-                               ((address & 0xFFFF0000) == 0x0D800000),
+  DEBUG_ASSERT_MSG(MEMMAP,
+                   ((address & 0xFFFF0000) == 0x0C000000) ||
+                       ((address & 0xFFFF0000) == 0x0D000000) ||
+                       ((address & 0xFFFF0000) == 0x0D800000),
                    "Trying to get the ID of a non-existing MMIO address.");
 
   return (((address >> 24) & 1) << 16) | (address & 0xFFFF);
@@ -210,13 +211,13 @@ private:
 template <>
 inline u64 Mapping::Read<u64>(u32 addr)
 {
-  _dbg_assert_(MEMMAP, 0);
+  DEBUG_ASSERT(0);
   return 0;
 }
 
 template <>
 inline void Mapping::Write(u32 addr, u64 val)
 {
-  _dbg_assert_(MEMMAP, 0);
+  DEBUG_ASSERT(0);
 }
 }

@@ -56,15 +56,15 @@ private:
   static HMODULE m_xaudio2_dll;
 
   static bool InitLibrary();
+  void Stop();
 
 public:
   XAudio2_7();
-  virtual ~XAudio2_7();
+  ~XAudio2_7() override;
 
-  bool Start() override;
-  void Stop() override;
+  bool Init() override;
 
-  void Clear(bool mute) override;
+  bool SetRunning(bool running) override;
   void SetVolume(int volume) override;
 
   static bool isValid() { return InitLibrary(); }

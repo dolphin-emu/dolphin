@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -16,85 +17,168 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
-Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor)
+Cursor::Cursor(const std::string& name_)
+    : ReshapableInput(name_, name_, GroupType::Cursor), m_last_update(Clock::now())
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(named_direction));
+    controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
 
-  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Recenter")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 20));
-  boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Relative Input"), false));
+  // Default values are optimized for "Super Mario Galaxy 2".
+  // This seems to be acceptable for a good number of games.
+
+  AddSetting(&m_vertical_offset_setting,
+             // i18n: Refers to a positional offset applied to an emulated wiimote.
+             {_trans("Vertical Offset"),
+              // i18n: The symbol/abbreviation for centimeters.
+              _trans("cm")},
+             10, -100, 100);
+
+  AddSetting(&m_yaw_setting,
+             // i18n: Refers to an amount of rotational movement about the "yaw" axis.
+             {_trans("Total Yaw"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("°"),
+              // i18n: Refers to emulated wii remote movements.
+              _trans("Total rotation about the yaw axis.")},
+             15, 0, 180);
+
+  AddSetting(&m_pitch_setting,
+             // i18n: Refers to an amount of rotational movement about the "pitch" axis.
+             {_trans("Total Pitch"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("°"),
+              // i18n: Refers to emulated wii remote movements.
+              _trans("Total rotation about the pitch axis.")},
+             15, 0, 180);
+
+  AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
+  AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
 }
 
-void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState* const z,
-                      const bool adjusted)
+Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
 {
-  const ControlState zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
+  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-  // silly being here
-  if (zz > m_z)
-    m_z = std::min(m_z + 0.1, zz);
-  else if (zz < m_z)
-    m_z = std::max(m_z - 0.1, zz);
+  // Return raw values. (used in UI)
+  if (!adjusted)
+    return {x, y};
 
-  *z = m_z;
+  return Reshape(x, y, 0.0);
+}
 
-  // hide
-  if (controls[6]->control_ref->State() > 0.5)
+ControlState Cursor::GetGateRadiusAtAngle(double ang) const
+{
+  return SquareStickGate(1.0).GetRadiusAtAngle(ang);
+}
+
+Cursor::StateData Cursor::GetState(const bool adjusted)
+{
+  ControlState z = controls[4]->control_ref->State() - controls[5]->control_ref->State();
+
+  if (!adjusted)
   {
-    *x = 10000;
-    *y = 0;
+    const auto raw_input = GetReshapableState(false);
+
+    return {raw_input.x, raw_input.y, z};
   }
-  else
+
+  const auto input = GetReshapableState(true);
+
+  // TODO: Using system time is ugly.
+  // Kill this after state is moved into wiimote rather than this class.
+  const auto now = Clock::now();
+  const auto ms_since_update =
+      std::chrono::duration_cast<std::chrono::milliseconds>(now - m_last_update).count();
+  m_last_update = now;
+
+  const double max_step = STEP_PER_SEC / 1000.0 * ms_since_update;
+  const double max_z_step = STEP_Z_PER_SEC / 1000.0 * ms_since_update;
+
+  // Apply deadzone to z:
+  z = ApplyDeadzone(z, GetDeadzonePercentage());
+
+  // Smooth out z movement:
+  // FYI: Not using relative input for Z.
+  m_state.z += MathUtil::Clamp(z - m_state.z, -max_z_step, max_z_step);
+
+  // Relative input:
+  if (m_relative_setting.GetValue())
   {
-    ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-    ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
-
-    // adjust cursor according to settings
-    if (adjusted)
+    // Recenter:
+    if (controls[7]->control_ref->State() > BUTTON_THRESHOLD)
     {
-      xx *= (numeric_settings[1]->GetValue() * 2);
-      yy *= (numeric_settings[2]->GetValue() * 2);
-      yy += (numeric_settings[0]->GetValue() - 0.5);
-    }
-
-    // relative input
-    if (boolean_settings[0]->GetValue())
-    {
-      const ControlState deadzone = numeric_settings[3]->GetValue();
-      // deadzone to avoid the cursor slowly drifting
-      if (std::abs(xx) > deadzone)
-        m_x = MathUtil::Clamp(m_x + xx * SPEED_MULTIPLIER, -1.0, 1.0);
-      if (std::abs(yy) > deadzone)
-        m_y = MathUtil::Clamp(m_y + yy * SPEED_MULTIPLIER, -1.0, 1.0);
-
-      // recenter
-      if (controls[7]->control_ref->State() > 0.5)
-      {
-        m_x = 0.0;
-        m_y = 0.0;
-      }
+      m_state.x = 0.0;
+      m_state.y = 0.0;
     }
     else
     {
-      m_x = xx;
-      m_y = yy;
+      m_state.x = MathUtil::Clamp(m_state.x + input.x * max_step, -1.0, 1.0);
+      m_state.y = MathUtil::Clamp(m_state.y + input.y * max_step, -1.0, 1.0);
     }
-
-    *x = m_x;
-    *y = m_y;
   }
+  // Absolute input:
+  else
+  {
+    m_state.x = input.x;
+    m_state.y = input.y;
+  }
+
+  StateData result = m_state;
+
+  const bool autohide = m_autohide_setting.GetValue();
+
+  // Auto-hide timer:
+  // TODO: should Z movement reset this?
+  if (!autohide || std::abs(m_prev_result.x - result.x) > AUTO_HIDE_DEADZONE ||
+      std::abs(m_prev_result.y - result.y) > AUTO_HIDE_DEADZONE)
+  {
+    m_auto_hide_timer = AUTO_HIDE_MS;
+  }
+  else if (m_auto_hide_timer)
+  {
+    m_auto_hide_timer -= std::min<int>(ms_since_update, m_auto_hide_timer);
+  }
+
+  m_prev_result = result;
+
+  // If auto-hide time is up or hide button is held:
+  if (!m_auto_hide_timer || controls[6]->control_ref->State() > BUTTON_THRESHOLD)
+  {
+    result.x = std::numeric_limits<ControlState>::quiet_NaN();
+    result.y = 0;
+  }
+
+  return result;
 }
+
+ControlState Cursor::GetTotalYaw() const
+{
+  return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
+}
+
+ControlState Cursor::GetTotalPitch() const
+{
+  return m_pitch_setting.GetValue() * MathUtil::TAU / 360;
+}
+
+ControlState Cursor::GetVerticalOffset() const
+{
+  return m_vertical_offset_setting.GetValue() / 100;
+}
+
+bool Cursor::StateData::IsVisible() const
+{
+  return !std::isnan(x);
+}
+
 }  // namespace ControllerEmu

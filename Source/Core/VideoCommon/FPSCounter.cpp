@@ -21,7 +21,10 @@ FPSCounter::FPSCounter()
 void FPSCounter::LogRenderTimeToFile(u64 val)
 {
   if (!m_bench_file.is_open())
-    m_bench_file.open(File::GetUserPath(D_LOGS_IDX) + "render_time.txt");
+  {
+    File::OpenFStream(m_bench_file, File::GetUserPath(D_LOGS_IDX) + "render_time.txt",
+                      std::ios_base::out);
+  }
 
   m_bench_file << std::fixed << std::setprecision(8) << (val / 1000.0) << std::endl;
 }

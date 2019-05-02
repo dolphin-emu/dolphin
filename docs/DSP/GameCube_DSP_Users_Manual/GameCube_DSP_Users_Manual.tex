@@ -1,0 +1,3747 @@
+\batchmode
+\makeatother
+\documentclass[oneside,english,a4paper,10pt,oneside,openany,final]{memoir}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\makeatletter
+
+\usepackage{array}                         % Setting typefaces on a column-wide basis
+\usepackage{babel}                         % Manages language rules
+\usepackage{bytefield}                     % Creation of byte overviews
+\usepackage[a4paper, margin=1in]{geometry} % Page geometry
+\usepackage{float}                         % Used for the H specifier in tables
+\usepackage[T1]{fontenc}                   % Font encoding
+\usepackage[latin9]{inputenc}              % Input encoding
+\usepackage{listings}                      % Code listings
+\usepackage{longtable}                     % LaTeX is hilarious and tables by default cannot span more than one page
+\usepackage{lmodern}                       % Latin Modern font
+\usepackage{microtype}                     % Allow conditional disabling of ligatures
+\usepackage{multirow}                      % Multi-row tables
+\usepackage{parskip}                       % Handle non-indented paragraphs "properly"
+\usepackage{upquote}                       % Use proper quotes in verbatim/listing environments
+\usepackage[bookmarks=true,
+            bookmarksnumbered=true,
+            colorlinks=true,
+            linkcolor=blue,
+            linktocpage=true,
+            pdfcreator={Duddie},
+            pdftex,
+            pdfpagelabels=true,
+            pdfpagemode=UseOutlines,
+            pdfstartview=FitH,
+            pdfsubject={GameCube DSP User's Manual},
+            pdftitle={GameCube DSP User's Manual},
+            plainpages=false
+           ]{hyperref}                     % Support document hyperlinking
+
+% Paragraph settings for main body text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+\setlength{\partopsep}{0pt}
+
+% Disable ligatures in the teletype font family
+\DisableLigatures[-]{family=tt*}
+
+% Document front page material
+\title{\textbf{\Huge GameCube DSP User's Manual}}
+\author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
+\date{\today\\v0.0.6}
+
+% Title formatting commands
+\newcommand{\OpcodeTitle}[1]{\subsection{\textbf{\Large #1}}}
+
+% Formatting/self-documenting commands
+\newcommand{\Address}[1]{\texttt{#1}}
+\newcommand{\Code}[1]{\texttt{#1}}
+\newcommand{\Exception}[1]{\texttt{#1}}
+\newcommand{\Flag}[1]{\texttt{#1}}
+\newcommand{\Function}[1]{\texttt{#1}}
+\newcommand{\InlineExpression}[1]{\texttt{#1}}
+\newcommand{\Opcode}[1]{\texttt{#1}}
+\newcommand{\Register}[1]{\texttt{#1}}
+\newcommand{\RegisterField}[1]{\texttt{#1}}
+\newcommand{\Value}[1]{\texttt{#1}}
+\newcommand{\Variable}[1]{\texttt{#1}}
+
+% Creates a table displaying the bits given in a register
+% Useful for avoiding boilerplate
+%
+% Accepts an address, register name, description, and bit layout (in that exact order)
+%
+\newcommand{\RegisterBitOverview}[4]{
+  \begin{table}[H]
+  \centering
+  \begin{tabular}{|lcl|}
+  \hline
+  \Address{#1} & \Register{#2} & \multicolumn{1}{r|}{#3} \\ \hline
+               & \texttt{#4}   &                         \\ \hline
+  \end{tabular}
+  \end{table}
+}
+
+% Environment for describing the functionality of bits following a \RegisterBitOverview
+\newenvironment{RegisterBitDescriptions}
+{
+  \begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|p{10cm}|}
+  \hline
+  \textbf{Bit} & \textbf{Name} & \textbf{R/W} & \textbf{Action} \\ \hline
+}
+{
+  \end{tabular}
+  \end{table}
+}
+
+% Used within a RegisterBitDescriptions environment to describe a bit or series of bits.
+\newenvironment{RegisterBitDescription}[4]
+{
+  #1 & \RegisterField{#2} & \texttt{#3} & #4 \\ \hline
+}
+{
+}
+
+% Used for describing functions that provide pseudocode
+\newcommand{\FunctionPseudocode}[3]
+{
+  \texttt{#1}
+
+  \begin{itemize}
+  \item \textbf{Description}: \\ #2
+  \item \textbf{Operation}: \\ #3
+  \end{itemize}
+}
+
+% bitbox helper for monospaced text so all usage sites of the bitbox don't
+% need to specify \texttt{} over and over.
+%
+% First argument is the size of the bitbox (1-based).
+% Second argument is the text to place within the bitbox.
+%
+\newcommand{\monobitbox}[2]{\bitbox{#1}{\texttt{#2}}}
+
+% Environment for specifying an opcode.
+\newenvironment{DSPOpcode}[1]
+{
+  \OpcodeTitle{#1}
+}
+{
+  % Each opcode should be followed by a page break to maintain clean separation of opcodes.
+  \pagebreak{}
+}
+
+% Defines the formatting for an opcode bytefield.
+% The given argument specifies how many bits wide
+% the bytefield should be.
+%
+% Note that we perform a subtraction by one, since
+% we want to make the header range from 0-(N-1) to
+% match regular bit field listings (i.e. we turn a 1-based
+% specification of bits into a 0-based one)
+\newenvironment{DSPOpcodeBytefield}[1]
+{
+  \begin{center}
+  \begin{bytefield}[endianness=big]{#1}
+    \bitheader{0-{\the\numexpr #1 - 1\relax}} \\
+}
+{
+  \end{bytefield}
+  \end{center}
+}
+
+% Environment for describing the format of a DSP opcode
+\lstnewenvironment{DSPOpcodeFormat}
+{
+  \textbf{Format:}
+  \lstset{basicstyle=\ttfamily}
+}
+{
+}
+
+% Environment for providing a DSP opcode description
+\newenvironment{DSPOpcodeDescription}
+{
+  \textbf{Description:}
+  \begin{description}
+}
+{
+  \end{description}
+}
+
+% Environment for providing the pseudocode displaying the functional operation of an opcode
+\lstnewenvironment{DSPOpcodeOperation}
+{
+\textbf{Operation:}
+\lstset{basicstyle=\ttfamily}
+}
+{
+}
+
+% Environment for describing a not for a DSP opcode
+\newenvironment{DSPOpcodeNote}
+{
+  \textbf{Note:}
+  \begin{description}
+}
+{
+  \end{description}
+}
+
+% Environment for a See Also section per opcode.
+\newenvironment{DSPOpcodeSeeAlso}
+{
+  \textbf{See also:}
+  \begin{description}
+}
+{
+  \end{description}
+}
+
+\makeatother
+\begin{document}
+\maketitle{}
+
+\pagebreak{}
+\vspace*{\fill}
+
+Copyright (c) 2005 Duddie. Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.2 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included in the section entitled ``GNU Free Documentation License''.
+
+\pagebreak{}
+\tableofcontents{}
+\pagebreak{}
+
+\addcontentsline{toc}{chapter}{Disclaimer}
+\textbf{\LARGE Disclaimer}
+\vspace{5mm}
+
+This documentation is no way endorsed by or affiliated with Nintendo, Nintendo of America or its licenses. GameCube is a trademark of Nintendo of America. Other trademarked names used in this documentation are trademarks of their respective owners.
+
+This documentation is provided ``AS IS'' and can be wrong, incomplete or in any other way useless.
+
+This documentation cannot be used for any commercial purposes without prior agreement received from authors.
+
+The purpose of this documentation is purely academic and it aims at understanding described hardware. It is based on academic reverse engineering of hardware.
+
+\pagebreak{}
+\addcontentsline{toc}{chapter}{Version History}
+\textbf{\LARGE Version History}
+\vspace{5mm}
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Change}                                                                          \\ \hline
+0.0.1            & 2005.05.08    & Duddie          & Initial release                                                                          \\ \hline
+0.0.2            & 2005.05.09    & Duddie          & Added \Register{\$prod} and \Register{\$config} registers, table of opcodes, disclaimer. \\ \hline
+0.0.3            & 2005.05.09    & Duddie          & Fixed BLOOP and BLOOPI and added description of the loop stack.                          \\ \hline
+0.0.4            & 2005.05.12    & Duddie          & Added preliminary DSP memory map and opcode syntax.                                      \\ \hline
+0.0.5            & 2018.04.09    & Lioncache       & Converted document over to LaTeX.                                                        \\ \hline
+0.0.6            & 2018.04.13    & BhaaL           & Updated register tables, fixed opcode operations                                         \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\addcontentsline{toc}{chapter}{GNU Documentation License 1.2}
+
+GNU Free Documentation License
+
+Version 1.2, November 2002
+
+  Copyright (C) 2000,2001,2002  Free Software Foundation, Inc.
+  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  Everyone is permitted to copy and distribute verbatim copies
+  of this license document, but changing it is not allowed.
+
+0. PREAMBLE
+
+The purpose of this License is to make a manual, textbook, or other functional and useful document "free" in the sense of freedom: to assure everyone the effective freedom to copy and redistribute it, with or without modifying it, either commercially or noncommercially. Secondarily, this License preserves for the author and publisher a way to get credit for their work, while not being considered responsible for modifications made by others.
+
+This License is a kind of "copyleft", which means that derivative works of the document must themselves be free in the same sense. It complements the GNU General Public License, which is a copyleft license designed for free software.
+
+We have designed this License in order to use it for manuals for free software, because free software needs free documentation: a free program should come with manuals providing the same freedoms that the software does. But this License is not limited to software manuals; it can be used for any textual work, regardless of subject matter or whether it is published as a printed book. We recommend this License principally for works whose purpose is instruction or reference.
+
+1. APPLICABILITY AND DEFINITIONS
+
+This License applies to any manual or other work, in any medium, that contains a notice placed by the copyright holder saying it can be distributed under the terms of this License. Such a notice grants a world-wide, royalty-free license, unlimited in duration, to use that work under the conditions stated herein. The "Document", below, refers to any such manual or work. Any member of the public is a licensee, and is addressed as "you". You accept the license if you copy, modify or distribute the work in a way requiring permission under copyright law.
+
+A "Modified Version" of the Document means any work containing the Document or a portion of it, either copied verbatim, or with modifications and/or translated into another language.
+
+A "Secondary Section" is a named appendix or a front-matter section of the Document that deals exclusively with the relationship of the publishers or authors of the Document to the Document's overall subject (or to related matters) and contains nothing that could fall directly within that overall subject. (Thus, if the Document is in part a textbook of mathematics, a Secondary Section may not explain any mathematics.) The relationship could be a matter of historical connection with the subject or with related matters, or of legal, commercial, philosophical, ethical or political position regarding them.
+
+The "Invariant Sections" are certain Secondary Sections whose titles are designated, as being those of Invariant Sections, in the notice that says that the Document is released under this License. If a section does not fit the above definition of Secondary then it is not allowed to be designated as Invariant. The Document may contain zero Invariant Sections. If the Document does not identify any Invariant Sections then there are none.
+
+The "Cover Texts" are certain short passages of text that are listed, as Front-Cover Texts or Back-Cover Texts, in the notice that says that the Document is released under this License. A Front-Cover Text may be at most 5 words, and a Back-Cover Text may be at most 25 words.
+
+A "Transparent" copy of the Document means a machine-readable copy, represented in a format whose specification is available to the general public, that is suitable for revising the document straightforwardly with generic text editors or (for images composed of pixels) generic paint programs or (for drawings) some widely available drawing editor, and that is suitable for input to text formatters or for automatic translation to a variety of formats suitable for input to text formatters. A copy made in an otherwise Transparent file format whose markup, or absence of markup, has been arranged to thwart or discourage subsequent modification by readers is not Transparent. An image format is not Transparent if used for any substantial amount of text. A copy that is not "Transparent" is called "Opaque".
+
+Examples of suitable formats for Transparent copies include plain ASCII without markup, Texinfo input format, LaTeX input format, SGML or XML using a publicly available DTD, and standard-conforming simple HTML, PostScript or PDF designed for human modification. Examples of transparent image formats include PNG, XCF and JPG. Opaque formats include proprietary formats that can be read and edited only by proprietary word processors, SGML or XML for which the DTD and/or processing tools are not generally available, and the machine-generated HTML, PostScript or PDF produced by some word processors for output purposes only.
+
+The "Title Page" means, for a printed book, the title page itself, plus such following pages as are needed to hold, legibly, the material this License requires to appear in the title page. For works in formats which do not have any title page as such, "Title Page" means the text near the most prominent appearance of the work's title, preceding the beginning of the body of the text.
+
+A section "Entitled XYZ" means a named subunit of the Document whose title either is precisely XYZ or contains XYZ in parentheses following text that translates XYZ in another language. (Here XYZ stands for a specific section name mentioned below, such as "Acknowledgements", "Dedications", "Endorsements", or "History".) To "Preserve the Title" of such a section when you modify the Document means that it remains a section "Entitled XYZ" according to this definition.
+
+The Document may include Warranty Disclaimers next to the notice which states that this License applies to the Document. These Warranty Disclaimers are considered to be included by reference in this License, but only as regards disclaiming warranties: any other implication that these Warranty Disclaimers may have is void and has no effect on the meaning of this License.
+
+2. VERBATIM COPYING
+
+You may copy and distribute the Document in any medium, either commercially or noncommercially, provided that this License, the copyright notices, and the license notice saying this License applies to the Document are reproduced in all copies, and that you add no other conditions whatsoever to those of this License. You may not use technical measures to obstruct or control the reading or further copying of the copies you make or distribute. However, you may accept compensation in exchange for copies. If you distribute a large enough number of copies you must also follow the conditions in section 3.
+
+You may also lend copies, under the same conditions stated above, and you may publicly display copies.
+
+3. COPYING IN QUANTITY
+
+If you publish printed copies (or copies in media that commonly have printed covers) of the Document, numbering more than 100, and the Document's license notice requires Cover Texts, you must enclose the copies in covers that carry, clearly and legibly, all these Cover Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on the back cover. Both covers must also clearly and legibly identify you as the publisher of these copies. The front cover must present the full title with all words of the title equally prominent and visible. You may add other material on the covers in addition. Copying with changes limited to the covers, as long as they preserve the title of the Document and satisfy these conditions, can be treated as verbatim copying in other respects.
+
+If the required texts for either cover are too voluminous to fit legibly, you should put the first ones listed (as many as fit reasonably) on the actual cover, and continue the rest onto adjacent pages.
+
+If you publish or distribute Opaque copies of the Document numbering more than 100, you must either include a machine-readable Transparent copy along with each Opaque copy, or state in or with each Opaque copy a computer-network location from which the general network-using public has access to download using public-standard network protocols a complete Transparent copy of the Document, free of added material. If you use the latter option, you must take reasonably prudent steps, when you begin distribution of Opaque copies in quantity, to ensure that this Transparent copy will remain thus accessible at the stated location until at least one year after the last time you distribute an Opaque copy (directly or through your agents or retailers) of that edition to the public.
+
+It is requested, but not required, that you contact the authors of the Document well before redistributing any large number of copies, to give them a chance to provide you with an updated version of the Document.
+
+4. MODIFICATIONS
+
+You may copy and distribute a Modified Version of the Document under the conditions of sections 2 and 3 above, provided that you release the Modified Version under precisely this License, with the Modified Version filling the role of the Document, thus licensing distribution and modification of the Modified Version to whoever possesses a copy of it. In addition, you must do these things in the Modified Version:
+
+    A. Use in the Title Page (and on the covers, if any) a title distinct from that of the Document, and from those of previous versions (which should, if there were any, be listed in the History section of the Document). You may use the same title as a previous version if the original publisher of that version gives permission.
+    B. List on the Title Page, as authors, one or more persons or entities responsible for authorship of the modifications in the Modified Version, together with at least five of the principal authors of the Document (all of its principal authors, if it has fewer than five), unless they release you from this requirement.
+    C. State on the Title page the name of the publisher of the Modified Version, as the publisher.
+    D. Preserve all the copyright notices of the Document.
+    E. Add an appropriate copyright notice for your modifications adjacent to the other copyright notices.
+    F. Include, immediately after the copyright notices, a license notice giving the public permission to use the Modified Version under the terms of this License, in the form shown in the Addendum below.
+    G. Preserve in that license notice the full lists of Invariant Sections and required Cover Texts given in the Document's license notice.
+    H. Include an unaltered copy of this License.
+    I. Preserve the section Entitled "History", Preserve its Title, and add to it an item stating at least the title, year, new authors, and publisher of the Modified Version as given on the Title Page. If there is no section Entitled "History" in the Document, create one stating the title, year, authors, and publisher of the Document as given on its Title Page, then add an item describing the Modified Version as stated in the previous sentence.
+    J. Preserve the network location, if any, given in the Document for public access to a Transparent copy of the Document, and likewise the network locations given in the Document for previous versions it was based on. These may be placed in the "History" section. You may omit a network location for a work that was published at least four years before the Document itself, or if the original publisher of the version it refers to gives permission.
+    K. For any section Entitled "Acknowledgements" or "Dedications", Preserve the Title of the section, and preserve in the section all the substance and tone of each of the contributor acknowledgements and/or dedications given therein.
+    L. Preserve all the Invariant Sections of the Document, unaltered in their text and in their titles. Section numbers or the equivalent are not considered part of the section titles.
+    M. Delete any section Entitled "Endorsements". Such a section may not be included in the Modified Version.
+    N. Do not retitle any existing section to be Entitled "Endorsements" or to conflict in title with any Invariant Section.
+    O. Preserve any Warranty Disclaimers.
+
+If the Modified Version includes new front-matter sections or appendices that qualify as Secondary Sections and contain no material copied from the Document, you may at your option designate some or all of these sections as invariant. To do this, add their titles to the list of Invariant Sections in the Modified Version's license notice. These titles must be distinct from any other section titles.
+
+You may add a section Entitled "Endorsements", provided it contains nothing but endorsements of your Modified Version by various parties--for example, statements of peer review or that the text has been approved by an organization as the authoritative definition of a standard.
+
+You may add a passage of up to five words as a Front-Cover Text, and a passage of up to 25 words as a Back-Cover Text, to the end of the list of Cover Texts in the Modified Version. Only one passage of Front-Cover Text and one of Back-Cover Text may be added by (or through arrangements made by) any one entity. If the Document already includes a cover text for the same cover, previously added by you or by arrangement made by the same entity you are acting on behalf of, you may not add another; but you may replace the old one, on explicit permission from the previous publisher that added the old one.
+
+The author(s) and publisher(s) of the Document do not by this License give permission to use their names for publicity for or to assert or imply endorsement of any Modified Version.
+
+5. COMBINING DOCUMENTS
+
+You may combine the Document with other documents released under this License, under the terms defined in section 4 above for modified versions, provided that you include in the combination all of the Invariant Sections of all of the original documents, unmodified, and list them all as Invariant Sections of your combined work in its license notice, and that you preserve all their Warranty Disclaimers.
+
+The combined work need only contain one copy of this License, and multiple identical Invariant Sections may be replaced with a single copy. If there are multiple Invariant Sections with the same name but different contents, make the title of each such section unique by adding at the end of it, in parentheses, the name of the original author or publisher of that section if known, or else a unique number. Make the same adjustment to the section titles in the list of Invariant Sections in the license notice of the combined work.
+
+In the combination, you must combine any sections Entitled "History" in the various original documents, forming one section Entitled "History"; likewise combine any sections Entitled "Acknowledgements", and any sections Entitled "Dedications". You must delete all sections Entitled "Endorsements."
+
+6. COLLECTIONS OF DOCUMENTS
+
+You may make a collection consisting of the Document and other documents released under this License, and replace the individual copies of this License in the various documents with a single copy that is included in the collection, provided that you follow the rules of this License for verbatim copying of each of the documents in all other respects.
+
+You may extract a single document from such a collection, and distribute it individually under this License, provided you insert a copy of this License into the extracted document, and follow this License in all other respects regarding verbatim copying of that document.
+
+7. AGGREGATION WITH INDEPENDENT WORKS
+
+A compilation of the Document or its derivatives with other separate and independent documents or works, in or on a volume of a storage or distribution medium, is called an "aggregate" if the copyright resulting from the compilation is not used to limit the legal rights of the compilation's users beyond what the individual works permit. When the Document is included in an aggregate, this License does not apply to the other works in the aggregate which are not themselves derivative works of the Document.
+
+If the Cover Text requirement of section 3 is applicable to these copies of the Document, then if the Document is less than one half of the entire aggregate, the Document's Cover Texts may be placed on covers that bracket the Document within the aggregate, or the electronic equivalent of covers if the Document is in electronic form. Otherwise they must appear on printed covers that bracket the whole aggregate.
+
+8. TRANSLATION
+
+Translation is considered a kind of modification, so you may distribute translations of the Document under the terms of section 4. Replacing Invariant Sections with translations requires special permission from their copyright holders, but you may include translations of some or all Invariant Sections in addition to the original versions of these Invariant Sections. You may include a translation of this License, and all the license notices in the Document, and any Warranty Disclaimers, provided that you also include the original English version of this License and the original versions of those notices and disclaimers. In case of a disagreement between the translation and the original version of this License or a notice or disclaimer, the original version will prevail.
+
+If a section in the Document is Entitled "Acknowledgements", "Dedications", or "History", the requirement (section 4) to Preserve its Title (section 1) will typically require changing the actual title.
+
+9. TERMINATION
+
+You may not copy, modify, sublicense, or distribute the Document except as expressly provided for under this License. Any other attempt to copy, modify, sublicense or distribute the Document is void, and will automatically terminate your rights under this License. However, parties who have received copies, or rights, from you under this License will not have their licenses terminated so long as such parties remain in full compliance.
+
+10. FUTURE REVISIONS OF THIS LICENSE
+
+The Free Software Foundation may publish new, revised versions of the GNU Free Documentation License from time to time. Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns. See https://www.gnu.org/licenses/.
+
+Each version of the License is given a distinguishing version number. If the Document specifies that a particular numbered version of this License "or any later version" applies to it, you have the option of following the terms and conditions either of that specified version or of any later version that has been published (not as a draft) by the Free Software Foundation. If the Document does not specify a version number of this License, you may choose any version ever published (not as a draft) by the Free Software Foundation. 
+
+\pagebreak{}
+
+\chapter{Overview}
+
+\section{DSP Memory Map}
+
+The DSP accesses memory in words, so all addresses refer to words. A DSP word is 16 bits in size.
+
+Instruction Memory (IMEM) is divided into instruction RAM (IRAM) and instruction ROM (IROM).
+
+Exception vectors are located at the top of the RAM and occupy the first 8 words.
+
+DSP IRAM is mapped through as first 8KB of ARAM (Accelerator RAM), therefore the CPU can DMA DSP code to DSP IRAM. This usually occurs during boot time, as the DSP ROM is not enabled at cold reset and needs to be reenabled by a small stub executed in IRAM.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0x0000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x0FFF}\end{tabular} & \texttt{IRAM} \\ \hline
+ &  \\ \hline
+\begin{tabular}[c]{@{}l@{}}\texttt{0x8000}\\ \\ \\ \\ \\ \\ \\ \\ \texttt{0x8FFF}\end{tabular} & \texttt{IROM} \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\chapter{Registers}
+
+\section{Register names}
+
+The DSP has 32 16-bit registers, although their individual purpose and their function differ from register to register.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+                &                  &                      &                             \\ \hline
+\Register{\$0}  & \Register{\$r00} & \Register{\$ar0}     & Addressing register 0       \\ \hline
+\Register{\$1}  & \Register{\$r01} & \Register{\$ar1}     & Addressing register 1       \\ \hline
+\Register{\$2}  & \Register{\$r02} & \Register{\$ar2}     & Addressing register 2       \\ \hline
+\Register{\$3}  & \Register{\$r03} & \Register{\$ar3}     & Addressing register 3       \\ \hline
+\Register{\$4}  & \Register{\$r04} & \Register{\$ix0}     & Indexing register 0         \\ \hline
+\Register{\$5}  & \Register{\$r05} & \Register{\$ix1}     & Indexing register 1         \\ \hline
+\Register{\$6}  & \Register{\$r06} & \Register{\$ix2}     & Indexing register 2         \\ \hline
+\Register{\$7}  & \Register{\$r07} & \Register{\$ix3}     & Indexing register 3         \\ \hline
+\Register{\$8}  & \Register{\$r08} &                      &                             \\ \hline
+\Register{\$9}  & \Register{\$r09} &                      &                             \\ \hline
+\Register{\$10} & \Register{\$r0A} &                      &                             \\ \hline
+\Register{\$11} & \Register{\$r0B} &                      &                             \\ \hline
+\Register{\$12} & \Register{\$r0C} & \Register{\$st0}     & Call stack register         \\ \hline
+\Register{\$13} & \Register{\$r0D} & \Register{\$st1}     & Data stack register         \\ \hline
+\Register{\$14} & \Register{\$r0E} & \Register{\$st2}     & Loop address stack register \\ \hline
+\Register{\$15} & \Register{\$r0F} & \Register{\$st3}     & Loop counter register       \\ \hline
+\Register{\$16} & \Register{\$r10} & \Register{\$ac0.h}   & 40-bit Accumulator 0 (high) \\ \hline
+\Register{\$17} & \Register{\$r11} & \Register{\$ac1.h}   & 40-bit Accumulator 1 (high) \\ \hline
+\Register{\$18} & \Register{\$r12} & \Register{\$config}  & Config register             \\ \hline
+\Register{\$19} & \Register{\$r13} & \Register{\$sr}      & Status register             \\ \hline
+\Register{\$20} & \Register{\$r14} & \Register{\$prod.l}  & Product register (low)      \\ \hline
+\Register{\$21} & \Register{\$r15} & \Register{\$prod.m1} & Product register (mid 1)    \\ \hline
+\Register{\$22} & \Register{\$r16} & \Register{\$prod.h}  & Product register (high)     \\ \hline
+\Register{\$23} & \Register{\$r17} & \Register{\$prod.m2} & Product register (mid 2)    \\ \hline
+\Register{\$24} & \Register{\$r18} & \Register{\$ax0.l}   & 32-bit Accumulator 0 (low)  \\ \hline
+\Register{\$25} & \Register{\$r19} & \Register{\$ax0.h}   & 32-bit Accumulator 0 (high) \\ \hline
+\Register{\$26} & \Register{\$r1A} & \Register{\$ax1.l}   & 32-bit Accumulator 1 (low)  \\ \hline
+\Register{\$27} & \Register{\$r1B} & \Register{\$ax1.h}   & 32-bit Accumulator 1 (high) \\ \hline
+\Register{\$28} & \Register{\$r1C} & \Register{\$ac0.l}   & 40-bit Accumulator 0 (low)  \\ \hline
+\Register{\$29} & \Register{\$r1D} & \Register{\$ac1.l}   & 40-bit Accumulator 1 (low)  \\ \hline
+\Register{\$30} & \Register{\$r1E} & \Register{\$ac0.m}   & 40-bit Accumulator 0 (mid)  \\ \hline
+\Register{\$31} & \Register{\$r1F} & \Register{\$ac1.m}   & 40-bit Accumulator 1 (mid)  \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Accumulators}
+
+The DSP has two long 40-bit accumulators (\Register{\$acX}) and their short 24-bit forms (\Register{\$acsX}) that reflect the
+upper part of 40-bit accumulator. There are additional two 32-bit accumulators (\Register{\$axX}).
+
+\textbf{Accumulators \Register{\$acX}:}
+
+40-bit accumulator \Register{\$acX} (\Register{\$acX.hml}) consists of registers:
+
+\begin{lstlisting}[language=C++]
+$acX = $acX.h << 32 | $acX.m << 16 | $acX.l
+\end{lstlisting}
+
+\textbf{Short accumulators \Register{\$acs.X}:}
+
+24-bit accumulator \Register{\$acsX} (\Register{\$acX.hm}) consists of the upper 24 bits of accumulator \Register{\$acX}.
+
+\begin{lstlisting}[language=C++]
+$acsX = $acX.h << 16 | $acX.m
+\end{lstlisting}
+
+\textbf{Additional accumulators \Register{\$axX}:}
+
+\begin{lstlisting}[language=C++]
+$axX = $axX.h << 16 | $axX.l
+\end{lstlisting}
+
+\pagebreak{}
+
+\section{Stacks}
+
+The GameCube DSP contains four stack registers:
+
+\begin{itemize}
+  \item \Register{\$st0} -- Call stack register
+  \item \Register{\$st1} -- Data stack register
+  \item \Register{\$st2} -- Loop address stack register
+  \item \Register{\$st3} -- Loop counter register
+\end{itemize}
+
+Stacks are implemented in hardware and have limited depth. The data stack is limited to four values
+and the call stack is limited to eight values. The loop stack is limited to four values.
+Upon underflow or overflow of any of the stack registers exception \Exception{STOVF} is raised.
+
+The loop stack is used to control execution of repeated blocks of instructions. Whenever there is a value in
+\Register{\$st2} and the current PC is equal to the value in \Register{\$st2}, then the value in \Register{\$st3} is decremented.
+If the value is not zero, then the PC is modified by the value from call stack \Register{\$st0}. Otherwise values from the call stack
+\Register{\$st0} and both loop stacks, \Register{\$st2} and \Register{\$st3}, are popped and execution continues at the next opcode.
+
+\pagebreak{}
+
+\section{Config register}
+
+Its purpose is unknown at this time. It is written with \Value{0x00FF} and \Value{0x0004} values.
+
+\pagebreak{}
+
+\section{Status register}
+
+Status register \Register{\$sr} reflects flags computed on accumulators after logical or arithmetic operations.
+Furthermore, it also contains control bits to configure the flow of certain operations.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Bit} & \textbf{Name} & \textbf{Comment}                                              \\ \hline
+\texttt{15}  & \texttt{SU}   & Operands are signed (1 = unsigned)                            \\ \hline
+\texttt{14}  & \texttt{SXM}  & Sign extension mode (0 = \texttt{set16}, 1 = \texttt{set40})  \\ \hline
+\texttt{13}  & \texttt{AM}   & Product multiply result by 2 (when \texttt{AM = 0})           \\ \hline
+\texttt{12}  &               &                                                               \\ \hline
+\texttt{11}  & \texttt{EIE}  & External interrupt enable                                     \\ \hline
+\texttt{10}  &               &                                                               \\ \hline
+\texttt{9}   & \texttt{IE}   & Interrupt enable                                              \\ \hline
+\texttt{8}   & \texttt{0}    & Hardwired to 0?                                               \\ \hline
+\texttt{7}   & \texttt{OS}   & Overflow (sticky)                                             \\ \hline
+\texttt{6}   & \texttt{LZ}   & Logic zero                                                    \\ \hline
+\texttt{5}   &               & Top two bits are equal                                        \\ \hline
+\texttt{4}   & \texttt{AS}   & Above s32                                                     \\ \hline
+\texttt{3}   & \texttt{S}    & Sign                                                          \\ \hline
+\texttt{2}   & \texttt{Z}    & Arithmetic zero                                               \\ \hline
+\texttt{1}   & \texttt{O}    & Overflow                                                      \\ \hline
+\texttt{0}   & \texttt{C}    & Carry                                                         \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\section{Product register}
+
+The product register is a register containing the intermediate product of a multiply or multiply and accumulation operation.
+It's result should never be used for calculation although the register can be read or written.
+It reflects the state of the internal multiply unit. The product is 40 bits with 1 bit of overflow.
+
+\begin{lstlisting}[language=C++]
+$prod = ($prod.h << 32) + (($prod.m1 + $prod.m2) << 16) + $prod.l
+\end{lstlisting}
+
+It needs to be noted that \InlineExpression{\$prod.m1 + \$prod.m2} overflow bit (bit 16) will be added to \Register{\$prod.h}.
+
+Bit \RegisterField{\$sr.AM} affects the result of the multiply unit.
+If \RegisterField{\$sr.AM} is equal 0 then the result of every multiply operation will be multiplied by two.
+
+\pagebreak{}
+
+\chapter{Exceptions}
+
+\section{Exception processing}
+
+Exception processing happens by setting the program counter to different exception vectors.
+At exception time, the exception program counter is stored at call stack \Register{\$st0} and status register \Register{\$sr} is stored at data stack \Register{\$st1}.
+
+\textbf{Operation:}
+\begin{lstlisting}[basicstyle=\ttfamily]
+PUSH_STACK($st0);
+$st0 = $pc;
+PUSH_STACK($st1);
+$st1 = $sr;
+$pc = exception_nr * 2;
+\end{lstlisting}
+
+\pagebreak{}
+
+\section{Exception vectors}
+
+Exception vectors are located at address \Address{0x0000} in Instruction RAM.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Level} & \textbf{Address} & \textbf{Name}  & \textbf{Description}          \\ \hline
+0              & \Address{0x0000} & \texttt{RESET} &                               \\ \hline
+1              & \Address{0x0002} & \texttt{STOVF} & Stack under/overflow          \\ \hline
+2              & \Address{0x0004} &                &                               \\ \hline
+3              & \Address{0x0006} &                &                               \\ \hline
+4              & \Address{0x0008} &                &                               \\ \hline
+5              & \Address{0x000A} & \texttt{ACCOV} & Accelerator address overflow  \\ \hline
+6              & \Address{0x000C} &                &                               \\ \hline
+7              & \Address{0x000E} & \texttt{INT}   & External interrupt (from CPU) \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\chapter{Hardware interface}
+
+\section{Hardware registers}
+
+Hardware registers occupy the address space at \Address{0xFFxx} in DSP memory space. Each register is 16 bits in width.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Address} & \textbf{Name}    & \textbf{Description}          \\ \hline
+\multicolumn{3}{|l|}{\textit{Mailboxes}}                            \\ \hline
+\Address{0xFFFE} & \Register{CMBH}  & CPU Mailbox H                 \\ \hline
+\Address{0xFFFF} & \Register{CMBL}  & CPU Mailbox L                 \\ \hline
+\Address{0xFFFC} & \Register{DMBH}  & DSP Mailbox H                 \\ \hline
+\Address{0xFFFD} & \Register{DMBL}  & DSP Mailbox L                 \\ \hline
+\multicolumn{3}{|l|}{\textit{DMA Interface}}                        \\ \hline
+\Address{0xFFCE} & \Register{DSMAH} & Memory address H              \\ \hline
+\Address{0xFFCF} & \Register{DSMAL} & Memory address L              \\ \hline
+\Address{0xFFCD} & \Register{DSPA}  & DSP memory address            \\ \hline
+\Address{0xFFC9} & \Register{DSCR}  & DMA control                   \\ \hline
+\Address{0xFFCB} & \Register{DSBL}  & Block size                    \\ \hline
+\multicolumn{3}{|l|}{\textit{Accelerator}}                          \\ \hline
+\Address{0xFFD4} & \Register{ACSAH} & Accelerator start address H   \\ \hline
+\Address{0xFFD5} & \Register{ACSAL} & Accelerator start address L   \\ \hline
+\Address{0xFFD6} & \Register{ACEAH} & Accelerator end address H     \\ \hline
+\Address{0xFFD7} & \Register{ACEAL} & Accelerator end address L     \\ \hline
+\Address{0xFFD8} & \Register{ACCAH} & Accelerator current address H \\ \hline
+\Address{0xFFD9} & \Register{ACCAL} & Accelerator current address L \\ \hline
+\Address{0xFFDD} & \Register{ACDAT} & Accelerator data              \\ \hline
+\multicolumn{3}{|l|}{\textit{Interrupts}}                           \\ \hline
+\Address{0xFFFB} & \Register{DIRQ}  & IRQ request                   \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\section{Interrupts}
+
+The DSP can raise interrupts at the CPU. Interrupts are usually used to signal that a DSP mailbox has been filled with new data.
+
+\RegisterBitOverview{0xFFFB}{DIRQ}{IRQ Request}{---- ---- ---- ---I}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{0}{I}{W}{\Value{1} - Raise interrupt at CPU}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\section{Mailboxes}
+
+\subsection{CPU Mailbox}
+
+The CPU Mailbox (CMB) is a register that allows sending 31 bits of information from the CPU to the DSP.
+
+\RegisterBitOverview{0xFFFE}{CMBH}{CPU Mailbox H}{Mddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15}{M}{R}{
+  \begin{tabular}[c]{@{}l@{}}
+    \Value{1} - Mailbox contains mail from the CPU\\ \Value{0} - Mailbox empty
+  \end{tabular}
+}
+\RegisterBitDescription{14--0}{d}{R}{Bits 30--16 of the mail sent from the CPU}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFFF}{CMBL}{CPU Mailbox L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{
+  Bits 15--0 of mail sent from the CPU. Reading of this register by the DSP causes the \RegisterField{CMBH.M}
+  bit to be cleared.
+}
+\end{RegisterBitDescriptions}
+
+\textbf{Operation:}
+
+From the CPU side, software usually checks the \RegisterField{M} bit of \Register{CMBH}. It takes action only in the case that this bit is \Value{0}.
+Said action is to write \Register{CMBH} first and then \Register{CMBL}. After writing to \Register{CMBL}, the mail is ready to be received by the DSP.
+
+From the DSP side, the DSP loops by probing the \RegisterField{M} bit. When this bit is \Value{1}, the DSP reads \Register{CMBH} first and then \Register{CMBL}.
+After reading \Register{CMBL}, \RegisterField{CMBH.M} will be cleared.
+
+\pagebreak{}
+
+\subsection{DSP Mailbox}
+
+The DSP mailbox (DMB) is an interface to send 31 bits of information from the DSP to the CPU.
+
+\RegisterBitOverview{0xFFFC}{DMBH}{DSP Mailbox H}{Mddd dddd dddd dddd}
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Bit}        & \textbf{Name}      & \textbf{R/W} & \textbf{Action}                                                                                                      \\ \hline
+\multirow{2}{*}{15} & \multirow{2}{*}{M} & \texttt{R}   & \begin{tabular}[c]{@{}l@{}}\Value{1} - Mailbox has not been received by CPU\\ \Value{0} - Mailbox empty\end{tabular} \\ \cline{3-4}
+                    &                    & \texttt{W}   & Does not matter. It will be set when DMBL is written to                                                              \\ \hline
+14--0               & \RegisterField{d}  & \texttt{W}   & Bits 30--16 of mail sent from the DSP to the CPU                                                                     \\ \hline
+\end{tabular}
+\end{table}
+
+\RegisterBitOverview{0xFFFD}{DMBL}{DSP Mailbox L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{
+  Bits 15--0 of mail sent from the DSP to the CPU. Writing to this register by the DSP causes the
+  \RegisterField{DMBH.M} bit to be set, indicating that the mail is ready.
+}
+\end{RegisterBitDescriptions}
+
+\textbf{Operation:}
+
+Sending mail from the DSP to the CPU can be achieved by writing mail to register \Register{DMBH} and then to register \Register{DMBL} in that order.
+After writing to \Register{DMBL}, bit \RegisterField{DMBH.M} will be set, signaling that the mail is ready to be received by the CPU.
+If the DSP needs to receive a response from the CPU, then it usually waits for the \RegisterField{M} bit to be cleared after sending a mail.
+If the DSP does processing when the CPU receives a mail, then it waits for the \RegisterField{M} bit to be cleared before issuing another mail to the CPU.
+
+\pagebreak{}
+
+\subsection{DMA}
+
+The GameCube DSP is connected to the memory bus through a DMA channel. DMA can be used to transfer data between DSP memory (both instruction and data) and main memory.
+
+\RegisterBitOverview{0xFFCE}{DSMAH}{Memory Address H}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{Bits 31--16 of the main memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCF}{DSMAL}{Memory Address L}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{R}{Bits 15--0 of the main memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCD}{DSPA}{DSP Address}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{Bits 15--0 of the DSP memory address}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFCB}{DSBL}{DSP Address}{dddd dddd dddd dddd}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{Length in bytes to transfer. Writing to this register starts a DMA transfer.}
+\end{RegisterBitDescriptions}
+
+\RegisterBitOverview{0xFFC9}{DSCR}{DSP Address}{---- ---- ---- ----}
+
+\begin{RegisterBitDescriptions}
+\RegisterBitDescription{15--0}{d}{W}{}
+\end{RegisterBitDescriptions}
+
+\pagebreak{}
+
+\section{Accelerator}
+
+The accelerator is used to transfer data from accelerator memory (ARAM) to DSP memory. The accelerator area can be marked with \Register{ACSA} (start) and \Register{ACEA} (end) addresses.
+Current address for the accelerator can be set or read from the \Register{ACCA} register. Reading from accelerator memory is done by reading from the \Register{ACDAT} register.
+This register contains data from ARAM pointed to by the \Register{ACCA} register.
+After reading the data, \Register{ACCA} is incremented by one.
+After \Register{ACCA} grows bigger than the area pointed to by \Register{ACEA}, it gets reset to a value from \Register{ACSA} and the \Exception{ACCOV} interrupt is generated.
+
+\pagebreak{}
+
+\chapter{Opcodes}
+
+\section{Opcode syntax}
+
+\vspace{3mm}
+\textbf{Basic opcode syntax:}
+
+\begin{lstlisting}[basicstyle=\ttfamily]
+OPC    <opcode parameters>
+\end{lstlisting}
+
+\textit{Above syntax is correct for all opcodes.}
+\vspace{5mm}
+
+\textbf{\textit{EXAMPLES:}}
+\begin{lstlisting}[basicstyle=\ttfamily]
+JMP  0x0300
+CALL loop
+HALT
+\end{lstlisting}
+
+\vspace{5mm}
+
+\textbf{Extended syntax:}
+
+\begin{lstlisting}[basicstyle=\ttfamily]
+OPC'EXOPC <opcode parameters> : <extended opcode parameters>
+\end{lstlisting}
+
+\textit{Above syntax is correct only for arithmetic opcodes, because those can be extended with additional load/store unit behavior.}
+\vspace{5mm}
+
+\textbf{\textit{EXAMPLES:}}
+\begin{lstlisting}[basicstyle=\ttfamily]
+DECM'L $acs0 : $acl.m, @ar0
+NX'MV  : $acx1.h, $ac0.l
+\end{lstlisting}
+
+\pagebreak{}
+
+\section{Operation --- Used Functions}
+
+Functions used for describing opcode operation.
+
+\begin{description}
+  \item \Function{PUSH\_STACK(\$stR)}
+  \begin{description}
+	\item \textbf{Description:} \\ 
+      Pushes value onto given stack referenced by stack register \Register{\$stR}. Operation moves values down in internal stack.
+
+    \item \textbf{Operation:} \\
+      \Code{stack\_stR[stack\_ptr\_stR++] = \$stR;}
+  \end{description}
+\end{description}
+
+\begin{description}
+  \item \Function{POP\_STACK(\$stR)}
+  \begin{description}
+	\item \textbf{Description:} \\ 
+      Pops value from stack referenced by stack register \Register{\$stR}. Operation moves values up in internal stack.
+
+    \item \textbf{Operation:} \\
+      \Code{\$stR = stack\_stR[--stack\_ptr\_stR];}
+  \end{description}
+\end{description}
+
+\begin{description}
+  \item \Function{FLAGS(val)}
+  \begin{description}
+    \item\textbf{Description:} \\
+      Calculates flags depending on given value or result of operation and sets corresponding bits in status register \Register{\$sr}.
+  \end{description}
+\end{description}
+
+\begin{description}
+  \item \Function{EXECUTE\_OPCODE(new\_pc)}
+  \begin{description}
+    \item \textbf{Description:} \\
+      Executes opcode at the given \Variable{new\_pc} address.
+  \end{description}
+\end{description}
+
+\pagebreak{}
+
+\section{Bit meanings}
+
+Opcode decoding uses special naming for bits and their decimal representations to provide easier understanding of bit fields in the opcode.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Binary form}          & \textbf{Decimal form}          & \textbf{Meaning}                             \\ \hline
+\texttt{d, dd, ddd, dddd}     & \texttt{D}                     & Destination register                         \\ \hline
+\texttt{s, ss, sss, ssss}     & \texttt{S}                     & Source register                              \\ \hline
+\texttt{t, tt, ttt, tttt}     & \texttt{T}                     & Source register                              \\ \hline
+\texttt{r, rr, rrr, rrrr}     & \texttt{R}                     & Register (either source or destination)      \\ \hline
+\texttt{Aaaaa(a)}             & \texttt{A, addrA}              & Address in either instruction or data memory \\ \hline
+\texttt{xxxx xxxx}            & \texttt{X}                     & Extended opcode                              \\ \hline
+\texttt{mmm(m)}               & \texttt{M, addrM}              & Address in memory                            \\ \hline
+\texttt{iii(i)}               & \texttt{I, Imm}                & Immediate value                              \\ \hline
+\texttt{cccc}                 & \texttt{cc}                    & Condition (see conditional opcodes)          \\ \hline
+\end{tabular}
+\end{table}
+
+\pagebreak{}
+
+\section{Conditional opcodes}
+
+Conditional opcodes are executed only when the condition described by their encoded conditional field has been met.
+The groups of conditional instructions are, \Opcode{CALL}, \Opcode{JMP}, \Opcode{IF}, and \Opcode{RET}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Bits} & \textbf{\texttt{cc}} & \textbf{Name}                & \textbf{Evaluated expression} \\ \hline
+\texttt{0b0000}        & \texttt{GE} & Greater than or equal        &                               \\ \hline
+\texttt{0b0001}        & \texttt{L}  & Less than                    &                               \\ \hline
+\texttt{0b0010}        & \texttt{G}  & Greater than                 &                               \\ \hline
+\texttt{0b0011}        & \texttt{LE} & Less than or equal           &                               \\ \hline
+\texttt{0b0100}        & \texttt{NE} & Not equal                    & \texttt{(\$sr \& 0x4) == 0}   \\ \hline
+\texttt{0b0101}        & \texttt{EQ} & Equal                        & \texttt{(\$sr \& 0x4) != 0}   \\ \hline
+\texttt{0b0110}        & \texttt{NC} & Not carry                    & \texttt{(\$sr \& 0x1) == 0}   \\ \hline
+\texttt{0b0111}        & \texttt{C}  & Carry                        & \texttt{(\$sr \& 0x1) != 0}   \\ \hline
+\texttt{0b1000}        &             & Below s32                    & \texttt{(\$sr \& 0x10) == 0}  \\ \hline
+\texttt{0b1001}        &             & Above s32                    & \texttt{(\$sr \& 0x10) != 0}  \\ \hline
+\texttt{0b1010}        &             &                              &                               \\ \hline
+\texttt{0b1011}        &             &                              &                               \\ \hline
+\texttt{0b1100}        & \texttt{NZ} & Not zero                     & \texttt{(\$sr \& 0x40) == 0}  \\ \hline
+\texttt{0b1101}        & \texttt{ZR} & Zero                         & \texttt{(\$sr \& 0x40) != 0}  \\ \hline
+\texttt{0b1110}        & \texttt{O}  & Overflow                     & \texttt{(\$sr \& 0x2) != 0}   \\ \hline
+\texttt{0b1111}        &             & \textless always\textgreater &                               \\ \hline
+\end{tabular}
+\end{table}
+
+\textbf{Note:}
+
+There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and \texttt{ZR}/\texttt{NZ}.
+\texttt{EQ}/\texttt{NE} pair operates on arithmetic zero flag (arithmetic 0) while \texttt{ZR}/\texttt{NZ} pair operates on logic zero flag (logic 0).
+
+\pagebreak{}
+
+\section{Alphabetical list of opcodes}
+
+\pagebreak{}
+
+\begin{DSPOpcode}{ADD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0100} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADD $acD, $ac(1-D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds accumulator \Register{\$ac(1-D)} to accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD += $ac(1-D)
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDARN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0001} & \monobitbox{4}{ssdd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDARN $arD, $ixS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds indexing register \Register{\$ixS} to an addressing register \Register{\$arD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arD += $ixS
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDAX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0100} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDAX $acD, $axS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds secondary accumulator \Register{\$axS} to accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD += $axS
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDAXL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{00sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDAXL $acD, $axS.l
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds secondary accumulator \Register{\$axS.l} to accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD += $axS.l
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDI $amR, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds a 16-bit sign-extended immediate to mid accumulator \Register{\$acD.hm}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.hm += #I
+    FLAGS($acD)
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDIS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{010d} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDIS $acD, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds an 8-bit sign-extended immediate to mid accumulator \Register{\$acD.hm}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.hm += #I
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0100} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDP $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds the product register to the accumulator register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD += $prod
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDPAXZ}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDPAXZ $acD, $axS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds secondary accumulator \Register{\$axS} to product register and stores result
+          in accumulator register. Low 16-bits of \Register{\$acD} (\Register{\$acD.l}) are set to 0.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.hm = $prod.hm + $ax.h
+    $acD.l = 0
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ADDR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0100} & \monobitbox{4}{0ssd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ADDR $acD, $(0x18+S)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Adds register \Register{\$(0x18+S)} to the accumulator \Register{\$acD} register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD += $(0x18+S)
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ANDC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ANDC $acD.m, $ac(1-D).m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logic AND middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ax(1-D)}.m.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m &= $ac(1-D).m
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ANDCF}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ANDCF $acD.m, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets the logic zero (\Flag{LZ}) flag in status register \Register{\$sr} if the result of the logical AND operation
+          involving the mid part of accumulator \Register{\$acD.m} and the immediate value \Value{I} is equal to immediate value \Value{I}.
+          If the logical AND operation does not result in a value equal to \Value{I}, then the \Flag{LZ} flag is cleared.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($acD.m & I) == I
+        $sr.LZ = 1
+    ELSE
+        $sr.LZ = 0
+    ENDIF
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ANDF}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ANDF $acD.m, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Sets the logic zero (\Flag{LZ}) flag in status register \Register{\$sr} if the result of the logic AND operation
+          involving the mid part of accumulator \Register{\$acD.m} and the immediate value \Value{I} is equal to zero.
+          If the result is not equal to zero, then the \Flag{LZ} flag is cleared.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF ($acD.m & I) == 0
+        $sr.LZ = 1
+    ELSE
+        $sr.LZ = 0
+    ENDIF
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ANDI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ANDI $acD.m, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Performs a logical AND with the mid part of accumulator \Register{\$acD.m} and the immediate value \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m &= #I
+    FLAGS($acD)
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ANDR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{01sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ANDR $acD.m, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Performs a logical AND with the middle part of accumulator \Register{\$acD.m} and the high part of secondary accumulator, \Register{\$axS.h}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m &= $axS.h
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{010r} & \monobitbox{4}{10ii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASL $acR, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically left shifts the accumulator \Register{\$acR} by the amount specified by immediate \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR <<= I
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{010r} & \monobitbox{4}{11ii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASR $acR, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically right shifts accumulator \Register{\$acR} specified by the value calculated by negating sign-extended bits 0-6.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR >>= I
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ASR16}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1001} & \monobitbox{4}{r001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ASR16 $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Arithmetically right shifts accumulator \Register{\$acR} by 16.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR >>= 16
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{BLOOP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{011r} & \monobitbox{4}{rrrr} \\
+    \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    BLOOP $R, addrA
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Repeatedly execute a block of code starting at the following opcode until the counter specified by the value from register
+          \Register{\$R} reaches zero. Block ends at specified address \Address{addrA} inclusive. i.e. opcode at \Address{addrA} is the last
+          opcode included in loop. Counter is pushed on loop stack \Register{\$st3}, end of block address is pushed on loop stack
+          \Register{\$st2} and the repeat address is pushed on call stack \Register{\$st0}. Up to 4 nested loops are allowed.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $st0 = $pc + 2
+    $st2 = addrA
+    $st3 = $R
+    $pc += 2
+
+    // On real hardware, the below does not happen,
+    // this opcode only sets stack registers
+    WHILE ($st3--)
+        DO
+            EXECUTE_OPCODE($pc)
+        WHILE($pc != $st2)
+        $pc = $st0
+    END
+    $pc = addrA + 1
+    // Remove vaues from stack
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{BLOOPI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0001} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} \\
+    \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    BLOOPI #I, addrA
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Repeatedly execute a block of code starting at the following opcode until the counter specified by the immediate value \Value{I}
+          reaches zero. Block ends at specified address \Address{addrA} inclusive. i.e. opcode at \Address{addrA} is the last
+          opcode included in loop. Counter is pushed on loop stack \Register{\$st3}, end of block address is pushed on loop stack
+          \Register{\$st2} and the repeat address is pushed on call stack \Register{\$st0}. Up to 4 nested loops are allowed.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $st0 = $pc + 2
+    $st2 = addrA
+    $st3 = I
+    $pc += 2
+
+    // On real hardware, the below does not happen,
+    // this opcode only sets stack registers
+    WHILE ($st3--)
+        DO
+            EXECUTE_OPCODE($pc)
+        WHILE($pc != $st2)
+        $pc = $st0
+    END
+    $pc = addrA + 1
+    // Remove vaues from stack
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CALL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1011} & \monobitbox{4}{1111} \\
+    \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CALL addressA
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Call function. Push program counter of the instruction following ``call'' to call stack \Register{\$st0}.
+          Set program counter to address represented by the value that follows this \Opcode{CALL} instruction.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    // Must skip value that follows "call"
+    PUSH_STACK($st0)
+    $st0 = $pc + 2
+    $pc = addressA
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CALLcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1011} & \monobitbox{4}{cccc} \\
+    \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CALLcc addressA
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Call function if condition \Flag{cc} has been met. Push program counter of the instruction following
+          ``call'' to call stack \Register{\$st0}. Set program counter to address represented by the value that
+          follows this \Opcode{CALL} instruction.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    // Must skip value that follows "call"
+    IF (cc)
+        PUSH_STACK($st0)
+        $st0 = $pc + 2
+        $pc = addressA
+    ELSE
+        $pc += 2
+    ENDIF
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CALLR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0111} & \monobitbox{4}{rrr1} & \monobitbox{4}{1111}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CALLR $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Call function. Push program counter of the instruction following ``call'' to call stack \Register{\$st0}.
+          Set program counter to register \Register{\$R}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    PUSH_STACK($st0)
+    $st0 = $pc + 1
+    $pc = $R
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CLR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{r001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CLR $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Clears accumulator \Register{\$acR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR = 0
+    FLAGS($acR)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CLRL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{110r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CLRL $acR.l
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Clears \Register{\$acR.l} - low 16 bits of accumulator \Register{\$acR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR.l = 0
+    FLAGS($acR)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CLRP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{0100} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CLRP
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Clears product register \Register{\$prod}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod = 0 // See note below
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Actually product register gets cleared by setting registers with following values:
+    \begin{lstlisting}[basicstyle=\ttfamily]
+      $14 = 0x0000
+      $15 = 0xfff0
+      $16 = 0x00ff
+      $17 = 0x0010
+    \end{lstlisting}
+  \end{DSPOpcodeNote}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CMP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{0010} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CMP
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Compares accumulator \Register{\$ac0} with accumulator \Register{\$ac1}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr = FLAGS($ac0 - $ac1)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CMPI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CMPI $amD, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Compares mid accumulator \Register{\$acD.hm} (\Register{\$amD}) with sign-extended immediate value \Value{I}.
+          However, flags are set with regards to the whole accumulator register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    res = ($acD.hm - I) | $acD.l
+    FLAGS(res)
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{CMPIS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{011d} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    CMPIS $acD, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Compares accumulator with short immediate. Comparison is performed by subtracting the short immediate (8-bit sign-extended)
+          from mid accumulator \Register{\$acD.hm} and computing flags based on whole accumulator \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    FLAGS($acD - #I)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{DAR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{01dd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    DAR $arD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Decrement address register \Register{\$arD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arD--
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{DEC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{101d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    DEC $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Decrements accumulator \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD--
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{DECM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{100d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    DECM $acsD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Decrements 24-bit mid-accumulator \Register{\$acsD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acsD--
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{HALT}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0020} & \monobitbox{4}{0001}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    HALT
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Stops execution of DSP code. Sets bit \RegisterField{DSP\_CR\_HALT} in register \Register{DREG\_CR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    DREG_CR |= DSP_CR_HALT;
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{IAR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{10dd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    IAR $arD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Increment address register \Register{\$arD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arD++
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{IFcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{0111} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    IFcc
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Executes the following opcode if the condition described by \Flag{cccc} has been met.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        EXECUTE_OPCODE($pc + 1)
+    ELSE
+        $pc += 2
+    ENDIF
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ILRR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0001} & \monobitbox{4}{00ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ILRR $acD.m, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from instruction memory pointed by addressing register \Register{\$arS}
+          to mid accumulator register \Register{\$acD.m}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m = MEM[$arS]
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ILRRD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0001} & \monobitbox{4}{01ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ILRRD $acD.m, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from instruction memory pointed by addressing register \Register{\$arS}
+          to mid accumulator register \Register{\$acD.m}. Decrement addressing register \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m = MEM[$arS]
+    $arS--
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ILRRI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0001} & \monobitbox{4}{10ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ILRRI $acD.m, @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from instruction memory pointed by addressing register \Register{\$arS} to
+          mid accumulator register \Register{\$acD.m}. Increment addressing register \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m = MEM[$arS]
+    $arS++
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ILRRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0001} & \monobitbox{4}{11ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ILRRN $acD.m, @$arS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from instruction memory pointed by addressing register \Register{\$arS}
+          to mid accumulator register \Register{\$acD.m}. Add corresponding indexing register
+          \Register{\$ixS} to addressing register \Register{\$arS}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m = MEM[$arS]
+    $arS += $ixS
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{INC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{011d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    INC $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Increments accumulator \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD++
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{INCM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{010d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    INCM $acsD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Increments 24-bit mid-accumulator \Register{\$acsD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acsD++
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{JMP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1001} & \monobitbox{4}{1111} \\
+    \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    JMP addressA
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Jumps to \Address{addressA}. Set program counter to the address represented by the
+          value that follows this \Opcode{JMP} instruction.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $pc = addressA
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{Jcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1001} & \monobitbox{4}{cccc} \\
+    \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa} & \monobitbox{4}{aaaa}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    Jcc addressA
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Jumps to \Address{addressA} if condition \Flag{cc} has been met. Set program counter to the
+          address represented by the value that follows this \Opcode{Jcc} instruction.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        $pc = addressA
+    ELSE
+        $pc += 2
+    ENDIF
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{JMPR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0111} & \monobitbox{4}{rrr0} & \monobitbox{4}{1111}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    JMPR $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Jump to address; set program counter to a value from register \Register{\$R}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $pc = $R
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LOOP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{010r} & \monobitbox{4}{rrrr}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LOOP $R
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Repeatedly execute the following opcode until the counter specified by the value from register \Register{\$R} reaches zero.
+          Each execution decrements the counter. Register \Register{\$R} remains unchanged. If register \Register{\$R} is set to zero at the
+          beginning of loop then the looped instruction will not get executed.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    counter = $R
+    WHILE (counter--)
+        EXECUTE_OPCODE($pc + 1)
+    END
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LOOPI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0000} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LOOPI #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Repeatedly execute the following opcode until the counter specified by immediate value \Value{I} reaches zero.
+          Each execution decrements the counter. If immediate \Value{I} is set to zero at the
+          beginning of loop then the looped instruction will not get executed.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    counter = I
+    WHILE (counter--)
+        EXECUTE_OPCODE($pc + 1)
+    END
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{110d} & \monobitbox{4}{dddd} \\
+    \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LR $D, @M
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from data memory pointed by address \Address{M} to register \Register{\$D}.
+          Perform an additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = MEM[M]
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{100d} & \monobitbox{4}{dddd} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRI $D, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load immediate value \Value{I} to register \Register{\$D}.
+          Perform and additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = I
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRIS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{1ddd} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRIS $(0x18+D), #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load immediate value \Value{I} (8-bit sign-extended) to accumulator register \Register{\$(0x18+D)}.
+          Perform an additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = I
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1000} & \monobitbox{4}{0ssd} & \monobitbox{4}{dddd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRR $D, @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
+          Perform an additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = MEM[$S]
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRRD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1000} & \monobitbox{4}{1ssd} & \monobitbox{4}{dddd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRRD $D, @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
+          Decrements register \Register{\$S}.
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = MEM[$S]
+    $S--
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRRI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1001} & \monobitbox{4}{0ssd} & \monobitbox{4}{dddd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRRI $D, @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
+          Increments register \Register{\$S}.
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = MEM[$S]
+    $S++
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1001} & \monobitbox{4}{1ssd} & \monobitbox{4}{dddd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRRN $D, @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
+          Add indexing register \Register{\$(0x4+S)} to register \Register{\$S}.
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = MEM[$S]
+    $S += $(4+S)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LRS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0010} & \monobitbox{4}{0ddd} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LRS $(0x18+D), @M
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from data memory pointed by address \Address{M} (8-bit sign-extended) to register \Register{\$(0x18+D)}.
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[M]
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{010r} & \monobitbox{4}{00ii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSL $acR, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically left shifts accumulator \Register{\$acR} by the amount specified by value \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR <<= I
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSL16}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{000r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSL16 $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically left shifts accumulator \Register{\$acR} by 16.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR <<= 16
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{010r} & \monobitbox{4}{01ii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSR $acR, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically right shifts accumulator \Register{\$acR} by the amount calculated by negating sign-extended bits 0--6.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR >>= I
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{LSR16}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{010r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    LSR16 $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logically right shifts accumulator \Register{\$acR} by 16.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR >>= 16
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MADD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{001s} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MADD $axS.l, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply low part \Register{\$axS.l} of secondary accumulator \Register{\$axS} by high part \Register{\$axS.h} of secondary
+          accumulator \Register{\$axS} (treat them both as signed) and add result to product register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod += $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MADDC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1110} & \monobitbox{4}{10st} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MADDC $acS.l, $axT.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply middle part of accumulator \Register{\$acS.m} by high part of secondary accumulator
+          \Register{\$axT.h} (treat them both as signed) and add result to product register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod += $acS.l * $axT.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MADDX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1110} & \monobitbox{4}{00st} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MADDX $(0x18+S*2), $(0x19+T*2)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply one part of secondary accumulator \Register{\$ax0} (selected by \Value{S}) by one part of
+          secondary accumulator \Register{\$ax1} (selected by \Value{T}) (treat them both as signed) and add result to product register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod += $(0x18+S*2) * $(0x19+T*2)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MOV}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0110} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MOV $acD, $ac(1-D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Moves accumulator \Register{\$ax(1-D)} to accumulator \Register{\$axD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD = $ax(1-D)
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MOVAX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0110} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MOVAX $acD, $axS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Moves secondary accumulator \Register{\$axS} to accumulator \Register{\$axD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD = $axS
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MOVNP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MOVNP $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Moves negated multiply product from the \Register{\$prod} register to the accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD = -$prod
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MOVP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0110} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MOVP $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Moves multiply product from the \Register{\$prod} register to the accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD = $prod
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MOVPZ}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MOVPZ $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Moves multiply product from the \Register{\$prod} register to the accumulator \Register{\$acD} and sets \Register{\$acD.l} to 0.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.hm = $prod.hm
+    $acD.l = 0
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MOVR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0110} & \monobitbox{4}{0ssd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MOVR $acD, $(0x18+S)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Moves register \Register{\$(0x18+S)} (sign-extended) to middle accumulator \Register{\$acD.hm}. Sets \Register{\$acD.l} to 0.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.hm = $(0x18+S)
+    $acD.l = 0
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MRR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{11dd} & \monobitbox{4}{ddds} & \monobitbox{4}{ssss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MRR $D, $S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value from register \Register{\$S} to register \Register{\$D}.
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $D = $S
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MSUB}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1111} & \monobitbox{4}{011s} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MSUB $axS.l, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply low part \Register{\$axS.l} of secondary accumulator \Register{\$axS} by high part \Register{\$axS.h}
+          of secondary accumulator \Register{\$axS} (treat them both as signed) and
+          subtract result from product register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod -= $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MSUBC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1110} & \monobitbox{4}{11st} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MSUBC $acS.m, $axT.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply middle part of accumulator \Register{\$acS.m} by high part of secondary accumulator
+          \Register{\$axT.h} (treat them both as signed) and subtract result from product register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod -= $acS.m * $axT.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MSUBX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1110} & \monobitbox{4}{01st} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MSUBX $(0x18+S*2), $(0x19+T*2)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply one part of secondary accumulator \Register{\$ax0} (selected by \Value{S}) by one part of secondary accumulator
+          \Register{\$ax1} (selected by \Value{T}) (treat them both as signed) and subtract result from product register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod -= $(0x18+S*2) * $(0x19+T*2)
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MUL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1001} & \monobitbox{4}{s000} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MUL $axS.l, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply low part \Register{\$axS.l} of secondary accumulator \Register{\$axS} by high part \Register{\$axS.h}
+          of secondary accumulator \Register{\$axS} (treat them both as signed).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod = $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULAC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1001} & \monobitbox{4}{s10r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULAC $axS.l, $axS.h, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Add product register to accumulator register \Register{\$acR}. Multiply low part \Register{\$axS.l} of
+          secondary accumulator \Register{\$axS} by high part \Register{\$axS.h} of secondary accumulator
+          \Register{\$axS} (treat them both as signed).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR += $prod
+    $prod = $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{110s} & \monobitbox{4}{t000} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULC $acS.m, $axT.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h}
+          of secondary accumulator \Register{\$axS} (treat them both as signed).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod = $acS.m * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULCAC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{110s} & \monobitbox{4}{t10r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULCAC $acS.m, $axT.h, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
+          secondary accumulator \Register{\$axS} (treat them both as signed).
+          Add product register before multiplication to accumulator \Register{\$acR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    temp = $prod
+    $prod = $acS.m * $axS.h
+    $acR += temp
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULCMV}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{110s} & \monobitbox{4}{t11r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULCMV $acS.m, $axT.h, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
+          secondary accumulator \Register{\$axS} (treat them both as signed).
+          Move product register before multiplication to accumulator \Register{\$acR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    temp = $prod
+    $prod = $acS.m * $axS.h
+    $acR = temp
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULCMVZ}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{110s} & \monobitbox{4}{t01r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULCMVZ $acS.m, $axT.h, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply mid part of accumulator register \Register{\$acS.m} by high part \Register{\$axS.h} of
+          secondary accumulator \Register{\$axS} (treat them both as signed).
+          Move product register before multiplication to accumulator \Register{\$acR}.
+          Set low part of accumulator \Register{\$acR.l} to zero.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    temp = $prod
+    $prod = $acS.m * $axS.h
+    $acR.hm = temp.hm
+    $acR.l = 0
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULMV}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1001} & \monobitbox{4}{s11r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULMV $axS.l, $axS.h, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move product register to accumulator register \Register{\$acR}.
+          Multiply low part \Register{\$axS.l} of secondary accumulator Register{\$axS} by high part
+          \Register{\$axS.h} of secondary accumulator \Register{\$axS} (treat them both as signed).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR = $prod
+    $prod = $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULMVZ}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1001} & \monobitbox{4}{s01r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULMVZ $axS.l, $axS.h, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move product register to accumulator register \Register{\$acR} and clear low
+          part of accumulator register \Register{\$acR.l}. Multiply low part \Register{\$axS.l} of
+          secondary accumulator \Register{\$axS} by high part \Register{\$axS.h} of secondary accumulator
+          \Register{\$axS} (treat them both as signed).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR.hm = $prod.hm
+    $acR.l = 0
+    $prod = $axS.l * $axS.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{101s} & \monobitbox{4}{t000} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULX $ax0.S, $ax1.T
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Multiply one part \Register{\$ax0} by one part \Register{\$ax1} (treat them both as signed).
+          Part is selected by \Value{S} and \Value{T} bits. Zero selects low part, one selects high part.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $prod = (S == 0) ? $ax0.l : ax0.h * (T == 0) ? $ax1.l : $ax1.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULXAC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{101s} & \monobitbox{4}{t01r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULXAC $ax0.S, $ax1.T, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Add product register to accumulator register \Register{\$acR}.
+          Multiply one part \Register{\$ax0} by one part \Register{\$ax1} (treat them both as signed).
+          Part is selected by \Value{S} and \Value{T} bits.
+          Zero selects low part, one selects high part.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR += $prod
+    $prod = (S == 0) ? $ax0.l : ax0.h * (T == 0) ? $ax1.l : $ax1.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULXMV}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{101s} & \monobitbox{4}{t11r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULXMV $ax0.S, $ax1.T, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move product register to accumulator register \Register{\$acR}.
+          Multiply one part \Register{\$ax0} by one part \Register{\$ax1} (treat them both as signed).
+          Part is selected by \Value{S} and \Value{T} bits.
+          Zero selects low part, one selects high part.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR = $prod
+    $prod = (S == 0) ? $ax0.l : ax0.h * (T == 0) ? $ax1.l : $ax1.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{MULXMVZ}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{101s} & \monobitbox{4}{t01r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    MULXMVZ $ax0.S, $ax1.T, $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move product register to accumulator register \Register{\$acR} and
+          clear low part of accumulator register \Register{\$acR.l}. Multiply one part \Register{\$ax0} by one
+          part \Register{\$ax1} (treat them both as signed).
+          Part is selected by \Value{S} and \Value{T} bits.
+          Zero selects low part, one selects high part.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acR.hm = $prod.hm
+    $acR.l = 0
+    $prod = (S == 0) ? $ax0.l : ax0.h * (T == 0) ? $ax1.l : $ax1.h
+    $pc++
+  \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeSeeAlso}
+    \item \RegisterField{\$sr.AM} bit affects multiply result.
+  \end{DSPOpcodeSeeAlso}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{NEG}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0111} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    NEG $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Negates accumulator \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD =- $acD
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{NOP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{0000}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    NOP
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item No operation.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{NX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{-000} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    NX
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item No operation, but can be extended with extended opcode.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ORC}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ORC $acD.m, $ac(1-D).m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logic OR middle part of accumulator \Register{\$acD.m} with middle part of accumulator \Register{\$ax(1-D).m}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m |= $ac(1-D).m
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ORI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ORI $acD.m, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logical OR of accumulator mid part \Register{\$acD.m} with immediate value \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m |= #I
+    FLAGS($acD)
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{ORR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    ORR $acD.m, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logical OR middle part of accumulator \Register{\$acD.m} with high part of secondary accumulator \Register{\$axS.h}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m |= $axS.h
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{RET}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1101} & \monobitbox{4}{1111}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    RET
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Return from subroutine. Pops stored PC from call stack \Register{\$st0} and sets \Register{\$pc} to this location.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $pc = $st0
+    POP_STACK($st0)
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{RETcc}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1101} & \monobitbox{4}{cccc}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    RETcc
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Return from subroutine if condition \Flag{cc} has been met.
+          Pops stored PC from call stack \Register{\$st0} and sets \Register{\$pc} to this location.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    IF (cc)
+        POP_STACK($st0)
+    ELSE
+        $pc += 2
+    ENDIF
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{RTI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0010} & \monobitbox{4}{1111} & \monobitbox{4}{1111}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    RTI
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Return from exception. Pops stored status register \Register{\$sr} from data stack \Register{\$st1} and
+          program counter PC from call stack \Register{\$st0} and sets \Register{\$pc} to this location.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr = $st1
+    POP_STACK($st1)
+    $pc = $st0
+    POP_STACK($st0)
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SBSET}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0010} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SBSET #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Set bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr |= (I + 6)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SBCLR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0011} & \monobitbox{4}{0000} & \monobitbox{4}{0iii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SBCLR #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Clear bit of status register \Register{\$sr}. Bit number is calculated by adding 6 to immediate value \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $sr &= ~(I + 6)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{0110} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SI @M, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store 16-bit immediate value \Value{I} to a memory location pointed by address \Address{M} (\Address{M} is an 8-bit sign-extended value).
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[M] = I
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{0000} & \monobitbox{4}{111s} & \monobitbox{4}{ssss} \\
+    \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SR @M, $S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$S} to a memory pointed by address \Address{M}.
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[M] = $S
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1010} & \monobitbox{4}{0dds} & \monobitbox{4}{ssss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRR @$D, $S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from source register \Register{\$S} to a memory location pointed by addressing
+          register \Register{\$D}. Perform additional operation depending on source register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[$D] = $S
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRRD}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1010} & \monobitbox{4}{1dds} & \monobitbox{4}{ssss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRRD @$D, $S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from source register \Register{\$S} to a memory location pointed by addressing
+          register \Register{\$D}. Decrement register \Register{\$D}. Perform additional operation depending on source register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[$D] = $S
+    $D--
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRRI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1011} & \monobitbox{4}{0dds} & \monobitbox{4}{ssss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRRI @$D, $S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from source register \Register{\$S} to a memory location pointed by addressing
+          register \Register{\$D}. Increment register \Register{\$D}. Perform additional operation depending on source register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[$D] = $S
+    $D++
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRRN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0001} & \monobitbox{4}{1011} & \monobitbox{4}{1dds} & \monobitbox{4}{ssss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRRN @$D, $S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from source register \Register{\$S} to a memory location pointed by addressing
+          register \Register{\$D}. Add indexing register \Register{\$(0x4+D)} to register \Register{\$D}.
+          Perform additional operation depending on source register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[$D] = $S
+    $D += $(4+D)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SRS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0010} & \monobitbox{4}{1sss} & \monobitbox{4}{mmmm} & \monobitbox{4}{mmmm}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SRS @M, $(0x18+S)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$(0x18+S)} to a memory pointed by address \Address{M} (8-bit sign-extended).
+          Perform additional operation depending on destination register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[M] = $(0x18+S)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SUB}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0101} & \monobitbox{4}{110d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SUB $acD, $ac(1-D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Subtracts accumulator \Register{\$ac(1-D)} from accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD -= $ac(1-D)
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SUBAX}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0101} & \monobitbox{4}{10sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SUBAX $acD, $axS
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Subtracts secondary accumulator \Register{\$axS} from accumulator register \Register{\$acD}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD -= $axS
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SUBP}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0101} & \monobitbox{4}{111d} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SUBP $acD
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Subtracts product register from accumulator register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD -= $prod
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{SUBR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0101} & \monobitbox{4}{0ssd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    SUBR $acD, $(0x18+S)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Subtracts register \Register{\$(0x18+S)} from accumulator \Register{\$acD} register.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD -= $(0x18+S)
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{TST}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1011} & \monobitbox{4}{r001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    TST $acR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Test accumulator \Register{\$acR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    FLAGS($acR)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{TSTAXH}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{1000} & \monobitbox{4}{011r} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    TSTAXH $axR.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Test hight part of secondary accumulator \Register{\$axR.h}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    FLAGS($axR.h)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{XORI}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    XORI $acD.m, #I
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logical XOR (exclusive OR) of accumulator mid part \Register{\$acD.m} with immediate value \Value{I}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m ^= #I
+    FLAGS($acD)
+    $pc += 2
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{XORR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{0011} & \monobitbox{4}{00sd} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    XORR $acD.m, $axS.h
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Logical XOR (exclusive OR) middle part of accumulator \Register{\$acD.m} with high part of secondary accumulator \Register{\$axS.h}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $acD.m ^= $axS.h
+    FLAGS($acD)
+    $pc++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\section{Extended opcodes}
+
+Extended opcodes do not exist on their own. These opcodes can only be attached to opcodes that
+allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do not modify the program counter (\Register{\$pc} register.
+
+\pagebreak{}
+
+\section{Alphabetical list of extended opcodes}
+
+\pagebreak{}
+
+\begin{DSPOpcode}{'DR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0000} & \monobitbox{4}{01rr}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'DR $arR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Decrement addressing register \Register{\$arR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arR--
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'IR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0000} & \monobitbox{4}{10rr}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'IR $arR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Increment addressing register \Register{\$arR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arR++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'L}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{01dd} & \monobitbox{4}{d0ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'L $(0x18+D), @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$S}.
+          Post increment register \Register{\$S}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$S]
+    $S++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{01dd} & \monobitbox{4}{d1ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LN $(0x18+D), @$S
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$S}.
+          Add indexing register register \Register{\$(0x04+S)} to register \Register{\$S}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$S]
+    $S += $(0x04+S)
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LS}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{01dd} & \monobitbox{4}{d1ss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LS $(0x18+D), $acS.m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
+          Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
+          Increment both \Register{\$ar0} and \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar0]
+    MEM[$ar3] = $acS.m
+    $ar0++
+    $ar3++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LSM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{100s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LSM $(0x18+D), $acS.m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
+          Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$ar0}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar0]
+    MEM[$ar3] = $acS.m
+    $ar0++
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LSNM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{110s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LSNM $(0x18+D), $acS.m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
+          Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and add corresponding
+          indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar0]
+    MEM[$ar3] = $acS.m
+    $ar0 += $ix0
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'LSN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{010s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'LSN $(0x18+D), $acS.m
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
+          Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and increment \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar0]
+    MEM[$ar3] = $acS.m
+    $ar0 += $ix0
+    $ar3++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'MV}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0001} & \monobitbox{4}{ddss}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'MV $(0x18+D), $(0x1c+S)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Move value of register \Register{\$(0x1c+S)} to the register \Register{\$(0x18+D)}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = $(0x1c+S)
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'NR}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{0000} & \monobitbox{4}{11rr}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'NR $arR
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Add corresponding indexing register \Register{\$ixR} to addressing register \Register{\$arR}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $arR += $ixR
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'S}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{001s} & \monobitbox{4}{s0dd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'S @$D, $(0x1c+D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$D}.
+          Post increment register \Register{\$D}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[$D] = $(0x1c+D)
+    $S++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'SL}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{001s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'SL $acS.m, $(0x18+D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
+          Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
+          Increment both \Register{\$ar0} and \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
+    $ar0++
+    $ar3++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'SLM}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{101s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'SLM $acS.m, $(0x18+D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
+          Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$ar0}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
+    $ar0++
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'SLMN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{111s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'SLMN $acS.m, $(0x18+D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
+          Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and add corresponding
+          indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
+    $ar0 += $ix0
+    $ar3 += $ix3
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'SLN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{011s}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'SLN $acS.m, $(0x18+D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
+          Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
+          Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and increment \Register{\$ar3}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
+    $ar0 += $ix0
+    $ar3++
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\begin{DSPOpcode}{'SN}
+  \begin{DSPOpcodeBytefield}{16}
+    \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{001s} & \monobitbox{4}{s1dd}
+  \end{DSPOpcodeBytefield}
+
+  \begin{DSPOpcodeFormat}
+    'SN @$D, $(0x1c+D)
+  \end{DSPOpcodeFormat}
+
+  \begin{DSPOpcodeDescription}
+    \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$D}.
+          Add indexing register register \Register{\$(0x04+D)} to register \Register{\$D}.
+  \end{DSPOpcodeDescription}
+
+  \begin{DSPOpcodeOperation}
+    MEM[$D] = $(0x1c+D)
+    $D += $(0x04+D)
+  \end{DSPOpcodeOperation}
+\end{DSPOpcode}
+
+\section{Instructions sorted by opcode}
+
+
+\newcolumntype{T}{>{\ttfamily}l}
+
+\begin{center}
+\begin{longtable}{TllT}
+NOP         &          & *  & 0000 0000 0000 0000                     \\
+DAR         &          & *  & 0000 0000 0000 01aa                     \\
+IAR         &          & *  & 0000 0000 0000 10aa                     \\
+XXX         & NOT USED &    & 0000 0000 0000 11xx                     \\
+ADDARN      &          & *  & 0000 0000 0001 bbaa                     \\
+HALT        &          & *  & 0000 0000 0010 0001                     \\
+            &          &    &                                         \\
+LOOP        &          & *  & 0000 0000 010r rrrr                     \\
+BLOOP       &          & *  & 00000 0000 011r rrrr                    \\
+            &          &    &                                         \\
+LRI         &          & *  & 0000 0000 100r rrrr iiii iiii iiii iiii \\
+XXX         & NOT USED & *  & 0000 0000 101x xxxx                     \\
+LR          &          & *  & 0000 0000 110r rrrr mmmm mmmm mmmm mmmm \\
+SR          &          & *  & 0000 0000 111r rrrr mmmm mmmm mmmm mmmm \\
+            &          &    &                                         \\
+IF cc       &          & *  & 0000 0010 0111 cccc                     \\
+JMP cc      &          & *  & 0000 0010 1001 cccc                     \\
+CALL cc     &          & *  & 0000 0010 1011 cccc                     \\
+RET cc      &          & *  & 0000 0010 1101 cccc                     \\
+            &          &    &                                         \\
+ADDI        &          & *  & 0000 001r 0000 0000 iiii iiii iiii iiii \\
+XORI        &          & *  & 0000 001r 0010 0000 iiii iiii iiii iiii \\
+ANDI        &          & *  & 0000 001r 0100 0000 iiii iiii iiii iiii \\
+ORI         &          & *  & 0000 001r 0110 0000 iiii iiii iiii iiii \\
+CMPI        &          & *  & 0000 001r 1000 0000 iiii iiii iiii iiii \\
+ANDCF       &          & *  & 0000 001r 1010 0000 iiii iiii iiii iiii \\
+ANDF        &          & *  & 0000 001r 1100 0000 iiii iiii iiii iiii \\
+            &          &    &                                         \\
+ILRR        &          & *  & 0000 001r 0001 mmaa                     \\
+            &          &    &                                         \\
+ADDIS       &          & *  & 0000 010d iiii iiii                     \\
+CMPIS       &          & *  & 0000 011d iiii iiii                     \\
+LRIS        &          & *  & 0000 1rrr iiii iiii                     \\
+            &          &    &                                         \\
+LOOPI       &          & *  & 0001 0000 iiii iiii aaaa aaaa aaaa aaaa \\
+BLOOPI      &          & *  & 0001 0001 iiii iiii aaaa aaaa aaaa aaaa \\
+SBSET       &          & *  & 0001 0010 ???? ?iii                     \\
+SBCLR       &          & *  & 0001 0011 ???? ?iii                     \\
+LSL/LSR     &          & *  & 0001 010r 0sss ssss                     \\
+ASL/ASR     &          & *  & 0001 010r 1sss ssss                     \\
+SI          &          & *  & 0001 0110 iiii iiii mmmm mmmm mmmm mmmm \\
+CALLR       &          & *  & 0001 0111 rrr1 1111                     \\
+JMPR        &          & *  & 0001 0111 rrr0 1111                     \\
+LRR(I|D|X)  &          & *  & 0001 100x xaar rrrr                     \\
+SRR(I|D|X)  &          & *  & 0001 101x xaar rrrr                     \\
+MRR         &          & *  & 0001 11dd ddds ssss                     \\
+            &          &    &                                         \\
+LRS         &          & *  & 0010 0rrr mmmm mmmm                     \\
+SRS         &          & *  & 0010 1rrr mmmm mmmm                     \\
+            &          &    &                                         \\
+XORR        &          & *  & 0011 00sr xxxx xxxx                     \\
+ANDR        &          & *  & 0011 01sr xxxx xxxx                     \\
+ORR         &          & *  & 0011 10sr xxxx xxxx                     \\
+ANDC        &          & *  & 0011 110r xxxx xxxx                     \\
+ORC         &          & *  & 0011 111r xxxx xxxx                     \\
+            &          &    &                                         \\
+ADDR        &          & *  & 0100 0ssd xxxx xxxx                     \\
+ADDAX       &          & *  & 0100 10sd xxxx xxxx                     \\
+ADD         &          & *  & 0100 110d xxxx xxxx                     \\
+ADDP        &          & *  & 0100 111d xxxx xxxx                     \\
+            &          &    &                                         \\
+SUBR        &          & *  & 0101 0ssd xxxx xxxx                     \\
+SUBAX       &          & *  & 0101 10sd xxxx xxxx                     \\
+SUB         &          & *  & 0101 110d xxxx xxxx                     \\
+SUBP        &          & *  & 0101 111d xxxx xxxx                     \\
+            &          &    &                                         \\
+MOVR        &          & *  & 0110 0ssd xxxx xxxx                     \\
+MOVAX       &          & *  & 0110 10sd xxxx xxxx                     \\
+MOV         &          & *  & 0110 110d xxxx xxxx                     \\
+MOVP        &          & *  & 0110 111d xxxx xxxx                     \\
+            &          &    &                                         \\
+ADDAXL      &          & *  & 0111 00sr xxxx xxxx                     \\
+INCM        &          & *  & 0111 010r xxxx xxxx                     \\
+INC         &          & *  & 0111 011r xxxx xxxx                     \\
+DECM        &          & *  & 0111 100r xxxx xxxx                     \\
+DEC         &          & *  & 0111 101r xxxx xxxx                     \\
+NEG         &          & *  & 0111 110r xxxx xxxx                     \\
+MOVNP       &          & *  & 0111 111r xxxx xxxx                     \\
+            &          &    &                                         \\
+NX          &          & *  & 1000 x000 xxxx xxxx                     \\
+CLR         &          & *  & 1000 x001 xxxx xxxx                     \\
+CMP         &          & *  & 1000 0010 xxxx xxxx                     \\
+???         & UNUSED   & *  & 1000 0011 xxxx xxxx                     \\
+CLRP        &          & *  & 1000 0100 xxxx xxxx                     \\
+TSTAXH      &          & *  & 1000 011x xxxx xxxx                     \\
+M0/M2       &          &    & 1000 101x xxxx xxxx                     \\
+CLR15/SET15 &          &    & 1000 110x xxxx xxxx                     \\
+SET40/16    &          &    & 1000 111x xxxx xxxx                     \\
+            &          &    &                                         \\
+MUL         &          & *  & 1001 a000 xxxx xxxx                     \\
+ASR16       &          & *  & 1001 r001 xxxx xxxx                     \\
+MULMVZ      &          & *  & 1001 a01r xxxx xxxx                     \\
+MULAC       &          & *  & 1001 a10r xxxx xxxx                     \\
+MULMV       &          & *  & 1001 a11r xxxx xxxx                     \\
+            &          &    &                                         \\
+MULX        &          & *  & 101b a000 xxxx xxxx                     \\
+???         &          &    & 1010 r001 xxxx xxxx                     \\
+MULXMVZ     &          & *  & 101b a01r xxxx xxxx                     \\
+MULXAC      &          & *  & 101b a10r xxxx xxxx                     \\
+MULXMV      &          & *  & 101b a11r xxxx xxxx                     \\
+            &          &    &                                         \\
+MULC        &          & *  & 110s a000 xxxx xxxx                     \\
+CMP         &          & *  & 110x r001 xxxx xxxx                     \\
+MULCMVZ     &          & *  & 110s a01r xxxx xxxx                     \\
+MULCAC      &          & *  & 110s a10r xxxx xxxx                     \\
+MULCMV      &          & *  & 110s a11r xxxx xxxx                     \\
+            &          &    &                                         \\
+MADDX       &          & ** & 1110 00st xxxx xxxx                     \\
+MSUBX       &          & ** & 1110 01st xxxx xxxx                     \\
+MADDC       &          & ** & 1110 10st xxxx xxxx                     \\
+MSUBC       &          & ** & 1110 11st xxxx xxxx                     \\
+            &          &    &                                         \\
+LSL16       &          & *  & 1111 000r xxxx xxxx                     \\
+MADD        &          & *  & 1111 001s xxxx xxxx                     \\
+LSR16       &          & *  & 1111 010r xxxx xxxx                     \\
+MSUB        &          & *  & 1111 011s xxxx xxxx                     \\
+ADDPAXZ     &          & *  & 1111 10ar xxxx xxxx                     \\
+CLRL        &          & *  & 1111 110r xxxx xxxx                     \\
+MOVPZ       &          & *  & 1111 111r xxxx xxxx
+\end{longtable}
+\end{center}
+
+\begin{center}
+Extension Opcodes
+\begin{longtable}{TllT}
+[D|I|N]R    &          & *  & xxxx xxxx 0000 nnaa \\
+MV          &          & *  & xxxx xxxx 0001 ddss \\
+S[N]        &          & *  & xxxx xxxx 001r rnaa \\
+L[N]        &          & *  & xxxx xxxx 01dd diss \\
+LS[NM|M|N]  &          & *  & xxxx xxxx 10dd ba0r \\
+SL          &          & *  & xxxx xxxx 10dd ba1r \\
+LD[NM|M|N]  &          &    & xxxx xxxx 11mn barr \\
+LD2[NM|M|N] &          &    & xxxx xxxx 11rm ba11
+\end{longtable}
+\end{center}
+
+\end{document}

@@ -43,6 +43,7 @@ public:
 
   void Clear() { memset(b, 0, sizeof(b)); }
   void DeleteByAddress(u32 addr) { b[addr] = 0; }
+
 private:
   u8 b[65536];
 };

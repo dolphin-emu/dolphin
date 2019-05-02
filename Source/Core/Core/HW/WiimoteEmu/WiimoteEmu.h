@@ -4,41 +4,35 @@
 
 #pragma once
 
-#include <queue>
+#include <array>
+#include <numeric>
 #include <string>
 
-#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
-#include "Core/HW/WiimoteEmu/Encryption.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
-// Registry sizes
-#define WIIMOTE_EEPROM_SIZE (16 * 1024)
-#define WIIMOTE_EEPROM_FREE_SIZE 0x1700
-#define WIIMOTE_REG_SPEAKER_SIZE 10
-#define WIIMOTE_REG_EXT_SIZE 0x100
-#define WIIMOTE_REG_IR_SIZE 0x34
+#include "Core/HW/WiimoteEmu/Camera.h"
+#include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
+#include "Core/HW/WiimoteEmu/I2CBus.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
+#include "Core/HW/WiimoteEmu/Speaker.h"
 
 class PointerWrap;
 
 namespace ControllerEmu
 {
-class BooleanSetting;
+class Attachments;
 class Buttons;
 class ControlGroup;
 class Cursor;
 class Extension;
 class Force;
 class ModifySettingsButton;
-class NumericSetting;
 class Output;
 class Tilt;
-}
+}  // namespace ControllerEmu
 
-namespace WiimoteReal
-{
-class Wiimote;
-}
 namespace WiimoteEmu
 {
 enum class WiimoteGroup
@@ -50,130 +44,50 @@ enum class WiimoteGroup
   Tilt,
   Swing,
   Rumble,
-  Extension,
+  Attachments,
 
   Options,
   Hotkeys
 };
 
-enum
+enum class NunchukGroup;
+enum class ClassicGroup;
+enum class GuitarGroup;
+enum class DrumsGroup;
+enum class TurntableGroup;
+enum class UDrawTabletGroup;
+
+template <typename T>
+void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
 {
-  EXT_NONE,
+  constexpr u8 CALIBRATION_MAGIC_NUMBER = 0x55;
 
-  EXT_NUNCHUK,
-  EXT_CLASSIC,
-  EXT_GUITAR,
-  EXT_DRUMS,
-  EXT_TURNTABLE
-};
+  static_assert(std::is_same<decltype(data[0]), u8&>::value, "Only sane for containers of u8!");
 
-enum class NunchukGroup
-{
-  Buttons,
-  Stick,
-  Tilt,
-  Swing,
-  Shake
-};
+  auto cksum_start = std::end(data) - cksum_bytes;
 
-enum class ClassicGroup
-{
-  Buttons,
-  Triggers,
-  DPad,
-  LeftStick,
-  RightStick
-};
+  // Checksum is a sum of the previous bytes plus a magic value (0x55).
+  // Extension calibration data has a 2nd checksum byte which is
+  // the magic value (0x55) added to the previous checksum byte.
+  u8 checksum = std::accumulate(std::begin(data), cksum_start, CALIBRATION_MAGIC_NUMBER);
 
-enum class GuitarGroup
-{
-  Buttons,
-  Frets,
-  Strum,
-  Whammy,
-  Stick,
-  SliderBar
-};
-
-enum class DrumsGroup
-{
-  Buttons,
-  Pads,
-  Stick
-};
-
-enum class TurntableGroup
-{
-  Buttons,
-  Stick,
-  EffectDial,
-  LeftTable,
-  RightTable,
-  Crossfade
-};
-#pragma pack(push, 1)
-
-struct ReportFeatures
-{
-  u8 core, accel, ir, ext, size;
-};
-
-struct AccelData
-{
-  double x, y, z;
-};
-
-struct ADPCMState
-{
-  s32 predictor, step;
-};
-
-struct ExtensionReg
-{
-  u8 unknown1[0x08];
-
-  // address 0x08
-  u8 controller_data[0x06];
-  u8 unknown2[0x12];
-
-  // address 0x20
-  u8 calibration[0x10];
-  u8 unknown3[0x10];
-
-  // address 0x40
-  u8 encryption_key[0x10];
-  u8 unknown4[0xA0];
-
-  // address 0xF0
-  u8 encryption;
-  u8 unknown5[0x9];
-
-  // address 0xFA
-  u8 constant_id[6];
-};
-
-void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
-                  u8* const shake_step);
-
-void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
-                 const bool sideways = false, const bool upright = false);
-
-void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group,
-                  const bool sideways = false, const bool upright = false);
-
-enum
-{
-  ACCEL_ZERO_G = 0x80,
-  ACCEL_ONE_G = 0x9A,
-  ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
-};
+  for (auto& i = cksum_start; i != std::end(data); ++i)
+  {
+    *i = checksum;
+    checksum += CALIBRATION_MAGIC_NUMBER;
+  }
+}
 
 class Wiimote : public ControllerEmu::EmulatedController
 {
-  friend class WiimoteReal::Wiimote;
-
 public:
-  enum
+  enum : u8
+  {
+    ACCEL_ZERO_G = 0x80,
+    ACCEL_ONE_G = 0x9A,
+  };
+
+  enum : u16
   {
     PAD_LEFT = 0x01,
     PAD_RIGHT = 0x02,
@@ -189,18 +103,24 @@ public:
     BUTTON_HOME = 0x8000,
   };
 
-  Wiimote(const unsigned int index);
+  explicit Wiimote(unsigned int index);
+
   std::string GetName() const override;
+  void LoadDefaults(const ControllerInterface& ciface) override;
+
   ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
   ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
   ControllerEmu::ControlGroup* GetClassicGroup(ClassicGroup group);
   ControllerEmu::ControlGroup* GetGuitarGroup(GuitarGroup group);
   ControllerEmu::ControlGroup* GetDrumsGroup(DrumsGroup group);
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
+  ControllerEmu::ControlGroup* GetUDrawTabletGroup(UDrawTabletGroup group);
 
   void Update();
-  void InterruptChannel(const u16 channel_id, const void* data, u32 size);
-  void ControlChannel(const u16 channel_id, const void* data, u32 size);
+  void StepDynamics();
+
+  void InterruptChannel(u16 channel_id, const void* data, u32 size);
+  void ControlChannel(u16 channel_id, const void* data, u32 size);
   bool CheckForButtonPress();
   void Reset();
 
@@ -208,129 +128,161 @@ public:
   u16 GetReportingChannel();
 
   void DoState(PointerWrap& p);
-  void RealState();
 
-  void LoadDefaults(const ControllerInterface& ciface) override;
-
-  int CurrentExtension() const;
-
-protected:
-  bool Step();
-  void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
-  void HandleExtensionSwap();
-  void UpdateButtonsStatus();
-
-  void GetButtonData(u8* const data);
-  void GetAccelData(u8* const data, const ReportFeatures& rptf);
-  void GetIRData(u8* const data, bool use_accel);
-  void GetExtData(u8* const data);
-
-  bool HaveExtension() const;
-  bool WantExtension() const;
+  // Active extension number is exposed for TAS.
+  ExtensionNumber GetActiveExtensionNumber() const;
 
 private:
-  struct ReadRequest
-  {
-    // u16 channel;
-    u32 address, size, position;
-    u8* data;
-  };
+  // Used only for error generation:
+  static constexpr u8 EEPROM_I2C_ADDR = 0x50;
 
-  void ReportMode(const wm_report_mode* const dr);
-  void SendAck(const u8 report_id);
-  void RequestStatus(const wm_request_status* const rs = nullptr);
-  void ReadData(const wm_read_data* const rd);
-  void WriteData(const wm_write_data* const wd);
-  void SendReadDataReply(ReadRequest& request);
-  void SpeakerData(const wm_speaker_data* sd);
+  // static constexpr int EEPROM_SIZE = 16 * 1024;
+  // This is the region exposed over bluetooth:
+  static constexpr int EEPROM_FREE_SIZE = 0x1700;
+
+  void UpdateButtonsStatus();
+
+  // Returns simulated accelerometer data in m/s^2.
+  Common::Vec3 GetAcceleration();
+
+  // Returns simulated gyroscope data in radians/s.
+  Common::Vec3 GetAngularVelocity();
+
+  // Returns the transformation of the world around the wiimote.
+  // Used for simulating camera data and for rotating acceleration data.
+  // Does not include orientation transformations.
+  Common::Matrix44 GetTransformation() const;
+
+  // Returns the world rotation from the effects of sideways/upright settings.
+  Common::Matrix33 GetOrientation() const;
+
+  void HIDOutputReport(const void* data, u32 size);
+
+  void HandleReportRumble(const WiimoteCommon::OutputReportRumble&);
+  void HandleReportLeds(const WiimoteCommon::OutputReportLeds&);
+  void HandleReportMode(const WiimoteCommon::OutputReportMode&);
+  void HandleRequestStatus(const WiimoteCommon::OutputReportRequestStatus&);
+  void HandleReadData(const WiimoteCommon::OutputReportReadData&);
+  void HandleWriteData(const WiimoteCommon::OutputReportWriteData&);
+  void HandleIRLogicEnable(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleIRLogicEnable2(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature&);
+  void HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData&);
+
+  template <typename T, typename H>
+  void InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneric& rpt, u32 size);
+
+  void HandleExtensionSwap();
+  bool ProcessExtensionPortEvent();
+  void SendDataReport();
+  bool ProcessReadDataRequest();
+
+  void SetRumble(bool on);
+
+  void CallbackInterruptChannel(const u8* data, u32 size);
+  void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err);
+
+  bool IsSideways() const;
+  bool IsUpright() const;
+
+  Extension* GetActiveExtension() const;
+  Extension* GetNoneExtension() const;
+
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
-  // control groups
+  // TODO: Kill this nonsensical function used for TAS:
+  EncryptionKey GetExtensionEncryptionKey() const;
+
+  struct ReadRequest
+  {
+    WiimoteCommon::AddressSpace space;
+    u8 slave_address;
+    u16 address;
+    u16 size;
+  };
+
+  // This is just the usable 0x1700 bytes:
+  union UsableEEPROMData
+  {
+    struct
+    {
+      // addr: 0x0000
+      std::array<u8, 11> ir_calibration_1;
+      std::array<u8, 11> ir_calibration_2;
+
+      std::array<u8, 10> accel_calibration_1;
+      std::array<u8, 10> accel_calibration_2;
+
+      // addr: 0x002A
+      std::array<u8, 0x0FA0> user_data;
+
+      // addr: 0x0FCA
+      std::array<u8, 0x02f0> mii_data_1;
+      std::array<u8, 0x02f0> mii_data_2;
+
+      // addr: 0x15AA
+      std::array<u8, 0x0126> unk_1;
+
+      // addr: 0x16D0
+      std::array<u8, 24> unk_2;
+      std::array<u8, 24> unk_3;
+    };
+
+    std::array<u8, EEPROM_FREE_SIZE> data;
+  };
+
+  static_assert(EEPROM_FREE_SIZE == sizeof(UsableEEPROMData));
+
+  // Control groups for user input:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_dpad;
-  ControllerEmu::Buttons* m_shake;
+  ControllerEmu::Shake* m_shake;
   ControllerEmu::Cursor* m_ir;
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Output* m_motor;
-  ControllerEmu::Extension* m_extension;
-  ControllerEmu::BooleanSetting* m_motion_plus_setting;
+  ControllerEmu::Attachments* m_attachments;
   ControllerEmu::ControlGroup* m_options;
-  ControllerEmu::BooleanSetting* m_sideways_setting;
-  ControllerEmu::BooleanSetting* m_upright_setting;
-  ControllerEmu::NumericSetting* m_battery_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
-  // Wiimote accel data
-  AccelData m_accel;
+  ControllerEmu::SettingValue<bool> m_sideways_setting;
+  ControllerEmu::SettingValue<bool> m_upright_setting;
+  ControllerEmu::SettingValue<double> m_battery_setting;
+  ControllerEmu::SettingValue<double> m_speaker_pan_setting;
+  ControllerEmu::SettingValue<bool> m_motion_plus_setting;
+
+  SpeakerLogic m_speaker_logic;
+  MotionPlus m_motion_plus;
+  CameraLogic m_camera_logic;
+
+  I2CBus m_i2c_bus;
+
+  ExtensionPort m_extension_port{&m_i2c_bus};
 
   // Wiimote index, 0-3
   const u8 m_index;
 
-  double ir_sin, ir_cos;  // for the low pass filter
-
-  bool m_rumble_on;
-  bool m_speaker_mute;
-  bool m_motion_plus_present;
-  bool m_motion_plus_active;
-
-  bool m_reporting_auto;
-  u8 m_reporting_mode;
   u16 m_reporting_channel;
+  WiimoteCommon::InputReportID m_reporting_mode;
+  bool m_reporting_continuous;
 
-  u8 m_shake_step[3];
+  bool m_speaker_mute;
 
-  bool m_sensor_bar_on_top;
+  WiimoteCommon::InputReportStatus m_status;
 
-  wm_status_report m_status;
+  ExtensionNumber m_active_extension;
 
-  ADPCMState m_adpcm_state;
+  bool m_is_motion_plus_attached;
 
-  // read data request queue
-  // maybe it isn't actually a queue
-  // maybe read requests cancel any current requests
-  std::queue<ReadRequest> m_read_requests;
+  ReadRequest m_read_request;
+  UsableEEPROMData m_eeprom;
 
-  wiimote_key m_ext_key;
-
-  u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
-  struct MotionPlusReg
-  {
-    u8 unknown[0xF0];
-
-    // address 0xF0
-    u8 activated;
-
-    u8 unknown2[9];
-
-    // address 0xFA
-    u8 ext_identifier[6];
-  } m_reg_motion_plus;
-
-  struct IrReg
-  {
-    u8 data[0x33];
-    u8 mode;
-  } m_reg_ir;
-
-  ExtensionReg m_reg_ext;
-
-  struct SpeakerReg
-  {
-    u8 unused_0;
-    u8 unk_1;
-    u8 format;
-    // seems to always play at 6khz no matter what this is set to?
-    // or maybe it only applies to pcm input
-    u16 sample_rate;
-    u8 volume;
-    u8 unk_6;
-    u8 unk_7;
-    u8 play;
-    u8 unk_9;
-  } m_reg_speaker;
-
-#pragma pack(pop)
+  // Dynamics:
+  MotionState m_swing_state;
+  RotationalState m_tilt_state;
+  MotionState m_cursor_state;
+  PositionalState m_shake_state;
 };
-}
+}  // namespace WiimoteEmu

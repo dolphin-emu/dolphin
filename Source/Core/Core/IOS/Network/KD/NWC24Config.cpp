@@ -8,54 +8,48 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Uids.h"
 
-namespace IOS
+namespace IOS::HLE::NWC24
 {
-namespace HLE
+constexpr const char CONFIG_PATH[] = "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
+
+NWC24Config::NWC24Config(std::shared_ptr<FS::FileSystem> fs) : m_fs{std::move(fs)}
 {
-namespace NWC24
-{
-NWC24Config::NWC24Config()
-{
-  m_path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
   ReadConfig();
 }
 
 void NWC24Config::ReadConfig()
 {
-  if (!File::IOFile(m_path, "rb").ReadBytes(&m_data, sizeof(m_data)))
+  if (const auto file = m_fs->OpenFile(PID_KD, PID_KD, CONFIG_PATH, FS::Mode::Read))
   {
-    ResetConfig();
+    if (file->Read(&m_data, 1))
+    {
+      const s32 config_error = CheckNwc24Config();
+      if (config_error)
+        ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
+
+      return;
+    }
   }
-  else
-  {
-    const s32 config_error = CheckNwc24Config();
-    if (config_error)
-      ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
-  }
+  ResetConfig();
 }
 
 void NWC24Config::WriteConfig() const
 {
-  if (!File::Exists(m_path))
-  {
-    if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR))
-    {
-      ERROR_LOG(IOS_WC24, "Failed to create directory for WC24");
-    }
-  }
-
-  File::IOFile(m_path, "wb").WriteBytes(&m_data, sizeof(m_data));
+  constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
+  m_fs->CreateFullPath(PID_KD, PID_KD, CONFIG_PATH, 0, public_modes);
+  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CONFIG_PATH, public_modes);
+  if (!file || !file->Write(&m_data, 1))
+    ERROR_LOG(IOS_WC24, "Failed to open or write WC24 config file");
 }
 
 void NWC24Config::ResetConfig()
 {
-  if (File::Exists(m_path))
-    File::Delete(m_path);
+  m_fs->Delete(PID_KD, PID_KD, CONFIG_PATH);
 
   constexpr const char* urls[5] = {
       "https://amw.wc24.wii.com/cgi-bin/account.cgi", "http://rcw.wc24.wii.com/cgi-bin/check.cgi",
@@ -212,6 +206,4 @@ void NWC24Config::SetEmail(const char* email)
   strncpy(m_data.email, email, MAX_EMAIL_LENGTH);
   m_data.email[MAX_EMAIL_LENGTH - 1] = '\0';
 }
-}  // namespace NWC24
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::NWC24

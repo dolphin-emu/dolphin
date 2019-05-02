@@ -3,26 +3,19 @@
 // Refer to the license.txt file included.
 
 #include "Common/GL/GLInterface/EGLAndroid.h"
+#include <android/native_window.h>
 
-EGLDisplay cInterfaceEGLAndroid::OpenDisplay()
+EGLDisplay GLContextEGLAndroid::OpenEGLDisplay()
 {
   return eglGetDisplay(EGL_DEFAULT_DISPLAY);
 }
 
-EGLNativeWindowType cInterfaceEGLAndroid::InitializePlatform(EGLNativeWindowType host_window,
-                                                             EGLConfig config)
+EGLNativeWindowType GLContextEGLAndroid::GetEGLNativeWindow(EGLConfig config)
 {
   EGLint format;
-  eglGetConfigAttrib(egl_dpy, config, EGL_NATIVE_VISUAL_ID, &format);
-  ANativeWindow_setBuffersGeometry(host_window, 0, 0, format);
-
-  const int width = ANativeWindow_getWidth(host_window);
-  const int height = ANativeWindow_getHeight(host_window);
-  GLInterface->SetBackBufferDimensions(width, height);
-
-  return host_window;
-}
-
-void cInterfaceEGLAndroid::ShutdownPlatform()
-{
+  eglGetConfigAttrib(m_egl_display, config, EGL_NATIVE_VISUAL_ID, &format);
+  ANativeWindow_setBuffersGeometry(static_cast<ANativeWindow*>(m_host_window), 0, 0, format);
+  m_backbuffer_width = ANativeWindow_getWidth(static_cast<ANativeWindow*>(m_host_window));
+  m_backbuffer_height = ANativeWindow_getHeight(static_cast<ANativeWindow*>(m_host_window));
+  return static_cast<EGLNativeWindowType>(m_host_window);
 }

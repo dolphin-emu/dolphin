@@ -10,6 +10,8 @@
 #include <optional>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
@@ -17,28 +19,33 @@
 
 namespace DiscIO
 {
-std::string DirectoryNameForPartitionType(u32 partition_type)
+std::string NameForPartitionType(u32 partition_type, bool include_prefix)
 {
   switch (partition_type)
   {
-  case 0:
+  case PARTITION_DATA:
     return "DATA";
-  case 1:
+  case PARTITION_UPDATE:
     return "UPDATE";
-  case 2:
+  case PARTITION_CHANNEL:
     return "CHANNEL";
+  case PARTITION_INSTALL:
+    // wit doesn't recognize the name "INSTALL", so we can't use it when naming partition folders
+    if (!include_prefix)
+      return "INSTALL";
+    // [[fallthrough]]
   default:
     const std::string type_as_game_id{static_cast<char>((partition_type >> 24) & 0xFF),
                                       static_cast<char>((partition_type >> 16) & 0xFF),
                                       static_cast<char>((partition_type >> 8) & 0xFF),
                                       static_cast<char>(partition_type & 0xFF)};
     if (std::all_of(type_as_game_id.cbegin(), type_as_game_id.cend(),
-                    [](char c) { return std::isprint(c, std::locale::classic()); }))
+                    [](char c) { return std::isalnum(c, std::locale::classic()); }))
     {
-      return "P-" + type_as_game_id;
+      return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
 
-    return StringFromFormat("P%u", partition_type);
+    return StringFromFormat(include_prefix ? "P%u" : "%u", partition_type);
   }
 }
 
@@ -50,8 +57,9 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
 
   const u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
 
-  DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
-                    " Size: %" PRIx32,
+  DEBUG_LOG(DISCIO,
+            "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
+            " Size: %" PRIx32,
             read_length, offset_in_file, file_info->GetPath().c_str(), file_info->GetOffset(),
             file_info->GetSize());
 
@@ -119,7 +127,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const std::str
   return ExportFile(volume, partition, file_system->FindFileInfo(path).get(), export_filename);
 }
 
-void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
                      bool recursive, const std::string& filesystem_path,
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
@@ -153,7 +161,7 @@ void ExportDirectory(const Volume& volume, const Partition partition, const File
 
 bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, 0, 0x100, export_filename);
@@ -161,7 +169,7 @@ bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_
 
 bool ExportWiiRegionData(const Volume& volume, const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, 0x4E000, 0x20, export_filename);
@@ -170,7 +178,7 @@ bool ExportWiiRegionData(const Volume& volume, const std::string& export_filenam
 bool ExportTicket(const Volume& volume, const Partition& partition,
                   const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, partition.offset, 0x2a4, export_filename);
@@ -178,7 +186,7 @@ bool ExportTicket(const Volume& volume, const Partition& partition,
 
 bool ExportTMD(const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2a4, PARTITION_NONE);
@@ -193,7 +201,7 @@ bool ExportTMD(const Volume& volume, const Partition& partition, const std::stri
 bool ExportCertificateChain(const Volume& volume, const Partition& partition,
                             const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2ac, PARTITION_NONE);
@@ -202,13 +210,13 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
   if (!size || !offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, *size, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, *size, export_filename);
 }
 
 bool ExportH3Hashes(const Volume& volume, const Partition& partition,
                     const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   const std::optional<u64> offset =
@@ -216,7 +224,7 @@ bool ExportH3Hashes(const Volume& volume, const Partition& partition,
   if (!offset)
     return false;
 
-  return ExportData(volume, PARTITION_NONE, *offset, 0x18000, export_filename);
+  return ExportData(volume, PARTITION_NONE, partition.offset + *offset, 0x18000, export_filename);
 }
 
 bool ExportHeader(const Volume& volume, const Partition& partition,
@@ -260,7 +268,13 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
   if (!IsDisc(volume_type))
     return {};
 
-  return volume.ReadSwappedAndShifted(0x420, partition);
+  std::optional<u64> dol_offset = volume.ReadSwappedAndShifted(0x420, partition);
+
+  // Datel AR disc has 0x00000000 as the offset (invalid) and doesn't use it in the AppLoader.
+  if (dol_offset && *dol_offset == 0)
+    dol_offset.reset();
+
+  return dol_offset;
 }
 
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset)
@@ -351,7 +365,7 @@ bool ExportSystemData(const Volume& volume, const Partition& partition,
   success &= ExportDOL(volume, partition, export_folder + "/sys/main.dol");
   success &= ExportFST(volume, partition, export_folder + "/sys/fst.bin");
 
-  if (volume.GetVolumeType() == Platform::WII_DISC)
+  if (volume.GetVolumeType() == Platform::WiiDisc)
   {
     File::CreateFullPath(export_folder + "/disc/");
     success &= ExportWiiUnencryptedHeader(volume, export_folder + "/disc/header.bin");
@@ -360,7 +374,8 @@ bool ExportSystemData(const Volume& volume, const Partition& partition,
     success &= ExportTicket(volume, partition, export_folder + "/ticket.bin");
     success &= ExportTMD(volume, partition, export_folder + "/tmd.bin");
     success &= ExportCertificateChain(volume, partition, export_folder + "/cert.bin");
-    success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
+    if (volume.IsEncryptedAndHashed())
+      success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
   }
 
   return success;

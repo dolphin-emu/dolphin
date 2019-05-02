@@ -8,10 +8,8 @@
 #include <memory>
 #include <string>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
@@ -20,6 +18,11 @@
 #include "Core/Movie.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 namespace ConfigLoaders
 {
 static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
@@ -27,10 +30,10 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::MAIN_CPU_THREAD, dtm->bDualCore);
   config_layer->Set(Config::MAIN_DSP_HLE, dtm->bDSPHLE);
   config_layer->Set(Config::MAIN_FAST_DISC_SPEED, dtm->bFastDiscSpeed);
-  config_layer->Set(Config::MAIN_CPU_CORE, static_cast<int>(dtm->CPUCore));
+  config_layer->Set(Config::MAIN_CPU_CORE, static_cast<PowerPC::CPUCore>(dtm->CPUCore));
   config_layer->Set(Config::MAIN_SYNC_GPU, dtm->bSyncGPU);
-  config_layer->Set(Config::MAIN_GFX_BACKEND,
-                    std::string(reinterpret_cast<char*>(dtm->videoBackend)));
+  config_layer->Set(Config::MAIN_GFX_BACKEND, dtm->videoBackend.data());
+  config_layer->Set(Config::MAIN_REDUCE_POLLING_RATE, dtm->bReducePollingRate);
 
   config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, dtm->bProgressive);
   config_layer->Set(Config::SYSCONF_PAL60, dtm->bPAL60);
@@ -39,42 +42,42 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   else
     config_layer->Set(Config::MAIN_GC_LANGUAGE, static_cast<int>(dtm->language));
 
-  config_layer->Set(Config::GFX_USE_XFB, dtm->bUseXFB);
-  config_layer->Set(Config::GFX_USE_REAL_XFB, dtm->bUseRealXFB);
   config_layer->Set(Config::GFX_HACK_EFB_ACCESS_ENABLE, dtm->bEFBAccessEnable);
   config_layer->Set(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, dtm->bSkipEFBCopyToRam);
   config_layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, dtm->bEFBEmulateFormatChanges);
+  config_layer->Set(Config::GFX_HACK_IMMEDIATE_XFB, dtm->bImmediateXFB);
+  config_layer->Set(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, dtm->bSkipXFBCopyToRam);
 }
 
-void SaveToDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
+void SaveToDTM(Movie::DTMHeader* dtm)
 {
-  dtm->bDualCore = config_layer->Get(Config::MAIN_CPU_THREAD);
-  dtm->bDSPHLE = config_layer->Get(Config::MAIN_DSP_HLE);
-  dtm->bFastDiscSpeed = config_layer->Get(Config::MAIN_FAST_DISC_SPEED);
-  dtm->CPUCore = config_layer->Get(Config::MAIN_CPU_CORE);
-  dtm->bSyncGPU = config_layer->Get(Config::MAIN_SYNC_GPU);
-  const std::string video_backend = config_layer->Get(Config::MAIN_GFX_BACKEND);
+  dtm->bDualCore = Config::Get(Config::MAIN_CPU_THREAD);
+  dtm->bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
+  dtm->bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
+  dtm->CPUCore = static_cast<u8>(Config::Get(Config::MAIN_CPU_CORE));
+  dtm->bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
+  const std::string video_backend = Config::Get(Config::MAIN_GFX_BACKEND);
+  dtm->bReducePollingRate = Config::Get(Config::MAIN_REDUCE_POLLING_RATE);
 
-  dtm->bProgressive = config_layer->Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  dtm->bPAL60 = config_layer->Get(Config::SYSCONF_PAL60);
+  dtm->bProgressive = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  dtm->bPAL60 = Config::Get(Config::SYSCONF_PAL60);
   if (dtm->bWii)
-    dtm->language = config_layer->Get(Config::SYSCONF_LANGUAGE);
+    dtm->language = Config::Get(Config::SYSCONF_LANGUAGE);
   else
-    dtm->language = config_layer->Get(Config::MAIN_GC_LANGUAGE);
+    dtm->language = Config::Get(Config::MAIN_GC_LANGUAGE);
 
-  dtm->bUseXFB = config_layer->Get(Config::GFX_USE_XFB);
-  dtm->bUseRealXFB = config_layer->Get(Config::GFX_USE_REAL_XFB);
-  dtm->bEFBAccessEnable = config_layer->Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
-  dtm->bSkipEFBCopyToRam = config_layer->Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  dtm->bEFBEmulateFormatChanges = config_layer->Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  dtm->bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  dtm->bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  dtm->bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  dtm->bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  dtm->bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
 
   // This never used the regular config
   dtm->bSkipIdle = true;
   dtm->bEFBCopyEnable = true;
   dtm->bEFBCopyCacheEnable = false;
 
-  strncpy(reinterpret_cast<char*>(dtm->videoBackend), video_backend.c_str(),
-          ArraySize(dtm->videoBackend));
+  strncpy(dtm->videoBackend.data(), video_backend.c_str(), dtm->videoBackend.size());
 }
 
 // TODO: Future project, let this support all the configuration options.
@@ -93,4 +96,4 @@ std::unique_ptr<Config::ConfigLayerLoader> GenerateMovieConfigLoader(Movie::DTMH
 {
   return std::make_unique<MovieConfigLayerLoader>(header);
 }
-}
+}  // namespace ConfigLoaders

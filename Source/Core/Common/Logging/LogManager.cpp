@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstring>
+#include <locale>
 #include <mutex>
 #include <ostream>
 #include <string>
@@ -48,6 +50,7 @@ public:
   bool IsValid() const { return m_logfile.good(); }
   bool IsEnabled() const { return m_enable; }
   void SetEnable(bool enable) { m_enable = enable; }
+
 private:
   std::mutex m_log_lock;
   std::ofstream m_logfile;
@@ -66,8 +69,18 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
 
 static size_t DeterminePathCutOffPoint()
 {
-  constexpr const char* pattern = DIR_SEP "Source" DIR_SEP "Core" DIR_SEP;
-  size_t pos = std::string(__FILE__).find(pattern);
+  constexpr const char* pattern = "/source/core/";
+#ifdef _WIN32
+  constexpr const char* pattern2 = "\\source\\core\\";
+#endif
+  std::string path = __FILE__;
+  std::transform(path.begin(), path.end(), path.begin(),
+                 [](char c) { return std::tolower(c, std::locale::classic()); });
+  size_t pos = path.find(pattern);
+#ifdef _WIN32
+  if (pos == std::string::npos)
+    pos = path.find(pattern2);
+#endif
   if (pos != std::string::npos)
     return pos + strlen(pattern);
   return 0;
@@ -100,7 +113,7 @@ LogManager::LogManager()
   m_log[LogTypes::IOS] = {"IOS", "IOS"};
   m_log[LogTypes::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
   m_log[LogTypes::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
-  m_log[LogTypes::IOS_FILEIO] = {"IOS_FILEIO", "IOS - FileIO"};
+  m_log[LogTypes::IOS_FS] = {"IOS_FS", "IOS - Filesystem Services"};
   m_log[LogTypes::IOS_SD] = {"IOS_SD", "IOS - SDIO"};
   m_log[LogTypes::IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
   m_log[LogTypes::IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
@@ -109,7 +122,7 @@ LogManager::LogManager()
   m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
   m_log[LogTypes::IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
   m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
-  m_log[LogTypes::MASTER_LOG] = {"*", "Master Log"};
+  m_log[LogTypes::MASTER_LOG] = {"MASTER", "Master Log"};
   m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
   m_log[LogTypes::MEMMAP] = {"MI", "MI & memmap"};
   m_log[LogTypes::NETPLAY] = {"NETPLAY", "Netplay"};
@@ -121,6 +134,7 @@ LogManager::LogManager()
   m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
   m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
   m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
+  m_log[LogTypes::SYMBOLS] = {"SYMBOLS", "Symbols"};
   m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
   m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
   m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
@@ -160,6 +174,8 @@ LogManager::~LogManager()
 
 void LogManager::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
@@ -168,8 +184,11 @@ void LogManager::SaveSettings()
   Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
 
   for (const auto& container : m_log)
-    Config::SetBaseOrCurrent({{Config::System::Logger, "Logs", container.m_short_name}, false},
-                             container.m_enable);
+  {
+    const Config::ConfigInfo<bool> info{{Config::System::Logger, "Logs", container.m_short_name},
+                                        false};
+    Config::SetBaseOrCurrent(info, container.m_enable);
+  }
 
   Config::Save();
 }

@@ -1035,10 +1035,15 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 
   // Each of the 4 RPBs maps to one of these buffers.
   MixingBuffer* reverb_buffers[4] = {
-      &m_buf_unk0_reverb, &m_buf_unk1_reverb, &m_buf_front_left_reverb, &m_buf_front_right_reverb,
+      &m_buf_unk0_reverb,
+      &m_buf_unk1_reverb,
+      &m_buf_front_left_reverb,
+      &m_buf_front_right_reverb,
   };
   std::array<s16, 8>* last8_samples_buffers[4] = {
-      &m_buf_unk0_reverb_last8, &m_buf_unk1_reverb_last8, &m_buf_front_left_reverb_last8,
+      &m_buf_unk0_reverb_last8,
+      &m_buf_unk1_reverb_last8,
+      &m_buf_front_left_reverb_last8,
       &m_buf_front_right_reverb_last8,
   };
 

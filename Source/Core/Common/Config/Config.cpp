@@ -5,22 +5,14 @@
 #include <algorithm>
 #include <list>
 #include <map>
-#include <tuple>
 
-#include "Common/Assert.h"
 #include "Common/Config/Config.h"
 
 namespace Config
 {
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
-
-void InvokeConfigChangedCallbacks();
-
-Section* GetOrCreateSection(System system, const std::string& section_name)
-{
-  return s_layers[LayerType::Meta]->GetOrCreateSection(system, section_name);
-}
+static u32 s_callback_guards = 0;
 
 Layers* GetLayers()
 {
@@ -62,6 +54,9 @@ void AddConfigChangedCallback(ConfigChangedCallback func)
 
 void InvokeConfigChangedCallbacks()
 {
+  if (s_callback_guards)
+    return;
+
   for (const auto& callback : s_callbacks)
     callback();
 }
@@ -71,20 +66,20 @@ void Load()
 {
   for (auto& layer : s_layers)
     layer.second->Load();
+  InvokeConfigChangedCallbacks();
 }
 
 void Save()
 {
   for (auto& layer : s_layers)
     layer.second->Save();
+  InvokeConfigChangedCallbacks();
 }
 
 void Init()
 {
   // These layers contain temporary values
   ClearCurrentRunLayer();
-  // This layer always has to exist
-  s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }
 
 void Shutdown()
@@ -99,24 +94,23 @@ void ClearCurrentRunLayer()
 }
 
 static const std::map<System, std::string> system_to_name = {
-    {System::Main, "Dolphin"},          {System::GCPad, "GCPad"},  {System::WiiPad, "Wiimote"},
-    {System::GCKeyboard, "GCKeyboard"}, {System::GFX, "Graphics"}, {System::Logger, "Logger"},
-    {System::Debugger, "Debugger"},     {System::UI, "UI"},        {System::SYSCONF, "SYSCONF"}};
+    {System::Main, "Dolphin"},          {System::GCPad, "GCPad"},    {System::WiiPad, "Wiimote"},
+    {System::GCKeyboard, "GCKeyboard"}, {System::GFX, "Graphics"},   {System::Logger, "Logger"},
+    {System::Debugger, "Debugger"},     {System::SYSCONF, "SYSCONF"}};
 
 const std::string& GetSystemName(System system)
 {
   return system_to_name.at(system);
 }
 
-System GetSystemFromName(const std::string& name)
+std::optional<System> GetSystemFromName(const std::string& name)
 {
   const auto system = std::find_if(system_to_name.begin(), system_to_name.end(),
                                    [&name](const auto& entry) { return entry.second == name; });
   if (system != system_to_name.end())
     return system->first;
 
-  _assert_msg_(COMMON, false, "Programming error! Couldn't convert '%s' to system!", name.c_str());
-  return System::Main;
+  return {};
 }
 
 const std::string& GetLayerName(LayerType layer)
@@ -129,24 +123,8 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Movie, "Movie"},
       {LayerType::CommandLine, "Command Line"},
       {LayerType::CurrentRun, "Current Run"},
-      {LayerType::Meta, "Top"},
   };
   return layer_to_name.at(layer);
-}
-
-bool ConfigLocation::operator==(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
-}
-
-bool ConfigLocation::operator!=(const ConfigLocation& other) const
-{
-  return !(*this == other);
-}
-
-bool ConfigLocation::operator<(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) < std::tie(other.system, other.section, other.key);
 }
 
 LayerType GetActiveLayerForConfig(const ConfigLocation& config)
@@ -156,11 +134,25 @@ LayerType GetActiveLayerForConfig(const ConfigLocation& config)
     if (!LayerExists(layer))
       continue;
 
-    if (GetLayer(layer)->Exists(config.system, config.section, config.key))
+    if (GetLayer(layer)->Exists(config))
       return layer;
   }
 
   // If config is not present in any layer, base layer is considered active.
   return LayerType::Base;
 }
+
+ConfigChangeCallbackGuard::ConfigChangeCallbackGuard()
+{
+  ++s_callback_guards;
 }
+
+ConfigChangeCallbackGuard::~ConfigChangeCallbackGuard()
+{
+  if (--s_callback_guards)
+    return;
+
+  InvokeConfigChangedCallbacks();
+}
+
+}  // namespace Config

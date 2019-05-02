@@ -20,6 +20,8 @@ class WiiWAD
 public:
   explicit WiiWAD(const std::string& name);
   explicit WiiWAD(std::unique_ptr<BlobReader> blob_reader);
+  WiiWAD(WiiWAD&&) = default;
+  WiiWAD& operator=(WiiWAD&&) = default;
   ~WiiWAD();
 
   bool IsValid() const { return m_valid; }

@@ -6,17 +6,13 @@
 
 #include "Common/Logging/Log.h"
 
-namespace IOS
+namespace IOS::HLE::Device
 {
-namespace HLE
-{
-namespace Device
-{
-ReturnCode Stub::Open(const OpenRequest& request)
+IPCCommandResult Stub::Open(const OpenRequest& request)
 {
   WARN_LOG(IOS, "%s faking Open()", m_name.c_str());
   m_is_active = true;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult Stub::IOCtl(const IOCtlRequest& request)
@@ -30,6 +26,4 @@ IPCCommandResult Stub::IOCtlV(const IOCtlVRequest& request)
   WARN_LOG(IOS, "%s faking IOCtlV()", m_name.c_str());
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <list>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -10,7 +11,9 @@
 #include <OptionParser.h>
 
 #include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
 #include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
@@ -22,43 +25,46 @@ public:
                                const std::string& audio_backend)
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
-    if (video_backend.size())
-      m_values.emplace_back(std::make_tuple("Dolphin", "Core", "GFXBackend", video_backend));
+    if (!video_backend.empty())
+      m_values.emplace_back(std::make_tuple(Config::MAIN_GFX_BACKEND.location, video_backend));
 
-    if (audio_backend.size())
+    if (!audio_backend.empty())
       m_values.emplace_back(
-          std::make_tuple("Dolphin", "Core", "DSPHLE", audio_backend == "HLE" ? "True" : "False"));
+          std::make_tuple(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE")));
 
     // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
     {
       std::istringstream buffer(arg);
-      std::string system, section, key, value;
-      std::getline(buffer, system, '.');
+      std::string system_str, section, key, value;
+      std::getline(buffer, system_str, '.');
       std::getline(buffer, section, '.');
       std::getline(buffer, key, '=');
       std::getline(buffer, value, '=');
-      m_values.emplace_back(std::make_tuple(system, section, key, value));
+      const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+      if (system)
+      {
+        m_values.emplace_back(
+            std::make_tuple(Config::ConfigLocation{*system, section, key}, value));
+      }
     }
   }
 
-  void Load(Config::Layer* config_layer) override
+  void Load(Config::Layer* layer) override
   {
     for (auto& value : m_values)
     {
-      Config::Section* section = config_layer->GetOrCreateSection(
-          Config::GetSystemFromName(std::get<0>(value)), std::get<1>(value));
-      section->Set(std::get<2>(value), std::get<3>(value));
+      layer->Set(std::get<0>(value), std::get<1>(value));
     }
   }
 
-  void Save(Config::Layer* config_layer) override
+  void Save(Config::Layer* layer) override
   {
     // Save Nothing
   }
 
 private:
-  std::list<std::tuple<std::string, std::string, std::string, std::string>> m_values;
+  std::list<std::tuple<Config::ConfigLocation, std::string>> m_values;
 };
 
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
@@ -69,10 +75,15 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");
   parser->add_option("-e", "--exec")
-      .action("store")
+      .action("append")
       .metavar("<file>")
       .type("string")
       .help("Load the specified file");
+  parser->add_option("-n", "--nand_title")
+      .action("store")
+      .metavar("<16-character ASCII title ID>")
+      .type("string")
+      .help("Launch a NAND title");
   parser->add_option("-C", "--config")
       .action("append")
       .metavar("<System>.<Section>.<Key>=<Value>")
@@ -84,7 +95,7 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
     parser->add_option("-d", "--debugger")
         .action("store_true")
         .help("Show the debugger pane and additional View menu options");
-    parser->add_option("-l", "--logger").action("store_true").help("Opens the logger");
+    parser->add_option("-l", "--logger").action("store_true").help("Open the logger");
     parser->add_option("-b", "--batch").action("store_true").help("Exit Dolphin with emulation");
     parser->add_option("-c", "--confirm").action("store_true").help("Set Confirm on Stop");
   }
@@ -104,17 +115,29 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   return parser;
 }
 
-optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+static void AddConfigLayer(const optparse::Values& options)
 {
-  optparse::Values& options = parser->parse_args(argc, argv);
-
-  const std::list<std::string>& config_args = options.all("config");
-  if (config_args.size())
+  if (options.is_set_by_user("config"))
   {
+    const std::list<std::string>& config_args = options.all("config");
     Config::AddLayer(std::make_unique<CommandLineConfigLayerLoader>(
         config_args, static_cast<const char*>(options.get("video_backend")),
         static_cast<const char*>(options.get("audio_emulation"))));
   }
+}
+
+optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
+{
+  optparse::Values& options = parser->parse_args(argc, argv);
+  AddConfigLayer(options);
+  return options;
+}
+
+optparse::Values& ParseArguments(optparse::OptionParser* parser,
+                                 const std::vector<std::string>& arguments)
+{
+  optparse::Values& options = parser->parse_args(arguments);
+  AddConfigLayer(options);
   return options;
 }
 }

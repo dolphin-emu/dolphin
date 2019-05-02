@@ -6,18 +6,49 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
+#include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
-#include "Common/Config/Section.h"
+#include "Common/StringUtil.h"
 
 namespace Config
 {
+namespace detail
+{
+template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
+std::optional<T> TryParse(const std::string& str_value)
+{
+  T value;
+  if (!::TryParse(str_value, &value))
+    return std::nullopt;
+  return value;
+}
+
+template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+std::optional<T> TryParse(const std::string& str_value)
+{
+  const auto result = TryParse<std::underlying_type_t<T>>(str_value);
+  if (result)
+    return static_cast<T>(*result);
+  return {};
+}
+
+template <>
+inline std::optional<std::string> TryParse(const std::string& str_value)
+{
+  return str_value;
+}
+}
+
 template <typename T>
 struct ConfigInfo;
 
-using LayerMap = std::map<System, std::vector<std::unique_ptr<Section>>>;
+class Layer;
+using LayerMap = std::map<ConfigLocation, std::optional<std::string>>;
 
 class ConfigLayerLoader
 {
@@ -33,6 +64,32 @@ private:
   const LayerType m_layer;
 };
 
+class Section
+{
+public:
+  using iterator = LayerMap::iterator;
+  Section(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
+  iterator begin() const { return m_begin; }
+  iterator end() const { return m_end; }
+
+private:
+  iterator m_begin;
+  iterator m_end;
+};
+
+class ConstSection
+{
+public:
+  using iterator = LayerMap::const_iterator;
+  ConstSection(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
+  iterator begin() const { return m_begin; }
+  iterator end() const { return m_end; }
+
+private:
+  iterator m_begin;
+  iterator m_end;
+};
+
 class Layer
 {
 public:
@@ -41,33 +98,48 @@ public:
   virtual ~Layer();
 
   // Convenience functions
-  bool Exists(System system, const std::string& section_name, const std::string& key);
-  bool DeleteKey(System system, const std::string& section_name, const std::string& key);
-  template <typename T>
-  bool GetIfExists(System system, const std::string& section_name, const std::string& key, T* value)
-  {
-    if (Exists(system, section_name, key))
-      return GetOrCreateSection(system, section_name)->Get(key, value);
-
-    return false;
-  }
-
-  virtual Section* GetSection(System system, const std::string& section_name);
-  virtual Section* GetOrCreateSection(System system, const std::string& section_name);
+  bool Exists(const ConfigLocation& location) const;
+  bool DeleteKey(const ConfigLocation& location);
+  void DeleteAllKeys();
 
   template <typename T>
   T Get(const ConfigInfo<T>& config_info)
   {
-    return GetOrCreateSection(config_info.location.system, config_info.location.section)
-        ->template Get<T>(config_info.location.key, config_info.default_value);
+    return Get<T>(config_info.location).value_or(config_info.default_value);
   }
 
   template <typename T>
-  void Set(const ConfigInfo<T>& config_info, const T& value)
+  std::optional<T> Get(const ConfigLocation& location)
   {
-    GetOrCreateSection(config_info.location.system, config_info.location.section)
-        ->Set(config_info.location.key, value);
+    const std::optional<std::string>& str_value = m_map[location];
+    if (!str_value)
+      return std::nullopt;
+    return detail::TryParse<T>(*str_value);
   }
+
+  template <typename T>
+  void Set(const ConfigInfo<T>& config_info, const std::common_type_t<T>& value)
+  {
+    Set(config_info.location, value);
+  }
+
+  template <typename T>
+  void Set(const ConfigLocation& location, const T& value)
+  {
+    Set(location, ValueToString(value));
+  }
+
+  void Set(const ConfigLocation& location, const std::string& new_value)
+  {
+    std::optional<std::string>& current_value = m_map[location];
+    if (current_value == new_value)
+      return;
+    m_is_dirty = true;
+    current_value = new_value;
+  }
+
+  Section GetSection(System system, const std::string& section);
+  ConstSection GetSection(System system, const std::string& section) const;
 
   // Explicit load and save of layers
   void Load();
@@ -77,19 +149,9 @@ public:
   const LayerMap& GetLayerMap() const;
 
 protected:
-  bool IsDirty() const;
-  void ClearDirty();
-
-  LayerMap m_sections;
+  bool m_is_dirty = false;
+  LayerMap m_map;
   const LayerType m_layer;
   std::unique_ptr<ConfigLayerLoader> m_loader;
-};
-
-class RecursiveLayer final : public Layer
-{
-public:
-  RecursiveLayer();
-  Section* GetSection(System system, const std::string& section_name) override;
-  Section* GetOrCreateSection(System system, const std::string& section_name) override;
 };
 }

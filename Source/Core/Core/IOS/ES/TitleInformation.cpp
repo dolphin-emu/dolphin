@@ -13,11 +13,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // Used by the GetStoredContents ioctlvs. This assumes that the first output vector
 // is used for the content count (u32).
@@ -243,6 +239,4 @@ IPCCommandResult ES::GetSharedContents(const IOCtlVRequest& request) const
   INFO_LOG(IOS_ES, "GetSharedContents: %u contents (%u requested)", count, max_count);
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

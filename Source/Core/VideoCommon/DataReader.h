@@ -6,25 +6,26 @@
 
 #include <cstring>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 #include "Common/Swap.h"
 
 class DataReader
 {
 public:
-  __forceinline DataReader() : buffer(nullptr), end(nullptr) {}
-  __forceinline DataReader(u8* src, u8* _end) : buffer(src), end(_end) {}
-  __forceinline u8* GetPointer() { return buffer; }
-  __forceinline u8* operator=(u8* src)
+  DataReader() = default;
+  DataReader(u8* src, u8* end_) : buffer(src), end(end_) {}
+  u8* GetPointer() { return buffer; }
+  const u8* GetPointer() const { return buffer; }
+  DataReader& operator=(u8* src)
   {
     buffer = src;
-    return src;
+    return *this;
   }
 
-  __forceinline size_t size() { return end - buffer; }
+  size_t size() const { return end - buffer; }
   template <typename T, bool swapped = true>
-  __forceinline T Peek(int offset = 0)
+  DOLPHIN_FORCE_INLINE T Peek(int offset = 0) const
   {
     T data;
     std::memcpy(&data, &buffer[offset], sizeof(T));
@@ -36,7 +37,7 @@ public:
   }
 
   template <typename T, bool swapped = true>
-  __forceinline T Read()
+  DOLPHIN_FORCE_INLINE T Read()
   {
     const T result = Peek<T, swapped>();
     buffer += sizeof(T);
@@ -44,7 +45,7 @@ public:
   }
 
   template <typename T, bool swapped = false>
-  __forceinline void Write(T data)
+  DOLPHIN_FORCE_INLINE void Write(T data)
   {
     if (swapped)
       data = Common::FromBigEndian(data);
@@ -54,12 +55,12 @@ public:
   }
 
   template <typename T = u8>
-  __forceinline void Skip(size_t data = 1)
+  void Skip(size_t data = 1)
   {
     buffer += sizeof(T) * data;
   }
 
 private:
-  u8* __restrict buffer;
-  u8* end;
+  u8* __restrict buffer = nullptr;
+  u8* end = nullptr;
 };

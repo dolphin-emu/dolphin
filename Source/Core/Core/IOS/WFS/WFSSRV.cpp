@@ -16,9 +16,7 @@
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace WFS
 {
@@ -385,6 +383,11 @@ s32 WFSSRV::Rename(std::string source, std::string dest) const
   return IPC_SUCCESS;
 }
 
+void WFSSRV::SetHomeDir(const std::string& home_directory)
+{
+  m_home_directory = home_directory;
+}
+
 std::string WFSSRV::NormalizePath(const std::string& path) const
 {
   std::string expanded;
@@ -453,7 +456,7 @@ void WFSSRV::ReleaseFileDescriptor(u16 fd)
   fd_obj->in_use = false;
 
   // Garbage collect and shrink the array if possible.
-  while (m_fds.size() > 0 && !m_fds[m_fds.size() - 1].in_use)
+  while (!m_fds.empty() && !m_fds[m_fds.size() - 1].in_use)
   {
     m_fds.resize(m_fds.size() - 1);
   }
@@ -484,5 +487,4 @@ bool WFSSRV::FileDescriptor::Open()
   return file.Open(WFS::NativePath(path), mode_string);
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

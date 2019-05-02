@@ -4,6 +4,7 @@
 
 #include "Core/IOS/Network/MACUtils.h"
 
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -13,17 +14,15 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-namespace IOS
+namespace IOS::Net
 {
-namespace Net
-{
-static void SaveMACAddress(const u8* mac)
+static void SaveMACAddress(const Common::MACAddress& mac)
 {
   SConfig::GetInstance().m_WirelessMac = Common::MacAddressToString(mac);
   SConfig::GetInstance().SaveSettings();
 }
 
-void GetMACAddress(u8* mac)
+Common::MACAddress GetMACAddress()
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
@@ -32,19 +31,22 @@ void GetMACAddress(u8* mac)
   if (Core::WantsDeterminism())
     wireless_mac = "12:34:56:78:9a:bc";
 
-  if (!Common::StringToMacAddress(wireless_mac, mac))
+  std::optional<Common::MACAddress> mac = Common::StringToMacAddress(wireless_mac);
+
+  if (!mac)
   {
-    Common::GenerateMacAddress(Common::MACConsumer::IOS, mac);
-    SaveMACAddress(mac);
+    mac = Common::GenerateMacAddress(Common::MACConsumer::IOS);
+    SaveMACAddress(mac.value());
     if (!wireless_mac.empty())
     {
-      ERROR_LOG(IOS_NET, "The MAC provided (%s) is invalid. We have "
-                         "generated another one for you.",
-                Common::MacAddressToString(mac).c_str());
+      ERROR_LOG(IOS_NET,
+                "The MAC provided (%s) is invalid. We have "
+                "generated another one for you.",
+                Common::MacAddressToString(mac.value()).c_str());
     }
   }
 
-  INFO_LOG(IOS_NET, "Using MAC address: %s", Common::MacAddressToString(mac).c_str());
+  INFO_LOG(IOS_NET, "Using MAC address: %s", Common::MacAddressToString(mac.value()).c_str());
+  return mac.value();
 }
-}  // namespace Net
-}  // namespace IOS
+}  // namespace IOS::Net

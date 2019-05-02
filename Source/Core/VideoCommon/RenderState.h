@@ -9,6 +9,8 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 
+enum class AbstractTextureFormat : u32;
+
 enum class PrimitiveType : u32
 {
   Points,
@@ -28,6 +30,20 @@ union RasterizationState
   bool operator<(const RasterizationState& rhs) const { return hex < rhs.hex; }
   BitField<0, 2, GenMode::CullMode> cullmode;
   BitField<3, 2, PrimitiveType> primitive;
+
+  u32 hex;
+};
+
+union FramebufferState
+{
+  BitField<0, 8, AbstractTextureFormat> color_texture_format;
+  BitField<8, 8, AbstractTextureFormat> depth_texture_format;
+  BitField<16, 8, u32> samples;
+  BitField<24, 1, u32> per_sample_shading;
+
+  bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const FramebufferState& rhs) const { return hex != rhs.hex; }
+  FramebufferState& operator=(const FramebufferState& rhs);
 
   u32 hex;
 };
@@ -76,13 +92,15 @@ union BlendingState
 
 union SamplerState
 {
-  enum class Filter : u32
+  using StorageType = u64;
+
+  enum class Filter : StorageType
   {
     Point,
     Linear
   };
 
-  enum class AddressMode : u32
+  enum class AddressMode : StorageType
   {
     Clamp,
     Repeat,
@@ -101,19 +119,28 @@ union SamplerState
   BitField<2, 1, Filter> mipmap_filter;
   BitField<3, 2, AddressMode> wrap_u;
   BitField<5, 2, AddressMode> wrap_v;
-  BitField<7, 8, u32> min_lod;    // multiplied by 16
-  BitField<15, 8, u32> max_lod;   // multiplied by 16
-  BitField<23, 8, s32> lod_bias;  // multiplied by 32
-  BitField<31, 1, u32> anisotropic_filtering;
+  BitField<7, 16, s64> lod_bias;  // multiplied by 256
+  BitField<23, 8, u64> min_lod;   // multiplied by 16
+  BitField<31, 8, u64> max_lod;   // multiplied by 16
+  BitField<39, 1, u64> anisotropic_filtering;
 
-  u32 hex;
+  StorageType hex;
 };
 
 namespace RenderState
 {
-RasterizationState GetNoCullRasterizationState();
-DepthState GetNoDepthTestingDepthStencilState();
+RasterizationState GetInvalidRasterizationState();
+RasterizationState GetNoCullRasterizationState(PrimitiveType primitive);
+RasterizationState GetCullBackFaceRasterizationState(PrimitiveType primitive);
+DepthState GetInvalidDepthState();
+DepthState GetNoDepthTestingDepthState();
+DepthState GetAlwaysWriteDepthState();
+BlendingState GetInvalidBlendingState();
 BlendingState GetNoBlendingBlendState();
+BlendingState GetNoColorWriteBlendState();
+SamplerState GetInvalidSamplerState();
 SamplerState GetPointSamplerState();
 SamplerState GetLinearSamplerState();
-}
+FramebufferState GetColorFramebufferState(AbstractTextureFormat format);
+FramebufferState GetRGBA8FramebufferState();
+}  // namespace RenderState

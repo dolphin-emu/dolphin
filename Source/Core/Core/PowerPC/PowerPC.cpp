@@ -4,63 +4,94 @@
 
 #include "Core/PowerPC/PowerPC.h"
 
+#include <algorithm>
 #include <cstring>
+#include <istream>
+#include <ostream>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
+#include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
 
 namespace PowerPC
 {
 // STATE_TO_SAVE
-PowerPCState ppcState;
+PowerPCState ppcState{};
 
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
 Interpreter* const s_interpreter = Interpreter::getInstance();
 static CoreMode s_mode = CoreMode::Interpreter;
 
-Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
 static CoreTiming::EventType* s_invalidate_cache_thread_safe;
+
+double PairedSingle::PS0AsDouble() const
+{
+  return Common::BitCast<double>(ps0);
+}
+
+double PairedSingle::PS1AsDouble() const
+{
+  return Common::BitCast<double>(ps1);
+}
+
+void PairedSingle::SetPS0(double value)
+{
+  ps0 = Common::BitCast<u64>(value);
+}
+
+void PairedSingle::SetPS1(double value)
+{
+  ps1 = Common::BitCast<u64>(value);
+}
+
 static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
 {
   ppcState.iCache.Invalidate(static_cast<u32>(userdata));
 }
 
-u32 CompactCR()
+std::istream& operator>>(std::istream& is, CPUCore& core)
 {
-  u32 new_cr = 0;
-  for (int i = 0; i < 8; i++)
+  std::underlying_type_t<CPUCore> val{};
+
+  if (is >> val)
   {
-    new_cr |= GetCRField(i) << (28 - i * 4);
+    core = static_cast<CPUCore>(val);
   }
-  return new_cr;
+  else
+  {
+    // Upon failure, fall back to the cached interpreter
+    // to ensure we always initialize our core reference.
+    core = CPUCore::CachedInterpreter;
+  }
+
+  return is;
 }
 
-void ExpandCR(u32 cr)
+std::ostream& operator<<(std::ostream& os, CPUCore core)
 {
-  for (int i = 0; i < 8; i++)
-  {
-    SetCRField(i, (cr >> (28 - i * 4)) & 0xF);
-  }
+  os << static_cast<std::underlying_type_t<CPUCore>>(core);
+  return os;
 }
 
 void DoState(PointerWrap& p)
@@ -78,7 +109,7 @@ void DoState(PointerWrap& p)
   p.DoArray(ppcState.gpr);
   p.Do(ppcState.pc);
   p.Do(ppcState.npc);
-  p.DoArray(ppcState.cr_val);
+  p.DoArray(ppcState.cr.fields);
   p.Do(ppcState.msr);
   p.Do(ppcState.fpscr);
   p.Do(ppcState.Exceptions);
@@ -109,10 +140,11 @@ void DoState(PointerWrap& p)
 
 static void ResetRegisters()
 {
-  memset(ppcState.ps, 0, sizeof(ppcState.ps));
-  memset(ppcState.sr, 0, sizeof(ppcState.sr));
-  memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
-  memset(ppcState.spr, 0, sizeof(ppcState.spr));
+  std::fill(std::begin(ppcState.ps), std::end(ppcState.ps), PairedSingle{});
+  std::fill(std::begin(ppcState.sr), std::end(ppcState.sr), 0U);
+  std::fill(std::begin(ppcState.gpr), std::end(ppcState.gpr), 0U);
+  std::fill(std::begin(ppcState.spr), std::end(ppcState.spr), 0U);
+
   /*
   0x00080200 = lonestar 2.0
   0x00088202 = lonestar 2.2
@@ -129,12 +161,15 @@ static void ResetRegisters()
   ppcState.spr[SPR_ECID_M] = 0x1840c00d;
   ppcState.spr[SPR_ECID_L] = 0x82bb08e8;
 
-  ppcState.fpscr = 0;
+  ppcState.fpscr.Hex = 0;
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
-  for (auto& v : ppcState.cr_val)
+  for (auto& v : ppcState.cr.fields)
+  {
     v = 0x8000000000000001;
+  }
+  SetXER({});
 
   DBATUpdated();
   IBATUpdated();
@@ -144,12 +179,12 @@ static void ResetRegisters()
   SystemTimers::TimeBaseSet();
 
   // MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
-  ppcState.msr = 0;
+  ppcState.msr.Hex = 0;
   rDEC = 0xFFFFFFFF;
   SystemTimers::DecrementerSet();
 }
 
-static void InitializeCPUCore(int cpu_core)
+static void InitializeCPUCore(CPUCore cpu_core)
 {
   // We initialize the interpreter because
   // it is used on boot and code window independently.
@@ -157,7 +192,7 @@ static void InitializeCPUCore(int cpu_core)
 
   switch (cpu_core)
   {
-  case PowerPC::CORE_INTERPRETER:
+  case CPUCore::Interpreter:
     s_cpu_core_base = s_interpreter;
     break;
 
@@ -165,31 +200,26 @@ static void InitializeCPUCore(int cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-      s_cpu_core_base = s_interpreter;
+      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.",
+               static_cast<int>(cpu_core));
+      s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;
   }
 
-  if (s_cpu_core_base != s_interpreter)
-  {
-    s_mode = CoreMode::JIT;
-  }
-  else
-  {
-    s_mode = CoreMode::Interpreter;
-  }
+  s_mode = s_cpu_core_base == s_interpreter ? CoreMode::Interpreter : CoreMode::JIT;
 }
 
 const std::vector<CPUCore>& AvailableCPUCores()
 {
   static const std::vector<CPUCore> cpu_cores = {
-      CORE_INTERPRETER, CORE_CACHEDINTERPRETER,
 #ifdef _M_X86_64
-      CORE_JIT64,
+      CPUCore::JIT64,
 #elif defined(_M_ARM_64)
-      CORE_JITARM64,
+      CPUCore::JITARM64,
 #endif
+      CPUCore::CachedInterpreter,
+      CPUCore::Interpreter,
   };
 
   return cpu_cores;
@@ -198,15 +228,15 @@ const std::vector<CPUCore>& AvailableCPUCores()
 CPUCore DefaultCPUCore()
 {
 #ifdef _M_X86_64
-  return CORE_JIT64;
+  return CPUCore::JIT64;
 #elif defined(_M_ARM_64)
-  return CORE_JITARM64;
+  return CPUCore::JITARM64;
 #else
-  return CORE_CACHEDINTERPRETER;
+  return CPUCore::CachedInterpreter;
 #endif
 }
 
-void Init(int cpu_core)
+void Init(CPUCore cpu_core)
 {
   // NOTE: This function runs on EmuThread, not the CPU Thread.
   //   Changing the rounding mode has a limited effect.
@@ -329,6 +359,18 @@ void RunLoop()
   Host_UpdateDisasmDialog();
 }
 
+u64 ReadFullTimeBaseValue()
+{
+  u64 value;
+  std::memcpy(&value, &TL, sizeof(value));
+  return value;
+}
+
+void WriteFullTimeBaseValue(u64 value)
+{
+  std::memcpy(&TL, &value, sizeof(value));
+}
+
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 {
   switch (MMCR0.PMC1SELECT)
@@ -393,15 +435,19 @@ void CheckExceptions()
   u32 exceptions = ppcState.Exceptions;
 
   // Example procedure:
-  // set SRR0 to either PC or NPC
+  // Set SRR0 to either PC or NPC
   // SRR0 = NPC;
-  // save specified MSR bits
-  // SRR1 = MSR & 0x87C0FFFF;
-  // copy ILE bit to LE
-  // MSR |= (MSR >> 16) & 1;
-  // clear MSR as specified
-  // MSR &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
-  // set to exception type entry point
+  //
+  // Save specified MSR bits
+  // SRR1 = MSR.Hex & 0x87C0FFFF;
+  //
+  // Copy ILE bit to LE
+  // MSR.LE = MSR.ILE;
+  //
+  // Clear MSR as specified
+  // MSR.Hex &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
+  //
+  // Set to exception type entry point
   // NPC = 0x00000x00;
 
   // TODO(delroth): Exception priority is completely wrong here: depending on
@@ -413,9 +459,9 @@ void CheckExceptions()
   {
     SRR0 = NPC;
     // Page fault occurred
-    SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
+    MSR.LE = MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_ISI");
@@ -425,9 +471,9 @@ void CheckExceptions()
   {
     SRR0 = PC;
     // say that it's a trap exception
-    SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = (MSR.Hex & 0x87C0FFFF) | 0x20000;
+    MSR.LE = MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_PROGRAM");
@@ -436,9 +482,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_SYSCALL)
   {
     SRR0 = NPC;
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE = MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
@@ -448,9 +494,9 @@ void CheckExceptions()
   {
     // This happens a lot - GameCube OS uses deferred FPU context switching
     SRR0 = PC;  // re-execute the instruction
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE = MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
@@ -463,9 +509,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_DSI)
   {
     SRR0 = PC;
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE = MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
@@ -474,12 +520,10 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
-    // This never happens ATM
-    // perhaps we can get dcb* instructions to use this :p
     SRR0 = PC;
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE = MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000600;
 
     // TODO crazy amount of DSISR options to check out
@@ -500,28 +544,29 @@ void CheckExternalExceptions()
   u32 exceptions = ppcState.Exceptions;
 
   // EXTERNAL INTERRUPT
-  if (exceptions && (MSR & 0x0008000))  // Handling is delayed until MSR.EE=1.
+  // Handling is delayed until MSR.EE=1.
+  if (exceptions && MSR.EE)
   {
     if (exceptions & EXCEPTION_EXTERNAL_INT)
     {
       // Pokemon gets this "too early", it hasn't a handler yet
       SRR0 = NPC;
-      SRR1 = MSR & 0x87C0FFFF;
-      MSR |= (MSR >> 16) & 1;
-      MSR &= ~0x04EF36;
+      SRR1 = MSR.Hex & 0x87C0FFFF;
+      MSR.LE = MSR.ILE;
+      MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
       DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
-      _dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
+      DEBUG_ASSERT_MSG(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
     }
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
       SRR0 = NPC;
-      SRR1 = MSR & 0x87C0FFFF;
-      MSR |= (MSR >> 16) & 1;
-      MSR &= ~0x04EF36;
+      SRR1 = MSR.Hex & 0x87C0FFFF;
+      MSR.LE = MSR.ILE;
+      MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
       DEBUG_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
@@ -530,9 +575,9 @@ void CheckExternalExceptions()
     else if (exceptions & EXCEPTION_DECREMENTER)
     {
       SRR0 = NPC;
-      SRR1 = MSR & 0x87C0FFFF;
-      MSR |= (MSR >> 16) & 1;
-      MSR &= ~0x04EF36;
+      SRR1 = MSR.Hex & 0x87C0FFFF;
+      MSR.LE = MSR.ILE;
+      MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
       DEBUG_LOG(POWERPC, "EXCEPTION_DECREMENTER");
@@ -540,7 +585,7 @@ void CheckExternalExceptions()
     }
     else
     {
-      _dbg_assert_msg_(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
       ERROR_LOG(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", exceptions);
     }
   }
@@ -556,13 +601,17 @@ void CheckBreakPoints()
   }
 }
 
-}  // namespace
+void PowerPCState::SetSR(u32 index, u32 value)
+{
+  DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", pc, index, value);
+  sr[index] = value;
+}
 
 // FPSCR update functions
 
 void UpdateFPRF(double dvalue)
 {
-  FPSCR.FPRF = MathUtil::ClassifyDouble(dvalue);
-  // if (FPSCR.FPRF == 0x11)
-  //	PanicAlert("QNAN alert");
+  FPSCR.FPRF = Common::ClassifyDouble(dvalue);
 }
+
+}  // namespace PowerPC

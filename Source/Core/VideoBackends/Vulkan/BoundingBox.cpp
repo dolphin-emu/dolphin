@@ -13,7 +13,6 @@
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
@@ -33,7 +32,7 @@ BoundingBox::~BoundingBox()
 
 bool BoundingBox::Initialize()
 {
-  if (!g_vulkan_context->SupportsBoundingBox())
+  if (!g_ActiveConfig.backend_info.bSupportsBBox)
   {
     WARN_LOG(VIDEO, "Vulkan: Bounding box is unsupported by your device.");
     return true;
@@ -45,6 +44,8 @@ bool BoundingBox::Initialize()
   if (!CreateReadbackBuffer())
     return false;
 
+  // Bind bounding box to state tracker
+  StateTracker::GetInstance()->SetSSBO(m_gpu_buffer, 0, BUFFER_SIZE);
   return true;
 }
 
@@ -79,7 +80,7 @@ void BoundingBox::Flush()
       StateTracker::GetInstance()->EndRenderPass();
 
       // Ensure GPU buffer is in a state where it can be transferred to.
-      Util::BufferMemoryBarrier(
+      StagingBuffer::BufferMemoryBarrier(
           g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
           VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, 0,
           BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -95,10 +96,10 @@ void BoundingBox::Flush()
   // Restore fragment shader access to the buffer.
   if (updated_buffer)
   {
-    Util::BufferMemoryBarrier(
+    StagingBuffer::BufferMemoryBarrier(
         g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
-        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
   }
 
   // We're now up-to-date.
@@ -115,7 +116,7 @@ void BoundingBox::Invalidate()
 
 s32 BoundingBox::Get(size_t index)
 {
-  _assert_(index < NUM_VALUES);
+  ASSERT(index < NUM_VALUES);
 
   if (!m_valid)
     Readback();
@@ -127,7 +128,7 @@ s32 BoundingBox::Get(size_t index)
 
 void BoundingBox::Set(size_t index, s32 value)
 {
-  _assert_(index < NUM_VALUES);
+  ASSERT(index < NUM_VALUES);
 
   // If we're currently valid, update the stored value in both our cache and the GPU buffer.
   if (m_valid)
@@ -219,10 +220,10 @@ void BoundingBox::Readback()
   StateTracker::GetInstance()->EndRenderPass();
 
   // Ensure all writes are completed to the GPU buffer prior to the transfer.
-  Util::BufferMemoryBarrier(
+  StagingBuffer::BufferMemoryBarrier(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
       VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, 0,
-      BUFFER_SIZE, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
   m_readback_buffer->PrepareForGPUWrite(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                         VK_ACCESS_TRANSFER_WRITE_BIT,
                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -233,15 +234,15 @@ void BoundingBox::Readback()
                   m_readback_buffer->GetBuffer(), 1, &region);
 
   // Restore GPU buffer access.
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
-                            VK_ACCESS_TRANSFER_READ_BIT,
-                            VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
-                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+  StagingBuffer::BufferMemoryBarrier(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer, VK_ACCESS_TRANSFER_READ_BIT,
+      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
+      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
   m_readback_buffer->FlushGPUCache(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Wait until these commands complete.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+  Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
 
   // Cache is now valid.
   m_readback_buffer->InvalidateCPUCache();

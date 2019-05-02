@@ -51,6 +51,7 @@ class ProfilerExecuter
 public:
   ProfilerExecuter(Profiler* _p) : m_p(_p) { m_p->Start(); }
   ~ProfilerExecuter() { m_p->Stop(); }
+
 private:
   Profiler* m_p;
 };

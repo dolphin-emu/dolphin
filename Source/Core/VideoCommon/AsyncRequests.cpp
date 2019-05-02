@@ -7,17 +7,21 @@
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 AsyncRequests AsyncRequests::s_singleton;
 
-AsyncRequests::AsyncRequests() : m_enable(false), m_passthrough(true)
-{
-}
+AsyncRequests::AsyncRequests() = default;
 
 void AsyncRequests::PullEventsInternal()
 {
+  // This is only called if the queue isn't empty.
+  // So just flush the pipeline to get accurate results.
+  g_vertex_manager->Flush();
+
   std::unique_lock<std::mutex> lock(m_mutex);
   m_empty.Set();
 
@@ -109,11 +113,11 @@ void AsyncRequests::SetEnable(bool enable)
 
 void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 {
-  EFBRectangle rc;
   switch (e.type)
   {
   case Event::EFB_POKE_COLOR:
   {
+    INCSTAT(stats.thisFrame.numEFBPokes);
     EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(EFBAccessType::PokeColor, &poke, 1);
   }
@@ -121,23 +125,26 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
   case Event::EFB_POKE_Z:
   {
+    INCSTAT(stats.thisFrame.numEFBPokes);
     EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(EFBAccessType::PokeZ, &poke, 1);
   }
   break;
 
   case Event::EFB_PEEK_COLOR:
+    INCSTAT(stats.thisFrame.numEFBPeeks);
     *e.efb_peek.data =
         g_renderer->AccessEFB(EFBAccessType::PeekColor, e.efb_peek.x, e.efb_peek.y, 0);
     break;
 
   case Event::EFB_PEEK_Z:
+    INCSTAT(stats.thisFrame.numEFBPeeks);
     *e.efb_peek.data = g_renderer->AccessEFB(EFBAccessType::PeekZ, e.efb_peek.x, e.efb_peek.y, 0);
     break;
 
   case Event::SWAP_EVENT:
     g_renderer->Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                     e.swap_event.fbHeight, rc, e.time);
+                     e.swap_event.fbHeight, e.time);
     break;
 
   case Event::BBOX_READ:

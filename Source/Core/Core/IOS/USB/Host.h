@@ -23,11 +23,7 @@
 class PointerWrap;
 struct libusb_context;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // Common base class for USB host devices (such as /dev/usb/oh0 and /dev/usb/ven).
 class USBHost : public Device
@@ -36,7 +32,7 @@ public:
   USBHost(Kernel& ios, const std::string& device_name);
   virtual ~USBHost();
 
-  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
 
   void UpdateWantDeterminism(bool new_want_determinism) override;
   void DoState(PointerWrap& p) override;
@@ -81,6 +77,4 @@ private:
   Common::Flag m_scan_thread_running;
   std::thread m_scan_thread;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

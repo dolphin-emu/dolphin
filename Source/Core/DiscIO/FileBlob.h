@@ -20,8 +20,9 @@ public:
   static std::unique_ptr<PlainFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
-  u64 GetDataSize() const override { return m_size; }
   u64 GetRawSize() const override { return m_size; }
+  u64 GetDataSize() const override { return m_size; }
+  bool IsDataSizeAccurate() const override { return true; }
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:

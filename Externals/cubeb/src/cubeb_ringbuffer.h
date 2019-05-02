@@ -226,6 +226,17 @@ public:
   {
     return storage_capacity() - 1;
   }
+  /**
+   * Reset the consumer and producer thread identifier, in case the thread are
+   * being changed. This has to be externally synchronized. This is no-op when
+   * asserts are disabled.
+   */
+  void reset_thread_ids()
+  {
+#ifndef NDEBUG
+    consumer_id = producer_id = std::thread::id();
+#endif
+  }
 private:
   /** Return true if the ring buffer is empty.
    *

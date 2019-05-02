@@ -5,32 +5,64 @@
 
     <!-- New UI CPU Core selection - Default -->
     <string-array name="emuCoresEntriesX86_64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT Recompiler</item>
+        <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesX86_64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>1</item>
+        <item>5</item>
+        <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT ARM64 Recompiler</item>
+        <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesARM64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>4</item>
+        <item>5</item>
+        <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesGeneric" translatable="false">
-        <item>Interpreter</item>
         <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesGeneric" translatable="false">
-        <item>0</item>
         <item>5</item>
+        <item>0</item>
+    </integer-array>
+
+    <!-- GameCube System Languages -->
+    <string-array name="gameCubeSystemLanguageEntries" translatable="false">
+        <item>English</item>
+        <item>German</item>
+        <item>French</item>
+        <item>Spanish</item>
+        <item>Italian</item>
+        <item>Dutch</item>
+    </string-array>
+    <integer-array name="gameCubeSystemLanguageValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
+    <!-- Slot A Device Selection -->
+    <string-array name="slotDeviceEntries" translatable="false">
+        <item>Nothing</item>
+        <item>Dummy</item>
+        <item>Memory Card</item>
+        <item>GCI Folder</item>
+    </string-array>
+    <integer-array name="slotDeviceValues" translatable="false">
+        <item>255</item>
+        <item>0</item>
+        <item>1</item>
+        <item>8</item>
     </integer-array>
 
     <!-- Video backend selection -->
@@ -77,28 +109,18 @@
         <item>0</item>
     </integer-array>
 
-    <!-- External Frame Buffer Preference -->
-    <string-array name="externalFrameBufferEntries" translatable="false">
-        <item>Disabled</item>
-        <item>Virtual</item>
-        <item>Real</item>
-    </string-array>
-    <integer-array name="externalFrameBufferValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </integer-array>
-
     <!-- Ubershader Mode Preference -->
-    <string-array name="uberShaderModeEntries" translatable="false">
-        <item>Disabled</item>
-        <item>Hybrid</item>
-        <item>Exclusive</item>
+    <string-array name="shaderCompilationModeEntries" translatable="false">
+        <item>Synchronous</item>
+        <item>Synchronous (Ubershaders)</item>
+        <item>Asynchronous (Ubershaders)</item>
+        <item>Asynchronous (Skip Drawing)</item>
     </string-array>
-    <integer-array name="uberShaderModeValues" translatable="false">
+    <integer-array name="shaderCompilationModeValues" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </integer-array>
 
     <!-- Internal Resolution Preference -->
@@ -111,24 +133,26 @@
         <item>6x Native (3840x3168) for 4K</item>
     </string-array>
     <integer-array name="internalResolutionValues" translatable="false">
+        <item>1</item>
         <item>2</item>
+        <item>3</item>
         <item>4</item>
+        <item>5</item>
         <item>6</item>
-        <item>7</item>
-        <item>8</item>
-        <item>9</item>
     </integer-array>
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
-        <item>1x</item>
+        <item>Off</item>
         <item>2x</item>
         <item>4x</item>
+        <item>8x</item>
     </string-array>
     <integer-array name="FSAAValues" translatable="false">
-        <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>4</item>
+        <item>8</item>
     </integer-array>
 
     <!-- Anisotropic Filtering Preference -->
@@ -284,4 +308,30 @@
         <item>Right Stick</item>
     </string-array>
 
+    <string-array name="doubleTap">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+    </string-array>
+
+    <string-array name="doubleTapWithClassic">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+        <item>Classic A</item>
+    </string-array>
+
+    <string-array name="gameSettingsMenusGC">
+        <item>Core Settings</item>
+        <item>GFX Settings</item>
+        <item>GameCube Controller Settings</item>
+        <item>Clear Game Settings</item>
+    </string-array>
+    <string-array name="gameSettingsMenusWii">
+        <item>Core Settings</item>
+        <item>GFX Settings</item>
+        <item>GameCube Controller Settings</item>
+        <item>Wii Controller Settings</item>
+        <item>Clear Game Settings</item>
+    </string-array>
 </resources>

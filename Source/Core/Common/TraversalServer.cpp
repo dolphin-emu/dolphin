@@ -15,10 +15,17 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#ifdef HAVE_LIBSYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
+#include "Common/Random.h"
 #include "Common/TraversalProto.h"
 
 #define DEBUG 0
 #define NUMBER_OF_TRIES 5
+#define PORT 6262
 
 static u64 currentTime;
 
@@ -108,7 +115,6 @@ struct hash<TraversalHostId>
 }
 
 static int sock;
-static int urandomFd;
 static std::unordered_map<TraversalRequestId, OutgoingPacketInfo> outgoingPackets;
 static std::unordered_map<TraversalHostId, EvictEntry<TraversalInetAddress>> connectedClients;
 
@@ -160,28 +166,10 @@ static sockaddr_in6 MakeSinAddr(const TraversalInetAddress& addr)
   return result;
 }
 
-static void GetRandomBytes(void* output, size_t size)
-{
-  static u8 bytes[8192];
-  static size_t bytesLeft = 0;
-  if (bytesLeft < size)
-  {
-    ssize_t rv = read(urandomFd, bytes, sizeof(bytes));
-    if (rv != sizeof(bytes))
-    {
-      perror("read from /dev/urandom");
-      exit(1);
-    }
-    bytesLeft = sizeof(bytes);
-  }
-  memcpy(output, bytes + (bytesLeft -= size), size);
-}
-
 static void GetRandomHostId(TraversalHostId* hostId)
 {
   char buf[9];
-  u32 num;
-  GetRandomBytes(&num, sizeof(num));
+  const u32 num = Common::Random::GenerateValue<u32>();
   sprintf(buf, "%08x", num);
   memcpy(hostId->data(), buf, 8);
 }
@@ -209,7 +197,7 @@ static void TrySend(const void* buffer, size_t size, sockaddr_in6* addr)
 static TraversalPacket* AllocPacket(const sockaddr_in6& dest, TraversalRequestId misc = 0)
 {
   TraversalRequestId requestId;
-  GetRandomBytes(&requestId, sizeof(requestId));
+  Common::Random::Generate(&requestId, sizeof(requestId));
   OutgoingPacketInfo* info = &outgoingPackets[requestId];
   info->dest = dest;
   info->misc = misc;
@@ -370,14 +358,6 @@ static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
 int main()
 {
   int rv;
-
-  urandomFd = open("/dev/urandom", O_RDONLY);
-  if (urandomFd < 0)
-  {
-    perror("open /dev/urandom");
-    return 1;
-  }
-
   sock = socket(PF_INET6, SOCK_DGRAM, 0);
   if (sock == -1)
   {
@@ -397,7 +377,7 @@ int main()
   addr.sin6_len = sizeof(addr);
 #endif
   addr.sin6_family = AF_INET6;
-  addr.sin6_port = htons(6262);
+  addr.sin6_port = htons(PORT);
   addr.sin6_flowinfo = 0;
   addr.sin6_addr = any;
   addr.sin6_scope_id = 0;
@@ -418,6 +398,10 @@ int main()
     perror("setsockopt SO_RCVTIMEO");
     return 1;
   }
+
+#ifdef HAVE_LIBSYSTEMD
+  sd_notifyf(0, "READY=1\nSTATUS=Listening on port %d", PORT);
+#endif
 
   while (true)
   {
@@ -450,5 +434,8 @@ int main()
       HandlePacket(&packet, &raddr);
     }
     ResendPackets();
+#ifdef HAVE_LIBSYSTEMD
+    sd_notify(0, "WATCHDOG=1");
+#endif
   }
 }

@@ -10,20 +10,24 @@
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 
+using namespace WiimoteCommon;
+using namespace WiimoteReal;
+
 static bool IsDeviceUsable(const std::string& device_path)
 {
   hid_device* handle = hid_open_path(device_path.c_str());
   if (handle == nullptr)
   {
-    ERROR_LOG(WIIMOTE, "Could not connect to Wii Remote at \"%s\". "
-                       "Do you have permission to access the device?",
+    ERROR_LOG(WIIMOTE,
+              "Could not connect to Wii Remote at \"%s\". "
+              "Do you have permission to access the device?",
               device_path.c_str());
     return false;
   }
   // Some third-party adapters (DolphinBar) always expose all four Wii Remotes as HIDs
   // even when they are not connected, which causes an endless error loop when we try to use them.
   // Try to write a report to the device to see if this Wii Remote is really usable.
-  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, RT_REQUEST_STATUS, 0};
+  static const u8 report[] = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
   const int result = hid_write(handle, report, sizeof(report));
   // The DolphinBar uses EPIPE to signal the absence of a Wii Remote connected to this HID.
   if (result == -1 && errno != EPIPE)
@@ -38,7 +42,7 @@ namespace WiimoteReal
 WiimoteScannerHidapi::WiimoteScannerHidapi()
 {
   int ret = hid_init();
-  _assert_msg_(WIIMOTE, ret == 0, "Couldn't initialise hidapi.");
+  ASSERT_MSG(WIIMOTE, ret == 0, "Couldn't initialise hidapi.");
 }
 
 WiimoteScannerHidapi::~WiimoteScannerHidapi()
@@ -96,8 +100,9 @@ bool WiimoteHidapi::ConnectInternal()
   m_handle = hid_open_path(m_device_path.c_str());
   if (m_handle == nullptr)
   {
-    ERROR_LOG(WIIMOTE, "Could not connect to Wii Remote at \"%s\". "
-                       "Do you have permission to access the device?",
+    ERROR_LOG(WIIMOTE,
+              "Could not connect to Wii Remote at \"%s\". "
+              "Do you have permission to access the device?",
               m_device_path.c_str());
   }
   return m_handle != nullptr;
@@ -134,7 +139,7 @@ int WiimoteHidapi::IORead(u8* buf)
 
 int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
 {
-  _dbg_assert_(WIIMOTE, buf[0] == (WR_SET_REPORT | BT_OUTPUT));
+  DEBUG_ASSERT(buf[0] == (WR_SET_REPORT | BT_OUTPUT));
   int result = hid_write(m_handle, buf + 1, len - 1);
   if (result == -1)
   {
@@ -143,4 +148,4 @@ int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
   }
   return (result == 0) ? 1 : result;
 }
-};  // WiimoteReal
+};  // namespace WiimoteReal

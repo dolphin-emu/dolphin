@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <deque>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -42,9 +43,12 @@ public:
     return std::make_unique<T>(std::forward<Params>(params)...);
   }
 
-  void QueueWorkItem(WorkItemPtr item);
+  // Queues a new work item to the compiler threads. The lower the priority, the sooner
+  // this work item will be compiled, relative to the other work items.
+  void QueueWorkItem(WorkItemPtr item, u32 priority);
   void RetrieveWorkItems();
   bool HasPendingWork();
+  bool HasCompletedWork();
 
   // Simpler version without progress updates.
   void WaitUntilCompletion();
@@ -73,7 +77,9 @@ private:
   std::vector<std::thread> m_worker_threads;
   std::atomic_bool m_worker_thread_start_result{false};
 
-  std::deque<WorkItemPtr> m_pending_work;
+  // A multimap is used to store the work items. We can't use a priority_queue here, because
+  // there's no way to obtain a non-const reference, which we need for the unique_ptr.
+  std::multimap<u32, WorkItemPtr> m_pending_work;
   std::mutex m_pending_work_lock;
   std::condition_variable m_worker_thread_wake;
   std::atomic_size_t m_busy_workers{0};

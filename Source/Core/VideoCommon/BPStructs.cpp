@@ -12,13 +12,17 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelEngine.h"
@@ -127,6 +131,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_SCISSORBR:      // Scissor Rectable Bottom, Right
   case BPMEM_SCISSOROFFSET:  // Scissor Offset
     SetScissor();
+    SetViewport();
     VertexShaderManager::SetViewportChanged();
     GeometryShaderManager::SetViewportChanged();
     return;
@@ -150,9 +155,7 @@ static void BPWritten(const BPCmd& bp)
 
       SetBlendMode();
 
-      // Dither
-      if (bp.changes & 0x04)
-        PixelShaderManager::SetBlendModeChanged();
+      PixelShaderManager::SetBlendModeChanged();
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha
@@ -175,6 +178,8 @@ static void BPWritten(const BPCmd& bp)
     switch (bp.newvalue & 0xFF)
     {
     case 0x02:
+      g_texture_cache->FlushEFBCopies();
+      g_framebuffer_manager->InvalidatePeekCache(false);
       if (!Fifo::UseDeterministicGPUThread())
         PixelEngine::SetFinish();  // may generate interrupt
       DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bp.newvalue & 0xFFFF));
@@ -186,11 +191,15 @@ static void BPWritten(const BPCmd& bp)
     }
     return;
   case BPMEM_PE_TOKEN_ID:  // Pixel Engine Token ID
+    g_texture_cache->FlushEFBCopies();
+    g_framebuffer_manager->InvalidatePeekCache(false);
     if (!Fifo::UseDeterministicGPUThread())
       PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false);
     DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
     return;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
+    g_texture_cache->FlushEFBCopies();
+    g_framebuffer_manager->InvalidatePeekCache(false);
     if (!Fifo::UseDeterministicGPUThread())
       PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true);
     DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
@@ -210,27 +219,61 @@ static void BPWritten(const BPCmd& bp)
     u32 destAddr = bpmem.copyTexDest << 5;
     u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
-    EFBRectangle srcRect;
-    srcRect.left = (int)bpmem.copyTexSrcXY.x;
-    srcRect.top = (int)bpmem.copyTexSrcXY.y;
+    MathUtil::Rectangle<int> srcRect;
+    srcRect.left = static_cast<int>(bpmem.copyTexSrcXY.x);
+    srcRect.top = static_cast<int>(bpmem.copyTexSrcXY.y);
 
     // Here Width+1 like Height, otherwise some textures are corrupted already since the native
     // resolution.
-    // TODO: What's the behavior of out of bound access?
-    srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-    srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+    srcRect.right = static_cast<int>(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+    srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
-    UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+    // Since the copy X and Y coordinates/sizes are 10-bit, the game can configure a copy region up
+    // to 1024x1024. Hardware tests have found that the number of bytes written does not depend on
+    // the configured stride, instead it is based on the size registers, writing beyond the length
+    // of a single row. The data written for the pixels which lie outside the EFB bounds does not
+    // wrap around instead returning different colors based on the pixel format of the EFB. This
+    // suggests it's not based on coordinates, but instead on memory addresses. The effect of a
+    // within-bounds size but out-of-bounds offset (e.g. offset 320,0, size 640,480) are the same.
+
+    // As it would be difficult to emulate the exact behavior of out-of-bounds reads, instead of
+    // writing the junk data, we don't write anything to RAM at all for over-sized copies, and clamp
+    // to the EFB borders for over-offset copies. The arcade virtual console games (e.g. 1942) are
+    // known for configuring these out-of-range copies.
+    int copy_width = srcRect.GetWidth();
+    int copy_height = srcRect.GetHeight();
+    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
+    {
+      WARN_LOG(VIDEO, "Oversized EFB copy: %dx%d (offset %d,%d stride %u)", copy_width, copy_height,
+               srcRect.left, srcRect.top, destStride);
+
+      // Adjust the copy size to fit within the EFB. So that we don't end up with a stretched image,
+      // instead of clamping the source rectangle, we reduce it by the over-sized amount.
+      if (copy_width > EFB_WIDTH)
+      {
+        srcRect.right -= copy_width - EFB_WIDTH;
+        copy_width = EFB_WIDTH;
+      }
+      if (copy_height > EFB_HEIGHT)
+      {
+        srcRect.bottom -= copy_height - EFB_HEIGHT;
+        copy_height = EFB_HEIGHT;
+      }
+    }
 
     // Check if we are to copy from the EFB or draw to the XFB
+    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
     if (PE_copy.copy_to_xfb == 0)
     {
       // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
+      static constexpr CopyFilterCoefficients::Values filter_coefficients = {
+          {0, 0, 21, 22, 21, 0, 0}};
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
-                                                 is_depth_copy, srcRect, !!PE_copy.intensity_fmt,
-                                                 !!PE_copy.half_scale);
+      g_texture_cache->CopyRenderTargetToTexture(
+          destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
+          srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f,
+          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom, filter_coefficients);
     }
     else
     {
@@ -243,24 +286,41 @@ static void BPWritten(const BPCmd& bp)
 
       float yScale;
       if (PE_copy.scale_invert)
-        yScale = 256.0f / (float)bpmem.dispcopyyscale;
+        yScale = 256.0f / static_cast<float>(bpmem.dispcopyyscale);
       else
-        yScale = (float)bpmem.dispcopyyscale / 256.0f;
+        yScale = static_cast<float>(bpmem.dispcopyyscale) / 256.0f;
 
       float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
       u32 height = static_cast<u32>(num_xfb_lines);
-      if (height > MAX_XFB_HEIGHT)
-      {
-        INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)", height, num_xfb_lines);
-        height = MAX_XFB_HEIGHT;
-      }
 
-      DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
-                       "fbStride: %u | fbHeight: %u",
+      DEBUG_LOG(VIDEO,
+                "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
+                "fbStride: %u | fbHeight: %u | yScale: %f",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
-                bpmem.copyTexSrcWH.x + 1, destStride, height);
+                bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
+
+      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      g_texture_cache->CopyRenderTargetToTexture(
+          destAddr, EFBCopyFormat::XFB, copy_width, height, destStride, is_depth_copy, srcRect,
+          false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
+          bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
+
+      // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+
+      if (g_ActiveConfig.bImmediateXFB)
+      {
+        // below div two to convert from bytes to pixels - it expects width, not stride
+        g_renderer->Swap(destAddr, destStride / 2, destStride, height, CoreTiming::GetTicks());
+      }
+      else
+      {
+        if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+        {
+          VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), destStride, height);
+        }
+      }
     }
 
     // Clear the rectangular region after copying it.
@@ -369,7 +429,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_PERF0_TRI:   // Perf: Triangles
   case BPMEM_PERF0_QUAD:  // Perf: Quads
   case BPMEM_PERF1:       // Perf: Some Clock, Texels, TX, TC
-    break;
+    return;
   // ----------------
   // EFB Copy config
   // ----------------
@@ -700,7 +760,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
   const char* no_yes[2] = {"No", "Yes"};
 
   u8 cmd = data[0];
-  u32 cmddata = Common::swap32(*(u32*)data) & 0xFFFFFF;
+  u32 cmddata = Common::swap32(data) & 0xFFFFFF;
   switch (cmd)
   {
 // Macro to set the register name and make sure it was written correctly via compile time assertion
@@ -984,27 +1044,28 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_TRIGGER_EFB_COPY);
     UPE_Copy copy;
     copy.Hex = cmddata;
-    *desc = StringFromFormat("Clamping: %s\n"
-                             "Converting from RGB to YUV: %s\n"
-                             "Target pixel format: 0x%X\n"
-                             "Gamma correction: %s\n"
-                             "Mipmap filter: %s\n"
-                             "Vertical scaling: %s\n"
-                             "Clear: %s\n"
-                             "Frame to field: 0x%01X\n"
-                             "Copy to XFB: %s\n"
-                             "Intensity format: %s\n"
-                             "Automatic color conversion: %s",
-                             (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ?
-                                                            "Top only" :
-                                                            (copy.clamp1) ? "Bottom only" : "None",
-                             no_yes[copy.yuv], copy.tp_realFormat(),
-                             (copy.gamma == 0) ? "1.0" : (copy.gamma == 1) ?
-                                                 "1.7" :
-                                                 (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
-                             no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
-                             (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb],
-                             no_yes[copy.intensity_fmt], no_yes[copy.auto_conv]);
+    *desc = StringFromFormat(
+        "Clamping: %s\n"
+        "Converting from RGB to YUV: %s\n"
+        "Target pixel format: 0x%X\n"
+        "Gamma correction: %s\n"
+        "Mipmap filter: %s\n"
+        "Vertical scaling: %s\n"
+        "Clear: %s\n"
+        "Frame to field: 0x%01X\n"
+        "Copy to XFB: %s\n"
+        "Intensity format: %s\n"
+        "Automatic color conversion: %s",
+        (copy.clamp_top && copy.clamp_bottom) ?
+            "Top and Bottom" :
+            (copy.clamp_top) ? "Top only" : (copy.clamp_bottom) ? "Bottom only" : "None",
+        no_yes[copy.yuv], static_cast<int>(copy.tp_realFormat()),
+        (copy.gamma == 0) ?
+            "1.0" :
+            (copy.gamma == 1) ? "1.7" : (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
+        no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
+        (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
+        no_yes[copy.auto_conv]);
   }
   break;
 
@@ -1398,6 +1459,7 @@ void BPReload()
   // note that PixelShaderManager is already covered since it has its own DoState.
   SetGenerationMode();
   SetScissor();
+  SetViewport();
   SetDepthMode();
   SetBlendMode();
   OnPixelFormatChange();

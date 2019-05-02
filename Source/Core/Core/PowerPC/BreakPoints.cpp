@@ -12,10 +12,10 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -62,52 +62,47 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
 
 void BreakPoints::Add(const TBreakPoint& bp)
 {
-  if (!IsAddressBreakPoint(bp.address))
-  {
-    m_breakpoints.push_back(bp);
-    if (g_jit)
-      g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
-  }
+  if (IsAddressBreakPoint(bp.address))
+    return;
+
+  m_breakpoints.push_back(bp);
+
+  JitInterface::InvalidateICache(bp.address, 4, true);
 }
 
 void BreakPoints::Add(u32 address, bool temp)
 {
-  if (!IsAddressBreakPoint(address))  // only add new addresses
-  {
-    TBreakPoint bp;  // breakpoint settings
-    bp.is_enabled = true;
-    bp.is_temporary = temp;
-    bp.address = address;
+  // Only add new addresses
+  if (IsAddressBreakPoint(address))
+    return;
 
-    m_breakpoints.push_back(bp);
+  TBreakPoint bp;  // breakpoint settings
+  bp.is_enabled = true;
+  bp.is_temporary = temp;
+  bp.address = address;
 
-    if (g_jit)
-      g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
-  }
+  m_breakpoints.push_back(bp);
+
+  JitInterface::InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Remove(u32 address)
 {
-  for (auto i = m_breakpoints.begin(); i != m_breakpoints.end(); ++i)
-  {
-    if (i->address == address)
-    {
-      m_breakpoints.erase(i);
-      if (g_jit)
-        g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
-      return;
-    }
-  }
+  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                                 [address](const auto& bp) { return bp.address == address; });
+
+  if (iter == m_breakpoints.cend())
+    return;
+
+  m_breakpoints.erase(iter);
+  JitInterface::InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Clear()
 {
-  if (g_jit)
+  for (const TBreakPoint& bp : m_breakpoints)
   {
-    for (const TBreakPoint& bp : m_breakpoints)
-    {
-      g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
-    }
+    JitInterface::InvalidateICache(bp.address, 4, true);
   }
 
   m_breakpoints.clear();
@@ -120,8 +115,7 @@ void BreakPoints::ClearAllTemporary()
   {
     if (bp->is_temporary)
     {
-      if (g_jit)
-        g_jit->GetBlockCache()->InvalidateICache(bp->address, 4, true);
+      JitInterface::InvalidateICache(bp->address, 4, true);
       bp = m_breakpoints.erase(bp);
     }
     else
@@ -171,71 +165,68 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 
 void MemChecks::Add(const TMemCheck& memory_check)
 {
-  if (GetMemCheck(memory_check.start_address) == nullptr)
-  {
-    bool had_any = HasAny();
-    Core::RunAsCPUThread([&] {
-      m_mem_checks.push_back(memory_check);
-      // If this is the first one, clear the JIT cache so it can switch to
-      // watchpoint-compatible code.
-      if (!had_any && g_jit)
-        g_jit->ClearCache();
-      PowerPC::DBATUpdated();
-    });
-  }
+  if (GetMemCheck(memory_check.start_address) != nullptr)
+    return;
+
+  bool had_any = HasAny();
+  Core::RunAsCPUThread([&] {
+    m_mem_checks.push_back(memory_check);
+    // If this is the first one, clear the JIT cache so it can switch to
+    // watchpoint-compatible code.
+    if (!had_any)
+      JitInterface::ClearCache();
+    PowerPC::DBATUpdated();
+  });
 }
 
 void MemChecks::Remove(u32 address)
 {
-  for (auto i = m_mem_checks.begin(); i != m_mem_checks.end(); ++i)
-  {
-    if (i->start_address == address)
-    {
-      Core::RunAsCPUThread([&] {
-        m_mem_checks.erase(i);
-        if (!HasAny() && g_jit)
-          g_jit->ClearCache();
-        PowerPC::DBATUpdated();
-      });
-      return;
-    }
-  }
+  const auto iter =
+      std::find_if(m_mem_checks.cbegin(), m_mem_checks.cend(),
+                   [address](const auto& check) { return check.start_address == address; });
+
+  if (iter == m_mem_checks.cend())
+    return;
+
+  Core::RunAsCPUThread([&] {
+    m_mem_checks.erase(iter);
+    if (!HasAny())
+      JitInterface::ClearCache();
+    PowerPC::DBATUpdated();
+  });
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
-  for (TMemCheck& mc : m_mem_checks)
-  {
-    if (mc.end_address >= address && address + size - 1 >= mc.start_address)
-    {
-      return &mc;
-    }
-  }
+  const auto iter =
+      std::find_if(m_mem_checks.begin(), m_mem_checks.end(), [address, size](const auto& mc) {
+        return mc.end_address >= address && address + size - 1 >= mc.start_address;
+      });
 
-  // none found
-  return nullptr;
+  // None found
+  if (iter == m_mem_checks.cend())
+    return nullptr;
+
+  return &*iter;
 }
 
-bool MemChecks::OverlapsMemcheck(u32 address, u32 length)
+bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
 {
   if (!HasAny())
     return false;
-  u32 page_end_suffix = length - 1;
-  u32 page_end_address = address | page_end_suffix;
-  for (TMemCheck memcheck : m_mem_checks)
-  {
-    if (((memcheck.start_address | page_end_suffix) == page_end_address ||
-         (memcheck.end_address | page_end_suffix) == page_end_address) ||
-        ((memcheck.start_address | page_end_suffix) < page_end_address &&
-         (memcheck.end_address | page_end_suffix) > page_end_address))
-    {
-      return true;
-    }
-  }
-  return false;
+
+  const u32 page_end_suffix = length - 1;
+  const u32 page_end_address = address | page_end_suffix;
+
+  return std::any_of(m_mem_checks.cbegin(), m_mem_checks.cend(), [&](const auto& mc) {
+    return ((mc.start_address | page_end_suffix) == page_end_address ||
+            (mc.end_address | page_end_suffix) == page_end_address) ||
+           ((mc.start_address | page_end_suffix) < page_end_address &&
+            (mc.end_address | page_end_suffix) > page_end_address);
+  });
 }
 
-bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write,
+bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 addr, bool write,
                        size_t size, u32 pc)
 {
   if ((write && is_break_on_write) || (!write && is_break_on_read))
@@ -251,84 +242,4 @@ bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, boo
       return true;
   }
   return false;
-}
-
-bool Watches::IsAddressWatch(u32 address) const
-{
-  return std::any_of(m_watches.begin(), m_watches.end(),
-                     [address](const auto& watch) { return watch.address == address; });
-}
-
-Watches::TWatchesStr Watches::GetStrings() const
-{
-  TWatchesStr watch_strings;
-  for (const TWatch& watch : m_watches)
-  {
-    std::stringstream ss;
-    ss << std::hex << watch.address << " " << watch.name;
-    watch_strings.push_back(ss.str());
-  }
-
-  return watch_strings;
-}
-
-void Watches::AddFromStrings(const TWatchesStr& watch_strings)
-{
-  for (const std::string& watch_string : watch_strings)
-  {
-    TWatch watch;
-    std::stringstream ss;
-    ss << std::hex << watch_string;
-    ss >> watch.address;
-    ss >> std::ws;
-    std::getline(ss, watch.name);
-    Add(watch);
-  }
-}
-
-void Watches::Add(const TWatch& watch)
-{
-  if (!IsAddressWatch(watch.address))
-  {
-    m_watches.push_back(watch);
-  }
-}
-
-void Watches::Add(u32 address)
-{
-  if (!IsAddressWatch(address))  // only add new addresses
-  {
-    TWatch watch;  // watch settings
-    watch.is_enabled = true;
-    watch.address = address;
-
-    m_watches.push_back(watch);
-  }
-}
-
-void Watches::Update(int count, u32 address)
-{
-  m_watches.at(count).address = address;
-}
-
-void Watches::UpdateName(int count, const std::string name)
-{
-  m_watches.at(count).name = name;
-}
-
-void Watches::Remove(u32 address)
-{
-  for (auto i = m_watches.begin(); i != m_watches.end(); ++i)
-  {
-    if (i->address == address)
-    {
-      m_watches.erase(i);
-      return;
-    }
-  }
-}
-
-void Watches::Clear()
-{
-  m_watches.clear();
 }

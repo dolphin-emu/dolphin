@@ -5,22 +5,25 @@
 #include "VideoBackends/Software/EfbInterface.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
+#include "VideoBackends/Software/CopyRegion.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
 
-static u8 efb[EFB_WIDTH * EFB_HEIGHT * 6];
-
 namespace EfbInterface
 {
-u32 perf_values[PQ_NUM_MEMBERS];
+static std::array<u8, EFB_WIDTH * EFB_HEIGHT * 6> efb;
+
+static std::array<u32, PQ_NUM_MEMBERS> perf_values;
 
 static inline u32 GetColorOffset(u16 x, u16 y)
 {
@@ -29,7 +32,9 @@ static inline u32 GetColorOffset(u16 x, u16 y)
 
 static inline u32 GetDepthOffset(u16 x, u16 y)
 {
-  return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
+  constexpr u32 depth_buffer_start = EFB_WIDTH * EFB_HEIGHT * 3;
+
+  return (x + y * EFB_WIDTH) * 3 + depth_buffer_start;
 }
 
 static void SetPixelAlphaOnly(u32 offset, u8 a)
@@ -467,10 +472,59 @@ u32 GetColor(u16 x, u16 y)
   return GetPixelColor(offset);
 }
 
-// For internal used only, return a non-normalized value, which saves work later.
-yuv444 GetColorYUV(u16 x, u16 y)
+static u32 VerticalFilter(const std::array<u32, 3>& colors,
+                          const std::array<u8, 7>& filterCoefficients)
 {
-  const u32 color = GetColor(x, y);
+  u8 in_colors[3][4];
+  std::memcpy(&in_colors, colors.data(), sizeof(in_colors));
+
+  // Alpha channel is not used
+  u8 out_color[4];
+  out_color[ALP_C] = 0;
+
+  // All Coefficients should sum to 64, otherwise the total brightness will change, which many games
+  // do on purpose to implement a brightness filter across the whole copy.
+  for (int i = BLU_C; i <= RED_C; i++)
+  {
+    // TODO: implement support for multisampling.
+    // In non-multisampling mode:
+    //   * Coefficients 2, 3 and 4 sample from the current pixel.
+    //   * Coefficients 0 and 1 sample from the pixel above this one
+    //   * Coefficients 5 and 6 sample from the pixel below this one
+    int sum =
+        in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
+        in_colors[1][i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
+        in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+
+    // TODO: this clamping behavior appears to be correct, but isn't confirmed on hardware.
+    out_color[i] = std::min(255, sum >> 6);  // clamp larger values to 255
+  }
+
+  u32 out_color32;
+  std::memcpy(&out_color32, out_color, sizeof(out_color32));
+  return out_color32;
+}
+
+static u32 GammaCorrection(u32 color, const float gamma_rcp)
+{
+  u8 in_colors[4];
+  std::memcpy(&in_colors, &color, sizeof(in_colors));
+
+  u8 out_color[4];
+  for (int i = BLU_C; i <= RED_C; i++)
+  {
+    out_color[i] = static_cast<u8>(
+        MathUtil::Clamp(std::pow(in_colors[i] / 255.0f, gamma_rcp) * 255.0f, 0.0f, 255.0f));
+  }
+
+  u32 out_color32;
+  std::memcpy(&out_color32, out_color, sizeof(out_color32));
+  return out_color32;
+}
+
+// For internal used only, return a non-normalized value, which saves work later.
+static yuv444 ConvertColorToYUV(u32 color)
+{
   const u8 red = static_cast<u8>(color >> 24);
   const u8 green = static_cast<u8>(color >> 16);
   const u8 blue = static_cast<u8>(color >> 8);
@@ -495,19 +549,21 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
   return &efb[GetColorOffset(x, y)];
 }
 
-void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
-               float Gamma)
+void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>& source_rect,
+               float y_scale, float gamma)
 {
-  // FIXME: We should do Gamma correction
-
   if (!xfb_in_ram)
   {
     WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
     return;
   }
 
-  int left = sourceRc.left;
-  int right = sourceRc.right;
+  const int left = source_rect.left;
+  const int right = source_rect.right;
+  const bool clamp_top = bpmem.triggerEFBCopy.clamp_top;
+  const bool clamp_bottom = bpmem.triggerEFBCopy.clamp_bottom;
+  const float gamma_rcp = 1.0f / gamma;
+  const auto filter_coefficients = bpmem.copyfilter.GetCoefficients();
 
   // this assumes copies will always start on an even (YU) pixel and the
   // copy always has an even width, which might not be true.
@@ -520,68 +576,70 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
   // Scanline buffer, leave room for borders
   yuv444 scanline[EFB_WIDTH + 2];
 
-  // our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
-  yuv444 black;
-  black.Y = 0;
-  black.U = 0;
-  black.V = 0;
+  static std::vector<yuv422_packed> source;
+  source.resize(EFB_WIDTH * EFB_HEIGHT);
+  yuv422_packed* src_ptr = &source[0];
 
-  scanline[0] = black;          // black border at start
-  scanline[right + 1] = black;  // black border at end
-
-  for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
+  for (int y = source_rect.top; y < source_rect.bottom; y++)
   {
-    // Get a scanline of YUV pixels in 4:4:4 format
+    // Clamping behavior
+    //   NOTE: when the clamp bits aren't set, the hardware will happily read beyond the EFB,
+    //         which returns random garbage from the empty bus (confirmed by hardware tests).
+    //
+    //         In our implementation, the garbage just so happens to be the top or bottom row.
+    //         Statistically, that could happen.
+    const u16 y_prev = static_cast<u16>(std::max(clamp_top ? source_rect.top : 0, y - 1));
+    const u16 y_next =
+        static_cast<u16>(std::min<int>(clamp_bottom ? source_rect.bottom : EFB_HEIGHT, y + 1));
 
+    // Get a scanline of YUV pixels in 4:4:4 format
     for (int i = 1, x = left; x < right; i++, x++)
     {
-      scanline[i] = GetColorYUV(x, y);
+      // Get RGB colors
+      std::array<u32, 3> colors = {{GetColor(x, y_prev), GetColor(x, y), GetColor(x, y_next)}};
+
+      // Vertical Filter (Multisampling resolve, deflicker, brightness)
+      u32 filtered = VerticalFilter(colors, filter_coefficients);
+
+      // Gamma correction happens here.
+      filtered = GammaCorrection(filtered, gamma_rcp);
+
+      scanline[i] = ConvertColorToYUV(filtered);
     }
+
+    // Flipper clamps the border colors
+    scanline[0] = scanline[1];
+    scanline[right + 1] = scanline[right];
 
     // And Downsample them to 4:2:2
     for (int i = 1, x = left; x < right; i += 2, x += 2)
     {
       // YU pixel
-      xfb_in_ram[x].Y = scanline[i].Y + 16;
+      src_ptr[x].Y = scanline[i].Y + 16;
       // we mix our color differences in 10 bit space so it will round more accurately
       // U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
-      xfb_in_ram[x].UV =
-          128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
+      src_ptr[x].UV = 128 + ((scanline[i - 1].U + (scanline[i].U << 1) + scanline[i + 1].U) >> 2);
 
       // YV pixel
-      xfb_in_ram[x + 1].Y = scanline[i + 1].Y + 16;
+      src_ptr[x + 1].Y = scanline[i + 1].Y + 16;
       // V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
-      xfb_in_ram[x + 1].UV =
-          128 + ((scanline[i].V + (scanline[i + 1].V << 1) + scanline[i + 2].V) >> 2);
+      src_ptr[x + 1].UV =
+          128 + ((scanline[i - 1].V + (scanline[i].V << 1) + scanline[i + 1].V) >> 2);
     }
-    xfb_in_ram += fbWidth;
-  }
-}
-
-// Like CopyToXFB, but we copy directly into the OpenGL color texture without going via GameCube
-// main memory or doing a yuyv conversion
-void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
-{
-  if (fbWidth * fbHeight > MAX_XFB_WIDTH * MAX_XFB_HEIGHT)
-  {
-    ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
-    return;
+    src_ptr += memory_stride;
   }
 
-  size_t textureAddress = 0;
-  const int left = sourceRc.left;
-  const int right = sourceRc.right;
+  auto dest_rect =
+      MathUtil::Rectangle<int>{source_rect.left, source_rect.top, source_rect.right,
+                               static_cast<int>(static_cast<float>(source_rect.bottom) * y_scale)};
 
-  for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
-  {
-    for (u16 x = left; x < right; x++)
-    {
-      const u32 color = Common::swap32(GetColor(x, y) | 0xFF);
+  const std::size_t destination_size = dest_rect.GetWidth() * dest_rect.GetHeight() * 2;
+  static std::vector<yuv422_packed> destination;
+  destination.resize(dest_rect.GetWidth() * dest_rect.GetHeight());
 
-      std::memcpy(&texture[textureAddress], &color, sizeof(u32));
-      textureAddress += sizeof(u32);
-    }
-  }
+  SW::CopyRegion(source.data(), source_rect, destination.data(), dest_rect);
+
+  memcpy(xfb_in_ram, destination.data(), destination_size);
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)
@@ -628,5 +686,28 @@ bool ZCompare(u16 x, u16 y, u32 z)
   }
 
   return pass;
+}
+
+u32 GetPerfQueryResult(PerfQueryType type)
+{
+  return perf_values[type];
+}
+
+void ResetPerfQuery()
+{
+  perf_values = {};
+}
+
+void IncPerfCounterQuadCount(PerfQueryType type)
+{
+  // NOTE: hardware doesn't process individual pixels but quads instead.
+  // Current software renderer architecture works on pixels though, so
+  // we have this "quad" hack here to only increment the registers on
+  // every fourth rendered pixel
+  static u32 quad[PQ_NUM_MEMBERS];
+  if (++quad[type] != 3)
+    return;
+  quad[type] = 0;
+  ++perf_values[type];
 }
 }

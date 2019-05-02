@@ -18,12 +18,9 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV0.h"
+#include "Core/IOS/VersionInfo.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
@@ -34,11 +31,10 @@ OH0::~OH0()
   StopThreads();
 }
 
-ReturnCode OH0::Open(const OpenRequest& request)
+IPCCommandResult OH0::Open(const OpenRequest& request)
 {
-  const u32 ios_major_version = m_ios.GetVersion();
-  if (ios_major_version == 57 || ios_major_version == 58 || ios_major_version == 59)
-    return IPC_EACCES;
+  if (HasFeature(m_ios.GetVersion(), Feature::NewUSB))
+    return GetDefaultReply(IPC_EACCES);
   return USBHost::Open(request);
 }
 
@@ -350,6 +346,4 @@ s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
     return IPC_EINVAL;
   }
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

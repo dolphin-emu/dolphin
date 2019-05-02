@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3DE9EE35-3E91-4F27-A014-2866AD8C3FE3}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -36,6 +36,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="AbstractFramebuffer.cpp" />
+    <ClCompile Include="AbstractStagingTexture.cpp" />
     <ClCompile Include="AbstractTexture.cpp" />
     <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AsyncShaderCompiler.cpp" />
@@ -46,16 +48,17 @@
     <ClCompile Include="BPStructs.cpp" />
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="CPMemory.cpp" />
-    <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DriverDetails.cpp" />
     <ClCompile Include="Fifo.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
-    <ClCompile Include="FramebufferManagerBase.cpp" />
+    <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="FramebufferShaderGen.cpp" />
     <ClCompile Include="HiresTextures.cpp" />
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
-    <ClCompile Include="MainBase.cpp" />
+    <ClCompile Include="NetPlayChatUI.cpp" />
+    <ClCompile Include="NetPlayGolfUI.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
@@ -66,6 +69,7 @@
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
+    <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="ShaderGenCommon.cpp" />
     <ClCompile Include="UberShaderCommon.cpp" />
     <ClCompile Include="UberShaderPixel.cpp" />
@@ -75,6 +79,7 @@
     <ClCompile Include="TextureCacheBase.cpp" />
     <ClCompile Include="TextureConfig.cpp" />
     <ClCompile Include="TextureConversionShader.cpp" />
+    <ClCompile Include="TextureConverterShaderGen.cpp" />
     <ClCompile Include="UberShaderVertex.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
     <ClCompile Include="VertexLoaderBase.cpp" />
@@ -96,6 +101,10 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractFramebuffer.h" />
+    <ClInclude Include="AbstractStagingTexture.h" />
+    <ClInclude Include="AbstractPipeline.h" />
+    <ClInclude Include="AbstractShader.h" />
     <ClInclude Include="AbstractTexture.h" />
     <ClInclude Include="AsyncRequests.h" />
     <ClInclude Include="AsyncShaderCompiler.h" />
@@ -107,11 +116,15 @@
     <ClInclude Include="CommandProcessor.h" />
     <ClInclude Include="CPMemory.h" />
     <ClInclude Include="DataReader.h" />
-    <ClInclude Include="Debugger.h" />
     <ClInclude Include="DriverDetails.h" />
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
-    <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="FramebufferShaderGen.h" />
+    <ClInclude Include="GXPipelineTypes.h" />
+    <ClInclude Include="NetPlayChatUI.h" />
+    <ClInclude Include="NetPlayGolfUI.h" />
+    <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />
@@ -137,6 +150,7 @@
     <ClInclude Include="TextureCacheBase.h" />
     <ClInclude Include="TextureConfig.h" />
     <ClInclude Include="TextureConversionShader.h" />
+    <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="TextureDecoder.h" />
     <ClInclude Include="UberShaderVertex.h" />
     <ClInclude Include="VertexLoader.h" />
@@ -164,9 +178,6 @@
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
       <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)SOIL\SOIL.vcxproj">
-      <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
       <Project>{677EA016-1182-440C-9345-DC88D1E98C0C}</Project>
     </ProjectReference>
@@ -175,6 +186,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\imgui\imgui.vcxproj">
+      <Project>{4c3b2264-ea73-4a7b-9cfe-65b0fd635ebb}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -3,16 +3,9 @@
              android:layout_height="match_parent"
              android:id="@+id/frame_content">
 
-    <fragment
-        android:id="@+id/fragment_emulation"
-        android:name="org.dolphinemu.dolphinemu.fragments.EmulationFragment"
+    <FrameLayout
+        android:id="@+id/frame_emulation_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/image_screenshot"
-        android:transitionName="image_game_screenshot"/>
 
 </FrameLayout>

@@ -19,6 +19,7 @@ class MemoryCard : public MemoryCardBase
 public:
   MemoryCard(const std::string& filename, int card_index, u16 size_mbits = MemCard2043Mb);
   ~MemoryCard();
+  static void CheckPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   void FlushThread();
   void MakeDirty();
 

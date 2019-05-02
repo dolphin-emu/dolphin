@@ -17,6 +17,126 @@ namespace DSP
 {
 namespace LLE
 {
+void DSPPatches::Patch(std::size_t index)
+{
+  PanicAlert("Patch functionality not supported in DSP module.");
+}
+
+std::size_t DSPDebugInterface::SetWatch(u32 address, const std::string& name)
+{
+  return m_watches.SetWatch(address, name);
+}
+
+const Common::Debug::Watch& DSPDebugInterface::GetWatch(std::size_t index) const
+{
+  return m_watches.GetWatch(index);
+}
+
+const std::vector<Common::Debug::Watch>& DSPDebugInterface::GetWatches() const
+{
+  return m_watches.GetWatches();
+}
+
+void DSPDebugInterface::UnsetWatch(u32 address)
+{
+  m_watches.UnsetWatch(address);
+}
+
+void DSPDebugInterface::UpdateWatch(std::size_t index, u32 address, const std::string& name)
+{
+  return m_watches.UpdateWatch(index, address, name);
+}
+
+void DSPDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
+{
+  return m_watches.UpdateWatchAddress(index, address);
+}
+
+void DSPDebugInterface::UpdateWatchName(std::size_t index, const std::string& name)
+{
+  return m_watches.UpdateWatchName(index, name);
+}
+
+void DSPDebugInterface::EnableWatch(std::size_t index)
+{
+  m_watches.EnableWatch(index);
+}
+
+void DSPDebugInterface::DisableWatch(std::size_t index)
+{
+  m_watches.DisableWatch(index);
+}
+
+bool DSPDebugInterface::HasEnabledWatch(u32 address) const
+{
+  return m_watches.HasEnabledWatch(address);
+}
+
+void DSPDebugInterface::RemoveWatch(std::size_t index)
+{
+  return m_watches.RemoveWatch(index);
+}
+
+void DSPDebugInterface::LoadWatchesFromStrings(const std::vector<std::string>& watches)
+{
+  m_watches.LoadFromStrings(watches);
+}
+
+std::vector<std::string> DSPDebugInterface::SaveWatchesToStrings() const
+{
+  return m_watches.SaveToStrings();
+}
+
+void DSPDebugInterface::ClearWatches()
+{
+  m_watches.Clear();
+}
+
+void DSPDebugInterface::SetPatch(u32 address, u32 value)
+{
+  m_patches.SetPatch(address, value);
+}
+
+void DSPDebugInterface::SetPatch(u32 address, std::vector<u8> value)
+{
+  m_patches.SetPatch(address, value);
+}
+
+const std::vector<Common::Debug::MemoryPatch>& DSPDebugInterface::GetPatches() const
+{
+  return m_patches.GetPatches();
+}
+
+void DSPDebugInterface::UnsetPatch(u32 address)
+{
+  m_patches.UnsetPatch(address);
+}
+
+void DSPDebugInterface::EnablePatch(std::size_t index)
+{
+  m_patches.EnablePatch(index);
+}
+
+void DSPDebugInterface::DisablePatch(std::size_t index)
+{
+  m_patches.DisablePatch(index);
+}
+
+void DSPDebugInterface::RemovePatch(std::size_t index)
+{
+  m_patches.RemovePatch(index);
+}
+
+bool DSPDebugInterface::HasEnabledPatch(u32 address) const
+{
+  return m_patches.HasEnabledPatch(address);
+}
+
+void DSPDebugInterface::ClearPatches()
+{
+  m_patches.ClearPatches();
+}
+
 std::string DSPDebugInterface::Disassemble(unsigned int address)
 {
   // we'll treat addresses as line numbers.
@@ -132,11 +252,6 @@ void DSPDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
   PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::Patch(unsigned int address, unsigned int value)
-{
-  PanicAlert("Patch functionality not supported in DSP module.");
-}
-
 // =======================================================
 // Separate the blocks with colors.
 // -------------
@@ -162,10 +277,10 @@ int DSPDebugInterface::GetColor(unsigned int address)
   if (addr == -1)
     return 0xFFFFFF;
 
-  Symbol* symbol = Symbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = Symbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
   if (!symbol)
     return 0xFFFFFF;
-  if (symbol->type != Symbol::Type::Function)
+  if (symbol->type != Common::Symbol::Type::Function)
     return 0xEEEEFF;
   return colors[symbol->index % 6];
 }
@@ -190,6 +305,12 @@ void DSPDebugInterface::SetPC(unsigned int address)
 
 void DSPDebugInterface::RunToBreakpoint()
 {
+}
+
+void DSPDebugInterface::Clear()
+{
+  ClearPatches();
+  ClearWatches();
 }
 }  // namespace LLE
 }  // namespace DSP

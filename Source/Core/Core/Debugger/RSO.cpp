@@ -12,8 +12,8 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 
 void RSOHeaderView::Load(u32 address)
 {
@@ -331,7 +331,7 @@ void RSOView::LoadImports()
 {
   std::size_t size = m_header.GetImportsSize();
   if (size % sizeof(RSOImport) != 0)
-    WARN_LOG(OSHLE, "RSO Imports Table has an incoherent size (%08zx)", size);
+    WARN_LOG(SYMBOLS, "RSO Imports Table has an incoherent size (%08zx)", size);
   m_imports.Load(m_header.GetImportsOffset(), size / sizeof(RSOImport));
 }
 
@@ -339,7 +339,7 @@ void RSOView::LoadExports()
 {
   std::size_t size = m_header.GetExportsSize();
   if (size % sizeof(RSOExport) != 0)
-    WARN_LOG(OSHLE, "RSO Exports Table has an incoherent size (%08zx)", size);
+    WARN_LOG(SYMBOLS, "RSO Exports Table has an incoherent size (%08zx)", size);
   m_exports.Load(m_header.GetExportsOffset(), size / sizeof(RSOExport));
 }
 
@@ -347,7 +347,7 @@ void RSOView::LoadInternals()
 {
   std::size_t size = m_header.GetInternalsSize();
   if (size % sizeof(RSOInternalsEntry) != 0)
-    WARN_LOG(OSHLE, "RSO Internals Relocation Table has an incoherent size (%08zx)", size);
+    WARN_LOG(SYMBOLS, "RSO Internals Relocation Table has an incoherent size (%08zx)", size);
   m_imports.Load(m_header.GetInternalsOffset(), size / sizeof(RSOInternalsEntry));
 }
 
@@ -355,7 +355,7 @@ void RSOView::LoadExternals()
 {
   std::size_t size = m_header.GetExternalsSize();
   if (size % sizeof(RSOExternalsEntry) != 0)
-    WARN_LOG(OSHLE, "RSO Externals Relocation Table has an incoherent size (%08zx)", size);
+    WARN_LOG(SYMBOLS, "RSO Externals Relocation Table has an incoherent size (%08zx)", size);
   m_imports.Load(m_header.GetExternalsOffset(), size / sizeof(RSOExternalsEntry));
 }
 
@@ -376,7 +376,7 @@ void RSOView::Apply(PPCSymbolDB* symbol_db) const
     u32 address = GetExportAddress(rso_export);
     if (address != 0)
     {
-      Symbol* symbol = symbol_db->AddFunction(address);
+      Common::Symbol* symbol = symbol_db->AddFunction(address);
       if (!symbol)
         symbol = symbol_db->GetSymbolFromAddr(address);
 
@@ -389,11 +389,11 @@ void RSOView::Apply(PPCSymbolDB* symbol_db) const
       else
       {
         // Data symbol
-        symbol_db->AddKnownSymbol(address, 0, export_name, Symbol::Type::Data);
+        symbol_db->AddKnownSymbol(address, 0, export_name, Common::Symbol::Type::Data);
       }
     }
   }
-  DEBUG_LOG(OSHLE, "RSO(%s): %zu symbols applied", GetName().c_str(), GetExportsCount());
+  DEBUG_LOG(SYMBOLS, "RSO(%s): %zu symbols applied", GetName().c_str(), GetExportsCount());
 }
 
 u32 RSOView::GetNextEntry() const
@@ -530,9 +530,9 @@ u32 RSOView::GetProlog() const
 {
   u32 section_index = m_header.GetPrologSectionIndex();
   if (section_index == 0)
-    WARN_LOG(OSHLE, "RSO doesn't have a prolog function");
+    WARN_LOG(SYMBOLS, "RSO doesn't have a prolog function");
   else if (section_index >= m_sections.Count())
-    WARN_LOG(OSHLE, "RSO prolog section index out of bound");
+    WARN_LOG(SYMBOLS, "RSO prolog section index out of bound");
   else
     return GetSection(section_index).offset + m_header.GetPrologSectionOffset();
   return 0;
@@ -542,9 +542,9 @@ u32 RSOView::GetEpilog() const
 {
   u32 section_index = m_header.GetEpilogSectionIndex();
   if (section_index == 0)
-    WARN_LOG(OSHLE, "RSO doesn't have an epilog function");
+    WARN_LOG(SYMBOLS, "RSO doesn't have an epilog function");
   else if (section_index >= m_sections.Count())
-    WARN_LOG(OSHLE, "RSO epilog section index out of bound");
+    WARN_LOG(SYMBOLS, "RSO epilog section index out of bound");
   else
     return GetSection(section_index).offset + m_header.GetEpilogSectionOffset();
   return 0;
@@ -554,9 +554,9 @@ u32 RSOView::GetUnresolved() const
 {
   u32 section_index = m_header.GetUnresolvedSectionIndex();
   if (section_index == 0)
-    WARN_LOG(OSHLE, "RSO doesn't have a unresolved function");
+    WARN_LOG(SYMBOLS, "RSO doesn't have a unresolved function");
   else if (section_index >= m_sections.Count())
-    WARN_LOG(OSHLE, "RSO unresolved section index out of bound");
+    WARN_LOG(SYMBOLS, "RSO unresolved section index out of bound");
   else
     return GetSection(section_index).offset + m_header.GetUnresolvedSectionOffset();
   return 0;
@@ -567,7 +567,7 @@ bool RSOChainView::Load(u32 address)
   // Load node
   RSOView node;
   node.LoadHeader(address);
-  DEBUG_LOG(OSHLE, "RSOChain node name: %s", node.GetName().c_str());
+  DEBUG_LOG(SYMBOLS, "RSOChain node name: %s", node.GetName().c_str());
   m_chain.emplace_front(std::move(node));
 
   if (LoadNextChain(m_chain.front()) && LoadPrevChain(m_chain.front()))
@@ -613,8 +613,8 @@ bool RSOChainView::LoadNextChain(const RSOView& view)
 
     if (prev_address != next_node.GetPrevEntry())
     {
-      ERROR_LOG(OSHLE, "RSOChain has an incoherent previous link %08x != %08x in %s", prev_address,
-                next_node.GetPrevEntry(), next_node.GetName().c_str());
+      ERROR_LOG(SYMBOLS, "RSOChain has an incoherent previous link %08x != %08x in %s",
+                prev_address, next_node.GetPrevEntry(), next_node.GetName().c_str());
       return false;
     }
 
@@ -638,7 +638,7 @@ bool RSOChainView::LoadPrevChain(const RSOView& view)
 
     if (next_address != prev_node.GetNextEntry())
     {
-      ERROR_LOG(OSHLE, "RSOChain has an incoherent next link %08x != %08x in %s", next_address,
+      ERROR_LOG(SYMBOLS, "RSOChain has an incoherent next link %08x != %08x in %s", next_address,
                 prev_node.GetNextEntry(), prev_node.GetName().c_str());
       return false;
     }

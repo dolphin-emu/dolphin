@@ -161,7 +161,7 @@ static inline u16 dsp_op_read_reg(int _reg)
   case DSP_REG_ACM1:
     return g_dsp.r.ac[reg - DSP_REG_ACM0].m;
   default:
-    _assert_msg_(DSP_INT, 0, "cannot happen");
+    ASSERT_MSG(DSP_INT, 0, "cannot happen");
     return 0;
   }
 }

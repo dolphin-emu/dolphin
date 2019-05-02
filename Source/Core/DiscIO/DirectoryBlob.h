@@ -52,6 +52,7 @@ public:
   bool operator>(const DiscContent& other) const { return other < *this; }
   bool operator<=(const DiscContent& other) const { return !(*this < other); }
   bool operator>=(const DiscContent& other) const { return !(*this > other); }
+
 private:
   u64 m_offset;
   u64 m_size = 0;
@@ -94,6 +95,7 @@ public:
   const std::string& GetRootDirectory() const { return m_root_directory; }
   const std::vector<u8>& GetHeader() const { return m_disc_header; }
   const DiscContentContainer& GetContents() const { return m_contents; }
+
 private:
   void SetDiscHeaderAndDiscType(std::optional<bool> is_wii);
   void SetBI2();
@@ -144,6 +146,7 @@ public:
   BlobType GetBlobType() const override;
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
+  bool IsDataSizeAccurate() const override { return true; }
 
 private:
   struct PartitionWithType

@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A4C423AA-F57C-46C7-A172-D1A777017D29}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clipper.h" />
+    <ClInclude Include="CopyRegion.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="EfbCopy.h" />
     <ClInclude Include="EfbInterface.h" />
@@ -65,6 +66,7 @@
     <ClInclude Include="SWTexture.h" />
     <ClInclude Include="SWVertexLoader.h" />
     <ClInclude Include="Tev.h" />
+    <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TransformUnit.h" />

@@ -10,20 +10,19 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
-JitBase* g_jit;
-
-void JitTrampoline(u32 em_address)
+const u8* JitBase::Dispatch(JitBase& jit)
 {
-  g_jit->Jit(em_address);
+  return jit.GetBlockCache()->Dispatch();
 }
 
-u32 Helper_Mask(u8 mb, u8 me)
+void JitTrampoline(JitBase& jit, u32 em_address)
 {
-  u32 mask = ((u32)-1 >> mb) ^ (me >= 31 ? 0 : (u32)-1 >> (me + 1));
-  return mb > me ? ~mask : mask;
+  jit.Jit(em_address);
 }
 
-JitBase::JitBase() = default;
+JitBase::JitBase() : m_code_buffer(code_buffer_size)
+{
+}
 
 JitBase::~JitBase() = default;
 
@@ -46,6 +45,6 @@ bool JitBase::CanMergeNextInstructions(int count) const
 void JitBase::UpdateMemoryOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && (UReg_MSR(MSR).DR || !any_watchpoints);
+  jo.fastmem = SConfig::GetInstance().bFastmem && (MSR.DR || !any_watchpoints);
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
 }

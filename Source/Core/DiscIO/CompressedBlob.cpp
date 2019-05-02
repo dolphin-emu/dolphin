@@ -27,6 +27,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
@@ -112,7 +113,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   }
 
   // First, check hash.
-  u32 block_hash = HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
   if (block_hash != m_hashes[block_num])
     PanicAlertT("The disc image \"%s\" is corrupt.\n"
                 "Hash of block %" PRIu64 " is %08x instead of %08x.",
@@ -181,9 +182,11 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   }
 
   DiscScrubber disc_scrubber;
+  std::unique_ptr<Volume> volume;
   if (sub_type == 1)
   {
-    if (!disc_scrubber.SetupScrub(infile_path, block_size))
+    volume = CreateVolumeFromFilename(infile_path);
+    if (!volume || !disc_scrubber.SetupScrub(volume.get(), block_size))
     {
       PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.",
                   infile_path.c_str());
@@ -304,7 +307,7 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
 
     position += write_size;
 
-    hashes[i] = HashAdler32(write_buf, write_size);
+    hashes[i] = Common::HashAdler32(write_buf, write_size);
   }
 
   header.compressed_data_size = position;

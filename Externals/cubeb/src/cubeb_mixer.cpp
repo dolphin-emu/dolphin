@@ -299,7 +299,7 @@ mix_remap(long inframes,
           T * out, unsigned long out_len,
           cubeb_channel_layout in_layout, cubeb_channel_layout out_layout)
 {
-  assert(in_layout != out_layout);
+  assert(in_layout != out_layout && inframes >= 0);
 
   // We might overwrite the data before we copied them to the mapped index
   // (e.g. upmixing from stereo to 2F1 or mapping [L, R] to [R, L])
@@ -325,15 +325,16 @@ mix_remap(long inframes,
     return false;
   }
 
-  for (unsigned long i = 0, out_index = 0; i < inframes * in_channels; i += in_channels, out_index += out_channels) {
+  for (unsigned long i = 0, out_index = 0; i < (unsigned long)inframes * in_channels; i += in_channels, out_index += out_channels) {
     for (unsigned int j = 0; j < out_channels; ++j) {
       cubeb_channel channel = CHANNEL_INDEX_TO_ORDER[out_layout][j];
       uint32_t channel_mask = 1 << channel;
       int channel_index = CHANNEL_ORDER_TO_INDEX[in_layout][channel];
+      assert(channel_index >= -1);
       assert(out_index + j < out_len);
       if (in_layout_mask & channel_mask) {
-        assert(i + channel_index < in_len);
         assert(channel_index != -1);
+        assert(i + channel_index < in_len);
         out[out_index + j] = in[i + channel_index];
       } else {
         assert(channel_index == -1);
@@ -353,13 +354,13 @@ downmix_fallback(long inframes,
                  T * out, unsigned long out_len,
                  unsigned int in_channels, unsigned int out_channels)
 {
-  assert(in_channels >= out_channels);
+  assert(in_channels >= out_channels && inframes >= 0);
 
   if (in_channels == out_channels && in == out) {
     return;
   }
 
-  for (unsigned long i = 0, out_index = 0; i < inframes * in_channels; i += in_channels, out_index += out_channels) {
+  for (unsigned long i = 0, out_index = 0; i < (unsigned long)inframes * in_channels; i += in_channels, out_index += out_channels) {
     for (unsigned int j = 0; j < out_channels; ++j) {
       assert(i + j < in_len && out_index + j < out_len);
       out[out_index + j] = in[i + j];
@@ -416,7 +417,7 @@ mono_to_stereo(long insamples, T const * in, unsigned long in_len,
                T * out, unsigned long out_len, unsigned int out_channels)
 {
   for (long i = 0, j = 0; i < insamples; ++i, j += out_channels) {
-    assert(i < in_len && j + 1 < out_len);
+    assert((unsigned long)i < in_len && (unsigned long)j + 1 < out_len);
     out[j] = out[j + 1] = in[i];
   }
 }
@@ -460,7 +461,7 @@ cubeb_upmix(long inframes,
   /* Put silence in remaining channels. */
   for (long i = 0, o = 0; i < inframes; ++i, o += out_channels) {
     for (unsigned int j = 2; j < out_channels; ++j) {
-      assert(o + j < out_len);
+      assert((unsigned long)o + j < out_len);
       out[o + j] = 0.0;
     }
   }
@@ -490,7 +491,8 @@ cubeb_should_downmix(cubeb_stream_params const * stream, cubeb_stream_params con
 bool
 cubeb_should_mix(cubeb_stream_params const * stream, cubeb_stream_params const * mixer)
 {
-  return cubeb_should_upmix(stream, mixer) || cubeb_should_downmix(stream, mixer);
+  return stream->layout != CUBEB_LAYOUT_UNDEFINED &&
+         (cubeb_should_upmix(stream, mixer) || cubeb_should_downmix(stream, mixer));
 }
 
 struct cubeb_mixer {
@@ -559,11 +561,11 @@ void cubeb_mixer_destroy(cubeb_mixer * mixer)
 
 void cubeb_mixer_mix(cubeb_mixer * mixer, long frames,
                      void * input_buffer, unsigned long input_buffer_length,
-                     void * output_buffer, unsigned long outputput_buffer_length,
+                     void * output_buffer, unsigned long output_buffer_length,
                      cubeb_stream_params const * stream_params,
                      cubeb_stream_params const * mixer_params)
 {
   assert(mixer);
-  mixer->mix(frames, input_buffer, input_buffer_length, output_buffer, outputput_buffer_length,
+  mixer->mix(frames, input_buffer, input_buffer_length, output_buffer, output_buffer_length,
              stream_params, mixer_params);
 }

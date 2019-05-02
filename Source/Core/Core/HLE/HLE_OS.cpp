@@ -12,6 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/HLE/HLE_VarArgs.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace HLE_OS
@@ -47,8 +48,10 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
 {
   std::string report_message;
 
-  // Is gpr3 pointing to a pointer rather than an ASCII string
-  if (PowerPC::HostIsRAMAddress(GPR(3)) && PowerPC::HostIsRAMAddress(PowerPC::HostRead_U32(GPR(3))))
+  // Is gpr3 pointing to a pointer (including nullptr) rather than an ASCII string
+  if (PowerPC::HostIsRAMAddress(GPR(3)) &&
+      (PowerPC::HostIsRAMAddress(PowerPC::HostRead_U32(GPR(3))) ||
+       PowerPC::HostRead_U32(GPR(3)) == 0))
   {
     if (PowerPC::HostIsRAMAddress(GPR(4)))
     {

@@ -46,10 +46,10 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
   // Comment from sample code:
   // the most likely other result is SL_RESULT_BUFFER_INSUFFICIENT,
   // which for this code example would indicate a programming error
-  _assert_msg_(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
+  ASSERT_MSG(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
 }
 
-bool OpenSLESStream::Start()
+bool OpenSLESStream::Init()
 {
   SLresult result;
   // create engine
@@ -110,7 +110,7 @@ bool OpenSLESStream::Start()
   return true;
 }
 
-void OpenSLESStream::Stop()
+OpenSLESStream::~OpenSLESStream()
 {
   if (bqPlayerObject != nullptr)
   {

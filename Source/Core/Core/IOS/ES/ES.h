@@ -12,27 +12,18 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 
 class PointerWrap;
 
-namespace DiscIO
-{
-class NANDContentLoader;
-}
-
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const DiscIO::NANDContentLoader& content_loader);
   void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
 
   IOS::ES::TicketReader ticket;
@@ -46,14 +37,13 @@ class ES final : public Device
 public:
   ES(Kernel& ios, const std::string& device_name);
 
-  static s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
-  static void LoadWAD(const std::string& _rContentFile);
+  ReturnCode DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   void DoState(PointerWrap& p) override;
 
-  ReturnCode Open(const OpenRequest& request) override;
-  ReturnCode Close(u32 fd) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
+  IPCCommandResult Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   struct TitleImportExportContext
@@ -87,6 +77,7 @@ public:
 
   IOS::ES::TMDReader FindImportTMD(u64 title_id) const;
   IOS::ES::TMDReader FindInstalledTMD(u64 title_id) const;
+  IOS::ES::TicketReader FindSignedTicket(u64 title_id) const;
 
   // Get installed titles (in /title) without checking for TMDs at all.
   std::vector<u64> GetInstalledTitles() const;
@@ -137,12 +128,38 @@ public:
   ReturnCode GetDeviceId(u32* device_id) const;
   ReturnCode GetTitleId(u64* device_id) const;
 
+  ReturnCode VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
+                        const std::vector<u8>& certs);
+
   // Views
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
   ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
 
   ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
                             u32* handle);
+
+  bool CreateTitleDirectories(u64 title_id, u16 group_id) const;
+
+  enum class VerifyContainerType
+  {
+    TMD,
+    Ticket,
+    Device,
+  };
+  enum class VerifyMode
+  {
+    // Whether or not new certificates should be added to the certificate store (/sys/cert.sys).
+    DoNotUpdateCertStore,
+    UpdateCertStore,
+  };
+  // On success, if issuer_handle is non-null, the IOSC object for the issuer will be written to it.
+  // The caller is responsible for using IOSC_DeleteObject.
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::SignedBlobReader& signed_blob,
+                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::CertReader& certificate,
+                             const std::vector<u8>& cert_chain, u32 certificate_iosc_handle);
 
 private:
   enum
@@ -246,6 +263,7 @@ private:
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);
+  IPCCommandResult VerifySign(const IOCtlVRequest& request);
   IPCCommandResult Encrypt(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult Decrypt(u32 uid, const IOCtlVRequest& request);
 
@@ -306,33 +324,17 @@ private:
 
   bool LaunchIOS(u64 ios_title_id);
   bool LaunchPPCTitle(u64 title_id, bool skip_reload);
-  static TitleContext& GetTitleContext();
   bool IsActiveTitlePermittedByTicket(const u8* ticket_view) const;
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
                                        const IOS::ES::TMDReader& tmd) const;
 
-  enum class VerifyContainerType
-  {
-    TMD,
-    Ticket,
-    Device,
-  };
-  enum class VerifyMode
-  {
-    // Whether or not new certificates should be added to the certificate store (/sys/cert.sys).
-    DoNotUpdateCertStore,
-    UpdateCertStore,
-  };
   bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
   ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
-  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const IOS::ES::SignedBlobReader& signed_blob,
-                             const std::vector<u8>& cert_chain, u32 iosc_handle = 0);
 
   // Start a title import.
-  bool InitImport(u64 title_id);
+  bool InitImport(const IOS::ES::TMDReader& tmd);
   // Clean up the import content directory and move it back to /title.
   bool FinishImport(const IOS::ES::TMDReader& tmd);
   // Write a TMD for a title in /import atomically.
@@ -341,15 +343,16 @@ private:
   void FinishStaleImport(u64 title_id);
   void FinishAllStaleImports();
 
-  static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
+  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content,
+                             const IOS::ES::SharedContentMap& map) const;
+  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content) const;
 
-  // TODO: reuse the FS code.
   struct OpenedContent
   {
     bool m_opened = false;
+    FS::Fd m_fd;
     u64 m_title_id = 0;
     IOS::ES::Content m_content;
-    u32 m_position = 0;
     u32 m_uid = 0;
   };
 
@@ -357,7 +360,6 @@ private:
   ContentTable m_content_table;
 
   ContextArray m_contexts;
+  TitleContext m_title_context{};
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

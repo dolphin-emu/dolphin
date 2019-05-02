@@ -9,9 +9,7 @@
 
 // Used by an early version of /dev/usb/hid.
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 struct IOCtlRequest;
 
@@ -46,5 +44,4 @@ struct V4IntrMessage final : IntrMessage
   V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl);
 };
 }  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

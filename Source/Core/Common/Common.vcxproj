@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E6C348C-C75C-4D94-8D1E-9C1FCBF3EFE4}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -54,15 +54,18 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Compiler.h" />
     <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\ConfigInfo.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
-    <ClInclude Include="Config\Section.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="Debug\MemoryPatches.h" />
+    <ClInclude Include="Debug\Watches.h" />
+    <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
-    <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
@@ -119,17 +122,20 @@
     <ClInclude Include="GL\GLExtensions\NV_depth_buffer_float.h" />
     <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h" />
     <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h" />
-    <ClInclude Include="GL\GLInterfaceBase.h" />
+    <ClInclude Include="GL\GLContext.h" />
     <ClInclude Include="GL\GLInterface\WGL.h" />
     <ClInclude Include="GL\GLUtil.h" />
+    <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
@@ -138,19 +144,24 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="QoSSession.h" />
+    <ClInclude Include="Random.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
+    <ClInclude Include="SFMLHelper.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SettingsHandler.h" />
+    <ClInclude Include="SPSCQueue.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
-    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="UPnP.h" />
+    <ClInclude Include="VariantUtil.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WorkQueueThread.h" />
     <ClInclude Include="x64ABI.h" />
@@ -170,24 +181,30 @@
     <ClCompile Include="CommonFuncs.cpp" />
     <ClCompile Include="CompatPatches.cpp" />
     <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
-    <ClCompile Include="Config\Section.cpp" />
+    <ClCompile Include="Debug\MemoryPatches.cpp" />
+    <ClCompile Include="Debug\Watches.cpp" />
+    <ClCompile Include="DynamicLibrary.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
-    <ClCompile Include="GL\GLInterface\GLInterface.cpp" />
+    <ClCompile Include="GL\GLContext.cpp" />
     <ClCompile Include="GL\GLInterface\WGL.cpp" />
     <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
@@ -196,11 +213,13 @@
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="QoSSession.cpp" />
+    <ClCompile Include="Random.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
+    <ClCompile Include="SFMLHelper.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
-    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
@@ -224,6 +243,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
       <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>

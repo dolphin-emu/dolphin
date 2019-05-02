@@ -37,15 +37,26 @@ static inline void __cpuid(int info[4], int function_id)
   return __cpuidex(info, function_id, 0);
 }
 
-#define _XCR_XFEATURE_ENABLED_MASK 0
-static u64 _xgetbv(u32 index)
+#endif  // ifndef _WIN32
+
+#ifdef _WIN32
+
+static u64 xgetbv(u32 index)
+{
+  return _xgetbv(index);
+}
+constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
+
+#else
+
+static u64 xgetbv(u32 index)
 {
   u32 eax, edx;
   __asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
   return ((u64)edx << 32) | eax;
 }
-
-#endif  // ifndef _WIN32
+constexpr u32 XCR_XFEATURE_ENABLED_MASK = 0;
+#endif  // ifdef _WIN32
 
 CPUInfo cpu_info;
 
@@ -84,11 +95,11 @@ void CPUInfo::Detect()
   __cpuid(cpu_id, 0x80000000);
   u32 max_ex_fn = cpu_id[0];
   if (!strcmp(brand_string, "GenuineIntel"))
-    vendor = VENDOR_INTEL;
+    vendor = CPUVendor::Intel;
   else if (!strcmp(brand_string, "AuthenticAMD"))
-    vendor = VENDOR_AMD;
+    vendor = CPUVendor::AMD;
   else
-    vendor = VENDOR_OTHER;
+    vendor = CPUVendor::Other;
 
   // Set reasonable default brand string even if brand string not available.
   strcpy(cpu_string, brand_string);
@@ -139,7 +150,7 @@ void CPUInfo::Detect()
     //  - XGETBV result has the XCR bit set.
     if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1))
     {
-      if ((_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
+      if ((xgetbv(XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
       {
         bAVX = true;
         if ((cpu_id[2] >> 12) & 1)
@@ -198,7 +209,7 @@ void CPUInfo::Detect()
       if (ht)
       {
         // New mechanism for modern Intel CPUs.
-        if (vendor == VENDOR_INTEL)
+        if (vendor == CPUVendor::Intel)
         {
           __cpuidex(cpu_id, 0x00000004, 0x00000000);
           int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;

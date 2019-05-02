@@ -6,8 +6,10 @@
 
 #include <string>
 
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 struct GCPadStatus;
 
@@ -15,9 +17,8 @@ namespace ControllerEmu
 {
 class AnalogStick;
 class Buttons;
-class ControlGroup;
 class MixedTriggers;
-}
+}  // namespace ControllerEmu
 
 enum class PadGroup
 {
@@ -48,6 +49,9 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  static const u8 MAIN_STICK_GATE_RADIUS = 87;
+  static const u8 C_STICK_GATE_RADIUS = 74;
+
 private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_main_stick;
@@ -60,8 +64,7 @@ private:
 
   GCPadStatus    m_forced_input;
 
-  const unsigned int m_index;
+  ControllerEmu::SettingValue<bool> m_always_connected_setting;
 
-  // Default analog stick radius for GameCube controllers.
-  static constexpr ControlState DEFAULT_PAD_STICK_RADIUS = 1.0;
+  const unsigned int m_index;
 };

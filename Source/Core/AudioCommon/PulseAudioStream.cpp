@@ -19,10 +19,10 @@ PulseAudio::PulseAudio() : m_thread(), m_run_thread()
 {
 }
 
-bool PulseAudio::Start()
+bool PulseAudio::Init()
 {
   m_stereo = !SConfig::GetInstance().bDPL2Decoder;
-  m_channels = m_stereo ? 2 : 5;  // will tell PA we use a Stereo or 5.0 channel setup
+  m_channels = m_stereo ? 2 : 6;  // will tell PA we use a Stereo or 5.0 channel setup
 
   NOTICE_LOG(AUDIO, "PulseAudio backend using %d channels", m_channels);
 
@@ -32,15 +32,10 @@ bool PulseAudio::Start()
   return true;
 }
 
-void PulseAudio::Stop()
+PulseAudio::~PulseAudio()
 {
   m_run_thread.Clear();
   m_thread.join();
-}
-
-void PulseAudio::Update()
-{
-  // don't need to do anything here.
 }
 
 // Called on audio thread.
@@ -101,12 +96,13 @@ bool PulseAudio::PulseInit()
     m_bytespersample = sizeof(float);
 
     channel_map_p = &channel_map;  // explicit channel map:
-    channel_map.channels = 5;
+    channel_map.channels = 6;
     channel_map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
     channel_map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
     channel_map.map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
-    channel_map.map[3] = PA_CHANNEL_POSITION_REAR_LEFT;
-    channel_map.map[4] = PA_CHANNEL_POSITION_REAR_RIGHT;
+    channel_map.map[3] = PA_CHANNEL_POSITION_LFE;
+    channel_map.map[4] = PA_CHANNEL_POSITION_REAR_LEFT;
+    channel_map.map[5] = PA_CHANNEL_POSITION_REAR_RIGHT;
   }
   ss.channels = m_channels;
   ss.rate = m_mixer->GetSampleRate();
@@ -190,22 +186,9 @@ void PulseAudio::WriteCallback(pa_stream* s, size_t length)
   }
   else
   {
-    if (m_channels == 5)  // Extract dpl2/5.0 Surround
+    if (m_channels == 6)  // Extract dpl2/5.1 Surround
     {
-      float floatbuffer_6chan[frames * 6];
-      m_mixer->MixSurround(floatbuffer_6chan, frames);
-
-      // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-      // Discard the subwoofer channel - DPL2Decode generates a pretty
-      // good 5.0 but not a good 5.1 output.
-      const int dpl2_to_5chan[] = {0, 1, 2, 4, 5};
-      for (int i = 0; i < frames; ++i)
-      {
-        for (int j = 0; j < m_channels; ++j)
-        {
-          ((float*)buffer)[m_channels * i + j] = floatbuffer_6chan[6 * i + dpl2_to_5chan[j]];
-        }
-      }
+      m_mixer->MixSurround((float*)buffer, frames);
     }
     else
     {

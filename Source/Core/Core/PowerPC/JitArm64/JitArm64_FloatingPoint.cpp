@@ -65,7 +65,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       m_float_emit.FMUL(size, VD, VA, VC);
       break;
     default:
-      _assert_msg_(DYNA_REC, 0, "fp_arith");
+      ASSERT_MSG(DYNA_REC, 0, "fp_arith");
       break;
     }
   }
@@ -110,7 +110,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       m_float_emit.FNMADD(VD, VA, VC, VB);
       break;  // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
     default:
-      _assert_msg_(DYNA_REC, 0, "fp_arith");
+      ASSERT_MSG(DYNA_REC, 0, "fp_arith");
       break;
     }
   }
@@ -161,7 +161,7 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
       m_float_emit.FABS(size, VD, VB);
       break;
     default:
-      _assert_msg_(DYNA_REC, 0, "fp_logic");
+      ASSERT_MSG(DYNA_REC, 0, "fp_logic");
       break;
     }
   }
@@ -189,7 +189,7 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
       m_float_emit.FABS(reg_encoder(VD), reg_encoder(VB));
       break;
     default:
-      _assert_msg_(DYNA_REC, 0, "fp_logic");
+      ASSERT_MSG(DYNA_REC, 0, "fp_logic");
       break;
     }
   }
@@ -293,7 +293,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   SetJumpTarget(pNaN);
 
-  MOVI2R(XA, PPCCRToInternal(CR_SO));
+  MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
 
   if (a != b)
   {

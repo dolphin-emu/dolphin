@@ -8,6 +8,7 @@
 #include "Common/Timer.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitInterface.h"
 
 // include order is important
 #include <gtest/gtest.h>  // NOLINT
@@ -30,7 +31,7 @@ public:
   void ClearCache() override {}
   void Run() override {}
   void SingleStep() override {}
-  const char* GetName() override { return nullptr; }
+  const char* GetName() const override { return nullptr; }
   // JitBase methods
   JitBaseBlockCache* GetBlockCache() override { return nullptr; }
   void Jit(u32 em_address) override {}
@@ -56,7 +57,7 @@ TEST(PageFault, PageFault)
   Common::WriteProtectMemory(data, PAGE_GRAN, false);
 
   PageFaultFakeJit pfjit;
-  g_jit = &pfjit;
+  JitInterface::SetJit(&pfjit);
   pfjit.m_data = data;
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -67,7 +68,7 @@ TEST(PageFault, PageFault)
   ((unsigned long long)std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count())
 
   EMM::UninstallExceptionHandler();
-  g_jit = nullptr;
+  JitInterface::SetJit(nullptr);
 
   printf("page fault timing:\n");
   printf("start->HandleFault     %llu ns\n", AS_NS(pfjit.m_pre_unprotect_time - start));

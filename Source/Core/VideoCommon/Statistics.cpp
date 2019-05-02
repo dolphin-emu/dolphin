@@ -6,6 +6,8 @@
 #include <string>
 #include <utility>
 
+#include "imgui.h"
+
 #include "Common/StringUtil.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -26,91 +28,100 @@ void Statistics::SwapDL()
   std::swap(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 }
 
-std::string Statistics::ToString()
+void Statistics::Display()
 {
-  std::string str;
+  const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+  ImGui::SetNextWindowPos(ImVec2(10.0f * scale, 10.0f * scale), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSizeConstraints(ImVec2(275.0f * scale, 400.0f * scale),
+                                      ImGui::GetIO().DisplaySize);
+  if (!ImGui::Begin("Statistics", nullptr, ImGuiWindowFlags_NoNavInputs))
+  {
+    ImGui::End();
+    return;
+  }
+
+  ImGui::Columns(2, "Statistics", true);
+
+#define DRAW_STAT(name, format, ...)                                                               \
+  ImGui::Text(name);                                                                               \
+  ImGui::NextColumn();                                                                             \
+  ImGui::Text(format, __VA_ARGS__);                                                                \
+  ImGui::NextColumn();
 
   if (g_ActiveConfig.backend_info.api_type == APIType::Nothing)
   {
-    str += StringFromFormat("Objects:            %i\n", stats.thisFrame.numDrawnObjects);
-    str += StringFromFormat("Vertices Loaded:    %i\n", stats.thisFrame.numVerticesLoaded);
-    str += StringFromFormat("Triangles Input:    %i\n", stats.thisFrame.numTrianglesIn);
-    str += StringFromFormat("Triangles Rejected: %i\n", stats.thisFrame.numTrianglesRejected);
-    str += StringFromFormat("Triangles Culled:   %i\n", stats.thisFrame.numTrianglesCulled);
-    str += StringFromFormat("Triangles Clipped:  %i\n", stats.thisFrame.numTrianglesClipped);
-    str += StringFromFormat("Triangles Drawn:    %i\n", stats.thisFrame.numTrianglesDrawn);
-    str += StringFromFormat("Rasterized Pix:     %i\n", stats.thisFrame.rasterizedPixels);
-    str += StringFromFormat("TEV Pix In:         %i\n", stats.thisFrame.tevPixelsIn);
-    str += StringFromFormat("TEV Pix Out:        %i\n", stats.thisFrame.tevPixelsOut);
+    DRAW_STAT("Objects", "%d", stats.thisFrame.numDrawnObjects);
+    DRAW_STAT("Vertices Loaded", "%d", stats.thisFrame.numVerticesLoaded);
+    DRAW_STAT("Triangles Input", "%d", stats.thisFrame.numTrianglesIn);
+    DRAW_STAT("Triangles Rejected", "%d", stats.thisFrame.numTrianglesRejected);
+    DRAW_STAT("Triangles Culled", "%d", stats.thisFrame.numTrianglesCulled);
+    DRAW_STAT("Triangles Clipped", "%d", stats.thisFrame.numTrianglesClipped);
+    DRAW_STAT("Triangles Drawn", "%d", stats.thisFrame.numTrianglesDrawn);
+    DRAW_STAT("Rasterized Pix", "%d", stats.thisFrame.rasterizedPixels);
+    DRAW_STAT("TEV Pix In", "%d", stats.thisFrame.tevPixelsIn);
+    DRAW_STAT("TEV Pix Out", "%d", stats.thisFrame.tevPixelsOut);
   }
 
-  str += StringFromFormat("Textures created: %i\n", stats.numTexturesCreated);
-  str += StringFromFormat("Textures uploaded: %i\n", stats.numTexturesUploaded);
-  str += StringFromFormat("Textures alive: %i\n", stats.numTexturesAlive);
-  str += StringFromFormat("pshaders created: %i\n", stats.numPixelShadersCreated);
-  str += StringFromFormat("pshaders alive: %i\n", stats.numPixelShadersAlive);
-  str += StringFromFormat("vshaders created: %i\n", stats.numVertexShadersCreated);
-  str += StringFromFormat("vshaders alive: %i\n", stats.numVertexShadersAlive);
-  str += StringFromFormat("shaders changes: %i\n", stats.thisFrame.numShaderChanges);
-  str += StringFromFormat("dlists called: %i\n", stats.thisFrame.numDListsCalled);
-  str += StringFromFormat("Primitive joins: %i\n", stats.thisFrame.numPrimitiveJoins);
-  str += StringFromFormat("Draw calls: %i\n", stats.thisFrame.numDrawCalls);
-  str += StringFromFormat("Primitives: %i\n", stats.thisFrame.numPrims);
-  str += StringFromFormat("Primitives (DL): %i\n", stats.thisFrame.numDLPrims);
-  str += StringFromFormat("XF loads: %i\n", stats.thisFrame.numXFLoads);
-  str += StringFromFormat("XF loads (DL): %i\n", stats.thisFrame.numXFLoadsInDL);
-  str += StringFromFormat("CP loads: %i\n", stats.thisFrame.numCPLoads);
-  str += StringFromFormat("CP loads (DL): %i\n", stats.thisFrame.numCPLoadsInDL);
-  str += StringFromFormat("BP loads: %i\n", stats.thisFrame.numBPLoads);
-  str += StringFromFormat("BP loads (DL): %i\n", stats.thisFrame.numBPLoadsInDL);
-  str += StringFromFormat("Vertex streamed: %i kB\n", stats.thisFrame.bytesVertexStreamed / 1024);
-  str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed / 1024);
-  str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed / 1024);
-  str += StringFromFormat("Vertex Loaders: %i\n", stats.numVertexLoaders);
+  DRAW_STAT("Textures created", "%d", stats.numTexturesCreated);
+  DRAW_STAT("Textures uploaded", "%d", stats.numTexturesUploaded);
+  DRAW_STAT("Textures alive", "%d", stats.numTexturesAlive);
+  DRAW_STAT("pshaders created", "%d", stats.numPixelShadersCreated);
+  DRAW_STAT("pshaders alive", "%d", stats.numPixelShadersAlive);
+  DRAW_STAT("vshaders created", "%d", stats.numVertexShadersCreated);
+  DRAW_STAT("vshaders alive", "%d", stats.numVertexShadersAlive);
+  DRAW_STAT("shaders changes", "%d", stats.thisFrame.numShaderChanges);
+  DRAW_STAT("dlists called", "%d", stats.thisFrame.numDListsCalled);
+  DRAW_STAT("Primitive joins", "%d", stats.thisFrame.numPrimitiveJoins);
+  DRAW_STAT("Draw calls", "%d", stats.thisFrame.numDrawCalls);
+  DRAW_STAT("Primitives", "%d", stats.thisFrame.numPrims);
+  DRAW_STAT("Primitives (DL)", "%d", stats.thisFrame.numDLPrims);
+  DRAW_STAT("XF loads", "%d", stats.thisFrame.numXFLoads);
+  DRAW_STAT("XF loads (DL)", "%d", stats.thisFrame.numXFLoadsInDL);
+  DRAW_STAT("CP loads", "%d", stats.thisFrame.numCPLoads);
+  DRAW_STAT("CP loads (DL)", "%d", stats.thisFrame.numCPLoadsInDL);
+  DRAW_STAT("BP loads", "%d", stats.thisFrame.numBPLoads);
+  DRAW_STAT("BP loads (DL)", "%d", stats.thisFrame.numBPLoadsInDL);
+  DRAW_STAT("Vertex streamed", "%i kB", stats.thisFrame.bytesVertexStreamed / 1024);
+  DRAW_STAT("Index streamed", "%i kB", stats.thisFrame.bytesIndexStreamed / 1024);
+  DRAW_STAT("Uniform streamed", "%i kB", stats.thisFrame.bytesUniformStreamed / 1024);
+  DRAW_STAT("Vertex Loaders", "%d", stats.numVertexLoaders);
+  DRAW_STAT("EFB peeks:", "%d", stats.thisFrame.numEFBPeeks);
+  DRAW_STAT("EFB pokes:", "%d", stats.thisFrame.numEFBPokes);
 
-  std::string vertex_list = VertexLoaderManager::VertexLoadersToString();
+#undef DRAW_STAT
 
-  // TODO : at some point text1 just becomes too huge and overflows, we can't even read the added
-  // stuff
-  // since it gets added at the far bottom of the screen anyway (actually outside the rendering
-  // window)
-  // we should really reset the list instead of using substr
-  if (vertex_list.size() + str.size() > 8170)
-    vertex_list = vertex_list.substr(0, 8170 - str.size());
+  ImGui::Columns(1);
 
-  str += vertex_list;
-
-  return str;
+  ImGui::End();
 }
 
 // Is this really needed?
-std::string Statistics::ToStringProj()
+void Statistics::DisplayProj()
 {
-  std::string projections;
+  if (!ImGui::Begin("Projection Statistics", nullptr, ImGuiWindowFlags_NoNavInputs))
+  {
+    ImGui::End();
+    return;
+  }
 
-  projections += "Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n";
-  projections += StringFromFormat("Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0,
-                                  stats.g2proj_0, stats.proj_0);
-  projections += StringFromFormat("Projection 1: %f (%f)\n", stats.gproj_1, stats.g2proj_1);
-  projections += StringFromFormat("Projection 2: %f (%f) Raw 1: %f\n", stats.gproj_2,
-                                  stats.g2proj_2, stats.proj_1);
-  projections += StringFromFormat("Projection 3: %f (%f)\n\n", stats.gproj_3, stats.g2proj_3);
-  projections += StringFromFormat("Projection 4: %f (%f)\n", stats.gproj_4, stats.g2proj_4);
-  projections += StringFromFormat("Projection 5: %f (%f) Raw 2: %f\n", stats.gproj_5,
-                                  stats.g2proj_5, stats.proj_2);
-  projections += StringFromFormat("Projection 6: %f (%f) Raw 3: %f\n", stats.gproj_6,
-                                  stats.g2proj_6, stats.proj_3);
-  projections += StringFromFormat("Projection 7: %f (%f)\n\n", stats.gproj_7, stats.g2proj_7);
-  projections += StringFromFormat("Projection 8: %f (%f)\n", stats.gproj_8, stats.g2proj_8);
-  projections += StringFromFormat("Projection 9: %f (%f)\n", stats.gproj_9, stats.g2proj_9);
-  projections += StringFromFormat("Projection 10: %f (%f) Raw 4: %f\n\n", stats.gproj_10,
-                                  stats.g2proj_10, stats.proj_4);
-  projections += StringFromFormat("Projection 11: %f (%f) Raw 5: %f\n\n", stats.gproj_11,
-                                  stats.g2proj_11, stats.proj_5);
-  projections += StringFromFormat("Projection 12: %f (%f)\n", stats.gproj_12, stats.g2proj_12);
-  projections += StringFromFormat("Projection 13: %f (%f)\n", stats.gproj_13, stats.g2proj_13);
-  projections += StringFromFormat("Projection 14: %f (%f)\n", stats.gproj_14, stats.g2proj_14);
-  projections += StringFromFormat("Projection 15: %f (%f)\n", stats.gproj_15, stats.g2proj_15);
+  ImGui::Text("Projection #: X for Raw 6=0 (X for Raw 6!=0)");
+  ImGui::NewLine();
+  ImGui::Text("Projection 0: %f (%f) Raw 0: %f", stats.gproj_0, stats.g2proj_0, stats.proj_0);
+  ImGui::Text("Projection 1: %f (%f)", stats.gproj_1, stats.g2proj_1);
+  ImGui::Text("Projection 2: %f (%f) Raw 1: %f", stats.gproj_2, stats.g2proj_2, stats.proj_1);
+  ImGui::Text("Projection 3: %f (%f)", stats.gproj_3, stats.g2proj_3);
+  ImGui::Text("Projection 4: %f (%f)", stats.gproj_4, stats.g2proj_4);
+  ImGui::Text("Projection 5: %f (%f) Raw 2: %f", stats.gproj_5, stats.g2proj_5, stats.proj_2);
+  ImGui::Text("Projection 6: %f (%f) Raw 3: %f", stats.gproj_6, stats.g2proj_6, stats.proj_3);
+  ImGui::Text("Projection 7: %f (%f)", stats.gproj_7, stats.g2proj_7);
+  ImGui::Text("Projection 8: %f (%f)", stats.gproj_8, stats.g2proj_8);
+  ImGui::Text("Projection 9: %f (%f)", stats.gproj_9, stats.g2proj_9);
+  ImGui::Text("Projection 10: %f (%f) Raw 4: %f", stats.gproj_10, stats.g2proj_10, stats.proj_4);
+  ImGui::Text("Projection 11: %f (%f) Raw 5: %f", stats.gproj_11, stats.g2proj_11, stats.proj_5);
+  ImGui::Text("Projection 12: %f (%f)", stats.gproj_12, stats.g2proj_12);
+  ImGui::Text("Projection 13: %f (%f)", stats.gproj_13, stats.g2proj_13);
+  ImGui::Text("Projection 14: %f (%f)", stats.gproj_14, stats.g2proj_14);
+  ImGui::Text("Projection 15: %f (%f)", stats.gproj_15, stats.g2proj_15);
 
-  return projections;
+  ImGui::End();
 }

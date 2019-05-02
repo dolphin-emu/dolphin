@@ -18,15 +18,18 @@ namespace ControllerEmu
 {
 Triggers::Triggers(const std::string& name_) : ControlGroup(name_, GroupType::Triggers)
 {
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
+  AddDeadzoneSetting(&m_deadzone_setting, 50);
 }
 
-void Triggers::GetState(ControlState* analog)
+Triggers::StateData Triggers::GetState()
 {
   const size_t trigger_count = controls.size();
-  const ControlState deadzone = numeric_settings[0]->GetValue();
+  const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
 
-  for (size_t i = 0; i < trigger_count; ++i, ++analog)
-    *analog = std::max(controls[i]->control_ref->State() - deadzone, 0.0) / (1 - deadzone);
+  StateData result(trigger_count);
+  for (size_t i = 0; i < trigger_count; ++i)
+    result.data[i] = ApplyDeadzone(controls[i]->control_ref->State(), deadzone);
+
+  return result;
 }
 }  // namespace ControllerEmu

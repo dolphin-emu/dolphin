@@ -10,12 +10,12 @@
 #include <array>
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/NandPaths.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Enums.h"
@@ -24,6 +24,11 @@ class PointerWrap;
 
 namespace IOS
 {
+namespace HLE::FS
+{
+class FileSystem;
+}
+
 namespace ES
 {
 enum class TitleType : u32
@@ -157,6 +162,9 @@ public:
   void SetBytes(const std::vector<u8>& bytes);
   void SetBytes(std::vector<u8>&& bytes);
 
+  /// Get the SHA1 hash for this signed blob (starting at the issuer).
+  std::array<u8, 20> GetSha1() const;
+
   // Only checks whether the signature data could be parsed. The signature is not verified.
   bool IsSignatureValid() const;
 
@@ -193,14 +201,18 @@ public:
   u32 GetTitleFlags() const;
   u16 GetTitleVersion() const;
   u16 GetGroupId() const;
-
-  // Provides a best guess for the region. Might be inaccurate or UNKNOWN_REGION.
   DiscIO::Region GetRegion() const;
 
   // Constructs a 6-character game ID in the format typically used by Dolphin.
   // If the 6-character game ID would contain unprintable characters,
-  // the title ID converted to hexadecimal is returned instead.
+  // the title ID converted to 16 hexadecimal digits is returned instead.
   std::string GetGameID() const;
+
+  // Constructs a 4-character game ID in the format typically used by GameTDB.
+  // If the 4-character game ID would contain unprintable characters,
+  // the title ID converted to 16 hexadecimal digits is returned instead
+  // (a format which GameTDB does not actually use).
+  std::string GetGameTDBID() const;
 
   u16 GetNumContents() const;
   bool GetContent(u16 index, Content* content) const;
@@ -228,11 +240,15 @@ public:
 
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
+  u8 GetCommonKeyIndex() const;
   // Get the decrypted title key.
   std::array<u8, 16> GetTitleKey(const HLE::IOSC& iosc) const;
   // Same as the above version, but guesses the console type depending on the issuer
   // and constructs a temporary IOSC instance.
   std::array<u8, 16> GetTitleKey() const;
+
+  // Infers the console type (retail or devkit) based on the certificate issuer.
+  HLE::IOSC::ConsoleType GetConsoleType() const;
 
   // Deletes a ticket with the given ticket ID from the internal buffer.
   void DeleteTicket(u64 ticket_id);
@@ -249,7 +265,7 @@ public:
 class SharedContentMap final
 {
 public:
-  explicit SharedContentMap(Common::FromWhichRoot root);
+  explicit SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs);
   ~SharedContentMap();
 
   std::optional<std::string> GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
@@ -261,23 +277,22 @@ private:
   bool WriteEntries() const;
 
   struct Entry;
-  Common::FromWhichRoot m_root;
   u32 m_last_id = 0;
-  std::string m_file_path;
   std::vector<Entry> m_entries;
+  std::shared_ptr<HLE::FS::FileSystem> m_fs;
 };
 
 class UIDSys final
 {
 public:
-  explicit UIDSys(Common::FromWhichRoot root);
+  explicit UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs);
 
   u32 GetUIDFromTitle(u64 title_id) const;
   u32 GetOrInsertUIDForTitle(u64 title_id);
   u32 GetNextUID() const;
 
 private:
-  std::string m_file_path;
+  std::shared_ptr<HLE::FS::FileSystem> m_fs;
   std::map<u32, u64> m_entries;
 };
 

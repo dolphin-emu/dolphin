@@ -16,7 +16,10 @@ namespace Config
 // Main.Core
 
 const ConfigInfo<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
-const ConfigInfo<int> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"}, PowerPC::DefaultCPUCore()};
+const ConfigInfo<bool> MAIN_LOAD_IPL_DUMP{{System::Main, "Core", "LoadIPLDump"}, true};
+const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
+                                                 PowerPC::DefaultCPUCore()};
+const ConfigInfo<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
 const ConfigInfo<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
 const ConfigInfo<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const ConfigInfo<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};
@@ -35,6 +38,13 @@ const ConfigInfo<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "Memcar
 const ConfigInfo<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
 const ConfigInfo<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const ConfigInfo<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const ConfigInfo<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
+    {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
+const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
+    {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
+const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
+    {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
+const ConfigInfo<bool> MAIN_CODE_SYNC_OVERRIDE{{System::Main, "Core", "CheatSyncOverride"}, false};
 const ConfigInfo<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                                   ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const ConfigInfo<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
@@ -61,6 +71,7 @@ ConfigInfo<bool> GetInfoForSimulateKonga(u32 channel)
 }
 
 const ConfigInfo<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, false};
+const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE{{System::Main, "Core", "WiiSDCardWritable"}, true};
 const ConfigInfo<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
@@ -77,7 +88,6 @@ const ConfigInfo<int> MAIN_SYNC_GPU_MIN_DISTANCE{{System::Main, "Core", "SyncGpu
                                                  -200000};
 const ConfigInfo<float> MAIN_SYNC_GPU_OVERCLOCK{{System::Main, "Core", "SyncGpuOverclock"}, 1.0f};
 const ConfigInfo<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, false};
-const ConfigInfo<bool> MAIN_DCBZ{{System::Main, "Core", "DCBZ"}, false};
 const ConfigInfo<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
 const ConfigInfo<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const ConfigInfo<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};
@@ -93,6 +103,25 @@ const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCust
 const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"}, 946684800};
 const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS{{System::Main, "Core", "EnableSignatureChecks"},
                                                     true};
+const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE{{System::Main, "Core", "ReducePollingRate"}, false};
+const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
+
+// Main.Display
+
+const ConfigInfo<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
+    {System::Main, "Display", "FullscreenDisplayRes"}, "Auto"};
+const ConfigInfo<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, false};
+const ConfigInfo<bool> MAIN_RENDER_TO_MAIN{{System::Main, "Display", "RenderToMain"}, false};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowXPos"}, -1};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_WIDTH{{System::Main, "Display", "RenderWindowWidth"}, 640};
+const ConfigInfo<int> MAIN_RENDER_WINDOW_HEIGHT{{System::Main, "Display", "RenderWindowHeight"},
+                                                480};
+const ConfigInfo<bool> MAIN_RENDER_WINDOW_AUTOSIZE{
+    {System::Main, "Display", "RenderWindowAutoSize"}, false};
+const ConfigInfo<bool> MAIN_KEEP_WINDOW_ON_TOP{{System::Main, "Display", "KeepWindowOnTop"}, false};
+const ConfigInfo<bool> MAIN_DISABLE_SCREENSAVER{{System::Main, "Display", "DisableScreenSaver"},
+                                                false};
 
 // Main.DSP
 
@@ -104,5 +133,11 @@ const ConfigInfo<bool> MAIN_DUMP_UCODE{{System::Main, "DSP", "DumpUCode"}, false
 const ConfigInfo<std::string> MAIN_AUDIO_BACKEND{{System::Main, "DSP", "Backend"},
                                                  AudioCommon::GetDefaultSoundBackend()};
 const ConfigInfo<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
+
+// Main.General
+
+const ConfigInfo<std::string> MAIN_DUMP_PATH{{System::Main, "General", "DumpPath"}, ""};
+const ConfigInfo<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
+const ConfigInfo<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 
 }  // namespace Config

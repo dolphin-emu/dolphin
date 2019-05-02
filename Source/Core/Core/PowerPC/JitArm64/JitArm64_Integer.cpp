@@ -4,6 +4,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/Core.h"
@@ -56,7 +57,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
+  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == ::OpType::Integer)
   {
     return;
   }
@@ -121,17 +122,20 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
 
   switch (inst.OPCD)
   {
-  case 24:                                               // ori
-    if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  // check for nop
+  case 24:  // ori
+  case 25:  // oris
+  {
+    // check for nop
+    if (a == s && inst.UIMM == 0)
     {
       // NOP
       return;
     }
-    reg_imm(a, s, inst.UIMM, BitOR, &ARM64XEmitter::ORRI2R);
+
+    const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
+    reg_imm(a, s, immediate, BitOR, &ARM64XEmitter::ORRI2R);
     break;
-  case 25:  // oris
-    reg_imm(a, s, inst.UIMM << 16, BitOR, &ARM64XEmitter::ORRI2R);
-    break;
+  }
   case 28:  // andi
     reg_imm(a, s, inst.UIMM, BitAND, &ARM64XEmitter::ANDI2R, true);
     break;
@@ -139,11 +143,18 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
     reg_imm(a, s, inst.UIMM << 16, BitAND, &ARM64XEmitter::ANDI2R, true);
     break;
   case 26:  // xori
-    reg_imm(a, s, inst.UIMM, BitXOR, &ARM64XEmitter::EORI2R);
-    break;
   case 27:  // xoris
-    reg_imm(a, s, inst.UIMM << 16, BitXOR, &ARM64XEmitter::EORI2R);
+  {
+    if (a == s && inst.UIMM == 0)
+    {
+      // NOP
+      return;
+    }
+
+    const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
+    reg_imm(a, s, immediate, BitXOR, &ARM64XEmitter::EORI2R);
     break;
+  }
   }
 }
 
@@ -521,10 +532,10 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   u32 a = inst.RA, s = inst.RS;
 
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   if (gpr.IsImm(inst.RS))
   {
-    gpr.SetImmediate(a, _rotl(gpr.GetImm(s), inst.SH) & mask);
+    gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
     return;
@@ -568,12 +579,12 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  u32 a = inst.RA, b = inst.RB, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 a = inst.RA, b = inst.RB, s = inst.RS;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
-    gpr.SetImmediate(a, _rotl(gpr.GetImm(s), gpr.GetImm(b) & 0x1F) & mask);
+    gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), gpr.GetImm(b) & 0x1F) & mask);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }
@@ -620,6 +631,9 @@ void JitArm64::srawix(UGeckoInstruction inst)
       ComputeCarry(true);
     else
       ComputeCarry(false);
+
+    if (inst.Rc)
+      ComputeRC0(gpr.GetImm(a));
   }
   else if (amount == 0)
   {
@@ -628,6 +642,9 @@ void JitArm64::srawix(UGeckoInstruction inst)
     ARM64Reg RS = gpr.R(s);
     MOV(RA, RS);
     ComputeCarry(false);
+
+    if (inst.Rc)
+      ComputeRC0(RA);
   }
   else
   {
@@ -1153,17 +1170,17 @@ void JitArm64::divwx(UGeckoInstruction inst)
   {
     s32 imm_a = gpr.GetImm(a);
     s32 imm_b = gpr.GetImm(b);
-    s32 imm_d;
-    if (imm_b == 0 || ((u32)imm_a == 0x80000000 && imm_b == -1))
+    u32 imm_d;
+    if (imm_b == 0 || (static_cast<u32>(imm_a) == 0x80000000 && imm_b == -1))
     {
-      if (((u32)imm_a & 0x80000000) && imm_b == 0)
-        imm_d = -1;
+      if (imm_a < 0)
+        imm_d = 0xFFFFFFFF;
       else
         imm_d = 0;
     }
     else
     {
-      imm_d = (u32)(imm_a / imm_b);
+      imm_d = static_cast<u32>(imm_a / imm_b);
     }
     gpr.SetImmediate(d, imm_d);
 
@@ -1206,9 +1223,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
     SetJumpTarget(slow1);
     SetJumpTarget(slow2);
 
-    CMP(RB, 0);
-    CCMP(RA, 0, 0, CC_EQ);
-    CSETM(RD, CC_LT);
+    ASR(RD, RA, 31);
 
     SetJumpTarget(done);
 
@@ -1422,12 +1437,12 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
-  int a = inst.RA, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const int a = inst.RA, s = inst.RS;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {
-    u32 res = (gpr.GetImm(a) & ~mask) | (_rotl(gpr.GetImm(s), inst.SH) & mask);
+    u32 res = (gpr.GetImm(a) & ~mask) | (Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
     gpr.SetImmediate(a, res);
     if (inst.Rc)
       ComputeRC0(res);

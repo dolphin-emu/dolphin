@@ -16,11 +16,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // The front SD slot
 class SDIOSlot0 : public Device
@@ -30,8 +26,8 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  ReturnCode Open(const OpenRequest& request) override;
-  ReturnCode Close(u32 fd) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
+  IPCCommandResult Close(u32 fd) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
@@ -118,8 +114,9 @@ private:
     V2,
   };
 
-  // Number of bytes to trigger using SDHC instead of SDSC
-  static constexpr u32 SDHC_BYTES = 0x80000000;
+  // Maximum number of bytes in an SDSC card
+  // Used to trigger using SDHC instead of SDSC
+  static constexpr u64 SDSC_MAX_SIZE = 0x80000000;
 
   struct Event
   {
@@ -168,6 +165,4 @@ private:
 
   File::IOFile m_card;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

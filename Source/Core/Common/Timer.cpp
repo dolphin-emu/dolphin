@@ -7,6 +7,8 @@
 #include <string>
 
 #ifdef _WIN32
+#include <cwchar>
+
 #include <windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
@@ -203,14 +205,19 @@ std::string Timer::GetTimeFormatted()
 
   struct tm* gmTime = localtime(&sysTime);
 
+#ifdef _WIN32
+  wchar_t tmp[13];
+  wcsftime(tmp, 6, L"%M:%S", gmTime);
+#else
   char tmp[13];
   strftime(tmp, 6, "%M:%S", gmTime);
+#endif
 
 // Now tack on the milliseconds
 #ifdef _WIN32
   struct timeb tp;
   (void)::ftime(&tp);
-  return StringFromFormat("%s:%03i", tmp, tp.millitm);
+  return UTF16ToUTF8(tmp) + StringFromFormat(":%03i", tp.millitm);
 #elif defined __APPLE__
   struct timeval t;
   (void)gettimeofday(&t, nullptr);
@@ -265,9 +272,15 @@ std::string Timer::GetDateTimeFormatted(double time)
   time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
   tm* localTime = localtime(&seconds);
 
+#ifdef _WIN32
+  wchar_t tmp[32] = {};
+  wcsftime(tmp, sizeof(tmp), L"%x %X", localTime);
+  return UTF16ToUTF8(tmp);
+#else
   char tmp[32] = {};
   strftime(tmp, sizeof(tmp), "%x %X", localTime);
   return tmp;
+#endif
 }
 
 }  // Namespace Common

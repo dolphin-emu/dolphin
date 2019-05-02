@@ -15,13 +15,13 @@ u32 HLE::SystemVABI::VAList::GetGPR(u32 gpr) const
 
 double HLE::SystemVABI::VAList::GetFPR(u32 fpr) const
 {
-  return rPS0(fpr);
+  return rPS(fpr).PS0AsDouble();
 }
 
 HLE::SystemVABI::VAListStruct::VAListStruct(u32 address)
     : VAList(0), m_va_list{PowerPC::HostRead_U8(address), PowerPC::HostRead_U8(address + 1),
                            PowerPC::HostRead_U32(address + 4), PowerPC::HostRead_U32(address + 8)},
-      m_address(address), m_has_fpr_area(GetCRBit(6) == 1)
+      m_address(address), m_has_fpr_area(PowerPC::ppcState.cr.GetBit(6) == 1)
 {
   m_stack = m_va_list.overflow_arg_area;
   m_gpr += m_va_list.gpr;
@@ -51,17 +51,11 @@ u32 HLE::SystemVABI::VAListStruct::GetGPR(u32 gpr) const
 
 double HLE::SystemVABI::VAListStruct::GetFPR(u32 fpr) const
 {
-  double value = 0.0;
-
   if (!m_has_fpr_area || fpr < 1 || fpr > 8)
   {
     ERROR_LOG(OSHLE, "VAListStruct at %08x doesn't have FPR%d!", m_address, fpr);
+    return 0.0;
   }
-  else
-  {
-    const u32 fpr_address = Common::AlignUp(GetFPRArea() + 8 * (fpr - 1), 8);
-    const u64 integral = PowerPC::HostRead_U64(fpr_address);
-    std::memcpy(&value, &integral, sizeof(double));
-  }
-  return value;
+  const u32 fpr_address = Common::AlignUp(GetFPRArea() + 8 * (fpr - 1), 8);
+  return PowerPC::HostRead_F64(fpr_address);
 }

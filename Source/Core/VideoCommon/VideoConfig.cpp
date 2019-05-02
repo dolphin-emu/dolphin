@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -18,11 +19,19 @@ VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 static bool s_has_registered_callback = false;
 
+static bool IsVSyncActive(bool enabled)
+{
+  // Vsync is disabled when the throttler is disabled by the tab key.
+  return enabled && !Core::GetIsThrottlerTempDisabled() &&
+         SConfig::GetInstance().m_EmulationSpeed == 1.0;
+}
+
 void UpdateActiveConfig()
 {
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
     Movie::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
+  g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
 }
 
 VideoConfig::VideoConfig()
@@ -36,12 +45,16 @@ VideoConfig::VideoConfig()
   backend_info.MaxTextureSize = 16384;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
-  backend_info.bSupportsInternalResolutionFrameDumps = false;
   backend_info.bSupportsST3CTextures = false;
   backend_info.bSupportsBPTCTextures = false;
 
   bEnableValidationLayer = false;
+
+#if defined(ANDROID)
+  bBackendMultithreading = false;
+#else
   bBackendMultithreading = true;
+#endif
 }
 
 void VideoConfig::Refresh()
@@ -61,14 +74,9 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  const int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
-  if (aspect_ratio == ASPECT_AUTO)
-    iAspectRatio = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
-  else
-    iAspectRatio = aspect_ratio;
+  aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
+  suggested_aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
   bCrop = Config::Get(Config::GFX_CROP);
-  bUseXFB = Config::Get(Config::GFX_USE_XFB);
-  bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
   bShowNetPlayPing = Config::Get(Config::GFX_SHOW_NETPLAY_PING);
@@ -78,14 +86,15 @@ void VideoConfig::Refresh()
   bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
   bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
   bHiresTextures = Config::Get(Config::GFX_HIRES_TEXTURES);
-  bConvertHiresTextures = Config::Get(Config::GFX_CONVERT_HIRES_TEXTURES);
   bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
+  bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
   bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
+  sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
   sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
   bInternalResolutionFrameDumps = Config::Get(Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
@@ -104,9 +113,8 @@ void VideoConfig::Refresh()
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
-  bBackgroundShaderCompiling = Config::Get(Config::GFX_BACKGROUND_SHADER_COMPILING);
-  bDisableSpecializedShaders = Config::Get(Config::GFX_DISABLE_SPECIALIZED_SHADERS);
-  bPrecompileUberShaders = Config::Get(Config::GFX_PRECOMPILE_UBER_SHADERS);
+  bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
+  iShaderCompilationMode = Config::Get(Config::GFX_SHADER_COMPILATION_MODE);
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
@@ -122,8 +130,12 @@ void VideoConfig::Refresh()
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  bDisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  fArbitraryMipmapDetectionThreshold =
+      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
 
-  iStereoMode = Config::Get(Config::GFX_STEREO_MODE);
+  stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
@@ -132,20 +144,19 @@ void VideoConfig::Refresh()
   iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
 
   bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
   bBBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
-  bBBoxPreferStencilImplementation =
-      Config::Get(Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION);
   bForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
   bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_ENABLED);
+  bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  bDisableCopyToVRAM = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+  bDeferEFBCopies = Config::Get(Config::GFX_HACK_DEFER_EFB_COPIES);
+  bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
+  iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
 
-  phack.m_enable = Config::Get(Config::GFX_PROJECTION_HACK) == 1;
-  phack.m_sznear = Config::Get(Config::GFX_PROJECTION_HACK_SZNEAR) == 1;
-  phack.m_szfar = Config::Get(Config::GFX_PROJECTION_HACK_SZFAR) == 1;
-  phack.m_znear = Config::Get(Config::GFX_PROJECTION_HACK_ZNEAR);
-  phack.m_zfar = Config::Get(Config::GFX_PROJECTION_HACK_ZFAR);
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
   VerifyValidity();
@@ -161,28 +172,22 @@ void VideoConfig::VerifyValidity()
       backend_info.AAModes.end())
     iMultisamples = 1;
 
-  if (iStereoMode > 0)
+  if (stereo_mode != StereoMode::Off)
   {
     if (!backend_info.bSupportsGeometryShaders)
     {
       OSD::AddMessage(
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
           10000);
-      iStereoMode = 0;
-    }
-
-    if (bUseXFB && bUseRealXFB)
-    {
-      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.",
-                      10000);
-      iStereoMode = 0;
+      stereo_mode = StereoMode::Off;
     }
   }
 }
 
-bool VideoConfig::IsVSync()
+bool VideoConfig::UsingUberShaders() const
 {
-  return bVSync && !Core::GetIsThrottlerTempDisabled();
+  return iShaderCompilationMode == ShaderCompilationMode::SynchronousUberShaders ||
+         iShaderCompilationMode == ShaderCompilationMode::AsynchronousUberShaders;
 }
 
 static u32 GetNumAutoShaderCompilerThreads()
@@ -193,6 +198,9 @@ static u32 GetNumAutoShaderCompilerThreads()
 
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
+  if (!backend_info.bSupportsBackgroundCompiling)
+    return 0;
+
   if (iShaderCompilerThreads >= 0)
     return static_cast<u32>(iShaderCompilerThreads);
   else
@@ -201,20 +209,15 @@ u32 VideoConfig::GetShaderCompilerThreads() const
 
 u32 VideoConfig::GetShaderPrecompilerThreads() const
 {
+  // When using background compilation, always keep the same thread count.
+  if (!bWaitForShadersBeforeStarting)
+    return GetShaderCompilerThreads();
+
+  if (!backend_info.bSupportsBackgroundCompiling)
+    return 0;
+
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
   else
     return GetNumAutoShaderCompilerThreads();
-}
-
-bool VideoConfig::CanPrecompileUberShaders() const
-{
-  // We don't want to precompile ubershaders if they're never going to be used.
-  return bPrecompileUberShaders && (bBackgroundShaderCompiling || bDisableSpecializedShaders);
-}
-
-bool VideoConfig::CanBackgroundCompileShaders() const
-{
-  // We require precompiled ubershaders to background compile shaders.
-  return bBackgroundShaderCompiling && bPrecompileUberShaders;
 }

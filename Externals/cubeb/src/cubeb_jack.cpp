@@ -96,6 +96,8 @@ static int cbjack_stream_device_destroy(cubeb_stream * stream,
 static int cbjack_stream_get_current_device(cubeb_stream * stm, cubeb_device ** const device);
 static int cbjack_enumerate_devices(cubeb * context, cubeb_device_type type,
                                     cubeb_device_collection * collection);
+static int cbjack_device_collection_destroy(cubeb * context,
+                                            cubeb_device_collection * collection);
 static int cbjack_stream_init(cubeb * context, cubeb_stream ** stream, char const * stream_name,
                               cubeb_devid input_device,
                               cubeb_stream_params * input_stream_params,
@@ -119,12 +121,13 @@ static struct cubeb_ops const cbjack_ops = {
   .get_preferred_sample_rate = cbjack_get_preferred_sample_rate,
   .get_preferred_channel_layout = NULL,
   .enumerate_devices = cbjack_enumerate_devices,
-  .device_collection_destroy = cubeb_utils_default_device_collection_destroy,
+  .device_collection_destroy = cbjack_device_collection_destroy,
   .destroy = cbjack_destroy,
   .stream_init = cbjack_stream_init,
   .stream_destroy = cbjack_stream_destroy,
   .stream_start = cbjack_stream_start,
   .stream_stop = cbjack_stream_stop,
+  .stream_reset_default_device = NULL,
   .stream_get_position = cbjack_stream_get_position,
   .stream_get_latency = cbjack_get_latency,
   .stream_set_volume = cbjack_stream_set_volume,
@@ -973,6 +976,9 @@ cbjack_stream_device_destroy(cubeb_stream * /*stream*/,
   return CUBEB_OK;
 }
 
+#define JACK_DEFAULT_IN "JACK capture"
+#define JACK_DEFAULT_OUT "JACK playback"
+
 static int
 cbjack_enumerate_devices(cubeb * context, cubeb_device_type type,
                          cubeb_device_collection * collection)
@@ -982,20 +988,20 @@ cbjack_enumerate_devices(cubeb * context, cubeb_device_type type,
 
   uint32_t rate;
   cbjack_get_preferred_sample_rate(context, &rate);
-  const char * j_in = "JACK capture";
-  const char * j_out = "JACK playback";
 
   cubeb_device_info * devices = new cubeb_device_info[2];
-    reinterpret_cast<cubeb_device_info *>(calloc(2, sizeof(cubeb_device_info)));
+  if (!devices)
+    return CUBEB_ERROR;
+  PodZero(devices, 2);
   collection->count = 0;
 
   if (type & CUBEB_DEVICE_TYPE_OUTPUT) {
     cubeb_device_info * cur = &devices[collection->count];
-    cur->device_id = strdup(j_out);
+    cur->device_id = JACK_DEFAULT_OUT;
     cur->devid = (cubeb_devid) cur->device_id;
-    cur->friendly_name = strdup(j_out);
-    cur->group_id = strdup(j_out);
-    cur->vendor_name = strdup(j_out);
+    cur->friendly_name = JACK_DEFAULT_OUT;
+    cur->group_id = JACK_DEFAULT_OUT;
+    cur->vendor_name = JACK_DEFAULT_OUT;
     cur->type = CUBEB_DEVICE_TYPE_OUTPUT;
     cur->state = CUBEB_DEVICE_STATE_ENABLED;
     cur->preferred = CUBEB_DEVICE_PREF_ALL;
@@ -1012,11 +1018,11 @@ cbjack_enumerate_devices(cubeb * context, cubeb_device_type type,
 
   if (type & CUBEB_DEVICE_TYPE_INPUT) {
     cubeb_device_info * cur = &devices[collection->count];
-    cur->device_id = strdup(j_in);
+    cur->device_id = JACK_DEFAULT_IN;
     cur->devid = (cubeb_devid) cur->device_id;
-    cur->friendly_name = strdup(j_in);
-    cur->group_id = strdup(j_in);
-    cur->vendor_name = strdup(j_in);
+    cur->friendly_name = JACK_DEFAULT_IN;
+    cur->group_id = JACK_DEFAULT_IN;
+    cur->vendor_name = JACK_DEFAULT_IN;
     cur->type = CUBEB_DEVICE_TYPE_INPUT;
     cur->state = CUBEB_DEVICE_STATE_ENABLED;
     cur->preferred = CUBEB_DEVICE_PREF_ALL;
@@ -1033,5 +1039,14 @@ cbjack_enumerate_devices(cubeb * context, cubeb_device_type type,
 
   collection->device = devices;
 
+  return CUBEB_OK;
+}
+
+static int
+cbjack_device_collection_destroy(cubeb * /*ctx*/,
+                                 cubeb_device_collection * collection)
+{
+  XASSERT(collection);
+  delete [] collection->device;
   return CUBEB_OK;
 }

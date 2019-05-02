@@ -35,15 +35,22 @@ to_speex_quality(cubeb_resampler_quality q)
   }
 }
 
+uint32_t min_buffered_audio_frame(uint32_t sample_rate)
+{
+  return sample_rate / 20;
+}
+
 template<typename T>
 passthrough_resampler<T>::passthrough_resampler(cubeb_stream * s,
                                                 cubeb_data_callback cb,
                                                 void * ptr,
-                                                uint32_t input_channels)
+                                                uint32_t input_channels,
+                                                uint32_t sample_rate)
   : processor(input_channels)
   , stream(s)
   , data_callback(cb)
   , user_ptr(ptr)
+  , sample_rate(sample_rate)
 {
 }
 
@@ -73,6 +80,7 @@ long passthrough_resampler<T>::fill(void * input_buffer, long * input_frames_cou
   if (input_buffer) {
     internal_input_buffer.pop(nullptr, frames_to_samples(output_frames));
     *input_frames_count = output_frames;
+    drop_audio_if_needed();
   }
 
   return rv;
@@ -242,9 +250,15 @@ cubeb_resampler_speex<T, InputProcessor, OutputProcessor>
 
   output_processor->written(got);
 
+  input_processor->drop_audio_if_needed();
+
   /* Process the output. If not enough frames have been returned from the
    * callback, drain the processors. */
-  return output_processor->output(out_buffer, output_frames_needed);
+  got = output_processor->output(out_buffer, output_frames_needed);
+
+  output_processor->drop_audio_if_needed();
+
+  return got;
 }
 
 /* Resampler C API */

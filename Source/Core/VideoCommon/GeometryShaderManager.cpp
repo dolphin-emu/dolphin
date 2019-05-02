@@ -41,7 +41,7 @@ void GeometryShaderManager::Dirty()
 
 void GeometryShaderManager::SetConstants()
 {
-  if (s_projection_changed && g_ActiveConfig.iStereoMode > 0)
+  if (s_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
   {
     s_projection_changed = false;
 

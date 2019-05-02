@@ -47,7 +47,10 @@
       <UniqueIdentifier>{6204f663-bbd0-4eb5-bc15-e3778d8b6091}</UniqueIdentifier>
     </Filter>
     <Filter Include="DSPCore\Jit">
-      <UniqueIdentifier>{7042fb6f-9284-4469-bc7c-9302e0d984aa}</UniqueIdentifier>
+      <UniqueIdentifier>{5377680f-d667-4f1a-aa86-b616c19a5cd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DSPCore\Jit\x64">
+      <UniqueIdentifier>{712e3a61-b818-434e-a724-ef8de1f09027}</UniqueIdentifier>
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\AI - Audio Interface">
       <UniqueIdentifier>{d657188a-426d-46c8-af0a-caa148c6ed1b}</UniqueIdentifier>
@@ -75,9 +78,6 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Real">
       <UniqueIdentifier>{bc3e845a-3d01-4713-aa32-f27110838d0c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment">
-      <UniqueIdentifier>{cdbd65da-541f-47d2-8fdc-e99e73e98e69}</UniqueIdentifier>
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\EXI - Expansion Interface">
       <UniqueIdentifier>{d19f1218-0e28-4f24-a4b3-33fac750a899}</UniqueIdentifier>
@@ -162,8 +162,11 @@
     <Filter Include="PowerPC\SignatureDB">
       <UniqueIdentifier>{f0b52c84-49f4-470a-b037-edeea5634b9e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\WiimoteCommon">
+    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Common">
       <UniqueIdentifier>{ee6645da-3ad9-4fe7-809f-e4646d0b0ca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension">
+      <UniqueIdentifier>{68c09d7e-4f5a-435d-a0d2-7eb7a74d7054}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -171,7 +174,6 @@
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
-    <ClCompile Include="ec_wii.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
@@ -179,6 +181,7 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="WiiUtils.cpp" />
@@ -239,35 +242,44 @@
     <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPEmitter.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntTables.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPEmitterBase.cpp">
       <Filter>DSPCore\Jit</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitRegCache.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitBranch.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitMultiplier.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitCCUtil.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitMisc.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitExtOps.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitLoadStore.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitLoadStore.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitExtOps.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitMisc.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitCCUtil.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitMultiplier.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitArithmetic.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitRegCache.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitBranch.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitUtil.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPEmitter.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\x64\DSPJitTables.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\x64\DSPJitUtil.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
     <ClCompile Include="FifoPlayer\FifoAnalyzer.cpp">
       <Filter>FifoPlayer</Filter>
@@ -506,31 +518,10 @@
     <ClCompile Include="HW\VideoInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Attachment.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Classic.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Drums.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Guitar.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Nunchuk.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Turntable.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\EmuSubroutines.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\Encryption.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\WiimoteEmu\Speaker.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp">
@@ -560,7 +551,7 @@
     <ClCompile Include="HW\SystemTimers.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WiiSaveCrypted.cpp">
+    <ClCompile Include="HW\WiiSave.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPAssembler.cpp">
@@ -623,9 +614,6 @@
     <ClCompile Include="PowerPC\PPCTables.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Profiler.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -634,12 +622,6 @@
     </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp">
       <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64\FPURegCache.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64\GPRRegCache.cpp">
-      <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp">
       <Filter>PowerPC\Jit64</Filter>
@@ -668,9 +650,6 @@
     <ClCompile Include="PowerPC\Jit64\JitAsm.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClCompile>
     <ClCompile Include="HW\GCKeyboardEmu.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClCompile>
@@ -694,9 +673,6 @@
     </ClCompile>
     <ClCompile Include="DolphinWatch.cpp">
       <Filter>DolphinWatch</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp">
-      <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
@@ -735,7 +711,16 @@
     <ClCompile Include="IOS\DI\DI.cpp">
       <Filter>IOS\DI</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\FS\FileIO.cpp">
+    <ClCompile Include="IOS\FS\FileSystem.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\FileSystemProxy.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\FS.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\File.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\ES\ES.cpp">
@@ -762,9 +747,6 @@
     <ClCompile Include="IOS\ES\Views.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\FS\FS.cpp">
-      <Filter>IOS\FS</Filter>
-    </ClCompile>
     <ClCompile Include="IOS\Network\ICMPLin.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
@@ -774,10 +756,10 @@
     <ClCompile Include="IOS\IOSC.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\MemoryValues.cpp">
+    <ClCompile Include="IOS\MIOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\MIOS.cpp">
+    <ClCompile Include="IOS\VersionInfo.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\MACUtils.cpp">
@@ -894,13 +876,60 @@
     <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
+    <ClCompile Include="Config\UISettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp" />
+    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
+    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\I2CBus.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\MotionPlus.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Camera.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Speaker.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Dynamics.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\Classic.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\Drums.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\Guitar.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\Nunchuk.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\Turntable.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\UDrawTablet.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\Extension.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\ExtensionPort.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\WiimoteCommon\DataReport.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
-    <ClInclude Include="ec_wii.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="MemTools.h" />
@@ -910,6 +939,7 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
@@ -956,14 +986,23 @@
     <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\Interpreter\DSPIntTables.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Jit\DSPEmitter.h">
+    <ClInclude Include="DSP\Jit\DSPEmitterBase.h">
       <Filter>DSPCore\Jit</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
-      <Filter>DSPCore\Jit</Filter>
+    <ClInclude Include="DSP\Jit\x64\DSPJitRegCache.h">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\Jit\x64\DSPJitTables.h">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\Jit\x64\DSPEmitter.h">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h">
       <Filter>FifoPlayer</Filter>
@@ -1006,6 +1045,9 @@
     </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h">
       <Filter>PowerPC\Cached Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Interpreter\ExceptionUtils.h">
+      <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
       <Filter>PowerPC\Interpreter</Filter>
@@ -1181,34 +1223,10 @@
     <ClInclude Include="HW\VideoInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Attachment.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Classic.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Drums.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Guitar.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Nunchuk.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Attachment</Filter>
-    </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Encryption.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h">
@@ -1238,7 +1256,10 @@
     <ClInclude Include="HW\SystemTimers.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiiSaveCrypted.h">
+    <ClInclude Include="HW\WiiSave.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiiSaveStructs.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPAssembler.h">
@@ -1299,6 +1320,9 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\MMU.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\PowerPC.h">
@@ -1362,10 +1386,7 @@
     <ClInclude Include="DolphinWatch.h">
       <Filter>DolphinWatch</Filter>
     </ClInclude>
-    <ClInclude Include="RemoteListener.h">
-      <Filter>DolphinWatch</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h">
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h">
@@ -1411,14 +1432,20 @@
     <ClInclude Include="IOS\ES\ES.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\FS\FileIO.h">
+    <ClInclude Include="IOS\FS\FileSystem.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\FileSystemProxy.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\File.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\FS.h">
       <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\ES\Formats.h">
       <Filter>IOS\ES</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\FS\FS.h">
-      <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\Bluetooth\hci.h">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -1522,10 +1549,10 @@
     <ClInclude Include="IOS\IOSC.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\MemoryValues.h">
+    <ClInclude Include="IOS\MIOS.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\MIOS.h">
+    <ClInclude Include="IOS\VersionInfo.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
@@ -1562,14 +1589,60 @@
       <Filter>IOS\Network\NCD</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h">
-      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h">
-      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h">
-      <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClInclude>
+    <ClInclude Include="Config\UISettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\I2CBus.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\MotionPlus.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Camera.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Speaker.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Dynamics.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\Classic.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\Drums.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\Guitar.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\Nunchuk.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\Turntable.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\UDrawTablet.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\Extension.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\ExtensionPort.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteCommon\DataReport.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\ConditionRegister.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

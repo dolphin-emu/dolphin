@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -17,12 +16,14 @@ import android.view.View;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
-import org.dolphinemu.dolphinemu.model.GameProvider;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
-import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
@@ -32,181 +33,211 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
  */
 public final class MainActivity extends AppCompatActivity implements MainView
 {
-	private ViewPager mViewPager;
-	private Toolbar mToolbar;
-	private TabLayout mTabLayout;
-	private FloatingActionButton mFab;
+  private ViewPager mViewPager;
+  private Toolbar mToolbar;
+  private TabLayout mTabLayout;
+  private FloatingActionButton mFab;
 
-	private MainPresenter mPresenter = new MainPresenter(this);
+  private MainPresenter mPresenter = new MainPresenter(this, this);
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+  @Override
+  protected void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
 
-		findViews();
+    findViews();
 
-		setSupportActionBar(mToolbar);
+    setSupportActionBar(mToolbar);
 
-		mTabLayout.setupWithViewPager(mViewPager);
+    mTabLayout.setupWithViewPager(mViewPager);
 
-		// Set up the FAB.
-		mFab.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View view)
-			{
-				mPresenter.onFabClick();
-			}
-		});
+    // Set up the FAB.
+    mFab.setOnClickListener(view -> mPresenter.onFabClick());
 
-		mPresenter.onCreate();
+    mPresenter.onCreate();
 
-		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
-		// TODO Split some of this stuff into Application.onCreate()
-		if (savedInstanceState == null)
-			StartupHandler.HandleInit(this);
+    // Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
+    if (savedInstanceState == null)
+      StartupHandler.HandleInit(this);
 
-		if (PermissionsHandler.hasWriteAccess(this))
-		{
-			PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-					getSupportFragmentManager(), this);
-			mViewPager.setAdapter(platformPagerAdapter);
-		} else {
-			mViewPager.setVisibility(View.INVISIBLE);
-		}
-	}
+    if (PermissionsHandler.hasWriteAccess(this))
+    {
+      PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
+              getSupportFragmentManager(), this);
+      mViewPager.setAdapter(platformPagerAdapter);
+      mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
+      showGames();
+      GameFileCacheService.startLoad(this);
+    }
+    else
+    {
+      mViewPager.setVisibility(View.INVISIBLE);
+    }
+  }
 
-	// TODO: Replace with a ButterKnife injection.
-	private void findViews()
-	{
-		mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
-		mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
-		mTabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
-		mFab = (FloatingActionButton) findViewById(R.id.button_add_directory);
-	}
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    mPresenter.addDirIfNeeded(this);
+  }
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.menu_game_grid, menu);
-		return true;
-	}
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    mPresenter.onDestroy();
+  }
 
-	/**
-	 * MainView
-	 */
+  @Override
+  protected void onStart()
+  {
+    super.onStart();
+    StartupHandler.checkSessionReset(this);
+  }
 
-	@Override
-	public void setVersionString(String version)
-	{
-		mToolbar.setSubtitle(version);
-	}
+  @Override
+  protected void onStop()
+  {
+    super.onStop();
+    StartupHandler.setSessionTime(this);
+  }
 
-	@Override
-	public void refresh()
-	{
-		getContentResolver().insert(GameProvider.URI_REFRESH, null);
-		refreshFragment();
-	}
+  // TODO: Replace with a ButterKnife injection.
+  private void findViews()
+  {
+    mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
+    mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
+    mTabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
+    mFab = (FloatingActionButton) findViewById(R.id.button_add_directory);
+  }
 
-	@Override
-	public void refreshFragmentScreenshot(int fragmentPosition)
-	{
-		// Invalidate Picasso image so that the new screenshot is animated in.
-		Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
-		PlatformGamesView fragment = getPlatformGamesView(platform);
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu)
+  {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.menu_game_grid, menu);
+    return true;
+  }
 
-		if (fragment != null)
-		{
-			fragment.refreshScreenshotAtPosition(fragmentPosition);
-		}
-	}
+  /**
+   * MainView
+   */
 
-	@Override
-	public void launchSettingsActivity(String menuTag)
-	{
-		SettingsActivity.launch(this, menuTag);
-	}
+  @Override
+  public void setVersionString(String version)
+  {
+    mToolbar.setSubtitle(version);
+  }
 
-	@Override
-	public void launchFileListActivity()
-	{
-		AddDirectoryActivity.launch(this);
-	}
+  @Override
+  public void refreshFragmentScreenshot(int fragmentPosition)
+  {
+    // Invalidate Picasso image so that the new screenshot is animated in.
+    Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
+    PlatformGamesView fragment = getPlatformGamesView(platform);
 
-	@Override
-	public void showGames(Platform platform, Cursor games)
-	{
-		// no-op. Handled by PlatformGamesFragment.
-	}
+    if (fragment != null)
+    {
+      fragment.refreshScreenshotAtPosition(fragmentPosition);
+    }
+  }
 
-	/**
-	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
-	 *
-	 * @param requestCode An int describing whether the Activity that is returning did so successfully.
-	 * @param resultCode  An int describing what Activity is giving us this callback.
-	 * @param result      The information the returning Activity is providing us.
-	 */
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent result)
-	{
-		mPresenter.handleActivityResult(requestCode, resultCode);
-	}
+  @Override
+  public void launchSettingsActivity(MenuTag menuTag)
+  {
+    SettingsActivity.launch(this, menuTag, "");
+  }
 
-	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-		switch (requestCode) {
-			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
-				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+  @Override
+  public void launchFileListActivity()
+  {
+    FileBrowserHelper.openDirectoryPicker(this);
+  }
 
-					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-							getSupportFragmentManager(), this);
-					mViewPager.setAdapter(platformPagerAdapter);
-					mTabLayout.setupWithViewPager(mViewPager);
-					mViewPager.setVisibility(View.VISIBLE);
-				} else {
-					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-							.show();
-				}
-				break;
-			default:
-				super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-				break;
-		}
-	}
+  /**
+   * @param requestCode An int describing whether the Activity that is returning did so successfully.
+   * @param resultCode  An int describing what Activity is giving us this callback.
+   * @param result      The information the returning Activity is providing us.
+   */
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent result)
+  {
+    switch (requestCode)
+    {
+      case MainPresenter.REQUEST_ADD_DIRECTORY:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+        }
+        break;
 
-	/**
-	 * Called by the framework whenever any actionbar/toolbar icon is clicked.
-	 *
-	 * @param item The icon that was clicked on.
-	 * @return True if the event was handled, false to bubble it up to the OS.
-	 */
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		return mPresenter.handleOptionSelection(item.getItemId());
-	}
+      case MainPresenter.REQUEST_EMULATE_GAME:
+        mPresenter.refreshFragmentScreenshot(resultCode);
+        break;
+    }
+  }
 
-	private void refreshFragment()
-	{
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+  {
+    switch (requestCode)
+    {
+      case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+          DirectoryInitialization.start(this);
+          PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
+                  getSupportFragmentManager(), this);
+          mViewPager.setAdapter(platformPagerAdapter);
+          mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
+          mTabLayout.setupWithViewPager(mViewPager);
+          mViewPager.setVisibility(View.VISIBLE);
+          GameFileCacheService.startLoad(this);
+        }
+        else
+        {
+          Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+                  .show();
+        }
+        break;
+      default:
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        break;
+    }
+  }
 
-		Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
-		PlatformGamesView fragment = getPlatformGamesView(platform);
-		if (fragment != null)
-		{
-			fragment.refresh();
-		}
-	}
+  /**
+   * Called by the framework whenever any actionbar/toolbar icon is clicked.
+   *
+   * @param item The icon that was clicked on.
+   * @return True if the event was handled, false to bubble it up to the OS.
+   */
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item)
+  {
+    return mPresenter.handleOptionSelection(item.getItemId(), this);
+  }
 
-	@Nullable
-	private PlatformGamesView getPlatformGamesView(Platform platform)
-	{
-		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform;
+  public void showGames()
+  {
+    for (Platform platform : Platform.values())
+    {
+      PlatformGamesView fragment = getPlatformGamesView(platform);
+      if (fragment != null)
+      {
+        fragment.showGames();
+      }
+    }
+  }
 
-		return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
-	}
+  @Nullable
+  private PlatformGamesView getPlatformGamesView(Platform platform)
+  {
+    String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform.toInt();
+
+    return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
+  }
 }

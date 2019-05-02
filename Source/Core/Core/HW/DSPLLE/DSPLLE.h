@@ -26,7 +26,7 @@ public:
 
   bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;
-  bool IsLLE() override { return true; }
+  bool IsLLE() const override { return true; }
   void DoState(PointerWrap& p) override;
   void PauseAndLock(bool do_lock, bool unpause_on_unlock = true) override;
 

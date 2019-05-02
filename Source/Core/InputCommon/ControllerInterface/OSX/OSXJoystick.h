@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <set>
+
 #include <IOKit/hid/IOHIDLib.h>
 
 #include "InputCommon/ControllerInterface/Device.h"
@@ -83,6 +85,8 @@ public:
 private:
   const IOHIDDeviceRef m_device;
   const std::string m_device_name;
+
+  void AddElements(CFArrayRef elements, std::set<IOHIDElementCookie>& cookies);
 
   ForceFeedback::FFDeviceAdapterReference m_ff_device;
 };

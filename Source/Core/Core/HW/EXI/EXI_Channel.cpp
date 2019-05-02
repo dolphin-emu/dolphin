@@ -118,7 +118,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                          device->ImmReadWrite(m_imm_data, m_control.TLEN + 1);
                          break;
                        default:
-                         _dbg_assert_msg_(EXPANSIONINTERFACE, 0,
+                         DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0,
                                           "EXI Imm: Unknown transfer type %i", m_control.RW);
                        }
                      }
@@ -134,7 +134,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                          device->DMAWrite(m_dma_memory_address, m_dma_length);
                          break;
                        default:
-                         _dbg_assert_msg_(EXPANSIONINTERFACE, 0,
+                         DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0,
                                           "EXI DMA: Unknown transfer type %i", m_control.RW);
                        }
                      }
@@ -172,7 +172,7 @@ void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
                             bool notify_presence_changed)
 {
-  _dbg_assert_(EXPANSIONINTERFACE, device_num < NUM_DEVICES);
+  DEBUG_ASSERT(device_num < NUM_DEVICES);
 
   // Replace it with the new one
   m_devices[device_num] = std::move(device);

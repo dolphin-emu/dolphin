@@ -8,7 +8,7 @@
 #include <variant>
 
 #include "Common/Config/Config.h"
-#include "Common/SysConf.h"
+#include "Core/SysConf.h"
 
 namespace Config
 {

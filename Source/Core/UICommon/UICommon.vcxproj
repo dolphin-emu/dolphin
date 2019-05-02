@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{604C8368-F34A-4D55-82C8-CC92A0C13254}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -42,21 +42,43 @@
     <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
       <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">
+      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
+      <Project>{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AutoUpdate.cpp" />
     <ClCompile Include="CommandLineParse.cpp" />
+    <ClCompile Include="DiscordPresence.cpp" />
+    <ClCompile Include="NetPlayIndex.cpp" />
+    <ClCompile Include="ResourcePack\Manager.cpp" />
+    <ClCompile Include="ResourcePack\Manifest.cpp" />
+    <ClCompile Include="ResourcePack\ResourcePack.cpp" />
     <ClCompile Include="UICommon.cpp" />
     <ClCompile Include="Disassembler.cpp" />
     <ClCompile Include="USBUtils.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="VideoUtils.cpp" />
+    <ClCompile Include="GameFile.cpp" />
+    <ClCompile Include="GameFileCache.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutoUpdate.h" />
     <ClInclude Include="CommandLineParse.h" />
+    <ClInclude Include="DiscordPresence.h" />
+    <ClInclude Include="NetPlayIndex.h" />
+    <ClInclude Include="ResourcePack\Manager.h" />
+    <ClInclude Include="ResourcePack\Manifest.h" />
+    <ClInclude Include="ResourcePack\ResourcePack.h" />
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="Disassembler.h" />
     <ClInclude Include="USBUtils.h" />
+    <ClInclude Include="GameFile.h" />
+    <ClInclude Include="GameFileCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">

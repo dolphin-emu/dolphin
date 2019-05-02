@@ -61,13 +61,15 @@ struct Statistics
     int numVerticesLoaded;
     int tevPixelsIn;
     int tevPixelsOut;
+
+    int numEFBPeeks;
+    int numEFBPokes;
   };
   ThisFrame thisFrame;
   void ResetFrame();
   static void SwapDL();
-
-  static std::string ToString();
-  static std::string ToStringProj();
+  static void Display();
+  static void DisplayProj();
 };
 
 extern Statistics stats;

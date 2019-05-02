@@ -12,13 +12,18 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ControllerEmu
 {
 static std::recursive_mutex s_get_state_mutex;
+
+std::string EmulatedController::GetDisplayName() const
+{
+  return GetName();
+}
 
 EmulatedController::~EmulatedController() = default;
 
@@ -34,31 +39,51 @@ std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
   const auto lock = GetStateLock();
+  m_default_device_is_connected = devi.HasConnectedDevice(m_default_device);
+
   for (auto& ctrlGroup : groups)
   {
     for (auto& control : ctrlGroup->controls)
-      control->control_ref.get()->UpdateReference(devi, default_device);
+      control->control_ref.get()->UpdateReference(devi, GetDefaultDevice());
 
-    // extension
-    if (ctrlGroup->type == GroupType::Extension)
+    // Attachments:
+    if (ctrlGroup->type == GroupType::Attachments)
     {
-      for (auto& attachment : ((Extension*)ctrlGroup.get())->attachments)
+      for (auto& attachment : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
         attachment->UpdateReferences(devi);
     }
   }
 }
 
-void EmulatedController::UpdateDefaultDevice()
+bool EmulatedController::IsDefaultDeviceConnected() const
 {
+  return m_default_device_is_connected;
+}
+
+const ciface::Core::DeviceQualifier& EmulatedController::GetDefaultDevice() const
+{
+  return m_default_device;
+}
+
+void EmulatedController::SetDefaultDevice(const std::string& device)
+{
+  ciface::Core::DeviceQualifier devq;
+  devq.FromString(device);
+  SetDefaultDevice(std::move(devq));
+}
+
+void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
+{
+  m_default_device = std::move(devq);
+
   for (auto& ctrlGroup : groups)
   {
-    // extension
-    if (ctrlGroup->type == GroupType::Extension)
+    // Attachments:
+    if (ctrlGroup->type == GroupType::Attachments)
     {
-      for (auto& ai : ((Extension*)ctrlGroup.get())->attachments)
+      for (auto& ai : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
       {
-        ai->default_device = default_device;
-        ai->UpdateDefaultDevice();
+        ai->SetDefaultDevice(m_default_device);
       }
     }
   }
@@ -66,11 +91,11 @@ void EmulatedController::UpdateDefaultDevice()
 
 void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& base)
 {
-  std::string defdev = default_device.ToString();
+  std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
   {
     sec->Get(base + "Device", &defdev, "");
-    default_device.FromString(defdev);
+    SetDefaultDevice(defdev);
   }
 
   for (auto& cg : groups)
@@ -79,7 +104,7 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
 
 void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& base)
 {
-  const std::string defdev = default_device.ToString();
+  const std::string defdev = GetDefaultDevice().ToString();
   if (base.empty())
     sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
 
@@ -96,8 +121,7 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
   const std::string& default_device_string = ciface.GetDefaultDeviceString();
   if (!default_device_string.empty())
   {
-    default_device.FromString(default_device_string);
-    UpdateDefaultDevice();
+    SetDefaultDevice(default_device_string);
   }
 }
 }  // namespace ControllerEmu

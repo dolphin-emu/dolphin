@@ -135,9 +135,9 @@ void UpdateException()
     PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
-static const char* Debug_GetInterruptName(u32 _causemask)
+static const char* Debug_GetInterruptName(u32 cause_mask)
 {
-  switch (_causemask)
+  switch (cause_mask)
   {
   case INT_CAUSE_PI:
     return "INT_CAUSE_PI";
@@ -176,33 +176,33 @@ static const char* Debug_GetInterruptName(u32 _causemask)
   }
 }
 
-void SetInterrupt(u32 _causemask, bool _bSet)
+void SetInterrupt(u32 cause_mask, bool set)
 {
-  _dbg_assert_msg_(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
+  DEBUG_ASSERT_MSG(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
-  if (_bSet && !(m_InterruptCause & _causemask))
+  if (set && !(m_InterruptCause & cause_mask))
   {
-    DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(_causemask));
+    DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(cause_mask));
   }
 
-  if (!_bSet && (m_InterruptCause & _causemask))
+  if (!set && (m_InterruptCause & cause_mask))
   {
     DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)",
-              Debug_GetInterruptName(_causemask));
+              Debug_GetInterruptName(cause_mask));
   }
 
-  if (_bSet)
-    m_InterruptCause |= _causemask;
+  if (set)
+    m_InterruptCause |= cause_mask;
   else
-    m_InterruptCause &= ~_causemask;  // is there any reason to have this possibility?
+    m_InterruptCause &= ~cause_mask;  // is there any reason to have this possibility?
   // F|RES: i think the hw devices reset the interrupt in the PI to 0
   // if the interrupt cause is eliminated. that isn't done by software (afaik)
   UpdateException();
 }
 
-static void SetResetButton(bool _bSet)
+static void SetResetButton(bool set)
 {
-  SetInterrupt(INT_CAUSE_RST_BUTTON, !_bSet);
+  SetInterrupt(INT_CAUSE_RST_BUTTON, !set);
 }
 
 static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate)

@@ -7,8 +7,8 @@
 #include <cmath>
 #include <type_traits>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
@@ -26,7 +26,7 @@ VertexLoader_Normal::Set VertexLoader_Normal::m_Table[NUM_NRM_TYPE][NUM_NRM_INDI
 namespace
 {
 template <typename T>
-__forceinline float FracAdjust(T val)
+DOLPHIN_FORCE_INLINE float FracAdjust(T val)
 {
   // auto const S8FRAC = 1.f / (1u << 6);
   // auto const U8FRAC = 1.f / (1u << 7);
@@ -38,13 +38,13 @@ __forceinline float FracAdjust(T val)
 }
 
 template <>
-__forceinline float FracAdjust(float val)
+DOLPHIN_FORCE_INLINE float FracAdjust(float val)
 {
   return val;
 }
 
 template <typename T, int N>
-__forceinline void ReadIndirect(const T* data)
+DOLPHIN_FORCE_INLINE void ReadIndirect(const T* data)
 {
   static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
   DataReader dst(g_vertex_manager_write_ptr, nullptr);
@@ -72,7 +72,7 @@ struct Normal_Direct
 };
 
 template <typename I, typename T, int N, int Offset>
-__forceinline void Normal_Index_Offset()
+DOLPHIN_FORCE_INLINE void Normal_Index_Offset()
 {
   static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 

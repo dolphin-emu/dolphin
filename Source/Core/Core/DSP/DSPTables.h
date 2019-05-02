@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <string>
 
 #include "Core/DSP/DSPCommon.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
 
 namespace DSP
 {
@@ -68,15 +68,9 @@ struct param2_t
 
 struct DSPOPCTemplate
 {
-  using InterpreterFunction = void (*)(UDSPInstruction);
-  using JITFunction = void (DSP::JIT::x86::DSPEmitter::*)(UDSPInstruction);
-
   const char* name;
   u16 opcode;
   u16 opcode_mask;
-
-  InterpreterFunction intFunc;
-  JITFunction jitFunc;
 
   u8 size;
   u8 param_count;
@@ -87,8 +81,6 @@ struct DSPOPCTemplate
   bool reads_pc;
   bool updates_sr;
 };
-
-typedef DSPOPCTemplate opc_t;
 
 // Opcodes
 extern const DSPOPCTemplate cw;
@@ -113,9 +105,9 @@ const char* pdregname(int val);
 const char* pdregnamelong(int val);
 
 void InitInstructionTable();
-void applyWriteBackLog();
-void zeroWriteBackLog();
-void zeroWriteBackLogPreserveAcc(u8 acc);
+void ApplyWriteBackLog();
+void ZeroWriteBackLog();
+void ZeroWriteBackLogPreserveAcc(u8 acc);
 
 // Used by the assembler and disassembler for info retrieval.
 const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode);
@@ -127,4 +119,12 @@ const DSPOPCTemplate* FindExtOpInfoByName(const std::string& name);
 // Used by the interpreter and JIT for instruction emulation
 const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst);
 const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst);
+
+template <typename T, size_t N>
+auto FindByOpcode(UDSPInstruction opcode, const std::array<T, N>& data)
+{
+  return std::find_if(data.cbegin(), data.cend(), [opcode](const auto& info) {
+    return (opcode & info.opcode_mask) == info.opcode;
+  });
+}
 }  // namespace DSP

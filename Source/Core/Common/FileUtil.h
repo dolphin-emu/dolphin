@@ -29,6 +29,7 @@ enum
                           // settings (per game)
   D_MAPS_IDX,
   D_CACHE_IDX,
+  D_COVERCACHE_IDX,
   D_SHADERCACHE_IDX,
   D_SHADERS_IDX,
   D_STATESAVES_IDX,
@@ -36,6 +37,7 @@ enum
   D_HIRESTEXTURES_IDX,
   D_DUMP_IDX,
   D_DUMPFRAMES_IDX,
+  D_DUMPOBJECTS_IDX,
   D_DUMPAUDIO_IDX,
   D_DUMPTEXTURES_IDX,
   D_DUMPDSP_IDX,
@@ -44,10 +46,11 @@ enum
   D_LOGS_IDX,
   D_MAILLOGS_IDX,
   D_THEMES_IDX,
+  D_STYLES_IDX,
   D_PIPES_IDX,
-  D_MEMORYWATCHER_IDX,
   D_WFSROOT_IDX,
   D_BACKUP_IDX,
+  D_RESOURCEPACK_IDX,
   F_DOLPHINCONFIG_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
@@ -55,14 +58,11 @@ enum
   F_GFXCONFIG_IDX,
   F_DEBUGGERCONFIG_IDX,
   F_LOGGERCONFIG_IDX,
-  F_UICONFIG_IDX,
   F_MAINLOG_IDX,
   F_RAMDUMP_IDX,
   F_ARAMDUMP_IDX,
   F_FAKEVMEMDUMP_IDX,
   F_GCSRAM_IDX,
-  F_MEMORYWATCHERLOCATIONS_IDX,
-  F_MEMORYWATCHERSOCKET_IDX,
   F_WIISDCARD_IDX,
   NUM_PATH_INDICES
 };
@@ -183,11 +183,16 @@ std::string GetThemeDir(const std::string& theme_name);
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 
+#ifdef ANDROID
+void SetSysDirectory(const std::string& path);
+#endif
+
 #ifdef __APPLE__
 std::string GetBundleDirectory();
 #endif
 
-std::string& GetExeDirectory();
+std::string GetExePath();
+std::string GetExeDirectory();
 
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
@@ -203,4 +208,4 @@ void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmod
 #endif
 }
 
-}  // namespace
+}  // namespace File

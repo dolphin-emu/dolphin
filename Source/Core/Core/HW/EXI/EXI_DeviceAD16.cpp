@@ -39,7 +39,7 @@ void CEXIAD16::TransferByte(u8& byte)
       switch (m_position)
       {
       case 1:
-        _dbg_assert_(EXPANSIONINTERFACE, byte == 0x00);
+        DEBUG_ASSERT(byte == 0x00);
         break;  // just skip
       case 2:
         byte = m_ad16_register.U8[0];

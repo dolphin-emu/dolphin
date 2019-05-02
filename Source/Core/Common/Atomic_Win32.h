@@ -8,6 +8,7 @@
 
 #include <Windows.h>
 
+#include <atomic>
 #include "Common/CommonTypes.h"
 
 // Atomic operations are performed in a single step by the CPU. It is
@@ -64,8 +65,10 @@ inline T AtomicLoad(volatile T& src)
 template <typename T>
 inline T AtomicLoadAcquire(volatile T& src)
 {
-  T result = src;  // 32-bit reads are always atomic.
-  _ReadBarrier();  // Compiler instruction only. x86 loads always have acquire semantics.
+  // 32-bit reads are always atomic.
+  T result = src;
+  // Compiler instruction only. x86 loads always have acquire semantics.
+  std::atomic_thread_fence(std::memory_order_acquire);
   return result;
 }
 
@@ -78,7 +81,8 @@ inline void AtomicStore(volatile T& dest, U value)
 template <typename T, typename U>
 inline void AtomicStoreRelease(volatile T& dest, U value)
 {
-  _WriteBarrier();  // Compiler instruction only. x86 stores always have release semantics.
+  // Compiler instruction only. x86 stores always have release semantics.
+  std::atomic_thread_fence(std::memory_order_release);
   dest = (T)value;  // 32-bit writes are always atomic.
 }
 

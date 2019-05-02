@@ -6,20 +6,35 @@
 
 namespace ControllerEmu
 {
-NumericSetting::NumericSetting(const std::string& setting_name, const ControlState default_value,
-                               const u32 low, const u32 high, const SettingType setting_type)
-    : m_type(setting_type), m_name(setting_name), m_default_value(default_value), m_low(low),
-      m_high(high), m_value(default_value)
+NumericSettingBase::NumericSettingBase(const NumericSettingDetails& details) : m_details(details)
 {
 }
 
-ControlState NumericSetting::GetValue() const
+const char* NumericSettingBase::GetUIName() const
 {
-  return m_value;
+  return m_details.ui_name;
 }
-void NumericSetting::SetValue(ControlState value)
+
+const char* NumericSettingBase::GetUISuffix() const
 {
-  m_value = value;
+  return m_details.ui_suffix;
+}
+
+const char* NumericSettingBase::GetUIDescription() const
+{
+  return m_details.ui_description;
+}
+
+template <>
+SettingType NumericSetting<double>::GetType() const
+{
+  return SettingType::Double;
+}
+
+template <>
+SettingType NumericSetting<bool>::GetType() const
+{
+  return SettingType::Bool;
 }
 
 }  // namespace ControllerEmu

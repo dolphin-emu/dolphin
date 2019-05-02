@@ -6,17 +6,12 @@
 
 #include "Core/HW/StreamADPCM.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 namespace StreamADPCM
 {
-// STATE_TO_SAVE (not saved yet!)
-static s32 histl1;
-static s32 histl2;
-static s32 histr1;
-static s32 histr2;
-
 static s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
 {
   s32 hist = 0;
@@ -48,22 +43,30 @@ static s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
   return (s16)cur;
 }
 
-void InitFilter()
+void ADPCMDecoder::ResetFilter()
 {
-  histl1 = 0;
-  histl2 = 0;
-  histr1 = 0;
-  histr2 = 0;
+  m_histl1 = 0;
+  m_histl2 = 0;
+  m_histr1 = 0;
+  m_histr2 = 0;
 }
 
-void DecodeBlock(s16* pcm, const u8* adpcm)
+void ADPCMDecoder::DoState(PointerWrap& p)
+{
+  p.Do(m_histl1);
+  p.Do(m_histl2);
+  p.Do(m_histr1);
+  p.Do(m_histr2);
+}
+
+void ADPCMDecoder::DecodeBlock(s16* pcm, const u8* adpcm)
 {
   for (int i = 0; i < SAMPLES_PER_BLOCK; i++)
   {
     pcm[i * 2] = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] & 0xf, adpcm[0],
-                                 histl1, histl2);
+                                 m_histl1, m_histl2);
     pcm[i * 2 + 1] = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] >> 4, adpcm[1],
-                                     histr1, histr2);
+                                     m_histr1, m_histr2);
   }
 }
 }

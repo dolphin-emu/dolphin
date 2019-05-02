@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 90;  // Last changed in PR 6077
+static const u32 STATE_VERSION = 110;  // Last changed in PR 8036
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -146,17 +146,18 @@ static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
   return true;
 }
 
-static std::string DoState(PointerWrap& p)
+static void DoState(PointerWrap& p)
 {
   std::string version_created_by;
   if (!DoStateVersion(p, &version_created_by))
   {
-    // because the version doesn't match, fail.
-    // this will trigger an OSD message like "Can't load state from other revisions"
-    // we could use the version numbers to maintain some level of backward compatibility, but
-    // currently don't.
+    const std::string message =
+        version_created_by.empty() ?
+            "This savestate was created using an incompatible version of Dolphin" :
+            "This savestate was created using the incompatible version " + version_created_by;
+    Core::DisplayMessage(message, OSD::Duration::NORMAL);
     p.SetMode(PointerWrap::MODE_MEASURE);
-    return version_created_by;
+    return;
   }
 
   bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
@@ -168,17 +169,13 @@ static std::string DoState(PointerWrap& p)
                                      is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
                     OSD::Duration::NORMAL, OSD::Color::RED);
     p.SetMode(PointerWrap::MODE_MEASURE);
-    return version_created_by;
+    return;
   }
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
   g_video_backend->DoState(p);
   p.DoMarker("video_backend");
-
-  if (SConfig::GetInstance().bWii)
-    Wiimote::DoState(p);
-  p.DoMarker("Wiimote");
 
   PowerPC::DoState(p);
   p.DoMarker("PowerPC");
@@ -188,6 +185,9 @@ static std::string DoState(PointerWrap& p)
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");
+  if (SConfig::GetInstance().bWii)
+    Wiimote::DoState(p);
+  p.DoMarker("Wiimote");
   Movie::DoState(p);
   p.DoMarker("Movie");
   Gecko::DoState(p);
@@ -196,8 +196,6 @@ static std::string DoState(PointerWrap& p)
 #if defined(HAVE_FFMPEG)
   AVIDump::DoState();
 #endif
-
-  return version_created_by;
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
@@ -227,15 +225,6 @@ void SaveToBuffer(std::vector<u8>& buffer)
 
     ptr = &buffer[0];
     p.SetMode(PointerWrap::MODE_WRITE);
-    DoState(p);
-  });
-}
-
-void VerifyBuffer(std::vector<u8>& buffer)
-{
-  Core::RunAsCPUThread([&] {
-    u8* ptr = &buffer[0];
-    PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
     DoState(p);
   });
 }
@@ -556,7 +545,6 @@ bool LoadAs(const std::string& filename)
 
     bool loaded = false;
     bool loadedSuccessfully = false;
-    std::string version_created_by;
 
     // brackets here are so buffer gets freed ASAP
     {
@@ -567,7 +555,7 @@ bool LoadAs(const std::string& filename)
       {
         u8* ptr = &buffer[0];
         PointerWrap p(&ptr, PointerWrap::MODE_READ);
-        version_created_by = DoState(p);
+        DoState(p);
         loaded = true;
         loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
       }
@@ -586,10 +574,7 @@ bool LoadAs(const std::string& filename)
       }
       else
       {
-        // failed to load
-        Core::DisplayMessage("Unable to load: Can't load state from other versions!", 4000);
-        if (!version_created_by.empty())
-          Core::DisplayMessage("The savestate was created using " + version_created_by, 4000);
+        Core::DisplayMessage("The savestate could not be loaded", OSD::Duration::NORMAL);
 
         // since we could be in an inconsistent state now (and might crash or whatever), undo.
         if (g_loadDepth < 2)
@@ -609,26 +594,6 @@ bool LoadAs(const std::string& filename)
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 {
   s_on_after_load_callback = std::move(callback);
-}
-
-void VerifyAt(const std::string& filename)
-{
-  Core::RunAsCPUThread([&] {
-    std::vector<u8> buffer;
-    LoadFileStateData(filename, buffer);
-
-    if (!buffer.empty())
-    {
-      u8* ptr = &buffer[0];
-      PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
-      DoState(p);
-
-      if (p.GetMode() == PointerWrap::MODE_VERIFY)
-        Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()), 2000);
-      else
-        Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
-    }
-  });
 }
 
 void Init()
@@ -669,11 +634,6 @@ void Save(int slot, bool wait)
 void Load(int slot)
 {
   LoadAs(MakeStateFilename(slot));
-}
-
-void Verify(int slot)
-{
-  VerifyAt(MakeStateFilename(slot));
 }
 
 void LoadLastSaved(int i)

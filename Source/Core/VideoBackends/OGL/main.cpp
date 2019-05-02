@@ -38,32 +38,27 @@ Make AA apply instantly during gameplay if possible
 #include <string>
 #include <vector>
 
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/Common.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
+
+#include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/TextureCache.h"
-#include "VideoBackends/OGL/TextureConverter.h"
 #include "VideoBackends/OGL/VertexManager.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
-// Draw messages on top of the screen
-unsigned int VideoBackend::PeekMessages()
-{
-  return GLInterface->PeekMessages();
-}
-
 std::string VideoBackend::GetName() const
 {
   return "OGL";
@@ -71,16 +66,17 @@ std::string VideoBackend::GetName() const
 
 std::string VideoBackend::GetDisplayName() const
 {
-  if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-    return "OpenGLES";
+  if (g_ogl_config.bIsES)
+    return _trans("OpenGL ES");
   else
-    return "OpenGL";
+    return _trans("OpenGL");
 }
 
 void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::OpenGL;
   g_Config.backend_info.MaxTextureSize = 16384;
+  g_Config.backend_info.bUsesLowerLeftOrigin = true;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
@@ -89,13 +85,19 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsReversedDepthRange = true;
+  g_Config.backend_info.bSupportsLogicOp = true;
   g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = true;
+  g_Config.backend_info.bSupportsCopyToVram = true;
+  g_Config.backend_info.bSupportsLargePoints = true;
+  g_Config.backend_info.bSupportsPartialDepthCopies = true;
+  g_Config.backend_info.bSupportsShaderBinaries = false;
+  g_Config.backend_info.bSupportsPipelineCacheData = false;
 
-  // TODO: There is a bug here, if texel buffers are not supported the graphics options
-  // will show the option when it is not supported. The only way around this would be
+  // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics
+  // options will show the option when it is not supported. The only way around this would be
   // creating a context when calling this function to determine what is available.
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
+  g_Config.backend_info.bSupportsBBox = true;
 
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
@@ -112,10 +114,10 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.AAModes = {1, 2, 4, 8};
 }
 
-bool VideoBackend::InitializeGLExtensions()
+bool VideoBackend::InitializeGLExtensions(GLContext* context)
 {
   // Init extension support.
-  if (!GLExtensions::Init())
+  if (!GLExtensions::Init(context))
   {
     // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
     // extensions
@@ -136,6 +138,8 @@ bool VideoBackend::InitializeGLExtensions()
 
 bool VideoBackend::FillBackendInfo()
 {
+  InitBackendInfo();
+
   // check for the max vertex attributes
   GLint numvertexattribs = 0;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
@@ -161,64 +165,54 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
-  InitBackendInfo();
-  InitializeShared();
-
-  InitInterface();
-  GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle, g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER))
+  std::unique_ptr<GLContext> main_gl_context =
+      GLContext::Create(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true, false,
+                        Config::Get(Config::GFX_PREFER_GLES));
+  if (!main_gl_context)
     return false;
 
-  return true;
-}
+  if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
+    return false;
 
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
-  GLInterface->MakeCurrent();
-  if (!InitializeGLExtensions() || !FillBackendInfo())
+  InitializeShared();
+  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context), wsi.render_surface_scale);
+  ProgramShaderCache::Init();
+  g_vertex_manager = std::make_unique<VertexManager>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_perf_query = GetPerfQuery();
+  g_texture_cache = std::make_unique<TextureCacheBase>();
+  g_sampler_cache = std::make_unique<SamplerCache>();
+  BoundingBox::Init();
+
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize())
   {
-    // TODO: Handle this better. We'll likely end up crashing anyway, but this method doesn't
-    // return anything, so we can't inform the caller that startup failed.
-    return;
+    PanicAlert("Failed to initialize renderer classes");
+    Shutdown();
+    return false;
   }
 
-  g_renderer = std::make_unique<Renderer>();
-
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_perf_query = GetPerfQuery();
-  ProgramShaderCache::Init();
-  g_texture_cache = std::make_unique<TextureCache>();
-  g_sampler_cache = std::make_unique<SamplerCache>();
-  static_cast<Renderer*>(g_renderer.get())->Init();
-  TextureConverter::Init();
-  BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  g_shader_cache->InitializeShaderCache();
+  return true;
 }
 
 void VideoBackend::Shutdown()
 {
-  GLInterface->Shutdown();
-  GLInterface.reset();
-  ShutdownShared();
-}
-
-void VideoBackend::Video_Cleanup()
-{
-  // The following calls are NOT Thread Safe
-  // And need to be called from the video thread
-  CleanupShared();
-  static_cast<Renderer*>(g_renderer.get())->Shutdown();
+  g_shader_cache->Shutdown();
+  g_renderer->Shutdown();
   BoundingBox::Shutdown();
-  TextureConverter::Shutdown();
   g_sampler_cache.reset();
   g_texture_cache.reset();
-  ProgramShaderCache::Shutdown();
   g_perf_query.reset();
   g_vertex_manager.reset();
+  g_framebuffer_manager.reset();
+  g_shader_cache.reset();
+  ProgramShaderCache::Shutdown();
   g_renderer.reset();
-  GLInterface->ClearCurrent();
+  ShutdownShared();
 }
-}
+}  // namespace OGL

@@ -1,11 +1,11 @@
 //
-//Copyright (C) 2015 LunarG, Inc.
+// Copyright (C) 2015 LunarG, Inc.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -19,18 +19,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 #ifndef SPIRVREMAPPER_H
@@ -38,7 +38,8 @@
 
 #include <string>
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
+#include <exception>
 
 namespace spv {
 
@@ -74,7 +75,8 @@ public:
 } // namespace SPV
 
 #if !defined (use_cpp11)
-#include <stdio.h>
+#include <cstdio>
+#include <cstdint>
 
 namespace spv {
 class spirvbin_t : public spirvbin_base_t
@@ -82,7 +84,7 @@ class spirvbin_t : public spirvbin_base_t
 public:
     spirvbin_t(int /*verbose = 0*/) { }
 
-    void remap(std::vector<unsigned int>& /*spv*/, unsigned int /*opts = 0*/)
+    void remap(std::vector<std::uint32_t>& /*spv*/, unsigned int /*opts = 0*/)
     {
         printf("Tool not compiled for C++11, which is required for SPIR-V remapping.\n");
         exit(5);
@@ -110,8 +112,11 @@ namespace spv {
 class spirvbin_t : public spirvbin_base_t
 {
 public:
-   spirvbin_t(int verbose = 0) : entryPoint(spv::NoResult), largestNewId(0), verbose(verbose) { }
-   
+   spirvbin_t(int verbose = 0) : entryPoint(spv::NoResult), largestNewId(0), verbose(verbose), errorLatch(false)
+   { }
+
+   virtual ~spirvbin_t() { }
+
    // remap on an existing binary in memory
    void remap(std::vector<std::uint32_t>& spv, std::uint32_t opts = DO_EVERYTHING);
 
@@ -159,17 +164,22 @@ private:
    typedef std::set<int>                    posmap_t;
    typedef std::unordered_map<spv::Id, int> posmap_rev_t;
 
-   // handle error
-   void error(const std::string& txt) const { errorHandler(txt); }
+   // Maps and ID to the size of its base type, if known.
+   typedef std::unordered_map<spv::Id, unsigned> typesize_map_t;
 
-   bool    isConstOp(spv::Op opCode)       const;
-   bool    isTypeOp(spv::Op opCode)        const;
-   bool    isStripOp(spv::Op opCode)       const;
-   bool    isFlowCtrl(spv::Op opCode)      const;
-   range_t literalRange(spv::Op opCode)    const;
-   range_t typeRange(spv::Op opCode)       const;
-   range_t constRange(spv::Op opCode)      const;
-   
+   // handle error
+   void error(const std::string& txt) const { errorLatch = true; errorHandler(txt); }
+
+   bool     isConstOp(spv::Op opCode)      const;
+   bool     isTypeOp(spv::Op opCode)       const;
+   bool     isStripOp(spv::Op opCode)      const;
+   bool     isFlowCtrl(spv::Op opCode)     const;
+   range_t  literalRange(spv::Op opCode)   const;
+   range_t  typeRange(spv::Op opCode)      const;
+   range_t  constRange(spv::Op opCode)     const;
+   unsigned typeSizeInWords(spv::Id id)    const;
+   unsigned idTypeSizeInWords(spv::Id id)  const;
+
    spv::Id&        asId(unsigned word)                { return spv[word]; }
    const spv::Id&  asId(unsigned word)          const { return spv[word]; }
    spv::Op         asOpCode(unsigned word)      const { return opOpCode(spv[word]); }
@@ -177,10 +187,10 @@ private:
    spv::Decoration asDecoration(unsigned word)  const { return spv::Decoration(spv[word]); }
    unsigned        asWordCount(unsigned word)   const { return opWordCount(spv[word]); }
    spv::Id         asTypeConstId(unsigned word) const { return asId(word + (isTypeOp(asOpCode(word)) ? 1 : 2)); }
-   unsigned        typePos(spv::Id id)          const;
+   unsigned        idPos(spv::Id id)            const;
 
-   static unsigned    opWordCount(spirword_t data) { return data >> spv::WordCountShift; }
-   static spv::Op     opOpCode(spirword_t data)    { return spv::Op(data & spv::OpCodeMask); }
+   static unsigned opWordCount(spirword_t data) { return data >> spv::WordCountShift; }
+   static spv::Op  opOpCode(spirword_t data)    { return spv::Op(data & spv::OpCodeMask); }
 
    // Header access & set methods
    spirword_t  magic()    const       { return spv[0]; } // return magic number
@@ -233,9 +243,10 @@ private:
 
    void        applyMap();            // remap per local name map
    void        mapRemainder();        // map any IDs we haven't touched yet
-   void        stripDebug();          // strip debug info
+   void        stripDebug();          // strip all debug info
+   void        stripDeadRefs();       // strips debug info for now-dead references after DCE
    void        strip();               // remove debug symbols
-   
+
    std::vector<spirword_t> spv;      // SPIR words
 
    namemap_t               nameMap;  // ID names from OpName
@@ -258,14 +269,14 @@ private:
    // Function start and end.  use unordered_map because we'll have
    // many fewer functions than IDs.
    std::unordered_map<spv::Id, range_t> fnPos;
-   std::unordered_map<spv::Id, range_t> fnPosDCE; // deleted functions
 
    // Which functions are called, anywhere in the module, with a call count
    std::unordered_map<spv::Id, int> fnCalls;
-   
-   posmap_t     typeConstPos;   // word positions that define types & consts (ordered)
-   posmap_rev_t typeConstPosR;  // reverse map from IDs to positions
-   
+
+   posmap_t       typeConstPos;  // word positions that define types & consts (ordered)
+   posmap_rev_t   idPosR;        // reverse map from IDs to positions
+   typesize_map_t idTypeSizeMap; // maps each ID to its type size, if known.
+
    std::vector<spv::Id>  idMapL;   // ID {M}ap from {L}ocal to {G}lobal IDs
 
    spv::Id entryPoint;      // module entry point
@@ -277,6 +288,11 @@ private:
    // processing options:
    std::uint32_t options;
    int           verbose;     // verbosity level
+
+   // Error latch: this is set if the error handler is ever executed.  It would be better to
+   // use a try/catch block and throw, but that's not desired for certain environments, so
+   // this is the alternative.
+   mutable bool errorLatch;
 
    static errorfn_t errorHandler;
    static logfn_t   logHandler;

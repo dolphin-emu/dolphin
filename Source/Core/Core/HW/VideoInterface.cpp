@@ -14,10 +14,12 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
@@ -60,7 +62,8 @@ static UVIBorderBlankRegister m_BorderHBlank;
 static u32 s_target_refresh_rate = 0;
 
 static constexpr std::array<u32, 2> s_clock_freqs{{
-    27000000, 54000000,
+    27000000,
+    54000000,
 }};
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
@@ -182,7 +185,7 @@ void Preset(bool _bNTSC)
 
   // Say component cable is plugged
   m_DTVStatus.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ || region == DiscIO::Region::NTSC_J;
+  m_DTVStatus.ntsc_j = region == DiscIO::Region::NTSC_J;
 
   m_FBWidth.Hex = 0;
   m_BorderHBlank.Hex = 0;
@@ -322,10 +325,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
   mmio->Register(
       base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](u32) {
-        u16 value =
-            static_cast<u16>(1 +
-                             m_HTiming0.HLW * (CoreTiming::GetTicks() - s_ticks_last_line_start) /
-                                 (GetTicksPerHalfLine()));
+        u16 value = static_cast<u16>(1 + m_HTiming0.HLW *
+                                             (CoreTiming::GetTicks() - s_ticks_last_line_start) /
+                                             (GetTicksPerHalfLine()));
         return MathUtil::Clamp(value, static_cast<u16>(1), static_cast<u16>(m_HTiming0.HLW * 2));
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
@@ -549,8 +551,9 @@ float GetAspectRatio()
 
   // 5. Calculate the final ratio and scale to 4:3
   float ratio = horizontal_active_ratio / vertical_active_ratio;
-  if (std::isnormal(
-          ratio))  // Check we have a sane ratio and haven't propagated any infs/nans/zeros
+  bool running_fifo_log = FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates();
+  if (std::isnormal(ratio) &&      // Check we have a sane ratio without any infs/nans/zeros
+      !running_fifo_log)           // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
   else
     return (4.0f / 3.0f);  // VI isn't initialized correctly, just return 4:3 instead
@@ -642,13 +645,15 @@ static void LogField(FieldType field, u32 xfb_address)
   static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
 
   static const std::array<const UVIVBlankTimingRegister*, 2> vert_timing{{
-      &m_VBlankTimingOdd, &m_VBlankTimingEven,
+      &m_VBlankTimingOdd,
+      &m_VBlankTimingEven,
   }};
 
   const auto field_index = static_cast<size_t>(field);
 
-  DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
-                            "ACV %u | PSB %u | Field %s",
+  DEBUG_LOG(VIDEOINTERFACE,
+            "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
+            "ACV %u | PSB %u | Field %s",
             xfb_address, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
             m_VerticalTimingRegister.EQU, vert_timing[field_index]->PRB,
             m_VerticalTimingRegister.ACV, vert_timing[field_index]->PSB,
@@ -681,6 +686,9 @@ static void BeginField(FieldType field, u64 ticks)
     xfbAddr = GetXFBAddressTop();
   }
 
+  // Multiply the stride by 2 to get the byte offset for each subsequent line.
+  fbStride *= 2;
+
   if (potentially_interlaced_xfb && interlaced_video_mode && g_ActiveConfig.bForceProgressive)
   {
     // Strictly speaking, in interlaced mode, we're only supposed to read
@@ -699,10 +707,10 @@ static void BeginField(FieldType field, u64 ticks)
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
     if (field == FieldType::Odd && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 && xfbAddr)
-      xfbAddr -= fbStride * 2;
+      xfbAddr -= fbStride;
 
     if (field == FieldType::Even && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 && xfbAddr)
-      xfbAddr -= fbStride * 2;
+      xfbAddr -= fbStride;
   }
 
   LogField(field, xfbAddr);
@@ -727,7 +735,13 @@ void Update(u64 ticks)
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
     SerialInterface::UpdateDevices();
-    s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
+
+    // If this setting is enabled, only poll twice per field instead of what the game wanted. It may
+    // be set during NetPlay or Movie playback.
+    if (Config::Get(Config::MAIN_REDUCE_POLLING_RATE))
+      s_half_line_of_next_si_poll += GetHalfLinesPerEvenField() / 2;
+    else
+      s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
@@ -775,4 +789,42 @@ void Update(u64 ticks)
   UpdateInterrupts();
 }
 
-}  // namespace
+// Create a fake VI mode for a fifolog
+void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
+{
+  bool interlaced = fb_height > 480 / 2;
+  if (interlaced)
+  {
+    fb_height = fb_height / 2;
+    fb_stride = fb_stride * 2;
+  }
+
+  m_XFBInfoTop.POFF = 1;
+  m_XFBInfoBottom.POFF = 1;
+  m_VerticalTimingRegister.ACV = fb_height;
+  m_VerticalTimingRegister.EQU = 6;
+  m_VBlankTimingOdd.PRB = 502 - fb_height * 2;
+  m_VBlankTimingOdd.PSB = 5;
+  m_VBlankTimingEven.PRB = 503 - fb_height * 2;
+  m_VBlankTimingEven.PSB = 4;
+  m_PictureConfiguration.WPL = fb_width / 16;
+  m_PictureConfiguration.STD = (fb_stride / 2) / 16;
+
+  UpdateParameters();
+
+  u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
+
+  if ((s_half_line_count - s_even_field_first_hl) % total_halflines <
+      (s_half_line_count - s_odd_field_first_hl) % total_halflines)
+  {
+    // Even/Bottom field is next.
+    m_XFBInfoBottom.FBB = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
+  }
+  else
+  {
+    // Odd/Top field is next
+    m_XFBInfoTop.FBB = (xfb_address >> 5);
+  }
+}
+
+}  // namespace VideoInterface

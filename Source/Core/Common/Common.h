@@ -4,21 +4,6 @@
 
 #pragma once
 
-// Force enable logging in the right modes. For some reason, something had changed
-// so that debugfast no longer logged.
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#undef LOGGING
-#define LOGGING 1
-#endif
-
-#if defined(__GNUC__) || __clang__
-// Disable "unused function" warnings for the ones manually marked as such.
-#define UNUSED __attribute__((unused))
-#else
-// Not sure MSVC even checks this...
-#define UNUSED
-#endif
-
 #if defined _WIN32
 
 // Memory leak checks
@@ -49,8 +34,6 @@ struct CrtDebugBreak
 #ifndef _WIN32
 #include <limits.h>
 #define MAX_PATH PATH_MAX
-
-#define __forceinline inline __attribute__((always_inline))
 #endif
 
 #ifdef _MSC_VER
@@ -62,15 +45,4 @@ struct CrtDebugBreak
 #endif
 
 // Dummy macro for marking translatable strings that can not be immediately translated.
-// wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
-
-// Host communication.
-enum HOST_COMM
-{
-  // Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
-  WM_USER_STOP = 10,
-  WM_USER_CREATE,
-  WM_USER_SETCURSOR,
-  WM_USER_JOB_DISPATCH,
-};

@@ -10,7 +10,6 @@
 #include <unistd.h>
 #ifdef _WIN32
 #include <iphlpapi.h>
-#include <iphlpapi.h>
 #include <ws2tcpip.h>
 #else
 #include <netinet/in.h>
@@ -253,7 +252,7 @@ static void gdb_read_command()
   else if (c == 0x03)
   {
     CPU::Break();
-    gdb_signal(SIGTRAP);
+    gdb_signal(GDB_SIGTRAP);
     return;
   }
   else if (c != GDB_STUB_START)
@@ -447,10 +446,10 @@ static void gdb_read_register()
     wbe32hex(reply, PC);
     break;
   case 65:
-    wbe32hex(reply, MSR);
+    wbe32hex(reply, MSR.Hex);
     break;
   case 66:
-    wbe32hex(reply, GetCR());
+    wbe32hex(reply, PowerPC::ppcState.cr.Get());
     break;
   case 67:
     wbe32hex(reply, LR);
@@ -488,24 +487,6 @@ static void gdb_read_registers()
     wbe32hex(bufptr + i * 8, GPR(i));
   }
   bufptr += 32 * 8;
-
-  /*
-  for (i = 0; i < 32; i++)
-  {
-    wbe32hex(bufptr + i*8, riPS0(i));
-  }
-  bufptr += 32 * 8;
-  wbe32hex(bufptr, PC);      bufptr += 4;
-  wbe32hex(bufptr, MSR);     bufptr += 4;
-  wbe32hex(bufptr, GetCR()); bufptr += 4;
-  wbe32hex(bufptr, LR);      bufptr += 4;
-
-
-  wbe32hex(bufptr, CTR);     bufptr += 4;
-  wbe32hex(bufptr, PowerPC::ppcState.spr[SPR_XER]); bufptr += 4;
-  // MQ register not used.
-  wbe32hex(bufptr, 0x0BADC0DE); bufptr += 4;
-  */
 
   gdb_reply((char*)bfr);
 }
@@ -550,10 +531,10 @@ static void gdb_write_register()
     PC = re32hex(bufptr);
     break;
   case 65:
-    MSR = re32hex(bufptr);
+    MSR.Hex = re32hex(bufptr);
     break;
   case 66:
-    SetCR(re32hex(bufptr));
+    PowerPC::ppcState.cr.Set(re32hex(bufptr));
     break;
   case 67:
     LR = re32hex(bufptr);
@@ -839,12 +820,6 @@ void gdb_init(u32 port)
                    (sockaddr*)&saddr_client, &client_addrlen);
 
   saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
-  /*if (((saddr_client.sin_addr.s_addr >> 24) & 0xff) != 127 ||
-  *      ((saddr_client.sin_addr.s_addr >> 16) & 0xff) !=   0 ||
-  *      ((saddr_client.sin_addr.s_addr >>  8) & 0xff) !=   0 ||
-  *      ((saddr_client.sin_addr.s_addr >>  0) & 0xff) !=   1)
-  *      ERROR_LOG(GDB_STUB, "gdb: incoming connection not from localhost");
-  */
 }
 
 static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t server_addrlen,

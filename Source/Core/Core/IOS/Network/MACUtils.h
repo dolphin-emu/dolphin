@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include "Common/Network.h"
 
-namespace IOS
+namespace IOS::Net
 {
-namespace Net
-{
-void GetMACAddress(u8* mac);
-}  // namespace Net
-}  // namespace IOS
+Common::MACAddress GetMACAddress();
+}  // namespace IOS::Net

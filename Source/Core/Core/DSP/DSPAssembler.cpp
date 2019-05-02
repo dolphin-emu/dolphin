@@ -51,9 +51,7 @@ static const char* err_string[] = {"",
                                    "Number out of range",
                                    "Program counter out of range"};
 
-DSPAssembler::DSPAssembler(const AssemblerSettings& settings)
-    : m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
-
+DSPAssembler::DSPAssembler(const AssemblerSettings& settings) : m_settings(settings)
 {
 }
 
@@ -69,10 +67,10 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
     return false;
 
   // We now have the size of the output buffer
-  if (m_totalSize <= 0)
+  if (m_total_size <= 0)
     return false;
 
-  m_output_buffer.resize(m_totalSize);
+  m_output_buffer.resize(m_total_size);
 
   InitPass(2);
   if (!AssemblePass(text, 2))
@@ -82,34 +80,35 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
   m_output_buffer.clear();
   m_output_buffer.shrink_to_fit();
 
-  last_error_str = "(no errors)";
-  last_error = ERR_OK;
+  m_last_error_str = "(no errors)";
+  m_last_error = AssemblerError::OK;
 
   return true;
 }
 
-void DSPAssembler::ShowError(err_t err_code, const char* extra_info)
+void DSPAssembler::ShowError(AssemblerError err_code, const char* extra_info)
 {
-  if (!settings_.force)
-    failed = true;
+  if (!m_settings.force)
+    m_failed = true;
 
-  std::string error = StringFromFormat("%u : %s ", code_line, cur_line.c_str());
+  std::string error = StringFromFormat("%u : %s ", m_code_line, m_cur_line.c_str());
   if (!extra_info)
     extra_info = "-";
 
+  const char* const error_string = err_string[static_cast<size_t>(err_code)];
+
   if (m_current_param == 0)
   {
-    error +=
-        StringFromFormat("ERROR: %s Line: %u : %s\n", err_string[err_code], code_line, extra_info);
+    error += StringFromFormat("ERROR: %s Line: %u : %s\n", error_string, m_code_line, extra_info);
   }
   else
   {
-    error += StringFromFormat("ERROR: %s Line: %u Param: %d : %s\n", err_string[err_code],
-                              code_line, m_current_param, extra_info);
+    error += StringFromFormat("ERROR: %s Line: %u Param: %d : %s\n", error_string, m_code_line,
+                              m_current_param, extra_info);
   }
 
-  last_error_str = std::move(error);
-  last_error = err_code;
+  m_last_error_str = std::move(error);
+  m_last_error = err_code;
 }
 
 static char* skip_spaces(char* ptr)
@@ -146,7 +145,7 @@ s32 DSPAssembler::ParseValue(const char* str)
         if (ptr[i] >= '0' && ptr[i] <= '9')
           val += ptr[i] - '0';
         else
-          ShowError(ERR_INCORRECT_DEC, str);
+          ShowError(AssemblerError::IncorrectDecimal, str);
       }
     }
     else
@@ -164,7 +163,7 @@ s32 DSPAssembler::ParseValue(const char* str)
           else if (ptr[i] >= '0' && ptr[i] <= '9')
             val += (ptr[i] - '0');
           else
-            ShowError(ERR_INCORRECT_HEX, str);
+            ShowError(AssemblerError::IncorrectHex, str);
         }
         break;
       case '\'':  // binary
@@ -174,7 +173,7 @@ s32 DSPAssembler::ParseValue(const char* str)
           if (ptr[i] >= '0' && ptr[i] <= '1')
             val += ptr[i] - '0';
           else
-            ShowError(ERR_INCORRECT_BIN, str);
+            ShowError(AssemblerError::IncorrectBinary, str);
         }
         break;
       default:
@@ -195,17 +194,17 @@ s32 DSPAssembler::ParseValue(const char* str)
         if (ptr[i] >= '0' && ptr[i] <= '9')
           val += ptr[i] - '0';
         else
-          ShowError(ERR_INCORRECT_DEC, str);
+          ShowError(AssemblerError::IncorrectDecimal, str);
       }
     }
     else  // Everything else is a label.
     {
       // Lookup label
       u16 value;
-      if (labels.GetLabelValue(ptr, &value))
+      if (m_labels.GetLabelValue(ptr, &value))
         return value;
       if (m_cur_pass == 2)
-        ShowError(ERR_UNKNOWN_LABEL, str);
+        ShowError(AssemblerError::UnknownLabel, str);
     }
   }
   if (negative)
@@ -268,7 +267,7 @@ char* DSPAssembler::FindBrackets(char* src, char* dst)
     }
   }
   if (count)
-    ShowError(ERR_NO_MATCHING_BRACKETS);
+    ShowError(AssemblerError::NoMatchingBrackets);
   return nullptr;
 }
 
@@ -334,7 +333,7 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
       val = 0x10000 +
             (val &
              0xffff);  // ATTENTION: avoid a terrible bug!!! number cannot write with '-' in sprintf
-      fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", code_line);
+      fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", m_code_line);
     }
     sprintf(d_buffer, "%d", val);
   }
@@ -429,30 +428,30 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const opc_t* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
+const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
 {
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
 
-  const auto alias_iter = aliases.find(name);
-  if (alias_iter != aliases.end())
+  const auto alias_iter = m_aliases.find(name);
+  if (alias_iter != m_aliases.end())
     name = alias_iter->second;
 
   const DSPOPCTemplate* const info =
       type == OpcodeType::Primary ? FindOpInfoByName(name) : FindExtOpInfoByName(name);
   if (!info)
   {
-    ShowError(ERR_UNKNOWN_OPCODE);
+    ShowError(AssemblerError::UnknownOpcode);
     return nullptr;
   }
 
   if (par_count < info->param_count)
   {
-    ShowError(ERR_NOT_ENOUGH_PARAMETERS);
+    ShowError(AssemblerError::NotEnoughParameters);
   }
   else if (par_count > info->param_count)
   {
-    ShowError(ERR_TOO_MANY_PARAMETERS);
+    ShowError(AssemblerError::TooManyParameters);
   }
 
   return info;
@@ -466,7 +465,8 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type)
+bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count,
+                                OpcodeType type)
 {
   for (size_t i = 0; i < count; i++)
   {
@@ -499,8 +499,8 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
-            ShowError(ERR_INVALID_REGISTER);
+            fprintf(stderr, "%s   (param %zu)", m_cur_line.c_str(), current_param);
+            ShowError(AssemblerError::InvalidRegister);
           }
           break;
         case P_PRG:
@@ -509,8 +509,8 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
-            ShowError(ERR_INVALID_REGISTER);
+            fprintf(stderr, "%s   (param %zu)", m_cur_line.c_str(), current_param);
+            ShowError(AssemblerError::InvalidRegister);
           }
           break;
         case P_ACC:
@@ -521,10 +521,11 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
             {
-              fprintf(stderr, "%i : %s ", code_line, cur_line.c_str());
-              fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
-                              "Param: %zu Ext: %d\n",
-                      (par[i].val & 1), (par[i].val & 1), code_line, current_param,
+              fprintf(stderr, "%i : %s ", m_code_line, m_cur_line.c_str());
+              fprintf(stderr,
+                      "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
+                      "Param: %zu Ext: %d\n",
+                      (par[i].val & 1), (par[i].val & 1), m_code_line, current_param,
                       static_cast<int>(type));
             }
             else if (par[i].val >= 0x1c && par[i].val <= 0x1d)
@@ -532,11 +533,11 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
               fprintf(
                   stderr,
                   "WARNING: $ACL%d register used instead of $ACC%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else
             {
-              ShowError(ERR_WRONG_PARAMETER_ACC);
+              ShowError(AssemblerError::WrongParameterExpectedAccumulator);
             }
           }
           break;
@@ -551,18 +552,18 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
               fprintf(
                   stderr,
                   "WARNING: $ACL%d register used instead of $ACM%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else if (par[i].val >= 0x20 && par[i].val <= 0x21)
             {
               fprintf(
                   stderr,
                   "WARNING: $ACC%d register used instead of $ACM%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else
             {
-              ShowError(ERR_WRONG_PARAMETER_ACC);
+              ShowError(AssemblerError::WrongParameterExpectedAccumulator);
             }
           }
           break;
@@ -575,32 +576,26 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
             {
-              fprintf(stderr, "%s ", cur_line.c_str());
+              fprintf(stderr, "%s ", m_cur_line.c_str());
               fprintf(
                   stderr,
                   "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else if (par[i].val >= 0x20 && par[i].val <= 0x21)
             {
-              fprintf(stderr, "%s ", cur_line.c_str());
+              fprintf(stderr, "%s ", m_cur_line.c_str());
               fprintf(
                   stderr,
                   "WARNING: $ACC%d register used instead of $ACL%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else
             {
-              ShowError(ERR_WRONG_PARAMETER_ACC);
+              ShowError(AssemblerError::WrongParameterExpectedAccumulator);
             }
           }
           break;
-          /*				case P_ACCM_D: //P_ACC_MID:
-                    if ((int)par[i].val < 0x1e || (int)par[i].val > 0x1f)
-                    {
-                      ShowError(ERR_WRONG_PARAMETER_MID_ACC);
-                    }
-                    break;*/
         }
         continue;
       }
@@ -610,25 +605,25 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
       case P_REG:
         if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
-        ShowError(ERR_EXPECTED_PARAM_REG);
+        ShowError(AssemblerError::ExpectedParamReg);
         break;
       case P_MEM:
         if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
-        ShowError(ERR_EXPECTED_PARAM_MEM);
+        ShowError(AssemblerError::ExpectedParamMem);
         break;
       case P_VAL:
         if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
-        ShowError(ERR_EXPECTED_PARAM_VAL);
+        ShowError(AssemblerError::ExpectedParamVal);
         break;
       case P_IMM:
         if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
-        ShowError(ERR_EXPECTED_PARAM_IMM);
+        ShowError(AssemblerError::ExpectedParamImm);
         break;
       }
-      ShowError(ERR_WRONG_PARAMETER);
+      ShowError(AssemblerError::WrongParameter);
       break;
     }
     else if ((opc->params[i].type & 3) != 0 && (par[i].type & 3) != 0)
@@ -641,7 +636,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
         if (value == 7)  // value 7 por sbclr/sbset
         {
           fprintf(stderr, "Value must be from 0x0 to 0x%x\n", value);
-          ShowError(ERR_OUT_RANGE_NUMBER);
+          ShowError(AssemblerError::NumberOutOfRange);
         }
         else if (opc->params[i].type == P_MEM)
         {
@@ -650,7 +645,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
           else
             fprintf(stderr, "Address value must be from 0x0 to 0x%x\n", value);
 
-          ShowError(ERR_OUT_RANGE_NUMBER);
+          ShowError(AssemblerError::NumberOutOfRange);
         }
         else if ((int)par[i].val < -((value >> 1) + 1))
         {
@@ -661,7 +656,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
             fprintf(stderr, "Value must be from -0x%x to 0x%x or 0x0 to 0x%x, is %i\n",
                     (value >> 1) + 1, value >> 1, value, par[i].val);
 
-          ShowError(ERR_OUT_RANGE_NUMBER);
+          ShowError(AssemblerError::NumberOutOfRange);
         }
       }
       else
@@ -671,7 +666,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
           if (par[i].val > (unsigned)value)
           {
             fprintf(stderr, "Value must be from 0x%x to 0x%x, is %i\n", valueu, value, par[i].val);
-            ShowError(ERR_OUT_RANGE_NUMBER);
+            ShowError(AssemblerError::NumberOutOfRange);
           }
         }
         else if (opc->params[i].type == P_MEM)
@@ -686,7 +681,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
                       par[i].val);
             else
               fprintf(stderr, "Address value must be minor of 0x%x\n", value + 1);
-            ShowError(ERR_OUT_RANGE_NUMBER);
+            ShowError(AssemblerError::NumberOutOfRange);
           }
         }
         else
@@ -700,7 +695,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
                       par[i].val);
             else
               fprintf(stderr, "Value must be minor of 0x%x, is %i\n", value + 1, par[i].val);
-            ShowError(ERR_OUT_RANGE_NUMBER);
+            ShowError(AssemblerError::NumberOutOfRange);
           }
         }
       }
@@ -712,7 +707,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
 }
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf)
+void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_count, u16* outbuf)
 {
   outbuf[m_cur_addr] |= opc->opcode;
   for (u32 i = 0; i < par_count; i++)
@@ -734,23 +729,23 @@ void DSPAssembler::BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16*
 
 void DSPAssembler::InitPass(int pass)
 {
-  failed = false;
+  m_failed = false;
   if (pass == 1)
   {
     // Reset label table. Pre-populate with hw addresses and registers.
-    labels.Clear();
-    labels.RegisterDefaults();
-    aliases.clear();
-    aliases["S15"] = "SET15";
-    aliases["S16"] = "SET16";
-    aliases["S40"] = "SET40";
+    m_labels.Clear();
+    m_labels.RegisterDefaults();
+    m_aliases.clear();
+    m_aliases["S15"] = "SET15";
+    m_aliases["S16"] = "SET16";
+    m_aliases["S40"] = "SET40";
   }
   m_cur_addr = 0;
-  m_totalSize = 0;
-  cur_segment = SEGMENT_CODE;
-  segment_addr[SEGMENT_CODE] = 0;
-  segment_addr[SEGMENT_DATA] = 0;
-  segment_addr[SEGMENT_OVERLAY] = 0;
+  m_total_size = 0;
+  m_cur_segment = SEGMENT_CODE;
+  m_segment_addr[SEGMENT_CODE] = 0;
+  m_segment_addr[SEGMENT_DATA] = 0;
+  m_segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
 bool DSPAssembler::AssemblePass(const std::string& text, int pass)
@@ -759,22 +754,20 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 
   std::istringstream fsrc(text);
 
-  // printf("%s: Pass %d\n", fname, pass);
-  code_line = 0;
+  m_code_line = 0;
   m_cur_pass = pass;
 
 #define LINEBUF_SIZE 1024
   char line[LINEBUF_SIZE] = {0};
-  while (!failed && !fsrc.fail() && !fsrc.eof())
+  while (!m_failed && !fsrc.fail() && !fsrc.eof())
   {
     int opcode_size = 0;
     fsrc.getline(line, LINEBUF_SIZE);
     if (fsrc.fail())
       break;
 
-    cur_line = line;
-    // printf("A: %s\n", line);
-    code_line++;
+    m_cur_line = line;
+    m_code_line++;
 
     param_t params[10] = {{0, P_NONE, nullptr}};
     param_t params_ext[10] = {{0, P_NONE, nullptr}};
@@ -900,7 +893,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
         }
       }
       if (pass == 1)
-        labels.RegisterLabel(label, lval);
+        m_labels.RegisterLabel(label, lval);
     }
 
     if (opcode == nullptr)
@@ -912,26 +905,26 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       if (params[0].type == P_STR)
       {
         std::string include_file_path;
-        const u32 this_code_line = code_line;
+        const u32 this_code_line = m_code_line;
 
-        if (include_dir.empty())
+        if (m_include_dir.empty())
         {
           include_file_path = params[0].str;
         }
         else
         {
-          include_file_path = include_dir + '/' + params[0].str;
+          include_file_path = m_include_dir + '/' + params[0].str;
         }
 
         std::string included_text;
         File::ReadFileToString(include_file_path, included_text);
         AssemblePass(included_text, pass);
 
-        code_line = this_code_line;
+        m_code_line = this_code_line;
       }
       else
       {
-        ShowError(ERR_EXPECTED_PARAM_STR);
+        ShowError(AssemblerError::ExpectedParamStr);
       }
       continue;
     }
@@ -939,9 +932,9 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     if (strcmp("INCDIR", opcode) == 0)
     {
       if (params[0].type == P_STR)
-        include_dir = params[0].str;
+        m_include_dir = params[0].str;
       else
-        ShowError(ERR_EXPECTED_PARAM_STR);
+        ShowError(AssemblerError::ExpectedParamStr);
       continue;
     }
 
@@ -949,12 +942,12 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     {
       if (params[0].type == P_VAL)
       {
-        m_totalSize = std::max(m_cur_addr, params[0].val);
+        m_total_size = std::max(m_cur_addr, params[0].val);
         m_cur_addr = params[0].val;
       }
       else
       {
-        ShowError(ERR_EXPECTED_PARAM_VAL);
+        ShowError(AssemblerError::ExpectedParamVal);
       }
       continue;
     }
@@ -967,12 +960,12 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
         {
           std::string msg = StringFromFormat("WARNPC at 0x%04x, expected 0x%04x or less",
                                              m_cur_addr, params[0].val);
-          ShowError(ERR_OUT_RANGE_PC, msg.c_str());
+          ShowError(AssemblerError::PCOutOfRange, msg.c_str());
         }
       }
       else
       {
-        ShowError(ERR_EXPECTED_PARAM_VAL);
+        ShowError(AssemblerError::ExpectedParamVal);
       }
       continue;
     }
@@ -981,19 +974,19 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     {
       if (params[0].type == P_STR)
       {
-        segment_addr[cur_segment] = m_cur_addr;
+        m_segment_addr[m_cur_segment] = m_cur_addr;
         if (strcmp("DATA", params[0].str) == 0)
-          cur_segment = SEGMENT_DATA;
+          m_cur_segment = SEGMENT_DATA;
         if (strcmp("CODE", params[0].str) == 0)
-          cur_segment = SEGMENT_CODE;
-        m_cur_addr = segment_addr[cur_segment];
+          m_cur_segment = SEGMENT_CODE;
+        m_cur_addr = m_segment_addr[m_cur_segment];
       }
       else
-        ShowError(ERR_EXPECTED_PARAM_STR);
+        ShowError(AssemblerError::ExpectedParamStr);
       continue;
     }
 
-    const opc_t* opc = FindOpcode(opcode, params_count, OpcodeType::Primary);
+    const DSPOPCTemplate* opc = FindOpcode(opcode, params_count, OpcodeType::Primary);
     if (!opc)
       opc = &cw;
 
@@ -1001,7 +994,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 
     VerifyParams(opc, params, params_count, OpcodeType::Primary);
 
-    const opc_t* opc_ext = nullptr;
+    const DSPOPCTemplate* opc_ext = nullptr;
     // Check for opcode extensions.
     if (opc->extended)
     {
@@ -1012,15 +1005,15 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       }
       else if (params_count_ext)
       {
-        ShowError(ERR_EXT_PAR_NOT_EXT);
+        ShowError(AssemblerError::ExtensionParamsOnNonExtendableOpcode);
       }
     }
     else
     {
       if (opcode_ext)
-        ShowError(ERR_EXT_CANT_EXTEND_OPCODE);
+        ShowError(AssemblerError::CantExtendOpcode);
       if (params_count_ext)
-        ShowError(ERR_EXT_PAR_NOT_EXT);
+        ShowError(AssemblerError::ExtensionParamsOnNonExtendableOpcode);
     }
 
     if (pass == 2)
@@ -1033,9 +1026,9 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     }
 
     m_cur_addr += opcode_size;
-    m_totalSize += opcode_size;
+    m_total_size += opcode_size;
   };
 
-  return !failed;
+  return !m_failed;
 }
 }  // namespace DSP

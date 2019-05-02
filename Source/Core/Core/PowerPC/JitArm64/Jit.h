@@ -21,8 +21,9 @@
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
-  JitArm64() : code_buffer(32000), m_float_emit(this) {}
-  ~JitArm64() {}
+  JitArm64();
+  ~JitArm64() override;
+
   void Init() override;
   void Shutdown() override;
 
@@ -41,7 +42,7 @@ public:
 
   void Jit(u32) override;
 
-  const char* GetName() override { return "JITARM64"; }
+  const char* GetName() const override { return "JITARM64"; }
   // OPCODES
   void FallBackToInterpreter(UGeckoInstruction inst);
   void DoNothing(UGeckoInstruction inst);
@@ -152,8 +153,8 @@ public:
 private:
   struct SlowmemHandler
   {
-    ARM64Reg dest_reg;
-    ARM64Reg addr_reg;
+    Arm64Gen::ARM64Reg dest_reg;
+    Arm64Gen::ARM64Reg addr_reg;
     BitSet32 gprs;
     BitSet32 fprs;
     u32 flags;
@@ -200,7 +201,7 @@ private:
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
-  void DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
   void DoDownCount();
   void Cleanup();
@@ -224,7 +225,7 @@ private:
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
-  FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+  Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u64 imm);
@@ -233,7 +234,9 @@ private:
   void FlushCarry();
 
   void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
-               void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);
+               void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
+                                         Arm64Gen::ARM64Reg),
+               bool Rc = false);
 
   // <Fastmem fault location, slowmem handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler;
@@ -243,9 +246,7 @@ private:
 
   JitArm64BlockCache blocks{*this};
 
-  PPCAnalyst::CodeBuffer code_buffer;
-
-  ARM64FloatEmitter m_float_emit;
+  Arm64Gen::ARM64FloatEmitter m_float_emit;
 
   Arm64Gen::ARM64CodeBlock farcode;
   u8* nearcode;  // Backed up when we switch to far code.

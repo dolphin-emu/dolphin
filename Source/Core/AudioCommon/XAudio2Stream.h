@@ -51,15 +51,15 @@ private:
   static void* PXAudio2Create;
 
   static bool InitLibrary();
+  void Stop();
 
 public:
   XAudio2();
-  virtual ~XAudio2();
+  ~XAudio2() override;
 
-  bool Start() override;
-  void Stop() override;
+  bool Init() override;
 
-  void Clear(bool mute) override;
+  bool SetRunning(bool running) override;
   void SetVolume(int volume) override;
 
   static bool isValid() { return InitLibrary(); }

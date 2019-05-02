@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 
 enum class EFBCopyFormat;
 
@@ -654,14 +656,9 @@ union BlendMode
 
 union FogParam0
 {
-  struct
-  {
-    u32 mantissa : 11;
-    u32 exponent : 8;
-    u32 sign : 1;
-  };
-
-  float GetA() const;
+  BitField<0, 11, u32> mant;
+  BitField<11, 8, u32> exp;
+  BitField<19, 1, u32> sign;
 
   u32 hex;
 };
@@ -674,9 +671,6 @@ union FogParam3
   BitField<20, 1, u32> proj;  // 0 - perspective, 1 - orthographic
   BitField<21, 3, u32> fsel;  // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 -
                               // backward exp, 7 - backward exp2
-
-  // amount to subtract from eyespacez after range adjustment
-  float GetC() const;
 
   u32 hex;
 };
@@ -721,6 +715,13 @@ struct FogParams
   };
 
   FogColor color;  // 0:b 8:g 16:r - nice!
+
+  // Special case where a and c are infinite and the sign matches, resulting in a result of NaN.
+  bool IsNaNCase() const;
+  float GetA() const;
+
+  // amount to subtract from eyespacez after range adjustment
+  float GetC() const;
 };
 
 union ZMode
@@ -902,7 +903,7 @@ union AlphaTest
     PASS = 2,
   };
 
-  __forceinline TEST_RESULT TestResult() const
+  DOLPHIN_FORCE_INLINE TEST_RESULT TestResult() const
   {
     switch (logic)
     {
@@ -945,8 +946,8 @@ union UPE_Copy
 {
   u32 Hex;
 
-  BitField<0, 1, u32> clamp0;               // if set clamp top
-  BitField<1, 1, u32> clamp1;               // if set clamp bottom
+  BitField<0, 1, u32> clamp_top;            // if set clamp top
+  BitField<1, 1, u32> clamp_bottom;         // if set clamp bottom
   BitField<2, 1, u32> yuv;                  // if set, color conversion from RGB to YUV
   BitField<3, 4, u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason
                                             // the msb is the lsb (pattern: cycling right shift)
@@ -965,6 +966,34 @@ union UPE_Copy
   EFBCopyFormat tp_realFormat() const
   {
     return static_cast<EFBCopyFormat>(target_pixel_format / 2 + (target_pixel_format & 1) * 8);
+  }
+};
+
+union CopyFilterCoefficients
+{
+  using Values = std::array<u8, 7>;
+
+  u64 Hex;
+
+  BitField<0, 6, u64> w0;
+  BitField<6, 6, u64> w1;
+  BitField<12, 6, u64> w2;
+  BitField<18, 6, u64> w3;
+  BitField<32, 6, u64> w4;
+  BitField<38, 6, u64> w5;
+  BitField<44, 6, u64> w6;
+
+  Values GetCoefficients() const
+  {
+    return {{
+        static_cast<u8>(w0),
+        static_cast<u8>(w1),
+        static_cast<u8>(w2),
+        static_cast<u8>(w3),
+        static_cast<u8>(w4),
+        static_cast<u8>(w5),
+        static_cast<u8>(w6),
+    }};
   }
 };
 
@@ -1037,29 +1066,29 @@ struct BPMemory
                                  // 2 channel, 16 when dest is RGBA
   // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with
   // number of bytes to look at when smoothing
-  u32 dispcopyyscale;              // 4e
-  u32 clearcolorAR;                // 4f
-  u32 clearcolorGB;                // 50
-  u32 clearZValue;                 // 51
-  UPE_Copy triggerEFBCopy;         // 52
-  u32 copyfilter[2];               // 53,54
-  u32 boundbox0;                   // 55
-  u32 boundbox1;                   // 56
-  u32 unknown7[2];                 // 57,58
-  X10Y10 scissorOffset;            // 59
-  u32 unknown8[6];                 // 5a,5b,5c,5d, 5e,5f
-  BPS_TmemConfig tmem_config;      // 60-66
-  u32 metric;                      // 67
-  FieldMode fieldmode;             // 68
-  u32 unknown10[7];                // 69-6F
-  u32 unknown11[16];               // 70-7F
-  FourTexUnits tex[2];             // 80-bf
-  TevStageCombiner combiners[16];  // 0xC0-0xDF
-  TevReg tevregs[4];               // 0xE0
-  FogRangeParams fogRange;         // 0xE8
-  FogParams fog;                   // 0xEE,0xEF,0xF0,0xF1,0xF2
-  AlphaTest alpha_test;            // 0xF3
-  ZTex1 ztex1;                     // 0xf4,0xf5
+  u32 dispcopyyscale;                 // 4e
+  u32 clearcolorAR;                   // 4f
+  u32 clearcolorGB;                   // 50
+  u32 clearZValue;                    // 51
+  UPE_Copy triggerEFBCopy;            // 52
+  CopyFilterCoefficients copyfilter;  // 53,54
+  u32 boundbox0;                      // 55
+  u32 boundbox1;                      // 56
+  u32 unknown7[2];                    // 57,58
+  X10Y10 scissorOffset;               // 59
+  u32 unknown8[6];                    // 5a,5b,5c,5d, 5e,5f
+  BPS_TmemConfig tmem_config;         // 60-66
+  u32 metric;                         // 67
+  FieldMode fieldmode;                // 68
+  u32 unknown10[7];                   // 69-6F
+  u32 unknown11[16];                  // 70-7F
+  FourTexUnits tex[2];                // 80-bf
+  TevStageCombiner combiners[16];     // 0xC0-0xDF
+  TevReg tevregs[4];                  // 0xE0
+  FogRangeParams fogRange;            // 0xE8
+  FogParams fog;                      // 0xEE,0xEF,0xF0,0xF1,0xF2
+  AlphaTest alpha_test;               // 0xF3
+  ZTex1 ztex1;                        // 0xf4,0xf5
   ZTex2 ztex2;
   TevKSel tevksel[8];  // 0xf6,0xf7,f8,f9,fa,fb,fc,fd
   u32 bpMask;          // 0xFE

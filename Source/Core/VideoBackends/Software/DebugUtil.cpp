@@ -200,7 +200,7 @@ void OnObjectEnd()
 {
   if (g_ActiveConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
       stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
-    DumpEfb(StringFromFormat("%sobject%i.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+    DumpEfb(StringFromFormat("%sobject%i.png", File::GetUserPath(D_DUMPOBJECTS_IDX).c_str(),
                              stats.thisFrame.numDrawnObjects));
 
   for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
@@ -209,7 +209,7 @@ void OnObjectEnd()
     {
       DrawnToBuffer[i] = false;
       std::string filename =
-          StringFromFormat("%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+          StringFromFormat("%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPOBJECTS_IDX).c_str(),
                            stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
 
       TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);

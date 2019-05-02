@@ -67,7 +67,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   default:
-    _assert_(0);
+    ASSERT(0);
   }
 
   object.Write("\n");
@@ -79,9 +79,9 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
 void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
-                                u32 numColorChans, const char* inColorName, const char* dest)
+                                const char* inColorName, const char* dest)
 {
-  for (unsigned int j = 0; j < numColorChans; j++)
+  for (unsigned int j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
     object.Write("{\n");
 
@@ -185,7 +185,7 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
 
 void GetLightingShaderUid(LightingUidData& uid_data)
 {
-  for (unsigned int j = 0; j < xfmem.numChan.numColorChans; j++)
+  for (unsigned int j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
     uid_data.matsource |= xfmem.color[j].matsource << j;
     uid_data.matsource |= xfmem.alpha[j].matsource << (j + 2);

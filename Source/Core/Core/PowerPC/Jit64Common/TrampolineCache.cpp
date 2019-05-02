@@ -11,7 +11,8 @@
 #include "Common/JitRegister.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -62,9 +63,6 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
 
   // Don't treat FIFO writes specially for now because they require a burst
   // check anyway.
-
-  // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-  MOV(32, PPCSTATE(pc), Imm32(info.pc));
 
   SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
                     info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);

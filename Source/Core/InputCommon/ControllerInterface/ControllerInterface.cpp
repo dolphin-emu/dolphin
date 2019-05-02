@@ -2,15 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <mutex>
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#ifdef CIFACE_USE_XINPUT
-#include "InputCommon/ControllerInterface/XInput/XInput.h"
-#endif
-#ifdef CIFACE_USE_DINPUT
-#include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include <algorithm>
+
+#include "Common/Logging/Log.h"
+
+#ifdef CIFACE_USE_WIN32
+#include "InputCommon/ControllerInterface/Win32/Win32.h"
 #endif
 #ifdef CIFACE_USE_XLIB
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
@@ -34,29 +33,27 @@
 
 ControllerInterface g_controller_interface;
 
-//
-// Init
-//
-// Detect devices and inputs outputs / will make refresh function later
-//
-void ControllerInterface::Initialize(void* const hwnd)
+void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 {
   if (m_is_init)
     return;
 
-  m_hwnd = hwnd;
+  m_wsi = wsi;
 
-#ifdef CIFACE_USE_DINPUT
-// nothing needed
-#endif
-#ifdef CIFACE_USE_XINPUT
-  ciface::XInput::Init();
+  // Allow backends to add devices as soon as they are initialized.
+  m_is_init = true;
+
+  m_is_populating_devices = true;
+
+#ifdef CIFACE_USE_WIN32
+  ciface::Win32::Init(wsi.render_surface);
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
-  ciface::OSX::Init(hwnd);
+  if (m_wsi.type == WindowSystemType::MacOS)
+    ciface::OSX::Init(wsi.render_surface);
 // nothing needed for Quartz
 #endif
 #ifdef CIFACE_USE_SDL
@@ -72,7 +69,15 @@ void ControllerInterface::Initialize(void* const hwnd)
 // nothing needed
 #endif
 
-  m_is_init = true;
+  RefreshDevices();
+}
+
+void ControllerInterface::ChangeWindow(void* hwnd)
+{
+  if (!m_is_init)
+    return;
+
+  m_wsi.render_surface = hwnd;
   RefreshDevices();
 }
 
@@ -86,18 +91,24 @@ void ControllerInterface::RefreshDevices()
     m_devices.clear();
   }
 
-#ifdef CIFACE_USE_DINPUT
-  ciface::DInput::PopulateDevices(reinterpret_cast<HWND>(m_hwnd));
-#endif
-#ifdef CIFACE_USE_XINPUT
-  ciface::XInput::PopulateDevices();
+  m_is_populating_devices = true;
+
+  // Make sure shared_ptr<Device> objects are released before repopulating.
+  InvokeDevicesChangedCallbacks();
+
+#ifdef CIFACE_USE_WIN32
+  ciface::Win32::PopulateDevices(m_wsi.render_surface);
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::XInput2::PopulateDevices(m_hwnd);
+  if (m_wsi.type == WindowSystemType::X11)
+    ciface::XInput2::PopulateDevices(m_wsi.render_surface);
 #endif
 #ifdef CIFACE_USE_OSX
-  ciface::OSX::PopulateDevices(m_hwnd);
-  ciface::Quartz::PopulateDevices(m_hwnd);
+  if (m_wsi.type == WindowSystemType::MacOS)
+  {
+    ciface::OSX::PopulateDevices(m_wsi.render_surface);
+    ciface::Quartz::PopulateDevices(m_wsi.render_surface);
+  }
 #endif
 #ifdef CIFACE_USE_SDL
   ciface::SDL::PopulateDevices();
@@ -111,17 +122,19 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
+
+  m_is_populating_devices = false;
+  InvokeDevicesChangedCallbacks();
 }
 
-//
-// DeInit
-//
-// Remove all devices/ call library cleanup functions
-//
+// Remove all devices and call library cleanup functions
 void ControllerInterface::Shutdown()
 {
   if (!m_is_init)
     return;
+
+  // Prevent additional devices from being added during shutdown.
+  m_is_init = false;
 
   {
     std::lock_guard<std::mutex> lk(m_devices_mutex);
@@ -136,11 +149,12 @@ void ControllerInterface::Shutdown()
     m_devices.clear();
   }
 
-#ifdef CIFACE_USE_XINPUT
-  ciface::XInput::DeInit();
-#endif
-#ifdef CIFACE_USE_DINPUT
-// nothing needed
+  // This will update control references so shared_ptr<Device>s are freed up
+  // BEFORE we shutdown the backends.
+  InvokeDevicesChangedCallbacks();
+
+#ifdef CIFACE_USE_WIN32
+  ciface::Win32::DeInit();
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
@@ -150,8 +164,7 @@ void ControllerInterface::Shutdown()
   ciface::Quartz::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
-  // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-  SDL_Quit();
+  ciface::SDL::DeInit();
 #endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
@@ -159,43 +172,68 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Shutdown();
 #endif
-
-  m_is_init = false;
 }
 
 void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-  // Try to find an ID for this device
-  int id = 0;
-  while (true)
+  // If we are shutdown (or in process of shutting down) ignore this request:
+  if (!m_is_init)
+    return;
+
   {
-    const auto it = std::find_if(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
-      return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
-             d->GetId() == id;
-    });
-    if (it == m_devices.end())  // no device with the same name with this ID, so we can use it
-      break;
+    std::lock_guard<std::mutex> lk(m_devices_mutex);
+
+    const auto is_id_in_use = [&device, this](int id) {
+      return std::any_of(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
+        return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
+               d->GetId() == id;
+      });
+    };
+
+    const auto preferred_id = device->GetPreferredId();
+    if (preferred_id.has_value() && !is_id_in_use(*preferred_id))
+    {
+      // Use the device's preferred ID if available.
+      device->SetId(*preferred_id);
+    }
     else
-      id++;
+    {
+      // Find the first available ID to use.
+      int id = 0;
+      while (is_id_in_use(id))
+        ++id;
+
+      device->SetId(id);
+    }
+
+    NOTICE_LOG(SERIALINTERFACE, "Added device: %s", device->GetQualifiedName().c_str());
+    m_devices.emplace_back(std::move(device));
   }
-  device->SetId(id);
-  m_devices.emplace_back(std::move(device));
+
+  if (!m_is_populating_devices)
+    InvokeDevicesChangedCallbacks();
 }
 
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-  m_devices.erase(std::remove_if(m_devices.begin(), m_devices.end(),
-                                 [&callback](const auto& dev) { return callback(dev.get()); }),
-                  m_devices.end());
+  {
+    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    auto it = std::remove_if(m_devices.begin(), m_devices.end(), [&callback](const auto& dev) {
+      if (callback(dev.get()))
+      {
+        NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", dev->GetQualifiedName().c_str());
+        return true;
+      }
+      return false;
+    });
+    m_devices.erase(it, m_devices.end());
+  }
+
+  if (!m_is_populating_devices)
+    InvokeDevicesChangedCallbacks();
 }
 
-//
-// UpdateInput
-//
-// Update input for all devices
-//
+// Update input for all devices if lock can be acquired without waiting.
 void ControllerInterface::UpdateInput()
 {
   // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
@@ -207,24 +245,28 @@ void ControllerInterface::UpdateInput()
   }
 }
 
-//
-// RegisterHotplugCallback
-//
-// Register a callback to be called from the input backends' hotplug thread
-// when there is a new device
-//
-void ControllerInterface::RegisterHotplugCallback(std::function<void()> callback)
+// Register a callback to be called when a device is added or removed (as from the input backends'
+// hotplug thread), or when devices are refreshed
+// Returns a handle for later removing the callback.
+ControllerInterface::HotplugCallbackHandle
+ControllerInterface::RegisterDevicesChangedCallback(std::function<void()> callback)
 {
-  m_hotplug_callbacks.emplace_back(std::move(callback));
+  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
+  m_devices_changed_callbacks.emplace_back(std::move(callback));
+  return std::prev(m_devices_changed_callbacks.end());
 }
 
-//
-// InvokeHotplugCallbacks
-//
-// Invoke all callbacks that were registered
-//
-void ControllerInterface::InvokeHotplugCallbacks() const
+// Unregister a device callback.
+void ControllerInterface::UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle)
 {
-  for (const auto& callback : m_hotplug_callbacks)
+  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
+  m_devices_changed_callbacks.erase(handle);
+}
+
+// Invoke all callbacks that were registered
+void ControllerInterface::InvokeDevicesChangedCallbacks() const
+{
+  std::lock_guard<std::mutex> lk(m_callbacks_mutex);
+  for (const auto& callback : m_devices_changed_callbacks)
     callback();
 }

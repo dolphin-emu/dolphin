@@ -20,18 +20,11 @@ public:
   SWVertexLoader();
   ~SWVertexLoader();
 
-  std::unique_ptr<NativeVertexFormat>
-  CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
-
-private:
-  void ResetBuffer(u32 stride) override;
-  void vFlush() override;
+protected:
+  void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
   void SetFormat(u8 attributeIndex, u8 primitiveType);
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);
-
-  std::vector<u8> m_local_vertex_buffer;
-  std::vector<u16> m_local_index_buffer;
 
   InputVertexData m_vertex;
   SetupUnit m_setup_unit;

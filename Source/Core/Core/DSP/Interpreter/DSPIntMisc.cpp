@@ -67,7 +67,7 @@ void lris(const UDSPInstruction opc)
 // an opcode extension but not do anything. At least according to duddie.
 void nx(const UDSPInstruction opc)
 {
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 //----
@@ -134,7 +134,7 @@ void sbset(const UDSPInstruction opc)
 // This is a bunch of flag setters, flipping bits in SR.
 void srbith(const UDSPInstruction opc)
 {
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
   switch ((opc >> 8) & 0xf)
   {
   case 0xa:  // M2

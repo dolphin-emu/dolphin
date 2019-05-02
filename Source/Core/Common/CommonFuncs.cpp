@@ -2,21 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// The code in GetErrorMessage can't handle some systems having the
-// GNU version of strerror_r and other systems having the XSI version,
-// so we undefine _GNU_SOURCE here in an attempt to always get the XSI version.
-// We include cstring before all other headers in case cstring is included
-// indirectly (without undefining _GNU_SOURCE) by some other header.
-#ifdef _GNU_SOURCE
-#undef _GNU_SOURCE
-#include <cstring>
-#define _GNU_SOURCE
-#else
-#include <cstring>
-#endif
-
 #include <cstddef>
+#include <cstring>
 #include <errno.h>
+#include <type_traits>
 
 #include "Common/CommonFuncs.h"
 
@@ -33,13 +22,20 @@ std::string LastStrerrorString()
 {
   char error_message[BUFFER_SIZE];
 
-  // We assume that the XSI-compliant version of strerror_r (returns int) is used
-  // rather than the GNU version (returns char*). The returned value is stored to
-  // an int variable to get a compile-time check that the return type is not char*.
-  const int result = strerror_r(errno, error_message, BUFFER_SIZE);
-  if (result != 0)
-    return "";
-  return std::string(error_message);
+  // There are two variants of strerror_r. The XSI version stores the message to the passed-in
+  // buffer and returns an int (0 on success). The GNU version returns a pointer to the message,
+  // which might have been stored in the passed-in buffer or might be a static string.
+
+  // We check defines in order to figure out variant is in use, and we store the returned value
+  // to a variable so that we'll get a compile-time check that our assumption was correct.
+
+#if defined(__GLIBC__) && (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600))
+  const char* str = strerror_r(errno, error_message, BUFFER_SIZE);
+  return std::string(str);
+#else
+  int error_code = strerror_r(errno, error_message, BUFFER_SIZE);
+  return error_code == 0 ? std::string(error_message) : "";
+#endif
 }
 
 #ifdef _WIN32

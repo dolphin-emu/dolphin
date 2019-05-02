@@ -16,6 +16,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -32,7 +33,7 @@ std::mutex s_cs_gba;
 std::mutex s_cs_gba_clk;
 int s_num_connected;
 Common::Flag s_server_running;
-}
+}  // namespace
 
 enum EJoybusCmds
 {
@@ -235,7 +236,7 @@ void GBASockServer::Send(const u8* si_buffer)
 
   std::array<u8, SEND_MAX_SIZE> send_data;
   for (size_t i = 0; i < send_data.size(); i++)
-    send_data[i] = si_buffer[i ^ 3];
+    send_data[i] = si_buffer[i];
 
   u8 cmd = send_data[0];
   if (cmd != CMD_STATUS)
@@ -281,7 +282,7 @@ int GBASockServer::Receive(u8* si_buffer)
   }
 
   for (size_t i = 0; i < recv_data.size(); i++)
-    si_buffer[i ^ 3] = recv_data[i];
+    si_buffer[i] = recv_data[i];
   return static_cast<int>(std::min(num_received, recv_data.size()));
 }
 
@@ -299,23 +300,23 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
     if (m_sock_server.Connect())
     {
 #ifdef _DEBUG
-      NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number, buffer[3],
-                 buffer[2], buffer[1], buffer[0], buffer[7]);
+      NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number, buffer[0],
+                 buffer[1], buffer[2], buffer[3], buffer[4]);
 #endif
       m_sock_server.Send(buffer);
     }
     else
     {
-      constexpr u32 reply = SI_ERROR_NO_RESPONSE;
+      u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
       std::memcpy(buffer, &reply, sizeof(reply));
       return sizeof(reply);
     }
-    m_last_cmd = buffer[3];
+    m_last_cmd = buffer[0];
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
   }
 
-  // [[fallthrough]]
+  // [[fallthrough]]b
   case NextAction::WaitTransferTime:
   {
     int elapsed_time = static_cast<int>(CoreTiming::GetTicks() - m_timestamp_sent);
@@ -332,7 +333,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
     m_next_action = NextAction::SendCommand;
     if (num_data_received == 0)
     {
-      constexpr u32 reply = SI_ERROR_NO_RESPONSE;
+      u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
       std::memcpy(buffer, &reply, sizeof(reply));
       return sizeof(reply);
     }
@@ -342,7 +343,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
                                          LogTypes::LWARNING;
     GENERIC_LOG(LogTypes::SERIALINTERFACE, log_level,
                 "%01d                              [< %02x%02x%02x%02x%02x] (%i)", m_device_number,
-                buffer[3], buffer[2], buffer[1], buffer[0], buffer[7], num_data_received);
+                buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], num_data_received);
 #endif
     return num_data_received;
   }

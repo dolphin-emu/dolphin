@@ -92,8 +92,9 @@ public:
 
   Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
-  std::string GetName() const override;
-  std::string GetSource() const override;
+  std::string GetName() const final override;
+  std::string GetSource() const final override;
+  std::optional<int> GetPreferredId() const final override;
 
   void UpdateMotors();
 
@@ -104,5 +105,5 @@ private:
   const BYTE m_subtype;
   const u8 m_index;
 };
-}
-}
+}  // namespace XInput
+}  // namespace ciface

@@ -26,8 +26,6 @@ public:
 
   virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
-  virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                                ciface::Core::Device* const device) = 0;
   virtual bool IsInput() const = 0;
 
   int BoundCount() const;
@@ -57,8 +55,6 @@ public:
   InputReference();
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
-  ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                        ciface::Core::Device* const device) override;
 };
 
 //
@@ -72,6 +68,4 @@ public:
   OutputReference();
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
-  ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                        ciface::Core::Device* const device) override;
 };

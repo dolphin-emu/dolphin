@@ -22,7 +22,7 @@
 namespace FileMonitor
 {
 static DiscIO::Partition s_previous_partition;
-static std::string s_previous_file;
+static u64 s_previous_file_offset;
 
 // Filtered files
 static bool IsSoundFile(const std::string& filename)
@@ -68,14 +68,14 @@ void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 o
   if (!file_info)
     return;
 
-  const std::string path = file_info->GetPath();
+  const u64 file_offset = file_info->GetOffset();
 
   // Do nothing if we found the same file again
-  if (s_previous_partition == partition && s_previous_file == path)
+  if (s_previous_partition == partition && s_previous_file_offset == file_offset)
     return;
 
   const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
-
+  const std::string path = file_info->GetPath();
   const std::string log_string = StringFromFormat("%s kB %s", size_string.c_str(), path.c_str());
   if (IsSoundFile(path))
     INFO_LOG(FILEMON, "%s", log_string.c_str());
@@ -84,7 +84,7 @@ void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 o
 
   // Update the last accessed file
   s_previous_partition = partition;
-  s_previous_file = path;
+  s_previous_file_offset = file_offset;
 }
 
 }  // namespace FileMonitor

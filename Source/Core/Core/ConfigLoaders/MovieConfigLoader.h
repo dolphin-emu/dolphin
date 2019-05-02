@@ -30,6 +30,6 @@ private:
   Movie::DTMHeader* m_header;
 };
 
-void SaveToDTM(Config::Layer* layer, Movie::DTMHeader* header);
+void SaveToDTM(Movie::DTMHeader* header);
 std::unique_ptr<Config::ConfigLayerLoader> GenerateMovieConfigLoader(Movie::DTMHeader* header);
 }

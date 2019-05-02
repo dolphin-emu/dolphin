@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -21,6 +22,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -67,6 +69,11 @@ void FifoPlayer::Close()
   m_FrameRangeEnd = 0;
 }
 
+bool FifoPlayer::IsPlaying() const
+{
+  return GetFile() != nullptr && Core::IsRunning();
+}
+
 class FifoPlayer::CPUCore final : public CPUCoreBase
 {
 public:
@@ -96,7 +103,7 @@ public:
     PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 
-  const char* GetName() override { return "FifoPlayer"; }
+  const char* GetName() const override { return "FifoPlayer"; }
   void Run() override
   {
     while (CPU::GetState() == CPU::State::Running)
@@ -105,7 +112,7 @@ public:
       {
       case CPU::State::PowerDown:
         CPU::Break();
-        Host_Message(WM_USER_STOP);
+        Host_Message(HostMessageID::WMUserStop);
         break;
 
       case CPU::State::Stepping:
@@ -160,6 +167,16 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
     return nullptr;
 
   return std::make_unique<CPUCore>(this);
+}
+
+bool FifoPlayer::IsRunningWithFakeVideoInterfaceUpdates() const
+{
+  if (!m_File || m_File->GetFrameCount() == 0)
+  {
+    return false;
+  }
+
+  return m_File->ShouldGenerateFakeVIUpdates();
 }
 
 u32 FifoPlayer::GetFrameObjectCount() const
@@ -271,7 +288,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   FlushWGP();
 
   // Sleep while the GPU is active
-  while (!IsIdleSet())
+  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
   {
     CoreTiming::Idle();
     CoreTiming::Advance();
@@ -312,7 +329,7 @@ void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
 
 void FifoPlayer::WriteAllMemoryUpdates()
 {
-  _assert_(m_File);
+  ASSERT(m_File);
 
   for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
   {
@@ -412,7 +429,7 @@ void FifoPlayer::LoadMemory()
   UReg_MSR newMSR;
   newMSR.DR = 1;
   newMSR.IR = 1;
-  MSR = newMSR.Hex;
+  MSR.Hex = newMSR.Hex;
   PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
   PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;

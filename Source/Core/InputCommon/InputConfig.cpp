@@ -7,12 +7,16 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
@@ -29,6 +33,11 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
   std::string profile[MAX_BBMOTES];
   std::string path;
+
+#if defined(ANDROID)
+  bool use_ir_config = false;
+  std::string ir_values[3];
+#endif
 
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
@@ -51,20 +60,37 @@ bool InputConfig::LoadConfig(bool isGC)
     {
       if (control_section->Exists(type + "Profile" + num[i]))
       {
-        if (control_section->Get(type + "Profile" + num[i], &profile[i]))
+        std::string profile_setting;
+        if (control_section->Get(type + "Profile" + num[i], &profile_setting))
         {
-          if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
-          {
-            useProfile[i] = true;
-          }
-          else
+          auto profiles = InputProfile::GetProfilesFromSetting(
+              profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
+
+          if (profiles.empty())
           {
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("Selected controller profile does not exist");
+            PanicAlertT("No profiles found for game setting '%s'", profile_setting.c_str());
+            continue;
           }
+
+          // Use the first profile by default
+          profile[i] = profiles[0];
+          useProfile[i] = true;
         }
       }
     }
+#if defined(ANDROID)
+    // For use on android touchscreen IR pointer
+    // Check for IR values
+    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
+        control_section->Exists("IRVerticalOffset"))
+    {
+      use_ir_config = true;
+      control_section->Get("IRTotalYaw", &ir_values[0]);
+      control_section->Get("IRTotalPitch", &ir_values[1]);
+      control_section->Get("IRVerticalOffset", &ir_values[2]);
+    }
+#endif
   }
 
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
@@ -72,18 +98,34 @@ bool InputConfig::LoadConfig(bool isGC)
     int n = 0;
     for (auto& controller : m_controllers)
     {
+      IniFile::Section config;
       // Load settings from ini
       if (useProfile[n])
       {
+        std::string base;
+        SplitPath(profile[n], nullptr, &base, nullptr);
+        Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
+                                 controller->GetName() + "'",
+                             6000);
+
         IniFile profile_ini;
-        profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
-        controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+        profile_ini.Load(profile[n]);
+        config = *profile_ini.GetOrCreateSection("Profile");
       }
       else
       {
-        controller->LoadConfig(inifile.GetOrCreateSection(controller->GetName()));
+        config = *inifile.GetOrCreateSection(controller->GetName());
       }
-
+#if defined(ANDROID)
+      // Only set for wii pads
+      if (!isGC && use_ir_config)
+      {
+        config.Set("IR/Total Yaw", ir_values[0]);
+        config.Set("IR/Total Pitch", ir_values[1]);
+        config.Set("IR/Vertical Offset", ir_values[2]);
+      }
+#endif
+      controller->LoadConfig(&config);
       // Update refs
       controller->UpdateReferences(g_controller_interface);
 
@@ -128,12 +170,32 @@ bool InputConfig::ControllersNeedToBeCreated() const
   return m_controllers.empty();
 }
 
+std::size_t InputConfig::GetControllerCount() const
+{
+  return m_controllers.size();
+}
+
+void InputConfig::RegisterHotplugCallback()
+{
+  // Update control references on all controllers
+  // as configured devices may have been added or removed.
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
+    for (auto& controller : m_controllers)
+      controller->UpdateReferences(g_controller_interface);
+  });
+}
+
+void InputConfig::UnregisterHotplugCallback()
+{
+  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+}
+
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
 {
   if (static_cast<size_t>(index) >= m_controllers.size())
     return false;
 
-  const auto& controller = m_controllers.at(index).get()->default_device;
+  const auto& controller = m_controllers.at(index).get()->GetDefaultDevice();
 
   // Filter out anything which obviously not a gamepad
   return !((controller.source == "Quartz")      // OSX Quartz Keyboard/Mouse

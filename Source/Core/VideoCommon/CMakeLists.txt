@@ -1,4 +1,6 @@
-set(SRCS
+add_library(videocommon
+  AbstractFramebuffer.cpp
+  AbstractStagingTexture.cpp
   AbstractTexture.cpp
   AsyncRequests.cpp
   AsyncShaderCompiler.cpp
@@ -8,11 +10,11 @@ set(SRCS
   BPStructs.cpp
   CPMemory.cpp
   CommandProcessor.cpp
-  Debugger.cpp
   DriverDetails.cpp
   Fifo.cpp
   FPSCounter.cpp
-  FramebufferManagerBase.cpp
+  FramebufferManager.cpp
+  FramebufferShaderGen.cpp
   GeometryShaderGen.cpp
   GeometryShaderManager.cpp
   HiresTextures.cpp
@@ -20,7 +22,8 @@ set(SRCS
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
-  MainBase.cpp
+  NetPlayChatUI.cpp
+  NetPlayGolfUI.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
   PerfQueryBase.cpp
@@ -30,6 +33,7 @@ set(SRCS
   PostProcessing.cpp
   RenderBase.cpp
   RenderState.cpp
+  ShaderCache.cpp
   ShaderGenCommon.cpp
   Statistics.cpp
   UberShaderCommon.cpp
@@ -38,6 +42,7 @@ set(SRCS
   TextureCacheBase.cpp
   TextureConfig.cpp
   TextureConversionShader.cpp
+  TextureConverterShaderGen.cpp
   TextureDecoder_Common.cpp
   VertexLoader.cpp
   VertexLoaderBase.cpp
@@ -56,20 +61,30 @@ set(SRCS
   XFStructs.cpp
 )
 
-set(LIBS
+target_link_libraries(videocommon
+PUBLIC
   core
+PRIVATE
   png
+  xxhash
+  imgui
 )
 
 if(_M_X86)
-  set(SRCS ${SRCS} TextureDecoder_x64.cpp VertexLoaderX64.cpp)
+  target_sources(videocommon PRIVATE
+    TextureDecoder_x64.cpp
+    VertexLoaderX64.cpp
+  )
 elseif(_M_ARM_64)
-  set(SRCS ${SRCS} VertexLoaderARM64.cpp TextureDecoder_Generic.cpp)
+  target_sources(videocommon PRIVATE
+    VertexLoaderARM64.cpp
+    TextureDecoder_Generic.cpp
+  )
 else()
-  set(SRCS ${SRCS} TextureDecoder_Generic.cpp)
+  target_sources(videocommon PRIVATE
+    TextureDecoder_Generic.cpp
+  )
 endif()
-
-add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
 if(FFmpeg_FOUND)
   target_sources(videocommon PRIVATE AVIDump.cpp)

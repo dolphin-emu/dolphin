@@ -20,11 +20,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV4.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
@@ -210,6 +206,40 @@ void USB_HIDv4::TriggerDeviceChangeReply()
   m_devicechange_hook_request.reset();
 }
 
+template <typename T>
+static void CopyDescriptorToBuffer(std::vector<u8>* buffer, T descriptor)
+{
+  const size_t size = sizeof(descriptor);
+  descriptor.Swap();
+  buffer->insert(buffer->end(), reinterpret_cast<const u8*>(&descriptor),
+                 reinterpret_cast<const u8*>(&descriptor) + size);
+  const size_t number_of_padding_bytes = Common::AlignUp(size, 4) - size;
+  buffer->insert(buffer->end(), number_of_padding_bytes, 0);
+}
+
+static std::vector<u8> GetDescriptors(const USB::Device& device)
+{
+  std::vector<u8> buffer;
+
+  CopyDescriptorToBuffer(&buffer, device.GetDeviceDescriptor());
+  const auto configurations = device.GetConfigurations();
+  for (size_t c = 0; c < configurations.size(); ++c)
+  {
+    CopyDescriptorToBuffer(&buffer, configurations[c]);
+    const auto interfaces = device.GetInterfaces(static_cast<u8>(c));
+    for (size_t i = interfaces.size(); i-- > 0;)
+    {
+      CopyDescriptorToBuffer(&buffer, interfaces[i]);
+      for (const auto& endpoint_descriptor : device.GetEndpoints(
+               static_cast<u8>(c), interfaces[i].bInterfaceNumber, interfaces[i].bAlternateSetting))
+      {
+        CopyDescriptorToBuffer(&buffer, endpoint_descriptor);
+      }
+    }
+  }
+  return buffer;
+}
+
 std::vector<u8> USB_HIDv4::GetDeviceEntry(const USB::Device& device) const
 {
   std::lock_guard<std::mutex> id_map_lock{m_id_map_mutex};
@@ -219,7 +249,7 @@ std::vector<u8> USB_HIDv4::GetDeviceEntry(const USB::Device& device) const
   //   4-8 bytes: device ID
   //   the rest of the buffer is device descriptors data
   std::vector<u8> entry(8);
-  const std::vector<u8> descriptors = device.GetDescriptorsUSBV4();
+  const std::vector<u8> descriptors = GetDescriptors(device);
   const u32 entry_size = Common::swap32(static_cast<u32>(entry.size() + descriptors.size()));
   const u32 ios_device_id = Common::swap32(m_device_ids.at(device.GetId()));
   std::memcpy(entry.data(), &entry_size, sizeof(entry_size));
@@ -228,6 +258,4 @@ std::vector<u8> USB_HIDv4::GetDeviceEntry(const USB::Device& device) const
 
   return entry;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

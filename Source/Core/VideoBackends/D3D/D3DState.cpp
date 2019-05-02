@@ -12,119 +12,49 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/DXTexture.h"
+#include "VideoBackends/D3DCommon/Common.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
 namespace D3D
 {
-StateManager* stateman;
+std::unique_ptr<StateManager> stateman;
 
-template <typename T>
-AutoState<T>::AutoState(const T* object) : state(object)
-{
-  ((IUnknown*)state)->AddRef();
-}
-
-template <typename T>
-AutoState<T>::AutoState(const AutoState<T>& source)
-{
-  state = source.GetPtr();
-  ((T*)state)->AddRef();
-}
-
-template <typename T>
-AutoState<T>::~AutoState()
-{
-  if (state)
-    ((T*)state)->Release();
-  state = nullptr;
-}
-
-StateManager::StateManager()
-    : m_currentBlendState(nullptr), m_currentDepthState(nullptr), m_currentRasterizerState(nullptr),
-      m_dirtyFlags(~0u), m_pending(), m_current()
-{
-}
-
-void StateManager::PushBlendState(const ID3D11BlendState* state)
-{
-  m_blendStates.push(AutoBlendState(state));
-}
-void StateManager::PushDepthState(const ID3D11DepthStencilState* state)
-{
-  m_depthStates.push(AutoDepthStencilState(state));
-}
-void StateManager::PushRasterizerState(const ID3D11RasterizerState* state)
-{
-  m_rasterizerStates.push(AutoRasterizerState(state));
-}
-void StateManager::PopBlendState()
-{
-  m_blendStates.pop();
-}
-void StateManager::PopDepthState()
-{
-  m_depthStates.pop();
-}
-void StateManager::PopRasterizerState()
-{
-  m_rasterizerStates.pop();
-}
+StateManager::StateManager() = default;
+StateManager::~StateManager() = default;
 
 void StateManager::Apply()
 {
-  if (!m_blendStates.empty())
-  {
-    if (m_currentBlendState != m_blendStates.top().GetPtr())
-    {
-      m_currentBlendState = (ID3D11BlendState*)m_blendStates.top().GetPtr();
-      D3D::context->OMSetBlendState(m_currentBlendState, nullptr, 0xFFFFFFFF);
-    }
-  }
-  else
-    ERROR_LOG(VIDEO, "Tried to apply without blend state!");
-
-  if (!m_depthStates.empty())
-  {
-    if (m_currentDepthState != m_depthStates.top().GetPtr())
-    {
-      m_currentDepthState = (ID3D11DepthStencilState*)m_depthStates.top().GetPtr();
-      D3D::context->OMSetDepthStencilState(m_currentDepthState, 0);
-    }
-  }
-  else
-    ERROR_LOG(VIDEO, "Tried to apply without depth state!");
-
-  if (!m_rasterizerStates.empty())
-  {
-    if (m_currentRasterizerState != m_rasterizerStates.top().GetPtr())
-    {
-      m_currentRasterizerState = (ID3D11RasterizerState*)m_rasterizerStates.top().GetPtr();
-      D3D::context->RSSetState(m_currentRasterizerState);
-    }
-  }
-  else
-    ERROR_LOG(VIDEO, "Tried to apply without rasterizer state!");
-
   if (!m_dirtyFlags)
-  {
     return;
+
+  // Framebuffer changes must occur before texture changes, otherwise the D3D runtime messes with
+  // our bindings and sets them to null to prevent hazards.
+  if (m_dirtyFlags & DirtyFlag_Framebuffer)
+  {
+    if (g_ActiveConfig.backend_info.bSupportsBBox)
+    {
+      D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+          m_pending.framebuffer->GetNumRTVs(),
+          m_pending.use_integer_rtv ? m_pending.framebuffer->GetIntegerRTVArray() :
+                                      m_pending.framebuffer->GetRTVArray(),
+          m_pending.framebuffer->GetDSV(), 2, 1, &m_pending.uav, nullptr);
+    }
+    else
+    {
+      D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(),
+                                       m_pending.use_integer_rtv ?
+                                           m_pending.framebuffer->GetIntegerRTVArray() :
+                                           m_pending.framebuffer->GetRTVArray(),
+                                       m_pending.framebuffer->GetDSV());
+    }
+    m_current.framebuffer = m_pending.framebuffer;
+    m_current.uav = m_pending.uav;
+    m_current.use_integer_rtv = m_pending.use_integer_rtv;
   }
 
-  int textureMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Texture0);
-  int samplerMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
-
-  u32 dirtyTextures =
-      (m_dirtyFlags &
-       (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3 |
-        DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >>
-      textureMaskShift;
-  u32 dirtySamplers =
-      (m_dirtyFlags &
-       (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3 |
-        DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7)) >>
-      samplerMaskShift;
   u32 dirtyConstants = m_dirtyFlags & (DirtyFlag_PixelConstants | DirtyFlag_VertexConstants |
                                        DirtyFlag_GeometryConstants);
   u32 dirtyShaders =
@@ -187,30 +117,6 @@ void StateManager::Apply()
     }
   }
 
-  while (dirtyTextures)
-  {
-    int index = LeastSignificantSetBit(dirtyTextures);
-    if (m_current.textures[index] != m_pending.textures[index])
-    {
-      D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
-      m_current.textures[index] = m_pending.textures[index];
-    }
-
-    dirtyTextures &= ~(1 << index);
-  }
-
-  while (dirtySamplers)
-  {
-    int index = LeastSignificantSetBit(dirtySamplers);
-    if (m_current.samplers[index] != m_pending.samplers[index])
-    {
-      D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
-      m_current.samplers[index] = m_pending.samplers[index];
-    }
-
-    dirtySamplers &= ~(1 << index);
-  }
-
   if (dirtyShaders)
   {
     if (m_current.pixelShader != m_pending.pixelShader)
@@ -232,7 +138,65 @@ void StateManager::Apply()
     }
   }
 
+  if (m_dirtyFlags & DirtyFlag_BlendState)
+  {
+    D3D::context->OMSetBlendState(m_pending.blendState, nullptr, 0xFFFFFFFF);
+    m_current.blendState = m_pending.blendState;
+  }
+  if (m_dirtyFlags & DirtyFlag_DepthState)
+  {
+    D3D::context->OMSetDepthStencilState(m_pending.depthState, 0);
+    m_current.depthState = m_pending.depthState;
+  }
+  if (m_dirtyFlags & DirtyFlag_RasterizerState)
+  {
+    D3D::context->RSSetState(m_pending.rasterizerState);
+    m_current.rasterizerState = m_pending.rasterizerState;
+  }
+
+  ApplyTextures();
+
   m_dirtyFlags = 0;
+}
+
+void StateManager::ApplyTextures()
+{
+  const int textureMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Texture0);
+  const int samplerMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
+
+  u32 dirtyTextures =
+      (m_dirtyFlags &
+       (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3 |
+        DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >>
+      textureMaskShift;
+  u32 dirtySamplers =
+      (m_dirtyFlags &
+       (DirtyFlag_Sampler0 | DirtyFlag_Sampler1 | DirtyFlag_Sampler2 | DirtyFlag_Sampler3 |
+        DirtyFlag_Sampler4 | DirtyFlag_Sampler5 | DirtyFlag_Sampler6 | DirtyFlag_Sampler7)) >>
+      samplerMaskShift;
+  while (dirtyTextures)
+  {
+    const int index = Common::LeastSignificantSetBit(dirtyTextures);
+    if (m_current.textures[index] != m_pending.textures[index])
+    {
+      D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
+      m_current.textures[index] = m_pending.textures[index];
+    }
+
+    dirtyTextures &= ~(1 << index);
+  }
+
+  while (dirtySamplers)
+  {
+    const int index = Common::LeastSignificantSetBit(dirtySamplers);
+    if (m_current.samplers[index] != m_pending.samplers[index])
+    {
+      D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
+      m_current.samplers[index] = m_pending.samplers[index];
+    }
+
+    dirtySamplers &= ~(1 << index);
+  }
 }
 
 u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
@@ -255,19 +219,94 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 {
   while (textureSlotMask)
   {
-    int index = LeastSignificantSetBit(textureSlotMask);
+    const int index = Common::LeastSignificantSetBit(textureSlotMask);
     SetTexture(index, srv);
     textureSlotMask &= ~(1 << index);
   }
 }
 
+void StateManager::SetComputeUAV(ID3D11UnorderedAccessView* uav)
+{
+  if (m_compute_image == uav)
+    return;
+
+  m_compute_image = uav;
+  D3D::context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+}
+
+void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
+{
+  if (m_compute_shader == shader)
+    return;
+
+  m_compute_shader = shader;
+  D3D::context->CSSetShader(shader, nullptr, 0);
+}
+
+void StateManager::SyncComputeBindings()
+{
+  if (m_compute_constants != m_pending.pixelConstants[0])
+  {
+    m_compute_constants = m_pending.pixelConstants[0];
+    D3D::context->CSSetConstantBuffers(0, 1, &m_compute_constants);
+  }
+
+  for (u32 start = 0; start < static_cast<u32>(m_compute_textures.size());)
+  {
+    if (m_compute_textures[start] == m_pending.textures[start])
+    {
+      start++;
+      continue;
+    }
+
+    m_compute_textures[start] = m_pending.textures[start];
+
+    u32 end = start + 1;
+    for (; end < static_cast<u32>(m_compute_textures.size()); end++)
+    {
+      if (m_compute_textures[end] == m_pending.textures[end])
+        break;
+
+      m_compute_textures[end] = m_pending.textures[end];
+    }
+
+    D3D::context->CSSetShaderResources(start, end - start, &m_compute_textures[start]);
+    start = end;
+  }
+
+  for (u32 start = 0; start < static_cast<u32>(m_compute_samplers.size());)
+  {
+    if (m_compute_samplers[start] == m_pending.samplers[start])
+    {
+      start++;
+      continue;
+    }
+
+    m_compute_samplers[start] = m_pending.samplers[start];
+
+    u32 end = start + 1;
+    for (; end < static_cast<u32>(m_compute_samplers.size()); end++)
+    {
+      if (m_compute_samplers[end] == m_pending.samplers[end])
+        break;
+
+      m_compute_samplers[end] = m_pending.samplers[end];
+    }
+
+    D3D::context->CSSetSamplers(start, end - start, &m_compute_samplers[start]);
+    start = end;
+  }
+}
 }  // namespace D3D
+
+StateCache::~StateCache() = default;
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
+  std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_sampler.find(state.hex);
   if (it != m_sampler.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_SAMPLER_DESC sampdc = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
   if (state.mipmap_filter == SamplerState::Filter::Linear)
@@ -299,7 +338,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   sampdc.AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
   sampdc.MaxLOD = state.max_lod / 16.f;
   sampdc.MinLOD = state.min_lod / 16.f;
-  sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
+  sampdc.MipLODBias = (s32)state.lod_bias / 256.f;
 
   if (state.anisotropic_filtering)
   {
@@ -307,21 +346,19 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
     sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
   }
 
-  ID3D11SamplerState* res = nullptr;
+  ComPtr<ID3D11SamplerState> res;
   HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
-  if (FAILED(hr))
-    PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "sampler state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D sampler state failed");
   m_sampler.emplace(state.hex, res);
-  return res;
+  return res.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendingState state)
 {
+  std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_blend.find(state.hex);
   if (it != m_blend.end())
-    return it->second;
+    return it->second.Get();
 
   if (state.logicopenable && D3D::device1)
   {
@@ -348,7 +385,6 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     HRESULT hr = D3D::device1->CreateBlendState1(&desc, &res);
     if (SUCCEEDED(hr))
     {
-      D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
       m_blend.emplace(state.hex, res);
       return res;
     }
@@ -388,22 +424,19 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   tdesc.BlendOp = state.subtract ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
   tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
-  ID3D11BlendState* res = nullptr;
-
+  ComPtr<ID3D11BlendState> res;
   HRESULT hr = D3D::device->CreateBlendState(&desc, &res);
-  if (FAILED(hr))
-    PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "blend state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D blend state failed");
   m_blend.emplace(state.hex, res);
-  return res;
+  return res.Get();
 }
 
 ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 {
+  std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
-    return it->second;
+    return it->second.Get();
 
   static constexpr std::array<D3D11_CULL_MODE, 4> cull_modes = {
       {D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK}};
@@ -413,21 +446,19 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
   desc.CullMode = cull_modes[state.cullmode];
   desc.ScissorEnable = TRUE;
 
-  ID3D11RasterizerState* res = nullptr;
+  ComPtr<ID3D11RasterizerState> res;
   HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
-  if (FAILED(hr))
-    PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
-
-  D3D::SetDebugObjectName(res, "rasterizer state used to emulate the GX pipeline");
+  CHECK(SUCCEEDED(hr), "Creating D3D rasterizer state failed");
   m_raster.emplace(state.hex, res);
-  return res;
+  return res.Get();
 }
 
 ID3D11DepthStencilState* StateCache::Get(DepthState state)
 {
+  std::lock_guard<std::mutex> guard(m_lock);
   auto it = m_depth.find(state.hex);
   if (it != m_depth.end())
-    return it->second;
+    return it->second.Get();
 
   D3D11_DEPTH_STENCIL_DESC depthdc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 
@@ -458,44 +489,11 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
     depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
   }
 
-  ID3D11DepthStencilState* res = nullptr;
-
+  ComPtr<ID3D11DepthStencilState> res;
   HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
-  if (SUCCEEDED(hr))
-    D3D::SetDebugObjectName(res, "depth-stencil state used to emulate the GX pipeline");
-  else
-    PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
-
+  CHECK(SUCCEEDED(hr), "Creating D3D depth stencil state failed");
   m_depth.emplace(state.hex, res);
-
-  return res;
-}
-
-void StateCache::Clear()
-{
-  for (auto it : m_depth)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_depth.clear();
-
-  for (auto it : m_raster)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_raster.clear();
-
-  for (auto it : m_blend)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_blend.clear();
-
-  for (auto it : m_sampler)
-  {
-    SAFE_RELEASE(it.second);
-  }
-  m_sampler.clear();
+  return res.Get();
 }
 
 D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitive)

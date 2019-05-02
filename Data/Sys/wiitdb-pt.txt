@@ -1,8 +1,4 @@
-TITLES = http://www.gametdb.com (type: Wii language: PT version: 20170521131059)
-GHSX69 = Harry Potter e a Câmara dos Segredos
-HAAA = Canal Photo
-HAYA = Canal Photo
-PT2PSI = SingIt Portugal Hits Festa de Verão
+TITLES = https://www.gametdb.com (type: Wii language: PT_unique version: 20190127013920)
 R42P69 = Os SIMS 2: Naufragos
 R43P69 = EA Sports Active
 R4PP69 = Os SIMS 2: Animais de Estimação
@@ -36,3 +32,7 @@ RZRPGT = Destiny Of Zorro
 SERF4Q = Disney Epic Mickey 2: O Regresso dos Heróis
 SERP4Q = Disney Epic Mickey 2: O Regresso dos Heróis
 SHDP52 = Como Treinares o teu Dragão
+PT2PSI = SingIt Portugal Hits Festa de Verão
+HAAA = Canal Photo
+HAYA = Canal Photo
+GHSX69 = Harry Potter e a Câmara dos Segredos

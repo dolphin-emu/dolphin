@@ -245,9 +245,9 @@ cubeb_get_max_channel_count(cubeb * context, uint32_t * max_channels)
 }
 
 int
-cubeb_get_min_latency(cubeb * context, cubeb_stream_params params, uint32_t * latency_ms)
+cubeb_get_min_latency(cubeb * context, cubeb_stream_params * params, uint32_t * latency_ms)
 {
-  if (!context || !latency_ms) {
+  if (!context || !params || !latency_ms) {
     return CUBEB_ERROR_INVALID_PARAMETER;
   }
 
@@ -255,7 +255,7 @@ cubeb_get_min_latency(cubeb * context, cubeb_stream_params params, uint32_t * la
     return CUBEB_ERROR_NOT_SUPPORTED;
   }
 
-  return context->ops->get_min_latency(context, params, latency_ms);
+  return context->ops->get_min_latency(context, *params, latency_ms);
 }
 
 int
@@ -366,6 +366,20 @@ cubeb_stream_stop(cubeb_stream * stream)
   }
 
   return stream->context->ops->stream_stop(stream);
+}
+
+int
+cubeb_stream_reset_default_device(cubeb_stream * stream)
+{
+  if (!stream) {
+    return CUBEB_ERROR_INVALID_PARAMETER;
+  }
+
+  if (!stream->context->ops->stream_reset_default_device) {
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
+
+  return stream->context->ops->stream_reset_default_device(stream);
 }
 
 int
@@ -574,13 +588,24 @@ int cubeb_enumerate_devices(cubeb * context,
 int cubeb_device_collection_destroy(cubeb * context,
                                     cubeb_device_collection * collection)
 {
+  int r;
+
   if (context == NULL || collection == NULL)
     return CUBEB_ERROR_INVALID_PARAMETER;
 
   if (!context->ops->device_collection_destroy)
     return CUBEB_ERROR_NOT_SUPPORTED;
 
-  return context->ops->device_collection_destroy(context, collection);
+  if (!collection->device)
+    return CUBEB_OK;
+
+  r = context->ops->device_collection_destroy(context, collection);
+  if (r == CUBEB_OK) {
+    collection->device = NULL;
+    collection->count = 0;
+  }
+
+  return r;
 }
 
 int cubeb_register_device_collection_changed(cubeb * context,

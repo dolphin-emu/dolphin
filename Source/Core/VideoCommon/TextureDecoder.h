@@ -28,6 +28,11 @@ enum class TextureFormat
   C8 = 0x9,
   C14X2 = 0xA,
   CMPR = 0xE,
+
+  // Special texture format used to represent YUVY xfb copies.
+  // They aren't really textures, but they share so much hardware and usecases that it makes sense
+  // to emulate them as part of texture cache.
+  XFB = 0xF,
 };
 
 static inline bool IsColorIndexed(TextureFormat format)
@@ -73,6 +78,11 @@ enum class EFBCopyFormat
   B8 = 0xA,   // B8, Z8L
   RG8 = 0xB,  // RG8, Z16R (Note: G and R are reversed)
   GB8 = 0xC,  // GB8, Z16L
+
+  // Special texture format used to represent YUVY xfb copies.
+  // They aren't really textures, but they share so much hardware and usecases that it makes sense
+  // to emulate them as part of texture cache.
+  XFB = 0xF,
 };
 
 enum class TLUTFormat
@@ -106,6 +116,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
                             TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth);
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 

@@ -18,7 +18,7 @@ class AXWiiUCode : public AXUCode
 {
 public:
   AXWiiUCode(DSPHLE* dsphle, u32 crc);
-  virtual ~AXWiiUCode();
+  ~AXWiiUCode() override;
 
   void DoState(PointerWrap& p) override;
 

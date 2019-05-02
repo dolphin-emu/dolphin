@@ -28,6 +28,8 @@
 #endif
 #endif
 
+namespace Common
+{
 #ifdef ANDROID
 #define ASHMEM_DEVICE "/dev/ashmem"
 
@@ -55,31 +57,25 @@ static int AshmemCreateFileMapping(const char* name, size_t size)
 void MemArena::GrabSHMSegment(size_t size)
 {
 #ifdef _WIN32
+  const std::string name = "dolphin-emu." + std::to_string(GetCurrentProcessId());
   hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0,
-                                     static_cast<DWORD>(size), L"Dolphin-emu");
+                                     static_cast<DWORD>(size), UTF8ToTStr(name).c_str());
 #elif defined(ANDROID)
-  fd = AshmemCreateFileMapping("Dolphin-emu", size);
+  fd = AshmemCreateFileMapping(("dolphin-emu." + std::to_string(getpid())).c_str(), size);
   if (fd < 0)
   {
     NOTICE_LOG(MEMMAP, "Ashmem allocation failed");
     return;
   }
 #else
-  for (int i = 0; i < 10000; i++)
+  const std::string file_name = "/dolphin-emu." + std::to_string(getpid());
+  fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
+  if (fd == -1)
   {
-    std::string file_name = StringFromFormat("/dolphinmem.%d", i);
-    fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
-    if (fd != -1)
-    {
-      shm_unlink(file_name.c_str());
-      break;
-    }
-    else if (errno != EEXIST)
-    {
-      ERROR_LOG(MEMMAP, "shm_open failed: %s", strerror(errno));
-      return;
-    }
+    ERROR_LOG(MEMMAP, "shm_open failed: %s", strerror(errno));
+    return;
   }
+  shm_unlink(file_name.c_str());
   if (ftruncate(fd, size) < 0)
     ERROR_LOG(MEMMAP, "Failed to allocate low memory space");
 #endif
@@ -160,3 +156,5 @@ u8* MemArena::FindMemoryBase()
   return static_cast<u8*>(base);
 #endif
 }
+
+}  // namespace Common

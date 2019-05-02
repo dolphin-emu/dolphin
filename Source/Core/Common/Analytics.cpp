@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <string>
+#include <type_traits>
 
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
@@ -17,7 +18,7 @@ namespace
 {
 // Format version number, used as the first byte of every report sent.
 // Increment for any change to the wire format.
-constexpr u8 WIRE_FORMAT_VERSION = 0;
+constexpr u8 WIRE_FORMAT_VERSION = 1;
 
 // Identifiers for the value types supported by the analytics reporting wire
 // format.
@@ -28,7 +29,16 @@ enum class TypeId : u8
   UINT = 2,
   SINT = 3,
   FLOAT = 4,
+
+  // Flags which can be combined with other types.
+  ARRAY = 0x80,
 };
+
+TypeId operator|(TypeId l, TypeId r)
+{
+  using ut = std::underlying_type_t<TypeId>;
+  return static_cast<TypeId>(static_cast<ut>(l) | static_cast<ut>(r));
+}
 
 void AppendBool(std::string* out, bool v)
 {
@@ -112,6 +122,15 @@ void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, float v)
   AppendBytes(report, reinterpret_cast<u8*>(&v), sizeof(v), false);
 }
 
+void AnalyticsReportBuilder::AppendSerializedValueVector(std::string* report,
+                                                         const std::vector<u32>& v)
+{
+  AppendType(report, TypeId::UINT | TypeId::ARRAY);
+  AppendVarInt(report, v.size());
+  for (u32 x : v)
+    AppendVarInt(report, x);
+}
+
 AnalyticsReporter::AnalyticsReporter()
 {
   m_reporter_thread = std::thread(&AnalyticsReporter::ThreadProc, this);
@@ -190,5 +209,4 @@ void HttpAnalyticsBackend::Send(std::string report)
   if (m_http.IsValid())
     m_http.Post(m_endpoint, report);
 }
-
 }  // namespace Common

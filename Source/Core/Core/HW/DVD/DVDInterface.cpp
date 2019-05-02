@@ -16,8 +16,10 @@
 #include "Common/Align.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
@@ -35,6 +37,8 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
 
 // The minimum time it takes for the DVD drive to process a command (in
 // microseconds)
@@ -207,6 +211,8 @@ static UDICR s_DICR;
 static UDIIMMBUF s_DIIMMBUF;
 static UDICFG s_DICFG;
 
+static StreamADPCM::ADPCMDecoder s_adpcm_decoder;
+
 // DTK
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
@@ -229,12 +235,16 @@ static u64 s_read_buffer_end_offset;
 
 // Disc changing
 static std::string s_disc_path_to_insert;
+static std::vector<std::string> s_auto_disc_change_paths;
+static size_t s_auto_disc_change_index;
 
 // Events
 static CoreTiming::EventType* s_finish_executing_command;
+static CoreTiming::EventType* s_auto_change_disc;
 static CoreTiming::EventType* s_eject_disc;
 static CoreTiming::EventType* s_insert_disc;
 
+static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate);
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
@@ -285,6 +295,8 @@ void DoState(PointerWrap& p)
   p.Do(s_disc_path_to_insert);
 
   DVDThread::DoState(p);
+
+  s_adpcm_decoder.DoState(p);
 }
 
 static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data)
@@ -293,7 +305,7 @@ static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8
   size_t bytes_processed = 0;
   while (samples_processed < temp_pcm->size() / 2 && bytes_processed < audio_data.size())
   {
-    StreamADPCM::DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
+    s_adpcm_decoder.DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
     for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
     {
       // TODO: Fix the mixer so it can accept non-byte-swapped samples.
@@ -314,8 +326,9 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
   {
     if (s_audio_position >= s_current_start + s_current_length)
     {
-      DEBUG_LOG(DVDINTERFACE, "AdvanceDTK: NextStart=%08" PRIx64 ", NextLength=%08x, "
-                              "CurrentStart=%08" PRIx64 ", CurrentLength=%08x, AudioPos=%08" PRIx64,
+      DEBUG_LOG(DVDINTERFACE,
+                "AdvanceDTK: NextStart=%08" PRIx64 ", NextLength=%08x, "
+                "CurrentStart=%08" PRIx64 ", CurrentLength=%08x, AudioPos=%08" PRIx64,
                 s_next_start, s_next_length, s_current_start, s_current_length, s_audio_position);
 
       s_audio_position = s_next_start;
@@ -329,7 +342,7 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
         break;
       }
 
-      StreamADPCM::InitFilter();
+      s_adpcm_decoder.ResetFilter();
     }
 
     s_audio_position += StreamADPCM::ONE_BLOCK_SIZE;
@@ -380,13 +393,14 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
 void Init()
 {
-  _assert_(!IsDiscInside());
+  ASSERT(!IsDiscInside());
 
   DVDThread::Start();
 
   Reset();
   s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
 
+  s_auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
   s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
   s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
@@ -436,10 +450,20 @@ void Shutdown()
   DVDThread::Stop();
 }
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
+void SetDisc(std::unique_ptr<DiscIO::Volume> disc,
+             std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
   if (disc)
     s_current_partition = disc->GetGamePartition();
+
+  if (auto_disc_change_paths)
+  {
+    ASSERT_MSG(DISCIO, (*auto_disc_change_paths).size() != 1,
+               "Cannot automatically change between one disc");
+
+    s_auto_disc_change_paths = *auto_disc_change_paths;
+    s_auto_disc_change_index = 0;
+  }
 
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
@@ -450,9 +474,14 @@ bool IsDiscInside()
   return DVDThread::HasDisc();
 }
 
+static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate)
+{
+  AutoChangeDisc();
+}
+
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  SetDisc(nullptr);
+  SetDisc(nullptr, {});
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
@@ -461,7 +490,7 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
       DiscIO::CreateVolumeFromFilename(s_disc_path_to_insert);
 
   if (new_volume)
-    SetDisc(std::move(new_volume));
+    SetDisc(std::move(new_volume), {});
   else
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
 
@@ -472,6 +501,20 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 void EjectDisc()
 {
   CoreTiming::ScheduleEvent(0, s_eject_disc);
+}
+
+// Must only be called on the CPU thread
+void ChangeDisc(const std::vector<std::string>& paths)
+{
+  ASSERT_MSG(DISCIO, !paths.empty(), "Trying to insert an empty list of discs");
+
+  if (paths.size() > 1)
+  {
+    s_auto_disc_change_paths = paths;
+    s_auto_disc_change_index = 0;
+  }
+
+  ChangeDisc(paths[0]);
 }
 
 // Must only be called on the CPU thread
@@ -488,6 +531,28 @@ void ChangeDisc(const std::string& new_path)
   s_disc_path_to_insert = new_path;
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
   Movie::SignalDiscChange(new_path);
+
+  for (size_t i = 0; i < s_auto_disc_change_paths.size(); ++i)
+  {
+    if (s_auto_disc_change_paths[i] == new_path)
+    {
+      s_auto_disc_change_index = i;
+      return;
+    }
+  }
+
+  s_auto_disc_change_paths.clear();
+}
+
+// Must only be called on the CPU thread
+bool AutoChangeDisc()
+{
+  if (s_auto_disc_change_paths.empty())
+    return false;
+
+  s_auto_disc_change_index = (s_auto_disc_change_index + 1) % s_auto_disc_change_paths.size();
+  ChangeDisc(s_auto_disc_change_paths[s_auto_disc_change_index]);
+  return true;
 }
 
 void SetLidOpen()
@@ -533,7 +598,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    if (s_DISR.BREAK)
                    {
-                     _dbg_assert_(DVDINTERFACE, 0);
+                     DEBUG_ASSERT(0);
                    }
 
                    UpdateInterrupts();
@@ -584,15 +649,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-  if ((s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
-      (s_DISR.BRKINT & s_DISR.BRKINTMASK) || (s_DICVR.CVRINT & s_DICVR.CVRINTMASK))
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, true);
-  }
-  else
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, false);
-  }
+  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
+                        (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
+                        (s_DICVR.CVRINT & s_DICVR.CVRINTMASK);
+
+  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
   // Required for Summoner: A Goddess Reborn
   CoreTiming::ForceExceptionCheck(50);
@@ -825,8 +886,9 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     {
       u64 iDVDOffset = (u64)command_1 << 2;
 
-      INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08" PRIx64
-                             ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
+      INFO_LOG(DVDINTERFACE,
+               "Read: DVDOffset=%08" PRIx64
+               ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
                iDVDOffset, output_address, command_2, output_length);
 
       command_handled_by_thread =
@@ -931,7 +993,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
           s_current_start = s_next_start;
           s_current_length = s_next_length;
           s_audio_position = s_current_start;
-          StreamADPCM::InitFilter();
+          s_adpcm_decoder.ResetFilter();
           s_stream = true;
         }
       }
@@ -948,9 +1010,10 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     switch (command_0 >> 16 & 0xFF)
     {
     case 0x00:  // Returns streaming status
-      INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status "
-                             "AudioPos:%08" PRIx64 "/%08" PRIx64 " "
-                             "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
+      INFO_LOG(DVDINTERFACE,
+               "(Audio): Stream Status: Request Audio status "
+               "AudioPos:%08" PRIx64 "/%08" PRIx64 " "
+               "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
                s_audio_position, s_current_start + s_current_length, s_current_start,
                s_current_length);
       WriteImmediate(s_stream ? 1 : 0, output_address, reply_to_ios);
@@ -958,7 +1021,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     case 0x01:  // Returns the current offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08" PRIx64,
                s_audio_position);
-      WriteImmediate(static_cast<u32>(s_audio_position >> 2), output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>((s_audio_position & 0xffffffffffff8000ull) >> 2),
+                     output_address, reply_to_ios);
       break;
     case 0x02:  // Returns the start offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08" PRIx64,
@@ -979,36 +1043,40 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   break;
 
   case DVDLowStopMotor:
+  {
     INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", command_1 ? "eject" : "",
              command_2 ? "kill!" : "");
 
-    if (command_1 && !command_2)
+    const bool force_eject = command_1 && !command_2;
+
+    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
+        DVDThread::IsInsertedDiscRunning() && !s_auto_disc_change_paths.empty())
+    {
+      CoreTiming::ScheduleEvent(force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2,
+                                s_auto_change_disc);
+      OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
+    }
+    else if (force_eject)
+    {
       EjectDiscCallback(0, 0);
+    }
     break;
+  }
 
   // DVD Audio Enable/Disable (Immediate). GC uses this, and apparently Wii also does...?
   case DVDLowAudioBufferConfig:
-    // For more information: http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm (dead link?)
-    //
-    // Upon Power up or reset , 2 commands must be issued for proper use of audio streaming:
-    // DVDReadDiskID A8000040,00000000,00000020
-    // DVDLowAudioBufferConfig E4xx00yy,00000000,00000020
-    //
-    // xx=byte 8 [0 or 1] from the disk header retrieved from DVDReadDiskID
-    // yy=0 (if xx=0) or 0xA (if xx=1)
+    // The IPL uses this command to enable or disable DTK audio depending on the value of byte 0x8
+    // in the disc header. See http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm for more info.
+    // The link is dead, but you can access the page using the Wayback Machine at archive.org.
+
+    // TODO: Dolphin doesn't prevent the game from using DTK when the IPL doesn't enable it.
+    // Should we be failing with an error code when the game tries to use the 0xE1 command?
+    // (Not that this should matter normally, since games that use DTK set the header byte to 1)
 
     if ((command_0 >> 16) & 0xFF)
-    {
-      // TODO: What is this actually supposed to do?
-      s_stream = true;
-      INFO_LOG(DVDINTERFACE, "(Audio): Audio enabled");
-    }
+      INFO_LOG(DVDINTERFACE, "DTK enabled");
     else
-    {
-      // TODO: What is this actually supposed to do?
-      s_stream = false;
-      INFO_LOG(DVDINTERFACE, "(Audio): Audio disabled");
-    }
+      INFO_LOG(DVDINTERFACE, "DTK disabled");
     break;
 
   // yet another (GC?) command we prolly don't care about
@@ -1125,7 +1193,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
 
   const u64 current_time = CoreTiming::GetTicks();
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
-  const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WII_DISC;
+  const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WiiDisc;
 
   // Where the DVD read head is (usually parked at the end of the buffer,
   // unless we've interrupted it mid-buffer-read).
@@ -1139,7 +1207,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   // The variable dvd_offset tracks the actual offset on the DVD
   // that the disc drive starts reading at, which differs in two ways:
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
-  u64 dvd_offset = DiscIO::VolumeWii::PartitionOffsetToRawOffset(offset, partition);
+  u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
 
   if (SConfig::GetInstance().bFastDiscSpeed)
@@ -1206,7 +1274,9 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   u32 unbuffered_blocks = 0;
 
   const u32 bytes_per_chunk =
-      partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
+      partition != DiscIO::PARTITION_NONE && DVDThread::IsEncryptedAndHashed() ?
+          DiscIO::VolumeWii::BLOCK_DATA_SIZE :
+          DVD_ECC_BLOCK_SIZE;
 
   do
   {
@@ -1295,10 +1365,11 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
                              s_read_buffer_end_offset - s_read_buffer_start_offset, wii_disc));
   }
 
-  DEBUG_LOG(DVDINTERFACE, "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
-                          "ticks=%" PRId64 ", time=%" PRId64 " us",
+  DEBUG_LOG(DVDINTERFACE,
+            "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
+            "ticks=%" PRId64 ", time=%" PRId64 " us",
             unbuffered_blocks, buffered_blocks, ticks_until_completion,
             ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }
 
-}  // namespace
+}  // namespace DVDInterface

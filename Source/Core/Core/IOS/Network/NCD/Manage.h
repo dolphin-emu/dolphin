@@ -10,11 +10,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/Network/NCD/WiiNetConfig.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // Interface for reading and changing network configuration (probably some other stuff as well)
 class NetNCDManage : public Device
@@ -39,6 +35,4 @@ private:
 
   Net::WiiNetConfig config;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

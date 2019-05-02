@@ -15,7 +15,12 @@ class FileInfo;
 struct Partition;
 class Volume;
 
-std::string DirectoryNameForPartitionType(u32 partition_type);
+constexpr u32 PARTITION_DATA = 0;
+constexpr u32 PARTITION_UPDATE = 1;
+constexpr u32 PARTITION_CHANNEL = 2;  // Mario Kart Wii, Wii Fit, Wii Fit Plus, Rabbids Go Home
+constexpr u32 PARTITION_INSTALL = 3;  // Dragon Quest X only
+
+std::string NameForPartitionType(u32 partition_type, bool include_prefix);
 
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
              u8* buffer, u64 max_buffer_size, u64 offset_in_file = 0);
@@ -31,7 +36,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const std::str
 // update_progress is called once for each child (file or directory).
 // If update_progress returns true, the extraction gets cancelled.
 // filesystem_path is supposed to be the path corresponding to the directory argument.
-void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
                      bool recursive, const std::string& filesystem_path,
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress);
