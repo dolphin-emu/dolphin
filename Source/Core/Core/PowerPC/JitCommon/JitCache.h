@@ -141,7 +141,7 @@ public:
   bool ThanosEval(const u8*, size_t);
   JitBlock* DupJitBlock(u32, u32);
   void Reset();
-  void New_Clear();
+  void New_Clear(std::multimap<u32, u32>& address_and_code);
   void Profile_block_map(std::multimap<u32, u32>& address_and_code);
   u32 hot_score(JitBlock e);
 

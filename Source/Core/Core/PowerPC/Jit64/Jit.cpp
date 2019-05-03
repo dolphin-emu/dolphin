@@ -250,7 +250,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
     PanicAlert("BackPatch: no register use entry for address %p", codePtr);
     return false;
   }
-  
+
   TrampolineInfo& info = it->second;
 
   u8* exceptionHandler = nullptr;
@@ -380,13 +380,17 @@ void Jit64::Init()
 
 void Jit64::ClearCache()
 {
-  blocks.Clear();
+  std::multimap<u32, u32> address_and_code;
+  blocks.New_Clear(address_and_code);
   trampolines.ClearCodeSpace();
   m_far_code.ClearCodeSpace();
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
+  for(auto& e: address_and_code){
+    Jit(e.first);
+  }
 }
 
 void Jit64::CLEAR2()

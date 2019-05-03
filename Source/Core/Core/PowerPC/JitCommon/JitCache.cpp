@@ -71,34 +71,34 @@ u32 JitBaseBlockCache::hot_score(JitBlock e)
   return (0.1) * hotness + (1 - 0.1) * e.profile_data.old_hotness;
 } 
 
-void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code){
+void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code)
+{
   std::multimap<u64, u32> sorted_heat;
   u64 hotness;
   u64 CC_size = block_map.size();
   JitBlock b;
 
   for (auto& e : block_map)
-    {
-      hotness = hot_score(e.second);
-      sorted_heat.insert(std::pair<u64, u32>(hotness, e.first));
+  {
+    hotness = hot_score(e.second);
+    sorted_heat.insert(std::pair<u64, u32>(hotness, e.first));
+  }
+  while (1)
+  {
+    if( sorted_heat.size() <= CC_size / 4){
+      break;
     }
-    while (1){
-      if( sorted_heat.size() <= CC_size / 4){
-        break;
-      }
-      sorted_heat.erase(sorted_heat.begin()->first);
-    }
-    //does b do what I want??? I have no idea
-    for (auto& e : sorted_heat){
-      b = block_map.find(e.second)->second;
-      address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
-    }
+    sorted_heat.erase(sorted_heat.begin()->first);
+  }
+  //does b do what I want??? I have no idea
+  for (auto& e : sorted_heat){
+    b = block_map.find(e.second)->second;
+    address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
+  }
 }
 
-void JitBaseBlockCache::New_Clear()
+void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
 {
- 
-
   #if defined(_DEBUG) || defined(DEBUGFAST)
   Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
@@ -107,6 +107,8 @@ void JitBaseBlockCache::New_Clear()
 
   //insert blocks by heat for sorting
   //TODO CALL Profile
+  Profile_block_map(address_and_code);
+
   for (auto& e : block_map)
   {
     DestroyBlock(e.second);
