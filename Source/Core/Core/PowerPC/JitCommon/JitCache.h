@@ -14,15 +14,11 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/Core/PowerPC/Jit64/Jit.h"
 
 class JitBase;
 
-class Code_Address
-{
-  public:
-    char code_buffer[10000000];
-    u32 emu_address;
-};
+
 
 // A JitBlock is block of compiled code which corresponds to the PowerPC
 // code at a given address.
@@ -137,6 +133,8 @@ public:
   void Clear();
   void Reset();
   void New_Clear();
+  void Profile_block_map(std::multimap<u32, u32>& address_and_code);
+  u32 hot_score(JitBlock e);
 
   // Code Cache
   JitBlock** GetFastBlockMap();
