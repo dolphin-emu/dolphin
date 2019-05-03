@@ -760,8 +760,8 @@ void Jit64::Jit(u32 em_address)
     printf("FLUSHING CODE CACHE--------------\n");
     printf("---------------------------------\n\n");
     
-    //ClearCache();
-    CLEAR2();
+    ClearCache();
+    //CLEAR2();
   }
 
   std::size_t block_size = m_code_buffer.size();
