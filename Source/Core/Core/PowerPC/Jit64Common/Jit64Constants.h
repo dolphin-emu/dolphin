@@ -20,6 +20,5 @@ constexpr Gen::X64Reg RMEM = Gen::RBX;
 // RPPCSTATE points to ppcState + 0x80.  It's offset because we want to be able
 // to address as much as possible in a one-byte offset form.
 constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
-
 constexpr size_t CODE_SIZE = 1024 * 1024 * 7;
 //constexpr size_t CODE_SIZE = 1024 * 1024 * 32;

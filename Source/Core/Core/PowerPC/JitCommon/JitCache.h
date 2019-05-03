@@ -129,6 +129,8 @@ public:
   static constexpr u32 FAST_BLOCK_MAP_ELEMENTS = 0x10000;
   static constexpr u32 FAST_BLOCK_MAP_MASK = FAST_BLOCK_MAP_ELEMENTS - 1;
 
+  static constexpr size_t HOT_CODE_RATIO = 2;
+
   explicit JitBaseBlockCache(JitBase& jit);
   virtual ~JitBaseBlockCache();
 
@@ -136,6 +138,7 @@ public:
   void Shutdown();
   void Clear();
   void Clear2();
+
 
   bool ThanosEval(const u8*, size_t);
   JitBlock* DupJitBlock(u32, u32);

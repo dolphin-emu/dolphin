@@ -34,6 +34,7 @@
 
 using namespace Gen;
 
+
 bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
 {
   return physical_addresses.lower_bound(address) !=
@@ -68,7 +69,7 @@ u32 JitBaseBlockCache::hot_score(JitBlock e)
   u32 hotness;
   hotness = (u64) ((e.profile_data.runCount*1000)/
                             (e.profile_data.ticStop - e.profile_data.ticStart));
-  return (0.1) * hotness + (1 - 0.1) * e.profile_data.old_hotness;
+  return (0.1) * e.profile_data.old_hotness + (1 - 0.1) * hotness;
 } 
 
 void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code)
@@ -85,12 +86,12 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
   }
   while (1)
   {
-    if( sorted_heat.size() <= CC_size / 4){
+    if( sorted_heat.size() <= CC_size / HOT_CODE_RATIO){
       break;
     }
     sorted_heat.erase(sorted_heat.begin()->first);
   }
-  //does b do what I want??? I have no idea
+  
   for (auto& e : sorted_heat){
     b = block_map.find(e.second)->second;
     address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
