@@ -148,6 +148,7 @@ add_library(core
   HW/WiimoteEmu/Extension/Nunchuk.cpp
   HW/WiimoteEmu/Extension/Drums.cpp
   HW/WiimoteEmu/Extension/Guitar.cpp
+  HW/WiimoteEmu/Extension/TaTaCon.cpp
   HW/WiimoteEmu/Extension/Turntable.cpp
   HW/WiimoteEmu/Extension/UDrawTablet.cpp
   HW/WiimoteReal/WiimoteReal.cpp

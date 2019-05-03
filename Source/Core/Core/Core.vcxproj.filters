@@ -904,6 +904,9 @@
     <ClCompile Include="HW\WiimoteEmu\Extension\Nunchuk.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\TaTaCon.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\Extension\Turntable.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClCompile>
@@ -1620,6 +1623,9 @@
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Extension\Nunchuk.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\TaTaCon.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Extension\Turntable.h">
