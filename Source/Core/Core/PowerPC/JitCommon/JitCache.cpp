@@ -73,6 +73,7 @@ void JitBaseBlockCache::Clear()
 //    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
  //          e.second.profile_data.runCount*1000 /
   //             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
+    printf("BLOCK INDEX:\t%d\t%x\t%x\tSize:\t%x\n", e.second.rSize, e.second.effectiveAddress, e.second.start, e.second.codeSize);
     DestroyBlock(e.second);
   }
   block_map.clear();
@@ -82,6 +83,56 @@ void JitBaseBlockCache::Clear()
   valid_block.ClearAll();
 
   fast_block_map.fill(nullptr);
+}
+
+bool JitBaseBlockCache::ThanosEval(const u8* r, size_t code_size)
+{
+  auto MID = r + code_size/2;
+  //u32 tmpHot
+  u32 UpperHotness = 0;
+  u32 UpperCount = 0;
+  u32 LowerHotness = 0;
+  u32 LowerCount = 0;
+  for(const auto& e: block_map)
+  {
+    //tmpHot = e.second.profile_data.runCount*1000 / (e.second.profile_data.ticStop - e.second.profile_data.ticStart);
+    if(e.second.start + e.second.codeSize >= MID)
+    {
+      UpperCount++;
+      //UpperHotness+=
+
+    }
+ //          e.second.profile_data.runCount*1000 /
+  //             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
+  }
+}
+
+
+/*
+JitBlock* JitBaseBlockCache::DupJitBlock(u32 em_address, u32 msr)
+{
+  JitBlock* tmp =  GetBlockFromStartAddress(em_address, msr);
+  void * ptr = malloc(sizeof(*tmp));
+  memccpy(ptr, tmp, 1, sizeof(*tmp));
+  return (JitBlock*)ptr;
+}
+*/
+
+void JitBaseBlockCache::Clear2()
+{
+  printf("Entering Clear2()\n");
+  //Copy hot blocks into buffer
+  /*void* ptr;
+  for (const auto& e : block_map)
+  {
+    ptr = malloc(sizeof(e.second));
+    memccpy(ptr, &e.second, 1, sizeof(e.second));
+    break;
+  }
+  */
+
+  //Clear cache
+  Clear();
 }
 
 void JitBaseBlockCache::Reset()

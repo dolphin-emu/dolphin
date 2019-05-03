@@ -326,7 +326,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
 
   return true;
 }
-
+int BLOCKNUM = 0;
 void Jit64::Init()
 {
   printf("Entering Jit64::Init()\n");
@@ -391,7 +391,23 @@ void Jit64::ClearCache()
 
 void Jit64::CLEAR2()
 {
+  blocks.Clear2();
+  printf("REGION START:%20x\n", region);
+  printf("REGION START + Size:%13x\n", region + CODE_SIZE);
+  printf("CODE PTR:%24x\n", GetCodePtr());
+  //blocks.Clear();
+  //if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
 
+  if(trampolines.IsAlmostFull())
+    trampolines.ClearCodeSpace();
+
+  if(m_far_code.IsAlmostFull())
+    m_far_code.ClearCodeSpace();
+
+  m_const_pool.Clear();
+  ClearCodeSpace();
+  Clear();
+  UpdateMemoryOptions();
 }
 
 void Jit64::Shutdown()
@@ -740,7 +756,8 @@ void Jit64::Jit(u32 em_address)
     printf("FLUSHING CODE CACHE--------------\n");
     printf("---------------------------------\n\n");
     
-    ClearCache();
+    //ClearCache();
+    CLEAR2();
   }
 
   std::size_t block_size = m_code_buffer.size();
@@ -1082,9 +1099,11 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     fpr.Flush();
     WriteExit(nextPC);
   }
-
+  //printf("GetCodePtr():\t%x\n", GetCodePtr());
+  b->start = start;
   b->codeSize = (u32)(GetCodePtr() - start);
   b->originalSize = code_block.m_num_instructions;
+  b->rSize = BLOCKNUM++;
 
 #ifdef JIT_LOG_GENERATED_CODE
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);

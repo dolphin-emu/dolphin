@@ -28,6 +28,8 @@ struct JitBlock
 {
   bool OverlapsPhysicalRange(u32 address, u32 length) const;
 
+  bool hot;
+
   // A special entry point for block linking; usually used to check the
   // downcount.
   u8* checkedEntry;
@@ -49,6 +51,9 @@ struct JitBlock
   // The number of PPC instructions represented by this block. Mostly
   // useful for logging.
   u32 originalSize;
+
+  u64 rSize;
+  u8* start;
 
   // Information about exits to a known address from this block.
   // This is used to implement block linking.
@@ -127,6 +132,10 @@ public:
   void Init();
   void Shutdown();
   void Clear();
+  void Clear2();
+
+  bool ThanosEval(const u8*, size_t);
+  JitBlock* DupJitBlock(u32, u32);
   void Reset();
 
   // Code Cache
