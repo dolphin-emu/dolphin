@@ -82,7 +82,7 @@ using namespace PowerPC;
 // Alternatively, icbi instruction SHOULD mark where we can't compile
 //
 // Seldom-happening events is handled by adding a decrement of a counter to all blr instructions
-// (which are
+// which are
 // expensive anyway since we need to return to dispatcher, except when they can be predicted).
 
 // TODO: SERIOUS synchronization problem with the video backend setting tokens and breakpoints in

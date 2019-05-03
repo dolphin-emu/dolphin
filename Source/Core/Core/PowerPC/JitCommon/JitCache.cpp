@@ -97,6 +97,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
   i = 0;
   for (auto& e : sorted_heat){
     hot_hotness += e.first;
+    i++;
     b = block_map.find(e.second)->second;
     //printf("effective address: 0x%x\n", b.effectiveAddress);
     address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, e.first));
