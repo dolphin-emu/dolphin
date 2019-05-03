@@ -33,8 +33,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-26 11:59+0200\n"
-"PO-Revision-Date: 2019-04-26 10:00+0000\n"
+"POT-Creation-Date: 2019-05-03 13:47+0200\n"
+"PO-Revision-Date: 2019-05-03 11:47+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: German (http://www.transifex.com/delroth/dolphin-emu/language/"
 "de/)\n"
@@ -51,6 +51,10 @@ msgid ""
 "Because GameCube disc images contain little verification data, there may be "
 "problems that Dolphin is unable to detect."
 msgstr ""
+"\n"
+"\n"
+"Da GameCube-Disc-Images nur wenige Überprüfungsdaten enthalten, könnten "
+"Probleme auftreten, die Dolphin nicht erkennen kann."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:897
 msgid ""
@@ -59,6 +63,10 @@ msgid ""
 "Because this title is not for retail Wii consoles, Dolphin cannot verify "
 "that it hasn't been tampered with."
 msgstr ""
+"\n"
+"\n"
+"Da dieser Titel nicht für Retail-Wii-Konsolen bestimmt ist, kann Dolphin "
+"nicht nachweisen, dass er nicht modifiziert wurde."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1064
 msgid ""
@@ -116,9 +124,11 @@ msgstr ""
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" ist keine gültige GCM/ISO-Datei oder kein GC/Wii-Image."
 
+#. i18n: The symbol for percent.
 #. i18n: The percent symbol.
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:190
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:196
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:69
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:194
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:200
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:34
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:28
 msgid "%"
@@ -203,7 +213,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:994
 msgid "%1 is now golfing"
-msgstr ""
+msgstr "%1 golft jetzt"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:207
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:264
@@ -346,12 +356,12 @@ msgstr ""
 "%s konnte nicht als Memory Card geladen werden.\n"
 "Die Dateigröße ist für eine Memory Card zu klein (0x%x bytes)"
 
-#: Source/Core/Core/NetPlayServer.cpp:1107
+#: Source/Core/Core/NetPlayServer.cpp:1108
 #, c-format
 msgid "%s failed to synchronize codes."
 msgstr "%skonnte Codes nicht synchroniseren."
 
-#: Source/Core/Core/NetPlayServer.cpp:1064
+#: Source/Core/Core/NetPlayServer.cpp:1065
 #, c-format
 msgid "%s failed to synchronize."
 msgstr "%skonnte nicht synchronisert werden."
@@ -388,7 +398,7 @@ msgstr "&Speicherhaltepunkt hinzufügen"
 msgid "&Add New Code..."
 msgstr "Neuen Code &hinzufügen..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:247
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:248
 msgid "&Add function"
 msgstr "Funktion &hinzufügen"
 
@@ -448,7 +458,7 @@ msgstr "&Code"
 msgid "&Controller Settings"
 msgstr "&Controller-Einstellungen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:226
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:227
 msgid "&Copy address"
 msgstr "Adresse &kopieren"
 
@@ -520,7 +530,7 @@ msgstr "&Tastenkürzel-Einstellungen"
 msgid "&Import..."
 msgstr "&Importieren..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:249
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:250
 msgid "&Insert blr"
 msgstr "blr &einfügen"
 
@@ -597,7 +607,7 @@ msgstr "Entfe&rnen"
 msgid "&Remove Code"
 msgstr "Code entfe&rnen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:238
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:239
 msgid "&Rename symbol"
 msgstr "Symbol &umbenennen"
 
@@ -677,7 +687,7 @@ msgstr "(ppc)"
 msgid "+ ADD"
 msgstr "+ HINZUF."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:154
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:155
 msgid "--> %1"
 msgstr "--> %1"
 
@@ -725,7 +735,7 @@ msgstr "32-Bit Integer"
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:293
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:23
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:349
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:347
 msgid "3D"
 msgstr "3D"
 
@@ -877,7 +887,7 @@ msgid "AR Codes"
 msgstr "AR Codes"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:106
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:123
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
 msgid "ASCII"
 msgstr "ASCII"
 
@@ -1047,9 +1057,9 @@ msgstr "Hinzufügen..."
 msgid "Address"
 msgstr "Adresse"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:573
-msgid "Address Out of Range"
-msgstr "Adresse außerhalb des Bereichs"
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:116
+msgid "Address Space"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:43
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:135
@@ -1143,11 +1153,11 @@ msgstr "Alle Speicherstände (*.sav *.s##);; Alle Dateien (*)"
 msgid "All devices"
 msgstr "Alle Geräte"
 
-#: Source/Core/Core/NetPlayServer.cpp:1095
+#: Source/Core/Core/NetPlayServer.cpp:1096
 msgid "All players' codes synchronized."
 msgstr "Alle Codes der Spieler synchronisiert."
 
-#: Source/Core/Core/NetPlayServer.cpp:1051
+#: Source/Core/Core/NetPlayServer.cpp:1052
 msgid "All players' saves synchronized."
 msgstr "Alle Spielstände der Spieler synchronisiert."
 
@@ -1166,6 +1176,16 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked. "
 msgstr ""
+"Diese Einstellung erlaubt es, die Kamera im Spiel zu bewegen. Halte die "
+"rechte Maustaste gedrückt und bewege die Maus, um die Kamera zu schwenken "
+"oder halte die mittlere Maustaste gedrückt, um sie zu bewegen.\n"
+"\n"
+"Halte die Umschalt-Taste und drücke eine der WASD-Tasten, um die Kamera eine "
+"bestimmte Entfernung zu bewegen (Umschalt+2, um sie schneller zu bewegen und "
+"Umschalt+1, um sie langsamer zu bewegen). Drücke Umschalt+R, um die Kamera "
+"zurückzusetzen und Umschalt+F, um die Geschwindigkeit zurückzusetzen.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
@@ -1295,9 +1315,9 @@ msgstr "Controller-Ports zuweisen"
 msgid "Assign Controllers"
 msgstr "Controller zuweisen"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:169
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:173
 msgid "Attach MotionPlus"
-msgstr ""
+msgstr "MotionPlus anfügen"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:39
 msgid "Audio"
@@ -1365,6 +1385,11 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
+#. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:124
+msgid "Auxiliary"
+msgstr ""
+
 #. i18n: The symbol for the unit "bytes"
 #: Source/Core/UICommon/UICommon.cpp:429
 msgid "B"
@@ -1401,11 +1426,11 @@ msgstr "Hintergrundeingabe"
 msgid "Backward"
 msgstr "Rückwärts"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:404
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:466
 msgid "Bad address provided."
 msgstr "Unzulässige Adresse angegeben."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:428
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:492
 msgid "Bad value provided."
 msgstr "Unzulässigen Wert angegeben."
 
@@ -1436,11 +1461,11 @@ msgstr "Standard"
 msgid "Basic Settings"
 msgstr "Grundeinstellungen"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:39
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:38
 msgid "Bass"
 msgstr "Bass"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:194
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:198
 msgid "Battery"
 msgstr "Batterie"
 
@@ -1452,7 +1477,7 @@ msgstr "Beta (einmal im Monat)"
 msgid "Blocks"
 msgstr "Blöcke"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:36
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:35
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:51
 msgid "Blue"
 msgstr "Blau"
@@ -1562,24 +1587,26 @@ msgstr "Taste"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:55
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:78
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:63
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:77
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:82
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:37
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:51
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:139
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:37
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:141
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:25
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:41
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:76
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:111
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:140
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:160
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:45
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:79
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:107
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:142
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:162
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:194
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:33
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:76
 msgid "Buttons"
 msgstr "Tasten"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:74
-#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:30
+#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:32
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:27
 msgid "C Stick"
 msgstr "C-Stick"
@@ -1602,7 +1629,7 @@ msgstr "CPU-Optionen"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:54
 msgid "CRC32:"
-msgstr ""
+msgstr "CRC32:"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:47
 msgid "Cached Interpreter (slower)"
@@ -1642,11 +1669,11 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:720
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:731
 msgid "Calibrate"
 msgstr "Kalibrieren"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:712
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:723
 msgid "Calibration"
 msgstr "Kalibrierung"
 
@@ -1654,7 +1681,7 @@ msgstr "Kalibrierung"
 msgid "Callstack"
 msgstr "Aufrufstapel"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1764
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1774
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "Kann Wiimote bei Verbindungs-Handle %02x nicht finden"
@@ -1669,7 +1696,7 @@ msgstr "Du kannst keine NetPlay-Session starten, während ein Spiel noch läuft!
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:746
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:757
 msgid "Cancel Calibration"
 msgstr "Kalibrierung abbrechen"
 
@@ -1684,11 +1711,11 @@ msgstr ""
 "Kann dieses WAD nicht booten, da es nicht auf dem NAND installiert werden "
 "konnte."
 
-#: Source/Core/Core/Boot/Boot.cpp:482
+#: Source/Core/Core/Boot/Boot.cpp:486
 msgid "Cannot find the GC IPL."
 msgstr "Kann die GC IPL nicht finden."
 
-#: Source/Core/Core/Boot/Boot.cpp:480
+#: Source/Core/Core/Boot/Boot.cpp:484
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr ""
 "Kann das Spiel nicht starten, da die GC IPL nicht gefunden werden konnte."
@@ -1702,6 +1729,12 @@ msgstr ""
 "Diese Datei kann nicht als Memory Card verwendet werden.\n"
 "%1\n"
 "ist keine gültige GameCube Memory Card Datei."
+
+#. i18n: Refers to the "center" of a TaTaCon drum.
+#: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:42
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:212
+msgid "Center"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:313
 msgid "Change &Disc"
@@ -1718,10 +1751,6 @@ msgstr "Disc wechseln"
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:141
 msgid "Change Discs Automatically"
 msgstr "Discs automatisch wechseln"
-
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:468
-msgid "Change instruction"
-msgstr "Anweisung ändern"
 
 #: Source/Core/Core/Movie.cpp:1190
 #, c-format
@@ -1772,7 +1801,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:153
 msgid "Checksum"
-msgstr ""
+msgstr "Prüfsumme"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:250
 msgid "China"
@@ -1794,15 +1823,12 @@ msgstr "Sekundäre Eingabedatei auswählen"
 msgid "Choose the folder to extract to"
 msgstr "Ordner zum Extrahieren auswählen"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:75
-msgid "Classic"
-msgstr "Klassik"
-
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:242
 msgid "Classic Buttons"
 msgstr "Klassische Tasten"
 
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:38
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:75
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:42
 msgid "Classic Controller"
 msgstr "Klassischer Controller"
 
@@ -1837,7 +1863,7 @@ msgstr "Code"
 msgid "Code:"
 msgstr "Code:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1535
+#: Source/Core/Core/NetPlayClient.cpp:1558
 msgid "Codes received!"
 msgstr "Codes empfangen!"
 
@@ -1991,16 +2017,16 @@ msgstr "Durchgehendes Suchen"
 
 #: Source/Core/Core/HotkeyManager.cpp:35
 msgid "Control NetPlay Golf Mode"
-msgstr ""
+msgstr "NetPlay Golf-Modus steuern"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:70
-#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:28
+#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:30
 msgid "Control Stick"
 msgstr "Control Stick"
 
 #: Source/Core/Core/HotkeyManager.cpp:288
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:346
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:344
 msgid "Controller Profile"
 msgstr "Controller-Profil"
 
@@ -2089,23 +2115,23 @@ msgstr "Konvergenz:"
 msgid "Copy"
 msgstr "Kopieren"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:228
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:229
 msgid "Copy &function"
 msgstr "&Funktion kopieren"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:231
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:232
 msgid "Copy &hex"
 msgstr "&Hex kopieren"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:361
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:387
 msgid "Copy Address"
 msgstr "Adresse kopieren"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:363
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:389
 msgid "Copy Hex"
 msgstr "Hex kopieren"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:230
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:231
 msgid "Copy code &line"
 msgstr "Codezei&le kopieren"
 
@@ -2287,7 +2313,7 @@ msgstr ""
 "Im Zweifel deaktiviert lassen."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:81
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:179
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:181
 msgid "Crossfade"
 msgstr "Überblendung"
 
@@ -2297,7 +2323,7 @@ msgstr "Aktuelle Region"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:154
 msgid "Current game"
-msgstr ""
+msgstr "Aktuelles Spiel"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:61
 msgid "Custom"
@@ -2309,12 +2335,17 @@ msgstr "Benutzerdefinierte Echtzeituhr"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:95
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:102
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:177
-#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:32
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:53
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:181
+#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:27
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:48
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:36
 msgid "D-Pad"
 msgstr "D-Pad"
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:48
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:155
+msgid "DJ Turntable"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "DK Bongos"
@@ -2349,11 +2380,11 @@ msgstr "Daten"
 msgid "Data Transfer"
 msgstr "Datentransfer"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:116
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
 msgid "Data Type"
 msgstr "Datentyp"
 
-#: Source/Core/Core/NetPlayClient.cpp:1493
+#: Source/Core/Core/NetPlayClient.cpp:1516
 msgid "Data received!"
 msgstr "Daten empfangen!"
 
@@ -2371,7 +2402,7 @@ msgid "Debug Only"
 msgstr "Nur Fehlersuche"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:44
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:343
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:341
 msgid "Debugging"
 msgstr "Debug"
 
@@ -2643,7 +2674,7 @@ msgstr "Distanz"
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:33
 msgid "Distance of travel from neutral position."
-msgstr ""
+msgstr "Weite der Bewegung von der neutralen Position."
 
 #: Source/Core/DolphinQt/Main.cpp:195
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
@@ -2723,10 +2754,12 @@ msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
 msgstr ""
+"Dolphin kann typische TGC-Dateien nicht ordnungsgemäß überprüfen, da sie "
+"sich nicht um Dumps der tatsächlichen Discs handeln."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:849
 msgid "Dolphin is unable to verify unlicensed discs."
-msgstr ""
+msgstr "Dolphin kann nicht lizenzierte Discs nicht überprüfen."
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:74
 msgid "Dolphin's cheat system is currently disabled."
@@ -2749,7 +2782,7 @@ msgstr "Double"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:79
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:20
 msgid "Down"
 msgstr "Unten"
 
@@ -2777,10 +2810,10 @@ msgstr "%1 Codes heruntergeladen. (%2 hinzugefügt)"
 msgid "Drawn Object Range"
 msgstr "Darstellungsreichweite von Objekten"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:47
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:67
-msgid "Drums"
-msgstr "Trommeln"
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:55
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:70
+msgid "Drum Kit"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:210
 msgid "Dual Core"
@@ -2792,6 +2825,10 @@ msgid "Dummy"
 msgstr "Dummy"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:96
+msgid "Dump &ARAM"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:95
 msgid "Dump &ExRAM"
 msgstr "&ExRAM dumpen"
 
@@ -2799,7 +2836,7 @@ msgstr "&ExRAM dumpen"
 msgid "Dump &FakeVMEM"
 msgstr "&FakeVMEM dumpen"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:95
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:94
 msgid "Dump &MRAM"
 msgstr "&MRAM dumpen"
 
@@ -2933,9 +2970,15 @@ msgid "Editor"
 msgstr "Editor"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:78
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:164
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:166
 msgid "Effect"
 msgstr "Effekt"
+
+#. i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
+#. translation via the MMU to physical addresses.
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:122
+msgid "Effective"
+msgstr ""
 
 #: Source/Core/UICommon/UICommon.cpp:430
 msgid "EiB"
@@ -2953,7 +2996,7 @@ msgstr "Eingebetteter Bildspeicher (EFB)"
 msgid "Empty"
 msgstr "Leer"
 
-#: Source/Core/Core/Core.cpp:199
+#: Source/Core/Core/Core.cpp:196
 msgid "Emu Thread already running"
 msgstr "Emu-Thread läuft bereits."
 
@@ -3170,7 +3213,7 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
-#: Source/Core/Core/NetPlayServer.cpp:108
+#: Source/Core/Core/NetPlayServer.cpp:109
 msgid "Enet Didn't Initialize"
 msgstr "Enet konnte nicht initialisiert werden"
 
@@ -3217,11 +3260,11 @@ msgstr "Ist gleich"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:167
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:208
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:224
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:404
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:410
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:428
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:461
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:468
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:466
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:472
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:492
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:525
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:532
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:141
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:87
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:311
@@ -3250,7 +3293,7 @@ msgstr "Ist gleich"
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:938
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:321
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:327
-#: Source/Core/DolphinQt/RenderWidget.cpp:117
+#: Source/Core/DolphinQt/RenderWidget.cpp:124
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:200
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:221
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:219
@@ -3268,34 +3311,34 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:203
 msgid "Error obtaining session list: %1"
-msgstr ""
+msgstr "Fehler beim Abrufen der Sitzungsliste: %1"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:243
 msgid "Error occured while loading some texture packs"
 msgstr "Fehler beim Laden einiger Texturenpakete"
 
-#: Source/Core/Core/NetPlayClient.cpp:1522
+#: Source/Core/Core/NetPlayClient.cpp:1545
 msgid "Error processing codes."
 msgstr "Fehler beim Verarbeiten der Codes."
 
-#: Source/Core/Core/NetPlayClient.cpp:1494
+#: Source/Core/Core/NetPlayClient.cpp:1517
 msgid "Error processing data."
 msgstr "Fehler beim Verarbeiten der Daten."
 
-#: Source/Core/Core/NetPlayServer.cpp:1769
+#: Source/Core/Core/NetPlayServer.cpp:1792
 #, c-format
 msgid "Error reading file: %s"
 msgstr "Fehler beim Lesen der Datei: %s"
 
-#: Source/Core/Core/NetPlayServer.cpp:1236
+#: Source/Core/Core/NetPlayServer.cpp:1237
 msgid "Error synchronizing cheat codes!"
 msgstr "Fehler beim Synchronisieren der Cheat Codes!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1223
+#: Source/Core/Core/NetPlayServer.cpp:1224
 msgid "Error synchronizing save data!"
 msgstr "Fehler beim Synchronisieren der Spielstände!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1585
+#: Source/Core/Core/NetPlayClient.cpp:1608
 #, c-format
 msgid "Error writing file: %s"
 msgstr "Fehler beim Schreiben der Datei: %s"
@@ -3330,12 +3373,13 @@ msgstr ""
 #: Source/Core/DiscIO/VolumeVerifier.cpp:823
 #, c-format
 msgid "Errors were found in %zu blocks in the %s partition."
-msgstr ""
+msgstr "Es wurden Fehler gefunden in den Blöcken %zu der Partition %s."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:835
 #, c-format
 msgid "Errors were found in %zu unused blocks in the %s partition."
 msgstr ""
+"Es wurden Fehler gefunden in den unbenutzten Blöcken %zu der Partition %s."
 
 #. i18n: This button name refers to a gameplay element in DJ Hero
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:63
@@ -3389,8 +3433,8 @@ msgstr "Wii-Spielstände exportieren (experimentell)"
 msgid "Exported %n save(s)"
 msgstr "%n Spielstand/stände exportiert"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:161
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:332
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:163
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:330
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:46
 msgid "Extension"
 msgstr "Erweiterung"
@@ -3442,7 +3486,7 @@ msgstr "FIFO-Player"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:383
 msgid "Failed to add this session to the NetPlay index: %1"
-msgstr ""
+msgstr "Konnte diese Sitzung nicht zum NetPlay Index hinzufügen: %1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1358
 msgid "Failed to append to signature file '%1'"
@@ -3460,12 +3504,12 @@ msgstr "Konnte nicht mit Server %1 verbinden"
 msgid "Failed to copy file"
 msgstr "Konnte Datei nicht kopieren"
 
-#: Source/Core/VideoBackends/D3D/main.cpp:103
+#: Source/Core/VideoBackends/D3D/main.cpp:122
 #: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:120
 msgid "Failed to create D3D swap chain"
 msgstr "Fehler beim Erstellen der D3D-Swap-Kette"
 
-#: Source/Core/VideoBackends/D3D/D3DBase.cpp:79
+#: Source/Core/VideoBackends/D3D/D3DBase.cpp:56
 msgid "Failed to create DXGI factory"
 msgstr "Fehler beim Erstellen der DXGI-Factory"
 
@@ -3488,11 +3532,11 @@ msgstr "Fehler beim Lösen des Kernel-Treibers für BT-Durchleitung: %s"
 msgid "Failed to download codes."
 msgstr "Download der Codes fehlgeschlagen."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:462
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:526
 msgid "Failed to dump %1: Can't open file"
 msgstr "Konnte %1 nicht dumpen: Fehler beim Öffnen der Datei"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:469
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:533
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "Konnte %1 nicht dumpen: Fehler beim Schreiben in Datei"
 
@@ -3539,7 +3583,7 @@ msgstr "Konnte Spielstände nicht importieren."
 msgid "Failed to init core"
 msgstr "Konnte Kern nicht initiieren"
 
-#: Source/Core/VideoBackends/D3D/D3DBase.cpp:136
+#: Source/Core/VideoBackends/D3D/D3DBase.cpp:113
 msgid ""
 "Failed to initialize Direct3D.\n"
 "Make sure your video card supports at least D3D 10.0"
@@ -3577,7 +3621,7 @@ msgstr ""
 msgid "Failed to load RSO module at %1"
 msgstr "Konnte RSO-Modul an %1 nicht laden"
 
-#: Source/Core/VideoBackends/D3D/D3DBase.cpp:65
+#: Source/Core/VideoBackends/D3D/D3DBase.cpp:42
 msgid "Failed to load d3d11.dll"
 msgstr "Fehler beim Laden der Datei d3d11.dll"
 
@@ -3589,12 +3633,12 @@ msgstr "Fehler beim Laden der Datei dxgi.dll"
 msgid "Failed to load map file '%1'"
 msgstr "Konnte Kartendatei '%1' nicht laden"
 
-#: Source/Core/Core/Boot/Boot.cpp:423
+#: Source/Core/Core/Boot/Boot.cpp:427
 msgid "Failed to load the executable to memory."
 msgstr "Konnte die ausführbare Datei nicht in den Speicher laden."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1433
-#: Source/Core/DolphinQt/RenderWidget.cpp:117
+#: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
 msgstr "Konnte '&1' nicht öffnen"
 
@@ -3607,12 +3651,12 @@ msgstr "Fehler beim Öffnen des Bluetooth-Geräts: %s"
 msgid "Failed to open config file!"
 msgstr "Konnte Einstellungsdatei nicht öffnen!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1735
+#: Source/Core/Core/NetPlayServer.cpp:1758
 #, c-format
 msgid "Failed to open file \"%s\"."
 msgstr "Konnte Datei \"%s\" nicht öffnen."
 
-#: Source/Core/Core/NetPlayClient.cpp:1555
+#: Source/Core/Core/NetPlayClient.cpp:1578
 #, c-format
 msgid "Failed to open file \"%s\". Verify your write permissions."
 msgstr ""
@@ -3762,7 +3806,11 @@ msgstr "Konnte Paket: %1 nicht deinstallieren"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Fehler beim Schreiben von BT.DINF nach SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:967
+#: Source/Core/Core/NetPlayClient.cpp:909
+msgid "Failed to write Mii data."
+msgstr ""
+
+#: Source/Core/Core/NetPlayClient.cpp:990
 msgid "Failed to write Wii save."
 msgstr "Konnte Wii-Spielstand nicht schreiben."
 
@@ -3896,7 +3944,7 @@ msgstr "&Nächste finden"
 msgid "Find &Previous"
 msgstr "&Vorherige finden"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:733
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:744
 msgid "Finish Calibration"
 msgstr "Kalibrierung abschließen"
 
@@ -3925,16 +3973,16 @@ msgstr "Bitschalter"
 
 #. i18n: A floating point number
 #: Source/Core/DolphinQt/CheatsManager.cpp:391
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:124
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:143
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:140
 msgid "Float"
 msgstr "Float"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:222
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:223
 msgid "Follow &branch"
 msgstr "&Zweig folgen"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:713
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:724
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 "Für beste Ergebnisse, verschiebe die Eingabe bitte langsam in alle möglichen "
@@ -4120,7 +4168,7 @@ msgid "Frequency"
 msgstr "Frequenz"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:68
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:135
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:137
 msgid "Frets"
 msgstr "Frets"
 
@@ -4175,7 +4223,7 @@ msgstr "GCI-Ordner"
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock mit ungültiger Blockadresse aufgerufen"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:530
+#: Source/Core/VideoCommon/CommandProcessor.cpp:522
 #, c-format
 msgid ""
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
@@ -4237,7 +4285,7 @@ msgstr "Spielstatus"
 msgid "Game changed to \"%1\""
 msgstr "Spiel auf \"%1\" geändert"
 
-#: Source/Core/Core/NetPlayClient.cpp:1449
+#: Source/Core/Core/NetPlayClient.cpp:1472
 msgid "Game is already running!"
 msgstr "Spiel läuft bereits!"
 
@@ -4265,11 +4313,11 @@ msgstr "GameCube-Adapter für Wii U"
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr "GameCube-Adapter für Wii U an Port %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:316
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:314
 msgid "GameCube Controller"
 msgstr "GameCube-Controller"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:315
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:313
 msgid "GameCube Controller at Port %1"
 msgstr "GameCube-Controller an Port %1"
 
@@ -4277,11 +4325,11 @@ msgstr "GameCube-Controller an Port %1"
 msgid "GameCube Controllers"
 msgstr "GameCube-Controller"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:307
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:305
 msgid "GameCube Keyboard"
 msgstr "GameCube-Tastatur"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:308
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:306
 msgid "GameCube Keyboard at Port %1"
 msgstr "GameCube-Tastatur an Port %1"
 
@@ -4294,7 +4342,7 @@ msgstr "GameCube Speicherkartenverwaltung"
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr "GameCube Memory Cards (*.raw *.gcp)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:320
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:318
 msgid "GameCube Microphone Slot %1"
 msgstr "GameCube Mikrofonslot %1"
 
@@ -4313,12 +4361,12 @@ msgstr "Gecko-Codes"
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:111
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:116
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:338
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:336
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:37
 msgid "General"
 msgstr "Allgemein"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:329
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:327
 msgid "General and Options"
 msgstr "Allgemeines und Optionen"
 
@@ -4354,10 +4402,10 @@ msgstr "GiB"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:150
 msgid "Golf Mode"
-msgstr ""
+msgstr "Golf-Modus"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:32
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:347
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:345
 #: Source/Core/DolphinQt/ToolBar.cpp:125
 msgid "Graphics"
 msgstr "Grafik"
@@ -4401,7 +4449,7 @@ msgid "Grid View"
 msgstr "Tabellenansicht"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:65
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:124
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:126
 msgid "Guitar"
 msgstr "Gitarre"
 
@@ -4440,6 +4488,11 @@ msgstr "Inkompatible Sitzungen ausblenden"
 msgid "High"
 msgstr "Hoch"
 
+#. i18n: Refers to how hard emulated drum pads are struck.
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:67
+msgid "Hit Strength"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:141
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:195
 msgid "Host"
@@ -4469,12 +4522,12 @@ msgstr "Host-Eingabeautorität aktiviert"
 msgid "Host with NetPlay"
 msgstr "Mit NetPlay ausrichten"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:352
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:350
 msgid "Hotkey Settings"
 msgstr "Tastenkürzel-Einstellungen"
 
 #: Source/Core/Core/HotkeyManager.cpp:195
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Hotkeys"
 msgstr "Tastenkürzel"
@@ -4519,7 +4572,7 @@ msgid "IPL Settings"
 msgstr "IPL-Einstellungen"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:149
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:151
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:29
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:47
 msgid "IR"
@@ -4668,7 +4721,7 @@ msgstr "In-Game"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:219
 msgid "In-Game?"
-msgstr ""
+msgstr "In-Game?"
 
 #: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Increase Convergence"
@@ -4715,7 +4768,7 @@ msgstr ""
 msgid "Input strength to ignore."
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:250
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:251
 msgid "Insert &nop"
 msgstr "&nop einfügen"
 
@@ -4740,6 +4793,10 @@ msgstr "WAD installieren..."
 msgid "Install to the NAND"
 msgstr "In NAND installieren"
 
+#: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
+msgid "Instruction"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:36
 msgid "Instruction Breakpoint"
 msgstr "Anweisungshaltepunkt"
@@ -4747,6 +4804,10 @@ msgstr "Anweisungshaltepunkt"
 #: Source/Core/DolphinQt/MenuBar.cpp:1436
 msgid "Instruction:"
 msgstr "Anweisung:"
+
+#: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:60
+msgid "Instruction: %1"
+msgstr ""
 
 #. i18n: Refers to the intensity of shaking an emulated wiimote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:142
@@ -4757,13 +4818,13 @@ msgstr "Intensität"
 msgid "Interface"
 msgstr "Benutzeroberfläche"
 
-#: Source/Core/Core/NetPlayServer.cpp:1776
-#: Source/Core/Core/NetPlayServer.cpp:1831 Source/Core/Core/State.cpp:363
+#: Source/Core/Core/NetPlayServer.cpp:1799
+#: Source/Core/Core/NetPlayServer.cpp:1854 Source/Core/Core/State.cpp:363
 msgid "Internal LZO Error - compression failed"
 msgstr "Interner LZO-Fehler - Komprimierung fehlgeschlagen"
 
-#: Source/Core/Core/NetPlayClient.cpp:1579
-#: Source/Core/Core/NetPlayClient.cpp:1621
+#: Source/Core/Core/NetPlayClient.cpp:1602
+#: Source/Core/Core/NetPlayClient.cpp:1644
 msgid "Internal LZO Error - decompression failed"
 msgstr "Interner LZO-Fehler - Dekomprimierung fehlgeschlagen"
 
@@ -4822,7 +4883,7 @@ msgstr "Ungültige RSO-Moduladresse: %1"
 msgid "Invalid callstack"
 msgstr "Ungültiger Aufrufstapel"
 
-#: Source/Core/Core/NetPlayClient.cpp:1734
+#: Source/Core/Core/NetPlayClient.cpp:1757
 msgid "Invalid host"
 msgstr "Ungültiger Host"
 
@@ -5001,24 +5062,25 @@ msgstr "Bezeichnung"
 msgid "Latency:"
 msgstr "Latenz:"
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:34
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:37
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:156
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:22
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:20
 msgid "Left"
 msgstr "Links"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:89
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:45
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:52
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:86
 msgid "Left Stick"
 msgstr "Stick links"
 
 #. i18n: "Table" refers to a turntable
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:67
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:170
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:172
 msgid "Left Table"
 msgstr "Linke Tabelle"
 
@@ -5245,7 +5307,7 @@ msgid "Lock"
 msgstr "Feststellen"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:35
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:150
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:169
 msgid "Log"
 msgstr "Log"
 
@@ -5343,7 +5405,7 @@ msgstr ""
 msgid "Mapping"
 msgstr "Mapping"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:593
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:625
 msgid "Match Found"
 msgstr "Übereinstimmung gefunden"
 
@@ -5358,7 +5420,7 @@ msgstr "Maximale Puffergröße auf %1 geändert"
 #. i18n: Refers to emulated wii remote movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:32
 msgid "Maximum tilt angle."
-msgstr ""
+msgstr "Maximaler Neigungswinkel."
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:128
 msgid "May cause slow down in Wii Menu and some games."
@@ -5369,7 +5431,7 @@ msgstr "Kann zu Verlangsamung im Wii-Menü und einigen Spielen führen."
 msgid "Medium"
 msgstr "Mittel"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:34
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:32
 msgid "Memory"
 msgstr "Speicher"
 
@@ -5400,11 +5462,10 @@ msgstr ""
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:506
 #: Source/Core/DolphinQt/CheatsManager.cpp:528
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:559
 msgid "Memory Not Ready"
 msgstr "Speicher nicht bereit"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:153
 msgid "Memory breakpoint options"
 msgstr "Speicherhaltepunktoptionen"
 
@@ -5446,7 +5507,7 @@ msgstr "MiB"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:90
 #: Source/Core/DolphinQt/Config/Mapping/GCMicrophone.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:322
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:320
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:96
 msgid "Microphone"
 msgstr "Mikrofon"
@@ -5493,12 +5554,12 @@ msgid "More than"
 msgstr "Größer als"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:331
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:329
 msgid "Motion Controls and IR"
 msgstr "Bewegungssteuerungen und IR"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:87
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:174
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:178
 msgid "Motor"
 msgstr "Motor"
 
@@ -5556,7 +5617,7 @@ msgstr "Name des Tag, das entfernt werden soll:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:152
 msgid "Name of your session shown in the server browser"
-msgstr ""
+msgstr "Name deiner Sitzung im Server-Browser"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:96
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:86
@@ -5582,7 +5643,7 @@ msgstr "NetPlay"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:33
 msgid "NetPlay Session Browser"
-msgstr ""
+msgstr "NetPlay-Sitzungs-Browser"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:30
 msgid "NetPlay Setup"
@@ -5592,11 +5653,11 @@ msgstr "NetPlay-Einrichtung"
 msgid "Netherlands"
 msgstr "Niederlande"
 
-#: Source/Core/Core/NetPlayClient.cpp:2428
+#: Source/Core/Core/NetPlayClient.cpp:2451
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "NetPlay wurde desynchronisiert in NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:1951
+#: Source/Core/Core/NetPlayClient.cpp:1974
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 "Netplay ist desynchronisiert. Es gibt keine Möglichkeit dies zu beheben."
@@ -5629,7 +5690,7 @@ msgstr "Neues Tag..."
 msgid "New identity generated."
 msgstr "Neue identität erzeugt."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:468
+#: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:36
 msgid "New instruction:"
 msgstr "Neue Anweisung:"
 
@@ -5694,11 +5755,11 @@ msgstr "Kein Adapter erkannt"
 msgid "No Audio Output"
 msgstr "Keine Audioausgabe"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:604
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:636
 msgid "No Match"
 msgstr "Keine Übereinstimmung"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:537
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:607
 msgid "No Value Given"
 msgstr "Kein Wert angegeben"
 
@@ -5707,7 +5768,7 @@ msgstr "Kein Wert angegeben"
 msgid "No description available"
 msgstr "Keine Beschreibung vorhanden"
 
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:87
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:90
 msgid "No extension selected."
 msgstr "Keine Erweiterung ausgewählt."
 
@@ -5754,7 +5815,7 @@ msgstr ""
 "Keine undo.dtm gefunden, undo load state ab wird abgebrochen, um Film-"
 "Desynchronisationen zu vermeiden"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:410
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:472
 msgid "No value provided."
 msgstr "Kein Wert angegeben."
 
@@ -5809,7 +5870,7 @@ msgid "Number of shakes per second."
 msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:34
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:98
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:101
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
@@ -5930,13 +5991,13 @@ msgstr "OpenGL ES"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:81
 #: Source/Core/Core/HW/GCPadEmu.cpp:103
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:185
-#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:39
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:66
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:189
+#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:38
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:63
 msgid "Options"
 msgstr "Einstellungen"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:38
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:36
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:52
 msgid "Orange"
 msgstr "Orange"
@@ -5952,13 +6013,13 @@ msgstr "Andere"
 msgid "Other State Hotkeys"
 msgstr "Tastenkürzel anderer Spielstand"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:351
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:349
 msgid "Other State Management"
 msgstr "Verwaltung anderer Spielstand"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:157
 msgid "Other game..."
-msgstr ""
+msgstr "Anderes Spiel..."
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:52
 msgid "Overlay Information"
@@ -5984,7 +6045,7 @@ msgstr "PNG-Bilddatei (*.png);; Alle Dateien (*)"
 msgid "PPC Size"
 msgstr "PPC-Größe"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:248
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:249
 msgid "PPC vs Host"
 msgstr "PPC vs Host"
 
@@ -5992,8 +6053,8 @@ msgstr "PPC vs Host"
 msgid "Pad"
 msgstr "Pad"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:50
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:74
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:58
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:77
 msgid "Pads"
 msgstr "Pads"
 
@@ -6072,6 +6133,12 @@ msgstr "Online-Systemaktualisierung durchführen"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:324
 msgid "Perform System Update"
 msgstr "Systemaktualisierung durchführen"
+
+#. i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
+#. physically wired up.
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:127
+msgid "Physical"
+msgstr ""
 
 #: Source/Core/UICommon/UICommon.cpp:430
 msgid "PiB"
@@ -6173,6 +6240,10 @@ msgstr "Voreinstellungen"
 #: Source/Core/Core/HotkeyManager.cpp:75
 msgid "Press Sync Button"
 msgstr "Sync-Taste drücken"
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:51
+msgid "Pressure"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:255
 msgid ""
@@ -6279,11 +6350,11 @@ msgstr "Spielelisten Cache leeren"
 msgid "Put Main Menu roms in User/GC/{region}."
 msgstr "Hauptmenü-ROMs in Benutzer/GC/{region} ablegen."
 
-#: Source/Core/Core/NetPlayClient.cpp:1273
+#: Source/Core/Core/NetPlayClient.cpp:1296
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "Quality of Service (QoS) konnte nicht aktiviert werden."
 
-#: Source/Core/Core/NetPlayClient.cpp:1271
+#: Source/Core/Core/NetPlayClient.cpp:1294
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Quality of Service (QoS) wurde erfolgreich aktiviert."
 
@@ -6319,7 +6390,7 @@ msgstr "RSO-Module"
 msgid "Range"
 msgstr "Reichweite"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:252
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:253
 msgid "Re&place instruction"
 msgstr "Anweisung er&setzen"
 
@@ -6331,14 +6402,14 @@ msgstr "Lesen"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:160
 msgid "Read and write"
 msgstr "Lesen und schreiben"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:145
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:164
 msgid "Read only"
 msgstr "Nur Lesen"
 
@@ -6383,7 +6454,7 @@ msgstr "Aufnahmeoptionen"
 msgid "Recording..."
 msgstr "Aufzeichnung..."
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:33
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:49
 msgid "Red"
 msgstr "Rot"
@@ -6487,8 +6558,8 @@ msgstr "Aus Überwachung entfernen"
 msgid "Remove tag"
 msgstr "Tag entfernen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:383
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:418
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:384
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:419
 msgid "Rename symbol"
 msgstr "Symbol umbenennen"
 
@@ -6522,7 +6593,7 @@ msgstr "Anfrage deiner Gruppe beizutreten"
 #: Source/Core/Core/HotkeyManager.cpp:30
 #: Source/Core/DolphinQt/CheatsManager.cpp:384
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:721
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:732
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:107
 msgid "Reset"
 msgstr "Zurücksetzen"
@@ -6551,7 +6622,7 @@ msgstr "Ressourcenpaketverwaltung"
 msgid "Restart Required"
 msgstr "Neustart erforderlich"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:254
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:255
 msgid "Restore instruction"
 msgstr "Anweisung wiederherstellen"
 
@@ -6571,26 +6642,41 @@ msgstr "Revision"
 msgid "Revision: "
 msgstr "Revision:"
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:35
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:39
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:157
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:24
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
 msgid "Right"
 msgstr "Rechts"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:91
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:49
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:56
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:90
 msgid "Right Stick"
 msgstr "Stick rechts"
 
 #. i18n: "Table" refers to a turntable
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:70
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:175
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:177
 msgid "Right Table"
 msgstr "Rechte Tabelle"
+
+#. i18n: Refers to the "rim" of a TaTaCon drum.
+#: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:47
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:214
+msgid "Rim"
+msgstr ""
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:31
+msgid "Rocker Down"
+msgstr ""
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:30
+msgid "Rocker Up"
+msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:533
 msgid "Room ID"
@@ -6619,13 +6705,13 @@ msgstr ""
 "Im Zweifel deaktiviert lassen."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:85
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:172
-#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:37
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:61
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:176
+#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:36
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:58
 msgid "Rumble"
 msgstr "Rumble"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:246
 msgid "Run &To Here"
 msgstr "Bis &hier ausführen"
 
@@ -6766,7 +6852,7 @@ msgstr "Spielstand in Slot speichern"
 msgid "Save Symbol Map &As..."
 msgstr "Symbolkarte speichern &als..."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:350
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:348
 msgid "Save and Load State"
 msgstr "Spielstand speichern und laden"
 
@@ -6844,7 +6930,7 @@ msgid "Search"
 msgstr "Suche"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:97
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:91
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:90
 msgid "Search Address"
 msgstr "Adresse suchen"
 
@@ -7024,8 +7110,8 @@ msgstr "Ausgewählte Schriftart"
 msgid "Selected controller profile does not exist"
 msgstr "Ausgewähltes Controller-Profil existiert nicht"
 
-#: Source/Core/Core/NetPlayServer.cpp:1392
-#: Source/Core/Core/NetPlayServer.cpp:1595
+#: Source/Core/Core/NetPlayServer.cpp:1393
+#: Source/Core/Core/NetPlayServer.cpp:1618
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:415
 msgid "Selected game doesn't exist in game list!"
 msgstr "Das gewählte Spiel existiert nicht in der Spieleliste!"
@@ -7156,11 +7242,11 @@ msgstr "Senden"
 msgid "Sensor Bar Position:"
 msgstr "Position der Sensorleiste:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1731
+#: Source/Core/Core/NetPlayClient.cpp:1754
 msgid "Server rejected traversal attempt"
 msgstr "Server hat Übergangsversuch abgelehnt."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:89
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:88
 msgid "Set &Value"
 msgstr "&Wert zuweisen"
 
@@ -7181,19 +7267,19 @@ msgstr "Lege eine Speicherkarten-Datei für Slot A fest"
 msgid "Set memory card file for Slot B"
 msgstr "Lege eine Speicherkarten-Datei für Slot B fest"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:242
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:243
 msgid "Set symbol &end address"
 msgstr "Symbol-&Endadresse festlegen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:240
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:241
 msgid "Set symbol &size"
 msgstr "&Symbolgröße festlegen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:441
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:442
 msgid "Set symbol end address"
 msgstr "Symbol-Endadresse festlegen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:419
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:420
 msgid "Set symbol size (%1):"
 msgstr "Symbolgröße festlegen (%1):"
 
@@ -7236,8 +7322,8 @@ msgid "Shader Compilation"
 msgstr "Shader-Kompilierung"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:55
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:158
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:114
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:160
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:103
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:27
 msgid "Shake"
 msgstr "Schütteln"
@@ -7404,11 +7490,11 @@ msgstr "Wii anzeigen"
 msgid "Show World"
 msgstr "Welt anzeigen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:233
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:234
 msgid "Show in &memory"
 msgstr "Im &Speicher anzeigen"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:370
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:397
 msgid "Show in code"
 msgstr "Im Code anzeigen"
 
@@ -7474,15 +7560,15 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "Nebeneinander"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:215
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:219
 msgid "Sideways Hold"
 msgstr "Seitwärts halten"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:212
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
 msgid "Sideways Toggle"
 msgstr "Seitwärts umschalten"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:205
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
 msgid "Sideways Wii Remote"
 msgstr "Wiimote seitwärts"
 
@@ -7529,7 +7615,7 @@ msgid "Skip Main Menu"
 msgstr "Hauptmenü überspringen"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:144
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:146
 msgid "Slider Bar"
 msgstr "Schieberleiste"
 
@@ -7577,7 +7663,7 @@ msgstr "Spanien"
 msgid "Spanish"
 msgstr "Spanisch"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:188
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:192
 msgid "Speaker Pan"
 msgstr "Lautsprecherregler"
 
@@ -7587,7 +7673,7 @@ msgstr "Lautsprecher-Lautstärke"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:43
 msgid "Speed"
-msgstr ""
+msgstr "Geschwindigkeit"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:92
 msgid "Speed up Disc Transfer Rate"
@@ -7679,14 +7765,14 @@ msgstr "Stereoskopischer 3D-Modus:"
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:60
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:74
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:89
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:44
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:75
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:70
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:100
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:128
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:155
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:73
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:110
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:130
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:157
 msgid "Stick"
 msgstr "Stick"
 
@@ -7769,9 +7855,14 @@ msgid "String Match"
 msgstr "Zeichenfolge-Übereinstimmung"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:76
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:133
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:135
 msgid "Strum"
 msgstr "Klimpern"
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:46
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:198
+msgid "Stylus"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:320
@@ -7864,8 +7955,8 @@ msgstr ""
 "Im Zweifel deaktiviert lassen."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:47
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:152
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:106
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:154
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:116
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:33
 msgid "Swing"
 msgstr "Schwingen"
@@ -7883,11 +7974,11 @@ msgstr "Zu B wechseln"
 msgid "Symbol"
 msgstr "Symbol"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:442
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:443
 msgid "Symbol (%1) end address:"
 msgstr "Symbol (%1) Endadresse:"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:383
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:384
 msgid "Symbol name:"
 msgstr "Symbolname:"
 
@@ -7928,11 +8019,11 @@ msgstr ""
 "Synchronisiert die GPU- und CPU-Threads, um zufällige Abstürze im Doppelkern-"
 "Modus zu vermeiden. (EIN = Kompatibel, AUS = Schnell)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1091
+#: Source/Core/Core/NetPlayClient.cpp:1114
 msgid "Synchronizing AR codes..."
 msgstr "AR-Codes synchronisieren..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1022
+#: Source/Core/Core/NetPlayClient.cpp:1045
 msgid "Synchronizing Gecko codes..."
 msgstr "Gecko-Codes synchronisieren..."
 
@@ -7951,7 +8042,7 @@ msgstr "TAS-Eingabe"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:341
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:339
 msgid "TAS Tools"
 msgstr "TAS-Werkzeuge"
 
@@ -7961,6 +8052,12 @@ msgstr "TAS-Werkzeuge"
 #: Source/Core/DolphinQt/MenuBar.cpp:593
 msgid "Tags"
 msgstr "Tags"
+
+#. i18n: The drum controller used in "Taiko no Tatsujin" games. Also known as a "TaTaCon".
+#: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:39
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:209
+msgid "Taiko Drum"
+msgstr ""
 
 #: Source/Core/DiscIO/Enums.cpp:57
 msgid "Taiwan"
@@ -8045,7 +8142,7 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:114
 msgid "The data partition is missing."
-msgstr ""
+msgstr "Die Datenpartition fehlt."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:152
 msgid ""
@@ -8353,11 +8450,11 @@ msgstr "Dieses USB-Gerät ist bereits freigegeben."
 msgid "This WAD has not been signed by Nintendo. Continue to import?"
 msgstr "Diese WAD wurde von Nintendo nicht signiert. Importieren fortsetzen?"
 
-#: Source/Core/Core/ConfigManager.cpp:884
+#: Source/Core/Core/ConfigManager.cpp:896
 msgid "This WAD is not bootable."
 msgstr "Dieses WAD ist nicht bootfähig."
 
-#: Source/Core/Core/ConfigManager.cpp:879
+#: Source/Core/Core/ConfigManager.cpp:891
 msgid "This WAD is not valid."
 msgstr "Dieses WAD ist nicht gültig."
 
@@ -8458,7 +8555,7 @@ msgstr ""
 "Dieses Programm sollte nicht verwendet werden, um Spiele zu spielen, die Sie "
 "nicht legal besitzen."
 
-#: Source/Core/Core/ConfigManager.cpp:901
+#: Source/Core/Core/ConfigManager.cpp:913
 msgid "This title cannot be booted."
 msgstr "Dieser Titel kann nicht gebootet werden."
 
@@ -8532,8 +8629,8 @@ msgid "TiB"
 msgstr "TiB"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:50
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:155
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:103
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:157
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:113
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:31
 msgid "Tilt"
 msgstr "Neigung"
@@ -8584,7 +8681,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "Seitenverhältnis umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:71
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:374
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:401
 msgid "Toggle Breakpoint"
 msgstr "Haltepunkt umschalten"
 
@@ -8669,6 +8766,11 @@ msgstr ""
 msgid "Total travel distance."
 msgstr ""
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:49
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:201
+msgid "Touch"
+msgstr ""
+
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:120
 msgid "Traditional Chinese"
@@ -8683,7 +8785,7 @@ msgstr "Übergangsfehler"
 msgid "Traversal Server"
 msgstr "Übergangsserver"
 
-#: Source/Core/Core/NetPlayClient.cpp:1728
+#: Source/Core/Core/NetPlayClient.cpp:1751
 msgid "Traversal server timed out connecting to the host"
 msgstr "Zeitüberschreitung bei der Verbindung vom Übergangsserver zum Host."
 
@@ -8697,17 +8799,12 @@ msgstr ""
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:77
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:94
-#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:35
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:57
+#: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:34
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:60
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:34
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:154
 msgid "Triggers"
 msgstr "Schultertasten"
-
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:48
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:153
-msgid "Turntable"
-msgstr "Turntable"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:402
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:105
@@ -8715,15 +8812,15 @@ msgstr "Turntable"
 msgid "Type"
 msgstr "Typ"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:121
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:140
 msgid "U&16"
 msgstr "U&16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:122
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
 msgid "U&32"
 msgstr "U&32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:120
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
 msgid "U&8"
 msgstr "U&8"
 
@@ -8853,7 +8950,7 @@ msgstr "Unbekannt"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Unbekannter DVD-Befehl %08x - fataler Fehler"
 
-#: Source/Core/Core/NetPlayServer.cpp:1116
+#: Source/Core/Core/NetPlayServer.cpp:1117
 #, c-format
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking "
@@ -8862,12 +8959,12 @@ msgstr ""
 "Unbekannte SYNC_GECKO_CODES Meldung mit ID: %d von Spieler: %d erhalten. "
 "Spieler wird herausgeworfen!"
 
-#: Source/Core/Core/NetPlayClient.cpp:979
+#: Source/Core/Core/NetPlayClient.cpp:1002
 #, c-format
 msgid "Unknown SYNC_SAVE_DATA message received with id: %d"
 msgstr "Unbekannte SYNC_SAVE_DATA Meldung mit ID: %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:1073
+#: Source/Core/Core/NetPlayServer.cpp:1074
 #, c-format
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking "
@@ -8876,17 +8973,17 @@ msgstr ""
 "Unbekannte SYNC_SAVE_DATA Meldung mit ID: %d von Spieler: %d erhalten. "
 "Spieler wird herausgeworfen!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1737
+#: Source/Core/Core/NetPlayClient.cpp:1760
 #, c-format
 msgid "Unknown error %x"
 msgstr "Unbekannter Fehler %x"
 
-#: Source/Core/Core/NetPlayClient.cpp:1192
+#: Source/Core/Core/NetPlayClient.cpp:1215
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Unbekannte Meldung mit Kennung: %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:1124
+#: Source/Core/Core/NetPlayServer.cpp:1125
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr ""
@@ -8908,7 +9005,7 @@ msgstr "Unsigniertes Integer"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:77
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:41
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:20
 msgid "Up"
 msgstr "Hoch"
 
@@ -8955,15 +9052,15 @@ msgstr ""
 "Titel %1 wird geupdated...\n"
 "Dies kann eine Weile dauern."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:220
 msgid "Upright Hold"
 msgstr "Aufrecht halten"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:217
 msgid "Upright Toggle"
 msgstr "Aufrecht umschalten"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:202
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:206
 msgid "Upright Wii Remote"
 msgstr "Wiimote aufrecht"
 
@@ -9062,7 +9159,7 @@ msgstr "V-Sync"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:577
 #: Source/Core/DolphinQt/CheatsManager.cpp:578
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:92
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:91
 msgid "Value"
 msgstr "Wert"
 
@@ -9328,7 +9425,7 @@ msgid "Website"
 msgstr "Website"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:92
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:142
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:144
 msgid "Whammy"
 msgstr "Whammy"
 
@@ -9361,7 +9458,7 @@ msgid "Wii Remote"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:179
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:328
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:326
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
 msgstr "Wiimote %1"
@@ -9398,7 +9495,7 @@ msgstr "Wii TAS-Eingabe %1 - Wiimote"
 msgid "Wii TAS Input %1 - Wii Remote + Nunchuk"
 msgstr "Wii TAS-Eingabe %1 - Wiimote + Nunchuk"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:345
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:343
 msgid "Wii and Wii Remote"
 msgstr "Wii und Wiimote"
 
@@ -9430,7 +9527,7 @@ msgstr "Schreibe Speicher/SD Daten"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:149
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:168
 msgid "Write only"
 msgstr "Nur Schreiben"
 
@@ -9474,7 +9571,7 @@ msgstr "XF-Register"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:35
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:34
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:50
 msgid "Yellow"
 msgstr "Gelb"
@@ -9569,7 +9666,7 @@ msgstr "fake-completion"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:45
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:54
 msgid "m/s"
-msgstr ""
+msgstr "m/s"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "none"
@@ -9583,6 +9680,11 @@ msgstr "am"
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:82
 msgid "or select a device"
 msgstr "oder wähle ein Gerät"
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:34
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:191
+msgid "uDraw GameTablet"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:54
 msgid "| OR"
