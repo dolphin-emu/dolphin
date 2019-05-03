@@ -388,7 +388,7 @@ void Jit64::ClearCache()
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
-  int i;
+  int i = 0;
   for(auto& e: address_and_code){
     Jit(e.first);
     i++;

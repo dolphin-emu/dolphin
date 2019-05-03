@@ -74,9 +74,9 @@ u32 JitBaseBlockCache::hot_score(JitBlock e)
 
 void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code)
 {
-  std::multimap<u64, u32> sorted_heat;
+  std::multimap<u64, u32> sorted_heat; //hotness -> start addr
   u64 hotness;
-  u64 CC_size = block_map.size();
+  u64 CC_size = block_map.size(); // start addr -> JitBlock
   JitBlock b;
 
   for (auto& e : block_map)
@@ -94,7 +94,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
 
   for (auto& e : sorted_heat){
     b = block_map.find(e.second)->second;
-    address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
+    address_and_code.insert(std::pair<u32, u32>(b.physicalAddress, 0));
   }
 }
 
