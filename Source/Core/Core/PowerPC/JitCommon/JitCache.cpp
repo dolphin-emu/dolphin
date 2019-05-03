@@ -17,6 +17,7 @@
 #include <set>
 #include <utility>
 #include <stdio.h>
+#include <time.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
@@ -68,7 +69,10 @@ void JitBaseBlockCache::Clear()
   m_jit.js.pairedQuantizeAddresses.clear();
   for (auto& e : block_map)
   {
-    printf("BLOCK TOTAL RUN\t0x%x\t%d\n",e.second.effectiveAddress, e.second.profile_data.runCount);
+    // e.second.profile_data.ticStop = time(NULL);
+//    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
+ //          e.second.profile_data.runCount*1000 /
+  //             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
     DestroyBlock(e.second);
   }
   block_map.clear();
@@ -113,6 +117,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
                                       const std::set<u32>& physical_addresses)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress);
+  // block.profile_data.ticStart = time(NULL);
   fast_block_map[index] = &block;
   block.fast_block_map_index = index;
 
@@ -175,21 +180,21 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 
 const u8* JitBaseBlockCache::Dispatch()
 {
-  //printf("Entering Dispatch()\n");
+  // printf("Entering Dispatch()\n");
   JitBlock* block = fast_block_map[FastLookupIndexForAddress(PC)];
 
   if (!block || block->effectiveAddress != PC || block->msrBits != (MSR.Hex & JIT_CACHE_MSR_MASK))
   {
     block = MoveBlockIntoFastCache(PC, MSR.Hex & JIT_CACHE_MSR_MASK);
-    //block->profile_data.runCount++;
-   // printf("DISPATCH:\t0x%x\t%d\n", PC, block->profile_data.runCount);
+    // block->profile_data.runCount++;
+    // printf("DISPATCH:\t0x%x\t%d\n", PC, block->profile_data.runCount);
   }
 
   if (!block)
     return nullptr;
 
-  block->profile_data.runCount++;
-  //printf("DISPATCH:\t0x%x\t%d\n", PC, block->profile_data.runCount);
+  // block->profile_data.runCount++;
+  // printf("DISPATCH:\t0x%x\t%d\n", PC, block->profile_data.runCount);
   return block->normalEntry;
 }
 

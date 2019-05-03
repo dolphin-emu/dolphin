@@ -335,6 +335,7 @@ void Jit64::Init()
 
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
+  jo.profile_blocks = true;
   UpdateMemoryOptions();
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
@@ -386,6 +387,11 @@ void Jit64::ClearCache()
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
+}
+
+void Jit64::CLEAR2()
+{
+
 }
 
 void Jit64::Shutdown()
@@ -730,8 +736,10 @@ void Jit64::Jit(u32 em_address)
           IsAlmostFull() ? "main" : m_far_code.IsAlmostFull() ? "far" : "trampoline";
       WARN_LOG(POWERPC, "flushing %s code cache, please report if this happens a lot", reason);
     }
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 5; i++)
     printf("FLUSHING CODE CACHE--------------\n");
+    printf("---------------------------------\n\n");
+    
     ClearCache();
   }
 

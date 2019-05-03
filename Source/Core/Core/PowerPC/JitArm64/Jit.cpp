@@ -4,6 +4,8 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
+#include <stdio.h>
+
 #include <cstdio>
 
 #include "Common/Arm64Emitter.h"
@@ -44,6 +46,7 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
+  printf("Entering JitArm64::Init()\n");
   InitializeInstructionTables();
 
   size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;

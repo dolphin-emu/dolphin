@@ -68,6 +68,8 @@ public:
 
   void ClearCache() override;
 
+  void CLEAR2();
+
   const CommonAsmRoutines* GetAsmRoutines() override { return &asm_routines; }
   const char* GetName() const override { return "JIT64"; }
   // Run!
