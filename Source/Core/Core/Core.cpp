@@ -64,6 +64,10 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
+#ifdef USE_MEMORYWATCHER
+#include "Core/MemoryWatcher.h"
+#endif
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -266,6 +270,10 @@ void Stop()  // - Hammertime!
   }
 
   ResetRumble();
+
+#ifdef USE_MEMORYWATCHER
+  MemoryWatcher::Shutdown();
+#endif
 }
 
 void DeclareAsCPUThread()
@@ -307,6 +315,10 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
+
+#ifdef USE_MEMORYWATCHER
+  MemoryWatcher::Init();
+#endif
 
   if (savestate_path)
   {
