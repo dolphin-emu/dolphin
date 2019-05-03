@@ -390,6 +390,7 @@ void Jit64::ClearCache()
   UpdateMemoryOptions();
   for(auto& e: address_and_code){
     Jit(e.first);
+    printf("infinite loop\n");
   }
 }
 
