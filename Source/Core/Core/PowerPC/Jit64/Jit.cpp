@@ -387,13 +387,14 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  UpdateMemoryOptions();
   int i = 0;
   for(auto& e: address_and_code){
     Jit(e.first);
     i++;
     printf("infinite loop: %d\n", i);
   }
+  UpdateMemoryOptions();
+ 
 }
 
 void Jit64::CLEAR2()
