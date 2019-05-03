@@ -58,6 +58,38 @@ void JitBaseBlockCache::Shutdown()
   JitRegister::Shutdown();
 }
 
+void JitBaseBlockCache::New_Clear()
+{
+  std::multimap<u64, Code_Address *> heat_map;
+  Code_Address *block;
+
+  #if defined(_DEBUG) || defined(DEBUGFAST)
+  Core::DisplayMessage("Clearing code cache.", 3000);
+#endif
+  m_jit.js.fifoWriteAddresses.clear();
+  m_jit.js.pairedQuantizeAddresses.clear();
+  for (auto& e : block_map)
+  {
+    // e.second.profile_data.ticStop = time(NULL);
+//    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
+ //          e.second.profile_data.runCount*1000 /
+  //             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
+    block = new(Code_Address);
+    block->emu_address = e.second.effectiveAddress;
+    heat_map.insert(std::pair<u32, Code_Address *>((u64) (e.second.profile_data.runCount*1000)/
+                          (e.second.profile_data.ticStop - e.second.profile_data.ticStart)),
+                             block);
+    DestroyBlock(e.second);
+  }
+  block_map.clear();
+  links_to.clear();
+  block_range_map.clear();
+
+  valid_block.ClearAll();
+
+  fast_block_map.fill(nullptr);
+}
+
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
 // is full and when saving and loading states.
 void JitBaseBlockCache::Clear()
