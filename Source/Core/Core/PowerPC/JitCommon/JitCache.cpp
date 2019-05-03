@@ -88,7 +88,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
     cc_weight += e.second.codeSize;
     sorted_heat.insert(std::pair<u64, u32>(hotness, e.first));
   }
-  printf("Average Hotness: %14d\n", a_hotness / i);
+  printf("Average Hotness: %14d\n", (1.0 * a_hotness) / i);
   while (1)
   {
     if( sorted_heat.size() <= CC_size / HOT_CODE_RATIO){
@@ -107,7 +107,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
     address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, e.first));
   }
   printf("Average Hot code Hotness: %d\n", hot_hotness / i);
-  printf("Ratio of CC to Hot Code:  %d\n", hot_weight / cc_weight);
+  printf("Ratio of CC to Hot Code:  %f\n", (1.0 * hot_weight) / cc_weight);
 }
 
 void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
