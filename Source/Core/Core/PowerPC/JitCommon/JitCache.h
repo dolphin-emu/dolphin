@@ -17,6 +17,13 @@
 
 class JitBase;
 
+class Code_Address
+{
+  public:
+    char code_buffer[10000000];
+    u32 emu_address;
+};
+
 // A JitBlock is block of compiled code which corresponds to the PowerPC
 // code at a given address.
 //
@@ -128,6 +135,7 @@ public:
   void Shutdown();
   void Clear();
   void Reset();
+  void New_Clear();
 
   // Code Cache
   JitBlock** GetFastBlockMap();
