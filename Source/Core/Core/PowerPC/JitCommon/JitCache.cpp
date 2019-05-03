@@ -100,6 +100,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
 
 void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
 {
+  time_t start;
   #if defined(_DEBUG) || defined(DEBUGFAST)
   Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
@@ -108,8 +109,9 @@ void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
 
   //insert blocks by heat for sorting
   //TODO CALL Profile
+  start = time(NULL);
   Profile_block_map(address_and_code);
-
+  printf("time to finish profiling: %d\n", (time(NULL) - start));
   for (auto& e : block_map)
   {
     DestroyBlock(e.second);
