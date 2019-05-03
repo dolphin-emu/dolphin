@@ -79,6 +79,7 @@ struct JitBlock
     u64 runCount;
     u64 ticStart;
     u64 ticStop;
+    u64 old_hotness;
   } profile_data = {};
 
   // This tracks the position if this block within the fast block cache.

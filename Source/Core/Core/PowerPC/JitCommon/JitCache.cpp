@@ -19,6 +19,29 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "Core/CoreTiming.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/MachineContext.h"
+#include "Core/PatchEngine.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/FarCodeCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/Profiler.h"
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#include "Common/GekkoDisassembler.h"
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Core/ConfigManager.h"
@@ -58,27 +81,39 @@ void JitBaseBlockCache::Shutdown()
   JitRegister::Shutdown();
 }
 
+// e.second.profile_data.ticStop = time(NULL);
+//    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
+//          e.second.profile_data.runCount*1000 /
+//             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
+
 void JitBaseBlockCache::New_Clear()
 {
-  std::multimap<u64, Code_Address *> heat_map;
-  Code_Address *block;
+  std::multimap<u64, u32> sorted_heat;
+  std::multimap<u32, u64> address_and_code;
+  u64 hotness;
+  u64 CC_size = GetSpaceLeft();
 
   #if defined(_DEBUG) || defined(DEBUGFAST)
   Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
   m_jit.js.fifoWriteAddresses.clear();
   m_jit.js.pairedQuantizeAddresses.clear();
+
   for (auto& e : block_map)
   {
-    // e.second.profile_data.ticStop = time(NULL);
-//    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
- //          e.second.profile_data.runCount*1000 /
-  //             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
+    hotness = (u64) ((e.second.profile_data.runCount*1000)/
+                          (e.second.profile_data.ticStop - e.second.profile_data.ticStart);
+    hotness = (0.1) * hotness + (1 - 0.1) * e.second.profile_data.old_hotness;
+    sorted_heat.insert(std::pair<u64, u32>(hotness, e.first));
+  }
+  for (auto& e : block_map)
+  {
+  // make a block to store the metadata from the block that will be destroyed
     block = new(Code_Address);
     block->emu_address = e.second.effectiveAddress;
-    heat_map.insert(std::pair<u32, Code_Address *>((u64) (e.second.profile_data.runCount*1000)/
-                          (e.second.profile_data.ticStop - e.second.profile_data.ticStart)),
-                             block);
+    //TODO Add the compiled code into the Code_Address block
+    //calculate hotness
+    
     DestroyBlock(e.second);
   }
   block_map.clear();
@@ -137,6 +172,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   u32 physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
   JitBlock& b = block_map.emplace(physicalAddress, JitBlock())->second;
+  b.profile_data.old_hotness = 0;
   b.effectiveAddress = em_address;
   b.physicalAddress = physicalAddress;
   b.msrBits = MSR.Hex & JIT_CACHE_MSR_MASK;
