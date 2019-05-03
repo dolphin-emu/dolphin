@@ -123,7 +123,7 @@ void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
   valid_block.ClearAll();
 
   fast_block_map.fill(nullptr);
-  printf("Exiting flush\n")
+  printf("Exiting flush\n");
 }
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
