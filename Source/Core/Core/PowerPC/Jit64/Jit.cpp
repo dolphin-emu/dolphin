@@ -389,7 +389,7 @@ void Jit64::ClearCache()
   Clear();
   UpdateMemoryOptions();
   for(auto& e: address_and_code){
-    printf("effective address: 0x%x Hotness:\n", e.first, e.second);
+    printf("effective address: 0x%x Hotness: %d\n", e.first, e.second);
   }
 }
 
