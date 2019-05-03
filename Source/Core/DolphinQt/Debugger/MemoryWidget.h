@@ -9,6 +9,7 @@
 #include <QDockWidget>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/AddressSpace.h"
 
 class MemoryViewWidget;
 class QCheckBox;
@@ -38,6 +39,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
+  void OnAddressSpaceChanged();
   void OnTypeChanged();
   void OnBPLogChanged();
   void OnBPTypeChanged();
@@ -51,6 +53,7 @@ private:
 
   void OnDumpMRAM();
   void OnDumpExRAM();
+  void OnDumpARAM();
   void OnDumpFakeVMEM();
 
   std::vector<u8> GetValueData() const;
@@ -66,6 +69,7 @@ private:
   QPushButton* m_set_value;
   QPushButton* m_dump_mram;
   QPushButton* m_dump_exram;
+  QPushButton* m_dump_aram;
   QPushButton* m_dump_fake_vmem;
 
   // Search
@@ -74,6 +78,11 @@ private:
   QRadioButton* m_find_ascii;
   QRadioButton* m_find_hex;
   QLabel* m_result_label;
+
+  // Address Spaces
+  QRadioButton* m_address_space_physical;
+  QRadioButton* m_address_space_effective;
+  QRadioButton* m_address_space_auxiliary;
 
   // Datatypes
   QRadioButton* m_type_u8;

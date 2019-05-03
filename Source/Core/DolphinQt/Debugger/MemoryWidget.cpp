@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
+#include <optional>
 #include <string>
 
 #include <QCheckBox>
@@ -22,9 +23,6 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/DSP.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
@@ -60,6 +58,7 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 
   ConnectWidgets();
   Update();
+  OnAddressSpaceChanged();
   OnTypeChanged();
 }
 
@@ -94,6 +93,7 @@ void MemoryWidget::CreateWidgets()
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
   m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
+  m_dump_aram = new QPushButton(tr("Dump &ARAM"));
   m_dump_fake_vmem = new QPushButton(tr("Dump &FakeVMEM"));
 
   // Search Options
@@ -111,6 +111,25 @@ void MemoryWidget::CreateWidgets()
   search_layout->addWidget(m_find_previous);
   search_layout->addWidget(m_result_label);
   search_layout->setSpacing(1);
+
+  // Address Space
+  auto* address_space_group = new QGroupBox(tr("Address Space"));
+  auto* address_space_layout = new QVBoxLayout;
+  address_space_group->setLayout(address_space_layout);
+
+  // i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
+  // translation via the MMU to physical addresses.
+  m_address_space_effective = new QRadioButton(tr("Effective"));
+  // i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
+  m_address_space_auxiliary = new QRadioButton(tr("Auxiliary"));
+  // i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
+  // physically wired up.
+  m_address_space_physical = new QRadioButton(tr("Physical"));
+
+  address_space_layout->addWidget(m_address_space_effective);
+  address_space_layout->addWidget(m_address_space_auxiliary);
+  address_space_layout->addWidget(m_address_space_physical);
+  address_space_layout->setSpacing(1);
 
   // Data Type
   auto* datatype_group = new QGroupBox(tr("Data Type"));
@@ -170,8 +189,10 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addItem(new QSpacerItem(1, 32));
   sidebar_layout->addWidget(m_dump_mram);
   sidebar_layout->addWidget(m_dump_exram);
+  sidebar_layout->addWidget(m_dump_aram);
   sidebar_layout->addWidget(m_dump_fake_vmem);
   sidebar_layout->addWidget(search_group);
+  sidebar_layout->addWidget(address_space_group);
   sidebar_layout->addWidget(datatype_group);
   sidebar_layout->addWidget(bp_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
@@ -208,10 +229,17 @@ void MemoryWidget::ConnectWidgets()
 
   connect(m_dump_mram, &QPushButton::pressed, this, &MemoryWidget::OnDumpMRAM);
   connect(m_dump_exram, &QPushButton::pressed, this, &MemoryWidget::OnDumpExRAM);
+  connect(m_dump_aram, &QPushButton::pressed, this, &MemoryWidget::OnDumpARAM);
   connect(m_dump_fake_vmem, &QPushButton::pressed, this, &MemoryWidget::OnDumpFakeVMEM);
 
   connect(m_find_next, &QPushButton::pressed, this, &MemoryWidget::OnFindNextValue);
   connect(m_find_previous, &QPushButton::pressed, this, &MemoryWidget::OnFindPreviousValue);
+
+  for (auto* radio :
+       {m_address_space_effective, m_address_space_auxiliary, m_address_space_physical})
+  {
+    connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
+  }
 
   for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
@@ -246,6 +274,17 @@ void MemoryWidget::LoadSettings()
 
   m_find_ascii->setChecked(search_ascii);
   m_find_hex->setChecked(search_hex);
+
+  const bool address_space_effective =
+      settings.value(QStringLiteral("memorywidget/addrspace_effective"), true).toBool();
+  const bool address_space_auxiliary =
+      settings.value(QStringLiteral("memorywidget/addrspace_auxiliary"), false).toBool();
+  const bool address_space_physical =
+      settings.value(QStringLiteral("memorywidget/addrspace_physical"), false).toBool();
+
+  m_address_space_effective->setChecked(address_space_effective);
+  m_address_space_auxiliary->setChecked(address_space_auxiliary);
+  m_address_space_physical->setChecked(address_space_physical);
 
   const bool type_u8 = settings.value(QStringLiteral("memorywidget/typeu8"), true).toBool();
   const bool type_u16 = settings.value(QStringLiteral("memorywidget/typeu16"), false).toBool();
@@ -284,6 +323,13 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/searchascii"), m_find_ascii->isChecked());
   settings.setValue(QStringLiteral("memorywidget/searchhex"), m_find_hex->isChecked());
 
+  settings.setValue(QStringLiteral("memorywidget/addrspace_effective"),
+                    m_address_space_effective->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/addrspace_auxiliary"),
+                    m_address_space_auxiliary->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/addrspace_physical"),
+                    m_address_space_physical->isChecked());
+
   settings.setValue(QStringLiteral("memorywidget/typeu8"), m_type_u8->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeu16"), m_type_u16->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typeu32"), m_type_u32->isChecked());
@@ -294,6 +340,22 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpwrite"), m_bp_write_only->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bplog"), m_bp_log_check->isChecked());
+}
+
+void MemoryWidget::OnAddressSpaceChanged()
+{
+  AddressSpace::Type space;
+
+  if (m_address_space_effective->isChecked())
+    space = AddressSpace::Type::Effective;
+  else if (m_address_space_auxiliary->isChecked())
+    space = AddressSpace::Type::Auxiliary;
+  else
+    space = AddressSpace::Type::Physical;
+
+  m_memory_view->SetAddressSpace(space);
+
+  SaveSettings();
 }
 
 void MemoryWidget::OnTypeChanged()
@@ -411,12 +473,14 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+
   if (m_find_ascii->isChecked())
   {
     const QByteArray bytes = m_data_edit->text().toUtf8();
 
     for (char c : bytes)
-      PowerPC::HostWrite_U8(static_cast<u8>(c), addr++);
+      accessors->WriteU8(static_cast<u8>(c), addr++);
   }
   else
   {
@@ -431,18 +495,18 @@ void MemoryWidget::OnSetValue()
 
     if (value == static_cast<u8>(value))
     {
-      PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      accessors->WriteU8(static_cast<u8>(value), addr);
     }
     else if (value == static_cast<u16>(value))
     {
-      PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      accessors->WriteU16(static_cast<u16>(value), addr);
     }
     else if (value == static_cast<u32>(value))
     {
-      PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
+      accessors->WriteU32(static_cast<u32>(value), addr);
     }
     else
-      PowerPC::HostWrite_U64(value, addr);
+      accessors->WriteU64(value, addr);
   }
 
   Update();
@@ -473,24 +537,30 @@ static void DumpArray(const std::string& filename, const u8* data, size_t length
 
 void MemoryWidget::OnDumpMRAM()
 {
-  DumpArray(File::GetUserPath(F_RAMDUMP_IDX), Memory::m_pRAM, Memory::REALRAM_SIZE);
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Mem1);
+  DumpArray(File::GetUserPath(F_MEM1DUMP_IDX), accessors->begin(),
+            std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpExRAM()
 {
-  if (SConfig::GetInstance().bWii)
-  {
-    DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);
-  }
-  else
-  {
-    DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
-  }
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Mem2);
+  DumpArray(File::GetUserPath(F_MEM2DUMP_IDX), accessors->begin(),
+            std::distance(accessors->begin(), accessors->end()));
+}
+
+void MemoryWidget::OnDumpARAM()
+{
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Auxiliary);
+  DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), accessors->begin(),
+            std::distance(accessors->begin(), accessors->end()));
 }
 
 void MemoryWidget::OnDumpFakeVMEM()
 {
-  DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), Memory::m_pFakeVMEM, Memory::FAKEVMEM_SIZE);
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Fake);
+  DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), accessors->begin(),
+            std::distance(accessors->begin(), accessors->end()));
 }
 
 std::vector<u8> MemoryWidget::GetValueData() const
@@ -537,62 +607,24 @@ void MemoryWidget::FindValue(bool next)
     m_result_label->setText(tr("No Value Given"));
     return;
   }
-
-  const u8* ram_ptr = nullptr;
-  std::size_t ram_size = 0;
-  u32 base_address = 0;
-
-  if (m_type_u16->isChecked())
-  {
-    ram_ptr = DSP::GetARAMPtr();
-    ram_size = DSP::ARAM_SIZE;
-    base_address = 0x0c005000;
-  }
-  else if (Memory::m_pRAM)
-  {
-    ram_ptr = Memory::m_pRAM;
-    ram_size = Memory::REALRAM_SIZE;
-    base_address = 0x80000000;
-  }
-  else
-  {
-    m_result_label->setText(tr("Memory Not Ready"));
-    return;
-  }
-
   u32 addr = 0;
 
   if (!m_search_address->text().isEmpty())
-    addr = m_search_address->text().toUInt(nullptr, 16) + 1;
-
-  if (addr >= base_address)
-    addr -= base_address;
-
-  if (addr >= ram_size - search_for.size())
   {
-    m_result_label->setText(tr("Address Out of Range"));
-    return;
+    // skip the quoted address so we don't potentially refind the last result
+    addr = m_search_address->text().toUInt(nullptr, 16) + (next ? 1 : -1);
   }
 
-  const u8* ptr;
-  const u8* end;
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  if (next)
-  {
-    end = &ram_ptr[ram_size - search_for.size() + 1];
-    ptr = std::search(&ram_ptr[addr], end, search_for.begin(), search_for.end());
-  }
-  else
-  {
-    end = &ram_ptr[addr + search_for.size() - 1];
-    ptr = std::find_end(ram_ptr, end, search_for.begin(), search_for.end());
-  }
+  auto found_addr =
+      accessors->Search(addr, search_for.data(), static_cast<u32>(search_for.size()), next);
 
-  if (ptr != end)
+  if (found_addr.has_value())
   {
     m_result_label->setText(tr("Match Found"));
 
-    u32 offset = static_cast<u32>(ptr - ram_ptr) + base_address;
+    u32 offset = *found_addr;
 
     m_search_address->setText(QStringLiteral("%1").arg(offset, 8, 16, QLatin1Char('0')));
 

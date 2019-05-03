@@ -919,6 +919,9 @@
     <ClCompile Include="HW\WiimoteCommon\DataReport.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClCompile>
+    <ClCompile Include="HW\AddressSpace.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1635,6 +1638,9 @@
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\ConditionRegister.h" />
+    <ClInclude Include="HW\AddressSpace.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
