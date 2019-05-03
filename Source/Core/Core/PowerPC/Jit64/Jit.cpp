@@ -388,9 +388,11 @@ void Jit64::ClearCache()
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
+  int i;
   for(auto& e: address_and_code){
     Jit(e.first);
-    printf("infinite loop\n");
+    i++;
+    printf("infinite loop: %d\n", i);
   }
 }
 
