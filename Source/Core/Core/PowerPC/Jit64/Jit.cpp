@@ -250,7 +250,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
     PanicAlert("BackPatch: no register use entry for address %p", codePtr);
     return false;
   }
-
+  
   TrampolineInfo& info = it->second;
 
   u8* exceptionHandler = nullptr;

@@ -14,8 +14,11 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/Core/PowerPC/Jit64/Jit.h"
 
 class JitBase;
+
+
 
 // A JitBlock is block of compiled code which corresponds to the PowerPC
 // code at a given address.
@@ -77,6 +80,7 @@ struct JitBlock
     u64 runCount;
     u64 ticStart;
     u64 ticStop;
+    u64 old_hotness;
   } profile_data = {};
 
   // This tracks the position if this block within the fast block cache.
@@ -137,6 +141,9 @@ public:
   bool ThanosEval(const u8*, size_t);
   JitBlock* DupJitBlock(u32, u32);
   void Reset();
+  void New_Clear();
+  void Profile_block_map(std::multimap<u32, u32>& address_and_code);
+  u32 hot_score(JitBlock e);
 
   // Code Cache
   JitBlock** GetFastBlockMap();

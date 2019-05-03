@@ -58,6 +58,68 @@ void JitBaseBlockCache::Shutdown()
   JitRegister::Shutdown();
 }
 
+// e.second.profile_data.ticStop = time(NULL);
+//    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
+//          e.second.profile_data.runCount*1000 /
+//             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
+
+u32 JitBaseBlockCache::hot_score(JitBlock e)
+{
+  u32 hotness;
+  hotness = (u64) ((e.profile_data.runCount*1000)/
+                            (e.profile_data.ticStop - e.profile_data.ticStart));
+  return (0.1) * hotness + (1 - 0.1) * e.profile_data.old_hotness;
+} 
+
+void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code){
+  std::multimap<u64, u32> sorted_heat;
+  u64 hotness;
+  u64 CC_size = block_map.size();
+  JitBlock b;
+
+  for (auto& e : block_map)
+    {
+      hotness = hot_score(e.second);
+      sorted_heat.insert(std::pair<u64, u32>(hotness, e.first));
+    }
+    while (1){
+      if( sorted_heat.size() <= CC_size / 4){
+        break;
+      }
+      sorted_heat.erase(sorted_heat.begin()->first);
+    }
+    //does b do what I want??? I have no idea
+    for (auto& e : sorted_heat){
+      b = block_map.find(e.second)->second;
+      address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
+    }
+}
+
+void JitBaseBlockCache::New_Clear()
+{
+ 
+
+  #if defined(_DEBUG) || defined(DEBUGFAST)
+  Core::DisplayMessage("Clearing code cache.", 3000);
+#endif
+  m_jit.js.fifoWriteAddresses.clear();
+  m_jit.js.pairedQuantizeAddresses.clear();
+
+  //insert blocks by heat for sorting
+  //TODO CALL Profile
+  for (auto& e : block_map)
+  {
+    DestroyBlock(e.second);
+  }
+  block_map.clear();
+  links_to.clear();
+  block_range_map.clear();
+
+  valid_block.ClearAll();
+
+  fast_block_map.fill(nullptr);
+}
+
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
 // is full and when saving and loading states.
 void JitBaseBlockCache::Clear()
@@ -156,6 +218,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   u32 physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
   JitBlock& b = block_map.emplace(physicalAddress, JitBlock())->second;
+  b.profile_data.old_hotness = 0;
   b.effectiveAddress = em_address;
   b.physicalAddress = physicalAddress;
   b.msrBits = MSR.Hex & JIT_CACHE_MSR_MASK;
