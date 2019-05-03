@@ -78,6 +78,7 @@ public:
 
   const XFuncMap& Symbols() const { return m_functions; }
   XFuncMap& AccessSymbols() { return m_functions; }
+  bool IsEmpty() const;
   void Clear(const char* prefix = "");
   void List();
   void Index();
