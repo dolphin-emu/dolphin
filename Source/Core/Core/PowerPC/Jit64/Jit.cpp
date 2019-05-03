@@ -387,17 +387,9 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  int i = 0;
   UpdateMemoryOptions();
-  std::size_t block_size;
   for(auto& e: address_and_code){
-    block_size = m_code_buffer.size();
-    const u32 nextPC = analyzer.Analyze(e.first, &code_block, &m_code_buffer, block_size);
-    JitBlock* b = blocks.AllocateBlock(e.first);
-    DoJit(e.first, b, nextPC);
-    blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
-    i++;
-    printf("loop: %d effective address: 0x%x\n", i, e.first);
+    printf("effective address: 0x%x Hotness:\n", e.first, e.second);
   }
 }
 

@@ -74,9 +74,9 @@ u32 JitBaseBlockCache::hot_score(JitBlock e)
 
 void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code)
 {
-  std::multimap<u64, u32> sorted_heat; //hotness -> start addr
+  std::multimap<u64, u32> sorted_heat;  // hotness -> start addr
   u64 hotness;
-  u64 CC_size = block_map.size(); // start addr -> JitBlock
+  u64 CC_size = block_map.size();       // start addr -> JitBlock
   JitBlock b;
 
   for (auto& e : block_map)
@@ -95,7 +95,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
   for (auto& e : sorted_heat){
     b = block_map.find(e.second)->second;
     //printf("effective address: 0x%x\n", b.effectiveAddress);
-    address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
+    address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, e.first));
   }
 }
 
@@ -112,7 +112,6 @@ void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
   //TODO CALL Profile
   start = time(NULL);
   Profile_block_map(address_and_code);
-  printf("time to finish profiling: %d\n", (time(NULL) - start));
   for (auto& e : block_map)
   {
     DestroyBlock(e.second);
@@ -124,7 +123,6 @@ void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
   valid_block.ClearAll();
 
   fast_block_map.fill(nullptr);
-  printf("Exiting flush\n");
 }
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
