@@ -129,7 +129,7 @@ public:
   static constexpr u32 FAST_BLOCK_MAP_ELEMENTS = 0x10000;
   static constexpr u32 FAST_BLOCK_MAP_MASK = FAST_BLOCK_MAP_ELEMENTS - 1;
 
-  static constexpr size_t HOT_CODE_RATIO = 2;
+  static constexpr size_t HOT_CODE_RATIO = 16;
 
   explicit JitBaseBlockCache(JitBase& jit);
   virtual ~JitBaseBlockCache();

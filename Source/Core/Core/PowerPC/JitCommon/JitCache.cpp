@@ -91,7 +91,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
     }
     sorted_heat.erase(sorted_heat.begin()->first);
   }
-  
+
   for (auto& e : sorted_heat){
     b = block_map.find(e.second)->second;
     address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, 0));
@@ -138,7 +138,7 @@ void JitBaseBlockCache::Clear()
 //    printf("BLOCK TOTAL RUN\t0x%x\t%d\n", e.second.effectiveAddress,
  //          e.second.profile_data.runCount*1000 /
   //             (e.second.profile_data.ticStop - e.second.profile_data.ticStart));
-    printf("BLOCK INDEX:\t%d\t%x\t%x\tSize:\t%x\n", e.second.rSize, e.second.effectiveAddress, e.second.start, e.second.codeSize);
+   // printf("BLOCK INDEX:\t%d\t%x\t%x\tSize:\t%x\n", e.second.rSize, e.second.effectiveAddress, e.second.start, e.second.codeSize);
     DestroyBlock(e.second);
   }
   block_map.clear();
@@ -185,7 +185,7 @@ JitBlock* JitBaseBlockCache::DupJitBlock(u32 em_address, u32 msr)
 
 void JitBaseBlockCache::Clear2()
 {
-  printf("Entering Clear2()\n");
+  //printf("Entering Clear2()\n");
   //Copy hot blocks into buffer
   /*void* ptr;
   for (const auto& e : block_map)
