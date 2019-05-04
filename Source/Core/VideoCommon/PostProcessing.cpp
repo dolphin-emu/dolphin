@@ -275,7 +275,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
     break;
     case ConfigurationOption::OptionType::OPTION_INTEGER:
     {
-      std::string value = "";
+      std::string value;
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
         value += StringFromFormat("%d%s", it.second.m_integer_values[i],
                                   i == (it.second.m_integer_values.size() - 1) ? "" : ", ");

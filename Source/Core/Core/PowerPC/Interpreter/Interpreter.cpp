@@ -116,13 +116,13 @@ static int startTrace = 0;
 
 static void Trace(UGeckoInstruction& inst)
 {
-  std::string regs = "";
+  std::string regs;
   for (int i = 0; i < 32; i++)
   {
     regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
   }
 
-  std::string fregs = "";
+  std::string fregs;
   for (int i = 0; i < 32; i++)
   {
     const auto& ps = PowerPC::ppcState.ps[i];

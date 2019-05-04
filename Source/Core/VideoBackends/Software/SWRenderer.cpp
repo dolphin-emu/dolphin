@@ -82,7 +82,7 @@ std::unique_ptr<AbstractShader> SWRenderer::CreateShaderFromBinary(ShaderStage s
 class SWPipeline final : public AbstractPipeline
 {
 public:
-  SWPipeline() : AbstractPipeline() {}
+  SWPipeline() = default;
   ~SWPipeline() override = default;
 };
 

@@ -194,7 +194,7 @@ void SetUserDirectory(const std::string& custom_path)
     return;
   }
 
-  std::string user_path = "";
+  std::string user_path;
 #ifdef _WIN32
   // Detect where the User directory is. There are five different cases
   // (on top of the command line flag, which overrides all this):

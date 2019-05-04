@@ -52,6 +52,8 @@ std::mutex g_wiimotes_mutex;
 std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
 WiimoteScanner g_wiimote_scanner;
 
+Wiimote::Wiimote() = default;
+
 void Wiimote::Shutdown()
 {
   std::lock_guard<std::mutex> lk(s_known_ids_mutex);
