@@ -473,7 +473,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // Switch the window used for inputs to the render window. This way, the cursor position
   // is relative to the render window, instead of the main window.
   ASSERT(g_controller_interface.IsInit());
-  g_controller_interface.ChangeWindow(wsi.render_window);
+  g_controller_interface.ChangeWindow(wsi.render_surface, wsi.render_surface_width,
+                                      wsi.render_surface_height);
 
   Pad::LoadConfig();
   Pad::LoadGBAConfig();

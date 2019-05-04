@@ -53,7 +53,10 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 
   std::lock_guard lk_population(m_devices_population_mutex);
 
+  // Prevent divide by zero if we somehow end up with a 0x0 window.
   m_wsi = wsi;
+  m_wsi.render_surface_width = std::max(m_wsi.render_surface_width, 1);
+  m_wsi.render_surface_height = std::max(m_wsi.render_surface_height, 1);
 
   m_populating_devices_counter = 1;
 
@@ -100,19 +103,30 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
     InvokeDevicesChangedCallbacks();
 }
 
-void ControllerInterface::ChangeWindow(void* hwnd, WindowChangeReason reason)
+void ControllerInterface::ChangeWindow(void* hwnd, int width, int height, WindowChangeReason reason)
 {
   if (!m_is_init)
     return;
 
   // This shouldn't use render_surface so no need to update it.
   m_wsi.render_window = hwnd;
+  m_wsi.render_surface_width = std::max(width, 1);
+  m_wsi.render_surface_height = std::max(height, 1);
 
   // No need to re-add devices if this is an application exit request
   if (reason == WindowChangeReason::Exit)
     ClearDevices();
   else
     RefreshDevices(RefreshReason::WindowChangeOnly);
+}
+
+void ControllerInterface::OnWindowResized(int width, int height)
+{
+  m_wsi.render_surface_width = std::max(width, 1);
+  m_wsi.render_surface_height = std::max(height, 1);
+  std::lock_guard lk(m_devices_mutex);
+  for (const auto& d : m_devices)
+    d->OnWindowResized(width, height);
 }
 
 void ControllerInterface::RefreshDevices(RefreshReason reason)
@@ -175,7 +189,7 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 #endif
 #ifdef CIFACE_USE_XLIB
   if (m_wsi.type == WindowSystemType::X11)
-    ciface::XInput2::PopulateDevices(m_wsi.render_window);
+    ciface::XInput2::PopulateDevices(m_wsi);
 #endif
 #ifdef CIFACE_USE_WAYLAND
   if (m_wsi.type == WindowSystemType::Wayland)

@@ -52,7 +52,7 @@
 namespace ciface::XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
-void PopulateDevices(void* const hwnd)
+void PopulateDevices(const WindowSystemInfo& wsi)
 {
   Display* dpy = XOpenDisplay(nullptr);
 
@@ -86,7 +86,7 @@ void PopulateDevices(void* const hwnd)
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
       g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(
-          (Window)hwnd, xi_opcode, current_master->deviceid, current_master->attachment));
+          wsi, xi_opcode, current_master->deviceid, current_master->attachment));
     }
   }
 
@@ -128,8 +128,9 @@ void KeyboardMouse::SelectEventsForDevice(XIEventMask* mask, int deviceid)
   XIFreeDeviceInfo(all_slaves);
 }
 
-KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard)
-    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard)
+KeyboardMouse::KeyboardMouse(const WindowSystemInfo& wsi, int opcode, int pointer, int keyboard)
+    : m_window(reinterpret_cast<Window>(wsi.render_window)), xi_opcode(opcode),
+      pointer_deviceid(pointer), keyboard_deviceid(keyboard)
 {
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
@@ -137,6 +138,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   // in. So be aware that each KeyboardMouse object actually has its own X11
   // "context."
   m_display = XOpenDisplay(nullptr);
+  m_window_width = wsi.render_surface_width;
+  m_window_height = wsi.render_surface_height;
 
   // should always be 1
   int unused;
@@ -346,6 +349,12 @@ void KeyboardMouse::UpdateInput()
   XQueryKeymap(m_display, keyboard.data());
   for (size_t i = 0; i != keyboard.size(); ++i)
     m_state.keyboard[i] &= keyboard[i];
+}
+
+void KeyboardMouse::OnWindowResized(int width, int height)
+{
+  m_window_width = width;
+  m_window_height = height;
 }
 
 std::string KeyboardMouse::GetName() const

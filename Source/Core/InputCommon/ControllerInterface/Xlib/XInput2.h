@@ -14,11 +14,12 @@ extern "C" {
 }
 
 #include "Common/Matrix.h"
+#include "Common/WindowSystemInfo.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface::XInput2
 {
-void PopulateDevices(void* const hwnd);
+void PopulateDevices(const WindowSystemInfo& wsi);
 
 class KeyboardMouse : public Core::Device
 {
@@ -112,8 +113,10 @@ private:
 
 public:
   void UpdateInput() override;
+  void OnWindowResized(int width, int height) override;
 
-  KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid);
+  KeyboardMouse(const WindowSystemInfo& wsi, int opcode, int pointer_deviceid,
+                int keyboard_deviceid);
   ~KeyboardMouse();
 
   std::string GetName() const override;
@@ -127,5 +130,7 @@ private:
   const int pointer_deviceid;
   const int keyboard_deviceid;
   std::string name;
+  int m_window_width;
+  int m_window_height;
 };
 }  // namespace ciface::XInput2

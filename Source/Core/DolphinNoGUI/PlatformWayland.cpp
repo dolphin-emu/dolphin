@@ -10,6 +10,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include <climits>
 #include <cstdio>
@@ -129,7 +130,11 @@ void PlatformWayland::TopLevelConfigure(void* data, struct xdg_toplevel* xdg_top
   platform->m_surface_width = width;
   platform->m_surface_height = height;
   if (g_renderer)
+  {
     g_renderer->ResizeSurface(width, height);
+    if (g_controller_interface.IsInit())
+      g_controller_interface.OnWindowResized(width, height);
+  }
 }
 
 void PlatformWayland::TopLevelClose(void* data, struct xdg_toplevel* xdg_toplevel)

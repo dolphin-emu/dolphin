@@ -79,7 +79,8 @@ void Host::SetRenderHandle(void* handle, int width, int height)
   if (g_renderer)
   {
     g_renderer->ChangeSurface(handle, width, height);
-    g_controller_interface.ChangeWindow(handle);
+    if (g_controller_interface.IsInit())
+      g_controller_interface.ChangeWindow(handle, width, height);
   }
 }
 
@@ -189,7 +190,11 @@ void Host::SetRenderFullscreen(bool fullscreen)
 void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
+  {
     g_renderer->ResizeSurface(new_width, new_height);
+    if (g_controller_interface.IsInit())
+      g_controller_interface.OnWindowResized(new_width, new_height);
+  }
 }
 
 std::vector<std::string> Host_GetPreferredLocales()

@@ -139,6 +139,9 @@ public:
   // Every platform should have at least one device with priority >= 0.
   virtual int GetSortPriority() const { return 0; }
 
+  // Called when the window the device is bound to is resized.
+  virtual void OnWindowResized(int width, int height) {}
+
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
 

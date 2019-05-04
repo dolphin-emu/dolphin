@@ -15,6 +15,7 @@ static constexpr auto X_None = None;
 #include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include <climits>
 #include <cstdio>
@@ -57,8 +58,8 @@ private:
 #endif
   int m_window_x = Config::Get(Config::MAIN_RENDER_WINDOW_XPOS);
   int m_window_y = Config::Get(Config::MAIN_RENDER_WINDOW_YPOS);
-  unsigned int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
-  unsigned int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
+  int m_window_width = Config::Get(Config::MAIN_RENDER_WINDOW_WIDTH);
+  int m_window_height = Config::Get(Config::MAIN_RENDER_WINDOW_HEIGHT);
 };
 
 PlatformX11::~PlatformX11()
@@ -178,8 +179,9 @@ void PlatformX11::UpdateWindowPosition()
 
   Window winDummy;
   unsigned int borderDummy, depthDummy;
-  XGetGeometry(m_display, m_window, &winDummy, &m_window_x, &m_window_y, &m_window_width,
-               &m_window_height, &borderDummy, &depthDummy);
+  XGetGeometry(m_display, m_window, &winDummy, &m_window_x, &m_window_y,
+               reinterpret_cast<unsigned int*>(&m_window_width),
+               reinterpret_cast<unsigned int*>(&m_window_height), &borderDummy, &depthDummy);
 }
 
 void PlatformX11::ProcessEvents()
@@ -270,6 +272,8 @@ void PlatformX11::ProcessEvents()
         UpdateWindowPosition();
         g_renderer->ResizeSurface(m_window_width, m_window_height);
       }
+      if (g_controller_interface.IsInit())
+        g_controller_interface.OnWindowResized(m_window_width, m_window_height);
     }
     break;
     }

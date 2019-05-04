@@ -1172,9 +1172,9 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(this).render_surface,
-                                        is_exit ? ControllerInterface::WindowChangeReason::Exit :
-                                                  ControllerInterface::WindowChangeReason::Other);
+    const WindowSystemInfo wsi = GetWindowSystemInfo(this);
+    g_controller_interface.ChangeWindow(wsi.render_surface, wsi.render_surface_width,
+                                        wsi.render_surface_height);
   }
 }
 
