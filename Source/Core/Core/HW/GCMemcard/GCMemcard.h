@@ -285,37 +285,13 @@ struct BlockAlloc
   // 0x1ff8 bytes at 0x000a: Map of allocated Blocks
   std::array<Common::BigEndianValue<u16>, BAT_SIZE> m_map;
 
-  u16 GetNextBlock(u16 Block) const;
-  u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
-  bool ClearBlocks(u16 StartingBlock, u16 Length);
-  void fixChecksums()
-  {
-    calc_checksumsBE((u16*)&m_update_counter, 0xFFE, &m_checksum, &m_checksum_inv);
-  }
-  explicit BlockAlloc(u16 sizeMb = MemCard2043Mb)
-  {
-    memset(this, 0, BLOCK_SIZE);
-    m_free_blocks = (sizeMb * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
-    m_last_allocated_block = 4;
-    fixChecksums();
-  }
-  u16 AssignBlocksContiguous(u16 length)
-  {
-    u16 starting = m_last_allocated_block + 1;
-    if (length > m_free_blocks)
-      return 0xFFFF;
-    u16 current = starting;
-    while ((current - starting + 1) < length)
-    {
-      m_map[current - 5] = current + 1;
-      current++;
-    }
-    m_map[current - 5] = 0xFFFF;
-    m_last_allocated_block = current;
-    m_free_blocks = m_free_blocks - length;
-    fixChecksums();
-    return starting;
-  }
+  explicit BlockAlloc(u16 size_mbits = MemCard2043Mb);
+
+  u16 GetNextBlock(u16 block) const;
+  u16 NextFreeBlock(u16 max_block, u16 starting_block = MC_FST_BLOCKS) const;
+  bool ClearBlocks(u16 starting_block, u16 block_count);
+  void FixChecksums();
+  u16 AssignBlocksContiguous(u16 length);
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)

@@ -594,55 +594,87 @@ std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
   return GetActiveDirectory().m_dir_entries[index];
 }
 
-u16 BlockAlloc::GetNextBlock(u16 Block) const
+BlockAlloc::BlockAlloc(u16 size_mbits)
 {
-  if ((Block < MC_FST_BLOCKS) || (Block > 4091))
+  memset(this, 0, BLOCK_SIZE);
+  m_free_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
+  m_last_allocated_block = 4;
+  FixChecksums();
+}
+
+u16 BlockAlloc::GetNextBlock(u16 block) const
+{
+  // FIXME: This is fishy, shouldn't that be in range [5, 4096[?
+  if ((block < MC_FST_BLOCKS) || (block > 4091))
     return 0;
 
-  return m_map[Block - MC_FST_BLOCKS];
+  return m_map[block - MC_FST_BLOCKS];
 }
 
 // Parameters and return value are expected as memory card block index,
 // not BAT index; that is, block 5 is the first file data block.
-u16 BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
+u16 BlockAlloc::NextFreeBlock(u16 max_block, u16 starting_block) const
 {
   if (m_free_blocks > 0)
   {
-    StartingBlock = std::clamp<u16>(StartingBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
-    MaxBlock = std::clamp<u16>(MaxBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
-    for (u16 i = StartingBlock; i < MaxBlock; ++i)
+    starting_block = std::clamp<u16>(starting_block, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
+    max_block = std::clamp<u16>(max_block, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
+    for (u16 i = starting_block; i < max_block; ++i)
       if (m_map[i - MC_FST_BLOCKS] == 0)
         return i;
 
-    for (u16 i = MC_FST_BLOCKS; i < StartingBlock; ++i)
+    for (u16 i = MC_FST_BLOCKS; i < starting_block; ++i)
       if (m_map[i - MC_FST_BLOCKS] == 0)
         return i;
   }
   return 0xFFFF;
 }
 
-bool BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
+bool BlockAlloc::ClearBlocks(u16 starting_block, u16 block_count)
 {
   std::vector<u16> blocks;
-  while (FirstBlock != 0xFFFF && FirstBlock != 0)
+  while (starting_block != 0xFFFF && starting_block != 0)
   {
-    blocks.push_back(FirstBlock);
-    FirstBlock = GetNextBlock(FirstBlock);
+    blocks.push_back(starting_block);
+    starting_block = GetNextBlock(starting_block);
   }
-  if (FirstBlock > 0)
+  if (starting_block > 0)
   {
     size_t length = blocks.size();
-    if (length != BlockCount)
+    if (length != block_count)
     {
       return false;
     }
     for (unsigned int i = 0; i < length; ++i)
       m_map[blocks.at(i) - MC_FST_BLOCKS] = 0;
-    m_free_blocks = m_free_blocks + BlockCount;
+    m_free_blocks = m_free_blocks + block_count;
 
     return true;
   }
   return false;
+}
+
+void BlockAlloc::FixChecksums()
+{
+  calc_checksumsBE((u16*)&m_update_counter, 0xFFE, &m_checksum, &m_checksum_inv);
+}
+
+u16 BlockAlloc::AssignBlocksContiguous(u16 length)
+{
+  u16 starting = m_last_allocated_block + 1;
+  if (length > m_free_blocks)
+    return 0xFFFF;
+  u16 current = starting;
+  while ((current - starting + 1) < length)
+  {
+    m_map[current - 5] = current + 1;
+    current++;
+  }
+  m_map[current - 5] = 0xFFFF;
+  m_last_allocated_block = current;
+  m_free_blocks = m_free_blocks - length;
+  FixChecksums();
+  return starting;
 }
 
 u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
