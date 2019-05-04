@@ -10,6 +10,7 @@
 #include <ostream>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -19,6 +20,75 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+const std::array<LogTypes::Info, LogTypes::NUMBER_OF_LOGS> LogTypes::INFO{{
+    {"All", "All Logs", LogTypes::NUMBER_OF_LOGS},
+#define TYPE(id, short_name, long_name) {short_name, long_name},
+#define CATEGORY(id, short_name, long_name) {short_name, long_name, id##_END},
+#define END_CATEGORY(id) {},
+#include "Common/Logging/LogTypes.h"
+#undef TYPE
+#undef CATEGORY
+#undef END_CATEGORY
+}};
+
+bool LogTypes::IsLeaf(LOG_TYPE type)
+{
+  ASSERT(IsValid(type));
+  return INFO[type].end <= type;
+}
+
+bool LogTypes::IsValid(LOG_TYPE type)
+{
+  return type >= ALL_LOGS && type < NUMBER_OF_LOGS && INFO[type].short_name;
+}
+
+LogTypes::LOG_TYPE LogTypes::FirstChild(LOG_TYPE type)
+{
+  ASSERT(!IsLeaf(type));
+  return LOG_TYPE(size_t(type) + 1);
+}
+
+LogTypes::LOG_TYPE LogTypes::NextSibling(LOG_TYPE type)
+{
+  ASSERT(IsValid(type));
+  if (INFO[type].end > type)
+  {
+    return LOG_TYPE(INFO[type].end + 1);
+  }
+  return LOG_TYPE(type + 1);
+}
+
+LogTypes::LOG_TYPE LogTypes::Parent(LOG_TYPE type)
+{
+  ASSERT(IsValid(type));
+  if (type == ALL_LOGS)
+  {
+    return NUMBER_OF_LOGS;
+  }
+  for (size_t i = size_t(type) - 1; i + 1 != 0; --i)
+  {
+    if (INFO[i].end >= type)
+    {
+      return LOG_TYPE(i);
+    }
+  }
+  return NUMBER_OF_LOGS;
+}
+
+size_t LogTypes::CountChildren(LOG_TYPE type)
+{
+  if (IsLeaf(type))
+  {
+    return 0;
+  }
+  size_t count = 0;
+  for (LOG_TYPE t = FirstChild(type); IsValid(t); t = NextSibling(t))
+  {
+    ++count;
+  }
+  return count;
+}
+
 constexpr size_t MAX_MSGLEN = 1024;
 
 const Config::ConfigInfo<bool> LOGGER_WRITE_TO_FILE{
@@ -27,7 +97,8 @@ const Config::ConfigInfo<bool> LOGGER_WRITE_TO_CONSOLE{
     {Config::System::Logger, "Options", "WriteToConsole"}, true};
 const Config::ConfigInfo<bool> LOGGER_WRITE_TO_WINDOW{
     {Config::System::Logger, "Options", "WriteToWindow"}, true};
-const Config::ConfigInfo<int> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"}, 0};
+const Config::ConfigInfo<u8> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"},
+                                              LogTypes::LERROR};
 
 class FileLogListener : public LogListener
 {
@@ -88,78 +159,59 @@ static size_t DeterminePathCutOffPoint()
 
 LogManager::LogManager()
 {
-  // create log containers
-  m_log[LogTypes::ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
-  m_log[LogTypes::AUDIO] = {"Audio", "Audio Emulator"};
-  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface (AI)"};
-  m_log[LogTypes::BOOT] = {"BOOT", "Boot"};
-  m_log[LogTypes::COMMANDPROCESSOR] = {"CP", "CommandProc"};
-  m_log[LogTypes::COMMON] = {"COMMON", "Common"};
-  m_log[LogTypes::CONSOLE] = {"CONSOLE", "Dolphin Console"};
-  m_log[LogTypes::CORE] = {"CORE", "Core"};
-  m_log[LogTypes::DISCIO] = {"DIO", "Disc IO"};
-  m_log[LogTypes::DSPHLE] = {"DSPHLE", "DSP HLE"};
-  m_log[LogTypes::DSPLLE] = {"DSPLLE", "DSP LLE"};
-  m_log[LogTypes::DSP_MAIL] = {"DSPMails", "DSP Mails"};
-  m_log[LogTypes::DSPINTERFACE] = {"DSP", "DSPInterface"};
-  m_log[LogTypes::DVDINTERFACE] = {"DVD", "DVD Interface"};
-  m_log[LogTypes::DYNA_REC] = {"JIT", "Dynamic Recompiler"};
-  m_log[LogTypes::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
-  m_log[LogTypes::FILEMON] = {"FileMon", "File Monitor"};
-  m_log[LogTypes::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
-  m_log[LogTypes::GPFIFO] = {"GP", "GPFifo"};
-  m_log[LogTypes::HOST_GPU] = {"Host GPU", "Host GPU"};
-  m_log[LogTypes::IOS] = {"IOS", "IOS"};
-  m_log[LogTypes::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
-  m_log[LogTypes::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
-  m_log[LogTypes::IOS_FS] = {"IOS_FS", "IOS - Filesystem Services"};
-  m_log[LogTypes::IOS_SD] = {"IOS_SD", "IOS - SDIO"};
-  m_log[LogTypes::IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
-  m_log[LogTypes::IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
-  m_log[LogTypes::IOS_NET] = {"IOS_NET", "IOS - Network"};
-  m_log[LogTypes::IOS_USB] = {"IOS_USB", "IOS - USB"};
-  m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
-  m_log[LogTypes::IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
-  m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
-  m_log[LogTypes::MASTER_LOG] = {"MASTER", "Master Log"};
-  m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
-  m_log[LogTypes::MEMMAP] = {"MI", "MI & memmap"};
-  m_log[LogTypes::NETPLAY] = {"NETPLAY", "Netplay"};
-  m_log[LogTypes::OSHLE] = {"HLE", "HLE"};
-  m_log[LogTypes::OSREPORT] = {"OSREPORT", "OSReport"};
-  m_log[LogTypes::PAD] = {"PAD", "Pad"};
-  m_log[LogTypes::PIXELENGINE] = {"PE", "PixelEngine"};
-  m_log[LogTypes::PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
-  m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
-  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
-  m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
-  m_log[LogTypes::SYMBOLS] = {"SYMBOLS", "Symbols"};
-  m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
-  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
-  m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
-  m_log[LogTypes::WII_IPC] = {"WII_IPC", "WII IPC"};
-
   RegisterListener(LogListener::FILE_LISTENER,
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
   // Set up log listeners
-  int verbosity = Config::Get(LOGGER_VERBOSITY);
-
-  // Ensure the verbosity level is valid
-  if (verbosity < 1)
-    verbosity = 1;
-  if (verbosity > MAX_LOGLEVEL)
-    verbosity = MAX_LOGLEVEL;
-
-  SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
   EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
   EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
   EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
 
-  for (LogContainer& container : m_log)
-    container.m_enable = Config::Get(
-        Config::ConfigInfo<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
+  // pre-initialize root with legacy Verbosity key
+  u8 verbosity = Config::Get(LOGGER_VERBOSITY);
+  if (verbosity < 1)
+    verbosity = 1;
+  if (verbosity > MAX_LOGLEVEL)
+    verbosity = MAX_LOGLEVEL;
+  m_log[LogTypes::ALL_LOGS].log_level = LogTypes::LOG_LEVELS(verbosity);
+
+  for (size_t pos = 0; pos < LogTypes::NUMBER_OF_LOGS; ++pos)
+  {
+    if (!LogTypes::IsValid(LogTypes::LOG_TYPE(pos)))
+    {
+      continue;
+    }
+    auto& info = LogTypes::INFO[pos];
+    const char* sname = info.short_name;
+    const Config::ConfigInfo<std::string> conf{{Config::System::Logger, "Logs", sname}, ""};
+    auto str = Config::Get(conf);
+    u8 log_level = 0;
+    bool enable = false;
+    if (TryParse(str, &log_level))
+    {
+      if (log_level > MAX_LOGLEVEL && log_level != LogTypes::LINHERIT)
+      {
+        log_level = MAX_LOGLEVEL;
+      }
+      if (log_level != LogTypes::LINHERIT)
+      {
+        m_log[pos].log_level = LogTypes::LOG_LEVELS(log_level);
+        m_log[pos].overridden = true;
+      }
+    }
+    else if (TryParse(str, &enable))
+    {
+      // legacy format (boolean)
+      m_log[pos].log_level = LogTypes::LOG_LEVELS(enable ? verbosity : 0);
+      m_log[pos].overridden = m_log[LogTypes::ALL_LOGS].log_level != m_log[pos].log_level;
+    }
+    // propagate into children
+    for (size_t i = pos + 1; i < info.end; ++i)
+    {
+      m_log[i].log_level = m_log[pos].log_level;
+    }
+  }
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
@@ -180,13 +232,20 @@ void LogManager::SaveSettings()
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_WINDOW,
                            IsListenerEnabled(LogListener::LOG_WINDOW_LISTENER));
-  Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
 
-  for (const auto& container : m_log)
+  const Config::ConfigInfo<u8> root{{Config::System::Logger, "Logs", "All"},
+                                    LOGGER_VERBOSITY.default_value};
+  Config::SetBaseOrCurrent(root, u8(m_log[LogTypes::ALL_LOGS].log_level));
+  for (size_t pos = LogTypes::ALL_LOGS + 1; pos < LogTypes::NUMBER_OF_LOGS; ++pos)
   {
-    const Config::ConfigInfo<bool> info{{Config::System::Logger, "Logs", container.m_short_name},
-                                        false};
-    Config::SetBaseOrCurrent(info, container.m_enable);
+    if (!LogTypes::IsValid(LogTypes::LOG_TYPE(pos)))
+    {
+      continue;
+    }
+    const char* name = LogTypes::INFO[pos].short_name;
+    const Config::ConfigInfo<u8> info{{Config::System::Logger, "Logs", name}, LogTypes::LINHERIT};
+    Config::SetBaseOrCurrent(info, m_log[pos].overridden ? u8(m_log[pos].log_level) :
+                                                           u8(LogTypes::LINHERIT));
   }
 
   Config::Save();
@@ -207,43 +266,52 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
   char temp[MAX_MSGLEN];
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  std::string msg =
-      StringFromFormat("%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file,
-                       line, LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
+  std::string msg = StringFromFormat(
+      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
+      LogTypes::LOG_LEVEL_TO_CHAR[(int)level], LogTypes::INFO[type].short_name, temp);
 
   for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])
       m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
-LogTypes::LOG_LEVELS LogManager::GetLogLevel() const
+LogTypes::LOG_LEVELS LogManager::GetLogLevel(LogTypes::LOG_TYPE type) const
 {
-  return m_level;
+  return m_log[type].log_level;
 }
 
-void LogManager::SetLogLevel(LogTypes::LOG_LEVELS level)
+void LogManager::SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 {
-  m_level = level;
-}
+  ASSERT(LogTypes::IsValid(type));
+  if (level != LogTypes::LINHERIT)
+  {
+    m_log[type].log_level = level;
+  }
+  else if (type != 0)
+  {
+    auto p = LogTypes::Parent(type);
+    ASSERT(LogTypes::IsValid(p));
+    m_log[type].log_level = m_log[p].log_level;
+  }
 
-void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
-{
-  m_log[type].m_enable = enable;
+  // propagate into descendents
+  for (size_t i = size_t(type) + 1; i < LogTypes::INFO[type].end; ++i)
+  {
+    if (!m_log[i].overridden)
+    {
+      m_log[i].log_level = level;
+    }
+    else if (LogTypes::INFO[i].end > i)
+    {
+      // skip children of overridden children
+      i = LogTypes::INFO[i].end;
+    }
+  }
 }
 
 bool LogManager::IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) const
 {
-  return m_log[type].m_enable && GetLogLevel() >= level;
-}
-
-const char* LogManager::GetShortName(LogTypes::LOG_TYPE type) const
-{
-  return m_log[type].m_short_name;
-}
-
-const char* LogManager::GetFullName(LogTypes::LOG_TYPE type) const
-{
-  return m_log[type].m_full_name;
+  return m_log[type].log_level >= level;
 }
 
 void LogManager::RegisterListener(LogListener::LISTENER id, LogListener* listener)

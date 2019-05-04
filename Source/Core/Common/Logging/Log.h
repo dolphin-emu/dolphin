@@ -4,73 +4,53 @@
 
 #pragma once
 
+#include <array>
+
 namespace LogTypes
 {
 enum LOG_TYPE
 {
-  ACTIONREPLAY,
-  AUDIO,
-  AUDIO_INTERFACE,
-  BOOT,
-  COMMANDPROCESSOR,
-  COMMON,
-  CONSOLE,
-  CORE,
-  DISCIO,
-  DSPHLE,
-  DSPLLE,
-  DSP_MAIL,
-  DSPINTERFACE,
-  DVDINTERFACE,
-  DYNA_REC,
-  EXPANSIONINTERFACE,
-  FILEMON,
-  GDB_STUB,
-  GPFIFO,
-  HOST_GPU,
-  IOS,
-  IOS_DI,
-  IOS_ES,
-  IOS_FS,
-  IOS_NET,
-  IOS_SD,
-  IOS_SSL,
-  IOS_STM,
-  IOS_USB,
-  IOS_WC24,
-  IOS_WFS,
-  IOS_WIIMOTE,
-  MASTER_LOG,
-  MEMMAP,
-  MEMCARD_MANAGER,
-  NETPLAY,
-  OSHLE,
-  OSREPORT,
-  PAD,
-  PIXELENGINE,
-  PROCESSORINTERFACE,
-  POWERPC,
-  SERIALINTERFACE,
-  SP1,
-  SYMBOLS,
-  VIDEO,
-  VIDEOINTERFACE,
-  WII_IPC,
-  WIIMOTE,
-
+  ALL_LOGS,
+#define TYPE(id, short_name, long_name) id,
+#define CATEGORY(id, short_name, long_name) id,
+#define END_CATEGORY(id) id##_END,
+#include "Common/Logging/LogTypes.h"
+#undef TYPE
+#undef CATEGORY
+#undef END_CATEGORY
   NUMBER_OF_LOGS  // Must be last
 };
 
+bool IsValid(LOG_TYPE type);
+bool IsLeaf(LOG_TYPE type);
+LOG_TYPE FirstChild(LOG_TYPE type);
+LOG_TYPE NextSibling(LOG_TYPE type);
+LOG_TYPE Parent(LOG_TYPE type);
+size_t CountChildren(LOG_TYPE type);
+
 enum LOG_LEVELS
 {
-  LNOTICE = 1,   // VERY important information that is NOT errors. Like startup and OSReports.
-  LERROR = 2,    // Critical errors
-  LWARNING = 3,  // Something is suspicious.
-  LINFO = 4,     // General information.
-  LDEBUG = 5,    // Detailed debugging - might make things slow.
+  LSUPPRESS = 0,  // don't show any logs in this category (don't use this for generating logs, only
+                  // in UI/config files)
+  LNOTICE = 1,    // VERY important information that is NOT errors. Like startup and OSReports.
+  LERROR = 2,     // Critical errors
+  LWARNING = 3,   // Something is suspicious.
+  LINFO = 4,      // General information.
+  LDEBUG = 5,     // Detailed debugging - might make things slow.
+  LINHERIT =
+      6,  // Inherit the log level from parent (only use for unsetting log level in UI/config files)
 };
 
-static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
+static const char LOG_LEVEL_TO_CHAR[8] = "-NEWID?";
+
+struct Info
+{
+  const char* short_name;
+  const char* long_name;
+  // 0 means leaf
+  LOG_TYPE end;
+};
+extern const std::array<Info, NUMBER_OF_LOGS> INFO;
 
 }  // namespace
 
