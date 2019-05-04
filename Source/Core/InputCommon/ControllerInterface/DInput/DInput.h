@@ -8,6 +8,7 @@
 
 #include <windows.h>
 #include <list>
+#include <string>
 
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 
@@ -21,5 +22,5 @@ BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
 std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device);
 
 void PopulateDevices(HWND hwnd);
-}
-}
+}  // namespace DInput
+}  // namespace ciface
