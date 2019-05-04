@@ -895,6 +895,9 @@
     <ClCompile Include="HW\WiimoteEmu\Extension\Classic.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\Extension\DrawsomeTablet.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\Extension\Drums.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClCompile>
@@ -1614,6 +1617,9 @@
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Extension\Classic.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\Extension\DrawsomeTablet.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Extension\Drums.h">
