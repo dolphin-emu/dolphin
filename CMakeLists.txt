@@ -1,7 +1,7 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.

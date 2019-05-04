@@ -9,21 +9,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 endif()
 
-if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
-  # enable the latest C++ standard feature set,
-  # and also disable MSVC specific extensions
-  # to be even more standards compliant.
-  check_and_add_flag(CPPLATEST /std:c++latest)
-  check_and_add_flag(STANDARD_COMPLIANCE /permissive-)
-else()
-  # Enable C++17
-  # CMAKE_CXX_STANDARD cannot be used because it requires cmake 3.8+.
-  check_and_add_flag(CXX17 -std=c++17)
-  if(NOT FLAG_CXX_CXX17)
-    # Fall back to -std=c++1z
-    check_and_add_flag(CXX1Z -std=c++1z)
-  endif()
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).
