@@ -253,7 +253,7 @@ void SetUserDirectory(const std::string& custom_path)
     user_path += DIR_SEP;
 
 #else
-  if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
+  if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
   {
     user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
   }
