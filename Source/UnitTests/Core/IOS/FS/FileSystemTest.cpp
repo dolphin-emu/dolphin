@@ -260,16 +260,18 @@ TEST_F(FileSystemTest, WriteAndRead)
 
   // Try to read from an empty file. This should do nothing.
   // See https://github.com/dolphin-emu/dolphin/pull/4942
-  Result<u32> read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), buffer.size());
+  Result<u32> read_result =
+      m_fs->ReadBytesFromFile(fd, buffer.data(), static_cast<u32>(buffer.size()));
   EXPECT_TRUE(read_result.Succeeded());
   EXPECT_EQ(*read_result, 0u);
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, 0u);
 
-  ASSERT_TRUE(m_fs->WriteBytesToFile(fd, TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+  ASSERT_TRUE(
+      m_fs->WriteBytesToFile(fd, TEST_DATA.data(), static_cast<u32>(TEST_DATA.size())).Succeeded());
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
 
   // Try to read past EOF while we are at the end of the file. This should do nothing too.
-  read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), buffer.size());
+  read_result = m_fs->ReadBytesFromFile(fd, buffer.data(), static_cast<u32>(buffer.size()));
   EXPECT_TRUE(read_result.Succeeded());
   EXPECT_EQ(*read_result, 0u);
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
@@ -277,7 +279,8 @@ TEST_F(FileSystemTest, WriteAndRead)
   // Go back to the start and try to read past EOF. This should read the entire file until EOF.
   ASSERT_TRUE(m_fs->SeekFile(fd, 0, SeekMode::Set).Succeeded());
   std::vector<u8> larger_buffer(TEST_DATA.size() + 10);
-  read_result = m_fs->ReadBytesFromFile(fd, larger_buffer.data(), larger_buffer.size());
+  read_result =
+      m_fs->ReadBytesFromFile(fd, larger_buffer.data(), static_cast<u32>(larger_buffer.size()));
   EXPECT_TRUE(read_result.Succeeded());
   EXPECT_EQ(*read_result, TEST_DATA.size());
   EXPECT_EQ(m_fs->GetFileStatus(fd)->offset, TEST_DATA.size());
