@@ -21,6 +21,9 @@ target_include_directories(usb
 )
 endif()
 
+set_target_properties(usb PROPERTIES FOLDER Externals)
+disable_all_warnings(usb)
+
 if(WIN32 OR CYGWIN)
     target_sources(usb PRIVATE
       libusb/os/threads_windows.c

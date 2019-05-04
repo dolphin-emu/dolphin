@@ -17,3 +17,6 @@ set(SRCS
 
 add_library(SoundTouch STATIC ${SRCS})
 add_definitions(-w)
+
+set_target_properties(SoundTouch PROPERTIES FOLDER Externals)
+disable_all_warnings(SoundTouch)

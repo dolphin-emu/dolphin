@@ -13,4 +13,9 @@ endif()
 add_library(minizip STATIC ${SRCS})
 target_include_directories(minizip PUBLIC .)
 
+target_link_libraries(minizip PUBLIC z)
+
+set_target_properties(minizip PROPERTIES FOLDER Externals)
+disable_all_warnings(minizip)
+
 add_library(MiniZip::minizip ALIAS minizip)

@@ -62,3 +62,6 @@ endif()
 endif()
 
 add_library(glslang STATIC ${SRCS})
+
+set_target_properties(glslang PROPERTIES FOLDER Externals)
+disable_all_warnings(glslang)

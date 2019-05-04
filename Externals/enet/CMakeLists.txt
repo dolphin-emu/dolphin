@@ -75,3 +75,6 @@ add_library(enet STATIC
 if(HAIKU)
   target_link_libraries(enet network)
 endif(HAIKU)
+
+set_target_properties(enet PROPERTIES FOLDER Externals)
+disable_all_warnings(enet)

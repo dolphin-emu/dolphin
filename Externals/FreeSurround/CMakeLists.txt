@@ -12,3 +12,6 @@ set(SRCS
 add_library(FreeSurround STATIC ${SRCS})
 target_include_directories(FreeSurround PUBLIC include)
 target_compile_options(FreeSurround PRIVATE -w)
+
+set_target_properties(FreeSurround PROPERTIES FOLDER Externals)
+disable_all_warnings(FreeSurround)

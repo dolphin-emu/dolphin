@@ -17,4 +17,7 @@ else()
   endif()
 endif()
 
+set_target_properties(hidapi PROPERTIES FOLDER Externals)
+disable_all_warnings(hidapi)
+
 add_library(Hidapi::Hidapi ALIAS hidapi)

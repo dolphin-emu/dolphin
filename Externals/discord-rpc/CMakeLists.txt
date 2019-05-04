@@ -12,3 +12,5 @@ file(GLOB_RECURSE ALL_SOURCE_FILES
 # add subdirs
 
 add_subdirectory(src)
+set_target_properties(discord-rpc PROPERTIES FOLDER Externals)
+disable_all_warnings(discord-rpc)

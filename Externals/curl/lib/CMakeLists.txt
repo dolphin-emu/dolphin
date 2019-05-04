@@ -13,3 +13,6 @@ add_library(
 
 target_link_libraries(curl ${MBEDTLS_LIBRARIES})
 target_compile_definitions(curl PUBLIC CURL_STATICLIB PRIVATE CURL_DISABLE_LDAP)
+
+set_target_properties(curl PROPERTIES FOLDER Externals)
+disable_all_warnings(curl)

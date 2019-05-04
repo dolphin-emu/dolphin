@@ -16,3 +16,6 @@ target_include_directories(bdisasm
 PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+set_target_properties(bdisasm PROPERTIES FOLDER Externals)
+disable_all_warnings(bdisasm)

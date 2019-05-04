@@ -39,4 +39,7 @@ endif()
 set_target_properties(pugixml PROPERTIES VERSION 1.8 SOVERSION 1)
 get_target_property(PUGIXML_VERSION_STRING pugixml VERSION)
 
+set_target_properties(pugixml PROPERTIES FOLDER Externals)
+disable_all_warnings(pugixml)
+
 target_include_directories(pugixml PUBLIC ./)

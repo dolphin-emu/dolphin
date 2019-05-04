@@ -35,4 +35,7 @@ set(SRCS	src/igd_desc_parse.c
 add_library(miniupnpc STATIC ${SRCS})
 target_include_directories(miniupnpc PUBLIC src)
 
+set_target_properties(miniupnpc PROPERTIES FOLDER Externals)
+disable_all_warnings(miniupnpc)
+
 add_library(Miniupnpc::miniupnpc ALIAS miniupnpc)

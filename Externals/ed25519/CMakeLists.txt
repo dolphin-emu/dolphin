@@ -11,3 +11,6 @@ add_library(ed25519
   sc.c
   sha512.c
   verify.c)
+
+set_target_properties(ed25519 PROPERTIES FOLDER Externals)
+disable_all_warnings(ed25519)

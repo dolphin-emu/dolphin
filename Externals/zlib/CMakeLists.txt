@@ -83,3 +83,6 @@ target_include_directories(z
 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+set_target_properties(z PROPERTIES FOLDER Externals)
+disable_all_warnings(z)

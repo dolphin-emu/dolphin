@@ -25,3 +25,8 @@ set(SRC_SYSTEM
 
 add_library(sfml-network ${SRC_NETWORK})
 add_library(sfml-system ${SRC_SYSTEM})
+
+set_target_properties(sfml-network PROPERTIES FOLDER Externals)
+set_target_properties(sfml-system PROPERTIES FOLDER Externals)
+disable_all_warnings(sfml-network)
+disable_all_warnings(sfml-system)
