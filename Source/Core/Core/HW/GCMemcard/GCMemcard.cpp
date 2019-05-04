@@ -1306,7 +1306,6 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
                                          std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
-  u32 serial1, serial2;
   u16 chksum = 0xFFFF;
 
   // check for F-Zero GX system file
@@ -1318,7 +1317,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
     return 0;
 
   // get encrypted destination memory card serial numbers
-  cardheader.CalculateSerial(&serial1, &serial2);
+  const auto [serial1, serial2] = cardheader.CalculateSerial();
 
   // set new serial numbers
   *(u16*)&FileBuffer[1].m_block[0x0066] = BE16(BE32(serial1) >> 16);
@@ -1364,7 +1363,6 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   u32 i, j;
   u32 chksum;
   u32 crc32LUT[256];
-  u32 serial1, serial2;
   u32 pso3offset = 0x00;
 
   // check for PSO1&2 system file
@@ -1384,7 +1382,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   }
 
   // get encrypted destination memory card serial numbers
-  cardheader.CalculateSerial(&serial1, &serial2);
+  const auto [serial1, serial2] = cardheader.CalculateSerial();
 
   // set new serial numbers
   *(u32*)&FileBuffer[1].m_block[0x0158] = serial1;
@@ -1457,17 +1455,22 @@ Header::Header(int slot, u16 size_mbits, bool shift_jis)
   calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
 }
 
-void Header::CalculateSerial(u32* serial1, u32* serial2) const
+std::pair<u32, u32> Header::CalculateSerial() const
 {
-  u32 serial[8];
+  static_assert(std::is_trivially_copyable<Header>());
 
-  for (int i = 0; i < 8; i++)
+  std::array<u8, 32> raw;
+  memcpy(raw.data(), this, raw.size());
+
+  u32 serial1 = 0;
+  u32 serial2 = 0;
+  for (size_t i = 0; i < raw.size(); i += 8)
   {
-    memcpy(&serial[i], (u8*)this + (i * 4), 4);
+    serial1 ^= Common::BitCastPtr<u32>(&raw[i + 0]);
+    serial2 ^= Common::BitCastPtr<u32>(&raw[i + 4]);
   }
 
-  *serial1 = serial[0] ^ serial[2] ^ serial[4] ^ serial[6];
-  *serial2 = serial[1] ^ serial[3] ^ serial[5] ^ serial[7];
+  return std::make_pair(serial1, serial2);
 }
 
 DEntry::DEntry()

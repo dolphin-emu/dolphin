@@ -148,7 +148,7 @@ struct Header
   explicit Header(int slot = 0, u16 size_mbits = MemCard2043Mb, bool shift_jis = false);
 
   // Calculates the card serial numbers used for encrypting some save files.
-  void CalculateSerial(u32* serial1, u32* serial2) const;
+  std::pair<u32, u32> CalculateSerial() const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 
