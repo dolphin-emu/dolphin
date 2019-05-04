@@ -55,6 +55,7 @@ struct VideoConfig final
 {
   VideoConfig();
   void Refresh();
+  void LoadSettings();
   void VerifyValidity();
 
   // General

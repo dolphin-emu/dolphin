@@ -107,6 +107,7 @@
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/ImGuiManager.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -502,6 +503,12 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::ActivateChat, this, &MainWindow::OnActivateChat);
   connect(m_hotkey_scheduler, &HotkeyScheduler::RequestGolfControl, this,
           &MainWindow::OnRequestGolfControl);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::OpenGraphicsSettings, [this] {
+    if (Core::IsRunningAndStarted())
+      g_imgui_manager->ToggleGraphicsSettingsWindow();
+    else
+      ShowGraphicsWindow();
+  });
   connect(m_hotkey_scheduler, &HotkeyScheduler::RefreshGameListHotkey, this,
           &MainWindow::RefreshGameList);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
