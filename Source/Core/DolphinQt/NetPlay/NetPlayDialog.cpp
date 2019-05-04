@@ -542,10 +542,10 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 
   m_data_menu->menuAction()->setVisible(is_hosting);
   m_network_menu->menuAction()->setVisible(is_hosting);
+  m_md5_menu->menuAction()->setVisible(is_hosting);
   m_start_button->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
   m_assign_ports_button->setHidden(!is_hosting);
-  m_md5_menu->setHidden(!is_hosting);
   m_room_box->setHidden(!is_hosting);
   m_hostcode_label->setHidden(!is_hosting);
   m_hostcode_action_button->setHidden(!is_hosting);
