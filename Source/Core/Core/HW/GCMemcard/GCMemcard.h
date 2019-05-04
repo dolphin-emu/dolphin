@@ -133,6 +133,7 @@ struct Header
   std::array<u8, 468> m_unused_1;
 
   // 2 bytes at 0x01fa: Update Counter (?, probably unused)
+  // TODO: This seems to be 0xFFFF in all my memory cards, might still be part of m_unused_1.
   u16 m_update_counter;
 
   // 2 bytes at 0x01fc: Additive Checksum
@@ -144,45 +145,10 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  void CARD_GetSerialNo(u32* serial1, u32* serial2) const
-  {
-    u32 serial[8];
+  explicit Header(int slot = 0, u16 size_mbits = MemCard2043Mb, bool shift_jis = false);
 
-    for (int i = 0; i < 8; i++)
-    {
-      memcpy(&serial[i], (u8*)this + (i * 4), 4);
-    }
-
-    *serial1 = serial[0] ^ serial[2] ^ serial[4] ^ serial[6];
-    *serial2 = serial[1] ^ serial[3] ^ serial[5] ^ serial[7];
-  }
-
-  // Nintendo format algorithm.
-  // Constants are fixed by the GC SDK
-  // Changing the constants will break memory card support
-  explicit Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
-  {
-    memset(this, 0xFF, BLOCK_SIZE);
-    m_size_mb = sizeMb;
-    m_encoding = shift_jis ? 1 : 0;
-    u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
-    m_format_time = rand;
-    for (int i = 0; i < 12; i++)
-    {
-      rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-      m_serial[i] = (u8)(g_SRAM.settings_ex.flash_id[slot][i] + (u32)rand);
-      rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-      rand &= (u64)0x0000000000007fffULL;
-    }
-    m_sram_bias = g_SRAM.settings.rtc_bias;
-    m_sram_language = static_cast<u32>(g_SRAM.settings.language);
-    // TODO: determine the purpose of m_unknown_2
-    // 1 works for slot A, 0 works for both slot A and slot B
-    memset(m_unknown_2.data(), 0,
-           m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-    m_device_id = 0;
-    calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
-  }
+  // Calculates the card serial numbers used for encrypting some save files.
+  void CalculateSerial(u32* serial1, u32* serial2) const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 
