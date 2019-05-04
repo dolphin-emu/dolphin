@@ -1,6 +1,7 @@
 add_library(videod3d12
   BoundingBox.cpp
   BoundingBox.h
+  Common.h
   DescriptorAllocator.cpp
   DescriptorAllocator.h
   DescriptorHeapManager.cpp

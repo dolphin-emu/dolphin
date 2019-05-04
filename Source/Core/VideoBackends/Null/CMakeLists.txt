@@ -1,8 +1,14 @@
 add_library(videonull
   NullBackend.cpp
+  NullTexture.h
   NullTexture.cpp
+  PerfQuery.h
+  Render.h
   Render.cpp
+  TextureCache.h
+  VertexManager.h
   VertexManager.cpp
+  VideoBackend.h
 )
 
 target_link_libraries(videonull
