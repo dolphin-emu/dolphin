@@ -1,4 +1,5 @@
 add_executable(dolphin-nogui
+  Platform.h
   Platform.cpp
   PlatformHeadless.cpp
   MainNoGUI.cpp
@@ -26,3 +27,6 @@ endif()
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-nogui)
 install(TARGETS dolphin-nogui RUNTIME DESTINATION ${bindir})
 
+
+include(SourceGroupByFolder)
+source_group_by_folder(dolphin-nogui)
