@@ -215,7 +215,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
   }
 
   m_loaded_saves.clear();
-  m_dir1.fixChecksums();
+  m_dir1.FixChecksums();
   m_dir2 = m_dir1;
   m_bat2 = m_bat1;
 

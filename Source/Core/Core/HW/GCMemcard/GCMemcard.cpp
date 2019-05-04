@@ -1387,3 +1387,26 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
 
   return 1;
 }
+
+Directory::Directory()
+{
+  memset(this, 0xFF, BLOCK_SIZE);
+  m_update_counter = 0;
+  m_checksum = BE16(0xF003);
+  m_checksum_inv = 0;
+}
+
+bool Directory::Replace(const DEntry& entry, size_t index)
+{
+  if (index >= m_dir_entries.size())
+    return false;
+
+  m_dir_entries[index] = entry;
+  FixChecksums();
+  return true;
+}
+
+void Directory::FixChecksums()
+{
+  calc_checksumsBE((u16*)this, 0xFFE, &m_checksum, &m_checksum_inv);
+}

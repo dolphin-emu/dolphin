@@ -272,24 +272,30 @@ static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
 struct Directory
 {
-  std::array<DEntry, DIRLEN> m_dir_entries;  // 0x0000            Directory Entries (max 127)
+  // 127 files of 0x40 bytes each
+  std::array<DEntry, DIRLEN> m_dir_entries;
+
+  // 0x3a bytes at 0x1fc0: Unused, always 0xFF
   std::array<u8, 0x3a> m_padding;
-  Common::BigEndianValue<u16> m_update_counter;  // 0x1ffa    2       Update Counter
-  u16 m_checksum;                                // 0x1ffc    2       Additive Checksum
-  u16 m_checksum_inv;                            // 0x1ffe    2       Inverse Checksum
-  Directory()
-  {
-    memset(this, 0xFF, BLOCK_SIZE);
-    m_update_counter = 0;
-    m_checksum = BE16(0xF003);
-    m_checksum_inv = 0;
-  }
-  void Replace(DEntry d, int idx)
-  {
-    m_dir_entries[idx] = d;
-    fixChecksums();
-  }
-  void fixChecksums() { calc_checksumsBE((u16*)this, 0xFFE, &m_checksum, &m_checksum_inv); }
+
+  // 2 bytes at 0x1ffa: Update Counter
+  // TODO: What happens if this overflows? Is there a special case for preferring 0 over max value?
+  Common::BigEndianValue<u16> m_update_counter;
+
+  // 2 bytes at 0x1ffc: Additive Checksum
+  u16 m_checksum;
+
+  // 2 bytes at 0x1ffe: Inverse Checksum
+  u16 m_checksum_inv;
+
+  // Constructs an empty Directory block.
+  Directory();
+
+  // Replaces the file metadata at the given index (range 0-126)
+  // with the given DEntry data.
+  bool Replace(const DEntry& entry, size_t index);
+
+  void FixChecksums();
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
