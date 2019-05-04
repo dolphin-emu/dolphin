@@ -65,7 +65,8 @@ public:
 
   ControllerInterface() : m_is_init(false) {}
   void Initialize(const WindowSystemInfo& wsi);
-  void ChangeWindow(void* hwnd);
+  void ChangeWindow(void* hwnd, int width, int height);
+  void OnWindowResized(int width, int height);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);

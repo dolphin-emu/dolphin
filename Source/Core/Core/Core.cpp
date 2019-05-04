@@ -456,7 +456,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   else
   {
-    g_controller_interface.ChangeWindow(wsi.render_window);
+    g_controller_interface.ChangeWindow(wsi.render_surface, wsi.render_surface_width,
+                                        wsi.render_surface_height);
     Pad::LoadConfig();
     Keyboard::LoadConfig();
   }

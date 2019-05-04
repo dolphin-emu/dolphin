@@ -137,6 +137,12 @@ void KeyboardMouse::UpdateInput()
   wl_display_dispatch_queue_pending(m_display, m_event_queue);
 }
 
+void KeyboardMouse::OnWindowResized(int width, int height)
+{
+  m_window_width = width;
+  m_window_height = height;
+}
+
 void KeyboardMouse::PointerEnter(void* data, wl_pointer* pointer, uint32_t serial,
                                  wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {

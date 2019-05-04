@@ -101,6 +101,7 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
   void UpdateInput() override;
+  void OnWindowResized(int width, int height) override;
 
 private:
   void AddKeyInputs();
