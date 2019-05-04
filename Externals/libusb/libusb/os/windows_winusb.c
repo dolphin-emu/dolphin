@@ -2246,6 +2246,12 @@ static int winusbx_configure_endpoints(int sub_api, struct libusb_device_handle 
 		if (!WinUSBX[sub_api].SetPipePolicy(winusb_handle, endpoint_address,
 			AUTO_CLEAR_STALL, sizeof(UCHAR), &policy))
 			usbi_dbg("failed to enable AUTO_CLEAR_STALL for endpoint %02X", endpoint_address);
+
+		if (sub_api == SUB_API_LIBUSBK) {
+			if (!WinUSBX[sub_api].SetPipePolicy(winusb_handle, endpoint_address,
+				ISO_ALWAYS_START_ASAP, sizeof(UCHAR), &policy))
+				usbi_dbg("failed to enable ISO_ALWAYS_START_ASAP for endpoint %02X", endpoint_address);
+		}
 	}
 
 	return LIBUSB_SUCCESS;
