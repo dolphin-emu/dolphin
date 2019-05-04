@@ -1,0 +1,7 @@
+function(disable_all_warnings target_name)
+  if (MSVC)
+    target_compile_options(${target_name} PRIVATE /W0)
+  else()
+    target_compile_options(${target_name} PRIVATE -w)
+  endif()
+endfunction()
