@@ -1,63 +1,130 @@
 add_library(videocommon
+  AbstractFramebuffer.h
   AbstractFramebuffer.cpp
+  AbstractPipeline.h
+  AbstractShader.h
+  AbstractStagingTexture.h
   AbstractStagingTexture.cpp
+  AbstractTexture.h
   AbstractTexture.cpp
+  AsyncRequests.h
   AsyncRequests.cpp
+  AsyncShaderCompiler.h
   AsyncShaderCompiler.cpp
+  BoundingBox.h
   BoundingBox.cpp
+  BPFunctions.h
   BPFunctions.cpp
+  BPMemory.h
   BPMemory.cpp
+  BPStructs.h
   BPStructs.cpp
+  ConstantManager.h
+  CPMemory.h
   CPMemory.cpp
+  CommandProcessor.h
   CommandProcessor.cpp
+  DataReader.h
+  DriverDetails.h
   DriverDetails.cpp
+  Fifo.h
   Fifo.cpp
+  FPSCounter.h
   FPSCounter.cpp
+  FramebufferManager.h
   FramebufferManager.cpp
+  FramebufferShaderGen.h
   FramebufferShaderGen.cpp
+  GeometryShaderGen.h
   GeometryShaderGen.cpp
+  GeometryShaderManager.h
   GeometryShaderManager.cpp
+  GXPipelineTypes.h
   HiresTextures.cpp
   HiresTextures_DDSLoader.cpp
+  ImageWrite.h
   ImageWrite.cpp
+  IndexGenerator.h
   IndexGenerator.cpp
+  LightingShaderGen.h
   LightingShaderGen.cpp
+  LookUpTables.h
+  NativeVertexFormat.h
+  NetPlayChatUI.h
   NetPlayChatUI.cpp
+  NetPlayGolfUI.h
   NetPlayGolfUI.cpp
+  OnScreenDisplay.h
   OnScreenDisplay.cpp
+  OpcodeDecoding.h
   OpcodeDecoding.cpp
+  PerfQueryBase.h
   PerfQueryBase.cpp
+  PixelEngine.h
   PixelEngine.cpp
+  PixelShaderGen.h
   PixelShaderGen.cpp
+  PixelShaderManager.h
   PixelShaderManager.cpp
+  PostProcessing.h
   PostProcessing.cpp
+  RenderBase.h
   RenderBase.cpp
+  RenderState.h
   RenderState.cpp
+  SamplerCommon.h
+  ShaderCache.h
   ShaderCache.cpp
+  ShaderGenCommon.h
   ShaderGenCommon.cpp
+  Statistics.h
   Statistics.cpp
+  UberShaderCommon.h
   UberShaderCommon.cpp
+  UberShaderPixel.h
   UberShaderPixel.cpp
+  UberShaderVertex.h
   UberShaderVertex.cpp
+  TextureCacheBase.h
   TextureCacheBase.cpp
+  TextureConfig.h
   TextureConfig.cpp
+  TextureConversionShader.h
   TextureConversionShader.cpp
+  TextureConverterShaderGen.h
   TextureConverterShaderGen.cpp
   TextureDecoder_Common.cpp
+  VertexLoader.h
   VertexLoader.cpp
+  VertexLoaderBase.h
   VertexLoaderBase.cpp
+  VertexLoaderManager.h
   VertexLoaderManager.cpp
+  VertexLoader_Color.h
   VertexLoader_Color.cpp
+  VertexLoader_Normal.h
   VertexLoader_Normal.cpp
+  VertexLoader_Position.h
   VertexLoader_Position.cpp
+  VertexLoader_TextCoord.h
   VertexLoader_TextCoord.cpp
+  VertexLoaderUtils.h
+  VertexManagerBase.h
   VertexManagerBase.cpp
+  VertexShaderGen.h
   VertexShaderGen.cpp
+  VertexShaderManager.h
   VertexShaderManager.cpp
+  VideoBackendBase.h
   VideoBackendBase.cpp
+  VideoCommon.h
+  VideoConfig.h
   VideoConfig.cpp
+  VideoState.h
   VideoState.cpp
+  XFMemory.h
   XFMemory.cpp
+  XFStructs.h
   XFStructs.cpp
 )
 
@@ -81,10 +148,12 @@ source_group_by_folder(videocommon)
 if(_M_X86)
   target_sources(videocommon PRIVATE
     TextureDecoder_x64.cpp
+    VertexLoaderX64.h
     VertexLoaderX64.cpp
   )
 elseif(_M_ARM_64)
   target_sources(videocommon PRIVATE
+    VertexLoaderARM64.h
     VertexLoaderARM64.cpp
     TextureDecoder_Generic.cpp
   )
