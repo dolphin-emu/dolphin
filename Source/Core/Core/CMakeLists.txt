@@ -232,6 +232,14 @@ add_library(core
   PowerPC/JitCommon/JitCache.cpp
 )
 
+set_target_properties(core PROPERTIES
+  FOLDER "Dolphin Core"
+  PROJECT_LABEL "Core"
+)
+
+include(SourceGroupByFolder)
+source_group_by_folder(core)
+
 if(_M_X86)
   target_sources(core PRIVATE
     DSP/Jit/x64/DSPEmitter.cpp
@@ -342,6 +350,8 @@ if(WIN32)
     setupapi.lib
     iphlpapi.lib
   )
+
+  target_compile_definitions(core PRIVATE /D _WINSOCK_DEPRECATED_NO_WARNINGS)
 elseif(APPLE)
   target_sources(core PRIVATE
     HW/EXI/BBA-TAP/TAP_Apple.cpp

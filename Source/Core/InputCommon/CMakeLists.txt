@@ -28,6 +28,14 @@ target_link_libraries(inputcommon PUBLIC
   common
 )
 
+set_target_properties(inputcommon PROPERTIES
+  FOLDER "Dolphin Core"
+  PROJECT_LABEL "InputCommon"
+)
+
+include(SourceGroupByFolder)
+source_group_by_folder(inputcommon)
+
 if(WIN32)
   target_sources(inputcommon PRIVATE
     ControllerInterface/DInput/DInput.cpp

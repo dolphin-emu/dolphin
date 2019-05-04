@@ -35,3 +35,8 @@ PUBLIC
   videocommon
   videod3dcommon
 )
+
+set_target_properties(videod3d12 PROPERTIES
+  FOLDER "Dolphin Core/Video Backends"
+  PROJECT_LABEL "D3D12"
+)

@@ -1,3 +1,8 @@
+if (MSVC)
+set(Qt5_Base "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.11.1/5.11.1/msvc2017_64")
+set(Qt5_DIR "${Qt5_Base}/lib/cmake/Qt5")
+endif()
+
 find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
@@ -107,7 +112,6 @@ add_executable(dolphin-emu
   QtUtils/FlowLayout.cpp
   QtUtils/ModalMessageBox.cpp
   QtUtils/ImageConverter.cpp
-  QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
@@ -151,13 +155,107 @@ PRIVATE
   imgui
 )
 
+set_target_properties(dolphin-emu PROPERTIES PROJECT_LABEL "Dolphin")
+
+include(SourceGroupByFolder)
+source_group_by_folder(dolphin-emu)
+
 if(WIN32)
-  target_sources(dolphin-emu PRIVATE DolphinQt.manifest)
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(Dolphin_NAME "DolphinD")
+  else()
+   set(Dolphin_NAME "Dolphin")
+  endif()
+
+  set_target_properties(dolphin-emu PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    OUTPUT_NAME ${Dolphin_NAME}
+  )
+  target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
+  target_compile_options(dolphin-emu PRIVATE /D _SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
+
+  # Copy files for Windows
+
+  # Copy Sys directory
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
+  file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
+  foreach(res ${resources})
+    configure_file("${CMAKE_SOURCE_DIR}/Data/${res}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/${res}" COPYONLY)
+    configure_file("${CMAKE_SOURCE_DIR}/Data/${res}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/${res}" COPYONLY)
+  endforeach()
+
+  # Copy qt.conf.win
+  configure_file(qt.conf.win "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/qt.conf" COPYONLY)
+  configure_file(qt.conf.win "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/qt.conf" COPYONLY)
+
+  file(GLOB_RECURSE Qt5_PLUGIN_STYLES_DLLs "${Qt5_Base}/plugins/styles/*.dll")
+  file(GLOB_RECURSE Qt5_PLUGIN_PLATFORMS_DLLs "${Qt5_Base}/plugins/platforms/*.dll")
+  file(GLOB_RECURSE Qt5_PLUGIN_IMAGEFORMATS_DLLs "${Qt5_Base}/plugins/imageformats/*.dll")
+  file(GLOB_RECURSE Qt5_PLUGIN_STYLES_DEBUG_DLLs "${Qt5_Base}/plugins/styles/*d.dll")
+  file(GLOB_RECURSE Qt5_PLUGIN_PLATFORMS_DEBUG_DLLs "${Qt5_Base}/plugins/platforms/*d.dll")
+  file(GLOB_RECURSE Qt5_PLUGIN_IMAGEFORMATS_DEBUG_DLLs "${Qt5_Base}/plugins/imageformats/*d.dll")
+
+  # Filter out debug DLLs
+  list(FILTER Qt5_PLUGIN_STYLES_DLLs EXCLUDE REGEX ".*d.dll")
+  list(FILTER Qt5_PLUGIN_PLATFORMS_DLLs EXCLUDE REGEX ".*d.dll")
+  list(FILTER Qt5_PLUGIN_IMAGEFORMATS_DLLs EXCLUDE REGEX ".*d.dll")
+
+  # Copy release plugins
+  foreach(DLL ${Qt5_PLUGIN_STYLES_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/QtPlugins/styles/${DLL_NAME}" COPYONLY)
+  endforeach()
+  foreach(DLL ${Qt5_PLUGIN_PLATFORMS_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/QtPlugins/platforms/${DLL_NAME}" COPYONLY)
+  endforeach()
+  foreach(DLL ${Qt5_PLUGIN_IMAGEFORMATS_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/QtPlugins/imageformats/${DLL_NAME}" COPYONLY)
+  endforeach()
+
+  # Copy debug plugins
+  foreach(DLL ${Qt5_PLUGIN_STYLES_DEBUG_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/QtPlugins/styles/${DLL_NAME}" COPYONLY)
+  endforeach()
+  foreach(DLL ${Qt5_PLUGIN_PLATFORMS_DEBUG_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/QtPlugins/platforms/${DLL_NAME}" COPYONLY)
+  endforeach()
+  foreach(DLL ${Qt5_PLUGIN_IMAGEFORMATS_DEBUG_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/QtPlugins/imageformats/${DLL_NAME}" COPYONLY)
+  endforeach()
+
+  # Copy DLLs
+  file(GLOB Qt5_DLLs ${Qt5_Base}/bin/Qt5*.dll)
+  file(GLOB Qt5_DEBUG_DLLs ${Qt5_Base}/bin/Qt5*d.dll)
+
+  # Filter out debug DLLs
+  list(FILTER Qt5_DLLs EXCLUDE REGEX ".*Qt5.*d.dll")
+
+  foreach(DLL ${Qt5_DEBUG_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/${DLL_NAME}" COPYONLY)
+  endforeach()
+  foreach(DLL ${Qt5_DLLs})
+    get_filename_component(DLL_NAME ${DLL} NAME)
+    configure_file(${DLL} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/${DLL_NAME}" COPYONLY)
+  endforeach()
+else()
+  target_sources(dolphin-emu PRIVATE QtUtils/SignalDaemon.cpp)
 endif()
 
 # Handle localization
 find_package(Gettext)
-if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
+
+if(WIN32 AND NOT Gettext_FOUND)
+  message(STATUS "Using Gettext from Externals")
+  set(GETTEXT_MSGFMT_EXECUTABLE "${CMAKE_SOURCE_DIR}/Externals/gettext/msgfmt.exe")
+endif()
+
+if(GETTEXT_MSGFMT_EXECUTABLE)
   set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
   file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 
@@ -179,12 +277,21 @@ if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
       install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
     endif()
 
-    add_custom_command(OUTPUT ${mo}
-      COMMAND cmake -E make_directory ${mo_dir}
-      COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
-      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-      DEPENDS ${po}
-    )
+    if(WIN32)
+      add_custom_command(OUTPUT ${mo}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
+        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+        COMMAND ${CMAKE_COMMAND} -E copy ${mo} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang}/dolphin-emu.mo
+        DEPENDS ${po}
+      )
+    else()
+      add_custom_command(OUTPUT ${mo}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
+        COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+        DEPENDS ${po}
+      )
+    endif()
   endforeach()
 endif()
 

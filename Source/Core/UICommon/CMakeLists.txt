@@ -24,6 +24,14 @@ PRIVATE
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 
+set_target_properties(uicommon PROPERTIES
+  FOLDER "Dolphin Core"
+  PROJECT_LABEL "UICommon"
+)
+
+include(SourceGroupByFolder)
+source_group_by_folder(uicommon)
+
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
     (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
   target_link_libraries(uicommon PRIVATE bdisasm)

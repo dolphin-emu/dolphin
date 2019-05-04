@@ -17,6 +17,8 @@ PRIVATE
   cpp-optparse
 )
 
+set_target_properties(dolphin-nogui PROPERTIES PROJECT_LABEL "DolphinNoGUI")
+
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-nogui PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()

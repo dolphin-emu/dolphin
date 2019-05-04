@@ -4,6 +4,10 @@
 
 #include "UICommon/VideoUtils.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include "Common/Assert.h"
 #include "VideoCommon/VideoConfig.h"
 

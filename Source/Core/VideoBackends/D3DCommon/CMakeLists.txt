@@ -11,5 +11,9 @@ target_link_libraries(videod3dcommon
 PUBLIC
   common
   videocommon
-  videod3dcommon
+)
+
+set_target_properties(videod3dcommon PROPERTIES
+  FOLDER "Dolphin Core/Video Backends"
+  PROJECT_LABEL "D3DCommon"
 )

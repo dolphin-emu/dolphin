@@ -19,3 +19,8 @@ if (APPLE)
   add_subdirectory(UpdaterCommon)
   add_subdirectory(MacUpdater)
 endif()
+
+if (WIN32)
+  add_subdirectory(UpdaterCommon)
+  add_subdirectory(WinUpdater)
+endif()

@@ -23,7 +23,13 @@ endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
-option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
+
+if (NOT WIN32)
+  option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
+else()
+  set(ENABLE_NOGUI OFF)
+endif()
+
 option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
@@ -106,6 +112,11 @@ endif()
 # here.  You must run "make install" to install these to the proper location
 # as defined above.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+
+if (MSVC)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release)
+endif()
 
 # setup CCache
 include(CCache)
@@ -226,6 +237,34 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   add_compile_options(/Zc:throwingNew)
   # Enforce strict volatile semantics as per ISO C++
   add_compile_options(/volatile:iso)
+
+  # Set warning level to 4
+  add_compile_options(/W4)
+
+  # Disable some warnings
+  add_compile_options(
+    /wd4201 # nonstandard extension used : nameless struct/union
+    /wd4127 # conditional expression is constant
+    /wd4100 # 'identifier' : unreferenced formal parameter
+    /wd4200 # InputCommon fix temp.
+    /wd4244 # 'conversion' conversion from 'type1' to 'type2', possible loss of data
+    /wd4121 # 'symbol' : alignment of a member was sensitive to packing
+    /wd4324 # Padding was added at the end of a structure because you specified a __declspec(align) value.
+    /wd4714 # function 'function' marked as __forceinline not inlined
+    /wd4351 # new behavior: elements of array 'array' will be default initialized
+    # TODO: Enable this warning once possible
+    /wd4245 # conversion from 'type1' to 'type2', signed/unsigned mismatch
+    # Currently jits use some annoying code patterns which makes this common
+  )
+
+  # Additional warnings
+  add_compile_options(
+    /w44263 # Non-virtual member function hides base class virtual function
+    /w44265 # Class has virtual functions, but destructor is not virtual
+  )
+
+  # Treat all warnings as errors
+  add_compile_options(/WX)
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
 else()
@@ -409,6 +448,8 @@ endif()
 # externals.
 include(CheckLib)
 include(CheckCXXSourceRuns)
+
+include(WarningTools)
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL)
@@ -594,7 +635,7 @@ endif()
 message(STATUS "Using static FreeSurround from Externals")
 add_subdirectory(Externals/FreeSurround)
 
-if (APPLE)
+if (APPLE OR WIN32)
   message(STATUS "Using ed25519 from Externals")
   add_subdirectory(Externals/ed25519)
 endif()
@@ -610,6 +651,10 @@ if(CUBEB_FOUND)
 else()
   message(STATUS "Using static cubeb from Externals")
   add_subdirectory(Externals/cubeb EXCLUDE_FROM_ALL)
+  set_target_properties(cubeb PROPERTIES FOLDER Externals)
+  set_target_properties(speex PROPERTIES FOLDER Externals)
+  disable_all_warnings(cubeb)
+  disable_all_warnings(speex)
 endif()
 
 if(NOT ANDROID)
@@ -665,6 +710,13 @@ else()
   set(MBEDTLS_LIBRARIES mbedtls mbedcrypto mbedx509)
   add_subdirectory(Externals/mbedtls/ EXCLUDE_FROM_ALL)
   include_directories(Externals/mbedtls/include)
+  set_target_properties(mbedtls PROPERTIES FOLDER Externals)
+  set_target_properties(mbedcrypto PROPERTIES FOLDER Externals)
+  set_target_properties(mbedx509 PROPERTIES FOLDER Externals)
+  disable_all_warnings(mbedtls)
+  disable_all_warnings(mbedcrypto)
+  disable_all_warnings(mbedx509)
+
 endif()
 
 find_package(CURL)
@@ -732,8 +784,16 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 # Unit testing.
 #
 if(ENABLE_TESTS)
+  if(WIN32)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  endif()
+
   message(STATUS "Using static gtest from Externals")
   add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+  set_target_properties(gtest PROPERTIES FOLDER Externals)
+  set_target_properties(gtest_main PROPERTIES FOLDER Externals)
+  disable_all_warnings(gtest)
+  disable_all_warnings(gtest_main)
 else()
   message(STATUS "Unit tests are disabled")
 endif()

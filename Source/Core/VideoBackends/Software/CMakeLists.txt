@@ -21,3 +21,8 @@ PUBLIC
   common
   videocommon
 )
+
+set_target_properties(videosoftware PROPERTIES
+  FOLDER "Dolphin Core/Video Backends"
+  PROJECT_LABEL "Software"
+)

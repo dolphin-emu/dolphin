@@ -70,6 +70,14 @@ PRIVATE
   imgui
 )
 
+set_target_properties(videocommon PROPERTIES
+  FOLDER "Dolphin Core"
+  PROJECT_LABEL "VideoCommon"
+)
+
+include(SourceGroupByFolder)
+source_group_by_folder(videocommon)
+
 if(_M_X86)
   target_sources(videocommon PRIVATE
     TextureDecoder_x64.cpp

@@ -30,6 +30,11 @@ PRIVATE
   xxhash
 )
 
+set_target_properties(videovulkan PROPERTIES
+  FOLDER "Dolphin Core/Video Backends"
+  PROJECT_LABEL "Vulkan"
+)
+
 # Only include the Vulkan headers when building the Vulkan backend
 target_include_directories(videovulkan
 PRIVATE

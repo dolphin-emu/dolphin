@@ -27,3 +27,11 @@ target_link_libraries(discio
 PRIVATE
   ZLIB::ZLIB
 )
+
+set_target_properties(discio PROPERTIES
+  FOLDER "Dolphin Core"
+  PROJECT_LABEL "DiscIO"
+)
+
+include(SourceGroupByFolder)
+source_group_by_folder(discio)

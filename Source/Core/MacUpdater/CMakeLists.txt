@@ -19,6 +19,8 @@ set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
   OUTPUT_NAME ${MacUpdater_NAME})
 
+set_target_properties(MacUpdater PROPERTIES FOLDER "Updater")
+
 target_compile_options(MacUpdater PRIVATE -x objective-c++)
 
 # Copy icon into the bundle

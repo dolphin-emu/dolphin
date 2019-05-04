@@ -62,12 +62,28 @@ PRIVATE
   ${VTUNE_LIBRARIES}
 )
 
+set_target_properties(common PROPERTIES
+  FOLDER "Dolphin Core"
+  PROJECT_LABEL "Common"
+)
+
+include(SourceGroupByFolder)
+source_group_by_folder(common)
+
 if (APPLE)
   target_link_libraries(common
   PRIVATE
     ${APPKIT_LIBRARY}
     ${COREFOUNDATION_LIBRARY}
     ${IOK_LIBRARY}
+  )
+endif()
+
+if (WIN32)
+  target_link_libraries(common PRIVATE
+    Shlwapi
+    Winmm
+    Opengl32
   )
 endif()
 
@@ -79,6 +95,7 @@ if(ANDROID)
 elseif(WIN32)
   target_sources(common PRIVATE
     Logging/ConsoleListenerWin.cpp
+    LdrWatcher.cpp
   )
 else()
   target_sources(common PRIVATE

@@ -21,3 +21,8 @@ PUBLIC
 PRIVATE
   ${X11_LIBRARIES}
 )
+
+set_target_properties(videoogl PROPERTIES
+  FOLDER "Dolphin Core/Video Backends"
+  PROJECT_LABEL "OGL"
+)

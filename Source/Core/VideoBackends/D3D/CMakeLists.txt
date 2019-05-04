@@ -17,6 +17,7 @@ add_library(videod3d
   PerfQuery.h
   Render.cpp
   Render.h
+  SwapChain.cpp
   VertexManager.cpp
   VertexManager.h
   VideoBackend.h
@@ -27,4 +28,9 @@ PUBLIC
   common
   videocommon
   videod3dcommon
+)
+
+set_target_properties(videod3d PROPERTIES 
+  FOLDER "Dolphin Core/Video Backends"
+  PROJECT_LABEL "D3D"
 )
