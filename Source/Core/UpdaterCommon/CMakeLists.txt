@@ -1,4 +1,6 @@
 add_library(updatercommon
+  UI.h
+  UpdaterCommon.h
   UpdaterCommon.cpp
 )
   
@@ -14,3 +16,6 @@ set_target_properties(updatercommon PROPERTIES
   FOLDER "Updater"
   PROJECT_LABEL "UpdaterCommon"
 )
+
+include(SourceGroupByFolder)
+source_group_by_folder(updatercommon)
