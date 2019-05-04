@@ -90,6 +90,7 @@ void MappingWindow::CreateProfilesLayout()
   auto* button_layout = new QHBoxLayout();
 
   m_profiles_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+  m_profiles_combo->setMinimumWidth(100);
   m_profiles_combo->setEditable(true);
 
   m_profiles_layout->addWidget(m_profiles_combo);
@@ -155,12 +156,26 @@ void MappingWindow::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
+void MappingWindow::UpdateProfileIndex()
+{
+  // Make sure currentIndex and currentData are accurate when the user manually types a name.
+
+  const auto current_text = m_profiles_combo->currentText();
+  const int text_index = m_profiles_combo->findText(current_text);
+  m_profiles_combo->setCurrentIndex(text_index);
+
+  if (text_index == -1)
+    m_profiles_combo->setCurrentText(current_text);
+}
+
 void MappingWindow::OnDeleteProfilePressed()
 {
+  UpdateProfileIndex();
+
   const QString profile_name = m_profiles_combo->currentText();
   const QString profile_path = m_profiles_combo->currentData().toString();
 
-  if (!File::Exists(profile_path.toStdString()))
+  if (m_profiles_combo->currentIndex() == -1 || !File::Exists(profile_path.toStdString()))
   {
     ModalMessageBox error(this);
     error.setIcon(QMessageBox::Critical);
@@ -184,6 +199,7 @@ void MappingWindow::OnDeleteProfilePressed()
   }
 
   m_profiles_combo->removeItem(m_profiles_combo->currentIndex());
+  m_profiles_combo->setCurrentIndex(-1);
 
   File::Delete(profile_path.toStdString());
 
@@ -196,10 +212,19 @@ void MappingWindow::OnDeleteProfilePressed()
 
 void MappingWindow::OnLoadProfilePressed()
 {
-  const QString profile_path = m_profiles_combo->currentData().toString();
+  UpdateProfileIndex();
 
-  if (m_profiles_combo->currentIndex() == 0)
+  if (m_profiles_combo->currentIndex() == -1)
+  {
+    ModalMessageBox error(this);
+    error.setIcon(QMessageBox::Critical);
+    error.setWindowTitle(tr("Error"));
+    error.setText(tr("The profile '%1' does not exist").arg(m_profiles_combo->currentText()));
+    error.exec();
     return;
+  }
+
+  const QString profile_path = m_profiles_combo->currentData().toString();
 
   IniFile ini;
   ini.Load(profile_path.toStdString());
@@ -213,12 +238,13 @@ void MappingWindow::OnLoadProfilePressed()
 void MappingWindow::OnSaveProfilePressed()
 {
   const QString profile_name = m_profiles_combo->currentText();
-  const std::string profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
-                                   m_config->GetProfileName() + "/" + profile_name.toStdString() +
-                                   ".ini";
 
   if (profile_name.isEmpty())
     return;
+
+  const std::string profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
+                                   m_config->GetProfileName() + "/" + profile_name.toStdString() +
+                                   ".ini";
 
   File::CreateFullPath(profile_path);
 
@@ -227,11 +253,8 @@ void MappingWindow::OnSaveProfilePressed()
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(profile_path);
 
-  if (m_profiles_combo->currentIndex() == 0 || m_profiles_combo->findText(profile_name) == -1)
-  {
+  if (m_profiles_combo->findText(profile_name) == -1)
     m_profiles_combo->addItem(profile_name, QString::fromStdString(profile_path));
-    m_profiles_combo->setCurrentIndex(m_profiles_combo->count() - 1);
-  }
 }
 
 void MappingWindow::OnSelectDevice(int)
@@ -359,7 +382,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   m_config = widget->GetConfig();
 
   m_controller = m_config->GetController(GetPort());
-  m_profiles_combo->addItem(QStringLiteral(""));
 
   const std::string profiles_path =
       File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
@@ -369,6 +391,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     SplitPath(filename, nullptr, &basename, nullptr);
     m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
+  m_profiles_combo->setCurrentIndex(-1);
 }
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
