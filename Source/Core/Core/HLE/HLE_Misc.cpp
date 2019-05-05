@@ -68,4 +68,4 @@ void GeckoReturnTrampoline()
                    PowerPC::HostRead_U64(SP + 24 + (2 * i + 1) * sizeof(u64)));
   }
 }
-}
+}  // namespace HLE_Misc

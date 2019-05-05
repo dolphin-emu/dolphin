@@ -42,8 +42,8 @@ public:
 
   void Realize();
   Gen::OpArg Location() const;
-  operator Gen::OpArg() const & { return Location(); }
-  operator Gen::OpArg() const && = delete;
+  operator Gen::OpArg() const& { return Location(); }
+  operator Gen::OpArg() const&& = delete;
   bool IsSimpleReg() const { return Location().IsSimpleReg(); }
   bool IsSimpleReg(Gen::X64Reg reg) const { return Location().IsSimpleReg(reg); }
   Gen::X64Reg GetSimpleReg() const { return Location().GetSimpleReg(); }
@@ -81,10 +81,10 @@ public:
   RCX64Reg& operator=(const RCX64Reg&) = delete;
 
   void Realize();
-  operator Gen::OpArg() const &;
-  operator Gen::X64Reg() const &;
-  operator Gen::OpArg() const && = delete;
-  operator Gen::X64Reg() const && = delete;
+  operator Gen::OpArg() const&;
+  operator Gen::X64Reg() const&;
+  operator Gen::OpArg() const&& = delete;
+  operator Gen::X64Reg() const&& = delete;
 
   void Unlock();
 

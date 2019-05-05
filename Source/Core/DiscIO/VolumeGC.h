@@ -108,4 +108,4 @@ private:
   std::unique_ptr<BlobReader> m_reader;
 };
 
-}  // namespace
+}  // namespace DiscIO

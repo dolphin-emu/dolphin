@@ -16,7 +16,7 @@ struct GekkoOPTemplate
   Interpreter::Instruction Inst;
   GekkoOPInfo opinfo;
 };
-}
+}  // namespace
 
 // clang-format off
 static GekkoOPInfo unknownopinfo = { "unknown_instruction", OpType::Unknown, FL_ENDBLOCK, 0, 0, 0, 0 };

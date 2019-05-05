@@ -161,5 +161,5 @@ void PipeDevice::ParseCommand(const std::string& command)
     }
   }
 }
-}
-}
+}  // namespace Pipes
+}  // namespace ciface

@@ -19,4 +19,4 @@ enum
   BLU_SMP,
   ALP_SMP
 };
-}
+}  // namespace TextureSampler

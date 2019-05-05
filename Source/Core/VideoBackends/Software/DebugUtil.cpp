@@ -219,4 +219,4 @@ void OnObjectEnd()
 
   stats.thisFrame.numDrawnObjects++;
 }
-}
+}  // namespace DebugUtil

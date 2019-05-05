@@ -13,7 +13,7 @@ namespace PatchEngine
 {
 struct Patch;
 struct PatchEntry;
-}
+}  // namespace PatchEngine
 
 class QDialogButtonBox;
 class QGroupBox;

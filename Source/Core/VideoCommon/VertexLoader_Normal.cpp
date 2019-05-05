@@ -102,7 +102,7 @@ struct Normal_Index_Indices3
 
   static const int size = sizeof(I) * 3;
 };
-}
+}  // namespace
 
 void VertexLoader_Normal::Init()
 {

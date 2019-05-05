@@ -826,4 +826,4 @@ static std::string ASCIIToUppercase(std::string str)
   return str;
 }
 
-}  // namespace
+}  // namespace DiscIO

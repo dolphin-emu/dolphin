@@ -290,4 +290,4 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMe
     vtxDescHex >>= 2;
   }
 }
-}
+}  // namespace FifoAnalyzer

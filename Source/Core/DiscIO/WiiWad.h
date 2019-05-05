@@ -46,4 +46,4 @@ private:
   std::vector<u8> m_data_app;
   std::vector<u8> m_footer;
 };
-}
+}  // namespace DiscIO

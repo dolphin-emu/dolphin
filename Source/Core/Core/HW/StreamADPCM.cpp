@@ -70,4 +70,4 @@ void ADPCMDecoder::DecodeBlock(s16* pcm, const u8* adpcm)
                                      m_histr1, m_histr2);
   }
 }
-}
+}  // namespace StreamADPCM

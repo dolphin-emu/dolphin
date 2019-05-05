@@ -287,4 +287,4 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
 
 VolumeGC::ConvertedGCBanner::ConvertedGCBanner() = default;
 VolumeGC::ConvertedGCBanner::~ConvertedGCBanner() = default;
-}  // namespace
+}  // namespace DiscIO

@@ -55,7 +55,7 @@ public:
 private:
   Profiler* m_p;
 };
-};
+};  // namespace Common
 
 // Warning: This profiler isn't thread safe. Only profile functions which doesn't run simultaneously
 #define PROFILE(name)                                                                              \

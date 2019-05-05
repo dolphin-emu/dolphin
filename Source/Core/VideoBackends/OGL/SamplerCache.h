@@ -43,4 +43,4 @@ private:
 };
 
 extern std::unique_ptr<SamplerCache> g_sampler_cache;
-}
+}  // namespace OGL

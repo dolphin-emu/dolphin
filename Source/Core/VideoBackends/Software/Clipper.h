@@ -18,4 +18,4 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
               bool& backface);
 
 void PerspectiveDivide(OutputVertexData* vertex);
-}
+}  // namespace Clipper

@@ -272,4 +272,4 @@ void Reload()
   LoadPatches();
 }
 
-}  // namespace
+}  // namespace PatchEngine

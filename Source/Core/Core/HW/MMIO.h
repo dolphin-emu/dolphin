@@ -91,7 +91,7 @@ inline u16* HighPart(volatile u32* ptr)
 {
   return LowPart(ptr) + 1;
 }
-}
+}  // namespace Utils
 
 class Mapping
 {
@@ -220,4 +220,4 @@ inline void Mapping::Write(u32 addr, u64 val)
 {
   DEBUG_ASSERT(0);
 }
-}
+}  // namespace MMIO

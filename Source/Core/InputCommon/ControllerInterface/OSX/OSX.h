@@ -13,5 +13,5 @@ void PopulateDevices(void* window);
 void DeInit();
 
 void DeviceElementDebugPrint(const void*, void*);
-}
-}
+}  // namespace OSX
+}  // namespace ciface

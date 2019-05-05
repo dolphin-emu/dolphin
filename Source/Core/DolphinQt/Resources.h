@@ -11,7 +11,7 @@ namespace DiscIO
 {
 enum class Country;
 enum class Platform;
-}
+}  // namespace DiscIO
 
 // Store for various QPixmaps that will be used repeatedly.
 class Resources final

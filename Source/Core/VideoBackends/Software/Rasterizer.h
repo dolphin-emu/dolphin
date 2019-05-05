@@ -40,4 +40,4 @@ struct RasterBlock
   s32 TextureLod[16];
   bool TextureLinear[16];
 };
-}
+}  // namespace Rasterizer

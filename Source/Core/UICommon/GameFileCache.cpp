@@ -273,4 +273,4 @@ void GameFileCache::DoState(PointerWrap* p, u64 size)
   });
 }
 
-}  // namespace DiscIO
+}  // namespace UICommon

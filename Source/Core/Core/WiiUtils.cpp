@@ -849,4 +849,4 @@ bool RepairNAND(IOS::HLE::Kernel& ios)
 {
   return !CheckNAND(ios, true).bad;
 }
-}
+}  // namespace WiiUtils

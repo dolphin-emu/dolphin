@@ -672,4 +672,4 @@ const std::string& GetCompanyFromID(const std::string& company_id)
   else
     return EMPTY_STRING;
 }
-}
+}  // namespace DiscIO

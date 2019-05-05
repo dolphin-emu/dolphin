@@ -196,5 +196,5 @@ public:
     return FFDeviceSetForceFeedbackProperty(m_device, property, &value);
   }
 };
-}
-}
+}  // namespace ForceFeedback
+}  // namespace ciface

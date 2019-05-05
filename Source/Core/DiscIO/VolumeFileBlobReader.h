@@ -36,4 +36,4 @@ private:
   const Partition& m_partition;
   std::unique_ptr<FileInfo> m_file_info;
 };
-}  // namespace
+}  // namespace DiscIO

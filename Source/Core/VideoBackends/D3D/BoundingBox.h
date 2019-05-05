@@ -17,4 +17,4 @@ public:
   static void Set(int index, int value);
   static int Get(int index);
 };
-};
+};  // namespace DX11

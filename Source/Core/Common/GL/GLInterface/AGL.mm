@@ -106,8 +106,8 @@ bool GLContextAGL::Initialize(void* display_handle, void* window_handle, bool st
 
 std::unique_ptr<GLContext> GLContextAGL::CreateSharedContext()
 {
-  NSOpenGLContext* new_agl_context =
-      [[NSOpenGLContext alloc] initWithFormat:m_pixel_format shareContext:m_context];
+  NSOpenGLContext* new_agl_context = [[NSOpenGLContext alloc] initWithFormat:m_pixel_format
+                                                                shareContext:m_context];
   if (new_agl_context == nil)
   {
     ERROR_LOG(VIDEO, "failed to create shared context");

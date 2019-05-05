@@ -20,8 +20,8 @@ namespace FS
 class FileSystem;
 }
 class IOSC;
-}
-}  // namespace IOS::HLE
+}  // namespace HLE
+}  // namespace IOS
 
 namespace WiiSave
 {

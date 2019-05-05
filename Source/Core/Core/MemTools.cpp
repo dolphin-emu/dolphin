@@ -349,4 +349,4 @@ void UninstallExceptionHandler()
 
 #endif
 
-}  // namespace
+}  // namespace EMM

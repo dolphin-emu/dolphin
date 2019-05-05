@@ -1021,4 +1021,4 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   return address;
 }
 
-}  // namespace
+}  // namespace PPCAnalyst

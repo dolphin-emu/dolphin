@@ -22,4 +22,4 @@ public:
 private:
   void FillBackendInfo();
 };
-}
+}  // namespace DX12

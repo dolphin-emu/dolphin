@@ -3389,4 +3389,4 @@ void XEmitter::RDTSC()
   Write8(0x0F);
   Write8(0x31);
 }
-}
+}  // namespace Gen

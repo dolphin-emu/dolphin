@@ -25,4 +25,4 @@ InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group);
 
 KeyboardStatus GetStatus(int port);
-}
+}  // namespace Keyboard

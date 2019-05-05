@@ -256,4 +256,4 @@ float GetAxisValue(int padID, ButtonType axis);
 bool GamepadEvent(const std::string& dev, int button, int action);
 void GamepadAxisEvent(const std::string& dev, int axis, float value);
 void Shutdown();
-}
+}  // namespace ButtonManager

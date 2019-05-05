@@ -453,4 +453,4 @@ void PerspectiveDivide(OutputVertexData* vertex)
   screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
-}
+}  // namespace Clipper

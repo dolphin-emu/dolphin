@@ -197,4 +197,4 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_po
             "}\n"
             "\n");
 }
-}
+}  // namespace UberShader

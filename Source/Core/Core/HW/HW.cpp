@@ -108,4 +108,4 @@ void DoState(PointerWrap& p)
 
   p.DoMarker("WIIHW");
 }
-}
+}  // namespace HW

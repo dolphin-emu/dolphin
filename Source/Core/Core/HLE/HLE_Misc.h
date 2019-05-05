@@ -10,4 +10,4 @@ void UnimplementedFunction();
 void HBReload();
 void GeckoCodeHandlerICacheFlush();
 void GeckoReturnTrampoline();
-}
+}  // namespace HLE_Misc

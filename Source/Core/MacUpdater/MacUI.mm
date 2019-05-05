@@ -44,8 +44,8 @@ void UI::Error(const std::string& text)
     NSAlert* alert = [[[NSAlert alloc] init] autorelease];
 
     [alert setMessageText:@"Fatal error"];
-    [alert
-        setInformativeText:[NSString stringWithCString:text.c_str() encoding:NSUTF8StringEncoding]];
+    [alert setInformativeText:[NSString stringWithCString:text.c_str()
+                                                 encoding:NSUTF8StringEncoding]];
     [alert setAlertStyle:NSAlertStyleCritical];
 
     [alert beginSheetModalForWindow:GetWindow()
@@ -73,8 +73,8 @@ void UI::SetVisible(bool visible)
 void UI::SetDescription(const std::string& text)
 {
   run_on_main([&] {
-    [GetView()
-        SetDescription:[NSString stringWithCString:text.c_str() encoding:NSUTF8StringEncoding]];
+    [GetView() SetDescription:[NSString stringWithCString:text.c_str()
+                                                 encoding:NSUTF8StringEncoding]];
   });
 }
 

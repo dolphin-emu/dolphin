@@ -166,4 +166,4 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
 bool DecompressBlobToFile(const std::string& infile_path, const std::string& outfile_path,
                           CompressCB callback = nullptr, void* arg = nullptr);
 
-}  // namespace
+}  // namespace DiscIO

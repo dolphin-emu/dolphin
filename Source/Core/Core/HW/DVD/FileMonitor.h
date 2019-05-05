@@ -10,7 +10,7 @@ namespace DiscIO
 {
 struct Partition;
 class Volume;
-}
+}  // namespace DiscIO
 
 namespace FileMonitor
 {

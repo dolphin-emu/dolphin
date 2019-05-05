@@ -585,4 +585,4 @@ void Prepare()
   s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
   s_syncing_suspended = true;
 }
-}
+}  // namespace Fifo

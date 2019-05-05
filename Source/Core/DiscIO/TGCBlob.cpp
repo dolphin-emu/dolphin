@@ -58,7 +58,7 @@ void Replace32(u64 offset, u64 nbytes, u8* out_ptr, u64 replace_offset, u32 repl
   for (size_t i = 0; i < sizeof(u32); ++i)
     Replace8(offset, nbytes, out_ptr, replace_offset + i, reinterpret_cast<u8*>(&replace_value)[i]);
 }
-}
+}  // namespace
 
 namespace DiscIO
 {

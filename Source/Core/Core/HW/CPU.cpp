@@ -328,4 +328,4 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
   }
   return was_unpaused;
 }
-}
+}  // namespace CPU

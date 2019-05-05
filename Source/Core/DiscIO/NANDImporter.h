@@ -58,4 +58,4 @@ private:
   std::function<void()> m_update_callback;
   size_t m_nand_root_length = 0;
 };
-}
+}  // namespace DiscIO

@@ -21,7 +21,7 @@ namespace File
 {
 struct FSTEntry;
 class IOFile;
-}
+}  // namespace File
 
 namespace DiscIO
 {
@@ -186,4 +186,4 @@ private:
   u64 m_data_size;
 };
 
-}  // namespace
+}  // namespace DiscIO

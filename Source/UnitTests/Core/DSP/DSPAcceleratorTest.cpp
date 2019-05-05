@@ -22,6 +22,7 @@ public:
   }
 
   bool EndExceptionRaised() const { return m_accov_raised; }
+
 protected:
   void OnEndException() override
   {

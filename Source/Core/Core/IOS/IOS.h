@@ -32,7 +32,7 @@ namespace Device
 {
 class Device;
 class ES;
-}
+}  // namespace Device
 
 struct Request;
 struct OpenRequest;

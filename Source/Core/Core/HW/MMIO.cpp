@@ -387,4 +387,4 @@ void WriteHandler<T>::ResetMethod(WriteHandlingMethod<T>* method)
 #define MaybeExtern
 MMIO_PUBLIC_SPECIALIZATIONS()
 #undef MaybeExtern
-}
+}  // namespace MMIO

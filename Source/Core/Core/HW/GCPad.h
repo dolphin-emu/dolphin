@@ -31,4 +31,4 @@ void Rumble(int pad_num, ControlState strength);
 void ResetRumble(int pad_num);
 
 bool GetMicButton(int pad_num);
-}
+}  // namespace Pad

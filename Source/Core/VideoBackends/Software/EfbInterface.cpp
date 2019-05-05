@@ -710,4 +710,4 @@ void IncPerfCounterQuadCount(PerfQueryType type)
   quad[type] = 0;
   ++perf_values[type];
 }
-}
+}  // namespace EfbInterface

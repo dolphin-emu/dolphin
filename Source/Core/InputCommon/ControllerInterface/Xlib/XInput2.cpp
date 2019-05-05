@@ -369,5 +369,5 @@ ControlState KeyboardMouse::Axis::GetState() const
 {
   return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
 }
-}
-}
+}  // namespace XInput2
+}  // namespace ciface

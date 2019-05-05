@@ -38,4 +38,4 @@ private:
   bool m_valid = true;
   std::string m_path;
 };
-}
+}  // namespace DiscIO

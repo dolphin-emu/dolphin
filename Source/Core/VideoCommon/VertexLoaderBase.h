@@ -55,7 +55,7 @@ struct hash<VertexLoaderUID>
 {
   size_t operator()(const VertexLoaderUID& uid) const { return uid.GetHash(); }
 };
-}
+}  // namespace std
 
 class VertexLoaderBase
 {

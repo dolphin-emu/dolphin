@@ -495,7 +495,7 @@ void nop(const UDSPInstruction opc)
 }
 
 }  // namespace Ext
-}  // namespace Interpeter
+}  // namespace Interpreter
 
 // The ext ops are calculated in parallel with the actual op. That means that
 // both the main op and the ext op see the same register state as input. The

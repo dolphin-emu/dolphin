@@ -15,4 +15,4 @@ namespace ConfigLoaders
 // systems to co-exist without trampling on each other while saving.
 // This function shall be removed when the old configuration system retires.
 bool IsSettingSaveable(const Config::ConfigLocation& config_location);
-}  // namespace ConfigLoader
+}  // namespace ConfigLoaders

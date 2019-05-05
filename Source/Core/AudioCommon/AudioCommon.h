@@ -31,4 +31,4 @@ void StopAudioDump();
 void IncreaseVolume(unsigned short offset);
 void DecreaseVolume(unsigned short offset);
 void ToggleMuteVolume();
-}
+}  // namespace AudioCommon

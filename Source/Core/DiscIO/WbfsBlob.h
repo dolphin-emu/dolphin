@@ -81,4 +81,4 @@ private:
   bool m_good;
 };
 
-}  // namespace
+}  // namespace DiscIO

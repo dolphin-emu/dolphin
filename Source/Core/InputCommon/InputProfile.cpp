@@ -207,4 +207,4 @@ void ProfileCycler::PreviousWiimoteProfileForGame(int controller_index)
   CycleProfileForGame(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index,
                       GetWiimoteInputProfilesForGame(controller_index), controller_index);
 }
-}
+}  // namespace InputProfile

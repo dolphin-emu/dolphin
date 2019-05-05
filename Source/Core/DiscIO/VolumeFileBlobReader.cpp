@@ -48,4 +48,4 @@ bool VolumeFileBlobReader::Read(u64 offset, u64 length, u8* out_ptr)
 
   return m_volume.Read(m_file_info->GetOffset() + offset, length, out_ptr, m_partition);
 }
-}  // namespace
+}  // namespace DiscIO

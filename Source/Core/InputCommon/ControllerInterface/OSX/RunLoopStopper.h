@@ -41,5 +41,5 @@ public:
   }
 };
 
-}  // namespace ciface
 }  // namespace OSX
+}  // namespace ciface

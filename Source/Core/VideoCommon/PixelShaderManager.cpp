@@ -158,9 +158,8 @@ void PixelShaderManager::SetConstants()
               bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
         // Note: a tevind of zero just happens to be a passthrough, so no need
         // to set an extra bit.
-        constants.pack1[i][2] =
-            bpmem.tevind[i].hex;  // TODO: This match shadergen, but videosw will
-                                  // always wrap.
+        constants.pack1[i][2] = bpmem.tevind[i].hex;  // TODO: This match shadergen, but videosw
+                                                      // will always wrap.
 
         // The ubershader uses tevind != 0 as a condition whether to calculate texcoords,
         // even when texture is disabled, instead of the stage < bpmem.genMode.numindstages.

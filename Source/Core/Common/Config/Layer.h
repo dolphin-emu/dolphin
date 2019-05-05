@@ -42,7 +42,7 @@ inline std::optional<std::string> TryParse(const std::string& str_value)
 {
   return str_value;
 }
-}
+}  // namespace detail
 
 template <typename T>
 struct ConfigInfo;
@@ -154,4 +154,4 @@ protected:
   const LayerType m_layer;
   std::unique_ptr<ConfigLayerLoader> m_loader;
 };
-}
+}  // namespace Config

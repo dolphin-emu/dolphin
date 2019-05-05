@@ -94,7 +94,7 @@ struct hash<PortableVertexDeclaration>
     return Common::HashFletcher(reinterpret_cast<const u8*>(&decl), sizeof(decl));
   }
 };
-}
+}  // namespace std
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.
