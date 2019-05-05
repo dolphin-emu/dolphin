@@ -203,6 +203,9 @@
     <ClCompile Include="NetPlayGolfUI.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiManager.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -396,6 +399,9 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="NetPlayGolfUI.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiManager.h">
       <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
