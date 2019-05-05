@@ -420,7 +420,7 @@ public:
 
   // GCI files are untouched, SAV files are byteswapped
   // GCS files have the block count set, default is 1 (For export as GCS)
-  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length = BLOCK_SIZE);
+  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
 
   // reads the banner image
   bool ReadBannerRGBA8(u8 index, u32* buffer) const;

@@ -882,9 +882,9 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
 
   DEntry tempDEntry;
   gci.ReadBytes(&tempDEntry, DENTRY_SIZE);
-  const int fStart = (int)gci.Tell();
+  const u64 fStart = gci.Tell();
   gci.Seek(0, SEEK_END);
-  const int length = (int)gci.Tell() - fStart;
+  const u64 length = gci.Tell() - fStart;
   gci.Seek(offset + DENTRY_SIZE, SEEK_SET);
 
   Gcs_SavConvert(tempDEntry, offset, length);
@@ -1022,7 +1022,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
     return WRITEFAIL;
 }
 
-void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length)
+void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length)
 {
   switch (saveType)
   {
