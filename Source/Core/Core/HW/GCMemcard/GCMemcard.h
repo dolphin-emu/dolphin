@@ -60,8 +60,6 @@ enum class GCMemcardImportFileRetVal
   SAVFAIL,
   OPENFAIL,
   LENGTHFAIL,
-  WRITEFAIL,
-  GCS,
 };
 
 enum class GCMemcardExportFileRetVal
@@ -380,8 +378,7 @@ private:
   int m_active_directory;
   int m_active_bat;
 
-  GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
-                                              const std::string& outputFile);
+  GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
   void InitActiveDirBat();
 
   const Directory& GetActiveDirectory() const;
@@ -456,8 +453,8 @@ public:
   // reads a save from another memcard, and imports the data into this memcard
   GCMemcardImportFileRetVal CopyFrom(const GCMemcard& source, u8 index);
 
-  // reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-  GCMemcardImportFileRetVal ImportGci(const std::string& inputFile, const std::string& outputFile);
+  // reads a .gci/.gcs/.sav file and calls ImportFile
+  GCMemcardImportFileRetVal ImportGci(const std::string& inputFile);
 
   // writes a .gci file to disk containing index
   GCMemcardExportFileRetVal ExportGci(u8 index, const std::string& fileName,

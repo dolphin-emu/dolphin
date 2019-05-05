@@ -837,22 +837,20 @@ GCMemcardImportFileRetVal GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
   }
 }
 
-GCMemcardImportFileRetVal GCMemcard::ImportGci(const std::string& inputFile,
-                                               const std::string& outputFile)
+GCMemcardImportFileRetVal GCMemcard::ImportGci(const std::string& inputFile)
 {
-  if (outputFile.empty() && !m_valid)
+  if (!m_valid)
     return GCMemcardImportFileRetVal::OPENFAIL;
 
   File::IOFile gci(inputFile, "rb");
   if (!gci)
     return GCMemcardImportFileRetVal::OPENFAIL;
 
-  return ImportGciInternal(std::move(gci), inputFile, outputFile);
+  return ImportGciInternal(std::move(gci), inputFile);
 }
 
 GCMemcardImportFileRetVal GCMemcard::ImportGciInternal(File::IOFile&& gci,
-                                                       const std::string& inputFile,
-                                                       const std::string& outputFile)
+                                                       const std::string& inputFile)
 {
   unsigned int offset;
   std::string fileType;
@@ -907,39 +905,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportGciInternal(File::IOFile&& gci,
     gci.ReadBytes(b.m_block.data(), b.m_block.size());
     saveData.push_back(b);
   }
-  GCMemcardImportFileRetVal ret;
-  if (!outputFile.empty())
-  {
-    File::IOFile gci2(outputFile, "wb");
-    bool completeWrite = true;
-    if (!gci2)
-    {
-      return GCMemcardImportFileRetVal::OPENFAIL;
-    }
-    gci2.Seek(0, SEEK_SET);
-
-    if (!gci2.WriteBytes(&tempDEntry, DENTRY_SIZE))
-      completeWrite = false;
-    int fileBlocks = tempDEntry.m_block_count;
-    gci2.Seek(DENTRY_SIZE, SEEK_SET);
-
-    for (int i = 0; i < fileBlocks; ++i)
-    {
-      if (!gci2.WriteBytes(saveData[i].m_block.data(), saveData[i].m_block.size()))
-        completeWrite = false;
-    }
-
-    // TODO: This is interpreted as failure by the calling code if it only checks for SUCCESS.
-    // What is the logic here?
-    if (completeWrite)
-      ret = GCMemcardImportFileRetVal::GCS;
-    else
-      ret = GCMemcardImportFileRetVal::WRITEFAIL;
-  }
-  else
-    ret = ImportFile(tempDEntry, saveData);
-
-  return ret;
+  return ImportFile(tempDEntry, saveData);
 }
 
 GCMemcardExportFileRetVal GCMemcard::ExportGci(u8 index, const std::string& fileName,

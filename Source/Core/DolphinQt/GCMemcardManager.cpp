@@ -330,7 +330,7 @@ void GCMemcardManager::ImportFile()
   if (path.isEmpty())
     return;
 
-  const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString(), "");
+  const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString());
 
   if (result != GCMemcardImportFileRetVal::SUCCESS)
   {
