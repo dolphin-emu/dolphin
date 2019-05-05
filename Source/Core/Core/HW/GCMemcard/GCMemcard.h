@@ -40,7 +40,6 @@ enum
   LENGTHFAIL,
   INVALIDFILESIZE,
   TITLEPRESENT,
-  DIRLEN = 0x7F,
   SAV = 0x80,
   SAVFAIL,
   GCS = 0x110,
@@ -49,24 +48,41 @@ enum
   WRITEFAIL,
   DELETE_FAIL,
 
-  MC_FST_BLOCKS = 0x05,
-  MBIT_TO_BLOCKS = 0x10,
-  DENTRY_STRLEN = 0x20,
-  DENTRY_SIZE = 0x40,
-  BLOCK_SIZE = 0x2000,
-  BAT_SIZE = 0xFFB,
-
-  MemCard59Mb = 0x04,
-  MemCard123Mb = 0x08,
-  MemCard251Mb = 0x10,
-  Memcard507Mb = 0x20,
-  MemCard1019Mb = 0x40,
-  MemCard2043Mb = 0x80,
-
   CI8SHARED = 1,
   RGB5A3,
   CI8,
 };
+
+// size of a single memory card block in bytes
+constexpr u32 BLOCK_SIZE = 0x2000;
+
+// the amount of memory card blocks in a megabit of data
+constexpr u32 MBIT_TO_BLOCKS = (1024 * 1024) / (BLOCK_SIZE * 8);
+
+// number of metadata and filesystem blocks before the actual user data blocks
+constexpr u32 MC_FST_BLOCKS = 0x05;
+
+// maximum number of saves that can be stored on a single memory card
+constexpr u8 DIRLEN = 0x7F;
+
+// maximum size of memory card file comment in bytes
+constexpr u32 DENTRY_STRLEN = 0x20;
+
+// size of a single entry in the Directory in bytes
+constexpr u32 DENTRY_SIZE = 0x40;
+
+// number of block entries in the BAT; one entry uses 2 bytes
+constexpr u16 BAT_SIZE = 0xFFB;
+
+// possible sizes of memory cards in megabits
+// TODO: Do memory card sizes have to be power of two?
+// TODO: Are these all of them? A 4091 block card should work in theory at least.
+constexpr u16 MemCard59Mb = 0x04;
+constexpr u16 MemCard123Mb = 0x08;
+constexpr u16 MemCard251Mb = 0x10;
+constexpr u16 Memcard507Mb = 0x20;
+constexpr u16 MemCard1019Mb = 0x40;
+constexpr u16 MemCard2043Mb = 0x80;
 
 class MemoryCardBase
 {
