@@ -682,10 +682,10 @@ std::pair<u16, u16> BlockAlloc::CalculateChecksums() const
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
-u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
+GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
 {
   if (!m_valid)
-    return NOMEMCARD;
+    return GCMemcardGetSaveDataRetVal::NOMEMCARD;
 
   u16 block = DEntry_FirstBlock(index);
   u16 BlockCount = DEntry_BlockCount(index);
@@ -693,44 +693,45 @@ u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
 
   if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
   {
-    return FAIL;
+    return GCMemcardGetSaveDataRetVal::FAIL;
   }
 
   u16 nextBlock = block;
   for (int i = 0; i < BlockCount; ++i)
   {
     if ((!nextBlock) || (nextBlock == 0xFFFF))
-      return FAIL;
+      return GCMemcardGetSaveDataRetVal::FAIL;
     Blocks.push_back(m_data_blocks[nextBlock - MC_FST_BLOCKS]);
     nextBlock = GetActiveBat().GetNextBlock(nextBlock);
   }
-  return SUCCESS;
+  return GCMemcardGetSaveDataRetVal::SUCCESS;
 }
 // End DEntry functions
 
-u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks)
+GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
+                                                std::vector<GCMBlock>& saveBlocks)
 {
   if (!m_valid)
-    return NOMEMCARD;
+    return GCMemcardImportFileRetVal::NOMEMCARD;
 
   if (GetNumFiles() >= DIRLEN)
   {
-    return OUTOFDIRENTRIES;
+    return GCMemcardImportFileRetVal::OUTOFDIRENTRIES;
   }
   if (GetActiveBat().m_free_blocks < direntry.m_block_count)
   {
-    return OUTOFBLOCKS;
+    return GCMemcardImportFileRetVal::OUTOFBLOCKS;
   }
   if (TitlePresent(direntry) != DIRLEN)
   {
-    return TITLEPRESENT;
+    return GCMemcardImportFileRetVal::TITLEPRESENT;
   }
 
   // find first free data block
   u16 firstBlock =
       GetActiveBat().NextFreeBlock(m_size_blocks, GetActiveBat().m_last_allocated_block);
   if (firstBlock == 0xFFFF)
-    return OUTOFBLOCKS;
+    return GCMemcardImportFileRetVal::OUTOFBLOCKS;
   Directory UpdatedDir = GetActiveDirectory();
 
   // find first free dir entry
@@ -775,22 +776,22 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
 
   FixChecksums();
 
-  return SUCCESS;
+  return GCMemcardImportFileRetVal::SUCCESS;
 }
 
-u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
+GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the directory array
 {
   if (!m_valid)
-    return NOMEMCARD;
+    return GCMemcardRemoveFileRetVal::NOMEMCARD;
   if (index >= DIRLEN)
-    return DELETE_FAIL;
+    return GCMemcardRemoveFileRetVal::DELETE_FAIL;
 
   u16 startingblock = GetActiveDirectory().m_dir_entries[index].m_first_block;
   u16 numberofblocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
 
   BlockAlloc UpdatedBat = GetActiveBat();
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
-    return DELETE_FAIL;
+    return GCMemcardRemoveFileRetVal::DELETE_FAIL;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   UpdateBat(UpdatedBat);
 
@@ -806,50 +807,52 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
 
   FixChecksums();
 
-  return SUCCESS;
+  return GCMemcardRemoveFileRetVal::SUCCESS;
 }
 
-u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
+GCMemcardImportFileRetVal GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
 {
   if (!m_valid || !source.m_valid)
-    return NOMEMCARD;
+    return GCMemcardImportFileRetVal::NOMEMCARD;
 
   std::optional<DEntry> tempDEntry = source.GetDEntry(index);
   if (!tempDEntry)
-    return NOMEMCARD;
+    return GCMemcardImportFileRetVal::NOMEMCARD;
 
   u32 size = source.DEntry_BlockCount(index);
   if (size == 0xFFFF)
-    return INVALIDFILESIZE;
+    return GCMemcardImportFileRetVal::INVALIDFILESIZE;
 
   std::vector<GCMBlock> saveData;
   saveData.reserve(size);
   switch (source.GetSaveData(index, saveData))
   {
-  case FAIL:
-    return FAIL;
-  case NOMEMCARD:
-    return NOMEMCARD;
+  case GCMemcardGetSaveDataRetVal::FAIL:
+    return GCMemcardImportFileRetVal::FAIL;
+  case GCMemcardGetSaveDataRetVal::NOMEMCARD:
+    return GCMemcardImportFileRetVal::NOMEMCARD;
   default:
     FixChecksums();
     return ImportFile(*tempDEntry, saveData);
   }
 }
 
-u32 GCMemcard::ImportGci(const std::string& inputFile, const std::string& outputFile)
+GCMemcardImportFileRetVal GCMemcard::ImportGci(const std::string& inputFile,
+                                               const std::string& outputFile)
 {
   if (outputFile.empty() && !m_valid)
-    return OPENFAIL;
+    return GCMemcardImportFileRetVal::OPENFAIL;
 
   File::IOFile gci(inputFile, "rb");
   if (!gci)
-    return OPENFAIL;
+    return GCMemcardImportFileRetVal::OPENFAIL;
 
   return ImportGciInternal(std::move(gci), inputFile, outputFile);
 }
 
-u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
-                                 const std::string& outputFile)
+GCMemcardImportFileRetVal GCMemcard::ImportGciInternal(File::IOFile&& gci,
+                                                       const std::string& inputFile,
+                                                       const std::string& outputFile)
 {
   unsigned int offset;
   std::string fileType;
@@ -866,17 +869,17 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
       if (!memcmp(tmp, "GCSAVE", 6))  // Header must be uppercase
         offset = GCS;
       else
-        return GCSFAIL;
+        return GCMemcardImportFileRetVal::GCSFAIL;
     }
     else if (!strcasecmp(fileType.c_str(), ".sav"))
     {
       if (!memcmp(tmp, "DATELGC_SAVE", 0xC))  // Header must be uppercase
         offset = SAV;
       else
-        return SAVFAIL;
+        return GCMemcardImportFileRetVal::SAVFAIL;
     }
     else
-      return OPENFAIL;
+      return GCMemcardImportFileRetVal::OPENFAIL;
   }
   gci.Seek(offset, SEEK_SET);
 
@@ -890,9 +893,9 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
   Gcs_SavConvert(tempDEntry, offset, length);
 
   if (length != tempDEntry.m_block_count * BLOCK_SIZE)
-    return LENGTHFAIL;
+    return GCMemcardImportFileRetVal::LENGTHFAIL;
   if (gci.Tell() != offset + DENTRY_SIZE)  // Verify correct file position
-    return OPENFAIL;
+    return GCMemcardImportFileRetVal::OPENFAIL;
 
   u32 size = tempDEntry.m_block_count;
   std::vector<GCMBlock> saveData;
@@ -904,14 +907,14 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
     gci.ReadBytes(b.m_block.data(), b.m_block.size());
     saveData.push_back(b);
   }
-  u32 ret;
+  GCMemcardImportFileRetVal ret;
   if (!outputFile.empty())
   {
     File::IOFile gci2(outputFile, "wb");
     bool completeWrite = true;
     if (!gci2)
     {
-      return OPENFAIL;
+      return GCMemcardImportFileRetVal::OPENFAIL;
     }
     gci2.Seek(0, SEEK_SET);
 
@@ -926,10 +929,12 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
         completeWrite = false;
     }
 
+    // TODO: This is interpreted as failure by the calling code if it only checks for SUCCESS.
+    // What is the logic here?
     if (completeWrite)
-      ret = GCS;
+      ret = GCMemcardImportFileRetVal::GCS;
     else
-      ret = WRITEFAIL;
+      ret = GCMemcardImportFileRetVal::WRITEFAIL;
   }
   else
     ret = ImportFile(tempDEntry, saveData);
@@ -937,7 +942,8 @@ u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFil
   return ret;
 }
 
-u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::string& directory) const
+GCMemcardExportFileRetVal GCMemcard::ExportGci(u8 index, const std::string& fileName,
+                                               const std::string& directory) const
 {
   File::IOFile gci;
   int offset = GCI;
@@ -947,7 +953,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
     std::string gciFilename;
     // GCI_FileName should only fail if the gamecode is 0xFFFFFFFF
     if (!GCI_FileName(index, gciFilename))
-      return SUCCESS;
+      return GCMemcardExportFileRetVal::SUCCESS;
     gci.Open(directory + DIR_SEP + gciFilename, "wb");
   }
   else
@@ -966,7 +972,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
   }
 
   if (!gci)
-    return OPENFAIL;
+    return GCMemcardExportFileRetVal::OPENFAIL;
 
   gci.Seek(0, SEEK_SET);
 
@@ -989,7 +995,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
 
   std::optional<DEntry> tempDEntry = GetDEntry(index);
   if (!tempDEntry)
-    return NOMEMCARD;
+    return GCMemcardExportFileRetVal::NOMEMCARD;
 
   Gcs_SavConvert(*tempDEntry, offset);
   gci.WriteBytes(&tempDEntry.value(), DENTRY_SIZE);
@@ -997,7 +1003,7 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
   u32 size = DEntry_BlockCount(index);
   if (size == 0xFFFF)
   {
-    return FAIL;
+    return GCMemcardExportFileRetVal::FAIL;
   }
 
   std::vector<GCMBlock> saveData;
@@ -1005,10 +1011,10 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
 
   switch (GetSaveData(index, saveData))
   {
-  case FAIL:
-    return FAIL;
-  case NOMEMCARD:
-    return NOMEMCARD;
+  case GCMemcardGetSaveDataRetVal::FAIL:
+    return GCMemcardExportFileRetVal::FAIL;
+  case GCMemcardGetSaveDataRetVal::NOMEMCARD:
+    return GCMemcardExportFileRetVal::NOMEMCARD;
   }
   gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
   for (unsigned int i = 0; i < size; ++i)
@@ -1017,9 +1023,9 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
   }
 
   if (gci.IsGood())
-    return SUCCESS;
+    return GCMemcardExportFileRetVal::SUCCESS;
   else
-    return WRITEFAIL;
+    return GCMemcardExportFileRetVal::WRITEFAIL;
 }
 
 void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length)

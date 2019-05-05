@@ -32,25 +32,53 @@ enum
   SLOT_A = 0,
   SLOT_B = 1,
   GCI = 0,
-  SUCCESS,
-  NOMEMCARD,
-  OPENFAIL,
-  OUTOFBLOCKS,
-  OUTOFDIRENTRIES,
-  LENGTHFAIL,
-  INVALIDFILESIZE,
-  TITLEPRESENT,
   SAV = 0x80,
-  SAVFAIL,
   GCS = 0x110,
-  GCSFAIL,
-  FAIL,
-  WRITEFAIL,
-  DELETE_FAIL,
 
   CI8SHARED = 1,
   RGB5A3,
   CI8,
+};
+
+enum class GCMemcardGetSaveDataRetVal
+{
+  SUCCESS,
+  FAIL,
+  NOMEMCARD,
+};
+
+enum class GCMemcardImportFileRetVal
+{
+  SUCCESS,
+  FAIL,
+  NOMEMCARD,
+  OUTOFDIRENTRIES,
+  OUTOFBLOCKS,
+  TITLEPRESENT,
+  INVALIDFILESIZE,
+  GCSFAIL,
+  SAVFAIL,
+  OPENFAIL,
+  LENGTHFAIL,
+  WRITEFAIL,
+  GCS,
+};
+
+enum class GCMemcardExportFileRetVal
+{
+  SUCCESS,
+  FAIL,
+  NOMEMCARD,
+  OPENFAIL,
+  WRITEFAIL,
+  UNUSED,
+};
+
+enum class GCMemcardRemoveFileRetVal
+{
+  SUCCESS,
+  NOMEMCARD,
+  DELETE_FAIL,
 };
 
 // size of a single memory card block in bytes
@@ -352,8 +380,8 @@ private:
   int m_active_directory;
   int m_active_bat;
 
-  u32 ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
-                        const std::string& outputFile);
+  GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
+                                              const std::string& outputFile);
   void InitActiveDirBat();
 
   const Directory& GetActiveDirectory() const;
@@ -417,22 +445,23 @@ public:
   // Fetches a DEntry from the given file index.
   std::optional<DEntry> GetDEntry(u8 index) const;
 
-  u32 GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
+  GCMemcardGetSaveDataRetVal GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
   // adds the file to the directory and copies its contents
-  u32 ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
 
   // delete a file from the directory
-  u32 RemoveFile(u8 index);
+  GCMemcardRemoveFileRetVal RemoveFile(u8 index);
 
   // reads a save from another memcard, and imports the data into this memcard
-  u32 CopyFrom(const GCMemcard& source, u8 index);
+  GCMemcardImportFileRetVal CopyFrom(const GCMemcard& source, u8 index);
 
   // reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-  u32 ImportGci(const std::string& inputFile, const std::string& outputFile);
+  GCMemcardImportFileRetVal ImportGci(const std::string& inputFile, const std::string& outputFile);
 
   // writes a .gci file to disk containing index
-  u32 ExportGci(u8 index, const std::string& fileName, const std::string& directory) const;
+  GCMemcardExportFileRetVal ExportGci(u8 index, const std::string& fileName,
+                                      const std::string& directory) const;
 
   // GCI files are untouched, SAV files are byteswapped
   // GCS files have the block count set, default is 1 (For export as GCS)
