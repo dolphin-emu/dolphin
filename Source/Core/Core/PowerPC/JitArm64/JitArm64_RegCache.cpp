@@ -426,8 +426,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     // Else convert this register back to doubles.
     m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, REG_REG);
-
-    // fall through
+    [[fallthrough]];
   }
   case REG_REG:  // already in a reg
   {
@@ -442,8 +441,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     // Else convert this register back to a double.
     m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, REG_LOWER_PAIR);
-
-    // fall through
+    [[fallthrough]];
   }
   case REG_LOWER_PAIR:
   {
@@ -476,8 +474,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
 
     m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, REG_DUP);
-
-    // fall through
+    [[fallthrough]];
   }
   case REG_DUP:
   {
@@ -549,7 +546,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     case REG_REG_SINGLE:
       flush_reg = GetReg();
       m_float_emit->FCVTL(64, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
-    // fall through
+      [[fallthrough]];
     case REG_REG:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
       // store.
@@ -559,7 +556,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     case REG_DUP_SINGLE:
       flush_reg = GetReg();
       m_float_emit->FCVT(64, 32, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
-    // fall through
+      [[fallthrough]];
     case REG_DUP:
       // Store PSR1 (which is equal to PSR0) in memory.
       m_float_emit->STR(64, INDEX_UNSIGNED, flush_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps1));

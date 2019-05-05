@@ -77,7 +77,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   float dx = vertexOffsetX + (float)(x - vertex0X);
   float dy = vertexOffsetY + (float)(y - vertex0Y);
 
-  s32 z = (s32)MathUtil::Clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
+  s32 z = (s32)std::clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
   if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc)
   {

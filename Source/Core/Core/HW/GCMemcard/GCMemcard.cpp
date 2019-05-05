@@ -15,7 +15,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -609,8 +608,8 @@ u16 BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 {
   if (m_free_blocks > 0)
   {
-    StartingBlock = MathUtil::Clamp<u16>(StartingBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
-    MaxBlock = MathUtil::Clamp<u16>(MaxBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
+    StartingBlock = std::clamp<u16>(StartingBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
+    MaxBlock = std::clamp<u16>(MaxBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
     for (u16 i = StartingBlock; i < MaxBlock; ++i)
       if (m_map[i - MC_FST_BLOCKS] == 0)
         return i;

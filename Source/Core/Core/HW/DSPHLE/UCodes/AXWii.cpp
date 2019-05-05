@@ -4,12 +4,13 @@
 //
 #define AX_WII  // Used in AXVoice.
 
+#include <algorithm>
+
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -602,8 +603,8 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
     left = ((s64)left * volume_ramp[i]) >> 15;
     right = ((s64)right * volume_ramp[i]) >> 15;
 
-    m_samples_left[i] = MathUtil::Clamp(left, -32767, 32767);
-    m_samples_right[i] = MathUtil::Clamp(right, -32767, 32767);
+    m_samples_left[i] = std::clamp(left, -32767, 32767);
+    m_samples_right[i] = std::clamp(right, -32767, 32767);
   }
 
   for (u32 i = 0; i < 3 * 32; ++i)
@@ -626,7 +627,7 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
     u16* out = (u16*)HLEMemory_Get_Pointer(addresses[i]);
     for (u32 j = 0; j < 3 * 6; ++j)
     {
-      int sample = MathUtil::Clamp(in[j], -32767, 32767);
+      int sample = std::clamp(in[j], -32767, 32767);
       out[j] = Common::swap16((u16)sample);
     }
   }

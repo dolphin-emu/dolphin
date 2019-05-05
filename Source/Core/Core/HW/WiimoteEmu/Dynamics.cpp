@@ -4,6 +4,7 @@
 
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "Common/MathUtil.h"
@@ -170,7 +171,7 @@ void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float t
   if (y_progress > max_y_progress || y_progress < -1)
   {
     state->position.y =
-        MathUtil::Clamp(state->position.y, -1.f * max_distance, max_y_progress * max_distance);
+        std::clamp(state->position.y, -1.f * max_distance, max_y_progress * max_distance);
     state->velocity.y = 0;
     state->acceleration.y = 0;
   }
@@ -184,9 +185,9 @@ WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3&
   // 10-bit integers.
   constexpr long MAX_VALUE = (1 << 10) - 1;
 
-  return {u16(MathUtil::Clamp(std::lround(scaled_accel.x + zero_g), 0l, MAX_VALUE)),
-          u16(MathUtil::Clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
-          u16(MathUtil::Clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))};
+  return {u16(std::clamp(std::lround(scaled_accel.x + zero_g), 0l, MAX_VALUE)),
+          u16(std::clamp(std::lround(scaled_accel.y + zero_g), 0l, MAX_VALUE)),
+          u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))};
 }
 
 void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)

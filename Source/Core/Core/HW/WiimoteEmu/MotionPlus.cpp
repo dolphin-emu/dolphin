@@ -642,9 +642,9 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
     mplus_data.pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
     s32 pitch_value = pitch * (mplus_data.pitch_slow ? SLOW_SCALE : FAST_SCALE);
 
-    yaw_value = MathUtil::Clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE);
-    roll_value = MathUtil::Clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE);
-    pitch_value = MathUtil::Clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE);
+    yaw_value = std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE);
+    roll_value = std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE);
+    pitch_value = std::clamp(pitch_value + ZERO_VALUE, 0, MAX_VALUE);
 
     // Bits 0-7
     mplus_data.yaw1 = u8(yaw_value);

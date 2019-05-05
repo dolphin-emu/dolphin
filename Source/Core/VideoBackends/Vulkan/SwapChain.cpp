@@ -267,10 +267,10 @@ bool SwapChain::CreateSwapChain()
     size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
     size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
   }
-  size.width = MathUtil::Clamp(size.width, surface_capabilities.minImageExtent.width,
-                               surface_capabilities.maxImageExtent.width);
-  size.height = MathUtil::Clamp(size.height, surface_capabilities.minImageExtent.height,
-                                surface_capabilities.maxImageExtent.height);
+  size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
+                          surface_capabilities.maxImageExtent.width);
+  size.height = std::clamp(size.height, surface_capabilities.minImageExtent.height,
+                           surface_capabilities.maxImageExtent.height);
 
   // Prefer identity transform if possible
   VkSurfaceTransformFlagBitsKHR transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;

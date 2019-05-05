@@ -4,6 +4,7 @@
 
 #include "Core/HW/VideoInterface.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -12,7 +13,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -328,7 +328,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         u16 value = static_cast<u16>(1 + m_HTiming0.HLW *
                                              (CoreTiming::GetTicks() - s_ticks_last_line_start) /
                                              (GetTicksPerHalfLine()));
-        return MathUtil::Clamp(value, static_cast<u16>(1), static_cast<u16>(m_HTiming0.HLW * 2));
+        return std::clamp<u16>(value, 1, m_HTiming0.HLW * 2);
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
         WARN_LOG(VIDEOINTERFACE,

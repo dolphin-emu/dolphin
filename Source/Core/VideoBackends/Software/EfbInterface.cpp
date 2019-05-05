@@ -514,7 +514,7 @@ static u32 GammaCorrection(u32 color, const float gamma_rcp)
   for (int i = BLU_C; i <= RED_C; i++)
   {
     out_color[i] = static_cast<u8>(
-        MathUtil::Clamp(std::pow(in_colors[i] / 255.0f, gamma_rcp) * 255.0f, 0.0f, 255.0f));
+        std::clamp(std::pow(in_colors[i] / 255.0f, gamma_rcp) * 255.0f, 0.0f, 255.0f));
   }
 
   u32 out_color32;

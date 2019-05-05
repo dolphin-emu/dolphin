@@ -18,12 +18,6 @@ namespace MathUtil
 constexpr double TAU = 6.2831853071795865;
 constexpr double PI = TAU / 2;
 
-template <class T>
-constexpr T Clamp(const T val, const T& min, const T& max)
-{
-  return std::max(min, std::min(max, val));
-}
-
 template <typename T>
 constexpr auto Sign(const T& val) -> decltype((T{} < val) - (val < T{}))
 {
@@ -81,20 +75,20 @@ struct Rectangle
   // this Clamp.
   void ClampLL(T x1, T y1, T x2, T y2)
   {
-    left = Clamp(left, x1, x2);
-    right = Clamp(right, x1, x2);
-    top = Clamp(top, y2, y1);
-    bottom = Clamp(bottom, y2, y1);
+    left = std::clamp(left, x1, x2);
+    right = std::clamp(right, x1, x2);
+    top = std::clamp(top, y2, y1);
+    bottom = std::clamp(bottom, y2, y1);
   }
 
   // If the rectangle is in a coordinate system with an upper-left origin,
   // use this Clamp.
   void ClampUL(T x1, T y1, T x2, T y2)
   {
-    left = Clamp(left, x1, x2);
-    right = Clamp(right, x1, x2);
-    top = Clamp(top, y1, y2);
-    bottom = Clamp(bottom, y1, y2);
+    left = std::clamp(left, x1, x2);
+    right = std::clamp(right, x1, x2);
+    top = std::clamp(top, y1, y2);
+    bottom = std::clamp(bottom, y1, y2);
   }
 };
 

@@ -4,6 +4,7 @@
 
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstring>

@@ -4,6 +4,7 @@
 
 #include "InputCommon/ControllerEmu/StickGate.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "Common/Common.h"
@@ -277,8 +278,8 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // Scale to the gate shape/radius:
   dist *= gate_max_dist;
 
-  return {MathUtil::Clamp(std::cos(angle) * dist, -1.0, 1.0),
-          MathUtil::Clamp(std::sin(angle) * dist, -1.0, 1.0)};
+  return {std::clamp(std::cos(angle) * dist, -1.0, 1.0),
+          std::clamp(std::sin(angle) * dist, -1.0, 1.0)};
 }
 
 }  // namespace ControllerEmu

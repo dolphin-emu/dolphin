@@ -4,6 +4,7 @@
 
 #include "VideoBackends/D3D/Render.h"
 
+#include <algorithm>
 #include <array>
 #include <cinttypes>
 #include <cmath>
