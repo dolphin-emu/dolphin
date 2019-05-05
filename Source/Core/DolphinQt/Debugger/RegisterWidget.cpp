@@ -365,12 +365,12 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
 
     m_table->setItem(row, column, label);
     m_table->setItem(row, column + 1, value);
-    m_table->item(row, column + 1)->setTextAlignment(Qt::AlignRight);
+    m_table->item(row, column + 1)->setTextAlignment(Qt::AlignVCenter | Qt::AlignRight);
   }
   else
   {
     m_table->setItem(row, column, value);
-    m_table->item(row, column)->setTextAlignment(Qt::AlignRight);
+    m_table->item(row, column)->setTextAlignment(Qt::AlignVCenter | Qt::AlignRight);
   }
 
   connect(this, &RegisterWidget::UpdateTable, [value] { value->RefreshValue(); });
