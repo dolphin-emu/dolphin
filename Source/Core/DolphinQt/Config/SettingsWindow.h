@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <QDialog>
+#include "DolphinQt/QtUtils/CustomDialog.h"
 
 class QTabWidget;
 
@@ -14,7 +14,7 @@ enum class TabIndex
   Audio = 2
 };
 
-class SettingsWindow final : public QDialog
+class SettingsWindow final : public CustomDialog
 {
   Q_OBJECT
 public:
