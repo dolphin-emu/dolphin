@@ -112,6 +112,8 @@ add_executable(dolphin-emu
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
   QtUtils/AspectRatioWidget.cpp
+  QtUtils/CustomDialog.h
+  QtUtils/CustomDialog.cpp
   ResourcePackManager.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
