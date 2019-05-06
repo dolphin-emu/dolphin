@@ -139,7 +139,8 @@ void DolphinAnalytics::ReportGameStart()
 
 // Keep in sync with enum class GameQuirk definition.
 static const char* GAME_QUIRKS_NAMES[] = {
-    "icache-matters",  // ICACHE_MATTERS
+    "icache-matters",
+    "directly-reads-wiimote-input",
 };
 static_assert(sizeof(GAME_QUIRKS_NAMES) / sizeof(GAME_QUIRKS_NAMES[0]) ==
                   static_cast<u32>(GameQuirk::COUNT),

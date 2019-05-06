@@ -75,6 +75,7 @@ public:
   void SetEnabled(bool is_enabled);
 
   static constexpr u8 I2C_ADDR = 0x58;
+  static constexpr int CAMERA_DATA_BYTES = 36;
 
 private:
   // TODO: some of this memory is write-only and should return error 7.
@@ -89,7 +90,7 @@ private:
     u8 mode;
     u8 unk[3];
     // addr: 0x37
-    u8 camera_data[36];
+    u8 camera_data[CAMERA_DATA_BYTES];
     u8 unk2[165];
   };
 #pragma pack(pop)
