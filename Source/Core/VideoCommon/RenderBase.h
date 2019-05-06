@@ -390,6 +390,10 @@ private:
   void FinishFrameData();
 
   std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
+
+  // Needed for re-rendering a XFB screen
+  AbstractTexture* m_last_xfb_texture = nullptr;
+  MathUtil::Rectangle<int> m_last_xfb_region;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

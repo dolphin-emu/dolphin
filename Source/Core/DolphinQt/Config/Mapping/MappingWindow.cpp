@@ -167,6 +167,11 @@ void MappingWindow::UpdateProfileIndex()
 
   if (text_index == -1)
     m_profiles_combo->setCurrentText(current_text);
+  else
+  {
+    g_profile_manager.GetWiiDeviceProfileManager(GetPort())->SetProfile(
+        m_profiles_combo->currentIndex());
+  }
 }
 
 void MappingWindow::OnDeleteProfilePressed()
@@ -224,8 +229,6 @@ void MappingWindow::OnLoadProfilePressed()
     error.exec();
     return;
   }
-
-  g_profile_manager.GetWiiDeviceProfileManager(GetPort())->SetProfile(m_profiles_combo->currentIndex() - 1);
 
   emit ConfigChanged();
 }

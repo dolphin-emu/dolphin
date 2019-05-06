@@ -1198,6 +1198,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
       m_last_xfb_id = xfb_entry->id;
+      m_last_xfb_texture = xfb_entry->texture.get();
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
       // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
