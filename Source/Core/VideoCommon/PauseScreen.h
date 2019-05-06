@@ -15,7 +15,18 @@ public:
   bool IsVisible() const { return m_visible; }
 
 private:
-  void UpdateControls(ImGuiIO&);
+  void UpdateControls(ImGuiIO& io);
+
+  // Wiimote controls
+  void UpdateWiimoteDpad(ImGuiIO& io);
+  void UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed);
+
+  // Wiimote accessory controls
+  void UpdateWiimoteNunchukStick(ImGuiIO& io);
+  void UpdateClassicControllerStick(ImGuiIO& io);
+  void UpdateClassicControllerDPad(ImGuiIO& io);
+  void UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed);
+
   void DisplayMain();
   void DisplayOptions();
   void DisplayGraphics();

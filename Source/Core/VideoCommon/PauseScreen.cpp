@@ -9,12 +9,14 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -24,15 +26,34 @@
 
 namespace
 {
-static const u16 wiimote_dpad_bitmasks[] = {
+static const std::array<u16, 4> wiimote_dpad_bitmasks[] = {
     WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_DOWN, WiimoteEmu::Wiimote::PAD_LEFT,
     WiimoteEmu::Wiimote::PAD_RIGHT};
 
-static const u16 wiimote_button_bitmasks[] = {
+static const std::array<u16, 7> wiimote_button_bitmasks[] = {
     WiimoteEmu::Wiimote::BUTTON_A,     WiimoteEmu::Wiimote::BUTTON_B,
     WiimoteEmu::Wiimote::BUTTON_ONE,   WiimoteEmu::Wiimote::BUTTON_TWO,
     WiimoteEmu::Wiimote::BUTTON_MINUS, WiimoteEmu::Wiimote::BUTTON_PLUS,
     WiimoteEmu::Wiimote::BUTTON_HOME};
+
+static const std::array<u16, 9> classic_button_bitmasks{
+    WiimoteEmu::Classic::BUTTON_A,     WiimoteEmu::Classic::BUTTON_B,
+    WiimoteEmu::Classic::BUTTON_X,     WiimoteEmu::Classic::BUTTON_Y,
+
+    WiimoteEmu::Classic::BUTTON_ZL,    WiimoteEmu::Classic::BUTTON_ZR,
+
+    WiimoteEmu::Classic::BUTTON_MINUS, WiimoteEmu::Classic::BUTTON_PLUS,
+
+    WiimoteEmu::Classic::BUTTON_HOME,
+};
+
+static const std::array<u16, 4> classic_dpad_bitmasks{
+    WiimoteEmu::Classic::PAD_UP,
+    WiimoteEmu::Classic::PAD_DOWN,
+    WiimoteEmu::Classic::PAD_LEFT,
+    WiimoteEmu::Classic::PAD_RIGHT,
+};
+
 }  // namespace
 
 PauseScreen::~PauseScreen()
@@ -103,11 +124,31 @@ void PauseScreen::UpdateControls(ImGuiIO& io)
 {
   memset(io.NavInputs, 0, sizeof(io.NavInputs));
 
+  bool back = false;
+
+  UpdateWiimoteDpad(io);
+  UpdateWiimoteButtons(io, back);
+  UpdateWiimoteNunchukStick(io);
+  UpdateClassicControllerStick(io);
+  UpdateClassicControllerButtons(io, back);
+
+  if (m_state_stack.size() > 1 && back)
+  {
+    m_state_stack.pop();
+  }
+  else if (back)
+  {
+    Core::SetState(Core::State::Running);
+  }
+}
+
+void PauseScreen::UpdateWiimoteDpad(ImGuiIO& io)
+{
   auto* wiimote_dpad_group = static_cast<ControllerEmu::Buttons*>(
       Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::DPad));
 
   u16 wiimote_dpad_buttons = 0;
-  wiimote_dpad_group->GetState(&wiimote_dpad_buttons, wiimote_dpad_bitmasks);
+  wiimote_dpad_group->GetState(&wiimote_dpad_buttons, wiimote_dpad_bitmasks->data());
 
   if ((wiimote_dpad_buttons & WiimoteEmu::Wiimote::PAD_DOWN) != 0)
   {
@@ -128,31 +169,142 @@ void PauseScreen::UpdateControls(ImGuiIO& io)
   {
     io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
   }
+}
 
+void PauseScreen::UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed)
+{
   auto* wiimote_buttons_group = static_cast<ControllerEmu::Buttons*>(
       Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::Buttons));
 
   u16 wiimote_buttons = 0;
-  wiimote_buttons_group->GetState(&wiimote_buttons, wiimote_button_bitmasks);
+  wiimote_buttons_group->GetState(&wiimote_buttons, wiimote_button_bitmasks->data());
 
   if ((wiimote_buttons & WiimoteEmu::Wiimote::BUTTON_A) != 0)
   {
     io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
   }
 
-  bool back = false;
   if ((wiimote_buttons & WiimoteEmu::Wiimote::BUTTON_B) != 0)
   {
-    back = true;
+    back_pressed = true;
+  }
+}
+
+void PauseScreen::UpdateWiimoteNunchukStick(ImGuiIO& io)
+{
+  auto* nunchuk_stick_group = static_cast<ControllerEmu::AnalogStick*>(
+      Wiimote::GetNunchukGroup(0, WiimoteEmu::NunchukGroup::Stick));
+  if (nunchuk_stick_group == nullptr)
+  {
+    return;
+  }
+  const ControllerEmu::AnalogStick::StateData stick_state = nunchuk_stick_group->GetState();
+
+  if (stick_state.x < 0.0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
   }
 
-  if (m_state_stack.size() > 1 && back)
+  if (stick_state.x > 0.0)
   {
-    m_state_stack.pop();
+    io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
   }
-  else if (back)
+
+  if (stick_state.y < 0.0)
   {
-    Core::SetState(Core::State::Running);
+    io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
+  }
+
+  if (stick_state.y > 0.0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
+  }
+}
+
+void PauseScreen::UpdateClassicControllerStick(ImGuiIO& io)
+{
+  auto* classic_stick_group = static_cast<ControllerEmu::AnalogStick*>(
+      Wiimote::GetClassicGroup(0, WiimoteEmu::ClassicGroup::LeftStick));
+  if (classic_stick_group == nullptr)
+  {
+    return;
+  }
+  const ControllerEmu::AnalogStick::StateData stick_state = classic_stick_group->GetState();
+
+  if (stick_state.x < 0.0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
+  }
+
+  if (stick_state.x > 0.0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
+  }
+
+  if (stick_state.y < 0.0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
+  }
+
+  if (stick_state.y > 0.0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
+  }
+}
+
+void PauseScreen::UpdateClassicControllerDPad(ImGuiIO& io)
+{
+  auto* classic_dpad_group = static_cast<ControllerEmu::Buttons*>(
+      Wiimote::GetClassicGroup(0, WiimoteEmu::ClassicGroup::DPad));
+  if (classic_dpad_group == nullptr)
+  {
+    return;
+  }
+  u16 classic_dpad_buttons = 0;
+  classic_dpad_group->GetState(&classic_dpad_buttons, classic_dpad_bitmasks.data());
+
+  if ((classic_dpad_buttons & WiimoteEmu::Classic::PAD_DOWN) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadDown] = 1.0f;
+  }
+
+  if ((classic_dpad_buttons & WiimoteEmu::Classic::PAD_UP) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadUp] = 1.0f;
+  }
+
+  if ((classic_dpad_buttons & WiimoteEmu::Classic::PAD_LEFT) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadLeft] = 1.0f;
+  }
+
+  if ((classic_dpad_buttons & WiimoteEmu::Classic::PAD_RIGHT) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_DpadRight] = 1.0f;
+  }
+}
+
+void PauseScreen::UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed)
+{
+  auto* classic_buttons_group = static_cast<ControllerEmu::Buttons*>(
+      Wiimote::GetClassicGroup(0, WiimoteEmu::ClassicGroup::Buttons));
+
+  if (classic_buttons_group == nullptr)
+  {
+    return;
+  }
+
+  u16 classic_buttons = 0;
+  classic_buttons_group->GetState(&classic_buttons, classic_button_bitmasks.data());
+
+  if ((classic_buttons & WiimoteEmu::Classic::BUTTON_A) != 0)
+  {
+    io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+  }
+
+  if ((classic_buttons & WiimoteEmu::Classic::BUTTON_B) != 0)
+  {
+    back_pressed = true;
   }
 }
 
