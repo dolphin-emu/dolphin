@@ -253,4 +253,4 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
   inifile.SetLines("Gecko", lines);
   inifile.SetLines("Gecko_Enabled", enabledLines);
 }
-}
+}  // namespace Gecko

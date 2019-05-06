@@ -21,4 +21,4 @@ public:
   bool IsFlushed() const override { return true; }
 };
 
-}  // namespace
+}  // namespace Null

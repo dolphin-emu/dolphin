@@ -57,4 +57,4 @@ private:
   MapType m_ciso_map[CISO_MAP_SIZE];
 };
 
-}  // namespace
+}  // namespace DiscIO

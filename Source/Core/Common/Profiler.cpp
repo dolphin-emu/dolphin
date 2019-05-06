@@ -161,4 +161,4 @@ std::string Profiler::Read()
 
   return buffer.str();
 }
-}
+}  // namespace Common

@@ -91,4 +91,4 @@ inline T* AtomicExchangeAcquire(T* volatile& loc, U newval)
 {
   return (T*)_InterlockedExchangePointer_acq((void* volatile*)&loc, (void*)newval);
 }
-}
+}  // namespace Common

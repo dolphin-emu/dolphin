@@ -642,16 +642,16 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_o
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
 }
 
-  //
-  //
-  //
-  //
-  // ---  SDP
-  //
-  //
-  //
-  //
-  //
+//
+//
+//
+//
+// ---  SDP
+//
+//
+//
+//
+//
 
 #define SDP_UINT8 0x08
 #define SDP_UINT16 0x09
@@ -935,4 +935,4 @@ void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data
   if (bt)
     bt->AccessWiimoteByIndex(number)->ReceiveL2capData(channel_id, data, size);
 }
-}
+}  // namespace Core

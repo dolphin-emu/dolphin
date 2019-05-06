@@ -61,4 +61,4 @@ void LoadDefaultSIMDState()
 {
   _mm_setcsr(default_sse_state);
 }
-}
+}  // namespace FPURoundMode

@@ -15,4 +15,4 @@ namespace Gecko
 std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni);
 std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded);
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes);
-}
+}  // namespace Gecko

@@ -30,4 +30,4 @@ private:
   std::array<D3D12_INPUT_ELEMENT_DESC, MAX_VERTEX_ATTRIBUTES> m_attribute_descriptions = {};
   u32 m_num_attributes = 0;
 };
-}  // namespace Vulkan
+}  // namespace DX12

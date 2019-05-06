@@ -66,5 +66,5 @@ enum class ParseStatus
 };
 
 std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr);
-}
-}
+}  // namespace ExpressionParser
+}  // namespace ciface

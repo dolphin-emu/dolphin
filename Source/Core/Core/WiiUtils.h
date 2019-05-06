@@ -23,7 +23,7 @@ namespace HLE
 {
 class Kernel;
 }
-}
+}  // namespace IOS
 
 namespace WiiUtils
 {
@@ -83,4 +83,4 @@ struct NANDCheckResult
 };
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);
-}
+}  // namespace WiiUtils

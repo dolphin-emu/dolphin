@@ -44,4 +44,4 @@ private:
   u64 m_size = 0;
 };
 
-}  // namespace
+}  // namespace DiscIO

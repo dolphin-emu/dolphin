@@ -110,4 +110,4 @@ void RegisterV(const void* base_address, u32 code_size, const char* format, va_l
     s_perf_map_file.WriteBytes(entry.data(), entry.size());
   }
 }
-}
+}  // namespace JitRegister

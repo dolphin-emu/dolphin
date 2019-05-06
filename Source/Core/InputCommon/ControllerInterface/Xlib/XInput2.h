@@ -113,5 +113,5 @@ private:
   const int pointer_deviceid, keyboard_deviceid;
   std::string name;
 };
-}
-}
+}  // namespace XInput2
+}  // namespace ciface

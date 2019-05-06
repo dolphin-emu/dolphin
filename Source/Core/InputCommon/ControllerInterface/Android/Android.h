@@ -65,5 +65,5 @@ public:
 private:
   const int _padID;
 };
-}
-}
+}  // namespace Android
+}  // namespace ciface

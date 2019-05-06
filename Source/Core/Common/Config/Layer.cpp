@@ -97,4 +97,4 @@ const LayerMap& Layer::GetLayerMap() const
 {
   return m_map;
 }
-}
+}  // namespace Config

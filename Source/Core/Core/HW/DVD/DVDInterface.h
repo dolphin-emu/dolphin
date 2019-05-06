@@ -16,7 +16,7 @@ namespace DiscIO
 {
 class Volume;
 struct Partition;
-}
+}  // namespace DiscIO
 namespace MMIO
 {
 class Mapping;

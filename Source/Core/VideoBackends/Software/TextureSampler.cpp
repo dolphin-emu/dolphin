@@ -247,4 +247,4 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
                                           imageWidth);
   }
 }
-}
+}  // namespace TextureSampler

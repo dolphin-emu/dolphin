@@ -125,4 +125,4 @@ void ClearMessages()
   std::lock_guard<std::mutex> lock(s_messages_mutex);
   s_messages.clear();
 }
-}
+}  // namespace OSD

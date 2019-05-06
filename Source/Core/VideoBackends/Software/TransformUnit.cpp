@@ -455,4 +455,4 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst, bool s
     dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);
   }
 }
-}
+}  // namespace TransformUnit

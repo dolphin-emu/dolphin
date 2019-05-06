@@ -68,4 +68,4 @@ private:
   std::string m_file_name;
 };
 
-}  // namespace
+}  // namespace DiscIO

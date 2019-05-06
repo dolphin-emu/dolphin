@@ -1143,4 +1143,4 @@ private:
     }
   }
 };
-}
+}  // namespace Arm64Gen

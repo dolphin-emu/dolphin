@@ -31,4 +31,4 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& callback);
 void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid);
-}
+}  // namespace UberShader

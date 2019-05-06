@@ -90,5 +90,5 @@ private:
 
   ForceFeedback::FFDeviceAdapterReference m_ff_device;
 };
-}
-}
+}  // namespace OSX
+}  // namespace ciface

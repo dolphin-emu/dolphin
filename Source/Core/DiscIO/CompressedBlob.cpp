@@ -425,4 +425,4 @@ bool IsGCZBlob(File::IOFile& file)
   return is_gcz;
 }
 
-}  // namespace
+}  // namespace DiscIO

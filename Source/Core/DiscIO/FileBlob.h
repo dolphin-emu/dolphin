@@ -32,4 +32,4 @@ private:
   s64 m_size;
 };
 
-}  // namespace
+}  // namespace DiscIO

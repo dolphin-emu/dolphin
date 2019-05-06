@@ -198,4 +198,4 @@ void LogCompiledInstructions()
   ++time;
 }
 
-}  // namespace
+}  // namespace PPCTables

@@ -79,4 +79,4 @@ private:
   u32 m_data_size = 0;
 };
 
-}  // namespace
+}  // namespace DiscIO

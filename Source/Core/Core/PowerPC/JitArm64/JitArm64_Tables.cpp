@@ -47,7 +47,7 @@ struct GekkoOPTemplate
   _Instruction Inst;
   // GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
-}
+}  // namespace
 
 constexpr GekkoOPTemplate primarytable[] = {
     {4, &JitArm64::DynaRunTable4},    // RunTable4

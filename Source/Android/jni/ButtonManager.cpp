@@ -730,4 +730,4 @@ float InputDevice::AxisValue(int padID, ButtonType axis)
   else
     return _buttons[binding->second->_buttontype] == BUTTON_PRESSED ? 1.0f : 0.0f;
 }
-}
+}  // namespace ButtonManager

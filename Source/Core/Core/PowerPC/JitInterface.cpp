@@ -272,4 +272,4 @@ void Shutdown()
     g_jit = nullptr;
   }
 }
-}
+}  // namespace JitInterface

@@ -125,4 +125,4 @@ void InitAdapterClass()
   jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_WiimoteAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 }
-}
+}  // namespace WiimoteReal

@@ -88,4 +88,4 @@ Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);
 
 const std::string& GetCompanyFromID(const std::string& company_id);
-}
+}  // namespace DiscIO

@@ -392,4 +392,4 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   // default fallback, should work everywhere, but isn't the best way to do this job
   return std::make_unique<MapAndOrphan>(type, size);
 }
-}
+}  // namespace OGL

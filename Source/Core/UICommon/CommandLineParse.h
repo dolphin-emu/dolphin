@@ -10,7 +10,7 @@ namespace optparse
 {
 class OptionParser;
 class Values;
-}
+}  // namespace optparse
 
 namespace CommandLineParse
 {
@@ -24,4 +24,4 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options);
 optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv);
 optparse::Values& ParseArguments(optparse::OptionParser* parser,
                                  const std::vector<std::string>& arguments);
-}
+}  // namespace CommandLineParse

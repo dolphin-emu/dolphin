@@ -58,5 +58,5 @@ private:
   std::map<std::string, PipeInput*> m_buttons;
   std::map<std::string, PipeInput*> m_axes;
 };
-}
-}
+}  // namespace Pipes
+}  // namespace ciface

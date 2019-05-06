@@ -969,7 +969,7 @@ void GekkoDisassembler::mtfsb(u32 in, int n)
   }
 }
 
-  // Paired instructions
+// Paired instructions
 
 #define RA ((inst >> 16) & 0x1f)
 #define RB ((inst >> 11) & 0x1f)

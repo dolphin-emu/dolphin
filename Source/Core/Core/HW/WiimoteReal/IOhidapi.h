@@ -40,7 +40,7 @@ public:
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}  // not needed for hidapi
 };
-}
+}  // namespace WiimoteReal
 
 #else
 #include "Core/HW/WiimoteReal/IODummy.h"

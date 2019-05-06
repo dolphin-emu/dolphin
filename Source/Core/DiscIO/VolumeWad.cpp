@@ -218,4 +218,4 @@ u64 VolumeWAD::GetRawSize() const
   return m_reader->GetRawSize();
 }
 
-}  // namespace
+}  // namespace DiscIO

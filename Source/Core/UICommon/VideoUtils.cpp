@@ -74,4 +74,4 @@ std::vector<std::string> GetAvailableAntialiasingModes(int& msaa_modes)
 
   return modes;
 }
-}
+}  // namespace VideoUtils

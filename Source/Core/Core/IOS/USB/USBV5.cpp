@@ -76,7 +76,7 @@ struct DeviceEntry
   u8 num_altsettings;
 };
 #pragma pack(pop)
-}
+}  // namespace
 
 USBV5ResourceManager::~USBV5ResourceManager()
 {

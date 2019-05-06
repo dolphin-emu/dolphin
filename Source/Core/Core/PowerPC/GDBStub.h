@@ -12,12 +12,14 @@
 #define MSG_WAITALL (8)
 #endif
 
-typedef enum {
+typedef enum
+{
   GDB_SIGTRAP = 5,
   GDB_SIGTERM = 15,
 } gdb_signals;
 
-typedef enum {
+typedef enum
+{
   GDB_BP_TYPE_NONE = 0,
   GDB_BP_TYPE_X,
   GDB_BP_TYPE_R,

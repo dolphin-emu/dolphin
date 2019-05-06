@@ -112,7 +112,7 @@ struct hash<TraversalHostId>
     return p[0] ^ ((p[1] << 13) | (p[1] >> 19));
   }
 };
-}
+}  // namespace std
 
 static int sock;
 static std::unordered_map<TraversalRequestId, OutgoingPacketInfo> outgoingPackets;

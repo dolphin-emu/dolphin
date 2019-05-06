@@ -272,4 +272,4 @@ void NANDImporter::ExportKeys(const std::string& nand_root)
   if (!file.WriteBytes(m_nand_keys.data(), NAND_KEYS_SIZE))
     PanicAlertT("Unable to write to file %s", file_path.c_str());
 }
-}
+}  // namespace DiscIO

@@ -10,5 +10,5 @@ namespace Quartz
 {
 void PopulateDevices(void* window);
 void DeInit();
-}
-}
+}  // namespace Quartz
+}  // namespace ciface

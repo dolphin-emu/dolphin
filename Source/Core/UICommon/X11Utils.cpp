@@ -275,4 +275,4 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 }
 
 #endif
-}
+}  // namespace X11Utils

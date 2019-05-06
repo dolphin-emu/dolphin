@@ -330,4 +330,4 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(u64 disc_offset) const
   return nullptr;
 }
 
-}  // namespace
+}  // namespace DiscIO

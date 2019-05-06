@@ -44,5 +44,5 @@ void nr(UDSPInstruction opc);
 void nop(UDSPInstruction opc);
 
 }  // namespace Ext
-}  // namespace Interpeter
+}  // namespace Interpreter
 }  // namespace DSP

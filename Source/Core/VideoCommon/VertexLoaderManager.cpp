@@ -91,7 +91,7 @@ struct entry
   u64 num_verts;
   bool operator<(const entry& other) const { return num_verts > other.num_verts; }
 };
-}
+}  // namespace
 
 std::string VertexLoadersToString()
 {
@@ -295,7 +295,7 @@ NativeVertexFormat* GetCurrentVertexFormat()
   return s_current_vtx_fmt;
 }
 
-}  // namespace
+}  // namespace VertexLoaderManager
 
 void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 {

@@ -72,7 +72,7 @@ enum LOG_LEVELS
 
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 
-}  // namespace
+}  // namespace LogTypes
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
                 const char* fmt, ...)

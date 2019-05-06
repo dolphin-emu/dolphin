@@ -1934,14 +1934,13 @@ void TextureCacheBase::ReleaseEFBCopyStagingTexture(std::unique_ptr<AbstractStag
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
                                              u32 num_blocks_y)
 {
-// Originally, we planned on using a 'key color'
-// for alpha to address partial xfbs (Mario Strikers / Chicken Little).
-// This work was removed since it was unfinished but there
-// was still a desire to differentiate between the old and the new approach
-// which is why we still set uninitialized xfb memory to fuchsia
-// (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
-// like is done in the EFB path.
-// This comment is indented wrong because of the silly linter, btw.
+  // Originally, we planned on using a 'key color'
+  // for alpha to address partial xfbs (Mario Strikers / Chicken Little).
+  // This work was removed since it was unfinished but there
+  // was still a desire to differentiate between the old and the new approach
+  // which is why we still set uninitialized xfb memory to fuchsia
+  // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
+  // like is done in the EFB path.
 
 #if defined(_M_X86) || defined(_M_X86_64)
   __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);

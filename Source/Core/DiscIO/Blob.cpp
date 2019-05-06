@@ -210,4 +210,4 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
   }
 }
 
-}  // namespace
+}  // namespace DiscIO

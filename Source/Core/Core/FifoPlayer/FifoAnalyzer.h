@@ -38,4 +38,4 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMe
 
 extern bool s_DrawingObject;
 extern FifoAnalyzer::CPMemory s_CpMem;
-}
+}  // namespace FifoAnalyzer

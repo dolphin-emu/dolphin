@@ -69,4 +69,4 @@ std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename)
   return nullptr;
 }
 
-}  // namespace
+}  // namespace DiscIO

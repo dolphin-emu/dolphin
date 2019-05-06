@@ -135,4 +135,4 @@ optparse::Values& ParseArguments(optparse::OptionParser* parser,
   AddConfigLayer(options);
   return options;
 }
-}
+}  // namespace CommandLineParse

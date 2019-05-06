@@ -467,4 +467,4 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
     }
   }
 }
-}
+}  // namespace Rasterizer

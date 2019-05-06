@@ -13,4 +13,4 @@ namespace DInput
 {
 std::unordered_set<DWORD> GetXInputGUIDS();
 }
-}
+}  // namespace ciface

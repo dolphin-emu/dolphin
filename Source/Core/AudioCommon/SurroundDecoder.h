@@ -33,4 +33,4 @@ private:
   FixedSizeQueue<float, 32768> m_decoded_fifo;
 };
 
-}  // AudioCommon
+}  // namespace AudioCommon

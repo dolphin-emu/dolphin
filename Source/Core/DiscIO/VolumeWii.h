@@ -98,4 +98,4 @@ private:
   mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];
 };
 
-}  // namespace
+}  // namespace DiscIO

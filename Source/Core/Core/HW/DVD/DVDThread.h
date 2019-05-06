@@ -23,15 +23,15 @@ namespace DiscIO
 {
 enum class Platform;
 class Volume;
-}
+}  // namespace DiscIO
 namespace IOS
 {
 namespace ES
 {
 class TMDReader;
 class TicketReader;
-}
-}
+}  // namespace ES
+}  // namespace IOS
 
 namespace DVDThread
 {
@@ -60,4 +60,4 @@ void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
 void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                             const DiscIO::Partition& partition, DVDInterface::ReplyType reply_type,
                             s64 ticks_until_completion);
-}
+}  // namespace DVDThread

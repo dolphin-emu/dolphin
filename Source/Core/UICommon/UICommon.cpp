@@ -372,8 +372,8 @@ void EnableScreenSaver(Window win, bool enable)
 void EnableScreenSaver(bool enable)
 #endif
 {
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
+  // Inhibit the screensaver. Depending on the operating system this may also
+  // disable low-power states and/or screen dimming.
 
 #if defined(HAVE_X11) && HAVE_X11
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))

@@ -49,4 +49,4 @@ std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report
 
   return output_string;
 }
-}
+}  // namespace MD5

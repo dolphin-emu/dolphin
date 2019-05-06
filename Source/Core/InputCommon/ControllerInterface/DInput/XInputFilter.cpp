@@ -76,5 +76,5 @@ std::unordered_set<DWORD> GetXInputGUIDS()
   SetupDiDestroyDeviceInfoList(setup_enum);
   return guids;
 }
-}
-}
+}  // namespace DInput
+}  // namespace ciface

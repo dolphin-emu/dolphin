@@ -4380,4 +4380,4 @@ void ARM64FloatEmitter::MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch)
   DUP(32, Rd, Rd, 0);
 }
 
-}  // namespace
+}  // namespace Arm64Gen

@@ -242,5 +242,5 @@ void Touchscreen::Motor::Rumble(int padID, double state)
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDoRumble(), padID, state);
   IDCache::GetJavaVM()->DetachCurrentThread();
 }
-}
-}
+}  // namespace Android
+}  // namespace ciface

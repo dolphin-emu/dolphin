@@ -83,4 +83,4 @@ inline T* AtomicExchangeAcquire(T* volatile& loc, U newval)
 {
   return __atomic_exchange_n(&loc, newval, __ATOMIC_ACQ_REL);
 }
-}
+}  // namespace Common

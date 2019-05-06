@@ -275,4 +275,4 @@ int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
   return write(m_int_sock, buf, (int)len);
 }
 
-};  // WiimoteReal
+};  // namespace WiimoteReal
