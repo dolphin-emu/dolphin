@@ -329,7 +329,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
 int BLOCKNUM = 0;
 void Jit64::Init()
 {
-  printf("Entering Jit64::Init()\n");
+  //printf("Entering Jit64::Init()\n");
   InitializeInstructionTables();
   EnableBlockLink();
 
@@ -380,8 +380,9 @@ void Jit64::Init()
 
 void Jit64::ClearCache()
 {
+  u64 a_hotness;
   std::multimap<u32, u32> address_and_code;
-  blocks.New_Clear(address_and_code);
+  a_hotness = blocks.New_Clear(address_and_code);
   trampolines.ClearCodeSpace();
   m_far_code.ClearCodeSpace();
   m_const_pool.Clear();
@@ -389,16 +390,16 @@ void Jit64::ClearCache()
   Clear();
   UpdateMemoryOptions();
   for(auto& e: address_and_code){
-    printf("effective address: 0x%x Hotness: %d\n", e.first, e.second);
+    printf("%x,%f\n", e.first, (1.0 * e.second) / a_hotness);
   }
 }
 
 void Jit64::CLEAR2()
 {
   blocks.Clear2();
-  printf("REGION START:%20x\n", region);
-  printf("REGION START + Size:%13x\n", region + CODE_SIZE);
-  printf("CODE PTR:%24x\n", GetCodePtr());
+  //printf("REGION START:%20x\n", region);
+  //printf("REGION START + Size:%13x\n", region + CODE_SIZE);
+  //printf("CODE PTR:%24x\n", GetCodePtr());
   //blocks.Clear();
   //if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
 

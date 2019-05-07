@@ -72,7 +72,7 @@ u32 JitBaseBlockCache::hot_score(JitBlock e)
   return (0.1) * e.profile_data.old_hotness + (1 - 0.1) * hotness;
 } 
 
-void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code)
+u64 JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_code)
 {
   std::multimap<u64, u32> sorted_heat;  // hotness -> start addr
   u64 hotness, i = 0, j = 0, a_hotness = 0, hot_hotness = 0, hot_weight = 0, cc_weight = 0;
@@ -88,7 +88,7 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
     cc_weight += e.second.codeSize;
     sorted_heat.insert(std::pair<u64, u32>(hotness, e.first));
   }
-  printf("Average Hotness: %14d\n", (1.0 * a_hotness) / i);
+  printf("Average Hotness: %llu\n", ((a_hotness) / i));
   while (1)
   {
     if( sorted_heat.size() <= CC_size / HOT_CODE_RATIO){
@@ -106,13 +106,17 @@ void JitBaseBlockCache::Profile_block_map(std::multimap<u32, u32>& address_and_c
     //printf("effective address: 0x%x\n", b.effectiveAddress);
     address_and_code.insert(std::pair<u32, u32>(b.effectiveAddress, e.first));
   }
-  printf("Average Hot code Hotness: %d\n", hot_hotness / i);
+
+  printf("Average Hot code Hotness: %llu\n", hot_hotness / i);
+  printf("Hotness ratio: %f\n", (1.0 * hot_hotness) / a_hotness);
   printf("Ratio of CC to Hot Code:  %f\n", (1.0 * hot_weight) / cc_weight);
+  return a_hotness;
 }
 
-void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
+u64 JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
 {
   time_t start;
+  u64 retval;
   #if defined(_DEBUG) || defined(DEBUGFAST)
   Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
@@ -122,7 +126,7 @@ void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
   //insert blocks by heat for sorting
   //TODO CALL Profile
   start = time(NULL);
-  Profile_block_map(address_and_code);
+  retval = Profile_block_map(address_and_code);
   for (auto& e : block_map)
   {
     DestroyBlock(e.second);
@@ -134,6 +138,7 @@ void JitBaseBlockCache::New_Clear(std::multimap<u32, u32>& address_and_code)
   valid_block.ClearAll();
 
   fast_block_map.fill(nullptr);
+  return retval;
 }
 
 // This clears the JIT cache. It's called from JitCache.cpp when the JIT cache

@@ -53,7 +53,7 @@ public:
   // Call this before you generate any code.
   void AllocCodeSpace(size_t size)
   {
-    printf("Entering AllocCodeSpace():\t%d\n", size);
+    // printf("Entering AllocCodeSpace():\t%d\n", size);
     region_size = size;
     total_region_size = size;
     region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size));
@@ -112,7 +112,7 @@ public:
   }
   void AddChildCodeSpace(CodeBlock* child, size_t child_size)
   {
-    printf("Entering AddChildCodeSpace():\t%d\n", child_size);
+    //printf("Entering AddChildCodeSpace():\t%d\n", child_size);
     u8* child_region = AllocChildCodeSpace(child_size);
     child->m_is_child = true;
     child->region = child_region;
