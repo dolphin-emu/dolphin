@@ -107,7 +107,6 @@ add_executable(dolphin-emu
   QtUtils/FlowLayout.cpp
   QtUtils/ModalMessageBox.cpp
   QtUtils/ImageConverter.cpp
-  QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
@@ -129,6 +128,10 @@ add_executable(dolphin-emu
   TAS/IRWidget.cpp
   Updater.cpp
 )
+
+if (NOT WIN32)
+  target_sources(dolphin-emu PRIVATE QtUtils/SignalDaemon.cpp)
+endif()
 
 target_compile_definitions(dolphin-emu
 PRIVATE
