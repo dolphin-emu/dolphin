@@ -8,6 +8,7 @@
 
 #include <windows.h>
 #include <list>
+#include <string>
 
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 
