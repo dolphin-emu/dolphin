@@ -13,6 +13,39 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if (MSVC)
+  # Set warning level to 4
+  add_compile_options(/W4)
+
+  # Disable some warnings
+  add_compile_options(
+    /wd4201 # nonstandard extension used : nameless struct/union
+    /wd4127 # conditional expression is constant
+    /wd4100 # 'identifier' : unreferenced formal parameter
+    /wd4200 # InputCommon fix temp.
+    /wd4244 # 'conversion' conversion from 'type1' to 'type2', possible loss of data
+    /wd4121 # 'symbol' : alignment of a member was sensitive to packing
+    /wd4324 # Padding was added at the end of a structure because you specified a __declspec(align) value.
+    /wd4714 # function 'function' marked as __forceinline not inlined
+    /wd4351 # new behavior: elements of array 'array' will be default initialized
+    # TODO: Enable this warning once possible
+    /wd4245 # conversion from 'type1' to 'type2', signed/unsigned mismatch
+    # Currently jits use some annoying code patterns which makes this common
+  )
+
+  # Additional warnings
+  add_compile_options(
+    /w44263 # Non-virtual member function hides base class virtual function
+    /w44265 # Class has virtual functions, but destructor is not virtual
+  )
+
+  # Treat all warnings as errors
+  add_compile_options(/WX)
+
+  add_definitions(/D _CRT_NONSTDC_NO_WARNINGS)
+  add_definitions(/utf-8)
+endif()
+
 # These aren't actually needed for C11/C++11
 # but some dependencies require them (LLVM, libav).
 add_definitions(-D__STDC_LIMIT_MACROS)
