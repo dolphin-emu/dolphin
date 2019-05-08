@@ -155,11 +155,69 @@ PRIVATE
 )
 
 if(WIN32)
-  target_sources(dolphin-emu PRIVATE DolphinQt.manifest)
+  target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(Dolphin_NAME "DolphinD")
+  else()
+    set(Dolphin_NAME "Dolphin")
+  endif()
+
+  set_target_properties(dolphin-emu PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    OUTPUT_NAME ${Dolphin_NAME}
+  )
+
+  # Copy Sys dir
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
+  file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
+
+  foreach(res ${resources})
+    configure_file("${CMAKE_SOURCE_DIR}/Data/${res}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${res}" COPYONLY)
+  endforeach()
+
+  # Copy qt.conf
+  configure_file(qt.conf.win "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf" COPYONLY)
+
+  # Copy plugins
+  set (Qt5_PLUGINS_DIR "${Qt5_DIR}/../../../plugins")
+  file(GLOB_RECURSE plugins RELATIVE "${Qt5_PLUGINS_DIR}" "${Qt5_PLUGINS_DIR}/*.dll")
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    list(FILTER plugins INCLUDE REGEX ".*d.dll")
+  else()
+    list(FILTER plugins EXCLUDE REGEX ".*d.dll")
+  endif()
+
+  foreach(plugin ${plugins})
+    configure_file("${Qt5_PLUGINS_DIR}/${plugin}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins/${plugin}" COPYONLY)
+  endforeach()
+
+  # Copy DLLs
+  set (Qt5_DLL_DIR "${Qt5_DIR}/../../../bin")
+
+  file(GLOB_RECURSE dlls RELATIVE "${Qt5_DLL_DIR}" "${Qt5_DLL_DIR}/*.dll")
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    list(FILTER dlls INCLUDE REGEX ".*d.dll")
+  else()
+    list(FILTER dlls EXCLUDE REGEX ".*d.dll")
+  endif()
+
+  foreach(dll ${dlls})
+    configure_file("${Qt5_DLL_DIR}/${dll}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dll}" COPYONLY)
+  endforeach()
+
 endif()
 
 # Handle localization
 find_package(Gettext)
+
+if(WIN32 AND NOT Gettext_FOUND)
+  message(STATUS "Using Gettext from Externals")
+  set(GETTEXT_MSGFMT_EXECUTABLE "${CMAKE_SOURCE_DIR}/Externals/gettext/msgfmt.exe")
+endif()
+
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
   set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
   file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
@@ -182,12 +240,21 @@ if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
       install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
     endif()
 
-    add_custom_command(OUTPUT ${mo}
-      COMMAND cmake -E make_directory ${mo_dir}
-      COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
-      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-      DEPENDS ${po}
-    )
+    if(WIN32)
+      add_custom_command(OUTPUT ${mo}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
+        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+        COMMAND ${CMAKE_COMMAND} -E copy ${mo} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang}/dolphin-emu.mo
+        DEPENDS ${po}
+      )
+    else()
+      add_custom_command(OUTPUT ${mo}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
+        COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+        DEPENDS ${po}
+      )
+    endif()
   endforeach()
 endif()
 
