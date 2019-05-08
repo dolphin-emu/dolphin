@@ -56,6 +56,7 @@ enum class GuitarGroup;
 enum class DrumsGroup;
 enum class TurntableGroup;
 enum class UDrawTabletGroup;
+enum class DrawsomeTabletGroup;
 enum class TaTaConGroup;
 
 template <typename T>
@@ -116,6 +117,7 @@ public:
   ControllerEmu::ControlGroup* GetDrumsGroup(DrumsGroup group);
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
   ControllerEmu::ControlGroup* GetUDrawTabletGroup(UDrawTabletGroup group);
+  ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group);
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group);
 
   void Update();

@@ -11,6 +11,7 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
 #include "Core/HW/WiimoteEmu/Extension/Guitar.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
@@ -30,6 +31,7 @@ WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(
   CreateNunchukLayout();
   CreateTurntableLayout();
   CreateUDrawTabletLayout();
+  CreateDrawsomeTabletLayout();
   CreateTaTaConLayout();
   CreateMainLayout();
 
@@ -203,6 +205,22 @@ void WiimoteEmuExtension::CreateUDrawTabletLayout()
   m_udraw_tablet_box->setLayout(hbox);
 }
 
+void WiimoteEmuExtension::CreateDrawsomeTabletLayout()
+{
+  const auto hbox = new QHBoxLayout();
+  m_drawsome_tablet_box = new QGroupBox(tr("Drawsome Tablet"), this);
+
+  hbox->addWidget(CreateGroupBox(
+      tr("Stylus"),
+      Wiimote::GetDrawsomeTabletGroup(GetPort(), WiimoteEmu::DrawsomeTabletGroup::Stylus)));
+
+  hbox->addWidget(CreateGroupBox(
+      tr("Touch"),
+      Wiimote::GetDrawsomeTabletGroup(GetPort(), WiimoteEmu::DrawsomeTabletGroup::Touch)));
+
+  m_drawsome_tablet_box->setLayout(hbox);
+}
+
 void WiimoteEmuExtension::CreateTaTaConLayout()
 {
   auto* hbox = new QHBoxLayout();
@@ -227,6 +245,7 @@ void WiimoteEmuExtension::CreateMainLayout()
   m_main_layout->addWidget(m_nunchuk_box);
   m_main_layout->addWidget(m_turntable_box);
   m_main_layout->addWidget(m_udraw_tablet_box);
+  m_main_layout->addWidget(m_drawsome_tablet_box);
   m_main_layout->addWidget(m_tatacon_box);
 
   setLayout(m_main_layout);
@@ -258,5 +277,6 @@ void WiimoteEmuExtension::ChangeExtensionType(u32 type)
   m_drums_box->setHidden(type != ExtensionNumber::DRUMS);
   m_turntable_box->setHidden(type != ExtensionNumber::TURNTABLE);
   m_udraw_tablet_box->setHidden(type != ExtensionNumber::UDRAW_TABLET);
+  m_drawsome_tablet_box->setHidden(type != ExtensionNumber::DRAWSOME_TABLET);
   m_tatacon_box->setHidden(type != ExtensionNumber::TATACON);
 }

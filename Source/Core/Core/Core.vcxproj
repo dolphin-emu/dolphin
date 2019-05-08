@@ -178,6 +178,7 @@
     <ClCompile Include="HW\WiimoteEmu\Encryption.cpp" />
     <ClCompile Include="HW\WiimoteEmu\ExtensionPort.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Extension\Classic.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\DrawsomeTablet.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Extension\Drums.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Extension\Extension.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Extension\Guitar.cpp" />
@@ -448,6 +449,7 @@
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
     <ClInclude Include="HW\WiimoteEmu\ExtensionPort.h" />
     <ClInclude Include="HW\WiimoteEmu\Extension\Classic.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\DrawsomeTablet.h" />
     <ClInclude Include="HW\WiimoteEmu\Extension\Drums.h" />
     <ClInclude Include="HW\WiimoteEmu\Extension\Extension.h" />
     <ClInclude Include="HW\WiimoteEmu\Extension\Guitar.h" />

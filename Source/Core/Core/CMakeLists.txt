@@ -144,6 +144,7 @@ add_library(core
   HW/WiimoteEmu/MotionPlus.cpp
   HW/WiimoteEmu/Speaker.cpp
   HW/WiimoteEmu/Extension/Classic.cpp
+  HW/WiimoteEmu/Extension/DrawsomeTablet.cpp
   HW/WiimoteEmu/Extension/Extension.cpp
   HW/WiimoteEmu/Extension/Nunchuk.cpp
   HW/WiimoteEmu/Extension/Drums.cpp
