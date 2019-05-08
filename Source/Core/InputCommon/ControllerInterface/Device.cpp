@@ -4,6 +4,7 @@
 
 #include "InputCommon/ControllerInterface/Device.h"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <sstream>
