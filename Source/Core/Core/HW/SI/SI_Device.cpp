@@ -14,6 +14,7 @@
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
+#include "Core/HW/SI/SI_DeviceGCPedometer.h"
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
@@ -115,6 +116,9 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
 
   case SIDEVICE_GC_KEYBOARD:
     return std::make_unique<CSIDevice_Keyboard>(device, port_number);
+
+  case SIDEVICE_GC_PEDOMETER:
+    return std::make_unique<CSIDevice_GCPedometer>(device, port_number);
 
   case SIDEVICE_AM_BASEBOARD:
   case SIDEVICE_NONE:
