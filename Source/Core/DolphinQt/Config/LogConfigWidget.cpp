@@ -137,12 +137,12 @@ void LogConfigWidget::LoadSettings()
   setFloating(settings.value(QStringLiteral("logconfigwidget/floating")).toBool());
 
   // Config - Verbosity
-  int verbosity = logmanager->GetLogLevel();
-  m_verbosity_notice->setChecked(verbosity == 1);
-  m_verbosity_error->setChecked(verbosity == 2);
-  m_verbosity_warning->setChecked(verbosity == 3);
-  m_verbosity_info->setChecked(verbosity == 4);
-  m_verbosity_debug->setChecked(verbosity == 5);
+  const LogTypes::LOG_LEVELS verbosity = logmanager->GetLogLevel();
+  m_verbosity_notice->setChecked(verbosity == LogTypes::LOG_LEVELS::LNOTICE);
+  m_verbosity_error->setChecked(verbosity == LogTypes::LOG_LEVELS::LERROR);
+  m_verbosity_warning->setChecked(verbosity == LogTypes::LOG_LEVELS::LWARNING);
+  m_verbosity_info->setChecked(verbosity == LogTypes::LOG_LEVELS::LINFO);
+  m_verbosity_debug->setChecked(verbosity == LogTypes::LOG_LEVELS::LDEBUG);
 
   // Config - Outputs
   m_out_file->setChecked(logmanager->IsListenerEnabled(LogListener::FILE_LISTENER));
@@ -172,25 +172,25 @@ void LogConfigWidget::SaveSettings()
   settings.setValue(QStringLiteral("logconfigwidget/floating"), isFloating());
 
   // Config - Verbosity
-  int verbosity = 1;
+  LogTypes::LOG_LEVELS verbosity = LogTypes::LOG_LEVELS::LNOTICE;
 
   if (m_verbosity_notice->isChecked())
-    verbosity = 1;
+    verbosity = LogTypes::LOG_LEVELS::LNOTICE;
 
   if (m_verbosity_error->isChecked())
-    verbosity = 2;
+    verbosity = LogTypes::LOG_LEVELS::LERROR;
 
   if (m_verbosity_warning->isChecked())
-    verbosity = 3;
+    verbosity = LogTypes::LOG_LEVELS::LWARNING;
 
   if (m_verbosity_info->isChecked())
-    verbosity = 4;
+    verbosity = LogTypes::LOG_LEVELS::LINFO;
 
   if (m_verbosity_debug->isChecked())
-    verbosity = 5;
+    verbosity = LogTypes::LOG_LEVELS::LDEBUG;
 
   // Config - Verbosity
-  LogManager::GetInstance()->SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
+  LogManager::GetInstance()->SetLogLevel(verbosity);
 
   // Config - Outputs
   LogManager::GetInstance()->EnableListener(LogListener::FILE_LISTENER, m_out_file->isChecked());
