@@ -58,8 +58,6 @@ static unsigned char __LZO_MMODEL out[OUT_LEN];
 
 static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
-static std::string g_last_filename;
-
 static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
@@ -412,8 +410,6 @@ void SaveAs(const std::string& filename, bool wait)
       Flush();
       g_save_thread = std::thread(CompressAndDumpState, save_args);
       g_compressAndDumpStateSyncEvent.Wait();
-
-      g_last_filename = filename;
     }
     else
     {

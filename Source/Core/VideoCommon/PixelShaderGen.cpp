@@ -350,7 +350,7 @@ void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host
 
   // If bounding box is enabled when a UID cache is created, then later disabled, we shouldn't
   // emit the bounding box portion of the shader.
-  uid_data->bounding_box &= host_config.bounding_box;
+  uid_data->bounding_box &= host_config.bounding_box & host_config.backend_bbox;
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
@@ -463,15 +463,15 @@ SSBO_BINDING(0) buffer BBox {
 };
 #endif
 
-void UpdateBoundingBoxBuffer(float2 min_pos, float2 max_pos) {
-  if (bbox_left > int(min_pos.x))
-    atomicMin(bbox_left, int(min_pos.x));
-  if (bbox_right < int(max_pos.x))
-    atomicMax(bbox_right, int(max_pos.x));
-  if (bbox_top > int(min_pos.y))
-    atomicMin(bbox_top, int(min_pos.y));
-  if (bbox_bottom < int(max_pos.y))
-    atomicMax(bbox_bottom, int(max_pos.y));
+void UpdateBoundingBoxBuffer(int2 min_pos, int2 max_pos) {
+  if (bbox_left > min_pos.x)
+    atomicMin(bbox_left, min_pos.x);
+  if (bbox_right < max_pos.x)
+    atomicMax(bbox_right, max_pos.x);
+  if (bbox_top > min_pos.y)
+    atomicMin(bbox_top, min_pos.y);
+  if (bbox_bottom < max_pos.y)
+    atomicMax(bbox_bottom, max_pos.y);
 }
 
 void UpdateBoundingBox(float2 rawpos) {
