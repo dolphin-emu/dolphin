@@ -334,7 +334,7 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
     submit_info.pCommandBuffers = &resources.command_buffers[1];
   }
 
-  if (resources.semaphore_used != VK_NULL_HANDLE)
+  if (resources.semaphore_used)
   {
     submit_info.pWaitSemaphores = &resources.semaphore;
     submit_info.waitSemaphoreCount = 1;
