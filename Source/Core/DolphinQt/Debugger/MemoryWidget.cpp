@@ -495,18 +495,18 @@ void MemoryWidget::OnSetValue()
 
     if (value == static_cast<u8>(value))
     {
-      accessors->WriteU8(static_cast<u8>(value), addr);
+      accessors->WriteU8(addr, static_cast<u8>(value));
     }
     else if (value == static_cast<u16>(value))
     {
-      accessors->WriteU16(static_cast<u16>(value), addr);
+      accessors->WriteU16(addr, static_cast<u16>(value));
     }
     else if (value == static_cast<u32>(value))
     {
-      accessors->WriteU32(static_cast<u32>(value), addr);
+      accessors->WriteU32(addr, static_cast<u32>(value));
     }
     else
-      accessors->WriteU64(value, addr);
+      accessors->WriteU64(addr, value);
   }
 
   Update();
