@@ -82,13 +82,13 @@ struct EffectiveAddressSpaceAccessors : Accessors
 {
   bool IsValidAddress(u32 address) const override { return PowerPC::HostIsRAMAddress(address); }
   u8 ReadU8(u32 address) const override { return PowerPC::HostRead_U8(address); }
-  void WriteU8(u32 address, u8 value) override { PowerPC::HostWrite_U8(address, value); }
+  void WriteU8(u32 address, u8 value) override { PowerPC::HostWrite_U8(value, address); }
   u16 ReadU16(u32 address) const override { return PowerPC::HostRead_U16(address); }
-  void WriteU16(u32 address, u16 value) override { PowerPC::HostWrite_U16(address, value); }
+  void WriteU16(u32 address, u16 value) override { PowerPC::HostWrite_U16(value, address); }
   u32 ReadU32(u32 address) const override { return PowerPC::HostRead_U32(address); }
-  void WriteU32(u32 address, u32 value) override { PowerPC::HostWrite_U32(address, value); }
+  void WriteU32(u32 address, u32 value) override { PowerPC::HostWrite_U32(value, address); }
   u64 ReadU64(u32 address) const override { return PowerPC::HostRead_U64(address); }
-  void WriteU64(u32 address, u64 value) override { PowerPC::HostWrite_U64(address, value); }
+  void WriteU64(u32 address, u64 value) override { PowerPC::HostWrite_U64(value, address); }
   float ReadF32(u32 address) const override { return PowerPC::HostRead_F32(address); };
 
   bool Matches(u32 haystack_start, u8* needle_start, u32 needle_size) const
