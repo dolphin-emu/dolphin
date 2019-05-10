@@ -276,7 +276,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](u32, u16 val) {
                    WriteHigh(fifo.CPReadWriteDistance, val & WMASK_HI_RESTRICT);
                    Fifo::SyncGPU(Fifo::SyncGPUReason::Other);
-                   Fifo::ResetVideoBuffer();
                    Fifo::RunGpu();
                  }));
   mmio->Register(
