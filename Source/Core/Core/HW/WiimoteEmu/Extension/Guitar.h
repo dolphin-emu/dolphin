@@ -57,19 +57,16 @@ public:
 
   ControllerEmu::ControlGroup* GetGroup(GuitarGroup group);
 
-  enum
-  {
-    BUTTON_PLUS = 0x04,
-    BUTTON_MINUS = 0x10,
-    BAR_DOWN = 0x40,
+  static constexpr u16 BUTTON_PLUS = 0x04;
+  static constexpr u16 BUTTON_MINUS = 0x10;
+  static constexpr u16 BAR_DOWN = 0x40;
 
-    BAR_UP = 0x0100,
-    FRET_YELLOW = 0x0800,
-    FRET_GREEN = 0x1000,
-    FRET_BLUE = 0x2000,
-    FRET_RED = 0x4000,
-    FRET_ORANGE = 0x8000,
-  };
+  static constexpr u16 BAR_UP = 0x0100;
+  static constexpr u16 FRET_YELLOW = 0x0800;
+  static constexpr u16 FRET_GREEN = 0x1000;
+  static constexpr u16 FRET_BLUE = 0x2000;
+  static constexpr u16 FRET_RED = 0x4000;
+  static constexpr u16 FRET_ORANGE = 0x8000;
 
   static const u8 STICK_CENTER = 0x20;
   static const u8 STICK_RADIUS = 0x1f;

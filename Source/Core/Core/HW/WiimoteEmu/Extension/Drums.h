@@ -67,8 +67,8 @@ public:
   {
     None = 0b1111111,
     Bass = 0b1011011,
-    // TODO: Implement HiHat.
-    // HiHat = 0b0011011,
+    // TODO: Implement HiHatPedal.
+    // HiHatPedal = 0b0011011,
     Red = 0b1011001,
     Yellow = 0b1010001,
     Blue = 0b1001111,
@@ -86,25 +86,18 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  enum : u8
-  {
-    BUTTON_PLUS = 0x04,
-    BUTTON_MINUS = 0x10,
+  // FYI: The low/high bits of the button byte are "random" when velocity data is present.
+  // static constexpr u8 HAVE_VELOCITY_DATA = 0b10000001;
+  static constexpr u8 BUTTON_PLUS = 0x04;
+  static constexpr u8 BUTTON_MINUS = 0x10;
 
-    // FYI: The low/high bits of the button byte are "random" when velocity data is present.
-    // HAVE_VELOCITY_DATA = 0b10000001,
-  };
-
-  enum : u8
-  {
-    // FYI: HiHat sets no bits here.
-    PAD_BASS = 0x04,
-    PAD_BLUE = 0x08,
-    PAD_GREEN = 0x10,
-    PAD_YELLOW = 0x20,
-    PAD_RED = 0x40,
-    PAD_ORANGE = 0x80,
-  };
+  // FYI: The hi-hat pedal sets no bits here.
+  static constexpr u8 PAD_BASS = 0x04;
+  static constexpr u8 PAD_BLUE = 0x08;
+  static constexpr u8 PAD_GREEN = 0x10;
+  static constexpr u8 PAD_YELLOW = 0x20;
+  static constexpr u8 PAD_RED = 0x40;
+  static constexpr u8 PAD_ORANGE = 0x80;
 
   // Note: My hardware's octagon stick produced the complete range of values (0 - 0x3f)
   // It also had perfect center values of 0x20 with absolutely no "play".

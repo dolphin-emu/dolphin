@@ -59,29 +59,49 @@ constexpr u64 BUFFER_TRANSFER_RATE = 32 * 1024 * 1024;
 
 namespace DVDInterface
 {
+// "low" error codes
+constexpr u32 ERROR_READY = 0x0000000;          // Ready.
+constexpr u32 ERROR_COVER_L = 0x01000000;       // Cover is opened.
+constexpr u32 ERROR_CHANGE_DISK = 0x02000000;   // Disk change.
+constexpr u32 ERROR_NO_DISK = 0x03000000;       // No disk.
+constexpr u32 ERROR_MOTOR_STOP_L = 0x04000000;  // Motor stop.
+constexpr u32 ERROR_NO_DISKID_L = 0x05000000;   // Disk ID not read.
+
+// "high" error codes
+constexpr u32 ERROR_NONE = 0x000000;          // No error.
+constexpr u32 ERROR_MOTOR_STOP_H = 0x020400;  // Motor stopped.
+constexpr u32 ERROR_NO_DISKID_H = 0x020401;   // Disk ID not read.
+constexpr u32 ERROR_COVER_H = 0x023a00;       // Medium not present / Cover opened.
+constexpr u32 ERROR_SEEK_NDONE = 0x030200;    // No seek complete.
+constexpr u32 ERROR_READ = 0x031100;          // Unrecovered read error.
+constexpr u32 ERROR_PROTOCOL = 0x040800;      // Transfer protocol error.
+constexpr u32 ERROR_INV_CMD = 0x052000;       // Invalid command operation code.
+constexpr u32 ERROR_AUDIO_BUF = 0x052001;     // Audio Buffer not set.
+constexpr u32 ERROR_BLOCK_OOB = 0x052100;     // Logical block address out of bounds.
+constexpr u32 ERROR_INV_FIELD = 0x052400;     // Invalid field in command packet.
+constexpr u32 ERROR_INV_AUDIO = 0x052401;     // Invalid audio command.
+constexpr u32 ERROR_INV_PERIOD = 0x052402;    // Configuration out of permitted period.
+constexpr u32 ERROR_END_USR_AREA = 0x056300;  // End of user area encountered on this track.
+constexpr u32 ERROR_MEDIUM = 0x062800;        // Medium may have changed.
+constexpr u32 ERROR_MEDIUM_REQ = 0x0b5a01;    // Operator medium removal request.
+
 // internal hardware addresses
-enum
-{
-  DI_STATUS_REGISTER = 0x00,
-  DI_COVER_REGISTER = 0x04,
-  DI_COMMAND_0 = 0x08,
-  DI_COMMAND_1 = 0x0C,
-  DI_COMMAND_2 = 0x10,
-  DI_DMA_ADDRESS_REGISTER = 0x14,
-  DI_DMA_LENGTH_REGISTER = 0x18,
-  DI_DMA_CONTROL_REGISTER = 0x1C,
-  DI_IMMEDIATE_DATA_BUFFER = 0x20,
-  DI_CONFIG_REGISTER = 0x24
-};
+constexpr u32 DI_STATUS_REGISTER = 0x00;
+constexpr u32 DI_COVER_REGISTER = 0x04;
+constexpr u32 DI_COMMAND_0 = 0x08;
+constexpr u32 DI_COMMAND_1 = 0x0C;
+constexpr u32 DI_COMMAND_2 = 0x10;
+constexpr u32 DI_DMA_ADDRESS_REGISTER = 0x14;
+constexpr u32 DI_DMA_LENGTH_REGISTER = 0x18;
+constexpr u32 DI_DMA_CONTROL_REGISTER = 0x1C;
+constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
+constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
 // debug commands which may be ORd
-enum
-{
-  STOP_DRIVE = 0,
-  START_DRIVE = 0x100,
-  ACCEPT_COPY = 0x4000,
-  DISC_CHECK = 0x8000,
-};
+constexpr u32 STOP_DRIVE = 0;
+constexpr u32 START_DRIVE = 0x100;
+constexpr u32 ACCEPT_COPY = 0x4000;
+constexpr u32 DISC_CHECK = 0x8000;
 
 // DI Status Register
 union UDISR
