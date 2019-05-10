@@ -64,6 +64,10 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
+#ifdef USE_MEMORYWATCHER
+#include "Core/MemoryWatcher.h"
+#endif
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -94,6 +98,10 @@ static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
 
+#ifdef USE_MEMORYWATCHER
+static std::unique_ptr<MemoryWatcher> s_memory_watcher;
+#endif
+
 struct HostJob
 {
   std::function<void()> job;
@@ -120,6 +128,13 @@ void FrameUpdateOnCPUThread()
 {
   if (NetPlay::IsNetPlayRunning())
     NetPlay::NetPlayClient::SendTimeBase();
+}
+
+void OnFrameEnd()
+{
+#ifdef USE_MEMORYWATCHER
+  s_memory_watcher->Step();
+#endif
 }
 
 // Display messages and return values
@@ -266,6 +281,10 @@ void Stop()  // - Hammertime!
   }
 
   ResetRumble();
+
+#ifdef USE_MEMORYWATCHER
+  s_memory_watcher.reset();
+#endif
 }
 
 void DeclareAsCPUThread()
@@ -307,6 +326,10 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
+
+#ifdef USE_MEMORYWATCHER
+  s_memory_watcher = std::make_unique<MemoryWatcher>();
+#endif
 
   if (savestate_path)
   {

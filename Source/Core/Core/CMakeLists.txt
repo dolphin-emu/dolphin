@@ -383,3 +383,7 @@ endif()
 if(GDBSTUB)
   target_sources(core PRIVATE PowerPC/GDBStub.cpp)
 endif()
+
+if(UNIX)
+  target_sources(core PRIVATE MemoryWatcher.cpp)
+endif()

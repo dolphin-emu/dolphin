@@ -481,6 +481,8 @@ endif()
 if(UNIX)
   message(STATUS "Using named pipes as controller inputs")
   add_definitions(-DUSE_PIPES=1)
+  message(STATUS "Watching game memory for changes")
+  add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
 if(ENABLE_ANALYTICS)

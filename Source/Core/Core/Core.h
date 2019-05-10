@@ -66,6 +66,7 @@ void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data
 void DisplayMessage(const std::string& message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
+void OnFrameEnd();
 
 void VideoThrottle();
 void RequestRefreshInfo();

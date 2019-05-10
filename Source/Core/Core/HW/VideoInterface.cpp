@@ -726,6 +726,7 @@ static void BeginField(FieldType field, u64 ticks)
 static void EndField()
 {
   Core::VideoThrottle();
+  Core::OnFrameEnd();
 }
 
 // Purpose: Send VI interrupt when triggered
