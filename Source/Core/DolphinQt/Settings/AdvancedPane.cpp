@@ -48,11 +48,20 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   cpu_options_layout->addLayout(cpu_clock_override_slider_layout);
 
+  QFontMetrics fm(QFont::QFont());
+
   m_cpu_clock_override_slider = new QSlider(Qt::Horizontal);
   m_cpu_clock_override_slider->setRange(0, 150);
+  const int sliderh = fm.height() * 1.5;
+  m_cpu_clock_override_slider->setMinimumHeight(sliderh);
+  m_cpu_clock_override_slider->setTickPosition(QSlider::TicksBelow);
+  m_cpu_clock_override_slider->setTickInterval(25);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider);
 
   m_cpu_clock_override_slider_label = new QLabel();
+  m_cpu_clock_override_slider_label->setAlignment(Qt::AlignRight);
+  const int label_width = fm.width(QStringLiteral(" 400% (1444 mhz) "));
+  m_cpu_clock_override_slider_label->setMinimumWidth(label_width);
   cpu_clock_override_slider_layout->addWidget(m_cpu_clock_override_slider_label);
 
   auto* cpu_clock_override_description =

@@ -156,6 +156,9 @@ void WiiPane::CreateWhitelistedUSBPassthroughDevices()
 
 void WiiPane::CreateWiiRemoteSettings()
 {
+  QFontMetrics fm(QFont::QFont());
+  const int sliderh = fm.height() * 1.5;
+
   auto* wii_remote_settings_group = new QGroupBox(tr("Wii Remote Settings"));
   auto* wii_remote_settings_group_layout = new QGridLayout();
   wii_remote_settings_group->setLayout(wii_remote_settings_group_layout);
@@ -170,15 +173,23 @@ void WiiPane::CreateWiiRemoteSettings()
   // IR Sensitivity Slider
   // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   m_wiimote_ir_sensitivity_label = new QLabel(tr("IR Sensitivity:"));
+  m_wiimote_ir_sensitivity_label->setAlignment(Qt::AlignLeft);
   m_wiimote_ir_sensitivity = new QSlider(Qt::Horizontal);
   m_wiimote_ir_sensitivity->setMinimum(4);
   m_wiimote_ir_sensitivity->setMaximum(127);
+  m_wiimote_ir_sensitivity->setMinimumHeight(sliderh);
+  m_wiimote_ir_sensitivity->setTickInterval(24);
+  m_wiimote_ir_sensitivity->setTickPosition(QSlider::TicksBelow);
 
   // Speaker Volume Slider
   m_wiimote_speaker_volume_label = new QLabel(tr("Speaker Volume:"));
+  m_wiimote_speaker_volume_label->setAlignment(Qt::AlignLeft);
   m_wiimote_speaker_volume = new QSlider(Qt::Horizontal);
   m_wiimote_speaker_volume->setMinimum(0);
   m_wiimote_speaker_volume->setMaximum(127);
+  m_wiimote_speaker_volume->setMinimumHeight(sliderh);
+  m_wiimote_speaker_volume->setTickInterval(25);
+  m_wiimote_speaker_volume->setTickPosition(QSlider::TicksBelow);
 
   wii_remote_settings_group_layout->addWidget(m_wiimote_sensor_position_label, 0, 0);
   wii_remote_settings_group_layout->addWidget(m_wiimote_ir_sensor_position, 0, 1);

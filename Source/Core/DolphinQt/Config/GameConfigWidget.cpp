@@ -121,9 +121,14 @@ void GameConfigWidget::CreateWidgets()
   stereoscopy_box->setLayout(stereoscopy_layout);
 
   m_depth_slider = new QSlider(Qt::Horizontal);
-
+  QFontMetrics fm(QFont::QFont());
+  const int sliderh = fm.height() * 1.5;
   m_depth_slider->setMinimum(100);
   m_depth_slider->setMaximum(200);
+  m_depth_slider->setMinimumHeight(sliderh);
+  m_depth_slider->setTickPosition(QSlider::TicksBelow);
+  auto* depth_label = new QLabel(tr("Depth Percentage:"));
+  depth_label->setAlignment(Qt::AlignLeft);
 
   m_convergence_spin = new QSpinBox;
   m_convergence_spin->setMinimum(0);
@@ -137,7 +142,7 @@ void GameConfigWidget::CreateWidgets()
   m_use_monoscopic_shadows->setToolTip(
       tr("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth Percentage:")), 0, 0);
+  stereoscopy_layout->addWidget(depth_label, 0, 0);
   stereoscopy_layout->addWidget(m_depth_slider, 0, 1);
   stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 1, 0);
   stereoscopy_layout->addWidget(m_convergence_spin, 1, 1);

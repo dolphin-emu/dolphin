@@ -17,7 +17,10 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInf
   setMinimum(minimum);
   setMaximum(maximum);
   setTickInterval(tick);
-
+  QFontMetrics fm(QFont::QFont());
+  const int sliderh = fm.height() * 1.5;
+  setMinimumHeight(sliderh);
+  setTickPosition(QSlider::TicksBelow);
   setValue(Config::Get(setting));
 
   connect(this, &GraphicsSlider::valueChanged, this, &GraphicsSlider::Update);

@@ -112,15 +112,20 @@ void EnhancementsWidget::CreateWidgets()
   m_3d_mode = new GraphicsChoice(
       {tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"), tr("HDMI 3D")},
       Config::GFX_STEREO_MODE);
-  m_3d_depth = new GraphicsSlider(0, 100, Config::GFX_STEREO_DEPTH);
-  m_3d_convergence = new GraphicsSlider(0, 200, Config::GFX_STEREO_CONVERGENCE, 100);
+  m_3d_depth = new GraphicsSlider(0, 100, Config::GFX_STEREO_DEPTH, 10);
+  m_3d_convergence = new GraphicsSlider(0, 200, Config::GFX_STEREO_CONVERGENCE, 20);
   m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
+
+  auto* depth_label = new QLabel(tr("Depth:"));
+  depth_label->setAlignment(Qt::AlignLeft);
+  auto* convergence_label = new QLabel(tr("Convergence:"));
+  convergence_label->setAlignment(Qt::AlignLeft);
 
   stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
   stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth:")), 1, 0);
+  stereoscopy_layout->addWidget(depth_label, 1, 0);
   stereoscopy_layout->addWidget(m_3d_depth, 1, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 2, 0);
+  stereoscopy_layout->addWidget(convergence_label, 2, 0);
   stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
   stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
 

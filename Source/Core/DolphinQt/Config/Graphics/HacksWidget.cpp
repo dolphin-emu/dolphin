@@ -60,8 +60,11 @@ void HacksWidget::CreateWidgets()
   texture_cache_box->setLayout(texture_cache_layout);
 
   m_accuracy = new QSlider(Qt::Horizontal);
+  QFontMetrics fm(QFont::QFont());
+  const int sliderh = fm.height() * 1.5;
   m_accuracy->setMinimum(0);
   m_accuracy->setMaximum(2);
+  m_accuracy->setMinimumHeight(sliderh);
   m_accuracy->setPageStep(1);
   m_accuracy->setTickPosition(QSlider::TicksBelow);
   m_gpu_texture_decoding =
@@ -69,13 +72,16 @@ void HacksWidget::CreateWidgets()
 
   auto* safe_label = new QLabel(tr("Safe"));
   safe_label->setAlignment(Qt::AlignRight);
+  auto* safe_label2 = new QLabel(tr("Fast"));
+  safe_label2->setAlignment(Qt::AlignLeft);
 
   m_accuracy_label = new QLabel(tr("Accuracy:"));
+  m_accuracy_label->setAlignment(Qt::AlignLeft);
 
   texture_cache_layout->addWidget(m_accuracy_label, 0, 0);
   texture_cache_layout->addWidget(safe_label, 0, 1);
   texture_cache_layout->addWidget(m_accuracy, 0, 2);
-  texture_cache_layout->addWidget(new QLabel(tr("Fast")), 0, 3);
+  texture_cache_layout->addWidget(safe_label2, 0, 3);
   texture_cache_layout->addWidget(m_gpu_texture_decoding, 1, 0);
 
   // XFB
