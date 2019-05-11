@@ -51,6 +51,11 @@ int MappingWidget::GetPort() const
   return m_parent->GetPort();
 }
 
+QGroupBox* MappingWidget::CreateGroupBox(ControllerEmu::ControlGroup* group)
+{
+  return CreateGroupBox(tr(group->ui_name.c_str()), group);
+}
+
 QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group)
 {
   QGroupBox* group_box = new QGroupBox(name);

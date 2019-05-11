@@ -212,29 +212,6 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
     return;
   }
 
-  // Deadzone for Z (forward/backward):
-  const double deadzone = cursor.GetDeadzonePercentage();
-  if (deadzone > 0.0)
-  {
-    p.setPen(GetDeadZonePen());
-    p.setBrush(GetDeadZoneBrush());
-    p.drawRect(QRectF(-scale, -deadzone * scale, scale * 2, deadzone * scale * 2));
-  }
-
-  // Raw Z:
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
-  p.drawRect(
-      QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
-
-  // Adjusted Z (if not hidden):
-  if (adj_coord.IsVisible())
-  {
-    p.setBrush(GetAdjustedInputColor());
-    p.drawRect(
-        QRectF(-scale, adj_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
-  }
-
   // TV screen or whatever you want to call this:
   constexpr double TV_SCALE = 0.75;
 

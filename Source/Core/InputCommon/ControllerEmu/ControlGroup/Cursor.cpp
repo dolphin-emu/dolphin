@@ -21,14 +21,13 @@
 
 namespace ControllerEmu
 {
-Cursor::Cursor(const std::string& name_)
-    : ReshapableInput(name_, name_, GroupType::Cursor), m_last_update(Clock::now())
+Cursor::Cursor(std::string name, std::string ui_name)
+    : ReshapableInput(std::move(name), std::move(ui_name), GroupType::Cursor),
+      m_last_update(Clock::now())
 {
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 
@@ -83,13 +82,11 @@ ControlState Cursor::GetGateRadiusAtAngle(double ang) const
 
 Cursor::StateData Cursor::GetState(const bool adjusted)
 {
-  ControlState z = controls[4]->control_ref->State() - controls[5]->control_ref->State();
-
   if (!adjusted)
   {
     const auto raw_input = GetReshapableState(false);
 
-    return {raw_input.x, raw_input.y, z};
+    return {raw_input.x, raw_input.y};
   }
 
   const auto input = GetReshapableState(true);
@@ -102,20 +99,12 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   m_last_update = now;
 
   const double max_step = STEP_PER_SEC / 1000.0 * ms_since_update;
-  const double max_z_step = STEP_Z_PER_SEC / 1000.0 * ms_since_update;
-
-  // Apply deadzone to z:
-  z = ApplyDeadzone(z, GetDeadzonePercentage());
-
-  // Smooth out z movement:
-  // FYI: Not using relative input for Z.
-  m_state.z += std::clamp(z - m_state.z, -max_z_step, max_z_step);
 
   // Relative input:
   if (m_relative_setting.GetValue())
   {
     // Recenter:
-    if (controls[7]->control_ref->State() > BUTTON_THRESHOLD)
+    if (controls[5]->control_ref->State() > BUTTON_THRESHOLD)
     {
       m_state.x = 0.0;
       m_state.y = 0.0;
@@ -152,7 +141,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   m_prev_result = result;
 
   // If auto-hide time is up or hide button is held:
-  if (!m_auto_hide_timer || controls[6]->control_ref->State() > BUTTON_THRESHOLD)
+  if (!m_auto_hide_timer || controls[4]->control_ref->State() > BUTTON_THRESHOLD)
   {
     result.x = std::numeric_limits<ControlState>::quiet_NaN();
     result.y = 0;
