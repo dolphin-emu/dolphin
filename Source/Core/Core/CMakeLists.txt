@@ -203,8 +203,9 @@ add_library(core
   HW/EXI/EXI_DeviceAGP.h
   HW/EXI/EXI_DeviceDummy.cpp
   HW/EXI/EXI_DeviceDummy.h
-  HW/EXI/EXI_DeviceEthernet.cpp
-  HW/EXI/EXI_DeviceEthernet.h
+  HW/EXI/EXI_DeviceEthernetBase.cpp
+  HW/EXI/EXI_DeviceEthernetBase.h
+  HW/EXI/EXI_DeviceEthernetTAP.h
   HW/EXI/EXI_DeviceGecko.cpp
   HW/EXI/EXI_DeviceGecko.h
   HW/EXI/EXI_DeviceIPL.cpp
@@ -589,8 +590,8 @@ endif()
 
 if(WIN32)
   target_sources(core PRIVATE
-    HW/EXI/BBA-TAP/TAP_Win32.cpp
-    HW/EXI/BBA-TAP/TAP_Win32.h
+    HW/EXI/EXI_DeviceEthernetTap_Win32.cpp
+    HW/EXI/EXI_DeviceEthernetTap_Win32.h
     HW/WiimoteReal/IOWin.cpp
     HW/WiimoteReal/IOWin.h
   )
@@ -603,7 +604,7 @@ if(WIN32)
   target_compile_definitions(core PRIVATE "-D_WINSOCK_DEPRECATED_NO_WARNINGS")
 elseif(APPLE)
   target_sources(core PRIVATE
-    HW/EXI/BBA-TAP/TAP_Apple.cpp
+    HW/EXI/EXI_DeviceEthernetTAP_Apple.cpp
     HW/WiimoteReal/IOdarwin.h
     HW/WiimoteReal/IOdarwin_private.h
     HW/WiimoteReal/IOdarwin.mm
@@ -611,7 +612,7 @@ elseif(APPLE)
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)
   target_sources(core PRIVATE
-    HW/EXI/BBA-TAP/TAP_Unix.cpp
+    HW/EXI/EXI_DeviceEthernetTAP_Unix.cpp
   )
   if(ANDROID)
     target_sources(core PRIVATE

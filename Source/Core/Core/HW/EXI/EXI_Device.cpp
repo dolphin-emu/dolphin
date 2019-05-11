@@ -10,7 +10,7 @@
 #include "Core/HW/EXI/EXI_DeviceAD16.h"
 #include "Core/HW/EXI/EXI_DeviceAGP.h"
 #include "Core/HW/EXI/EXI_DeviceDummy.h"
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/EXI_DeviceEthernetTAP.h"
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
@@ -131,8 +131,8 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
     result = std::make_unique<CEXIMic>(channel_num);
     break;
 
-  case EXIDEVICE_ETH:
-    result = std::make_unique<CEXIETHERNET>();
+  case EXIDEVICE_ETH_TAP:
+    result = std::make_unique<CEXIEthernetTAP>();
     break;
 
   case EXIDEVICE_GECKO:
