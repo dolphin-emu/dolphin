@@ -30,6 +30,8 @@ public:
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
+  // Set tighter row height. Set BP column sizing. This needs to run when font type changes.
+  void FontBasedSizing();
   void Update();
 
   void ToggleBreakpoint();
