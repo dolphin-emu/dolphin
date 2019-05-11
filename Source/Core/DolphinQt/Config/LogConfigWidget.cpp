@@ -64,8 +64,10 @@ void LogConfigWidget::CreateWidgets()
 
   for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
   {
-    QListWidgetItem* widget = new QListWidgetItem(QString::fromStdString(
-        LogManager::GetInstance()->GetFullName(static_cast<LogTypes::LOG_TYPE>(i))));
+    const auto log_type = static_cast<LogTypes::LOG_TYPE>(i);
+    const QString full_name = QString::fromUtf8(LogManager::GetInstance()->GetFullName(log_type));
+    const QString short_name = QString::fromUtf8(LogManager::GetInstance()->GetShortName(log_type));
+    auto* widget = new QListWidgetItem(QStringLiteral("%1 (%2)").arg(full_name, short_name));
     widget->setCheckState(Qt::Unchecked);
     m_types_list->addItem(widget);
   }
