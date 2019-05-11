@@ -1,3 +1,7 @@
+if (NOT Qt5_DIR AND MSVC)
+set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt5.11.1/5.11.1/msvc2017_64/lib/cmake/Qt5")
+endif()
+
 find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
