@@ -101,10 +101,10 @@ void GameCubePane::CreateWidgets()
 
   // Add SP1 devices
 
-  for (const auto& entry :
-       {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
-        std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
-        std::make_pair(tr("Broadband Adapter (TAP)", "virtual network device"), ExpansionInterface::EXIDEVICE_ETH_TAP)})
+  for (const auto& entry : {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
+                            std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
+                            std::make_pair(tr("Broadband Adapter (TAP)", "virtual network device"),
+                                           ExpansionInterface::EXIDEVICE_ETH_TAP)})
   {
     m_slot_combos[2]->addItem(entry.first, entry.second);
   }

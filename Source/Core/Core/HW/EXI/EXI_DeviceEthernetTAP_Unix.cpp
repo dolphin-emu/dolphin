@@ -25,8 +25,7 @@
 
 namespace ExpansionInterface
 {
-#define NOTIMPLEMENTED                                                                       \
-  NOTICE_LOG(SP1, "%s not implemented for your UNIX", __PRETTY_FUNCTION__);
+#define NOTIMPLEMENTED NOTICE_LOG(SP1, "%s not implemented for your UNIX", __PRETTY_FUNCTION__);
 
 CEXIEthernetTAP::~CEXIEthernetTAP()
 {

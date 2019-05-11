@@ -213,10 +213,7 @@ protected:
     return ((u16)m_bba_mem.raw[index + 1] << 8) | m_bba_mem.raw[index];
   }
 
-  inline u8* PtrFromPagePtr(int const index)
-  {
-    return &m_bba_mem.raw[page_ptr(index) << 8];
-  }
+  inline u8* PtrFromPagePtr(int const index) { return &m_bba_mem.raw[page_ptr(index) << 8]; }
 
   inline const u8* PtrFromPagePtr(int const index) const
   {
@@ -237,49 +234,51 @@ protected:
   void inc_rwp();
   bool RecvHandlePacket();
 
-  union {
+  union
+  {
     std::array<u8, BBA_MEM_SIZE> raw;
 #pragma pack(push, 1)
-    struct {
-      u8 ncra;        //0x00
-      u8 ncrb;        //0x01
+    struct
+    {
+      u8 ncra;  // 0x00
+      u8 ncrb;  // 0x01
       u16 : 16;
-      u8 ltps;        //0x04
-      u8 lrps;        //0x05
+      u8 ltps;  // 0x04
+      u8 lrps;  // 0x05
       u16 : 16;
-      u8 imr;         //0x08
-      u8 ir;          //0x09
-      u16 bp;         //0x0a
-      u16 tlbp;       //0x0c
-      u16 twp;        //0x0e
-      u16 iob;        //0x10
-      u16 trp;        //0x12
-      u16 rxintt;     //0x14
-      u16 rwp;        //0x16
-      u16 rrp;        //0x18
-      u16 rhbp;       //0x1a
+      u8 imr;      // 0x08
+      u8 ir;       // 0x09
+      u16 bp;      // 0x0a
+      u16 tlbp;    // 0x0c
+      u16 twp;     // 0x0e
+      u16 iob;     // 0x10
+      u16 trp;     // 0x12
+      u16 rxintt;  // 0x14
+      u16 rwp;     // 0x16
+      u16 rrp;     // 0x18
+      u16 rhbp;    // 0x1a
       u32 : 32;
-      std::array<u8, 6> nafr_par; //0x20
-      std::array<u8, 8> nafr_mar; //0x26
+      std::array<u8, 6> nafr_par;  // 0x20
+      std::array<u8, 8> nafr_mar;  // 0x26
       u16 : 16;
-      u8 nwayc;       //0x30
-      u8 nways;       //0x31
-      u8 gca;         //0x32
+      u8 nwayc;  // 0x30
+      u8 nways;  // 0x31
+      u8 gca;    // 0x32
       u64 : 64;
       u16 : 16;
-      u8 misc;        //0x3d
-      u16 txfifocnt;  //0x3e
+      u8 misc;        // 0x3d
+      u16 txfifocnt;  // 0x3e
       u64 : 64;
-      u16 wrtxfifod;  //0x48
+      u16 wrtxfifod;  // 0x48
       u64 : 48;
-      u8 misc2;       //0x50
+      u8 misc2;  // 0x50
       u64 : 64;
       u16 : 16;
       u8 : 8;
-      u8 si_actrl;    //0x5c
-      u8 si_status;   //0x5d
+      u8 si_actrl;   // 0x5c
+      u8 si_status;  // 0x5d
       u16 : 16;
-      u8 si_actrl2;   //0x60
+      u8 si_actrl2;  // 0x60
     };
 #pragma pack(pop)
   } m_bba_mem;
