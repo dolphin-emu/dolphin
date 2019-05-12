@@ -25,7 +25,7 @@ static bool IsTearingSupported(IDXGIFactory2* dxgi_factory)
          allow_tearing != 0;
 }
 
-static bool GetFullscreenState(IDXGISwapChain1* swap_chain)
+static bool GetFullscreenState(IDXGISwapChain* swap_chain)
 {
   BOOL fs = FALSE;
   return SUCCEEDED(swap_chain->GetFullscreenState(&fs, nullptr)) && fs;
@@ -33,9 +33,8 @@ static bool GetFullscreenState(IDXGISwapChain1* swap_chain)
 
 namespace D3DCommon
 {
-SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory2* dxgi_factory, IUnknown* d3d_device)
-    : m_wsi(wsi), m_dxgi_factory(dxgi_factory), m_d3d_device(d3d_device),
-      m_allow_tearing_supported(IsTearingSupported(dxgi_factory))
+SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory, IUnknown* d3d_device)
+    : m_wsi(wsi), m_dxgi_factory(dxgi_factory), m_d3d_device(d3d_device)
 {
 }
 
@@ -66,40 +65,63 @@ bool SwapChain::CreateSwapChain(bool stereo)
     m_height = client_rc.bottom - client_rc.top;
   }
 
-  DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
-  swap_chain_desc.Width = m_width;
-  swap_chain_desc.Height = m_height;
-  swap_chain_desc.BufferCount = SWAP_CHAIN_BUFFER_COUNT;
-  swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-  swap_chain_desc.SampleDesc.Count = 1;
-  swap_chain_desc.SampleDesc.Quality = 0;
-  swap_chain_desc.Format = GetDXGIFormatForAbstractFormat(m_texture_format, false);
-  swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-  swap_chain_desc.Stereo = stereo;
-  swap_chain_desc.Flags = GetSwapChainFlags();
-
-  HRESULT hr = m_dxgi_factory->CreateSwapChainForHwnd(
-      m_d3d_device.Get(), static_cast<HWND>(m_wsi.render_surface), &swap_chain_desc, nullptr,
-      nullptr, &m_swap_chain);
-  if (FAILED(hr))
+  // Try using the Win8 version if available.
+  Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
+  HRESULT hr = m_dxgi_factory.As(&dxgi_factory2);
+  if (SUCCEEDED(hr))
   {
-    // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
-    // a sequential swapchain
-    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-    hr = m_dxgi_factory->CreateSwapChainForHwnd(m_d3d_device.Get(),
-                                                static_cast<HWND>(m_wsi.render_surface),
-                                                &swap_chain_desc, nullptr, nullptr, &m_swap_chain);
+    m_allow_tearing_supported = IsTearingSupported(dxgi_factory2.Get());
+
+    DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
+    swap_chain_desc.Width = m_width;
+    swap_chain_desc.Height = m_height;
+    swap_chain_desc.BufferCount = SWAP_CHAIN_BUFFER_COUNT;
+    swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swap_chain_desc.SampleDesc.Count = 1;
+    swap_chain_desc.SampleDesc.Quality = 0;
+    swap_chain_desc.Format = GetDXGIFormatForAbstractFormat(m_texture_format, false);
+    swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
+    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swap_chain_desc.Stereo = stereo;
+    swap_chain_desc.Flags = GetSwapChainFlags();
+
+    Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain1;
+    hr = dxgi_factory2->CreateSwapChainForHwnd(m_d3d_device.Get(),
+                                               static_cast<HWND>(m_wsi.render_surface),
+                                               &swap_chain_desc, nullptr, nullptr, &swap_chain1);
+    if (FAILED(hr))
+    {
+      // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
+      // a sequential swapchain
+      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+      hr = dxgi_factory2->CreateSwapChainForHwnd(m_d3d_device.Get(),
+                                                 static_cast<HWND>(m_wsi.render_surface),
+                                                 &swap_chain_desc, nullptr, nullptr, &swap_chain1);
+    }
+
+    m_swap_chain = swap_chain1;
   }
 
+  // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
+  // BitBlt-model swapchain. Note that this won't work for DX12, but systems which don't
+  // support the newer DXGI interface aren't going to support DX12 anyway.
   if (FAILED(hr))
   {
-    // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
-    // BitBlt-model swapchain
-    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    hr = m_dxgi_factory->CreateSwapChainForHwnd(m_d3d_device.Get(),
-                                                static_cast<HWND>(m_wsi.render_surface),
-                                                &swap_chain_desc, nullptr, nullptr, &m_swap_chain);
+    DXGI_SWAP_CHAIN_DESC desc = {};
+    desc.BufferDesc.Width = m_width;
+    desc.BufferDesc.Height = m_height;
+    desc.BufferDesc.Format = GetDXGIFormatForAbstractFormat(m_texture_format, false);
+    desc.SampleDesc.Count = 1;
+    desc.SampleDesc.Quality = 0;
+    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.BufferCount = SWAP_CHAIN_BUFFER_COUNT;
+    desc.OutputWindow = static_cast<HWND>(m_wsi.render_surface);
+    desc.Windowed = TRUE;
+    desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    desc.Flags = 0;
+
+    m_allow_tearing_supported = false;
+    hr = m_dxgi_factory->CreateSwapChain(m_d3d_device.Get(), &desc, &m_swap_chain);
   }
 
   if (FAILED(hr))
@@ -147,11 +169,11 @@ bool SwapChain::ResizeSwapChain()
   if (FAILED(hr))
     WARN_LOG(VIDEO, "ResizeBuffers() failed with HRESULT %08X", hr);
 
-  DXGI_SWAP_CHAIN_DESC1 desc;
-  if (SUCCEEDED(m_swap_chain->GetDesc1(&desc)))
+  DXGI_SWAP_CHAIN_DESC desc;
+  if (SUCCEEDED(m_swap_chain->GetDesc(&desc)))
   {
-    m_width = desc.Width;
-    m_height = desc.Height;
+    m_width = desc.BufferDesc.Width;
+    m_height = desc.BufferDesc.Height;
   }
 
   return CreateSwapChainBuffers();

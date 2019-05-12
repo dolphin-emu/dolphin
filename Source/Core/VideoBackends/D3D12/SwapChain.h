@@ -23,7 +23,7 @@ class DXFramebuffer;
 class SwapChain : public D3DCommon::SwapChain
 {
 public:
-  SwapChain(const WindowSystemInfo& wsi, IDXGIFactory2* dxgi_factory,
+  SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory,
             ID3D12CommandQueue* d3d_command_queue);
   ~SwapChain();
 

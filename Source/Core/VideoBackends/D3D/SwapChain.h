@@ -23,7 +23,7 @@ class DXFramebuffer;
 class SwapChain : public D3DCommon::SwapChain
 {
 public:
-  SwapChain(const WindowSystemInfo& wsi, IDXGIFactory2* dxgi_factory, ID3D11Device* d3d_device);
+  SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory, ID3D11Device* d3d_device);
   ~SwapChain();
 
   static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi);

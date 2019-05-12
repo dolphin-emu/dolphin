@@ -72,9 +72,9 @@ void UnloadLibraries()
   s_libraries_loaded = false;
 }
 
-IDXGIFactory2* CreateDXGIFactory(bool debug_device)
+IDXGIFactory* CreateDXGIFactory(bool debug_device)
 {
-  IDXGIFactory2* factory;
+  IDXGIFactory* factory;
 
   // Use Win8.1 version if available.
   if (create_dxgi_factory2 &&

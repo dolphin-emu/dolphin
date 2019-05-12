@@ -8,7 +8,7 @@
 
 namespace DX12
 {
-SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory2* dxgi_factory,
+SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory,
                      ID3D12CommandQueue* d3d_command_queue)
     : D3DCommon::SwapChain(wsi, dxgi_factory, d3d_command_queue)
 {
