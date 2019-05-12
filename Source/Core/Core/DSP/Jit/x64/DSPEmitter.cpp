@@ -146,7 +146,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
 
   m_gpr.PushRegs();
   ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for %04x", inst);
-  ABI_CallFunctionC16(interpreter_function, inst);
+  ABI_CallFunction(interpreter_function, inst);
   m_gpr.PopRegs();
 }
 
@@ -171,7 +171,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       const auto interpreter_function = Interpreter::GetExtOp(inst);
 
       m_gpr.PushRegs();
-      ABI_CallFunctionC16(interpreter_function, inst);
+      ABI_CallFunction(interpreter_function, inst);
       m_gpr.PopRegs();
       INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
       ext_is_jit = false;
@@ -400,8 +400,7 @@ void DSPEmitter::CompileCurrent(DSPEmitter& emitter)
 const u8* DSPEmitter::CompileStub()
 {
   const u8* entryPoint = AlignCode16();
-  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(this)));
-  ABI_CallFunction(CompileCurrent);
+  ABI_CallFunction(CompileCurrent, std::ref(*this));
   XOR(32, R(EAX), R(EAX));  // Return 0 cycles executed
   JMP(m_return_dispatcher);
   return entryPoint;

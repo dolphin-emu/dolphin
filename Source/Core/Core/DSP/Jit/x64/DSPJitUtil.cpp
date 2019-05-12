@@ -638,7 +638,7 @@ void DSPEmitter::dmem_read_imm(u16 address)
   case 0xf:  // Fxxx HW regs
   {
     m_gpr.PushRegs();
-    ABI_CallFunctionC16(gdsp_ifx_read, address);
+    ABI_CallFunction(gdsp_ifx_read, address);
     m_gpr.PopRegs();
     break;
   }

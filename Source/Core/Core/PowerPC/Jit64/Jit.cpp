@@ -407,7 +407,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   }
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionC(instr, inst.hex);
+  ABI_CallFunction(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
   if (js.op->opinfo->flags & FL_ENDBLOCK)
   {
@@ -434,7 +434,7 @@ void Jit64::HLEFunction(UGeckoInstruction _inst)
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCC(HLE::Execute, js.compilerPC, _inst.hex);
+  ABI_CallFunction(HLE::Execute, js.compilerPC, _inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
@@ -488,8 +488,8 @@ bool Jit64::Cleanup()
   if (MMCR0.Hex || MMCR1.Hex)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
-                        js.numFloatingPointInst);
+    ABI_CallFunction(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                     js.numFloatingPointInst);
     ABI_PopRegistersAndAdjustStack({}, 0);
     did_something = true;
   }
@@ -850,8 +850,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       const u8* target = GetCodePtr();
       MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
       ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                        static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
+      ABI_CallFunction(JitInterface::CompileExceptionCheck,
+                       JitInterface::ExceptionType::PairedQuantize);
       ABI_PopRegistersAndAdjustStack({}, 0);
       JMP(asm_routines.dispatcher_no_check, true);
       SwitchToNearCode();
@@ -1138,8 +1138,8 @@ void Jit64::IntializeSpeculativeConstants()
         target = GetCodePtr();
         MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
         ABI_PushRegistersAndAdjustStack({}, 0);
-        ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
-                          static_cast<u32>(JitInterface::ExceptionType::SpeculativeConstants));
+        ABI_CallFunction(JitInterface::CompileExceptionCheck,
+                         JitInterface::ExceptionType::SpeculativeConstants);
         ABI_PopRegistersAndAdjustStack({}, 0);
         JMP(asm_routines.dispatcher, true);
         SwitchToNearCode();

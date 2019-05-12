@@ -276,7 +276,7 @@ private:
   void CallLambda(int sbits, const std::function<T(u32)>* lambda)
   {
     m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, 0);
-    m_code->ABI_CallLambdaC(lambda, m_address);
+    m_code->ABI_CallLambda(lambda, m_address);
     m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, 0);
     MoveOpArgToReg(sbits, R(ABI_RETURN));
   }
@@ -458,16 +458,16 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionC(PowerPC::Read_U64, address);
+    ABI_CallFunction(PowerPC::Read_U64, address);
     break;
   case 32:
-    ABI_CallFunctionC(PowerPC::Read_U32, address);
+    ABI_CallFunction(PowerPC::Read_U32, address);
     break;
   case 16:
-    ABI_CallFunctionC(PowerPC::Read_U16_ZX, address);
+    ABI_CallFunction(PowerPC::Read_U16_ZX, address);
     break;
   case 8:
-    ABI_CallFunctionC(PowerPC::Read_U8_ZX, address);
+    ABI_CallFunction(PowerPC::Read_U8_ZX, address);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -655,16 +655,16 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     switch (accessSize)
     {
     case 64:
-      ABI_CallFunctionAC(64, PowerPC::Write_U64, arg, address);
+      ABI_CallFunctionA(64, PowerPC::Write_U64, arg, address);
       break;
     case 32:
-      ABI_CallFunctionAC(32, PowerPC::Write_U32, arg, address);
+      ABI_CallFunctionA(32, PowerPC::Write_U32, arg, address);
       break;
     case 16:
-      ABI_CallFunctionAC(16, PowerPC::Write_U16, arg, address);
+      ABI_CallFunctionA(16, PowerPC::Write_U16, arg, address);
       break;
     case 8:
-      ABI_CallFunctionAC(8, PowerPC::Write_U8, arg, address);
+      ABI_CallFunctionA(8, PowerPC::Write_U8, arg, address);
       break;
     }
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);

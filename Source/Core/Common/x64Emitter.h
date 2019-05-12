@@ -1019,88 +1019,20 @@ public:
     }
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC16(FunctionPointer func, u16 param1)
+  template <typename FunctionPointer, typename... Args>
+  void ABI_CallFunction(FunctionPointer func, Args... args)
   {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    static_assert(std::is_invocable_v<FunctionPointer, Args...>, "Wrong argument types.");
+
+    MOVArgs(args...);
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC16(FunctionPointer func, u32 param1, u16 param2)
+  template <typename T, typename... Args>
+  void ABI_CallLambda(const std::function<T(Args...)>* func, Args... args)
   {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionC(FunctionPointer func, u32 param1)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCC(FunctionPointer func, u32 param1, u32 param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCP(FunctionPointer func, u32 param1, const void* param2)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCC(FunctionPointer func, u32 param1, u32 param2, u32 param3)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCP(FunctionPointer func, u32 param1, u32 param2, const void* param3)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    MOV(64, R(ABI_PARAM3), Imm64(reinterpret_cast<u64>(param3)));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionCCCP(FunctionPointer func, u32 param1, u32 param2, u32 param3,
-                            const void* param4)
-  {
-    MOV(32, R(ABI_PARAM1), Imm32(param1));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    MOV(64, R(ABI_PARAM4), Imm64(reinterpret_cast<u64>(param4)));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, u32 param3)
-  {
-    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
-    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
-    MOV(32, R(ABI_PARAM3), Imm32(param3));
-    ABI_CallFunction(func);
+    const auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
+    ABI_CallFunction(trampoline, func, args...);
   }
 
   // Pass a register as a parameter.
@@ -1120,20 +1052,12 @@ public:
     ABI_CallFunction(func);
   }
 
-  template <typename FunctionPointer>
-  void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
+  template <typename FunctionPointer, typename... Args>
+  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1, Args... args)
   {
     if (!arg1.IsSimpleReg(ABI_PARAM1))
       MOV(bits, R(ABI_PARAM1), arg1);
-    MOV(32, R(ABI_PARAM2), Imm32(param2));
-    ABI_CallFunction(func);
-  }
-
-  template <typename FunctionPointer>
-  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1)
-  {
-    if (!arg1.IsSimpleReg(ABI_PARAM1))
-      MOV(bits, R(ABI_PARAM1), arg1);
+    MOVArgs<2>(args...);
     ABI_CallFunction(func);
   }
 
@@ -1148,6 +1072,7 @@ public:
   void ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment,
                                       size_t needed_frame_size = 0);
 
+private:
   // Utility to generate a call to a std::function object.
   //
   // Unfortunately, calling operator() directly is undefined behavior in C++
@@ -1159,11 +1084,44 @@ public:
     return (*f)(args...);
   }
 
-  template <typename T, typename... Args>
-  void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
+  template <u32 ParamNumber = 1, typename Arg1, typename... Args>
+  void MOVArgs(Arg1 arg1, Args... args)
   {
-    auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
-    ABI_CallFunctionPC(trampoline, reinterpret_cast<const void*>(f), p1);
+    constexpr X64Reg ABI_PARAMS[] = {
+        ABI_PARAM1,
+        ABI_PARAM2,
+        ABI_PARAM3,
+        ABI_PARAM4,
+    };
+
+    static_assert(ParamNumber <= ArraySize(ABI_PARAMS), "Too many parameters!");
+
+    MOVArg(ABI_PARAMS[ParamNumber - 1], arg1);
+    MOVArgs<ParamNumber + 1>(args...);
+  }
+
+  template <u32 = 1>
+  void MOVArgs()
+  {
+  }
+
+  // Handle integer/pointer parameters.
+  template <typename T>
+  void MOVArg(X64Reg reg, T arg)
+  {
+    if constexpr (std::is_pointer_v<T>)
+      MOV(64, R(reg), ImmPtr(arg));
+    else if constexpr (sizeof(arg) == sizeof(u64))
+      MOV(64, R(reg), Imm64(static_cast<u64>(arg)));
+    else if constexpr (sizeof(arg) == sizeof(u32) || sizeof(arg) == sizeof(u16))
+      MOV(32, R(reg), Imm32(static_cast<u32>(arg)));
+  }
+
+  // Handle reference parameters passed with std::ref.
+  template <typename T>
+  void MOVArg(X64Reg reg, std::reference_wrapper<T> arg)
+  {
+    MOVArg(reg, &arg.get());
   }
 };  // class XEmitter
 
