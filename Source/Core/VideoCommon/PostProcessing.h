@@ -94,6 +94,7 @@ public:
   virtual ~PostProcessing();
 
   static std::vector<std::string> GetShaderList();
+  static std::vector<std::string> GetPassiveShaderList();
   static std::vector<std::string> GetAnaglyphShaderList();
 
   PostProcessingConfiguration* GetConfig() { return &m_config; }

@@ -44,8 +44,16 @@ void PostProcessingConfiguration::LoadShader(const std::string& shader)
     return;
   }
 
-  const std::string sub_dir =
-      (g_Config.stereo_mode == StereoMode::Anaglyph) ? ANAGLYPH_DIR DIR_SEP : "";
+  std::string sub_dir = "";
+
+  if (g_Config.stereo_mode == StereoMode::Anaglyph)
+  {
+    sub_dir = ANAGLYPH_DIR DIR_SEP;
+  }
+  else if (g_Config.stereo_mode == StereoMode::Passive)
+  {
+    sub_dir = PASSIVE_DIR DIR_SEP;
+  }
 
   // loading shader code
   std::string code;
@@ -364,6 +372,11 @@ std::vector<std::string> PostProcessing::GetAnaglyphShaderList()
   return GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
+std::vector<std::string> PostProcessing::GetPassiveShaderList()
+{
+  return GetShaders(PASSIVE_DIR DIR_SEP);
+}
+
 bool PostProcessing::Initialize(AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
@@ -425,6 +438,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
 
   // Builtin uniforms
   ss << "  float4 resolution;\n";
+  ss << "  float4 window_resolution;\n";
   ss << "  float4 src_rect;\n";
   ss << "  uint time;\n";
   ss << "  int layer;\n";
@@ -507,6 +521,11 @@ float4 Sample() { return texture(samp0, float3(v_tex0.xy, float(layer))); }
 float4 SampleLocation(float2 location) { return texture(samp0, float3(location, float(layer))); }
 float4 SampleLayer(int layer) { return texture(samp0, float3(v_tex0.xy, float(layer))); }
 #define SampleOffset(offset) textureOffset(samp0, float3(v_tex0.xy, float(layer)), offset)
+
+float2 GetWindowResolution()
+{
+  return window_resolution.xy;
+}
 
 float2 GetResolution()
 {
@@ -599,6 +618,7 @@ bool PostProcessing::CompileVertexShader()
 struct BuiltinUniforms
 {
   float resolution[4];
+  float window_resolution[4];
   float src_rect[4];
   s32 time;
   u32 layer;
@@ -614,11 +634,14 @@ size_t PostProcessing::CalculateUniformsSize() const
 void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
                                        const AbstractTexture* src_tex, int src_layer)
 {
+  const auto& window_rect = g_renderer->GetTargetRectangle();
   const float rcp_src_width = 1.0f / src_tex->GetWidth();
   const float rcp_src_height = 1.0f / src_tex->GetHeight();
   BuiltinUniforms builtin_uniforms = {
       {static_cast<float>(src_tex->GetWidth()), static_cast<float>(src_tex->GetHeight()),
        rcp_src_width, rcp_src_height},
+      {static_cast<float>(window_rect.GetWidth()), static_cast<float>(window_rect.GetHeight()),
+       0.0f, 0.0f},
       {static_cast<float>(src.left) * rcp_src_width, static_cast<float>(src.top) * rcp_src_height,
        static_cast<float>(src.GetWidth()) * rcp_src_width,
        static_cast<float>(src.GetHeight()) * rcp_src_height},

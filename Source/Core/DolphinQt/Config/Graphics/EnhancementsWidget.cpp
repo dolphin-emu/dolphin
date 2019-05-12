@@ -109,9 +109,9 @@ void EnhancementsWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout();
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_3d_mode = new GraphicsChoice(
-      {tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"), tr("HDMI 3D")},
-      Config::GFX_STEREO_MODE);
+  m_3d_mode = new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"),
+                                  tr("Anaglyph"), tr("HDMI 3D"), tr("Passive")},
+                                 Config::GFX_STEREO_MODE);
   m_3d_depth = new GraphicsSlider(0, 100, Config::GFX_STEREO_DEPTH);
   m_3d_convergence = new GraphicsSlider(0, 200, Config::GFX_STEREO_CONVERGENCE, 100);
   m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
@@ -151,14 +151,19 @@ void EnhancementsWidget::ConnectWidgets()
 
 void EnhancementsWidget::LoadPPShaders()
 {
-  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
-  std::vector<std::string> shaders = anaglyph ?
-                                         VideoCommon::PostProcessing::GetAnaglyphShaderList() :
-                                         VideoCommon::PostProcessing::GetShaderList();
+  std::vector<std::string> shaders = VideoCommon::PostProcessing::GetShaderList();
+  if (g_Config.stereo_mode == StereoMode::Anaglyph)
+  {
+    shaders = VideoCommon::PostProcessing::GetAnaglyphShaderList();
+  }
+  else if (g_Config.stereo_mode == StereoMode::Passive)
+  {
+    shaders = VideoCommon::PostProcessing::GetPassiveShaderList();
+  }
 
   m_pp_effect->clear();
 
-  if (!anaglyph)
+  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
     m_pp_effect->addItem(tr("(off)"));
 
   auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
@@ -175,8 +180,10 @@ void EnhancementsWidget::LoadPPShaders()
     }
   }
 
-  if (anaglyph && !found)
+  if (g_Config.stereo_mode == StereoMode::Anaglyph && !found)
     m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
+  else if (g_Config.stereo_mode == StereoMode::Passive && !found)
+    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
@@ -221,7 +228,7 @@ void EnhancementsWidget::LoadSettings()
   bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
   bool supports_3dvision = g_Config.backend_info.bSupports3DVision;
 
-  bool has_3dvision = m_3d_mode->count() == 6;
+  bool has_3dvision = m_3d_mode->count() == 7;
 
   if (has_3dvision && !supports_3dvision)
     m_3d_mode->removeItem(5);
@@ -260,8 +267,9 @@ void EnhancementsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
+  const bool passive = g_Config.stereo_mode == StereoMode::Passive;
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
-                           (!anaglyph && m_pp_effect->currentIndex() == 0) ?
+                           (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
                                "(off)" :
                                m_pp_effect->currentText().toStdString());
 
@@ -324,7 +332,8 @@ void EnhancementsWidget::AddDescriptions()
       "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling "
       "of depth if the necessary hardware is present.\n\nSide-by-Side and Top-and-Bottom are "
       "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
-      "used when the monitor supports 3D display resolutions.\n\nHeavily decreases "
+      "used when the monitor supports 3D display resolutions.\nPassive is another type of 3D "
+      "used by some TVs.\n\nHeavily decreases "
       "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
   static const char TR_3D_DEPTH_DESCRIPTION[] = QT_TR_NOOP(
       "Controls the separation distance between the virtual cameras. \n\nA higher "
