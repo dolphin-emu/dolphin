@@ -15,6 +15,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/LibusbUtils.h"
 #include "Core/NetPlayProto.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -54,7 +55,6 @@ static Common::Flag s_adapter_detect_thread_running;
 static std::function<void(void)> s_detect_callback;
 
 static bool s_libusb_driver_not_supported = false;
-static libusb_context* s_libusb_context;
 #if defined(__FreeBSD__) && __FreeBSD__ >= 11
 static bool s_libusb_hotplug_enabled = true;
 #else
@@ -127,6 +127,7 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 
 static void ScanThreadFunc()
 {
+  auto& context = LibusbUtils::GetContext();
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
@@ -137,7 +138,7 @@ static void ScanThreadFunc()
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            s_libusb_context,
+            context,
             (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                                    LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
@@ -148,24 +149,19 @@ static void ScanThreadFunc()
   }
 #endif
 
+  if (s_libusb_hotplug_enabled)
+    return;
+
   while (s_adapter_detect_thread_running.IsSet())
   {
-    if (s_libusb_hotplug_enabled)
+    if (s_handle == nullptr)
     {
-      static timeval tv = {0, 500000};
-      libusb_handle_events_timeout(s_libusb_context, &tv);
+      std::lock_guard<std::mutex> lk(s_init_mutex);
+      Setup();
+      if (s_detected && s_detect_callback != nullptr)
+        s_detect_callback();
     }
-    else
-    {
-      if (s_handle == nullptr)
-      {
-        std::lock_guard<std::mutex> lk(s_init_mutex);
-        Setup();
-        if (s_detected && s_detect_callback != nullptr)
-          s_detect_callback();
-      }
-      Common::SleepCurrentThread(500);
-    }
+    Common::SleepCurrentThread(500);
   }
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
@@ -198,13 +194,8 @@ void StartScanThread()
 {
   if (s_adapter_detect_thread_running.IsSet())
     return;
-
-  const int ret = libusb_init(&s_libusb_context);
-  if (ret < 0)
-  {
-    ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
+  if (!LibusbUtils::GetContext().IsValid())
     return;
-  }
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
@@ -219,27 +210,21 @@ void StopScanThread()
 
 static void Setup()
 {
-  libusb_device** list;
-  ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
-
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
   {
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
     s_controller_rumble[i] = 0;
   }
 
-  for (int d = 0; d < cnt; d++)
-  {
-    libusb_device* device = list[d];
+  LibusbUtils::GetContext().GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
     {
       // Only connect to a single adapter in case the user has multiple connected
       AddGCAdapter(device);
-      break;
+      return false;
     }
-  }
-
-  libusb_free_device_list(list, 1);
+    return true;
+  });
 }
 
 static bool CheckDeviceAccess(libusb_device* device)
@@ -342,16 +327,11 @@ void Shutdown()
 {
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
-  if (s_libusb_context && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
+  if (LibusbUtils::GetContext().IsValid() && s_libusb_hotplug_enabled)
+    libusb_hotplug_deregister_callback(LibusbUtils::GetContext(), s_hotplug_handle);
 #endif
   Reset();
 
-  if (s_libusb_context)
-  {
-    libusb_exit(s_libusb_context);
-    s_libusb_context = nullptr;
-  }
   s_libusb_driver_not_supported = false;
 }
 

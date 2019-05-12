@@ -37,7 +37,7 @@ LibusbDevice::LibusbDevice(Kernel& ios, libusb_device* device,
           static_cast<u64>(libusb_get_device_address(device)));
 
   for (u8 i = 0; i < descriptor.bNumConfigurations; ++i)
-    m_config_descriptors.emplace_back(std::make_unique<LibusbConfigDescriptor>(m_device, i));
+    m_config_descriptors.emplace_back(LibusbUtils::MakeConfigDescriptor(m_device, i));
 }
 
 LibusbDevice::~LibusbDevice()
@@ -65,13 +65,13 @@ std::vector<ConfigDescriptor> LibusbDevice::GetConfigurations() const
   std::vector<ConfigDescriptor> descriptors;
   for (const auto& config_descriptor : m_config_descriptors)
   {
-    if (!config_descriptor->IsValid())
+    if (!config_descriptor)
     {
       ERROR_LOG(IOS_USB, "Ignoring invalid config descriptor for %04x:%04x", m_vid, m_pid);
       continue;
     }
     ConfigDescriptor descriptor;
-    std::memcpy(&descriptor, config_descriptor->Get(), sizeof(descriptor));
+    std::memcpy(&descriptor, config_descriptor.get(), sizeof(descriptor));
     descriptors.push_back(descriptor);
   }
   return descriptors;
@@ -80,14 +80,14 @@ std::vector<ConfigDescriptor> LibusbDevice::GetConfigurations() const
 std::vector<InterfaceDescriptor> LibusbDevice::GetInterfaces(const u8 config) const
 {
   std::vector<InterfaceDescriptor> descriptors;
-  if (config >= m_config_descriptors.size() || !m_config_descriptors[config]->IsValid())
+  if (config >= m_config_descriptors.size() || !m_config_descriptors[config])
   {
     ERROR_LOG(IOS_USB, "Invalid config descriptor %u for %04x:%04x", config, m_vid, m_pid);
     return descriptors;
   }
-  for (u8 i = 0; i < m_config_descriptors[config]->Get()->bNumInterfaces; ++i)
+  for (u8 i = 0; i < m_config_descriptors[config]->bNumInterfaces; ++i)
   {
-    const libusb_interface& interface = m_config_descriptors[config]->Get()->interface[i];
+    const libusb_interface& interface = m_config_descriptors[config]->interface[i];
     for (u8 a = 0; a < interface.num_altsetting; ++a)
     {
       InterfaceDescriptor descriptor;
@@ -102,13 +102,13 @@ std::vector<EndpointDescriptor>
 LibusbDevice::GetEndpoints(const u8 config, const u8 interface_number, const u8 alt_setting) const
 {
   std::vector<EndpointDescriptor> descriptors;
-  if (config >= m_config_descriptors.size() || !m_config_descriptors[config]->IsValid())
+  if (config >= m_config_descriptors.size() || !m_config_descriptors[config])
   {
     ERROR_LOG(IOS_USB, "Invalid config descriptor %u for %04x:%04x", config, m_vid, m_pid);
     return descriptors;
   }
-  ASSERT(interface_number < m_config_descriptors[config]->Get()->bNumInterfaces);
-  const auto& interface = m_config_descriptors[config]->Get()->interface[interface_number];
+  ASSERT(interface_number < m_config_descriptors[config]->bNumInterfaces);
+  const auto& interface = m_config_descriptors[config]->interface[interface_number];
   ASSERT(alt_setting < interface.num_altsetting);
   const libusb_interface_descriptor& interface_descriptor = interface.altsetting[alt_setting];
   for (u8 i = 0; i < interface_descriptor.bNumEndpoints; ++i)
@@ -403,16 +403,16 @@ void LibusbDevice::TransferEndpoint::CancelTransfers()
 
 int LibusbDevice::GetNumberOfAltSettings(const u8 interface_number)
 {
-  return m_config_descriptors[0]->Get()->interface[interface_number].num_altsetting;
+  return m_config_descriptors[0]->interface[interface_number].num_altsetting;
 }
 
 template <typename Configs, typename Function>
 static int DoForEachInterface(const Configs& configs, u8 config_num, Function action)
 {
   int ret = LIBUSB_ERROR_NOT_FOUND;
-  if (configs.size() <= config_num || !configs[config_num]->IsValid())
+  if (configs.size() <= config_num || !configs[config_num])
     return ret;
-  for (u8 i = 0; i < configs[config_num]->Get()->bNumInterfaces; ++i)
+  for (u8 i = 0; i < configs[config_num]->bNumInterfaces; ++i)
   {
     ret = action(i);
     if (ret < 0)
@@ -461,17 +461,5 @@ int LibusbDevice::ReleaseAllInterfacesForCurrentConfig() const
   if (get_config_ret < 0)
     return get_config_ret;
   return ReleaseAllInterfaces(config_num);
-}
-
-LibusbConfigDescriptor::LibusbConfigDescriptor(libusb_device* device, const u8 config_num)
-{
-  if (libusb_get_config_descriptor(device, config_num, &m_descriptor) != LIBUSB_SUCCESS)
-    m_descriptor = nullptr;
-}
-
-LibusbConfigDescriptor::~LibusbConfigDescriptor()
-{
-  if (m_descriptor != nullptr)
-    libusb_free_config_descriptor(m_descriptor);
 }
 }  // namespace IOS::HLE::USB

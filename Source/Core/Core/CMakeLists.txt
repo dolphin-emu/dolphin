@@ -10,6 +10,7 @@ add_library(core
   GeckoCodeConfig.cpp
   GeckoCode.cpp
   HotkeyManager.cpp
+  LibusbUtils.cpp
   MemTools.cpp
   Movie.cpp
   NetPlayClient.cpp

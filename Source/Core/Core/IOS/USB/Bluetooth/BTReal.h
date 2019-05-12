@@ -11,7 +11,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
@@ -22,7 +21,6 @@
 #include "Core/IOS/USB/USBV0.h"
 
 class PointerWrap;
-struct libusb_context;
 struct libusb_device;
 struct libusb_device_handle;
 struct libusb_transfer;
@@ -74,10 +72,6 @@ private:
 
   libusb_device* m_device = nullptr;
   libusb_device_handle* m_handle = nullptr;
-  libusb_context* m_libusb_context = nullptr;
-
-  Common::Flag m_thread_running;
-  std::thread m_thread;
 
   std::mutex m_transfers_mutex;
   struct PendingTransfer
@@ -122,9 +116,6 @@ private:
   void SaveLinkKeys();
 
   bool OpenDevice(libusb_device* device);
-  void StartTransferThread();
-  void StopTransferThread();
-  void TransferThread();
 };
 }  // namespace Device
 }  // namespace IOS::HLE
