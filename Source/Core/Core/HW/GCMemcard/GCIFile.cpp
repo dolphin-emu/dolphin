@@ -4,11 +4,12 @@
 
 #include "Core/HW/GCMemcard/GCIFile.h"
 
+#include <cinttypes>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 
 bool GCIFile::LoadHeader()
 {
@@ -41,12 +42,24 @@ bool GCIFile::LoadSaveBlocks()
       return false;
 
     INFO_LOG(EXPANSIONINTERFACE, "Reading savedata from disk for %s", m_filename.c_str());
-    save_file.Seek(DENTRY_SIZE, SEEK_SET);
     u16 num_blocks = m_gci_header.m_block_count;
-    m_save_data.resize(num_blocks);
-    if (!save_file.ReadBytes(m_save_data.data(), num_blocks * BLOCK_SIZE))
+
+    const u32 size = num_blocks * BLOCK_SIZE;
+    u64 file_size = save_file.GetSize();
+    if (file_size != size + DENTRY_SIZE)
     {
-      PanicAlertT("Failed to read data from GCI file %s", m_filename.c_str());
+      ERROR_LOG(EXPANSIONINTERFACE,
+                "%s\nwas not loaded because it is an invalid GCI.\n File size (0x%" PRIx64
+                ") does not match the size recorded in the header (0x%x)",
+                m_filename.c_str(), file_size, size + DENTRY_SIZE);
+      return false;
+    }
+
+    m_save_data.resize(num_blocks);
+    save_file.Seek(DENTRY_SIZE, SEEK_SET);
+    if (!save_file.ReadBytes(m_save_data.data(), size))
+    {
+      ERROR_LOG(EXPANSIONINTERFACE, "Failed to read data from GCI file %s", m_filename.c_str());
       m_save_data.clear();
       return false;
     }
