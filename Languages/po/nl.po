@@ -11,6 +11,7 @@
 # Jos van Mourik, 2018-2019
 # MADCreations <http://www.dpro.freehosting.org>, 2011
 # Marinus Schot <marinus@live.com>, 2013
+# Mike Kuijl <kuijlmike@gmail.com>, 2019
 # Mourits Pvllen <mauritspullen@gmail.com>, 2014
 # Pierre Bourdon <delroth@gmail.com>, 2014
 # Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2015-2016
@@ -19,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-03 13:47+0200\n"
-"PO-Revision-Date: 2019-05-03 11:47+0000\n"
+"POT-Creation-Date: 2019-05-14 14:12+0200\n"
+"PO-Revision-Date: 2019-05-14 12:12+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -37,6 +38,10 @@ msgid ""
 "Because GameCube disc images contain little verification data, there may be "
 "problems that Dolphin is unable to detect."
 msgstr ""
+"\n"
+"\n"
+"Omdat GameCube schijfkopieën weinig verificatie data bevatten kunnen er "
+"problemen zijn die Dolphin niet kan detecteren."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:897
 msgid ""
@@ -45,6 +50,10 @@ msgid ""
 "Because this title is not for retail Wii consoles, Dolphin cannot verify "
 "that it hasn't been tampered with."
 msgstr ""
+"\n"
+"\n"
+"Omdat deze titel niet voor retail Wii consoles is kan Dolphin het niet "
+"verifiëren."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1064
 msgid ""
@@ -74,7 +83,7 @@ msgstr " (Schijf %1)"
 msgid "! NOT"
 msgstr "! NIET"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:43
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:42
 #, c-format
 msgid ""
 "\"%s\" does not exist.\n"
@@ -103,9 +112,9 @@ msgstr "\"%s\" is een ongeldig GCM/ISO-bestand."
 #. i18n: The symbol for percent.
 #. i18n: The percent symbol.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:69
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:194
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:200
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:190
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:196
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:33
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:28
 msgid "%"
 msgstr "%"
@@ -172,7 +181,7 @@ msgstr "%1 Overeenkomst(en)"
 msgid "%1 doesn't support this feature on your system."
 msgstr "%1 ondersteunt deze functie niet op jouw systeem."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:186
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:193
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:303
 msgid "%1 doesn't support this feature."
 msgstr "%1 ondersteunt deze functie niet."
@@ -189,7 +198,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:994
 msgid "%1 is now golfing"
-msgstr ""
+msgstr "%1 is nu aan het golfen"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:207
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:264
@@ -296,7 +305,7 @@ msgstr ""
 #: Source/Core/DiscIO/VolumeVerifier.cpp:304
 #, c-format
 msgid "%s (Masterpiece)"
-msgstr ""
+msgstr "%s (Masterpiece)"
 
 #: Source/Core/Core/Boot/Boot.cpp:329
 #, c-format
@@ -304,7 +313,7 @@ msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
 "%s IPL gevonden in %s map. Het is mogelijk dat de schijf niet herkend wordt"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:72
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:71
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -313,7 +322,7 @@ msgstr ""
 "%s kon niet worden geladen als een geheugenkaart.\n"
 "De bestandsgrootte is onjuist (0x%x bytes)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:88
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:87
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -322,7 +331,7 @@ msgstr ""
 "%s kon niet worden geladen als een geheugenkaart.\n"
 "De bestandsgrootte is onjuist (0x%x bytes)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:65
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:64
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -374,7 +383,7 @@ msgstr "&Voeg Geheugen Breakpoint Toe"
 msgid "&Add New Code..."
 msgstr "&Nieuwe Code Toevoegen..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:248
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:266
 msgid "&Add function"
 msgstr "&Functie toevoegen"
 
@@ -434,7 +443,7 @@ msgstr "&Code"
 msgid "&Controller Settings"
 msgstr "&Controllerinstellingen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:227
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:245
 msgid "&Copy address"
 msgstr "&Kopieer adres"
 
@@ -506,7 +515,7 @@ msgstr "&Sneltoetsinstellingen"
 msgid "&Import..."
 msgstr "&Importeer..."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:250
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:268
 msgid "&Insert blr"
 msgstr "&Voeg blr toe"
 
@@ -583,7 +592,7 @@ msgstr "&Verwijder"
 msgid "&Remove Code"
 msgstr "&Verwijder Code"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:239
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:257
 msgid "&Rename symbol"
 msgstr "&Symbool hernoemen"
 
@@ -649,7 +658,7 @@ msgstr "(Geen)"
 msgid "(host)"
 msgstr "(host)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:162
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:167
 msgid "(off)"
 msgstr "(uit)"
 
@@ -661,7 +670,7 @@ msgstr "(ppc)"
 msgid "+ ADD"
 msgstr "+ ADD"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:155
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:174
 msgid "--> %1"
 msgstr "--> %1"
 
@@ -709,7 +718,7 @@ msgstr "32-bits Geheel Getal"
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:293
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:23
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:347
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:369
 msgid "3D"
 msgstr "3D"
 
@@ -804,7 +813,7 @@ msgstr ""
 "\n"
 "Het installeren van deze WAD zal het onherstelbaar vervangen. Doorgaan?"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:525
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:545
 msgid "A disc is already about to be inserted."
 msgstr "Er ligt al een schijf in de lade."
 
@@ -1032,7 +1041,7 @@ msgstr "Adres"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:116
 msgid "Address Space"
-msgstr ""
+msgstr "Adres Ruimte"
 
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:43
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:135
@@ -1121,7 +1130,7 @@ msgstr ""
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Alle Save States (*.sav *.s##);; Alle Bestanden (*)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:294
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:317
 msgid "All devices"
 msgstr "Alle apparaten"
 
@@ -1148,6 +1157,16 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked. "
 msgstr ""
+"Maakt manipuleren van de in-game camera mogelijk. Beweeg de muis tijdens het "
+"vasthouden van de rechter muisknop om de camera te pannen en het muiswiel om "
+"de camera te rollen.\n"
+"\n"
+"Gebruik de WASD toetsen en houdt SHIFT ingedrukt om de camera te "
+"verplaatsen. Druk SHIFT+2 in om de snelheid te vergroten en SHIFT+1 om de "
+"snelheid te verkleinen. Druk SHIFT+R in om de camera te resetten en SHIFT+F "
+"om de snelheid te resetten.\n"
+"\n"
+"In geval van twijfel leeg laten."
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
@@ -1217,7 +1236,7 @@ msgstr "Toevoegen aan &Bestaand handtekeningsbestand..."
 msgid "Appl&y Signature File..."
 msgstr "Handtekeningsbestan&d Toepassen..."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:303
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:311
 msgid ""
 "Applies a post-processing effect after rendering a frame.\n"
 "\n"
@@ -1243,7 +1262,7 @@ msgstr "Handtekeningsbestand toepassen..."
 msgid "Arbitrary Mipmap Detection"
 msgstr "Arbitraire Mipmapdetectie"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:177
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:192
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Weet u zeker dat u '%1' wilt verwijderen?"
 
@@ -1276,9 +1295,9 @@ msgstr "Controllerpoorten Toewijzen"
 msgid "Assign Controllers"
 msgstr "Controllers Toewijzen"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:173
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:169
 msgid "Attach MotionPlus"
-msgstr ""
+msgstr "Koppel MotionPlus"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:39
 msgid "Audio"
@@ -1332,7 +1351,7 @@ msgstr ""
 msgid "Auto-Adjust Window Size"
 msgstr "Venstergrootte Automatisch Aanpassen"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:64
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:63
 msgid "Auto-Hide"
 msgstr "Automatisch-Verbergen"
 
@@ -1381,7 +1400,6 @@ msgstr "Backend:"
 msgid "Background Input"
 msgstr "Achtergrondinvoer"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:26
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:21
 msgid "Backward"
@@ -1426,7 +1444,7 @@ msgstr "Basisinstellingen"
 msgid "Bass"
 msgstr "Bass"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:198
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:194
 msgid "Battery"
 msgstr "Batterij"
 
@@ -1483,11 +1501,11 @@ msgstr "BootMii sleutelbestand (*.bin);;Alle Bestanden (*)"
 msgid "Borderless Fullscreen"
 msgstr "Randloos Volledig Scherm"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:168
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:167
 msgid "Both Block Allocation Table block checksums are invalid"
 msgstr "Beide Block Allocation Table controlesommen zijn ongeldig"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:145
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:144
 msgid "Both directory block checksums are invalid"
 msgstr "Beide mapblock controlesommen zijn ongeldig"
 
@@ -1527,7 +1545,7 @@ msgstr "Breedbandadapter MAC-adres"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:244
 msgid "Browse &NetPlay Sessions...."
-msgstr ""
+msgstr "Blader &NetPlay Sessies...."
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:114
 msgid "Buffer Size:"
@@ -1550,17 +1568,17 @@ msgstr "Knop"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:78
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:77
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:82
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:37
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:38
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:51
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:37
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:141
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:142
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:25
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:45
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:79
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:107
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:142
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:162
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:194
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:47
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:81
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:109
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:144
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:164
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:196
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:33
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:76
 msgid "Buttons"
@@ -1613,7 +1631,7 @@ msgstr ""
 msgid "Calculate"
 msgstr "Bereken"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:311
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:319
 msgid ""
 "Calculates lighting of 3D objects per-pixel rather than per-vertex, "
 "smoothing out the appearance of lit polygons and making individual triangles "
@@ -1629,11 +1647,11 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:731
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:708
 msgid "Calibrate"
 msgstr "Kalibreren"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:723
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:700
 msgid "Calibration"
 msgstr "Kalibratie"
 
@@ -1656,7 +1674,7 @@ msgstr "Kan geen NetPlay-sessie starten als spel nog draait!"
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:757
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:734
 msgid "Cancel Calibration"
 msgstr "Kalibratie Annuleren"
 
@@ -1690,9 +1708,9 @@ msgstr ""
 
 #. i18n: Refers to the "center" of a TaTaCon drum.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:42
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:212
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:230
 msgid "Center"
-msgstr ""
+msgstr "Middelpunt"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:313
 msgid "Change &Disc"
@@ -1710,7 +1728,7 @@ msgstr "Schijf Veranderen"
 msgid "Change Discs Automatically"
 msgstr "Schijfen Automatisch Verwisselen"
 
-#: Source/Core/Core/Movie.cpp:1190
+#: Source/Core/Core/Movie.cpp:1191
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Verander de schijf naar %s"
@@ -1786,13 +1804,13 @@ msgid "Classic Buttons"
 msgstr "Klassieke Knoppen"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:75
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:42
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:44
 msgid "Classic Controller"
 msgstr "Klassieke Controller"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:122
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:61
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:108
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:109
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:112
 msgid "Clear"
 msgstr "Legen"
@@ -1893,7 +1911,7 @@ msgstr "Configureer Invoer"
 msgid "Configure Output"
 msgstr "Configureer Uitvoer"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:176
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:191
 #: Source/Core/DolphinQt/GameList/GameList.cpp:498
 #: Source/Core/DolphinQt/GameList/GameList.cpp:558
 #: Source/Core/DolphinQt/GameList/GameList.cpp:635
@@ -1966,7 +1984,7 @@ msgstr "Verbindingstype:"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:727
 #, c-format
 msgid "Content %08x is corrupt."
-msgstr "Content %08x is beschadigd."
+msgstr "Inhoud %08x is beschadigd."
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 msgid "Continuous Scanning"
@@ -1974,7 +1992,7 @@ msgstr "Continu Scannen"
 
 #: Source/Core/Core/HotkeyManager.cpp:35
 msgid "Control NetPlay Golf Mode"
-msgstr ""
+msgstr "Bedien NetPlay Golf Modus"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:70
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:30
@@ -1983,7 +2001,7 @@ msgstr "Control Stick"
 
 #: Source/Core/Core/HotkeyManager.cpp:288
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:344
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:366
 msgid "Controller Profile"
 msgstr "Controllerprofiel"
 
@@ -1995,7 +2013,7 @@ msgstr "Controllerinstellingen"
 msgid "Controllers"
 msgstr "Controllers"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:333
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:342
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.\n"
@@ -2008,7 +2026,7 @@ msgstr ""
 "\n"
 "Een hogere waarde zorgt voor een sterker 'uit het scherm' effect."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:285
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:293
 msgid ""
 "Controls the rendering resolution. A high resolution greatly improves visual "
 "quality, but also greatly increases GPU load and can cause issues in certain "
@@ -2025,7 +2043,7 @@ msgstr ""
 "\n"
 "Bij twijfel, selecteert u Natief."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:330
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:339
 msgid ""
 "Controls the separation distance between the virtual cameras. \n"
 "\n"
@@ -2072,11 +2090,11 @@ msgstr "Convergentie:"
 msgid "Copy"
 msgstr "Kopieer"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:229
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:247
 msgid "Copy &function"
 msgstr "Kopieer &functie"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:232
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:250
 msgid "Copy &hex"
 msgstr "Kopieer &hex"
 
@@ -2088,7 +2106,7 @@ msgstr "Kopieer Adres"
 msgid "Copy Hex"
 msgstr "Kopieer Hex"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:231
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:249
 msgid "Copy code &line"
 msgstr "Kopieer code &lijn"
 
@@ -2269,7 +2287,7 @@ msgstr ""
 "In geval van twijfel leeg laten."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:81
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:181
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:183
 msgid "Crossfade"
 msgstr "Crossfade"
 
@@ -2291,17 +2309,17 @@ msgstr "Aangepaste RTC Opties"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:95
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:102
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:181
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:177
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:48
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:50
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:36
 msgid "D-Pad"
 msgstr "D-Pad"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:48
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:155
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:157
 msgid "DJ Turntable"
-msgstr ""
+msgstr "DJ Draaitabel"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "DK Bongos"
@@ -2349,16 +2367,20 @@ msgstr "Data ontvangen!"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro bestanden(*.sav)"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:32
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:31
 msgid "Dead Zone"
 msgstr "Dode Zone"
+
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:50
+msgid "Debug"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:68
 msgid "Debug Only"
 msgstr "Alleen debug"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:44
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:341
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:363
 msgid "Debugging"
 msgstr "Debugging"
 
@@ -2398,7 +2420,7 @@ msgstr "Verlaag Emulatiesnelheid"
 msgid "Decrease IR"
 msgstr "Verlaag IR"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:109
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 msgid "Default"
 msgstr "Standaard"
 
@@ -2578,7 +2600,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:348
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:357
 msgid ""
 "Disables the blending of adjacent rows when copying the EFB. This is known "
 "in some games as \"deflickering\" or \"smoothing\". \n"
@@ -2599,7 +2621,7 @@ msgstr ""
 msgid "Disc"
 msgstr "Schijf"
 
-#: Source/Core/DiscIO/DriveBlob.cpp:146
+#: Source/Core/DiscIO/DriveBlob.cpp:149
 msgid "Disc Read Error"
 msgstr "Schijf Leesfout"
 
@@ -2626,7 +2648,7 @@ msgstr "Afstand"
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:33
 msgid "Distance of travel from neutral position."
-msgstr ""
+msgstr "Reisafstand vanaf neutrale positie."
 
 #: Source/Core/DolphinQt/Main.cpp:195
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
@@ -2708,10 +2730,12 @@ msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
 msgstr ""
+"Dolphin kan TGC bestanden niet verifiëren, omdat het geen dumps zijn van "
+"werkelijke schijven."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:849
 msgid "Dolphin is unable to verify unlicensed discs."
-msgstr ""
+msgstr "Dolphin kan ongelicenseerde schijven niet verifiëren."
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:74
 msgid "Dolphin's cheat system is currently disabled."
@@ -2762,10 +2786,16 @@ msgstr "%1 codes gedownload. (%2 toegevoegd)"
 msgid "Drawn Object Range"
 msgstr "Getekend Object Bereik"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:55
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:70
-msgid "Drum Kit"
+#. i18n: The "Drawsome" (combination of "Draw" and "Awesome") tablet wiimote extension by Ubisoft.
+#: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:24
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:211
+msgid "Drawsome Tablet"
 msgstr ""
+
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:55
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:72
+msgid "Drum Kit"
+msgstr "Drum Kit"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:210
 msgid "Dual Core"
@@ -2778,7 +2808,7 @@ msgstr "Pop"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:96
 msgid "Dump &ARAM"
-msgstr ""
+msgstr "Dump &ARAM"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:95
 msgid "Dump &ExRAM"
@@ -2921,7 +2951,7 @@ msgid "Editor"
 msgstr "Bewerker"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:78
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:166
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:168
 msgid "Effect"
 msgstr "Effect"
 
@@ -2929,7 +2959,7 @@ msgstr "Effect"
 #. translation via the MMU to physical addresses.
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:122
 msgid "Effective"
-msgstr ""
+msgstr "Effectief"
 
 #: Source/Core/UICommon/UICommon.cpp:430
 msgid "EiB"
@@ -2943,11 +2973,11 @@ msgstr "Schijf Uitwerpen"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Embedded Frame Buffer (EFB)"
 
-#: Source/Core/Core/State.cpp:444
+#: Source/Core/Core/State.cpp:440
 msgid "Empty"
 msgstr "Leeg"
 
-#: Source/Core/Core/Core.cpp:196
+#: Source/Core/Core/Core.cpp:211
 msgid "Emu Thread already running"
 msgstr "Emu Thread draait al"
 
@@ -3048,7 +3078,7 @@ msgstr ""
 "Activeer Floating Point Result Flag berekening, nodig voor enkele spellen. "
 "(AAN = Compatibel, UIT = Snel)"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:298
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:306
 msgid ""
 "Enables anisotropic filtering, which enhances the visual quality of textures "
 "that are at oblique viewing angles.\n"
@@ -3064,7 +3094,7 @@ msgstr ""
 "\n"
 "In geval van twijfel selecteer 1x."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:353
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:362
 msgid ""
 "Enables detection of arbitrary mipmaps, which some games use for special "
 "distance-based effects.\n"
@@ -3208,7 +3238,8 @@ msgstr "Gelijk aan"
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:258
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:264
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:167
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:182
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:221
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:208
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:224
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:466
@@ -3262,7 +3293,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:203
 msgid "Error obtaining session list: %1"
-msgstr ""
+msgstr "Fout in het verkrijgen van sessie lijst: %1"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:243
 msgid "Error occured while loading some texture packs"
@@ -3324,12 +3355,12 @@ msgstr ""
 #: Source/Core/DiscIO/VolumeVerifier.cpp:823
 #, c-format
 msgid "Errors were found in %zu blocks in the %s partition."
-msgstr ""
+msgstr "Fouten zijn gevonden in %zu blokken in de %s partitie."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:835
 #, c-format
 msgid "Errors were found in %zu unused blocks in the %s partition."
-msgstr ""
+msgstr "Fouten zijn gevonden in %zu ongebruikte blokken in de %s partitie."
 
 #. i18n: This button name refers to a gameplay element in DJ Hero
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:63
@@ -3383,8 +3414,8 @@ msgstr "Exporteer Wii saves (Experimenteel)"
 msgid "Exported %n save(s)"
 msgstr "%n save(s) geëxporteerd"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:163
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:330
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:158
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:352
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:46
 msgid "Extension"
 msgstr "Extensie"
@@ -3436,7 +3467,7 @@ msgstr "FIFO Speler"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:383
 msgid "Failed to add this session to the NetPlay index: %1"
-msgstr ""
+msgstr "Het is niet gelukt om de sessie aan de NetPlay index toe te voegen: %1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1358
 msgid "Failed to append to signature file '%1'"
@@ -3537,6 +3568,8 @@ msgid ""
 "Failed to initialize Direct3D.\n"
 "Make sure your video card supports at least D3D 10.0"
 msgstr ""
+"Direct3D initialisatie mislukt.\n"
+"Zorg ervoor dat uw videokaart ten minste D3D 10.0 ondersteunt."
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:201
 msgid "Failed to install pack: %1"
@@ -3641,7 +3674,7 @@ msgstr ""
 msgid "Failed to read %s"
 msgstr "Lezen van %s is mislukt"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:120
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:119
 msgid ""
 "Failed to read 1st block allocation table block correctly\n"
 "(0x6000-0x7FFF)"
@@ -3649,7 +3682,7 @@ msgstr ""
 "Het lezen van de eerste block allocation table is mislukt\n"
 "(0x6000-0x7FFF)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:108
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:107
 msgid ""
 "Failed to read 1st directory block correctly\n"
 "(0x2000-0x3FFF)"
@@ -3657,7 +3690,7 @@ msgstr ""
 "Het lezen van de eerste map block is mislukt\n"
 "(0x2000-0x3FFF)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:126
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:125
 msgid ""
 "Failed to read 2nd block allocation table block correctly\n"
 "(0x8000-0x9FFF)"
@@ -3665,7 +3698,7 @@ msgstr ""
 "Het lezen van de tweede block allocation table block is mislukt\n"
 "(0x8000-0x9FFF)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:114
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:113
 msgid ""
 "Failed to read 2nd directory block correctly\n"
 "(0x4000-0x5FFF)"
@@ -3673,7 +3706,7 @@ msgstr ""
 "Het lezen van de tweede map block is mislukt\n"
 "(0x4000-0x5FFF)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:199
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:198
 #, c-format
 msgid ""
 "Failed to read block %u of the save data\n"
@@ -3689,7 +3722,7 @@ msgstr ""
 msgid "Failed to read data from GCI file %s"
 msgstr "Het lezen van %s GCI bestand is mislukt"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:97
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:96
 msgid ""
 "Failed to read header correctly\n"
 "(0x0000-0x1FFF)"
@@ -3747,7 +3780,7 @@ msgstr "Het schrijven van BT.DINF naar SYSCONF is mislukt"
 
 #: Source/Core/Core/NetPlayClient.cpp:909
 msgid "Failed to write Mii data."
-msgstr ""
+msgstr "Kon Mii data niet schrijven."
 
 #: Source/Core/Core/NetPlayClient.cpp:990
 msgid "Failed to write Wii save."
@@ -3783,7 +3816,7 @@ msgstr "Snel"
 msgid "Fast Depth Calculation"
 msgstr "Snelle Diepteberekening"
 
-#: Source/Core/Core/Movie.cpp:1222
+#: Source/Core/Core/Movie.cpp:1223
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3810,7 +3843,7 @@ msgstr "Bestandsgrootte"
 msgid "File contained no codes."
 msgstr "Bestand bevat geen codes."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:58
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:57
 #, c-format
 msgid ""
 "File has the extension \"%s\".\n"
@@ -3859,7 +3892,7 @@ msgstr "Filter Symbolen"
 msgid "Filters"
 msgstr "Filters"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:344
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:353
 msgid ""
 "Filters all textures, including any that the game explicitly set as "
 "unfiltered.\n"
@@ -3883,7 +3916,7 @@ msgstr "Zoek &Volgende"
 msgid "Find &Previous"
 msgstr "Zoek &Vorige"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:744
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:721
 msgid "Finish Calibration"
 msgstr "Kalibratie Afronden"
 
@@ -3917,11 +3950,11 @@ msgstr "Flags"
 msgid "Float"
 msgstr "Kommagetal"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:223
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:241
 msgid "Follow &branch"
 msgstr "Volg &tak"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:724
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:701
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 "Stuur voor de beste resultaten uw invoer langzaam naar alle mogelijke "
@@ -3947,7 +3980,7 @@ msgstr "Forceer Luisterpoort:"
 msgid "Force Texture Filtering"
 msgstr "Forceer Texture Filtering"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:315
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:323
 msgid ""
 "Forces the game to output graphics for any aspect ratio. Use with \"Aspect "
 "Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9.\n"
@@ -3968,7 +4001,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:340
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:349
 msgid ""
 "Forces the game to render the RGB color channels in 24-bit, thereby "
 "increasing quality by reducing color banding. Has no impact on performance "
@@ -3983,7 +4016,7 @@ msgstr ""
 "\n"
 "In geval van twijfel geselecteerd laten."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:46
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:45
 msgid ""
 "Format as Shift JIS (Japanese)?\n"
 "Choose no for Windows-1252 (Western)"
@@ -3991,7 +4024,6 @@ msgstr ""
 "Formatteren als Shift JIS (Japans)?\n"
 "Kies nee voor Windows-1252 (Westers)"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:30
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:20
 msgid "Forward"
@@ -4034,7 +4066,7 @@ msgstr "Gebruik FFV1 Voor Frame Dumps"
 msgid "Frame Range"
 msgstr "Framebereik"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1600
+#: Source/Core/VideoCommon/RenderBase.cpp:1601
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Frame Dump-afbeelding(en) '%s' bestaan al. Overschrijven?"
@@ -4108,7 +4140,7 @@ msgid "Frequency"
 msgstr "Frequentie"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:68
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:137
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
 msgid "Frets"
 msgstr "Frets"
 
@@ -4163,7 +4195,7 @@ msgstr "GCI Map"
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock aangeroepen met ongeldige blok adres"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:522
+#: Source/Core/VideoCommon/CommandProcessor.cpp:521
 #, c-format
 msgid ""
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
@@ -4251,11 +4283,11 @@ msgstr "GameCube Adapter voor de Wii U"
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr "GameCube Adapter voor de Wii U op Poort %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:314
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:337
 msgid "GameCube Controller"
 msgstr "GameCube Controller"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:313
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:336
 msgid "GameCube Controller at Port %1"
 msgstr "GameCube Controller op Poort %1"
 
@@ -4263,11 +4295,11 @@ msgstr "GameCube Controller op Poort %1"
 msgid "GameCube Controllers"
 msgstr "GameCube Controllers"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:305
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:328
 msgid "GameCube Keyboard"
 msgstr "GameCube Toetsenbord"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:306
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:329
 msgid "GameCube Keyboard at Port %1"
 msgstr "GameCube Toetsenbord op Poort %1"
 
@@ -4280,7 +4312,7 @@ msgstr "GameCube Geheugenkaart Beheer"
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr "GameCube Geheugenkaarten (*.raw *.gcp)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:318
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:341
 msgid "GameCube Microphone Slot %1"
 msgstr "GameCube Microfoon Slot %1"
 
@@ -4299,12 +4331,12 @@ msgstr "Gecko Codes"
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:111
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:116
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:336
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:358
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:37
 msgid "General"
 msgstr "Algemeen"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:327
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:350
 msgid "General and Options"
 msgstr "Algemeen en Opties"
 
@@ -4343,7 +4375,7 @@ msgid "Golf Mode"
 msgstr "Golf Modus"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:32
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:345
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:367
 #: Source/Core/DolphinQt/ToolBar.cpp:125
 msgid "Graphics"
 msgstr "Grafisch"
@@ -4353,7 +4385,7 @@ msgstr "Grafisch"
 msgid "Graphics Toggles"
 msgstr "Graphicsschakelaars"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:306
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:314
 msgid ""
 "Greatly increases the quality of textures generated using render-to-texture "
 "effects. Slightly increases GPU load and causes relatively few graphical "
@@ -4387,7 +4419,7 @@ msgid "Grid View"
 msgstr "Rasterweergave"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:65
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:126
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:128
 msgid "Guitar"
 msgstr "Gitaar"
 
@@ -4400,7 +4432,7 @@ msgstr "HDMI 3D"
 msgid "Hacks"
 msgstr "Hacks"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:136
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:135
 msgid "Header checksum failed"
 msgstr "Header controlesom ongeldig"
 
@@ -4414,7 +4446,7 @@ msgstr "Hex"
 msgid "Hexadecimal"
 msgstr "Hexadecimaal"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:32
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:31
 msgid "Hide"
 msgstr "Verberg"
 
@@ -4429,7 +4461,7 @@ msgstr "Hoog"
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:67
 msgid "Hit Strength"
-msgstr ""
+msgstr "Sla Sterkte "
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:141
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:195
@@ -4460,12 +4492,12 @@ msgstr "Host Invoer Autoriteit Ingeschakeld"
 msgid "Host with NetPlay"
 msgstr "Host met NetPlay"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:350
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:372
 msgid "Hotkey Settings"
 msgstr "Sneltoetsinstellingen"
 
 #: Source/Core/Core/HotkeyManager.cpp:195
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Hotkeys"
 msgstr "Sneltoetsen"
@@ -4509,9 +4541,6 @@ msgstr "IP Adres:"
 msgid "IPL Settings"
 msgstr "IPL Instellingen"
 
-#. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:151
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:29
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:47
 msgid "IR"
 msgstr "IR"
@@ -4695,14 +4724,14 @@ msgstr "Invoer"
 #. i18n: Refers to the "threshold" setting for pressure sensitive gamepad inputs.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:30
 msgid "Input strength required for activation."
-msgstr ""
+msgstr "Input drempelwaarde."
 
 #. i18n: Refers to the dead-zone setting of gamepad inputs.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:36
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
 msgid "Input strength to ignore."
-msgstr ""
+msgstr "Input drempelwaarde."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:251
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:269
 msgid "Insert &nop"
 msgstr "Toevoegen &nop"
 
@@ -4729,7 +4758,7 @@ msgstr "Installeren op de NAND"
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
 msgid "Instruction"
-msgstr ""
+msgstr "Instructie"
 
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:36
 msgid "Instruction Breakpoint"
@@ -4741,7 +4770,7 @@ msgstr "Instructie:"
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:60
 msgid "Instruction: %1"
-msgstr ""
+msgstr "Instructie: %1"
 
 #. i18n: Refers to the intensity of shaking an emulated wiimote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:142
@@ -4753,7 +4782,7 @@ msgid "Interface"
 msgstr "Interface"
 
 #: Source/Core/Core/NetPlayServer.cpp:1799
-#: Source/Core/Core/NetPlayServer.cpp:1854 Source/Core/Core/State.cpp:363
+#: Source/Core/Core/NetPlayServer.cpp:1854 Source/Core/Core/State.cpp:361
 msgid "Internal LZO Error - compression failed"
 msgstr "Interne LZO fout - compressie is mislukt"
 
@@ -4762,7 +4791,7 @@ msgstr "Interne LZO fout - compressie is mislukt"
 msgid "Internal LZO Error - decompression failed"
 msgstr "Interne LZO fout - decompressie is mislukt"
 
-#: Source/Core/Core/State.cpp:495
+#: Source/Core/Core/State.cpp:491
 #, c-format
 msgid ""
 "Internal LZO Error - decompression failed (%d) (%li, %li) \n"
@@ -4771,7 +4800,7 @@ msgstr ""
 "Interne LZO fout - decompressie is mislukt (%d) (%li, %li) \n"
 "Probeer de staat opnieuw te laden"
 
-#: Source/Core/Core/State.cpp:600
+#: Source/Core/Core/State.cpp:596
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Interne LZO fout - lzo_init() is mislukt"
 
@@ -5008,14 +5037,14 @@ msgid "Left"
 msgstr "Links"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:89
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:52
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:54
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:86
 msgid "Left Stick"
 msgstr "Linker Knuppel"
 
 #. i18n: "Table" refers to a turntable
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:67
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:172
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:174
 msgid "Left Table"
 msgstr "Linker Tafel"
 
@@ -5258,11 +5287,11 @@ msgstr "Log JIT-instructiedekking"
 msgid "Log Render Time to File"
 msgstr "Log Rendertijden Naar Bestand"
 
-#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:58
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:59
 msgid "Log Types"
 msgstr "Log Types"
 
-#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:51
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:52
 msgid "Logger Outputs"
 msgstr "Logger Uitvoer"
 
@@ -5318,7 +5347,7 @@ msgstr "Maker"
 msgid "Maker:"
 msgstr "Maker:"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:320
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:328
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -5353,7 +5382,7 @@ msgstr "Max buffergrootte gewijzigd naar %1"
 #. i18n: Refers to emulated wii remote movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:32
 msgid "Maximum tilt angle."
-msgstr ""
+msgstr "Maximale kantel hoek."
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:128
 msgid "May cause slow down in Wii Menu and some games."
@@ -5402,7 +5431,7 @@ msgstr "Geheugen Niet Gereed"
 msgid "Memory breakpoint options"
 msgstr "Geheugen breakpoint opties"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:102
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:101
 msgid "Memory card file size does not match the header size"
 msgstr "Geheugenkaart bestandsgrootte komt niet overeen met de headergrootte"
 
@@ -5439,7 +5468,7 @@ msgstr "MiB"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:90
 #: Source/Core/DolphinQt/Config/Mapping/GCMicrophone.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:320
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:343
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:96
 msgid "Microphone"
 msgstr "Microfoon"
@@ -5485,13 +5514,12 @@ msgstr "Meer dan of gelijk aan"
 msgid "More than"
 msgstr "Meer dan"
 
-#. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:329
-msgid "Motion Controls and IR"
-msgstr "Motion Controls en IR"
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:351
+msgid "Motion Controls"
+msgstr ""
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:87
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:178
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:174
 msgid "Motor"
 msgstr "Motor"
 
@@ -5527,7 +5555,7 @@ msgstr "NTSC-J"
 msgid "NTSC-U"
 msgstr "NTSC-U"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:237
 msgid "NVIDIA 3D Vision"
 msgstr "NVIDIA 3D Vision"
 
@@ -5549,7 +5577,7 @@ msgstr "Naam van de te verwijderen tag:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:152
 msgid "Name of your session shown in the server browser"
-msgstr ""
+msgstr "Naam van je sessie zoals weergegeven in de server browser"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:96
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:86
@@ -5701,7 +5729,7 @@ msgstr "Geen Waarde Gegeven"
 msgid "No description available"
 msgstr "Geen omschrijving beschikbaar"
 
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:90
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "Geen extensie geselecteerd."
 
@@ -5728,6 +5756,9 @@ msgid ""
 "but since Wii titles contain a lot of verification data, it does mean that "
 "there most likely are no problems that will affect emulation."
 msgstr ""
+"Geen problemen zijn gevonden. Dit garandeert niet dat het een goede dump is "
+"maar omdat Wii spellen een hoop verificatie data bevatten betekend het dat "
+"er waarschijnlijk geen problemen zijn die emulatie beïnvloeden. "
 
 #: Source/Core/InputCommon/InputConfig.cpp:72
 #, c-format
@@ -5742,7 +5773,7 @@ msgstr "Geen opname geladen."
 msgid "No save data found."
 msgstr "Geen save data gevonden."
 
-#: Source/Core/Core/State.cpp:689
+#: Source/Core/Core/State.cpp:685
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "Geen undo.dtm gevonden. Het ongedaan maken van staat laden wordt afgebroken "
@@ -5754,7 +5785,7 @@ msgstr "Geen waarde opgegeven."
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:90
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:183
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:211
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:218
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
 msgstr "Geen"
@@ -5800,10 +5831,10 @@ msgstr "NumExec"
 #. i18n: Refering to emulated wii remote movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:156
 msgid "Number of shakes per second."
-msgstr ""
+msgstr "Aantal schud bewegingen per seconde."
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:34
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:101
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:35
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:103
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
@@ -5840,7 +5871,7 @@ msgid "Octal"
 msgstr "Octaal"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:157
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:113
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:112
 msgid "Off"
 msgstr "Uit"
 
@@ -5924,7 +5955,7 @@ msgstr "OpenGL ES"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:81
 #: Source/Core/Core/HW/GCPadEmu.cpp:103
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:189
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:185
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:38
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:63
 msgid "Options"
@@ -5946,13 +5977,13 @@ msgstr "Overige"
 msgid "Other State Hotkeys"
 msgstr "Overige Staat-sneltoetsen"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:349
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:371
 msgid "Other State Management"
 msgstr "Overige Staatbeheer"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:157
 msgid "Other game..."
-msgstr ""
+msgstr "Ander spel..."
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:52
 msgid "Overlay Information"
@@ -5978,7 +6009,7 @@ msgstr "PNG afbeeldingsbestand (*.png);; Alle bestanden (*)"
 msgid "PPC Size"
 msgstr "PPC Grootte"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:249
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:267
 msgid "PPC vs Host"
 msgstr "PPC vs Host"
 
@@ -5987,7 +6018,7 @@ msgid "Pad"
 msgstr "Pad"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:58
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:77
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:79
 msgid "Pads"
 msgstr "Pads"
 
@@ -5999,6 +6030,10 @@ msgstr "Parseerfout"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:104
 msgid "Partition %1"
 msgstr "Partitie %1"
+
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:113
+msgid "Passive"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:147
 msgid "Passthrough a Bluetooth adapter"
@@ -6048,12 +6083,12 @@ msgstr "Pauzeer bij Verliezen van Focus"
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:56
 msgid "Peak velocity of movements to neutral position."
-msgstr ""
+msgstr "Top snelheid van beweging naar neutrale positie."
 
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:47
 msgid "Peak velocity of outward swing movements."
-msgstr ""
+msgstr "Top snelheid van buitenwaartse zwaai beweging."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:75
 msgid "Per-Pixel Lighting"
@@ -6071,7 +6106,7 @@ msgstr "Voer Systeemupdate Uit"
 #. physically wired up.
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:127
 msgid "Physical"
-msgstr ""
+msgstr "Fysieke"
 
 #: Source/Core/UICommon/UICommon.cpp:430
 msgid "PiB"
@@ -6115,6 +6150,11 @@ msgstr "Speler"
 msgid "Players"
 msgstr "Spelers"
 
+#. i18n: "Point" refers to the action of pointing a Wii Remote.
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:152
+msgid "Point"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:85
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:52
 msgid "Port %1"
@@ -6147,12 +6187,12 @@ msgstr "Prefetch Aangepaste Texturen"
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "Vroegtijdige beeïndiging van filmpje in PlayController. %u + %zu > %zu"
 
-#: Source/Core/Core/Movie.cpp:1236
+#: Source/Core/Core/Movie.cpp:1237
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "Vroegtijdige beeïndiging van filmpje in PlayWiimote. %u + %d > %zu"
 
-#: Source/Core/Core/Movie.cpp:1211
+#: Source/Core/Core/Movie.cpp:1212
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "Vroegtijdige beeïndiging van filmpje in PlayWiimote. %u > %zu"
@@ -6173,9 +6213,10 @@ msgstr "Voorinstellingen"
 msgid "Press Sync Button"
 msgstr "Druk Op Sync Knop"
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:33
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:51
 msgid "Pressure"
-msgstr ""
+msgstr "Druk"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:255
 msgid ""
@@ -6322,7 +6363,7 @@ msgstr "RSO Modules"
 msgid "Range"
 msgstr "Afstand"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:253
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:271
 msgid "Re&place instruction"
 msgstr "Ver&vang instructie"
 
@@ -6362,7 +6403,7 @@ msgstr "Echt Balance Board"
 msgid "Real Wii Remote"
 msgstr "Echte Wii-afstandsbediening"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:33
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:32
 msgid "Recenter"
 msgstr "Hercentreren"
 
@@ -6403,7 +6444,7 @@ msgstr "Rood Rechts"
 msgid "Reduce Polling Rate"
 msgstr "Verlaag Pollingsnelheid"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:291
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:299
 msgid ""
 "Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting "
 "in smoother edges on objects. Increases GPU load and sometimes causes "
@@ -6459,7 +6500,7 @@ msgstr "Regio:"
 msgid "Registers"
 msgstr "Registers"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:63
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:62
 msgid "Relative Input"
 msgstr "Relatieve Input"
 
@@ -6490,8 +6531,8 @@ msgstr "Verwijderen uit Watchvenster"
 msgid "Remove tag"
 msgstr "Tag verwijderen"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:384
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:419
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:402
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:437
 msgid "Rename symbol"
 msgstr "Hernoem symbool"
 
@@ -6525,8 +6566,8 @@ msgstr "Verzoek om Lid te Worden van Uw Partij"
 #: Source/Core/Core/HotkeyManager.cpp:30
 #: Source/Core/DolphinQt/CheatsManager.cpp:384
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:732
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:107
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:709
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:108
 msgid "Reset"
 msgstr "Reset"
 
@@ -6554,7 +6595,7 @@ msgstr "Resourcepakketbeheer"
 msgid "Restart Required"
 msgstr "Herstarten Vereist"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:255
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:273
 msgid "Restore instruction"
 msgstr "Herstel instructie"
 
@@ -6564,7 +6605,7 @@ msgstr "Opnieuw"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:52
 msgid "Return Speed"
-msgstr ""
+msgstr "Terugkeer Snelheid"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:640
 msgid "Revision"
@@ -6585,30 +6626,30 @@ msgid "Right"
 msgstr "Rechts"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:91
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:56
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:58
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:90
 msgid "Right Stick"
 msgstr "Rechter Stick"
 
 #. i18n: "Table" refers to a turntable
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:70
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:177
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:179
 msgid "Right Table"
 msgstr "Rechter Tafel"
 
 #. i18n: Refers to the "rim" of a TaTaCon drum.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:47
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:214
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:232
 msgid "Rim"
-msgstr ""
+msgstr "Rand"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:31
 msgid "Rocker Down"
-msgstr ""
+msgstr "Knop Omlaag"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:30
 msgid "Rocker Up"
-msgstr ""
+msgstr "Knop Omhoog"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:533
 msgid "Room ID"
@@ -6617,7 +6658,7 @@ msgstr "Kamer ID"
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:64
 msgid "Rotation applied at extremities of swing."
-msgstr ""
+msgstr "Rotatie toegepast aan de uiteinden van de zwaai."
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:249
 msgid ""
@@ -6637,13 +6678,13 @@ msgstr ""
 "In geval van twijfel leeg laten."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:85
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:176
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:172
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:36
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:58
 msgid "Rumble"
 msgstr "Rumble"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:246
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:264
 msgid "Run &To Here"
 msgstr "Loop &Tot Hier"
 
@@ -6784,7 +6825,7 @@ msgstr "Sla Staat Op naar Slot"
 msgid "Save Symbol Map &As..."
 msgstr "Sla Symbol Map Op &Als..."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:348
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:370
 msgid "Save and Load State"
 msgstr "Staat Opslaan en Laden"
 
@@ -7056,7 +7097,7 @@ msgstr ""
 "\n"
 "Selecteer bij twijfel de eerste."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:324
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:332
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling of "
 "depth if the necessary hardware is present.\n"
@@ -7064,22 +7105,12 @@ msgid ""
 "Side-by-Side and Top-and-Bottom are used by most 3D TVs.\n"
 "Anaglyph is used for Red-Cyan colored glasses.\n"
 "HDMI 3D is used when the monitor supports 3D display resolutions.\n"
+"Passive is another type of 3D used by some TVs.\n"
 "\n"
 "Heavily decreases emulation speed and sometimes causes issues.\n"
 "\n"
 "If unsure, select Off."
 msgstr ""
-"Selecteert de stereoscopische 3D-modus. Stereoscopie zorgt voor een beter "
-"gevoel van diepte als u de benodigde hardware bezit.\n"
-"\n"
-"Naast Elkaar en Boven en Beneden wordt door de meeste 3D TV's ondersteund.\n"
-"Anaglyph werkt alleen met een rood en cyaan bril.\n"
-"HDMI 3D wordt gebruikt wanneer uw monitor 3D-weergaveresoluties "
-"ondersteunt.\n"
-"\n"
-"Vertraagt de emulatiesnelheid enorm en kan voor problemen zorgen.\n"
-"\n"
-"In geval van twijfel leeg laten."
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:222
 msgid ""
@@ -7181,7 +7212,7 @@ msgstr "Stel PC In"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:305
 msgid "Set as &Default ISO"
-msgstr "Stel in als &standaard ISO"
+msgstr "Stel in als &Standaard ISO"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:260
 msgid "Set memory card file for Slot A"
@@ -7191,19 +7222,19 @@ msgstr "Stel geheugenkaartbestand in voor Slot A"
 msgid "Set memory card file for Slot B"
 msgstr "Stel geheugenkaartbestand in voor Slot B"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:243
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:261
 msgid "Set symbol &end address"
 msgstr "Stel symbool in &eindadres"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:241
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:259
 msgid "Set symbol &size"
 msgstr "Stel symbool in &grootte"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:442
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:460
 msgid "Set symbol end address"
 msgstr "Stel symbool eindadres in"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:420
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:438
 msgid "Set symbol size (%1):"
 msgstr "Stel symboolgrootte (%1) in:"
 
@@ -7245,10 +7276,9 @@ msgstr "Hevigheid"
 msgid "Shader Compilation"
 msgstr "Shadercompilatie"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:55
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:160
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:103
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:56
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:155
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:105
 msgid "Shake"
 msgstr "Schudden"
 
@@ -7310,7 +7340,7 @@ msgstr "Toon Duitsland"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:170
 msgid "Show Golf Mode Overlay"
-msgstr ""
+msgstr "Weergeef Golf Modus Overlay"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:716
 msgid "Show Input Display"
@@ -7414,7 +7444,7 @@ msgstr "Toon Wii"
 msgid "Show World"
 msgstr "Toon Wereld"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:234
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:252
 msgid "Show in &memory"
 msgstr "In &geheugen weergeven"
 
@@ -7424,7 +7454,7 @@ msgstr "In code tonen"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:132
 msgid "Show in server browser"
-msgstr ""
+msgstr "Weergeef in server browser"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:158
 msgid ""
@@ -7480,19 +7510,19 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:113
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:112
 msgid "Side-by-Side"
 msgstr "Naast elkaar"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:219
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:215
 msgid "Sideways Hold"
 msgstr "Zijwaarts Houden"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:212
 msgid "Sideways Toggle"
 msgstr "Schakel Zijwaarts"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:205
 msgid "Sideways Wii Remote"
 msgstr "Wii-afstandsbediening Zijwaarts"
 
@@ -7539,7 +7569,7 @@ msgid "Skip Main Menu"
 msgstr "Hoofdmenu Overslaan"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:146
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:148
 msgid "Slider Bar"
 msgstr "Schuifbalk"
 
@@ -7587,7 +7617,7 @@ msgstr "Spanje"
 msgid "Spanish"
 msgstr "Spaans"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:192
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:188
 msgid "Speaker Pan"
 msgstr "Speaker Pan"
 
@@ -7691,12 +7721,12 @@ msgstr "Stereoscopie"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:74
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:89
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:44
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:45
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:75
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:73
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:110
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:130
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:157
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:75
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:112
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:132
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:159
 msgid "Stick"
 msgstr "Knuppel"
 
@@ -7779,18 +7809,20 @@ msgid "String Match"
 msgstr "String Match"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:76
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:135
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:137
 msgid "Strum"
 msgstr "Strum"
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:28
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:46
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:198
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:200
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:214
 msgid "Stylus"
-msgstr ""
+msgstr "Stylus"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:320
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:193
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:209
 #: Source/Core/DolphinQt/GameList/GameList.cpp:603
 #: Source/Core/DolphinQt/GameList/GameList.cpp:620
 #: Source/Core/DolphinQt/GameList/GameList.cpp:648
@@ -7802,7 +7834,7 @@ msgstr "Geslaagd"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:382
 msgid "Successfully added to the NetPlay index"
-msgstr ""
+msgstr "Succesvol aan NetPlay index toegevoegd"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:606
 #, c-format
@@ -7814,7 +7846,7 @@ msgstr "%nimage(s) succesvol gecomprimeerd."
 msgid "Successfully decompressed %n image(s)."
 msgstr "%n image(s) succesvol uitgepakt."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:194
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:210
 msgid "Successfully deleted '%1'."
 msgstr "'%1' is succesvol verwijderd."
 
@@ -7867,7 +7899,7 @@ msgstr "Ondersteuning"
 msgid "Swap Eyes"
 msgstr "Wissel Ogen"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:337
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:346
 msgid ""
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.\n"
 "\n"
@@ -7878,10 +7910,9 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:47
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:154
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:116
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:33
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:48
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:153
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:118
 msgid "Swing"
 msgstr "Zwaai"
 
@@ -7898,11 +7929,11 @@ msgstr "Overschakelen naar B"
 msgid "Symbol"
 msgstr "Symbool"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:443
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:461
 msgid "Symbol (%1) end address:"
 msgstr "Symbool (%1) eindadres:"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:384
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:402
 msgid "Symbol name:"
 msgstr "Symboolnaam:"
 
@@ -7966,7 +7997,7 @@ msgstr "TAS Invoer"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:339
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:361
 msgid "TAS Tools"
 msgstr "TAS-Tools"
 
@@ -7979,9 +8010,9 @@ msgstr "Tags"
 
 #. i18n: The drum controller used in "Taiko no Tatsujin" games. Also known as a "TaTaCon".
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:39
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:209
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:227
 msgid "Taiko Drum"
-msgstr ""
+msgstr "Taiko Drum"
 
 #: Source/Core/DiscIO/Enums.cpp:57
 msgid "Taiwan"
@@ -8007,22 +8038,22 @@ msgstr "Texture Formaat Overlay"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:237
 #, c-format
 msgid "The %s partition does not have a valid file system."
-msgstr ""
+msgstr "De %s partitie heeft geen valide bestandssysteem. "
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:228
 #, c-format
 msgid "The %s partition does not seem to contain valid data."
-msgstr ""
+msgstr "De %s partitie bevat geen valide data."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:189
 #, c-format
 msgid "The %s partition is not correctly signed."
-msgstr ""
+msgstr "De %s partitie is niet correct ondertekend."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:184
 #, c-format
 msgid "The %s partition is not properly aligned."
-msgstr ""
+msgstr "De %s partitie is niet goed uitgelijnd."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:195
 #, c-format
@@ -8042,7 +8073,7 @@ msgstr ""
 #. so that people will recognize it as the name of the game mode.
 #: Source/Core/DiscIO/VolumeVerifier.cpp:136
 msgid "The Masterpiece partitions are missing."
-msgstr ""
+msgstr "De Masterpiece partities ontbreken."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1082
 msgid ""
@@ -8106,7 +8137,7 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "Schijfkopie \"%s\" is afgekapt en mist data."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:495
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:515
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 "De schijf die op het punt stond geplaatst te worden, kon niet worden "
@@ -8224,9 +8255,10 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:124
 msgid "The install partition is missing."
-msgstr ""
+msgstr "De installeer partitie ontbreekt."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:168
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:183
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:222
 msgid "The profile '%1' does not exist"
 msgstr "Het profiel '%1' bestaat niet"
 
@@ -8293,7 +8325,7 @@ msgstr "Het opgegeven bestand \"%s\" bestaat niet"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:168
 msgid "The type of a partition could not be read."
-msgstr ""
+msgstr "Het type van een partitie kon niet worden gelezen."
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:60
 msgid ""
@@ -8305,15 +8337,15 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:268
 msgid "The update partition does not contain the IOS used by this title."
-msgstr ""
+msgstr "De update partitie bevat niet de IOS die wordt gebruikt door het spel."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:111
 msgid "The update partition is missing."
-msgstr ""
+msgstr "De update partitie ontbreekt."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:143
 msgid "The update partition is not at its normal position."
-msgstr ""
+msgstr "De update partitie is niet op zijn normale positie."
 
 #: Source/Core/Core/ActionReplay.cpp:254
 msgid "The value is invalid"
@@ -8332,9 +8364,9 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:99
 msgid "There are too many partitions in the first partition table."
-msgstr ""
+msgstr "Er zijn te veel partities in de eerste partitie tabel."
 
-#: Source/Core/Core/State.cpp:694
+#: Source/Core/Core/State.cpp:690
 msgid "There is nothing to undo!"
 msgstr "Er is niks om ongedaan te maken!"
 
@@ -8390,18 +8422,18 @@ msgstr ""
 "Deze action replay simulator ondersteund geen codes die de Action Replay "
 "zelf aanpassen."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:178
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:193
 #: Source/Core/DolphinQt/GameList/GameList.cpp:749
 msgid "This cannot be undone!"
 msgstr "Dit kan niet ongedaan gemaakt worden!"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:422
 msgid "This debug disc image has the size of a retail disc image."
-msgstr ""
+msgstr "Deze debug schijfkopie heeft de grote van een retail schijfkopie."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:440
 msgid "This disc image has an unusual size."
-msgstr ""
+msgstr "Deze schijfkopie heeft een ongebruikelijke grote."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:433
 msgid ""
@@ -8441,6 +8473,10 @@ msgid ""
 "pre-rendered videos, extra languages or entire game modes will be broken. "
 "This problem generally only exists in illegal copies of games."
 msgstr ""
+"Dit spel is gehackt zodat het op een single-layer DVD past. Inhoud zoals "
+"vooraf gerenderde videos, extra talen of hele spel modi zullen niet goed "
+"werken. Dit probleem komt over het algemeen alleen in illegale kopieën van "
+"spellen voor."
 
 #: Source/Core/VideoCommon/VideoBackendBase.cpp:161
 msgid ""
@@ -8455,11 +8491,11 @@ msgstr ""
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:614
 msgid "This non-Korean title is set to use the Korean common key."
-msgstr ""
+msgstr "Dit niet Koreaanse spel gebruikt een Koreaanse gedeelde sleutel."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:286
 msgid "This session requires a password:"
-msgstr ""
+msgstr "Deze sessie heeft een wachtwoord nodig:"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:93
 msgid ""
@@ -8485,16 +8521,16 @@ msgstr "Deze titel kan niet worden opgestart."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:71
 msgid "This title is not correctly signed."
-msgstr ""
+msgstr "Dit spel is niet correct gesigneerd."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:588
 msgid "This title is set to use an invalid IOS."
-msgstr ""
+msgstr "Dit spel gebruikt een ongeldige IOS."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:604
 msgid "This title is set to use an invalid common key."
-msgstr ""
+msgstr "Dit spel gebruikt een ongeldige gedeelde sleutel."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:296
 #, c-format
@@ -8553,10 +8589,9 @@ msgstr "Drempelwaarde"
 msgid "TiB"
 msgstr "TiB"
 
-#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:50
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:157
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:113
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControl.cpp:31
+#: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:51
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:154
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:115
 msgid "Tilt"
 msgstr "Kantelen"
 
@@ -8597,7 +8632,7 @@ msgstr "Schakel 3D Boven en Beneden"
 msgid "Toggle 3D Vision"
 msgstr "3D Vision Omschakelen"
 
-#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:61
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:62
 msgid "Toggle All Log Types"
 msgstr "Alle Log Types Omschakelen"
 
@@ -8662,39 +8697,41 @@ msgstr "Toolbar"
 msgid "Top"
 msgstr "Boven"
 
-#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:113
+#: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:112
 msgid "Top-and-Bottom"
 msgstr "Boven en Beneden"
 
 #. i18n: Refers to an amount of rotational movement about the "pitch" axis.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:56
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:55
 msgid "Total Pitch"
-msgstr ""
+msgstr "Totale stamp"
 
 #. i18n: Refers to an amount of rotational movement about the "yaw" axis.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:47
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:46
 msgid "Total Yaw"
-msgstr ""
+msgstr "Totale gier"
 
 #. i18n: Refers to emulated wii remote movements.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:60
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:59
 msgid "Total rotation about the pitch axis."
-msgstr ""
+msgstr "Totale rotatie rond de horizontale as."
 
 #. i18n: Refers to emulated wii remote movements.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:51
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:50
 msgid "Total rotation about the yaw axis."
-msgstr ""
+msgstr "Totale rotatie rond de verticale as."
 
 #. i18n: Refering to emulated wii remote movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:146
 msgid "Total travel distance."
-msgstr ""
+msgstr "Totale reisafstand."
 
+#: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:31
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:49
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:201
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:203
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:218
 msgid "Touch"
-msgstr ""
+msgstr "Aanraking"
 
 #: Source/Core/DiscIO/Enums.cpp:101
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:120
@@ -8725,7 +8762,7 @@ msgstr ""
 #: Source/Core/Core/HW/GCPadEmu.cpp:77
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:94
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:34
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:60
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:62
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:34
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:154
 msgid "Triggers"
@@ -8865,14 +8902,14 @@ msgstr ""
 msgid "United States"
 msgstr "Verenigde Staten"
 
-#: Source/Core/Core/State.cpp:448 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:444 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:41
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:732
 msgid "Unknown"
 msgstr "Onbekend"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1118
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1138
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Onbekend DVD commando %08x - fatale fout"
@@ -8979,15 +9016,15 @@ msgstr ""
 "Titel %1 wordt bijgewerkt...\n"
 "Dit kan even duren."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:220
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
 msgid "Upright Hold"
 msgstr "Verticaal Houden"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:217
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
 msgid "Upright Toggle"
 msgstr "Schakel Verticaal"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:206
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:202
 msgid "Upright Wii Remote"
 msgstr "Wii-afstandsbediening Rechtop"
 
@@ -9102,12 +9139,12 @@ msgstr "Verifiëren"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:61
 msgid "Verify Integrity"
-msgstr ""
+msgstr "Verifiëer integriteit"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:101
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:103
 msgid "Verifying"
-msgstr ""
+msgstr "Verifiëren"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:220
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:89
@@ -9119,9 +9156,9 @@ msgid "Vertex Rounding"
 msgstr "Vertex Afronding"
 
 #. i18n: Refers to a positional offset applied to an emulated wiimote.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:40
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:39
 msgid "Vertical Offset"
-msgstr ""
+msgstr "Verticale compensatie"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:214
 msgid "Video"
@@ -9343,7 +9380,7 @@ msgid "Website"
 msgstr "Website"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:92
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:144
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:146
 msgid "Whammy"
 msgstr "Whammy"
 
@@ -9376,7 +9413,7 @@ msgid "Wii Remote"
 msgstr "Wii-afstandsbediening"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:179
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:326
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:349
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
 msgstr "Wii-afstandsbediening %1"
@@ -9413,7 +9450,7 @@ msgstr "Wii TAS-Invoer %1 - Wii-afstandsbediening"
 msgid "Wii TAS Input %1 - Wii Remote + Nunchuk"
 msgstr "Wii TAS-Invoer %1 - Wii-afstandsbediening + Nunchuck"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:343
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
 msgid "Wii and Wii Remote"
 msgstr "Wii en Wii-afstandsbediening"
 
@@ -9449,11 +9486,11 @@ msgstr "Schrijf Save/SD-Data"
 msgid "Write only"
 msgstr "Alleen schrijven"
 
-#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:55
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:56
 msgid "Write to Console"
 msgstr "Schrijf naar Console"
 
-#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:54
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:55
 msgid "Write to File"
 msgstr "Schrijf naar Bestand"
 
@@ -9467,7 +9504,7 @@ msgstr "Schrijf naar Log"
 msgid "Write to Log and Break"
 msgstr "Schrijf naar Log en Breek af"
 
-#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:56
+#: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:57
 msgid "Write to Window"
 msgstr "Schrijf naar Venster"
 
@@ -9562,7 +9599,7 @@ msgid "auto"
 msgstr "automatisch"
 
 #. i18n: The symbol/abbreviation for centimeters.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:42
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:41
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:144
 msgid "cm"
@@ -9572,7 +9609,7 @@ msgstr "cm"
 msgid "d3d12.dll could not be loaded."
 msgstr "d3d12.dll kan niet worden geladen."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:289
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:312
 msgid "disconnected"
 msgstr "verbinding verbroken"
 
@@ -9584,7 +9621,7 @@ msgstr "fake-completion"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:45
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:54
 msgid "m/s"
-msgstr ""
+msgstr "m/s"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "none"
@@ -9600,9 +9637,9 @@ msgid "or select a device"
 msgstr "of selecteer een apparaat"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:34
-#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:191
+#: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:193
 msgid "uDraw GameTablet"
-msgstr ""
+msgstr "uDraw GameTablet"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:54
 msgid "| OR"
@@ -9622,8 +9659,8 @@ msgstr ""
 "Nintendo."
 
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:49
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:58
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:48
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:57
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:62
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:30
 msgid "°"
