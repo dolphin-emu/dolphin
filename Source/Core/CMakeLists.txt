@@ -15,7 +15,15 @@ if(ENABLE_QT)
   add_subdirectory(DolphinQt)
 endif()
 
-if (APPLE)
+if (APPLE OR WIN32)
   add_subdirectory(UpdaterCommon)
+endif()
+
+if (APPLE)
   add_subdirectory(MacUpdater)
+endif()
+
+
+if (WIN32)
+  add_subdirectory(WinUpdater)
 endif()

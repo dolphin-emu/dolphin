@@ -13,4 +13,6 @@ endif()
 add_library(minizip STATIC ${SRCS})
 target_include_directories(minizip PUBLIC .)
 
+target_link_libraries(minizip PUBLIC z)
+
 add_library(MiniZip::minizip ALIAS minizip)
