@@ -1147,6 +1147,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
   PadStatus->substickX = s_padState.CStickX;
   PadStatus->substickY = s_padState.CStickY;
 
+  PadStatus->button = 0;
   PadStatus->button |= PAD_USE_ORIGIN;
 
   if (s_padState.A)
