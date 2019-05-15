@@ -46,6 +46,10 @@ if (MSVC)
   # All files are encoded as UTF-8
   add_compile_options(/utf-8)
 
+  # Use PCH
+  add_subdirectory(PCH)
+  add_definitions(/I${PCH_DIRECTORY})
+  add_definitions(/Yu${PCH_PATH}) 
 endif()
 
 # These aren't actually needed for C11/C++11
