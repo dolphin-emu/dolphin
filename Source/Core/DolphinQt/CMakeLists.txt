@@ -175,15 +175,19 @@ if(WIN32)
   target_compile_options(dolphin-emu PRIVATE "-D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING")
 
   # Copy Sys dir
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
-  file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
-
-  foreach(res ${resources})
-    configure_file("${CMAKE_SOURCE_DIR}/Data/${res}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${res}" COPYONLY)
-  endforeach()
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
+  )
 
   # Copy qt.conf
-  configure_file(qt.conf.win "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf" COPYONLY)
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+  )
+
+  # Create QtPlugins directory
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
+  )
 
   # Copy plugins
   set (Qt5_PLUGINS_DIR "${Qt5_DIR}/../../../plugins")
@@ -196,7 +200,9 @@ if(WIN32)
   endif()
 
   foreach(plugin ${plugins})
-    configure_file("${Qt5_PLUGINS_DIR}/${plugin}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins/${plugin}" COPYONLY)
+    add_custom_command(TARGET dolphin-emu POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5_PLUGINS_DIR}/${plugin}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins/${plugin}"
+    )
   endforeach()
 
   # Copy DLLs
@@ -211,7 +217,9 @@ if(WIN32)
   endif()
 
   foreach(dll ${dlls})
-    configure_file("${Qt5_DLL_DIR}/${dll}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dll}" COPYONLY)
+   add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5_DLL_DIR}/${dll}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+   )
   endforeach()
 
 endif()
