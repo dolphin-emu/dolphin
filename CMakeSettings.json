@@ -6,7 +6,7 @@
       "generator": "Ninja",
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildCommandArgs": "",
-      "buildRoot": "${workspaceRoot}\\build",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
         {
@@ -21,7 +21,7 @@
       "generator": "Ninja",
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildCommandArgs": "",
-      "buildRoot": "${workspaceRoot}\\build",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
         {
