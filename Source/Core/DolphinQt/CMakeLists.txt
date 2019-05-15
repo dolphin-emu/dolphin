@@ -232,7 +232,7 @@ if(WIN32 AND NOT Gettext_FOUND)
   set(GETTEXT_MSGFMT_EXECUTABLE "${CMAKE_SOURCE_DIR}/Externals/gettext/msgfmt.exe")
 endif()
 
-if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
+if(GETTEXT_MSGFMT_EXECUTABLE)
   set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
   file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 
