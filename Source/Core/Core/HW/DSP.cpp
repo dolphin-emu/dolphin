@@ -34,7 +34,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-
+#include "Core/HW/AddressSpace.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -211,9 +211,9 @@ void Reinit(bool hle)
   if (SConfig::GetInstance().bWii)
   {
     s_ARAM.wii_mode = true;
-    s_ARAM.size = Memory::EXRAM_SIZE;
-    s_ARAM.mask = Memory::EXRAM_MASK;
-    s_ARAM.ptr = Memory::m_pEXRAM;
+    s_ARAM.size = 0;
+    s_ARAM.mask = 0;
+    s_ARAM.ptr = nullptr;
   }
   else
   {
@@ -318,7 +318,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         // Not really sure if this is correct, but it works...
         // Kind of a hack because DSP_CONTROL_MASK should make this bit
         // only viewable to DSP emulator
-        if (val & 1 /*DSPReset*/)
+        if (val & 1)  // DSPReset
         {
           s_audioDMA.AudioDMAControl.Hex = 0;
         }
@@ -490,62 +490,48 @@ void UpdateAudioDMA()
   }
 }
 
-/* Depending on the size ARAM is configured as, the mapping to the underlying physical ARAM can
- * change. These mappings have been confirmed on hardware.*/
-static std::optional<u32> ARAM_02MB_to_16MB(u32 address)
-{
-  address &= 0x3ffffe0;
-  if (address >= 2 * 1024 * 1024)
-  {
-    return std::nullopt;
-  }
-  return ((address & 0xfffffe00) << 1) | (address & 0x1ff);
-}
+static constexpr u32 ARAM_MEMORY_WRAP_MASK = 0x3ffffe0;
 
-static std::optional<u32> ARAM_04MB_to_16MB(u32 address)
-{
-  address &= 0x3ffffe0;
-  if (address >= 4 * 1024 * 1024)
-  {
-    return std::nullopt;
-  }
-  return ((address & 0xfffffe00) << 1) | (address & 0x1ff);
-}
+// Used when converting from a smaller memory size to 16MB
+static constexpr u32 ARAM_UPPER_MASK1 = 0xfffffe00;
+static constexpr u32 ARAM_LOWER_MASK1 = 0x000001ff;
 
-static std::optional<u32> ARAM_08MB_to_16MB(u32 address)
-{
-  address &= 0x3ffffe0;
-  if (address >= 8 * 1024 * 1024)
-  {
-    return std::nullopt;
-  }
-  return ((address & 0xfffffe00) << 1) | (address & 0x1ff);
-}
+// Used when converting from a larger memory size to 16MB
+static constexpr u32 ARAM_UPPER_MASK2 = 0xff800000;
+static constexpr u32 ARAM_LOWER_MASK2 = 0x003fffff;
 
-static std::optional<u32> ARAM_16MB_to_16MB(u32 address)
-{
-  address &= 0x3ffffe0;
-  if (address >= 16 * 1024 * 1024)
-  {
-    return std::nullopt;
-  }
-  return address;
-}
+// Depending on the size ARAM is configured as, the mapping to the underlying physical ARAM can
+// change. These mappings have been confirmed on hardware.
 
-static std::optional<u32> ARAM_32MB_to_16MB(u32 address)
+template <u32 MB_SIZE>
+static std::optional<u32> ARAM_map_to_16MB(u32 address)
 {
-  address &= 0x3ffffe0;
-  if (address >= 32 * 1024 * 1024)
+  static_assert((MB_SIZE == 2) || (MB_SIZE == 4) || (MB_SIZE == 8) || (MB_SIZE == 16) ||
+                (MB_SIZE == 32));
+
+  address &= ARAM_MEMORY_WRAP_MASK;
+  if (address >= MB_SIZE * 1024 * 1024)
   {
     return std::nullopt;
   }
-  return (address & 0xff800000) >> 1 | (address & 0x003fffff);
+  if constexpr (MB_SIZE < 16)
+  {
+    return ((address & ARAM_UPPER_MASK1) << 1) | (address & ARAM_LOWER_MASK1);
+  }
+  else if constexpr (MB_SIZE > 16)
+  {
+    return ((address & ARAM_UPPER_MASK2) >> 1) | (address & ARAM_LOWER_MASK2);
+  }
+  else
+  {
+    return address;
+  }
 }
 
 using ARAM_ADDRESS_CONVERSION_F = std::optional<u32> (*)(u32 address);
-constexpr ARAM_ADDRESS_CONVERSION_F conversion_functions[8] = {
-    ARAM_02MB_to_16MB, ARAM_04MB_to_16MB, ARAM_08MB_to_16MB, ARAM_16MB_to_16MB,
-    ARAM_32MB_to_16MB, ARAM_32MB_to_16MB, ARAM_32MB_to_16MB, ARAM_32MB_to_16MB,
+constexpr std::array<ARAM_ADDRESS_CONVERSION_F, 8> conversion_functions = {
+    &ARAM_map_to_16MB<2>,  &ARAM_map_to_16MB<4>,  &ARAM_map_to_16MB<8>,  &ARAM_map_to_16MB<16>,
+    &ARAM_map_to_16MB<32>, &ARAM_map_to_16MB<32>, &ARAM_map_to_16MB<32>, &ARAM_map_to_16MB<32>,
 };
 
 enum
@@ -554,13 +540,13 @@ enum
   ARAM_DMA_DIR_FROM_ARAM = 1,
 };
 
-/* Size of the smallest unit of transfer to/from ARAM via DMA. */
+// Size of the smallest unit of transfer to/from ARAM via DMA.
 constexpr u32 ARAM_LINE_SIZE = 0x20;
 
-/* Maximum number of lines to transfer at a time via DMA. */
+// Maximum number of lines to transfer at a time via DMA.
 constexpr u32 ARAM_MAX_TRANSFER_CHUNKING = 0x10;
 
-/* The number of clock ticks for each line to be transferred. */
+// The number of clock ticks for each line to be transferred.
 constexpr u32 TICKS_TO_TRANSFER_LINE = 246;
 
 static void Do_ARAM_DMA()
@@ -572,8 +558,8 @@ static void Do_ARAM_DMA()
   // Source/destination/count aligned to 32 bytes      - done in MMIO handler
 
   u32 lines_to_transfer = std::min(s_arDMA.Cnt.count / ARAM_LINE_SIZE, ARAM_MAX_TRANSFER_CHUNKING);
-  u32 ticksToTransfer = lines_to_transfer * TICKS_TO_TRANSFER_LINE;
-  CoreTiming::ScheduleEvent(ticksToTransfer, s_et_ContinueARAM);
+  u32 ticks_to_transfer = lines_to_transfer * TICKS_TO_TRANSFER_LINE;
+  CoreTiming::ScheduleEvent(ticks_to_transfer, s_et_ContinueARAM);
 
   DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes %s ARAM %08x %s MRAM %08x PC: %08x", s_arDMA.Cnt.count,
             aram_transfer_direction[s_arDMA.Cnt.dir], s_arDMA.ARAddr,
@@ -594,7 +580,6 @@ static void Do_ARAM_DMA()
 
   const ARAM_ADDRESS_CONVERSION_F convert_address = conversion_functions[s_ARAM_Info.base_size];
   for (u32 n = 0; n < lines_to_transfer; ++n)
-
   {
     std::optional<u32> physical_aram_addr = convert_address(s_arDMA.ARAddr);
     if (physical_aram_addr)
@@ -603,14 +588,11 @@ static void Do_ARAM_DMA()
       std::copy_n(copy_pointers[s_arDMA.Cnt.dir], ARAM_LINE_SIZE,
                   copy_pointers[1 - s_arDMA.Cnt.dir]);
     }
-    else
+    else if (s_arDMA.Cnt.dir == ARAM_DMA_DIR_FROM_ARAM)
     {
       // ARAM returns zeros on out of bounds reads (verified on real HW)
       // ARAM writes nothing on out of bounds writes (verified on real HW)
-      if (s_arDMA.Cnt.dir == ARAM_DMA_DIR_FROM_ARAM)
-      {
-        std::fill_n(Memory::GetPointer(s_arDMA.MMAddr), ARAM_LINE_SIZE, 0);
-      }
+      std::fill_n(Memory::GetPointer(s_arDMA.MMAddr), ARAM_LINE_SIZE, 0);
     }
     s_arDMA.MMAddr += ARAM_LINE_SIZE;
     s_arDMA.ARAddr += ARAM_LINE_SIZE;
@@ -620,22 +602,26 @@ static void Do_ARAM_DMA()
 
 u8 ReadARAM(u32 address)
 {
-  if (s_ARAM.wii_mode)
-  {
-    return Memory::Read_U8(address & 0x1fffffff);
-  }
-  return s_ARAM.ptr[address & s_ARAM.mask];
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(
+      s_ARAM.wii_mode ? AddressSpace::Type::Physical : AddressSpace::Type::Auxiliary);
+  return accessors->ReadU8(address);
 }
 
 void WriteARAM(u8 value, u32 address)
 {
-  // TODO: verify this on Wii
-  s_ARAM.ptr[address & s_ARAM.mask] = value;
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(
+      s_ARAM.wii_mode ? AddressSpace::Type::Physical : AddressSpace::Type::Auxiliary);
+  accessors->WriteU8(address, value);
 }
 
 u8* GetARAMPtr()
 {
   return s_ARAM.ptr;
+}
+
+u32 GetARAMPhysicalSize()
+{
+  return s_ARAM.size;
 }
 
 }  // end of namespace DSP
