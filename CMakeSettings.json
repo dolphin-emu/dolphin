@@ -3,10 +3,10 @@
     {
       "name": "Release",
       "configurationType": "Release",
-      "generator": "Visual Studio 16 2019 Win64",
+      "generator": "Ninja",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildCommandArgs": "-m -p:PreferredToolArchitecture=x64",
-      "buildRoot": "${workspaceRoot}\\build",
+      "buildCommandArgs": "",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
         {
@@ -17,11 +17,11 @@
     },
     {
       "name": "Debug",
-      "generator": "Visual Studio 16 2019 Win64",
       "configurationType": "Debug",
+      "generator": "Ninja",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildCommandArgs": "-m -p:PreferredToolArchitecture=x64",
-      "buildRoot": "${workspaceRoot}\\build",
+      "buildCommandArgs": "",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
       "cmakeCommandArgs": "",
       "variables": [
         {
