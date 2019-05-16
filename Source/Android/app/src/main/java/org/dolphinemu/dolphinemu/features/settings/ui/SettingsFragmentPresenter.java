@@ -332,18 +332,38 @@ public final class SettingsFragmentPresenter
 
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
-    Setting continuousScan = null;
-    Setting wiimoteSpeaker = null;
-
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-    continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
-    wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
+    Setting continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
+    Setting wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
+    Setting wiiSDCard = coreSection.getSetting(SettingsFile.KEY_WII_SD_CARD);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE,
             R.string.wiimote_scanning, R.string.wiimote_scanning_description, true,
             continuousScan));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, Settings.SECTION_INI_CORE,
             R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_WII_SD_CARD, Settings.SECTION_INI_CORE,
+            R.string.wii_sd_card, R.string.wii_sd_card_description, false, wiiSDCard));
+
+    // SYSCONF_SETTINGS
+    SettingSection sysconfSection = mSettings.getSection(Settings.SECTION_WII_IPL);
+    Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
+    Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
+    Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
+    Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
+    Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
+
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_WII_IPL,
+            R.string.sysconf_screensaver, 0, false, screensaver));
+    sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_WII_IPL,
+            R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries,
+            R.array.wiiSystemLanguageValues, 1, language));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_WII_IPL,
+            R.string.sysconf_widescreen, 0, true, widescreen));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_WII_IPL,
+            R.string.sysconf_progressive_scan, 0, true, progressiveScan));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_WII_IPL,
+            R.string.sysconf_pal60, 0, true, pal60));
   }
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)

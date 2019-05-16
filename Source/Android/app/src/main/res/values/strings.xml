@@ -134,6 +134,8 @@
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
+    <string name="wii_sd_card">Insert SD Card</string>
+    <string name="wii_sd_card_description">Saved to /Wii/sd.raw (default size is 128mb).</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
     <string name="auto_disc_change">Change Discs Automatically</string>
@@ -144,6 +146,12 @@
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="gametdb_thanks">Thanks to GameTDB.com for providing GameCube and Wii covers!</string>
+
+    <string name="sysconf_screensaver">Screensaver</string>
+    <string name="sysconf_language">System Language</string>
+    <string name="sysconf_widescreen">Widescreen</string>
+    <string name="sysconf_progressive_scan">Progressive Scan</string>
+    <string name="sysconf_pal60">PAL60</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>

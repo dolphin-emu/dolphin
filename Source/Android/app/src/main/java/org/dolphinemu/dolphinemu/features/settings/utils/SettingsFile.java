@@ -266,6 +266,14 @@ public final class SettingsFile
 
   public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
   public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
+  public static final String KEY_WII_SD_CARD = "WiiSDCard";
+
+  // SYSCONF.IPL
+  public static final String KEY_SYSCONF_SCREENSAVER = "SSV";
+  public static final String KEY_SYSCONF_LANGUAGE = "LNG";
+  public static final String KEY_SYSCONF_WIDESCREEN = "AR";
+  public static final String KEY_SYSCONF_PROGRESSIVE_SCAN = "PGS";
+  public static final String KEY_SYSCONF_PAL60 = "E60";
 
   // Internal only, not actually found in settings file.
   public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";

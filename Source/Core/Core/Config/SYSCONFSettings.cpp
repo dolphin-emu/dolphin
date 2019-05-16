@@ -12,7 +12,7 @@ const ConfigInfo<bool> SYSCONF_SCREENSAVER{{System::SYSCONF, "IPL", "SSV"}, fals
 const ConfigInfo<u32> SYSCONF_LANGUAGE{{System::SYSCONF, "IPL", "LNG"}, 0x01};
 const ConfigInfo<bool> SYSCONF_WIDESCREEN{{System::SYSCONF, "IPL", "AR"}, true};
 const ConfigInfo<bool> SYSCONF_PROGRESSIVE_SCAN{{System::SYSCONF, "IPL", "PGS"}, true};
-const ConfigInfo<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, 0x01};
+const ConfigInfo<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, true};
 
 // SYSCONF.BT
 

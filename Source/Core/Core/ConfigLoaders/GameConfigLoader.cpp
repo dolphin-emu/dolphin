@@ -91,6 +91,7 @@ static const INIToSectionMap& GetINIToSectionMap()
       {"Video_Stereoscopy", {Config::System::GFX, "Stereoscopy"}},
       {"Video_Hacks", {Config::System::GFX, "Hacks"}},
       {"Video", {Config::System::GFX, "GameSpecific"}},
+      {"IPL", {Config::System::SYSCONF, "IPL"}},
   };
   return ini_to_section;
 }

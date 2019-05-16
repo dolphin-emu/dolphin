@@ -27,6 +27,8 @@ public class Settings
 
   public static final String SECTION_WIIMOTE = "Wiimote";
 
+  public static final String SECTION_WII_IPL = "IPL";
+
   public static final String SECTION_BINDINGS = "Android";
   public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
@@ -41,7 +43,7 @@ public class Settings
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
             Arrays.asList(SECTION_INI_CORE, SECTION_INI_INTERFACE, SECTION_BINDINGS,
-                    SECTION_ANALYTICS, SECTION_DEBUG));
+                    SECTION_ANALYTICS, SECTION_DEBUG, SECTION_WII_IPL));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
             Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS,
                     SECTION_STEREOSCOPY));
