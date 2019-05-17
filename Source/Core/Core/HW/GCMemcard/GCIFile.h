@@ -15,6 +15,7 @@ class PointerWrap;
 class GCIFile
 {
 public:
+  bool LoadHeader();
   bool LoadSaveBlocks();
   bool HasCopyProtection() const;
   void DoState(PointerWrap& p);

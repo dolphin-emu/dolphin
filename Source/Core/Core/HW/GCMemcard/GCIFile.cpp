@@ -10,6 +10,25 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+bool GCIFile::LoadHeader()
+{
+  if (m_filename.empty())
+    return false;
+
+  File::IOFile save_file(m_filename, "rb");
+  if (!save_file)
+    return false;
+
+  INFO_LOG(EXPANSIONINTERFACE, "Reading header from disk for %s", m_filename.c_str());
+  if (!save_file.ReadBytes(&m_gci_header, sizeof(m_gci_header)))
+  {
+    ERROR_LOG(EXPANSIONINTERFACE, "Failed to read header for %s", m_filename.c_str());
+    return false;
+  }
+
+  return true;
+}
+
 bool GCIFile::LoadSaveBlocks()
 {
   if (m_save_data.empty())
