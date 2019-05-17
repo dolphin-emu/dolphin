@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Event.h"
+#include "Core/HW/GCMemcard/GCIFile.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
