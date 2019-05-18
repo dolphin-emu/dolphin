@@ -777,7 +777,10 @@ void CalibrationWidget::SetupActions()
   const auto center_action = new QAction(tr("Center and Calibrate"), this);
   const auto reset_action = new QAction(tr("Reset"), this);
 
-  connect(calibrate_action, &QAction::triggered, [this]() { StartCalibration(); });
+  connect(calibrate_action, &QAction::triggered, [this]() {
+      StartCalibration();
+      m_input.SetCenter({0, 0});
+  });
   connect(center_action, &QAction::triggered, [this]() {
     StartCalibration();
     m_is_centering = true;
