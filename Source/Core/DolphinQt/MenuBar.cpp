@@ -208,29 +208,25 @@ void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
-  tools_menu->addAction(tr("&Memory Card Manager (GC)"), this,
-                        [this] { emit ShowMemcardManager(); });
+  tools_menu->addAction(tr("&Resource Pack Manager"), this,
+                        [this] { emit ShowResourcePackManager(); });
 
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
-
-  tools_menu->addAction(tr("&Resource Pack Manager"), this,
-                        [this] { emit ShowResourcePackManager(); });
 
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
 
-  tools_menu->addSeparator();
-
-  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
   tools_menu->addSeparator();
 
-  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
 
   tools_menu->addSeparator();
+
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
 
   m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
@@ -240,20 +236,20 @@ void MenuBar::AddToolsMenu()
   m_pal_ipl =
       gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
-  tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+  tools_menu->addAction(tr("Memory Card Manager"), this, [this] { emit ShowMemcardManager(); });
 
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu =
       tools_menu->addAction(QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
-  m_import_backup = tools_menu->addAction(tr("Import BootMii NAND Backup..."), this,
-                                          [this] { emit ImportNANDBackup(); });
-  m_check_nand = tools_menu->addAction(tr("Check NAND..."), this, &MenuBar::CheckNAND);
-  m_extract_certificates = tools_menu->addAction(tr("Extract Certificates from NAND"), this,
-                                                 &MenuBar::NANDExtractCertificates);
+  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+  m_manage_nand_menu = tools_menu->addMenu(tr("Manage NAND"));
+  m_import_backup = m_manage_nand_menu->addAction(tr("Import BootMii NAND Backup..."), this,
+                                                  [this] { emit ImportNANDBackup(); });
+  m_check_nand = m_manage_nand_menu->addAction(tr("Check NAND..."), this, &MenuBar::CheckNAND);
+  m_extract_certificates = m_manage_nand_menu->addAction(tr("Extract Certificates from NAND"), this,
+                                                         &MenuBar::NANDExtractCertificates);
 
   m_boot_sysmenu->setEnabled(false);
 
@@ -271,6 +267,11 @@ void MenuBar::AddToolsMenu()
                                           [this] { emit PerformOnlineUpdate("KOR"); });
   m_perform_online_update_menu->addAction(tr("United States"), this,
                                           [this] { emit PerformOnlineUpdate("USA"); });
+
+  tools_menu->addSeparator();
+
+  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
   QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
