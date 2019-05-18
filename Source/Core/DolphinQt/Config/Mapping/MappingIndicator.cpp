@@ -29,7 +29,6 @@
 
 namespace
 {
-const QColor CENTER_COLOR = Qt::blue;
 const QColor C_STICK_GATE_COLOR = Qt::yellow;
 const QColor CURSOR_TV_COLOR = 0xaed6f1;
 const QColor TILT_GATE_COLOR = 0xa2d9ce;
@@ -63,6 +62,11 @@ QColor MappingIndicator::GetAdjustedInputColor() const
   // Using highlight color works (typically blue) but the contrast is pretty low.
   // return palette().highlight().color();
   return Qt::red;
+}
+
+QColor MappingIndicator::GetCenterColor() const
+{
+  return Qt::blue;
 }
 
 QColor MappingIndicator::GetDeadZoneColor() const
@@ -265,7 +269,7 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   if (center.x || center.y)
   {
     p.setPen(Qt::NoPen);
-    p.setBrush(CENTER_COLOR);
+    p.setBrush(GetCenterColor());
     p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
 
@@ -363,7 +367,7 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   if (center.x || center.y)
   {
     p.setPen(Qt::NoPen);
-    p.setBrush(CENTER_COLOR);
+    p.setBrush(GetCenterColor());
     p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
 
@@ -566,7 +570,7 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
   if (center.x || center.y)
   {
     p.setPen(Qt::NoPen);
-    p.setBrush(CENTER_COLOR);
+    p.setBrush(GetCenterColor());
     p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
 
@@ -710,6 +714,14 @@ void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point, Common:
   p.drawPolygon(GetPolygonFromRadiusGetter(
       [this](double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); },
       scale, center));
+
+  // Center.
+  if (center.x || center.y)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(GetCenterColor());
+    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
 
   // Stick position.
   p.setPen(Qt::NoPen);

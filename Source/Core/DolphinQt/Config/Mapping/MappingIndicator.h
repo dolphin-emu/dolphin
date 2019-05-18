@@ -40,6 +40,7 @@ protected:
   QBrush GetBBoxBrush() const;
   QColor GetRawInputColor() const;
   QPen GetInputShapePen() const;
+  QColor GetCenterColor() const;
   QColor GetAdjustedInputColor() const;
   QColor GetDeadZoneColor() const;
   QPen GetDeadZonePen() const;
