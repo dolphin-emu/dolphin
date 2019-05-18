@@ -243,7 +243,7 @@ public:
   // change in the future.
   void BeginUIFrame();
   void RenderUIFrame();
-  void EndUIFrame();
+  void EndUIFrame(bool start_another = true);
 
   // Draw the last console XFB frame
   void DrawLastXFBFrame();

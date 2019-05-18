@@ -1142,7 +1142,7 @@ void Renderer::RenderUIFrame()
   ImGui::Render();
 }
 
-void Renderer::EndUIFrame()
+void Renderer::EndUIFrame(bool start_another)
 {
   if (!IsHeadless())
   {
@@ -1153,7 +1153,10 @@ void Renderer::EndUIFrame()
     EndUtilityDrawing();
   }
 
-  BeginImGuiFrame();
+  if (start_another)
+  {
+    BeginImGuiFrame();
+  }
 }
 
 void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
@@ -1198,6 +1201,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
       m_last_xfb_id = xfb_entry->id;
+      m_last_xfb_region = xfb_rect;
       m_last_xfb_texture = xfb_entry->texture.get();
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being

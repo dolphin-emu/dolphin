@@ -6,6 +6,9 @@
 
 struct ImGuiIO;
 
+void InitPauseScreenThread();
+void ShutdownPauseScreenThread();
+
 class PauseScreen
 {
 public:
@@ -19,13 +22,13 @@ private:
 
   // Wiimote controls
   void UpdateWiimoteDpad(ImGuiIO& io);
-  void UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed);
+  void UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed, bool &accept_pressed);
 
   // Wiimote accessory controls
   void UpdateWiimoteNunchukStick(ImGuiIO& io);
   void UpdateClassicControllerStick(ImGuiIO& io);
   void UpdateClassicControllerDPad(ImGuiIO& io);
-  void UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed);
+  void UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed, bool& accept_pressed);
 
   void DisplayMain();
   void DisplayOptions();
@@ -44,4 +47,6 @@ private:
   std::stack<ScreenState> m_state_stack;
 
   bool m_visible = false;
+  bool m_back_held = false;
+  bool m_accept_held = false;
 };

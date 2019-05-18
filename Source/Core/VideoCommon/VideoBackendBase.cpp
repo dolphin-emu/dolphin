@@ -37,6 +37,7 @@
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PauseScreen.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
@@ -296,6 +297,12 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
+  // Only spawn a pause-screen thread if we're in single-core
+  if (!SConfig::GetInstance().bCPUThread)
+  {
+    InitPauseScreenThread();
+  }
+
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 }
@@ -306,4 +313,8 @@ void VideoBackendBase::ShutdownShared()
 
   VertexLoaderManager::Clear();
   Fifo::Shutdown();
+  if (!SConfig::GetInstance().bCPUThread)
+  {
+    ShutdownPauseScreenThread();
+  }
 }

@@ -2,6 +2,7 @@
 
 #include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
+#include "Common/Thread.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
@@ -54,11 +55,43 @@ static const std::array<u16, 4> classic_dpad_bitmasks{
     WiimoteEmu::Classic::PAD_RIGHT,
 };
 
+static std::unique_ptr<std::thread> s_pause_thread;
+static std::atomic<bool> running = false;
+
 }  // namespace
+
+void InitPauseScreenThread()
+{
+  s_pause_thread = std::make_unique<std::thread>([] {
+    running = true;
+    Common::SetCurrentThreadName("Pause screen thread");
+    PauseScreen pause_screen;
+
+    while (running)
+    {
+      // Display pause screen while paused
+      if (Core::GetState() == Core::State::Paused)
+      {
+        pause_screen.Display();
+        continue;
+      }
+      else if (pause_screen.IsVisible())
+      {
+        pause_screen.Hide();
+      }
+    }
+  });
+}
+
+void ShutdownPauseScreenThread()
+{
+  running = false;
+  s_pause_thread->join();
+  s_pause_thread.reset();
+}
 
 PauseScreen::~PauseScreen()
 {
-  Hide();
 }
 
 void PauseScreen::Hide()
@@ -67,9 +100,6 @@ void PauseScreen::Hide()
   io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
   io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableGamepad;
-  g_renderer->BeginUIFrame();
-  g_renderer->RenderUIFrame();
-  g_renderer->EndUIFrame();
   m_visible = false;
 }
 
@@ -125,21 +155,30 @@ void PauseScreen::UpdateControls(ImGuiIO& io)
   memset(io.NavInputs, 0, sizeof(io.NavInputs));
 
   bool back = false;
+  bool accept = false;
 
   UpdateWiimoteDpad(io);
-  UpdateWiimoteButtons(io, back);
+  UpdateWiimoteButtons(io, back, accept);
   UpdateWiimoteNunchukStick(io);
   UpdateClassicControllerStick(io);
-  UpdateClassicControllerButtons(io, back);
+  UpdateClassicControllerButtons(io, back, accept);
 
-  if (m_state_stack.size() > 1 && back)
+  if (m_state_stack.size() > 1 && back && !m_back_held)
   {
     m_state_stack.pop();
   }
-  else if (back)
+  else if (back && !m_back_held)
   {
     Core::SetState(Core::State::Running);
   }
+
+  if (accept && !m_accept_held)
+  {
+    io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+  }
+
+  m_back_held = back;
+  m_accept_held = accept;
 }
 
 void PauseScreen::UpdateWiimoteDpad(ImGuiIO& io)
@@ -171,7 +210,7 @@ void PauseScreen::UpdateWiimoteDpad(ImGuiIO& io)
   }
 }
 
-void PauseScreen::UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed)
+void PauseScreen::UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed, bool& accept_pressed)
 {
   auto* wiimote_buttons_group = static_cast<ControllerEmu::Buttons*>(
       Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::Buttons));
@@ -181,7 +220,7 @@ void PauseScreen::UpdateWiimoteButtons(ImGuiIO& io, bool& back_pressed)
 
   if ((wiimote_buttons & WiimoteEmu::Wiimote::BUTTON_A) != 0)
   {
-    io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+    accept_pressed = true;
   }
 
   if ((wiimote_buttons & WiimoteEmu::Wiimote::BUTTON_B) != 0)
@@ -284,7 +323,8 @@ void PauseScreen::UpdateClassicControllerDPad(ImGuiIO& io)
   }
 }
 
-void PauseScreen::UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed)
+void PauseScreen::UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed,
+                                                 bool& accept_pressed)
 {
   auto* classic_buttons_group = static_cast<ControllerEmu::Buttons*>(
       Wiimote::GetClassicGroup(0, WiimoteEmu::ClassicGroup::Buttons));
@@ -299,7 +339,7 @@ void PauseScreen::UpdateClassicControllerButtons(ImGuiIO& io, bool& back_pressed
 
   if ((classic_buttons & WiimoteEmu::Classic::BUTTON_A) != 0)
   {
-    io.NavInputs[ImGuiNavInput_Activate] = 1.0f;
+    accept_pressed = true;
   }
 
   if ((classic_buttons & WiimoteEmu::Classic::BUTTON_B) != 0)
