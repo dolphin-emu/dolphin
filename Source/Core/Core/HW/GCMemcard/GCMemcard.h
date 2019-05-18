@@ -60,6 +60,9 @@ enum
   MemCard123Mb = 0x08,
   MemCard251Mb = 0x10,
   Memcard507Mb = 0x20,
+  // Datel's "MaxDrive", which is 8,192 * 1,000 bytes instead of
+  // 8,192 * 1,024.
+  MemCard995Mb = 0x3E,
   MemCard1019Mb = 0x40,
   MemCard2043Mb = 0x80,
 
