@@ -56,7 +56,7 @@ private:
   void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
   void DrawMixedTriggers();
   void DrawForce(ControllerEmu::Force&);
-  void DrawCalibration(QPainter& p, Common::DVec2 point, Common::DVec2 center = {0, 0});
+  void DrawCalibration(QPainter& p, Common::DVec2 point);
 
   void paintEvent(QPaintEvent*) override;
 
@@ -91,6 +91,8 @@ public:
 
   double GetCalibrationRadiusAtAngle(double angle) const;
 
+  Common::DVec2 GetCenter() const;
+
   bool IsCalibrating() const;
 
 private:
@@ -104,5 +106,5 @@ private:
   QTimer* m_informative_timer;
 
   bool m_is_centering = false;
-  ControllerEmu::ReshapableInput::ReshapeData m_old_center;
+  Common::DVec2 m_new_center;
 };

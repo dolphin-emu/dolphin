@@ -341,7 +341,7 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
 
   if (IsCalibrating())
   {
-    DrawCalibration(p, raw_coord, center);
+    DrawCalibration(p, raw_coord);
     return;
   }
 
@@ -703,10 +703,12 @@ void ShakeMappingIndicator::DrawShake()
     p.drawPolyline(polyline);
   }
 }
-void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point, Common::DVec2 center)
+
+void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
   // Bounding box size:
   const double scale = GetScale();
+  const auto center = m_calibration_widget->GetCenter();
 
   // Input shape.
   p.setPen(GetInputShapePen());
@@ -778,8 +780,8 @@ void CalibrationWidget::SetupActions()
   const auto reset_action = new QAction(tr("Reset"), this);
 
   connect(calibrate_action, &QAction::triggered, [this]() {
-      StartCalibration();
-      m_input.SetCenter({0, 0});
+    StartCalibration();
+    m_input.SetCenter({0, 0});
   });
   connect(center_action, &QAction::triggered, [this]() {
     StartCalibration();
@@ -800,6 +802,7 @@ void CalibrationWidget::SetupActions()
 
   m_completion_action = new QAction(tr("Finish Calibration"), this);
   connect(m_completion_action, &QAction::triggered, [this]() {
+    m_input.SetCenter(m_new_center);
     m_input.SetCalibrationData(std::move(m_calibration_data));
     m_informative_timer->stop();
     SetupActions();
@@ -808,15 +811,13 @@ void CalibrationWidget::SetupActions()
 
 void CalibrationWidget::StartCalibration()
 {
-  // Set the old center so we can revert
-  m_old_center = m_input.GetCenter();
-
   m_calibration_data.assign(m_input.CALIBRATION_SAMPLE_COUNT, 0.0);
+
+  m_new_center = {0, 0};
 
   // Cancel calibration.
   const auto cancel_action = new QAction(tr("Cancel Calibration"), this);
   connect(cancel_action, &QAction::triggered, [this]() {
-    m_input.SetCenter(m_old_center);
     m_calibration_data.clear();
     m_informative_timer->stop();
     SetupActions();
@@ -840,12 +841,12 @@ void CalibrationWidget::Update(Common::DVec2 point)
 
   if (m_is_centering)
   {
-    m_input.SetCenter(point);
+    m_new_center = point;
     m_is_centering = false;
   }
   else if (IsCalibrating())
   {
-    m_input.UpdateCalibrationData(m_calibration_data, point - m_input.GetCenter());
+    m_input.UpdateCalibrationData(m_calibration_data, point - m_new_center);
 
     if (IsCalibrationDataSensible(m_calibration_data))
     {
@@ -874,4 +875,9 @@ bool CalibrationWidget::IsCalibrating() const
 double CalibrationWidget::GetCalibrationRadiusAtAngle(double angle) const
 {
   return m_input.GetCalibrationDataRadiusAtAngle(m_calibration_data, angle);
+}
+
+Common::DVec2 CalibrationWidget::GetCenter() const
+{
+  return m_new_center;
 }
