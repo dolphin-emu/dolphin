@@ -91,7 +91,7 @@ LogManager::LogManager()
   // create log containers
   m_log[LogTypes::ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
   m_log[LogTypes::AUDIO] = {"Audio", "Audio Emulator"};
-  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface (AI)"};
+  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface"};
   m_log[LogTypes::BOOT] = {"BOOT", "Boot"};
   m_log[LogTypes::COMMANDPROCESSOR] = {"CP", "CommandProc"};
   m_log[LogTypes::COMMON] = {"COMMON", "Common"};
@@ -131,11 +131,11 @@ LogManager::LogManager()
   m_log[LogTypes::PIXELENGINE] = {"PE", "PixelEngine"};
   m_log[LogTypes::PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
   m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
-  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
+  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface"};
   m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
   m_log[LogTypes::SYMBOLS] = {"SYMBOLS", "Symbols"};
   m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
-  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
+  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface"};
   m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
   m_log[LogTypes::WII_IPC] = {"WII_IPC", "WII IPC"};
 
