@@ -64,6 +64,11 @@ QColor MappingIndicator::GetAdjustedInputColor() const
   return Qt::red;
 }
 
+QColor MappingIndicator::GetCenterColor() const
+{
+  return Qt::blue;
+}
+
 QColor MappingIndicator::GetDeadZoneColor() const
 {
   return palette().shadow().color();
@@ -115,7 +120,8 @@ namespace
 {
 // Constructs a polygon by querying a radius at varying angles:
 template <typename F>
-QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
+QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale,
+                                     Common::DVec2 center = {0.0, 0.0})
 {
   // A multiple of 8 (octagon) and enough points to be visibly pleasing:
   constexpr int shape_point_count = 32;
@@ -127,7 +133,8 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
     const double angle = MathUtil::TAU * p / shape.size();
     const double radius = radius_getter(angle) * scale;
 
-    point = {std::cos(angle) * radius, std::sin(angle) * radius};
+    point = {std::cos(angle) * radius + center.x * scale,
+             std::sin(angle) * radius + center.y * scale};
     ++p;
   }
 
@@ -167,9 +174,10 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
 // Used to test for a miscalibrated stick so the user can be informed.
 bool IsPointOutsideCalibration(Common::DVec2 point, ControllerEmu::ReshapableInput& input)
 {
-  const double current_radius = point.Length();
-  const double input_radius =
-      input.GetInputRadiusAtAngle(std::atan2(point.y, point.x) + MathUtil::TAU);
+  const auto center = input.GetCenter();
+  const double current_radius = (point - center).Length();
+  const double input_radius = input.GetInputRadiusAtAngle(
+      std::atan2(point.y - center.y, point.x - center.x) + MathUtil::TAU);
 
   constexpr double ALLOWED_ERROR = 1.3;
 
@@ -180,6 +188,8 @@ bool IsPointOutsideCalibration(Common::DVec2 point, ControllerEmu::ReshapableInp
 
 void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
 {
+  const auto center = cursor.GetCenter();
+
   const QColor tv_brush_color = CURSOR_TV_COLOR;
   const QColor tv_pen_color = tv_brush_color.darker(125);
 
@@ -224,13 +234,21 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   p.setPen(GetDeadZonePen());
   p.setBrush(GetDeadZoneBrush());
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetDeadzoneRadiusAtAngle(ang); }, scale));
+      [&cursor](double ang) { return cursor.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetInputRadiusAtAngle(ang); }, scale));
+      [&cursor](double ang) { return cursor.GetInputRadiusAtAngle(ang); }, scale, center));
+
+  // Center.
+  if (center.x || center.y)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(GetCenterColor());
+    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
 
   // Raw stick position.
   p.setPen(Qt::NoPen);
@@ -252,6 +270,8 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   // Some hacks for pretty colors:
   const bool is_c_stick = m_group->name == "C-Stick";
   const bool is_tilt = m_group->name == "Tilt";
+
+  const auto center = stick.GetCenter();
 
   QColor gate_brush_color = GetGateColor();
 
@@ -312,13 +332,21 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   p.setPen(GetDeadZonePen());
   p.setBrush(GetDeadZoneBrush());
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, scale));
+      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, scale));
+      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, scale, center));
+
+  // Center.
+  if (center.x || center.y)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(GetCenterColor());
+    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
 
   // Raw stick position.
   p.setPen(Qt::NoPen);
@@ -431,6 +459,8 @@ void MappingIndicator::DrawMixedTriggers()
 
 void MappingIndicator::DrawForce(ControllerEmu::Force& force)
 {
+  const auto center = force.GetCenter();
+
   const QColor gate_brush_color = SWING_GATE_COLOR;
   const QColor gate_pen_color = gate_brush_color.darker(125);
 
@@ -505,13 +535,21 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
   p.setPen(GetDeadZoneColor());
   p.setBrush(GetDeadZoneBrush());
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetDeadzoneRadiusAtAngle(ang); }, scale));
+      [&force](double ang) { return force.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetInputRadiusAtAngle(ang); }, scale));
+      [&force](double ang) { return force.GetInputRadiusAtAngle(ang); }, scale, center));
+
+  // Center.
+  if (center.x || center.y)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(GetCenterColor());
+    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
 
   // Raw stick position.
   p.setPen(Qt::NoPen);
@@ -647,13 +685,22 @@ void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
   // Bounding box size:
   const double scale = GetScale();
+  const auto center = m_calibration_widget->GetCenter();
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
       [this](double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); },
-      scale));
+      scale, center));
+
+  // Center.
+  if (center.x || center.y)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(GetCenterColor());
+    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  }
 
   // Stick position.
   p.setPen(Qt::NoPen);
@@ -706,20 +753,33 @@ CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
 void CalibrationWidget::SetupActions()
 {
   const auto calibrate_action = new QAction(tr("Calibrate"), this);
+  const auto center_action = new QAction(tr("Center and Calibrate"), this);
   const auto reset_action = new QAction(tr("Reset"), this);
 
-  connect(calibrate_action, &QAction::triggered, [this]() { StartCalibration(); });
-  connect(reset_action, &QAction::triggered, [this]() { m_input.SetCalibrationToDefault(); });
+  connect(calibrate_action, &QAction::triggered, [this]() {
+    StartCalibration();
+    m_input.SetCenter({0, 0});
+  });
+  connect(center_action, &QAction::triggered, [this]() {
+    StartCalibration();
+    m_is_centering = true;
+  });
+  connect(reset_action, &QAction::triggered, [this]() {
+    m_input.SetCalibrationToDefault();
+    m_input.SetCenter({0, 0});
+  });
 
   for (auto* action : actions())
     removeAction(action);
 
   addAction(calibrate_action);
+  addAction(center_action);
   addAction(reset_action);
   setDefaultAction(calibrate_action);
 
   m_completion_action = new QAction(tr("Finish Calibration"), this);
   connect(m_completion_action, &QAction::triggered, [this]() {
+    m_input.SetCenter(m_new_center);
     m_input.SetCalibrationData(std::move(m_calibration_data));
     m_informative_timer->stop();
     SetupActions();
@@ -729,6 +789,8 @@ void CalibrationWidget::SetupActions()
 void CalibrationWidget::StartCalibration()
 {
   m_calibration_data.assign(m_input.CALIBRATION_SAMPLE_COUNT, 0.0);
+
+  m_new_center = {0, 0};
 
   // Cancel calibration.
   const auto cancel_action = new QAction(tr("Cancel Calibration"), this);
@@ -754,9 +816,14 @@ void CalibrationWidget::Update(Common::DVec2 point)
   QFont f = parentWidget()->font();
   QPalette p = parentWidget()->palette();
 
-  if (IsCalibrating())
+  if (m_is_centering)
   {
-    m_input.UpdateCalibrationData(m_calibration_data, point);
+    m_new_center = point;
+    m_is_centering = false;
+  }
+  else if (IsCalibrating())
+  {
+    m_input.UpdateCalibrationData(m_calibration_data, point - m_new_center);
 
     if (IsCalibrationDataSensible(m_calibration_data))
     {
@@ -785,4 +852,9 @@ bool CalibrationWidget::IsCalibrating() const
 double CalibrationWidget::GetCalibrationRadiusAtAngle(double angle) const
 {
   return m_input.GetCalibrationDataRadiusAtAngle(m_calibration_data, angle);
+}
+
+Common::DVec2 CalibrationWidget::GetCenter() const
+{
+  return m_new_center;
 }
