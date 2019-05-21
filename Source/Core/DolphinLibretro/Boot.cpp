@@ -29,7 +29,7 @@ namespace Libretro
 {
 extern retro_environment_t environ_cb;
 static void InitDiskControlInterface();
-}
+}  // namespace Libretro
 
 bool retro_load_game(const struct retro_game_info* game)
 {
@@ -93,6 +93,7 @@ bool retro_load_game(const struct retro_game_info* game)
   SConfig::GetInstance().iLatency = 0;
   SConfig::GetInstance().m_audio_stretch = false;
   SConfig::GetInstance().m_WiimoteContinuousScanning = Libretro::Options::WiimoteContinuousScanning;
+  SConfig::GetInstance().bEnableCheats = Libretro::Options::cheatsEnabled;
 
   Config::SetBase(Config::SYSCONF_LANGUAGE, (u32)(DiscIO::Language)Libretro::Options::Language);
   Config::SetBase(Config::SYSCONF_WIDESCREEN, Libretro::Options::Widescreen);
@@ -153,7 +154,6 @@ void retro_unload_game(void)
 
 namespace Libretro
 {
-
 // Disk swapping
 static struct retro_disk_control_callback retro_disk_control_cb;
 static unsigned disk_index = 0;
@@ -199,7 +199,7 @@ static bool retro_add_image_index()
   return true;
 }
 
-static bool retro_replace_image_index(unsigned index, const struct retro_game_info *info)
+static bool retro_replace_image_index(unsigned index, const struct retro_game_info* info)
 {
   if (info == nullptr)
   {
@@ -222,10 +222,10 @@ static void InitDiskControlInterface()
   retro_disk_control_cb.get_eject_state = retro_get_eject_state;
   retro_disk_control_cb.set_image_index = retro_set_image_index;
   retro_disk_control_cb.get_image_index = retro_get_image_index;
-  retro_disk_control_cb.get_num_images  = retro_get_num_images;
+  retro_disk_control_cb.get_num_images = retro_get_num_images;
   retro_disk_control_cb.add_image_index = retro_add_image_index;
   retro_disk_control_cb.replace_image_index = retro_replace_image_index;
 
   environ_cb(RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE, &retro_disk_control_cb);
 }
-}   // namespace Libretro
+}  // namespace Libretro

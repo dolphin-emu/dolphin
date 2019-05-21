@@ -189,5 +189,6 @@ Option<bool> gpuTextureDecoding("dolphin_gpu_texture_decoding", "GPU Texture Dec
 Option<bool> waitForShaders("dolphin_wait_for_shaders", "Wait for Shaders before Starting", false);
 Option<bool> forceTextureFiltering("dolphin_force_texture_filtering", "Force Texture Filtering", false);
 Option<bool> loadCustomTextures("dolphin_load_custom_textures", "Load Custom Textures", false);
+Option<bool> cheatsEnabled("dolphin_cheats_enabled", "Internal Cheats Enabled", false);
 }  // namespace Options
 }  // namespace Libretro
