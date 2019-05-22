@@ -115,7 +115,8 @@ void Jit64::stfXXX(UGeckoInstruction inst)
     {
       RCX64Reg Rs = fpr.Bind(s, RCMode::Read);
       RegCache::Realize(Rs);
-      ConvertDoubleToSingle(XMM0, Rs);
+      MOVAPD(XMM0, Rs);
+      CALL(asm_routines.cdts);
     }
     MOVD_xmm(R(RSCRATCH), XMM0);
   }

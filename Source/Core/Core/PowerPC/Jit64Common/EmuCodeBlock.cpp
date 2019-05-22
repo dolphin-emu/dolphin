@@ -868,88 +868,8 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
   }
 }
 
-// Since the following float conversion functions are used in non-arithmetic PPC float
-// instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
-// into QNaNs. This means we can't use CVTSS2SD/CVTSD2SS. The x87 FPU doesn't even support
-// flush-to-zero so we can use FLD+FSTP even on denormals.
-// If the number is a NaN, make sure to set the QNaN bit back to its original value.
-
-// Another problem is that officially, converting doubles to single format results in undefined
-// behavior.  Relying on undefined behavior is a bug so no software should ever do this.
-// Super Mario 64 (on Wii VC) accidentally relies on this behavior.  See issue #11173
-
-alignas(16) static const __m128i double_exponent = _mm_set_epi64x(0, 0x7ff0000000000000);
-alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
-alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x8000000000000000);
-alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
-alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
-alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffffffe0000000);
 alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff,
                                                                   0xfff7ffffffffffff);
-
-// This is the same algorithm used in the interpreter (and actual hardware)
-// The documentation states that the conversion of a double with an outside the
-// valid range for a single (or a single denormal) is undefined.
-// But testing on actual hardware shows it always picks bits 0..1 and 5..34
-// unless the exponent is in the range of 874 to 896.
-void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
-{
-  MOVAPD(XMM1, R(src));
-
-  // Grab Exponent
-  PAND(XMM1, MConst(double_exponent));
-  PSRLQ(XMM1, 52);
-  MOVD_xmm(R(RSCRATCH), XMM1);
-
-  // Check if the double is in the range of valid single subnormal
-  SUB(16, R(RSCRATCH), Imm16(874));
-  CMP(16, R(RSCRATCH), Imm16(896 - 874));
-  FixupBranch NoDenormalize = J_CC(CC_A);
-
-  // Denormalise
-
-  // shift = (905 - Exponent) plus the 21 bit double to single shift
-  MOV(16, R(RSCRATCH), Imm16(905 + 21));
-  MOVD_xmm(XMM0, R(RSCRATCH));
-  PSUBQ(XMM0, R(XMM1));
-
-  // xmm1 = fraction | 0x0010000000000000
-  MOVAPD(XMM1, R(src));
-  PAND(XMM1, MConst(double_fraction));
-  POR(XMM1, MConst(double_explicit_top_bit));
-
-  // fraction >> shift
-  PSRLQ(XMM1, R(XMM0));
-
-  // OR the sign bit in.
-  MOVAPD(XMM0, R(src));
-  PAND(XMM0, MConst(double_sign_bit));
-  PSRLQ(XMM0, 32);
-  POR(XMM1, R(XMM0));
-
-  FixupBranch end = J(false);  // Goto end
-
-  SetJumpTarget(NoDenormalize);
-
-  // Don't Denormalize
-
-  // We want bits 0, 1
-  MOVAPD(XMM1, R(src));
-  PAND(XMM1, MConst(double_top_two_bits));
-  PSRLQ(XMM1, 32);
-
-  // And 5 through to 34
-  MOVAPD(XMM0, R(src));
-  PAND(XMM0, MConst(double_bottom_bits));
-  PSRLQ(XMM0, 29);
-
-  // OR them togther
-  POR(XMM1, R(XMM0));
-
-  // End
-  SetJumpTarget(end);
-  MOVDDUP(dst, R(XMM1));
-}
 
 // Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
