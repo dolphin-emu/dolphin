@@ -2180,7 +2180,11 @@ void XEmitter::MOVAPS(X64Reg regOp, const OpArg& arg)
 }
 void XEmitter::MOVAPD(X64Reg regOp, const OpArg& arg)
 {
-  WriteSSEOp(0x66, sseMOVAPfromRM, regOp, arg);
+  // Prefer MOVAPS to MOVAPD as there is no reason to use MOVAPD over MOVAPS:
+  // - They have equivalent functionality.
+  // - There has never been a microarchitecture with separate single and double domains.
+  // - MOVAPD is one byte longer than MOVAPS.
+  MOVAPS(regOp, arg);
 }
 void XEmitter::MOVAPS(const OpArg& arg, X64Reg regOp)
 {
@@ -2188,7 +2192,7 @@ void XEmitter::MOVAPS(const OpArg& arg, X64Reg regOp)
 }
 void XEmitter::MOVAPD(const OpArg& arg, X64Reg regOp)
 {
-  WriteSSEOp(0x66, sseMOVAPtoRM, regOp, arg);
+  MOVAPS(arg, regOp);
 }
 
 void XEmitter::MOVUPS(X64Reg regOp, const OpArg& arg)
@@ -2425,8 +2429,14 @@ void XEmitter::MOVDDUP(X64Reg regOp, const OpArg& arg)
   }
   else
   {
-    if (!arg.IsSimpleReg(regOp))
+    if (!arg.IsSimpleReg())
+    {
       MOVSD(regOp, arg);
+    }
+    else if (regOp != arg.GetSimpleReg())
+    {
+      MOVAPD(regOp, arg);
+    }
     UNPCKLPD(regOp, R(regOp));
   }
 }
