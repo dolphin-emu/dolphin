@@ -9,6 +9,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
+#include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
@@ -24,6 +25,87 @@
 #define QUANTIZED_REGS_TO_SAVE_LOAD (QUANTIZED_REGS_TO_SAVE | BitSet32{RSCRATCH2})
 
 using namespace Gen;
+
+alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
+alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x8000000000000000);
+alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
+alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
+alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffffffe0000000);
+
+// Since the following float conversion functions are used in non-arithmetic PPC float
+// instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
+// into QNaNs. This means we can't use CVTSS2SD/CVTSD2SS. The x87 FPU doesn't even support
+// flush-to-zero so we can use FLD+FSTP even on denormals.
+// If the number is a NaN, make sure to set the QNaN bit back to its original value.
+
+// Another problem is that officially, converting doubles to single format results in undefined
+// behavior.  Relying on undefined behavior is a bug so no software should ever do this.
+// Super Mario 64 (on Wii VC) accidentally relies on this behavior.  See issue #11173
+
+// This is the same algorithm used in the interpreter (and actual hardware)
+// The documentation states that the conversion of a double with an outside the
+// valid range for a single (or a single denormal) is undefined.
+// But testing on actual hardware shows it always picks bits 0..1 and 5..34
+// unless the exponent is in the range of 874 to 896.
+
+void CommonAsmRoutines::GenConvertDoubleToSingle()
+{
+  // Input in XMM0, output to XMM0
+  // Clobbers RSCRATCH/RSCRATCH2/XMM1
+
+  const void* start = GetCodePtr();
+
+  // Grab Exponent
+  MOVQ_xmm(R(RSCRATCH), XMM0);
+  MOV(64, R(RSCRATCH2), R(RSCRATCH));
+  SHR(64, R(RSCRATCH), Imm8(52));
+  AND(16, R(RSCRATCH), Imm16(0x7ff));
+
+  // Check if the double is in the range of valid single subnormal
+  SUB(16, R(RSCRATCH), Imm16(874));
+  CMP(16, R(RSCRATCH), Imm16(896 - 874));
+  FixupBranch Denormalize = J_CC(CC_NA);
+
+  // Don't Denormalize
+
+  // We want bits 0, 1
+  MOVAPD(XMM1, R(XMM0));
+  PAND(XMM1, MConst(double_top_two_bits));
+  PSRLQ(XMM1, 32);
+
+  // And 5 through to 34
+  PAND(XMM0, MConst(double_bottom_bits));
+  PSRLQ(XMM0, 29);
+
+  // OR them togther
+  POR(XMM0, R(XMM1));
+  RET();
+
+  // Denormalise
+  SetJumpTarget(Denormalize);
+
+  // shift = (905 - Exponent) plus the 21 bit double to single shift
+  NEG(16, R(RSCRATCH));
+  ADD(16, R(RSCRATCH), Imm16((905 + 21) - 874));
+  MOVQ_xmm(XMM1, R(RSCRATCH));
+
+  // XMM0 = fraction | 0x0010000000000000
+  PAND(XMM0, MConst(double_fraction));
+  POR(XMM0, MConst(double_explicit_top_bit));
+
+  // fraction >> shift
+  PSRLQ(XMM0, R(XMM1));
+
+  // OR the sign bit in.
+  SHR(64, R(RSCRATCH2), Imm8(32));
+  AND(32, R(RSCRATCH2), Imm32(0x80000000));
+  MOVQ_xmm(XMM1, R(RSCRATCH2));
+
+  POR(XMM0, R(XMM1));
+  RET();
+
+  JitRegister::Register(start, GetCodePtr(), "JIT_cdts");
+}
 
 void CommonAsmRoutines::GenFrsqrte()
 {

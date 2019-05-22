@@ -31,6 +31,7 @@ public:
   void GenMfcr();
 
 protected:
+  void GenConvertDoubleToSingle();
   const u8* GenQuantizedLoadRuntime(bool single, EQuantizeType type);
   const u8* GenQuantizedStoreRuntime(bool single, EQuantizeType type);
   void GenQuantizedLoads();
