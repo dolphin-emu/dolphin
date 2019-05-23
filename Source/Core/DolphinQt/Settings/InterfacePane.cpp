@@ -162,7 +162,7 @@ void InterfacePane::CreateUI()
 
 void InterfacePane::CreateInGame()
 {
-  auto* groupbox = new QGroupBox(tr("In-Game"));
+  auto* groupbox = new QGroupBox(tr("Render Window"));
   auto* groupbox_layout = new QVBoxLayout;
   groupbox->setLayout(groupbox_layout);
   m_main_layout->addWidget(groupbox);
