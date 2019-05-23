@@ -47,14 +47,11 @@ IniFile::Section::Section(std::string name_) : name{std::move(name_)}
 
 void IniFile::Section::Set(const std::string& key, std::string new_value)
 {
-  auto it = values.find(key);
-  if (it != values.end())
-    it->second = std::move(new_value);
-  else
-  {
-    values[key] = std::move(new_value);
+  const auto result = values.insert_or_assign(key, std::move(new_value));
+  const bool insertion_occurred = result.second;
+
+  if (insertion_occurred)
     keys_order.push_back(key);
-  }
 }
 
 bool IniFile::Section::Get(const std::string& key, std::string* value,
