@@ -20,7 +20,6 @@ AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
 BraceWrapping:
-  AfterCaseLabel:  true
   AfterClass:      true
   AfterControlStatement: true
   AfterEnum:       true
