@@ -20,7 +20,7 @@
 
 void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
 {
-  if (line[0] == '#')
+  if (line.empty() || line.front() == '#')
     return;
 
   size_t firstEquals = line.find('=');
