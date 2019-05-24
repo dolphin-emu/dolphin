@@ -1,6 +1,41 @@
 For detailed information about the changes below, please see the git log or
 visit: http://log.libusb.info
 
+2019-04-05: v1.0.23 (in progress)
+* Add German translation (#446)
+* Add Hungarian translation (#493)
+* Android: Improved support for Android
+* configure.ac: Fix detection of clock_gettime library (#439)
+* Darwin(macOS): Switch from using ResetDevice to USBDeviceReEnumerate (#455)
+* Darwin(macOS): Remove code that changed the device class used (#428)
+* Darwin(macOS): Reduce hotplug timeout to 1ms (from 5s)
+* New API libusb_set_log_cb() to redirect global and per context log
+  messages to the provided log handling function
+* New API libusb_wrap_sys_device to allow the user to specify the
+  usb device to use.
+* Solaris: Break infinite recursion in backend clock_gettime
+* Solaris: Enable timerfd on sunos when available
+* Windows: Add support for isochronous transfers with WinUSB
+* Various other bug fixes and improvements
+
+2018-03-24: v1.0.22:
+* New libusb_set_option() API
+* Fix transfer timeout not being cleared upon resubmission
+* Report super speed plus devices on modern Linux and macOS
+* Darwin: Improve support for macOS Sierra and High Sierra
+* Darwin: SDK fixes and improvements
+* Linux: Let initialization succeed when no devices are present
+* Linux: Mark internal file descriptors with CLOEXEC flag
+* Solaris: Add support for attach/detach kernel driver
+* Windows: Add dynamic UsbDk backend selection
+* Windows: Add isochronous transfer support via libusbK
+* Windows: Add Visual Studio 2017 support
+* Windows: Fix enumeration problems on Windows 8 and later
+* Windows: Major rework of poll() emulation
+* Windows: Numerous HID API fixes
+* Windows: Support cancelation of individual transfers (Vista and later)
+* Various other bug fixes and improvements
+
 2016-10-01: v1.0.21:
 * Core: Refactor code related to transfer flags and timeout handling
 * Darwin: Ignore root hub simulation devices
