@@ -87,7 +87,7 @@ V4IntrMessage::V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl) : IntrMessa
 {
   HIDRequest hid_request;
   Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
-  length = static_cast<u16>(Common::swap32(hid_request.interrupt.length));
+  length = Common::swap32(hid_request.interrupt.length);
   endpoint = static_cast<u8>(Common::swap32(hid_request.interrupt.endpoint));
   data_address = Common::swap32(hid_request.data_addr);
 }

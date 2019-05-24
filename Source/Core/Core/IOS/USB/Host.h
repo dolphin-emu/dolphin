@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
@@ -76,5 +77,7 @@ private:
   // Device scanning thread
   Common::Flag m_scan_thread_running;
   std::thread m_scan_thread;
+  Common::Event m_first_scan_complete_event;
+  bool m_has_initialised = false;
 };
 }  // namespace IOS::HLE::Device

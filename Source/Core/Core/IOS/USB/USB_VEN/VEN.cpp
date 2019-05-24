@@ -76,7 +76,10 @@ IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
     if (!device)
       return GetDefaultReply(IPC_EINVAL);
     auto host_device = GetDeviceById(device->host_id);
-    host_device->Attach(device->interface_number);
+    if (request.request == USB::IOCTLV_USBV5_CTRLMSG)
+      host_device->Attach();
+    else
+      host_device->AttachAndChangeInterface(device->interface_number);
     return HandleTransfer(host_device, request.request,
                           [&, this]() { return SubmitTransfer(*host_device, request); });
   }
@@ -104,8 +107,10 @@ s32 USB_VEN::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
 
 IPCCommandResult USB_VEN::CancelEndpoint(USBV5Device& device, const IOCtlRequest& request)
 {
-  const u8 endpoint = static_cast<u8>(Memory::Read_U32(request.buffer_in + 8));
-  GetDeviceById(device.host_id)->CancelTransfer(endpoint);
+  const u8 endpoint = Memory::Read_U8(request.buffer_in + 8);
+  // IPC_EINVAL (-4) is returned when no transfer was cancelled.
+  if (GetDeviceById(device.host_id)->CancelTransfer(endpoint) < 0)
+    return GetDefaultReply(IPC_EINVAL);
   return GetDefaultReply(IPC_SUCCESS);
 }
 

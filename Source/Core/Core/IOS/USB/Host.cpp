@@ -45,12 +45,14 @@ USBHost::~USBHost()
 
 IPCCommandResult USBHost::Open(const OpenRequest& request)
 {
-  // Force a device scan to complete, because some games (including Your Shape) only care
-  // about the initial device list (in the first GETDEVICECHANGE reply).
-  while (!UpdateDevices())
+  if (!m_has_initialised)
   {
+    StartThreads();
+    // Force a device scan to complete, because some games (including Your Shape) only care
+    // about the initial device list (in the first GETDEVICECHANGE reply).
+    m_first_scan_complete_event.Wait();
+    m_has_initialised = true;
   }
-  StartThreads();
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -117,6 +119,7 @@ bool USBHost::UpdateDevices(const bool always_add_hooks)
     return false;
   DetectRemovedDevices(plugged_devices, hooks);
   DispatchHooks(hooks);
+  m_first_scan_complete_event.Set();
   return true;
 }
 

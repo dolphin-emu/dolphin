@@ -15,6 +15,8 @@
 
 namespace IOS::HLE::USB
 {
+constexpr u8 DEFAULT_CONFIG_NUM = 0;
+
 enum StandardDeviceRequestCodes
 {
   REQUEST_GET_DESCRIPTOR = 6,
@@ -127,14 +129,14 @@ struct CtrlMessage : TransferCommand
 
 struct BulkMessage : TransferCommand
 {
-  u16 length = 0;
+  u32 length = 0;
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;
 };
 
 struct IntrMessage : TransferCommand
 {
-  u16 length = 0;
+  u32 length = 0;
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;
 };
@@ -143,7 +145,7 @@ struct IsoMessage : TransferCommand
 {
   u32 packet_sizes_addr = 0;
   std::vector<u16> packet_sizes;
-  u16 length = 0;
+  u32 length = 0;
   u8 num_packets = 0;
   u8 endpoint = 0;
   using TransferCommand::TransferCommand;
@@ -165,7 +167,13 @@ public:
   virtual std::vector<EndpointDescriptor> GetEndpoints(u8 config, u8 interface, u8 alt) const = 0;
 
   virtual std::string GetErrorName(int error_code) const;
-  virtual bool Attach(u8 interface) = 0;
+  /// Ensure the device is ready to use.
+  virtual bool Attach() = 0;
+  /// Ensure the device is ready to use and change the active interface (if needed).
+  ///
+  /// This may reset the active alt setting, so prefer using Attach when interface changes
+  /// are unnecessary (e.g. for control requests).
+  virtual bool AttachAndChangeInterface(u8 interface) = 0;
   virtual int CancelTransfer(u8 endpoint) = 0;
   virtual int ChangeInterface(u8 interface) = 0;
   virtual int GetNumberOfAltSettings(u8 interface) = 0;

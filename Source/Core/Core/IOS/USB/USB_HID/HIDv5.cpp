@@ -67,7 +67,10 @@ IPCCommandResult USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
     if (!device)
       return GetDefaultReply(IPC_EINVAL);
     auto host_device = GetDeviceById(device->host_id);
-    host_device->Attach(device->interface_number);
+    if (request.request == USB::IOCTLV_USBV5_CTRLMSG)
+      host_device->Attach();
+    else
+      host_device->AttachAndChangeInterface(device->interface_number);
     return HandleTransfer(host_device, request.request,
                           [&, this]() { return SubmitTransfer(*device, *host_device, request); });
   }
