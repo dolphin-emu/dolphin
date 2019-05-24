@@ -145,17 +145,25 @@ static void ResetRegisters()
   std::fill(std::begin(ppcState.gpr), std::end(ppcState.gpr), 0U);
   std::fill(std::begin(ppcState.spr), std::end(ppcState.spr), 0U);
 
-  /*
-  0x00080200 = lonestar 2.0
-  0x00088202 = lonestar 2.2
-  0x70000100 = gekko 1.0
-  0x00080100 = gekko 2.0
-  0x00083203 = gekko 2.3a
-  0x00083213 = gekko 2.3b
-  0x00083204 = gekko 2.4
-  0x00083214 = gekko 2.4e (8SE) - retail HW2
-  */
-  ppcState.spr[SPR_PVR] = 0x00083214;
+  // Gamecube:
+  // 0x00080200 = lonestar 2.0
+  // 0x00088202 = lonestar 2.2
+  // 0x70000100 = gekko 1.0
+  // 0x00080100 = gekko 2.0
+  // 0x00083203 = gekko 2.3a
+  // 0x00083213 = gekko 2.3b
+  // 0x00083204 = gekko 2.4
+  // 0x00083214 = gekko 2.4e (8SE) - retail HW2
+  // Wii:
+  // 0x00087102 = broadway retail hw
+  if (SConfig::GetInstance().bWii)
+  {
+    ppcState.spr[SPR_PVR] = 0x00087102;
+  }
+  else
+  {
+    ppcState.spr[SPR_PVR] = 0x00083214;
+  }
   ppcState.spr[SPR_HID1] = 0x80000000;  // We're running at 3x the bus clock
   ppcState.spr[SPR_ECID_U] = 0x0d96e200;
   ppcState.spr[SPR_ECID_M] = 0x1840c00d;
