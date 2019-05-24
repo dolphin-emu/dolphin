@@ -45,3 +45,4 @@ void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_UpdateProgressDialog(const char* caption, int position, int total);
+void Host_TitleChanged();
