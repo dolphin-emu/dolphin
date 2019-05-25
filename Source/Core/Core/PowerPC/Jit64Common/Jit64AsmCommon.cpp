@@ -68,18 +68,27 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
 
   // Don't Denormalize
 
-  // We want bits 0, 1
-  MOVAPD(XMM1, R(XMM0));
-  PAND(XMM1, MConst(double_top_two_bits));
-  PSRLQ(XMM1, 32);
+  if (cpu_info.bBMI2)
+  {
+    // Extract bits 0-1 and 5-34
+    MOV(64, R(RSCRATCH), Imm64(0xc7ffffffe0000000));
+    PEXT(64, RSCRATCH, RSCRATCH2, R(RSCRATCH));
+  }
+  else
+  {
+    // We want bits 0, 1
+    MOVAPD(XMM1, R(XMM0));
+    PAND(XMM1, MConst(double_top_two_bits));
+    PSRLQ(XMM1, 32);
 
-  // And 5 through to 34
-  PAND(XMM0, MConst(double_bottom_bits));
-  PSRLQ(XMM0, 29);
+    // And 5 through to 34
+    PAND(XMM0, MConst(double_bottom_bits));
+    PSRLQ(XMM0, 29);
 
-  // OR them togther
-  POR(XMM0, R(XMM1));
-  MOVD_xmm(R(RSCRATCH), XMM0);
+    // OR them togther
+    POR(XMM0, R(XMM1));
+    MOVD_xmm(R(RSCRATCH), XMM0);
+  }
   RET();
 
   // Denormalise
