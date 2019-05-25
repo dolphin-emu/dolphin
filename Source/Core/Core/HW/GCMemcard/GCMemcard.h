@@ -32,41 +32,83 @@ enum
   SLOT_A = 0,
   SLOT_B = 1,
   GCI = 0,
-  SUCCESS,
-  NOMEMCARD,
-  OPENFAIL,
-  OUTOFBLOCKS,
-  OUTOFDIRENTRIES,
-  LENGTHFAIL,
-  INVALIDFILESIZE,
-  TITLEPRESENT,
-  DIRLEN = 0x7F,
   SAV = 0x80,
-  SAVFAIL,
   GCS = 0x110,
-  GCSFAIL,
-  FAIL,
-  WRITEFAIL,
-  DELETE_FAIL,
-
-  MC_FST_BLOCKS = 0x05,
-  MBIT_TO_BLOCKS = 0x10,
-  DENTRY_STRLEN = 0x20,
-  DENTRY_SIZE = 0x40,
-  BLOCK_SIZE = 0x2000,
-  BAT_SIZE = 0xFFB,
-
-  MemCard59Mb = 0x04,
-  MemCard123Mb = 0x08,
-  MemCard251Mb = 0x10,
-  Memcard507Mb = 0x20,
-  MemCard1019Mb = 0x40,
-  MemCard2043Mb = 0x80,
 
   CI8SHARED = 1,
   RGB5A3,
   CI8,
 };
+
+enum class GCMemcardGetSaveDataRetVal
+{
+  SUCCESS,
+  FAIL,
+  NOMEMCARD,
+};
+
+enum class GCMemcardImportFileRetVal
+{
+  SUCCESS,
+  FAIL,
+  NOMEMCARD,
+  OUTOFDIRENTRIES,
+  OUTOFBLOCKS,
+  TITLEPRESENT,
+  INVALIDFILESIZE,
+  GCSFAIL,
+  SAVFAIL,
+  OPENFAIL,
+  LENGTHFAIL,
+};
+
+enum class GCMemcardExportFileRetVal
+{
+  SUCCESS,
+  FAIL,
+  NOMEMCARD,
+  OPENFAIL,
+  WRITEFAIL,
+  UNUSED,
+};
+
+enum class GCMemcardRemoveFileRetVal
+{
+  SUCCESS,
+  NOMEMCARD,
+  DELETE_FAIL,
+};
+
+// size of a single memory card block in bytes
+constexpr u32 BLOCK_SIZE = 0x2000;
+
+// the amount of memory card blocks in a megabit of data
+constexpr u32 MBIT_TO_BLOCKS = (1024 * 1024) / (BLOCK_SIZE * 8);
+
+// number of metadata and filesystem blocks before the actual user data blocks
+constexpr u32 MC_FST_BLOCKS = 0x05;
+
+// maximum number of saves that can be stored on a single memory card
+constexpr u8 DIRLEN = 0x7F;
+
+// maximum size of memory card file comment in bytes
+constexpr u32 DENTRY_STRLEN = 0x20;
+
+// size of a single entry in the Directory in bytes
+constexpr u32 DENTRY_SIZE = 0x40;
+
+// number of block entries in the BAT; one entry uses 2 bytes
+constexpr u16 BAT_SIZE = 0xFFB;
+
+// possible sizes of memory cards in megabits
+// TODO: Do memory card sizes have to be power of two?
+// TODO: Are these all of them? A 4091 block card should work in theory at least.
+constexpr u16 MemCard59Mb = 0x04;
+constexpr u16 MemCard123Mb = 0x08;
+constexpr u16 MemCard251Mb = 0x10;
+constexpr u16 Memcard507Mb = 0x20;
+constexpr u16 MemCard1019Mb = 0x40;
+constexpr u16 MemCard2043Mb = 0x80;
 
 class MemoryCardBase
 {
@@ -92,12 +134,10 @@ protected:
 
 struct GCMBlock
 {
-  GCMBlock() { Erase(); }
-  void Erase() { memset(m_block.data(), 0xFF, m_block.size()); }
+  GCMBlock();
+  void Erase();
   std::array<u8, BLOCK_SIZE> m_block;
 };
-
-void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 
 #pragma pack(push, 1)
 struct Header
@@ -133,6 +173,7 @@ struct Header
   std::array<u8, 468> m_unused_1;
 
   // 2 bytes at 0x01fa: Update Counter (?, probably unused)
+  // TODO: This seems to be 0xFFFF in all my memory cards, might still be part of m_unused_1.
   u16 m_update_counter;
 
   // 2 bytes at 0x01fc: Additive Checksum
@@ -144,59 +185,22 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  void CARD_GetSerialNo(u32* serial1, u32* serial2) const
-  {
-    u32 serial[8];
+  explicit Header(int slot = 0, u16 size_mbits = MemCard2043Mb, bool shift_jis = false);
 
-    for (int i = 0; i < 8; i++)
-    {
-      memcpy(&serial[i], (u8*)this + (i * 4), 4);
-    }
+  // Calculates the card serial numbers used for encrypting some save files.
+  std::pair<u32, u32> CalculateSerial() const;
 
-    *serial1 = serial[0] ^ serial[2] ^ serial[4] ^ serial[6];
-    *serial2 = serial[1] ^ serial[3] ^ serial[5] ^ serial[7];
-  }
-
-  // Nintendo format algorithm.
-  // Constants are fixed by the GC SDK
-  // Changing the constants will break memory card support
-  explicit Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
-  {
-    memset(this, 0xFF, BLOCK_SIZE);
-    m_size_mb = sizeMb;
-    m_encoding = shift_jis ? 1 : 0;
-    u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
-    m_format_time = rand;
-    for (int i = 0; i < 12; i++)
-    {
-      rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-      m_serial[i] = (u8)(g_SRAM.settings_ex.flash_id[slot][i] + (u32)rand);
-      rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-      rand &= (u64)0x0000000000007fffULL;
-    }
-    m_sram_bias = g_SRAM.settings.rtc_bias;
-    m_sram_language = static_cast<u32>(g_SRAM.settings.language);
-    // TODO: determine the purpose of m_unknown_2
-    // 1 works for slot A, 0 works for both slot A and slot B
-    memset(m_unknown_2.data(), 0,
-           m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-    m_device_id = 0;
-    calc_checksumsBE((u16*)this, 0xFE, &m_checksum, &m_checksum_inv);
-  }
+  void FixChecksums();
+  std::pair<u16, u16> CalculateChecksums() const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 
 struct DEntry
 {
-  DEntry() { memset(this, 0xFF, DENTRY_SIZE); }
-  std::string GCI_FileName() const
-  {
-    std::string filename =
-        std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
-        std::string(reinterpret_cast<const char*>(m_gamecode.data()), m_gamecode.size()) + '-' +
-        reinterpret_cast<const char*>(m_filename.data()) + ".gci";
-    return Common::EscapeFileName(filename);
-  }
+  DEntry();
+
+  // TODO: This probably shouldn't be here at all?
+  std::string GCI_FileName() const;
 
   static constexpr std::array<u8, 4> UNINITIALIZED_GAMECODE{{0xFF, 0xFF, 0xFF, 0xFF}};
 
@@ -272,24 +276,31 @@ static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
 struct Directory
 {
-  std::array<DEntry, DIRLEN> m_dir_entries;  // 0x0000            Directory Entries (max 127)
+  // 127 files of 0x40 bytes each
+  std::array<DEntry, DIRLEN> m_dir_entries;
+
+  // 0x3a bytes at 0x1fc0: Unused, always 0xFF
   std::array<u8, 0x3a> m_padding;
-  Common::BigEndianValue<u16> m_update_counter;  // 0x1ffa    2       Update Counter
-  u16 m_checksum;                                // 0x1ffc    2       Additive Checksum
-  u16 m_checksum_inv;                            // 0x1ffe    2       Inverse Checksum
-  Directory()
-  {
-    memset(this, 0xFF, BLOCK_SIZE);
-    m_update_counter = 0;
-    m_checksum = BE16(0xF003);
-    m_checksum_inv = 0;
-  }
-  void Replace(DEntry d, int idx)
-  {
-    m_dir_entries[idx] = d;
-    fixChecksums();
-  }
-  void fixChecksums() { calc_checksumsBE((u16*)this, 0xFFE, &m_checksum, &m_checksum_inv); }
+
+  // 2 bytes at 0x1ffa: Update Counter
+  // TODO: What happens if this overflows? Is there a special case for preferring 0 over max value?
+  Common::BigEndianValue<u16> m_update_counter;
+
+  // 2 bytes at 0x1ffc: Additive Checksum
+  u16 m_checksum;
+
+  // 2 bytes at 0x1ffe: Inverse Checksum
+  u16 m_checksum_inv;
+
+  // Constructs an empty Directory block.
+  Directory();
+
+  // Replaces the file metadata at the given index (range 0-126)
+  // with the given DEntry data.
+  bool Replace(const DEntry& entry, size_t index);
+
+  void FixChecksums();
+  std::pair<u16, u16> CalculateChecksums() const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
@@ -313,37 +324,15 @@ struct BlockAlloc
   // 0x1ff8 bytes at 0x000a: Map of allocated Blocks
   std::array<Common::BigEndianValue<u16>, BAT_SIZE> m_map;
 
-  u16 GetNextBlock(u16 Block) const;
-  u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
-  bool ClearBlocks(u16 StartingBlock, u16 Length);
-  void fixChecksums()
-  {
-    calc_checksumsBE((u16*)&m_update_counter, 0xFFE, &m_checksum, &m_checksum_inv);
-  }
-  explicit BlockAlloc(u16 sizeMb = MemCard2043Mb)
-  {
-    memset(this, 0, BLOCK_SIZE);
-    m_free_blocks = (sizeMb * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
-    m_last_allocated_block = 4;
-    fixChecksums();
-  }
-  u16 AssignBlocksContiguous(u16 length)
-  {
-    u16 starting = m_last_allocated_block + 1;
-    if (length > m_free_blocks)
-      return 0xFFFF;
-    u16 current = starting;
-    while ((current - starting + 1) < length)
-    {
-      m_map[current - 5] = current + 1;
-      current++;
-    }
-    m_map[current - 5] = 0xFFFF;
-    m_last_allocated_block = current;
-    m_free_blocks = m_free_blocks - length;
-    fixChecksums();
-    return starting;
-  }
+  explicit BlockAlloc(u16 size_mbits = MemCard2043Mb);
+
+  u16 GetNextBlock(u16 block) const;
+  u16 NextFreeBlock(u16 max_block, u16 starting_block = MC_FST_BLOCKS) const;
+  bool ClearBlocks(u16 starting_block, u16 block_count);
+  u16 AssignBlocksContiguous(u16 length);
+
+  void FixChecksums();
+  std::pair<u16, u16> CalculateChecksums() const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)
@@ -389,8 +378,7 @@ private:
   int m_active_directory;
   int m_active_bat;
 
-  u32 ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
-                        const std::string& outputFile);
+  GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
   void InitActiveDirBat();
 
   const Directory& GetActiveDirectory() const;
@@ -454,26 +442,27 @@ public:
   // Fetches a DEntry from the given file index.
   std::optional<DEntry> GetDEntry(u8 index) const;
 
-  u32 GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
+  GCMemcardGetSaveDataRetVal GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
   // adds the file to the directory and copies its contents
-  u32 ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
 
   // delete a file from the directory
-  u32 RemoveFile(u8 index);
+  GCMemcardRemoveFileRetVal RemoveFile(u8 index);
 
   // reads a save from another memcard, and imports the data into this memcard
-  u32 CopyFrom(const GCMemcard& source, u8 index);
+  GCMemcardImportFileRetVal CopyFrom(const GCMemcard& source, u8 index);
 
-  // reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-  u32 ImportGci(const std::string& inputFile, const std::string& outputFile);
+  // reads a .gci/.gcs/.sav file and calls ImportFile
+  GCMemcardImportFileRetVal ImportGci(const std::string& inputFile);
 
   // writes a .gci file to disk containing index
-  u32 ExportGci(u8 index, const std::string& fileName, const std::string& directory) const;
+  GCMemcardExportFileRetVal ExportGci(u8 index, const std::string& fileName,
+                                      const std::string& directory) const;
 
   // GCI files are untouched, SAV files are byteswapped
   // GCS files have the block count set, default is 1 (For export as GCS)
-  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, int length = BLOCK_SIZE);
+  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
 
   // reads the banner image
   bool ReadBannerRGBA8(u8 index, u32* buffer) const;

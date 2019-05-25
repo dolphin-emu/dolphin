@@ -300,7 +300,9 @@ void GCMemcardManager::ExportFiles(bool prompt)
              QStringLiteral("/%1").arg(QString::fromStdString(gci_filename));
     }
 
-    if (!memcard->ExportGci(file_index, path.toStdString(), ""))
+    // TODO: This is obviously intended to check for success instead.
+    const auto exportRetval = memcard->ExportGci(file_index, path.toStdString(), "");
+    if (exportRetval == GCMemcardExportFileRetVal::UNUSED)
     {
       File::Delete(path.toStdString());
     }
@@ -328,9 +330,9 @@ void GCMemcardManager::ImportFile()
   if (path.isEmpty())
     return;
 
-  const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString(), "");
+  const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString());
 
-  if (result != SUCCESS)
+  if (result != GCMemcardImportFileRetVal::SUCCESS)
   {
     ModalMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
     return;
@@ -356,7 +358,7 @@ void GCMemcardManager::CopyFiles()
 
     const auto result = m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
 
-    if (result != SUCCESS)
+    if (result != GCMemcardImportFileRetVal::SUCCESS)
     {
       ModalMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
     }
@@ -400,7 +402,7 @@ void GCMemcardManager::DeleteFiles()
 
   for (int file_index : file_indices)
   {
-    if (memcard->RemoveFile(file_index) != SUCCESS)
+    if (memcard->RemoveFile(file_index) != GCMemcardRemoveFileRetVal::SUCCESS)
     {
       ModalMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
     }
