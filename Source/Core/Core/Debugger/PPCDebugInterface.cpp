@@ -5,6 +5,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 
 #include <cstddef>
+#include <regex>
 #include <string>
 
 #include "Common/Align.h"
@@ -322,6 +323,51 @@ int PPCDebugInterface::GetColor(unsigned int address)
 std::string PPCDebugInterface::GetDescription(unsigned int address)
 {
   return g_symbolDB.GetDescription(address);
+}
+
+u32 PPCDebugInterface::GetMemoryAddressFromInstruction(std::string instruction) const
+{
+  std::regex re(",[^r0-]*(-?)(0[xX]?[0-9a-fA-F]*|r\\d+)[^r^s]*.(p|toc|\\d+)");
+  std::smatch match;
+  if (!std::regex_search(instruction, match, re))
+    return 0;
+
+  // Output: match.str(1): negative sign for offset or nothing. match.str(2): 0xNNNN, 0, or rNN.
+  // Checked next for 'r' to see if a gpr needs to be loaded. match.str(3): will either be p, toc,
+  // or NN. Always a gpr.
+  const std::string offset_match = match.str(2);
+  const std::string register_match = match.str(3);
+  constexpr char is_reg = 'r';
+  u32 offset = 0;
+
+  if (is_reg == offset_match[0])
+  {
+    const int register_index = std::stoi(offset_match.substr(1), nullptr, 10);
+    offset = (register_index == 0 ? 0 : GPR(register_index));
+  }
+  else
+  {
+    offset = static_cast<u32>(std::stoi(offset_match, nullptr, 16));
+  }
+
+  // sp and rtoc need to be converted to 1 and 2.
+  constexpr char is_sp = 'p';
+  constexpr char is_rtoc = 't';
+  int i;
+
+  if (is_sp == register_match[0])
+    i = 1;
+  else if (is_rtoc == register_match[0])
+    i = 2;
+  else
+    i = std::stoi(register_match, nullptr, 10);
+
+  const u32 base_address = GPR(i);
+
+  if (!match.str(1).empty())
+    return base_address - offset;
+
+  return base_address + offset;
 }
 
 unsigned int PPCDebugInterface::GetPC()

@@ -65,6 +65,9 @@ private:
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
+  void OnCopyTargetAddress();
+  void OnShowTargetInMemory();
+  void OnBreakpointTargetAddress();
   void OnRenameSymbol();
   void OnSelectionChanged();
   void OnSetSymbolSize();

@@ -227,6 +227,39 @@ void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
   Update();
 }
 
+bool IsInstructionLoadStore(std::string instruction)
+{
+  // Could add check for context address being near PC, because we need gprs to be correct for the
+  // load/store.
+  return ((instruction.compare(0, 2, "st") == 0 || instruction.compare(0, 1, "l") == 0 ||
+           instruction.compare(0, 5, "psq_l") == 0 || instruction.compare(0, 5, "psq_s") == 0) &&
+          instruction.compare(0, 2, "li") != 0);
+}
+
+void CodeViewWidget::OnCopyTargetAddress()
+{
+  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+
+  if (!IsInstructionLoadStore(code_line))
+    return;
+
+  const u32 addr = PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
+
+  QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
+}
+
+void CodeViewWidget::OnShowTargetInMemory()
+{
+  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+
+  if (!IsInstructionLoadStore(code_line))
+    return;
+
+  const u32 addr = PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
+
+  emit ShowMemory(addr);
+}
+
 void CodeViewWidget::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
@@ -248,8 +281,11 @@ void CodeViewWidget::OnContextMenu()
   auto* copy_line_action =
       menu->addAction(tr("Copy code &line"), this, &CodeViewWidget::OnCopyCode);
   auto* copy_hex_action = menu->addAction(tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
-
-  menu->addAction(tr("Show in &memory"), this, &CodeViewWidget::OnShowInMemory);
+  menu->addAction(tr("Show instruction in &memory"), this, &CodeViewWidget::OnShowInMemory);
+  auto* copy_target_address = menu->addAction(tr("Copy target load/store memory address"), this,
+                                              &CodeViewWidget::OnCopyTargetAddress);
+  auto* show_target_address = menu->addAction(tr("Show target load/store in memory"), this,
+                                              &CodeViewWidget::OnShowTargetInMemory);
 
   menu->addSeparator();
 
@@ -274,8 +310,9 @@ void CodeViewWidget::OnContextMenu()
 
   follow_branch_action->setEnabled(running && GetBranchFromAddress(addr));
 
-  for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, function_action,
-                       ppc_action, insert_blr_action, insert_nop_action, replace_action})
+  for (auto* action : {copy_address_action, copy_line_action, copy_hex_action, copy_target_address,
+                       show_target_address, function_action, ppc_action, insert_blr_action,
+                       insert_nop_action, replace_action})
     action->setEnabled(running);
 
   for (auto* action : {symbol_rename_action, symbol_size_action, symbol_end_action})

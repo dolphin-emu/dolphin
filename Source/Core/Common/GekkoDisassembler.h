@@ -128,7 +128,6 @@ private:
     }
   }
 
-  static int SEX12(u32 x) { return x & 0x800 ? (x | 0xFFFFF000) : x; }
   enum InstructionType
   {
     PPCINSTR_OTHER = 0,   // No additional info for other instr.
