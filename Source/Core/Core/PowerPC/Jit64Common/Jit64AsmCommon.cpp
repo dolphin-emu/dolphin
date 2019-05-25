@@ -50,8 +50,8 @@ alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffff
 
 void CommonAsmRoutines::GenConvertDoubleToSingle()
 {
-  // Input in XMM0, output to XMM0
-  // Clobbers RSCRATCH/RSCRATCH2/XMM1
+  // Input in XMM0, output to RSCRATCH
+  // Clobbers RSCRATCH/RSCRATCH2/XMM0/XMM1
 
   const void* start = GetCodePtr();
 
@@ -79,6 +79,7 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
 
   // OR them togther
   POR(XMM0, R(XMM1));
+  MOVD_xmm(R(RSCRATCH), XMM0);
   RET();
 
   // Denormalise
@@ -95,13 +96,13 @@ void CommonAsmRoutines::GenConvertDoubleToSingle()
 
   // fraction >> shift
   PSRLQ(XMM0, R(XMM1));
+  MOVD_xmm(R(RSCRATCH), XMM0);
 
   // OR the sign bit in.
   SHR(64, R(RSCRATCH2), Imm8(32));
   AND(32, R(RSCRATCH2), Imm32(0x80000000));
-  MOVQ_xmm(XMM1, R(RSCRATCH2));
 
-  POR(XMM0, R(XMM1));
+  OR(32, R(RSCRATCH), R(RSCRATCH2));
   RET();
 
   JitRegister::Register(start, GetCodePtr(), "JIT_cdts");
