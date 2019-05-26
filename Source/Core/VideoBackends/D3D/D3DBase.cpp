@@ -133,6 +133,7 @@ void Destroy()
   context->ClearState();
   context->Flush();
 
+  dxgi_factory.Reset();
   context.Reset();
   device1.Reset();
 
