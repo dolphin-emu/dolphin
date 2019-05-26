@@ -337,30 +337,6 @@ struct BlockAlloc
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)
 
-class GCIFile
-{
-public:
-  bool LoadSaveBlocks();
-  bool HasCopyProtection() const
-  {
-    if ((strcmp(reinterpret_cast<const char*>(m_gci_header.m_filename.data()), "PSO_SYSTEM") ==
-         0) ||
-        (strcmp(reinterpret_cast<const char*>(m_gci_header.m_filename.data()), "PSO3_SYSTEM") ==
-         0) ||
-        (strcmp(reinterpret_cast<const char*>(m_gci_header.m_filename.data()), "f_zero.dat") == 0))
-      return true;
-    return false;
-  }
-
-  void DoState(PointerWrap& p);
-  DEntry m_gci_header;
-  std::vector<GCMBlock> m_save_data;
-  std::vector<u16> m_used_blocks;
-  int UsesBlock(u16 blocknum);
-  bool m_dirty;
-  std::string m_filename;
-};
-
 class GCMemcard
 {
 private:
