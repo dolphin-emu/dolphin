@@ -115,6 +115,7 @@ bool retro_load_game(const struct retro_game_info* game)
   Config::SetBase(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING, Libretro::Options::waitForShaders);
   Config::SetBase(Config::GFX_ENHANCE_FORCE_FILTERING, Libretro::Options::forceTextureFiltering);
   Config::SetBase(Config::GFX_HIRES_TEXTURES, Libretro::Options::loadCustomTextures);
+  Config::SetBase(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, Libretro::Options::textureCacheAccuracy);
 #if 0
   Config::SetBase(Config::GFX_SHADER_COMPILER_THREADS, 1);
   Config::SetBase(Config::GFX_SHADER_PRECOMPILER_THREADS, 1);
