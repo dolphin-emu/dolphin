@@ -10,6 +10,7 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "UICommon/ResourcePack/Manager.h"
@@ -23,28 +24,26 @@ constexpr char TEXTURE_PATH[] = "Load/Textures/";
 // this ourselves
 static bool ReadCurrentFileUnlimited(unzFile file, std::vector<char>& destination)
 {
-  const uint32_t MAX_BUFFER_SIZE = 65535;
+  const u32 MAX_BUFFER_SIZE = 65535;
 
   if (unzOpenCurrentFile(file) != UNZ_OK)
     return false;
 
-  uint32_t bytes_to_go = static_cast<uint32_t>(destination.size());
+  Common::ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
 
+  auto bytes_to_go = static_cast<u32>(destination.size());
   while (bytes_to_go > 0)
   {
-    int bytes_read = unzReadCurrentFile(file, &destination[destination.size() - bytes_to_go],
-                                        std::min(bytes_to_go, MAX_BUFFER_SIZE));
+    const int bytes_read = unzReadCurrentFile(file, &destination[destination.size() - bytes_to_go],
+                                              std::min(bytes_to_go, MAX_BUFFER_SIZE));
 
     if (bytes_read < 0)
     {
-      unzCloseCurrentFile(file);
       return false;
     }
 
-    bytes_to_go -= bytes_read;
+    bytes_to_go -= static_cast<u32>(bytes_read);
   }
-
-  unzCloseCurrentFile(file);
 
   return true;
 }
@@ -52,6 +51,7 @@ static bool ReadCurrentFileUnlimited(unzFile file, std::vector<char>& destinatio
 ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 {
   auto file = unzOpen(path.c_str());
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
   if (file == nullptr)
   {
@@ -129,8 +129,6 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
     m_textures.push_back(filename.substr(9));
   } while (unzGoToNextFile(file) != UNZ_END_OF_LIST_OF_FILE);
-
-  unzClose(file);
 }
 
 bool ResourcePack::IsValid() const
@@ -172,6 +170,7 @@ bool ResourcePack::Install(const std::string& path)
   }
 
   auto file = unzOpen(m_path.c_str());
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
   for (const auto& texture : m_textures)
   {
@@ -229,10 +228,7 @@ bool ResourcePack::Install(const std::string& path)
     out.flush();
   }
 
-  unzClose(file);
-
   SetInstalled(*this, true);
-
   return true;
 }
 
