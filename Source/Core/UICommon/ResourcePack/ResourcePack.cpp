@@ -22,7 +22,8 @@ constexpr char TEXTURE_PATH[] = "Load/Textures/";
 
 // Since minzip doesn't provide a way to unzip a file of a length > 65535, we have to implement
 // this ourselves
-static bool ReadCurrentFileUnlimited(unzFile file, std::vector<char>& destination)
+template <typename ContiguousContainer>
+static bool ReadCurrentFileUnlimited(unzFile file, ContiguousContainer& destination)
 {
   const u32 MAX_BUFFER_SIZE = 65535;
 
@@ -70,19 +71,16 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
   unz_file_info manifest_info;
   unzGetCurrentFileInfo(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-  std::vector<char> manifest_contents(manifest_info.uncompressed_size);
+  std::string manifest_contents(manifest_info.uncompressed_size, '\0');
   if (!ReadCurrentFileUnlimited(file, manifest_contents))
   {
     m_valid = false;
     m_error = "Failed to read manifest.json";
     return;
   }
-
   unzCloseCurrentFile(file);
 
-  m_manifest =
-      std::make_shared<Manifest>(std::string(manifest_contents.begin(), manifest_contents.end()));
-
+  m_manifest = std::make_shared<Manifest>(manifest_contents);
   if (!m_manifest->IsValid())
   {
     m_valid = false;
