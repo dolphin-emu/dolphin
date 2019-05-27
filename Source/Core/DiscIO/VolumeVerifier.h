@@ -90,7 +90,7 @@ private:
   void CheckPartitions();
   bool CheckPartition(const Partition& partition);  // Returns false if partition should be ignored
   std::string GetPartitionName(std::optional<u32> type) const;
-  void CheckCorrectlySigned(const Partition& partition, const std::string& error_text);
+  void CheckCorrectlySigned(const Partition& partition, std::string error_text);
   bool IsDebugSigned() const;
   bool ShouldHaveChannelPartition() const;
   bool ShouldHaveInstallPartition() const;
@@ -103,7 +103,7 @@ private:
   void SetUpHashing();
   bool CheckContentIntegrity(const IOS::ES::Content& content);
 
-  void AddProblem(Severity severity, const std::string& text);
+  void AddProblem(Severity severity, std::string text);
 
   const Volume& m_volume;
   Result m_result;
