@@ -72,6 +72,8 @@ public:
   };
 
   VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calculate);
+  ~VolumeVerifier();
+
   void Start();
   void Process();
   u64 GetBytesProcessed() const;

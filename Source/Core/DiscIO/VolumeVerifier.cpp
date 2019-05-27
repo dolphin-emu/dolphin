@@ -54,6 +54,8 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calc
 {
 }
 
+VolumeVerifier::~VolumeVerifier() = default;
+
 void VolumeVerifier::Start()
 {
   ASSERT(!m_started);
