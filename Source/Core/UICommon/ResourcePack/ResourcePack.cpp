@@ -10,41 +10,41 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "UICommon/ResourcePack/Manager.h"
 #include "UICommon/ResourcePack/Manifest.h"
 
-static const char* TEXTURE_PATH = "Load/Textures/";
-
 namespace ResourcePack
 {
+constexpr char TEXTURE_PATH[] = "Load/Textures/";
+
 // Since minzip doesn't provide a way to unzip a file of a length > 65535, we have to implement
 // this ourselves
-static bool ReadCurrentFileUnlimited(unzFile file, std::vector<char>& destination)
+template <typename ContiguousContainer>
+static bool ReadCurrentFileUnlimited(unzFile file, ContiguousContainer& destination)
 {
-  const uint32_t MAX_BUFFER_SIZE = 65535;
+  const u32 MAX_BUFFER_SIZE = 65535;
 
   if (unzOpenCurrentFile(file) != UNZ_OK)
     return false;
 
-  uint32_t bytes_to_go = static_cast<uint32_t>(destination.size());
+  Common::ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
 
+  auto bytes_to_go = static_cast<u32>(destination.size());
   while (bytes_to_go > 0)
   {
-    int bytes_read = unzReadCurrentFile(file, &destination[destination.size() - bytes_to_go],
-                                        std::min(bytes_to_go, MAX_BUFFER_SIZE));
+    const int bytes_read = unzReadCurrentFile(file, &destination[destination.size() - bytes_to_go],
+                                              std::min(bytes_to_go, MAX_BUFFER_SIZE));
 
     if (bytes_read < 0)
     {
-      unzCloseCurrentFile(file);
       return false;
     }
 
-    bytes_to_go -= bytes_read;
+    bytes_to_go -= static_cast<u32>(bytes_read);
   }
-
-  unzCloseCurrentFile(file);
 
   return true;
 }
@@ -52,6 +52,7 @@ static bool ReadCurrentFileUnlimited(unzFile file, std::vector<char>& destinatio
 ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 {
   auto file = unzOpen(path.c_str());
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
   if (file == nullptr)
   {
@@ -68,25 +69,18 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
   }
 
   unz_file_info manifest_info;
-
   unzGetCurrentFileInfo(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-  std::vector<char> manifest_contents;
-
-  manifest_contents.resize(manifest_info.uncompressed_size);
-
+  std::string manifest_contents(manifest_info.uncompressed_size, '\0');
   if (!ReadCurrentFileUnlimited(file, manifest_contents))
   {
     m_valid = false;
     m_error = "Failed to read manifest.json";
     return;
   }
-
   unzCloseCurrentFile(file);
 
-  m_manifest =
-      std::make_shared<Manifest>(std::string(manifest_contents.begin(), manifest_contents.end()));
-
+  m_manifest = std::make_shared<Manifest>(manifest_contents);
   if (!m_manifest->IsValid())
   {
     m_valid = false;
@@ -114,13 +108,10 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
   do
   {
-    std::string filename;
-
-    filename.resize(256);
+    std::string filename(256, '\0');
 
     unz_file_info texture_info;
-
-    unzGetCurrentFileInfo(file, &texture_info, &filename[0], static_cast<uint16_t>(filename.size()),
+    unzGetCurrentFileInfo(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
                           nullptr, 0, nullptr, 0);
 
     if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
@@ -136,8 +127,6 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
     m_textures.push_back(filename.substr(9));
   } while (unzGoToNextFile(file) != UNZ_END_OF_LIST_OF_FILE);
-
-  unzClose(file);
 }
 
 bool ResourcePack::IsValid() const
@@ -179,6 +168,7 @@ bool ResourcePack::Install(const std::string& path)
   }
 
   auto file = unzOpen(m_path.c_str());
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
 
   for (const auto& texture : m_textures)
   {
@@ -204,9 +194,9 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
+    const std::string texture_path = path + TEXTURE_PATH + texture;
     std::string m_full_dir;
-
-    SplitPath(path + TEXTURE_PATH + texture, &m_full_dir, nullptr, nullptr);
+    SplitPath(texture_path, &m_full_dir, nullptr, nullptr);
 
     if (!File::CreateFullPath(m_full_dir))
     {
@@ -215,19 +205,16 @@ bool ResourcePack::Install(const std::string& path)
     }
 
     unz_file_info texture_info;
-
     unzGetCurrentFileInfo(file, &texture_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-    std::vector<char> data;
-    data.resize(texture_info.uncompressed_size);
-
+    std::vector<char> data(texture_info.uncompressed_size);
     if (!ReadCurrentFileUnlimited(file, data))
     {
       m_error = "Failed to read texture " + texture;
       return false;
     }
 
-    std::ofstream out(path + TEXTURE_PATH + texture, std::ios::trunc | std::ios::binary);
+    std::ofstream out(texture_path, std::ios::trunc | std::ios::binary);
 
     if (!out.good())
     {
@@ -239,10 +226,7 @@ bool ResourcePack::Install(const std::string& path)
     out.flush();
   }
 
-  unzClose(file);
-
   SetInstalled(*this, true);
-
   return true;
 }
 
@@ -294,7 +278,8 @@ bool ResourcePack::Uninstall(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    if (File::Exists(path + TEXTURE_PATH + texture) && !File::Delete(path + TEXTURE_PATH + texture))
+    const std::string texture_path = path + TEXTURE_PATH + texture;
+    if (File::Exists(texture_path) && !File::Delete(texture_path))
     {
       m_error = "Failed to delete texture " + texture;
       return false;
@@ -303,8 +288,7 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Recursively delete empty directories
 
     std::string dir;
-
-    SplitPath(path + TEXTURE_PATH + texture, &dir, nullptr, nullptr);
+    SplitPath(texture_path, &dir, nullptr, nullptr);
 
     while (dir.length() > (path + TEXTURE_PATH).length())
     {
