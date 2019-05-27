@@ -49,7 +49,7 @@ std::mutex HttpRequest::Impl::s_curl_was_inited_mutex;
 bool HttpRequest::Impl::s_curl_was_inited = false;
 
 HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
-    : m_impl(std::make_unique<Impl>(timeout_ms, callback))
+    : m_impl(std::make_unique<Impl>(timeout_ms, std::move(callback)))
 {
 }
 
@@ -107,7 +107,7 @@ int HttpRequest::Impl::CurlProgressCallback(Impl* impl, double dlnow, double dlt
 }
 
 HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
-    : m_callback(callback)
+    : m_callback(std::move(callback))
 {
   {
     std::lock_guard<std::mutex> lk(s_curl_was_inited_mutex);
