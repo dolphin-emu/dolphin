@@ -50,9 +50,11 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calc
     : m_volume(volume), m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
                              hashes_to_calculate.sha1),
-      m_started(false), m_done(false), m_progress(0), m_max_progress(volume.GetSize())
+      m_max_progress(volume.GetSize())
 {
 }
+
+VolumeVerifier::~VolumeVerifier() = default;
 
 void VolumeVerifier::Start()
 {
@@ -191,9 +193,9 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
   {
-    const std::string text = StringFromFormat(
+    std::string text = StringFromFormat(
         GetStringT("The H3 hash table for the %s partition is not correct.").c_str(), name.c_str());
-    AddProblem(Severity::Low, text);
+    AddProblem(Severity::Low, std::move(text));
   }
 
   bool invalid_disc_header = false;
@@ -224,18 +226,18 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     // This can happen when certain programs that create WBFS files scrub the entirety of
     // the Masterpiece partitions in Super Smash Bros. Brawl without removing them from
     // the partition table. https://bugs.dolphin-emu.org/issues/8733
-    const std::string text = StringFromFormat(
+    std::string text = StringFromFormat(
         GetStringT("The %s partition does not seem to contain valid data.").c_str(), name.c_str());
-    AddProblem(severity, text);
+    AddProblem(severity, std::move(text));
     return false;
   }
 
   const DiscIO::FileSystem* filesystem = m_volume.GetFileSystem(partition);
   if (!filesystem)
   {
-    const std::string text = StringFromFormat(
+    std::string text = StringFromFormat(
         GetStringT("The %s partition does not have a valid file system.").c_str(), name.c_str());
-    AddProblem(severity, text);
+    AddProblem(severity, std::move(text));
     return false;
   }
 
@@ -306,7 +308,7 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
   return name;
 }
 
-void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, const std::string& error_text)
+void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, std::string error_text)
 {
   IOS::HLE::Kernel ios;
   const auto es = ios.GetES();
@@ -321,7 +323,7 @@ void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, const std:
                               IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
                               m_volume.GetTMD(partition), cert_chain))
   {
-    AddProblem(Severity::Low, error_text);
+    AddProblem(Severity::Low, std::move(error_text));
   }
 }
 
@@ -377,7 +379,7 @@ void VolumeVerifier::CheckDiscSize()
   {
     const bool second_layer_missing =
         biggest_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
-    const std::string text =
+    std::string text =
         second_layer_missing ?
             GetStringT(
                 "This disc image is too small and lacks some data. The problem is most likely that "
@@ -385,7 +387,7 @@ void VolumeVerifier::CheckDiscSize()
             GetStringT(
                 "This disc image is too small and lacks some data. If your dumping program saved "
                 "the disc image as several parts, you need to merge them into one file.");
-    AddProblem(Severity::High, text);
+    AddProblem(Severity::High, std::move(text));
     return;
   }
 
@@ -444,7 +446,7 @@ void VolumeVerifier::CheckDiscSize()
   }
 }
 
-u64 VolumeVerifier::GetBiggestUsedOffset()
+u64 VolumeVerifier::GetBiggestUsedOffset() const
 {
   std::vector<Partition> partitions = m_volume.GetPartitions();
   if (partitions.empty())
@@ -601,7 +603,7 @@ void VolumeVerifier::CheckMisc()
       const Severity severity =
           m_volume.GetVolumeType() == Platform::WiiWAD ? Severity::Low : Severity::High;
       // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-      AddProblem(Severity::Low, GetStringT("This title is set to use an invalid common key."));
+      AddProblem(severity, GetStringT("This title is set to use an invalid common key."));
     }
 
     if (common_key == 1 && region != Region::NTSC_K)
@@ -814,27 +816,27 @@ void VolumeVerifier::Finish()
     }
   }
 
-  for (auto pair : m_block_errors)
+  for (auto [partition, blocks] : m_block_errors)
   {
-    if (pair.second > 0)
+    if (blocks > 0)
     {
-      const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
-      const std::string text = StringFromFormat(
-          GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(), pair.second,
+      const std::string name = GetPartitionName(m_volume.GetPartitionType(partition));
+      std::string text = StringFromFormat(
+          GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(), blocks,
           name.c_str());
-      AddProblem(Severity::Medium, text);
+      AddProblem(Severity::Medium, std::move(text));
     }
   }
 
-  for (auto pair : m_unused_block_errors)
+  for (auto [partition, blocks] : m_unused_block_errors)
   {
-    if (pair.second > 0)
+    if (blocks > 0)
     {
-      const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
-      const std::string text = StringFromFormat(
-          GetStringT("Errors were found in %zu unused blocks in the %s partition.").c_str(),
-          pair.second, name.c_str());
-      AddProblem(Severity::Low, text);
+      const std::string name = GetPartitionName(m_volume.GetPartitionType(partition));
+      std::string text = StringFromFormat(
+          GetStringT("Errors were found in %zu unused blocks in the %s partition.").c_str(), blocks,
+          name.c_str());
+      AddProblem(Severity::Low, std::move(text));
     }
   }
 
@@ -904,9 +906,9 @@ const VolumeVerifier::Result& VolumeVerifier::GetResult() const
   return m_result;
 }
 
-void VolumeVerifier::AddProblem(Severity severity, const std::string& text)
+void VolumeVerifier::AddProblem(Severity severity, std::string text)
 {
-  m_result.problems.emplace_back(Problem{severity, text});
+  m_result.problems.emplace_back(Problem{severity, std::move(text)});
 }
 
 }  // namespace DiscIO
