@@ -197,9 +197,9 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
+    const std::string texture_path = path + TEXTURE_PATH + texture;
     std::string m_full_dir;
-
-    SplitPath(path + TEXTURE_PATH + texture, &m_full_dir, nullptr, nullptr);
+    SplitPath(texture_path, &m_full_dir, nullptr, nullptr);
 
     if (!File::CreateFullPath(m_full_dir))
     {
@@ -217,7 +217,7 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    std::ofstream out(path + TEXTURE_PATH + texture, std::ios::trunc | std::ios::binary);
+    std::ofstream out(texture_path, std::ios::trunc | std::ios::binary);
 
     if (!out.good())
     {
@@ -284,7 +284,8 @@ bool ResourcePack::Uninstall(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    if (File::Exists(path + TEXTURE_PATH + texture) && !File::Delete(path + TEXTURE_PATH + texture))
+    const std::string texture_path = path + TEXTURE_PATH + texture;
+    if (File::Exists(texture_path) && !File::Delete(texture_path))
     {
       m_error = "Failed to delete texture " + texture;
       return false;
@@ -293,8 +294,7 @@ bool ResourcePack::Uninstall(const std::string& path)
     // Recursively delete empty directories
 
     std::string dir;
-
-    SplitPath(path + TEXTURE_PATH + texture, &dir, nullptr, nullptr);
+    SplitPath(texture_path, &dir, nullptr, nullptr);
 
     while (dir.length() > (path + TEXTURE_PATH).length())
     {
