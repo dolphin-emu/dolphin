@@ -20,9 +20,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
-// TODO: Remove when on C++17 everywhere.
-constexpr std::array<u8, 4> DEntry::UNINITIALIZED_GAMECODE;
-
 static void ByteSwap(u8* valueA, u8* valueB)
 {
   u8 tmp = *valueA;
