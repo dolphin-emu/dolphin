@@ -601,7 +601,7 @@ void VolumeVerifier::CheckMisc()
       const Severity severity =
           m_volume.GetVolumeType() == Platform::WiiWAD ? Severity::Low : Severity::High;
       // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-      AddProblem(Severity::Low, GetStringT("This title is set to use an invalid common key."));
+      AddProblem(severity, GetStringT("This title is set to use an invalid common key."));
     }
 
     if (common_key == 1 && region != Region::NTSC_K)
