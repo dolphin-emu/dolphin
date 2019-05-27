@@ -197,14 +197,14 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
 
   curl_slist* list = nullptr;
   Common::ScopeGuard list_guard{[&list] { curl_slist_free_all(list); }};
-  for (const std::pair<std::string, std::optional<std::string>>& header : headers)
+  for (const auto& [name, value] : headers)
   {
-    if (!header.second)
-      list = curl_slist_append(list, (header.first + ":").c_str());
-    else if (header.second->empty())
-      list = curl_slist_append(list, (header.first + ";").c_str());
+    if (!value)
+      list = curl_slist_append(list, (name + ':').c_str());
+    else if (value->empty())
+      list = curl_slist_append(list, (name + ';').c_str());
     else
-      list = curl_slist_append(list, (header.first + ": " + *header.second).c_str());
+      list = curl_slist_append(list, (name + ": " + *value).c_str());
   }
   curl_easy_setopt(m_curl.get(), CURLOPT_HTTPHEADER, list);
 
