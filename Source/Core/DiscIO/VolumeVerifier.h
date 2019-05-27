@@ -109,13 +109,13 @@ private:
 
   const Volume& m_volume;
   Result m_result;
-  bool m_is_tgc;
-  bool m_is_datel;
-  bool m_is_not_retail;
+  bool m_is_tgc = false;
+  bool m_is_datel = false;
+  bool m_is_not_retail = false;
 
-  Hashes<bool> m_hashes_to_calculate;
-  bool m_calculating_any_hash;
-  unsigned long m_crc32_context;
+  Hashes<bool> m_hashes_to_calculate{};
+  bool m_calculating_any_hash = false;
+  unsigned long m_crc32_context = 0;
   mbedtls_md5_context m_md5_context;
   mbedtls_sha1_context m_sha1_context;
 
@@ -127,10 +127,10 @@ private:
   std::map<Partition, size_t> m_block_errors;
   std::map<Partition, size_t> m_unused_block_errors;
 
-  bool m_started;
-  bool m_done;
-  u64 m_progress;
-  u64 m_max_progress;
+  bool m_started = false;
+  bool m_done = false;
+  u64 m_progress = 0;
+  u64 m_max_progress = 0;
 };
 
 }  // namespace DiscIO

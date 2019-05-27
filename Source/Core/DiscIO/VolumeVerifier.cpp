@@ -50,7 +50,7 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calc
     : m_volume(volume), m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
                              hashes_to_calculate.sha1),
-      m_started(false), m_done(false), m_progress(0), m_max_progress(volume.GetSize())
+      m_max_progress(volume.GetSize())
 {
 }
 
