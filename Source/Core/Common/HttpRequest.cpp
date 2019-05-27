@@ -39,14 +39,10 @@ public:
   std::string EscapeComponent(const std::string& string);
 
 private:
-  static std::mutex s_curl_was_inited_mutex;
-  static bool s_curl_was_inited;
+  static inline std::once_flag s_curl_was_initialized;
   ProgressCallback m_callback;
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{nullptr, curl_easy_cleanup};
 };
-
-std::mutex HttpRequest::Impl::s_curl_was_inited_mutex;
-bool HttpRequest::Impl::s_curl_was_inited = false;
 
 HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
     : m_impl(std::make_unique<Impl>(timeout_ms, std::move(callback)))
@@ -109,14 +105,7 @@ int HttpRequest::Impl::CurlProgressCallback(Impl* impl, double dlnow, double dlt
 HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
     : m_callback(std::move(callback))
 {
-  {
-    std::lock_guard<std::mutex> lk(s_curl_was_inited_mutex);
-    if (!s_curl_was_inited)
-    {
-      curl_global_init(CURL_GLOBAL_DEFAULT);
-      s_curl_was_inited = true;
-    }
-  }
+  std::call_once(s_curl_was_initialized, [] { curl_global_init(CURL_GLOBAL_DEFAULT); });
 
   m_curl.reset(curl_easy_init());
   if (!m_curl)
