@@ -143,8 +143,6 @@ bool Remove(ResourcePack& pack)
   if (pack_iterator == packs.end())
     return false;
 
-  std::string filename;
-
   IniFile file = GetPackConfig();
 
   auto* order = file.GetOrCreateSection("Order");
