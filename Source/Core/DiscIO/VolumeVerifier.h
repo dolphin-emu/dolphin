@@ -99,7 +99,7 @@ private:
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
   void CheckDiscSize();
-  u64 GetBiggestUsedOffset();
+  u64 GetBiggestUsedOffset() const;
   u64 GetBiggestUsedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void SetUpHashing();

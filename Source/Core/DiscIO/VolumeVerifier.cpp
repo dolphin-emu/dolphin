@@ -446,7 +446,7 @@ void VolumeVerifier::CheckDiscSize()
   }
 }
 
-u64 VolumeVerifier::GetBiggestUsedOffset()
+u64 VolumeVerifier::GetBiggestUsedOffset() const
 {
   std::vector<Partition> partitions = m_volume.GetPartitions();
   if (partitions.empty())
