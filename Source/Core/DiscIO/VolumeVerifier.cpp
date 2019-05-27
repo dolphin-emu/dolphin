@@ -816,26 +816,26 @@ void VolumeVerifier::Finish()
     }
   }
 
-  for (auto pair : m_block_errors)
+  for (auto [partition, blocks] : m_block_errors)
   {
-    if (pair.second > 0)
+    if (blocks > 0)
     {
-      const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
+      const std::string name = GetPartitionName(m_volume.GetPartitionType(partition));
       std::string text = StringFromFormat(
-          GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(), pair.second,
+          GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(), blocks,
           name.c_str());
       AddProblem(Severity::Medium, std::move(text));
     }
   }
 
-  for (auto pair : m_unused_block_errors)
+  for (auto [partition, blocks] : m_unused_block_errors)
   {
-    if (pair.second > 0)
+    if (blocks > 0)
     {
-      const std::string name = GetPartitionName(m_volume.GetPartitionType(pair.first));
+      const std::string name = GetPartitionName(m_volume.GetPartitionType(partition));
       std::string text = StringFromFormat(
-          GetStringT("Errors were found in %zu unused blocks in the %s partition.").c_str(),
-          pair.second, name.c_str());
+          GetStringT("Errors were found in %zu unused blocks in the %s partition.").c_str(), blocks,
+          name.c_str());
       AddProblem(Severity::Low, std::move(text));
     }
   }
