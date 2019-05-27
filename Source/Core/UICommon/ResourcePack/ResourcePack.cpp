@@ -68,13 +68,9 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
   }
 
   unz_file_info manifest_info;
-
   unzGetCurrentFileInfo(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-  std::vector<char> manifest_contents;
-
-  manifest_contents.resize(manifest_info.uncompressed_size);
-
+  std::vector<char> manifest_contents(manifest_info.uncompressed_size);
   if (!ReadCurrentFileUnlimited(file, manifest_contents))
   {
     m_valid = false;
@@ -114,13 +110,10 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
   do
   {
-    std::string filename;
-
-    filename.resize(256);
+    std::string filename(256, '\0');
 
     unz_file_info texture_info;
-
-    unzGetCurrentFileInfo(file, &texture_info, &filename[0], static_cast<uint16_t>(filename.size()),
+    unzGetCurrentFileInfo(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
                           nullptr, 0, nullptr, 0);
 
     if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
@@ -215,12 +208,9 @@ bool ResourcePack::Install(const std::string& path)
     }
 
     unz_file_info texture_info;
-
     unzGetCurrentFileInfo(file, &texture_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-    std::vector<char> data;
-    data.resize(texture_info.uncompressed_size);
-
+    std::vector<char> data(texture_info.uncompressed_size);
     if (!ReadCurrentFileUnlimited(file, data))
     {
       m_error = "Failed to read texture " + texture;
