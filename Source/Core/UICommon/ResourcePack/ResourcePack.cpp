@@ -15,10 +15,10 @@
 #include "UICommon/ResourcePack/Manager.h"
 #include "UICommon/ResourcePack/Manifest.h"
 
-static const char* TEXTURE_PATH = "Load/Textures/";
-
 namespace ResourcePack
 {
+constexpr char TEXTURE_PATH[] = "Load/Textures/";
+
 // Since minzip doesn't provide a way to unzip a file of a length > 65535, we have to implement
 // this ourselves
 static bool ReadCurrentFileUnlimited(unzFile file, std::vector<char>& destination)
