@@ -22,7 +22,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
-#include "Common/Hash.h"
 #include "Common/HttpRequest.h"
 #include "Common/Image.h"
 #include "Common/IniFile.h"
@@ -30,7 +29,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
-#include "Core/Boot/Boot.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/ES/Formats.h"
