@@ -23,7 +23,7 @@ namespace UICommon
 {
 struct GameBanner
 {
-  std::vector<u32> buffer{};
+  std::vector<u32> buffer;
   u32 width{};
   u32 height{};
   bool empty() const { return buffer.empty(); }
@@ -32,7 +32,7 @@ struct GameBanner
 
 struct GameCover
 {
-  std::vector<u8> buffer{};
+  std::vector<u8> buffer;
   bool empty() const { return buffer.empty(); }
   void DoState(PointerWrap& p);
 };
@@ -44,9 +44,9 @@ bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 class GameFile final
 {
 public:
-  GameFile() = default;
-  explicit GameFile(const std::string& path);
-  ~GameFile() = default;
+  GameFile();
+  explicit GameFile(std::string path);
+  ~GameFile();
 
   bool IsValid() const;
   const std::string& GetFilePath() const { return m_file_path; }
@@ -109,30 +109,30 @@ private:
   // CACHE_REVISION in GameFileCache.cpp is incremented.
 
   bool m_valid{};
-  std::string m_file_path{};
-  std::string m_file_name{};
+  std::string m_file_path;
+  std::string m_file_name;
 
   u64 m_file_size{};
   u64 m_volume_size{};
 
-  std::map<DiscIO::Language, std::string> m_short_names{};
-  std::map<DiscIO::Language, std::string> m_long_names{};
-  std::map<DiscIO::Language, std::string> m_short_makers{};
-  std::map<DiscIO::Language, std::string> m_long_makers{};
-  std::map<DiscIO::Language, std::string> m_descriptions{};
-  std::string m_internal_name{};
-  std::string m_game_id{};
-  std::string m_gametdb_id{};
+  std::map<DiscIO::Language, std::string> m_short_names;
+  std::map<DiscIO::Language, std::string> m_long_names;
+  std::map<DiscIO::Language, std::string> m_short_makers;
+  std::map<DiscIO::Language, std::string> m_long_makers;
+  std::map<DiscIO::Language, std::string> m_descriptions;
+  std::string m_internal_name;
+  std::string m_game_id;
+  std::string m_gametdb_id;
   u64 m_title_id{};
-  std::string m_maker_id{};
+  std::string m_maker_id;
 
-  DiscIO::Region m_region{};
-  DiscIO::Country m_country{};
+  DiscIO::Region m_region{DiscIO::Region::Unknown};
+  DiscIO::Country m_country{DiscIO::Country::Unknown};
   DiscIO::Platform m_platform{};
   DiscIO::BlobType m_blob_type{};
   u16 m_revision{};
   u8 m_disc_number{};
-  std::string m_apploader_date{};
+  std::string m_apploader_date;
 
   GameBanner m_volume_banner{};
   GameBanner m_custom_banner{};
