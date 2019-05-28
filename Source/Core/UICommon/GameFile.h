@@ -126,8 +126,8 @@ private:
   u64 m_title_id{};
   std::string m_maker_id{};
 
-  DiscIO::Region m_region{};
-  DiscIO::Country m_country{};
+  DiscIO::Region m_region{DiscIO::Region::Unknown};
+  DiscIO::Country m_country{DiscIO::Country::Unknown};
   DiscIO::Platform m_platform{};
   DiscIO::BlobType m_blob_type{};
   u16 m_revision{};

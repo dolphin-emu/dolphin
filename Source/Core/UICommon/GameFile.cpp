@@ -111,8 +111,7 @@ GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string
   return Lookup(GetConfigLanguage(), strings);
 }
 
-GameFile::GameFile(const std::string& path)
-    : m_file_path(path), m_region(DiscIO::Region::Unknown), m_country(DiscIO::Country::Unknown)
+GameFile::GameFile(const std::string& path) : m_file_path(path)
 {
   {
     std::string name, extension;
