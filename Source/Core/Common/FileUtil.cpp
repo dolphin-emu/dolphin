@@ -900,7 +900,7 @@ bool ReadFileToString(const std::string& filename, std::string& str)
     return false;
 
   str.resize(file.GetSize());
-  return file.ReadArray(&str[0], str.size());
+  return file.ReadArray(str.data(), str.size());
 }
 
 }  // namespace File
