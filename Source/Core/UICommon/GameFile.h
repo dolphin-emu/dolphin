@@ -45,7 +45,7 @@ class GameFile final
 {
 public:
   GameFile();
-  explicit GameFile(const std::string& path);
+  explicit GameFile(std::string path);
   ~GameFile();
 
   bool IsValid() const;

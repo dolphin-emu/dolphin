@@ -113,7 +113,7 @@ GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string
 
 GameFile::GameFile() = default;
 
-GameFile::GameFile(const std::string& path) : m_file_path(path)
+GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 {
   {
     std::string name, extension;
