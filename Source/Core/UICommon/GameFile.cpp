@@ -39,13 +39,15 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
 
-constexpr const char* COVER_URL = "https://art.gametdb.com/wii/cover/%s/%s.png";
-
 namespace UICommon
 {
-static const std::string EMPTY_STRING;
+namespace
+{
+constexpr char COVER_URL[] = "https://art.gametdb.com/wii/cover/%s/%s.png";
 
-static bool UseGameCovers()
+const std::string EMPTY_STRING;
+
+bool UseGameCovers()
 {
 // We ifdef this out on Android because accessing the config before emulation start makes us crash.
 // The Android GUI handles covers in Java anyway, so this doesn't make us lose any functionality.
@@ -55,6 +57,7 @@ static bool UseGameCovers()
   return Config::Get(Config::MAIN_USE_GAME_COVERS);
 #endif
 }
+}  // Anonymous namespace
 
 DiscIO::Language GameFile::GetConfigLanguage() const
 {
