@@ -258,14 +258,13 @@ void GameFile::DownloadDefaultCover()
   }
 
   Common::HttpRequest request;
-  auto response =
+  const auto response =
       request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_gametdb_id.c_str()));
 
-  if (response)
-  {
-    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
-                            png_path);
-  }
+  if (!response)
+    return;
+
+  File::WriteStringToFile(std::string(response->begin(), response->end()), png_path);
 }
 
 bool GameFile::DefaultCoverChanged()
