@@ -217,7 +217,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
   if (output_name.empty())
     printf("%s", results.c_str());
   else
-    File::WriteStringToFile(results, output_name.c_str());
+    File::WriteStringToFile(output_name, results);
 }
 
 static bool PerformDisassembly(const std::string& input_name, const std::string& output_name)
@@ -237,7 +237,7 @@ static bool PerformDisassembly(const std::string& input_name, const std::string&
   if (output_name.empty())
     printf("%s", text.c_str());
   else
-    File::WriteStringToFile(text, output_name);
+    File::WriteStringToFile(output_name, text);
 
   printf("Disassembly completed successfully!\n");
   return true;
@@ -314,7 +314,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       }
 
       const std::string header = CodesToHeader(codes, files);
-      File::WriteStringToFile(header, output_header_name + ".h");
+      File::WriteStringToFile(output_header_name + ".h", header);
     }
     else
     {
@@ -334,12 +334,12 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       if (!output_name.empty())
       {
         const std::string binary_code = DSP::CodeToBinaryStringBE(code);
-        File::WriteStringToFile(binary_code, output_name);
+        File::WriteStringToFile(output_name, binary_code);
       }
       if (!output_header_name.empty())
       {
         const std::string header = CodeToHeader(code, input_name);
-        File::WriteStringToFile(header, output_header_name + ".h");
+        File::WriteStringToFile(output_header_name + ".h", header);
       }
     }
   }

@@ -887,7 +887,7 @@ std::string GetThemeDir(const std::string& theme_name)
   return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
-bool WriteStringToFile(const std::string& str, const std::string& filename)
+bool WriteStringToFile(const std::string& filename, const std::string& str)
 {
   return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
