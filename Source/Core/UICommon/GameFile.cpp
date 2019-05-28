@@ -186,13 +186,13 @@ bool GameFile::CustomCoverChanged()
 
   // This icon naming format is intended as an alternative to Homebrew Channel icons
   // for those who don't want to have a Homebrew Channel style folder structure.
-  bool success = File::Exists(path + name + ".cover.png") &&
-                 File::ReadFileToString(path + name + ".cover.png", contents);
+  const std::string cover_path = path + name + ".cover.png";
+  bool success = File::Exists(cover_path) && File::ReadFileToString(cover_path, contents);
 
   if (!success)
   {
-    success =
-        File::Exists(path + "cover.png") && File::ReadFileToString(path + "cover.png", contents);
+    const std::string alt_cover_path = path + "cover.png";
+    success = File::Exists(alt_cover_path) && File::ReadFileToString(alt_cover_path, contents);
   }
 
   if (success)
@@ -207,17 +207,13 @@ void GameFile::DownloadDefaultCover()
     return;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
+  const auto png_path = cover_path + m_gametdb_id + ".png";
 
   // If the cover has already been downloaded, abort
-  if (File::Exists(cover_path + m_gametdb_id + ".png"))
+  if (File::Exists(png_path))
     return;
 
-  Common::HttpRequest request;
-
   std::string region_code;
-
-  auto user_lang = SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(GetPlatform()));
-
   switch (m_region)
   {
   case DiscIO::Region::NTSC_J:
@@ -230,6 +226,8 @@ void GameFile::DownloadDefaultCover()
     region_code = "KO";
     break;
   case DiscIO::Region::PAL:
+  {
+    const auto user_lang = SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(GetPlatform()));
     switch (user_lang)
     {
     case DiscIO::Language::German:
@@ -253,18 +251,20 @@ void GameFile::DownloadDefaultCover()
       break;
     }
     break;
+  }
   case DiscIO::Region::Unknown:
     region_code = "EN";
     break;
   }
 
+  Common::HttpRequest request;
   auto response =
       request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_gametdb_id.c_str()));
 
   if (response)
   {
     File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
-                            cover_path + m_gametdb_id + ".png");
+                            png_path);
   }
 }
 
