@@ -44,9 +44,9 @@ bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 class GameFile final
 {
 public:
-  GameFile() = default;
+  GameFile();
   explicit GameFile(const std::string& path);
-  ~GameFile() = default;
+  ~GameFile();
 
   bool IsValid() const;
   const std::string& GetFilePath() const { return m_file_path; }

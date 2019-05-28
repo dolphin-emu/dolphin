@@ -111,6 +111,8 @@ GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string
   return Lookup(GetConfigLanguage(), strings);
 }
 
+GameFile::GameFile() = default;
+
 GameFile::GameFile(const std::string& path) : m_file_path(path)
 {
   {
@@ -158,6 +160,8 @@ GameFile::GameFile(const std::string& path) : m_file_path(path)
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
 }
+
+GameFile::~GameFile() = default;
 
 bool GameFile::IsValid() const
 {
