@@ -21,7 +21,7 @@
 
 #include "Core/Core.h"
 
-SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
+SettingsWindow::SettingsWindow(QWidget* parent) : CustomDialog(parent)
 {
   // Set Window Properties
   setWindowTitle(tr("Settings"));
