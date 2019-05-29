@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-14 14:12+0200\n"
-"PO-Revision-Date: 2019-05-14 12:12+0000\n"
+"POT-Creation-Date: 2019-05-29 15:04+0200\n"
+"PO-Revision-Date: 2019-05-29 13:04+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Czech (http://www.transifex.com/delroth/dolphin-emu/language/"
 "cs/)\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
 "<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:892
+#: Source/Core/DiscIO/VolumeVerifier.cpp:894
 msgid ""
 "\n"
 "\n"
@@ -28,7 +28,7 @@ msgid ""
 "problems that Dolphin is unable to detect."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:897
+#: Source/Core/DiscIO/VolumeVerifier.cpp:899
 msgid ""
 "\n"
 "\n"
@@ -36,7 +36,7 @@ msgid ""
 "that it hasn't been tampered with."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1064
+#: Source/Core/DolphinQt/MenuBar.cpp:1065
 msgid ""
 "\n"
 "\n"
@@ -56,7 +56,7 @@ msgstr ""
 msgid "! NOT"
 msgstr "! NE"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:42
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:40
 #, c-format
 msgid ""
 "\"%s\" does not exist.\n"
@@ -73,7 +73,7 @@ msgstr "\"%s\" nelze vyčistit. Obraz je pravděpodobně poškozen."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" již je zkomprimováno! Nelze ho dále komprimovat."
 
-#: Source/Core/Core/Boot/Boot.cpp:195
+#: Source/Core/Core/Boot/Boot.cpp:197
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" je neplatný soubor GCM/ISO, nebo není GC/Wii ISO."
@@ -137,7 +137,7 @@ msgstr ""
 msgid "%1 Graphics Configuration"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:586
+#: Source/Core/DolphinQt/CheatsManager.cpp:649
 msgid "%1 Match(es)"
 msgstr ""
 
@@ -195,66 +195,6 @@ msgstr ""
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i z %i bloků. Poměr komprese %i%%"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:54
-#, c-format
-msgid ""
-"%s\n"
-"was not loaded because it has the same internal filename as previously "
-"loaded save\n"
-"%s"
-msgstr ""
-"%s\n"
-"nebylo načteno protože má stejný vnitřní název souboru jako předtím načtená "
-"pozice\n"
-"%s"
-
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:76
-#, c-format
-msgid ""
-"%s\n"
-"was not loaded because it is an invalid GCI.\n"
-" File size (0x%<PRIx64>) does not match the size recorded in the header (0x"
-"%x)"
-msgstr ""
-"%s\n"
-"nebylo načteno protože je to neplatné GCI.\n"
-"Velikost souboru (0x%<PRIx64>) neodpovídá velikosti zaznamenané v hlavičce "
-"(0x%x)"
-
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:67
-#, c-format
-msgid ""
-"%s\n"
-"was not loaded because it is an invalid GCI.\n"
-" Number of blocks claimed to be %u"
-msgstr ""
-"%s\n"
-"nebylo načteno protože je to neplatné GCI.\n"
-"Sdělený počet bloků byl %u"
-
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:107
-#, c-format
-msgid ""
-"%s\n"
-"was not loaded because there are not enough free blocks on the virtual "
-"memory card"
-msgstr ""
-"%s\n"
-"nebylo načteno protože na virtuální paměťové kartě není dostatek volných "
-"bloků"
-
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:96
-#, c-format
-msgid ""
-"%s\n"
-"was not loaded because there is less than 10%% free blocks available on the "
-"memory card\n"
-"Total Blocks: %d; Free Blocks: %d"
-msgstr ""
-"%s\n"
-"nebylo načteno protože v paměťové kartě je méně než 10%% volných bloků\n"
-"Bloků celkem: %d, Volných bloků: %d"
-
 #. i18n: This string is referring to a game mode in Super Smash Bros. Brawl called Masterpieces
 #. where you play demos of NES/SNES/N64 games. This string is referring to a specific such demo
 #. rather than the game mode as a whole, so please use the singular form. Official translations:
@@ -262,17 +202,17 @@ msgstr ""
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:304
+#: Source/Core/DiscIO/VolumeVerifier.cpp:306
 #, c-format
 msgid "%s (Masterpiece)"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:329
+#: Source/Core/Core/Boot/Boot.cpp:331
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL nalezeno v adresáři %s. Disk nemusí být rozpoznán"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:71
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:69
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -281,7 +221,7 @@ msgstr ""
 "%s nelze načíst jako paměťovou kartu.\n"
 "Velikost souboru karty je neplatná (0x%x bajtů)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:87
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:85
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -290,7 +230,7 @@ msgstr ""
 "%s nelze načíst jako paměťovou kartu.\n"
 "Velikost karty je neplatná (0x%x bajtů)"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:64
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:62
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -328,7 +268,7 @@ msgstr "%s není adresář, přesunuto do *.original"
 msgid "&& AND"
 msgstr "&& A"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:558
+#: Source/Core/DolphinQt/MenuBar.cpp:559
 msgid "&About"
 msgstr ""
 
@@ -349,7 +289,7 @@ msgstr ""
 msgid "&Add..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:487
+#: Source/Core/DolphinQt/MenuBar.cpp:488
 msgid "&Audio Settings"
 msgstr "Nastavení &zvuku"
 
@@ -357,7 +297,7 @@ msgstr "Nastavení &zvuku"
 msgid "&Auto Update:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:502
+#: Source/Core/DolphinQt/MenuBar.cpp:503
 msgid "&Automatic Start"
 msgstr ""
 
@@ -365,7 +305,7 @@ msgstr ""
 msgid "&Boot from DVD Backup"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:442
+#: Source/Core/DolphinQt/MenuBar.cpp:443
 msgid "&Breakpoints"
 msgstr "&Body přerušení"
 
@@ -381,11 +321,11 @@ msgstr ""
 msgid "&Cheats Manager"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:551
+#: Source/Core/DolphinQt/MenuBar.cpp:552
 msgid "&Check for Updates..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:886
+#: Source/Core/DolphinQt/MenuBar.cpp:887
 msgid "&Clear Symbols"
 msgstr ""
 
@@ -393,11 +333,11 @@ msgstr ""
 msgid "&Clone..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:415
+#: Source/Core/DolphinQt/MenuBar.cpp:416
 msgid "&Code"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:489
+#: Source/Core/DolphinQt/MenuBar.cpp:490
 msgid "&Controller Settings"
 msgstr "&Nastavení ovladače"
 
@@ -429,7 +369,7 @@ msgstr ""
 msgid "&Eject Disc"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:296
+#: Source/Core/DolphinQt/MenuBar.cpp:297
 msgid "&Emulation"
 msgstr "&Emulace"
 
@@ -441,31 +381,31 @@ msgstr ""
 msgid "&File"
 msgstr "&Soubor"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:509
+#: Source/Core/DolphinQt/MenuBar.cpp:510
 msgid "&Font..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:302
+#: Source/Core/DolphinQt/MenuBar.cpp:303
 msgid "&Frame Advance"
 msgstr "&Postup snímkem"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:888
+#: Source/Core/DolphinQt/MenuBar.cpp:889
 msgid "&Generate Symbols From"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:542
+#: Source/Core/DolphinQt/MenuBar.cpp:543
 msgid "&GitHub Repository"
 msgstr "Ú&ložiště Github"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:486
+#: Source/Core/DolphinQt/MenuBar.cpp:487
 msgid "&Graphics Settings"
 msgstr "&Grafická nastavení"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:533
+#: Source/Core/DolphinQt/MenuBar.cpp:534
 msgid "&Help"
 msgstr "&Nápověda"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:490
+#: Source/Core/DolphinQt/MenuBar.cpp:491
 msgid "&Hotkey Settings"
 msgstr "Nastavení &klávesových zkratek"
 
@@ -477,7 +417,7 @@ msgstr ""
 msgid "&Insert blr"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:459
+#: Source/Core/DolphinQt/MenuBar.cpp:460
 msgid "&JIT"
 msgstr "&JIT"
 
@@ -485,27 +425,23 @@ msgstr "&JIT"
 msgid "&Language:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:316
+#: Source/Core/DolphinQt/MenuBar.cpp:317
 msgid "&Load State"
 msgstr "&Nahrát Stav"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:894
+#: Source/Core/DolphinQt/MenuBar.cpp:895
 msgid "&Load Symbol Map"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:407
+#: Source/Core/DolphinQt/MenuBar.cpp:408
 msgid "&Lock Widgets In Place"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:451
+#: Source/Core/DolphinQt/MenuBar.cpp:452
 msgid "&Memory"
 msgstr "Pa&měť"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:211
-msgid "&Memory Card Manager (GC)"
-msgstr ""
-
-#: Source/Core/DolphinQt/MenuBar.cpp:674
+#: Source/Core/DolphinQt/MenuBar.cpp:675
 msgid "&Movie"
 msgstr "&Video"
 
@@ -513,19 +449,19 @@ msgstr "&Video"
 msgid "&Open..."
 msgstr "&Otevřít..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:483
+#: Source/Core/DolphinQt/MenuBar.cpp:484
 msgid "&Options"
 msgstr "V&olby"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:914
+#: Source/Core/DolphinQt/MenuBar.cpp:915
 msgid "&Patch HLE Functions"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:298
+#: Source/Core/DolphinQt/MenuBar.cpp:299
 msgid "&Pause"
 msgstr "&Pauza"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:297
+#: Source/Core/DolphinQt/MenuBar.cpp:298
 msgid "&Play"
 msgstr "&Přehrát"
 
@@ -533,11 +469,11 @@ msgstr "&Přehrát"
 msgid "&Properties"
 msgstr "&Vlastnosti"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:689
+#: Source/Core/DolphinQt/MenuBar.cpp:690
 msgid "&Read-Only Mode"
 msgstr "&Režim pouze pro čtení"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:423
+#: Source/Core/DolphinQt/MenuBar.cpp:424
 msgid "&Registers"
 msgstr "&Registry"
 
@@ -554,15 +490,15 @@ msgstr ""
 msgid "&Rename symbol"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:300
+#: Source/Core/DolphinQt/MenuBar.cpp:301
 msgid "&Reset"
 msgstr "&Resetovat"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:217
+#: Source/Core/DolphinQt/MenuBar.cpp:211
 msgid "&Resource Pack Manager"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:895
+#: Source/Core/DolphinQt/MenuBar.cpp:896
 msgid "&Save Symbol Map"
 msgstr ""
 
@@ -570,7 +506,7 @@ msgstr ""
 msgid "&Speed Limit:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:299
+#: Source/Core/DolphinQt/MenuBar.cpp:300
 msgid "&Stop"
 msgstr "Za&stavit"
 
@@ -582,17 +518,17 @@ msgstr ""
 msgid "&Tools"
 msgstr "Nás&troje"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:381
+#: Source/Core/DolphinQt/MenuBar.cpp:382
 msgid "&View"
 msgstr "&Zobrazit"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/MenuBar.cpp:434
+#: Source/Core/DolphinQt/MenuBar.cpp:435
 msgid "&Watch"
 msgstr "&Sledování"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:535
+#: Source/Core/DolphinQt/MenuBar.cpp:536
 msgid "&Website"
 msgstr "&Internetová stránka"
 
@@ -600,11 +536,11 @@ msgstr "&Internetová stránka"
 msgid "&Wiki"
 msgstr "&Wiki"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1163
+#: Source/Core/DolphinQt/MenuBar.cpp:1164
 msgid "'%1' not found, no symbol names generated"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1207
+#: Source/Core/DolphinQt/MenuBar.cpp:1208
 msgid "'%1' not found, scanning for common functions instead"
 msgstr ""
 
@@ -958,15 +894,15 @@ msgstr ""
 msgid "Add..."
 msgstr "Přidat..."
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:577
-#: Source/Core/DolphinQt/CheatsManager.cpp:578
+#: Source/Core/DolphinQt/CheatsManager.cpp:640
+#: Source/Core/DolphinQt/CheatsManager.cpp:641
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:146
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:80
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:49
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:164
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:176
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:131
-#: Source/Core/DolphinQt/MenuBar.cpp:889
+#: Source/Core/DolphinQt/MenuBar.cpp:890
 msgid "Address"
 msgstr "Adresa"
 
@@ -1123,15 +1059,15 @@ msgstr "Vyhlazení okrajů"
 msgid "Any Region"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1345
+#: Source/Core/DolphinQt/MenuBar.cpp:1346
 msgid "Append signature to"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:907
+#: Source/Core/DolphinQt/MenuBar.cpp:908
 msgid "Append to &Existing Signature File..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:911
+#: Source/Core/DolphinQt/MenuBar.cpp:912
 msgid "Appl&y Signature File..."
 msgstr ""
 
@@ -1150,7 +1086,7 @@ msgstr "Datum zavaděče aplikace:"
 msgid "Apply"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1368
+#: Source/Core/DolphinQt/MenuBar.cpp:1369
 msgid "Apply signature file"
 msgstr ""
 
@@ -1215,7 +1151,7 @@ msgstr "Austrálie"
 msgid "Author"
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:52
+#: Source/Core/DolphinQt/AboutDialog.cpp:53
 msgid "Authors"
 msgstr "Autoři"
 
@@ -1264,7 +1200,7 @@ msgstr ""
 msgid "B"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:564
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:567
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT nesprávné. Dolphin bude nyní ukončen"
 
@@ -1305,7 +1241,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:904
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:178
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:160
-#: Source/Core/DolphinQt/MenuBar.cpp:585
+#: Source/Core/DolphinQt/MenuBar.cpp:586
 msgid "Banner"
 msgstr "Plakát"
 
@@ -1364,13 +1300,13 @@ msgid ""
 "Passthrough mode cannot be used."
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:138
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:116
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:495
+#: Source/Core/DolphinQt/MenuBar.cpp:496
 msgid "Boot to Pause"
 msgstr ""
 
@@ -1386,11 +1322,11 @@ msgstr ""
 msgid "Borderless Fullscreen"
 msgstr "Celá obrazovka bez okrajů"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:167
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:165
 msgid "Both Block Allocation Table block checksums are invalid"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:144
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:142
 msgid "Both directory block checksums are invalid"
 msgstr ""
 
@@ -1398,7 +1334,7 @@ msgstr ""
 msgid "Bottom"
 msgstr "Dole"
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:28
+#: Source/Core/DolphinQt/AboutDialog.cpp:29
 msgid "Branch: "
 msgstr ""
 
@@ -1412,7 +1348,7 @@ msgstr ""
 msgid "Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:477
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:476
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
 
@@ -1428,7 +1364,7 @@ msgstr "Adaptér širokopásmového připojení"
 msgid "Broadband Adapter MAC address"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:244
+#: Source/Core/DolphinQt/MenuBar.cpp:226
 msgid "Browse &NetPlay Sessions...."
 msgstr ""
 
@@ -1475,7 +1411,7 @@ msgstr "Tlačítka"
 msgid "C Stick"
 msgstr "Kruhová páčka"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:906
+#: Source/Core/DolphinQt/MenuBar.cpp:907
 msgid "C&reate Signature File..."
 msgstr ""
 
@@ -1526,11 +1462,11 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:708
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:755
 msgid "Calibrate"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:700
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:747
 msgid "Calibration"
 msgstr ""
 
@@ -1553,7 +1489,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:734
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:796
 msgid "Cancel Calibration"
 msgstr ""
 
@@ -1565,11 +1501,17 @@ msgstr ""
 msgid "Cannot boot this WAD because it could not be installed to the NAND."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:486
+#: Source/Core/Core/Boot/Boot.cpp:488
 msgid "Cannot find the GC IPL."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:484
+#: Source/Core/DolphinQt/CheatsManager.cpp:550
+msgid ""
+"Cannot interpret the given value.\n"
+"Have you chosen the right type?"
+msgstr ""
+
+#: Source/Core/Core/Boot/Boot.cpp:486
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr ""
 
@@ -1584,6 +1526,10 @@ msgstr ""
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:42
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:230
 msgid "Center"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:756
+msgid "Center and Calibrate"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:313
@@ -1627,7 +1573,7 @@ msgstr "Hledání Cheatů"
 msgid "Cheats Manager"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:254
+#: Source/Core/DolphinQt/MenuBar.cpp:250
 msgid "Check NAND..."
 msgstr ""
 
@@ -1635,7 +1581,7 @@ msgstr ""
 msgid "Check for Game List Changes in the Background"
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:33
+#: Source/Core/DolphinQt/AboutDialog.cpp:34
 msgid "Check for updates: "
 msgstr "Zkontrolovat aktualizace:"
 
@@ -1657,11 +1603,11 @@ msgstr ""
 msgid "Choose a file to open"
 msgstr "Zvolte soubor k otevření"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1385
+#: Source/Core/DolphinQt/MenuBar.cpp:1386
 msgid "Choose priority input file"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1391
+#: Source/Core/DolphinQt/MenuBar.cpp:1392
 msgid "Choose secondary input file"
 msgstr ""
 
@@ -1685,7 +1631,7 @@ msgstr ""
 msgid "Clear"
 msgstr "Vyčistit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:774
+#: Source/Core/DolphinQt/MenuBar.cpp:775
 msgid "Clear Cache"
 msgstr ""
 
@@ -1697,7 +1643,7 @@ msgstr ""
 msgid "Close"
 msgstr "Zavřít"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:484
+#: Source/Core/DolphinQt/MenuBar.cpp:485
 msgid "Co&nfiguration"
 msgstr ""
 
@@ -1713,7 +1659,7 @@ msgstr "Kód:"
 msgid "Codes received!"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:909
+#: Source/Core/DolphinQt/MenuBar.cpp:910
 msgid "Combine &Two Signature Files..."
 msgstr ""
 
@@ -1800,7 +1746,7 @@ msgstr ""
 msgid "Confirm on Stop"
 msgstr "Při zastavení Potvrdit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1130
+#: Source/Core/DolphinQt/MenuBar.cpp:1131
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:510
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:236
 msgid "Confirmation"
@@ -1811,7 +1757,7 @@ msgstr ""
 msgid "Connect"
 msgstr "Připojit"
 
-#: Source/Core/Core/HotkeyManager.cpp:80 Source/Core/DolphinQt/MenuBar.cpp:290
+#: Source/Core/Core/HotkeyManager.cpp:80 Source/Core/DolphinQt/MenuBar.cpp:291
 msgid "Connect Balance Board"
 msgstr "Připojit Rola-Bola"
 
@@ -1819,7 +1765,7 @@ msgstr "Připojit Rola-Bola"
 msgid "Connect USB Keyboard"
 msgstr "Připojit USB Klávesnici"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:282
+#: Source/Core/DolphinQt/MenuBar.cpp:283
 msgid "Connect Wii Remote %1"
 msgstr ""
 
@@ -1839,7 +1785,7 @@ msgstr ""
 msgid "Connect Wii Remote 4"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:275
+#: Source/Core/DolphinQt/MenuBar.cpp:276
 msgid "Connect Wii Remotes"
 msgstr ""
 
@@ -1851,7 +1797,7 @@ msgstr ""
 msgid "Connection Type:"
 msgstr "Typ připojení:"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:727
+#: Source/Core/DiscIO/VolumeVerifier.cpp:729
 #, c-format
 msgid "Content %08x is corrupt."
 msgstr ""
@@ -1960,7 +1906,7 @@ msgid "Copy code &line"
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:109
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:361
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 msgid "Copy failed"
 msgstr "Kopírování selhalo"
 
@@ -2033,7 +1979,7 @@ msgid ""
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:187
+#: Source/Core/Core/Boot/Boot.cpp:189
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -2041,7 +1987,7 @@ msgid ""
 "original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:206
+#: Source/Core/Core/Boot/Boot.cpp:208
 #, c-format
 msgid "Could not recognize file %s"
 msgstr ""
@@ -2065,11 +2011,6 @@ msgstr ""
 "\n"
 "Objevila se tato chyba po přesunu adresáře s emulátorem?\n"
 "Pokud ano, pak je třeba znovu zadat umístění vaší paměťové karty v nastavení."
-
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:63
-#, c-format
-msgid "Couldn't initialise libusb for Bluetooth passthrough: %s"
-msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:949
 msgid "Couldn't look up central server"
@@ -2114,7 +2055,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Crossfade"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:264
+#: Source/Core/DolphinQt/MenuBar.cpp:260
 msgid "Current Region"
 msgstr ""
 
@@ -2186,7 +2127,7 @@ msgid "Data received!"
 msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:292
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:326
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:328
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Soubory Datel MaxDrive/Pro(*.sav)"
 
@@ -2311,7 +2252,7 @@ msgstr "Hloubka:"
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:41
 #: Source/Core/DolphinQt/GameList/GameList.cpp:906
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:180
-#: Source/Core/DolphinQt/MenuBar.cpp:587
+#: Source/Core/DolphinQt/MenuBar.cpp:588
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:90
 msgid "Description"
 msgstr "Popis"
@@ -2387,7 +2328,7 @@ msgstr "Zakázat limit rychlosti emulace"
 msgid "Disable Fog"
 msgstr "Zakázat Mlhu"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:766
+#: Source/Core/DolphinQt/MenuBar.cpp:767
 msgid "Disable JIT Cache"
 msgstr ""
 
@@ -2454,15 +2395,15 @@ msgstr ""
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1131
+#: Source/Core/DolphinQt/MenuBar.cpp:1132
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:385
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:387
 msgid "Do you want to delete the %1 selected save files?"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:384
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:386
 msgid "Do you want to delete the selected save file?"
 msgstr ""
 
@@ -2474,7 +2415,7 @@ msgstr "Chcete současnou emulaci zastavit?"
 msgid "Dolby Pro Logic II Decoder"
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:24
+#: Source/Core/DolphinQt/AboutDialog.cpp:25
 #: Source/Core/DolphinQt/MainWindow.cpp:1693
 msgid "Dolphin"
 msgstr "Dolphin"
@@ -2484,9 +2425,9 @@ msgstr "Dolphin"
 msgid "Dolphin FIFO Log (*.dff)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1237
-#: Source/Core/DolphinQt/MenuBar.cpp:1253
-#: Source/Core/DolphinQt/MenuBar.cpp:1271
+#: Source/Core/DolphinQt/MenuBar.cpp:1238
+#: Source/Core/DolphinQt/MenuBar.cpp:1254
+#: Source/Core/DolphinQt/MenuBar.cpp:1272
 msgid "Dolphin Map File (*.map)"
 msgstr ""
 
@@ -2509,7 +2450,7 @@ msgstr ""
 #. is "free" as in "freedom" - it refers to certain properties of the
 #. software's license, not the software's price. (It is true that Dolphin
 #. can be downloaded at no cost, but that's not what this message says.)
-#: Source/Core/DolphinQt/AboutDialog.cpp:40
+#: Source/Core/DolphinQt/AboutDialog.cpp:41
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr ""
 
@@ -2517,13 +2458,13 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:855
+#: Source/Core/DiscIO/VolumeVerifier.cpp:857
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:849
+#: Source/Core/DiscIO/VolumeVerifier.cpp:851
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr ""
 
@@ -2612,7 +2553,7 @@ msgstr ""
 msgid "Dump &MRAM"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:736
+#: Source/Core/DolphinQt/MenuBar.cpp:737
 msgid "Dump Audio"
 msgstr "Vypsat Zvuk"
 
@@ -2620,7 +2561,7 @@ msgstr "Vypsat Zvuk"
 msgid "Dump EFB Target"
 msgstr "Vypsat Cíl EFB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:730
+#: Source/Core/DolphinQt/MenuBar.cpp:731
 msgid "Dump Frames"
 msgstr "Vypsat Snímky"
 
@@ -2955,7 +2896,7 @@ msgstr ""
 msgid "Enter password"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1171
+#: Source/Core/DolphinQt/MenuBar.cpp:1172
 msgid "Enter the RSO module address:"
 msgstr ""
 
@@ -2992,16 +2933,16 @@ msgstr ""
 #: Source/Core/DolphinQt/MainWindow.cpp:1332
 #: Source/Core/DolphinQt/MainWindow.cpp:1339
 #: Source/Core/DolphinQt/MainWindow.cpp:1433
-#: Source/Core/DolphinQt/MenuBar.cpp:1095
-#: Source/Core/DolphinQt/MenuBar.cpp:1162
-#: Source/Core/DolphinQt/MenuBar.cpp:1177
-#: Source/Core/DolphinQt/MenuBar.cpp:1189
-#: Source/Core/DolphinQt/MenuBar.cpp:1290
-#: Source/Core/DolphinQt/MenuBar.cpp:1299
-#: Source/Core/DolphinQt/MenuBar.cpp:1311
-#: Source/Core/DolphinQt/MenuBar.cpp:1332
-#: Source/Core/DolphinQt/MenuBar.cpp:1357
-#: Source/Core/DolphinQt/MenuBar.cpp:1410
+#: Source/Core/DolphinQt/MenuBar.cpp:1096
+#: Source/Core/DolphinQt/MenuBar.cpp:1163
+#: Source/Core/DolphinQt/MenuBar.cpp:1178
+#: Source/Core/DolphinQt/MenuBar.cpp:1190
+#: Source/Core/DolphinQt/MenuBar.cpp:1291
+#: Source/Core/DolphinQt/MenuBar.cpp:1300
+#: Source/Core/DolphinQt/MenuBar.cpp:1312
+#: Source/Core/DolphinQt/MenuBar.cpp:1333
+#: Source/Core/DolphinQt/MenuBar.cpp:1358
+#: Source/Core/DolphinQt/MenuBar.cpp:1411
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:299
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:406
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:712
@@ -3078,12 +3019,12 @@ msgid ""
 "may not show fonts correctly, or crash."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:823
+#: Source/Core/DiscIO/VolumeVerifier.cpp:825
 #, c-format
 msgid "Errors were found in %zu blocks in the %s partition."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:835
+#: Source/Core/DiscIO/VolumeVerifier.cpp:837
 #, c-format
 msgid "Errors were found in %zu unused blocks in the %s partition."
 msgstr ""
@@ -3093,7 +3034,7 @@ msgstr ""
 msgid "Euphoria"
 msgstr "Euforie"
 
-#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:266
+#: Source/Core/DiscIO/Enums.cpp:24 Source/Core/DolphinQt/MenuBar.cpp:262
 #: Source/Core/UICommon/NetPlayIndex.cpp:250
 msgid "Europe"
 msgstr "Evropa"
@@ -3110,7 +3051,7 @@ msgstr ""
 msgid "Export &All..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:227
+#: Source/Core/DolphinQt/MenuBar.cpp:274
 msgid "Export All Wii Saves"
 msgstr "Exportovat všechny uložené hry Wii"
 
@@ -3118,12 +3059,12 @@ msgstr "Exportovat všechny uložené hry Wii"
 msgid "Export Recording"
 msgstr "Exportovat Nahrávku"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:682
+#: Source/Core/DolphinQt/MenuBar.cpp:683
 msgid "Export Recording..."
 msgstr "Exportovat Nahrávku..."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:287
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:324
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:326
 msgid "Export Save File"
 msgstr ""
 
@@ -3135,7 +3076,7 @@ msgstr ""
 msgid "Export Wii Saves (Experimental)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1019
+#: Source/Core/DolphinQt/MenuBar.cpp:1020
 #, c-format
 msgid "Exported %n save(s)"
 msgstr ""
@@ -3154,7 +3095,7 @@ msgstr ""
 msgid "External Frame Buffer (XFB)"
 msgstr "Externí vyrovnávací paměť snímků (XFB)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:255
+#: Source/Core/DolphinQt/MenuBar.cpp:251
 msgid "Extract Certificates from NAND"
 msgstr ""
 
@@ -3187,7 +3128,7 @@ msgid "Extracting Directory..."
 msgstr ""
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:33
-#: Source/Core/DolphinQt/MenuBar.cpp:245
+#: Source/Core/DolphinQt/MenuBar.cpp:221
 msgid "FIFO Player"
 msgstr "Přehrávač FIFO"
 
@@ -3195,11 +3136,11 @@ msgstr "Přehrávač FIFO"
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1358
+#: Source/Core/DolphinQt/MenuBar.cpp:1359
 msgid "Failed to append to signature file '%1'"
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:591
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:567
 msgid "Failed to claim interface for BT passthrough"
 msgstr ""
 
@@ -3207,7 +3148,7 @@ msgstr ""
 msgid "Failed to connect to server: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:361
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:363
 msgid "Failed to copy file"
 msgstr ""
 
@@ -3228,7 +3169,7 @@ msgstr ""
 msgid "Failed to delete the selected file."
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:585
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:561
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr ""
@@ -3249,7 +3190,7 @@ msgstr ""
 msgid "Failed to export the following save files:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1095
+#: Source/Core/DolphinQt/MenuBar.cpp:1096
 msgid "Failed to extract certificates from NAND"
 msgstr ""
 
@@ -3261,7 +3202,7 @@ msgstr ""
 msgid "Failed to extract system data."
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:615
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:618
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -3276,11 +3217,11 @@ msgstr ""
 msgid "Failed to find one or more D3D symbols"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:337
 msgid "Failed to import \"%1\"."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1006
+#: Source/Core/DolphinQt/MenuBar.cpp:1007
 msgid "Failed to import save files."
 msgstr ""
 
@@ -3299,7 +3240,7 @@ msgid "Failed to install pack: %1"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:622
-#: Source/Core/DolphinQt/MenuBar.cpp:981
+#: Source/Core/DolphinQt/MenuBar.cpp:982
 msgid "Failed to install this title to the NAND."
 msgstr ""
 
@@ -3316,7 +3257,7 @@ msgid ""
 "update package."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1189
+#: Source/Core/DolphinQt/MenuBar.cpp:1190
 msgid "Failed to load RSO module at %1"
 msgstr ""
 
@@ -3328,11 +3269,11 @@ msgstr ""
 msgid "Failed to load dxgi.dll"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1299
+#: Source/Core/DolphinQt/MenuBar.cpp:1300
 msgid "Failed to load map file '%1'"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:427
+#: Source/Core/Core/Boot/Boot.cpp:429
 msgid "Failed to load the executable to memory."
 msgstr ""
 
@@ -3341,7 +3282,7 @@ msgstr ""
 msgid "Failed to open '%1'"
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:575
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:551
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr ""
@@ -3393,31 +3334,31 @@ msgstr ""
 msgid "Failed to read %s"
 msgstr "Nelze přečíst %s"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:119
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:117
 msgid ""
 "Failed to read 1st block allocation table block correctly\n"
 "(0x6000-0x7FFF)"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:107
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:105
 msgid ""
 "Failed to read 1st directory block correctly\n"
 "(0x2000-0x3FFF)"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:125
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:123
 msgid ""
 "Failed to read 2nd block allocation table block correctly\n"
 "(0x8000-0x9FFF)"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:113
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:111
 msgid ""
 "Failed to read 2nd directory block correctly\n"
 "(0x4000-0x5FFF)"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:198
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:196
 #, c-format
 msgid ""
 "Failed to read block %u of the save data\n"
@@ -3425,12 +3366,7 @@ msgid ""
 "File position: 0x%<PRIx64>"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:713
-#, c-format
-msgid "Failed to read data from GCI file %s"
-msgstr "Čtení dat ze souboru GCI %s selhalo"
-
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:96
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:94
 msgid ""
 "Failed to read header correctly\n"
 "(0x0000-0x1FFF)"
@@ -3442,7 +3378,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Nelze přečíst jedinečné ID z obrazu disku"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:405
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:407
 msgid "Failed to remove file"
 msgstr ""
 
@@ -3462,19 +3398,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1291
+#: Source/Core/DolphinQt/MenuBar.cpp:1292
 msgid "Failed to save code map to path '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1332
+#: Source/Core/DolphinQt/MenuBar.cpp:1333
 msgid "Failed to save signature file '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1312
+#: Source/Core/DolphinQt/MenuBar.cpp:1313
 msgid "Failed to save symbol map to path '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1411
+#: Source/Core/DolphinQt/MenuBar.cpp:1412
 msgid "Failed to save to signature file '%1'"
 msgstr ""
 
@@ -3511,7 +3447,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:620
 #: Source/Core/DolphinQt/GameList/GameList.cpp:648
 #: Source/Core/DolphinQt/GameList/GameList.cpp:771
-#: Source/Core/DolphinQt/MenuBar.cpp:981
+#: Source/Core/DolphinQt/MenuBar.cpp:982
 msgid "Failure"
 msgstr ""
 
@@ -3538,12 +3474,12 @@ msgstr "Informace o souboru"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:908
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:184
-#: Source/Core/DolphinQt/MenuBar.cpp:589
+#: Source/Core/DolphinQt/MenuBar.cpp:590
 msgid "File Name"
 msgstr "Název souboru"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:911
-#: Source/Core/DolphinQt/MenuBar.cpp:592
+#: Source/Core/DolphinQt/MenuBar.cpp:593
 msgid "File Size"
 msgstr "Velikost souboru"
 
@@ -3551,7 +3487,7 @@ msgstr "Velikost souboru"
 msgid "File contained no codes."
 msgstr "Soubor neobsahoval žádné kódy"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:57
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:55
 #, c-format
 msgid ""
 "File has the extension \"%s\".\n"
@@ -3564,10 +3500,10 @@ msgstr ""
 msgid "File not compressed"
 msgstr "Soubor není komprimovaný"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:340
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:368
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:411
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:428
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:342
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:370
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:413
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:430
 msgid "File write failed"
 msgstr "Zápis soubor uselhal"
 
@@ -3616,7 +3552,7 @@ msgstr ""
 msgid "Find &Previous"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:721
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:780
 msgid "Finish Calibration"
 msgstr ""
 
@@ -3652,7 +3588,7 @@ msgstr ""
 msgid "Follow &branch"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:701
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:748
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 
@@ -3697,7 +3633,7 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:45
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:43
 msgid ""
 "Format as Shift JIS (Japanese)?\n"
 "Choose no for Windows-1252 (Western)"
@@ -3849,12 +3785,12 @@ msgstr ""
 msgid "Function calls"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1321
-#: Source/Core/DolphinQt/MenuBar.cpp:1345
-#: Source/Core/DolphinQt/MenuBar.cpp:1368
-#: Source/Core/DolphinQt/MenuBar.cpp:1386
-#: Source/Core/DolphinQt/MenuBar.cpp:1392
-#: Source/Core/DolphinQt/MenuBar.cpp:1398
+#: Source/Core/DolphinQt/MenuBar.cpp:1322
+#: Source/Core/DolphinQt/MenuBar.cpp:1346
+#: Source/Core/DolphinQt/MenuBar.cpp:1369
+#: Source/Core/DolphinQt/MenuBar.cpp:1387
+#: Source/Core/DolphinQt/MenuBar.cpp:1393
+#: Source/Core/DolphinQt/MenuBar.cpp:1399
 msgid "Function signature file (*.dsy)"
 msgstr ""
 
@@ -3870,7 +3806,7 @@ msgstr ""
 msgid "GCI Folder"
 msgstr "Složka GCI"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:392
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:395
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "Adresář paměťové karty GC: Voláno čištění bloku s neplatnou adresou"
 
@@ -3918,7 +3854,7 @@ msgid "Game Folders"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:909
-#: Source/Core/DolphinQt/MenuBar.cpp:590
+#: Source/Core/DolphinQt/MenuBar.cpp:591
 msgid "Game ID"
 msgstr "ID hry"
 
@@ -3939,7 +3875,7 @@ msgstr ""
 msgid "Game is already running!"
 msgstr "Hra už běží!"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:462
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:465
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -4031,7 +3967,7 @@ msgstr "Vytvořit novou identitu pro statistiky"
 msgid "Generated by search (Address %1)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1156
+#: Source/Core/DolphinQt/MenuBar.cpp:1157
 msgid "Generated symbol names from '%1'"
 msgstr ""
 
@@ -4087,7 +4023,7 @@ msgstr "Zelená vlevo"
 msgid "Green Right"
 msgstr "Zelená vpravo"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:566
+#: Source/Core/DolphinQt/MenuBar.cpp:567
 msgid "Grid View"
 msgstr ""
 
@@ -4105,7 +4041,7 @@ msgstr ""
 msgid "Hacks"
 msgstr "Hacky"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:135
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:133
 msgid "Header checksum failed"
 msgstr "Kontrolní součet hlavičky selhal"
 
@@ -4291,15 +4227,15 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:252
+#: Source/Core/DolphinQt/MenuBar.cpp:248
 msgid "Import BootMii NAND Backup..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:226
+#: Source/Core/DolphinQt/MenuBar.cpp:273
 msgid "Import Wii Save..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:337
 msgid "Import failed"
 msgstr "Import selhal"
 
@@ -4312,10 +4248,6 @@ msgstr ""
 msgid ""
 "Importing NAND backup\n"
 " Time elapsed: %1s"
-msgstr ""
-
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:165
-msgid "In-Game"
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:219
@@ -4346,14 +4278,14 @@ msgstr "Info"
 
 #: Source/Core/Common/MsgHandler.cpp:65
 #: Source/Core/DolphinQt/GameList/GameList.cpp:739
-#: Source/Core/DolphinQt/MenuBar.cpp:1155
-#: Source/Core/DolphinQt/MenuBar.cpp:1217
+#: Source/Core/DolphinQt/MenuBar.cpp:1156
+#: Source/Core/DolphinQt/MenuBar.cpp:1218
 msgid "Information"
 msgstr "Informace"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1171
-#: Source/Core/DolphinQt/MenuBar.cpp:1318
-#: Source/Core/DolphinQt/MenuBar.cpp:1342
+#: Source/Core/DolphinQt/MenuBar.cpp:1172
+#: Source/Core/DolphinQt/MenuBar.cpp:1319
+#: Source/Core/DolphinQt/MenuBar.cpp:1343
 msgid "Input"
 msgstr "Vstup"
 
@@ -4384,7 +4316,7 @@ msgstr ""
 msgid "Install Update"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:231
+#: Source/Core/DolphinQt/MenuBar.cpp:246
 msgid "Install WAD..."
 msgstr ""
 
@@ -4400,7 +4332,7 @@ msgstr ""
 msgid "Instruction Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1436
+#: Source/Core/DolphinQt/MenuBar.cpp:1437
 msgid "Instruction:"
 msgstr ""
 
@@ -4457,7 +4389,7 @@ msgstr "Vnitřní Rozlišení:"
 msgid "Interpreter (slowest)"
 msgstr "Převaděč (nejpomalejší)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:747
+#: Source/Core/DolphinQt/MenuBar.cpp:748
 msgid "Interpreter Core"
 msgstr ""
 
@@ -4474,11 +4406,11 @@ msgstr ""
 msgid "Invalid Player ID"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1177
+#: Source/Core/DolphinQt/MenuBar.cpp:1178
 msgid "Invalid RSO module address: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:296
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:295
 msgid "Invalid callstack"
 msgstr ""
 
@@ -4529,7 +4461,7 @@ msgstr "Italština"
 msgid "Italy"
 msgstr "Itálie"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:745
+#: Source/Core/DolphinQt/MenuBar.cpp:746
 msgid "JIT"
 msgstr ""
 
@@ -4537,7 +4469,7 @@ msgstr ""
 msgid "JIT Arm64 (experimental)"
 msgstr "JIT Arm64 (experimentální)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:758
+#: Source/Core/DolphinQt/MenuBar.cpp:759
 msgid "JIT Block Linking Off"
 msgstr ""
 
@@ -4545,47 +4477,47 @@ msgstr ""
 msgid "JIT Blocks"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:873
+#: Source/Core/DolphinQt/MenuBar.cpp:874
 msgid "JIT Branch Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:841
+#: Source/Core/DolphinQt/MenuBar.cpp:842
 msgid "JIT FloatingPoint Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:849
+#: Source/Core/DolphinQt/MenuBar.cpp:850
 msgid "JIT Integer Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:825
+#: Source/Core/DolphinQt/MenuBar.cpp:826
 msgid "JIT LoadStore Floating Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:793
+#: Source/Core/DolphinQt/MenuBar.cpp:794
 msgid "JIT LoadStore Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:833
+#: Source/Core/DolphinQt/MenuBar.cpp:834
 msgid "JIT LoadStore Paired Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:809
+#: Source/Core/DolphinQt/MenuBar.cpp:810
 msgid "JIT LoadStore lXz Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:801
+#: Source/Core/DolphinQt/MenuBar.cpp:802
 msgid "JIT LoadStore lbzx Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:817
+#: Source/Core/DolphinQt/MenuBar.cpp:818
 msgid "JIT LoadStore lwz Off"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:785
+#: Source/Core/DolphinQt/MenuBar.cpp:786
 msgid "JIT Off (JIT Core)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:857
+#: Source/Core/DolphinQt/MenuBar.cpp:858
 msgid "JIT Paired Off"
 msgstr ""
 
@@ -4593,11 +4525,11 @@ msgstr ""
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT Rekompilátor (doporučeno)"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:865
+#: Source/Core/DolphinQt/MenuBar.cpp:866
 msgid "JIT SystemRegisters Off"
 msgstr ""
 
-#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:268
+#: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:264
 msgid "Japan"
 msgstr "Japonsko"
 
@@ -4632,7 +4564,7 @@ msgstr ""
 msgid "Kick Player"
 msgstr "Vykopnout hráče"
 
-#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:270
+#: Source/Core/DiscIO/Enums.cpp:45 Source/Core/DolphinQt/MenuBar.cpp:266
 msgid "Korea"
 msgstr "Korea"
 
@@ -4713,7 +4645,7 @@ msgstr ""
 msgid "Less than"
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:51
+#: Source/Core/DolphinQt/AboutDialog.cpp:52
 msgid "License"
 msgstr "Licence"
 
@@ -4721,11 +4653,11 @@ msgstr "Licence"
 msgid "Limit Chunked Upload Speed:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:596
+#: Source/Core/DolphinQt/MenuBar.cpp:597
 msgid "List Columns"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:563
+#: Source/Core/DolphinQt/MenuBar.cpp:564
 msgid "List View"
 msgstr ""
 
@@ -4736,11 +4668,11 @@ msgstr ""
 msgid "Load"
 msgstr "Nahrát"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:899
+#: Source/Core/DolphinQt/MenuBar.cpp:900
 msgid "Load &Bad Map File..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:898
+#: Source/Core/DolphinQt/MenuBar.cpp:899
 msgid "Load &Other Map File..."
 msgstr ""
 
@@ -4748,7 +4680,7 @@ msgstr ""
 msgid "Load Custom Textures"
 msgstr "Nahrát Vlastní Textury"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:234
+#: Source/Core/DolphinQt/MenuBar.cpp:230
 msgid "Load GameCube Main Menu"
 msgstr ""
 
@@ -4842,15 +4774,15 @@ msgstr "Nahrát stav v pozici 8"
 msgid "Load State Slot 9"
 msgstr "Načíst stav v pozici 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:317
+#: Source/Core/DolphinQt/MenuBar.cpp:318
 msgid "Load State from File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:318
+#: Source/Core/DolphinQt/MenuBar.cpp:319
 msgid "Load State from Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:319
+#: Source/Core/DolphinQt/MenuBar.cpp:320
 msgid "Load State from Slot"
 msgstr ""
 
@@ -4858,7 +4790,7 @@ msgstr ""
 msgid "Load Wii Save"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:939
+#: Source/Core/DolphinQt/MenuBar.cpp:940
 msgid "Load Wii System Menu %1"
 msgstr ""
 
@@ -4866,12 +4798,12 @@ msgstr ""
 msgid "Load from Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:373
+#: Source/Core/DolphinQt/MenuBar.cpp:374
 msgid "Load from Slot %1 - %2"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1236
-#: Source/Core/DolphinQt/MenuBar.cpp:1252
+#: Source/Core/DolphinQt/MenuBar.cpp:1237
+#: Source/Core/DolphinQt/MenuBar.cpp:1253
 msgid "Load map file"
 msgstr ""
 
@@ -4879,7 +4811,7 @@ msgstr ""
 msgid "Load..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1218
+#: Source/Core/DolphinQt/MenuBar.cpp:1219
 msgid "Loaded symbols from '%1'"
 msgstr ""
 
@@ -4894,7 +4826,7 @@ msgstr ""
 msgid "Local"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:578
+#: Source/Core/DolphinQt/CheatsManager.cpp:641
 msgid "Lock"
 msgstr ""
 
@@ -4907,7 +4839,7 @@ msgstr "Záznam"
 msgid "Log Configuration"
 msgstr "Nastavení Záznamu"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:779
+#: Source/Core/DolphinQt/MenuBar.cpp:780
 msgid "Log JIT Instruction Coverage"
 msgstr ""
 
@@ -4952,7 +4884,7 @@ msgid "MMU"
 msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:291
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:325
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:327
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "Soubory MadCatz Gameshark (*.gcs)"
 
@@ -4962,7 +4894,7 @@ msgstr "Hlavní páčka"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:907
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:182
-#: Source/Core/DolphinQt/MenuBar.cpp:588
+#: Source/Core/DolphinQt/MenuBar.cpp:589
 msgid "Maker"
 msgstr "Tvůrce"
 
@@ -4979,6 +4911,10 @@ msgid ""
 "Disabling fog will break some games which rely on proper fog emulation.\n"
 "\n"
 "If unsure, leave this unchecked."
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:247
+msgid "Manage NAND"
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:640
@@ -5023,6 +4959,10 @@ msgstr ""
 msgid "Memory Card"
 msgstr "Paměťová karta"
 
+#: Source/Core/DolphinQt/MenuBar.cpp:239
+msgid "Memory Card Manager"
+msgstr ""
+
 #: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:101
 #, c-format
 msgid ""
@@ -5040,8 +4980,8 @@ msgstr ""
 "%s\n"
 "Chtěli byste starý soubor zkopírovat do nového umístění?\n"
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:506
-#: Source/Core/DolphinQt/CheatsManager.cpp:528
+#: Source/Core/DolphinQt/CheatsManager.cpp:561
+#: Source/Core/DolphinQt/CheatsManager.cpp:587
 msgid "Memory Not Ready"
 msgstr ""
 
@@ -5049,7 +4989,7 @@ msgstr ""
 msgid "Memory breakpoint options"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:101
+#: Source/Core/Core/HW/GCMemcard/GCMemcard.cpp:99
 msgid "Memory card file size does not match the header size"
 msgstr "Velikost souboru paměťové karty se neshoduje s velikosti hlavičky"
 
@@ -5144,10 +5084,10 @@ msgstr ""
 msgid "Movie"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1028
-#: Source/Core/DolphinQt/MenuBar.cpp:1072
-#: Source/Core/DolphinQt/MenuBar.cpp:1077
-#: Source/Core/DolphinQt/MenuBar.cpp:1081
+#: Source/Core/DolphinQt/MenuBar.cpp:1029
+#: Source/Core/DolphinQt/MenuBar.cpp:1073
+#: Source/Core/DolphinQt/MenuBar.cpp:1078
+#: Source/Core/DolphinQt/MenuBar.cpp:1082
 msgid "NAND Check"
 msgstr ""
 
@@ -5157,11 +5097,11 @@ msgstr ""
 "POZNÁMKA: Velikost proudu se neshoduje se\n"
 "skutečnou délkou dat\n"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:236
+#: Source/Core/DolphinQt/MenuBar.cpp:232
 msgid "NTSC-J"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:238
+#: Source/Core/DolphinQt/MenuBar.cpp:234
 msgid "NTSC-U"
 msgstr ""
 
@@ -5169,7 +5109,7 @@ msgstr ""
 msgid "NVIDIA 3D Vision"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:578
+#: Source/Core/DolphinQt/CheatsManager.cpp:641
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:218
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:153
@@ -5203,7 +5143,7 @@ msgid "Native (640x528)"
 msgstr "Původní (640x528)"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:290
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:325
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:327
 msgid "Native GCI File (*.gci)"
 msgstr ""
 
@@ -5347,7 +5287,7 @@ msgstr ""
 msgid "No file loaded / recorded."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1028
+#: Source/Core/DolphinQt/MenuBar.cpp:1029
 msgid "No issues have been detected."
 msgstr ""
 
@@ -5356,11 +5296,11 @@ msgstr ""
 msgid "No paths found in the M3U file \"%s\""
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:872
+#: Source/Core/DiscIO/VolumeVerifier.cpp:874
 msgid "No problems were found."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:866
+#: Source/Core/DiscIO/VolumeVerifier.cpp:868
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -5378,6 +5318,10 @@ msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:739
 msgid "No save data found."
+msgstr ""
+
+#: Source/Core/DolphinQt/CheatsManager.cpp:463
+msgid "No search value entered."
 msgstr ""
 
 #: Source/Core/Core/State.cpp:685
@@ -5489,17 +5433,17 @@ msgstr "Logická Adresa:"
 msgid "On"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:538
+#: Source/Core/DolphinQt/MenuBar.cpp:539
 msgid "Online &Documentation"
 msgstr "Online &dokumentace"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1342
+#: Source/Core/DolphinQt/MenuBar.cpp:1343
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1318
+#: Source/Core/DolphinQt/MenuBar.cpp:1319
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -5595,11 +5539,11 @@ msgstr "Překryvné informace"
 msgid "Override Language on NTSC Games"
 msgstr "Potlačit jazyk her NTSC"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:678
+#: Source/Core/DolphinQt/MenuBar.cpp:679
 msgid "P&lay Input Recording..."
 msgstr "&Spustit vstupní nahrávku..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:241
+#: Source/Core/DolphinQt/MenuBar.cpp:237
 msgid "PAL"
 msgstr ""
 
@@ -5674,7 +5618,7 @@ msgstr "Cesty"
 msgid "Pause"
 msgstr "Pozastavit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:698
+#: Source/Core/DolphinQt/MenuBar.cpp:699
 msgid "Pause at End of Movie"
 msgstr "Pozastavit na konci videa"
 
@@ -5696,7 +5640,7 @@ msgstr ""
 msgid "Per-Pixel Lighting"
 msgstr "Osvětlení Podle Pixelu"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:262
+#: Source/Core/DolphinQt/MenuBar.cpp:258
 msgid "Perform Online System Update"
 msgstr ""
 
@@ -5714,7 +5658,7 @@ msgstr ""
 msgid "PiB"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1122
+#: Source/Core/DolphinQt/MenuBar.cpp:1123
 msgid "Pick a debug font"
 msgstr ""
 
@@ -5723,7 +5667,7 @@ msgid "Ping"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:903
-#: Source/Core/DolphinQt/MenuBar.cpp:584
+#: Source/Core/DolphinQt/MenuBar.cpp:585
 msgid "Platform"
 msgstr "Platforma"
 
@@ -5873,19 +5817,19 @@ msgstr ""
 msgid "Problem"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:885
+#: Source/Core/DiscIO/VolumeVerifier.cpp:887
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:876
+#: Source/Core/DiscIO/VolumeVerifier.cpp:878
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:880
+#: Source/Core/DiscIO/VolumeVerifier.cpp:882
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -5909,7 +5853,7 @@ msgstr ""
 msgid "Public"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:475
+#: Source/Core/DolphinQt/MenuBar.cpp:476
 msgid "Purge Game List Cache"
 msgstr ""
 
@@ -5926,7 +5870,7 @@ msgid "Quality of Service (QoS) was successfully enabled."
 msgstr ""
 
 #: Source/Core/Common/MsgHandler.cpp:66
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:387
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:389
 #: Source/Core/DolphinQt/MainWindow.cpp:1477
 msgid "Question"
 msgstr "Otázka"
@@ -5947,7 +5891,7 @@ msgstr "R"
 msgid "R-Analog"
 msgstr "Pravý Analog"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:891
+#: Source/Core/DolphinQt/MenuBar.cpp:892
 msgid "RSO Modules"
 msgstr ""
 
@@ -6072,7 +6016,7 @@ msgid "Refreshing..."
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:910
-#: Source/Core/DolphinQt/MenuBar.cpp:591
+#: Source/Core/DolphinQt/MenuBar.cpp:592
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:218
 msgid "Region"
 msgstr "Oblast"
@@ -6104,7 +6048,7 @@ msgstr "Odstranit"
 msgid "Remove Tag..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:405
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:407
 msgid "Remove failed"
 msgstr ""
 
@@ -6119,6 +6063,10 @@ msgstr ""
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:402
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:437
 msgid "Rename symbol"
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:165
+msgid "Render Window"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:95
@@ -6136,7 +6084,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:372
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:375
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Hlášení: GCIFolder zapisuje do nepřiděleného bloku 0x%x"
@@ -6148,7 +6096,7 @@ msgstr ""
 #: Source/Core/Core/HotkeyManager.cpp:30
 #: Source/Core/DolphinQt/CheatsManager.cpp:384
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:709
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:757
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:108
 msgid "Reset"
 msgstr "Resetovat"
@@ -6193,7 +6141,7 @@ msgstr ""
 msgid "Revision"
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:30
+#: Source/Core/DolphinQt/AboutDialog.cpp:31
 msgid "Revision: "
 msgstr ""
 
@@ -6292,11 +6240,11 @@ msgstr ""
 msgid "START"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:903
+#: Source/Core/DolphinQt/MenuBar.cpp:904
 msgid "Sa&ve Code"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:332
+#: Source/Core/DolphinQt/MenuBar.cpp:333
 msgid "Sa&ve State"
 msgstr "Uložit Sta&v"
 
@@ -6314,7 +6262,7 @@ msgstr "Uložit"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:452
 #: Source/Core/DolphinQt/GameList/GameList.cpp:457
-#: Source/Core/DolphinQt/MenuBar.cpp:1018
+#: Source/Core/DolphinQt/MenuBar.cpp:1019
 msgid "Save Export"
 msgstr ""
 
@@ -6326,8 +6274,8 @@ msgstr ""
 msgid "Save File to"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:997 Source/Core/DolphinQt/MenuBar.cpp:1004
-#: Source/Core/DolphinQt/MenuBar.cpp:1006
+#: Source/Core/DolphinQt/MenuBar.cpp:998 Source/Core/DolphinQt/MenuBar.cpp:1005
+#: Source/Core/DolphinQt/MenuBar.cpp:1007
 msgid "Save Import"
 msgstr ""
 
@@ -6380,23 +6328,23 @@ msgstr "Uložit stav do pozice 8"
 msgid "Save State Slot 9"
 msgstr "Uložit stav do pozice 9"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:333
+#: Source/Core/DolphinQt/MenuBar.cpp:334
 msgid "Save State to File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:335
+#: Source/Core/DolphinQt/MenuBar.cpp:336
 msgid "Save State to Oldest Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:334
+#: Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Save State to Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:336
+#: Source/Core/DolphinQt/MenuBar.cpp:337
 msgid "Save State to Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:900
+#: Source/Core/DolphinQt/MenuBar.cpp:901
 msgid "Save Symbol Map &As..."
 msgstr ""
 
@@ -6408,22 +6356,22 @@ msgstr ""
 msgid "Save as..."
 msgstr "Uložit jako"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1397
+#: Source/Core/DolphinQt/MenuBar.cpp:1398
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:998
+#: Source/Core/DolphinQt/MenuBar.cpp:999
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
 "Overwrite now?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1269
+#: Source/Core/DolphinQt/MenuBar.cpp:1270
 msgid "Save map file"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1321
+#: Source/Core/DolphinQt/MenuBar.cpp:1322
 msgid "Save signature file"
 msgstr ""
 
@@ -6431,7 +6379,7 @@ msgstr ""
 msgid "Save to Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:374
+#: Source/Core/DolphinQt/MenuBar.cpp:375
 msgid "Save to Slot %1 - %2"
 msgstr ""
 
@@ -6468,7 +6416,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:100
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:77
-#: Source/Core/DolphinQt/MenuBar.cpp:477
+#: Source/Core/DolphinQt/MenuBar.cpp:478
 msgid "Search"
 msgstr "Hledat"
 
@@ -6485,7 +6433,7 @@ msgstr ""
 msgid "Search Subfolders"
 msgstr "Hledat Podadresáře"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:781
+#: Source/Core/DolphinQt/MenuBar.cpp:782
 msgid "Search for an Instruction"
 msgstr ""
 
@@ -6493,7 +6441,7 @@ msgstr ""
 msgid "Search games..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1436
+#: Source/Core/DolphinQt/MenuBar.cpp:1437
 msgid "Search instruction"
 msgstr ""
 
@@ -6522,7 +6470,7 @@ msgid "Select Dump Path"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:435
-#: Source/Core/DolphinQt/MenuBar.cpp:1012
+#: Source/Core/DolphinQt/MenuBar.cpp:1013
 msgid "Select Export Directory"
 msgstr ""
 
@@ -6530,7 +6478,7 @@ msgstr ""
 msgid "Select Last State"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:375
+#: Source/Core/DolphinQt/MenuBar.cpp:376
 msgid "Select Slot %1 - %2"
 msgstr ""
 
@@ -6538,7 +6486,7 @@ msgstr ""
 msgid "Select State"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:349
+#: Source/Core/DolphinQt/MenuBar.cpp:350
 msgid "Select State Slot"
 msgstr "Vybrat pozici stavu"
 
@@ -6610,7 +6558,7 @@ msgstr ""
 msgid "Select a game"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:967
+#: Source/Core/DolphinQt/MenuBar.cpp:968
 msgid "Select a title to install to NAND"
 msgstr ""
 
@@ -6624,7 +6572,7 @@ msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr ""
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1486
-#: Source/Core/DolphinQt/MenuBar.cpp:987
+#: Source/Core/DolphinQt/MenuBar.cpp:988
 msgid "Select the save file"
 msgstr "Vyberte soubor s uloženou hrou"
 
@@ -6830,11 +6778,11 @@ msgid ""
 "on performance. Defaults to <b>False</b>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:382
+#: Source/Core/DolphinQt/MenuBar.cpp:383
 msgid "Show &Log"
 msgstr "Zobrazit Záznam"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:395
+#: Source/Core/DolphinQt/MenuBar.cpp:396
 msgid "Show &Toolbar"
 msgstr "Zobrazit Panel Nás&trojů"
 
@@ -6842,7 +6790,7 @@ msgstr "Zobrazit Panel Nás&trojů"
 msgid "Show Active Title in Window Title"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:643
+#: Source/Core/DolphinQt/MenuBar.cpp:644
 msgid "Show Australia"
 msgstr "Zobrazit Autrálii"
 
@@ -6854,7 +6802,7 @@ msgstr ""
 msgid "Show Debugging UI"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:618
+#: Source/Core/DolphinQt/MenuBar.cpp:619
 msgid "Show ELF/DOL"
 msgstr "Zobrazit ELF/DOL"
 
@@ -6862,19 +6810,19 @@ msgstr "Zobrazit ELF/DOL"
 msgid "Show FPS"
 msgstr "Zobrazit Snímky za Sekundu"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:710
+#: Source/Core/DolphinQt/MenuBar.cpp:711
 msgid "Show Frame Counter"
 msgstr "Zobrazit počítadlo snímků"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:644
+#: Source/Core/DolphinQt/MenuBar.cpp:645
 msgid "Show France"
 msgstr "Zobrazit Francii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:616
+#: Source/Core/DolphinQt/MenuBar.cpp:617
 msgid "Show GameCube"
 msgstr "Zobrazit GameCube"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:645
+#: Source/Core/DolphinQt/MenuBar.cpp:646
 msgid "Show Germany"
 msgstr "Zobrazit Německo"
 
@@ -6882,23 +6830,23 @@ msgstr "Zobrazit Německo"
 msgid "Show Golf Mode Overlay"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:716
+#: Source/Core/DolphinQt/MenuBar.cpp:717
 msgid "Show Input Display"
 msgstr "Zobrazit Obrazovku Vstupu"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:646
+#: Source/Core/DolphinQt/MenuBar.cpp:647
 msgid "Show Italy"
 msgstr "Zobrazit Itálii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:640
+#: Source/Core/DolphinQt/MenuBar.cpp:641
 msgid "Show JAP"
 msgstr "Zobrazit JAP"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:647
+#: Source/Core/DolphinQt/MenuBar.cpp:648
 msgid "Show Korea"
 msgstr "Zobrazit Koreu"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:704
+#: Source/Core/DolphinQt/MenuBar.cpp:705
 msgid "Show Lag Counter"
 msgstr "Zobrazit počítadlo zpoždění"
 
@@ -6906,7 +6854,7 @@ msgstr "Zobrazit počítadlo zpoždění"
 msgid "Show Language:"
 msgstr "Jazyk Zobrazení:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:388
+#: Source/Core/DolphinQt/MenuBar.cpp:389
 msgid "Show Log &Configuration"
 msgstr "Zobrazit Nastavení &Záznamu"
 
@@ -6918,7 +6866,7 @@ msgstr ""
 msgid "Show NetPlay Ping"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:648
+#: Source/Core/DolphinQt/MenuBar.cpp:649
 msgid "Show Netherlands"
 msgstr "Zobrazit Nizozemí"
 
@@ -6926,7 +6874,7 @@ msgstr "Zobrazit Nizozemí"
 msgid "Show On-Screen Display Messages"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:641
+#: Source/Core/DolphinQt/MenuBar.cpp:642
 msgid "Show PAL"
 msgstr "Zobrazit PAL"
 
@@ -6935,19 +6883,19 @@ msgstr "Zobrazit PAL"
 msgid "Show PC"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:621
+#: Source/Core/DolphinQt/MenuBar.cpp:622
 msgid "Show Platforms"
 msgstr "Zobrazit Platformy"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:656
+#: Source/Core/DolphinQt/MenuBar.cpp:657
 msgid "Show Regions"
 msgstr "Zobrazit Regiony"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:649
+#: Source/Core/DolphinQt/MenuBar.cpp:650
 msgid "Show Russia"
 msgstr "Zobrazit Rusko"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:650
+#: Source/Core/DolphinQt/MenuBar.cpp:651
 msgid "Show Spain"
 msgstr "Zobrazit Španělsko"
 
@@ -6956,31 +6904,31 @@ msgstr "Zobrazit Španělsko"
 msgid "Show Statistics"
 msgstr "Zobrazit Statistiky"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:722
+#: Source/Core/DolphinQt/MenuBar.cpp:723
 msgid "Show System Clock"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:651
+#: Source/Core/DolphinQt/MenuBar.cpp:652
 msgid "Show Taiwan"
 msgstr "Zobrazit Tchaj-wan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:642
+#: Source/Core/DolphinQt/MenuBar.cpp:643
 msgid "Show USA"
 msgstr "Zobrazit USA"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:653
+#: Source/Core/DolphinQt/MenuBar.cpp:654
 msgid "Show Unknown"
 msgstr "Zobrazit neznámé"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:617
+#: Source/Core/DolphinQt/MenuBar.cpp:618
 msgid "Show WAD"
 msgstr "Zobrazit WAD"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:615
+#: Source/Core/DolphinQt/MenuBar.cpp:616
 msgid "Show Wii"
 msgstr "Zobrazit Wii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:652
+#: Source/Core/DolphinQt/MenuBar.cpp:653
 msgid "Show World"
 msgstr "Zobrazit svět"
 
@@ -7052,7 +7000,7 @@ msgstr ""
 msgid "Sideways Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:890
+#: Source/Core/DolphinQt/MenuBar.cpp:891
 msgid "Signature Database"
 msgstr ""
 
@@ -7167,11 +7115,11 @@ msgstr "Standardní Ovladač"
 msgid "Start"
 msgstr "Start"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:243
+#: Source/Core/DolphinQt/MenuBar.cpp:225
 msgid "Start &NetPlay..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:676
+#: Source/Core/DolphinQt/MenuBar.cpp:677
 msgid "Start Re&cording Input"
 msgstr "&Začít nahrávat vstup"
 
@@ -7211,19 +7159,19 @@ msgstr ""
 msgid "Step Over"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:481
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:480
 msgid "Step out successful!"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:479
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:478
 msgid "Step out timed out!"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:406
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:405
 msgid "Step over in progress..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:391
+#: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:390
 msgid "Step successful!"
 msgstr ""
 
@@ -7258,7 +7206,7 @@ msgstr "Páčka"
 msgid "Stop"
 msgstr "Zastavit"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:679
+#: Source/Core/DolphinQt/MenuBar.cpp:680
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
@@ -7312,8 +7260,12 @@ msgstr ""
 msgid "String"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:563
+#: Source/Core/DolphinQt/CheatsManager.cpp:626
 msgid "String Match"
+msgstr ""
+
+#: Source/Core/DolphinQt/CheatsManager.cpp:520
+msgid "String values can only be compared using equality."
 msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:76
@@ -7334,9 +7286,9 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:603
 #: Source/Core/DolphinQt/GameList/GameList.cpp:620
 #: Source/Core/DolphinQt/GameList/GameList.cpp:648
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:311
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:415
-#: Source/Core/DolphinQt/MenuBar.cpp:976 Source/Core/DolphinQt/MenuBar.cpp:1090
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:313
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:417
+#: Source/Core/DolphinQt/MenuBar.cpp:977 Source/Core/DolphinQt/MenuBar.cpp:1091
 msgid "Success"
 msgstr ""
 
@@ -7358,7 +7310,7 @@ msgstr ""
 msgid "Successfully deleted '%1'."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:415
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:417
 msgid "Successfully deleted files."
 msgstr ""
 
@@ -7366,15 +7318,15 @@ msgstr ""
 msgid "Successfully exported save files"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:310
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:312
 msgid "Successfully exported the %1 save files."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:309
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:311
 msgid "Successfully exported the save file."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1091
+#: Source/Core/DolphinQt/MenuBar.cpp:1092
 msgid "Successfully extracted certificates from NAND"
 msgstr ""
 
@@ -7386,12 +7338,12 @@ msgstr ""
 msgid "Successfully extracted system data."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1004
+#: Source/Core/DolphinQt/MenuBar.cpp:1005
 msgid "Successfully imported save files."
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:621
-#: Source/Core/DolphinQt/MenuBar.cpp:977
+#: Source/Core/DolphinQt/MenuBar.cpp:978
 msgid "Successfully installed this title to the NAND."
 msgstr ""
 
@@ -7399,7 +7351,7 @@ msgstr ""
 msgid "Successfully removed this title from the NAND."
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:53
+#: Source/Core/DolphinQt/AboutDialog.cpp:54
 msgid "Support"
 msgstr "Podpora"
 
@@ -7442,7 +7394,7 @@ msgid "Symbol name:"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:109
-#: Source/Core/DolphinQt/MenuBar.cpp:884
+#: Source/Core/DolphinQt/MenuBar.cpp:885
 msgid "Symbols"
 msgstr ""
 
@@ -7493,7 +7445,7 @@ msgstr ""
 msgid "System Language:"
 msgstr "Jazyk Systému:"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:694
+#: Source/Core/DolphinQt/MenuBar.cpp:695
 msgid "TAS Input"
 msgstr "TAS Vstup"
 
@@ -7506,7 +7458,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GameList/GameList.cpp:377
 #: Source/Core/DolphinQt/GameList/GameList.cpp:912
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:188
-#: Source/Core/DolphinQt/MenuBar.cpp:593
+#: Source/Core/DolphinQt/MenuBar.cpp:594
 msgid "Tags"
 msgstr ""
 
@@ -7520,7 +7472,7 @@ msgstr ""
 msgid "Taiwan"
 msgstr "Tchaj-wan"
 
-#: Source/Core/Core/HotkeyManager.cpp:32 Source/Core/DolphinQt/MenuBar.cpp:304
+#: Source/Core/Core/HotkeyManager.cpp:32 Source/Core/DolphinQt/MenuBar.cpp:305
 msgid "Take Screenshot"
 msgstr "Vytvořit Snímek Obrazovky"
 
@@ -7537,32 +7489,32 @@ msgstr "Vyrovnávací Paměť Textur"
 msgid "Texture Format Overlay"
 msgstr "Překryv Formátu Textury"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:237
+#: Source/Core/DiscIO/VolumeVerifier.cpp:239
 #, c-format
 msgid "The %s partition does not have a valid file system."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:228
+#: Source/Core/DiscIO/VolumeVerifier.cpp:230
 #, c-format
 msgid "The %s partition does not seem to contain valid data."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:189
+#: Source/Core/DiscIO/VolumeVerifier.cpp:191
 #, c-format
 msgid "The %s partition is not correctly signed."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:184
+#: Source/Core/DiscIO/VolumeVerifier.cpp:186
 #, c-format
 msgid "The %s partition is not properly aligned."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:195
+#: Source/Core/DiscIO/VolumeVerifier.cpp:197
 #, c-format
 msgid "The H3 hash table for the %s partition is not correct."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:322
+#: Source/Core/Core/Boot/Boot.cpp:324
 #, c-format
 msgid "The IPL file is not a known good dump. (CRC32: %x)"
 msgstr ""
@@ -7573,17 +7525,17 @@ msgstr ""
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:136
+#: Source/Core/DiscIO/VolumeVerifier.cpp:138
 msgid "The Masterpiece partitions are missing."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1082
+#: Source/Core/DolphinQt/MenuBar.cpp:1083
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1077
+#: Source/Core/DolphinQt/MenuBar.cpp:1078
 msgid "The NAND has been repaired."
 msgstr ""
 
@@ -7591,15 +7543,15 @@ msgstr ""
 msgid "The address is invalid"
 msgstr "Adresa je neplatná"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:119
+#: Source/Core/DiscIO/VolumeVerifier.cpp:121
 msgid "The channel partition is missing."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:114
+#: Source/Core/DiscIO/VolumeVerifier.cpp:116
 msgid "The data partition is missing."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:152
+#: Source/Core/DiscIO/VolumeVerifier.cpp:154
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. When using NetPlay or sending input recordings to "
@@ -7638,7 +7590,7 @@ msgstr "Obraz disku \"%s\" je zkrácen, některá data chybí."
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1032
+#: Source/Core/DolphinQt/MenuBar.cpp:1033
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
 "Shop Channel may not work correctly.\n"
@@ -7684,26 +7636,26 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Soubor %s je už otevřen, hlavička souboru nebude zapsána."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:86
+#: Source/Core/DiscIO/VolumeVerifier.cpp:88
 msgid "The filesystem is invalid or could not be read."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:403
+#: Source/Core/DiscIO/VolumeVerifier.cpp:405
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:530
+#: Source/Core/DiscIO/VolumeVerifier.cpp:532
 #, c-format
 msgid "The game ID is %s but should be %s."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:538
+#: Source/Core/DiscIO/VolumeVerifier.cpp:540
 msgid "The game ID is inconsistent."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:547
+#: Source/Core/DiscIO/VolumeVerifier.cpp:549
 msgid "The game ID is unusually short."
 msgstr ""
 
@@ -7736,7 +7688,7 @@ msgid ""
 "Please recheck that you have the correct code."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:124
+#: Source/Core/DiscIO/VolumeVerifier.cpp:126
 msgid "The install partition is missing."
 msgstr ""
 
@@ -7750,7 +7702,7 @@ msgstr ""
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "Nahraná hra (%s) není stejná jako zvolená hra (%s)"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:556
+#: Source/Core/DiscIO/VolumeVerifier.cpp:558
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -7798,7 +7750,7 @@ msgstr ""
 msgid "The specified file \"%s\" does not exist"
 msgstr "Zadaný soubor \"%s\" neexistuje"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:168
+#: Source/Core/DiscIO/VolumeVerifier.cpp:170
 msgid "The type of a partition could not be read."
 msgstr ""
 
@@ -7808,15 +7760,15 @@ msgid ""
 "order to avoid inconsistent system software versions."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:268
+#: Source/Core/DiscIO/VolumeVerifier.cpp:270
 msgid "The update partition does not contain the IOS used by this title."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:111
+#: Source/Core/DiscIO/VolumeVerifier.cpp:113
 msgid "The update partition is missing."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:143
+#: Source/Core/DiscIO/VolumeVerifier.cpp:145
 msgid "The update partition is not at its normal position."
 msgstr ""
 
@@ -7824,18 +7776,7 @@ msgstr ""
 msgid "The value is invalid"
 msgstr "Hodnota je neplatná"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:205
-#, c-format
-msgid ""
-"There are too many GCI files in the folder\n"
-"%s.\n"
-"Only the first 127 will be available"
-msgstr ""
-"Ve složce je příliš mnoho souborů GCI\n"
-"%s.\n"
-"Pouze prvních 127 bude k dispozici"
-
-#: Source/Core/DiscIO/VolumeVerifier.cpp:99
+#: Source/Core/DiscIO/VolumeVerifier.cpp:101
 msgid "There are too many partitions in the first partition table."
 msgstr ""
 
@@ -7861,7 +7802,7 @@ msgstr ""
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:580
+#: Source/Core/DiscIO/VolumeVerifier.cpp:582
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -7875,11 +7816,11 @@ msgstr ""
 msgid "This WAD has not been signed by Nintendo. Continue to import?"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:896
+#: Source/Core/Core/ConfigManager.cpp:897
 msgid "This WAD is not bootable."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:891
+#: Source/Core/Core/ConfigManager.cpp:892
 msgid "This WAD is not valid."
 msgstr ""
 
@@ -7896,15 +7837,15 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:422
+#: Source/Core/DiscIO/VolumeVerifier.cpp:424
 msgid "This debug disc image has the size of a retail disc image."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:440
+#: Source/Core/DiscIO/VolumeVerifier.cpp:442
 msgid "This disc image has an unusual size."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:433
+#: Source/Core/DiscIO/VolumeVerifier.cpp:435
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. When using NetPlay or sending input recordings to "
@@ -7912,7 +7853,7 @@ msgid ""
 "dump."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:624
+#: Source/Core/DiscIO/VolumeVerifier.cpp:626
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -7920,13 +7861,13 @@ msgid ""
 "identical."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:386
+#: Source/Core/DiscIO/VolumeVerifier.cpp:388
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:383
+#: Source/Core/DiscIO/VolumeVerifier.cpp:385
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -7936,7 +7877,7 @@ msgstr ""
 msgid "This file does not look like a BootMii NAND backup."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:396
+#: Source/Core/DiscIO/VolumeVerifier.cpp:398
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -7951,7 +7892,7 @@ msgid ""
 msgstr ""
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:614
+#: Source/Core/DiscIO/VolumeVerifier.cpp:616
 msgid "This non-Korean title is set to use the Korean common key."
 msgstr ""
 
@@ -7967,24 +7908,24 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/AboutDialog.cpp:43
+#: Source/Core/DolphinQt/AboutDialog.cpp:44
 msgid "This software should not be used to play games you do not legally own."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:914
 msgid "This title cannot be booted."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:71
+#: Source/Core/DiscIO/VolumeVerifier.cpp:73
 msgid "This title is not correctly signed."
 msgstr ""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:588
+#: Source/Core/DiscIO/VolumeVerifier.cpp:590
 msgid "This title is set to use an invalid IOS."
 msgstr ""
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:604
+#: Source/Core/DiscIO/VolumeVerifier.cpp:606
 msgid "This title is set to use an invalid common key."
 msgstr ""
 
@@ -8049,7 +7990,7 @@ msgstr "Naklánění"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:905
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:174
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:160
-#: Source/Core/DolphinQt/MenuBar.cpp:586
+#: Source/Core/DolphinQt/MenuBar.cpp:587
 msgid "Title"
 msgstr "Název"
 
@@ -8063,7 +8004,7 @@ msgstr "Do"
 msgid "To:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:301
+#: Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "Toggle &Fullscreen"
 msgstr ""
 
@@ -8136,7 +8077,7 @@ msgstr ""
 msgid "Toggle XFB Immediate Mode"
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:582
+#: Source/Core/DolphinQt/CheatsManager.cpp:645
 msgid "Too many matches to display (%1)"
 msgstr ""
 
@@ -8296,11 +8237,11 @@ msgstr ""
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:181 Source/Core/DolphinQt/MenuBar.cpp:320
+#: Source/Core/Core/HotkeyManager.cpp:181 Source/Core/DolphinQt/MenuBar.cpp:321
 msgid "Undo Load State"
 msgstr "Vrátit zpět Nahrání Stavu"
 
-#: Source/Core/Core/HotkeyManager.cpp:182 Source/Core/DolphinQt/MenuBar.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:182 Source/Core/DolphinQt/MenuBar.cpp:338
 msgid "Undo Save State"
 msgstr "Vrátit zpět Uložení Stavu"
 
@@ -8322,7 +8263,7 @@ msgid ""
 "title from the NAND without deleting its save data. Continue?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:272
+#: Source/Core/DolphinQt/MenuBar.cpp:268
 msgid "United States"
 msgstr ""
 
@@ -8393,7 +8334,7 @@ msgstr "Nahoru"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:219
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:258
-#: Source/Core/DolphinQt/MenuBar.cpp:524
+#: Source/Core/DolphinQt/MenuBar.cpp:525
 msgid "Update"
 msgstr "Aktualizovat"
 
@@ -8520,8 +8461,8 @@ msgstr "Pomůcky"
 msgid "V-Sync"
 msgstr "V-Synch"
 
-#: Source/Core/DolphinQt/CheatsManager.cpp:577
-#: Source/Core/DolphinQt/CheatsManager.cpp:578
+#: Source/Core/DolphinQt/CheatsManager.cpp:640
+#: Source/Core/DolphinQt/CheatsManager.cpp:641
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:91
 msgid "Value"
 msgstr "Hodnota"
@@ -8595,7 +8536,7 @@ msgstr "Zvýšit hlasitost"
 msgid "Vulkan"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:968
+#: Source/Core/DolphinQt/MenuBar.cpp:969
 msgid "WAD files (*.wad)"
 msgstr ""
 
@@ -8652,7 +8593,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
-#: Source/Core/DolphinQt/MenuBar.cpp:1206
+#: Source/Core/DolphinQt/MenuBar.cpp:1207
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:398
 msgid "Warning"
 msgstr "Varování"
@@ -8663,7 +8604,7 @@ msgid ""
 "cases this can be fixed by adding a deadzone."
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:573
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:576
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
@@ -8809,7 +8750,7 @@ msgstr ""
 msgid "Wii and Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:988
+#: Source/Core/DolphinQt/MenuBar.cpp:989
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr ""
 
@@ -8891,7 +8832,7 @@ msgstr "Žlutá"
 msgid "Yes"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:525
+#: Source/Core/DolphinQt/MenuBar.cpp:526
 msgid "You are running the latest version available on this update track."
 msgstr ""
 
@@ -9000,7 +8941,7 @@ msgstr "| NEBO"
 #. in your translation, please use the type of curly quotes that's appropriate for
 #. your language. If you aren't sure which type is appropriate, see
 #. https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
-#: Source/Core/DolphinQt/AboutDialog.cpp:65
+#: Source/Core/DolphinQt/AboutDialog.cpp:66
 msgid ""
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. "
 "Dolphin is not affiliated with Nintendo in any way."
