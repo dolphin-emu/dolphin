@@ -156,8 +156,8 @@ class DeviceQualifier
 {
 public:
   DeviceQualifier() : cid(-1) {}
-  DeviceQualifier(const std::string& _source, const int _id, const std::string& _name)
-      : source(_source), cid(_id), name(_name)
+  DeviceQualifier(std::string source_, const int id_, std::string name_)
+      : source(std::move(source_)), cid(id_), name(std::move(name_))
   {
   }
   void FromDevice(const Device* const dev);
