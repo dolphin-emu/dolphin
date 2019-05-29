@@ -14,9 +14,11 @@ constexpr size_t MAX_BACKLOG_SIZE = 100;
 std::unique_ptr<NetPlayChatUI> g_netplay_chat_ui;
 
 NetPlayChatUI::NetPlayChatUI(std::function<void(const std::string&)> callback)
+    : m_message_callback{std::move(callback)}
 {
-  m_message_callback = std::move(callback);
 }
+
+NetPlayChatUI::~NetPlayChatUI() = default;
 
 void NetPlayChatUI::Display()
 {
@@ -78,12 +80,12 @@ void NetPlayChatUI::Display()
   ImGui::End();
 }
 
-void NetPlayChatUI::AppendChat(const std::string& message, NetPlayChatUI::Color color)
+void NetPlayChatUI::AppendChat(std::string message, Color color)
 {
   if (m_messages.size() > MAX_BACKLOG_SIZE)
     m_messages.pop_front();
 
-  m_messages.push_back({message, color});
+  m_messages.emplace_back(std::move(message), color);
 
   // Only scroll to bottom, if we were at the bottom previously
   if (m_is_scrolled_to_bottom)
@@ -106,7 +108,7 @@ void NetPlayChatUI::SendMessage()
 void NetPlayChatUI::Activate()
 {
   if (ImGui::IsItemFocused())
-    ImGui::SetWindowFocus(NULL);
+    ImGui::SetWindowFocus(nullptr);
   else
     m_activate = true;
 }

@@ -15,12 +15,12 @@ class NetPlayChatUI
 {
 public:
   explicit NetPlayChatUI(std::function<void(const std::string&)> callback);
-  ~NetPlayChatUI() = default;
+  ~NetPlayChatUI();
 
   using Color = std::array<float, 3>;
 
   void Display();
-  void AppendChat(const std::string& message, Color color);
+  void AppendChat(std::string message, Color color);
   void SendMessage();
   void Activate();
 
