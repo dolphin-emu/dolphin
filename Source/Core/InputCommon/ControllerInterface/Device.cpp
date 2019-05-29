@@ -256,7 +256,7 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
 // and also properly handles detection when using "FullAnalogSurface" inputs.
 // Upon input, return the detected Device and Input, else return nullptrs
 std::pair<std::shared_ptr<Device>, Device::Input*>
-DeviceContainer::DetectInput(u32 wait_ms, std::vector<std::string> device_strings)
+DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings)
 {
   struct InputState
   {
@@ -273,7 +273,7 @@ DeviceContainer::DetectInput(u32 wait_ms, std::vector<std::string> device_string
 
   // Acquire devices and initial input states.
   std::vector<DeviceState> device_states;
-  for (auto& device_string : device_strings)
+  for (const auto& device_string : device_strings)
   {
     DeviceQualifier dq;
     dq.FromString(device_string);
