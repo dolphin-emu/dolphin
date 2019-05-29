@@ -16,7 +16,7 @@ class NetPlayGolfUI
 {
 public:
   explicit NetPlayGolfUI(std::shared_ptr<NetPlay::NetPlayClient> netplay_client);
-  ~NetPlayGolfUI() = default;
+  ~NetPlayGolfUI();
 
   void Display();
 

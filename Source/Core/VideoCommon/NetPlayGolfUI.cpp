@@ -20,6 +20,8 @@ NetPlayGolfUI::NetPlayGolfUI(std::shared_ptr<NetPlay::NetPlayClient> netplay_cli
 {
 }
 
+NetPlayGolfUI::~NetPlayGolfUI() = default;
+
 void NetPlayGolfUI::Display()
 {
   auto client = m_netplay_client.lock();
