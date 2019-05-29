@@ -188,7 +188,7 @@ public:
   bool HasConnectedDevice(const DeviceQualifier& qualifier) const;
 
   std::pair<std::shared_ptr<Device>, Device::Input*>
-  DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings);
+  DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const;
 
 protected:
   mutable std::mutex m_devices_mutex;
