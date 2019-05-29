@@ -15,7 +15,7 @@ class NetPlayChatUI
 {
 public:
   explicit NetPlayChatUI(std::function<void(const std::string&)> callback);
-  ~NetPlayChatUI() = default;
+  ~NetPlayChatUI();
 
   using Color = std::array<float, 3>;
 

@@ -18,6 +18,8 @@ NetPlayChatUI::NetPlayChatUI(std::function<void(const std::string&)> callback)
 {
 }
 
+NetPlayChatUI::~NetPlayChatUI() = default;
+
 void NetPlayChatUI::Display()
 {
   const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
