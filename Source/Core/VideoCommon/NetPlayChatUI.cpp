@@ -14,8 +14,8 @@ constexpr size_t MAX_BACKLOG_SIZE = 100;
 std::unique_ptr<NetPlayChatUI> g_netplay_chat_ui;
 
 NetPlayChatUI::NetPlayChatUI(std::function<void(const std::string&)> callback)
+    : m_message_callback{std::move(callback)}
 {
-  m_message_callback = std::move(callback);
 }
 
 void NetPlayChatUI::Display()
