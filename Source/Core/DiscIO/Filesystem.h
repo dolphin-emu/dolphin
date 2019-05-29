@@ -94,6 +94,7 @@ public:
   // Not guaranteed to return a meaningful value for files.
   virtual u32 GetTotalChildren() const = 0;
   virtual std::string GetName() const = 0;
+  virtual bool NameCaseInsensitiveEquals(std::string_view other) const = 0;
   // GetPath will find the parents of the current object and call GetName on them,
   // so it's slower than other functions. If you're traversing through folders
   // to get a file and its path, building the path while traversing is faster.

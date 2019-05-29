@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
+#include <locale>
 #include <map>
 #include <memory>
 #include <optional>
@@ -117,6 +118,43 @@ std::string FileInfoGCWii::GetName() const
   // TODO: Should we really always use SHIFT-JIS?
   // Some names in Pikmin (NTSC-U) don't make sense without it, but is it correct?
   return SHIFTJISToUTF8(reinterpret_cast<const char*>(m_fst + GetNameOffset()));
+}
+
+bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
+{
+  // For speed, this function avoids allocating new strings, except when we are comparing
+  // non-ASCII characters with non-ASCII characters, which is a rare case.
+
+  const char* this_ptr = reinterpret_cast<const char*>(m_fst + GetNameOffset());
+  const char* other_ptr = other.data();
+
+  for (size_t i = 0; i < other.size(); ++i, ++this_ptr, ++other_ptr)
+  {
+    if (*this_ptr == '\0')
+    {
+      // A null byte in this is always a terminator and a null byte in other is never a terminator,
+      // so if we reach this case, this is shorter than other
+      return false;
+    }
+    else if (static_cast<unsigned char>(*this_ptr) >= 0x80 &&
+             static_cast<unsigned char>(*other_ptr) >= 0x80)
+    {
+      // other is in UTF-8 and this is in Shift-JIS, so we convert so that we can compare correctly
+      const std::string this_utf8 = SHIFTJISToUTF8(this_ptr);
+      return std::equal(this_utf8.cbegin(), this_utf8.cend(), other.cbegin() + i, other.cend(),
+                        [](char a, char b) {
+                          return std::tolower(a, std::locale::classic()) ==
+                                 std::tolower(b, std::locale::classic());
+                        });
+    }
+    else if (std::tolower(*this_ptr, std::locale::classic()) !=
+             std::tolower(*other_ptr, std::locale::classic()))
+    {
+      return false;
+    }
+  }
+
+  return *this_ptr == '\0';  // If we're not at a null byte, this is longer than other
 }
 
 std::string FileInfoGCWii::GetPath() const
@@ -283,11 +321,8 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
 
   for (const FileInfo& child : file_info)
   {
-    const std::string child_name = child.GetName();
-
     // We need case insensitive comparison since some games have OPENING.BNR instead of opening.bnr
-    if (child_name.size() == name.size() &&
-        !strncasecmp(child_name.data(), name.data(), name.size()))
+    if (child.NameCaseInsensitiveEquals(name))
     {
       // A match is found. The rest of the path is passed on to finish the search.
       std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child);
