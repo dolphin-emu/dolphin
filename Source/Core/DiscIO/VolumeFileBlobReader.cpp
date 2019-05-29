@@ -4,6 +4,9 @@
 
 #include "DiscIO/VolumeFileBlobReader.h"
 
+#include <memory>
+#include <string_view>
+
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
@@ -11,7 +14,7 @@ namespace DiscIO
 {
 std::unique_ptr<VolumeFileBlobReader> VolumeFileBlobReader::Create(const Volume& volume,
                                                                    const Partition& partition,
-                                                                   const std::string& file_path)
+                                                                   std::string_view file_path)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
   if (!file_system)

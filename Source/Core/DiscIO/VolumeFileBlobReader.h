@@ -5,7 +5,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "DiscIO/Blob.h"
@@ -20,7 +20,7 @@ class VolumeFileBlobReader final : public BlobReader
 {
 public:
   static std::unique_ptr<VolumeFileBlobReader>
-  Create(const Volume& volume, const Partition& partition, const std::string& file_path);
+  Create(const Volume& volume, const Partition& partition, std::string_view file_path);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
   u64 GetRawSize() const override;

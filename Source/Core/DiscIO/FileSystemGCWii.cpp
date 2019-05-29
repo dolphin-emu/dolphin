@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonFuncs.h"
@@ -257,7 +258,7 @@ const FileInfo& FileSystemGCWii::GetRoot() const
   return m_root;
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path) const
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path) const
 {
   if (!IsValid())
     return nullptr;
@@ -265,7 +266,7 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path)
   return FindFileInfo(path, m_root);
 }
 
-std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
+std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(std::string_view path,
                                                         const FileInfo& file_info) const
 {
   // Given a path like "directory1/directory2/fileA.bin", this function will
@@ -276,12 +277,17 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
     return file_info.clone();  // We're done
 
   const size_t name_end = path.find('/', name_start);
-  const std::string name = path.substr(name_start, name_end - name_start);
-  const std::string rest_of_path = (name_end != std::string::npos) ? path.substr(name_end + 1) : "";
+  const std::string_view name = path.substr(name_start, name_end - name_start);
+  const std::string_view rest_of_path =
+      (name_end != std::string::npos) ? path.substr(name_end + 1) : "";
 
   for (const FileInfo& child : file_info)
   {
-    if (!strcasecmp(child.GetName().c_str(), name.c_str()))
+    const std::string child_name = child.GetName();
+
+    // We need case insensitive comparison since some games have OPENING.BNR instead of opening.bnr
+    if (child_name.size() == name.size() &&
+        !strncasecmp(child_name.data(), name.data(), name.size()))
     {
       // A match is found. The rest of the path is passed on to finish the search.
       std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child);

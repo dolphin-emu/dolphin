@@ -69,7 +69,7 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
   return read_length;
 }
 
-u64 ReadFile(const Volume& volume, const Partition& partition, const std::string& path, u8* buffer,
+u64 ReadFile(const Volume& volume, const Partition& partition, std::string_view path, u8* buffer,
              u64 max_buffer_size, u64 offset_in_file)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
@@ -117,7 +117,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo
                     export_filename);
 }
 
-bool ExportFile(const Volume& volume, const Partition& partition, const std::string& path,
+bool ExportFile(const Volume& volume, const Partition& partition, std::string_view path,
                 const std::string& export_filename)
 {
   const FileSystem* file_system = volume.GetFileSystem(partition);
