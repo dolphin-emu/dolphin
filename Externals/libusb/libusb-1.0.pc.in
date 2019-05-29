@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libusb-1.0
+Description: C API for USB device access from Linux, Mac OS X, Windows, OpenBSD/NetBSD and Solaris userspace
+Version: @VERSION@
+Libs: -L${libdir} -lusb-1.0
+Libs.private: @LIBS@
+Cflags: -I${includedir}/libusb-1.0

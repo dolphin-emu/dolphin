@@ -231,6 +231,9 @@
     <ClCompile Include="IOS\USB\LibusbDevice.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="LibusbUtils.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IOS\USB\Host.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -497,6 +500,7 @@
     <ClInclude Include="IOS\STM\STM.h" />
     <ClInclude Include="IOS\USB\Common.h" />
     <ClInclude Include="IOS\USB\LibusbDevice.h" />
+    <ClInclude Include="LibusbUtils.h" />
     <ClInclude Include="IOS\USB\Host.h" />
     <ClInclude Include="IOS\USB\OH0\OH0.h" />
     <ClInclude Include="IOS\USB\OH0\OH0Device.h" />

@@ -15,8 +15,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/LibusbUtils.h"
 
-struct libusb_config_descriptor;
 struct libusb_device;
 struct libusb_device_descriptor;
 struct libusb_device_handle;
@@ -24,19 +24,6 @@ struct libusb_transfer;
 
 namespace IOS::HLE::USB
 {
-// Simple wrapper around libusb_get_config_descriptor and libusb_free_config_descriptor.
-class LibusbConfigDescriptor final
-{
-public:
-  explicit LibusbConfigDescriptor(libusb_device* device, u8 config_num = 0);
-  ~LibusbConfigDescriptor();
-  libusb_config_descriptor* Get() const { return m_descriptor; }
-  bool IsValid() const { return m_descriptor != nullptr; }
-
-private:
-  libusb_config_descriptor* m_descriptor = nullptr;
-};
-
 class LibusbDevice final : public Device
 {
 public:
@@ -62,7 +49,7 @@ public:
 private:
   Kernel& m_ios;
 
-  std::vector<std::unique_ptr<LibusbConfigDescriptor>> m_config_descriptors;
+  std::vector<LibusbUtils::ConfigDescriptor> m_config_descriptors;
   u16 m_vid = 0;
   u16 m_pid = 0;
   u8 m_active_interface = 0;

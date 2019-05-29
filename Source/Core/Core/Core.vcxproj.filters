@@ -173,6 +173,7 @@
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
+    <ClCompile Include="LibusbUtils.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
@@ -939,6 +940,7 @@
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
+    <ClInclude Include="LibusbUtils.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
     <ClInclude Include="NetPlayClient.h" />

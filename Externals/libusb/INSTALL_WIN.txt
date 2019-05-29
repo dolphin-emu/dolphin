@@ -1,0 +1,73 @@
+Installation Instructions for Windows
+*************************************
+
+If you are compiling for MinGW or cygwin, please refer to the INSTALL file.
+
+If you are using Microsoft Visual Studio:
+- Open the relevant solution file in /msvc:
+  libusb.dsw for MSVC6, libusb_2005.sln for Visual Studio 2005 or 2008,
+  libusb_2010.sln for Visual Studio 2010,
+  libusb_2012.sln for Visual Studio 2012 or later,
+  libusb_wince.sln for Windows CE support in Visual Studio 2005.
+- If you want to debug the library, uncomment the ENABLE_DEBUG_LOGGING define
+  in msvc\config.h
+- Select your configuration and compile the project
+
+Note that if you are using Visual Studio Express, you may have to install the
+Windows SDK to be able to compile the 64 bit version of the library.
+
+If you are using the freely available Windows DDK/WDK (Driver Development Kit)
+- If you want to debug the library, uncomment the ENABLE_DEBUG_LOGGING define
+  in msvc\config.h
+- Open one of the relevant Free Build or Checked Build prompt for your target
+  platform
+- Navigate to the msvc\ directory where the ddk_build.cmd file is located, and
+  run 'ddk_build'
+- To produce a DLL rather than a static library, use: 'ddk_build DLL'
+- To produce a static library that uses LIBCMT[d] instead of MSVCRT[d] (/MT[d]
+  vs /MD[d] in Visual Studio) use: 'ddk_build /MT'
+
+Note that using the Windows DDK, it is possible to compile both the 32 and 64
+bit versions of the library.
+
+If you are building for Windows CE then you will need the Windows CE Standard 5.00 SDK.
+
+Destination directories
+***********************
+
+The 32 bit binaries compiled either from Visual Studio or the DDK are placed in
+a Win32\ directory at the root of the library
+The 64 bit binaries are placed in an x64\ directory
+Windows CE binaries are placed in one of the following directories, depending
+on the target processor: ARMV4I, MIPSII, MIPSII_FP, MIPSIV, MIPSIV_FP, SH4 or x86.
+
+
+Troubleshooting
+***************
+
+If the compilation process complains about missing libraries, ensure that the
+default library paths for your project points to the relevant directories.
+If needed, these libraries can be obtained by installing either the latest
+Windows SDK or the DDK (Links provided at the end of this file).
+
+For Windows CE it is necessary to install the CE USB Kernel Wrapper driver for
+libusb to function on a device.
+
+Links
+*****
+
+Additional information related to the Windows backend:
+  http://windows.libusb.info
+
+Latest Windows Driver (Development) Kit (WDK):
+  http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=36a2630f-5d56-43b5-b996-7633f2ec14ff
+
+Latest Microsoft Windows SDK:
+  http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=c17ba869-9671-4330-a63e-1fd44e0e2505
+
+Windows CE Standard 5.00 SDK:
+  http://www.microsoft.com/en-gb/download/details.aspx?id=17310
+
+Windows CE USB Kernel Wrapper Driver:
+  https://github.com/RealVNC/CEUSBKWrapper
+

@@ -1,0 +1,8 @@
+libusb/android
+libusb/appveyor*
+libusb/doc
+libusb/examples
+libusb/msvc/*
+!libusb/msvc/config.h
+libusb/tests
+libusb/Xcode
