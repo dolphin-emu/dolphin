@@ -128,7 +128,7 @@ bool Add(const std::string& path, int offset)
 
   packs.insert(packs.begin() + offset, std::move(pack));
 
-  return pack.IsValid();
+  return true;
 }
 
 bool Remove(ResourcePack& pack)
