@@ -10,7 +10,7 @@ namespace IDCache
 {
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
-JavaVM* GetJavaVM();
+JNIEnv* GetEnvForThread();
 
 jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();

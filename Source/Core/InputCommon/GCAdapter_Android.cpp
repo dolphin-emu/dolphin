@@ -65,8 +65,7 @@ static void ScanThreadFunc()
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, NULL);
+  JNIEnv* env = IDCache::GetEnvForThread();
 
   jmethodID queryadapter_func = env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
 
@@ -77,7 +76,6 @@ static void ScanThreadFunc()
       Setup();
     Common::SleepCurrentThread(1000);
   }
-  IDCache::GetJavaVM()->DetachCurrentThread();
 
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
@@ -87,8 +85,7 @@ static void Write()
   Common::SetCurrentThreadName("GC Adapter Write Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread started");
 
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, NULL);
+  JNIEnv* env = IDCache::GetEnvForThread();
   jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
 
   while (s_write_adapter_thread_running.IsSet())
@@ -118,8 +115,6 @@ static void Write()
     Common::YieldCPU();
   }
 
-  IDCache::GetJavaVM()->DetachCurrentThread();
-
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread stopped");
 }
 
@@ -129,8 +124,7 @@ static void Read()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread started");
 
   bool first_read = true;
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, NULL);
+  JNIEnv* env = IDCache::GetEnvForThread();
 
   jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
   jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
@@ -184,8 +178,6 @@ static void Read()
   s_fd = 0;
   s_detected = false;
 
-  IDCache::GetJavaVM()->DetachCurrentThread();
-
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread stopped");
 }
 
@@ -202,8 +194,7 @@ void Init()
     s_last_init = CoreTiming::GetTicks();
   }
 
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, NULL);
+  JNIEnv* env = IDCache::GetEnvForThread();
 
   jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
