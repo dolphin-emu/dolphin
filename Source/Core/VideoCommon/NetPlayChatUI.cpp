@@ -106,7 +106,7 @@ void NetPlayChatUI::SendMessage()
 void NetPlayChatUI::Activate()
 {
   if (ImGui::IsItemFocused())
-    ImGui::SetWindowFocus(NULL);
+    ImGui::SetWindowFocus(nullptr);
   else
     m_activate = true;
 }
