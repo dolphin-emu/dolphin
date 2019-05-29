@@ -265,7 +265,7 @@ void GameFile::DownloadDefaultCover()
   if (!response)
     return;
 
-  File::WriteStringToFile(std::string(response->begin(), response->end()), png_path);
+  File::WriteStringToFile(png_path, std::string(response->begin(), response->end()));
 }
 
 bool GameFile::DefaultCoverChanged()

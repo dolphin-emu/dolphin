@@ -141,7 +141,7 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
 {
   const std::string buffer = CodeToBinaryStringBE(code);
 
-  return File::WriteStringToFile(buffer, filename);
+  return File::WriteStringToFile(filename, buffer);
 }
 
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
@@ -166,7 +166,7 @@ bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
   if (!Disassemble(code, true, text))
     return false;
 
-  return File::WriteStringToFile(text, text_file);
+  return File::WriteStringToFile(text_file, text);
 }
 
 }  // namespace DSP

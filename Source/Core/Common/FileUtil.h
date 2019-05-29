@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <fstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <sys/stat.h>
@@ -198,7 +199,7 @@ std::string GetBundleDirectory();
 std::string GetExePath();
 std::string GetExeDirectory();
 
-bool WriteStringToFile(const std::string& str, const std::string& filename);
+bool WriteStringToFile(const std::string& filename, std::string_view str);
 bool ReadFileToString(const std::string& filename, std::string& str);
 
 // To deal with Windows being dumb at unicode:

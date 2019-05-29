@@ -255,7 +255,7 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
     std::optional<std::string> maybe_decompressed = GzipInflate(contents);
     if (!maybe_decompressed)
       return false;
-    std::string decompressed = std::move(*maybe_decompressed);
+    const std::string decompressed = std::move(*maybe_decompressed);
 
     // Check that the downloaded contents have the right hash.
     Manifest::Hash contents_hash = ComputeHash(decompressed);
@@ -265,8 +265,8 @@ bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
       return false;
     }
 
-    std::string out = temp_path + DIR_SEP + hash_filename;
-    if (!File::WriteStringToFile(decompressed, out))
+    const std::string out = temp_path + DIR_SEP + hash_filename;
+    if (!File::WriteStringToFile(out, decompressed))
     {
       fprintf(log_fp, "Could not write cache file %s.\n", out.c_str());
       return false;
