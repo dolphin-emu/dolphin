@@ -1,19 +1,37 @@
 add_library(videosoftware
   Clipper.cpp
+  Clipper.h
+  CopyRegion.h
   DebugUtil.cpp
+  DebugUtil.h
   EfbCopy.cpp
+  EfbCopy.h
   EfbInterface.cpp
+  EfbInterface.h
+  NativeVertexFormat.h
   Rasterizer.cpp
-  SWOGLWindow.cpp
-  SWRenderer.cpp
-  SWTexture.cpp
-  SWVertexLoader.cpp
-  SWmain.cpp
+  Rasterizer.h
   SetupUnit.cpp
+  SetupUnit.h
+  SWmain.cpp
+  SWOGLWindow.cpp
+  SWOGLWindow.h
+  SWRenderer.cpp
+  SWRenderer.h
+  SWTexture.cpp
+  SWTexture.h
+  SWVertexLoader.cpp
+  SWVertexLoader.h
   Tev.cpp
+  Tev.h
   TextureEncoder.cpp
+  TextureEncoder.h
   TextureSampler.cpp
+  TextureSampler.h
   TransformUnit.cpp
+  TransformUnit.h
+  Vec3.h
+  VideoBackend.h
 )
 
 target_link_libraries(videosoftware
