@@ -369,13 +369,9 @@ void Output(int chan, u8 rumble_command)
   }
 }
 
-bool IsDetected()
+bool IsDetected(const char** error_message)
 {
   return s_detected;
-}
-bool IsDriverDetected()
-{
-  return true;
 }
 bool DeviceConnected(int chan)
 {

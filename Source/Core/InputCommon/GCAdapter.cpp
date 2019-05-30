@@ -9,6 +9,7 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -29,7 +30,14 @@ static void ResetRumbleLockNeeded();
 static void Reset();
 static void Setup();
 
-static bool s_detected = false;
+enum
+{
+  NO_ADAPTER_DETECTED = 0,
+  ADAPTER_DETECTED = 1,
+};
+
+// Current adapter status: detected/not detected/in error (holds the error code)
+static int s_status = NO_ADAPTER_DETECTED;
 static libusb_device_handle* s_handle = nullptr;
 static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
@@ -54,7 +62,6 @@ static Common::Flag s_adapter_detect_thread_running;
 
 static std::function<void(void)> s_detect_callback;
 
-static bool s_libusb_driver_not_supported = false;
 #if defined(__FreeBSD__) && __FreeBSD__ >= 11
 static bool s_libusb_hotplug_enabled = true;
 #else
@@ -115,11 +122,23 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
       std::lock_guard<std::mutex> lk(s_init_mutex);
       AddGCAdapter(dev);
     }
+    else if (s_status < 0 && s_detect_callback != nullptr)
+    {
+      s_detect_callback();
+    }
   }
   else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
   {
     if (s_handle != nullptr && libusb_get_device(s_handle) == dev)
       Reset();
+
+    // Reset a potential error status now that the adapter is unplugged
+    if (s_status < 0)
+    {
+      s_status = NO_ADAPTER_DETECTED;
+      if (s_detect_callback != nullptr)
+        s_detect_callback();
+    }
   }
   return 0;
 }
@@ -158,8 +177,6 @@ static void ScanThreadFunc()
     {
       std::lock_guard<std::mutex> lk(s_init_mutex);
       Setup();
-      if (s_detected && s_detect_callback != nullptr)
-        s_detect_callback();
     }
     Common::SleepCurrentThread(500);
   }
@@ -184,7 +201,7 @@ void Init()
     s_last_init = CoreTiming::GetTicks();
   }
 
-  s_libusb_driver_not_supported = false;
+  s_status = NO_ADAPTER_DETECTED;
 
   if (UseAdapter())
     StartScanThread();
@@ -210,6 +227,12 @@ void StopScanThread()
 
 static void Setup()
 {
+  int prev_status = s_status;
+
+  // Reset the error status in case the adapter gets unplugged
+  if (s_status < 0)
+    s_status = NO_ADAPTER_DETECTED;
+
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
   {
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
@@ -225,6 +248,9 @@ static void Setup()
     }
     return true;
   });
+
+  if (s_status != ADAPTER_DETECTED && prev_status != s_status && s_detect_callback != nullptr)
+    s_detect_callback();
 }
 
 static bool CheckDeviceAccess(libusb_device* device)
@@ -247,6 +273,9 @@ static bool CheckDeviceAccess(libusb_device* device)
   NOTICE_LOG(SERIALINTERFACE, "Found GC Adapter with Vendor: %X Product: %X Devnum: %d",
              desc.idVendor, desc.idProduct, 1);
 
+  // In case of failure, capture the libusb error code into the adapter status
+  Common::ScopeGuard status_guard([&ret] { s_status = ret; });
+
   u8 bus = libusb_get_bus_number(device);
   u8 port = libusb_get_device_address(device);
   ret = libusb_open(device, &s_handle);
@@ -260,8 +289,6 @@ static bool CheckDeviceAccess(libusb_device* device)
   if (ret)
   {
     ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
-    if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
-      s_libusb_driver_not_supported = true;
     return false;
   }
 
@@ -276,14 +303,23 @@ static bool CheckDeviceAccess(libusb_device* device)
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
   if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+  {
+    libusb_close(s_handle);
+    s_handle = nullptr;
     return false;
+  }
 
   ret = libusb_claim_interface(s_handle, 0);
   if (ret)
   {
     ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
+    libusb_close(s_handle);
+    s_handle = nullptr;
     return false;
   }
+
+  // Updating the adapter status will be done in AddGCAdapter
+  status_guard.Dismiss();
 
   return true;
 }
@@ -317,7 +353,7 @@ static void AddGCAdapter(libusb_device* device)
   s_adapter_input_thread = std::thread(Read);
   s_adapter_output_thread = std::thread(Write);
 
-  s_detected = true;
+  s_status = ADAPTER_DETECTED;
   if (s_detect_callback != nullptr)
     s_detect_callback();
   ResetRumbleLockNeeded();
@@ -332,7 +368,7 @@ void Shutdown()
 #endif
   Reset();
 
-  s_libusb_driver_not_supported = false;
+  s_status = NO_ADAPTER_DETECTED;
 }
 
 static void Reset()
@@ -340,7 +376,7 @@ static void Reset()
   std::unique_lock<std::mutex> lock(s_init_mutex, std::defer_lock);
   if (!lock.try_lock())
     return;
-  if (!s_detected)
+  if (s_status != ADAPTER_DETECTED)
     return;
 
   if (s_adapter_thread_running.TestAndClear())
@@ -353,7 +389,7 @@ static void Reset()
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
 
-  s_detected = false;
+  s_status = NO_ADAPTER_DETECTED;
 
   if (s_handle)
   {
@@ -371,7 +407,7 @@ GCPadStatus Input(int chan)
   if (!UseAdapter())
     return {};
 
-  if (s_handle == nullptr || !s_detected)
+  if (s_handle == nullptr || s_status != ADAPTER_DETECTED)
     return {};
 
   int payload_size = 0;
@@ -491,7 +527,7 @@ void ResetRumble()
 // being called while the libusb state is being reset
 static void ResetRumbleLockNeeded()
 {
-  if (!UseAdapter() || (s_handle == nullptr || !s_detected))
+  if (!UseAdapter() || (s_handle == nullptr || s_status != ADAPTER_DETECTED))
   {
     return;
   }
@@ -521,14 +557,20 @@ void Output(int chan, u8 rumble_command)
   }
 }
 
-bool IsDetected()
+bool IsDetected(const char** error_message)
 {
-  return s_detected;
-}
+  if (s_status >= 0)
+  {
+    if (error_message)
+      *error_message = nullptr;
 
-bool IsDriverDetected()
-{
-  return !s_libusb_driver_not_supported;
+    return s_status == ADAPTER_DETECTED;
+  }
+
+  if (error_message)
+    *error_message = libusb_strerror(static_cast<libusb_error>(s_status));
+
+  return false;
 }
 
 }  // end of namespace GCAdapter
