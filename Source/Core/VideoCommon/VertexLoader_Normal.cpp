@@ -30,7 +30,7 @@ constexpr float FracAdjust(T val)
   // auto const U16FRAC = 1.f / (1u << 15);
 
   // TODO: is this right?
-  return val / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
+  return val / float(1u << (sizeof(T) * 8 - std::is_signed_v<T> - 1));
 }
 
 template <>
@@ -70,7 +70,7 @@ struct Normal_Direct
 template <typename I, typename T, u32 N, u32 Offset>
 void Normal_Index_Offset()
 {
-  static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
+  static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
 
   auto const index = DataRead<I>();
   auto const data = reinterpret_cast<const T*>(
