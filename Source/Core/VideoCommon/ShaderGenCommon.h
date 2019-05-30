@@ -72,10 +72,7 @@ public:
     return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) == 0;
   }
 
-  bool operator!=(const ShaderUid& obj) const
-  {
-    return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) != 0;
-  }
+  bool operator!=(const ShaderUid& obj) const { return !operator==(obj); }
 
   // determines the storage order inside STL containers
   bool operator<(const ShaderUid& obj) const
