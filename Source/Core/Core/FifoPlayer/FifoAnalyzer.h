@@ -10,8 +10,6 @@
 
 namespace FifoAnalyzer
 {
-void Init();
-
 u8 ReadFifo8(const u8*& data);
 u16 ReadFifo16(const u8*& data);
 u32 ReadFifo32(const u8*& data);

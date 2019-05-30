@@ -22,8 +22,6 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 {
   std::lock_guard<std::recursive_mutex> lk(m_mutex);
 
-  FifoAnalyzer::Init();
-
   m_File = std::make_unique<FifoDataFile>();
 
   // TODO: This, ideally, would be deallocated when done recording.
