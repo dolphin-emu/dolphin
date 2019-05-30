@@ -61,6 +61,7 @@
     <ClCompile Include="NetPlayGolfUI.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
+    <ClCompile Include="PauseScreen.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
     <ClCompile Include="PixelEngine.cpp" />
     <ClCompile Include="PixelShaderGen.cpp" />
@@ -135,6 +136,7 @@
     <ClInclude Include="NativeVertexFormat.h" />
     <ClInclude Include="OnScreenDisplay.h" />
     <ClInclude Include="OpcodeDecoding.h" />
+    <ClInclude Include="PauseScreen.h" />
     <ClInclude Include="PerfQueryBase.h" />
     <ClInclude Include="PixelEngine.h" />
     <ClInclude Include="PixelShaderGen.h" />

@@ -1130,13 +1130,14 @@ void Renderer::BeginUIFrame()
   BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
 }
 
-void Renderer::EndUIFrame()
+void Renderer::RenderUIFrame()
 {
-  {
-    auto lock = GetImGuiLock();
-    ImGui::Render();
-  }
+  auto lock = GetImGuiLock();
+  ImGui::Render();
+}
 
+void Renderer::EndUIFrame(bool start_another)
+{
   if (!IsHeadless())
   {
     DrawImGui();
@@ -1146,7 +1147,10 @@ void Renderer::EndUIFrame()
     EndUtilityDrawing();
   }
 
-  BeginImGuiFrame();
+  if (start_another)
+  {
+    BeginImGuiFrame();
+  }
 }
 
 void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
@@ -1191,6 +1195,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
       m_last_xfb_id = xfb_entry->id;
+      m_last_xfb_region = xfb_rect;
+      m_last_xfb_texture = xfb_entry->texture.get();
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
       // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
@@ -1295,6 +1301,14 @@ void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil:
   else
   {
     m_post_processor->BlitFromTexture(target_rc, rc, texture, 0);
+  }
+}
+
+void Renderer::DrawLastXFBFrame()
+{
+  if (m_last_xfb_texture)
+  {
+    RenderXFBToScreen(m_last_xfb_texture, m_last_xfb_region);
   }
 }
 

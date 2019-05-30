@@ -25,6 +25,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/PauseScreen.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -295,13 +296,22 @@ void RunGpuLoop()
   AsyncRequests::GetInstance()->SetEnable(true);
   AsyncRequests::GetInstance()->SetPassthrough(false);
 
+  PauseScreen pause_screen;
+
   s_gpu_mainloop.Run(
-      [] {
+      [&pause_screen] {
         const SConfig& param = SConfig::GetInstance();
 
-        // Do nothing while paused
+        // Display pause screen while paused
         if (!s_emu_running_state.IsSet())
+        {
+          pause_screen.Display();
           return;
+        }
+        else if (pause_screen.IsVisible())
+        {
+          pause_screen.Hide();
+        }
 
         if (s_use_deterministic_gpu_thread)
         {

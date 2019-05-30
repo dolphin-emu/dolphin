@@ -67,6 +67,4 @@ private:
 
   Common::Flag m_stop_requested;
   std::thread m_thread;
-
-  InputProfile::ProfileCycler m_profile_cycler;
 };

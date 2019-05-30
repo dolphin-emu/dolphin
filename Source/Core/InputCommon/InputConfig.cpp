@@ -29,104 +29,39 @@ InputConfig::~InputConfig() = default;
 bool InputConfig::LoadConfig(bool isGC)
 {
   IniFile inifile;
-  bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
-  std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
-  std::string profile[MAX_BBMOTES];
-  std::string path;
-
-#if defined(ANDROID)
-  bool use_ir_config = false;
-  std::string ir_values[3];
-#endif
-
-  if (SConfig::GetInstance().GetGameID() != "00000000")
-  {
-    std::string type;
-    if (isGC)
-    {
-      type = "Pad";
-      path = "Profiles/GCPad/";
-    }
-    else
-    {
-      type = "Wiimote";
-      path = "Profiles/Wiimote/";
-    }
-
-    IniFile game_ini = SConfig::GetInstance().LoadGameIni();
-    IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
-
-    for (int i = 0; i < 4; i++)
-    {
-      if (control_section->Exists(type + "Profile" + num[i]))
-      {
-        std::string profile_setting;
-        if (control_section->Get(type + "Profile" + num[i], &profile_setting))
-        {
-          auto profiles = InputProfile::GetProfilesFromSetting(
-              profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
-
-          if (profiles.empty())
-          {
-            // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("No profiles found for game setting '%s'", profile_setting.c_str());
-            continue;
-          }
-
-          // Use the first profile by default
-          profile[i] = profiles[0];
-          useProfile[i] = true;
-        }
-      }
-    }
-#if defined(ANDROID)
-    // For use on android touchscreen IR pointer
-    // Check for IR values
-    if (control_section->Exists("IRTotalYaw") && control_section->Exists("IRTotalPitch") &&
-        control_section->Exists("IRVerticalOffset"))
-    {
-      use_ir_config = true;
-      control_section->Get("IRTotalYaw", &ir_values[0]);
-      control_section->Get("IRTotalPitch", &ir_values[1]);
-      control_section->Get("IRVerticalOffset", &ir_values[2]);
-    }
-#endif
-  }
-
   if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
   {
     int n = 0;
     for (auto& controller : m_controllers)
     {
-      IniFile::Section config;
-      // Load settings from ini
-      if (useProfile[n])
+      if (isGC)
       {
-        std::string base;
-        SplitPath(profile[n], nullptr, &base, nullptr);
-        Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
-                                 controller->GetName() + "'",
-                             6000);
-
-        IniFile profile_ini;
-        profile_ini.Load(profile[n]);
-        config = *profile_ini.GetOrCreateSection("Profile");
+        if (g_profile_manager.GetGCDeviceProfileManager(n)->SetGameProfile(0))
+        {
+          n++;
+          continue;
+        }
       }
       else
       {
-        config = *inifile.GetOrCreateSection(controller->GetName());
+        if (g_profile_manager.GetWiiDeviceProfileManager(n)->SetGameProfile(0))
+        {
+          n++;
+          continue;
+        }
       }
-#if defined(ANDROID)
-      // Only set for wii pads
-      if (!isGC && use_ir_config)
+
+      if (isGC)
       {
-        config.Set("IR/Total Yaw", ir_values[0]);
-        config.Set("IR/Total Pitch", ir_values[1]);
-        config.Set("IR/Vertical Offset", ir_values[2]);
+        g_profile_manager.GetGCDeviceProfileManager(n)->SetDefault();
       }
-#endif
+      else
+      {
+        g_profile_manager.GetWiiDeviceProfileManager(n)->SetDefault();
+      }
+      IniFile::Section config;
+      config = *inifile.GetOrCreateSection(controller->GetName());
       controller->LoadConfig(&config);
-      // Update refs
       controller->UpdateReferences(g_controller_interface);
 
       // Next profile
@@ -136,6 +71,14 @@ bool InputConfig::LoadConfig(bool isGC)
   }
   else
   {
+    if (isGC)
+    {
+      g_profile_manager.GetGCDeviceProfileManager(0)->SetDefault();
+    }
+    else
+    {
+      g_profile_manager.GetWiiDeviceProfileManager(0)->SetDefault();
+    }
     m_controllers[0]->LoadDefaults(g_controller_interface);
     m_controllers[0]->UpdateReferences(g_controller_interface);
     return false;

@@ -169,7 +169,7 @@ void ShaderCache::WaitForAsyncCompiler()
                            ImVec2(-1.0f, 0.0f), "");
       }
       ImGui::End();
-
+      g_renderer->RenderUIFrame();
       g_renderer->EndUIFrame();
     });
     m_async_shader_compiler->RetrieveWorkItems();
