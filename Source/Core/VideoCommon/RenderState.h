@@ -86,6 +86,7 @@ union BlendingState
   BitField<14, 3, BlendMode::BlendFactor> dstfactoralpha;
   BitField<17, 3, BlendMode::BlendFactor> srcfactoralpha;
   BitField<20, 4, BlendMode::LogicOp> logicmode;
+  BitField<24, 1, u32> premultipliedalpha;
 
   u32 hex;
 };

@@ -320,8 +320,10 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
-      !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if ((state.usedualsrc && state.dstalpha &&
+       g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
+       !g_ActiveConfig.backend_info.bSupportsDualSourceBlend) ||
+      state.premultipliedalpha)
   {
     uid_data->blend_enable = state.blendenable;
     uid_data->blend_src_factor = state.srcfactor;
@@ -517,7 +519,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
-                       bool use_dual_source);
+                       bool use_dual_source, bool use_shader_blend);
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
@@ -903,7 +905,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
-  WriteColor(out, ApiType, uid_data, use_dual_source || use_shader_blend);
+  WriteColor(out, ApiType, uid_data, use_dual_source || use_shader_blend, use_shader_blend);
 
   if (use_shader_blend)
     WriteBlend(out, uid_data);
@@ -1243,13 +1245,10 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
       " >> 1",  // DIVIDE_2
   };
 
-  const char* tevLerpBias[] =  // indexed by 2*op+(shift==3)
-      {
-          "",
-          " + 128",
-          "",
-          " + 127",
-      };
+  const char* tevLerpBias[] = {
+      " + 128",
+      " + 127",
+  };
 
   const char* tevBiasTable[] = {
       "",        // ZERO,
@@ -1272,7 +1271,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
   out.Write(" %s ", tevOpTable[op]);
   out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
             components, components, components, components, components, tevScaleTableLeft[shift],
-            tevLerpBias[2 * op + ((shift == 3) == alpha)]);
+            (shift == 3) ? "" : tevLerpBias[op]);
   out.Write(")%s", tevScaleTableRight[shift]);
 }
 
@@ -1429,8 +1428,20 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
-                       bool use_dual_source)
+                       bool use_dual_source, bool use_shader_blend)
 {
+  // Premultiply color by alpha if the source factor is SRCALPHA.
+  // This works around precision/rounding differences between the console GPU and the hardware
+  // backends, reducing the chance of off-by-one errors. Fortune Street is one case of where
+  // this can make a difference, leaving a feint white box around characters.
+  if (!use_shader_blend && uid_data->blend_enable)
+  {
+    if (uid_data->blend_src_factor == BlendMode::SRCALPHA)
+      out.Write("\tprev.rgb = (prev.rgb * (prev.a + (prev.a >> 7))) >> 8;\n");
+    else if (uid_data->blend_src_factor == BlendMode::INVSRCALPHA)
+      out.Write("\tprev.rgb = (prev.rgb * ((255 - prev.a) + ((255 - prev.a) >> 7))) >> 8;\n");
+  }
+
   // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
   if (api_type == APIType::D3D && uid_data->uint_output)
   {
