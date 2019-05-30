@@ -69,18 +69,18 @@ public:
 
   bool operator==(const ShaderUid& obj) const
   {
-    return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
+    return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) == 0;
   }
 
   bool operator!=(const ShaderUid& obj) const
   {
-    return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) != 0;
+    return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) != 0;
   }
 
   // determines the storage order inside STL containers
   bool operator<(const ShaderUid& obj) const
   {
-    return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
+    return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) < 0;
   }
 
   // Returns a pointer to an internally stored object of the uid_data type.
@@ -90,17 +90,13 @@ public:
   const uid_data* GetUidData() const { return &data; }
 
   // Returns the raw bytes that make up the shader UID.
-  const u8* GetUidDataRaw() const { return &values[0]; }
+  const u8* GetUidDataRaw() const { return reinterpret_cast<const u8*>(&data); }
 
   // Returns the size of the underlying UID data structure in bytes.
-  size_t GetUidDataSize() const { return sizeof(values); }
+  size_t GetUidDataSize() const { return sizeof(data); }
 
 private:
-  union
-  {
-    uid_data data{};
-    u8 values[sizeof(uid_data)];
-  };
+  uid_data data{};
 };
 
 class ShaderCode : public ShaderGeneratorInterface
