@@ -14,8 +14,8 @@ namespace UberShader
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
-  pixel_ubershader_uid_data* uid_data = out.GetUidData<pixel_ubershader_uid_data>();
-  memset(uid_data, 0, sizeof(*uid_data));
+
+  pixel_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
   uid_data->early_depth =
       bpmem.UseEarlyDepthTest() &&
@@ -26,13 +26,14 @@ PixelShaderUid GetPixelShaderUid()
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+
   return out;
 }
 
 void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid)
 {
-  pixel_ubershader_uid_data* uid_data = uid->GetUidData<pixel_ubershader_uid_data>();
+  pixel_ubershader_uid_data* const uid_data = uid->GetUidData();
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
@@ -1390,11 +1391,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& callback)
 {
   PixelShaderUid uid;
-  std::memset(&uid, 0, sizeof(uid));
 
   for (u32 texgens = 0; texgens <= 8; texgens++)
   {
-    auto* puid = uid.GetUidData<UberShader::pixel_ubershader_uid_data>();
+    pixel_ubershader_uid_data* const puid = uid.GetUidData();
     puid->num_texgens = texgens;
 
     for (u32 early_depth = 0; early_depth < 2; early_depth++)

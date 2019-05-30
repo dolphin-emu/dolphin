@@ -21,7 +21,7 @@ struct pixel_ubershader_uid_data
 };
 #pragma pack()
 
-typedef ShaderUid<pixel_ubershader_uid_data> PixelShaderUid;
+using PixelShaderUid = ShaderUid<pixel_ubershader_uid_data>;
 
 PixelShaderUid GetPixelShaderUid();
 

@@ -5,7 +5,6 @@
 #include "VideoCommon/GeometryShaderGen.h"
 
 #include <cmath>
-#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DriverDetails.h"
@@ -27,10 +26,9 @@ bool geometry_shader_uid_data::IsPassthrough() const
 
 GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
 {
-  ShaderUid<geometry_shader_uid_data> out;
-  geometry_shader_uid_data* uid_data = out.GetUidData<geometry_shader_uid_data>();
-  memset(uid_data, 0, sizeof(geometry_shader_uid_data));
+  GeometryShaderUid out;
 
+  geometry_shader_uid_data* const uid_data = out.GetUidData();
   uid_data->primitive_type = static_cast<u32>(primitive_type);
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 
@@ -364,7 +362,6 @@ static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
 void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUid&)>& callback)
 {
   GeometryShaderUid uid;
-  std::memset(&uid, 0, sizeof(uid));
 
   const std::array<PrimitiveType, 3> primitive_lut = {
       {g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? PrimitiveType::TriangleStrip :
@@ -372,7 +369,7 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
        PrimitiveType::Lines, PrimitiveType::Points}};
   for (PrimitiveType primitive : primitive_lut)
   {
-    auto* guid = uid.GetUidData<geometry_shader_uid_data>();
+    geometry_shader_uid_data* const guid = uid.GetUidData();
     guid->primitive_type = static_cast<u32>(primitive);
 
     for (u32 texgens = 0; texgens <= 8; texgens++)

@@ -8,6 +8,7 @@
 #include <cstring>
 #include <map>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -48,17 +49,6 @@ public:
    * Tells us that a specific constant range (including last_index) is being used by the shader
    */
   void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
-  /*
-   * Returns a pointer to an internally stored object of the uid_data type.
-   * @warning since most child classes use the default implementation you shouldn't access this
-   * directly without adding precautions against nullptr access (e.g. via adding a dummy structure,
-   * cf. the vertex/pixel shader generators)
-   */
-  template <class uid_data>
-  uid_data* GetUidData()
-  {
-    return nullptr;
-  }
 };
 
 /*
@@ -74,6 +64,9 @@ template <class uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
 public:
+  static_assert(std::is_trivially_copyable_v<uid_data>,
+                "uid_data must be a trivially copyable type");
+
   bool operator==(const ShaderUid& obj) const
   {
     return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
@@ -90,19 +83,22 @@ public:
     return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
   }
 
-  template <class uid_data2>
-  uid_data2* GetUidData()
-  {
-    return &data;
-  }
+  // Returns a pointer to an internally stored object of the uid_data type.
+  uid_data* GetUidData() { return &data; }
+
+  // Returns a pointer to an internally stored object of the uid_data type.
   const uid_data* GetUidData() const { return &data; }
+
+  // Returns the raw bytes that make up the shader UID.
   const u8* GetUidDataRaw() const { return &values[0]; }
+
+  // Returns the size of the underlying UID data structure in bytes.
   size_t GetUidDataSize() const { return sizeof(values); }
 
 private:
   union
   {
-    uid_data data;
+    uid_data data{};
     u8 values[sizeof(uid_data)];
   };
 };

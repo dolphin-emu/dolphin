@@ -18,7 +18,7 @@ struct vertex_ubershader_uid_data
 };
 #pragma pack()
 
-typedef ShaderUid<vertex_ubershader_uid_data> VertexShaderUid;
+using VertexShaderUid = ShaderUid<vertex_ubershader_uid_data>;
 
 VertexShaderUid GetVertexShaderUid();
 

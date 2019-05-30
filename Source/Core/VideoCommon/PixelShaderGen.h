@@ -162,7 +162,7 @@ struct pixel_shader_uid_data
 };
 #pragma pack()
 
-typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
+using PixelShaderUid = ShaderUid<pixel_shader_uid_data>;
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data);
