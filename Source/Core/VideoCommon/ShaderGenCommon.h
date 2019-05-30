@@ -69,7 +69,7 @@ public:
 
   bool operator==(const ShaderUid& obj) const
   {
-    return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) == 0;
+    return memcmp(GetUidData(), obj.GetUidData(), GetUidDataSize()) == 0;
   }
 
   bool operator!=(const ShaderUid& obj) const { return !operator==(obj); }
@@ -77,7 +77,7 @@ public:
   // determines the storage order inside STL containers
   bool operator<(const ShaderUid& obj) const
   {
-    return memcmp(&data, &obj.data, data.NumValues() * sizeof(data)) < 0;
+    return memcmp(GetUidData(), obj.GetUidData(), GetUidDataSize()) < 0;
   }
 
   // Returns a pointer to an internally stored object of the uid_data type.
