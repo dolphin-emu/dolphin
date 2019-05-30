@@ -88,7 +88,7 @@ void TexCoord_ReadIndex(VertexLoader* loader)
   ++loader->m_tcIndex;
 }
 
-TPipelineFunction tableReadTexCoord[4][8][2] = {
+constexpr TPipelineFunction s_table_read_tex_coord[4][8][2] = {
     {
         {
             nullptr,
@@ -179,7 +179,7 @@ TPipelineFunction tableReadTexCoord[4][8][2] = {
     },
 };
 
-int tableReadTexCoordVertexSize[4][8][2] = {
+constexpr int s_table_read_tex_coord_vertex_size[4][8][2] = {
     {
         {0, 0},
         {0, 0},
@@ -214,13 +214,13 @@ int tableReadTexCoordVertexSize[4][8][2] = {
 unsigned int VertexLoader_TextCoord::GetSize(u64 _type, unsigned int _format,
                                              unsigned int _elements)
 {
-  return tableReadTexCoordVertexSize[_type][_format][_elements];
+  return s_table_read_tex_coord_vertex_size[_type][_format][_elements];
 }
 
 TPipelineFunction VertexLoader_TextCoord::GetFunction(u64 _type, unsigned int _format,
                                                       unsigned int _elements)
 {
-  return tableReadTexCoord[_type][_format][_elements];
+  return s_table_read_tex_coord[_type][_format][_elements];
 }
 
 TPipelineFunction VertexLoader_TextCoord::GetDummyFunction()
