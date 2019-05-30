@@ -113,10 +113,10 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 const char* source, size_t length)
+                                                                 std::string_view source)
 {
   DXShader::BinaryData bytecode;
-  if (!DXShader::CompileShader(D3D::feature_level, &bytecode, stage, source, length))
+  if (!DXShader::CompileShader(D3D::feature_level, &bytecode, stage, source))
     return nullptr;
 
   return DXShader::CreateFromBytecode(stage, std::move(bytecode));

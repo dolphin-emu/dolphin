@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -25,8 +26,7 @@ public:
   VkPipeline GetComputePipeline() const { return m_compute_pipeline; }
   BinaryData GetBinary() const override;
 
-  static std::unique_ptr<VKShader> CreateFromSource(ShaderStage stage, const char* source,
-                                                    size_t length);
+  static std::unique_ptr<VKShader> CreateFromSource(ShaderStage stage, std::string_view source);
   static std::unique_ptr<VKShader> CreateFromBinary(ShaderStage stage, const void* data,
                                                     size_t length);
 

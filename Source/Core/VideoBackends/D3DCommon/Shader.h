@@ -3,7 +3,8 @@
 // Refer to the license.txt file included.
 
 #pragma once
-#include <memory>
+
+#include <string_view>
 #include "VideoBackends/D3DCommon/Common.h"
 #include "VideoCommon/AbstractShader.h"
 
@@ -19,7 +20,7 @@ public:
   BinaryData GetBinary() const override;
 
   static bool CompileShader(D3D_FEATURE_LEVEL feature_level, BinaryData* out_bytecode,
-                            ShaderStage stage, const char* source, size_t length);
+                            ShaderStage stage, std::string_view source);
 
   static BinaryData CreateByteCode(const void* data, size_t length);
 

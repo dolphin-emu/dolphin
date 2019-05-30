@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <tuple>
 #include <vector>
@@ -123,8 +124,8 @@ public:
   virtual void PresentBackbuffer() {}
 
   // Shader modules/objects.
-  virtual std::unique_ptr<AbstractShader>
-  CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
+  virtual std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
+                                                                 std::string_view source) = 0;
   virtual std::unique_ptr<AbstractShader>
   CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
   virtual std::unique_ptr<NativeVertexFormat>
@@ -132,8 +133,6 @@ public:
   virtual std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
                                                            const void* cache_data = nullptr,
                                                            size_t cache_data_length = 0) = 0;
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                         const std::string& source);
 
   AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
 

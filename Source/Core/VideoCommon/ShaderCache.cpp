@@ -392,32 +392,32 @@ void ShaderCache::CompileMissingPipelines()
 
 std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexShaderUid& uid) const
 {
-  ShaderCode source_code = GenerateVertexShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer().c_str(),
-                                            source_code.GetBuffer().size());
+  const ShaderCode source_code =
+      GenerateVertexShaderCode(m_api_type, m_host_config, uid.GetUidData());
+  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader>
 ShaderCache::CompileVertexUberShader(const UberShader::VertexShaderUid& uid) const
 {
-  ShaderCode source_code = UberShader::GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer().c_str(),
-                                            source_code.GetBuffer().size());
+  const ShaderCode source_code =
+      UberShader::GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
+  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompilePixelShader(const PixelShaderUid& uid) const
 {
-  ShaderCode source_code = GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer().c_str(),
-                                            source_code.GetBuffer().size());
+  const ShaderCode source_code =
+      GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData());
+  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader>
 ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
 {
-  ShaderCode source_code = UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer().c_str(),
-                                            source_code.GetBuffer().size());
+  const ShaderCode source_code =
+      UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
+  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
 }
 
 const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid,
@@ -510,9 +510,10 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
 
 const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid& uid)
 {
-  ShaderCode source_code = GenerateGeometryShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  std::unique_ptr<AbstractShader> shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Geometry, source_code.GetBuffer().c_str(), source_code.GetBuffer().size());
+  const ShaderCode source_code =
+      GenerateGeometryShaderCode(m_api_type, m_host_config, uid.GetUidData());
+  std::unique_ptr<AbstractShader> shader =
+      g_renderer->CreateShaderFromSource(ShaderStage::Geometry, source_code.GetBuffer());
 
   auto& entry = m_gs_cache.shader_map[uid];
   entry.pending = false;
@@ -1150,9 +1151,9 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
   if (iter != m_efb_copy_to_ram_pipelines.end())
     return iter->second.get();
 
-  auto shader_code = TextureConversionShaderTiled::GenerateEncodingShader(uid, m_api_type);
-  auto shader =
-      g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_code, std::strlen(shader_code));
+  const char* const shader_code =
+      TextureConversionShaderTiled::GenerateEncodingShader(uid, m_api_type);
+  const auto shader = g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_code);
   if (!shader)
   {
     m_efb_copy_to_ram_pipelines.emplace(uid, nullptr);

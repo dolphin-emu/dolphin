@@ -45,10 +45,9 @@ OGLShader::~OGLShader()
     glDeleteProgram(m_gl_compute_program_id);
 }
 
-std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, const char* source,
-                                                       size_t length)
+std::unique_ptr<OGLShader> OGLShader::CreateFromSource(ShaderStage stage, std::string_view source)
 {
-  std::string source_str(source, length);
+  std::string source_str(source);
   if (stage != ShaderStage::Compute)
   {
     GLenum shader_type = GetGLShaderTypeForStage(stage);

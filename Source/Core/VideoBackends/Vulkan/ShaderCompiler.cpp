@@ -35,11 +35,6 @@ bool InitializeGlslang();
 // Resource limits used when compiling shaders
 static const TBuiltInResource* GetCompilerResourceLimits();
 
-// Compile a shader to SPIR-V via glslang
-static bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage,
-                               const char* stage_filename, const char* source_code,
-                               size_t source_code_length, const char* header, size_t header_length);
-
 // Regarding the UBO bind points, we subtract one from the binding index because
 // the OpenGL backend requires UBO #0 for non-block uniforms (at least on NV).
 // This allows us to share the same shaders but use bind point #0 in the Vulkan
@@ -114,8 +109,7 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
 )";
 
 bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char* stage_filename,
-                        const char* source_code, size_t source_code_length, const char* header,
-                        size_t header_length)
+                        std::string_view source, std::string_view header)
 {
   if (!InitializeGlslang())
     return false;
@@ -129,16 +123,16 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
   int default_version = 450;
 
   std::string full_source_code;
-  const char* pass_source_code = source_code;
-  int pass_source_code_length = static_cast<int>(source_code_length);
-  if (header_length > 0)
+  const char* pass_source_code = source.data();
+  int pass_source_code_length = static_cast<int>(source.size());
+  if (!header.empty())
   {
     constexpr size_t subgroup_helper_header_length = ArraySize(SUBGROUP_HELPER_HEADER) - 1;
-    full_source_code.reserve(header_length + subgroup_helper_header_length + source_code_length);
-    full_source_code.append(header, header_length);
+    full_source_code.reserve(header.size() + subgroup_helper_header_length + source.size());
+    full_source_code.append(header);
     if (g_vulkan_context->SupportsShaderSubgroupOperations())
       full_source_code.append(SUBGROUP_HELPER_HEADER, subgroup_helper_header_length);
-    full_source_code.append(source_code, source_code_length);
+    full_source_code.append(source);
     pass_source_code = full_source_code.c_str();
     pass_source_code_length = static_cast<int>(full_source_code.length());
   }
@@ -362,32 +356,24 @@ const TBuiltInResource* GetCompilerResourceLimits()
   return &limits;
 }
 
-bool CompileVertexShader(SPIRVCodeVector* out_code, const char* source_code,
-                         size_t source_code_length)
+bool CompileVertexShader(SPIRVCodeVector* out_code, std::string_view source_code)
 {
-  return CompileShaderToSPV(out_code, EShLangVertex, "vs", source_code, source_code_length,
-                            SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
+  return CompileShaderToSPV(out_code, EShLangVertex, "vs", source_code, SHADER_HEADER);
 }
 
-bool CompileGeometryShader(SPIRVCodeVector* out_code, const char* source_code,
-                           size_t source_code_length)
+bool CompileGeometryShader(SPIRVCodeVector* out_code, std::string_view source_code)
 {
-  return CompileShaderToSPV(out_code, EShLangGeometry, "gs", source_code, source_code_length,
-                            SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
+  return CompileShaderToSPV(out_code, EShLangGeometry, "gs", source_code, SHADER_HEADER);
 }
 
-bool CompileFragmentShader(SPIRVCodeVector* out_code, const char* source_code,
-                           size_t source_code_length)
+bool CompileFragmentShader(SPIRVCodeVector* out_code, std::string_view source_code)
 {
-  return CompileShaderToSPV(out_code, EShLangFragment, "ps", source_code, source_code_length,
-                            SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
+  return CompileShaderToSPV(out_code, EShLangFragment, "ps", source_code, SHADER_HEADER);
 }
 
-bool CompileComputeShader(SPIRVCodeVector* out_code, const char* source_code,
-                          size_t source_code_length)
+bool CompileComputeShader(SPIRVCodeVector* out_code, std::string_view source_code)
 {
-  return CompileShaderToSPV(out_code, EShLangCompute, "cs", source_code, source_code_length,
-                            COMPUTE_SHADER_HEADER, sizeof(COMPUTE_SHADER_HEADER) - 1);
+  return CompileShaderToSPV(out_code, EShLangCompute, "cs", source_code, COMPUTE_SHADER_HEADER);
 }
 
 }  // namespace ShaderCompiler
