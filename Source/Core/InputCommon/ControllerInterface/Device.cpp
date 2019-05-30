@@ -52,7 +52,7 @@ std::string Device::GetQualifiedName() const
   return StringFromFormat("%s/%i/%s", this->GetSource().c_str(), GetId(), this->GetName().c_str());
 }
 
-Device::Input* Device::FindInput(const std::string& name) const
+Device::Input* Device::FindInput(std::string_view name) const
 {
   for (Input* input : m_inputs)
   {
@@ -63,7 +63,7 @@ Device::Input* Device::FindInput(const std::string& name) const
   return nullptr;
 }
 
-Device::Output* Device::FindOutput(const std::string& name) const
+Device::Output* Device::FindOutput(std::string_view name) const
 {
   for (Output* output : m_outputs)
   {
@@ -74,7 +74,7 @@ Device::Output* Device::FindOutput(const std::string& name) const
   return nullptr;
 }
 
-bool Device::Control::IsMatchingName(const std::string& name) const
+bool Device::Control::IsMatchingName(std::string_view name) const
 {
   return GetName() == name;
 }
@@ -90,7 +90,7 @@ std::string Device::FullAnalogSurface::GetName() const
   return "Full " + m_high.GetName();
 }
 
-bool Device::FullAnalogSurface::IsMatchingName(const std::string& name) const
+bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
 {
   if (Control::IsMatchingName(name))
     return true;
@@ -218,7 +218,7 @@ std::string DeviceContainer::GetDefaultDeviceString() const
   return device_qualifier.ToString();
 }
 
-Device::Input* DeviceContainer::FindInput(const std::string& name, const Device* def_dev) const
+Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* def_dev) const
 {
   if (def_dev)
   {
@@ -239,7 +239,7 @@ Device::Input* DeviceContainer::FindInput(const std::string& name, const Device*
   return nullptr;
 }
 
-Device::Output* DeviceContainer::FindOutput(const std::string& name, const Device* def_dev) const
+Device::Output* DeviceContainer::FindOutput(std::string_view name, const Device* def_dev) const
 {
   return def_dev->FindOutput(name);
 }
@@ -256,7 +256,7 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
 // and also properly handles detection when using "FullAnalogSurface" inputs.
 // Upon input, return the detected Device and Input, else return nullptrs
 std::pair<std::shared_ptr<Device>, Device::Input*>
-DeviceContainer::DetectInput(u32 wait_ms, std::vector<std::string> device_strings)
+DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const
 {
   struct InputState
   {
@@ -273,7 +273,7 @@ DeviceContainer::DetectInput(u32 wait_ms, std::vector<std::string> device_string
 
   // Acquire devices and initial input states.
   std::vector<DeviceState> device_states;
-  for (auto& device_string : device_strings)
+  for (const auto& device_string : device_strings)
   {
     DeviceQualifier dq;
     dq.FromString(device_string);
