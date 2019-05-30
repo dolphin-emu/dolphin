@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -19,16 +20,16 @@ using SPIRVCodeType = u32;
 using SPIRVCodeVector = std::vector<SPIRVCodeType>;
 
 // Compile a vertex shader to SPIR-V.
-bool CompileVertexShader(SPIRVCodeVector* out_code, std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileVertexShader(std::string_view source_code);
 
 // Compile a geometry shader to SPIR-V.
-bool CompileGeometryShader(SPIRVCodeVector* out_code, std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileGeometryShader(std::string_view source_code);
 
 // Compile a fragment shader to SPIR-V.
-bool CompileFragmentShader(SPIRVCodeVector* out_code, std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_code);
 
 // Compile a compute shader to SPIR-V.
-bool CompileComputeShader(SPIRVCodeVector* out_code, std::string_view source_code);
+std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code);
 
 }  // namespace ShaderCompiler
 }  // namespace Vulkan

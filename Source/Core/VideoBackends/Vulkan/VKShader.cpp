@@ -88,31 +88,29 @@ static std::unique_ptr<VKShader> CreateShaderObject(ShaderStage stage,
 
 std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, std::string_view source)
 {
-  ShaderCompiler::SPIRVCodeVector spv;
-  bool result;
+  std::optional<ShaderCompiler::SPIRVCodeVector> spv;
   switch (stage)
   {
   case ShaderStage::Vertex:
-    result = ShaderCompiler::CompileVertexShader(&spv, source);
+    spv = ShaderCompiler::CompileVertexShader(source);
     break;
   case ShaderStage::Geometry:
-    result = ShaderCompiler::CompileGeometryShader(&spv, source);
+    spv = ShaderCompiler::CompileGeometryShader(source);
     break;
   case ShaderStage::Pixel:
-    result = ShaderCompiler::CompileFragmentShader(&spv, source);
+    spv = ShaderCompiler::CompileFragmentShader(source);
     break;
   case ShaderStage::Compute:
-    result = ShaderCompiler::CompileComputeShader(&spv, source);
+    spv = ShaderCompiler::CompileComputeShader(source);
     break;
   default:
-    result = false;
     break;
   }
 
-  if (!result)
+  if (!spv)
     return nullptr;
 
-  return CreateShaderObject(stage, std::move(spv));
+  return CreateShaderObject(stage, std::move(*spv));
 }
 
 std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const void* data,
