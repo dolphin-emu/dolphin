@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
@@ -26,8 +27,7 @@ public:
   GLuint GetGLComputeProgramID() const { return m_gl_compute_program_id; }
   const std::string& GetSource() const { return m_source; }
 
-  static std::unique_ptr<OGLShader> CreateFromSource(ShaderStage stage, const char* source,
-                                                     size_t length);
+  static std::unique_ptr<OGLShader> CreateFromSource(ShaderStage stage, std::string_view source);
 
 private:
   u64 m_id;

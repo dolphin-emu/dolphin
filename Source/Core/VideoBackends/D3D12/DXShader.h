@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include <memory>
+#include <string_view>
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3DCommon/Shader.h"
 
@@ -18,8 +20,7 @@ public:
   D3D12_SHADER_BYTECODE GetD3DByteCode() const;
 
   static std::unique_ptr<DXShader> CreateFromBytecode(ShaderStage stage, BinaryData bytecode);
-  static std::unique_ptr<DXShader> CreateFromSource(ShaderStage stage, const char* source,
-                                                    size_t length);
+  static std::unique_ptr<DXShader> CreateFromSource(ShaderStage stage, std::string_view source);
 
 private:
   DXShader(ShaderStage stage, BinaryData bytecode);
