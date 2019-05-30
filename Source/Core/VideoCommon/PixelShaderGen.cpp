@@ -684,10 +684,14 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   {
     out.Write("void main(\n");
     if (uid_data->uint_output)
+    {
       out.Write("  out uint4 ocol0 : SV_Target,\n");
+    }
     else
+    {
       out.Write("  out float4 ocol0 : SV_Target0,\n"
                 "  out float4 ocol1 : SV_Target1,\n");
+    }
     out.Write("%s"
               "  in float4 rawpos : SV_Position,\n",
               uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
@@ -697,8 +701,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
     // compute window position if needed because binding semantic WPOS is not widely supported
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
+    {
       out.Write(",\n  in %s float3 tex%d : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa), i,
                 i);
+    }
     if (!host_config.fast_depth_calc)
     {
       out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(msaa, ssaa),
@@ -787,15 +793,20 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
                   (i & 1) ? "zw" : "xy");
       }
       else
+      {
         out.Write("\ttempcoord = int2(0, 0);\n");
+      }
 
       out.Write("\tint3 iindtex%d = ", i);
       SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, ApiType);
     }
   }
 
-  for (unsigned int i = 0; i < numStages; i++)
-    WriteStage(out, uid_data, i, ApiType, stereo);  // build the equation for this stage
+  for (u32 i = 0; i < numStages; i++)
+  {
+    // Build the equation for this stage
+    WriteStage(out, uid_data, i, ApiType, stereo);
+  }
 
   {
     // The results of the last texenv stage are put onto the screen,
@@ -820,8 +831,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   // testing result)
   if (uid_data->Pretest == AlphaTest::UNDETERMINED ||
       (uid_data->Pretest == AlphaTest::FAIL && uid_data->late_ztest))
+  {
     WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth,
                    use_dual_source || use_shader_blend);
+  }
 
   if (uid_data->zfreeze)
   {
@@ -958,19 +971,28 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt.Value(),
                 tevIndFmtMask[tevind.fmt]);
 
-      // bias - TODO: Check if this needs to be this complicated..
+      // bias - TODO: Check if this needs to be this complicated...
+      // indexed by bias
       const char* tevIndBiasField[] = {"",  "x",  "y",  "xy",
-                                       "z", "xz", "yz", "xyz"};  // indexed by bias
-      const char* tevIndBiasAdd[] = {"-128", "1", "1", "1"};     // indexed by fmt
+                                       "z", "xz", "yz", "xyz"};
+      // indexed by fmt
+      const char* tevIndBiasAdd[] = {"-128", "1", "1", "1"};
+
       if (tevind.bias == ITB_S || tevind.bias == ITB_T || tevind.bias == ITB_U)
+      {
         out.Write("\tiindtevcrd%d.%s += int(%s);\n", n, tevIndBiasField[tevind.bias],
                   tevIndBiasAdd[tevind.fmt]);
+      }
       else if (tevind.bias == ITB_ST || tevind.bias == ITB_SU || tevind.bias == ITB_TU)
+      {
         out.Write("\tiindtevcrd%d.%s += int2(%s, %s);\n", n, tevIndBiasField[tevind.bias],
                   tevIndBiasAdd[tevind.fmt], tevIndBiasAdd[tevind.fmt]);
+      }
       else if (tevind.bias == ITB_STU)
+      {
         out.Write("\tiindtevcrd%d.%s += int3(%s, %s, %s);\n", n, tevIndBiasField[tevind.bias],
                   tevIndBiasAdd[tevind.fmt], tevIndBiasAdd[tevind.fmt], tevIndBiasAdd[tevind.fmt]);
+      }
 
       // multiply by offset matrix and scale - calculations are likely to overflow badly,
       // yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
@@ -1062,21 +1084,33 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
     // wrap S
     if (tevind.sw == ITW_OFF)
+    {
       out.Write("\twrappedcoord.x = fixpoint_uv%d.x;\n", texcoord);
+    }
     else if (tevind.sw == ITW_0)
+    {
       out.Write("\twrappedcoord.x = 0;\n");
+    }
     else
+    {
       out.Write("\twrappedcoord.x = fixpoint_uv%d.x & (%s - 1);\n", texcoord,
                 tevIndWrapStart[tevind.sw]);
+    }
 
     // wrap T
     if (tevind.tw == ITW_OFF)
+    {
       out.Write("\twrappedcoord.y = fixpoint_uv%d.y;\n", texcoord);
+    }
     else if (tevind.tw == ITW_0)
+    {
       out.Write("\twrappedcoord.y = 0;\n");
+    }
     else
+    {
       out.Write("\twrappedcoord.y = fixpoint_uv%d.y & (%s - 1);\n", texcoord,
                 tevIndWrapStart[tevind.tw]);
+    }
 
     if (tevind.fb_addprev)  // add previous tevcoord
       out.Write("\ttevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
@@ -1134,11 +1168,15 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
               tevKSelTableA[stage.tevksel_ka]);
 
     if (stage.tevksel_kc > 7)
+    {
       out.SetConstantsUsed(C_KCOLORS + ((stage.tevksel_kc - 0xc) % 4),
                            C_KCOLORS + ((stage.tevksel_kc - 0xc) % 4));
+    }
     if (stage.tevksel_ka > 7)
+    {
       out.SetConstantsUsed(C_KCOLORS + ((stage.tevksel_ka - 0xc) % 4),
                            C_KCOLORS + ((stage.tevksel_ka - 0xc) % 4));
+    }
   }
 
   if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 || ac.d == TEVALPHAARG_A0)
