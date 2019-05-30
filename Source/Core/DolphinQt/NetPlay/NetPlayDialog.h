@@ -66,6 +66,7 @@ public:
   std::string FindGame(const std::string& game) override;
   std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) override;
 
+  void LoadSettings();
   void SaveSettings();
 
   void ShowMD5Dialog(const std::string& file_identifier) override;
