@@ -17,7 +17,7 @@ public:
   static TPipelineFunction GetFunction(u64 type, u32 format, u32 elements, u32 index3);
 
 private:
-  enum ENormalType
+  enum NormalType
   {
     NRM_NOT_PRESENT = 0,
     NRM_DIRECT = 1,
@@ -26,7 +26,7 @@ private:
     NUM_NRM_TYPE
   };
 
-  enum ENormalFormat
+  enum NormalFormat
   {
     FORMAT_UBYTE = 0,
     FORMAT_BYTE = 1,
@@ -36,14 +36,14 @@ private:
     NUM_NRM_FORMAT
   };
 
-  enum ENormalElements
+  enum NormalElements
   {
     NRM_NBT = 0,
     NRM_NBT3 = 1,
     NUM_NRM_ELEMENTS
   };
 
-  enum ENormalIndices
+  enum NormalIndices
   {
     NRM_INDICES1 = 0,
     NRM_INDICES3 = 1,
