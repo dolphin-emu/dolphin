@@ -179,7 +179,7 @@ constexpr TPipelineFunction s_table_read_tex_coord[4][8][2] = {
     },
 };
 
-constexpr int s_table_read_tex_coord_vertex_size[4][8][2] = {
+constexpr u32 s_table_read_tex_coord_vertex_size[4][8][2] = {
     {
         {0, 0},
         {0, 0},
@@ -211,16 +211,14 @@ constexpr int s_table_read_tex_coord_vertex_size[4][8][2] = {
 };
 }  // Anonymous namespace
 
-unsigned int VertexLoader_TextCoord::GetSize(u64 _type, unsigned int _format,
-                                             unsigned int _elements)
+u32 VertexLoader_TextCoord::GetSize(u64 type, u32 format, u32 elements)
 {
-  return s_table_read_tex_coord_vertex_size[_type][_format][_elements];
+  return s_table_read_tex_coord_vertex_size[type][format][elements];
 }
 
-TPipelineFunction VertexLoader_TextCoord::GetFunction(u64 _type, unsigned int _format,
-                                                      unsigned int _elements)
+TPipelineFunction VertexLoader_TextCoord::GetFunction(u64 type, u32 format, u32 elements)
 {
-  return s_table_read_tex_coord[_type][_format][_elements];
+  return s_table_read_tex_coord[type][format][elements];
 }
 
 TPipelineFunction VertexLoader_TextCoord::GetDummyFunction()
