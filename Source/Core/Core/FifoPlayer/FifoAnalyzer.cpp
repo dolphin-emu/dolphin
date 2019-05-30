@@ -23,11 +23,6 @@ namespace FifoAnalyzer
 bool s_DrawingObject;
 FifoAnalyzer::CPMemory s_CpMem;
 
-void Init()
-{
-  VertexLoader_Normal::Init();
-}
-
 u8 ReadFifo8(const u8*& data)
 {
   u8 value = data[0];
