@@ -167,8 +167,7 @@ constexpr std::array<const char*, 4> tev_a_output_table{
 };
 
 // FIXME: Some of the video card's capabilities (BBox support, EarlyZ support, dstAlpha support)
-// leak
-//        into this UID; This is really unhelpful if these UIDs ever move from one machine to
+//        leak into this UID; This is really unhelpful if these UIDs ever move from one machine to
 //        another.
 PixelShaderUid GetPixelShaderUid()
 {
