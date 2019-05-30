@@ -17,7 +17,6 @@
 #include "ShaderLang.h"
 #include "disassemble.h"
 
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -127,7 +126,7 @@ std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage, const char*
   int pass_source_code_length = static_cast<int>(source.size());
   if (!header.empty())
   {
-    constexpr size_t subgroup_helper_header_length = ArraySize(SUBGROUP_HELPER_HEADER) - 1;
+    constexpr size_t subgroup_helper_header_length = std::size(SUBGROUP_HELPER_HEADER) - 1;
     full_source_code.reserve(header.size() + subgroup_helper_header_length + source.size());
     full_source_code.append(header);
     if (g_vulkan_context->SupportsShaderSubgroupOperations())
