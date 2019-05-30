@@ -10,16 +10,11 @@
 class VertexLoader_Normal
 {
 public:
-  // Init
   static void Init();
 
-  // GetSize
-  static unsigned int GetSize(u64 _type, unsigned int _format, unsigned int _elements,
-                              unsigned int _index3);
+  static u32 GetSize(u64 type, u32 format, u32 elements, u32 index3);
 
-  // GetFunction
-  static TPipelineFunction GetFunction(u64 _type, unsigned int _format, unsigned int _elements,
-                                       unsigned int _index3);
+  static TPipelineFunction GetFunction(u64 type, u32 format, u32 elements, u32 index3);
 
 private:
   enum ENormalType
