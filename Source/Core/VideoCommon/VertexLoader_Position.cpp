@@ -77,7 +77,7 @@ void Pos_ReadIndex(VertexLoader* loader)
   LOG_VTX();
 }
 
-TPipelineFunction tableReadPosition[4][8][2] = {
+constexpr TPipelineFunction s_table_read_position[4][8][2] = {
     {
         {
             nullptr,
@@ -168,7 +168,7 @@ TPipelineFunction tableReadPosition[4][8][2] = {
     },
 };
 
-int tableReadPositionVertexSize[4][8][2] = {
+constexpr int s_table_read_position_vertex_size[4][8][2] = {
     {
         {0, 0},
         {0, 0},
@@ -202,11 +202,11 @@ int tableReadPositionVertexSize[4][8][2] = {
 
 unsigned int VertexLoader_Position::GetSize(u64 _type, unsigned int _format, unsigned int _elements)
 {
-  return tableReadPositionVertexSize[_type][_format][_elements];
+  return s_table_read_position_vertex_size[_type][_format][_elements];
 }
 
 TPipelineFunction VertexLoader_Position::GetFunction(u64 _type, unsigned int _format,
                                                      unsigned int _elements)
 {
-  return tableReadPosition[_type][_format][_elements];
+  return s_table_read_position[_type][_format][_elements];
 }
