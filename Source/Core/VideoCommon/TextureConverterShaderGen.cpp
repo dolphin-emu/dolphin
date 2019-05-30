@@ -2,13 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <array>
-#include <cstring>
+#include "VideoCommon/TextureConverterShaderGen.h"
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -18,9 +16,8 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
                          bool scale_by_half, bool copy_filter)
 {
   TCShaderUid out;
-  UidData* uid_data = out.GetUidData<UidData>();
-  memset(uid_data, 0, sizeof(*uid_data));
 
+  UidData* const uid_data = out.GetUidData();
   uid_data->dst_format = dst_format;
   uid_data->efb_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
   uid_data->is_depth_copy = is_depth_copy;

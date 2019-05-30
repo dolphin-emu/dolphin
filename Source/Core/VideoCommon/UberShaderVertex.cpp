@@ -15,9 +15,10 @@ namespace UberShader
 VertexShaderUid GetVertexShaderUid()
 {
   VertexShaderUid out;
-  vertex_ubershader_uid_data* uid_data = out.GetUidData<vertex_ubershader_uid_data>();
-  memset(uid_data, 0, sizeof(*uid_data));
+
+  vertex_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
+
   return out;
 }
 
@@ -487,11 +488,10 @@ void GenVertexShaderTexGens(APIType ApiType, u32 numTexgen, ShaderCode& out)
 void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>& callback)
 {
   VertexShaderUid uid;
-  std::memset(&uid, 0, sizeof(uid));
 
   for (u32 texgens = 0; texgens <= 8; texgens++)
   {
-    auto* vuid = uid.GetUidData<UberShader::vertex_ubershader_uid_data>();
+    vertex_ubershader_uid_data* const vuid = uid.GetUidData();
     vuid->num_texgens = texgens;
     callback(uid);
   }
