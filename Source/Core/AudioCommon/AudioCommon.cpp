@@ -99,20 +99,20 @@ std::vector<std::string> GetSoundBackends()
 {
   std::vector<std::string> backends;
 
-  backends.push_back(BACKEND_NULLSOUND);
-  backends.push_back(BACKEND_CUBEB);
+  backends.emplace_back(BACKEND_NULLSOUND);
+  backends.emplace_back(BACKEND_CUBEB);
   if (XAudio2_7::isValid() || XAudio2::isValid())
-    backends.push_back(BACKEND_XAUDIO2);
+    backends.emplace_back(BACKEND_XAUDIO2);
   if (AlsaSound::isValid())
-    backends.push_back(BACKEND_ALSA);
+    backends.emplace_back(BACKEND_ALSA);
   if (PulseAudio::isValid())
-    backends.push_back(BACKEND_PULSEAUDIO);
+    backends.emplace_back(BACKEND_PULSEAUDIO);
   if (OpenALStream::isValid())
-    backends.push_back(BACKEND_OPENAL);
+    backends.emplace_back(BACKEND_OPENAL);
   if (OpenSLESStream::isValid())
-    backends.push_back(BACKEND_OPENSLES);
+    backends.emplace_back(BACKEND_OPENSLES);
   if (WASAPIStream::isValid())
-    backends.push_back(BACKEND_WASAPI);
+    backends.emplace_back(BACKEND_WASAPI);
 
   return backends;
 }
