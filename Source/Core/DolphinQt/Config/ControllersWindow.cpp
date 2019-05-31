@@ -45,7 +45,8 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},
     {SerialInterface::SIDEVICE_WIIU_ADAPTER, 2}, {SerialInterface::SIDEVICE_GC_STEERING, 3},
     {SerialInterface::SIDEVICE_DANCEMAT, 4},     {SerialInterface::SIDEVICE_GC_TARUKONGA, 5},
-    {SerialInterface::SIDEVICE_GC_GBA, 6},       {SerialInterface::SIDEVICE_GC_KEYBOARD, 7}};
+    {SerialInterface::SIDEVICE_GC_GBA, 6},       {SerialInterface::SIDEVICE_GC_KEYBOARD, 7},
+    {SerialInterface::SIDEVICE_GC_PEDOMETER, 8}};
 
 static std::optional<int> ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
 {
@@ -88,7 +89,8 @@ void ControllersWindow::CreateGamecubeLayout()
 
     for (const auto& item :
          {tr("None"), tr("Standard Controller"), tr("GameCube Adapter for Wii U"),
-          tr("Steering Wheel"), tr("Dance Mat"), tr("DK Bongos"), tr("GBA"), tr("Keyboard")})
+          tr("Steering Wheel"), tr("Dance Mat"), tr("DK Bongos"), tr("GBA"), tr("Keyboard"),
+          tr("Pedometer")})
     {
       gc_box->addItem(item);
     }
@@ -403,6 +405,7 @@ void ControllersWindow::OnGCPadConfigure()
   {
   case 0:  // None
   case 6:  // GBA
+  case 8:  // GameCube Pedometer
     return;
   case 1:  // Standard Controller
     type = MappingWindow::Type::MAPPING_GCPAD;
@@ -468,7 +471,7 @@ void ControllersWindow::LoadSettings()
     if (gc_index)
     {
       m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
-      m_gc_buttons[i]->setEnabled(*gc_index != 0 && *gc_index != 6);
+      m_gc_buttons[i]->setEnabled(*gc_index != 0 && *gc_index != 6 && *gc_index != 8);
     }
     m_wiimote_boxes[i]->setCurrentIndex(g_wiimote_sources[i]);
     m_wiimote_buttons[i]->setEnabled(g_wiimote_sources[i] != 0 && g_wiimote_sources[i] != 2);
@@ -520,7 +523,7 @@ void ControllersWindow::SaveSettings()
         SerialInterface::ChangeDevice(*si_device, static_cast<s32>(i));
     }
 
-    m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
+    m_gc_buttons[i]->setEnabled(index != 0 && index != 6 && index != 8);
   }
 
   if (GCAdapter::UseAdapter())

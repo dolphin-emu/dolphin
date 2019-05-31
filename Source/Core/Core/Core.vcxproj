@@ -164,6 +164,7 @@
     <ClCompile Include="HW\SI\SI_DeviceGBA.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceGCAdapter.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceGCController.cpp" />
+    <ClCompile Include="HW\SI\SI_DeviceGCPedometer.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceGCSteeringWheel.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceKeyboard.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceNull.cpp" />
@@ -437,6 +438,7 @@
     <ClInclude Include="HW\SI\SI_DeviceGBA.h" />
     <ClInclude Include="HW\SI\SI_DeviceGCAdapter.h" />
     <ClInclude Include="HW\SI\SI_DeviceGCController.h" />
+    <ClInclude Include="HW\SI\SI_DeviceGCPedometer.h" />
     <ClInclude Include="HW\SI\SI_DeviceGCSteeringWheel.h" />
     <ClInclude Include="HW\SI\SI_DeviceKeyboard.h" />
     <ClInclude Include="HW\SI\SI_DeviceNull.h" />

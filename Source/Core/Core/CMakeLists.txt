@@ -126,6 +126,7 @@ add_library(core
   HW/SI/SI_DeviceGBA.cpp
   HW/SI/SI_DeviceGCAdapter.cpp
   HW/SI/SI_DeviceGCController.cpp
+  HW/SI/SI_DeviceGCPedometer.cpp
   HW/SI/SI_DeviceGCSteeringWheel.cpp
   HW/SI/SI_DeviceKeyboard.cpp
   HW/SI/SI_DeviceNull.cpp
