@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <queue>
 #include <string>
 
@@ -31,22 +32,24 @@ private:
     MSG_EVENT = 2
   };
 
+  using PressedKeyData = std::array<u8, 6>;
+
 #pragma pack(push, 1)
   struct SMessageData
   {
-    u32 MsgType;
-    u32 Unk1;
-    u8 Modifiers;
-    u8 Unk2;
-    u8 PressedKeys[6];
+    u32 MsgType = 0;
+    u32 Unk1 = 0;
+    u8 Modifiers = 0;
+    u8 Unk2 = 0;
+    PressedKeyData PressedKeys{};
 
-    SMessageData(u32 msg_type, u8 modifiers, u8* pressed_keys);
+    SMessageData(u32 msg_type, u8 modifiers, PressedKeyData pressed_keys);
   };
 #pragma pack(pop)
   std::queue<SMessageData> m_MessageQueue;
 
-  bool m_OldKeyBuffer[256];
-  u8 m_OldModifiers;
+  std::array<bool, 256> m_OldKeyBuffer{};
+  u8 m_OldModifiers = 0;
 
   virtual bool IsKeyPressed(int _Key);
 
@@ -56,6 +59,6 @@ private:
     KBD_LAYOUT_QWERTY = 0,
     KBD_LAYOUT_AZERTY = 1
   };
-  int m_KeyboardLayout;
+  int m_KeyboardLayout = KBD_LAYOUT_QWERTY;
 };
 }  // namespace IOS::HLE::Device

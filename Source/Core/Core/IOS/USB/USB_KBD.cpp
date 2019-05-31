@@ -5,7 +5,6 @@
 #include "Core/IOS/USB/USB_KBD.h"
 
 #include <array>
-#include <cstring>
 #include <queue>
 
 #include "Common/FileUtil.h"
@@ -177,17 +176,9 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 #endif
 }  // Anonymous namespace
 
-USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
+USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, PressedKeyData pressed_keys)
+    : MsgType{Common::swap32(type)}, Modifiers{modifiers}, PressedKeys{pressed_keys}
 {
-  MsgType = Common::swap32(type);
-  Unk1 = 0;  // swapped
-  Modifiers = modifiers;
-  Unk2 = 0;
-
-  if (pressed_keys)  // Doesn't need to be in a specific order
-    memcpy(PressedKeys, pressed_keys, sizeof(PressedKeys));
-  else
-    memset(PressedKeys, 0, sizeof(PressedKeys));
 }
 
 // TODO: support in netplay/movies.
@@ -203,15 +194,11 @@ IPCCommandResult USB_KBD::Open(const OpenRequest& request)
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
-  m_MessageQueue = std::queue<SMessageData>();
-  for (bool& pressed : m_OldKeyBuffer)
-  {
-    pressed = false;
-  }
-
+  m_MessageQueue = {};
+  m_OldKeyBuffer.fill(false);
   m_OldModifiers = 0x00;
 
-  // m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
+  // m_MessageQueue.emplace(MSG_KBD_CONNECT, 0, PressedKeyData{});
   return Device::Open(request);
 }
 
@@ -251,12 +238,12 @@ void USB_KBD::Update()
     return;
 
   u8 Modifiers = 0x00;
-  u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  PressedKeyData PressedKeys{0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   bool GotEvent = false;
-  int num_pressed_keys = 0;
-  for (int i = 0; i < 256; i++)
+  size_t num_pressed_keys = 0;
+  for (size_t i = 0; i < m_OldKeyBuffer.size(); i++)
   {
-    bool KeyPressedNow = IsKeyPressed(i);
+    bool KeyPressedNow = IsKeyPressed(static_cast<int>(i));
     bool KeyPressedBefore = m_OldKeyBuffer[i];
     u8 KeyCode = 0;
 
@@ -281,7 +268,7 @@ void USB_KBD::Update()
         PressedKeys[num_pressed_keys] = KeyCode;
 
         num_pressed_keys++;
-        if (num_pressed_keys == 6)
+        if (num_pressed_keys == PressedKeys.size())
           break;
       }
 
@@ -320,6 +307,6 @@ void USB_KBD::Update()
   }
 
   if (GotEvent)
-    m_MessageQueue.push(SMessageData(MSG_EVENT, Modifiers, PressedKeys));
+    m_MessageQueue.emplace(MSG_EVENT, Modifiers, PressedKeys);
 }
 }  // namespace IOS::HLE::Device
