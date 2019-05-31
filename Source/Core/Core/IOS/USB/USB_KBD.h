@@ -57,7 +57,5 @@ private:
     KBD_LAYOUT_AZERTY = 1
   };
   int m_KeyboardLayout;
-  static u8 m_KeyCodesQWERTY[256];
-  static u8 m_KeyCodesAZERTY[256];
 };
 }  // namespace IOS::HLE::Device
