@@ -137,8 +137,9 @@ IPCCommandResult SDIOSlot0::IOCtlV(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _BufferInSize,
-                              u32 _rwBuffer, u32 _rwBufferSize, u32 _BufferOut, u32 _BufferOutSize)
+s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 buffer_in, u32 buffer_in_size,
+                              u32 rw_buffer, u32 rw_buffer_size, u32 buffer_out,
+                              u32 buffer_out_size)
 {
   // The game will send us a SendCMD with this information. To be able to read and write
   // to a file we need to prepare a 0x10 byte output buffer as response.
@@ -155,15 +156,15 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     u32 pad0;
   } req;
 
-  req.command = Memory::Read_U32(_BufferIn + 0);
-  req.type = Memory::Read_U32(_BufferIn + 4);
-  req.resp = Memory::Read_U32(_BufferIn + 8);
-  req.arg = Memory::Read_U32(_BufferIn + 12);
-  req.blocks = Memory::Read_U32(_BufferIn + 16);
-  req.bsize = Memory::Read_U32(_BufferIn + 20);
-  req.addr = Memory::Read_U32(_BufferIn + 24);
-  req.isDMA = Memory::Read_U32(_BufferIn + 28);
-  req.pad0 = Memory::Read_U32(_BufferIn + 32);
+  req.command = Memory::Read_U32(buffer_in + 0);
+  req.type = Memory::Read_U32(buffer_in + 4);
+  req.resp = Memory::Read_U32(buffer_in + 8);
+  req.arg = Memory::Read_U32(buffer_in + 12);
+  req.blocks = Memory::Read_U32(buffer_in + 16);
+  req.bsize = Memory::Read_U32(buffer_in + 20);
+  req.addr = Memory::Read_U32(buffer_in + 24);
+  req.isDMA = Memory::Read_U32(buffer_in + 28);
+  req.pad0 = Memory::Read_U32(buffer_in + 32);
 
   // Note: req.addr is the virtual address of _rwBuffer
 
@@ -174,19 +175,19 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
   case GO_IDLE_STATE:
     INFO_LOG(IOS_SD, "GO_IDLE_STATE");
     // Response is R1 (idle state)
-    Memory::Write_U32(0x00, _BufferOut);
+    Memory::Write_U32(0x00, buffer_out);
     break;
 
   case SEND_RELATIVE_ADDR:
     // Technically RCA should be generated when asked and at power on...w/e :p
-    Memory::Write_U32(0x9f62, _BufferOut);
+    Memory::Write_U32(0x9f62, buffer_out);
     break;
 
   case SELECT_CARD:
     // This covers both select and deselect
     // Differentiate by checking if rca is set in req.arg
     // If it is, it's a select and return 0x700
-    Memory::Write_U32((req.arg >> 16) ? 0x700 : 0x900, _BufferOut);
+    Memory::Write_U32((req.arg >> 16) ? 0x700 : 0x900, buffer_out);
     break;
 
   case SEND_IF_COND:
@@ -195,45 +196,45 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
     // voltage and the check pattern that were set in the command argument.
     // This command is used to differentiate between protocol v1 and v2.
     InitSDHC();
-    Memory::Write_U32(req.arg, _BufferOut);
+    Memory::Write_U32(req.arg, buffer_out);
     break;
 
   case SEND_CSD:
   {
     const std::array<u32, 4> csd = m_protocol == SDProtocol::V1 ? GetCSDv1() : GetCSDv2();
-    Memory::CopyToEmuSwapped(_BufferOut, csd.data(), csd.size() * sizeof(u32));
+    Memory::CopyToEmuSwapped(buffer_out, csd.data(), csd.size() * sizeof(u32));
   }
   break;
 
   case ALL_SEND_CID:
   case SEND_CID:
     INFO_LOG(IOS_SD, "(ALL_)SEND_CID");
-    Memory::Write_U32(0x80114d1c, _BufferOut);
-    Memory::Write_U32(0x80080000, _BufferOut + 4);
-    Memory::Write_U32(0x8007b520, _BufferOut + 8);
-    Memory::Write_U32(0x80080000, _BufferOut + 12);
+    Memory::Write_U32(0x80114d1c, buffer_out);
+    Memory::Write_U32(0x80080000, buffer_out + 4);
+    Memory::Write_U32(0x8007b520, buffer_out + 8);
+    Memory::Write_U32(0x80080000, buffer_out + 12);
     break;
 
   case SET_BLOCKLEN:
     m_block_length = req.arg;
-    Memory::Write_U32(0x900, _BufferOut);
+    Memory::Write_U32(0x900, buffer_out);
     break;
 
   case APP_CMD_NEXT:
     // Next cmd is going to be ACMD_*
-    Memory::Write_U32(0x920, _BufferOut);
+    Memory::Write_U32(0x920, buffer_out);
     break;
 
   case ACMD_SETBUSWIDTH:
     // 0 = 1bit, 2 = 4bit
     m_bus_width = (req.arg & 3);
-    Memory::Write_U32(0x920, _BufferOut);
+    Memory::Write_U32(0x920, buffer_out);
     break;
 
   case ACMD_SENDOPCOND:
     // Sends host capacity support information (HCS) and asks the accessed card to send
     // its operating condition register (OCR) content
-    Memory::Write_U32(GetOCRegister(), _BufferOut);
+    Memory::Write_U32(GetOCRegister(), buffer_out);
     break;
 
   case READ_MULTIPLE_BLOCK:
@@ -253,7 +254,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
 
       if (m_card.ReadBytes(Memory::GetPointer(req.addr), size))
       {
-        DEBUG_LOG(IOS_SD, "Outbuffer size %i got %i", _rwBufferSize, size);
+        DEBUG_LOG(IOS_SD, "Outbuffer size %i got %i", rw_buffer_size, size);
       }
       else
       {
@@ -263,7 +264,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
       }
     }
   }
-    Memory::Write_U32(0x900, _BufferOut);
+    Memory::Write_U32(0x900, buffer_out);
     break;
 
   case WRITE_MULTIPLE_BLOCK:
@@ -289,7 +290,7 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _Buffer
       }
     }
   }
-    Memory::Write_U32(0x900, _BufferOut);
+    Memory::Write_U32(0x900, buffer_out);
     break;
 
   case EVENT_REGISTER:  // async
