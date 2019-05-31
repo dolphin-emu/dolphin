@@ -176,8 +176,9 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 #endif
 }  // Anonymous namespace
 
-USB_KBD::MessageData::MessageData(u32 type, u8 modifiers, PressedKeyData pressed_keys)
-    : MsgType{Common::swap32(type)}, Modifiers{modifiers}, PressedKeys{pressed_keys}
+USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers, PressedKeyData pressed_keys)
+    : MsgType{Common::swap32(static_cast<u32>(type))}, Modifiers{modifiers}, PressedKeys{
+                                                                                 pressed_keys}
 {
 }
 
@@ -198,7 +199,7 @@ IPCCommandResult USB_KBD::Open(const OpenRequest& request)
   m_OldKeyBuffer.fill(false);
   m_OldModifiers = 0x00;
 
-  // m_MessageQueue.emplace(MSG_KBD_CONNECT, 0, PressedKeyData{});
+  // m_MessageQueue.emplace(MessageType::KeyboardConnect, 0, PressedKeyData{});
   return Device::Open(request);
 }
 
@@ -304,6 +305,6 @@ void USB_KBD::Update()
   }
 
   if (GotEvent)
-    m_MessageQueue.emplace(MSG_EVENT, Modifiers, PressedKeys);
+    m_MessageQueue.emplace(MessageType::Event, Modifiers, PressedKeys);
 }
 }  // namespace IOS::HLE::Device

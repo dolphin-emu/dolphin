@@ -26,11 +26,11 @@ public:
   void Update() override;
 
 private:
-  enum
+  enum class MessageType : u32
   {
-    MSG_KBD_CONNECT = 0,
-    MSG_KBD_DISCONNECT = 1,
-    MSG_EVENT = 2
+    KeyboardConnect = 0,
+    KeyboardDisconnect = 1,
+    Event = 2
   };
 
   using PressedKeyData = std::array<u8, 6>;
@@ -38,13 +38,13 @@ private:
 #pragma pack(push, 1)
   struct MessageData
   {
-    u32 MsgType = 0;
+    MessageType MsgType{};
     u32 Unk1 = 0;
     u8 Modifiers = 0;
     u8 Unk2 = 0;
     PressedKeyData PressedKeys{};
 
-    MessageData(u32 msg_type, u8 modifiers, PressedKeyData pressed_keys);
+    MessageData(MessageType msg_type, u8 modifiers, PressedKeyData pressed_keys);
   };
   static_assert(std::is_trivially_copyable_v<MessageData>,
                 "MessageData must be trivially copyable, as it's copied into emulated memory.");
