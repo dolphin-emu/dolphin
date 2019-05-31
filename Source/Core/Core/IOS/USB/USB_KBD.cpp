@@ -177,8 +177,8 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 }  // Anonymous namespace
 
 USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers, PressedKeyData pressed_keys)
-    : MsgType{Common::swap32(static_cast<u32>(type))}, Modifiers{modifiers}, PressedKeys{
-                                                                                 pressed_keys}
+    : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{modifiers}, pressed_keys{
+                                                                                  pressed_keys}
 {
 }
 
@@ -193,13 +193,13 @@ IPCCommandResult USB_KBD::Open(const OpenRequest& request)
   INFO_LOG(IOS, "USB_KBD: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+  ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_keyboard_layout, KBD_LAYOUT_QWERTY);
 
-  m_MessageQueue = {};
-  m_OldKeyBuffer.fill(false);
-  m_OldModifiers = 0x00;
+  m_message_queue = {};
+  m_old_key_buffer.fill(false);
+  m_old_modifiers = 0x00;
 
-  // m_MessageQueue.emplace(MessageType::KeyboardConnect, 0, PressedKeyData{});
+  // m_message_queue.emplace(MessageType::KeyboardConnect, 0, PressedKeyData{});
   return Device::Open(request);
 }
 
@@ -212,10 +212,10 @@ IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
 IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
-      ControlReference::InputGateOn() && !m_MessageQueue.empty())
+      ControlReference::InputGateOn() && !m_message_queue.empty())
   {
-    Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(MessageData));
-    m_MessageQueue.pop();
+    Memory::CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
+    m_message_queue.pop();
   }
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -235,76 +235,76 @@ void USB_KBD::Update()
   if (!SConfig::GetInstance().m_WiiKeyboard || Core::WantsDeterminism() || !m_is_active)
     return;
 
-  u8 Modifiers = 0x00;
-  PressedKeyData PressedKeys{0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  bool GotEvent = false;
+  u8 modifiers = 0x00;
+  PressedKeyData pressed_keys{0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  bool got_event = false;
   size_t num_pressed_keys = 0;
-  for (size_t i = 0; i < m_OldKeyBuffer.size(); i++)
+  for (size_t i = 0; i < m_old_key_buffer.size(); i++)
   {
-    bool KeyPressedNow = IsKeyPressed(static_cast<int>(i));
-    bool KeyPressedBefore = m_OldKeyBuffer[i];
-    u8 KeyCode = 0;
+    const bool key_pressed_now = IsKeyPressed(static_cast<int>(i));
+    const bool key_pressed_before = m_old_key_buffer[i];
+    u8 key_code = 0;
 
-    if (KeyPressedNow ^ KeyPressedBefore)
+    if (key_pressed_now ^ key_pressed_before)
     {
-      if (KeyPressedNow)
+      if (key_pressed_now)
       {
-        switch (m_KeyboardLayout)
+        switch (m_keyboard_layout)
         {
         case KBD_LAYOUT_QWERTY:
-          KeyCode = s_key_codes_qwerty[i];
+          key_code = s_key_codes_qwerty[i];
           break;
 
         case KBD_LAYOUT_AZERTY:
-          KeyCode = s_key_codes_azerty[i];
+          key_code = s_key_codes_azerty[i];
           break;
         }
 
-        if (KeyCode == 0x00)
+        if (key_code == 0x00)
           continue;
 
-        PressedKeys[num_pressed_keys] = KeyCode;
+        pressed_keys[num_pressed_keys] = key_code;
 
         num_pressed_keys++;
-        if (num_pressed_keys == PressedKeys.size())
+        if (num_pressed_keys == pressed_keys.size())
           break;
       }
 
-      GotEvent = true;
+      got_event = true;
     }
 
-    m_OldKeyBuffer[i] = KeyPressedNow;
+    m_old_key_buffer[i] = key_pressed_now;
   }
 
 #ifdef _WIN32
   if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
-    Modifiers |= 0x01;
+    modifiers |= 0x01;
   if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
-    Modifiers |= 0x02;
+    modifiers |= 0x02;
   if (GetAsyncKeyState(VK_MENU) & 0x8000)
-    Modifiers |= 0x04;
+    modifiers |= 0x04;
   if (GetAsyncKeyState(VK_LWIN) & 0x8000)
-    Modifiers |= 0x08;
+    modifiers |= 0x08;
   if (GetAsyncKeyState(VK_RCONTROL) & 0x8000)
-    Modifiers |= 0x10;
+    modifiers |= 0x10;
   if (GetAsyncKeyState(VK_RSHIFT) & 0x8000)
-    Modifiers |= 0x20;
+    modifiers |= 0x20;
   // TODO: VK_MENU is for ALT, not for ALT GR (ALT GR seems to work though...)
   if (GetAsyncKeyState(VK_MENU) & 0x8000)
-    Modifiers |= 0x40;
+    modifiers |= 0x40;
   if (GetAsyncKeyState(VK_RWIN) & 0x8000)
-    Modifiers |= 0x80;
+    modifiers |= 0x80;
 #else
 // TODO: modifiers for non-Windows platforms
 #endif
 
-  if (Modifiers ^ m_OldModifiers)
+  if (modifiers ^ m_old_modifiers)
   {
-    GotEvent = true;
-    m_OldModifiers = Modifiers;
+    got_event = true;
+    m_old_modifiers = modifiers;
   }
 
-  if (GotEvent)
-    m_MessageQueue.emplace(MessageType::Event, Modifiers, PressedKeys);
+  if (got_event)
+    m_message_queue.emplace(MessageType::Event, modifiers, pressed_keys);
 }
 }  // namespace IOS::HLE::Device

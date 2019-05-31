@@ -38,21 +38,21 @@ private:
 #pragma pack(push, 1)
   struct MessageData
   {
-    MessageType MsgType{};
-    u32 Unk1 = 0;
-    u8 Modifiers = 0;
-    u8 Unk2 = 0;
-    PressedKeyData PressedKeys{};
+    MessageType msg_type{};
+    u32 unk1 = 0;
+    u8 modifiers = 0;
+    u8 unk2 = 0;
+    PressedKeyData pressed_keys{};
 
     MessageData(MessageType msg_type, u8 modifiers, PressedKeyData pressed_keys);
   };
   static_assert(std::is_trivially_copyable_v<MessageData>,
                 "MessageData must be trivially copyable, as it's copied into emulated memory.");
 #pragma pack(pop)
-  std::queue<MessageData> m_MessageQueue;
+  std::queue<MessageData> m_message_queue;
 
-  std::array<bool, 256> m_OldKeyBuffer{};
-  u8 m_OldModifiers = 0;
+  std::array<bool, 256> m_old_key_buffer{};
+  u8 m_old_modifiers = 0;
 
   bool IsKeyPressed(int key) const;
 
@@ -62,6 +62,6 @@ private:
     KBD_LAYOUT_QWERTY = 0,
     KBD_LAYOUT_AZERTY = 1
   };
-  int m_KeyboardLayout = KBD_LAYOUT_QWERTY;
+  int m_keyboard_layout = KBD_LAYOUT_QWERTY;
 };
 }  // namespace IOS::HLE::Device
