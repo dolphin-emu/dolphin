@@ -117,7 +117,7 @@ std::vector<std::string> GetSoundBackends()
   return backends;
 }
 
-bool SupportsDPL2Decoder(const std::string& backend)
+bool SupportsDPL2Decoder(std::string_view backend)
 {
 #ifndef __APPLE__
   if (backend == BACKEND_OPENAL)
@@ -132,12 +132,12 @@ bool SupportsDPL2Decoder(const std::string& backend)
   return false;
 }
 
-bool SupportsLatencyControl(const std::string& backend)
+bool SupportsLatencyControl(std::string_view backend)
 {
   return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
-bool SupportsVolumeChanges(const std::string& backend)
+bool SupportsVolumeChanges(std::string_view backend)
 {
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
