@@ -11,130 +11,250 @@ set(CMAKE_AUTOMOC ON)
 
 add_executable(dolphin-emu
   AboutDialog.cpp
+  AboutDialog.h
   CheatsManager.cpp
+  CheatsManager.h
   DiscordHandler.cpp
+  DiscordHandler.h
   DiscordJoinRequestDialog.cpp
+  DiscordJoinRequestDialog.h
   FIFO/FIFOPlayerWindow.cpp
+  FIFO/FIFOPlayerWindow.h
   FIFO/FIFOAnalyzer.cpp
-  HotkeyScheduler.cpp
+  FIFO/FIFOAnalyzer.h
   Host.cpp
+  Host.h
+  HotkeyScheduler.cpp
+  HotkeyScheduler.h
   Main.cpp
   MainWindow.cpp
+  MainWindow.h
   MenuBar.cpp
+  MenuBar.h
   RenderWidget.cpp
+  RenderWidget.h
   Resources.cpp
+  Resources.h
   SearchBar.cpp
+  SearchBar.h
   Settings.cpp
+  Settings.h
   ToolBar.cpp
+  ToolBar.h
   Translation.cpp
+  Translation.h
   WiiUpdate.cpp
   WiiUpdate.h
-  Config/CheatCodeEditor.cpp
   Config/ARCodeWidget.cpp
+  Config/ARCodeWidget.h
+  Config/CheatCodeEditor.cpp
+  Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
+  Config/CheatWarningWidget.h
   Config/ControllersWindow.cpp
+  Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
+  Config/FilesystemWidget.h
   Config/GameConfigEdit.cpp
+  Config/GameConfigEdit.h
   Config/GameConfigHighlighter.cpp
+  Config/GameConfigHighlighter.h
   Config/GameConfigWidget.cpp
+  Config/GameConfigWidget.h
   Config/GeckoCodeWidget.cpp
+  Config/GeckoCodeWidget.h
   Config/Graphics/AdvancedWidget.cpp
+  Config/Graphics/AdvancedWidget.h
   Config/Graphics/EnhancementsWidget.cpp
+  Config/Graphics/EnhancementsWidget.h
   Config/Graphics/GeneralWidget.cpp
-  Config/Graphics/HacksWidget.cpp
+  Config/Graphics/GeneralWidget.h
   Config/Graphics/GraphicsBool.cpp
+  Config/Graphics/GraphicsBool.h
   Config/Graphics/GraphicsChoice.cpp
+  Config/Graphics/GraphicsChoice.h
   Config/Graphics/GraphicsRadio.cpp
+  Config/Graphics/GraphicsRadio.h
   Config/Graphics/GraphicsSlider.cpp
+  Config/Graphics/GraphicsSlider.h
   Config/Graphics/GraphicsWidget.cpp
+  Config/Graphics/GraphicsWidget.h
   Config/Graphics/GraphicsWindow.cpp
+  Config/Graphics/GraphicsWindow.h
+  Config/Graphics/HacksWidget.cpp
+  Config/Graphics/HacksWidget.h
   Config/Graphics/PostProcessingConfigWindow.cpp
+  Config/Graphics/PostProcessingConfigWindow.h
   Config/Graphics/SoftwareRendererWidget.cpp
+  Config/Graphics/SoftwareRendererWidget.h
   Config/InfoWidget.cpp
+  Config/InfoWidget.h
   Config/LogConfigWidget.cpp
+  Config/LogConfigWidget.h
   Config/LogWidget.cpp
+  Config/LogWidget.h
   Config/Mapping/GCKeyboardEmu.cpp
+  Config/Mapping/GCKeyboardEmu.h
   Config/Mapping/GCMicrophone.cpp
+  Config/Mapping/GCMicrophone.h
   Config/Mapping/GCPadEmu.cpp
+  Config/Mapping/GCPadEmu.h
   Config/Mapping/GCPadWiiUConfigDialog.cpp
+  Config/Mapping/GCPadWiiUConfigDialog.h
   Config/Mapping/Hotkey3D.cpp
+  Config/Mapping/Hotkey3D.h
   Config/Mapping/HotkeyControllerProfile.cpp
+  Config/Mapping/HotkeyControllerProfile.h
   Config/Mapping/HotkeyDebugging.cpp
+  Config/Mapping/HotkeyDebugging.h
   Config/Mapping/HotkeyGeneral.cpp
+  Config/Mapping/HotkeyGeneral.h
   Config/Mapping/HotkeyGraphics.cpp
+  Config/Mapping/HotkeyGraphics.h
   Config/Mapping/HotkeyStates.cpp
+  Config/Mapping/HotkeyStates.h
   Config/Mapping/HotkeyStatesOther.cpp
+  Config/Mapping/HotkeyStatesOther.h
   Config/Mapping/HotkeyTAS.cpp
+  Config/Mapping/HotkeyTAS.h
   Config/Mapping/HotkeyWii.cpp
+  Config/Mapping/HotkeyWii.h
   Config/Mapping/IOWindow.cpp
   Config/Mapping/MappingButton.cpp
+  Config/Mapping/MappingButton.h
   Config/Mapping/MappingCommon.cpp
+  Config/Mapping/MappingCommon.h
   Config/Mapping/MappingIndicator.cpp
+  Config/Mapping/MappingIndicator.h
   Config/Mapping/MappingNumeric.cpp
+  Config/Mapping/MappingNumeric.h
   Config/Mapping/MappingWidget.cpp
+  Config/Mapping/MappingWidget.h
   Config/Mapping/MappingWindow.cpp
+  Config/Mapping/MappingWindow.h
   Config/Mapping/WiimoteEmuExtension.cpp
+  Config/Mapping/WiimoteEmuExtension.h
   Config/Mapping/WiimoteEmuGeneral.cpp
+  Config/Mapping/WiimoteEmuGeneral.h
   Config/Mapping/WiimoteEmuMotionControl.cpp
+  Config/Mapping/WiimoteEmuMotionControl.h
   Config/NewPatchDialog.cpp
+  Config/NewPatchDialog.h
   Config/PatchesWidget.cpp
+  Config/PatchesWidget.h
   Config/PropertiesDialog.cpp
+  Config/PropertiesDialog.h
   Config/SettingsWindow.cpp
+  Config/SettingsWindow.h
   Config/VerifyWidget.cpp
+  Config/VerifyWidget.h
   Debugger/BreakpointWidget.cpp
+  Debugger/BreakpointWidget.h
   Debugger/CodeViewWidget.cpp
+  Debugger/CodeViewWidget.h
   Debugger/CodeWidget.cpp
+  Debugger/CodeWidget.h
   Debugger/JITWidget.cpp
+  Debugger/JITWidget.h
   Debugger/MemoryViewWidget.cpp
+  Debugger/MemoryViewWidget.h
   Debugger/MemoryWidget.cpp
+  Debugger/MemoryWidget.h
   Debugger/NewBreakpointDialog.cpp
+  Debugger/NewBreakpointDialog.h
   Debugger/PatchInstructionDialog.cpp
+  Debugger/PatchInstructionDialog.h
   Debugger/RegisterColumn.cpp
+  Debugger/RegisterColumn.h
   Debugger/RegisterWidget.cpp
+  Debugger/RegisterWidget.h
   Debugger/WatchWidget.cpp
+  Debugger/WatchWidget.h
   GameList/GameList.cpp
+  GameList/GameList.h
   GameList/GameListModel.cpp
+  GameList/GameListModel.h
   GameList/GameTracker.cpp
+  GameList/GameTracker.h
   GameList/GridProxyModel.cpp
+  GameList/GridProxyModel.h
   GameList/ListProxyModel.cpp
+  GameList/ListProxyModel.h
   GCMemcardManager.cpp
+  GCMemcardManager.h
   QtUtils/BlockUserInputFilter.cpp
+  QtUtils/BlockUserInputFilter.h
   NetPlay/ChunkedProgressDialog.cpp
+  NetPlay/ChunkedProgressDialog.h
   NetPlay/GameListDialog.cpp
+  NetPlay/GameListDialog.h
   NetPlay/MD5Dialog.cpp
+  NetPlay/MD5Dialog.h
   NetPlay/NetPlayBrowser.cpp
+  NetPlay/NetPlayBrowser.h
   NetPlay/NetPlayDialog.cpp
+  NetPlay/NetPlayDialog.h
   NetPlay/NetPlaySetupDialog.cpp
+  NetPlay/NetPlaySetupDialog.h
   NetPlay/PadMappingDialog.cpp
+  NetPlay/PadMappingDialog.h
   QtUtils/DoubleClickEventFilter.cpp
+  QtUtils/DoubleClickEventFilter.h
   QtUtils/ElidedButton.cpp
+  QtUtils/ElidedButton.h
   QtUtils/FlowLayout.cpp
+  QtUtils/FlowLayout.h
   QtUtils/ModalMessageBox.cpp
+  QtUtils/ModalMessageBox.h
   QtUtils/ImageConverter.cpp
+  QtUtils/ImageConverter.h
   QtUtils/WindowActivationEventFilter.cpp
+  QtUtils/WindowActivationEventFilter.h
   QtUtils/WinIconHelper.cpp
+  QtUtils/WinIconHelper.h
   QtUtils/WrapInScrollArea.cpp
+  QtUtils/WrapInScrollArea.h
   QtUtils/AspectRatioWidget.cpp
+  QtUtils/AspectRatioWidget.h
   ResourcePackManager.cpp
+  ResourcePackManager.h
   Settings/AdvancedPane.cpp
+  Settings/AdvancedPane.h
   Settings/AudioPane.cpp
+  Settings/AudioPane.h
   Settings/GameCubePane.cpp
+  Settings/GameCubePane.h
   Settings/GeneralPane.cpp
+  Settings/GeneralPane.h
   Settings/InterfacePane.cpp
+  Settings/InterfacePane.h
   Settings/PathPane.cpp
+  Settings/PathPane.h
   Settings/WiiPane.cpp
+  Settings/WiiPane.h
   Settings/USBDeviceAddToWhitelistDialog.cpp
+  Settings/USBDeviceAddToWhitelistDialog.h
   TAS/GCTASInputWindow.cpp
+  TAS/GCTASInputWindow.h
   TAS/WiiTASInputWindow.cpp
+  TAS/WiiTASInputWindow.h
   TAS/TASCheckBox.cpp
+  TAS/TASCheckBox.h
   TAS/TASInputWindow.cpp
+  TAS/TASInputWindow.h
   TAS/StickWidget.cpp
+  TAS/StickWidget.h
   TAS/IRWidget.cpp
+  TAS/IRWidget.h
   Updater.cpp
+  Updater.h
 )
 
 if (NOT WIN32)
-  target_sources(dolphin-emu PRIVATE QtUtils/SignalDaemon.cpp)
+  target_sources(dolphin-emu PRIVATE
+    QtUtils/SignalDaemon.cpp
+    QtUtils/SignalDaemon.h
+  )
 endif()
 
 target_compile_definitions(dolphin-emu

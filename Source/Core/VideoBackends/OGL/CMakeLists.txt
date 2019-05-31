@@ -1,16 +1,28 @@
 add_library(videoogl
   BoundingBox.cpp
+  BoundingBox.h
+  GPUTimer.h
   main.cpp
   NativeVertexFormat.cpp
   OGLPipeline.cpp
+  OGLPipeline.h
   OGLShader.cpp
+  OGLShader.h
   OGLTexture.cpp
+  OGLTexture.h
   PerfQuery.cpp
+  PerfQuery.h
   ProgramShaderCache.cpp
+  ProgramShaderCache.h
   Render.cpp
+  Render.h
   SamplerCache.cpp
+  SamplerCache.h
   StreamBuffer.cpp
+  StreamBuffer.h
   VertexManager.cpp
+  VertexManager.h
+  VideoBackend.h
 )
 
 target_link_libraries(videoogl

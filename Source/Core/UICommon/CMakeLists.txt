@@ -1,17 +1,30 @@
 add_library(uicommon
   AutoUpdate.cpp
+  AutoUpdate.h
   CommandLineParse.cpp
+  CommandLineParse.h
   Disassembler.cpp
+  Disassembler.h
   DiscordPresence.cpp
+  DiscordPresence.h
   GameFile.cpp
+  GameFile.h
   GameFileCache.cpp
+  GameFileCache.h
   NetPlayIndex.cpp
+  NetPlayIndex.h
   ResourcePack/Manager.cpp
+  ResourcePack/Manager.h
   ResourcePack/Manifest.cpp
+  ResourcePack/Manifest.h
   ResourcePack/ResourcePack.cpp
+  ResourcePack/ResourcePack.h
   UICommon.cpp
+  UICommon.h
   USBUtils.cpp
+  USBUtils.h
   VideoUtils.cpp
+  VideoUtils.h
 )
 
 target_link_libraries(uicommon

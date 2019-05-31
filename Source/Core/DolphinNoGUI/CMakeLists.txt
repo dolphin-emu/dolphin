@@ -1,5 +1,6 @@
 add_executable(dolphin-nogui
   Platform.cpp
+  Platform.h
   PlatformHeadless.cpp
   MainNoGUI.cpp
 )
