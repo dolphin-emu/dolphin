@@ -16,6 +16,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -347,7 +348,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   // Pointers to vertex arrays in GC RAM
   case 0xA0:
-    state->array_bases[sub_cmd & 0xF] = value;
+    state->array_bases[sub_cmd & 0xF] = value & CommandProcessor::GetPhysicalAddressMask();
     state->bases_dirty = true;
     break;
 
