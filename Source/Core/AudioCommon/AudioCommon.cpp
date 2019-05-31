@@ -21,13 +21,13 @@
 // This shouldn't be a global, at least not here.
 std::unique_ptr<SoundStream> g_sound_stream;
 
+namespace AudioCommon
+{
 static bool s_audio_dump_start = false;
 static bool s_sound_stream_running = false;
 
-namespace AudioCommon
-{
-static const int AUDIO_VOLUME_MIN = 0;
-static const int AUDIO_VOLUME_MAX = 100;
+constexpr int AUDIO_VOLUME_MIN = 0;
+constexpr int AUDIO_VOLUME_MAX = 100;
 
 void InitSoundStream()
 {
@@ -99,25 +99,25 @@ std::vector<std::string> GetSoundBackends()
 {
   std::vector<std::string> backends;
 
-  backends.push_back(BACKEND_NULLSOUND);
-  backends.push_back(BACKEND_CUBEB);
+  backends.emplace_back(BACKEND_NULLSOUND);
+  backends.emplace_back(BACKEND_CUBEB);
   if (XAudio2_7::isValid() || XAudio2::isValid())
-    backends.push_back(BACKEND_XAUDIO2);
+    backends.emplace_back(BACKEND_XAUDIO2);
   if (AlsaSound::isValid())
-    backends.push_back(BACKEND_ALSA);
+    backends.emplace_back(BACKEND_ALSA);
   if (PulseAudio::isValid())
-    backends.push_back(BACKEND_PULSEAUDIO);
+    backends.emplace_back(BACKEND_PULSEAUDIO);
   if (OpenALStream::isValid())
-    backends.push_back(BACKEND_OPENAL);
+    backends.emplace_back(BACKEND_OPENAL);
   if (OpenSLESStream::isValid())
-    backends.push_back(BACKEND_OPENSLES);
+    backends.emplace_back(BACKEND_OPENSLES);
   if (WASAPIStream::isValid())
-    backends.push_back(BACKEND_WASAPI);
+    backends.emplace_back(BACKEND_WASAPI);
 
   return backends;
 }
 
-bool SupportsDPL2Decoder(const std::string& backend)
+bool SupportsDPL2Decoder(std::string_view backend)
 {
 #ifndef __APPLE__
   if (backend == BACKEND_OPENAL)
@@ -132,12 +132,12 @@ bool SupportsDPL2Decoder(const std::string& backend)
   return false;
 }
 
-bool SupportsLatencyControl(const std::string& backend)
+bool SupportsLatencyControl(std::string_view backend)
 {
   return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
-bool SupportsVolumeChanges(const std::string& backend)
+bool SupportsVolumeChanges(std::string_view backend)
 {
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
