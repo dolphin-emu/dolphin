@@ -21,13 +21,13 @@
 // This shouldn't be a global, at least not here.
 std::unique_ptr<SoundStream> g_sound_stream;
 
+namespace AudioCommon
+{
 static bool s_audio_dump_start = false;
 static bool s_sound_stream_running = false;
 
-namespace AudioCommon
-{
-static const int AUDIO_VOLUME_MIN = 0;
-static const int AUDIO_VOLUME_MAX = 100;
+constexpr int AUDIO_VOLUME_MIN = 0;
+constexpr int AUDIO_VOLUME_MAX = 100;
 
 void InitSoundStream()
 {
