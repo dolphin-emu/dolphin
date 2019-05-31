@@ -176,7 +176,7 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 #endif
 }  // Anonymous namespace
 
-USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, PressedKeyData pressed_keys)
+USB_KBD::MessageData::MessageData(u32 type, u8 modifiers, PressedKeyData pressed_keys)
     : MsgType{Common::swap32(type)}, Modifiers{modifiers}, PressedKeys{pressed_keys}
 {
 }
@@ -213,7 +213,7 @@ IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
       ControlReference::InputGateOn() && !m_MessageQueue.empty())
   {
-    Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
+    Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(MessageData));
     m_MessageQueue.pop();
   }
   return GetDefaultReply(IPC_SUCCESS);
