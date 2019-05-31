@@ -219,13 +219,10 @@ IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-bool USB_KBD::IsKeyPressed(int _Key)
+bool USB_KBD::IsKeyPressed(int key) const
 {
 #ifdef _WIN32
-  if (GetAsyncKeyState(_Key) & 0x8000)
-    return true;
-  else
-    return false;
+  return (GetAsyncKeyState(key) & 0x8000) != 0;
 #else
   // TODO: do it for non-Windows platforms
   return false;

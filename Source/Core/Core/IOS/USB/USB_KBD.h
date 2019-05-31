@@ -54,7 +54,7 @@ private:
   std::array<bool, 256> m_OldKeyBuffer{};
   u8 m_OldModifiers = 0;
 
-  virtual bool IsKeyPressed(int _Key);
+  bool IsKeyPressed(int key) const;
 
   // This stuff should probably die
   enum
