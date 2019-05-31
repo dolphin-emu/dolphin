@@ -291,8 +291,8 @@ void USB_KBD::Update()
     Modifiers |= 0x10;
   if (GetAsyncKeyState(VK_RSHIFT) & 0x8000)
     Modifiers |= 0x20;
-  if (GetAsyncKeyState(VK_MENU) &
-      0x8000)  // TODO: VK_MENU is for ALT, not for ALT GR (ALT GR seems to work though...)
+  // TODO: VK_MENU is for ALT, not for ALT GR (ALT GR seems to work though...)
+  if (GetAsyncKeyState(VK_MENU) & 0x8000)
     Modifiers |= 0x40;
   if (GetAsyncKeyState(VK_RWIN) & 0x8000)
     Modifiers |= 0x80;
