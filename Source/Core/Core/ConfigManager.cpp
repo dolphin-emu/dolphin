@@ -34,6 +34,7 @@
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/HSP/HSP.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
@@ -218,6 +219,11 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SlotA", m_EXIDevice[0]);
   core->Set("SlotB", m_EXIDevice[1]);
   core->Set("SerialPort1", m_EXIDevice[2]);
+  core->Set("HSP", m_HSPDevice);
+  core->Set("ARAMExpansion", m_ARAMExpansion);
+  core->Set("GBPGame", m_GBPGame);
+  core->Set("GBPBootrom", m_GBPBootrom);
+  core->Set("GBPBootromCgb", m_GBPBootromCgb);
   core->Set("BBA_MAC", m_bba_mac);
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
@@ -493,6 +499,11 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
   core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
+  core->Get("HSP", (int*)&m_HSPDevice, HSP::HSPDEVICE_NONE);
+  core->Get("ARAMExpansion", &m_ARAMExpansion);
+  core->Get("GBPGame", &m_GBPGame);
+  core->Get("GBPBootrom", &m_GBPBootrom);
+  core->Get("GBPBootromCgb", &m_GBPBootromCgb);
   core->Get("BBA_MAC", &m_bba_mac);
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {

@@ -27,6 +27,7 @@ enum LOG_TYPE
   FILEMON,
   GDB_STUB,
   GPFIFO,
+  HSP,
   HOST_GPU,
   IOS,
   IOS_DI,
