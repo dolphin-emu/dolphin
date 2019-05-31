@@ -138,12 +138,19 @@ void Init()
   et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
+u32 GetPhysicalAddressMask()
+{
+  // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
+  // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.
+  return SConfig::GetInstance().bWii ? 0x1fffffff : 0x03ffffff;
+}
+
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   constexpr u16 WMASK_NONE = 0x0000;
   constexpr u16 WMASK_ALL = 0xffff;
   constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
-  const u16 WMASK_HI_RESTRICT = SConfig::GetInstance().bWii ? 0x1fff : 0x03ff;
+  const u16 WMASK_HI_RESTRICT = GetPhysicalAddressMask() >> 16;
 
   struct
   {

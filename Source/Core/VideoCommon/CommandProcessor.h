@@ -169,4 +169,6 @@ void SetCpStatusRegister();
 
 void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess);
 
+u32 GetPhysicalAddressMask();
+
 }  // namespace CommandProcessor
