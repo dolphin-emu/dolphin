@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 
 #include <mbedtls/bignum.h>
 #include <zlib.h>
@@ -35,7 +36,7 @@ struct MPI : mbedtls_mpi
   template <std::size_t N>
   bool ReadBinary(const u8 (&in_data)[N])
   {
-    return 0 == mbedtls_mpi_read_binary(this, std::begin(in_data), ArraySize(in_data));
+    return 0 == mbedtls_mpi_read_binary(this, std::begin(in_data), std::size(in_data));
   }
 
   template <std::size_t N>

@@ -4,6 +4,7 @@
 
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 
+#include <array>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -126,17 +127,17 @@ void GeckoSockServer::ClientThread()
       std::lock_guard<std::mutex> lk(transfer_lock);
 
       // what's an ideal buffer size?
-      char data[128];
+      std::array<char, 128> buffer;
       std::size_t got = 0;
 
-      if (client->receive(&data[0], ArraySize(data), got) == sf::Socket::Disconnected)
+      if (client->receive(buffer.data(), buffer.size(), got) == sf::Socket::Disconnected)
         client_running.Clear();
 
       if (got != 0)
       {
         did_nothing = false;
 
-        recv_fifo.insert(recv_fifo.end(), &data[0], &data[got]);
+        recv_fifo.insert(recv_fifo.end(), buffer.data(), &buffer[got]);
       }
 
       if (!send_fifo.empty())

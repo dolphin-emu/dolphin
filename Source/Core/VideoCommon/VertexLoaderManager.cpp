@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/VertexLoaderManager.h"
+
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -11,7 +14,6 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 
@@ -23,7 +25,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 
@@ -168,21 +169,21 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
     CopyAttribute(new_decl.position, decl.position);
   else
     MakeDummyAttribute(new_decl.position, VAR_FLOAT, 1, false);
-  for (size_t i = 0; i < ArraySize(new_decl.normals); i++)
+  for (size_t i = 0; i < std::size(new_decl.normals); i++)
   {
     if (decl.normals[i].enable)
       CopyAttribute(new_decl.normals[i], decl.normals[i]);
     else
       MakeDummyAttribute(new_decl.normals[i], VAR_FLOAT, 1, false);
   }
-  for (size_t i = 0; i < ArraySize(new_decl.colors); i++)
+  for (size_t i = 0; i < std::size(new_decl.colors); i++)
   {
     if (decl.colors[i].enable)
       CopyAttribute(new_decl.colors[i], decl.colors[i]);
     else
       MakeDummyAttribute(new_decl.colors[i], VAR_UNSIGNED_BYTE, 4, false);
   }
-  for (size_t i = 0; i < ArraySize(new_decl.texcoords); i++)
+  for (size_t i = 0; i < std::size(new_decl.texcoords); i++)
   {
     if (decl.texcoords[i].enable)
       CopyAttribute(new_decl.texcoords[i], decl.texcoords[i]);

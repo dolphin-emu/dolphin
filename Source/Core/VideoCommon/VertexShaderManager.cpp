@@ -2,15 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cfloat>
+#include "VideoCommon/VertexShaderManager.h"
+
+#include <array>
 #include <cmath>
 #include <cstring>
-#include <sstream>
-#include <string>
+#include <iterator>
 
 #include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
@@ -22,7 +22,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -251,13 +250,14 @@ void VertexShaderManager::SetConstants()
   if (bTexMatricesChanged[0])
   {
     bTexMatricesChanged[0] = false;
-    const float* pos_matrix_ptrs[] = {
+    const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4],
-        &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4]};
+        &xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4],
+    };
 
-    for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
+    for (size_t i = 0; i < pos_matrix_ptrs.size(); ++i)
     {
       memcpy(constants.texmatrices[3 * i].data(), pos_matrix_ptrs[i], 3 * sizeof(float4));
     }
@@ -267,13 +267,14 @@ void VertexShaderManager::SetConstants()
   if (bTexMatricesChanged[1])
   {
     bTexMatricesChanged[1] = false;
-    const float* pos_matrix_ptrs[] = {
+    const std::array<const float*, 4> pos_matrix_ptrs{
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
         &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4],
-        &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4]};
+        &xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4],
+    };
 
-    for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
+    for (size_t i = 0; i < pos_matrix_ptrs.size(); ++i)
     {
       memcpy(constants.texmatrices[3 * i + 12].data(), pos_matrix_ptrs[i], 3 * sizeof(float4));
     }
@@ -461,9 +462,9 @@ void VertexShaderManager::SetConstants()
   {
     bTexMtxInfoChanged = false;
     constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled;
-    for (size_t i = 0; i < ArraySize(xfmem.texMtxInfo); i++)
+    for (size_t i = 0; i < std::size(xfmem.texMtxInfo); i++)
       constants.xfmem_pack1[i][0] = xfmem.texMtxInfo[i].hex;
-    for (size_t i = 0; i < ArraySize(xfmem.postMtxInfo); i++)
+    for (size_t i = 0; i < std::size(xfmem.postMtxInfo); i++)
       constants.xfmem_pack1[i][1] = xfmem.postMtxInfo[i].hex;
 
     dirty = true;

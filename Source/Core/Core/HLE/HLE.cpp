@@ -5,6 +5,7 @@
 #include "Core/HLE/HLE.h"
 
 #include <algorithm>
+#include <array>
 #include <map>
 
 #include "Common/CommonTypes.h"
@@ -41,7 +42,7 @@ struct SPatch
 };
 
 // clang-format off
-static const SPatch OSPatches[] = {
+constexpr std::array<SPatch, 21> OSPatches{{
     // Placeholder, OSPatches[0] is the "non-existent function" index
     {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HookType::Replace, HookFlag::Generic},
 
@@ -72,16 +73,16 @@ static const SPatch OSPatches[] = {
     {"GeckoCodehandler",             HLE_Misc::GeckoCodeHandlerICacheFlush, HookType::Start,   HookFlag::Fixed},
     {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline,       HookType::Replace, HookFlag::Fixed},
     {"AppLoaderReport",              HLE_OS::HLE_GeneralDebugPrint,         HookType::Replace, HookFlag::Fixed} // apploader needs OSReport-like function
-};
+}};
 
-static const SPatch OSBreakPoints[] = {
+constexpr std::array<SPatch, 1> OSBreakPoints{{
     {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction, HookType::Start, HookFlag::Generic},
-};
+}};
 // clang-format on
 
 void Patch(u32 addr, const char* hle_func_name)
 {
-  for (u32 i = 1; i < ArraySize(OSPatches); ++i)
+  for (u32 i = 1; i < OSPatches.size(); ++i)
   {
     if (!strcmp(OSPatches[i].m_szPatchName, hle_func_name))
     {
@@ -126,7 +127,7 @@ void PatchFunctions()
     }
   }
 
-  for (u32 i = 1; i < ArraySize(OSPatches); ++i)
+  for (u32 i = 1; i < OSPatches.size(); ++i)
   {
     // Fixed hooks don't map to symbols
     if (OSPatches[i].flags == HookFlag::Fixed)
@@ -145,7 +146,7 @@ void PatchFunctions()
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
-    for (size_t i = 1; i < ArraySize(OSBreakPoints); ++i)
+    for (size_t i = 1; i < OSBreakPoints.size(); ++i)
     {
       for (const auto& symbol : g_symbolDB.GetSymbolsFromName(OSBreakPoints[i].m_szPatchName))
       {
@@ -173,7 +174,7 @@ void Reload()
 void Execute(u32 _CurrentPC, u32 _Instruction)
 {
   unsigned int FunctionIndex = _Instruction & 0xFFFFF;
-  if (FunctionIndex > 0 && FunctionIndex < ArraySize(OSPatches))
+  if (FunctionIndex > 0 && FunctionIndex < OSPatches.size())
   {
     OSPatches[FunctionIndex].PatchFunction();
   }
@@ -216,14 +217,14 @@ bool IsEnabled(HookFlag flag)
 
 u32 UnPatch(const std::string& patch_name)
 {
-  auto* patch = std::find_if(std::begin(OSPatches), std::end(OSPatches),
-                             [&](const SPatch& p) { return patch_name == p.m_szPatchName; });
+  const auto patch = std::find_if(std::begin(OSPatches), std::end(OSPatches),
+                                  [&](const SPatch& p) { return patch_name == p.m_szPatchName; });
   if (patch == std::end(OSPatches))
     return 0;
 
   if (patch->flags == HookFlag::Fixed)
   {
-    u32 patch_idx = static_cast<u32>(patch - OSPatches);
+    const u32 patch_idx = static_cast<u32>(std::distance(OSPatches.begin(), patch));
     u32 addr = 0;
     // Reverse search by OSPatch key instead of address
     for (auto i = s_original_instructions.begin(); i != s_original_instructions.end();)

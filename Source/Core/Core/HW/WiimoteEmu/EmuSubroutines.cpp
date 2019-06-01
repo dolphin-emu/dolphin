@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <iterator>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
@@ -393,7 +394,7 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
   // (important to keep decoder in proper state)
   if (!m_speaker_mute)
   {
-    if (rpt.length > ArraySize(rpt.data))
+    if (rpt.length > std::size(rpt.data))
     {
       ERROR_LOG(WIIMOTE, "Bad speaker data length: %d", rpt.length);
     }

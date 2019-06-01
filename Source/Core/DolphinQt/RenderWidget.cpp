@@ -2,6 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt/RenderWidget.h"
+
+#include <array>
+
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QDragEnterEvent>
@@ -25,7 +29,6 @@
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -277,7 +280,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     const bool is_down = event->type() == QEvent::KeyPress;
     const u32 key = static_cast<u32>(key_event->key() & 0x1FF);
     auto lock = g_renderer->GetImGuiLock();
-    if (key < ArraySize(ImGui::GetIO().KeysDown))
+    if (key < std::size(ImGui::GetIO().KeysDown))
       ImGui::GetIO().KeysDown[key] = is_down;
 
     if (is_down)
@@ -306,7 +309,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
   {
     auto lock = g_renderer->GetImGuiLock();
     const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
-    for (size_t i = 0; i < ArraySize(ImGui::GetIO().MouseDown); i++)
+    for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
       ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
   }
   break;
@@ -318,28 +321,30 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
 
 void RenderWidget::SetImGuiKeyMap()
 {
-  static const int key_map[][2] = {{ImGuiKey_Tab, Qt::Key_Tab},
-                                   {ImGuiKey_LeftArrow, Qt::Key_Left},
-                                   {ImGuiKey_RightArrow, Qt::Key_Right},
-                                   {ImGuiKey_UpArrow, Qt::Key_Up},
-                                   {ImGuiKey_DownArrow, Qt::Key_Down},
-                                   {ImGuiKey_PageUp, Qt::Key_PageUp},
-                                   {ImGuiKey_PageDown, Qt::Key_PageDown},
-                                   {ImGuiKey_Home, Qt::Key_Home},
-                                   {ImGuiKey_End, Qt::Key_End},
-                                   {ImGuiKey_Insert, Qt::Key_Insert},
-                                   {ImGuiKey_Delete, Qt::Key_Delete},
-                                   {ImGuiKey_Backspace, Qt::Key_Backspace},
-                                   {ImGuiKey_Space, Qt::Key_Space},
-                                   {ImGuiKey_Enter, Qt::Key_Return},
-                                   {ImGuiKey_Escape, Qt::Key_Escape},
-                                   {ImGuiKey_A, Qt::Key_A},
-                                   {ImGuiKey_C, Qt::Key_C},
-                                   {ImGuiKey_V, Qt::Key_V},
-                                   {ImGuiKey_X, Qt::Key_X},
-                                   {ImGuiKey_Y, Qt::Key_Y},
-                                   {ImGuiKey_Z, Qt::Key_Z}};
+  static constexpr std::array<std::array<int, 2>, 21> key_map{{
+      {ImGuiKey_Tab, Qt::Key_Tab},
+      {ImGuiKey_LeftArrow, Qt::Key_Left},
+      {ImGuiKey_RightArrow, Qt::Key_Right},
+      {ImGuiKey_UpArrow, Qt::Key_Up},
+      {ImGuiKey_DownArrow, Qt::Key_Down},
+      {ImGuiKey_PageUp, Qt::Key_PageUp},
+      {ImGuiKey_PageDown, Qt::Key_PageDown},
+      {ImGuiKey_Home, Qt::Key_Home},
+      {ImGuiKey_End, Qt::Key_End},
+      {ImGuiKey_Insert, Qt::Key_Insert},
+      {ImGuiKey_Delete, Qt::Key_Delete},
+      {ImGuiKey_Backspace, Qt::Key_Backspace},
+      {ImGuiKey_Space, Qt::Key_Space},
+      {ImGuiKey_Enter, Qt::Key_Return},
+      {ImGuiKey_Escape, Qt::Key_Escape},
+      {ImGuiKey_A, Qt::Key_A},
+      {ImGuiKey_C, Qt::Key_C},
+      {ImGuiKey_V, Qt::Key_V},
+      {ImGuiKey_X, Qt::Key_X},
+      {ImGuiKey_Y, Qt::Key_Y},
+      {ImGuiKey_Z, Qt::Key_Z},
+  }};
   auto lock = g_renderer->GetImGuiLock();
-  for (size_t i = 0; i < ArraySize(key_map); i++)
-    ImGui::GetIO().KeyMap[key_map[i][0]] = (key_map[i][1] & 0x1FF);
+  for (auto entry : key_map)
+    ImGui::GetIO().KeyMap[entry[0]] = entry[1] & 0x1FF;
 }
