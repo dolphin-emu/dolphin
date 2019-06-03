@@ -1,5 +1,6 @@
 #include "Core/Analytics.h"
 
+#include <array>
 #include <cinttypes>
 #include <mbedtls/sha1.h>
 #include <memory>
@@ -138,12 +139,11 @@ void DolphinAnalytics::ReportGameStart()
 }
 
 // Keep in sync with enum class GameQuirk definition.
-static const char* GAME_QUIRKS_NAMES[] = {
+constexpr std::array<const char*, 2> GAME_QUIRKS_NAMES{
     "icache-matters",
     "directly-reads-wiimote-input",
 };
-static_assert(sizeof(GAME_QUIRKS_NAMES) / sizeof(GAME_QUIRKS_NAMES[0]) ==
-                  static_cast<u32>(GameQuirk::COUNT),
+static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
               "Game quirks names and enum definition are out of sync.");
 
 void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
