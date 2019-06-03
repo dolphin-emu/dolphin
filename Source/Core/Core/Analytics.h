@@ -127,6 +127,6 @@ private:
 
   // Shared pointer in order to allow for multithreaded use of the instance and
   // avoid races at reinitialization time.
-  static std::mutex s_instance_mutex;
-  static std::shared_ptr<DolphinAnalytics> s_instance;
+  static inline std::mutex s_instance_mutex;
+  static inline std::shared_ptr<DolphinAnalytics> s_instance;
 };

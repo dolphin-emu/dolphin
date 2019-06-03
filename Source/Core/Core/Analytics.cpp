@@ -39,9 +39,6 @@ namespace
 constexpr const char* ANALYTICS_ENDPOINT = "https://analytics.dolphin-emu.org/report";
 }  // namespace
 
-std::mutex DolphinAnalytics::s_instance_mutex;
-std::shared_ptr<DolphinAnalytics> DolphinAnalytics::s_instance;
-
 #if defined(ANDROID)
 static std::function<std::string(std::string)> s_get_val_func;
 void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::string)> func)
