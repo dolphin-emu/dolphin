@@ -198,7 +198,7 @@ void StdoutAnalyticsBackend::Send(std::string report)
          HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
 }
 
-HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint) : m_endpoint(endpoint)
+HttpAnalyticsBackend::HttpAnalyticsBackend(std::string endpoint) : m_endpoint(std::move(endpoint))
 {
 }
 

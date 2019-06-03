@@ -184,7 +184,7 @@ public:
 class HttpAnalyticsBackend : public AnalyticsReportingBackend
 {
 public:
-  HttpAnalyticsBackend(const std::string& endpoint);
+  explicit HttpAnalyticsBackend(std::string endpoint);
   ~HttpAnalyticsBackend() override;
 
   void Send(std::string report) override;
