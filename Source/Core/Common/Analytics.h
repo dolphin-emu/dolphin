@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -86,7 +87,7 @@ public:
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(const std::string& key, const T& value)
+  AnalyticsReportBuilder& AddData(std::string_view key, const T& value)
   {
     std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
@@ -95,7 +96,7 @@ public:
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(const std::string& key, const std::vector<T>& value)
+  AnalyticsReportBuilder& AddData(std::string_view key, const std::vector<T>& value)
   {
     std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
@@ -117,7 +118,7 @@ public:
   }
 
 protected:
-  static void AppendSerializedValue(std::string* report, const std::string& v);
+  static void AppendSerializedValue(std::string* report, std::string_view v);
   static void AppendSerializedValue(std::string* report, const char* v);
   static void AppendSerializedValue(std::string* report, bool v);
   static void AppendSerializedValue(std::string* report, u64 v);
