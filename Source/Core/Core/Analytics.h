@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/Analytics.h"
@@ -49,7 +50,7 @@ public:
   void GenerateNewIdentity();
 
   // Reports a Dolphin start event.
-  void ReportDolphinStart(const std::string& ui_type);
+  void ReportDolphinStart(std::string_view ui_type);
 
   // Generates a base report for a "Game start" event. Also preseeds the
   // per-game base data.
@@ -88,7 +89,7 @@ private:
   // Returns a unique ID derived on the global unique ID, hashed with some
   // report-specific data. This avoid correlation between different types of
   // events.
-  std::string MakeUniqueId(const std::string& data);
+  std::string MakeUniqueId(std::string_view data);
 
   // Unique ID. This should never leave the application. Only used derived
   // values created by MakeUniqueId.

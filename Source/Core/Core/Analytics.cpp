@@ -101,11 +101,11 @@ void DolphinAnalytics::GenerateNewIdentity()
   SConfig::GetInstance().SaveSettings();
 }
 
-std::string DolphinAnalytics::MakeUniqueId(const std::string& data)
+std::string DolphinAnalytics::MakeUniqueId(std::string_view data)
 {
-  u8 digest[20];
-  std::string input = m_unique_id + data;
-  mbedtls_sha1(reinterpret_cast<const u8*>(input.c_str()), input.size(), digest);
+  std::array<u8, 20> digest;
+  const auto input = std::string{m_unique_id}.append(data);
+  mbedtls_sha1(reinterpret_cast<const u8*>(input.c_str()), input.size(), digest.data());
 
   // Convert to hex string and truncate to 64 bits.
   std::string out;
@@ -116,7 +116,7 @@ std::string DolphinAnalytics::MakeUniqueId(const std::string& data)
   return out;
 }
 
-void DolphinAnalytics::ReportDolphinStart(const std::string& ui_type)
+void DolphinAnalytics::ReportDolphinStart(std::string_view ui_type)
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
   builder.AddData("type", "dolphin-start");
