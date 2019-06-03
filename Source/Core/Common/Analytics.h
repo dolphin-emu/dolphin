@@ -46,7 +46,7 @@ namespace Common
 class AnalyticsReportingBackend
 {
 public:
-  virtual ~AnalyticsReportingBackend() {}
+  virtual ~AnalyticsReportingBackend() = default;
   // Called from the AnalyticsReporter backend thread.
   virtual void Send(std::string report) = 0;
 };
