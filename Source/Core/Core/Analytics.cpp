@@ -36,7 +36,7 @@
 
 namespace
 {
-constexpr const char* ANALYTICS_ENDPOINT = "https://analytics.dolphin-emu.org/report";
+constexpr char ANALYTICS_ENDPOINT[] = "https://analytics.dolphin-emu.org/report";
 }  // namespace
 
 #if defined(ANDROID)
