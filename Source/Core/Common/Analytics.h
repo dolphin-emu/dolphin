@@ -61,7 +61,7 @@ public:
   AnalyticsReportBuilder(const AnalyticsReportBuilder& other) { *this = other; }
   AnalyticsReportBuilder(AnalyticsReportBuilder&& other)
   {
-    std::lock_guard<std::mutex> lk(other.m_lock);
+    std::lock_guard lk{other.m_lock};
     m_report = std::move(other.m_report);
   }
 
@@ -69,8 +69,7 @@ public:
   {
     if (this != &other)
     {
-      std::lock_guard<std::mutex> lk(m_lock);
-      std::lock_guard<std::mutex> lk2(other.m_lock);
+      std::scoped_lock lk{m_lock, other.m_lock};
       m_report = other.m_report;
     }
     return *this;
@@ -81,7 +80,7 @@ public:
   {
     // Get before locking the object to avoid deadlocks with this += this.
     std::string other_report = other.Get();
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     m_report += other_report;
     return *this;
   }
@@ -89,7 +88,7 @@ public:
   template <typename T>
   AnalyticsReportBuilder& AddData(const std::string& key, const T& value)
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
     AppendSerializedValue(&m_report, value);
     return *this;
@@ -98,7 +97,7 @@ public:
   template <typename T>
   AnalyticsReportBuilder& AddData(const std::string& key, const std::vector<T>& value)
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
     AppendSerializedValueVector(&m_report, value);
     return *this;
@@ -106,14 +105,14 @@ public:
 
   std::string Get() const
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     return m_report;
   }
 
   // More efficient version of Get().
   std::string Consume()
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     return std::move(m_report);
   }
 
