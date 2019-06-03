@@ -101,7 +101,7 @@ void DolphinAnalytics::GenerateNewIdentity()
   SConfig::GetInstance().SaveSettings();
 }
 
-std::string DolphinAnalytics::MakeUniqueId(std::string_view data)
+std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
 {
   std::array<u8, 20> digest;
   const auto input = std::string{m_unique_id}.append(data);

@@ -89,7 +89,7 @@ private:
   // Returns a unique ID derived on the global unique ID, hashed with some
   // report-specific data. This avoid correlation between different types of
   // events.
-  std::string MakeUniqueId(std::string_view data);
+  std::string MakeUniqueId(std::string_view data) const;
 
   // Unique ID. This should never leave the application. Only used derived
   // values created by MakeUniqueId.
