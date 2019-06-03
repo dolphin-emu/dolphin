@@ -76,7 +76,7 @@ public:
   template <typename T>
   void Send(T report)
   {
-    std::lock_guard<std::mutex> lk(m_reporter_mutex);
+    std::lock_guard lk{m_reporter_mutex};
     m_reporter.Send(report);
   }
 

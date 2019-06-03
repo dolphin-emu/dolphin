@@ -58,7 +58,7 @@ DolphinAnalytics::DolphinAnalytics()
 
 std::shared_ptr<DolphinAnalytics> DolphinAnalytics::Instance()
 {
-  std::lock_guard<std::mutex> lk(s_instance_mutex);
+  std::lock_guard lk{s_instance_mutex};
   if (!s_instance)
   {
     s_instance.reset(new DolphinAnalytics());
@@ -68,7 +68,7 @@ std::shared_ptr<DolphinAnalytics> DolphinAnalytics::Instance()
 
 void DolphinAnalytics::ReloadConfig()
 {
-  std::lock_guard<std::mutex> lk(m_reporter_mutex);
+  std::lock_guard lk{m_reporter_mutex};
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
