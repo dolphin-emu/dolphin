@@ -803,6 +803,8 @@ void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID)
 
   s_padState.is_connected = PadStatus->isConnected;
 
+  s_padState.get_origin = (PadStatus->button & PAD_GET_ORIGIN) != 0;
+
   s_padState.disc = s_bDiscChange;
   s_bDiscChange = false;
   s_padState.reset = s_bReset;
@@ -1182,6 +1184,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     PadStatus->button |= PAD_TRIGGER_L;
   if (s_padState.R)
     PadStatus->button |= PAD_TRIGGER_R;
+
+  if (s_padState.get_origin)
+    PadStatus->button |= PAD_GET_ORIGIN;
+
   if (s_padState.disc)
   {
     Core::RunAsCPUThread([] {
