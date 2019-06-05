@@ -95,6 +95,7 @@ void ResourcePackManager::RepopulateTable()
     header->setSectionResizeMode(i, QHeaderView::ResizeToContents);
 
   header->setStretchLastSection(true);
+  header->setHighlightSections(false);
 
   int size = static_cast<int>(ResourcePack::GetPacks().size());
 
