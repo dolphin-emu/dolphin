@@ -735,9 +735,8 @@ void DSPEmitter::addis(const UDSPInstruction opc)
   MOV(64, R(RAX), R(tmp1));
   //	s64 imm = (s8)(u8)opc;
   //	imm <<= 16;
-  MOV(8, R(RDX), Imm8((u8)opc));
-  MOVSX(64, 8, RDX, R(RDX));
-  SHL(64, R(RDX), Imm8(16));
+  s32 imm = static_cast<u8>(opc) << 24 >> 8;
+  MOV(64, R(RDX), Imm32(imm));
   //	s64 res = acc + imm;
   ADD(64, R(RAX), R(RDX));
   //	dsp_set_long_acc(dreg, res);
