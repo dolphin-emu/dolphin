@@ -317,12 +317,11 @@ void DSPEmitter::increment_addr_reg(int reg)
   m_gpr.PutReg(DSP_REG_WR0 + reg, false);
 
   const OpArg ar_reg = m_gpr.GetReg(DSP_REG_AR0 + reg);
-  MOVZX(32, 16, EAX, ar_reg);
-
   X64Reg tmp1 = m_gpr.GetFreeXReg();
+  MOVZX(32, 16, tmp1, ar_reg);
+
   // u32 nar = ar + 1;
-  MOV(32, R(tmp1), R(EAX));
-  ADD(32, R(EAX), Imm8(1));
+  LEA(32, EAX, MDisp(tmp1, 1));
 
   // if ((nar ^ ar) > ((wr | 1) << 1))
   //		nar -= wr + 1;
