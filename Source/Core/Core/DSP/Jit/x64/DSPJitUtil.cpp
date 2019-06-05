@@ -665,28 +665,12 @@ void DSPEmitter::get_long_prod(X64Reg long_prod)
 }
 
 // Returns s64 in RAX
-// Clobbers RCX
 void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 {
   // s64 prod = dsp_get_long_prod();
   get_long_prod(long_prod);
 
-  X64Reg tmp = m_gpr.GetFreeXReg();
-  // if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
-  TEST(32, R(long_prod), Imm32(0x10000));
-  FixupBranch jump = J_CC(CC_Z);
-  ADD(64, R(long_prod), Imm32(0x8000));
-  MOV(64, R(tmp), Imm64(~0xffff));
-  AND(64, R(long_prod), R(tmp));
-  FixupBranch _ret = J();
-  // else prod = (prod + 0x7fff) & ~0xffff;
-  SetJumpTarget(jump);
-  ADD(64, R(long_prod), Imm32(0x7fff));
-  MOV(64, R(tmp), Imm64(~0xffff));
-  AND(64, R(long_prod), R(tmp));
-  SetJumpTarget(_ret);
-  // return prod;
-  m_gpr.PutXReg(tmp);
+  round_long_acc(long_prod);
 }
 
 // For accurate emulation, this is wrong - but the real prod registers behave
