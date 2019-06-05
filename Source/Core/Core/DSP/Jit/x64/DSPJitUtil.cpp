@@ -707,22 +707,13 @@ void DSPEmitter::set_long_prod()
 }
 
 // Returns s64 in RAX
-// Clobbers RCX
 void DSPEmitter::round_long_acc(X64Reg long_acc)
 {
   // if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
-  TEST(32, R(long_acc), Imm32(0x10000));
-  FixupBranch jump = J_CC(CC_Z);
-  ADD(64, R(long_acc), Imm32(0x8000));
-  MOV(64, R(ECX), Imm64(~0xffff));
-  AND(64, R(long_acc), R(RCX));
-  FixupBranch _ret = J();
   // else prod = (prod + 0x7fff) & ~0xffff;
-  SetJumpTarget(jump);
-  ADD(64, R(long_acc), Imm32(0x7fff));
-  MOV(64, R(RCX), Imm64(~0xffff));
-  AND(64, R(long_acc), R(RCX));
-  SetJumpTarget(_ret);
+  BT(32, R(long_acc), Imm8(16));
+  ADC(64, R(long_acc), Imm32(0x7FFF));
+  XOR(16, R(long_acc), R(long_acc));
   // return prod;
 }
 
