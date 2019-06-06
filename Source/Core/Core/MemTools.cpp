@@ -17,7 +17,7 @@
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/JitInterface.h"
 
-#ifdef __FreeBSD__
+#if defined __FreeBSD__ || defined __NetBSD__
 #include <signal.h>
 #endif
 #ifndef _WIN32
