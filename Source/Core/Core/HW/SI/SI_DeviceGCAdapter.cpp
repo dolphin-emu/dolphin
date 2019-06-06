@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCPad.h"
@@ -60,7 +61,7 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
     // into this port on the hardware gc adapter, exposing it to the game.
     if (!GCAdapter::DeviceConnected(m_device_number))
     {
-      TSIDevices device = SI_NONE;
+      u32 device = Common::swap32(SI_NONE);
       memcpy(buffer, &device, sizeof(device));
       return 4;
     }
