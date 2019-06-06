@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/Analytics.h"
@@ -49,7 +50,7 @@ public:
   void GenerateNewIdentity();
 
   // Reports a Dolphin start event.
-  void ReportDolphinStart(const std::string& ui_type);
+  void ReportDolphinStart(std::string_view ui_type);
 
   // Generates a base report for a "Game start" event. Also preseeds the
   // per-game base data.
@@ -75,7 +76,7 @@ public:
   template <typename T>
   void Send(T report)
   {
-    std::lock_guard<std::mutex> lk(m_reporter_mutex);
+    std::lock_guard lk{m_reporter_mutex};
     m_reporter.Send(report);
   }
 
@@ -88,7 +89,7 @@ private:
   // Returns a unique ID derived on the global unique ID, hashed with some
   // report-specific data. This avoid correlation between different types of
   // events.
-  std::string MakeUniqueId(const std::string& data);
+  std::string MakeUniqueId(std::string_view data) const;
 
   // Unique ID. This should never leave the application. Only used derived
   // values created by MakeUniqueId.
@@ -126,6 +127,6 @@ private:
 
   // Shared pointer in order to allow for multithreaded use of the instance and
   // avoid races at reinitialization time.
-  static std::mutex s_instance_mutex;
-  static std::shared_ptr<DolphinAnalytics> s_instance;
+  static inline std::mutex s_instance_mutex;
+  static inline std::shared_ptr<DolphinAnalytics> s_instance;
 };
