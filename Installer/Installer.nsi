@@ -140,6 +140,10 @@ Section "Base" SEC01
   File "${BASE_DIR}\Dolphin.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
+  File "${BASE_DIR}\DSPTool.exe"
+  File "${BASE_DIR}\Updater.exe"
+  File "${BASE_DIR}\qt.conf"
+  File /r "${BASE_DIR}\QtPlugins"
   File /r "${BASE_DIR}\Languages"
   File /r "${BASE_DIR}\Sys"
   
@@ -200,6 +204,9 @@ Section Uninstall
   Delete "$INSTDIR\license.txt"
   Delete "$INSTDIR\*.dll"
   Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\qt.conf"
+  Delete "$INSTDIR\DSPTool.exe"
+  Delete "$INSTDIR\Updater.exe"
 
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\${UN_NAME}.lnk"
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
@@ -208,6 +215,7 @@ Section Uninstall
   RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
   RMDir /r "$INSTDIR\Sys"
   RMDir /r "$INSTDIR\Languages"
+  RMDir /r "$INSTDIR\QtPlugins"
   RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
