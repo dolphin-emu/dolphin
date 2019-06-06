@@ -254,21 +254,23 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
   if (writable_map_file)
     *writable_map_file = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
 
-  bool found = false;
-  static const std::string maps_directories[] = {File::GetUserPath(D_MAPS_IDX),
-                                                 File::GetSysDirectory() + MAPS_DIR DIR_SEP};
-  for (size_t i = 0; !found && i < ArraySize(maps_directories); ++i)
+  static const std::array<std::string, 2> maps_directories{
+      File::GetUserPath(D_MAPS_IDX),
+      File::GetSysDirectory() + MAPS_DIR DIR_SEP,
+  };
+  for (const auto& directory : maps_directories)
   {
-    std::string path = maps_directories[i] + game_id + ".map";
+    std::string path = directory + game_id + ".map";
     if (File::Exists(path))
     {
-      found = true;
       if (existing_map_file)
-        *existing_map_file = path;
+        *existing_map_file = std::move(path);
+
+      return true;
     }
   }
 
-  return found;
+  return false;
 }
 
 bool CBoot::LoadMapFromFilename()

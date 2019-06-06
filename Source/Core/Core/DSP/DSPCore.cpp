@@ -147,8 +147,8 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
   std::fill(std::begin(g_dsp.reg_stack_ptr), std::end(g_dsp.reg_stack_ptr), 0);
 
-  for (size_t i = 0; i < ArraySize(g_dsp.reg_stack); i++)
-    std::fill(std::begin(g_dsp.reg_stack[i]), std::end(g_dsp.reg_stack[i]), 0);
+  for (auto& stack : g_dsp.reg_stack)
+    std::fill(std::begin(stack), std::end(stack), 0);
 
   // Fill IRAM with HALT opcodes.
   std::fill(g_dsp.iram, g_dsp.iram + DSP_IRAM_SIZE, 0x0021);

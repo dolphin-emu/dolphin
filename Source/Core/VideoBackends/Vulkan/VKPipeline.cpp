@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/VKPipeline.h"
+
+#include <array>
+
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
@@ -346,13 +349,15 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   };
 
   // Set viewport and scissor dynamic state so we can change it elsewhere.
-  static const VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT,
-                                                  VK_DYNAMIC_STATE_SCISSOR};
+  static const std::array<VkDynamicState, 2> dynamic_states{
+      VK_DYNAMIC_STATE_VIEWPORT,
+      VK_DYNAMIC_STATE_SCISSOR,
+  };
   static const VkPipelineDynamicStateCreateInfo dynamic_state = {
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
-      0,                                            // VkPipelineDynamicStateCreateFlags    flags
-      static_cast<u32>(ArraySize(dynamic_states)),  // uint32_t dynamicStateCount
-      dynamic_states  // const VkDynamicState*                pDynamicStates
+      0,                                        // VkPipelineDynamicStateCreateFlags    flags
+      static_cast<u32>(dynamic_states.size()),  // uint32_t dynamicStateCount
+      dynamic_states.data()  // const VkDynamicState*                pDynamicStates
   };
 
   // Combine to full pipeline info structure.

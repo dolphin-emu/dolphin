@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cmath>
-#include <cstring>
+#include "VideoCommon/PixelShaderManager.h"
+
+#include <iterator>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -114,7 +114,7 @@ void PixelShaderManager::SetConstants()
       constants.fogf[3] =
           static_cast<float>(g_renderer->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
 
-      for (size_t i = 0, vec_index = 0; i < ArraySize(bpmem.fogRange.K); i++)
+      for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); i++)
       {
         constexpr float scale = 4.0f;
         constants.fogrange[vec_index / 4][vec_index % 4] = bpmem.fogRange.K[i].GetValue(0) * scale;

@@ -2,14 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <algorithm>
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
+
+#include <array>
 #include <cstdint>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
@@ -94,18 +94,22 @@ bool CommandBufferManager::CreateCommandBuffers()
     }
 
     // TODO: A better way to choose the number of descriptors.
-    VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000},
-                                         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000},
-                                         {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16},
-                                         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 16384},
-                                         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 16384}};
+    const std::array<VkDescriptorPoolSize, 5> pool_sizes{{
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 16384},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 16384},
+    }};
 
-    VkDescriptorPoolCreateInfo pool_create_info = {VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-                                                   nullptr,
-                                                   0,
-                                                   100000,  // tweak this
-                                                   static_cast<u32>(ArraySize(pool_sizes)),
-                                                   pool_sizes};
+    const VkDescriptorPoolCreateInfo pool_create_info = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        nullptr,
+        0,
+        100000,  // tweak this
+        static_cast<u32>(pool_sizes.size()),
+        pool_sizes.data(),
+    };
 
     res = vkCreateDescriptorPool(device, &pool_create_info, nullptr, &resources.descriptor_pool);
     if (res != VK_SUCCESS)

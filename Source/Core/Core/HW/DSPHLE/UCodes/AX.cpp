@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <algorithm>
-
 #include "Core/HW/DSPHLE/UCodes/AX.h"
+
+#include <algorithm>
+#include <array>
+#include <iterator>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -45,12 +47,14 @@ void AXUCode::LoadResamplingCoefficients()
 {
   m_coeffs_available = false;
 
-  std::string filenames[] = {File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
-                             File::GetSysDirectory() + "/GC/dsp_coef.bin"};
+  const std::array<std::string, 2> filenames{
+      File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
+      File::GetSysDirectory() + "/GC/dsp_coef.bin",
+  };
 
   size_t fidx;
   std::string filename;
-  for (fidx = 0; fidx < ArraySize(filenames); ++fidx)
+  for (fidx = 0; fidx < filenames.size(); ++fidx)
   {
     filename = filenames[fidx];
     if (File::GetSize(filename) != 0x1000)
@@ -59,7 +63,7 @@ void AXUCode::LoadResamplingCoefficients()
     break;
   }
 
-  if (fidx >= ArraySize(filenames))
+  if (fidx >= filenames.size())
     return;
 
   INFO_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
@@ -449,8 +453,8 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                    m_coeffs_available ? m_coeffs : nullptr);
 
       // Forward the buffers
-      for (size_t i = 0; i < ArraySize(buffers.ptrs); ++i)
-        buffers.ptrs[i] += spms;
+      for (auto& ptr : buffers.ptrs)
+        ptr += spms;
     }
 
     WritePB(pb_addr, pb, m_crc);
@@ -587,13 +591,19 @@ void AXUCode::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 
                             u32 auxb_l_dl, u32 auxb_r_dl)
 {
   // Buffers to upload first
-  int* up_buffers[] = {m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround};
+  const std::array<const int*, 3> up_buffers{
+      m_samples_auxA_left,
+      m_samples_auxA_right,
+      m_samples_auxA_surround,
+  };
 
   // Upload AUXA LRS
   int* ptr = (int*)HLEMemory_Get_Pointer(main_auxa_up);
-  for (auto& up_buffer : up_buffers)
+  for (const auto& up_buffer : up_buffers)
+  {
     for (u32 j = 0; j < 32 * 5; ++j)
       *ptr++ = Common::swap32(up_buffer[j]);
+  }
 
   // Upload AUXB S
   ptr = (int*)HLEMemory_Get_Pointer(auxb_s_up);
@@ -601,13 +611,23 @@ void AXUCode::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 
     *ptr++ = Common::swap32(sample);
 
   // Download buffers and addresses
-  int* dl_buffers[] = {m_samples_left, m_samples_right, m_samples_auxB_left, m_samples_auxB_right};
-  u32 dl_addrs[] = {main_l_dl, main_r_dl, auxb_l_dl, auxb_r_dl};
+  const std::array<int*, 4> dl_buffers{
+      m_samples_left,
+      m_samples_right,
+      m_samples_auxB_left,
+      m_samples_auxB_right,
+  };
+  const std::array<u32, 4> dl_addrs{
+      main_l_dl,
+      main_r_dl,
+      auxb_l_dl,
+      auxb_r_dl,
+  };
 
   // Download and mix
-  for (size_t i = 0; i < ArraySize(dl_buffers); ++i)
+  for (size_t i = 0; i < dl_buffers.size(); ++i)
   {
-    int* dl_src = (int*)HLEMemory_Get_Pointer(dl_addrs[i]);
+    const int* dl_src = (int*)HLEMemory_Get_Pointer(dl_addrs[i]);
     for (size_t j = 0; j < 32 * 5; ++j)
       dl_buffers[i][j] += (int)Common::swap32(*dl_src++);
   }
@@ -666,7 +686,7 @@ void AXUCode::HandleMail(u32 mail)
 
 void AXUCode::CopyCmdList(u32 addr, u16 size)
 {
-  if (size >= ArraySize(m_cmdlist))
+  if (size >= std::size(m_cmdlist))
   {
     ERROR_LOG(DSPHLE, "Command list at %08x is too large: size=%d", addr, size);
     return;
