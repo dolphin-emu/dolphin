@@ -33,16 +33,7 @@ public:
   void Clear();
 
 private:
-  struct label_t
-  {
-    label_t(const std::string& lbl, s32 address, LabelType ltype)
-        : name(lbl), addr(address), type(ltype)
-    {
-    }
-    std::string name;
-    s32 addr;
-    LabelType type;
-  };
-  std::vector<label_t> labels;
+  struct Label;
+  std::vector<Label> labels;
 };
 }  // namespace DSP
