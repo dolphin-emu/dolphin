@@ -32,6 +32,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
 

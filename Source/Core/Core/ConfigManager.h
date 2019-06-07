@@ -11,9 +11,9 @@
 #include <utility>
 #include <vector>
 
-#include "Common/IniFile.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/SI/SI_Device.h"
+#include "Common/CommonTypes.h"
+
+class IniFile;
 
 namespace DiscIO
 {
@@ -24,18 +24,25 @@ struct Partition;
 class Volume;
 }  // namespace DiscIO
 
-namespace IOS
+namespace ExpansionInterface
 {
-namespace ES
+enum TEXIDevices : int;
+}  // namespace ExpansionInterface
+
+namespace IOS::ES
 {
 class TMDReader;
-}
-}  // namespace IOS
+}  // namespace IOS::ES
 
 namespace PowerPC
 {
 enum class CPUCore;
 }  // namespace PowerPC
+
+namespace SerialInterface
+{
+enum SIDevices : int;
+}  // namespace SerialInterface
 
 struct BootParameters;
 

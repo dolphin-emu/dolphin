@@ -44,6 +44,7 @@
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"

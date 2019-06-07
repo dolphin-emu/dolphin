@@ -86,6 +86,9 @@ public:
     std::vector<std::string> m_lines;
   };
 
+  IniFile();
+  ~IniFile();
+
   /**
    * Loads sections and keys.
    * @param filename filename of the ini file which should be loaded

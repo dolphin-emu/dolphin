@@ -14,6 +14,7 @@
 
 #include <climits>
 #include <cstdio>
+#include <cstring>
 
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>

@@ -121,6 +121,10 @@ bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remo
 
 // IniFile
 
+IniFile::IniFile() = default;
+
+IniFile::~IniFile() = default;
+
 const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
 {
   for (const Section& sect : sections)
