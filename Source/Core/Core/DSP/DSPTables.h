@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <string>
+#include <string_view>
 
 #include "Core/DSP/DSPCommon.h"
 
@@ -111,10 +111,10 @@ void ZeroWriteBackLogPreserveAcc(u8 acc);
 
 // Used by the assembler and disassembler for info retrieval.
 const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode);
-const DSPOPCTemplate* FindOpInfoByName(const std::string& name);
+const DSPOPCTemplate* FindOpInfoByName(std::string_view name);
 
 const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode);
-const DSPOPCTemplate* FindExtOpInfoByName(const std::string& name);
+const DSPOPCTemplate* FindExtOpInfoByName(std::string_view name);
 
 // Used by the interpreter and JIT for instruction emulation
 const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst);
