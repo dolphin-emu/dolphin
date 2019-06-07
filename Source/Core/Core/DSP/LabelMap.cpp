@@ -33,11 +33,11 @@ void LabelMap::RegisterDefaults()
 
 void LabelMap::RegisterLabel(const std::string& label, u16 lval, LabelType type)
 {
-  u16 old_value;
-  if (GetLabelValue(label, &old_value) && old_value != lval)
+  const std::optional<u16> old_value = GetLabelValue(label);
+  if (old_value && old_value != lval)
   {
     printf("WARNING: Redefined label %s to %04x - old value %04x\n", label.c_str(), lval,
-           old_value);
+           *old_value);
     DeleteLabel(label);
   }
   labels.emplace_back(label, lval, type);
@@ -54,16 +54,15 @@ void LabelMap::DeleteLabel(const std::string& label)
   labels.erase(iter);
 }
 
-bool LabelMap::GetLabelValue(const std::string& name, u16* value, LabelType type) const
+std::optional<u16> LabelMap::GetLabelValue(const std::string& name, LabelType type) const
 {
-  for (auto& label : labels)
+  for (const auto& label : labels)
   {
-    if (!name.compare(label.name))
+    if (name == label.name)
     {
-      if (type & label.type)
+      if ((type & label.type) != 0)
       {
-        *value = label.addr;
-        return true;
+        return label.addr;
       }
       else
       {
@@ -71,7 +70,8 @@ bool LabelMap::GetLabelValue(const std::string& name, u16* value, LabelType type
       }
     }
   }
-  return false;
+
+  return std::nullopt;
 }
 
 void LabelMap::Clear()
