@@ -14,8 +14,8 @@ namespace DSP
 {
 struct LabelMap::Label
 {
-  Label(const std::string& lbl, s32 address, LabelType ltype)
-      : name(lbl), addr(address), type(ltype)
+  Label(std::string lbl, s32 address, LabelType ltype)
+      : name(std::move(lbl)), addr(address), type(ltype)
   {
   }
   std::string name;
@@ -42,7 +42,7 @@ void LabelMap::RegisterDefaults()
   }
 }
 
-void LabelMap::RegisterLabel(const std::string& label, u16 lval, LabelType type)
+void LabelMap::RegisterLabel(std::string label, u16 lval, LabelType type)
 {
   const std::optional<u16> old_value = GetLabelValue(label);
   if (old_value && old_value != lval)
@@ -51,10 +51,10 @@ void LabelMap::RegisterLabel(const std::string& label, u16 lval, LabelType type)
            *old_value);
     DeleteLabel(label);
   }
-  labels.emplace_back(label, lval, type);
+  labels.emplace_back(std::move(label), lval, type);
 }
 
-void LabelMap::DeleteLabel(const std::string& label)
+void LabelMap::DeleteLabel(std::string_view label)
 {
   const auto iter = std::find_if(labels.cbegin(), labels.cend(),
                                  [&label](const auto& entry) { return entry.name == label; });

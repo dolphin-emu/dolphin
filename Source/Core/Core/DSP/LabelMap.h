@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -27,8 +28,8 @@ public:
   ~LabelMap();
 
   void RegisterDefaults();
-  void RegisterLabel(const std::string& label, u16 lval, LabelType type = LABEL_VALUE);
-  void DeleteLabel(const std::string& label);
+  void RegisterLabel(std::string label, u16 lval, LabelType type = LABEL_VALUE);
+  void DeleteLabel(std::string_view label);
   std::optional<u16> GetLabelValue(const std::string& label, LabelType type = LABEL_ANY) const;
   void Clear();
 
