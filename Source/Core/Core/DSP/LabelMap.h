@@ -21,6 +21,16 @@ enum LabelType
 
 class LabelMap
 {
+public:
+  LabelMap();
+  ~LabelMap() {}
+  void RegisterDefaults();
+  void RegisterLabel(const std::string& label, u16 lval, LabelType type = LABEL_VALUE);
+  void DeleteLabel(const std::string& label);
+  bool GetLabelValue(const std::string& label, u16* value, LabelType type = LABEL_ANY) const;
+  void Clear();
+
+private:
   struct label_t
   {
     label_t(const std::string& lbl, s32 address, LabelType ltype)
@@ -32,14 +42,5 @@ class LabelMap
     LabelType type;
   };
   std::vector<label_t> labels;
-
-public:
-  LabelMap();
-  ~LabelMap() {}
-  void RegisterDefaults();
-  void RegisterLabel(const std::string& label, u16 lval, LabelType type = LABEL_VALUE);
-  void DeleteLabel(const std::string& label);
-  bool GetLabelValue(const std::string& label, u16* value, LabelType type = LABEL_ANY) const;
-  void Clear();
 };
 }  // namespace DSP
