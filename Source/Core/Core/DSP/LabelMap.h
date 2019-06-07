@@ -23,7 +23,8 @@ class LabelMap
 {
 public:
   LabelMap();
-  ~LabelMap() {}
+  ~LabelMap();
+
   void RegisterDefaults();
   void RegisterLabel(const std::string& label, u16 lval, LabelType type = LABEL_VALUE);
   void DeleteLabel(const std::string& label);

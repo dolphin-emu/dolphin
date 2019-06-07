@@ -11,9 +11,9 @@
 
 namespace DSP
 {
-LabelMap::LabelMap()
-{
-}
+LabelMap::LabelMap() = default;
+
+LabelMap::~LabelMap() = default;
 
 void LabelMap::RegisterDefaults()
 {
