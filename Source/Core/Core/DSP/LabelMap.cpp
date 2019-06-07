@@ -4,6 +4,7 @@
 
 #include "Core/DSP/LabelMap.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -44,14 +45,13 @@ void LabelMap::RegisterLabel(const std::string& label, u16 lval, LabelType type)
 
 void LabelMap::DeleteLabel(const std::string& label)
 {
-  for (std::vector<label_t>::iterator iter = labels.begin(); iter != labels.end(); ++iter)
-  {
-    if (!label.compare(iter->name))
-    {
-      labels.erase(iter);
-      return;
-    }
-  }
+  const auto iter = std::find_if(labels.cbegin(), labels.cend(),
+                                 [&label](const auto& entry) { return entry.name == label; });
+
+  if (iter == labels.cend())
+    return;
+
+  labels.erase(iter);
 }
 
 bool LabelMap::GetLabelValue(const std::string& name, u16* value, LabelType type) const
