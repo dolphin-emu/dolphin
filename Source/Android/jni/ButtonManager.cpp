@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -16,8 +17,8 @@ namespace ButtonManager
 {
 namespace
 {
-const std::string touchScreenKey = "Touchscreen";
-const std::vector<std::string> configStrings = {
+constexpr char touchScreenKey[] = "Touchscreen";
+constexpr std::array<const char*, 143> configStrings{{
     // GC
     "InputA",
     "InputB",
@@ -169,9 +170,9 @@ const std::vector<std::string> configStrings = {
     "TurntableCrossRight",
     // Rumble
     "Rumble",
-};
+}};
 
-const std::vector<ButtonType> configTypes = {
+constexpr std::array<ButtonType, 143> configTypes{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -323,7 +324,7 @@ const std::vector<ButtonType> configTypes = {
     TURNTABLE_CROSSFADE_RIGHT,
     // Rumble
     RUMBLE,
-};
+}};
 
 std::unordered_map<std::string, InputDevice*> m_controllers;
 
