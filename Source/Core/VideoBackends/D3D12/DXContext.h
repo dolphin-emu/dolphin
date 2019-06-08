@@ -5,8 +5,6 @@
 #pragma once
 
 #include <array>
-#include <functional>
-#include <map>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/Common.h"
