@@ -144,6 +144,7 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
       // enabled or disabled code
       case '+':
         ss.seekg(1);
+        [[fallthrough]];
       case '$':
         if (!gcode.name.empty())
           gcodes.push_back(gcode);
