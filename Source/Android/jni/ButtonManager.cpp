@@ -14,9 +14,10 @@
 
 namespace ButtonManager
 {
+namespace
+{
 const std::string touchScreenKey = "Touchscreen";
-std::unordered_map<std::string, InputDevice*> m_controllers;
-std::vector<std::string> configStrings = {
+const std::vector<std::string> configStrings = {
     // GC
     "InputA",
     "InputB",
@@ -169,7 +170,8 @@ std::vector<std::string> configStrings = {
     // Rumble
     "Rumble",
 };
-std::vector<ButtonType> configTypes = {
+
+const std::vector<ButtonType> configTypes = {
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -323,7 +325,9 @@ std::vector<ButtonType> configTypes = {
     RUMBLE,
 };
 
-static void AddBind(const std::string& dev, sBind* bind)
+std::unordered_map<std::string, InputDevice*> m_controllers;
+
+void AddBind(const std::string& dev, sBind* bind)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
@@ -334,6 +338,7 @@ static void AddBind(const std::string& dev, sBind* bind)
   m_controllers[dev] = new InputDevice(dev);
   m_controllers[dev]->AddBind(bind);
 }
+}  // Anonymous namespace
 
 void Init(const std::string& gameId)
 {
