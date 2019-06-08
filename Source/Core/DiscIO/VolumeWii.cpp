@@ -443,7 +443,7 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
     return false;
 
   std::array<u8, 20> h3_table_sha1;
-  mbedtls_sha1(h3_table.data(), h3_table.size(), h3_table_sha1.data());
+  mbedtls_sha1_ret(h3_table.data(), h3_table.size(), h3_table_sha1.data());
   return h3_table_sha1 == contents[0].sha1;
 }
 
@@ -481,23 +481,23 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition)
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
     u8 h0_hash[SHA1_SIZE];
-    mbedtls_sha1(cluster_data + hash_index * 0x400, 0x400, h0_hash);
+    mbedtls_sha1_ret(cluster_data + hash_index * 0x400, 0x400, h0_hash);
     if (memcmp(h0_hash, cluster_metadata + hash_index * SHA1_SIZE, SHA1_SIZE))
       return false;
   }
 
   u8 h1_hash[SHA1_SIZE];
-  mbedtls_sha1(cluster_metadata, SHA1_SIZE * 31, h1_hash);
+  mbedtls_sha1_ret(cluster_metadata, SHA1_SIZE * 31, h1_hash);
   if (memcmp(h1_hash, cluster_metadata + 0x280 + (block_index % 8) * SHA1_SIZE, SHA1_SIZE))
     return false;
 
   u8 h2_hash[SHA1_SIZE];
-  mbedtls_sha1(cluster_metadata + 0x280, SHA1_SIZE * 8, h2_hash);
+  mbedtls_sha1_ret(cluster_metadata + 0x280, SHA1_SIZE * 8, h2_hash);
   if (memcmp(h2_hash, cluster_metadata + 0x340 + (block_index / 8 % 8) * SHA1_SIZE, SHA1_SIZE))
     return false;
 
   u8 h3_hash[SHA1_SIZE];
-  mbedtls_sha1(cluster_metadata + 0x340, SHA1_SIZE * 8, h3_hash);
+  mbedtls_sha1_ret(cluster_metadata + 0x340, SHA1_SIZE * 8, h3_hash);
   if (memcmp(h3_hash, partition_details.h3_table->data() + block_index / 64 * SHA1_SIZE, SHA1_SIZE))
     return false;
 

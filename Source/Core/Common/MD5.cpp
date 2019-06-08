@@ -23,7 +23,7 @@ std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report
   std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
   u64 game_size = file->GetDataSize();
 
-  mbedtls_md5_starts(&ctx);
+  mbedtls_md5_starts_ret(&ctx);
 
   while (read_offset < game_size)
   {
@@ -31,7 +31,7 @@ std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report
     if (!file->Read(read_offset, read_size, data.data()))
       return output_string;
 
-    mbedtls_md5_update(&ctx, data.data(), read_size);
+    mbedtls_md5_update_ret(&ctx, data.data(), read_size);
     read_offset += read_size;
 
     int progress =
@@ -41,7 +41,7 @@ std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report
   }
 
   std::array<u8, 16> output;
-  mbedtls_md5_finish(&ctx, output.data());
+  mbedtls_md5_finish_ret(&ctx, output.data());
 
   // Convert to hex
   for (u8 n : output)

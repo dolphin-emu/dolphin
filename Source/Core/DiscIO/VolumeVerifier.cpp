@@ -652,13 +652,13 @@ void VolumeVerifier::SetUpHashing()
   if (m_hashes_to_calculate.md5)
   {
     mbedtls_md5_init(&m_md5_context);
-    mbedtls_md5_starts(&m_md5_context);
+    mbedtls_md5_starts_ret(&m_md5_context);
   }
 
   if (m_hashes_to_calculate.sha1)
   {
     mbedtls_sha1_init(&m_sha1_context);
-    mbedtls_sha1_starts(&m_sha1_context);
+    mbedtls_sha1_starts_ret(&m_sha1_context);
   }
 }
 
@@ -712,10 +712,10 @@ void VolumeVerifier::Process()
       }
 
       if (m_hashes_to_calculate.md5)
-        mbedtls_md5_update(&m_md5_context, data.data(), bytes_to_read);
+        mbedtls_md5_update_ret(&m_md5_context, data.data(), bytes_to_read);
 
       if (m_hashes_to_calculate.sha1)
-        mbedtls_sha1_update(&m_sha1_context, data.data(), bytes_to_read);
+        mbedtls_sha1_update_ret(&m_sha1_context, data.data(), bytes_to_read);
     }
   }
 
@@ -773,7 +773,7 @@ bool VolumeVerifier::CheckContentIntegrity(const IOS::ES::Content& content)
                         encrypted_data.data(), decrypted_data.data());
 
   std::array<u8, 20> sha1;
-  mbedtls_sha1(decrypted_data.data(), content.size, sha1.data());
+  mbedtls_sha1_ret(decrypted_data.data(), content.size, sha1.data());
   return sha1 == content.sha1;
 }
 
@@ -806,13 +806,13 @@ void VolumeVerifier::Finish()
     if (m_hashes_to_calculate.md5)
     {
       m_result.hashes.md5 = std::vector<u8>(16);
-      mbedtls_md5_finish(&m_md5_context, m_result.hashes.md5.data());
+      mbedtls_md5_finish_ret(&m_md5_context, m_result.hashes.md5.data());
     }
 
     if (m_hashes_to_calculate.sha1)
     {
       m_result.hashes.sha1 = std::vector<u8>(20);
-      mbedtls_sha1_finish(&m_sha1_context, m_result.hashes.sha1.data());
+      mbedtls_sha1_finish_ret(&m_sha1_context, m_result.hashes.sha1.data());
     }
   }
 

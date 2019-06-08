@@ -344,7 +344,7 @@ IPCCommandResult ES::ImportContentData(Context& context, const IOCtlVRequest& re
 static bool CheckIfContentHashMatches(const std::vector<u8>& content, const IOS::ES::Content& info)
 {
   std::array<u8, 20> sha1;
-  mbedtls_sha1(content.data(), info.size, sha1.data());
+  mbedtls_sha1_ret(content.data(), info.size, sha1.data());
   return sha1 == info.sha1;
 }
 

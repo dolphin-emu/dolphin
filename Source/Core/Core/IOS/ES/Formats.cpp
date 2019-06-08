@@ -121,7 +121,7 @@ std::array<u8, 20> SignedBlobReader::GetSha1() const
 {
   std::array<u8, 20> sha1;
   const size_t skip = GetIssuerOffset(GetSignatureType());
-  mbedtls_sha1(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
+  mbedtls_sha1_ret(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
   return sha1;
 }
 

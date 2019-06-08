@@ -41,6 +41,7 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="library\arc4.c" />
+    <ClCompile Include="library\aria.c" />
     <ClCompile Include="library\asn1parse.c" />
     <ClCompile Include="library\asn1write.c" />
     <ClCompile Include="library\base64.c" />
@@ -49,6 +50,8 @@
     <ClCompile Include="library\camellia.c" />
     <ClCompile Include="library\ccm.c" />
     <ClCompile Include="library\certs.c" />
+    <ClCompile Include="library\chacha20.c" />
+    <ClCompile Include="library\chachapoly.c" />
     <ClCompile Include="library\cipher.c" />
     <ClCompile Include="library\cipher_wrap.c" />
     <ClCompile Include="library\cmac.c" />
@@ -66,6 +69,7 @@
     <ClCompile Include="library\error.c" />
     <ClCompile Include="library\gcm.c" />
     <ClCompile Include="library\havege.c" />
+    <ClCompile Include="library\hkdf.c" />
     <ClCompile Include="library\hmac_drbg.c" />
     <ClCompile Include="library\md.c" />
     <ClCompile Include="library\md2.c" />
@@ -74,6 +78,7 @@
     <ClCompile Include="library\md_wrap.c" />
     <ClCompile Include="library\memory_buffer_alloc.c" />
     <ClCompile Include="library\net_sockets.c" />
+    <ClCompile Include="library\nist_kw.c" />
     <ClCompile Include="library\oid.c" />
     <ClCompile Include="library\padlock.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -87,8 +92,11 @@
     <ClCompile Include="library\pkparse.c" />
     <ClCompile Include="library\pkwrite.c" />
     <ClCompile Include="library\platform.c" />
+    <ClCompile Include="library\platform_util.c" />
+    <ClCompile Include="library\poly1305.c" />
     <ClCompile Include="library\ripemd160.c" />
     <ClCompile Include="library\rsa.c" />
+    <ClCompile Include="library\rsa_internal.c" />
     <ClCompile Include="library\sha1.c" />
     <ClCompile Include="library\sha256.c" />
     <ClCompile Include="library\sha512.c" />

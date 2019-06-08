@@ -118,7 +118,7 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   }
 
   std::array<u8, 32> hash;
-  mbedtls_sha256(bytes.data(), bytes.size(), hash.data(), 0);
+  mbedtls_sha256_ret(bytes.data(), bytes.size(), hash.data(), 0);
   if (hash != correct_hash)
   {
     ERROR_LOG(IOS_SSL, "Wrong hash for %s", path.c_str());

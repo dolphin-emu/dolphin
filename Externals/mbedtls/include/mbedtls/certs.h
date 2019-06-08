@@ -2,7 +2,8 @@
  * \file certs.h
  *
  * \brief Sample certificates and DHM parameters for testing
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -22,6 +23,12 @@
  */
 #ifndef MBEDTLS_CERTS_H
 #define MBEDTLS_CERTS_H
+
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 
 #include <stddef.h>
 
