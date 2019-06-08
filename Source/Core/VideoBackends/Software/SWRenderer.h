@@ -42,8 +42,9 @@ public:
   u16 BBoxRead(int index) override;
   void BBoxWrite(int index, u16 value) override;
 
-  void RenderXFBToScreen(const AbstractTexture* texture,
-                         const MathUtil::Rectangle<int>& rc) override;
+  void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                         const AbstractTexture* source_texture,
+                         const MathUtil::Rectangle<int>& source_rc) override;
 
   void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                    bool zEnable, u32 color, u32 z) override;

@@ -978,19 +978,19 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
   BPFunctions::SetScissor();
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
 {
   // Quad-buffered stereo is annoying on GL.
   if (g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
-    return ::Renderer::RenderXFBToScreen(texture, rc);
-
-  const auto target_rc = GetTargetRectangle();
+    return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
 
   glDrawBuffer(GL_BACK_LEFT);
-  m_post_processor->BlitFromTexture(target_rc, rc, texture, 0);
+  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
 
   glDrawBuffer(GL_BACK_RIGHT);
-  m_post_processor->BlitFromTexture(target_rc, rc, texture, 1);
+  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 1);
 
   glDrawBuffer(GL_BACK);
 }

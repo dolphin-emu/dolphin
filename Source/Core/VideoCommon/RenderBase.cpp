@@ -556,6 +556,40 @@ float Renderer::CalculateDrawAspectRatio() const
   }
 }
 
+void Renderer::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
+                                           MathUtil::Rectangle<int>* source_rect, int fb_width,
+                                           int fb_height)
+{
+  const int orig_target_width = target_rect->GetWidth();
+  const int orig_target_height = target_rect->GetHeight();
+  const int orig_source_width = source_rect->GetWidth();
+  const int orig_source_height = source_rect->GetHeight();
+  if (target_rect->left < 0)
+  {
+    const int offset = -target_rect->left;
+    target_rect->left = 0;
+    source_rect->left += offset * orig_source_width / orig_target_width;
+  }
+  if (target_rect->right > fb_width)
+  {
+    const int offset = target_rect->right - fb_width;
+    target_rect->right -= offset;
+    source_rect->right -= offset * orig_source_width / orig_target_width;
+  }
+  if (target_rect->top < 0)
+  {
+    const int offset = -target_rect->top;
+    target_rect->top = 0;
+    source_rect->top += offset * orig_source_height / orig_target_height;
+  }
+  if (target_rect->bottom > fb_height)
+  {
+    const int offset = target_rect->bottom - fb_height;
+    target_rect->right -= offset;
+    source_rect->right -= offset * orig_source_height / orig_target_height;
+  }
+}
+
 bool Renderer::IsHeadless() const
 {
   return true;
@@ -1212,7 +1246,14 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
         UpdateDrawRectangle();
-        RenderXFBToScreen(xfb_entry->texture.get(), xfb_rect);
+
+        // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
+        auto render_target_rc = GetTargetRectangle();
+        auto render_source_rc = xfb_rect;
+        AdjustRectanglesToFitBounds(&render_target_rc, &xfb_rect, m_backbuffer_width,
+                                    m_backbuffer_height);
+        RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
+
         DrawImGui();
 
         // Present to the window system.
@@ -1280,21 +1321,22 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   }
 }
 
-void Renderer::RenderXFBToScreen(const AbstractTexture* texture, const MathUtil::Rectangle<int>& rc)
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
 {
-  const auto target_rc = GetTargetRectangle();
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
     MathUtil::Rectangle<int> left_rc, right_rc;
     std::tie(left_rc, right_rc) = ConvertStereoRectangle(target_rc);
 
-    m_post_processor->BlitFromTexture(left_rc, rc, texture, 0);
-    m_post_processor->BlitFromTexture(right_rc, rc, texture, 1);
+    m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
+    m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
   }
   else
   {
-    m_post_processor->BlitFromTexture(target_rc, rc, texture, 0);
+    m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
   }
 }
 

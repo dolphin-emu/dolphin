@@ -170,6 +170,13 @@ public:
   const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
 
+  // Crops the target rectangle to the framebuffer dimensions, reducing the size of the source
+  // rectangle if it is greater. Works even if the source and target rectangles don't have a
+  // 1:1 pixel mapping, scaling as appropriate.
+  void AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect,
+                                   MathUtil::Rectangle<int>* source_rect, int fb_width,
+                                   int fb_height);
+
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
 
@@ -215,8 +222,9 @@ public:
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
-  virtual void RenderXFBToScreen(const AbstractTexture* texture,
-                                 const MathUtil::Rectangle<int>& rc);
+  virtual void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc);
 
   // Called when the configuration changes, and backend structures need to be updated.
   virtual void OnConfigChanged(u32 bits) {}
