@@ -27,6 +27,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/HttpRequest.h"
+#include "Common/Logging/Log.h"
 #include "Common/TraversalClient.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -74,33 +75,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   CreateChatLayout();
   CreatePlayersLayout();
   CreateMainLayout();
-
-  const int buffer_size = Config::Get(Config::NETPLAY_BUFFER_SIZE);
-  const bool write_save_sdcard_data = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
-  const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
-  const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
-  const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
-  const bool reduce_polling_rate = Config::Get(Config::NETPLAY_REDUCE_POLLING_RATE);
-  const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
-  const bool host_input_authority = Config::Get(Config::NETPLAY_HOST_INPUT_AUTHORITY);
-  const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
-  const bool golf_mode = Config::Get(Config::NETPLAY_GOLF_MODE);
-  const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
-
-  m_buffer_size_box->setValue(buffer_size);
-  m_save_sd_action->setChecked(write_save_sdcard_data);
-  m_load_wii_action->setChecked(load_wii_save);
-  m_sync_save_data_action->setChecked(sync_saves);
-  m_sync_codes_action->setChecked(sync_codes);
-  m_record_input_action->setChecked(record_inputs);
-  m_reduce_polling_rate_action->setChecked(reduce_polling_rate);
-  m_strict_settings_sync_action->setChecked(strict_settings_sync);
-  m_host_input_authority_action->setChecked(host_input_authority);
-  m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
-  m_golf_mode_action->setChecked(golf_mode);
-  m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
-
+  LoadSettings();
   ConnectWidgets();
 
   auto& settings = Settings::Instance().GetQSettings();
@@ -129,6 +104,7 @@ void NetPlayDialog::CreateMainLayout()
   m_menu_bar = new QMenuBar(this);
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
+  m_data_menu->setToolTipsVisible(true);
   m_save_sd_action = m_data_menu->addAction(tr("Write Save/SD Data"));
   m_save_sd_action->setCheckable(true);
   m_load_wii_action = m_data_menu->addAction(tr("Load Wii Save"));
@@ -140,15 +116,46 @@ void NetPlayDialog::CreateMainLayout()
   m_sync_all_wii_saves_action = m_data_menu->addAction(tr("Sync All Wii Saves"));
   m_sync_all_wii_saves_action->setCheckable(true);
   m_strict_settings_sync_action = m_data_menu->addAction(tr("Strict Settings Sync"));
+  m_strict_settings_sync_action->setToolTip(
+      tr("This will sync additional graphics settings, and force everyone to the same internal "
+         "resolution.\nMay prevent desync in some games that use EFB reads. Please ensure everyone "
+         "uses the same video backend."));
   m_strict_settings_sync_action->setCheckable(true);
 
   m_network_menu = m_menu_bar->addMenu(tr("Network"));
+  m_network_menu->setToolTipsVisible(true);
   m_reduce_polling_rate_action = m_network_menu->addAction(tr("Reduce Polling Rate"));
+  m_reduce_polling_rate_action->setToolTip(
+      tr("This will reduce bandwidth usage by polling GameCube controllers only twice per frame. "
+         "Does not affect Wii Remotes."));
   m_reduce_polling_rate_action->setCheckable(true);
+
+  m_network_menu->addSeparator();
+  m_fixed_delay_action = m_network_menu->addAction(tr("Fair Input Delay"));
+  m_fixed_delay_action->setToolTip(
+      tr("Each player sends their own inputs to the game, with equal buffer size for all players, "
+         "configured by the host.\nSuitable for competitive games where fairness and minimal "
+         "latency are most important."));
+  m_fixed_delay_action->setCheckable(true);
   m_host_input_authority_action = m_network_menu->addAction(tr("Host Input Authority"));
+  m_host_input_authority_action->setToolTip(
+      tr("Host has control of sending all inputs to the game, as received from other players, "
+         "giving the host zero latency but increasing latency for others.\nSuitable for casual "
+         "games with 3+ players, possibly on unstable or high latency connections."));
   m_host_input_authority_action->setCheckable(true);
   m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
+  m_golf_mode_action->setToolTip(
+      tr("Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be "
+         "switched at any time.\nSuitable for turn-based games with timing-sensitive controls, "
+         "such as golf."));
   m_golf_mode_action->setCheckable(true);
+
+  m_network_mode_group = new QActionGroup(this);
+  m_network_mode_group->setExclusive(true);
+  m_network_mode_group->addAction(m_fixed_delay_action);
+  m_network_mode_group->addAction(m_host_input_authority_action);
+  m_network_mode_group->addAction(m_golf_mode_action);
+  m_fixed_delay_action->setChecked(true);
 
   m_md5_menu = m_menu_bar->addMenu(tr("Checksum"));
   m_md5_menu->addAction(tr("Current game"), this, [this] {
@@ -299,13 +306,19 @@ void NetPlayDialog::ConnectWidgets()
               client->AdjustPadBufferSize(value);
           });
 
-  connect(m_host_input_authority_action, &QAction::toggled, this, [=](bool checked) {
-    auto server = Settings::Instance().GetNetPlayServer();
-    if (server)
-      server->SetHostInputAuthority(checked);
+  const auto hia_function = [this](bool enable) {
+    if (m_host_input_authority != enable)
+    {
+      auto server = Settings::Instance().GetNetPlayServer();
+      if (server)
+        server->SetHostInputAuthority(enable);
+    }
+  };
 
-    m_golf_mode_action->setEnabled(checked);
-  });
+  connect(m_host_input_authority_action, &QAction::toggled, this,
+          [hia_function] { hia_function(true); });
+  connect(m_golf_mode_action, &QAction::toggled, this, [hia_function] { hia_function(true); });
+  connect(m_fixed_delay_action, &QAction::toggled, this, [hia_function] { hia_function(false); });
 
   connect(m_start_button, &QPushButton::clicked, this, &NetPlayDialog::OnStart);
   connect(m_quit_button, &QPushButton::clicked, this, &NetPlayDialog::reject);
@@ -352,6 +365,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  connect(m_fixed_delay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::SendMessage(const std::string& msg)
@@ -830,7 +844,8 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_strict_settings_sync_action->setEnabled(enabled);
     m_host_input_authority_action->setEnabled(enabled);
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
-    m_golf_mode_action->setEnabled(enabled && m_host_input_authority_action->isChecked());
+    m_golf_mode_action->setEnabled(enabled);
+    m_fixed_delay_action->setEnabled(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -901,10 +916,6 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
       m_buffer_label->setEnabled(enable_buffer);
       m_buffer_size_box->setHidden(false);
       m_buffer_label->setHidden(false);
-
-      const QSignalBlocker blocker(m_host_input_authority_action);
-      m_host_input_authority_action->setChecked(enabled);
-      m_golf_mode_action->setEnabled(enabled);
     }
     else
     {
@@ -916,7 +927,10 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 
     m_buffer_label->setText(enabled ? tr("Max Buffer:") : tr("Buffer:"));
     if (enabled)
+    {
+      const QSignalBlocker blocker(m_buffer_size_box);
       m_buffer_size_box->setValue(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
+    }
   });
 }
 
@@ -1033,6 +1047,51 @@ std::shared_ptr<const UICommon::GameFile> NetPlayDialog::FindGameFile(const std:
   return nullptr;
 }
 
+void NetPlayDialog::LoadSettings()
+{
+  const int buffer_size = Config::Get(Config::NETPLAY_BUFFER_SIZE);
+  const bool write_save_sdcard_data = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
+  const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
+  const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
+  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
+  const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
+  const bool reduce_polling_rate = Config::Get(Config::NETPLAY_REDUCE_POLLING_RATE);
+  const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
+  const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
+  const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
+
+  m_buffer_size_box->setValue(buffer_size);
+  m_save_sd_action->setChecked(write_save_sdcard_data);
+  m_load_wii_action->setChecked(load_wii_save);
+  m_sync_save_data_action->setChecked(sync_saves);
+  m_sync_codes_action->setChecked(sync_codes);
+  m_record_input_action->setChecked(record_inputs);
+  m_reduce_polling_rate_action->setChecked(reduce_polling_rate);
+  m_strict_settings_sync_action->setChecked(strict_settings_sync);
+  m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
+  m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
+
+  const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
+
+  if (network_mode == "fixeddelay")
+  {
+    m_fixed_delay_action->setChecked(true);
+  }
+  else if (network_mode == "hostinputauthority")
+  {
+    m_host_input_authority_action->setChecked(true);
+  }
+  else if (network_mode == "golf")
+  {
+    m_golf_mode_action->setChecked(true);
+  }
+  else
+  {
+    WARN_LOG(NETPLAY, "Unknown network mode '%s', using 'fixeddelay'", network_mode.c_str());
+    m_fixed_delay_action->setChecked(true);
+  }
+}
+
 void NetPlayDialog::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
@@ -1049,10 +1108,24 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
   Config::SetBase(Config::NETPLAY_REDUCE_POLLING_RATE, m_reduce_polling_rate_action->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
-  Config::SetBase(Config::NETPLAY_HOST_INPUT_AUTHORITY, m_host_input_authority_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
-  Config::SetBase(Config::NETPLAY_GOLF_MODE, m_golf_mode_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
+
+  std::string network_mode;
+  if (m_fixed_delay_action->isChecked())
+  {
+    network_mode = "fixeddelay";
+  }
+  else if (m_host_input_authority_action->isChecked())
+  {
+    network_mode = "hostinputauthority";
+  }
+  else if (m_golf_mode_action->isChecked())
+  {
+    network_mode = "golf";
+  }
+
+  Config::SetBase(Config::NETPLAY_NETWORK_MODE, network_mode);
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)

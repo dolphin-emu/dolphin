@@ -60,11 +60,10 @@ const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE{{System::Main, "NetPlay", "Re
                                                    false};
 const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
                                                     false};
-const ConfigInfo<bool> NETPLAY_HOST_INPUT_AUTHORITY{{System::Main, "NetPlay", "HostInputAuthority"},
-                                                    false};
+const ConfigInfo<std::string> NETPLAY_NETWORK_MODE{{System::Main, "NetPlay", "NetworkMode"},
+                                                   "fixeddelay"};
 const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES{{System::Main, "NetPlay", "SyncAllWiiSaves"},
                                                   false};
-const ConfigInfo<bool> NETPLAY_GOLF_MODE{{System::Main, "NetPlay", "GolfMode"}, false};
 const ConfigInfo<bool> NETPLAY_GOLF_MODE_OVERLAY{{System::Main, "NetPlay", "GolfModeOverlay"},
                                                  true};
 

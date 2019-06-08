@@ -66,6 +66,7 @@ public:
   std::string FindGame(const std::string& game) override;
   std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) override;
 
+  void LoadSettings();
   void SaveSettings();
 
   void ShowMD5Dialog(const std::string& file_identifier) override;
@@ -136,8 +137,10 @@ private:
   QAction* m_sync_all_wii_saves_action;
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
+  QAction* m_fixed_delay_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
+  QActionGroup* m_network_mode_group;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
