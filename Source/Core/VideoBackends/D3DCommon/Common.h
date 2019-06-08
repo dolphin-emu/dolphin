@@ -12,7 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
 
-struct IDXGIFactory2;
+struct IDXGIFactory;
 
 enum class AbstractTextureFormat : u32;
 
@@ -26,7 +26,7 @@ void UnloadLibraries();
 std::vector<std::string> GetAdapterNames();
 
 // Helper function which creates a DXGI factory.
-IDXGIFactory2* CreateDXGIFactory(bool debug_device);
+IDXGIFactory* CreateDXGIFactory(bool debug_device);
 
 // Globally-accessible D3DCompiler function.
 extern pD3DCompile d3d_compile;

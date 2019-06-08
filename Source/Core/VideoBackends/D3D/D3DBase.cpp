@@ -23,7 +23,7 @@ namespace DX11
 static Common::DynamicLibrary s_d3d11_library;
 namespace D3D
 {
-ComPtr<IDXGIFactory2> dxgi_factory;
+ComPtr<IDXGIFactory> dxgi_factory;
 ComPtr<ID3D11Device> device;
 ComPtr<ID3D11Device1> device1;
 ComPtr<ID3D11DeviceContext> context;
@@ -173,7 +173,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
   ComPtr<ID3D11Device> temp_device = device;
   if (!temp_device)
   {
-    ComPtr<IDXGIFactory2> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return {};
 

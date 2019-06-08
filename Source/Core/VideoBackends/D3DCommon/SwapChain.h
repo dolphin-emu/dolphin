@@ -17,7 +17,7 @@ namespace D3DCommon
 class SwapChain
 {
 public:
-  SwapChain(const WindowSystemInfo& wsi, IDXGIFactory2* dxgi_factory, IUnknown* d3d_device);
+  SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory, IUnknown* d3d_device);
   virtual ~SwapChain();
 
   // Sufficient buffers for triple buffering.
@@ -26,7 +26,7 @@ public:
   // Returns true if the stereo mode is quad-buffering.
   static bool WantsStereo();
 
-  IDXGISwapChain1* GetDXGISwapChain() const { return m_swap_chain.Get(); }
+  IDXGISwapChain* GetDXGISwapChain() const { return m_swap_chain.Get(); }
   AbstractTextureFormat GetFormat() const { return m_texture_format; }
   u32 GetWidth() const { return m_width; }
   u32 GetHeight() const { return m_height; }
@@ -57,8 +57,8 @@ protected:
   virtual void DestroySwapChainBuffers() = 0;
 
   WindowSystemInfo m_wsi;
-  Microsoft::WRL::ComPtr<IDXGIFactory2> m_dxgi_factory;
-  Microsoft::WRL::ComPtr<IDXGISwapChain1> m_swap_chain;
+  Microsoft::WRL::ComPtr<IDXGIFactory> m_dxgi_factory;
+  Microsoft::WRL::ComPtr<IDXGISwapChain> m_swap_chain;
   Microsoft::WRL::ComPtr<IUnknown> m_d3d_device;
   AbstractTextureFormat m_texture_format = AbstractTextureFormat::RGBA8;
 

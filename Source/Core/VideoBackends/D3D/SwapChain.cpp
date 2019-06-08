@@ -7,7 +7,7 @@
 
 namespace DX11
 {
-SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory2* dxgi_factory,
+SwapChain::SwapChain(const WindowSystemInfo& wsi, IDXGIFactory* dxgi_factory,
                      ID3D11Device* d3d_device)
     : D3DCommon::SwapChain(wsi, dxgi_factory, d3d_device)
 {

@@ -43,7 +43,7 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
   ComPtr<ID3D12Device> temp_device = g_dx_context ? g_dx_context->m_device : nullptr;
   if (!temp_device)
   {
-    ComPtr<IDXGIFactory2> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
       return {};
 
@@ -57,7 +57,8 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
       return {};
     }
 
-    HRESULT hr = d3d12_create_device(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
+    HRESULT hr =
+        d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
     if (!SUCCEEDED(hr))
       return {};
   }
