@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -618,9 +619,9 @@ private:
   static_assert(sizeof(Entry) == 512, "Wrong size");
 #pragma pack(pop)
 
-  UpdateResult UpdateFromManifest(const std::string& manifest_name);
+  UpdateResult UpdateFromManifest(std::string_view manifest_name);
   UpdateResult ProcessEntry(u32 type, std::bitset<32> attrs, const TitleInfo& title,
-                            const std::string& path);
+                            std::string_view path);
 
   UpdateCallback m_update_callback;
   std::unique_ptr<DiscIO::Volume> m_volume;
@@ -655,7 +656,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
   return UpdateFromManifest("__update.inf");
 }
 
-UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_name)
+UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_name)
 {
   const DiscIO::FileSystem* disc_fs = m_volume->GetFileSystem(m_partition);
   if (!disc_fs)
@@ -693,7 +694,7 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_n
     const u64 title_id = Common::swap64(entry.data() + offsetof(Entry, title_id));
     const u16 title_version = Common::swap16(entry.data() + offsetof(Entry, title_version));
     const char* path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
-    const std::string path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
+    const std::string_view path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
 
     if (!m_update_callback(i, num_entries, title_id))
       return UpdateResult::Cancelled;
@@ -712,7 +713,7 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_n
 }
 
 UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
-                                             const TitleInfo& title, const std::string& path)
+                                             const TitleInfo& title, std::string_view path)
 {
   // Skip any unknown type and boot2 updates (for now).
   if (type != 2 && type != 3 && type != 6 && type != 7)
@@ -734,7 +735,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
   auto blob = DiscIO::VolumeFileBlobReader::Create(*m_volume, m_partition, path);
   if (!blob)
   {
-    ERROR_LOG(CORE, "Could not find %s", path.c_str());
+    ERROR_LOG(CORE, "Could not find %s", std::string(path).c_str());
     return UpdateResult::DiscReadFailed;
   }
   const DiscIO::WiiWAD wad{std::move(blob)};
