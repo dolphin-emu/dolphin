@@ -110,7 +110,10 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Movie
   m_recording_read_only->setEnabled(running);
   if (!running)
+  {
     m_recording_stop->setEnabled(false);
+    m_recording_export->setEnabled(false);
+  }
   m_recording_play->setEnabled(!running);
 
   // Options
@@ -1109,6 +1112,7 @@ void MenuBar::OnRecordingStatusChanged(bool recording)
 {
   m_recording_start->setEnabled(!recording);
   m_recording_stop->setEnabled(recording);
+  m_recording_export->setEnabled(recording);
 }
 
 void MenuBar::OnReadOnlyModeChanged(bool read_only)
