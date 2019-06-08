@@ -212,11 +212,11 @@ void HacksWidget::AddDescriptions()
       "RAM (and Texture)\n\nIf unsure, leave this checked.");
   static const char TR_DEFER_EFB_COPIES_DESCRIPTION[] = QT_TR_NOOP(
       "Waits until the game synchronizes with the emulated GPU before writing the contents of EFB "
-      "copies to RAM. Reduces the overhead of EFB RAM copies, providing a performance boost in "
+      "copies to RAM.\n\nReduces the overhead of EFB RAM copies, providing a performance boost in "
       "many games, at the risk of breaking those which do not safely synchronize with the "
       "emulated GPU.\n\nIf unsure, leave this checked.");
   static const char TR_ACCUARCY_DESCRIPTION[] = QT_TR_NOOP(
-      "Adjusts the accuracy at which the GPU receives texture updates from RAM.\n\n "
+      "Adjusts the accuracy at which the GPU receives texture updates from RAM.\n\n"
       "The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
       "from RAM. Lower accuracies cause in-game text to appear garbled in certain "
       "games.\n\nIf unsure, select the rightmost value.");
@@ -228,13 +228,12 @@ void HacksWidget::AddDescriptions()
 
   static const char TR_IMMEDIATE_XFB_DESCRIPTION[] =
       QT_TR_NOOP("Displays XFB copies as soon as they are created, instead of waiting for "
-                 "scanout. Can cause graphical defects "
-                 "in some games if the game doesn't expect all XFB copies to be displayed. "
-                 "However, turning this setting on reduces latency."
-                 "\n\nIf unsure, leave this unchecked.");
+                 "scanout.\n\nCan cause graphical defects in some games if the game doesn't "
+                 "expect all XFB copies to be displayed. However, turning this setting on reduces "
+                 "latency.\n\nIf unsure, leave this unchecked.");
 
   static const char TR_GPU_DECODING_DESCRIPTION[] =
-      QT_TR_NOOP("Enables texture decoding using the GPU instead of the CPU. This may result in "
+      QT_TR_NOOP("Enables texture decoding using the GPU instead of the CPU.\n\nThis may result in "
                  "performance gains in some scenarios, or on systems where the CPU is the "
                  "bottleneck.\n\nIf unsure, leave this unchecked.");
 

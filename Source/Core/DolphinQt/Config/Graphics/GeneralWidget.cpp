@@ -202,7 +202,7 @@ void GeneralWidget::AddDescriptions()
       "select the backend that is least problematic.\n\nIf unsure, select OpenGL.");
 #else
   static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects what graphics API to use internally.\n\nThe software renderer is extremely "
+      "Selects which graphics API to use internally.\n\nThe software renderer is extremely "
       "slow and only useful for debugging, so any of the other backends are "
       "recommended.\n\nIf unsure, select OpenGL.");
 #endif
@@ -219,21 +219,21 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
                  "a separate render window.\n\nIf unsure, leave this unchecked.");
   static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects what aspect ratio to use when rendering:\n\nAuto: Uses the native aspect "
+      "Selects which aspect ratio to use when rendering.\n\nAuto: Uses the native aspect "
       "ratio\nForce 16:9: Mimics an analog TV with a widescreen aspect ratio.\nForce 4:3: "
       "Mimics a standard 4:3 analog TV.\nStretch to Window: Stretches the picture to the "
       "window size.\n\nIf unsure, select Auto.");
   static const char TR_VSYNC_DESCRIPTION[] =
-      QT_TR_NOOP("Waits for vertical blanks in order to prevent tearing. Decreases performance if "
-                 "emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Waits for vertical blanks in order to prevent tearing.\n\nDecreases performance "
+                 "if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
   static const char TR_SHOW_FPS_DESCRIPTION[] =
       QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
                  "emulation speed.\n\nIf unsure, leave this unchecked.");
   static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] =
-      QT_TR_NOOP("Shows the players' maximum ping while playing on "
+      QT_TR_NOOP("Shows the player's maximum ping while playing on "
                  "NetPlay.\n\nIf unsure, leave this unchecked.");
   static const char TR_LOG_RENDERTIME_DESCRIPTION[] =
-      QT_TR_NOOP("Logs the render time of every frame to User/Logs/render_time.txt. Use this "
+      QT_TR_NOOP("Logs the render time of every frame to User/Logs/render_time.txt.\n\nUse this "
                  "feature when to measure the performance of Dolphin.\n\nIf "
                  "unsure, leave this unchecked.");
   static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
@@ -241,20 +241,20 @@ void GeneralWidget::AddDescriptions()
                  "while playing NetPlay.\n\nIf unsure, leave this unchecked.");
   static const char TR_SHADER_COMPILE_SYNC_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
-                 "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
-                 "unsure, select this mode.");
+                 "compilation, but GPU demands are low.\n\nRecommended for low-end hardware. "
+                 "\n\nIf unsure, select this mode.");
   static const char TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will always be used. Provides a near stutter-free experience at the cost of "
-      "high GPU performance requirements. Only recommended for high-end systems.");
+      "high GPU performance requirements.\n\nOnly recommended for high-end systems.");
   static const char TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders will be used to prevent stuttering during shader compilation, but "
-                 "specialized shaders will be used when they will not cause stuttering. In the "
+                 "specialized shaders will be used when they will not cause stuttering.\n\nIn the "
                  "best case it eliminates shader compilation stuttering while having minimal "
                  "performance impact, but results depend on video driver behavior.");
   static const char TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION[] = QT_TR_NOOP(
       "Prevents shader compilation stuttering by not rendering waiting objects. Can work in "
       "scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken "
-      "effects. Not recommended, only use if the other options give poor results.");
+      "effects.\n\nNot recommended, only use if the other options give poor results.");
   static const char TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION[] =
       QT_TR_NOOP("Waits for all shaders to finish compiling before starting a game. Enabling this "
                  "option may reduce stuttering or hitching for a short time after the game is "
