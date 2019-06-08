@@ -76,17 +76,8 @@ bool s_have_wm_user_stop = false;
 void UpdatePointer()
 {
   // Update touch pointer
-  JNIEnv* env;
-  int get_env_status =
-      IDCache::GetJavaVM()->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
-
-  if (get_env_status == JNI_EDETACHED)
-    IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
-
+  JNIEnv* env = IDCache::GetEnvForThread();
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetUpdateTouchPointer());
-
-  if (get_env_status == JNI_EDETACHED)
-    IDCache::GetJavaVM()->DetachCurrentThread();
 }
 
 void Host_NotifyMapLoaded()
@@ -162,28 +153,19 @@ void Host_TitleChanged()
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, MsgType /*style*/)
 {
-  __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "%s:%s", caption, text);
-
-  // Associate the current Thread with the Java VM.
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
+  JNIEnv* env = IDCache::GetEnvForThread();
 
   // Execute the Java method.
   jboolean result = env->CallStaticBooleanMethod(
       IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
       ToJString(env, text), yes_no ? JNI_TRUE : JNI_FALSE);
 
-  // Must be called before the current thread exits; might as well do it here.
-  IDCache::GetJavaVM()->DetachCurrentThread();
-
   return result != JNI_FALSE;
 }
 
 static void ReportSend(std::string endpoint, std::string report)
 {
-  // Associate the current Thread with the Java VM.
-  JNIEnv* env;
-  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
+  JNIEnv* env = IDCache::GetEnvForThread();
 
   jbyteArray output_array = env->NewByteArray(report.size());
   jbyte* output = env->GetByteArrayElements(output_array, nullptr);
@@ -191,31 +173,16 @@ static void ReportSend(std::string endpoint, std::string report)
   env->ReleaseByteArrayElements(output_array, output, 0);
   env->CallStaticVoidMethod(IDCache::GetAnalyticsClass(), IDCache::GetSendAnalyticsReport(),
                             ToJString(env, endpoint), output_array);
-
-  IDCache::GetJavaVM()->DetachCurrentThread();
 }
 
 static std::string GetAnalyticValue(std::string key)
 {
-  // Associate the current Thread with the Java VM.
-  JNIEnv* env;
-  bool attached = false;
-  int getEnvStat =
-      IDCache::GetJavaVM()->GetEnv(reinterpret_cast<void**>(&env), IDCache::JNI_VERSION);
-  if (getEnvStat == JNI_EDETACHED)
-  {
-    IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
-    attached = true;
-  }
+  JNIEnv* env = IDCache::GetEnvForThread();
 
   jstring value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
       IDCache::GetAnalyticsClass(), IDCache::GetAnalyticsValue(), ToJString(env, key)));
 
   std::string stdvalue = GetJString(env, value);
-
-  // Only detach the thread if it wasn't already attached
-  if (attached)
-    IDCache::GetJavaVM()->DetachCurrentThread();
 
   return stdvalue;
 }

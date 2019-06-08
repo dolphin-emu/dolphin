@@ -29,9 +29,27 @@ static jmethodID s_do_rumble;
 
 namespace IDCache
 {
-JavaVM* GetJavaVM()
+JNIEnv* GetEnvForThread()
 {
-  return s_java_vm;
+  thread_local static struct OwnedEnv
+  {
+    OwnedEnv()
+    {
+      status = s_java_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+      if (status == JNI_EDETACHED)
+        s_java_vm->AttachCurrentThread(&env, nullptr);
+    }
+
+    ~OwnedEnv()
+    {
+      if (status == JNI_EDETACHED)
+        s_java_vm->DetachCurrentThread();
+    }
+
+    int status;
+    JNIEnv* env = nullptr;
+  } owned;
+  return owned.env;
 }
 
 jclass GetNativeLibraryClass()
