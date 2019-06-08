@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -14,9 +15,10 @@
 
 namespace ButtonManager
 {
-const std::string touchScreenKey = "Touchscreen";
-std::unordered_map<std::string, InputDevice*> m_controllers;
-std::vector<std::string> configStrings = {
+namespace
+{
+constexpr char touchScreenKey[] = "Touchscreen";
+constexpr std::array<const char*, 143> configStrings{{
     // GC
     "InputA",
     "InputB",
@@ -168,8 +170,9 @@ std::vector<std::string> configStrings = {
     "TurntableCrossRight",
     // Rumble
     "Rumble",
-};
-std::vector<ButtonType> configTypes = {
+}};
+
+constexpr std::array<ButtonType, 143> configTypes{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -321,9 +324,11 @@ std::vector<ButtonType> configTypes = {
     TURNTABLE_CROSSFADE_RIGHT,
     // Rumble
     RUMBLE,
-};
+}};
 
-static void AddBind(const std::string& dev, sBind* bind)
+std::unordered_map<std::string, InputDevice*> m_controllers;
+
+void AddBind(const std::string& dev, sBind* bind)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
@@ -334,6 +339,7 @@ static void AddBind(const std::string& dev, sBind* bind)
   m_controllers[dev] = new InputDevice(dev);
   m_controllers[dev]->AddBind(bind);
 }
+}  // Anonymous namespace
 
 void Init(const std::string& gameId)
 {
