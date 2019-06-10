@@ -132,6 +132,7 @@ target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
   enet
+  fmt::fmt
   ${MBEDTLS_LIBRARIES}
 
 PRIVATE
