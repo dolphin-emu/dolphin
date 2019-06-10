@@ -1,0 +1,17 @@
+{% extends "basic/layout.html" %}
+
+{% block extrahead %}
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="1;url=http://fmtlib.net/latest/">
+<script type="text/javascript">
+    window.location.href = "http://fmtlib.net/latest/"
+</script>
+<title>Page Redirection</title>
+{% endblock %}
+
+{% block document %}
+If you are not redirected automatically, follow the <a href='http://fmtlib.net/latest/'>link to the fmt documentation</a>.
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
