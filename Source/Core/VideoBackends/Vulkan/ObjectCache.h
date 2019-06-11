@@ -26,7 +26,6 @@ namespace Vulkan
 {
 class CommandBufferManager;
 class VertexFormat;
-class VKTexture;
 class StreamBuffer;
 
 class ObjectCache
@@ -98,9 +97,6 @@ private:
   VkSampler m_linear_sampler = VK_NULL_HANDLE;
 
   std::map<SamplerState, VkSampler> m_sampler_cache;
-
-  // Dummy image for samplers that are unbound
-  std::unique_ptr<VKTexture> m_dummy_texture;
 
   // Render pass cache
   using RenderPassCacheKey = std::tuple<VkFormat, VkFormat, u32, VkAttachmentLoadOp>;

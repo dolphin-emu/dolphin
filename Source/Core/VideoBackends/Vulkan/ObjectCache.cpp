@@ -18,7 +18,6 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
-#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/Statistics.h"
@@ -36,7 +35,6 @@ ObjectCache::~ObjectCache()
   DestroyPipelineLayouts();
   DestroyDescriptorSetLayouts();
   DestroyRenderPassCache();
-  m_dummy_texture.reset();
 }
 
 bool ObjectCache::Initialize()
