@@ -84,6 +84,7 @@
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
@@ -336,6 +337,12 @@ void MainWindow::InitCoreCallbacks()
   });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
+
+  // Handle file open events
+  auto* filter = new FileOpenEventFilter(QGuiApplication::instance());
+  connect(filter, &FileOpenEventFilter::fileOpened, this, [=](const QString& file_name) {
+    StartGame(BootParameters::GenerateFromFile(file_name.toStdString()));
+  });
 }
 
 static void InstallHotkeyFilter(QWidget* dialog)

@@ -156,6 +156,7 @@
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
+    <QtMoc Include="QtUtils\FileOpenEventFilter.h" />
     <QtMoc Include="QtUtils\FlowLayout.h" />
     <QtMoc Include="QtUtils\ModalMessageBox.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
@@ -193,6 +194,7 @@
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOAnalyzer.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOPlayerWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FileOpenEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GCKeyboardEmu.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GCMemcardManager.cpp" />
@@ -379,6 +381,7 @@
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\FileOpenEventFilter.cpp" />
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
