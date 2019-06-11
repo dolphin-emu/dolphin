@@ -27,9 +27,6 @@ public:
     if (ret != LIBUSB_SUCCESS)
       return;
 
-#ifdef _WIN32
-    libusb_set_option(m_context, LIBUSB_OPTION_USE_USBDK);
-#endif
     m_event_thread_running.Set();
     m_event_thread = std::thread(&Impl::EventThread, this);
   }
