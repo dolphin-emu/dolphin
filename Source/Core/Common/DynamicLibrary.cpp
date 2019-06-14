@@ -3,9 +3,12 @@
 // Refer to the license.txt file included.
 
 #include "Common/DynamicLibrary.h"
+
 #include <cstring>
+
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
-#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -42,27 +45,27 @@ std::string DynamicLibrary::GetVersionedFilename(const char* libname, int major,
 {
 #if defined(_WIN32)
   if (major >= 0 && minor >= 0)
-    return StringFromFormat("%s-%d-%d.dll", libname, major, minor);
+    return fmt::format("{}-{}-{}.dll", libname, major, minor);
   else if (major >= 0)
-    return StringFromFormat("%s-%d.dll", libname, major);
+    return fmt::format("{}-{}.dll", libname, major);
   else
-    return StringFromFormat("%s.dll", libname);
+    return fmt::format("{}.dll", libname);
 #elif defined(__APPLE__)
   const char* prefix = std::strncmp(libname, "lib", 3) ? "lib" : "";
   if (major >= 0 && minor >= 0)
-    return StringFromFormat("%s%s.%d.%d.dylib", prefix, libname, major, minor);
+    return fmt::format("{}{}.{}.{}.dylib", prefix, libname, major, minor);
   else if (major >= 0)
-    return StringFromFormat("%s%s.%d.dylib", prefix, libname, major);
+    return fmt::format("{}{}.{}.dylib", prefix, libname, major);
   else
-    return StringFromFormat("%s%s.dylib", prefix, libname);
+    return fmt::format("{}{}.dylib", prefix, libname);
 #else
   const char* prefix = std::strncmp(libname, "lib", 3) ? "lib" : "";
   if (major >= 0 && minor >= 0)
-    return StringFromFormat("%s%s.so.%d.%d", prefix, libname, major, minor);
+    return fmt::format("{}{}.so.{}.{}", prefix, libname, major, minor);
   else if (major >= 0)
-    return StringFromFormat("%s%s.so.%d", prefix, libname, major);
+    return fmt::format("{}{}.so.{}", prefix, libname, major);
   else
-    return StringFromFormat("%s%s.so", prefix, libname);
+    return fmt::format("{}{}.so", prefix, libname);
 #endif
 }
 

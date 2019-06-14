@@ -2,16 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cinttypes>
+#include "Common/JitRegister.h"
+
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
-#include "Common/JitRegister.h"
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
@@ -48,8 +50,8 @@ void Init(const std::string& perf_dir)
 
   if (!perf_dir.empty() || getenv("PERF_BUILDID_DIR"))
   {
-    std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
-    std::string filename = StringFromFormat("%s/perf-%d.map", dir.data(), getpid());
+    const std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
+    const std::string filename = fmt::format("{}/perf-{}.map", dir, getpid());
     s_perf_map_file.Open(filename, "w");
     // Disable buffering in order to avoid missing some mappings
     // if the event of a crash:
@@ -90,7 +92,7 @@ void RegisterV(const void* base_address, u32 code_size, const char* format, va_l
   std::string symbol_name = StringFromFormatV(format, args);
 
 #if defined USE_OPROFILE && USE_OPROFILE
-  op_write_native_code(s_agent, symbol_name.data(), (u64)base_address, base_address, code_size);
+  op_write_native_code(s_agent, symbol_name.c_str(), (u64)base_address, base_address, code_size);
 #endif
 
 #ifdef USE_VTUNE
@@ -98,16 +100,15 @@ void RegisterV(const void* base_address, u32 code_size, const char* format, va_l
   jmethod.method_id = iJIT_GetNewMethodID();
   jmethod.method_load_address = const_cast<void*>(base_address);
   jmethod.method_size = code_size;
-  jmethod.method_name = const_cast<char*>(symbol_name.data());
+  jmethod.method_name = const_cast<char*>(symbol_name.c_str());
   iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
 #endif
 
   // Linux perf /tmp/perf-$pid.map:
-  if (s_perf_map_file.IsOpen())
-  {
-    std::string entry =
-        StringFromFormat("%" PRIx64 " %x %s\n", (u64)base_address, code_size, symbol_name.data());
-    s_perf_map_file.WriteBytes(entry.data(), entry.size());
-  }
+  if (!s_perf_map_file.IsOpen())
+    return;
+
+  const auto entry = fmt::format("{} {:x} {}\n", fmt::ptr(base_address), code_size, symbol_name);
+  s_perf_map_file.WriteBytes(entry.data(), entry.size());
 }
 }  // namespace JitRegister

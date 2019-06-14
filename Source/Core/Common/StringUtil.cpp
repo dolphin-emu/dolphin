@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/StringUtil.h"
+
 #include <algorithm>
-#include <cinttypes>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -18,11 +19,12 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #ifdef _WIN32
@@ -51,12 +53,12 @@ std::string HexDump(const u8* data, size_t size)
   std::string out;
   for (size_t row_start = 0; row_start < size; row_start += BYTES_PER_LINE)
   {
-    out += StringFromFormat("%06zx: ", row_start);
+    out += fmt::format("{:06x}: ", row_start);
     for (size_t i = 0; i < BYTES_PER_LINE; ++i)
     {
       if (row_start + i < size)
       {
-        out += StringFromFormat("%02hhx ", data[row_start + i]);
+        out += fmt::format("{:02x} ", data[row_start + i]);
       }
       else
       {
@@ -294,27 +296,27 @@ bool TryParse(const std::string& str, bool* const output)
 
 std::string ValueToString(u16 value)
 {
-  return StringFromFormat("0x%04x", value);
+  return fmt::format("0x{:04x}", value);
 }
 
 std::string ValueToString(u32 value)
 {
-  return StringFromFormat("0x%08x", value);
+  return fmt::format("0x{:08x}", value);
 }
 
 std::string ValueToString(u64 value)
 {
-  return StringFromFormat("0x%016" PRIx64, value);
+  return fmt::format("0x{:016x}", value);
 }
 
 std::string ValueToString(float value)
 {
-  return StringFromFormat("%#.9g", value);
+  return fmt::format("{:#.9g}", value);
 }
 
 std::string ValueToString(double value)
 {
-  return StringFromFormat("%#.17g", value);
+  return fmt::format("{:#.17g}", value);
 }
 
 std::string ValueToString(int value)
@@ -324,7 +326,7 @@ std::string ValueToString(int value)
 
 std::string ValueToString(s64 value)
 {
-  return StringFromFormat("%" PRId64, value);
+  return std::to_string(value);
 }
 
 std::string ValueToString(bool value)

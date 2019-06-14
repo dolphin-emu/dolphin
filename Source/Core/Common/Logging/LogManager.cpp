@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Logging/LogManager.h"
+
 #include <algorithm>
 #include <cstdarg>
 #include <cstring>
@@ -10,12 +12,13 @@
 #include <ostream>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
-#include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
@@ -207,9 +210,9 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
   char temp[MAX_MSGLEN];
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  std::string msg =
-      StringFromFormat("%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file,
-                       line, LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
+  const std::string msg =
+      fmt::format("{} {}:{} {}[{}]: {}\n", Common::Timer::GetTimeFormatted(), file, line,
+                  LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
 
   for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])

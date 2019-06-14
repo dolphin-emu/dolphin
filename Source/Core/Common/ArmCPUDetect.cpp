@@ -10,10 +10,11 @@
 #include <sys/auxv.h>
 #include <unistd.h>
 
+#include <fmt/format.h>
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 
 const char procfile[] = "/proc/cpuinfo";
 
@@ -77,9 +78,9 @@ std::string CPUInfo::Summarize()
 {
   std::string sum;
   if (num_cores == 1)
-    sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
+    sum = fmt::format("{}, 1 core", cpu_string);
   else
-    sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
+    sum = fmt::format("{}, {} cores", cpu_string, num_cores);
 
   if (bAES)
     sum += ", AES";

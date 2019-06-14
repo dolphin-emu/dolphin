@@ -2,7 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cinttypes>
+#include "Common/Timer.h"
+
 #include <ctime>
 #include <string>
 
@@ -16,9 +17,10 @@
 #include <sys/time.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 
 namespace Common
 {
@@ -149,9 +151,8 @@ std::string Timer::GetTimeElapsedFormatted() const
   // Hours
   u32 Hours = Minutes / 60;
 
-  std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03" PRIu64, Hours, Minutes % 60,
-                                        Seconds % 60, Milliseconds % 1000);
-  return TmpStr;
+  return fmt::format("{:02}:{:02}:{:02}:{:03}", Hours, Minutes % 60, Seconds % 60,
+                     Milliseconds % 1000);
 }
 
 // Get current time
@@ -217,15 +218,15 @@ std::string Timer::GetTimeFormatted()
 #ifdef _WIN32
   struct timeb tp;
   (void)::ftime(&tp);
-  return UTF16ToUTF8(tmp) + StringFromFormat(":%03i", tp.millitm);
+  return UTF16ToUTF8(tmp) + fmt::format(":{:03}", tp.millitm);
 #elif defined __APPLE__
   struct timeval t;
   (void)gettimeofday(&t, nullptr);
-  return StringFromFormat("%s:%03d", tmp, (int)(t.tv_usec / 1000));
+  return fmt::format("{}:{:03}", tmp, t.tv_usec / 1000);
 #else
   struct timespec t;
   (void)clock_gettime(CLOCK_MONOTONIC, &t);
-  return StringFromFormat("%s:%03d", tmp, (int)(t.tv_nsec / 1000000));
+  return fmt::format("{}:{:03}", tmp, t.tv_nsec / 1000000);
 #endif
 }
 

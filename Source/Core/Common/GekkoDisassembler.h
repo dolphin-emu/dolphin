@@ -93,42 +93,6 @@ private:
 
   static u32* DoDisassembly(bool big_endian);
 
-  static u32 HelperRotateMask(int r, int mb, int me)
-  {
-    // first make 001111111111111 part
-    unsigned int begin = 0xFFFFFFFF >> mb;
-    // then make 000000000001111 part, which is used to flip the bits of the first one
-    unsigned int end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
-    // do the bitflip
-    unsigned int mask = begin ^ end;
-    // and invert if backwards
-    if (me < mb)
-      mask = ~mask;
-    // rotate the mask so it can be applied to source reg
-    // return _rotl(mask, 32 - r);
-    return (mask << (32 - r)) | (mask >> r);
-  }
-
-  static std::string ldst_offs(u32 val)
-  {
-    if (val == 0)
-    {
-      return "0";
-    }
-    else
-    {
-      if (val & 0x8000)
-      {
-        return StringFromFormat("-0x%.4X", ((~val) & 0xffff) + 1);
-      }
-      else
-      {
-        return StringFromFormat("0x%.4X", val);
-      }
-    }
-  }
-
-  static int SEX12(u32 x) { return x & 0x800 ? (x | 0xFFFFF000) : x; }
   enum InstructionType
   {
     PPCINSTR_OTHER = 0,   // No additional info for other instr.
