@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/MD5.h"
+
 #include <fstream>
 #include <functional>
 #include <mbedtls/md5.h>
 #include <string>
 
-#include "Common/MD5.h"
+#include <fmt/format.h>
+
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 
@@ -45,7 +48,7 @@ std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report
 
   // Convert to hex
   for (u8 n : output)
-    output_string += StringFromFormat("%02x", n);
+    output_string += fmt::format("{:02x}", n);
 
   return output_string;
 }

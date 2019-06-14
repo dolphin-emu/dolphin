@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CDUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -134,20 +136,23 @@ std::vector<std::string> GetCDDevices()
 }
 #else
 // checklist: /dev/cdrom, /dev/dvd /dev/hd?, /dev/scd? /dev/sr?
-static struct
+struct CheckListEntry
 {
   const char* format;
   unsigned int num_min;
   unsigned int num_max;
-} checklist[] = {
+};
+
+constexpr CheckListEntry checklist[] = {
 #ifdef __linux__
-    {"/dev/cdrom", 0, 0},  {"/dev/dvd", 0, 0},   {"/dev/hd%c", 'a', 'z'},
-    {"/dev/scd%d", 0, 27}, {"/dev/sr%d", 0, 27},
+    {"/dev/cdrom", 0, 0},  {"/dev/dvd", 0, 0},   {"/dev/hd{}", 'a', 'z'},
+    {"/dev/scd{}", 0, 27}, {"/dev/sr{}", 0, 27},
 #else
-    {"/dev/acd%d", 0, 27},
-    {"/dev/cd%d", 0, 27},
+    {"/dev/acd{}", 0, 27},
+    {"/dev/cd{}", 0, 27},
 #endif
-    {nullptr, 0, 0}};
+    {nullptr, 0, 0},
+};
 
 // Returns true if a device is a block or char device and not a symbolic link
 static bool IsDevice(const std::string& source_name)
@@ -189,7 +194,7 @@ std::vector<std::string> GetCDDevices()
   {
     for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
     {
-      std::string drive = StringFromFormat(checklist[i].format, j);
+      std::string drive = fmt::format(checklist[i].format, j);
       if (IsCDROM(drive))
       {
         drives.push_back(std::move(drive));
