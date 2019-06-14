@@ -6,6 +6,7 @@
 
 #include "DolphinQt/DiscordHandler.h"
 
+#include <chrono>
 #include <iterator>
 
 #include <QApplication>
@@ -35,10 +36,12 @@ void DiscordHandler::Start()
 
 void DiscordHandler::Stop()
 {
-  m_stop_requested.Set(true);
+  if (!m_thread.joinable())
+    return;
 
-  if (m_thread.joinable())
-    m_thread.join();
+  m_stop_requested.Set(true);
+  m_wakeup_event.Set();
+  m_thread.join();
 }
 
 void DiscordHandler::DiscordJoinRequest(const char* id, const std::string& discord_tag,
@@ -68,8 +71,7 @@ void DiscordHandler::Run()
 {
   while (!m_stop_requested.IsSet())
   {
-    if (m_thread.joinable())
-      Discord::CallPendingCallbacks();
+    Discord::CallPendingCallbacks();
 
     // close and remove dead requests
     {
@@ -91,7 +93,7 @@ void DiscordHandler::Run()
       }
     }
 
-    Common::SleepCurrentThread(1000 * 2);
+    m_wakeup_event.WaitFor(std::chrono::seconds{2});
   }
 }
 
