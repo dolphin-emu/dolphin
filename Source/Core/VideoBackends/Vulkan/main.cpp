@@ -21,6 +21,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(VK_USE_PLATFORM_MACOS_MVK)
@@ -344,10 +345,9 @@ void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
   // the user that this is an unsupported configuration, but permit them to continue.
   if (!IsRunningOnMojaveOrHigher())
   {
-    PanicAlertT(
-        "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. "
-        "For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please "
-        "do not report any issues encountered unless they also occur on 10.14+.");
+      OSD::AddMessage("You are attempting to use the Vulkan (Metal) backend on an unsupported operating system.", 60000);
+      OSD::AddMessage("For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer.", 60000);
+      OSD::AddMessage("Please do not report any issues encountered, unless they also occur on 10.14+.", 60000);
   }
 #endif
 }
