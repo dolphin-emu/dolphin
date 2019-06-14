@@ -530,6 +530,7 @@ if (_M_X86)
   add_subdirectory(Externals/Bochs_disasm)
 endif()
 add_subdirectory(Externals/cpp-optparse)
+add_subdirectory(Externals/fmt EXCLUDE_FROM_ALL)
 add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/imgui)
 
