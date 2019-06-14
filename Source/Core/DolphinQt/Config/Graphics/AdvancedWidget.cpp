@@ -93,7 +93,7 @@ void AdvancedWidget::CreateWidgets()
   m_enable_cropping = new GraphicsBool(tr("Crop"), Config::GFX_CROP);
   m_enable_prog_scan = new QCheckBox(tr("Enable Progressive Scan"));
   m_backend_multithreading =
-      new GraphicsBool(tr("Backend Multi-threading"), Config::GFX_BACKEND_MULTITHREADING);
+      new GraphicsBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
@@ -160,8 +160,8 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_SHOW_STATS_DESCRIPTION[] =
       QT_TR_NOOP("Shows various rendering statistics.\n\nIf unsure, leave this unchecked.");
   static const char TR_TEXTURE_FORMAT_DESCRIPTION[] = QT_TR_NOOP(
-      "Modifies textures to show the format they're encoded in. May require an emulation reset to "
-      "apply.\n\nIf unsure, leave this unchecked.");
+      "Modifies textures to show the format they're encoded in.\n\nMay require an emulation "
+      "reset to apply.\n\nIf unsure, leave this unchecked.");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
                  "debugging graphical issues.\n\nIf unsure, leave this unchecked.");
@@ -171,9 +171,9 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Loads custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this "
       "unchecked.");
-  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Caches custom textures to system RAM on startup.\nThis can require exponentially "
-                 "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
+  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+      "Caches custom textures to system RAM on startup.\n\nThis can require exponentially "
+      "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
   static const char TR_DUMP_EFB_DESCRIPTION[] = QT_TR_NOOP(
       "Dumps the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this "
       "unchecked.");
@@ -182,7 +182,7 @@ void AdvancedWidget::AddDescriptions()
                  "upscaling.\n\nIf unsure, leave this unchecked.");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
       "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than "
-      "the size of the window it is displayed within. If the aspect ratio is widescreen, the "
+      "the size of the window it is displayed within.\n\nIf the aspect ratio is widescreen, the "
       "output image will be scaled horizontally to preserve the vertical resolution.\n\nIf "
       "unsure, leave this unchecked.");
 #if defined(HAVE_FFMPEG)
@@ -201,15 +201,15 @@ void AdvancedWidget::AddDescriptions()
       "Enables progressive scan if supported by the emulated software. Most games don't have "
       "any issue with this.\n\nIf unsure, leave this unchecked.");
   static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
-      QT_TR_NOOP("Enables multi-threaded command submission in backends where supported. Enabling "
+      QT_TR_NOOP("Enables multithreaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
                  "two CPU cores. Currently, this is limited to the Vulkan backend.\n\nIf unsure, "
                  "leave this checked.");
-  static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] =
-      QT_TR_NOOP("Defers invalidation of the EFB access cache until a GPU synchronization command "
-                 "is executed. If disabled, the cache will be invalidated with every draw call. "
-                 "May improve performance in some games which rely on CPU EFB Access at the cost "
-                 "of stability.\n\nIf unsure, leave this unchecked.");
+  static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
+      "Defers invalidation of the EFB access cache until a GPU synchronization command "
+      "is executed. If disabled, the cache will be invalidated with every draw call. "
+      "\n\nMay improve performance in some games which rely on CPU EFB Access at the cost "
+      "of stability.\n\nIf unsure, leave this unchecked.");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
