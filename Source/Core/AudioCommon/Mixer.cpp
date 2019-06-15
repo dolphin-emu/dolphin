@@ -20,9 +20,9 @@ static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
 {
   switch (quality)
   {
-  case AudioCommon::DPL2Quality::Low:
+  case AudioCommon::DPL2Quality::Lowest:
     return 512;
-  case AudioCommon::DPL2Quality::Medium:
+  case AudioCommon::DPL2Quality::Low:
     return 1024;
   case AudioCommon::DPL2Quality::Highest:
     return 4096;

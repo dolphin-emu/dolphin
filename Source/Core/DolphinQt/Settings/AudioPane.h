@@ -35,6 +35,7 @@ private:
 
   void OnEmulationStateChanged(bool running);
   void OnBackendChanged();
+  void OnDspChanged();
   void OnVolumeChanged(int volume);
 
   void CheckNeedForLatencyControl();

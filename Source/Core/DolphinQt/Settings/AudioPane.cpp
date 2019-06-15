@@ -105,7 +105,7 @@ void AudioPane::CreateWidgets()
       tr("Quality of the DPLII decoder. Audio latency increases with quality."));
   m_dolby_quality_slider->setTracking(true);
 
-  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Low));
+  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Lowest));
   m_dolby_quality_highest_label =
       new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Highest));
   m_dolby_quality_latency_label =
@@ -265,6 +265,11 @@ void AudioPane::SaveSettings()
   auto& settings = Settings::Instance();
 
   // DSP
+  if (SConfig::GetInstance().bDSPHLE != m_dsp_hle->isChecked() ||
+      SConfig::GetInstance().m_DSPEnableJIT != m_dsp_lle->isChecked())
+  {
+    OnDspChanged();
+  }
   SConfig::GetInstance().bDSPHLE = m_dsp_hle->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_DSP_HLE, m_dsp_hle->isChecked());
   SConfig::GetInstance().m_DSPEnableJIT = m_dsp_lle->isChecked();
@@ -294,7 +299,7 @@ void AudioPane::SaveSettings()
                   static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()));
   m_dolby_quality_latency_label->setText(
       GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  if (AudioCommon::SupportsDPL2Decoder(backend))
+  if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isChecked());
   }
@@ -324,12 +329,22 @@ void AudioPane::SaveSettings()
   AudioCommon::UpdateSoundStream();
 }
 
+void AudioPane::OnDspChanged()
+{
+  const auto backend = SConfig::GetInstance().sBackend;
+
+  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
+                                !m_dsp_hle->isChecked());
+  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked());
+}
+
 void AudioPane::OnBackendChanged()
 {
   const auto backend = SConfig::GetInstance().sBackend;
 
-  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend));
-  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend));
+  m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
+                                !m_dsp_hle->isChecked());
+  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked());
   if (m_latency_control_supported)
   {
     m_latency_label->setEnabled(AudioCommon::SupportsLatencyControl(backend));
@@ -362,7 +377,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_dsp_interpreter->setEnabled(!running);
   m_backend_label->setEnabled(!running);
   m_backend_combo->setEnabled(!running);
-  if (AudioCommon::SupportsDPL2Decoder(SConfig::GetInstance().sBackend))
+  if (AudioCommon::SupportsDPL2Decoder(SConfig::GetInstance().sBackend) && !m_dsp_hle->isChecked())
   {
     m_dolby_pro_logic->setEnabled(!running);
     EnableDolbyQualityWidgets(!running);
@@ -395,10 +410,10 @@ QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
+  case AudioCommon::DPL2Quality::Lowest:
+    return tr("Lowest");
   case AudioCommon::DPL2Quality::Low:
     return tr("Low");
-  case AudioCommon::DPL2Quality::Medium:
-    return tr("Medium");
   case AudioCommon::DPL2Quality::Highest:
     return tr("Highest");
   default:
@@ -410,9 +425,9 @@ QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value
 {
   switch (value)
   {
-  case AudioCommon::DPL2Quality::Low:
+  case AudioCommon::DPL2Quality::Lowest:
     return tr("Latency: ~10ms");
-  case AudioCommon::DPL2Quality::Medium:
+  case AudioCommon::DPL2Quality::Low:
     return tr("Latency: ~20ms");
   case AudioCommon::DPL2Quality::Highest:
     return tr("Latency: ~80ms");

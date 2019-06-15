@@ -221,7 +221,8 @@ void OpenALStream::SoundLoop()
 
   bool float32_capable = palIsExtensionPresent("AL_EXT_float32") != 0;
   bool surround_capable = palIsExtensionPresent("AL_EXT_MCFORMATS") || IsCreativeXFi();
-  bool use_surround = SConfig::GetInstance().bDPL2Decoder && surround_capable;
+  bool use_surround =
+      SConfig::GetInstance().bDPL2Decoder && surround_capable && !SConfig::GetInstance().bDSPHLE;
 
   // As there is no extension to check for 32-bit fixed point support
   // and we know that only a X-Fi with hardware OpenAL supports it,
