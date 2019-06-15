@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.dialogs.GameSettingsDialog;
+import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
@@ -145,11 +145,11 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
       return true;
     }
 
-    GameSettingsDialog fragment =
-            GameSettingsDialog.
-                    newInstance(holder.gameFile.getPath(), gameId, holder.gameFile.getPlatform());
+    GamePropertiesDialog fragment =
+            GamePropertiesDialog
+                    .newInstance(holder.gameFile.getPath(), gameId, holder.gameFile.getPlatform());
     ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
-            .add(fragment, GameSettingsDialog.TAG).commit();
+            .add(fragment, GamePropertiesDialog.TAG).commit();
     return true;
   }
 

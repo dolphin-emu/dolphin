@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.dialogs.GameSettingsDialog;
+import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
@@ -90,11 +90,11 @@ public final class GameRowPresenter extends Presenter
         return true;
       }
 
-      GameSettingsDialog fragment =
-              GameSettingsDialog.newInstance(holder.gameFile.getPath(), gameId,
+      GamePropertiesDialog fragment =
+              GamePropertiesDialog.newInstance(holder.gameFile.getPath(), gameId,
                       holder.gameFile.getPlatform());
       ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
-              .add(fragment, GameSettingsDialog.TAG).commit();
+              .add(fragment, GamePropertiesDialog.TAG).commit();
 
       return true;
     });

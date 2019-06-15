@@ -18,16 +18,16 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.io.File;
 
-public class GameSettingsDialog extends DialogFragment
+public class GamePropertiesDialog extends DialogFragment
 {
-  public static final String TAG = "GameSettingsDialog";
+  public static final String TAG = "GamePropertiesDialog";
   public static final String ARG_PATH = "path";
   public static final String ARG_GAMEID = "game_id";
   public static final String ARG_PLATFORM = "platform";
 
-  public static GameSettingsDialog newInstance(String path, String gameId, int platform)
+  public static GamePropertiesDialog newInstance(String path, String gameId, int platform)
   {
-    GameSettingsDialog fragment = new GameSettingsDialog();
+    GamePropertiesDialog fragment = new GamePropertiesDialog();
 
     Bundle arguments = new Bundle();
     arguments.putString(ARG_PATH, path);
@@ -48,7 +48,8 @@ public class GameSettingsDialog extends DialogFragment
     String gameId = requireArguments().getString(ARG_GAMEID);
     int platform = requireArguments().getInt(ARG_PLATFORM);
 
-    builder.setTitle(requireContext().getString(R.string.preferences_game_settings) + ": " + gameId)
+    builder.setTitle(requireContext()
+            .getString(R.string.preferences_game_properties) + ": " + gameId)
             .setItems(platform == Platform.GAMECUBE.toInt() ?
                     R.array.gameSettingsMenusGC :
                     R.array.gameSettingsMenusWii, (dialog, which) ->
