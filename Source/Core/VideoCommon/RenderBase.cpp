@@ -1148,6 +1148,15 @@ void Renderer::DrawImGui()
       base_index += cmd.ElemCount;
     }
   }
+
+  // Some capture software (such as OBS) hooks SwapBuffers and uses glBlitFramebuffer to copy our
+  // back buffer just before swap. Because glBlitFramebuffer honors the scissor test, the capture
+  // itself will be clipped to whatever bounds were last set by ImGui, resulting in a rather useless
+  // capture whenever any ImGui windows are open. We'll reset the scissor rectangle to the entire
+  // viewport here to avoid this problem.
+  SetScissorRect(ConvertFramebufferRectangle(
+      MathUtil::Rectangle<int>(0, 0, m_backbuffer_width, m_backbuffer_height),
+      m_current_framebuffer));
 }
 
 std::unique_lock<std::mutex> Renderer::GetImGuiLock()
