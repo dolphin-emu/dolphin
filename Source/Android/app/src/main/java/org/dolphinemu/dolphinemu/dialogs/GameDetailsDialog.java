@@ -1,13 +1,15 @@
 package org.dolphinemu.dolphinemu.dialogs;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.DialogFragment;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.squareup.picasso.Picasso;
 
@@ -38,7 +40,7 @@ public final class GameDetailsDialog extends DialogFragment
   {
     GameFile gameFile = GameFileCacheService.addOrGet(getArguments().getString(ARG_GAME_PATH));
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
     ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater()
             .inflate(R.layout.dialog_game_details, null);
 

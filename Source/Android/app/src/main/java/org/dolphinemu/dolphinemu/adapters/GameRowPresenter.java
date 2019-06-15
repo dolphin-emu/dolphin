@@ -91,7 +91,8 @@ public final class GameRowPresenter extends Presenter
       }
 
       GameSettingsDialog fragment =
-              GameSettingsDialog.newInstance(gameId, holder.gameFile.getPlatform());
+              GameSettingsDialog.newInstance(holder.gameFile.getPath(), gameId,
+                      holder.gameFile.getPlatform());
       ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
               .add(fragment, GameSettingsDialog.TAG).commit();
 
