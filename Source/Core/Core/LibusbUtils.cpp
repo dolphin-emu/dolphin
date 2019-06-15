@@ -2,14 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <atomic>
+#include <map>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #if defined(__LIBUSB__)
 #include <libusb.h>
 #endif
 
 #include "Common/Assert.h"
+#include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
 #include "Core/LibusbUtils.h"
@@ -65,6 +70,37 @@ public:
     return true;
   }
 
+  int SubmitTransfer(libusb_transfer* transfer, TransferCallback callback)
+  {
+    {
+      std::lock_guard lock{m_transfer_callbacks_mutex};
+      m_transfer_callbacks.emplace(transfer, std::move(callback));
+    }
+    ASSERT(!transfer->user_data && !transfer->callback);
+    transfer->user_data = this;
+    transfer->callback = [](libusb_transfer* tr) {
+      static_cast<Impl*>(tr->user_data)->HandleTransferCallback(tr);
+    };
+    return libusb_submit_transfer(transfer);
+  }
+
+  s64 SubmitTransferSync(libusb_transfer* transfer)
+  {
+    Common::Event transfer_done_event;
+    std::atomic<s64> ret;
+
+    const int submit_ret = SubmitTransfer(transfer, [&] {
+      ret = (transfer->status == 0) ? transfer->actual_length : LIBUSB_ERROR_OTHER;
+      transfer_done_event.Set();
+    });
+
+    if (submit_ret != 0)
+      return submit_ret;
+
+    transfer_done_event.Wait();
+    return ret;
+  }
+
 private:
   void EventThread()
   {
@@ -74,8 +110,25 @@ private:
       libusb_handle_events_timeout_completed(m_context, &tv, nullptr);
   }
 
+  TransferCallback PopTransferCallback(libusb_transfer* transfer)
+  {
+    std::lock_guard lock{m_transfer_callbacks_mutex};
+    auto it = m_transfer_callbacks.find(transfer);
+    TransferCallback callback = std::move(it->second);
+    m_transfer_callbacks.erase(it);
+    return callback;
+  }
+
+  void HandleTransferCallback(libusb_transfer* transfer)
+  {
+    const auto callback = PopTransferCallback(transfer);
+    callback();
+  }
+
   libusb_context* m_context = nullptr;
   std::mutex m_device_list_mutex;
+  std::mutex m_transfer_callbacks_mutex;
+  std::map<libusb_transfer*, TransferCallback> m_transfer_callbacks;
   Common::Flag m_event_thread_running;
   std::thread m_event_thread;
 };
@@ -85,6 +138,8 @@ class Context::Impl
 public:
   libusb_context* GetContext() { return nullptr; }
   bool GetDeviceList(GetDeviceListCallback callback) { return false; }
+  int SubmitTransfer(libusb_transfer*, TransferCallback) { return -1; }
+  int SubmitTransferSync(libusb_transfer* transfer) { return -1; }
 };
 #endif
 
@@ -109,10 +164,80 @@ bool Context::GetDeviceList(GetDeviceListCallback callback)
   return m_impl->GetDeviceList(std::move(callback));
 }
 
+int Context::SubmitTransfer(libusb_transfer* transfer, TransferCallback callback)
+{
+  return m_impl->SubmitTransfer(transfer, std::move(callback));
+}
+
+s64 Context::SubmitTransferSync(libusb_transfer* transfer)
+{
+  return m_impl->SubmitTransferSync(transfer);
+}
+
+s64 Context::ControlTransfer(libusb_device_handle* handle, u8 bmRequestType, u8 bRequest,
+                             u16 wValue, u16 wIndex, u8* data, u16 wLength, u32 timeout)
+{
+#if defined(__LIBUSB__)
+  auto transfer = MakeTransfer();
+  std::vector<u8> buffer(LIBUSB_CONTROL_SETUP_SIZE + wLength);
+
+  libusb_fill_control_setup(buffer.data(), bmRequestType, bRequest, wValue, wIndex, wLength);
+  if ((bmRequestType & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_OUT)
+    std::copy_n(data, wLength, buffer.data() + LIBUSB_CONTROL_SETUP_SIZE);
+  libusb_fill_control_transfer(transfer.get(), handle, buffer.data(), nullptr, nullptr, timeout);
+
+  const int ret = SubmitTransferSync(transfer.get());
+  if (ret < 0)
+    return ret;
+
+  if ((bmRequestType & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN)
+    std::copy_n(buffer.data() + LIBUSB_CONTROL_SETUP_SIZE, transfer->actual_length, data);
+
+  return ret;
+#else
+  return -1;
+#endif
+}
+
+s64 Context::InterruptTransfer(libusb_device_handle* handle, u8 endpoint, u8* data, int length,
+                               u32 timeout)
+{
+#if defined(__LIBUSB__)
+  auto transfer = MakeTransfer();
+  libusb_fill_interrupt_transfer(transfer.get(), handle, endpoint, data, length, nullptr, nullptr,
+                                 timeout);
+  return SubmitTransferSync(transfer.get());
+#else
+  return -1;
+#endif
+}
+
+s64 Context::BulkTransfer(libusb_device_handle* handle, u8 endpoint, u8* data, int length,
+                          u32 timeout)
+{
+#if defined(__LIBUSB__)
+  auto transfer = MakeTransfer();
+  libusb_fill_bulk_transfer(transfer.get(), handle, endpoint, data, length, nullptr, nullptr,
+                            timeout);
+  return SubmitTransferSync(transfer.get());
+#else
+  return -1;
+#endif
+}
+
 Context& GetContext()
 {
   static Context s_context;
   return s_context;
+}
+
+Transfer MakeTransfer(int num_isoc_packets)
+{
+#if defined(__LIBUSB__)
+  return {libusb_alloc_transfer(num_isoc_packets), libusb_free_transfer};
+#else
+  return {nullptr, [](auto) {}};
+#endif
 }
 
 ConfigDescriptor MakeConfigDescriptor(libusb_device* device, u8 config_num)
