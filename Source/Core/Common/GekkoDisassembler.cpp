@@ -504,7 +504,7 @@ void GekkoDisassembler::cmpi(u32 in, int uimm)
     i = (int)PPCGETCRD(in);
     if (i != 0)
     {
-      m_operands += fmt::format("cr{}, ", '0' + i);
+      m_operands += fmt::format("cr{}, ", i);
     }
 
     m_operands += imm(in, uimm, 2, false);
@@ -716,7 +716,7 @@ void GekkoDisassembler::cmp(u32 in)
 
     i = (int)PPCGETCRD(in);
     if (i != 0)
-      m_operands += fmt::format("cr{},", static_cast<char>('0' + i));
+      m_operands += fmt::format("cr{},", i);
 
     m_operands += ra_rb(in);
   }
@@ -1220,7 +1220,7 @@ void GekkoDisassembler::ps(u32 inst)
 
     int i = (int)PPCGETCRD(inst);
     if (i != 0)
-      m_operands += fmt::format("cr{}, ", '0' + i);
+      m_operands += fmt::format("cr{}, ", i);
     m_operands += fmt::format("p{}, p{}", FA, FB);
     return;
   }
