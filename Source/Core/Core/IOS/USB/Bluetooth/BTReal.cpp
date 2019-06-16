@@ -592,8 +592,7 @@ void BluetoothReal::HandleCtrlTransfer(libusb_transfer* tr)
   }
   const auto& command = m_current_transfers.at(tr).command;
   command->FillBuffer(libusb_control_transfer_get_data(tr), tr->actual_length);
-  m_ios.EnqueueIPCReply(command->ios_request, tr->actual_length, 0,
-                        CoreTiming::FromThread::NON_CPU);
+  m_ios.EnqueueIPCReply(command->ios_request, tr->actual_length, 0, CoreTiming::FromThread::ANY);
   m_current_transfers.erase(tr);
 }
 
@@ -641,8 +640,7 @@ void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
 
   const auto& command = m_current_transfers.at(tr).command;
   command->FillBuffer(tr->buffer, tr->actual_length);
-  m_ios.EnqueueIPCReply(command->ios_request, tr->actual_length, 0,
-                        CoreTiming::FromThread::NON_CPU);
+  m_ios.EnqueueIPCReply(command->ios_request, tr->actual_length, 0, CoreTiming::FromThread::ANY);
   m_current_transfers.erase(tr);
 }
 }  // namespace IOS::HLE::Device
