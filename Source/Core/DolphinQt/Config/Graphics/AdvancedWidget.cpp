@@ -74,13 +74,16 @@ void AdvancedWidget::CreateWidgets()
   m_enable_freelook = new GraphicsBool(tr("Free Look"), Config::GFX_FREE_LOOK);
   m_dump_use_ffv1 = new GraphicsBool(tr("Frame Dumps Use FFV1"), Config::GFX_USE_FFV1);
 
-  utility_layout->addWidget(m_dump_textures, 0, 0);
-  utility_layout->addWidget(m_load_custom_textures, 0, 1);
-  utility_layout->addWidget(m_prefetch_custom_textures, 1, 0);
-  utility_layout->addWidget(m_use_fullres_framedumps, 1, 1);
-  utility_layout->addWidget(m_dump_efb_target, 2, 0);
-  utility_layout->addWidget(m_disable_vram_copies, 2, 1);
-  utility_layout->addWidget(m_enable_freelook, 3, 0);
+  utility_layout->addWidget(m_load_custom_textures, 0, 0);
+  utility_layout->addWidget(m_prefetch_custom_textures, 0, 1);
+
+  utility_layout->addWidget(m_enable_freelook, 1, 0);
+  utility_layout->addWidget(m_disable_vram_copies, 1, 1);
+
+  utility_layout->addWidget(m_dump_textures, 2, 0);
+  utility_layout->addWidget(m_dump_efb_target, 2, 1);
+
+  utility_layout->addWidget(m_use_fullres_framedumps, 3, 0);
 #if defined(HAVE_FFMPEG)
   utility_layout->addWidget(m_dump_use_ffv1, 3, 1);
 #endif
