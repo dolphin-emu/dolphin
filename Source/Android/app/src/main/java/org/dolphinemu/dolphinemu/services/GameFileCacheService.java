@@ -8,6 +8,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -94,7 +95,8 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startLoad(Context context)
   {
-    startService(context, ACTION_LOAD);
+    new AfterDirectoryInitializationRunner().run(context,
+            () -> startService(context, ACTION_LOAD));
   }
 
   /**
@@ -104,7 +106,8 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startRescan(Context context)
   {
-    startService(context, ACTION_RESCAN);
+    new AfterDirectoryInitializationRunner().run(context,
+            () -> startService(context, ACTION_RESCAN));
   }
 
   public static GameFile addOrGet(String gamePath)
