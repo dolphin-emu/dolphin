@@ -69,7 +69,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   public void onBindViewHolder(GameViewHolder holder, int position)
   {
     GameFile gameFile = mGameFiles.get(position);
-    PicassoUtils.loadGameBanner(holder.imageScreenshot, gameFile);
+    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
 
     holder.textGameTitle.setText(gameFile.getTitle());
     holder.textCompany.setText(gameFile.getCompany());

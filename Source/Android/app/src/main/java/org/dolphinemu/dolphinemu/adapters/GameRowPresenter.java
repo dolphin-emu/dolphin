@@ -49,7 +49,7 @@ public final class GameRowPresenter extends Presenter
     GameFile gameFile = (GameFile) item;
 
     holder.imageScreenshot.setImageDrawable(null);
-    PicassoUtils.loadGameBanner(holder.imageScreenshot, gameFile);
+    PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
 
     holder.cardParent.setTitleText(gameFile.getTitle());
     holder.cardParent.setContentText(gameFile.getCompany());
