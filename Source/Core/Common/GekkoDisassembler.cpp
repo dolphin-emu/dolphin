@@ -34,12 +34,12 @@
 
 #include "Common/GekkoDisassembler.h"
 
+#include <array>
 #include <string>
 
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -86,37 +86,68 @@ namespace Common
 #define PPCGETIDX2(x) (((x)&PPCIDX2MASK) >> PPCIDX2SH)
 #define PPCGETSTRM(x) (((x)&PPCSTRM) >> PPCDSH)
 
-static const char* trap_condition[32] = {
+constexpr std::array<const char*, 32> trap_condition{
     nullptr, "lgt",   "llt",   nullptr, "eq",    "lge",   "lle",   nullptr,
     "gt",    nullptr, nullptr, nullptr, "ge",    nullptr, nullptr, nullptr,
     "lt",    nullptr, nullptr, nullptr, "le",    nullptr, nullptr, nullptr,
-    "ne",    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+    "ne",    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+};
 
-static const char* cmpname[4] = {"cmpw", "cmpd", "cmplw", "cmpld"};
+constexpr std::array<const char*, 4> cmpname{
+    "cmpw",
+    "cmpd",
+    "cmplw",
+    "cmpld",
+};
 
-static const char* ps_cmpname[4] = {"ps_cmpu0", "ps_cmpo0", "ps_cmpu1", "ps_cmpo1"};
+constexpr std::array<const char*, 4> ps_cmpname{
+    "ps_cmpu0",
+    "ps_cmpo0",
+    "ps_cmpu1",
+    "ps_cmpo1",
+};
 
-static const char* b_ext[4] = {"", "l", "a", "la"};
+constexpr std::array<const char*, 4> b_ext{
+    "",
+    "l",
+    "a",
+    "la",
+};
 
-static const char* b_condition[8] = {"ge", "le", "ne", "ns", "lt", "gt", "eq", "so"};
+constexpr std::array<const char*, 8> b_condition{
+    "ge", "le", "ne", "ns", "lt", "gt", "eq", "so",
+};
 
-static const char* b_decr[16] = {"nzf", "zf", nullptr, nullptr, "nzt", "zt", nullptr, nullptr,
-                                 "nz",  "z",  nullptr, nullptr, "nz",  "z",  nullptr, nullptr};
+constexpr std::array<const char*, 16> b_decr{
+    "nzf", "zf", nullptr, nullptr, "nzt", "zt", nullptr, nullptr,
+    "nz",  "z",  nullptr, nullptr, "nz",  "z",  nullptr, nullptr,
+};
 
-static const char* regsel[2] = {"", "r"};
+constexpr std::array<const char*, 2> regsel{
+    "",
+    "r",
+};
 
-static const char* oesel[2] = {"", "o"};
+constexpr std::array<const char*, 2> oesel{
+    "",
+    "o",
+};
 
-static const char* rcsel[2] = {"", "."};
+constexpr std::array<const char*, 2> rcsel{
+    "",
+    ".",
+};
 
-static const char* ldstnames[24] = {"lwz", "lwzu", "lbz", "lbzu", "stw",  "stwu",  "stb",  "stbu",
-                                    "lhz", "lhzu", "lha", "lhau", "sth",  "sthu",  "lmw",  "stmw",
-                                    "lfs", "lfsu", "lfd", "lfdu", "stfs", "stfsu", "stfd", "stfdu"};
+constexpr std::array<const char*, 24> ldstnames{
+    "lwz", "lwzu", "lbz", "lbzu", "stw", "stwu", "stb", "stbu", "lhz",  "lhzu",  "lha",  "lhau",
+    "sth", "sthu", "lmw", "stmw", "lfs", "lfsu", "lfd", "lfdu", "stfs", "stfsu", "stfd", "stfdu",
+};
 
-static const char* regnames[32] = {"r0",  "sp",  "rtoc", "r3",  "r4",  "r5",  "r6",  "r7",
-                                   "r8",  "r9",  "r10",  "r11", "r12", "r13", "r14", "r15",
-                                   "r16", "r17", "r18",  "r19", "r20", "r21", "r22", "r23",
-                                   "r24", "r25", "r26",  "r27", "r28", "r29", "r30", "r31"};
+constexpr std::array<const char*, 32> regnames{
+    "r0",  "sp",  "rtoc", "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
+    "r11", "r12", "r13",  "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
+    "r22", "r23", "r24",  "r25", "r26", "r27", "r28", "r29", "r30", "r31",
+};
 
 // Initialize static class variables.
 u32* GekkoDisassembler::m_instr = nullptr;
@@ -2328,28 +2359,30 @@ std::string GekkoDisassembler::Disassemble(u32 opcode, u32 current_instruction_a
   return m_opcode.append("\t").append(m_operands);
 }
 
-static const char* gprnames[] = {
+constexpr std::array<const char*, 32> gpr_names{
     " r0", " r1 (sp)", " r2 (rtoc)", " r3", " r4", " r5", " r6", " r7", " r8", " r9", "r10",
     "r11", "r12",      "r13",        "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
-    "r22", "r23",      "r24",        "r25", "r26", "r27", "r28", "r29", "r30", "r31"};
+    "r22", "r23",      "r24",        "r25", "r26", "r27", "r28", "r29", "r30", "r31",
+};
 
 const char* GekkoDisassembler::GetGPRName(u32 index)
 {
-  if (index < 32)
-    return gprnames[index];
+  if (index < gpr_names.size())
+    return gpr_names[index];
 
   return nullptr;
 }
 
-static const char* fprnames[] = {" f0", " f1", " f2", " f3", " f4", " f5", " f6", " f7",
-                                 " f8", " f9", "f10", "f11", "f12", "f13", "f14", "f15",
-                                 "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
-                                 "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31"};
+constexpr std::array<const char*, 32> fpr_names{
+    " f0", " f1", " f2", " f3", " f4", " f5", " f6", " f7", " f8", " f9", "f10",
+    "f11", "f12", "f13", "f14", "f15", "f16", "f17", "f18", "f19", "f20", "f21",
+    "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
+};
 
 const char* GekkoDisassembler::GetFPRName(u32 index)
 {
-  if (index < 32)
-    return fprnames[index];
+  if (index < fpr_names.size())
+    return fpr_names[index];
 
   return nullptr;
 }
