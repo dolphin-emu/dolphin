@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -53,9 +54,14 @@ public final class GameDetailsDialog extends DialogFragment
     FloatingActionButton buttonLaunch = contents.findViewById(R.id.button_launch);
 
     String country = getResources().getStringArray(R.array.countryNames)[gameFile.getCountry()];
+    String description = gameFile.getDescription();
 
     textTitle.setText(gameFile.getTitle());
     textDescription.setText(gameFile.getDescription());
+    if (description.isEmpty())
+    {
+      textDescription.setVisibility(View.GONE);
+    }
     textCountry.setText(country);
     textCompany.setText(gameFile.getCompany());
 
