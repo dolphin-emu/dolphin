@@ -349,10 +349,29 @@ public final class NativeLibrary
 
   public static native int DefaultCPUCore();
 
+  public static native void ReloadConfig();
+
+  /**
+   * Initializes the native parts of the app.
+   *
+   * Should be called at app start before running any other native code
+   * (other than the native methods in DirectoryInitialization).
+   */
+  public static native void Initialize();
+
+  /**
+   * Tells analytics that Dolphin has been started.
+   *
+   * Since users typically don't explicitly close Android apps, it's appropriate to
+   * call this not only when the app starts but also when the user returns to the app
+   * after not using it for a significant amount of time.
+   */
+  public static native void ReportStartToAnalytics();
+
   /**
    * Begins emulation.
    */
-  public static native void Run(String[] path, boolean firstOpen);
+  public static native void Run(String[] path);
 
   /**
    * Begins emulation from the specified savestate.

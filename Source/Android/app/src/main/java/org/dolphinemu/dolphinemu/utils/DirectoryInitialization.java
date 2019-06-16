@@ -67,6 +67,8 @@ public final class DirectoryInitialization
         {
           initializeInternalStorage(context);
           initializeExternalStorage(context);
+          NativeLibrary.Initialize();
+          NativeLibrary.ReportStartToAnalytics();
 
           directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
         }
