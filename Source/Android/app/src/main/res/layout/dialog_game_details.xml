@@ -20,7 +20,7 @@
             android:layout_below="@+id/text_description"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
-            tools:src="@drawable/placeholder_banner"/>
+            tools:src="@drawable/no_banner"/>
 
         <TextView
             android:id="@+id/text_game_title"
