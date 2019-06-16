@@ -11,12 +11,11 @@ import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import com.squareup.picasso.Picasso;
-
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -77,7 +76,7 @@ public final class GameDetailsDialog extends DialogFragment
             .noPlaceholder()
             .into(imageGameScreen);
 
-    circleBanner.setImageResource(R.drawable.no_banner);
+    PicassoUtils.loadGameBanner(circleBanner, gameFile);
 
     builder.setView(contents);
     return builder.create();
