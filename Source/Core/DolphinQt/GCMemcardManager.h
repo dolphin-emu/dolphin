@@ -32,6 +32,7 @@ public:
 private:
   void CreateWidgets();
   void ConnectWidgets();
+  void LoadDefaultMemcards();
 
   void UpdateActions();
   void UpdateSlotTable(int slot);
