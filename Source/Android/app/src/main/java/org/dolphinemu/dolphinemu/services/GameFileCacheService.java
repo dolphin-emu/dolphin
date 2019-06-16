@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -27,6 +28,8 @@ public final class GameFileCacheService extends IntentService
 
   private static GameFileCache gameFileCache = null;
   private static AtomicReference<GameFile[]> gameFiles = new AtomicReference<>(new GameFile[]{});
+  private static AtomicBoolean hasLoadedCache = new AtomicBoolean(false);
+  private static AtomicBoolean hasScannedLibrary = new AtomicBoolean(false);
 
   public GameFileCacheService()
   {
@@ -81,6 +84,16 @@ public final class GameFileCacheService extends IntentService
     return matchWithoutRevision;
   }
 
+  public static boolean hasLoadedCache()
+  {
+    return hasLoadedCache.get();
+  }
+
+  public static boolean hasScannedLibrary()
+  {
+    return hasScannedLibrary.get();
+  }
+
   private static void startService(Context context, String action)
   {
     Intent intent = new Intent(context, GameFileCacheService.class);
@@ -130,6 +143,8 @@ public final class GameFileCacheService extends IntentService
         gameFileCache = temp;
         gameFileCache.load();
         updateGameFileArray();
+        hasLoadedCache.set(true);
+        sendBroadcast();
       }
     }
 
@@ -138,10 +153,11 @@ public final class GameFileCacheService extends IntentService
     {
       synchronized (gameFileCache)
       {
-        if (gameFileCache.scanLibrary(this))
-        {
+        boolean changed = gameFileCache.scanLibrary(this);
+        if (changed)
           updateGameFileArray();
-        }
+        hasScannedLibrary.set(true);
+        sendBroadcast();
       }
     }
   }
@@ -151,6 +167,10 @@ public final class GameFileCacheService extends IntentService
     GameFile[] gameFilesTemp = gameFileCache.getAllGames();
     Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getTitle().compareToIgnoreCase(rhs.getTitle()));
     gameFiles.set(gameFilesTemp);
+  }
+
+  private void sendBroadcast()
+  {
     LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BROADCAST_ACTION));
   }
 }
