@@ -6,6 +6,7 @@
              android:layout_width="match_parent"
              android:paddingStart="24dp"
              android:paddingEnd="24dp"
+             android:paddingBottom="24dp"
              android:transitionName="card_game">
 
     <RelativeLayout
@@ -69,8 +70,25 @@
             android:layout_below="@+id/icon_country"
             android:layout_marginTop="16dp"
             android:padding="6dp"
-            android:src="@drawable/ic_company"
-            android:layout_marginBottom="16dp"/>
+            android:src="@drawable/ic_company"/>
+
+        <ImageView
+            android:id="@+id/icon_game_id"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignStart="@+id/icon_company"
+            android:layout_below="@+id/icon_company"
+            android:layout_marginTop="16dp"
+            android:padding="6dp"/>
+
+        <ImageView
+            android:id="@+id/icon_revision"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignStart="@+id/icon_game_id"
+            android:layout_below="@+id/icon_game_id"
+            android:layout_marginTop="16dp"
+            android:padding="6dp"/>
 
         <TextView
             android:id="@+id/text_country"
@@ -92,6 +110,26 @@
             android:layout_alignTop="@+id/icon_company"
             android:gravity="center_vertical"
             tools:text="Nintendo"/>
+
+        <TextView
+            android:id="@+id/text_game_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/icon_game_id"
+            android:layout_alignStart="@+id/text_company"
+            android:layout_alignTop="@+id/icon_game_id"
+            android:gravity="center_vertical"
+            tools:text="SOME01"/>
+
+        <TextView
+            android:id="@+id/text_revision"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/icon_revision"
+            android:layout_alignStart="@+id/text_game_id"
+            android:layout_alignTop="@+id/icon_revision"
+            android:gravity="center_vertical"
+            tools:text="0"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_launch"

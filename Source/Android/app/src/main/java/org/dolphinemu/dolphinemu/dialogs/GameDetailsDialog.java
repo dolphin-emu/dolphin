@@ -49,6 +49,8 @@ public final class GameDetailsDialog extends DialogFragment
 
     TextView textCountry = contents.findViewById(R.id.text_country);
     TextView textCompany = contents.findViewById(R.id.text_company);
+    TextView textGameId = contents.findViewById(R.id.text_game_id);
+    TextView textRevision = contents.findViewById(R.id.text_revision);
 
     FloatingActionButton buttonLaunch = contents.findViewById(R.id.button_launch);
 
@@ -63,6 +65,8 @@ public final class GameDetailsDialog extends DialogFragment
     }
     textCountry.setText(country);
     textCompany.setText(gameFile.getCompany());
+    textGameId.setText(gameFile.getGameId());
+    textRevision.setText(Integer.toString(gameFile.getRevision()));
 
     buttonLaunch.setOnClickListener(view ->
     {
