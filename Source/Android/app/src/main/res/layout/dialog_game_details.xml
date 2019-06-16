@@ -4,23 +4,22 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_height="match_parent"
              android:layout_width="match_parent"
+             android:paddingStart="24dp"
+             android:paddingEnd="24dp"
              android:transitionName="card_game">
 
     <RelativeLayout
         android:layout_width="480dp"
         android:layout_height="match_parent">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/circle_banner"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="48dp"
+        <ImageView
+            android:id="@+id/banner"
+            android:layout_width="144dp"
             android:layout_height="48dp"
-            android:layout_below="@+id/image_game_screen"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="24dp"
-            tools:src="@drawable/placeholder_banner"
-            app:civ_border_color="?android:colorAccent"
-            app:civ_border_width="2dp"/>
+            android:layout_below="@+id/text_description"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            tools:src="@drawable/placeholder_banner"/>
 
         <ImageView
             android:id="@+id/image_game_screen"
@@ -38,21 +37,17 @@
         <TextView
             android:id="@+id/text_game_title"
             style="@android:style/TextAppearance.Material.Headline"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:layout_below="@+id/image_game_screen"
-            android:layout_marginLeft="36dp"
-            android:layout_marginRight="36dp"
             android:layout_marginTop="24dp"
-            android:layout_toEndOf="@+id/circle_banner"
             android:ellipsize="end"
             tools:text="Rhythm Heaven Fever"/>
 
         <TextView
             android:id="@+id/text_description"
             style="@android:style/TextAppearance.Material.Caption"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_alignStart="@+id/text_game_title"
@@ -66,7 +61,7 @@
             android:layout_height="1dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@+id/text_description"
+            android:layout_below="@+id/banner"
             android:layout_marginTop="16dp"
             android:background="#1F000000"/>
 
@@ -74,7 +69,7 @@
             android:id="@+id/icon_country"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_alignStart="@+id/circle_banner"
+            android:layout_alignStart="@+id/banner"
             android:layout_alignTop="@+id/divider"
             android:layout_marginTop="24dp"
             android:padding="6dp"
@@ -95,8 +90,9 @@
             android:id="@+id/text_country"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_toEndOf="@+id/icon_country"
             android:layout_alignBottom="@+id/icon_country"
-            android:layout_alignStart="@+id/text_description"
             android:layout_alignTop="@+id/icon_country"
             android:gravity="center_vertical"
             tools:text="United States"/>

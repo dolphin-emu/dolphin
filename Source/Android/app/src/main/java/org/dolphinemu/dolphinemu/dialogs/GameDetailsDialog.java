@@ -17,8 +17,6 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 public final class GameDetailsDialog extends DialogFragment
 {
   private static final String ARG_GAME_PATH = "game_path";
@@ -44,7 +42,7 @@ public final class GameDetailsDialog extends DialogFragment
             .inflate(R.layout.dialog_game_details, null);
 
     final ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
-    CircleImageView circleBanner = contents.findViewById(R.id.circle_banner);
+    ImageView banner = contents.findViewById(R.id.banner);
 
     TextView textTitle = contents.findViewById(R.id.text_game_title);
     TextView textDescription = contents.findViewById(R.id.text_description);
@@ -76,7 +74,7 @@ public final class GameDetailsDialog extends DialogFragment
             .noPlaceholder()
             .into(imageGameScreen);
 
-    PicassoUtils.loadGameBanner(circleBanner, gameFile);
+    PicassoUtils.loadGameBanner(banner, gameFile);
 
     builder.setView(contents);
     return builder.create();
