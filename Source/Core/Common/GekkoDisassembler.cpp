@@ -153,10 +153,10 @@ static std::string ldst_offs(u32 val)
 
   if (val & 0x8000)
   {
-    return fmt::format("-0x{:.4X}", ((~val) & 0xffff) + 1);
+    return fmt::format("-0x{:04X}", ((~val) & 0xffff) + 1);
   }
 
-  return fmt::format("0x{:.4X}", val);
+  return fmt::format("0x{:04X}", val);
 }
 
 static int SEX12(u32 x)
@@ -376,7 +376,7 @@ std::string GekkoDisassembler::imm(u32 in, int uimm, int type, bool hex)
 
   case 1:
     if (hex)
-      return fmt::format("{}, {}, 0x{:.4X}", regnames[PPCGETA(in)], regnames[PPCGETD(in)], i);
+      return fmt::format("{}, {}, 0x{:04X}", regnames[PPCGETA(in)], regnames[PPCGETD(in)], i);
     else
       return fmt::format("{}, {}, {}", regnames[PPCGETA(in)], regnames[PPCGETD(in)], i);
 
@@ -385,7 +385,7 @@ std::string GekkoDisassembler::imm(u32 in, int uimm, int type, bool hex)
 
   case 3:
     if (hex)
-      return fmt::format("{}, 0x{:.4X}", regnames[PPCGETD(in)], i);
+      return fmt::format("{}, 0x{:04X}", regnames[PPCGETD(in)], i);
     else
       return fmt::format("{}, {}", regnames[PPCGETD(in)], i);
 
@@ -569,9 +569,9 @@ void GekkoDisassembler::bc(u32 in)
   branch(in, "", (in & 2) ? 1 : 0, d);
 
   if (in & 2)  // AA ?
-    m_operands = fmt::format("{} ->0x{:.8X}", m_operands, d);
+    m_operands = fmt::format("{} ->0x{:08X}", m_operands, d);
   else
-    m_operands = fmt::format("{} ->0x{:.8X}", m_operands, *m_iaddr + d);
+    m_operands = fmt::format("{} ->0x{:08X}", m_operands, *m_iaddr + d);
 
   m_type = PPCINSTR_BRANCH;
   m_displacement = d;
@@ -587,9 +587,9 @@ void GekkoDisassembler::bli(u32 in)
   m_opcode = fmt::format("b{}", b_ext[in & 3]);
 
   if (in & 2)  // AA ?
-    m_operands = fmt::format("->0x{:.8X}", d);
+    m_operands = fmt::format("->0x{:08X}", d);
   else
-    m_operands = fmt::format("->0x{:.8X}", *m_iaddr + d);
+    m_operands = fmt::format("->0x{:08X}", *m_iaddr + d);
 
   m_type = PPCINSTR_BRANCH;
   m_displacement = d;
