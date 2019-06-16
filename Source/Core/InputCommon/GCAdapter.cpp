@@ -79,11 +79,10 @@ static u64 s_last_init = 0;
 
 static void Read()
 {
-  int payload_size = 0;
   while (s_adapter_thread_running.IsSet())
   {
-    libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap,
-                              sizeof(s_controller_payload_swap), &payload_size, 16);
+    s64 payload_size = LibusbUtils::GetContext().InterruptTransfer(
+        s_handle, s_endpoint_in, s_controller_payload_swap, sizeof(s_controller_payload_swap), 16);
 
     {
       std::lock_guard<std::mutex> lk(s_mutex);
@@ -97,8 +96,6 @@ static void Read()
 
 static void Write()
 {
-  int size = 0;
-
   while (true)
   {
     s_rumble_data_available.Wait();
@@ -108,7 +105,8 @@ static void Write()
 
     u8 payload[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
                      s_controller_rumble[3]};
-    libusb_interrupt_transfer(s_handle, s_endpoint_out, payload, sizeof(payload), &size, 16);
+    LibusbUtils::GetContext().InterruptTransfer(s_handle, s_endpoint_out, payload, sizeof(payload),
+                                                16);
   }
 }
 
@@ -346,9 +344,9 @@ static void AddGCAdapter(libusb_device* device)
     }
   }
 
-  int tmp = 0;
   unsigned char payload = 0x13;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
+  LibusbUtils::GetContext().InterruptTransfer(s_handle, s_endpoint_out, &payload, sizeof(payload),
+                                              16);
 
   s_adapter_thread_running.Set(true);
   s_adapter_input_thread = std::thread(Read);
@@ -538,8 +536,7 @@ static void ResetRumbleLockNeeded()
   unsigned char rumble[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1],
                              s_controller_rumble[2], s_controller_rumble[3]};
 
-  int size = 0;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+  LibusbUtils::GetContext().InterruptTransfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), 16);
 
   INFO_LOG(SERIALINTERFACE, "Rumble state reset");
 }

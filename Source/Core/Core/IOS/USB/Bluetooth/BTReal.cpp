@@ -137,6 +137,11 @@ IPCCommandResult BluetoothReal::Close(u32 fd)
 
 IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
 {
+  auto register_transfer = [this](libusb_transfer* transfer, PendingTransfer pending_transfer) {
+    std::scoped_lock lk{m_transfers_mutex};
+    m_current_transfers.emplace(transfer, std::move(pending_transfer));
+  };
+
   if (!m_is_wii_bt_module && m_need_reset_keys.TestAndClear())
   {
     // Do this now before transferring any more data, so that this is fully transparent to games
@@ -151,7 +156,6 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   // HCI commands to the Bluetooth adapter
   case USB::IOCTLV_USBV0_CTRLMSG:
   {
-    std::lock_guard<std::mutex> lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     const u16 opcode = Common::swap16(Memory::Read_U16(cmd->data_address));
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
@@ -181,20 +185,15 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
     Memory::CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
-    libusb_fill_control_transfer(transfer, m_handle, buffer.get(), nullptr, this, 0);
-    transfer->callback = [](libusb_transfer* tr) {
-      static_cast<BluetoothReal*>(tr->user_data)->HandleCtrlTransfer(tr);
-    };
-    PendingTransfer pending_transfer{std::move(cmd), std::move(buffer)};
-    m_current_transfers.emplace(transfer, std::move(pending_transfer));
-    libusb_submit_transfer(transfer);
+    libusb_fill_control_transfer(transfer, m_handle, buffer.get(), nullptr, nullptr, 0);
+    register_transfer(transfer, {std::move(cmd), std::move(buffer)});
+    LibusbUtils::GetContext().SubmitTransfer(transfer, [&] { HandleCtrlTransfer(transfer); });
     break;
   }
   // ACL data (incoming or outgoing) and incoming HCI events (respectively)
   case USB::IOCTLV_USBV0_BLKMSG:
   case USB::IOCTLV_USBV0_INTRMSG:
   {
-    std::lock_guard<std::mutex> lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0IntrMessage>(m_ios, request);
     if (request.request == USB::IOCTLV_USBV0_INTRMSG)
     {
@@ -224,9 +223,6 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
     auto buffer = cmd->MakeBuffer(cmd->length);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
     transfer->buffer = buffer.get();
-    transfer->callback = [](libusb_transfer* tr) {
-      static_cast<BluetoothReal*>(tr->user_data)->HandleBulkOrIntrTransfer(tr);
-    };
     transfer->dev_handle = m_handle;
     transfer->endpoint = cmd->endpoint;
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
@@ -234,10 +230,8 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
     transfer->timeout = TIMEOUT;
     transfer->type = request.request == USB::IOCTLV_USBV0_BLKMSG ? LIBUSB_TRANSFER_TYPE_BULK :
                                                                    LIBUSB_TRANSFER_TYPE_INTERRUPT;
-    transfer->user_data = this;
-    PendingTransfer pending_transfer{std::move(cmd), std::move(buffer)};
-    m_current_transfers.emplace(transfer, std::move(pending_transfer));
-    libusb_submit_transfer(transfer);
+    register_transfer(transfer, {std::move(cmd), std::move(buffer)});
+    LibusbUtils::GetContext().SubmitTransfer(transfer, [&] { HandleBulkOrIntrTransfer(transfer); });
     break;
   }
   }
@@ -331,15 +325,14 @@ void BluetoothReal::TriggerSyncButtonHeldEvent()
 
 void BluetoothReal::WaitForHCICommandComplete(const u16 opcode)
 {
-  int actual_length;
   SHCIEventCommand packet;
   std::vector<u8> buffer(1024);
   // Only try 100 transfers at most, to avoid being stuck in an infinite loop
   for (int tries = 0; tries < 100; ++tries)
   {
-    const int ret = libusb_interrupt_transfer(m_handle, HCI_EVENT, buffer.data(),
-                                              static_cast<int>(buffer.size()), &actual_length, 20);
-    if (ret != 0 || actual_length < static_cast<int>(sizeof(packet)))
+    const s64 ret = LibusbUtils::GetContext().InterruptTransfer(
+        m_handle, HCI_EVENT, buffer.data(), static_cast<int>(buffer.size()), 20);
+    if (ret < static_cast<int>(sizeof(packet)))
       continue;
     std::memcpy(&packet, buffer.data(), sizeof(packet));
     if (packet.EventType == HCI_EVENT_COMMAND_COMPL && packet.Opcode == opcode)
@@ -353,7 +346,8 @@ void BluetoothReal::SendHCIResetCommand()
   u8 packet[3] = {};
   const u16 payload[] = {HCI_CMD_RESET};
   memcpy(packet, payload, sizeof(payload));
-  libusb_control_transfer(m_handle, type, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
+  LibusbUtils::GetContext().ControlTransfer(m_handle, type, 0, 0, 0, packet, sizeof(packet),
+                                            TIMEOUT);
   INFO_LOG(IOS_WIIMOTE, "Sent a reset command to adapter");
 }
 
@@ -371,8 +365,9 @@ void BluetoothReal::SendHCIDeleteLinkKeyCommand()
   payload.command.bdaddr = {};
   payload.command.delete_all = true;
 
-  libusb_control_transfer(m_handle, type, 0, 0, 0, reinterpret_cast<u8*>(&payload),
-                          static_cast<u16>(sizeof(payload)), TIMEOUT);
+  LibusbUtils::GetContext().ControlTransfer(m_handle, type, 0, 0, 0,
+                                            reinterpret_cast<u8*>(&payload),
+                                            static_cast<u16>(sizeof(payload)), TIMEOUT);
 }
 
 bool BluetoothReal::SendHCIStoreLinkKeyCommand()
@@ -410,8 +405,8 @@ bool BluetoothReal::SendHCIStoreLinkKeyCommand()
     iterator += entry.second.size();
   }
 
-  libusb_control_transfer(m_handle, type, 0, 0, 0, packet.data(), static_cast<u16>(packet.size()),
-                          TIMEOUT);
+  LibusbUtils::GetContext().ControlTransfer(m_handle, type, 0, 0, 0, packet.data(),
+                                            static_cast<u16>(packet.size()), TIMEOUT);
   return true;
 }
 
