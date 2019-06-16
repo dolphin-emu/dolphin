@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto"
              xmlns:tools="http://schemas.android.com/tools"
-             android:layout_height="match_parent"
+             android:layout_height="wrap_content"
              android:layout_width="match_parent"
              android:paddingStart="24dp"
              android:paddingEnd="24dp"
@@ -10,7 +10,7 @@
 
     <RelativeLayout
         android:layout_width="480dp"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/banner"
@@ -21,25 +21,11 @@
             android:layout_marginBottom="16dp"
             tools:src="@drawable/placeholder_banner"/>
 
-        <ImageView
-            android:id="@+id/image_game_screen"
-            android:layout_width="match_parent"
-            android:layout_height="320dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:transitionName="image_game_screen"
-            tools:scaleType="centerCrop"
-            tools:src="@drawable/placeholder_screenshot"/>
-
         <TextView
             android:id="@+id/text_game_title"
             style="@android:style/TextAppearance.Material.Headline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/image_game_screen"
             android:layout_marginTop="24dp"
             android:ellipsize="end"
             tools:text="Rhythm Heaven Fever"/>
@@ -111,7 +97,6 @@
             android:id="@+id/button_launch"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="-28dp"
             android:src="@drawable/ic_play"

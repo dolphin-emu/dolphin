@@ -42,7 +42,6 @@ public final class GameDetailsDialog extends DialogFragment
     ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater()
             .inflate(R.layout.dialog_game_details, null);
 
-    final ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
     ImageView banner = contents.findViewById(R.id.banner);
 
     TextView textTitle = contents.findViewById(R.id.text_game_title);
@@ -70,15 +69,6 @@ public final class GameDetailsDialog extends DialogFragment
       // Start the emulation activity and send the path of the clicked ROM to it.
       EmulationActivity.launch(getActivity(), gameFile);
     });
-
-    // Fill in the view contents.
-    Picasso.get()
-            .load(getArguments().getString(gameFile.getScreenshotPath()))
-            .fit()
-            .centerCrop()
-            .noFade()
-            .noPlaceholder()
-            .into(imageGameScreen);
 
     PicassoUtils.loadGameBanner(banner, gameFile);
 
