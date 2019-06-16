@@ -5,16 +5,13 @@
 #include "Common/IniFile.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstddef>
-#include <cstring>
 #include <fstream>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -128,16 +125,22 @@ IniFile::~IniFile() = default;
 const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
 {
   for (const Section& sect : sections)
-    if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
-      return (&(sect));
+  {
+    if (CaseInsensitiveStringCompare::IsEqual(sect.name, sectionName))
+      return &sect;
+  }
+
   return nullptr;
 }
 
 IniFile::Section* IniFile::GetSection(const std::string& sectionName)
 {
   for (Section& sect : sections)
-    if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
-      return (&(sect));
+  {
+    if (CaseInsensitiveStringCompare::IsEqual(sect.name, sectionName))
+      return &sect;
+  }
+
   return nullptr;
 }
 

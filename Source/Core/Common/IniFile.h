@@ -4,21 +4,38 @@
 
 #pragma once
 
-#include <cstring>
+#include <algorithm>
+#include <cctype>
 #include <list>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {
-  bool operator()(const std::string& a, const std::string& b) const
+  // Allow heterogenous lookup.
+  using is_transparent = void;
+
+  bool operator()(std::string_view a, std::string_view b) const
   {
-    return strcasecmp(a.c_str(), b.c_str()) < 0;
+    return std::lexicographical_compare(
+        a.begin(), a.end(), b.begin(), b.end(), [](char lhs, char rhs) {
+          return std::tolower(static_cast<u8>(lhs)) < std::tolower(static_cast<u8>(rhs));
+        });
+  }
+
+  static bool IsEqual(std::string_view a, std::string_view b)
+  {
+    if (a.size() != b.size())
+      return false;
+
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char lhs, char rhs) {
+      return std::tolower(static_cast<u8>(lhs)) == std::tolower(static_cast<u8>(rhs));
+    });
   }
 };
 
