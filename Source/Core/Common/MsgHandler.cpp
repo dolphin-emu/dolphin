@@ -19,12 +19,38 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgType style);
-static MsgAlertHandler msg_handler = DefaultMsgHandler;
-static bool AlertEnabled = true;
+namespace
+{
+// Default non library dependent panic alert
+bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgType style)
+{
+#ifdef _WIN32
+  int window_style = MB_ICONINFORMATION;
+  if (style == MsgType::Question)
+    window_style = MB_ICONQUESTION;
+  if (style == MsgType::Warning)
+    window_style = MB_ICONWARNING;
 
-std::string DefaultStringTranslator(const char* text);
-static StringTranslator str_translator = DefaultStringTranslator;
+  return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(),
+                             window_style | (yes_no ? MB_YESNO : MB_OK));
+#else
+  fmt::print(stderr, "{}\n", text);
+
+  // Return no to any question (which will in general crash the emulator)
+  return false;
+#endif
+}
+
+// Default (non) translator
+std::string DefaultStringTranslator(const char* text)
+{
+  return text;
+}
+
+MsgAlertHandler msg_handler = DefaultMsgHandler;
+StringTranslator str_translator = DefaultStringTranslator;
+bool AlertEnabled = true;
+}  // Anonymous namespace
 
 // Select which of these functions that are used for message boxes. If
 // Qt is enabled we will use QtMsgAlertHandler() that is defined in Main.cpp
@@ -99,30 +125,4 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
     return msg_handler(caption.c_str(), buffer, yes_no, style);
 
   return true;
-}
-
-// Default non library dependent panic alert
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, MsgType style)
-{
-#ifdef _WIN32
-  int window_style = MB_ICONINFORMATION;
-  if (style == MsgType::Question)
-    window_style = MB_ICONQUESTION;
-  if (style == MsgType::Warning)
-    window_style = MB_ICONWARNING;
-
-  return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(),
-                             window_style | (yes_no ? MB_YESNO : MB_OK));
-#else
-  fmt::print(stderr, "{}\n", text);
-
-  // Return no to any question (which will in general crash the emulator)
-  return false;
-#endif
-}
-
-// Default (non) translator
-std::string DefaultStringTranslator(const char* text)
-{
-  return text;
 }
