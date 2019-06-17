@@ -1049,7 +1049,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
         m_save_data_synced_players++;
         if (m_save_data_synced_players >= m_players.size() - 1)
         {
-          m_dialog->AppendChat(GetStringT("All players' saves synchronized."));
+          m_dialog->AppendChat(Common::GetStringT("All players' saves synchronized."));
 
           // Saves are synced, check if codes are as well and attempt to start the game
           m_saves_synced = true;
@@ -1061,8 +1061,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_SAVE_DATA_FAILURE:
     {
-      m_dialog->AppendChat(
-          StringFromFormat(GetStringT("%s failed to synchronize.").c_str(), player.name.c_str()));
+      m_dialog->AppendChat(StringFromFormat(Common::GetStringT("%s failed to synchronize.").c_str(),
+                                            player.name.c_str()));
       m_dialog->OnGameStartAborted();
       ChunkedDataAbort();
       m_start_pending = false;
@@ -1093,7 +1093,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
       {
         if (++m_codes_synced_players >= m_players.size() - 1)
         {
-          m_dialog->AppendChat(GetStringT("All players' codes synchronized."));
+          m_dialog->AppendChat(Common::GetStringT("All players' codes synchronized."));
 
           // Codes are synced, check if saves are as well and attempt to start the game
           m_codes_synced = true;
@@ -1105,8 +1105,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_CODES_FAILURE:
     {
-      m_dialog->AppendChat(StringFromFormat(GetStringT("%s failed to synchronize codes.").c_str(),
-                                            player.name.c_str()));
+      m_dialog->AppendChat(StringFromFormat(
+          Common::GetStringT("%s failed to synchronize codes.").c_str(), player.name.c_str()));
       m_dialog->OnGameStartAborted();
       m_start_pending = false;
     }

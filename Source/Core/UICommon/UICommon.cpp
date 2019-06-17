@@ -84,7 +84,7 @@ void Init()
   GCAdapter::Init();
   VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
-  SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
+  Common::SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
 
 void Shutdown()
@@ -440,7 +440,7 @@ std::string FormatSize(u64 bytes)
   const double unit_size = std::pow(2, unit * 10);
   std::stringstream ss;
   ss << std::fixed << std::setprecision(2);
-  ss << bytes / unit_size << ' ' << GetStringT(unit_symbols[unit]);
+  ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
   return ss.str();
 }
 

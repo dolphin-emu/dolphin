@@ -19,6 +19,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
+namespace Common
+{
 namespace
 {
 // Default non library dependent panic alert
@@ -129,3 +131,4 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 
   return true;
 }
+}  // namespace Common
