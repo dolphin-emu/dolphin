@@ -10,9 +10,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-namespace ciface
-{
-namespace evdev
+namespace ciface::evdev
 {
 void Init();
 void PopulateDevices();
@@ -120,5 +118,4 @@ private:
   std::string m_name;
   bool m_interesting = false;
 };
-}  // namespace evdev
-}  // namespace ciface
+}  // namespace ciface::evdev

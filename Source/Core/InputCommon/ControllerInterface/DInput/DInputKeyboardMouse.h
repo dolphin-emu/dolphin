@@ -9,9 +9,7 @@
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace DInput
+namespace ciface::DInput
 {
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
 
@@ -103,5 +101,4 @@ private:
   DWORD m_last_update;
   State m_state_in;
 };
-}  // namespace DInput
-}  // namespace ciface
+}  // namespace ciface::DInput

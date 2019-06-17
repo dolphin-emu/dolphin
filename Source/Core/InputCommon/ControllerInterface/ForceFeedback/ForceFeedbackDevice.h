@@ -19,9 +19,7 @@
 #include "InputCommon/ControllerInterface/ForceFeedback/OSX/DirectInputAdapter.h"
 #endif
 
-namespace ciface
-{
-namespace ForceFeedback
+namespace ciface::ForceFeedback
 {
 class ForceFeedbackDevice : public Core::Device
 {
@@ -83,6 +81,4 @@ private:
   Common::Event m_update_event;
   Common::Flag m_run_thread;
 };
-
-}  // namespace ForceFeedback
-}  // namespace ciface
+}  // namespace ciface::ForceFeedback

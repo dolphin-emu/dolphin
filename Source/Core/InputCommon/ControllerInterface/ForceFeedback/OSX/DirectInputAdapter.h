@@ -20,9 +20,7 @@ typedef LONG* LPLONG;  // Missing type for ForceFeedback.h
 #include "Common/CommonTypes.h"    // for LONG
 #include "DirectInputConstants.h"  // Not stricty necessary
 
-namespace ciface
-{
-namespace ForceFeedback
+namespace ciface::ForceFeedback
 {
 // Prototypes
 class IUnknownImpl;
@@ -196,5 +194,4 @@ public:
     return FFDeviceSetForceFeedbackProperty(m_device, property, &value);
   }
 };
-}  // namespace ForceFeedback
-}  // namespace ciface
+}  // namespace ciface::ForceFeedback

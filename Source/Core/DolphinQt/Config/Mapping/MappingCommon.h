@@ -11,14 +11,11 @@ class QString;
 class OutputReference;
 class QPushButton;
 
-namespace ciface
-{
-namespace Core
+namespace ciface::Core
 {
 class DeviceContainer;
 class DeviceQualifier;
-}  // namespace Core
-}  // namespace ciface
+}  // namespace ciface::Core
 
 namespace MappingCommon
 {

@@ -46,9 +46,7 @@
 // more responsive. This might be useful as a user-customizable option.
 #define MOUSE_AXIS_SMOOTHING 1.5f
 
-namespace ciface
-{
-namespace XInput2
+namespace ciface::XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
 void PopulateDevices(void* const hwnd)
@@ -369,5 +367,4 @@ ControlState KeyboardMouse::Axis::GetState() const
 {
   return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
 }
-}  // namespace XInput2
-}  // namespace ciface
+}  // namespace ciface::XInput2

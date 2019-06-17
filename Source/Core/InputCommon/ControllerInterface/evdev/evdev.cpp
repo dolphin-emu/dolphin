@@ -23,9 +23,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
-namespace ciface
-{
-namespace evdev
+namespace ciface::evdev
 {
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
@@ -499,5 +497,4 @@ evdevDevice::Effect::~Effect()
   m_effect.type = DISABLED_EFFECT_TYPE;
   UpdateEffect();
 }
-}  // namespace evdev
-}  // namespace ciface
+}  // namespace ciface::evdev

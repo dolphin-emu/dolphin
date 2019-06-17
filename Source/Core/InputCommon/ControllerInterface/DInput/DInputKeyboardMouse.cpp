@@ -17,9 +17,7 @@
 // otherwise it is just some crazy value
 #define DROP_INPUT_TIME 250
 
-namespace ciface
-{
-namespace DInput
+namespace ciface::DInput
 {
 static const struct
 {
@@ -227,5 +225,4 @@ ControlState KeyboardMouse::Cursor::GetState() const
 {
   return m_axis / (m_positive ? 1.0 : -1.0);
 }
-}  // namespace DInput
-}  // namespace ciface
+}  // namespace ciface::DInput
