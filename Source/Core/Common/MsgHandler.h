@@ -15,8 +15,8 @@ enum class MsgType
   Critical
 };
 
-typedef bool (*MsgAlertHandler)(const char* caption, const char* text, bool yes_no, MsgType style);
-typedef std::string (*StringTranslator)(const char* text);
+using MsgAlertHandler = bool (*)(const char* caption, const char* text, bool yes_no, MsgType style);
+using StringTranslator = std::string (*)(const char* text);
 
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
 void RegisterStringTranslator(StringTranslator translator);
