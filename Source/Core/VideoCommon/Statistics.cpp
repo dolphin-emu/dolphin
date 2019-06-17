@@ -42,53 +42,52 @@ void Statistics::Display()
 
   ImGui::Columns(2, "Statistics", true);
 
-#define DRAW_STAT(name, format, ...)                                                               \
-  ImGui::Text(name);                                                                               \
-  ImGui::NextColumn();                                                                             \
-  ImGui::Text(format, __VA_ARGS__);                                                                \
-  ImGui::NextColumn();
+  const auto draw_statistic = [](const char* name, const char* format, auto&&... args) {
+    ImGui::Text(name);
+    ImGui::NextColumn();
+    ImGui::Text(format, std::forward<decltype(args)>(args)...);
+    ImGui::NextColumn();
+  };
 
   if (g_ActiveConfig.backend_info.api_type == APIType::Nothing)
   {
-    DRAW_STAT("Objects", "%d", stats.thisFrame.numDrawnObjects);
-    DRAW_STAT("Vertices Loaded", "%d", stats.thisFrame.numVerticesLoaded);
-    DRAW_STAT("Triangles Input", "%d", stats.thisFrame.numTrianglesIn);
-    DRAW_STAT("Triangles Rejected", "%d", stats.thisFrame.numTrianglesRejected);
-    DRAW_STAT("Triangles Culled", "%d", stats.thisFrame.numTrianglesCulled);
-    DRAW_STAT("Triangles Clipped", "%d", stats.thisFrame.numTrianglesClipped);
-    DRAW_STAT("Triangles Drawn", "%d", stats.thisFrame.numTrianglesDrawn);
-    DRAW_STAT("Rasterized Pix", "%d", stats.thisFrame.rasterizedPixels);
-    DRAW_STAT("TEV Pix In", "%d", stats.thisFrame.tevPixelsIn);
-    DRAW_STAT("TEV Pix Out", "%d", stats.thisFrame.tevPixelsOut);
+    draw_statistic("Objects", "%d", stats.thisFrame.numDrawnObjects);
+    draw_statistic("Vertices Loaded", "%d", stats.thisFrame.numVerticesLoaded);
+    draw_statistic("Triangles Input", "%d", stats.thisFrame.numTrianglesIn);
+    draw_statistic("Triangles Rejected", "%d", stats.thisFrame.numTrianglesRejected);
+    draw_statistic("Triangles Culled", "%d", stats.thisFrame.numTrianglesCulled);
+    draw_statistic("Triangles Clipped", "%d", stats.thisFrame.numTrianglesClipped);
+    draw_statistic("Triangles Drawn", "%d", stats.thisFrame.numTrianglesDrawn);
+    draw_statistic("Rasterized Pix", "%d", stats.thisFrame.rasterizedPixels);
+    draw_statistic("TEV Pix In", "%d", stats.thisFrame.tevPixelsIn);
+    draw_statistic("TEV Pix Out", "%d", stats.thisFrame.tevPixelsOut);
   }
 
-  DRAW_STAT("Textures created", "%d", stats.numTexturesCreated);
-  DRAW_STAT("Textures uploaded", "%d", stats.numTexturesUploaded);
-  DRAW_STAT("Textures alive", "%d", stats.numTexturesAlive);
-  DRAW_STAT("pshaders created", "%d", stats.numPixelShadersCreated);
-  DRAW_STAT("pshaders alive", "%d", stats.numPixelShadersAlive);
-  DRAW_STAT("vshaders created", "%d", stats.numVertexShadersCreated);
-  DRAW_STAT("vshaders alive", "%d", stats.numVertexShadersAlive);
-  DRAW_STAT("shaders changes", "%d", stats.thisFrame.numShaderChanges);
-  DRAW_STAT("dlists called", "%d", stats.thisFrame.numDListsCalled);
-  DRAW_STAT("Primitive joins", "%d", stats.thisFrame.numPrimitiveJoins);
-  DRAW_STAT("Draw calls", "%d", stats.thisFrame.numDrawCalls);
-  DRAW_STAT("Primitives", "%d", stats.thisFrame.numPrims);
-  DRAW_STAT("Primitives (DL)", "%d", stats.thisFrame.numDLPrims);
-  DRAW_STAT("XF loads", "%d", stats.thisFrame.numXFLoads);
-  DRAW_STAT("XF loads (DL)", "%d", stats.thisFrame.numXFLoadsInDL);
-  DRAW_STAT("CP loads", "%d", stats.thisFrame.numCPLoads);
-  DRAW_STAT("CP loads (DL)", "%d", stats.thisFrame.numCPLoadsInDL);
-  DRAW_STAT("BP loads", "%d", stats.thisFrame.numBPLoads);
-  DRAW_STAT("BP loads (DL)", "%d", stats.thisFrame.numBPLoadsInDL);
-  DRAW_STAT("Vertex streamed", "%i kB", stats.thisFrame.bytesVertexStreamed / 1024);
-  DRAW_STAT("Index streamed", "%i kB", stats.thisFrame.bytesIndexStreamed / 1024);
-  DRAW_STAT("Uniform streamed", "%i kB", stats.thisFrame.bytesUniformStreamed / 1024);
-  DRAW_STAT("Vertex Loaders", "%d", stats.numVertexLoaders);
-  DRAW_STAT("EFB peeks:", "%d", stats.thisFrame.numEFBPeeks);
-  DRAW_STAT("EFB pokes:", "%d", stats.thisFrame.numEFBPokes);
-
-#undef DRAW_STAT
+  draw_statistic("Textures created", "%d", stats.numTexturesCreated);
+  draw_statistic("Textures uploaded", "%d", stats.numTexturesUploaded);
+  draw_statistic("Textures alive", "%d", stats.numTexturesAlive);
+  draw_statistic("pshaders created", "%d", stats.numPixelShadersCreated);
+  draw_statistic("pshaders alive", "%d", stats.numPixelShadersAlive);
+  draw_statistic("vshaders created", "%d", stats.numVertexShadersCreated);
+  draw_statistic("vshaders alive", "%d", stats.numVertexShadersAlive);
+  draw_statistic("shaders changes", "%d", stats.thisFrame.numShaderChanges);
+  draw_statistic("dlists called", "%d", stats.thisFrame.numDListsCalled);
+  draw_statistic("Primitive joins", "%d", stats.thisFrame.numPrimitiveJoins);
+  draw_statistic("Draw calls", "%d", stats.thisFrame.numDrawCalls);
+  draw_statistic("Primitives", "%d", stats.thisFrame.numPrims);
+  draw_statistic("Primitives (DL)", "%d", stats.thisFrame.numDLPrims);
+  draw_statistic("XF loads", "%d", stats.thisFrame.numXFLoads);
+  draw_statistic("XF loads (DL)", "%d", stats.thisFrame.numXFLoadsInDL);
+  draw_statistic("CP loads", "%d", stats.thisFrame.numCPLoads);
+  draw_statistic("CP loads (DL)", "%d", stats.thisFrame.numCPLoadsInDL);
+  draw_statistic("BP loads", "%d", stats.thisFrame.numBPLoads);
+  draw_statistic("BP loads (DL)", "%d", stats.thisFrame.numBPLoadsInDL);
+  draw_statistic("Vertex streamed", "%i kB", stats.thisFrame.bytesVertexStreamed / 1024);
+  draw_statistic("Index streamed", "%i kB", stats.thisFrame.bytesIndexStreamed / 1024);
+  draw_statistic("Uniform streamed", "%i kB", stats.thisFrame.bytesUniformStreamed / 1024);
+  draw_statistic("Vertex Loaders", "%d", stats.numVertexLoaders);
+  draw_statistic("EFB peeks:", "%d", stats.thisFrame.numEFBPeeks);
+  draw_statistic("EFB pokes:", "%d", stats.thisFrame.numEFBPokes);
 
   ImGui::Columns(1);
 
