@@ -2,14 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <string>
 #include <utility>
 
 #include "imgui.h"
 
-#include "Common/StringUtil.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 Statistics stats;
