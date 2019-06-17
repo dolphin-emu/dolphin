@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstring>
 #include <string>
 #include <utility>
 
@@ -17,7 +16,7 @@ Statistics stats;
 
 void Statistics::ResetFrame()
 {
-  memset(&thisFrame, 0, sizeof(ThisFrame));
+  thisFrame = {};
 }
 
 void Statistics::SwapDL()
