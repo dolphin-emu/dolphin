@@ -43,7 +43,7 @@ void Statistics::Display()
   ImGui::Columns(2, "Statistics", true);
 
   const auto draw_statistic = [](const char* name, const char* format, auto&&... args) {
-    ImGui::Text(name);
+    ImGui::TextUnformatted(name);
     ImGui::NextColumn();
     ImGui::Text(format, std::forward<decltype(args)>(args)...);
     ImGui::NextColumn();
@@ -103,7 +103,7 @@ void Statistics::DisplayProj()
     return;
   }
 
-  ImGui::Text("Projection #: X for Raw 6=0 (X for Raw 6!=0)");
+  ImGui::TextUnformatted("Projection #: X for Raw 6=0 (X for Raw 6!=0)");
   ImGui::NewLine();
   ImGui::Text("Projection 0: %f (%f) Raw 0: %f", stats.gproj_0, stats.g2proj_0, stats.proj_0);
   ImGui::Text("Projection 1: %f (%f)", stats.gproj_1, stats.g2proj_1);
