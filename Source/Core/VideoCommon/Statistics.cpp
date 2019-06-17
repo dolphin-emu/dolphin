@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/Statistics.h"
+
 #include <utility>
 
-#include "imgui.h"
+#include <imgui.h>
 
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 
 Statistics stats;
