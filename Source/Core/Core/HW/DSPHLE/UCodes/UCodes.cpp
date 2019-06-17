@@ -29,9 +29,7 @@
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 #include "Core/HW/Memmap.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 constexpr bool ExramRead(u32 address)
 {
@@ -306,5 +304,4 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 
   return nullptr;
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

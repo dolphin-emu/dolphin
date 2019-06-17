@@ -11,9 +11,7 @@
 
 class PointerWrap;
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class CMailHandler;
 class DSPHLE;
@@ -106,5 +104,4 @@ private:
 };
 
 std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

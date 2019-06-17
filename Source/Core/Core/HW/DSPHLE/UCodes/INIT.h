@@ -7,9 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class DSPHLE;
 
@@ -24,5 +22,4 @@ public:
   void Update() override;
   void Init();
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

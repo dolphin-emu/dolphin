@@ -57,9 +57,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 static std::unique_ptr<EmulationKernel> s_ios;
 
@@ -801,5 +799,4 @@ EmulationKernel* GetIOS()
 {
   return s_ios.get();
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

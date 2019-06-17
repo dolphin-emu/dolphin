@@ -30,9 +30,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 
-namespace DSP
-{
-namespace LLE
+namespace DSP::LLE
 {
 static Common::Event s_dsp_event;
 static Common::Event s_ppc_event;
@@ -340,5 +338,4 @@ void DSPLLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
   else
     m_dsp_thread_mutex.unlock();
 }
-}  // namespace LLE
-}  // namespace DSP
+}  // namespace DSP::LLE

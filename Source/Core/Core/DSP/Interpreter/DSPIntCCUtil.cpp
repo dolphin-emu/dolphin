@@ -9,9 +9,7 @@
 #include "Core/DSP/Interpreter/DSPIntCCUtil.h"
 #include "Core/DSP/DSPCore.h"
 
-namespace DSP
-{
-namespace Interpreter
+namespace DSP::Interpreter
 {
 void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 {
@@ -182,6 +180,4 @@ bool CheckCondition(u8 _Condition)
     return true;
   }
 }
-
-}  // namespace Interpreter
-}  // namespace DSP
+}  // namespace DSP::Interpreter

@@ -7,9 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 struct AXPBWii;
 class DSPHLE;
@@ -115,5 +113,4 @@ private:
     CMD_END_OLD = 0x0F
   };
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

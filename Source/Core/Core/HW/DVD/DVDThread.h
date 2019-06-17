@@ -15,23 +15,23 @@ namespace DiscIO
 {
 struct Partition;
 }
+
 namespace DVDInterface
 {
 enum class ReplyType : u32;
 }
+
 namespace DiscIO
 {
 enum class Platform;
 class Volume;
 }  // namespace DiscIO
-namespace IOS
-{
-namespace ES
+
+namespace IOS::ES
 {
 class TMDReader;
 class TicketReader;
-}  // namespace ES
-}  // namespace IOS
+}  // namespace IOS::ES
 
 namespace DVDThread
 {
