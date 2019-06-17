@@ -97,31 +97,23 @@ public class Settings
   {
     sections = new Settings.SettingsSectionMap();
 
-    HashSet<String> filesToExclude = new HashSet<>();
-    if (!TextUtils.isEmpty(gameId))
+    if (TextUtils.isEmpty(gameId))
     {
-      // for per-game settings, don't load the WiiMoteNew.ini settings
-      filesToExclude.add(SettingsFile.FILE_NAME_WIIMOTE);
+      loadDolphinSettings(view);
     }
-
-    loadDolphinSettings(view, filesToExclude);
-
-    if (!TextUtils.isEmpty(gameId))
+    else
     {
       loadGenericGameSettings(gameId, view);
       loadCustomGameSettings(gameId, view);
     }
   }
 
-  private void loadDolphinSettings(SettingsActivityView view, HashSet<String> filesToExclude)
+  private void loadDolphinSettings(SettingsActivityView view)
   {
     for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
     {
       String fileName = entry.getKey();
-      if (filesToExclude == null || !filesToExclude.contains(fileName))
-      {
-        sections.putAll(SettingsFile.readFile(fileName, view));
-      }
+      sections.putAll(SettingsFile.readFile(fileName, view));
     }
   }
 
