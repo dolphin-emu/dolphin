@@ -47,33 +47,33 @@ std::string DefaultStringTranslator(const char* text)
   return text;
 }
 
-MsgAlertHandler msg_handler = DefaultMsgHandler;
-StringTranslator str_translator = DefaultStringTranslator;
-bool AlertEnabled = true;
+MsgAlertHandler s_msg_handler = DefaultMsgHandler;
+StringTranslator s_str_translator = DefaultStringTranslator;
+bool s_alert_enabled = true;
 }  // Anonymous namespace
 
 // Select which of these functions that are used for message boxes. If
 // Qt is enabled we will use QtMsgAlertHandler() that is defined in Main.cpp
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
-  msg_handler = handler;
+  s_msg_handler = handler;
 }
 
 // Select translation function.
 void RegisterStringTranslator(StringTranslator translator)
 {
-  str_translator = translator;
+  s_str_translator = translator;
 }
 
 // enable/disable the alert handler
 void SetEnableAlert(bool enable)
 {
-  AlertEnabled = enable;
+  s_alert_enabled = enable;
 }
 
 std::string GetStringT(const char* string)
 {
-  return str_translator(string);
+  return s_str_translator(string);
 }
 
 // This is the first stop for gui alerts where the log is updated and the
@@ -91,10 +91,10 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 
   if (!info_caption.length())
   {
-    info_caption = str_translator(_trans("Information"));
-    ques_caption = str_translator(_trans("Question"));
-    warn_caption = str_translator(_trans("Warning"));
-    crit_caption = str_translator(_trans("Critical"));
+    info_caption = s_str_translator(_trans("Information"));
+    ques_caption = s_str_translator(_trans("Question"));
+    warn_caption = s_str_translator(_trans("Warning"));
+    crit_caption = s_str_translator(_trans("Critical"));
   }
 
   switch (style)
@@ -115,14 +115,14 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 
   va_list args;
   va_start(args, format);
-  CharArrayFromFormatV(buffer, sizeof(buffer) - 1, str_translator(format).c_str(), args);
+  CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
   va_end(args);
 
   ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-  if (msg_handler && (AlertEnabled || style == MsgType::Question || style == MsgType::Critical))
-    return msg_handler(caption.c_str(), buffer, yes_no, style);
+  if (s_msg_handler && (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
+    return s_msg_handler(caption.c_str(), buffer, yes_no, style);
 
   return true;
 }
