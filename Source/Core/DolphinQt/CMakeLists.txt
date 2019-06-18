@@ -281,15 +281,10 @@ PRIVATE
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(Dolphin_NAME "DolphinD")
-  else()
-    set(Dolphin_NAME "Dolphin")
-  endif()
-
   set_target_properties(dolphin-emu PROPERTIES
+    DEBUG_POSTFIX    D
+    OUTPUT_NAME      Dolphin
     WIN32_EXECUTABLE TRUE
-    OUTPUT_NAME ${Dolphin_NAME}
   )
 
   target_compile_options(dolphin-emu PRIVATE "-D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING")
