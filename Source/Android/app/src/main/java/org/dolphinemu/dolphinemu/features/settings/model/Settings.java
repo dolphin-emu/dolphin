@@ -103,7 +103,6 @@ public class Settings
     }
     else
     {
-      loadGenericGameSettings(gameId, view);
       loadCustomGameSettings(gameId, view);
     }
   }
