@@ -11,9 +11,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace Vulkan
-{
-namespace ShaderCompiler
+namespace Vulkan::ShaderCompiler
 {
 // SPIR-V compiled code type
 using SPIRVCodeType = u32;
@@ -30,6 +28,4 @@ std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_cod
 
 // Compile a compute shader to SPIR-V.
 std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code);
-
-}  // namespace ShaderCompiler
-}  // namespace Vulkan
+}  // namespace Vulkan::ShaderCompiler

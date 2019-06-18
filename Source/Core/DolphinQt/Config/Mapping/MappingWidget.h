@@ -25,13 +25,10 @@ class ControlGroup;
 class EmulatedController;
 }  // namespace ControllerEmu
 
-namespace ciface
-{
-namespace Core
+namespace ciface::Core
 {
 class Device;
-}
-}  // namespace ciface
+}  // namespace ciface::Core
 
 constexpr int INDICATOR_UPDATE_FREQ = 30;
 

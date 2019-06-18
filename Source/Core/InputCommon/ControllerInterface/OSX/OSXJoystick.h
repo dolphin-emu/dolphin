@@ -11,9 +11,7 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
-namespace ciface
-{
-namespace OSX
+namespace ciface::OSX
 {
 class Joystick : public ForceFeedback::ForceFeedbackDevice
 {
@@ -90,5 +88,4 @@ private:
 
   ForceFeedback::FFDeviceAdapterReference m_ff_device;
 };
-}  // namespace OSX
-}  // namespace ciface
+}  // namespace ciface::OSX

@@ -7,11 +7,10 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "jni/ButtonManager.h"
 
-namespace ciface
-{
-namespace Android
+namespace ciface::Android
 {
 void PopulateDevices();
+
 class Touchscreen : public Core::Device
 {
 private:
@@ -65,5 +64,4 @@ public:
 private:
   const int _padID;
 };
-}  // namespace Android
-}  // namespace ciface
+}  // namespace ciface::Android

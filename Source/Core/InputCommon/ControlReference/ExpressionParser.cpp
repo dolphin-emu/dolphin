@@ -13,12 +13,10 @@
 #include "Common/StringUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 
+namespace ciface::ExpressionParser
+{
 using namespace ciface::Core;
 
-namespace ciface
-{
-namespace ExpressionParser
-{
 enum TokenType
 {
   TOK_DISCARD,
@@ -557,5 +555,4 @@ std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::s
                                                             std::move(complex_result.expr));
   return std::make_pair(complex_result.status, std::move(combined_expr));
 }
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser

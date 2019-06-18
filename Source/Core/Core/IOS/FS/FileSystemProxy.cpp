@@ -15,11 +15,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/FS/FileSystem.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 using namespace IOS::HLE::FS;
 
@@ -587,6 +583,4 @@ IPCCommandResult FS::Shutdown(const Handle& handle, const IOCtlRequest& request)
   INFO_LOG(IOS_FS, "Shutdown");
   return GetFSReply(IPC_SUCCESS);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

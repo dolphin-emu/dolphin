@@ -6,9 +6,7 @@
 
 #include <Foundation/Foundation.h>
 
-namespace ciface
-{
-namespace OSX
+namespace ciface::OSX
 {
 class RunLoopStopper
 {
@@ -40,6 +38,4 @@ public:
     CFRunLoopRemoveSource(runloop, m_source, mode);
   }
 };
-
-}  // namespace OSX
-}  // namespace ciface
+}  // namespace ciface::OSX

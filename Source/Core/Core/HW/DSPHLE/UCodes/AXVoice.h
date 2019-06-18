@@ -23,9 +23,7 @@
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/Memmap.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 #ifdef AX_GC
 #define PB_TYPE AXPB
@@ -566,5 +564,4 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 }
 
 }  // namespace
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

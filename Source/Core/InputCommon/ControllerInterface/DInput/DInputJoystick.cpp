@@ -14,9 +14,7 @@
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
 
-namespace ciface
-{
-namespace DInput
+namespace ciface::DInput
 {
 constexpr DWORD DATA_BUFFER_SIZE = 32;
 
@@ -315,5 +313,4 @@ ControlState Joystick::Hat::GetState() const
 
   return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
 }
-}  // namespace DInput
-}  // namespace ciface
+}  // namespace ciface::DInput

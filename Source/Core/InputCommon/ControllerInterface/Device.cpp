@@ -14,9 +14,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
-namespace ciface
-{
-namespace Core
+namespace ciface::Core
 {
 // Compared to an input's current state (ideally 1.0) minus abs(initial_state) (ideally 0.0).
 constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
@@ -326,6 +324,4 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
   // No input was detected. :'(
   return {};
 }
-
-}  // namespace Core
-}  // namespace ciface
+}  // namespace ciface::Core

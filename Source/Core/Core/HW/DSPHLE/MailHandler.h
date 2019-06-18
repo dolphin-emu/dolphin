@@ -11,9 +11,7 @@
 
 class PointerWrap;
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class CMailHandler
 {
@@ -35,5 +33,4 @@ private:
   // mail handler
   std::queue<std::pair<u32, bool>> m_Mails;
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

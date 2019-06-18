@@ -7,9 +7,7 @@
 #include "Common/CommonTypes.h"
 
 // Basic code analysis.
-namespace DSP
-{
-namespace Analyzer
+namespace DSP::Analyzer
 {
 // Useful things to detect:
 // * Loop endpoints - so that we can avoid checking for loops every cycle.
@@ -35,5 +33,4 @@ void Analyze();
 // Retrieves the flags set during analysis for code in memory.
 u8 GetCodeFlags(u16 address);
 
-}  // namespace Analyzer
-}  // namespace DSP
+}  // namespace DSP::Analyzer
