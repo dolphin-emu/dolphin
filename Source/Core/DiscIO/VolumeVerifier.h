@@ -96,8 +96,8 @@ private:
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
   void CheckDiscSize();
-  u64 GetBiggestUsedOffset() const;
-  u64 GetBiggestUsedOffset(const FileInfo& file_info) const;
+  u64 GetBiggestReferencedOffset() const;
+  u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void SetUpHashing();
   void WaitForAsyncOperations() const;
@@ -133,6 +133,9 @@ private:
   size_t m_block_index = 0;  // Index in m_blocks, not index in a specific partition
   std::map<Partition, size_t> m_block_errors;
   std::map<Partition, size_t> m_unused_block_errors;
+
+  u64 m_biggest_referenced_offset = 0;
+  u64 m_biggest_verified_offset = 0;
 
   bool m_started = false;
   bool m_done = false;

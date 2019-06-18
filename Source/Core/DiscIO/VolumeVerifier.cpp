@@ -383,24 +383,8 @@ void VolumeVerifier::CheckDiscSize()
   if (!IsDisc(m_volume.GetVolumeType()))
     return;
 
-  const u64 biggest_offset = GetBiggestUsedOffset();
-  if (biggest_offset > m_volume.GetSize())
-  {
-    const bool second_layer_missing =
-        biggest_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
-    std::string text =
-        second_layer_missing ?
-            Common::GetStringT(
-                "This disc image is too small and lacks some data. The problem is most likely that "
-                "this is a dual-layer disc that has been dumped as a single-layer disc.") :
-            Common::GetStringT(
-                "This disc image is too small and lacks some data. If your dumping program saved "
-                "the disc image as several parts, you need to merge them into one file.");
-    AddProblem(Severity::High, std::move(text));
-    return;
-  }
-
-  if (ShouldBeDualLayer() && biggest_offset <= SL_DVD_R_SIZE)
+  m_biggest_referenced_offset = GetBiggestReferencedOffset();
+  if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
                Common::GetStringT(
@@ -458,7 +442,7 @@ void VolumeVerifier::CheckDiscSize()
   }
 }
 
-u64 VolumeVerifier::GetBiggestUsedOffset() const
+u64 VolumeVerifier::GetBiggestReferencedOffset() const
 {
   std::vector<Partition> partitions = m_volume.GetPartitions();
   if (partitions.empty())
@@ -497,20 +481,20 @@ u64 VolumeVerifier::GetBiggestUsedOffset() const
     if (fs)
     {
       const u64 offset =
-          m_volume.PartitionOffsetToRawOffset(GetBiggestUsedOffset(fs->GetRoot()), partition);
+          m_volume.PartitionOffsetToRawOffset(GetBiggestReferencedOffset(fs->GetRoot()), partition);
       biggest_offset = std::max(biggest_offset, offset);
     }
   }
   return biggest_offset;
 }
 
-u64 VolumeVerifier::GetBiggestUsedOffset(const FileInfo& file_info) const
+u64 VolumeVerifier::GetBiggestReferencedOffset(const FileInfo& file_info) const
 {
   if (file_info.IsDirectory())
   {
     u64 biggest_offset = 0;
     for (const FileInfo& f : file_info)
-      biggest_offset = std::max(biggest_offset, GetBiggestUsedOffset(f));
+      biggest_offset = std::max(biggest_offset, GetBiggestReferencedOffset(f));
     return biggest_offset;
   }
   else
@@ -821,9 +805,14 @@ void VolumeVerifier::Process()
                                                      m_blocks[block_index].partition);
             }
 
-            if (!success)
+            const u64 offset = m_blocks[block_index].offset;
+            if (success)
             {
-              const u64 offset = m_blocks[block_index].offset;
+              m_biggest_verified_offset =
+                  std::max(m_biggest_verified_offset, offset + VolumeWii::BLOCK_TOTAL_SIZE);
+            }
+            else
+            {
               if (m_scrubber.CanBlockBeScrubbed(offset))
               {
                 WARN_LOG(DISCIO, "Integrity check failed for unused block at 0x%" PRIx64, offset);
@@ -891,6 +880,27 @@ void VolumeVerifier::Finish()
     {
       m_result.hashes.sha1 = std::vector<u8>(20);
       mbedtls_sha1_finish_ret(&m_sha1_context, m_result.hashes.sha1.data());
+    }
+  }
+
+  if (IsDisc(m_volume.GetVolumeType()) &&
+      (m_volume.IsSizeAccurate() || m_volume.SupportsIntegrityCheck()))
+  {
+    u64 volume_size = m_volume.IsSizeAccurate() ? m_volume.GetSize() : m_biggest_verified_offset;
+    if (m_biggest_referenced_offset > volume_size)
+    {
+      const bool second_layer_missing =
+          m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
+      std::string text =
+          second_layer_missing ?
+              Common::GetStringT("This disc image is too small and lacks some data. The problem is "
+                                 "most likely that this is a dual-layer disc that has been dumped "
+                                 "as a single-layer disc.") :
+              Common::GetStringT("This disc image is too small and lacks some data. If your "
+                                 "dumping program saved the disc image as several parts, you need "
+                                 "to merge them into one file.");
+      AddProblem(Severity::High, std::move(text));
+      return;
     }
   }
 
