@@ -184,4 +184,36 @@ public class Settings
       SettingsFile.saveCustomGameSettings(gameId, sections);
     }
   }
+
+  public void clearSettings()
+  {
+    sections.clear();
+  }
+
+  public boolean gameIniContainsJunk()
+  {
+    // Older versions of Android Dolphin would copy the entire contents of most of the global INIs
+    // into any game INI that got saved (with some of the sections renamed to match the game INI
+    // section names). The problems with this are twofold:
+    //
+    // 1. The user game INIs will contain entries that Dolphin doesn't support reading from
+    //    game INIs. This is annoying when editing game INIs manually but shouldn't really be
+    //    a problem for those who only use the GUI.
+    //
+    // 2. Global settings will stick around in user game INIs. For instance, if someone wants to
+    //    change the texture cache accuracy to safe for all games, they have to edit not only the
+    //    global settings but also every single game INI they have created, since the old value of
+    //    the texture cache accuracy setting has been copied into every user game INI.
+    //
+    // These problems are serious enough that we should detect and delete such INI files.
+    // Problem 1 is easy to detect, but due to the nature of problem 2, it's unfortunately not
+    // possible to know which lines were added intentionally by the user and which lines were added
+    // unintentionally, which is why we have to delete the whole file in order to fix everything.
+
+    if (TextUtils.isEmpty(gameId))
+      return false;
+
+    SettingSection interfaceSection = sections.get("Interface");
+    return interfaceSection != null && interfaceSection.getSetting("ThemeName") != null;
+  }
 }

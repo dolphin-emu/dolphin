@@ -274,6 +274,8 @@
     <string name="preferences_settings">Settings</string>
     <string name="preferences_game_settings">Game Settings</string>
     <string name="preferences_extensions">Extension Bindings</string>
+    <string name="game_ini_junk_title">Junk Data Found</string>
+    <string name="game_ini_junk_question">The settings file for this game contains junk data created by an old version of Dolphin. Would you like to fix this by deleting the settings file for this game? This cannot be undone.</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_screenshot">Take Screenshot</string>

@@ -58,6 +58,11 @@ public final class SettingsActivityPresenter
       if (!TextUtils.isEmpty(gameId))
       {
         mSettings.loadSettings(gameId, mView);
+
+        if (mSettings.gameIniContainsJunk())
+        {
+          mView.showGameIniJunkDeletionQuestion();
+        }
       }
       else
       {
@@ -116,6 +121,12 @@ public final class SettingsActivityPresenter
   public Settings getSettings()
   {
     return mSettings;
+  }
+
+  public void clearSettings()
+  {
+    mSettings.clearSettings();
+    onSettingChanged();
   }
 
   public void onStop(boolean finishing)
