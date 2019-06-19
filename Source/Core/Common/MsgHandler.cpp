@@ -121,8 +121,11 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
   ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-  if (s_msg_handler && (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
+  if (s_msg_handler != nullptr &&
+      (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
+  {
     return s_msg_handler(caption.c_str(), buffer, yes_no, style);
+  }
 
   return true;
 }
