@@ -89,7 +89,7 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
   static std::string ques_caption;
   static std::string crit_caption;
 
-  if (!info_caption.length())
+  if (info_caption.empty())
   {
     info_caption = s_str_translator(_trans("Information"));
     ques_caption = s_str_translator(_trans("Question"));
