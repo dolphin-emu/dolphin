@@ -565,41 +565,8 @@ void Init(const std::string& gameId)
   }
   // Init our controller bindings
   IniFile ini;
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
-  for (u32 a = 0; a < configStrings.size(); ++a)
-  {
-    for (int padID = 0; padID < 8; ++padID)
-    {
-      std::ostringstream config;
-      config << configStrings[a] << "_" << padID;
-      BindType type;
-      int bindnum;
-      char dev[128];
-      bool hasbind = false;
-      char modifier = '+';
-      std::string value;
-      ini.GetOrCreateSection("Android")->Get(config.str(), &value, "None");
-      if (value == "None")
-        continue;
-      if (std::string::npos != value.find("Axis"))
-      {
-        hasbind = true;
-        type = BIND_AXIS;
-        sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
-      }
-      else if (std::string::npos != value.find("Button"))
-      {
-        hasbind = true;
-        type = BIND_BUTTON;
-        sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
-      }
-      if (hasbind)
-        AddBind(std::string(dev),
-                new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
-    }
-  }
-
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"));
+  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"), true);
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"), true);
   for (u32 a = 0; a < configStrings.size(); ++a)
   {
     for (int padID = 0; padID < 8; ++padID)

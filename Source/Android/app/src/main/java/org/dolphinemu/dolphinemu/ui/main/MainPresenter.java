@@ -15,7 +15,6 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 public final class MainPresenter
 {
   public static final int REQUEST_ADD_DIRECTORY = 1;
-  public static final int REQUEST_EMULATE_GAME = 2;
 
   private final MainView mView;
   private final Context mContext;
@@ -104,10 +103,5 @@ public final class MainPresenter
   public void onDirectorySelected(String dir)
   {
     mDirToAdd = dir;
-  }
-
-  public void refreshFragmentScreenshot(int resultCode)
-  {
-    mView.refreshFragmentScreenshot(resultCode);
   }
 }
