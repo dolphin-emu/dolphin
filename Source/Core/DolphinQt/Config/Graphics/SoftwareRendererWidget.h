@@ -28,6 +28,8 @@ private:
   void ConnectWidgets();
   void AddDescriptions();
 
+  void OnEmulationStateChanged(bool running);
+
   QComboBox* m_backend_combo;
   QCheckBox* m_show_statistics;
   QCheckBox* m_dump_textures;
