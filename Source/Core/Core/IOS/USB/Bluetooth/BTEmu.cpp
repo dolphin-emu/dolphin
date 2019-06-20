@@ -5,10 +5,11 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 
 #include <algorithm>
-#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
@@ -21,7 +22,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/Host.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "Core/SysConf.h"
@@ -1781,7 +1781,7 @@ void BluetoothEmu::DisplayDisconnectMessage(const int wiimote_number, const int 
   // mean
   // and display things like "Wii Remote %i disconnected due to inactivity!" etc.
   Core::DisplayMessage(
-      StringFromFormat("Wii Remote %i disconnected by emulated software", wiimote_number), 3000);
+      fmt::format("Wii Remote {} disconnected by emulated software", wiimote_number), 3000);
 }
 }  // namespace Device
 }  // namespace IOS::HLE
