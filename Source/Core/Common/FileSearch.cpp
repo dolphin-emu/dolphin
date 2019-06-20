@@ -10,8 +10,8 @@
 
 #ifdef _MSC_VER
 #include <Windows.h>
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #define HAS_STD_FILESYSTEM
 #else
 #include <cstring>
