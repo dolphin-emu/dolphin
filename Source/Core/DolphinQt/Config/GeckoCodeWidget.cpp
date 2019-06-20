@@ -116,12 +116,13 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_code_list, &QListWidget::itemSelectionChanged, this,
           &GeckoCodeWidget::OnSelectionChanged);
   connect(m_code_list, &QListWidget::itemChanged, this, &GeckoCodeWidget::OnItemChanged);
+  connect(m_code_list->model(), &QAbstractItemModel::rowsMoved, this,
+          &GeckoCodeWidget::OnListReordered);
 
   connect(m_add_code, &QPushButton::pressed, this, &GeckoCodeWidget::AddCode);
   connect(m_remove_code, &QPushButton::pressed, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
-
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
 }
@@ -130,8 +131,10 @@ void GeckoCodeWidget::OnSelectionChanged()
 {
   auto items = m_code_list->selectedItems();
 
-  m_edit_code->setEnabled(!items.empty());
-  m_remove_code->setEnabled(!items.empty());
+  const bool empty = items.empty();
+
+  m_edit_code->setEnabled(!empty);
+  m_remove_code->setEnabled(!empty);
 
   if (items.empty())
     return;
@@ -222,9 +225,29 @@ void GeckoCodeWidget::SaveCodes()
 {
   IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+
   Gecko::SaveCodes(game_ini_local, m_gecko_codes);
 
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+}
+
+void GeckoCodeWidget::OnListReordered()
+{
+  // Reorder codes based on the indices of table item
+  std::vector<Gecko::GeckoCode> codes;
+  codes.reserve(m_gecko_codes.size());
+
+  for (int i = 0; i < m_code_list->count(); i++)
+  {
+    const int index = m_code_list->item(i)->data(Qt::UserRole).toInt();
+
+    codes.push_back(std::move(m_gecko_codes[index]));
+  }
+
+  m_gecko_codes = std::move(codes);
+
+  UpdateList();
+  SaveCodes();
 }
 
 void GeckoCodeWidget::UpdateList()
@@ -239,12 +262,15 @@ void GeckoCodeWidget::UpdateList()
                                          .replace(QStringLiteral("&lt;"), QStringLiteral("<"))
                                          .replace(QStringLiteral("&gt;"), QStringLiteral(">")));
 
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
+                   Qt::ItemIsDragEnabled);
     item->setCheckState(code.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);
   }
+
+  m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
 }
 
 void GeckoCodeWidget::DownloadCodes()

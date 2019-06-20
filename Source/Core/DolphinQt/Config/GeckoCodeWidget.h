@@ -36,6 +36,7 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
+  void OnListReordered();
 
   void CreateWidgets();
   void ConnectWidgets();
