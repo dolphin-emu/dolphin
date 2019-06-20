@@ -29,13 +29,17 @@
 alignas(16) static std::array<float, 16> g_fProjectionMatrix;
 
 // track changes
-static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
-static bool bTexMtxInfoChanged, bLightingConfigChanged;
+static std::array<bool, 2> bTexMatricesChanged;
+static bool bPosNormalMatrixChanged;
+static bool bProjectionChanged;
+static bool bViewportChanged;
+static bool bTexMtxInfoChanged;
+static bool bLightingConfigChanged;
 static BitSet32 nMaterialsChanged;
-static int nTransformMatricesChanged[2];      // min,max
-static int nNormalMatricesChanged[2];         // min,max
-static int nPostTransformMatricesChanged[2];  // min,max
-static int nLightsChanged[2];                 // min,max
+static std::array<int, 2> nTransformMatricesChanged;      // min,max
+static std::array<int, 2> nNormalMatricesChanged;         // min,max
+static std::array<int, 2> nPostTransformMatricesChanged;  // min,max
+static std::array<int, 2> nLightsChanged;                 // min,max
 
 static Common::Matrix44 s_viewportCorrection;
 static Common::Matrix44 s_freelook_matrix;
@@ -95,17 +99,12 @@ static void ViewportCorrectionMatrix(Common::Matrix44& result)
 void VertexShaderManager::Init()
 {
   // Initialize state tracking variables
-  nTransformMatricesChanged[0] = -1;
-  nTransformMatricesChanged[1] = -1;
-  nNormalMatricesChanged[0] = -1;
-  nNormalMatricesChanged[1] = -1;
-  nPostTransformMatricesChanged[0] = -1;
-  nPostTransformMatricesChanged[1] = -1;
-  nLightsChanged[0] = -1;
-  nLightsChanged[1] = -1;
+  nTransformMatricesChanged.fill(-1);
+  nNormalMatricesChanged.fill(-1);
+  nPostTransformMatricesChanged.fill(-1);
+  nLightsChanged.fill(-1);
   nMaterialsChanged = BitSet32(0);
-  bTexMatricesChanged[0] = false;
-  bTexMatricesChanged[1] = false;
+  bTexMatricesChanged.fill(false);
   bPosNormalMatrixChanged = false;
   bProjectionChanged = true;
   bViewportChanged = false;
@@ -672,17 +671,17 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
 
 void VertexShaderManager::DoState(PointerWrap& p)
 {
-  p.Do(g_fProjectionMatrix);
+  p.DoArray(g_fProjectionMatrix);
   p.Do(s_viewportCorrection);
   p.Do(s_freelook_matrix);
 
-  p.Do(nTransformMatricesChanged);
-  p.Do(nNormalMatricesChanged);
-  p.Do(nPostTransformMatricesChanged);
-  p.Do(nLightsChanged);
+  p.DoArray(nTransformMatricesChanged);
+  p.DoArray(nNormalMatricesChanged);
+  p.DoArray(nPostTransformMatricesChanged);
+  p.DoArray(nLightsChanged);
 
   p.Do(nMaterialsChanged);
-  p.Do(bTexMatricesChanged);
+  p.DoArray(bTexMatricesChanged);
   p.Do(bPosNormalMatrixChanged);
   p.Do(bProjectionChanged);
   p.Do(bViewportChanged);
