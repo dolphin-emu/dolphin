@@ -349,12 +349,11 @@ void VertexShaderManager::SetConstants()
   {
     bProjectionChanged = false;
 
-    float* rawProjection = xfmem.projection.rawProjection;
+    const auto& rawProjection = xfmem.projection.rawProjection;
 
     switch (xfmem.projection.type)
     {
     case GX_PERSPECTIVE:
-
       g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
       g_fProjectionMatrix[1] = 0.0f;
       g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW;
@@ -376,26 +375,10 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[14] = -1.0f;
       g_fProjectionMatrix[15] = 0.0f;
 
-      SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
-      SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
-      SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix[2]);
-      SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix[3]);
-      SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix[4]);
-      SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix[5]);
-      SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix[6]);
-      SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix[7]);
-      SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix[8]);
-      SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix[9]);
-      SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix[10]);
-      SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix[11]);
-      SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix[12]);
-      SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
-      SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
-      SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
+      stats.gproj = g_fProjectionMatrix;
       break;
 
     case GX_ORTHOGRAPHIC:
-
       g_fProjectionMatrix[0] = rawProjection[0];
       g_fProjectionMatrix[1] = 0.0f;
       g_fProjectionMatrix[2] = 0.0f;
@@ -417,28 +400,8 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[14] = 0.0f;
       g_fProjectionMatrix[15] = 1.0f;
 
-      SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
-      SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
-      SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
-      SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix[3]);
-      SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix[4]);
-      SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix[5]);
-      SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix[6]);
-      SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix[7]);
-      SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix[8]);
-      SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix[9]);
-      SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix[10]);
-      SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix[11]);
-      SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix[12]);
-      SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
-      SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
-      SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
-      SETSTAT_FT(stats.proj_0, rawProjection[0]);
-      SETSTAT_FT(stats.proj_1, rawProjection[1]);
-      SETSTAT_FT(stats.proj_2, rawProjection[2]);
-      SETSTAT_FT(stats.proj_3, rawProjection[3]);
-      SETSTAT_FT(stats.proj_4, rawProjection[4]);
-      SETSTAT_FT(stats.proj_5, rawProjection[5]);
+      stats.g2proj = g_fProjectionMatrix;
+      stats.proj = rawProjection;
       break;
 
     default:

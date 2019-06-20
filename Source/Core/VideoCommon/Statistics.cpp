@@ -102,22 +102,22 @@ void Statistics::DisplayProj()
 
   ImGui::TextUnformatted("Projection #: X for Raw 6=0 (X for Raw 6!=0)");
   ImGui::NewLine();
-  ImGui::Text("Projection 0: %f (%f) Raw 0: %f", stats.gproj_0, stats.g2proj_0, stats.proj_0);
-  ImGui::Text("Projection 1: %f (%f)", stats.gproj_1, stats.g2proj_1);
-  ImGui::Text("Projection 2: %f (%f) Raw 1: %f", stats.gproj_2, stats.g2proj_2, stats.proj_1);
-  ImGui::Text("Projection 3: %f (%f)", stats.gproj_3, stats.g2proj_3);
-  ImGui::Text("Projection 4: %f (%f)", stats.gproj_4, stats.g2proj_4);
-  ImGui::Text("Projection 5: %f (%f) Raw 2: %f", stats.gproj_5, stats.g2proj_5, stats.proj_2);
-  ImGui::Text("Projection 6: %f (%f) Raw 3: %f", stats.gproj_6, stats.g2proj_6, stats.proj_3);
-  ImGui::Text("Projection 7: %f (%f)", stats.gproj_7, stats.g2proj_7);
-  ImGui::Text("Projection 8: %f (%f)", stats.gproj_8, stats.g2proj_8);
-  ImGui::Text("Projection 9: %f (%f)", stats.gproj_9, stats.g2proj_9);
-  ImGui::Text("Projection 10: %f (%f) Raw 4: %f", stats.gproj_10, stats.g2proj_10, stats.proj_4);
-  ImGui::Text("Projection 11: %f (%f) Raw 5: %f", stats.gproj_11, stats.g2proj_11, stats.proj_5);
-  ImGui::Text("Projection 12: %f (%f)", stats.gproj_12, stats.g2proj_12);
-  ImGui::Text("Projection 13: %f (%f)", stats.gproj_13, stats.g2proj_13);
-  ImGui::Text("Projection 14: %f (%f)", stats.gproj_14, stats.g2proj_14);
-  ImGui::Text("Projection 15: %f (%f)", stats.gproj_15, stats.g2proj_15);
+  ImGui::Text("Projection 0: %f (%f) Raw 0: %f", stats.gproj[0], stats.g2proj[0], stats.proj[0]);
+  ImGui::Text("Projection 1: %f (%f)", stats.gproj[1], stats.g2proj[1]);
+  ImGui::Text("Projection 2: %f (%f) Raw 1: %f", stats.gproj[2], stats.g2proj[2], stats.proj[1]);
+  ImGui::Text("Projection 3: %f (%f)", stats.gproj[3], stats.g2proj[3]);
+  ImGui::Text("Projection 4: %f (%f)", stats.gproj[4], stats.g2proj[4]);
+  ImGui::Text("Projection 5: %f (%f) Raw 2: %f", stats.gproj[5], stats.g2proj[5], stats.proj[2]);
+  ImGui::Text("Projection 6: %f (%f) Raw 3: %f", stats.gproj[6], stats.g2proj[6], stats.proj[3]);
+  ImGui::Text("Projection 7: %f (%f)", stats.gproj[7], stats.g2proj[7]);
+  ImGui::Text("Projection 8: %f (%f)", stats.gproj[8], stats.g2proj[8]);
+  ImGui::Text("Projection 9: %f (%f)", stats.gproj[9], stats.g2proj[9]);
+  ImGui::Text("Projection 10: %f (%f) Raw 4: %f", stats.gproj[10], stats.g2proj[10], stats.proj[4]);
+  ImGui::Text("Projection 11: %f (%f) Raw 5: %f", stats.gproj[11], stats.g2proj[11], stats.proj[5]);
+  ImGui::Text("Projection 12: %f (%f)", stats.gproj[12], stats.g2proj[12]);
+  ImGui::Text("Projection 13: %f (%f)", stats.gproj[13], stats.g2proj[13]);
+  ImGui::Text("Projection 14: %f (%f)", stats.gproj[14], stats.g2proj[14]);
+  ImGui::Text("Projection 15: %f (%f)", stats.gproj[15], stats.g2proj[15]);
 
   ImGui::End();
 }
