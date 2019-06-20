@@ -437,11 +437,11 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
 {
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
-    return translate ? GetStringT("Empty") : "Empty";
+    return translate ? Common::GetStringT("Empty") : "Empty";
 
   State::StateHeader header;
   if (!ReadHeader(filename, header))
-    return translate ? GetStringT("Unknown") : "Unknown";
+    return translate ? Common::GetStringT("Unknown") : "Unknown";
 
   return Common::Timer::GetDateTimeFormatted(header.time);
 }

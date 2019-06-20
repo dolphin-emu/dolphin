@@ -157,7 +157,7 @@ void ShaderCache::WaitForAsyncCompiler()
 
       ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 50.0f * scale), ImGuiCond_Always);
       ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-      if (ImGui::Begin(GetStringT("Compiling Shaders").c_str(), nullptr,
+      if (ImGui::Begin(Common::GetStringT("Compiling Shaders").c_str(), nullptr,
                        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |

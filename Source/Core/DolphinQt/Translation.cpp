@@ -292,7 +292,8 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 void Translation::Initialize()
 {
   // Hook up Dolphin internal translation
-  RegisterStringTranslator([](const char* text) { return QObject::tr(text).toStdString(); });
+  Common::RegisterStringTranslator(
+      [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
   auto& configured_language = SConfig::GetInstance().m_InterfaceLanguage;
