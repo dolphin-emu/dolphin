@@ -5,16 +5,13 @@
 #include "Common/IniFile.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstddef>
-#include <cstring>
 #include <fstream>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -54,32 +51,34 @@ void IniFile::Section::Set(const std::string& key, std::string new_value)
     keys_order.push_back(key);
 }
 
-bool IniFile::Section::Get(const std::string& key, std::string* value,
-                           const std::string& defaultValue) const
+bool IniFile::Section::Get(std::string_view key, std::string* value,
+                           const std::string& default_value) const
 {
-  auto it = values.find(key);
+  const auto it = values.find(key);
+
   if (it != values.end())
   {
     *value = it->second;
     return true;
   }
-  else if (&defaultValue != &NULL_STRING)
+
+  if (&default_value != &NULL_STRING)
   {
-    *value = defaultValue;
+    *value = default_value;
     return true;
   }
 
   return false;
 }
 
-bool IniFile::Section::Exists(const std::string& key) const
+bool IniFile::Section::Exists(std::string_view key) const
 {
   return values.find(key) != values.end();
 }
 
-bool IniFile::Section::Delete(const std::string& key)
+bool IniFile::Section::Delete(std::string_view key)
 {
-  auto it = values.find(key);
+  const auto it = values.find(key);
   if (it == values.end())
     return false;
 
@@ -125,38 +124,45 @@ IniFile::IniFile() = default;
 
 IniFile::~IniFile() = default;
 
-const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
+const IniFile::Section* IniFile::GetSection(std::string_view section_name) const
 {
   for (const Section& sect : sections)
-    if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
-      return (&(sect));
+  {
+    if (CaseInsensitiveStringCompare::IsEqual(sect.name, section_name))
+      return &sect;
+  }
+
   return nullptr;
 }
 
-IniFile::Section* IniFile::GetSection(const std::string& sectionName)
+IniFile::Section* IniFile::GetSection(std::string_view section_name)
 {
   for (Section& sect : sections)
-    if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
-      return (&(sect));
+  {
+    if (CaseInsensitiveStringCompare::IsEqual(sect.name, section_name))
+      return &sect;
+  }
+
   return nullptr;
 }
 
-IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
+IniFile::Section* IniFile::GetOrCreateSection(std::string_view section_name)
 {
-  Section* section = GetSection(sectionName);
+  Section* section = GetSection(section_name);
   if (!section)
   {
-    sections.emplace_back(sectionName);
+    sections.emplace_back(std::string(section_name));
     section = &sections.back();
   }
   return section;
 }
 
-bool IniFile::DeleteSection(const std::string& sectionName)
+bool IniFile::DeleteSection(std::string_view section_name)
 {
-  Section* s = GetSection(sectionName);
+  Section* s = GetSection(section_name);
   if (!s)
     return false;
+
   for (auto iter = sections.begin(); iter != sections.end(); ++iter)
   {
     if (&(*iter) == s)
@@ -165,41 +171,43 @@ bool IniFile::DeleteSection(const std::string& sectionName)
       return true;
     }
   }
+
   return false;
 }
 
-bool IniFile::Exists(const std::string& sectionName, const std::string& key) const
+bool IniFile::Exists(std::string_view section_name, std::string_view key) const
 {
-  const Section* section = GetSection(sectionName);
+  const Section* section = GetSection(section_name);
   if (!section)
     return false;
+
   return section->Exists(key);
 }
 
-void IniFile::SetLines(const std::string& sectionName, const std::vector<std::string>& lines)
+void IniFile::SetLines(std::string_view section_name, const std::vector<std::string>& lines)
 {
-  Section* section = GetOrCreateSection(sectionName);
+  Section* section = GetOrCreateSection(section_name);
   section->SetLines(lines);
 }
 
-void IniFile::SetLines(const std::string& section_name, std::vector<std::string>&& lines)
+void IniFile::SetLines(std::string_view section_name, std::vector<std::string>&& lines)
 {
   Section* section = GetOrCreateSection(section_name);
   section->SetLines(std::move(lines));
 }
 
-bool IniFile::DeleteKey(const std::string& sectionName, const std::string& key)
+bool IniFile::DeleteKey(std::string_view section_name, std::string_view key)
 {
-  Section* section = GetSection(sectionName);
+  Section* section = GetSection(section_name);
   if (!section)
     return false;
   return section->Delete(key);
 }
 
 // Return a list of all keys in a section
-bool IniFile::GetKeys(const std::string& sectionName, std::vector<std::string>* keys) const
+bool IniFile::GetKeys(std::string_view section_name, std::vector<std::string>* keys) const
 {
-  const Section* section = GetSection(sectionName);
+  const Section* section = GetSection(section_name);
   if (!section)
   {
     return false;
@@ -209,12 +217,12 @@ bool IniFile::GetKeys(const std::string& sectionName, std::vector<std::string>* 
 }
 
 // Return a list of all lines in a section
-bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>* lines,
+bool IniFile::GetLines(std::string_view section_name, std::vector<std::string>* lines,
                        const bool remove_comments) const
 {
   lines->clear();
 
-  const Section* section = GetSection(sectionName);
+  const Section* section = GetSection(section_name);
   if (!section)
     return false;
 
