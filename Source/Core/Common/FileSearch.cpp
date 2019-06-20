@@ -97,16 +97,20 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   };
   for (const auto& directory : directories)
   {
-    if (recursive)
+    const fs::path directory_path = fs::u8path(directory);
+    if (fs::is_directory(directory_path))  // Can't create iterators for non-existant directories
     {
-      // TODO use fs::directory_options::follow_directory_symlink ?
-      for (auto& entry : fs::recursive_directory_iterator(fs::u8path(directory)))
-        add_filtered(entry);
-    }
-    else
-    {
-      for (auto& entry : fs::directory_iterator(fs::u8path(directory)))
-        add_filtered(entry);
+      if (recursive)
+      {
+        // TODO use fs::directory_options::follow_directory_symlink ?
+        for (auto& entry : fs::recursive_directory_iterator(std::move(directory_path)))
+          add_filtered(entry);
+      }
+      else
+      {
+        for (auto& entry : fs::directory_iterator(std::move(directory_path)))
+          add_filtered(entry);
+      }
     }
   }
 
