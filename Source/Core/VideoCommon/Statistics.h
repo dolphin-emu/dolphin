@@ -76,8 +76,6 @@ extern Statistics stats;
 #define DECSTAT(a) (a)--;
 #define ADDSTAT(a, b) (a) += (b);
 #define SETSTAT(a, x) (a) = (int)(x);
-#define SETSTAT_UINT(a, x) (a) = (u32)(x);
-#define SETSTAT_FT(a, x) (a) = (float)(x);
 #else
 #define INCSTAT(a) ;
 #define ADDSTAT(a, b) ;
