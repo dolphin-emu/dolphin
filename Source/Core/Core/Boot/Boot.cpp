@@ -5,8 +5,8 @@
 #include "Core/Boot/Boot.h"
 
 #ifdef _MSC_VER
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #define HAS_STD_FILESYSTEM
 #endif
 
@@ -90,7 +90,7 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
 #ifdef HAS_STD_FILESYSTEM
       const fs::path path_line = fs::u8path(line);
       const std::string path_to_add =
-          path_line.is_relative() ? fs::u8path(folder_path).append(path_line).u8string() : line;
+          path_line.is_relative() ? (fs::u8path(folder_path) / path_line).u8string() : line;
 #else
       const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
 #endif
