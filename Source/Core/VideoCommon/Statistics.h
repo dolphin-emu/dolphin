@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <string>
-
 struct Statistics
 {
   int numPixelShadersCreated;
