@@ -4,11 +4,13 @@
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 
+#include <QCursor>
 #include <QFontDatabase>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
+#include <QMenu>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -50,6 +52,8 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
+
+  m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
   QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
@@ -118,6 +122,8 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_code_list, &QListWidget::itemChanged, this, &GeckoCodeWidget::OnItemChanged);
   connect(m_code_list->model(), &QAbstractItemModel::rowsMoved, this,
           &GeckoCodeWidget::OnListReordered);
+  connect(m_code_list, &QListWidget::customContextMenuRequested, this,
+          &GeckoCodeWidget::OnContextMenuRequested);
 
   connect(m_add_code, &QPushButton::pressed, this, &GeckoCodeWidget::AddCode);
   connect(m_remove_code, &QPushButton::pressed, this, &GeckoCodeWidget::RemoveCode);
@@ -229,6 +235,21 @@ void GeckoCodeWidget::SaveCodes()
   Gecko::SaveCodes(game_ini_local, m_gecko_codes);
 
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+}
+
+void GeckoCodeWidget::OnContextMenuRequested()
+{
+  QMenu menu;
+
+  menu.addAction(tr("Sort Alphabetically"), this, &GeckoCodeWidget::SortAlphabetically);
+
+  menu.exec(QCursor::pos());
+}
+
+void GeckoCodeWidget::SortAlphabetically()
+{
+  m_code_list->sortItems();
+  OnListReordered();
 }
 
 void GeckoCodeWidget::OnListReordered()
