@@ -37,11 +37,13 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
+  void OnContextMenuRequested();
 
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateList();
   void SaveCodes();
+  void SortAlphabetically();
 
   void OnCodeAddPressed();
   void OnCodeEditPressed();

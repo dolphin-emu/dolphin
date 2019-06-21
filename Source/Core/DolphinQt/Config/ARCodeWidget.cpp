@@ -5,8 +5,10 @@
 #include "DolphinQt/Config/ARCodeWidget.h"
 
 #include <QButtonGroup>
+#include <QCursor>
 #include <QHBoxLayout>
 #include <QListWidget>
+#include <QMenu>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -49,6 +51,8 @@ void ARCodeWidget::CreateWidgets()
   m_code_edit = new QPushButton(tr("&Edit Code..."));
   m_code_remove = new QPushButton(tr("&Remove Code"));
 
+  m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
+
   auto* button_layout = new QHBoxLayout;
 
   button_layout->addWidget(m_code_add);
@@ -68,10 +72,13 @@ void ARCodeWidget::ConnectWidgets()
 {
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &ARCodeWidget::OpenGeneralSettings);
+
   connect(m_code_list, &QListWidget::itemChanged, this, &ARCodeWidget::OnItemChanged);
   connect(m_code_list, &QListWidget::itemSelectionChanged, this, &ARCodeWidget::OnSelectionChanged);
   connect(m_code_list->model(), &QAbstractItemModel::rowsMoved, this,
           &ARCodeWidget::OnListReordered);
+  connect(m_code_list, &QListWidget::customContextMenuRequested, this,
+          &ARCodeWidget::OnContextMenuRequested);
 
   connect(m_code_add, &QPushButton::pressed, this, &ARCodeWidget::OnCodeAddPressed);
   connect(m_code_edit, &QPushButton::pressed, this, &ARCodeWidget::OnCodeEditPressed);
@@ -87,6 +94,21 @@ void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
 
   UpdateList();
   SaveCodes();
+}
+
+void ARCodeWidget::OnContextMenuRequested()
+{
+  QMenu menu;
+
+  menu.addAction(tr("Sort Alphabetically"), this, &ARCodeWidget::SortAlphabetically);
+
+  menu.exec(QCursor::pos());
+}
+
+void ARCodeWidget::SortAlphabetically()
+{
+  m_code_list->sortItems();
+  OnListReordered();
 }
 
 void ARCodeWidget::OnListReordered()
