@@ -47,6 +47,8 @@ private:
   void OnCodeEditPressed();
   void OnCodeRemovePressed();
 
+  void OnListReordered();
+
   const UICommon::GameFile& m_game;
   std::string m_game_id;
   u16 m_game_revision;
