@@ -623,3 +623,26 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 }
 
 #endif
+
+#ifdef HAS_STD_FILESYSTEM
+// This is a replacement for path::u8path, which is deprecated starting with C++20.
+std::filesystem::path StringToPath(std::string_view path)
+{
+#ifdef _MSC_VER
+  return std::filesystem::path(UTF8ToUTF16(std::string(path)));
+#else
+  return std::filesystem::path(path);
+#endif
+}
+
+// This is a replacement for path::u8string that always has the return type std::string.
+// path::u8string returns std::u8string starting with C++20, which is annoying to convert.
+std::string PathToString(const std::filesystem::path& path)
+{
+#ifdef _MSC_VER
+  return UTF16ToUTF8(path.native());
+#else
+  return path.native();
+#endif
+}
+#endif
