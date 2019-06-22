@@ -206,7 +206,10 @@ void NetPlayServer::SetupIndex()
   session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
 
   if (m_dialog != nullptr)
-    m_dialog->OnIndexAdded(m_index.Add(session), m_index.GetLastError());
+  {
+    bool success = m_index.Add(session);
+    m_dialog->OnIndexAdded(success, success ? "" : m_index.GetLastError());
+  }
 
   m_index.SetErrorCallback([this] {
     if (m_dialog != nullptr)
