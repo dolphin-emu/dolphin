@@ -639,7 +639,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool first_o
 
   if (first_open)
   {
-    DolphinAnalytics::Instance()->ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
+    DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
   }
 
   WiimoteReal::InitAdapterClass();
