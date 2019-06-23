@@ -37,15 +37,19 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
+  void OnContextMenuRequested();
 
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateList();
   void SaveCodes();
+  void SortAlphabetically();
 
   void OnCodeAddPressed();
   void OnCodeEditPressed();
   void OnCodeRemovePressed();
+
+  void OnListReordered();
 
   const UICommon::GameFile& m_game;
   std::string m_game_id;
