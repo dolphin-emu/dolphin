@@ -251,8 +251,11 @@ void Sleep(int sleep)
 void WaitForPID(u32 pid)
 {
   HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
-  WaitForSingleObject(parent_handle, INFINITE);
-  CloseHandle(parent_handle);
+  if (parent_handle)
+  {
+    WaitForSingleObject(parent_handle, INFINITE);
+    CloseHandle(parent_handle);
+  }
 }
 
 void SetVisible(bool visible)
