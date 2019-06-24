@@ -16,6 +16,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "UpdaterCommon/UI.h"
 
@@ -498,7 +499,6 @@ void FatalError(const std::string& message)
 
   UI::SetVisible(true);
   UI::Error(message);
-  UI::Stop();
 }
 
 std::optional<Manifest> ParseManifest(const std::string& manifest)
@@ -686,6 +686,7 @@ bool RunUpdater(std::vector<std::string> args)
   UI::Init();
   UI::SetVisible(false);
 
+  Common::ScopeGuard ui_guard{[] { UI::Stop(); }};
   Options opts = std::move(*maybe_opts);
 
   if (opts.log_file)
@@ -776,8 +777,6 @@ bool RunUpdater(std::vector<std::string> args)
   {
     UI::LaunchApplication(opts.binary_to_restart.value());
   }
-
-  UI::Stop();
 
   return true;
 }
