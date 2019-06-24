@@ -12,7 +12,6 @@
 #include <ShObjIdl.h>
 #include <shellapi.h>
 
-#include "Common/Flag.h"
 #include "Common/StringUtil.h"
 
 namespace
@@ -23,7 +22,7 @@ HWND total_progressbar_handle = nullptr;
 HWND current_progressbar_handle = nullptr;
 ITaskbarList3* taskbar_list = nullptr;
 
-Common::Flag running;
+std::thread ui_thread;
 
 int GetWindowHeight(HWND hwnd)
 {
@@ -201,12 +200,16 @@ void SetDescription(const std::string& text)
 
 void MessageLoop()
 {
-  running.Set();
-
   if (!InitWindow())
   {
-    running.Clear();
     MessageBox(nullptr, L"Window init failed!", L"", MB_ICONERROR);
+    // Destroying the parent (if exists) destroys all children windows
+    if (window_handle)
+    {
+      DestroyWindow(window_handle);
+      window_handle = nullptr;
+    }
+    return;
   }
 
   SetTotalMarquee(true);
@@ -218,26 +221,19 @@ void MessageLoop()
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
-
-  running.Clear();
 }
 
 void Init()
 {
-  std::thread thread(MessageLoop);
-  thread.detach();
+  ui_thread = std::thread(MessageLoop);
 }
 
 void Stop()
 {
-  if (!running.IsSet())
-    return;
+  if (window_handle)
+    PostMessage(window_handle, WM_CLOSE, 0, 0);
 
-  PostMessage(window_handle, WM_CLOSE, 0, 0);
-
-  while (running.IsSet())
-  {
-  }
+  ui_thread.join();
 }
 
 void LaunchApplication(std::string path)
