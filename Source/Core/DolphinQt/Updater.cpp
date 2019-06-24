@@ -95,6 +95,11 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
                                 AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
 
     if (!later)
-      m_parent->close();
+    {
+      RunOnObject(m_parent, [this] {
+        m_parent->close();
+        return 0;
+      });
+    }
   }
 }
