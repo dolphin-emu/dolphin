@@ -24,7 +24,6 @@ HWND current_progressbar_handle = nullptr;
 ITaskbarList3* taskbar_list = nullptr;
 
 Common::Flag running;
-Common::Flag request_stop;
 
 int GetWindowHeight(HWND hwnd)
 {
@@ -32,6 +31,17 @@ int GetWindowHeight(HWND hwnd)
   GetWindowRect(hwnd, &rect);
 
   return rect.bottom - rect.top;
+}
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  switch (uMsg)
+  {
+  case WM_DESTROY:
+    PostQuitMessage(0);
+    return 0;
+  }
+  return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 };  // namespace
 
@@ -46,7 +56,7 @@ bool InitWindow()
   InitCommonControls();
 
   WNDCLASS wndcl = {};
-  wndcl.lpfnWndProc = DefWindowProcW;
+  wndcl.lpfnWndProc = WindowProc;
   wndcl.hbrBackground = GetSysColorBrush(COLOR_MENU);
   wndcl.lpszClassName = L"UPDATER";
 
@@ -124,14 +134,6 @@ bool InitWindow()
   return true;
 }
 
-void Destroy()
-{
-  DestroyWindow(window_handle);
-  DestroyWindow(label_handle);
-  DestroyWindow(total_progressbar_handle);
-  DestroyWindow(current_progressbar_handle);
-}
-
 void SetTotalMarquee(bool marquee)
 {
   SetWindowLong(total_progressbar_handle, GWL_STYLE,
@@ -199,7 +201,6 @@ void SetDescription(const std::string& text)
 
 void MessageLoop()
 {
-  request_stop.Clear();
   running.Set();
 
   if (!InitWindow())
@@ -211,19 +212,14 @@ void MessageLoop()
   SetTotalMarquee(true);
   SetCurrentMarquee(true);
 
-  while (!request_stop.IsSet())
+  MSG msg;
+  while (GetMessage(&msg, nullptr, 0, 0))
   {
-    MSG msg;
-    while (PeekMessage(&msg, window_handle, 0, 0, PM_REMOVE))
-    {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-    }
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
   }
 
   running.Clear();
-
-  Destroy();
 }
 
 void Init()
@@ -237,7 +233,7 @@ void Stop()
   if (!running.IsSet())
     return;
 
-  request_stop.Set();
+  PostMessage(window_handle, WM_CLOSE, 0, 0);
 
   while (running.IsSet())
   {
