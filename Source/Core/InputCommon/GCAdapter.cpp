@@ -72,6 +72,8 @@ static bool s_libusb_hotplug_enabled = false;
 static libusb_hotplug_callback_handle s_hotplug_handle;
 #endif
 
+static LibusbUtils::Context s_libusb_context;
+
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
 
@@ -147,7 +149,6 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 
 static void ScanThreadFunc()
 {
-  auto& context = LibusbUtils::GetContext();
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
@@ -158,7 +159,7 @@ static void ScanThreadFunc()
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            context,
+            s_libusb_context,
             (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                                    LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
@@ -212,7 +213,7 @@ void StartScanThread()
 {
   if (s_adapter_detect_thread_running.IsSet())
     return;
-  if (!LibusbUtils::GetContext().IsValid())
+  if (!s_libusb_context.IsValid())
     return;
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
@@ -240,7 +241,7 @@ static void Setup()
     s_controller_rumble[i] = 0;
   }
 
-  LibusbUtils::GetContext().GetDeviceList([](libusb_device* device) {
+  s_libusb_context.GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
     {
       // Only connect to a single adapter in case the user has multiple connected
@@ -364,8 +365,8 @@ void Shutdown()
 {
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
-  if (LibusbUtils::GetContext().IsValid() && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(LibusbUtils::GetContext(), s_hotplug_handle);
+  if (s_libusb_context.IsValid() && s_libusb_hotplug_enabled)
+    libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
 #endif
   Reset();
 

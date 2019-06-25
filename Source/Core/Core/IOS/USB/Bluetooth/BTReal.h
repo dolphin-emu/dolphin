@@ -19,6 +19,7 @@
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
 #include "Core/IOS/USB/USBV0.h"
+#include "Core/LibusbUtils.h"
 
 class PointerWrap;
 struct libusb_device;
@@ -70,6 +71,7 @@ private:
   std::atomic<SyncButtonState> m_sync_button_state{SyncButtonState::Unpressed};
   Common::Timer m_sync_button_held_timer;
 
+  LibusbUtils::Context m_context;
   libusb_device* m_device = nullptr;
   libusb_device_handle* m_handle = nullptr;
 

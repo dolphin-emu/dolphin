@@ -109,12 +109,6 @@ bool Context::GetDeviceList(GetDeviceListCallback callback)
   return m_impl->GetDeviceList(std::move(callback));
 }
 
-Context& GetContext()
-{
-  static Context s_context;
-  return s_context;
-}
-
 ConfigDescriptor MakeConfigDescriptor(libusb_device* device, u8 config_num)
 {
 #if defined(__LIBUSB__)

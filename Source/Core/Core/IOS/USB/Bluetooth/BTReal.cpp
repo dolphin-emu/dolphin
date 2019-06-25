@@ -28,7 +28,6 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
-#include "Core/LibusbUtils.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 namespace IOS::HLE::Device
@@ -75,11 +74,10 @@ BluetoothReal::~BluetoothReal()
 
 IPCCommandResult BluetoothReal::Open(const OpenRequest& request)
 {
-  auto& context = LibusbUtils::GetContext();
-  if (!context.IsValid())
+  if (!m_context.IsValid())
     return GetDefaultReply(IPC_EACCES);
 
-  context.GetDeviceList([this](libusb_device* device) {
+  m_context.GetDeviceList([this](libusb_device* device) {
     libusb_device_descriptor device_descriptor;
     libusb_get_device_descriptor(device, &device_descriptor);
     auto config_descriptor = LibusbUtils::MakeConfigDescriptor(device);
