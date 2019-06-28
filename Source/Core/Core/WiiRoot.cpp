@@ -8,13 +8,14 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
@@ -268,7 +269,7 @@ void CleanUpWiiFileSystemContents()
     const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
 
     const std::string backup_path =
-        File::GetUserPath(D_BACKUP_IDX) + StringFromFormat("/%016" PRIx64 ".bin", title_id);
+        fmt::format("{}/{:016x}.bin", File::GetUserPath(D_BACKUP_IDX), title_id);
     const auto backup_save = WiiSave::MakeDataBinStorage(&ios->GetIOSC(), backup_path, "w+b");
 
     // Backup the existing save just in case it's still needed.

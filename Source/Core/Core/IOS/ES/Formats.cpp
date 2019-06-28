@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
 #include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
@@ -320,7 +321,7 @@ std::string TMDReader::GetGameID() const
   if (all_printable)
     return std::string(game_id, sizeof(game_id));
 
-  return StringFromFormat("%016" PRIx64, GetTitleId());
+  return fmt::format("{:016x}", GetTitleId());
 }
 
 std::string TMDReader::GetGameTDBID() const
@@ -334,7 +335,7 @@ std::string TMDReader::GetGameTDBID() const
   if (all_printable)
     return std::string(begin, end);
 
-  return StringFromFormat("%016" PRIx64, GetTitleId());
+  return fmt::format("{:016x}", GetTitleId());
 }
 
 u16 TMDReader::GetNumContents() const
@@ -547,7 +548,7 @@ struct SharedContentMap::Entry
   std::array<u8, 20> sha1;
 };
 
-static const std::string CONTENT_MAP_PATH = "/shared1/content.map";
+constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
 SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
@@ -572,7 +573,7 @@ SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
     return {};
 
   const std::string id_string(it->id.begin(), it->id.end());
-  return StringFromFormat("/shared1/%s.app", id_string.c_str());
+  return fmt::format("/shared1/{}.app", id_string);
 }
 
 std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
@@ -591,14 +592,14 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
   if (filename)
     return *filename;
 
-  const std::string id = StringFromFormat("%08x", m_last_id);
+  const std::string id = fmt::format("{:08x}", m_last_id);
   Entry entry;
   std::copy(id.cbegin(), id.cend(), entry.id.begin());
   entry.sha1 = sha1;
   m_entries.push_back(entry);
 
   WriteEntries();
-  filename = StringFromFormat("/shared1/%s.app", id.c_str());
+  filename = fmt::format("/shared1/{}.app", id);
   m_last_id++;
   return *filename;
 }
@@ -640,7 +641,7 @@ static std::pair<u32, u64> ReadUidSysEntry(const HLE::FS::FileHandle& file)
   return {Common::swap32(uid), Common::swap64(title_id)};
 }
 
-static const std::string UID_MAP_PATH = "/sys/uid.sys";
+constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
 UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
   if (const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))
