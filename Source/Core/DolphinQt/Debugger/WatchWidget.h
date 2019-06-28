@@ -50,4 +50,6 @@ private:
   QTableWidget* m_table;
 
   bool m_updating = false;
+
+  static constexpr size_t NUM_COLUMNS = 6;
 };
