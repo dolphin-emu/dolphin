@@ -7,6 +7,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
+#include "Common/StringUtil.h"
 
 #ifdef _MSC_VER
 #include <Windows.h>
@@ -74,7 +75,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 
   std::vector<fs::path> native_exts;
   for (const auto& ext : exts)
-    native_exts.push_back(fs::u8path(ext));
+    native_exts.push_back(StringToPath(ext));
 
   // N.B. This avoids doing any copies
   auto ext_matches = [&native_exts](const fs::path& path) {
@@ -93,11 +94,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   auto add_filtered = [&](const fs::directory_entry& entry) {
     auto& path = entry.path();
     if (accept_all || (ext_matches(path) && !fs::is_directory(path)))
-      result.emplace_back(path.u8string());
+      result.emplace_back(PathToString(path));
   };
   for (const auto& directory : directories)
   {
-    const fs::path directory_path = fs::u8path(directory);
+    const fs::path directory_path = StringToPath(directory);
     if (fs::is_directory(directory_path))  // Can't create iterators for non-existant directories
     {
       if (recursive)

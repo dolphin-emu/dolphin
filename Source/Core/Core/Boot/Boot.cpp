@@ -88,7 +88,7 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
     if (!line.empty() && line.front() != '#')  // Comments start with #
     {
 #ifdef HAS_STD_FILESYSTEM
-      const std::string path_to_add = (fs::u8path(folder_path) / fs::u8path(line)).u8string();
+      const std::string path_to_add = PathToString(StringToPath(folder_path) / StringToPath(line));
 #else
       const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
 #endif
