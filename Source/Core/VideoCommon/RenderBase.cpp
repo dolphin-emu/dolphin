@@ -585,8 +585,8 @@ void Renderer::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect
   if (target_rect->bottom > fb_height)
   {
     const int offset = target_rect->bottom - fb_height;
-    target_rect->right -= offset;
-    source_rect->right -= offset * orig_source_height / orig_target_height;
+    target_rect->bottom -= offset;
+    source_rect->bottom -= offset * orig_source_height / orig_target_height;
   }
 }
 
@@ -1259,7 +1259,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
         auto render_target_rc = GetTargetRectangle();
         auto render_source_rc = xfb_rect;
-        AdjustRectanglesToFitBounds(&render_target_rc, &xfb_rect, m_backbuffer_width,
+        AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
                                     m_backbuffer_height);
         RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
 
