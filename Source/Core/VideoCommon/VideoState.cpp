@@ -13,6 +13,8 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -21,6 +23,15 @@
 
 void VideoCommon_DoState(PointerWrap& p)
 {
+  bool software = false;
+  p.Do(software);
+
+  if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+  {
+    // change mode to abort load of incompatible save state.
+    p.SetMode(PointerWrap::MODE_VERIFY);
+  }
+
   // BP Memory
   p.Do(bpmem);
   p.DoMarker("BP Memory");
@@ -63,5 +74,16 @@ void VideoCommon_DoState(PointerWrap& p)
   BoundingBox::DoState(p);
   p.DoMarker("BoundingBox");
 
-  // TODO: search for more data that should be saved and add it here
+  g_texture_cache->DoState(p);
+  p.DoMarker("TextureCache");
+
+  g_renderer->DoState(p);
+  p.DoMarker("Renderer");
+
+  // Refresh state.
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    // Inform backend of new state from registers.
+    BPReload();
+  }
 }

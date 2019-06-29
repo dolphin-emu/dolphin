@@ -66,9 +66,6 @@ public:
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);
 
-  // Function which handles the real state load/save logic.
-  void DoStateGPUThread(PointerWrap& p);
-
 protected:
   void InitializeShared();
   void ShutdownShared();

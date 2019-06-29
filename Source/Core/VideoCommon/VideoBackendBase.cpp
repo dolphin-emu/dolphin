@@ -241,7 +241,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
 {
   if (!SConfig::GetInstance().bCPUThread)
   {
-    DoStateGPUThread(p);
+    VideoCommon_DoState(p);
     return;
   }
 
@@ -253,34 +253,6 @@ void VideoBackendBase::DoState(PointerWrap& p)
   // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
   // a state. The next GP burst will wake it up again.
   Fifo::GpuMaySleep();
-}
-
-void VideoBackendBase::DoStateGPUThread(PointerWrap& p)
-{
-  bool software = false;
-  p.Do(software);
-
-  if (p.GetMode() == PointerWrap::MODE_READ && software == true)
-  {
-    // change mode to abort load of incompatible save state.
-    p.SetMode(PointerWrap::MODE_VERIFY);
-  }
-
-  VideoCommon_DoState(p);
-  p.DoMarker("VideoCommon");
-
-  // Refresh state.
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    // Inform backend of new state from registers.
-    g_vertex_manager->Flush();
-    g_texture_cache->Invalidate();
-    BPReload();
-
-    // Clear all caches that touch RAM
-    // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
-    VertexLoaderManager::MarkAllDirty();
-  }
 }
 
 void VideoBackendBase::InitializeShared()

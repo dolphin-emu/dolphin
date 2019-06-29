@@ -41,6 +41,7 @@ class AbstractTexture;
 class AbstractStagingTexture;
 class NativeVertexFormat;
 class NetPlayChatUI;
+class PointerWrap;
 struct TextureConfig;
 struct ComputePipelineConfig;
 struct AbstractPipelineConfig;
@@ -237,6 +238,7 @@ public:
   void ChangeSurface(void* new_surface_handle);
   void ResizeSurface();
   bool UseVertexDepthRange() const;
+  void DoState(PointerWrap& p);
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
 
@@ -356,9 +358,10 @@ private:
 
   // Tracking of XFB textures so we don't render duplicate frames.
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
-
-  // Note: Only used for auto-ir
+  u64 m_last_xfb_ticks = 0;
+  u32 m_last_xfb_addr = 0;
   u32 m_last_xfb_width = 0;
+  u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
 
   // NOTE: The methods below are called on the framedumping thread.

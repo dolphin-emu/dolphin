@@ -15,6 +15,7 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -402,6 +403,326 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* e
   auto config = new_texture->texture->GetConfig();
   texture_pool.emplace(
       config, TexPoolEntry(std::move(new_texture->texture), std::move(new_texture->framebuffer)));
+}
+
+bool TextureCacheBase::CheckReadbackTexture(u32 width, u32 height, AbstractTextureFormat format)
+{
+  if (m_readback_texture && m_readback_texture->GetConfig().width >= width &&
+      m_readback_texture->GetConfig().height >= height &&
+      m_readback_texture->GetConfig().format == format)
+  {
+    return true;
+  }
+
+  TextureConfig staging_config(std::max(width, 128u), std::max(height, 128u), 1, 1, 1, format, 0);
+  m_readback_texture.reset();
+  m_readback_texture =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, staging_config);
+  return m_readback_texture != nullptr;
+}
+
+void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfig& config,
+                                        PointerWrap& p)
+{
+  // If we're in measure mode, skip the actual readback to save some time.
+  const bool skip_readback = p.GetMode() == PointerWrap::MODE_MEASURE;
+  p.DoPOD(config);
+
+  std::vector<u8> texture_data;
+  if (skip_readback || CheckReadbackTexture(config.width, config.height, config.format))
+  {
+    // Save out each layer of the texture to the staging texture, and then
+    // append it onto the end of the vector. This gives us all the sub-images
+    // in one single buffer which can be written out to the save state.
+    for (u32 layer = 0; layer < config.layers; layer++)
+    {
+      for (u32 level = 0; level < config.levels; level++)
+      {
+        u32 level_width = std::max(config.width >> level, 1u);
+        u32 level_height = std::max(config.height >> level, 1u);
+        auto rect = tex->GetConfig().GetMipRect(level);
+        if (!skip_readback)
+          m_readback_texture->CopyFromTexture(tex, rect, layer, level, rect);
+
+        size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+        size_t size = stride * level_height;
+        size_t start = texture_data.size();
+        texture_data.resize(texture_data.size() + size);
+        if (!skip_readback)
+          m_readback_texture->ReadTexels(rect, &texture_data[start], static_cast<u32>(stride));
+      }
+    }
+  }
+  else
+  {
+    PanicAlert("Failed to create staging texture for serialization");
+  }
+
+  p.Do(texture_data);
+}
+
+std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTexture(PointerWrap& p)
+{
+  TextureConfig config;
+  p.Do(config);
+
+  std::vector<u8> texture_data;
+  p.Do(texture_data);
+
+  if (p.GetMode() != PointerWrap::MODE_READ)
+    return std::nullopt;
+
+  auto tex = AllocateTexture(config);
+  if (!tex)
+  {
+    PanicAlert("Failed to create texture for deserialization");
+    return std::nullopt;
+  }
+
+  size_t start = 0;
+  for (u32 layer = 0; layer < config.layers; layer++)
+  {
+    for (u32 level = 0; level < config.levels; level++)
+    {
+      u32 level_width = std::max(config.width >> level, 1u);
+      u32 level_height = std::max(config.height >> level, 1u);
+      size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+      size_t size = stride * level_height;
+      if ((start + size) > texture_data.size())
+      {
+        ERROR_LOG(VIDEO, "Insufficient texture data for layer %u level %u", layer, level);
+        return tex;
+      }
+
+      tex->texture->Load(level, level_width, level_height, level_width, &texture_data[start], size);
+      start += size;
+    }
+  }
+
+  return tex;
+}
+
+void TextureCacheBase::DoState(PointerWrap& p)
+{
+  // Flush all pending XFB copies before either loading or saving.
+  FlushEFBCopies();
+
+  p.Do(last_entry_id);
+
+  if (p.GetMode() == PointerWrap::MODE_WRITE || p.GetMode() == PointerWrap::MODE_MEASURE)
+    DoSaveState(p);
+  else
+    DoLoadState(p);
+}
+
+void TextureCacheBase::DoSaveState(PointerWrap& p)
+{
+  std::map<const TCacheEntry*, u32> entry_map;
+  std::vector<TCacheEntry*> entries_to_save;
+  auto ShouldSaveEntry = [](const TCacheEntry* entry) {
+    // We skip non-copies as they can be decoded from RAM when the state is loaded.
+    // Storing them would duplicate data in the save state file, adding to decompression time.
+    return entry->IsCopy();
+  };
+  auto AddCacheEntryToMap = [&entry_map, &entries_to_save, &p](TCacheEntry* entry) -> u32 {
+    auto iter = entry_map.find(entry);
+    if (iter != entry_map.end())
+      return iter->second;
+
+    // Since we are sequentially allocating texture entries, we need to save the textures in the
+    // same order they were collected. This is because of iterating both the address and hash maps.
+    // Therefore, the map is used for fast lookup, and the vector for ordering.
+    u32 id = static_cast<u32>(entry_map.size());
+    entry_map.emplace(entry, id);
+    entries_to_save.push_back(entry);
+    return id;
+  };
+  auto GetCacheEntryId = [&entry_map](const TCacheEntry* entry) -> std::optional<u32> {
+    auto iter = entry_map.find(entry);
+    return iter != entry_map.end() ? std::make_optional(iter->second) : std::nullopt;
+  };
+
+  // Transform the textures_by_address and textures_by_hash maps to a mapping
+  // of address/hash to entry ID.
+  std::vector<std::pair<u32, u32>> textures_by_address_list;
+  std::vector<std::pair<u64, u32>> textures_by_hash_list;
+  for (const auto& it : textures_by_address)
+  {
+    if (ShouldSaveEntry(it.second))
+    {
+      u32 id = AddCacheEntryToMap(it.second);
+      textures_by_address_list.push_back(std::make_pair(it.first, id));
+    }
+  }
+  for (const auto& it : textures_by_hash)
+  {
+    if (ShouldSaveEntry(it.second))
+    {
+      u32 id = AddCacheEntryToMap(it.second);
+      textures_by_hash_list.push_back(std::make_pair(it.first, id));
+    }
+  }
+
+  // Save the texture cache entries out in the order the were referenced.
+  u32 size = static_cast<u32>(entries_to_save.size());
+  p.Do(size);
+  for (TCacheEntry* entry : entries_to_save)
+  {
+    g_texture_cache->SerializeTexture(entry->texture.get(), entry->texture->GetConfig(), p);
+    entry->DoState(p);
+  }
+  p.DoMarker("TextureCacheEntries");
+
+  // Save references for each cache entry.
+  // As references are circular, we need to have everything created before linking entries.
+  std::set<std::pair<u32, u32>> reference_pairs;
+  for (const auto& it : entry_map)
+  {
+    const TCacheEntry* entry = it.first;
+    auto id1 = GetCacheEntryId(entry);
+    if (!id1)
+      continue;
+
+    for (const TCacheEntry* referenced_entry : entry->references)
+    {
+      auto id2 = GetCacheEntryId(referenced_entry);
+      if (!id2)
+        continue;
+
+      auto refpair1 = std::make_pair(*id1, *id2);
+      auto refpair2 = std::make_pair(*id2, *id1);
+      if (reference_pairs.count(refpair1) == 0 && reference_pairs.count(refpair2) == 0)
+        reference_pairs.insert(refpair1);
+    }
+  }
+
+  size = static_cast<u32>(reference_pairs.size());
+  p.Do(size);
+  for (const auto& it : reference_pairs)
+  {
+    p.Do(it.first);
+    p.Do(it.second);
+  }
+
+  size = static_cast<u32>(textures_by_address_list.size());
+  p.Do(size);
+  for (const auto& it : textures_by_address_list)
+  {
+    p.Do(it.first);
+    p.Do(it.second);
+  }
+
+  size = static_cast<u32>(textures_by_hash_list.size());
+  p.Do(size);
+  for (const auto& it : textures_by_hash_list)
+  {
+    p.Do(it.first);
+    p.Do(it.second);
+  }
+
+  // Free the readback texture to potentially save host-mapped GPU memory, depending on where
+  // the driver mapped the staging buffer.
+  m_readback_texture.reset();
+}
+
+void TextureCacheBase::DoLoadState(PointerWrap& p)
+{
+  // Helper for getting a cache entry from an ID.
+  std::map<u32, TCacheEntry*> id_map;
+  auto GetEntry = [&id_map](u32 id) {
+    auto iter = id_map.find(id);
+    return iter == id_map.end() ? nullptr : iter->second;
+  };
+
+  // Only clear out state when actually restoring/loading.
+  // Since we throw away entries when not in loading mode now, we don't need to check
+  // before inserting entries into the cache, as GetEntry will always return null.
+  const bool commit_state = p.GetMode() == PointerWrap::MODE_READ;
+  if (commit_state)
+    Invalidate();
+
+  // Preload all cache entries.
+  u32 size = 0;
+  p.Do(size);
+  for (u32 i = 0; i < size; i++)
+  {
+    // Even if the texture isn't valid, we still need to create the cache entry object
+    // to update the point in the state state. We'll just throw it away if it's invalid.
+    auto tex = g_texture_cache->DeserializeTexture(p);
+    TCacheEntry* entry = new TCacheEntry(std::move(tex->texture), std::move(tex->framebuffer));
+    entry->textures_by_hash_iter = g_texture_cache->textures_by_hash.end();
+    entry->DoState(p);
+    if (entry->texture && commit_state)
+      id_map.emplace(i, entry);
+    else
+      delete entry;
+  }
+  p.DoMarker("TextureCacheEntries");
+
+  // Link all cache entry references.
+  p.Do(size);
+  for (u32 i = 0; i < size; i++)
+  {
+    u32 id1 = 0, id2 = 0;
+    p.Do(id1);
+    p.Do(id2);
+    TCacheEntry* e1 = GetEntry(id1);
+    TCacheEntry* e2 = GetEntry(id2);
+    if (e1 && e2)
+      e1->CreateReference(e2);
+  }
+
+  // Fill in address map.
+  p.Do(size);
+  for (u32 i = 0; i < size; i++)
+  {
+    u32 addr = 0;
+    u32 id = 0;
+    p.Do(addr);
+    p.Do(id);
+
+    TCacheEntry* entry = GetEntry(id);
+    if (entry)
+      textures_by_address.emplace(addr, entry);
+  }
+
+  // Fill in hash map.
+  p.Do(size);
+  for (u32 i = 0; i < size; i++)
+  {
+    u64 hash = 0;
+    u32 id = 0;
+    p.Do(hash);
+    p.Do(id);
+
+    TCacheEntry* entry = GetEntry(id);
+    if (entry)
+      entry->textures_by_hash_iter = textures_by_hash.emplace(hash, entry);
+  }
+}
+
+void TextureCacheBase::TCacheEntry::DoState(PointerWrap& p)
+{
+  p.Do(addr);
+  p.Do(size_in_bytes);
+  p.Do(base_hash);
+  p.Do(hash);
+  p.Do(format);
+  p.Do(memory_stride);
+  p.Do(is_efb_copy);
+  p.Do(is_custom_tex);
+  p.Do(may_have_overlapping_textures);
+  p.Do(tmem_only);
+  p.Do(has_arbitrary_mips);
+  p.Do(should_force_safe_hashing);
+  p.Do(is_xfb_copy);
+  p.Do(is_xfb_container);
+  p.Do(id);
+  p.Do(reference_changed);
+  p.Do(native_width);
+  p.Do(native_height);
+  p.Do(native_levels);
+  p.Do(frameCount);
 }
 
 TextureCacheBase::TCacheEntry*

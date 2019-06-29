@@ -461,6 +461,16 @@ void VertexManagerBase::Flush()
 
 void VertexManagerBase::DoState(PointerWrap& p)
 {
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    // Flush old vertex data before loading state.
+    Flush();
+
+    // Clear all caches that touch RAM
+    // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
+    VertexLoaderManager::MarkAllDirty();
+  }
+
   p.Do(m_zslope);
 }
 
