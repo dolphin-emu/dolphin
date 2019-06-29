@@ -281,15 +281,10 @@ PRIVATE
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(Dolphin_NAME "DolphinD")
-  else()
-    set(Dolphin_NAME "Dolphin")
-  endif()
-
   set_target_properties(dolphin-emu PROPERTIES
+    DEBUG_POSTFIX    D
+    OUTPUT_NAME      Dolphin
     WIN32_EXECUTABLE TRUE
-    OUTPUT_NAME ${Dolphin_NAME}
   )
 
   target_compile_options(dolphin-emu PRIVATE "-D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING")
@@ -301,47 +296,37 @@ if(WIN32)
 
   # Copy qt.conf
   add_custom_command(TARGET dolphin-emu POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf.win" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
   )
 
-  # Create QtPlugins directory
+  # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
+  get_target_property(MOC_EXECUTABLE_LOCATION Qt5::moc IMPORTED_LOCATION)
+  get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
+  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
+
+  # Note: We set the PATH for the duration of this command so that the
+  #       deployment application is able to locate the Qt libraries to copy.
+  #       if the necessary paths aren't already set beforehand.
+  #
+  #       For example, consider a hypothetical emulation project named Orca.
+  #       Orca supplies its own version of Qt instead of having developers actually
+  #       install the officially supported Qt libraries -- a method that would make
+  #       wrangling around with Qt through CMake much nicer and lessen the external
+  #       library maintenance burden of the project, but alas.
+  #
+  #       In this case, as Qt is not installed through the official binary, this also
+  #       means proper path variables will not be set up, thus the need to ensure they're
+  #       always set up.
+  #
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
+    COMMAND "${CMAKE_COMMAND}" -E env PATH="${QT_BINARY_DIRECTORY}"
+            "${WINDEPLOYQT_EXE}" --libdir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+                                 --plugindir="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins"
+                                 $<IF:$<CONFIG:Debug>,--debug,--release>
+                                 --no-translations
+                                 --no-compiler-runtime
+                                 "$<TARGET_FILE:dolphin-emu>"
   )
-
-  # Copy plugins
-  set (Qt5_PLUGINS_DIR "${Qt5_DIR}/../../../plugins")
-  file(GLOB_RECURSE plugins RELATIVE "${Qt5_PLUGINS_DIR}" "${Qt5_PLUGINS_DIR}/*.dll")
-
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(FILTER plugins INCLUDE REGEX ".*d.dll")
-  else()
-    list(FILTER plugins EXCLUDE REGEX ".*d.dll")
-  endif()
-
-  foreach(plugin ${plugins})
-    add_custom_command(TARGET dolphin-emu POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5_PLUGINS_DIR}/${plugin}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/QtPlugins/${plugin}"
-    )
-  endforeach()
-
-  # Copy DLLs
-  set (Qt5_DLL_DIR "${Qt5_DIR}/../../../bin")
-
-  file(GLOB_RECURSE dlls RELATIVE "${Qt5_DLL_DIR}" "${Qt5_DLL_DIR}/*.dll")
-
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(FILTER dlls INCLUDE REGEX ".*d.dll")
-  else()
-    list(FILTER dlls EXCLUDE REGEX ".*d.dll")
-  endif()
-
-  foreach(dll ${dlls})
-   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5_DLL_DIR}/${dll}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-   )
-  endforeach()
-
 endif()
 
 # Handle localization
