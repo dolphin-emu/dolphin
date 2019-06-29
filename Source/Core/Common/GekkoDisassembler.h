@@ -34,11 +34,10 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -62,30 +61,31 @@ private:
 
   static void trapi(u32 in, unsigned char dmode);
   static void cmpi(u32 in, int uimm);
-  static void addi(u32 in, const std::string& ext);
-  static size_t branch(u32 in, const char* bname, int aform, int bdisp);
+  static void addi(u32 in, std::string_view ext);
+  static size_t branch(u32 in, std::string_view bname, int aform, int bdisp);
   static void bc(u32 in);
   static void bli(u32 in);
   static void mcrf(u32 in, char c);
-  static void crop(u32 in, const char* n1, const char* n2);
-  static void nooper(u32 in, const char* name, unsigned char dmode);
-  static void rlw(u32 in, const char* name, int i);
-  static void ori(u32 in, const char* name);
-  static void rld(u32 in, const char* name, int i);
+  static void crop(u32 in, std::string_view n1, std::string_view n2);
+  static void nooper(u32 in, std::string_view name, unsigned char dmode);
+  static void rlw(u32 in, std::string_view name, int i);
+  static void ori(u32 in, std::string_view name);
+  static void rld(u32 in, std::string_view name, int i);
   static void cmp(u32 in);
   static void trap(u32 in, unsigned char dmode);
-  static void dab(u32 in, const char* name, int mask, int smode, int chkoe, int chkrc,
+  static void dab(u32 in, std::string_view name, int mask, int smode, int chkoe, int chkrc,
                   unsigned char dmode);
-  static void rrn(u32 in, const char* name, int smode, int chkoe, int chkrc, unsigned char dmode);
+  static void rrn(u32 in, std::string_view name, int smode, int chkoe, int chkrc,
+                  unsigned char dmode);
   static void mtcr(u32 in);
   static void msr(u32 in, int smode);
   static void mspr(u32 in, int smode);
   static void mtb(u32 in);
   static void sradi(u32 in);
-  static void ldst(u32 in, const char* name, char reg, unsigned char dmode);
-  static void fdabc(u32 in, const char* name, int mask, unsigned char dmode);
+  static void ldst(u32 in, std::string_view name, char reg, unsigned char dmode);
+  static void fdabc(u32 in, std::string_view name, int mask, unsigned char dmode);
   static void fmr(u32 in);
-  static void fdab(u32 in, const char* name, int mask);
+  static void fdab(u32 in, std::string_view name, int mask);
   static void fcmp(u32 in, char c);
   static void mtfsb(u32 in, int n);
   static void ps(u32 inst);
