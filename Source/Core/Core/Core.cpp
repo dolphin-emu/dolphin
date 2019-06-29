@@ -431,6 +431,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   Common::ScopeGuard movie_guard{Movie::Shutdown};
 
   HW::Init();
+
   Common::ScopeGuard hw_guard{[] {
     // We must set up this flag before executing HW::Shutdown()
     s_hardware_initialized = false;
@@ -767,6 +768,48 @@ void RunAsCPUThread(std::function<void()> function)
 
   if (!is_cpu_thread)
     PauseAndLock(false, was_unpaused);
+}
+
+void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
+{
+  // If the CPU thread is not running, assume there is no active CPU thread we can race against.
+  if (!IsRunning() || IsCPUThread())
+  {
+    function();
+    return;
+  }
+
+  // Pause the CPU (set it to stepping mode).
+  const bool was_running = PauseAndLock(true, true);
+
+  // We create per-call events so that multiple threads can call this function concurrently.
+  std::unique_ptr<Common::Event> wait_event;
+
+  // Queue the job function.
+  if (wait_for_completion)
+  {
+    // Trigger the event after executing the function.
+    wait_event = std::make_unique<Common::Event>();
+    CPU::AddCPUThreadJob([&wait_event, &function]() {
+      function();
+      wait_event->Set();
+    });
+  }
+  else
+  {
+    CPU::AddCPUThreadJob(std::move(function));
+  }
+
+  // Release the CPU thread, and let it execute the callback.
+  PauseAndLock(false, was_running);
+
+  // If we're waiting for completion, block until the event fires.
+  if (wait_for_completion)
+  {
+    // Periodically yield to the UI thread, so we don't deadlock.
+    while (!wait_event->WaitFor(std::chrono::milliseconds(10)))
+      Host_YieldToUI();
+  }
 }
 
 // Display FPS info

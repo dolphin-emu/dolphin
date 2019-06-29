@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+#include <functional>
 
 namespace Common
 {
@@ -74,4 +75,8 @@ const State* GetStatePtr();
 // "control_adjacent" causes PauseAndLock to behave like EnableStepping by modifying the
 //   state of the Audio and FIFO subsystems as well.
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true, bool control_adjacent = false);
+
+// Adds a job to be executed during on the CPU thread. This should be combined with PauseAndLock(),
+// as while the CPU is in the run loop, it won't execute the function.
+void AddCPUThreadJob(std::function<void()> function);
 }  // namespace CPU
