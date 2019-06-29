@@ -10,6 +10,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -73,6 +74,9 @@ void VideoCommon_DoState(PointerWrap& p)
 
   BoundingBox::DoState(p);
   p.DoMarker("BoundingBox");
+
+  g_framebuffer_manager->DoState(p);
+  p.DoMarker("FramebufferManager");
 
   g_texture_cache->DoState(p);
   p.DoMarker("TextureCache");
