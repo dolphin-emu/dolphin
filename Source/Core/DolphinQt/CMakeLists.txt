@@ -202,6 +202,8 @@ add_executable(dolphin-emu
   QtUtils/DoubleClickEventFilter.h
   QtUtils/ElidedButton.cpp
   QtUtils/ElidedButton.h
+  QtUtils/FileOpenEventFilter.cpp
+  QtUtils/FileOpenEventFilter.h
   QtUtils/FlowLayout.cpp
   QtUtils/FlowLayout.h
   QtUtils/ModalMessageBox.cpp
