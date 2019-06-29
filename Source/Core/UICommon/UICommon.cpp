@@ -367,16 +367,15 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-#if defined(HAVE_XRANDR) && HAVE_X11
-void EnableScreenSaver(Window win, bool enable)
-#else
+#if !defined(HAVE_XRANDR) || !HAVE_XRANDR
 void EnableScreenSaver(bool enable)
-#endif
+{
+#else
+void EnableScreenSaver(Window win, bool enable)
 {
   // Inhibit the screensaver. Depending on the operating system this may also
   // disable low-power states and/or screen dimming.
 
-#if defined(HAVE_X11) && HAVE_X11
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
   {
     X11Utils::InhibitScreensaver(win, !enable);
