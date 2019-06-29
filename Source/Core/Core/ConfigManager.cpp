@@ -745,7 +745,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     HLE::Reload();
     PatchEngine::Reload();
     HiresTexture::Update();
-    DolphinAnalytics::Instance()->ReportGameStart();
+    DolphinAnalytics::Instance().ReportGameStart();
   }
 }
 

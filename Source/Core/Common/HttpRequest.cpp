@@ -221,8 +221,8 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
   if (response_code != 200)
   {
-    ERROR_LOG(COMMON, "Failed to %s %s: server replied with code %li and body\n\x1b[0m%s", type,
-              url.c_str(), response_code, buffer.data());
+    ERROR_LOG(COMMON, "Failed to %s %s: server replied with code %li and body\n\x1b[0m%.*s", type,
+              url.c_str(), response_code, static_cast<int>(buffer.size()), buffer.data());
     return {};
   }
 

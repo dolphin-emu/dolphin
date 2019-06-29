@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
   int retval;
 
   {
-    DolphinAnalytics::Instance()->ReportDolphinStart("qt");
+    DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
     MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     if (options.is_set("debugger"))
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
       SConfig::GetInstance().m_analytics_permission_asked = true;
       Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
-      DolphinAnalytics::Instance()->ReloadConfig();
+      DolphinAnalytics::Instance().ReloadConfig();
     }
 #endif
 
