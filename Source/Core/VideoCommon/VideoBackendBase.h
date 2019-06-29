@@ -63,18 +63,17 @@ public:
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfo();
 
-  // the implementation needs not do synchronization logic, because calls to it are surrounded by
-  // PauseAndLock now
+  // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);
 
-  void CheckInvalidState();
+  // Function which handles the real state load/save logic.
+  void DoStateGPUThread(PointerWrap& p);
 
 protected:
   void InitializeShared();
   void ShutdownShared();
 
   bool m_initialized = false;
-  bool m_invalid = false;
 };
 
 extern std::vector<std::unique_ptr<VideoBackendBase>> g_available_video_backends;

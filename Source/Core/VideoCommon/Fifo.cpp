@@ -299,14 +299,15 @@ void RunGpuLoop()
       [] {
         const SConfig& param = SConfig::GetInstance();
 
+        // Run events from the CPU thread.
+        AsyncRequests::GetInstance()->PullEvents();
+
         // Do nothing while paused
         if (!s_emu_running_state.IsSet())
           return;
 
         if (s_use_deterministic_gpu_thread)
         {
-          AsyncRequests::GetInstance()->PullEvents();
-
           // All the fifo/CP stuff is on the CPU.  We just need to run the opcode decoder.
           u8* seen_ptr = s_video_buffer_seen_ptr;
           u8* write_ptr = s_video_buffer_write_ptr;
@@ -321,9 +322,6 @@ void RunGpuLoop()
         else
         {
           CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
-
-          AsyncRequests::GetInstance()->PullEvents();
-
           CommandProcessor::SetCPStatusFromGPU();
 
           // check if we are able to run this buffer

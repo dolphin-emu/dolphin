@@ -154,6 +154,10 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::PERF_QUERY:
     g_perf_query->FlushResults();
     break;
+
+  case Event::DO_SAVE_STATE:
+    g_video_backend->DoStateGPUThread(*e.do_save_state.p);
+    break;
   }
 }
 
