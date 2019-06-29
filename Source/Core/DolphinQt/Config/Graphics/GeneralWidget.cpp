@@ -97,13 +97,13 @@ void GeneralWidget::CreateWidgets()
   m_options_box->setLayout(m_options_layout);
 
   m_options_layout->addWidget(m_show_fps, 0, 0);
-  m_options_layout->addWidget(m_show_ping, 0, 1);
+  m_options_layout->addWidget(m_log_render_time, 0, 1);
 
-  m_options_layout->addWidget(m_log_render_time, 1, 0);
+  m_options_layout->addWidget(m_render_main_window, 1, 0);
   m_options_layout->addWidget(m_autoadjust_window_size, 1, 1);
 
   m_options_layout->addWidget(m_show_messages, 2, 0);
-  m_options_layout->addWidget(m_render_main_window, 2, 1);
+  m_options_layout->addWidget(m_show_ping, 2, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
