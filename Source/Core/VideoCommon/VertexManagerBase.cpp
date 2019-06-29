@@ -384,15 +384,15 @@ void VertexManagerBase::Flush()
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
   if (!SConfig::GetInstance().bWii)
   {
-    float* rawProjection = xfmem.projection.rawProjection;
-    bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
-    if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+    const auto& raw_projection = xfmem.projection.rawProjection;
+    const bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
+    if (AspectIs16_9(raw_projection[2], raw_projection[0]) && viewport_is_4_3)
     {
       // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic
       // widescreen picture.
       m_flush_count_anamorphic++;
     }
-    else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+    else if (AspectIs4_3(raw_projection[2], raw_projection[0]) && viewport_is_4_3)
     {
       // Projection and viewports are both 4:3, we are rendering a normal image.
       m_flush_count_4_3++;

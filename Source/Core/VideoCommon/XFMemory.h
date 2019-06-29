@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
@@ -245,7 +247,9 @@ struct Viewport
 
 struct Projection
 {
-  float rawProjection[6];
+  using Raw = std::array<float, 6>;
+
+  Raw rawProjection;
   u32 type;  // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
 };
 
