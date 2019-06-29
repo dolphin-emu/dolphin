@@ -63,7 +63,7 @@ static AfterLoadCallbackFunc s_on_after_load_callback;
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
-static int g_loadDepth = 0;
+static bool s_load_or_save_in_progress;
 
 static std::mutex g_cs_undo_load_buffer;
 static std::mutex g_cs_current_buffer;
@@ -385,6 +385,11 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 void SaveAs(const std::string& filename, bool wait)
 {
+  if (s_load_or_save_in_progress)
+    return;
+
+  s_load_or_save_in_progress = true;
+
   Core::RunOnCPUThread(
       [&] {
         // Measure the size of the buffer.
@@ -423,6 +428,8 @@ void SaveAs(const std::string& filename, bool wait)
         }
       },
       true);
+
+  s_load_or_save_in_progress = false;
 }
 
 bool ReadHeader(const std::string& filename, StateHeader& header)
@@ -521,7 +528,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 void LoadAs(const std::string& filename)
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning() || s_load_or_save_in_progress)
   {
     return;
   }
@@ -531,10 +538,10 @@ void LoadAs(const std::string& filename)
     return;
   }
 
+  s_load_or_save_in_progress = true;
+
   Core::RunOnCPUThread(
       [&] {
-        g_loadDepth++;
-
         // Save temp buffer for undo load state
         if (!Movie::IsJustStartingRecordingInputFromSaveState())
         {
@@ -580,17 +587,16 @@ void LoadAs(const std::string& filename)
             Core::DisplayMessage("The savestate could not be loaded", OSD::Duration::NORMAL);
 
             // since we could be in an inconsistent state now (and might crash or whatever), undo.
-            if (g_loadDepth < 2)
-              UndoLoadState();
+            UndoLoadState();
           }
         }
 
         if (s_on_after_load_callback)
           s_on_after_load_callback();
-
-        g_loadDepth--;
       },
       true);
+
+  s_load_or_save_in_progress = false;
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
