@@ -170,6 +170,11 @@ static void DoState(PointerWrap& p)
     return;
   }
 
+  // Movie must be done before the video backend, because the window is redrawn in the video backend
+  // state load, and the frame number must be up-to-date.
+  Movie::DoState(p);
+  p.DoMarker("Movie");
+
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
   g_video_backend->DoState(p);
@@ -186,8 +191,6 @@ static void DoState(PointerWrap& p)
   if (SConfig::GetInstance().bWii)
     Wiimote::DoState(p);
   p.DoMarker("Wiimote");
-  Movie::DoState(p);
-  p.DoMarker("Movie");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
 
