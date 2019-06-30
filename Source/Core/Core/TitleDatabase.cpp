@@ -73,6 +73,7 @@ TitleDatabase::TitleDatabase()
   AddLazyMap(DiscIO::Language::SimplifiedChinese, "zh_CN");
   AddLazyMap(DiscIO::Language::TraditionalChinese, "zh_TW");
   AddLazyMap(DiscIO::Language::Korean, "ko");
+  m_title_maps[DiscIO::Language::Unknown] = [] { return Map(); };
 
   // Titles that aren't part of the Wii TDB, but common enough to justify having entries for them.
 
