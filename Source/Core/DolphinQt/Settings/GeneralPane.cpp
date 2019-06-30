@@ -84,6 +84,7 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
+  m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
 #endif
@@ -96,6 +97,8 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
+          &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -137,6 +140,9 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
   basic_group_layout->addWidget(m_checkbox_cheats);
+
+  m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
+  basic_group_layout->addWidget(m_checkbox_override_region_settings);
 
   m_checkbox_auto_disc_change = new QCheckBox(tr("Change Discs Automatically"));
   basic_group_layout->addWidget(m_checkbox_auto_disc_change);
@@ -243,6 +249,7 @@ void GeneralPane::LoadConfig()
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
+  m_checkbox_override_region_settings->setChecked(SConfig::GetInstance().bOverrideRegionSettings);
   m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
@@ -305,6 +312,9 @@ void GeneralPane::OnSaveConfig()
   settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
+  settings.bOverrideRegionSettings = m_checkbox_override_region_settings->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
+                           m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;

@@ -26,7 +26,7 @@ struct NetSettings
   PowerPC::CPUCore m_CPUcore;
   bool m_EnableCheats;
   int m_SelectedLanguage;
-  bool m_OverrideGCLanguage;
+  bool m_OverrideRegionSettings;
   bool m_ProgressiveScan;
   bool m_PAL60;
   bool m_DSPHLE;

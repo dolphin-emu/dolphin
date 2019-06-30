@@ -356,7 +356,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
     StartUp.cpu_core = netplay_settings.m_CPUcore;
     StartUp.SelectedLanguage = netplay_settings.m_SelectedLanguage;
-    StartUp.bOverrideGCLanguage = netplay_settings.m_OverrideGCLanguage;
+    StartUp.bOverrideRegionSettings = netplay_settings.m_OverrideRegionSettings;
     StartUp.m_DSPEnableJIT = netplay_settings.m_DSPEnableJIT;
     StartUp.m_OCEnable = netplay_settings.m_OCEnable;
     StartUp.m_OCFactor = netplay_settings.m_OCFactor;
@@ -387,19 +387,24 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     g_SRAM_netplay_initialized = false;
   }
 
-  const bool ntsc = DiscIO::IsNTSC(StartUp.m_region);
-
-  // Apply overrides
-  // Some NTSC GameCube games such as Baten Kaitos react strangely to
-  // language settings that would be invalid on an NTSC system
-  if (!StartUp.bOverrideGCLanguage && ntsc)
+  // Override out-of-region languages to prevent games from crashing or behaving oddly
+  if (!StartUp.bOverrideRegionSettings)
   {
-    StartUp.SelectedLanguage = 0;
+    const int gc_language =
+        static_cast<int>(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region));
+    StartUp.SelectedLanguage = gc_language - (gc_language > 0);
+
+    if (StartUp.bWii)
+    {
+      const u32 wii_language =
+          static_cast<u32>(StartUp.GetLanguageAdjustedForRegion(true, StartUp.m_region));
+      Config::SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
+    }
   }
 
   // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
   // 1942 (Virtual Console) crash if the PAL60 option is enabled
-  if (StartUp.bWii && ntsc)
+  if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
   // Ensure any new settings are written to the SYSCONF

@@ -1279,7 +1279,7 @@ bool NetPlayServer::StartGame()
   spac << static_cast<std::underlying_type_t<PowerPC::CPUCore>>(m_settings.m_CPUcore);
   spac << m_settings.m_EnableCheats;
   spac << m_settings.m_SelectedLanguage;
-  spac << m_settings.m_OverrideGCLanguage;
+  spac << m_settings.m_OverrideRegionSettings;
   spac << m_settings.m_ProgressiveScan;
   spac << m_settings.m_PAL60;
   spac << m_settings.m_DSPEnableJIT;

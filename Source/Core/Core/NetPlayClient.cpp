@@ -624,7 +624,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       packet >> m_net_settings.m_EnableCheats;
       packet >> m_net_settings.m_SelectedLanguage;
-      packet >> m_net_settings.m_OverrideGCLanguage;
+      packet >> m_net_settings.m_OverrideRegionSettings;
       packet >> m_net_settings.m_ProgressiveScan;
       packet >> m_net_settings.m_PAL60;
       packet >> m_net_settings.m_DSPEnableJIT;

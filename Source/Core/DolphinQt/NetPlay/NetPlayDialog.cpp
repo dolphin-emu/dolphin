@@ -443,7 +443,7 @@ void NetPlayDialog::OnStart()
   settings.m_CPUcore = Config::Get(Config::MAIN_CPU_CORE);
   settings.m_EnableCheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
   settings.m_SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
-  settings.m_OverrideGCLanguage = Config::Get(Config::MAIN_OVERRIDE_GC_LANGUAGE);
+  settings.m_OverrideRegionSettings = Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS);
   settings.m_ProgressiveScan = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
   settings.m_PAL60 = Config::Get(Config::SYSCONF_PAL60);
   settings.m_DSPHLE = Config::Get(Config::MAIN_DSP_HLE);

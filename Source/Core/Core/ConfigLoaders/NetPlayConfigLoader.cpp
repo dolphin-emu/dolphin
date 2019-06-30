@@ -29,7 +29,7 @@ public:
     layer->Set(Config::MAIN_CPU_THREAD, m_settings.m_CPUthread);
     layer->Set(Config::MAIN_CPU_CORE, m_settings.m_CPUcore);
     layer->Set(Config::MAIN_GC_LANGUAGE, m_settings.m_SelectedLanguage);
-    layer->Set(Config::MAIN_OVERRIDE_GC_LANGUAGE, m_settings.m_OverrideGCLanguage);
+    layer->Set(Config::MAIN_OVERRIDE_REGION_SETTINGS, m_settings.m_OverrideRegionSettings);
     layer->Set(Config::MAIN_DSP_HLE, m_settings.m_DSPHLE);
     layer->Set(Config::MAIN_OVERCLOCK_ENABLE, m_settings.m_OCEnable);
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
