@@ -18,6 +18,7 @@ namespace Config
 
 extern const ConfigInfo<bool> SYSCONF_SCREENSAVER;
 extern const ConfigInfo<u32> SYSCONF_LANGUAGE;
+extern const ConfigInfo<u32> SYSCONF_COUNTRY;
 extern const ConfigInfo<bool> SYSCONF_WIDESCREEN;
 extern const ConfigInfo<bool> SYSCONF_PROGRESSIVE_SCAN;
 extern const ConfigInfo<bool> SYSCONF_PAL60;
@@ -35,6 +36,6 @@ struct SYSCONFSetting
   SysConf::Entry::Type type;
 };
 
-extern const std::array<SYSCONFSetting, 9> SYSCONF_SETTINGS;
+extern const std::array<SYSCONFSetting, 10> SYSCONF_SETTINGS;
 
 }  // namespace Config

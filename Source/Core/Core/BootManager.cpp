@@ -387,7 +387,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     g_SRAM_netplay_initialized = false;
   }
 
-  // Override out-of-region languages to prevent games from crashing or behaving oddly
+  // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
   if (!StartUp.bOverrideRegionSettings)
   {
     const int gc_language =
@@ -399,6 +399,26 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       const u32 wii_language =
           static_cast<u32>(StartUp.GetLanguageAdjustedForRegion(true, StartUp.m_region));
       Config::SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
+
+      const u8 country_code = static_cast<u8>(Config::Get(Config::SYSCONF_COUNTRY));
+      if (StartUp.m_region != DiscIO::SysConfCountryToRegion(country_code))
+      {
+        switch (StartUp.m_region)
+        {
+        case DiscIO::Region::NTSC_J:
+          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x01);  // Japan
+          break;
+        case DiscIO::Region::NTSC_U:
+          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x31);  // United States
+          break;
+        case DiscIO::Region::PAL:
+          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x6c);  // Switzerland
+          break;
+        case DiscIO::Region::NTSC_K:
+          Config::SetCurrent(Config::SYSCONF_COUNTRY, 0x88);  // South Korea
+          break;
+        }
+      }
     }
   }
 
