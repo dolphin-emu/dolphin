@@ -26,7 +26,7 @@ extern "C" {
 #include "Core/HW/VideoInterface.h"  //for TargetRefreshRate
 #include "Core/Movie.h"
 
-#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -78,7 +78,7 @@ static bool AVStreamCopyContext(AVStream* stream, AVCodecContext* codec_context)
 #endif
 }
 
-bool AVIDump::Start(int w, int h)
+bool FrameDump::Start(int w, int h)
 {
   s_pix_fmt = AV_PIX_FMT_RGBA;
 
@@ -93,7 +93,7 @@ bool AVIDump::Start(int w, int h)
   if (!success)
   {
     CloseVideoFile();
-    OSD::AddMessage("AVIDump Start failed");
+    OSD::AddMessage("FrameDump Start failed");
   }
   return success;
 }
@@ -124,7 +124,7 @@ static std::string GetDumpPath(const std::string& format)
   return dump_path;
 }
 
-bool AVIDump::CreateVideoFile()
+bool FrameDump::CreateVideoFile()
 {
   const std::string& format = g_Config.sDumpFormat;
 
@@ -180,7 +180,7 @@ bool AVIDump::CreateVideoFile()
     return false;
   }
 
-  // Force XVID FourCC for better compatibility
+  // Force XVID FourCC for better compatibility when using H.263
   if (codec->id == AV_CODEC_ID_MPEG4)
     s_codec_context->codec_tag = MKTAG('X', 'V', 'I', 'D');
 
@@ -295,7 +295,7 @@ static void WritePacket(AVPacket& pkt)
   av_interleaved_write_frame(s_format_context, &pkt);
 }
 
-void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
+void FrameDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
   // Assume that the timing is valid, if the savestate id of the new frame
   // doesn't match the last one.
@@ -386,7 +386,7 @@ static void HandleDelayedPackets()
   }
 }
 
-void AVIDump::Stop()
+void FrameDump::Stop()
 {
   HandleDelayedPackets();
   av_write_trailer(s_format_context);
@@ -396,7 +396,7 @@ void AVIDump::Stop()
   OSD::AddMessage("Stopped dumping frames");
 }
 
-void AVIDump::CloseVideoFile()
+void FrameDump::CloseVideoFile()
 {
   av_frame_free(&s_src_frame);
   av_frame_free(&s_scaled_frame);
@@ -417,12 +417,12 @@ void AVIDump::CloseVideoFile()
   }
 }
 
-void AVIDump::DoState()
+void FrameDump::DoState()
 {
   s_savestate_index++;
 }
 
-void AVIDump::CheckResolution(int width, int height)
+void FrameDump::CheckResolution(int width, int height)
 {
   // We check here to see if the requested width and height have changed since the last frame which
   // was dumped, then create a new file accordingly. However, is it possible for the height
@@ -438,7 +438,7 @@ void AVIDump::CheckResolution(int width, int height)
   }
 }
 
-AVIDump::Frame AVIDump::FetchState(u64 ticks)
+FrameDump::Frame FrameDump::FetchState(u64 ticks)
 {
   Frame state;
   state.ticks = ticks;

@@ -6,7 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-class AVIDump
+class FrameDump
 {
 private:
   static bool CreateVideoFile();
