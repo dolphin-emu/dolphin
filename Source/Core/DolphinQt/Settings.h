@@ -87,6 +87,8 @@ public:
   bool IsBatchModeEnabled() const;
   void SetBatchModeEnabled(bool batch);
 
+  bool IsSDCardInserted() const;
+  void SetSDCardInserted(bool inserted);
   bool IsUSBKeyboardConnected() const;
   void SetUSBKeyboardConnected(bool connected);
 
@@ -172,6 +174,7 @@ signals:
   void AutoUpdateTrackChanged(const QString& mode);
   void AnalyticsToggled(bool enabled);
   void DevicesChanged();
+  void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);
 
 private:

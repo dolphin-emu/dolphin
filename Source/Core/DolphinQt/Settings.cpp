@@ -18,6 +18,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
@@ -532,6 +533,24 @@ bool Settings::IsBatchModeEnabled() const
 void Settings::SetBatchModeEnabled(bool batch)
 {
   m_batch = batch;
+}
+
+bool Settings::IsSDCardInserted() const
+{
+  return SConfig::GetInstance().m_WiiSDCard;
+}
+
+void Settings::SetSDCardInserted(bool inserted)
+{
+  if (IsSDCardInserted() != inserted)
+  {
+    SConfig::GetInstance().m_WiiSDCard = inserted;
+    emit SDCardInsertionChanged(inserted);
+
+    auto* ios = IOS::HLE::GetIOS();
+    if (ios)
+      ios->SDIO_EventNotify();
+  }
 }
 
 bool Settings::IsUSBKeyboardConnected() const

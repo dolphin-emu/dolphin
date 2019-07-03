@@ -248,6 +248,9 @@ void HotkeyScheduler::Run()
         if (wiimote_id > -1)
           emit ConnectWiiRemote(wiimote_id);
 
+        if (IsHotkey(HK_TOGGLE_SD_CARD))
+          Settings::Instance().SetSDCardInserted(!Settings::Instance().IsSDCardInserted());
+
         if (IsHotkey(HK_TOGGLE_USB_KEYBOARD))
         {
           Settings::Instance().SetUSBKeyboardConnected(
