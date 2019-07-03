@@ -13,7 +13,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <vector>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -43,7 +43,7 @@ void Shutdown();
 void DeclareAsCPUThread();
 void UndeclareAsCPUThread();
 
-std::string StopMessage(bool, const std::string&);
+std::string StopMessage(bool main_thread, std::string_view message);
 
 bool IsRunning();
 bool IsRunningAndStarted();       // is running and the CPU loop has been entered
@@ -58,7 +58,7 @@ void SetState(State state);
 State GetState();
 
 void SaveScreenShot(bool wait_for_completion = false);
-void SaveScreenShot(const std::string& name, bool wait_for_completion = false);
+void SaveScreenShot(std::string_view name, bool wait_for_completion = false);
 
 void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data, u32 size);
 

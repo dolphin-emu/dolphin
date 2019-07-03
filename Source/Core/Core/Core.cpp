@@ -12,6 +12,8 @@
 #include <utility>
 #include <variant>
 
+#include <fmt/format.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -23,11 +25,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
-#include "Common/Logging/LogManager.h"
+#include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -142,10 +143,10 @@ void OnFrameEnd()
 // Display messages and return values
 
 // Formatted stop message
-std::string StopMessage(bool main_thread, const std::string& message)
+std::string StopMessage(bool main_thread, std::string_view message)
 {
-  return StringFromFormat("Stop [%s %i]\t%s", main_thread ? "Main Thread" : "Video Thread",
-                          Common::CurrentThreadId(), message.c_str());
+  return fmt::format("Stop [{} {}]\t{}", main_thread ? "Main Thread" : "Video Thread",
+                     Common::CurrentThreadId(), message);
 }
 
 void DisplayMessage(const std::string& message, int time_in_ms)
@@ -679,7 +680,7 @@ static std::string GenerateScreenshotName()
   path += SConfig::GetInstance().GetGameID();
 
   std::string name;
-  for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
+  for (int i = 1; File::Exists(name = fmt::format("{}-{}.png", path, i)); ++i)
   {
     // TODO?
   }
@@ -699,15 +700,14 @@ void SaveScreenShot(bool wait_for_completion)
     SetState(State::Running);
 }
 
-void SaveScreenShot(const std::string& name, bool wait_for_completion)
+void SaveScreenShot(std::string_view name, bool wait_for_completion)
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
-
-  g_renderer->SaveScreenshot(filePath, wait_for_completion);
+  const std::string path = fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name);
+  g_renderer->SaveScreenshot(path, wait_for_completion);
 
   if (!bPaused)
     SetState(State::Running);
@@ -824,23 +824,25 @@ void UpdateTitle()
                         (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
   // Settings are shown the same for both extended and summary info
-  std::string SSettings = StringFromFormat(
-      "%s %s | %s | %s", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
-      g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
+  const std::string SSettings =
+      fmt::format("{} {} | {} | {}", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
+                  g_video_backend->GetDisplayName(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
   std::string SFPS;
-
   if (Movie::IsPlayingInput())
-    SFPS = StringFromFormat("Input: %u/%u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetTotalInputCount(),
-                            (u32)Movie::GetCurrentFrame(), FPS, VPS, Speed);
+  {
+    SFPS = fmt::format("Input: {}/{} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
+                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount(),
+                       Movie::GetCurrentFrame(), FPS, VPS, Speed);
+  }
   else if (Movie::IsRecordingInput())
-    SFPS = StringFromFormat("Input: %u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetCurrentFrame(), FPS,
-                            VPS, Speed);
+  {
+    SFPS = fmt::format("Input: {} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
+                       Movie::GetCurrentInputCount(), Movie::GetCurrentFrame(), FPS, VPS, Speed);
+  }
   else
   {
-    SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
+    SFPS = fmt::format("FPS: {:.0f} - VPS: {:.0f} - {:.0f}%", FPS, VPS, Speed);
     if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
     {
       // Use extended or summary information. The summary information does not print the ticks data,
@@ -860,14 +862,13 @@ void UpdateTitle()
       float TicksPercentage =
           (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
-      SFPS += StringFromFormat(" | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
-                               (int)(diff), (int)(diff - idleDiff), (int)(idleDiff),
-                               SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
+      SFPS += fmt::format(" | CPU: ~{} MHz [Real: {} + IdleSkip: {}] / {} MHz (~{:3.0f}%)", diff,
+                          diff - idleDiff, idleDiff, SystemTimers::GetTicksPerSecond() / 1000000,
+                          TicksPercentage);
     }
   }
 
-  std::string message = StringFromFormat("%s | %s | %s", Common::scm_rev_str.c_str(),
-                                         SSettings.c_str(), SFPS.c_str());
+  std::string message = fmt::format("{} | {} | {}", Common::scm_rev_str, SSettings, SFPS);
   if (SConfig::GetInstance().m_show_active_title)
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
