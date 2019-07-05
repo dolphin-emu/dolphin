@@ -71,6 +71,8 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
+
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void ControllersWindow::CreateGamecubeLayout()
