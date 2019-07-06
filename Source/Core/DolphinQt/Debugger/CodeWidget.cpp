@@ -64,8 +64,6 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
       settings.value(QStringLiteral("codewidget/codesplitter")).toByteArray());
   m_box_splitter->restoreState(
       settings.value(QStringLiteral("codewidget/boxsplitter")).toByteArray());
-
-  Update();
 }
 
 CodeWidget::~CodeWidget()
@@ -81,6 +79,11 @@ CodeWidget::~CodeWidget()
 void CodeWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetCodeVisible(false);
+}
+
+void CodeWidget::showEvent(QShowEvent* event)
+{
+  Update();
 }
 
 void CodeWidget::CreateWidgets()
@@ -265,6 +268,9 @@ void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update
 
 void CodeWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
 
   UpdateCallstack();

@@ -13,6 +13,7 @@
 class QKeyEvent;
 class QMouseEvent;
 class QResizeEvent;
+class QShowEvent;
 
 class CodeViewWidget : public QTableWidget
 {
@@ -56,6 +57,7 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
   void OnContextMenu();
 

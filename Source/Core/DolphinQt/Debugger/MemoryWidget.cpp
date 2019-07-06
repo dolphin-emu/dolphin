@@ -57,7 +57,6 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   LoadSettings();
 
   ConnectWidgets();
-  Update();
   OnAddressSpaceChanged();
   OnTypeChanged();
 }
@@ -258,8 +257,16 @@ void MemoryWidget::closeEvent(QCloseEvent*)
   Settings::Instance().SetMemoryVisible(false);
 }
 
+void MemoryWidget::showEvent(QShowEvent* event)
+{
+  Update();
+}
+
 void MemoryWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   m_memory_view->Update();
   update();
 }
