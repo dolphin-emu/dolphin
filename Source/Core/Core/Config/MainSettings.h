@@ -76,7 +76,6 @@ extern const ConfigInfo<std::string> MAIN_GPU_DETERMINISM_MODE;
 extern const ConfigInfo<std::string> MAIN_PERF_MAP_DIR;
 extern const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE;
-extern const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE;
 extern const ConfigInfo<bool> MAIN_AUTO_DISC_CHANGE;
 
 // Main.DSP

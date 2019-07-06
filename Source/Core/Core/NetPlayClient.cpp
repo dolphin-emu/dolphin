@@ -640,7 +640,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_CopyWiiSave;
       packet >> m_net_settings.m_OCEnable;
       packet >> m_net_settings.m_OCFactor;
-      packet >> m_net_settings.m_ReducePollingRate;
 
       for (auto& device : m_net_settings.m_EXIDevice)
       {

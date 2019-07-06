@@ -1288,7 +1288,6 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_CopyWiiSave;
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
-  spac << m_settings.m_ReducePollingRate;
 
   for (auto& device : m_settings.m_EXIDevice)
     spac << device;
