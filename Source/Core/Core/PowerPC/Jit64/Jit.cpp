@@ -706,7 +706,7 @@ void Jit64::Trace()
 #ifdef JIT_LOG_FPR
   for (int i = 0; i < 32; i++)
   {
-    fregs += StringFromFormat("f%02d: %016x ", i, riPS0(i));
+    fregs += StringFromFormat("f%02d: %016x ", i, rPS(i).PS0AsU64());
   }
 #endif
 
