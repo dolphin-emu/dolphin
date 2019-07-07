@@ -43,12 +43,7 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
-    if (!Settings::Instance().IsDebugModeEnabled())
-      return;
-
-    m_load->setEnabled(Core::IsRunning());
-    m_save->setEnabled(Core::IsRunning());
-
+    UpdateButtonsEnabled();
     if (state != Core::State::Starting)
       Update();
   });
@@ -61,8 +56,6 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);
   UpdateIcons();
-
-  Update();
 }
 
 WatchWidget::~WatchWidget()
@@ -117,8 +110,20 @@ void WatchWidget::UpdateIcons()
   m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
 }
 
+void WatchWidget::UpdateButtonsEnabled()
+{
+  if (!isVisible())
+    return;
+
+  m_load->setEnabled(Core::IsRunning());
+  m_save->setEnabled(Core::IsRunning());
+}
+
 void WatchWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   m_updating = true;
 
   m_table->clear();
@@ -198,6 +203,12 @@ void WatchWidget::Update()
 void WatchWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetWatchVisible(false);
+}
+
+void WatchWidget::showEvent(QShowEvent* event)
+{
+  UpdateButtonsEnabled();
+  Update();
 }
 
 void WatchWidget::OnLoad()

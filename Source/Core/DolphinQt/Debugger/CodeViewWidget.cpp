@@ -92,6 +92,9 @@ void CodeViewWidget::FontBasedSizing()
 
 void CodeViewWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   if (m_updating)
     return;
 
@@ -566,6 +569,11 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
   default:
     break;
   }
+}
+
+void CodeViewWidget::showEvent(QShowEvent* event)
+{
+  Update();
 }
 
 void CodeViewWidget::ToggleBreakpoint()
