@@ -20,9 +20,9 @@ void DSPPatches::Patch(std::size_t index)
   PanicAlert("Patch functionality not supported in DSP module.");
 }
 
-std::size_t DSPDebugInterface::SetWatch(u32 address, const std::string& name)
+std::size_t DSPDebugInterface::SetWatch(u32 address, std::string name)
 {
-  return m_watches.SetWatch(address, name);
+  return m_watches.SetWatch(address, std::move(name));
 }
 
 const Common::Debug::Watch& DSPDebugInterface::GetWatch(std::size_t index) const
@@ -40,9 +40,9 @@ void DSPDebugInterface::UnsetWatch(u32 address)
   m_watches.UnsetWatch(address);
 }
 
-void DSPDebugInterface::UpdateWatch(std::size_t index, u32 address, const std::string& name)
+void DSPDebugInterface::UpdateWatch(std::size_t index, u32 address, std::string name)
 {
-  return m_watches.UpdateWatch(index, address, name);
+  return m_watches.UpdateWatch(index, address, std::move(name));
 }
 
 void DSPDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
@@ -50,9 +50,9 @@ void DSPDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
   return m_watches.UpdateWatchAddress(index, address);
 }
 
-void DSPDebugInterface::UpdateWatchName(std::size_t index, const std::string& name)
+void DSPDebugInterface::UpdateWatchName(std::size_t index, std::string name)
 {
-  return m_watches.UpdateWatchName(index, name);
+  return m_watches.UpdateWatchName(index, std::move(name));
 }
 
 void DSPDebugInterface::EnableWatch(std::size_t index)
@@ -97,7 +97,7 @@ void DSPDebugInterface::SetPatch(u32 address, u32 value)
 
 void DSPDebugInterface::SetPatch(u32 address, std::vector<u8> value)
 {
-  m_patches.SetPatch(address, value);
+  m_patches.SetPatch(address, std::move(value));
 }
 
 const std::vector<Common::Debug::MemoryPatch>& DSPDebugInterface::GetPatches() const

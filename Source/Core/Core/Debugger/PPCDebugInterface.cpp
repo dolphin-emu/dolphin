@@ -44,9 +44,9 @@ void PPCPatches::Patch(std::size_t index)
   }
 }
 
-std::size_t PPCDebugInterface::SetWatch(u32 address, const std::string& name)
+std::size_t PPCDebugInterface::SetWatch(u32 address, std::string name)
 {
-  return m_watches.SetWatch(address, name);
+  return m_watches.SetWatch(address, std::move(name));
 }
 
 const Common::Debug::Watch& PPCDebugInterface::GetWatch(std::size_t index) const
@@ -64,9 +64,9 @@ void PPCDebugInterface::UnsetWatch(u32 address)
   m_watches.UnsetWatch(address);
 }
 
-void PPCDebugInterface::UpdateWatch(std::size_t index, u32 address, const std::string& name)
+void PPCDebugInterface::UpdateWatch(std::size_t index, u32 address, std::string name)
 {
-  return m_watches.UpdateWatch(index, address, name);
+  return m_watches.UpdateWatch(index, address, std::move(name));
 }
 
 void PPCDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
@@ -74,9 +74,9 @@ void PPCDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
   return m_watches.UpdateWatchAddress(index, address);
 }
 
-void PPCDebugInterface::UpdateWatchName(std::size_t index, const std::string& name)
+void PPCDebugInterface::UpdateWatchName(std::size_t index, std::string name)
 {
-  return m_watches.UpdateWatchName(index, name);
+  return m_watches.UpdateWatchName(index, std::move(name));
 }
 
 void PPCDebugInterface::EnableWatch(std::size_t index)
@@ -121,7 +121,7 @@ void PPCDebugInterface::SetPatch(u32 address, u32 value)
 
 void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
 {
-  m_patches.SetPatch(address, value);
+  m_patches.SetPatch(address, std::move(value));
 }
 
 const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const

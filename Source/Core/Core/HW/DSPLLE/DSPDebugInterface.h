@@ -23,13 +23,13 @@ class DSPDebugInterface final : public Common::DebugInterface
 public:
   DSPDebugInterface() {}
   // Watches
-  std::size_t SetWatch(u32 address, const std::string& name = "") override;
+  std::size_t SetWatch(u32 address, std::string name = "") override;
   const Common::Debug::Watch& GetWatch(std::size_t index) const override;
   const std::vector<Common::Debug::Watch>& GetWatches() const override;
   void UnsetWatch(u32 address) override;
-  void UpdateWatch(std::size_t index, u32 address, const std::string& name) override;
+  void UpdateWatch(std::size_t index, u32 address, std::string name) override;
   void UpdateWatchAddress(std::size_t index, u32 address) override;
-  void UpdateWatchName(std::size_t index, const std::string& name) override;
+  void UpdateWatchName(std::size_t index, std::string name) override;
   void EnableWatch(std::size_t index) override;
   void DisableWatch(std::size_t index) override;
   bool HasEnabledWatch(u32 address) const override;
