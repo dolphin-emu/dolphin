@@ -74,7 +74,7 @@ public:
   virtual void SetPC(u32 /*address*/) {}
   virtual void Step() {}
   virtual void RunToBreakpoint() {}
-  virtual int GetColor(u32 /*address*/) { return 0xFFFFFFFF; }
+  virtual u32 GetColor(u32 /*address*/) { return 0xFFFFFFFF; }
   virtual std::string GetDescription(u32 /*address*/) = 0;
   virtual void Clear() = 0;
 };

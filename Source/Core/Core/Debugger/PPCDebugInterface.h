@@ -77,7 +77,7 @@ public:
   void SetPC(u32 address) override;
   void Step() override {}
   void RunToBreakpoint() override;
-  int GetColor(u32 address) override;
+  u32 GetColor(u32 address) override;
   std::string GetDescription(u32 address) override;
 
   void Clear() override;

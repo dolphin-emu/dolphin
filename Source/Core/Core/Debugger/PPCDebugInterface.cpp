@@ -4,6 +4,7 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
+#include <array>
 #include <cstddef>
 #include <string>
 
@@ -300,13 +301,20 @@ void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-int PPCDebugInterface::GetColor(u32 address)
+u32 PPCDebugInterface::GetColor(u32 address)
 {
   if (!IsAlive())
     return 0xFFFFFF;
   if (!PowerPC::HostIsRAMAddress(address))
     return 0xeeeeee;
-  static const int colors[6] = {
+
+  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
+  if (!symbol)
+    return 0xFFFFFF;
+  if (symbol->type != Common::Symbol::Type::Function)
+    return 0xEEEEFF;
+
+  static constexpr std::array<u32, 6> colors{
       0xd0FFFF,  // light cyan
       0xFFd0d0,  // light red
       0xd8d8FF,  // light blue
@@ -314,12 +322,7 @@ int PPCDebugInterface::GetColor(u32 address)
       0xd0FFd0,  // light green
       0xFFFFd0,  // light yellow
   };
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
-  if (!symbol)
-    return 0xFFFFFF;
-  if (symbol->type != Common::Symbol::Type::Function)
-    return 0xEEEEFF;
-  return colors[symbol->index % 6];
+  return colors[symbol->index % colors.size()];
 }
 // =============
 

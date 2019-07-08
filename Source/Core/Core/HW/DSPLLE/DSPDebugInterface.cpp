@@ -4,6 +4,7 @@
 
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
+#include <array>
 #include <cstddef>
 #include <string>
 
@@ -257,17 +258,8 @@ void DSPDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-int DSPDebugInterface::GetColor(u32 address)
+u32 DSPDebugInterface::GetColor(u32 address)
 {
-  static const int colors[6] = {
-      0xd0FFFF,  // light cyan
-      0xFFd0d0,  // light red
-      0xd8d8FF,  // light blue
-      0xFFd0FF,  // light purple
-      0xd0FFd0,  // light green
-      0xFFFFd0,  // light yellow
-  };
-
   // Scan backwards so we don't miss it. Hm, actually, let's not - it looks pretty good.
   int addr = -1;
   for (int i = 0; i < 1; i++)
@@ -284,7 +276,16 @@ int DSPDebugInterface::GetColor(u32 address)
     return 0xFFFFFF;
   if (symbol->type != Common::Symbol::Type::Function)
     return 0xEEEEFF;
-  return colors[symbol->index % 6];
+
+  static constexpr std::array<u32, 6> colors{
+      0xd0FFFF,  // light cyan
+      0xFFd0d0,  // light red
+      0xd8d8FF,  // light blue
+      0xFFd0FF,  // light purple
+      0xd0FFd0,  // light green
+      0xFFFFd0,  // light yellow
+  };
+  return colors[symbol->index % colors.size()];
 }
 // =============
 
