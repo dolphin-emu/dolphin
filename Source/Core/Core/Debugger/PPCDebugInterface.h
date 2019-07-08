@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <string>
 
+#include "Common/Debug/MemoryPatches.h"
+#include "Common/Debug/Watches.h"
 #include "Common/DebugInterface.h"
 
 class PPCPatches : public Common::Debug::MemoryPatches

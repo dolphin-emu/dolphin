@@ -5,13 +5,16 @@
 #pragma once
 
 #include <cstddef>
-#include <cstring>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Debug/MemoryPatches.h"
-#include "Common/Debug/Watches.h"
+
+namespace Common::Debug
+{
+struct MemoryPatch;
+struct Watch;
+}  // namespace Common::Debug
 
 namespace Common
 {
@@ -23,8 +26,8 @@ protected:
 public:
   // Watches
   virtual std::size_t SetWatch(u32 address, std::string name = "") = 0;
-  virtual const Common::Debug::Watch& GetWatch(std::size_t index) const = 0;
-  virtual const std::vector<Common::Debug::Watch>& GetWatches() const = 0;
+  virtual const Debug::Watch& GetWatch(std::size_t index) const = 0;
+  virtual const std::vector<Debug::Watch>& GetWatches() const = 0;
   virtual void UnsetWatch(u32 address) = 0;
   virtual void UpdateWatch(std::size_t index, u32 address, std::string name) = 0;
   virtual void UpdateWatchAddress(std::size_t index, u32 address) = 0;
@@ -40,7 +43,7 @@ public:
   // Memory Patches
   virtual void SetPatch(u32 address, u32 value) = 0;
   virtual void SetPatch(u32 address, std::vector<u8> value) = 0;
-  virtual const std::vector<Common::Debug::MemoryPatch>& GetPatches() const = 0;
+  virtual const std::vector<Debug::MemoryPatch>& GetPatches() const = 0;
   virtual void UnsetPatch(u32 address) = 0;
   virtual void EnablePatch(std::size_t index) = 0;
   virtual void DisablePatch(std::size_t index) = 0;

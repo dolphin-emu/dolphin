@@ -5,6 +5,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 
 #include <algorithm>
+#include <cstring>
 #include <map>
 #include <string>
 #include <utility>

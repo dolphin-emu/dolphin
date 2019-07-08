@@ -8,6 +8,8 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/Debug/MemoryPatches.h"
+#include "Common/Debug/Watches.h"
 #include "Common/DebugInterface.h"
 
 namespace DSP::LLE
