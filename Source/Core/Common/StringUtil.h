@@ -113,11 +113,11 @@ std::vector<std::string> SplitString(const std::string& str, char delim);
 std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
-bool SplitPath(std::string_view full_path, std::string* _pPath, std::string* _pFilename,
-               std::string* _pExtension);
+bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
+               std::string* extension);
 
-void BuildCompleteFilename(std::string& _CompleteFilename, std::string_view _Path,
-                           std::string_view _Filename);
+void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
+                           std::string_view filename);
 std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest);
 
 bool StringBeginsWith(std::string_view str, std::string_view begin);

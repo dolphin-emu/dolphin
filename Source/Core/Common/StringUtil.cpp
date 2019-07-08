@@ -334,8 +334,8 @@ std::string ValueToString(bool value)
   return value ? "True" : "False";
 }
 
-bool SplitPath(std::string_view full_path, std::string* _pPath, std::string* _pFilename,
-               std::string* _pExtension)
+bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
+               std::string* extension)
 {
   if (full_path.empty())
     return false;
@@ -355,29 +355,29 @@ bool SplitPath(std::string_view full_path, std::string* _pPath, std::string* _pF
   if (fname_end < dir_end || std::string::npos == fname_end)
     fname_end = full_path.size();
 
-  if (_pPath)
-    *_pPath = full_path.substr(0, dir_end);
+  if (path)
+    *path = full_path.substr(0, dir_end);
 
-  if (_pFilename)
-    *_pFilename = full_path.substr(dir_end, fname_end - dir_end);
+  if (filename)
+    *filename = full_path.substr(dir_end, fname_end - dir_end);
 
-  if (_pExtension)
-    *_pExtension = full_path.substr(fname_end);
+  if (extension)
+    *extension = full_path.substr(fname_end);
 
   return true;
 }
 
-void BuildCompleteFilename(std::string& _CompleteFilename, std::string_view _Path,
-                           std::string_view _Filename)
+void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
+                           std::string_view filename)
 {
-  _CompleteFilename = _Path;
+  complete_filename = path;
 
   // check for seperator
-  if (DIR_SEP_CHR != *_CompleteFilename.rbegin())
-    _CompleteFilename += DIR_SEP_CHR;
+  if (DIR_SEP_CHR != *complete_filename.rbegin())
+    complete_filename += DIR_SEP_CHR;
 
   // add the filename
-  _CompleteFilename += _Filename;
+  complete_filename += filename;
 }
 
 std::vector<std::string> SplitString(const std::string& str, const char delim)
