@@ -141,7 +141,7 @@ static std::string GetDeviceRefName(IOHIDDeviceRef inIOHIDDeviceRef)
 {
   const NSString* name = reinterpret_cast<const NSString*>(
       IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
-  return (name != nullptr) ? StripSpaces([name UTF8String]) : "Unknown device";
+  return (name != nullptr) ? std::string(StripSpaces([name UTF8String])) : "Unknown device";
 }
 
 static void DeviceRemovalCallback(void* inContext, IOReturn inResult, void* inSender,

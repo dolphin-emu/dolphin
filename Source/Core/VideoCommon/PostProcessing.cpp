@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
@@ -117,16 +118,15 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
   GLSLStringOption* current_strings = nullptr;
   while (!in.eof())
   {
-    std::string line;
-
-    if (std::getline(in, line))
+    std::string line_str;
+    if (std::getline(in, line_str))
     {
+      std::string_view line = line_str;
+
 #ifndef _WIN32
       // Check for CRLF eol and convert it to LF
       if (!line.empty() && line.at(line.size() - 1) == '\r')
-      {
-        line.erase(line.size() - 1);
-      }
+        line.remove_suffix(1);
 #endif
 
       if (!line.empty())
@@ -138,8 +138,8 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
           if (endpos != std::string::npos)
           {
             // New section!
-            std::string sub = line.substr(1, endpos - 1);
-            option_strings.push_back({sub});
+            std::string_view sub = line.substr(1, endpos - 1);
+            option_strings.push_back({std::string(sub)});
             current_strings = &option_strings.back();
           }
         }

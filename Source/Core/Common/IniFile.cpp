@@ -9,13 +9,14 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
+void IniFile::ParseLine(std::string_view line, std::string* keyOut, std::string* valueOut)
 {
   if (line.empty() || line.front() == '#')
     return;
@@ -96,7 +97,7 @@ bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remo
 {
   for (const std::string& line : m_lines)
   {
-    std::string stripped_line = StripSpaces(line);
+    std::string_view stripped_line = StripSpaces(line);
 
     if (remove_comments)
     {
@@ -112,7 +113,7 @@ bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remo
       }
     }
 
-    lines->push_back(std::move(stripped_line));
+    lines->emplace_back(stripped_line);
   }
 
   return true;
@@ -251,9 +252,8 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
   bool first_line = true;
   while (!in.eof())
   {
-    std::string line;
-
-    if (!std::getline(in, line))
+    std::string line_str;
+    if (!std::getline(in, line_str))
     {
       if (in.eof())
         return true;
@@ -261,17 +261,17 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
         return false;
     }
 
+    std::string_view line = line_str;
+
     // Skips the UTF-8 BOM at the start of files. Notepad likes to add this.
     if (first_line && line.substr(0, 3) == "\xEF\xBB\xBF")
-      line = line.substr(3);
+      line.remove_prefix(3);
     first_line = false;
 
 #ifndef _WIN32
     // Check for CRLF eol and convert it to LF
     if (!line.empty() && line.back() == '\r')
-    {
-      line.pop_back();
-    }
+      line.remove_suffix(1);
 #endif
 
     if (!line.empty())
@@ -283,7 +283,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
         if (endpos != std::string::npos)
         {
           // New section!
-          std::string sub = line.substr(1, endpos - 1);
+          std::string_view sub = line.substr(1, endpos - 1);
           current_section = GetOrCreateSection(sub);
         }
       }
@@ -299,9 +299,13 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
           // INI is a hack anyway.
           if ((key.empty() && value.empty()) ||
               (!line.empty() && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
-            current_section->m_lines.push_back(line);
+          {
+            current_section->m_lines.emplace_back(line);
+          }
           else
+          {
             current_section->Set(key, value);
+          }
         }
       }
     }

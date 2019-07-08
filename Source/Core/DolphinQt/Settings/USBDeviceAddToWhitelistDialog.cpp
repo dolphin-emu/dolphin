@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
 
+#include <string_view>
+
 #include <QButtonGroup>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -27,7 +29,7 @@
 
 #include "UICommon/USBUtils.h"
 
-static bool IsValidUSBIDString(const std::string& string)
+static bool IsValidUSBIDString(std::string_view string)
 {
   if (string.empty() || string.length() > 4)
     return false;
@@ -124,8 +126,8 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
 
 void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 {
-  const std::string vid_string = StripSpaces(device_vid_textbox->text().toStdString());
-  const std::string pid_string = StripSpaces(device_pid_textbox->text().toStdString());
+  const std::string_view vid_string = StripSpaces(device_vid_textbox->text().toStdString());
+  const std::string_view pid_string = StripSpaces(device_pid_textbox->text().toStdString());
   if (!IsValidUSBIDString(vid_string))
   {
     // i18n: Here, VID means Vendor ID (for a USB device).
@@ -151,8 +153,8 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
     return;
   }
 
-  const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
-  const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
+  const u16 vid = static_cast<u16>(std::stoul(std::string(vid_string), nullptr, 16));
+  const u16 pid = static_cast<u16>(std::stoul(std::string(pid_string), nullptr, 16));
 
   if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
   {

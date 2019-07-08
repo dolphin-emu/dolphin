@@ -313,7 +313,7 @@ std::string evdevDevice::Button::GetName() const
   {
     const char* name = libevdev_event_code_get_name(EV_KEY, m_code);
     if (name)
-      return StripSpaces(name);
+      return std::string(StripSpaces(name));
   }
   // But controllers use codes above 0x100, and the standard label often doesn't match.
   // We are better off with Button 0 and so on.

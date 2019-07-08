@@ -214,7 +214,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 }
 
 // Turns "  hello " into "hello". Also handles tabs.
-std::string StripSpaces(const std::string& str)
+std::string_view StripSpaces(std::string_view str)
 {
   const size_t s = str.find_first_not_of(" \t\r\n");
 
@@ -227,7 +227,7 @@ std::string StripSpaces(const std::string& str)
 // "\"hello\"" is turned to "hello"
 // This one assumes that the string has already been space stripped in both
 // ends, as done by StripSpaces above, for example.
-std::string StripQuotes(const std::string& s)
+std::string_view StripQuotes(std::string_view s)
 {
   if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
     return s.substr(1, s.size() - 2);
@@ -334,7 +334,7 @@ std::string ValueToString(bool value)
   return value ? "True" : "False";
 }
 
-bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
+bool SplitPath(std::string_view full_path, std::string* _pPath, std::string* _pFilename,
                std::string* _pExtension)
 {
   if (full_path.empty())
@@ -367,8 +367,8 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
   return true;
 }
 
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
-                           const std::string& _Filename)
+void BuildCompleteFilename(std::string& _CompleteFilename, std::string_view _Path,
+                           std::string_view _Filename)
 {
   _CompleteFilename = _Path;
 
@@ -407,19 +407,18 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
   return joined.substr(0, joined.length() - delimiter.length());
 }
 
-std::string TabsToSpaces(int tab_size, const std::string& in)
+std::string TabsToSpaces(int tab_size, std::string str)
 {
   const std::string spaces(tab_size, ' ');
-  std::string out(in);
 
   size_t i = 0;
-  while (out.npos != (i = out.find('\t')))
-    out.replace(i, 1, spaces);
+  while (str.npos != (i = str.find('\t')))
+    str.replace(i, 1, spaces);
 
-  return out;
+  return str;
 }
 
-std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest)
+std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest)
 {
   size_t pos = 0;
 
@@ -435,12 +434,12 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
   return result;
 }
 
-bool StringBeginsWith(const std::string& str, const std::string& begin)
+bool StringBeginsWith(std::string_view str, std::string_view begin)
 {
   return str.size() >= begin.size() && std::equal(begin.begin(), begin.end(), str.begin());
 }
 
-bool StringEndsWith(const std::string& str, const std::string& end)
+bool StringEndsWith(std::string_view str, std::string_view end)
 {
   return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
 }
@@ -453,7 +452,7 @@ void StringPopBackIf(std::string* s, char c)
 
 #ifdef _WIN32
 
-std::wstring CPToUTF16(u32 code_page, const std::string& input)
+std::wstring CPToUTF16(u32 code_page, std::string_view input)
 {
   auto const size =
       MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
@@ -471,7 +470,7 @@ std::wstring CPToUTF16(u32 code_page, const std::string& input)
   return output;
 }
 
-std::string UTF16ToCP(u32 code_page, const std::wstring& input)
+std::string UTF16ToCP(u32 code_page, std::wstring_view input)
 {
   std::string output;
 
@@ -487,7 +486,8 @@ std::string UTF16ToCP(u32 code_page, const std::wstring& input)
                                     &output[0], static_cast<int>(output.size()), nullptr, false))
     {
       const DWORD error_code = GetLastError();
-      ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
+      ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu",
+                std::wstring(input).c_str(), error_code);
       output.clear();
     }
   }
@@ -495,27 +495,27 @@ std::string UTF16ToCP(u32 code_page, const std::wstring& input)
   return output;
 }
 
-std::wstring UTF8ToUTF16(const std::string& input)
+std::wstring UTF8ToUTF16(std::string_view input)
 {
   return CPToUTF16(CP_UTF8, input);
 }
 
-std::string UTF16ToUTF8(const std::wstring& input)
+std::string UTF16ToUTF8(std::wstring_view input)
 {
   return UTF16ToCP(CP_UTF8, input);
 }
 
-std::string SHIFTJISToUTF8(const std::string& input)
+std::string SHIFTJISToUTF8(std::string_view input)
 {
   return UTF16ToUTF8(CPToUTF16(CODEPAGE_SHIFT_JIS, input));
 }
 
-std::string UTF8ToSHIFTJIS(const std::string& input)
+std::string UTF8ToSHIFTJIS(std::string_view input)
 {
   return UTF16ToCP(CODEPAGE_SHIFT_JIS, UTF8ToUTF16(input));
 }
 
-std::string CP1252ToUTF8(const std::string& input)
+std::string CP1252ToUTF8(std::string_view input)
 {
   return UTF16ToUTF8(CPToUTF16(CODEPAGE_WINDOWS_1252, input));
 }
@@ -531,7 +531,7 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 #else
 
 template <typename T>
-std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_string<T>& input)
+std::string CodeTo(const char* tocode, const char* fromcode, std::basic_string_view<T> input)
 {
   std::string result;
 
@@ -548,9 +548,9 @@ std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_st
     std::string out_buffer;
     out_buffer.resize(out_buffer_size);
 
-    auto src_buffer = &input[0];
+    auto src_buffer = input.data();
     size_t src_bytes = in_bytes;
-    auto dst_buffer = &out_buffer[0];
+    auto dst_buffer = out_buffer.data();
     size_t dst_bytes = out_buffer.size();
 
     while (src_bytes != 0)
@@ -587,39 +587,39 @@ std::string CodeTo(const char* tocode, const char* fromcode, const std::basic_st
 }
 
 template <typename T>
-std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
+std::string CodeToUTF8(const char* fromcode, std::basic_string_view<T> input)
 {
   return CodeTo("UTF-8", fromcode, input);
 }
 
-std::string CP1252ToUTF8(const std::string& input)
+std::string CP1252ToUTF8(std::string_view input)
 {
   // return CodeToUTF8("CP1252//TRANSLIT", input);
   // return CodeToUTF8("CP1252//IGNORE", input);
   return CodeToUTF8("CP1252", input);
 }
 
-std::string SHIFTJISToUTF8(const std::string& input)
+std::string SHIFTJISToUTF8(std::string_view input)
 {
   // return CodeToUTF8("CP932", input);
   return CodeToUTF8("SJIS", input);
 }
 
-std::string UTF8ToSHIFTJIS(const std::string& input)
+std::string UTF8ToSHIFTJIS(std::string_view input)
 {
   return CodeTo("SJIS", "UTF-8", input);
 }
 
-std::string UTF16ToUTF8(const std::wstring& input)
+std::string UTF16ToUTF8(std::wstring_view input)
 {
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-  return converter.to_bytes(input);
+  return converter.to_bytes(input.data(), input.data() + input.size());
 }
 
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 {
   const char16_t* str_end = std::find(str, str + max_size, '\0');
-  return CodeToUTF8("UTF-16BE", std::u16string(str, static_cast<size_t>(str_end - str)));
+  return CodeToUTF8("UTF-16BE", std::u16string_view(str, static_cast<size_t>(str_end - str)));
 }
 
 #endif
@@ -629,7 +629,7 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 std::filesystem::path StringToPath(std::string_view path)
 {
 #ifdef _MSC_VER
-  return std::filesystem::path(UTF8ToUTF16(std::string(path)));
+  return std::filesystem::path(UTF8ToUTF16(path));
 #else
   return std::filesystem::path(path);
 #endif

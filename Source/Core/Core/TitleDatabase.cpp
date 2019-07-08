@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <fstream>
 #include <functional>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -39,7 +41,7 @@ static Map LoadMap(const std::string& file_path)
     const size_t equals_index = line.find('=');
     if (equals_index != std::string::npos)
     {
-      const std::string game_id = StripSpaces(line.substr(0, equals_index));
+      const std::string_view game_id = StripSpaces(line.substr(0, equals_index));
       if (game_id.length() >= 4)
         map.emplace(game_id, StripSpaces(line.substr(equals_index + 1)));
     }
