@@ -30,6 +30,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/Version.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
@@ -864,7 +865,8 @@ void UpdateTitle()
     }
   }
 
-  std::string message = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+  std::string message = StringFromFormat("%s | %s | %s", Common::scm_rev_str.c_str(),
+                                         SSettings.c_str(), SFPS.c_str());
   if (SConfig::GetInstance().m_show_active_title)
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
