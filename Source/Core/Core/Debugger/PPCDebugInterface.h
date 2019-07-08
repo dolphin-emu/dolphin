@@ -52,33 +52,33 @@ public:
   void RemovePatch(std::size_t index) override;
   void ClearPatches() override;
 
-  std::string Disassemble(u32 address) override;
-  std::string GetRawMemoryString(int memory, u32 address) override;
+  std::string Disassemble(u32 address) const override;
+  std::string GetRawMemoryString(int memory, u32 address) const override;
   int GetInstructionSize(int /*instruction*/) override { return 4; }
-  bool IsAlive() override;
-  bool IsBreakpoint(u32 address) override;
+  bool IsAlive() const override;
+  bool IsBreakpoint(u32 address) const override;
   void SetBreakpoint(u32 address) override;
   void ClearBreakpoint(u32 address) override;
   void ClearAllBreakpoints() override;
   void ToggleBreakpoint(u32 address) override;
   void ClearAllMemChecks() override;
-  bool IsMemCheck(u32 address, size_t size = 1) override;
+  bool IsMemCheck(u32 address, size_t size = 1) const override;
   void ToggleMemCheck(u32 address, bool read = true, bool write = true, bool log = true) override;
-  u32 ReadMemory(u32 address) override;
+  u32 ReadMemory(u32 address) const override;
 
   enum
   {
     EXTRAMEM_ARAM = 1,
   };
 
-  u32 ReadExtraMemory(int memory, u32 address) override;
-  u32 ReadInstruction(u32 address) override;
-  u32 GetPC() override;
+  u32 ReadExtraMemory(int memory, u32 address) const override;
+  u32 ReadInstruction(u32 address) const override;
+  u32 GetPC() const override;
   void SetPC(u32 address) override;
   void Step() override {}
   void RunToBreakpoint() override;
-  u32 GetColor(u32 address) override;
-  std::string GetDescription(u32 address) override;
+  u32 GetColor(u32 address) const override;
+  std::string GetDescription(u32 address) const override;
 
   void Clear() override;
 

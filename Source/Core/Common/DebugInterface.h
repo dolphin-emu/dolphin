@@ -51,31 +51,31 @@ public:
   virtual void RemovePatch(std::size_t index) = 0;
   virtual void ClearPatches() = 0;
 
-  virtual std::string Disassemble(u32 /*address*/) { return "NODEBUGGER"; }
-  virtual std::string GetRawMemoryString(int /*memory*/, u32 /*address*/)
+  virtual std::string Disassemble(u32 /*address*/) const { return "NODEBUGGER"; }
+  virtual std::string GetRawMemoryString(int /*memory*/, u32 /*address*/) const
   {
     return "NODEBUGGER";
   }
   virtual int GetInstructionSize(int /*instruction*/) { return 1; }
-  virtual bool IsAlive() { return true; }
-  virtual bool IsBreakpoint(u32 /*address*/) { return false; }
+  virtual bool IsAlive() const { return true; }
+  virtual bool IsBreakpoint(u32 /*address*/) const { return false; }
   virtual void SetBreakpoint(u32 /*address*/) {}
   virtual void ClearBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
   virtual void ToggleBreakpoint(u32 /*address*/) {}
   virtual void ClearAllMemChecks() {}
-  virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) { return false; }
+  virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) const { return false; }
   virtual void ToggleMemCheck(u32 /*address*/, bool /*read*/, bool /*write*/, bool /*log*/) {}
-  virtual u32 ReadMemory(u32 /*address*/) { return 0; }
+  virtual u32 ReadMemory(u32 /*address*/) const { return 0; }
   virtual void WriteExtraMemory(int /*memory*/, u32 /*value*/, u32 /*address*/) {}
-  virtual u32 ReadExtraMemory(int /*memory*/, u32 /*address*/) { return 0; }
-  virtual u32 ReadInstruction(u32 /*address*/) { return 0; }
-  virtual u32 GetPC() { return 0; }
+  virtual u32 ReadExtraMemory(int /*memory*/, u32 /*address*/) const { return 0; }
+  virtual u32 ReadInstruction(u32 /*address*/) const { return 0; }
+  virtual u32 GetPC() const { return 0; }
   virtual void SetPC(u32 /*address*/) {}
   virtual void Step() {}
   virtual void RunToBreakpoint() {}
-  virtual u32 GetColor(u32 /*address*/) { return 0xFFFFFFFF; }
-  virtual std::string GetDescription(u32 /*address*/) = 0;
+  virtual u32 GetColor(u32 /*address*/) const { return 0xFFFFFFFF; }
+  virtual std::string GetDescription(u32 /*address*/) const = 0;
   virtual void Clear() = 0;
 };
 }  // namespace Common

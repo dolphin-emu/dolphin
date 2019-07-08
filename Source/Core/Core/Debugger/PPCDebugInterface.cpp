@@ -164,7 +164,7 @@ void PPCDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
-std::string PPCDebugInterface::Disassemble(u32 address)
+std::string PPCDebugInterface::Disassemble(u32 address) const
 {
   // PowerPC::HostRead_U32 seemed to crash on shutdown
   if (!IsAlive())
@@ -194,7 +194,7 @@ std::string PPCDebugInterface::Disassemble(u32 address)
   }
 }
 
-std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address)
+std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address) const
 {
   if (IsAlive())
   {
@@ -209,12 +209,12 @@ std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address)
   return "<unknwn>";  // bad spelling - 8 chars
 }
 
-u32 PPCDebugInterface::ReadMemory(u32 address)
+u32 PPCDebugInterface::ReadMemory(u32 address) const
 {
   return PowerPC::HostRead_U32(address);
 }
 
-u32 PPCDebugInterface::ReadExtraMemory(int memory, u32 address)
+u32 PPCDebugInterface::ReadExtraMemory(int memory, u32 address) const
 {
   switch (memory)
   {
@@ -228,17 +228,17 @@ u32 PPCDebugInterface::ReadExtraMemory(int memory, u32 address)
   }
 }
 
-u32 PPCDebugInterface::ReadInstruction(u32 address)
+u32 PPCDebugInterface::ReadInstruction(u32 address) const
 {
   return PowerPC::HostRead_Instruction(address);
 }
 
-bool PPCDebugInterface::IsAlive()
+bool PPCDebugInterface::IsAlive() const
 {
   return Core::IsRunningAndStarted();
 }
 
-bool PPCDebugInterface::IsBreakpoint(u32 address)
+bool PPCDebugInterface::IsBreakpoint(u32 address) const
 {
   return PowerPC::breakpoints.IsAddressBreakPoint(address);
 }
@@ -271,7 +271,7 @@ void PPCDebugInterface::ClearAllMemChecks()
   PowerPC::memchecks.Clear();
 }
 
-bool PPCDebugInterface::IsMemCheck(u32 address, size_t size)
+bool PPCDebugInterface::IsMemCheck(u32 address, size_t size) const
 {
   return PowerPC::memchecks.GetMemCheck(address, size) != nullptr;
 }
@@ -301,7 +301,7 @@ void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-u32 PPCDebugInterface::GetColor(u32 address)
+u32 PPCDebugInterface::GetColor(u32 address) const
 {
   if (!IsAlive())
     return 0xFFFFFF;
@@ -326,12 +326,12 @@ u32 PPCDebugInterface::GetColor(u32 address)
 }
 // =============
 
-std::string PPCDebugInterface::GetDescription(u32 address)
+std::string PPCDebugInterface::GetDescription(u32 address) const
 {
   return g_symbolDB.GetDescription(address);
 }
 
-u32 PPCDebugInterface::GetPC()
+u32 PPCDebugInterface::GetPC() const
 {
   return PowerPC::ppcState.pc;
 }

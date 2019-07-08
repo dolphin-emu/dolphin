@@ -140,13 +140,13 @@ void DSPDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
-std::string DSPDebugInterface::Disassemble(u32 address)
+std::string DSPDebugInterface::Disassemble(u32 address) const
 {
   // we'll treat addresses as line numbers.
   return Symbols::GetLineText(address);
 }
 
-std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address)
+std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address) const
 {
   if (DSPCore_GetState() == State::Stopped)
     return "";
@@ -179,22 +179,22 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address)
   return "";
 }
 
-u32 DSPDebugInterface::ReadMemory(u32 address)
+u32 DSPDebugInterface::ReadMemory(u32 address) const
 {
   return 0;
 }
 
-u32 DSPDebugInterface::ReadInstruction(u32 address)
+u32 DSPDebugInterface::ReadInstruction(u32 address) const
 {
   return 0;
 }
 
-bool DSPDebugInterface::IsAlive()
+bool DSPDebugInterface::IsAlive() const
 {
   return true;
 }
 
-bool DSPDebugInterface::IsBreakpoint(u32 address)
+bool DSPDebugInterface::IsBreakpoint(u32 address) const
 {
   int real_addr = Symbols::Line2Addr(address);
   if (real_addr >= 0)
@@ -240,7 +240,7 @@ void DSPDebugInterface::ToggleBreakpoint(u32 address)
   }
 }
 
-bool DSPDebugInterface::IsMemCheck(u32 address, size_t size)
+bool DSPDebugInterface::IsMemCheck(u32 address, size_t size) const
 {
   return false;
 }
@@ -258,7 +258,7 @@ void DSPDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool 
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-u32 DSPDebugInterface::GetColor(u32 address)
+u32 DSPDebugInterface::GetColor(u32 address) const
 {
   // Scan backwards so we don't miss it. Hm, actually, let's not - it looks pretty good.
   int addr = -1;
@@ -289,12 +289,12 @@ u32 DSPDebugInterface::GetColor(u32 address)
 }
 // =============
 
-std::string DSPDebugInterface::GetDescription(u32 address)
+std::string DSPDebugInterface::GetDescription(u32 address) const
 {
   return "";  // g_symbolDB.GetDescription(address);
 }
 
-u32 DSPDebugInterface::GetPC()
+u32 DSPDebugInterface::GetPC() const
 {
   return Symbols::Addr2Line(DSP::g_dsp.pc);
 }
