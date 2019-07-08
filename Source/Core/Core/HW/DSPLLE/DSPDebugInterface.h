@@ -55,7 +55,6 @@ public:
 
   std::string Disassemble(u32 address) const override;
   std::string GetRawMemoryString(int memory, u32 address) const override;
-  int GetInstructionSize(int instruction) override { return 1; }
   bool IsAlive() const override;
   bool IsBreakpoint(u32 address) const override;
   void SetBreakpoint(u32 address) override;
