@@ -138,13 +138,13 @@ void DSPDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
-std::string DSPDebugInterface::Disassemble(unsigned int address)
+std::string DSPDebugInterface::Disassemble(u32 address)
 {
   // we'll treat addresses as line numbers.
   return Symbols::GetLineText(address);
 }
 
-std::string DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address)
+std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address)
 {
   if (DSPCore_GetState() == State::Stopped)
     return "";
@@ -177,12 +177,12 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, unsigned int addre
   return "";
 }
 
-unsigned int DSPDebugInterface::ReadMemory(unsigned int address)
+u32 DSPDebugInterface::ReadMemory(u32 address)
 {
   return 0;
 }
 
-unsigned int DSPDebugInterface::ReadInstruction(unsigned int address)
+u32 DSPDebugInterface::ReadInstruction(u32 address)
 {
   return 0;
 }
@@ -192,7 +192,7 @@ bool DSPDebugInterface::IsAlive()
   return true;
 }
 
-bool DSPDebugInterface::IsBreakpoint(unsigned int address)
+bool DSPDebugInterface::IsBreakpoint(u32 address)
 {
   int real_addr = Symbols::Line2Addr(address);
   if (real_addr >= 0)
@@ -201,7 +201,7 @@ bool DSPDebugInterface::IsBreakpoint(unsigned int address)
   return false;
 }
 
-void DSPDebugInterface::SetBreakpoint(unsigned int address)
+void DSPDebugInterface::SetBreakpoint(u32 address)
 {
   int real_addr = Symbols::Line2Addr(address);
 
@@ -211,7 +211,7 @@ void DSPDebugInterface::SetBreakpoint(unsigned int address)
   }
 }
 
-void DSPDebugInterface::ClearBreakpoint(unsigned int address)
+void DSPDebugInterface::ClearBreakpoint(u32 address)
 {
   int real_addr = Symbols::Line2Addr(address);
 
@@ -226,7 +226,7 @@ void DSPDebugInterface::ClearAllBreakpoints()
   g_dsp_breakpoints.Clear();
 }
 
-void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
+void DSPDebugInterface::ToggleBreakpoint(u32 address)
 {
   int real_addr = Symbols::Line2Addr(address);
   if (real_addr >= 0)
@@ -238,7 +238,7 @@ void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
   }
 }
 
-bool DSPDebugInterface::IsMemCheck(unsigned int address, size_t size)
+bool DSPDebugInterface::IsMemCheck(u32 address, size_t size)
 {
   return false;
 }
@@ -248,7 +248,7 @@ void DSPDebugInterface::ClearAllMemChecks()
   PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)
+void DSPDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool log)
 {
   PanicAlert("MemCheck functionality not supported in DSP module.");
 }
@@ -256,7 +256,7 @@ void DSPDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-int DSPDebugInterface::GetColor(unsigned int address)
+int DSPDebugInterface::GetColor(u32 address)
 {
   static const int colors[6] = {
       0xd0FFFF,  // light cyan
@@ -287,17 +287,17 @@ int DSPDebugInterface::GetColor(unsigned int address)
 }
 // =============
 
-std::string DSPDebugInterface::GetDescription(unsigned int address)
+std::string DSPDebugInterface::GetDescription(u32 address)
 {
   return "";  // g_symbolDB.GetDescription(address);
 }
 
-unsigned int DSPDebugInterface::GetPC()
+u32 DSPDebugInterface::GetPC()
 {
   return Symbols::Addr2Line(DSP::g_dsp.pc);
 }
 
-void DSPDebugInterface::SetPC(unsigned int address)
+void DSPDebugInterface::SetPC(u32 address)
 {
   int new_pc = Symbols::Line2Addr(address);
   if (new_pc > 0)

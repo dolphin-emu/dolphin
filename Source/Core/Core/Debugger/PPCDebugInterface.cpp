@@ -162,7 +162,7 @@ void PPCDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
-std::string PPCDebugInterface::Disassemble(unsigned int address)
+std::string PPCDebugInterface::Disassemble(u32 address)
 {
   // PowerPC::HostRead_U32 seemed to crash on shutdown
   if (!IsAlive())
@@ -192,7 +192,7 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
   }
 }
 
-std::string PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address)
+std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address)
 {
   if (IsAlive())
   {
@@ -207,12 +207,12 @@ std::string PPCDebugInterface::GetRawMemoryString(int memory, unsigned int addre
   return "<unknwn>";  // bad spelling - 8 chars
 }
 
-unsigned int PPCDebugInterface::ReadMemory(unsigned int address)
+u32 PPCDebugInterface::ReadMemory(u32 address)
 {
   return PowerPC::HostRead_U32(address);
 }
 
-unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address)
+u32 PPCDebugInterface::ReadExtraMemory(int memory, u32 address)
 {
   switch (memory)
   {
@@ -226,7 +226,7 @@ unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address
   }
 }
 
-unsigned int PPCDebugInterface::ReadInstruction(unsigned int address)
+u32 PPCDebugInterface::ReadInstruction(u32 address)
 {
   return PowerPC::HostRead_Instruction(address);
 }
@@ -236,17 +236,17 @@ bool PPCDebugInterface::IsAlive()
   return Core::IsRunningAndStarted();
 }
 
-bool PPCDebugInterface::IsBreakpoint(unsigned int address)
+bool PPCDebugInterface::IsBreakpoint(u32 address)
 {
   return PowerPC::breakpoints.IsAddressBreakPoint(address);
 }
 
-void PPCDebugInterface::SetBreakpoint(unsigned int address)
+void PPCDebugInterface::SetBreakpoint(u32 address)
 {
   PowerPC::breakpoints.Add(address);
 }
 
-void PPCDebugInterface::ClearBreakpoint(unsigned int address)
+void PPCDebugInterface::ClearBreakpoint(u32 address)
 {
   PowerPC::breakpoints.Remove(address);
 }
@@ -256,7 +256,7 @@ void PPCDebugInterface::ClearAllBreakpoints()
   PowerPC::breakpoints.Clear();
 }
 
-void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
+void PPCDebugInterface::ToggleBreakpoint(u32 address)
 {
   if (PowerPC::breakpoints.IsAddressBreakPoint(address))
     PowerPC::breakpoints.Remove(address);
@@ -269,12 +269,12 @@ void PPCDebugInterface::ClearAllMemChecks()
   PowerPC::memchecks.Clear();
 }
 
-bool PPCDebugInterface::IsMemCheck(unsigned int address, size_t size)
+bool PPCDebugInterface::IsMemCheck(u32 address, size_t size)
 {
   return PowerPC::memchecks.GetMemCheck(address, size) != nullptr;
 }
 
-void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)
+void PPCDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool log)
 {
   if (!IsMemCheck(address))
   {
@@ -299,7 +299,7 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-int PPCDebugInterface::GetColor(unsigned int address)
+int PPCDebugInterface::GetColor(u32 address)
 {
   if (!IsAlive())
     return 0xFFFFFF;
@@ -322,17 +322,17 @@ int PPCDebugInterface::GetColor(unsigned int address)
 }
 // =============
 
-std::string PPCDebugInterface::GetDescription(unsigned int address)
+std::string PPCDebugInterface::GetDescription(u32 address)
 {
   return g_symbolDB.GetDescription(address);
 }
 
-unsigned int PPCDebugInterface::GetPC()
+u32 PPCDebugInterface::GetPC()
 {
   return PowerPC::ppcState.pc;
 }
 
-void PPCDebugInterface::SetPC(unsigned int address)
+void PPCDebugInterface::SetPC(u32 address)
 {
   PowerPC::ppcState.pc = address;
 }

@@ -48,33 +48,31 @@ public:
   virtual void RemovePatch(std::size_t index) = 0;
   virtual void ClearPatches() = 0;
 
-  virtual std::string Disassemble(unsigned int /*address*/) { return "NODEBUGGER"; }
-  virtual std::string GetRawMemoryString(int /*memory*/, unsigned int /*address*/)
+  virtual std::string Disassemble(u32 /*address*/) { return "NODEBUGGER"; }
+  virtual std::string GetRawMemoryString(int /*memory*/, u32 /*address*/)
   {
     return "NODEBUGGER";
   }
   virtual int GetInstructionSize(int /*instruction*/) { return 1; }
   virtual bool IsAlive() { return true; }
-  virtual bool IsBreakpoint(unsigned int /*address*/) { return false; }
-  virtual void SetBreakpoint(unsigned int /*address*/) {}
-  virtual void ClearBreakpoint(unsigned int /*address*/) {}
+  virtual bool IsBreakpoint(u32 /*address*/) { return false; }
+  virtual void SetBreakpoint(u32 /*address*/) {}
+  virtual void ClearBreakpoint(u32 /*address*/) {}
   virtual void ClearAllBreakpoints() {}
-  virtual void ToggleBreakpoint(unsigned int /*address*/) {}
+  virtual void ToggleBreakpoint(u32 /*address*/) {}
   virtual void ClearAllMemChecks() {}
-  virtual bool IsMemCheck(unsigned int /*address*/, size_t /*size*/) { return false; }
-  virtual void ToggleMemCheck(unsigned int /*address*/, bool /*read*/, bool /*write*/, bool /*log*/)
-  {
-  }
-  virtual unsigned int ReadMemory(unsigned int /*address*/) { return 0; }
-  virtual void WriteExtraMemory(int /*memory*/, unsigned int /*value*/, unsigned int /*address*/) {}
-  virtual unsigned int ReadExtraMemory(int /*memory*/, unsigned int /*address*/) { return 0; }
-  virtual unsigned int ReadInstruction(unsigned int /*address*/) { return 0; }
-  virtual unsigned int GetPC() { return 0; }
-  virtual void SetPC(unsigned int /*address*/) {}
+  virtual bool IsMemCheck(u32 /*address*/, size_t /*size*/) { return false; }
+  virtual void ToggleMemCheck(u32 /*address*/, bool /*read*/, bool /*write*/, bool /*log*/) {}
+  virtual u32 ReadMemory(u32 /*address*/) { return 0; }
+  virtual void WriteExtraMemory(int /*memory*/, u32 /*value*/, u32 /*address*/) {}
+  virtual u32 ReadExtraMemory(int /*memory*/, u32 /*address*/) { return 0; }
+  virtual u32 ReadInstruction(u32 /*address*/) { return 0; }
+  virtual u32 GetPC() { return 0; }
+  virtual void SetPC(u32 /*address*/) {}
   virtual void Step() {}
   virtual void RunToBreakpoint() {}
-  virtual int GetColor(unsigned int /*address*/) { return 0xFFFFFFFF; }
-  virtual std::string GetDescription(unsigned int /*address*/) = 0;
+  virtual int GetColor(u32 /*address*/) { return 0xFFFFFFFF; }
+  virtual std::string GetDescription(u32 /*address*/) = 0;
   virtual void Clear() = 0;
 };
 }  // namespace Common

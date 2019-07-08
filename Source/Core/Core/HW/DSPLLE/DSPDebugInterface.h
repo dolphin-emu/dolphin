@@ -51,27 +51,26 @@ public:
   bool HasEnabledPatch(u32 address) const override;
   void ClearPatches() override;
 
-  std::string Disassemble(unsigned int address) override;
-  std::string GetRawMemoryString(int memory, unsigned int address) override;
+  std::string Disassemble(u32 address) override;
+  std::string GetRawMemoryString(int memory, u32 address) override;
   int GetInstructionSize(int instruction) override { return 1; }
   bool IsAlive() override;
-  bool IsBreakpoint(unsigned int address) override;
-  void SetBreakpoint(unsigned int address) override;
-  void ClearBreakpoint(unsigned int address) override;
+  bool IsBreakpoint(u32 address) override;
+  void SetBreakpoint(u32 address) override;
+  void ClearBreakpoint(u32 address) override;
   void ClearAllBreakpoints() override;
-  void ToggleBreakpoint(unsigned int address) override;
+  void ToggleBreakpoint(u32 address) override;
   void ClearAllMemChecks() override;
-  bool IsMemCheck(unsigned int address, size_t size) override;
-  void ToggleMemCheck(unsigned int address, bool read = true, bool write = true,
-                      bool log = true) override;
-  unsigned int ReadMemory(unsigned int address) override;
-  unsigned int ReadInstruction(unsigned int address) override;
-  unsigned int GetPC() override;
-  void SetPC(unsigned int address) override;
+  bool IsMemCheck(u32 address, size_t size) override;
+  void ToggleMemCheck(u32 address, bool read = true, bool write = true, bool log = true) override;
+  u32 ReadMemory(u32 address) override;
+  u32 ReadInstruction(u32 address) override;
+  u32 GetPC() override;
+  void SetPC(u32 address) override;
   void Step() override {}
   void RunToBreakpoint() override;
-  int GetColor(unsigned int address) override;
-  std::string GetDescription(unsigned int address) override;
+  int GetColor(u32 address) override;
+  std::string GetDescription(u32 address) override;
 
   void Clear() override;
 
