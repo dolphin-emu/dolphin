@@ -20,6 +20,9 @@ void DSPPatches::Patch(std::size_t index)
   PanicAlert("Patch functionality not supported in DSP module.");
 }
 
+DSPDebugInterface::DSPDebugInterface() = default;
+DSPDebugInterface::~DSPDebugInterface() = default;
+
 std::size_t DSPDebugInterface::SetWatch(u32 address, std::string name)
 {
   return m_watches.SetWatch(address, std::move(name));

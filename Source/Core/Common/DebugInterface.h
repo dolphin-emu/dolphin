@@ -18,7 +18,7 @@ namespace Common
 class DebugInterface
 {
 protected:
-  virtual ~DebugInterface() {}
+  virtual ~DebugInterface() = default;
 
 public:
   // Watches

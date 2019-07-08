@@ -21,7 +21,9 @@ private:
 class DSPDebugInterface final : public Common::DebugInterface
 {
 public:
-  DSPDebugInterface() {}
+  DSPDebugInterface();
+  ~DSPDebugInterface() override;
+
   // Watches
   std::size_t SetWatch(u32 address, std::string name = "") override;
   const Common::Debug::Watch& GetWatch(std::size_t index) const override;

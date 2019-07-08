@@ -20,7 +20,9 @@ private:
 class PPCDebugInterface final : public Common::DebugInterface
 {
 public:
-  PPCDebugInterface() {}
+  PPCDebugInterface();
+  ~PPCDebugInterface() override;
+
   // Watches
   std::size_t SetWatch(u32 address, std::string name = "") override;
   const Common::Debug::Watch& GetWatch(std::size_t index) const override;

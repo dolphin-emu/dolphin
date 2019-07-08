@@ -44,6 +44,9 @@ void PPCPatches::Patch(std::size_t index)
   }
 }
 
+PPCDebugInterface::PPCDebugInterface() = default;
+PPCDebugInterface::~PPCDebugInterface() = default;
+
 std::size_t PPCDebugInterface::SetWatch(u32 address, std::string name)
 {
   return m_watches.SetWatch(address, std::move(name));
