@@ -7,8 +7,9 @@
 #include <cstddef>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
@@ -156,7 +157,7 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address)
     {
     case 0:
     case 0x8:
-      return StringFromFormat("%04x", dsp_imem_read(address));
+      return fmt::format("{:04x}", dsp_imem_read(address));
     default:
       return "--IMEM--";
     }
@@ -166,9 +167,9 @@ std::string DSPDebugInterface::GetRawMemoryString(int memory, u32 address)
     {
     case 0:
     case 1:
-      return StringFromFormat("%04x (DMEM)", dsp_dmem_read(address));
+      return fmt::format("{:04x} (DMEM)", dsp_dmem_read(address));
     case 0xf:
-      return StringFromFormat("%04x (MMIO)", g_dsp.ifx_regs[address & 0xFF]);
+      return fmt::format("{:04x} (MMIO)", g_dsp.ifx_regs[address & 0xFF]);
     default:
       return "--DMEM--";
     }

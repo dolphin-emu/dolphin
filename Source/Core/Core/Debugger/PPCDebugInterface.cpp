@@ -7,9 +7,10 @@
 #include <cstddef>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/Align.h"
 #include "Common/GekkoDisassembler.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
@@ -199,7 +200,7 @@ std::string PPCDebugInterface::GetRawMemoryString(int memory, u32 address)
     const bool is_aram = memory != 0;
 
     if (is_aram || PowerPC::HostIsRAMAddress(address))
-      return StringFromFormat("%08X%s", ReadExtraMemory(memory, address), is_aram ? " (ARAM)" : "");
+      return fmt::format("{:08X}{}", ReadExtraMemory(memory, address), is_aram ? " (ARAM)" : "");
 
     return is_aram ? "--ARAM--" : "--------";
   }
