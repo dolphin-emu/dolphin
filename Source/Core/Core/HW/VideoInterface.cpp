@@ -742,7 +742,7 @@ void Update(u64 ticks)
     if (Config::Get(Config::MAIN_REDUCE_POLLING_RATE))
       s_half_line_of_next_si_poll += GetHalfLinesPerEvenField() / 2;
     else
-      s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
+      s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
