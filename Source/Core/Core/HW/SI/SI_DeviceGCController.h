@@ -34,8 +34,6 @@ protected:
     u8 trigger_right;
     u8 unk_4;
     u8 unk_5;
-    u8 unk_6;
-    u8 unk_7;
   };
 
   enum EDirectCommands
