@@ -13,9 +13,7 @@
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
-namespace DSP
-{
-namespace LLE
+namespace DSP::LLE
 {
 void DSPPatches::Patch(std::size_t index)
 {
@@ -312,5 +310,4 @@ void DSPDebugInterface::Clear()
   ClearPatches();
   ClearWatches();
 }
-}  // namespace LLE
-}  // namespace DSP
+}  // namespace DSP::LLE

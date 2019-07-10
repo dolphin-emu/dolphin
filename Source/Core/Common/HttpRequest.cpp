@@ -42,6 +42,7 @@ private:
   static inline std::once_flag s_curl_was_initialized;
   ProgressCallback m_callback;
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{nullptr, curl_easy_cleanup};
+  std::string m_error_string;
 };
 
 HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
@@ -118,6 +119,10 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
     curl_easy_setopt(m_curl.get(), CURLOPT_PROGRESSDATA, this);
     curl_easy_setopt(m_curl.get(), CURLOPT_PROGRESSFUNCTION, CurlProgressCallback);
   }
+
+  // Set up error buffer
+  m_error_string.resize(CURL_ERROR_SIZE);
+  curl_easy_setopt(m_curl.get(), CURLOPT_ERRORBUFFER, m_error_string.data());
 
   // libcurl may not have been built with async DNS support, so we disable
   // signal handlers to avoid a possible and likely crash if a resolve times out.
@@ -205,7 +210,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   const CURLcode res = curl_easy_perform(m_curl.get());
   if (res != CURLE_OK)
   {
-    ERROR_LOG(COMMON, "Failed to %s %s: %s", type, url.c_str(), curl_easy_strerror(res));
+    ERROR_LOG(COMMON, "Failed to %s %s: %s", type, url.c_str(), m_error_string.c_str());
     return {};
   }
 
@@ -216,8 +221,8 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
   if (response_code != 200)
   {
-    ERROR_LOG(COMMON, "Failed to %s %s: server replied with code %li and body\n\x1b[0m%s", type,
-              url.c_str(), response_code, buffer.data());
+    ERROR_LOG(COMMON, "Failed to %s %s: server replied with code %li and body\n\x1b[0m%.*s", type,
+              url.c_str(), response_code, static_cast<int>(buffer.size()), buffer.data());
     return {};
   }
 

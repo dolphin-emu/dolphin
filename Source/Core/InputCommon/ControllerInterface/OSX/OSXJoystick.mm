@@ -13,9 +13,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-namespace ciface
-{
-namespace OSX
+namespace ciface::OSX
 {
 void Joystick::AddElements(CFArrayRef elements, std::set<IOHIDElementCookie>& cookies)
 {
@@ -341,5 +339,4 @@ bool Joystick::IsSameDevice(const IOHIDDeviceRef other_device) const
 {
   return m_device == other_device;
 }
-}
-}
+}  // namespace ciface::OSX

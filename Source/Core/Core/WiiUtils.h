@@ -17,13 +17,11 @@ namespace DiscIO
 {
 class WiiWAD;
 }
-namespace IOS
-{
-namespace HLE
+
+namespace IOS::HLE
 {
 class Kernel;
 }
-}  // namespace IOS
 
 namespace WiiUtils
 {

@@ -300,7 +300,7 @@ void GeneralPane::OnSaveConfig()
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
-  DolphinAnalytics::Instance()->ReloadConfig();
+  DolphinAnalytics::Instance().ReloadConfig();
 #endif
   settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
@@ -325,8 +325,8 @@ void GeneralPane::OnSaveConfig()
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
 void GeneralPane::GenerateNewIdentity()
 {
-  DolphinAnalytics::Instance()->GenerateNewIdentity();
-  DolphinAnalytics::Instance()->ReloadConfig();
+  DolphinAnalytics::Instance().GenerateNewIdentity();
+  DolphinAnalytics::Instance().ReloadConfig();
   ModalMessageBox message_box(this);
   message_box.setIcon(QMessageBox::Information);
   message_box.setWindowTitle(tr("Identity Generation"));

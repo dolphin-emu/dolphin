@@ -6,9 +6,7 @@
 
 #include "Common/Crypto/AES.h"
 
-namespace Common
-{
-namespace AES
+namespace Common::AES
 {
 std::vector<u8> DecryptEncrypt(const u8* key, u8* iv, const u8* src, size_t size, Mode mode)
 {
@@ -35,5 +33,4 @@ std::vector<u8> Encrypt(const u8* key, u8* iv, const u8* src, size_t size)
 {
   return DecryptEncrypt(key, iv, src, size, Mode::Encrypt);
 }
-}  // namespace AES
-}  // namespace Common
+}  // namespace Common::AES

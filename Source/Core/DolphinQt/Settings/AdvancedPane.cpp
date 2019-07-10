@@ -136,6 +136,12 @@ void AdvancedPane::Update()
   const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
 
+  QFont bf = font();
+  bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
+             Config::LayerType::Base);
+  m_cpu_clock_override_checkbox->setFont(bf);
+  m_cpu_clock_override_checkbox->setChecked(enable_cpu_clock_override_widgets);
+
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
 

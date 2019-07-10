@@ -16,9 +16,7 @@
 
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace SDL
+namespace ciface::SDL
 {
 void Init();
 void DeInit();
@@ -158,5 +156,4 @@ private:
   SDL_Haptic* m_haptic;
 #endif
 };
-}  // namespace SDL
-}  // namespace ciface
+}  // namespace ciface::SDL

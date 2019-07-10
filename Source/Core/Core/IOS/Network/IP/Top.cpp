@@ -18,6 +18,8 @@
 #include <poll.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -697,9 +699,9 @@ IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& reques
 
   for (int i = 0; remoteHost->h_addr_list[i]; ++i)
   {
-    u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
-    std::string ip_s =
-        StringFromFormat("%i.%i.%i.%i", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
+    const u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
+    const std::string ip_s =
+        fmt::format("{}.{}.{}.{}", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
     DEBUG_LOG(IOS_NET, "addr%i:%s", i, ip_s.c_str());
   }
 

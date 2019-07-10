@@ -8,7 +8,6 @@
 #include <bitset>
 #include <cinttypes>
 #include <cstddef>
-#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
@@ -18,10 +17,10 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
 #include <pugixml.hpp>
 
 #include "Common/Assert.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
@@ -43,7 +42,6 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeFileBlobReader.h"
-#include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiWad.h"
 
 namespace WiiUtils
@@ -232,7 +230,7 @@ std::string SystemUpdater::GetDeviceId()
   u32 ios_device_id;
   if (m_ios.GetES()->GetDeviceId(&ios_device_id) < 0)
     return "";
-  return StringFromFormat("%" PRIu64, (u64(1) << 32) | ios_device_id);
+  return std::to_string((u64(1) << 32) | ios_device_id);
 }
 
 class OnlineSystemUpdater final : public SystemUpdater
@@ -531,10 +529,9 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 std::pair<IOS::ES::TMDReader, std::vector<u8>>
 OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title)
 {
-  const std::string url =
-      (title.version == 0) ?
-          prefix_url + StringFromFormat("/%016" PRIx64 "/tmd", title.id) :
-          prefix_url + StringFromFormat("/%016" PRIx64 "/tmd.%u", title.id, title.version);
+  const std::string url = (title.version == 0) ?
+                              fmt::format("{}/{:016x}/tmd", prefix_url, title.id) :
+                              fmt::format("{}/{:016x}/tmd.{}", prefix_url, title.id, title.version);
   const Common::HttpRequest::Response response = m_http.Get(url);
   if (!response)
     return {};
@@ -559,7 +556,7 @@ OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo&
 std::pair<std::vector<u8>, std::vector<u8>>
 OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleInfo& title)
 {
-  const std::string url = prefix_url + StringFromFormat("/%016" PRIx64 "/cetk", title.id);
+  const std::string url = fmt::format("{}/{:016x}/cetk", prefix_url, title.id);
   const Common::HttpRequest::Response response = m_http.Get(url);
   if (!response)
     return {};
@@ -576,7 +573,7 @@ OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleIn
 std::optional<std::vector<u8>> OnlineSystemUpdater::DownloadContent(const std::string& prefix_url,
                                                                     const TitleInfo& title, u32 cid)
 {
-  const std::string url = prefix_url + StringFromFormat("/%016" PRIx64 "/%08x", title.id, cid);
+  const std::string url = fmt::format("{}/{:016x}/{:08x}", prefix_url, title.id, cid);
   return m_http.Get(url);
 }
 

@@ -496,6 +496,7 @@ void FatalError(const std::string& message)
 {
   fprintf(log_fp, "%s\n", message.c_str());
 
+  UI::SetVisible(true);
   UI::Error(message);
   UI::Stop();
 }
@@ -683,6 +684,7 @@ bool RunUpdater(std::vector<std::string> args)
   }
 
   UI::Init();
+  UI::SetVisible(false);
 
   Options opts = std::move(*maybe_opts);
 
@@ -707,8 +709,6 @@ bool RunUpdater(std::vector<std::string> args)
 
   if (opts.parent_pid)
   {
-    UI::SetDescription("Waiting for Dolphin to quit...");
-
     fprintf(log_fp, "Waiting for parent PID %d to complete...\n", *opts.parent_pid);
 
     auto pid = opts.parent_pid.value();

@@ -78,7 +78,7 @@ TitleDatabase::TitleDatabase()
 
   // i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
   // which is (usually) the first thing users see when a Wii console starts.
-  m_base_map.emplace("0000000100000002", GetStringT("Wii Menu"));
+  m_base_map.emplace("0000000100000002", Common::GetStringT("Wii Menu"));
   for (const auto& id : {"HAXX", "00010001af1bf516"})
     m_base_map.emplace(id, "The Homebrew Channel");
 }

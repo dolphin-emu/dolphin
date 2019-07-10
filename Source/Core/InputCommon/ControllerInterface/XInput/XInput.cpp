@@ -8,9 +8,7 @@
 #define XINPUT_GAMEPAD_GUIDE 0x0400
 #endif
 
-namespace ciface
-{
-namespace XInput
+namespace ciface::XInput
 {
 static const struct
 {
@@ -243,5 +241,4 @@ void Device::Motor::SetState(ControlState state)
   m_motor = (WORD)(state * m_range);
   m_parent->UpdateMotors();
 }
-}  // namespace XInput
-}  // namespace ciface
+}  // namespace ciface::XInput

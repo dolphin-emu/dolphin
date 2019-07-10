@@ -14,6 +14,11 @@
 
 #include "Common/CommonTypes.h"
 
+#ifdef _MSC_VER
+#include <filesystem>
+#define HAS_STD_FILESYSTEM
+#endif
+
 std::string StringFromFormatV(const char* format, va_list args);
 
 std::string StringFromFormat(const char* format, ...)
@@ -151,6 +156,11 @@ inline std::string UTF8ToTStr(const std::string& str)
 }
 #endif
 
+#endif
+
+#ifdef HAS_STD_FILESYSTEM
+std::filesystem::path StringToPath(std::string_view path);
+std::string PathToString(const std::filesystem::path& path);
 #endif
 
 // Thousand separator. Turns 12345678 into 12,345,678

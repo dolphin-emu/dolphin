@@ -8,9 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace ciface
-{
-namespace Pipes
+namespace ciface::Pipes
 {
 // To create a piped controller input, create a named pipe in the
 // Pipes directory and write commands out to it. Commands are separated
@@ -58,5 +56,4 @@ private:
   std::map<std::string, PipeInput*> m_buttons;
   std::map<std::string, PipeInput*> m_axes;
 };
-}  // namespace Pipes
-}  // namespace ciface
+}  // namespace ciface::Pipes

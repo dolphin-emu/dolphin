@@ -48,7 +48,6 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
-#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -57,6 +56,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/FrameDump.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/NetPlayChatUI.h"
@@ -585,8 +585,8 @@ void Renderer::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>* target_rect
   if (target_rect->bottom > fb_height)
   {
     const int offset = target_rect->bottom - fb_height;
-    target_rect->right -= offset;
-    source_rect->right -= offset * orig_source_height / orig_target_height;
+    target_rect->bottom -= offset;
+    source_rect->bottom -= offset * orig_source_height / orig_target_height;
   }
 }
 
@@ -1148,6 +1148,15 @@ void Renderer::DrawImGui()
       base_index += cmd.ElemCount;
     }
   }
+
+  // Some capture software (such as OBS) hooks SwapBuffers and uses glBlitFramebuffer to copy our
+  // back buffer just before swap. Because glBlitFramebuffer honors the scissor test, the capture
+  // itself will be clipped to whatever bounds were last set by ImGui, resulting in a rather useless
+  // capture whenever any ImGui windows are open. We'll reset the scissor rectangle to the entire
+  // viewport here to avoid this problem.
+  SetScissorRect(ConvertFramebufferRectangle(
+      MathUtil::Rectangle<int>(0, 0, m_backbuffer_width, m_backbuffer_height),
+      m_current_framebuffer));
 }
 
 std::unique_lock<std::mutex> Renderer::GetImGuiLock()
@@ -1250,7 +1259,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
         auto render_target_rc = GetTargetRectangle();
         auto render_source_rc = xfb_rect;
-        AdjustRectanglesToFitBounds(&render_target_rc, &xfb_rect, m_backbuffer_width,
+        AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
                                     m_backbuffer_height);
         RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
 
@@ -1273,7 +1282,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
       perf_sample.num_prims = stats.thisFrame.numPrims + stats.thisFrame.numDLPrims;
       perf_sample.num_draw_calls = stats.thisFrame.numDrawCalls;
-      DolphinAnalytics::Instance()->ReportPerformanceInfo(std::move(perf_sample));
+      DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
       if (IsFrameDumping())
         DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
@@ -1381,7 +1390,7 @@ void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
     copy_rect = src_texture->GetRect();
   }
 
-  // Index 0 was just sent to AVI dump. Swap with the second texture.
+  // Index 0 was just sent to FFMPEG dump. Swap with the second texture.
   if (m_frame_dump_readback_textures[0])
     std::swap(m_frame_dump_readback_textures[0], m_frame_dump_readback_textures[1]);
 
@@ -1390,7 +1399,7 @@ void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
 
   m_frame_dump_readback_textures[0]->CopyFromTexture(src_texture, copy_rect, 0, 0,
                                                      m_frame_dump_readback_textures[0]->GetRect());
-  m_last_frame_state = AVIDump::FetchState(ticks);
+  m_last_frame_state = FrameDump::FetchState(ticks);
   m_last_frame_exported = true;
 }
 
@@ -1484,7 +1493,8 @@ void Renderer::ShutdownFrameDumping()
     tex.reset();
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride,
+                             const FrameDump::Frame& state)
 {
   m_frame_dump_config = FrameDumpConfig{data, w, h, stride, state};
 
@@ -1513,16 +1523,16 @@ void Renderer::FinishFrameData()
 void Renderer::RunFrameDumps()
 {
   Common::SetCurrentThreadName("FrameDumping");
-  bool dump_to_avi = !g_ActiveConfig.bDumpFramesAsImages;
+  bool dump_to_ffmpeg = !g_ActiveConfig.bDumpFramesAsImages;
   bool frame_dump_started = false;
 
-// If Dolphin was compiled without libav, we only support dumping to images.
+// If Dolphin was compiled without ffmpeg, we only support dumping to images.
 #if !defined(HAVE_FFMPEG)
-  if (dump_to_avi)
+  if (dump_to_ffmpeg)
   {
-    WARN_LOG(VIDEO, "AVI frame dump requested, but Dolphin was compiled without libav. "
-                    "Frame dump will be saved as images instead.");
-    dump_to_avi = false;
+    WARN_LOG(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
+                    "Frames will be saved as PNG images instead.");
+    dump_to_ffmpeg = false;
   }
 #endif
 
@@ -1552,8 +1562,8 @@ void Renderer::RunFrameDumps()
     {
       if (!frame_dump_started)
       {
-        if (dump_to_avi)
-          frame_dump_started = StartFrameDumpToAVI(config);
+        if (dump_to_ffmpeg)
+          frame_dump_started = StartFrameDumpToFFMPEG(config);
         else
           frame_dump_started = StartFrameDumpToImage(config);
 
@@ -1565,8 +1575,8 @@ void Renderer::RunFrameDumps()
       // If we failed to start frame dumping, don't write a frame.
       if (frame_dump_started)
       {
-        if (dump_to_avi)
-          DumpFrameToAVI(config);
+        if (dump_to_ffmpeg)
+          DumpFrameToFFMPEG(config);
         else
           DumpFrameToImage(config);
       }
@@ -1578,40 +1588,40 @@ void Renderer::RunFrameDumps()
   if (frame_dump_started)
   {
     // No additional cleanup is needed when dumping to images.
-    if (dump_to_avi)
-      StopFrameDumpToAVI();
+    if (dump_to_ffmpeg)
+      StopFrameDumpToFFMPEG();
   }
 }
 
 #if defined(HAVE_FFMPEG)
 
-bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToFFMPEG(const FrameDumpConfig& config)
 {
-  return AVIDump::Start(config.width, config.height);
+  return FrameDump::Start(config.width, config.height);
 }
 
-void Renderer::DumpFrameToAVI(const FrameDumpConfig& config)
+void Renderer::DumpFrameToFFMPEG(const FrameDumpConfig& config)
 {
-  AVIDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
+  FrameDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
 }
 
-void Renderer::StopFrameDumpToAVI()
+void Renderer::StopFrameDumpToFFMPEG()
 {
-  AVIDump::Stop();
+  FrameDump::Stop();
 }
 
 #else
 
-bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToFFMPEG(const FrameDumpConfig& config)
 {
   return false;
 }
 
-void Renderer::DumpFrameToAVI(const FrameDumpConfig& config)
+void Renderer::DumpFrameToFFMPEG(const FrameDumpConfig& config)
 {
 }
 
-void Renderer::StopFrameDumpToAVI()
+void Renderer::StopFrameDumpToFFMPEG()
 {
 }
 

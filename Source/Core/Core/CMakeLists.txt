@@ -557,6 +557,7 @@ PUBLIC
   videovulkan
 
 PRIVATE
+  fmt::fmt
   ${LZO}
   ZLIB::ZLIB
 )

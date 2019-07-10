@@ -80,11 +80,11 @@ constexpr std::array<SPatch, 1> OSBreakPoints{{
 }};
 // clang-format on
 
-void Patch(u32 addr, const char* hle_func_name)
+void Patch(u32 addr, std::string_view func_name)
 {
   for (u32 i = 1; i < OSPatches.size(); ++i)
   {
-    if (!strcmp(OSPatches[i].m_szPatchName, hle_func_name))
+    if (OSPatches[i].m_szPatchName == func_name)
     {
       s_original_instructions[addr] = i;
       PowerPC::ppcState.iCache.Invalidate(addr);
@@ -215,7 +215,7 @@ bool IsEnabled(HookFlag flag)
          PowerPC::GetMode() == PowerPC::CoreMode::Interpreter;
 }
 
-u32 UnPatch(const std::string& patch_name)
+u32 UnPatch(std::string_view patch_name)
 {
   const auto patch = std::find_if(std::begin(OSPatches), std::end(OSPatches),
                                   [&](const SPatch& p) { return patch_name == p.m_szPatchName; });
@@ -258,7 +258,7 @@ u32 UnPatch(const std::string& patch_name)
   return 0;
 }
 
-bool UnPatch(u32 addr, const std::string& name)
+bool UnPatch(u32 addr, std::string_view name)
 {
   auto itr = s_original_instructions.find(addr);
   if (itr == s_original_instructions.end())

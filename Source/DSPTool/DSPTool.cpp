@@ -400,21 +400,39 @@ int main(int argc, const char* argv[])
   {
     const std::string argument = argv[i];
     if (argument == "-d")
+    {
       disassemble = true;
+    }
     else if (argument == "-o")
-      output_name = argv[++i];
+    {
+      if (++i < argc)
+        output_name = argv[i];
+    }
     else if (argument == "-h")
-      output_header_name = argv[++i];
+    {
+      if (++i < argc)
+        output_header_name = argv[i];
+    }
     else if (argument == "-c")
+    {
       compare = true;
+    }
     else if (argument == "-s")
+    {
       outputSize = true;
+    }
     else if (argument == "-m")
+    {
       multiple = true;
+    }
     else if (argument == "-f")
+    {
       force = true;
+    }
     else if (argument == "-p")
+    {
       print_results = true;
+    }
     else if (argument == "-ps")
     {
       print_results = true;

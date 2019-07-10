@@ -11,9 +11,7 @@
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
-namespace DSP
-{
-namespace Interpreter
+namespace DSP::Interpreter
 {
 namespace
 {
@@ -594,6 +592,4 @@ void msub(const UDSPInstruction opc)
 
   dsp_set_long_prod(prod);
 }
-
-}  // namespace Interpreter
-}  // namespace DSP
+}  // namespace DSP::Interpreter

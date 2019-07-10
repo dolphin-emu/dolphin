@@ -11,9 +11,7 @@
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
-namespace DSP
-{
-namespace Interpreter
+namespace DSP::Interpreter
 {
 // Generic call implementation
 // CALLcc addressA
@@ -263,6 +261,4 @@ void bloopi(const UDSPInstruction opc)
     dsp_skip_inst();
   }
 }
-
-}  // namespace Interpreter
-}  // namespace DSP
+}  // namespace DSP::Interpreter

@@ -14,9 +14,7 @@ extern "C" {
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-namespace ciface
-{
-namespace XInput2
+namespace ciface::XInput2
 {
 void PopulateDevices(void* const hwnd);
 
@@ -113,5 +111,4 @@ private:
   const int pointer_deviceid, keyboard_deviceid;
   std::string name;
 };
-}  // namespace XInput2
-}  // namespace ciface
+}  // namespace ciface::XInput2

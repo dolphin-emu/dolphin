@@ -14,9 +14,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
 
-namespace DSP
-{
-namespace Symbols
+namespace DSP::Symbols
 {
 DSPSymbolDB g_dsp_symbol_db;
 
@@ -106,6 +104,4 @@ void Clear()
   lines.clear();
   line_counter = 0;
 }
-
-}  // namespace Symbols
-}  // namespace DSP
+}  // namespace DSP::Symbols

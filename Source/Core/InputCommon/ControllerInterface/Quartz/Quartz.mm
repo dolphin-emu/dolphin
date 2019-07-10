@@ -6,9 +6,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
-namespace ciface
-{
-namespace Quartz
+namespace ciface::Quartz
 {
 void PopulateDevices(void* window)
 {
@@ -21,5 +19,4 @@ void PopulateDevices(void* window)
 void DeInit()
 {
 }
-}  // namespace Quartz
-}  // namespace ciface
+}  // namespace ciface::Quartz

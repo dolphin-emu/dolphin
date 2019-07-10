@@ -5,8 +5,10 @@
 #include "DolphinQt/Config/ARCodeWidget.h"
 
 #include <QButtonGroup>
+#include <QCursor>
 #include <QHBoxLayout>
 #include <QListWidget>
+#include <QMenu>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -49,6 +51,8 @@ void ARCodeWidget::CreateWidgets()
   m_code_edit = new QPushButton(tr("&Edit Code..."));
   m_code_remove = new QPushButton(tr("&Remove Code"));
 
+  m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
+
   auto* button_layout = new QHBoxLayout;
 
   button_layout->addWidget(m_code_add);
@@ -68,8 +72,13 @@ void ARCodeWidget::ConnectWidgets()
 {
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &ARCodeWidget::OpenGeneralSettings);
+
   connect(m_code_list, &QListWidget::itemChanged, this, &ARCodeWidget::OnItemChanged);
   connect(m_code_list, &QListWidget::itemSelectionChanged, this, &ARCodeWidget::OnSelectionChanged);
+  connect(m_code_list->model(), &QAbstractItemModel::rowsMoved, this,
+          &ARCodeWidget::OnListReordered);
+  connect(m_code_list, &QListWidget::customContextMenuRequested, this,
+          &ARCodeWidget::OnContextMenuRequested);
 
   connect(m_code_add, &QPushButton::pressed, this, &ARCodeWidget::OnCodeAddPressed);
   connect(m_code_edit, &QPushButton::pressed, this, &ARCodeWidget::OnCodeEditPressed);
@@ -82,6 +91,40 @@ void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
 
   if (!m_restart_required)
     ActionReplay::ApplyCodes(m_ar_codes);
+
+  UpdateList();
+  SaveCodes();
+}
+
+void ARCodeWidget::OnContextMenuRequested()
+{
+  QMenu menu;
+
+  menu.addAction(tr("Sort Alphabetically"), this, &ARCodeWidget::SortAlphabetically);
+
+  menu.exec(QCursor::pos());
+}
+
+void ARCodeWidget::SortAlphabetically()
+{
+  m_code_list->sortItems();
+  OnListReordered();
+}
+
+void ARCodeWidget::OnListReordered()
+{
+  // Reorder codes based on the indices of table item
+  std::vector<ActionReplay::ARCode> codes;
+  codes.reserve(m_ar_codes.size());
+
+  for (int i = 0; i < m_code_list->count(); i++)
+  {
+    const int index = m_code_list->item(i)->data(Qt::UserRole).toInt();
+
+    codes.push_back(std::move(m_ar_codes[index]));
+  }
+
+  m_ar_codes = std::move(codes);
 
   SaveCodes();
 }
@@ -105,17 +148,22 @@ void ARCodeWidget::UpdateList()
 {
   m_code_list->clear();
 
-  for (const auto& ar : m_ar_codes)
+  for (size_t i = 0; i < m_ar_codes.size(); i++)
   {
+    const auto& ar = m_ar_codes[i];
     auto* item = new QListWidgetItem(QString::fromStdString(ar.name)
                                          .replace(QStringLiteral("&lt;"), QStringLiteral("<"))
                                          .replace(QStringLiteral("&gt;"), QStringLiteral(">")));
 
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
+                   Qt::ItemIsDragEnabled);
     item->setCheckState(ar.active ? Qt::Checked : Qt::Unchecked);
+    item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);
   }
+
+  m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
 }
 
 void ARCodeWidget::SaveCodes()

@@ -151,7 +151,7 @@ void Host_TitleChanged()
 {
 }
 
-static bool MsgAlert(const char* caption, const char* text, bool yes_no, MsgType /*style*/)
+static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType /*style*/)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -630,7 +630,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool first_o
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
 
-  RegisterMsgAlertHandler(&MsgAlert);
+  Common::RegisterMsgAlertHandler(&MsgAlert);
   Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
 
@@ -639,7 +639,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool first_o
 
   if (first_open)
   {
-    DolphinAnalytics::Instance()->ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
+    DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
   }
 
   WiimoteReal::InitAdapterClass();

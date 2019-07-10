@@ -86,7 +86,7 @@
     <ClCompile Include="VertexShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
-    <ClCompile Include="AVIDump.cpp">
+    <ClCompile Include="FrameDump.cpp">
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="FPSCounter.cpp">
@@ -275,7 +275,7 @@
     <ClInclude Include="VertexShaderManager.h">
       <Filter>Shader Managers</Filter>
     </ClInclude>
-    <ClInclude Include="AVIDump.h">
+    <ClInclude Include="FrameDump.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="FPSCounter.h">

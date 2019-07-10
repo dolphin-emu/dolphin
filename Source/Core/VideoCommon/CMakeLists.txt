@@ -157,8 +157,8 @@ endif()
 
 if(FFmpeg_FOUND)
   target_sources(videocommon PRIVATE
-    AVIDump.cpp
-    AVIDump.h
+    FrameDump.cpp
+    FrameDump.h
   )
   target_link_libraries(videocommon PRIVATE
     FFmpeg::avcodec

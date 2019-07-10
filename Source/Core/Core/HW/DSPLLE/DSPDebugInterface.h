@@ -10,9 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 
-namespace DSP
-{
-namespace LLE
+namespace DSP::LLE
 {
 class DSPPatches : public Common::Debug::MemoryPatches
 {
@@ -79,5 +77,4 @@ private:
   Common::Debug::Watches m_watches;
   DSPPatches m_patches;
 };
-}  // namespace LLE
-}  // namespace DSP
+}  // namespace DSP::LLE

@@ -15,11 +15,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 constexpr IOS::HLE::FS::Fd INVALID_FD = 0xffffffff;
 
@@ -90,6 +86,4 @@ private:
   u16 m_cache_chain_index = 0;
   bool m_dirty_cache = false;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -38,14 +38,7 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
   PopulateTable();
   ConnectWidgets();
 
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (Settings::Instance().IsDebugModeEnabled() && Core::GetState() == Core::State::Paused)
-    {
-      m_updating = true;
-      emit UpdateTable();
-      m_updating = false;
-    }
-  });
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged,
           [this](bool visible) { setHidden(!visible); });
@@ -66,6 +59,11 @@ RegisterWidget::~RegisterWidget()
 void RegisterWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetRegistersVisible(false);
+}
+
+void RegisterWidget::showEvent(QShowEvent* event)
+{
+  Update();
 }
 
 void RegisterWidget::CreateWidgets()
@@ -374,4 +372,14 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
   }
 
   connect(this, &RegisterWidget::UpdateTable, [value] { value->RefreshValue(); });
+}
+
+void RegisterWidget::Update()
+{
+  if (isVisible() && Core::GetState() == Core::State::Paused)
+  {
+    m_updating = true;
+    emit UpdateTable();
+    m_updating = false;
+  }
 }

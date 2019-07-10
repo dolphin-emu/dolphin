@@ -30,9 +30,7 @@ static void WriteToBackLog(int i, int idx, u16 value)
   writeBackLogIdx[i] = idx;
 }
 
-namespace Interpreter
-{
-namespace Ext
+namespace Interpreter::Ext
 {
 static bool IsSameMemArea(u16 a, u16 b)
 {
@@ -493,9 +491,7 @@ void ldaxnm(const UDSPInstruction opc)
 void nop(const UDSPInstruction opc)
 {
 }
-
-}  // namespace Ext
-}  // namespace Interpreter
+}  // namespace Interpreter::Ext
 
 // The ext ops are calculated in parallel with the actual op. That means that
 // both the main op and the ext op see the same register state as input. The

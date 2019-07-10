@@ -4,12 +4,9 @@
 
 #pragma once
 
-namespace ciface
-{
-namespace Win32
+namespace ciface::Win32
 {
 void Init(void* hwnd);
 void PopulateDevices(void* hwnd);
 void DeInit();
-}  // namespace Win32
-}  // namespace ciface
+}  // namespace ciface::Win32

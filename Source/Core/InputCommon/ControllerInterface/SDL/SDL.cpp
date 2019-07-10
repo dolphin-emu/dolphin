@@ -19,9 +19,7 @@
 #pragma comment(lib, "SDL2.lib")
 #endif
 
-namespace ciface
-{
-namespace SDL
+namespace ciface::SDL
 {
 static std::string GetJoystickName(int index)
 {
@@ -491,5 +489,4 @@ ControlState Joystick::Hat::GetState() const
 {
   return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
 }
-}  // namespace SDL
-}  // namespace ciface
+}  // namespace ciface::SDL

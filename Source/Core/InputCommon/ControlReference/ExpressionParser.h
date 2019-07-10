@@ -9,9 +9,7 @@
 #include <utility>
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace ExpressionParser
+namespace ciface::ExpressionParser
 {
 class ControlQualifier
 {
@@ -66,5 +64,4 @@ enum class ParseStatus
 };
 
 std::pair<ParseStatus, std::unique_ptr<Expression>> ParseExpression(const std::string& expr);
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser

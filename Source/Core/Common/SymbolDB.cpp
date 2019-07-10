@@ -63,7 +63,7 @@ void SymbolDB::Index()
   }
 }
 
-Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
+Symbol* SymbolDB::GetSymbolFromName(std::string_view name)
 {
   for (auto& func : m_functions)
   {
@@ -74,7 +74,7 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
   return nullptr;
 }
 
-std::vector<Symbol*> SymbolDB::GetSymbolsFromName(const std::string& name)
+std::vector<Symbol*> SymbolDB::GetSymbolsFromName(std::string_view name)
 {
   std::vector<Symbol*> symbols;
 

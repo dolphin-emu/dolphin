@@ -9,9 +9,7 @@
 #include <Windows.h>
 #include <SetupAPI.h>
 
-namespace ciface
-{
-namespace DInput
+namespace ciface::DInput
 {
 // Code for enumerating hardware devices that use the XINPUT device driver.
 // The MSDN recommended code suffers from massive performance problems when using language packs,
@@ -76,5 +74,4 @@ std::unordered_set<DWORD> GetXInputGUIDS()
   SetupDiDestroyDeviceInfoList(setup_enum);
   return guids;
 }
-}  // namespace DInput
-}  // namespace ciface
+}  // namespace ciface::DInput

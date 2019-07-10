@@ -9,9 +9,7 @@
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
 
-namespace ciface
-{
-namespace Quartz
+namespace ciface::Quartz
 {
 std::string KeycodeToName(const CGKeyCode keycode)
 {
@@ -223,5 +221,4 @@ std::string KeyboardAndMouse::Button::GetName() const
     return "Right Click";
   return std::string("Click ") + char('0' + m_button);
 }
-}  // namespace Quartz
-}  // namespace ciface
+}  // namespace ciface::Quartz

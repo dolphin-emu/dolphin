@@ -9,9 +9,7 @@
 
 #include "Common/Thread.h"
 
-namespace ciface
-{
-namespace ForceFeedback
+namespace ciface::ForceFeedback
 {
 // Template instantiation:
 template class ForceFeedbackDevice::TypedForce<DICONSTANTFORCE>;
@@ -257,6 +255,4 @@ void ForceFeedbackDevice::Force::Release()
   m_effect->Unload();
   m_effect->Release();
 }
-
-}  // namespace ForceFeedback
-}  // namespace ciface
+}  // namespace ciface::ForceFeedback

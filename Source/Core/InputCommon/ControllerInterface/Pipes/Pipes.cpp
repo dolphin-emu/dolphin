@@ -20,9 +20,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
-namespace ciface
-{
-namespace Pipes
+namespace ciface::Pipes
 {
 static const std::array<std::string, 12> s_button_tokens{
     {"A", "B", "X", "Y", "Z", "START", "L", "R", "D_UP", "D_DOWN", "D_LEFT", "D_RIGHT"}};
@@ -161,5 +159,4 @@ void PipeDevice::ParseCommand(const std::string& command)
     }
   }
 }
-}  // namespace Pipes
-}  // namespace ciface
+}  // namespace ciface::Pipes

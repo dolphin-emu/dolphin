@@ -322,7 +322,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
     Common::SetCurrentThreadName("CPU-GPU thread");
 
   // This needs to be delayed until after the video backend is ready.
-  DolphinAnalytics::Instance()->ReportGameStart();
+  DolphinAnalytics::Instance().ReportGameStart();
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch

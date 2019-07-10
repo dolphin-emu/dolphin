@@ -24,9 +24,7 @@
 
 #include "VideoCommon/VideoConfig.h"
 
-namespace Vulkan
-{
-namespace ShaderCompiler
+namespace Vulkan::ShaderCompiler
 {
 // Registers itself for cleanup via atexit
 bool InitializeGlslang();
@@ -375,6 +373,4 @@ std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code
 {
   return CompileShaderToSPV(EShLangCompute, "cs", source_code, COMPUTE_SHADER_HEADER);
 }
-
-}  // namespace ShaderCompiler
-}  // namespace Vulkan
+}  // namespace Vulkan::ShaderCompiler

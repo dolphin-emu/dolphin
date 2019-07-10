@@ -53,14 +53,10 @@ DolphinAnalytics::DolphinAnalytics()
   MakeBaseBuilder();
 }
 
-std::shared_ptr<DolphinAnalytics> DolphinAnalytics::Instance()
+DolphinAnalytics& DolphinAnalytics::Instance()
 {
-  std::lock_guard lk{s_instance_mutex};
-  if (!s_instance)
-  {
-    s_instance.reset(new DolphinAnalytics());
-  }
-  return s_instance;
+  static DolphinAnalytics instance;
+  return instance;
 }
 
 void DolphinAnalytics::ReloadConfig()

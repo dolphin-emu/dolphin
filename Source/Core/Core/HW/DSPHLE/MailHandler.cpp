@@ -12,9 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/HW/DSP.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 CMailHandler::CMailHandler()
 {
@@ -135,5 +133,4 @@ void CMailHandler::DoState(PointerWrap& p)
     }
   }
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

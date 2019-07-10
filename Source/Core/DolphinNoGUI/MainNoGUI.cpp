@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
   sigaction(SIGINT, &sa, nullptr);
   sigaction(SIGTERM, &sa, nullptr);
 
-  DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
+  DolphinAnalytics::Instance().ReportDolphinStart("nogui");
 
   if (!BootManager::BootCore(std::move(boot), s_platform->GetWindowSystemInfo()))
   {

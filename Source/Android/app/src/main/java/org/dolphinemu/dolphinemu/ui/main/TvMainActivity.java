@@ -132,12 +132,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
-  public void refreshFragmentScreenshot(int fragmentPosition)
-  {
-    mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
-  }
-
-  @Override
   public void launchSettingsActivity(MenuTag menuTag)
   {
     SettingsActivity.launch(this, menuTag, "");
@@ -176,10 +170,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
         {
           mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
         }
-        break;
-
-      case MainPresenter.REQUEST_EMULATE_GAME:
-        mPresenter.refreshFragmentScreenshot(resultCode);
         break;
     }
   }

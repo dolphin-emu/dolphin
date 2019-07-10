@@ -36,7 +36,7 @@ class DolphinAnalytics
 {
 public:
   // Performs lazy-initialization of a singleton and returns the instance.
-  static std::shared_ptr<DolphinAnalytics> Instance();
+  static DolphinAnalytics& Instance();
 
 #if defined(ANDROID)
   // Get value from java.
@@ -124,9 +124,4 @@ private:
 
   std::mutex m_reporter_mutex;
   Common::AnalyticsReporter m_reporter;
-
-  // Shared pointer in order to allow for multithreaded use of the instance and
-  // avoid races at reinitialization time.
-  static inline std::mutex s_instance_mutex;
-  static inline std::shared_ptr<DolphinAnalytics> s_instance;
 };
