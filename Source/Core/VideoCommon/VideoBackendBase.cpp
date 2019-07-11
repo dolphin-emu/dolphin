@@ -260,6 +260,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
     // Clear all caches that touch RAM
     // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
     VertexLoaderManager::MarkAllDirty();
+    VertexLoaderManager::UpdateCyclesPerVertex();
   }
 }
 

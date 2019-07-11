@@ -34,8 +34,12 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
 // offsets set to the unused attributes.
 NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
 
+// Updates the number of cycles required to process a vertex, using the current GP/XF config.
+void UpdateCyclesPerVertex();
+
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess);
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess,
+                u32& cycles);
 
 // For debugging
 std::string VertexLoadersToString();
