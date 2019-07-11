@@ -38,11 +38,6 @@ private:
   std::unique_ptr<Impl> m_impl;
 };
 
-// Use this to get a libusb context. Do *not* use any other context
-// because some libusb backends such as UsbDk only work properly with a single context.
-// Additionally, device lists must be retrieved using GetDeviceList for thread safety reasons.
-Context& GetContext();
-
 using ConfigDescriptor = UniquePtr<libusb_config_descriptor>;
 ConfigDescriptor MakeConfigDescriptor(libusb_device* device, u8 config_num = 0);
 }  // namespace LibusbUtils

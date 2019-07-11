@@ -24,7 +24,6 @@
 #include "Core/Core.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/LibusbDevice.h"
-#include "Core/LibusbUtils.h"
 
 namespace IOS::HLE::Device
 {
@@ -121,10 +120,9 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
   if (SConfig::GetInstance().m_usb_passthrough_devices.empty())
     return true;
 
-  auto& context = LibusbUtils::GetContext();
-  if (context.IsValid())
+  if (m_context.IsValid())
   {
-    context.GetDeviceList([&](libusb_device* device) {
+    m_context.GetDeviceList([&](libusb_device* device) {
       libusb_device_descriptor descriptor;
       libusb_get_device_descriptor(device, &descriptor);
       const std::pair<u16, u16> vid_pid = {descriptor.idVendor, descriptor.idProduct};

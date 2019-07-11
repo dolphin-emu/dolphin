@@ -20,6 +20,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Common.h"
+#include "Core/LibusbUtils.h"
 
 class PointerWrap;
 
@@ -71,5 +72,6 @@ private:
   std::thread m_scan_thread;
   Common::Event m_first_scan_complete_event;
   bool m_has_initialised = false;
+  LibusbUtils::Context m_context;
 };
 }  // namespace IOS::HLE::Device
