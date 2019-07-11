@@ -45,7 +45,7 @@ class CSIDevice_GBA : public ISIDevice
 public:
   CSIDevice_GBA(SIDevices device, int device_number);
 
-  int RunBuffer(u8* buffer, int length) override;
+  int RunBuffer(u8* buffer, int request_length) override;
   int TransferInterval() override;
   bool GetData(u32& hi, u32& low) override;
   void SendCommand(u32 command, u8 poll) override;

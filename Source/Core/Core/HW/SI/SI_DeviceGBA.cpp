@@ -290,7 +290,7 @@ CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(de
 {
 }
 
-int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
+int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
 {
   switch (m_next_action)
   {

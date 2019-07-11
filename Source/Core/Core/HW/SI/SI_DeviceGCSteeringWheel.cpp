@@ -20,10 +20,10 @@ CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(SIDevices device, int devic
 {
 }
 
-int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int length)
+int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
 {
   // For debug logging only
-  ISIDevice::RunBuffer(buffer, length);
+  ISIDevice::RunBuffer(buffer, request_length);
 
   // Read the command
   EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
@@ -36,14 +36,11 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int length)
   {
     u32 id = Common::swap32(SI_GC_STEERING);
     std::memcpy(buffer, &id, sizeof(id));
-    break;
+    return sizeof(id);
+  }
   }
 
-  default:
-    return CSIDevice_GCController::RunBuffer(buffer, length);
-  }
-
-  return length;
+  return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
 bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)

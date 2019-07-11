@@ -17,24 +17,19 @@ CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int device_number)
 {
 }
 
-int CSIDevice_DanceMat::RunBuffer(u8* buffer, int length)
+int CSIDevice_DanceMat::RunBuffer(u8* buffer, int request_length)
 {
   // Read the command
   EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
-
   if (command == CMD_RESET)
   {
-    ISIDevice::RunBuffer(buffer, length);
+    ISIDevice::RunBuffer(buffer, request_length);
 
     u32 id = Common::swap32(SI_DANCEMAT);
     std::memcpy(buffer, &id, sizeof(id));
+    return sizeof(id);
   }
-  else
-  {
-    return CSIDevice_GCController::RunBuffer(buffer, length);
-  }
-
-  return length;
+  return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
 u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
