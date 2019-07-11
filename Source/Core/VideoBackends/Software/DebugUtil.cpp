@@ -106,7 +106,7 @@ void DumpActiveTextures()
     {
       SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.png",
                                    File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                   stats.thisFrame.numDrawnObjects, stageNum, texmap, mip),
+                                   stats.this_frame.num_drawn_objects, stageNum, texmap, mip),
                   texmap, mip);
     }
   }
@@ -124,7 +124,7 @@ void DumpActiveTextures()
     {
       SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.png",
                                    File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                   stats.thisFrame.numDrawnObjects, stageNum, texmap, mip),
+                                   stats.this_frame.num_drawn_objects, stageNum, texmap, mip),
                   texmap, mip);
     }
   }
@@ -191,32 +191,38 @@ void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char* nam
 
 void OnObjectBegin()
 {
-  if (g_ActiveConfig.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
-      stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
+  if (g_ActiveConfig.bDumpTextures &&
+      stats.this_frame.num_drawn_objects >= g_ActiveConfig.drawStart &&
+      stats.this_frame.num_drawn_objects < g_ActiveConfig.drawEnd)
+  {
     DumpActiveTextures();
+  }
 }
 
 void OnObjectEnd()
 {
-  if (g_ActiveConfig.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_ActiveConfig.drawStart &&
-      stats.thisFrame.numDrawnObjects < g_ActiveConfig.drawEnd)
+  if (g_ActiveConfig.bDumpObjects &&
+      stats.this_frame.num_drawn_objects >= g_ActiveConfig.drawStart &&
+      stats.this_frame.num_drawn_objects < g_ActiveConfig.drawEnd)
+  {
     DumpEfb(StringFromFormat("%sobject%i.png", File::GetUserPath(D_DUMPOBJECTS_IDX).c_str(),
-                             stats.thisFrame.numDrawnObjects));
+                             stats.this_frame.num_drawn_objects));
+  }
 
   for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
   {
     if (DrawnToBuffer[i])
     {
       DrawnToBuffer[i] = false;
-      std::string filename =
-          StringFromFormat("%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPOBJECTS_IDX).c_str(),
-                           stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
+      std::string filename = StringFromFormat(
+          "%sobject%i_%s(%i).png", File::GetUserPath(D_DUMPOBJECTS_IDX).c_str(),
+          stats.this_frame.num_drawn_objects, ObjectBufferName[i], i - BufferBase[i]);
 
       TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
       memset(ObjectBuffer[i], 0, EFB_WIDTH * EFB_HEIGHT * sizeof(u32));
     }
   }
 
-  stats.thisFrame.numDrawnObjects++;
+  stats.this_frame.num_drawn_objects++;
 }
 }  // namespace DebugUtil

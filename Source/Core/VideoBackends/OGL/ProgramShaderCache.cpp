@@ -158,7 +158,7 @@ void SHADER::Bind() const
 {
   if (CurrentProgram != glprogid)
   {
-    INCSTAT(stats.thisFrame.numShaderChanges);
+    INCSTAT(stats.this_frame.num_shader_changes);
     glUseProgram(glprogid);
     CurrentProgram = glprogid;
   }
@@ -248,7 +248,7 @@ void ProgramShaderCache::UploadConstants()
     VertexShaderManager::dirty = false;
     GeometryShaderManager::dirty = false;
 
-    ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
+    ADDSTAT(stats.this_frame.bytes_uniform_streamed, s_ubo_buffer_size);
   }
 }
 
@@ -264,7 +264,7 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   for (u32 index = 1; index <= 3; index++)
     glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
 
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
+  ADDSTAT(stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
 bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string& code)

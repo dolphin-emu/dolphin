@@ -8,16 +8,16 @@
 
 struct Statistics
 {
-  int numPixelShadersCreated;
-  int numPixelShadersAlive;
-  int numVertexShadersCreated;
-  int numVertexShadersAlive;
+  int num_pixel_shaders_created;
+  int num_pixel_shaders_alive;
+  int num_vertex_shaders_created;
+  int num_vertex_shaders_alive;
 
-  int numTexturesCreated;
-  int numTexturesUploaded;
-  int numTexturesAlive;
+  int num_textures_created;
+  int num_textures_uploaded;
+  int num_textures_alive;
 
-  int numVertexLoaders;
+  int num_vertex_loaders;
 
   std::array<float, 6> proj;
   std::array<float, 16> gproj;
@@ -25,42 +25,42 @@ struct Statistics
 
   struct ThisFrame
   {
-    int numBPLoads;
-    int numCPLoads;
-    int numXFLoads;
+    int num_bp_loads;
+    int num_cp_loads;
+    int num_xf_loads;
 
-    int numBPLoadsInDL;
-    int numCPLoadsInDL;
-    int numXFLoadsInDL;
+    int num_bp_loads_in_dl;
+    int num_cp_loads_in_dl;
+    int num_xf_loads_in_dl;
 
-    int numPrims;
-    int numDLPrims;
-    int numShaderChanges;
+    int num_prims;
+    int num_dl_prims;
+    int num_shader_changes;
 
-    int numPrimitiveJoins;
-    int numDrawCalls;
+    int num_primitive_joins;
+    int num_draw_calls;
 
-    int numDListsCalled;
+    int num_dlists_called;
 
-    int bytesVertexStreamed;
-    int bytesIndexStreamed;
-    int bytesUniformStreamed;
+    int bytes_vertex_streamed;
+    int bytes_index_streamed;
+    int bytes_uniform_streamed;
 
-    int numTrianglesClipped;
-    int numTrianglesIn;
-    int numTrianglesRejected;
-    int numTrianglesCulled;
-    int numDrawnObjects;
-    int rasterizedPixels;
-    int numTrianglesDrawn;
-    int numVerticesLoaded;
-    int tevPixelsIn;
-    int tevPixelsOut;
+    int num_triangles_clipped;
+    int num_triangles_in;
+    int num_triangles_rejected;
+    int num_triangles_culled;
+    int num_drawn_objects;
+    int rasterized_pixels;
+    int num_triangles_drawn;
+    int num_vertices_loaded;
+    int tev_pixels_in;
+    int tev_pixels_out;
 
-    int numEFBPeeks;
-    int numEFBPokes;
+    int num_efb_peeks;
+    int num_efb_pokes;
   };
-  ThisFrame thisFrame;
+  ThisFrame this_frame;
   void ResetFrame();
   static void SwapDL();
   static void Display();

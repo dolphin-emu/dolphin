@@ -221,12 +221,12 @@ void ShaderCache::LoadShaderCache(T& cache, APIType api_type, const char* type, 
         switch (stage)
         {
         case ShaderStage::Vertex:
-          INCSTAT(stats.numVertexShadersCreated);
-          INCSTAT(stats.numVertexShadersAlive);
+          INCSTAT(stats.num_vertex_shaders_created);
+          INCSTAT(stats.num_vertex_shaders_alive);
           break;
         case ShaderStage::Pixel:
-          INCSTAT(stats.numPixelShadersCreated);
-          INCSTAT(stats.numPixelShadersAlive);
+          INCSTAT(stats.num_pixel_shaders_created);
+          INCSTAT(stats.num_pixel_shaders_alive);
           break;
         default:
           break;
@@ -369,10 +369,10 @@ void ShaderCache::ClearCaches()
   ClearShaderCache(m_uber_vs_cache);
   ClearShaderCache(m_uber_ps_cache);
 
-  SETSTAT(stats.numPixelShadersCreated, 0);
-  SETSTAT(stats.numPixelShadersAlive, 0);
-  SETSTAT(stats.numVertexShadersCreated, 0);
-  SETSTAT(stats.numVertexShadersAlive, 0);
+  SETSTAT(stats.num_pixel_shaders_created, 0);
+  SETSTAT(stats.num_pixel_shaders_alive, 0);
+  SETSTAT(stats.num_vertex_shaders_created, 0);
+  SETSTAT(stats.num_vertex_shaders_alive, 0);
 }
 
 void ShaderCache::CompileMissingPipelines()
@@ -434,8 +434,8 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
       if (!binary.empty())
         m_vs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
-    INCSTAT(stats.numVertexShadersCreated);
-    INCSTAT(stats.numVertexShadersAlive);
+    INCSTAT(stats.num_vertex_shaders_created);
+    INCSTAT(stats.num_vertex_shaders_alive);
     entry.shader = std::move(shader);
   }
 
@@ -456,8 +456,8 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
       if (!binary.empty())
         m_uber_vs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
-    INCSTAT(stats.numVertexShadersCreated);
-    INCSTAT(stats.numVertexShadersAlive);
+    INCSTAT(stats.num_vertex_shaders_created);
+    INCSTAT(stats.num_vertex_shaders_alive);
     entry.shader = std::move(shader);
   }
 
@@ -478,8 +478,8 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
       if (!binary.empty())
         m_ps_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
-    INCSTAT(stats.numPixelShadersCreated);
-    INCSTAT(stats.numPixelShadersAlive);
+    INCSTAT(stats.num_pixel_shaders_created);
+    INCSTAT(stats.num_pixel_shaders_alive);
     entry.shader = std::move(shader);
   }
 
@@ -500,8 +500,8 @@ const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::Pixel
       if (!binary.empty())
         m_uber_ps_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
-    INCSTAT(stats.numPixelShadersCreated);
-    INCSTAT(stats.numPixelShadersAlive);
+    INCSTAT(stats.num_pixel_shaders_created);
+    INCSTAT(stats.num_pixel_shaders_alive);
     entry.shader = std::move(shader);
   }
 

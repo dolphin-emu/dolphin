@@ -54,7 +54,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
     Statistics::SwapDL();
 
     Run(DataReader(startAddress, startAddress + size), &cycles, true);
-    INCSTAT(stats.thisFrame.numDListsCalled);
+    INCSTAT(stats.this_frame.num_dlists_called);
 
     // un-swap
     Statistics::SwapDL();
@@ -114,7 +114,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       u32 value = src.Read<u32>();
       LoadCPReg(sub_cmd, value, is_preprocess);
       if (!is_preprocess)
-        INCSTAT(stats.thisFrame.numCPLoads);
+        INCSTAT(stats.this_frame.num_cp_loads);
     }
     break;
 
@@ -132,7 +132,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         u32 xf_address = Cmd2 & 0xFFFF;
         LoadXFReg(transfer_size, xf_address, src);
 
-        INCSTAT(stats.thisFrame.numXFLoads);
+        INCSTAT(stats.this_frame.num_xf_loads);
       }
       src.Skip<u32>(transfer_size);
     }
@@ -208,7 +208,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         else
         {
           LoadBPReg(bp_cmd);
-          INCSTAT(stats.thisFrame.numBPLoads);
+          INCSTAT(stats.this_frame.num_bp_loads);
         }
       }
       break;

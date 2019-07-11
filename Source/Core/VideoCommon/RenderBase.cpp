@@ -1280,8 +1280,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
       DolphinAnalytics::PerformanceSample perf_sample;
       perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
-      perf_sample.num_prims = stats.thisFrame.numPrims + stats.thisFrame.numDLPrims;
-      perf_sample.num_draw_calls = stats.thisFrame.numDrawCalls;
+      perf_sample.num_prims = stats.this_frame.num_prims + stats.this_frame.num_dl_prims;
+      perf_sample.num_draw_calls = stats.this_frame.num_draw_calls;
       DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
       if (IsFrameDumping())

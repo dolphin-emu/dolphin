@@ -442,7 +442,7 @@ void VertexManagerBase::Flush()
         g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
       DrawCurrentBatch(base_index, num_indices, base_vertex);
-      INCSTAT(stats.thisFrame.numDrawCalls);
+      INCSTAT(stats.this_frame.num_draw_calls);
 
       if (PerfQueryBase::ShouldEmulate())
         g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
