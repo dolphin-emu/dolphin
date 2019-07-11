@@ -1200,8 +1200,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     }
   }
 
-  INCSTAT(stats.numTexturesUploaded);
-  SETSTAT(stats.numTexturesAlive, textures_by_address.size());
+  INCSTAT(g_stats.num_textures_uploaded);
+  SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
 
   entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
 
@@ -1277,8 +1277,8 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
 
   // Insert into the texture cache so we can re-use it next frame, if needed.
   textures_by_address.emplace(entry->addr, entry);
-  SETSTAT(stats.numTexturesAlive, textures_by_address.size());
-  INCSTAT(stats.numTexturesUploaded);
+  SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
+  INCSTAT(g_stats.num_textures_uploaded);
 
   if (g_ActiveConfig.bDumpXFBTarget)
   {
@@ -2017,7 +2017,7 @@ TextureCacheBase::AllocateTexture(const TextureConfig& config)
     }
   }
 
-  INCSTAT(stats.numTexturesCreated);
+  INCSTAT(g_stats.num_textures_created);
   return TexPoolEntry(std::move(texture), std::move(framebuffer));
 }
 

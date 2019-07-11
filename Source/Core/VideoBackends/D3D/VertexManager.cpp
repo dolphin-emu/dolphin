@@ -50,7 +50,7 @@ static void UpdateConstantBuffer(ID3D11Buffer* const buffer, const void* data, u
   memcpy(map.pData, data, data_size);
   D3D::context->Unmap(buffer, 0);
 
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
+  ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
 static ComPtr<ID3D11ShaderResourceView>
@@ -166,7 +166,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
 
   *out_offset = m_texel_buffer_offset / elem_size;
   std::memcpy(static_cast<u8*>(sr.pData) + m_texel_buffer_offset, data, data_size);
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
+  ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
   m_texel_buffer_offset += data_size;
 
   D3D::context->Unmap(m_texel_buffer.Get(), 0);
@@ -194,7 +194,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   std::memcpy(static_cast<u8*>(sr.pData) + m_texel_buffer_offset, data, data_size);
   std::memcpy(static_cast<u8*>(sr.pData) + m_texel_buffer_offset + palette_byte_offset,
               palette_data, palette_size);
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, palette_byte_offset + palette_size);
+  ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, palette_byte_offset + palette_size);
   *out_offset = m_texel_buffer_offset / elem_size;
   *out_palette_offset = (m_texel_buffer_offset + palette_byte_offset) / palette_elem_size;
   m_texel_buffer_offset += palette_byte_offset + palette_size;
@@ -251,8 +251,8 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
 
   m_buffer_cursor = cursor + totalBufferSize;
 
-  ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertexBufferSize);
-  ADDSTAT(stats.thisFrame.bytesIndexStreamed, indexBufferSize);
+  ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, vertexBufferSize);
+  ADDSTAT(g_stats.this_frame.bytes_index_streamed, indexBufferSize);
 
   D3D::stateman->SetVertexBuffer(m_buffers[m_current_buffer].Get(), vertex_stride, 0);
   D3D::stateman->SetIndexBuffer(m_buffers[m_current_buffer].Get());

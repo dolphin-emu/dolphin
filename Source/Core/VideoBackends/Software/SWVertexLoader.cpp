@@ -91,7 +91,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     // assemble and rasterize the primitive
     m_setup_unit.SetupVertex();
 
-    INCSTAT(stats.thisFrame.numVerticesLoaded)
+    INCSTAT(g_stats.this_frame.num_vertices_loaded)
   }
 
   DebugUtil::OnObjectEnd();

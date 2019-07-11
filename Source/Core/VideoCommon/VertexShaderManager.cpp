@@ -374,7 +374,7 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[14] = -1.0f;
       g_fProjectionMatrix[15] = 0.0f;
 
-      stats.gproj = g_fProjectionMatrix;
+      g_stats.gproj = g_fProjectionMatrix;
       break;
 
     case GX_ORTHOGRAPHIC:
@@ -399,8 +399,8 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[14] = 0.0f;
       g_fProjectionMatrix[15] = 1.0f;
 
-      stats.g2proj = g_fProjectionMatrix;
-      stats.proj = rawProjection;
+      g_stats.g2proj = g_fProjectionMatrix;
+      g_stats.proj = rawProjection;
       break;
 
     default:

@@ -105,7 +105,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   const u32 elem_size = GetTexelBufferElementSize(format);
   const auto dst = m_texel_buffer->Map(data_size, elem_size);
   std::memcpy(dst.first, data, data_size);
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
+  ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
   *out_offset = dst.second / elem_size;
   m_texel_buffer->Unmap(data_size);
 
@@ -130,7 +130,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   const u32 palette_byte_offset = Common::AlignUp(data_size, palette_elem_size);
   std::memcpy(dst.first, data, data_size);
   std::memcpy(dst.first + palette_byte_offset, palette_data, palette_size);
-  ADDSTAT(stats.thisFrame.bytesUniformStreamed, palette_byte_offset + palette_size);
+  ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, palette_byte_offset + palette_size);
   *out_offset = dst.second / elem_size;
   *out_palette_offset = (dst.second + palette_byte_offset) / palette_elem_size;
   m_texel_buffer->Unmap(palette_byte_offset + palette_size);
@@ -181,8 +181,8 @@ void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_in
   m_vertex_buffer->Unmap(vertex_data_size);
   m_index_buffer->Unmap(index_data_size);
 
-  ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
-  ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
+  ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, vertex_data_size);
+  ADDSTAT(g_stats.this_frame.bytes_index_streamed, index_data_size);
 }
 
 void VertexManager::UploadUniforms()
