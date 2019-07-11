@@ -133,7 +133,8 @@ void FrameUpdateOnCPUThread()
 void OnFrameEnd()
 {
 #ifdef USE_MEMORYWATCHER
-  s_memory_watcher->Step();
+  if (s_memory_watcher)
+    s_memory_watcher->Step();
 #endif
 }
 
