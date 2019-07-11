@@ -54,7 +54,7 @@ void Init()
     map_entry = nullptr;
   for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
     map_entry = nullptr;
-  SETSTAT(stats.num_vertex_loaders, 0);
+  SETSTAT(g_stats.num_vertex_loaders, 0);
 }
 
 void Clear()
@@ -223,7 +223,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       s_vertex_loader_map[uid] =
           VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
       loader = s_vertex_loader_map[uid].get();
-      INCSTAT(stats.num_vertex_loaders);
+      INCSTAT(g_stats.num_vertex_loaders);
     }
     if (check_for_native_format)
     {
@@ -287,8 +287,8 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
   g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
 
-  ADDSTAT(stats.this_frame.num_prims, count);
-  INCSTAT(stats.this_frame.num_primitive_joins);
+  ADDSTAT(g_stats.this_frame.num_prims, count);
+  INCSTAT(g_stats.this_frame.num_primitive_joins);
   return size;
 }
 

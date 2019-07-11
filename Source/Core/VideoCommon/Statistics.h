@@ -67,7 +67,7 @@ struct Statistics
   void DisplayProj() const;
 };
 
-extern Statistics stats;
+extern Statistics g_stats;
 
 #define STATISTICS
 

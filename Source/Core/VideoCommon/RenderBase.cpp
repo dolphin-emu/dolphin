@@ -524,7 +524,7 @@ void Renderer::DrawDebugText()
   }
 
   if (g_ActiveConfig.bOverlayStats)
-    stats.Display();
+    g_stats.Display();
 
   if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
     g_netplay_chat_ui->Display();
@@ -533,7 +533,7 @@ void Renderer::DrawDebugText()
     g_netplay_golf_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
-    stats.DisplayProj();
+    g_stats.DisplayProj();
 }
 
 float Renderer::CalculateDrawAspectRatio() const
@@ -1280,8 +1280,8 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
       DolphinAnalytics::PerformanceSample perf_sample;
       perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
-      perf_sample.num_prims = stats.this_frame.num_prims + stats.this_frame.num_dl_prims;
-      perf_sample.num_draw_calls = stats.this_frame.num_draw_calls;
+      perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
+      perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
       DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
       if (IsFrameDumping())
@@ -1289,7 +1289,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
       // Begin new frame
       m_frame_count++;
-      stats.ResetFrame();
+      g_stats.ResetFrame();
       g_shader_cache->RetrieveAsyncShaders();
       g_vertex_manager->OnEndFrame();
       BeginImGuiFrame();

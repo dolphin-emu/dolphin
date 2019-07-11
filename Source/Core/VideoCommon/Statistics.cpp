@@ -10,7 +10,7 @@
 
 #include "VideoCommon/VideoConfig.h"
 
-Statistics stats;
+Statistics g_stats;
 
 void Statistics::ResetFrame()
 {
