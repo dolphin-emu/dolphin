@@ -62,9 +62,9 @@ struct Statistics
   };
   ThisFrame this_frame;
   void ResetFrame();
-  static void SwapDL();
-  static void Display();
-  static void DisplayProj();
+  void SwapDL();
+  void Display() const;
+  void DisplayProj() const;
 };
 
 extern Statistics stats;

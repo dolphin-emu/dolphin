@@ -524,7 +524,7 @@ void Renderer::DrawDebugText()
   }
 
   if (g_ActiveConfig.bOverlayStats)
-    Statistics::Display();
+    stats.Display();
 
   if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
     g_netplay_chat_ui->Display();
@@ -533,7 +533,7 @@ void Renderer::DrawDebugText()
     g_netplay_golf_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
-    Statistics::DisplayProj();
+    stats.DisplayProj();
 }
 
 float Renderer::CalculateDrawAspectRatio() const

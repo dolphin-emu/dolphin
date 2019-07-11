@@ -51,13 +51,13 @@ static u32 InterpretDisplayList(u32 address, u32 size)
   if (startAddress != nullptr)
   {
     // temporarily swap dl and non-dl (small "hack" for the stats)
-    Statistics::SwapDL();
+    stats.SwapDL();
 
     Run(DataReader(startAddress, startAddress + size), &cycles, true);
     INCSTAT(stats.this_frame.num_dlists_called);
 
     // un-swap
-    Statistics::SwapDL();
+    stats.SwapDL();
   }
 
   return cycles;
