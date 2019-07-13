@@ -735,7 +735,7 @@ void Update(u64 ticks)
 {
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
-    SerialInterface::UpdateDevices();
+    SerialInterface::TriggerPoll();
 
     // If this setting is enabled, only poll twice per field instead of what the game wanted. It may
     // be set during NetPlay or Movie playback.
@@ -774,12 +774,12 @@ void Update(u64 ticks)
   if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
   {
     s_half_line_count = 1;
-    s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first results start at vsync
+    s_half_line_of_next_si_poll = 1;  // first results start at vsync
   }
 
   if (s_half_line_count == GetHalfLinesPerEvenField())
   {
-    s_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + num_half_lines_for_si_poll;
+    s_half_line_of_next_si_poll = GetHalfLinesPerEvenField();
   }
 
   if (s_half_line_count & 1)
