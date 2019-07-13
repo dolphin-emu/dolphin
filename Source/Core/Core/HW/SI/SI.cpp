@@ -211,8 +211,8 @@ union USIEXIClockCount
 static CoreTiming::EventType* s_change_device_event;
 static CoreTiming::EventType* s_tranfer_pending_event;
 
-static CoreTiming::EventType* s_get_response_event[4];
-static CoreTiming::EventType* s_complete_transfer_event[4];
+static CoreTiming::EventType* s_get_response_event[MAX_SI_CHANNELS];
+static CoreTiming::EventType* s_complete_transfer_event[MAX_SI_CHANNELS];
 
 // These are separate, and batch all the polls together.
 static CoreTiming::EventType* s_poll_get_response_event;
@@ -277,11 +277,13 @@ constexpr u32 ConvertSILengthField(u32 field)
   return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
 }
 
-constexpr u32 SI_MICROSECONDS_PER_BIT = 4;
-s32 EstimateTicksForXfer(size_t bit_count)
+constexpr u32 SI_MICROSECONDS_PER_BIT_FROM_CONSOLE = 5;
+constexpr u32 SI_MICROSECONDS_PER_BIT_FROM_CONTROLLER = 4;
+constexpr u32 SI_MICROSECONDS_PER_STOP_BIT = 4;
+
+s32 EstimateTicksForXfer(size_t bit_count, u32 bit_time)
 {
-  return static_cast<s32>(bit_count * SI_MICROSECONDS_PER_BIT * SystemTimers::GetTicksPerSecond() /
-                          1000000);
+  return static_cast<s32>(bit_count * bit_time * SystemTimers::GetTicksPerSecond() / 1000000);
 }
 
 constexpr u64 SI_FLAG_CHAN_MASK = 0x000000000000000full;
@@ -641,8 +643,10 @@ static void GetResponseHandler(u64 user_data, s64 cycles_late)
   {
     event = s_complete_transfer_event[s_com_csr.CHANNEL];
   }
-  CoreTiming::ScheduleEvent(EstimateTicksForXfer(expected_response_length * 8 + 1), event,
-                            user_data);
+  CoreTiming::ScheduleEvent(
+      EstimateTicksForXfer(expected_response_length * 8, SI_MICROSECONDS_PER_BIT_FROM_CONTROLLER) +
+          EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) - cycles_late,
+      event, user_data);
 }
 
 static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
@@ -662,9 +666,10 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
     device->SendRequest(s_si_buffer.data(), request_length);
 
-    CoreTiming::ScheduleEvent(EstimateTicksForXfer(request_length * 8 + 1),
-                              s_get_response_event[s_com_csr.CHANNEL],
-                              SiGetMaskForChannel(s_com_csr.CHANNEL));
+    CoreTiming::ScheduleEvent(
+        EstimateTicksForXfer(request_length * 8, SI_MICROSECONDS_PER_BIT_FROM_CONSOLE) +
+            EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) - cycles_late,
+        s_get_response_event[s_com_csr.CHANNEL], SiGetMaskForChannel(s_com_csr.CHANNEL));
 
     INFO_LOG(SERIALINTERFACE,
              "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u",
@@ -674,7 +679,7 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     //    request is N bytes, ends with a stop bit
     //    response in M bytes, ends with a stop bit
     //    processing controller-side takes K us (investigate?)
-    //    each bit takes 4us ([3us low/1us high] for a 0, [1us low/3us high] for a 1)
+    //    each bit takes 5us (from console) or 4us (from controller). Stop bits take 4us.
     //    time until response is available is at least: K + ((N*8 + 1) + (M*8 + 1)) * 4 us
   }
 }
@@ -992,19 +997,19 @@ static void ChangeDeviceDeterministic(SIDevices device, int channel)
 
 bool SiIsChannelPollEnabled(u32 channel)
 {
-  std::array<bool, 4> enabled_bits = {
+  std::array<bool, MAX_SI_CHANNELS> enabled_bits = {
       static_cast<bool>(s_poll.EN0),
       static_cast<bool>(s_poll.EN1),
       static_cast<bool>(s_poll.EN2),
       static_cast<bool>(s_poll.EN3),
   };
-  if (channel < 3)
+  if (channel < MAX_SI_CHANNELS)
   {
     return enabled_bits[channel];
   }
   return false;
 }
-void TriggerPoll()
+void TriggerPoll(s64 cycles_late)
 {
   // Check for device change requests:
   for (int i = 0; i != MAX_SI_CHANNELS; ++i)
@@ -1045,8 +1050,10 @@ void TriggerPoll()
   if (user_data & SI_FLAG_CHAN_MASK)
   {
     // poll commands have length=3
-    CoreTiming::ScheduleEvent(EstimateTicksForXfer(3 * 8 + 1), s_poll_get_response_event,
-                              user_data);
+    CoreTiming::ScheduleEvent(EstimateTicksForXfer(3 * 8, SI_MICROSECONDS_PER_BIT_FROM_CONSOLE) +
+                                  EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) -
+                                  cycles_late,
+                              s_poll_get_response_event, user_data);
 
     INFO_LOG(SERIALINTERFACE, "TriggerPoll: user_data: %x", user_data);
   }
@@ -1066,6 +1073,11 @@ SIDevices GetDeviceType(int channel)
 u32 GetPollXLines()
 {
   return s_poll.X;
+}
+
+u32 GetPollYSampleCount()
+{
+  return s_poll.Y;
 }
 
 }  // end of namespace SerialInterface

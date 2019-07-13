@@ -499,7 +499,27 @@ GCPadStatus Input(int chan)
 
 bool DeviceConnected(int chan)
 {
-  return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
+  int payload_size = 0;
+  u8 controller_payload_copy[37];
+
+  {
+    std::lock_guard<std::mutex> lk(s_mutex);
+    std::copy(std::begin(s_controller_payload), std::end(s_controller_payload),
+              std::begin(controller_payload_copy));
+    payload_size = s_controller_payload_size.load();
+  }
+
+  if (payload_size != sizeof(controller_payload_copy) ||
+      controller_payload_copy[0] != LIBUSB_DT_HID)
+  {
+    ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
+              controller_payload_copy[0]);
+    Reset();
+  }
+
+  u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
+
+  return type != ControllerTypes::CONTROLLER_NONE;
 }
 
 void ResetDeviceType(int chan)

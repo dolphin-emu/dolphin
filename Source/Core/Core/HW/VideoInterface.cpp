@@ -69,7 +69,8 @@ static constexpr std::array<u32, 2> s_clock_freqs{{
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;        // number of halflines that have occurred for this full frame
 static u32 s_half_line_of_next_si_poll;  // halfline when next SI poll results should be available
-static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1;  // this is how long an SI poll takes
+static u32 s_latched_si_poll_x;
+static u32 s_si_poll_samples_remaining;
 
 static FieldType s_current_field;
 
@@ -79,6 +80,8 @@ static u32 s_odd_field_first_hl;   // index first halfline of the odd field
 static u32 s_even_field_last_hl;   // index last halfline of the even field
 static u32 s_odd_field_last_hl;    // index last halfline of the odd field
 
+constexpr u32 DEFAULT_LINES_PER_SI_POLL =
+    131;  // Gives 2 polls per field, will be overwritten soon after boot.
 void DoState(PointerWrap& p)
 {
   p.DoPOD(m_VerticalTimingRegister);
@@ -192,8 +195,10 @@ void Preset(bool _bNTSC)
 
   s_ticks_last_line_start = 0;
   s_half_line_count = 1;
-  s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first sampling starts at vsync
+  s_half_line_of_next_si_poll = 1;  // first sampling starts at vsync
   s_current_field = FieldType::Odd;
+  s_latched_si_poll_x = DEFAULT_LINES_PER_SI_POLL;
+  s_si_poll_samples_remaining = 0;
 
   UpdateParameters();
 }
@@ -731,11 +736,13 @@ static void EndField()
 
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scanned (progressive/interlace)
-void Update(u64 ticks)
+void Update(s64 cycles_late)
 {
-  if (s_half_line_of_next_si_poll == s_half_line_count)
+  u64 ticks = CoreTiming::GetTicks() - cycles_late;
+  if ((s_half_line_of_next_si_poll == s_half_line_count) && (s_si_poll_samples_remaining != 0))
   {
-    SerialInterface::TriggerPoll();
+    SerialInterface::TriggerPoll(cycles_late);
+    s_si_poll_samples_remaining--;
 
     // If this setting is enabled, only poll twice per field instead of what the game wanted. It may
     // be set during NetPlay or Movie playback.
@@ -773,12 +780,18 @@ void Update(u64 ticks)
 
   if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
   {
+    // Relatch at vsync
+    s_latched_si_poll_x = 2 * SerialInterface::GetPollXLines();
+    s_si_poll_samples_remaining = SerialInterface::GetPollYSampleCount();
     s_half_line_count = 1;
     s_half_line_of_next_si_poll = 1;  // first results start at vsync
   }
 
   if (s_half_line_count == GetHalfLinesPerEvenField())
   {
+    // Relatch at vsync
+    s_latched_si_poll_x = 2 * SerialInterface::GetPollXLines();
+    s_si_poll_samples_remaining = SerialInterface::GetPollYSampleCount();
     s_half_line_of_next_si_poll = GetHalfLinesPerEvenField();
   }
 

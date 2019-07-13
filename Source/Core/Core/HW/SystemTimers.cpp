@@ -132,7 +132,7 @@ void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 
 void VICallback(u64 userdata, s64 cyclesLate)
 {
-  VideoInterface::Update(CoreTiming::GetTicks() - cyclesLate);
+  VideoInterface::Update(cyclesLate);
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
