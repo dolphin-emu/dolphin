@@ -36,15 +36,16 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
   case CMD_ID:
   {
     u32 id = Common::swap32(SI_GC_KEYBOARD);
-    std::memcpy(buffer, &id, sizeof(id));
-    return sizeof(id);
+    std::memcpy(buffer, &id, 3);
+    return 3;
   }
 
   case CMD_DIRECT:
   {
     INFO_LOG(SERIALINTERFACE, "Keyboard - Direct (Request Length: %d)", request_length);
     u32 high, low;
-    GetData(high, low);
+    GCPadStatus pad_status{};  // ignored
+    GetData(pad_status, high, low);
     for (int i = 0; i < 4; i++)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
@@ -68,8 +69,9 @@ KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus() const
   return Keyboard::GetStatus(m_device_number);
 }
 
-bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
+bool CSIDevice_Keyboard::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
+  // pad_status gets ignored
   KeyboardStatus key_status = GetKeyboardStatus();
   u8 key[3] = {0x00, 0x00, 0x00};
   MapKeys(key_status, key);

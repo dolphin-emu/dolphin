@@ -16,12 +16,10 @@ CSIDevice_Null::CSIDevice_Null(SIDevices device, int device_number)
 
 int CSIDevice_Null::RunBuffer(u8* buffer, int request_length)
 {
-  u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-  std::memcpy(buffer, &reply, sizeof(reply));
-  return sizeof(reply);
+  return 0;
 }
 
-bool CSIDevice_Null::GetData(u32& hi, u32& low)
+bool CSIDevice_Null::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
   hi = 0x80000000;
   return true;

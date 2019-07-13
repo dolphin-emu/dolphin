@@ -365,7 +365,7 @@ static void CompleteTransferHandler(u64 user_data, s64 cycles_late)
                 is_poll, channel, register_channel);
     }
     // RDST should not be set for non-poll
-    if (SiGetStatusFlag(SI_STAT_FLAG_RDST, channel))
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, channel))
     {
       ERROR_LOG(SERIALINTERFACE, "SI::CompleteTransferHandler: is_rdst set for channel: %u",
                 channel);
@@ -547,7 +547,7 @@ static void GetResponseHandler(u64 user_data, s64 cycles_late)
                 channel, register_channel);
     }
     // RDST should not be set for non-poll
-    if (SiGetStatusFlag(SI_STAT_FLAG_RDST, channel))
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, channel))
     {
       ERROR_LOG(SERIALINTERFACE, "SI::GetResponseHandler: is_rdst set for channel: %u", channel);
     }
@@ -622,8 +622,8 @@ static void GetResponseHandler(u64 user_data, s64 cycles_late)
           ERROR_LOG(
               SERIALINTERFACE,
               "GetResponseHandler: expected_response_length(%u) != actual_response_length(%u): "
-              "request: %s",
-              expected_response_length, actual_response_length, ss.str().c_str());
+              "request: %s user_data: %x",
+              expected_response_length, actual_response_length, ss.str().c_str(), user_data);
           if (expected_response_length < actual_response_length)
           {
             user_data |= SiGetStatusFlag(SI_STAT_FLAG_OVRUN, i);
@@ -666,9 +666,9 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
                               s_get_response_event[s_com_csr.CHANNEL],
                               SiGetMaskForChannel(s_com_csr.CHANNEL));
 
-    DEBUG_LOG(SERIALINTERFACE,
-              "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u",
-              s_com_csr.CHANNEL, request_length, expected_response_length);
+    INFO_LOG(SERIALINTERFACE,
+             "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u",
+             s_com_csr.CHANNEL, request_length, expected_response_length);
     // TODO:
     // Wait a reasonable amount of time for the result to be available:
     //    request is N bytes, ends with a stop bit
@@ -1048,7 +1048,7 @@ void TriggerPoll()
     CoreTiming::ScheduleEvent(EstimateTicksForXfer(3 * 8 + 1), s_poll_get_response_event,
                               user_data);
 
-    DEBUG_LOG(SERIALINTERFACE, "TriggerPoll: user_data: %x", user_data);
+    INFO_LOG(SERIALINTERFACE, "TriggerPoll: user_data: %x", user_data);
   }
 
   // Polling finished

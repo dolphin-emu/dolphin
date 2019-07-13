@@ -18,6 +18,6 @@ public:
 
   int RunBuffer(u8* buffer, int request_length) override;
   u32 MapPadStatus(const GCPadStatus& pad_status) override;
-  bool GetData(u32& hi, u32& low) override;
+  bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) override;
 };
 }  // namespace SerialInterface

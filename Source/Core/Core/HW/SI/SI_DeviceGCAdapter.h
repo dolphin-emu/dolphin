@@ -15,10 +15,10 @@ class CSIDevice_GCAdapter : public CSIDevice_GCController
 public:
   CSIDevice_GCAdapter(SIDevices device, int device_number);
 
-  GCPadStatus GetPadStatus() override;
+  GCPadStatus GetPadStatus(bool new_movie_sample) override;
   int RunBuffer(u8* buffer, int request_length) override;
 
-  bool GetData(u32& hi, u32& low) override;
+  bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) override;
 
 private:
   bool m_simulate_konga{};

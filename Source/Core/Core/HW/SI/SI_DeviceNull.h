@@ -16,7 +16,7 @@ public:
   CSIDevice_Null(SIDevices device, int device_number);
 
   int RunBuffer(u8* buffer, int request_length) override;
-  bool GetData(u32& hi, u32& low) override;
+  bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) override;
   void SendCommand(u32 command, u8 poll) override;
 };
 }  // namespace SerialInterface

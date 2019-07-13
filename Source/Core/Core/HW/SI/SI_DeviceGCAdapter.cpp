@@ -28,7 +28,7 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
     m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[pad_num];
 }
 
-GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
+GCPadStatus CSIDevice_GCAdapter::GetPadStatus(bool new_movie_sample)
 {
   GCPadStatus pad_status = {};
 
@@ -38,8 +38,8 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
   {
     pad_status = GCAdapter::Input(m_device_number);
   }
-
-  HandleMoviePadStatus(&pad_status);
+  if (new_movie_sample)
+    HandleMoviePadStatus(&pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -69,9 +69,9 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
   return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
-bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
+bool CSIDevice_GCAdapter::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
-  CSIDevice_GCController::GetData(hi, low);
+  CSIDevice_GCController::GetData(pad_status, hi, low);
 
   if (m_simulate_konga)
   {

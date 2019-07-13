@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include "Common/CommonTypes.h"
+#include "InputCommon/GCPadStatus.h"
 
 class PointerWrap;
 
@@ -83,7 +84,7 @@ public:
   virtual int TransferInterval();
 
   // Return true on new data
-  virtual bool GetData(u32& hi, u32& low) = 0;
+  virtual bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) = 0;
 
   // Send a command directly (no detour per buffer)
   virtual void SendCommand(u32 command, u8 poll) = 0;

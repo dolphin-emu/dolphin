@@ -87,7 +87,7 @@ public:
   int RunBuffer(u8* buffer, int request_length) override;
 
   // Return true on new data
-  bool GetData(u32& hi, u32& low) override;
+  bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) override;
 
   // Send a command directly
   void SendCommand(u32 command, u8 poll) override;
@@ -95,7 +95,7 @@ public:
   // Savestate support
   void DoState(PointerWrap& p) override;
 
-  virtual GCPadStatus GetPadStatus();
+  virtual GCPadStatus GetPadStatus(bool new_movie_sample);
   virtual u32 MapPadStatus(const GCPadStatus& pad_status);
   virtual EButtonCombo HandleButtonCombos(const GCPadStatus& pad_status);
 
@@ -117,7 +117,7 @@ class CSIDevice_TaruKonga : public CSIDevice_GCController
 public:
   CSIDevice_TaruKonga(SIDevices device, int device_number);
 
-  bool GetData(u32& hi, u32& low) override;
+  bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) override;
 
   static const u32 HI_BUTTON_MASK =
       (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_BUTTON_START | PAD_TRIGGER_R)
