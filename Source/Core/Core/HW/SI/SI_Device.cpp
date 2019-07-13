@@ -37,7 +37,7 @@ SIDevices ISIDevice::GetDeviceType() const
   return m_device_type;
 }
 
-int ISIDevice::RunBuffer(u8* buffer, int request_length)
+void ISIDevice::SendRequest(u8* buffer, size_t request_length)
 {
 #ifdef _DEBUG
   DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", m_device_number,
@@ -60,7 +60,28 @@ int ISIDevice::RunBuffer(u8* buffer, int request_length)
 
   DEBUG_LOG(SERIALINTERFACE, "%s", temp.c_str());
 #endif
+  m_request_buffer.assign(buffer, buffer + request_length);
+}
+
+size_t ISIDevice::RecvResponse(u8* buffer, size_t max_len)
+{
+  // TODO: Remove RunBuffer
+  // This is temporary for compatibility with existing SI devices that use the old RunBuffer scheme
+  std::array<u8, 128> temp_buffer;
+  std::copy(m_request_buffer.begin(), m_request_buffer.end(), temp_buffer.data());
+  size_t response_len = (u32)this->RunBuffer(temp_buffer.data(), (int)m_request_buffer.size());
+  std::copy_n(temp_buffer.data(), std::min(max_len, response_len), buffer);
+  return response_len;
+}
+
+int ISIDevice::RunBuffer(u8* buffer, int request_length)
+{
   return 0;
+}
+
+const std::vector<u8>& ISIDevice::GetRequestBuffer() const
+{
+  return m_request_buffer;
 }
 
 int ISIDevice::TransferInterval()

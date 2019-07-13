@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -73,7 +74,12 @@ public:
   SIDevices GetDeviceType() const;
 
   // Run the SI Buffer
+  // TODO: Remove this
   virtual int RunBuffer(u8* buffer, int request_length);
+
+  virtual void SendRequest(u8* buffer, size_t request_length);
+  virtual size_t RecvResponse(u8* buffer, size_t max_len);
+  const std::vector<u8>& GetRequestBuffer() const;
   virtual int TransferInterval();
 
   // Return true on new data
@@ -88,6 +94,7 @@ public:
 protected:
   int m_device_number;
   SIDevices m_device_type;
+  std::vector<u8> m_request_buffer;
 };
 
 bool SIDevice_IsGCController(SIDevices type);
