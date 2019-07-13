@@ -452,7 +452,8 @@ public final class SettingsFile
           final HashMap<String, SettingSection> sections)
   {
     Set<String> sortedSections = new TreeSet<>(sections.keySet());
-    NativeLibrary.LoadGameIniFile(gameId);
+
+    NativeLibrary.NewGameIniFile();
     for (String sectionKey : sortedSections)
     {
       SettingSection section = sections.get(sectionKey);

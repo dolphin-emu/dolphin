@@ -357,6 +357,12 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserSe
   return ToJString(env, value.c_str());
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_NewGameIniFile(JNIEnv* env,
+                                                                                   jobject obj)
+{
+  s_ini = IniFile();
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadGameIniFile(JNIEnv* env,
                                                                                     jobject obj,
                                                                                     jstring jGameID)

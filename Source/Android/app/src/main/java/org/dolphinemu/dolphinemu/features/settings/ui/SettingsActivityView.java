@@ -120,6 +120,11 @@ public interface SettingsActivityView
   void showExternalStorageNotMountedHint();
 
   /**
+   * Tell the user that there is junk in the game INI and ask if they want to delete the whole file.
+   */
+  void showGameIniJunkDeletionQuestion();
+
+  /**
    * Start the DirectoryInitialization and listen for the result.
    *
    * @param receiver the broadcast receiver for the DirectoryInitialization

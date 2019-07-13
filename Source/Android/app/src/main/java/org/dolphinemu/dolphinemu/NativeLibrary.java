@@ -253,6 +253,8 @@ public final class NativeLibrary
     Rumble.checkRumble(padID, state);
   }
 
+  public static native void NewGameIniFile();
+
   public static native void LoadGameIniFile(String gameId);
 
   public static native void SaveGameIniFile(String gameId);
