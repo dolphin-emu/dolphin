@@ -767,11 +767,10 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
     return ret;
 
   const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
-  if (index > 1)
+  if (index >= IOSC::COMMON_KEY_HANDLES.size())
     return ES_INVALID_TICKET;
 
-  auto common_key_handle = index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY;
-  return m_ios.GetIOSC().ImportSecretKey(*handle, common_key_handle, iv.data(),
+  return m_ios.GetIOSC().ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
                                          &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)],
                                          PID_ES);
 }

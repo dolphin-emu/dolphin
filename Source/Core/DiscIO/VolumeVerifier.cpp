@@ -609,7 +609,7 @@ void VolumeVerifier::CheckMisc()
   {
     const u8 common_key = ticket.GetCommonKeyIndex();
 
-    if (common_key > 1)
+    if (common_key > IOS::HLE::IOSC::COMMON_KEY_HANDLES.size())
     {
       // Many fakesigned WADs have the common key index set to a (random?) bogus value.
       // For WADs, Dolphin will detect this and use common key 0 instead, making this low severity.

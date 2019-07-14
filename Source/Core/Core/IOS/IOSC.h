@@ -165,6 +165,9 @@ public:
     HANDLE_ROOT_KEY = 0xfffffff,
   };
 
+  static constexpr std::array<DefaultHandle, 2> COMMON_KEY_HANDLES = {HANDLE_COMMON_KEY,
+                                                                      HANDLE_NEW_COMMON_KEY};
+
   enum ObjectType : u8
   {
     TYPE_SECRET_KEY = 0,

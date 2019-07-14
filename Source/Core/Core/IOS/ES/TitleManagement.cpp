@@ -198,12 +198,11 @@ static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& 
   std::array<u8, 16> iv{};
   std::copy_n(&ticket_bytes[offsetof(IOS::ES::Ticket, title_id)], sizeof(u64), iv.begin());
   const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
-  if (index > 1)
+  if (index >= IOSC::COMMON_KEY_HANDLES.size())
     return ES_INVALID_TICKET;
 
-  return iosc.ImportSecretKey(
-      *handle, index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY, iv.data(),
-      &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)], PID_ES);
+  return iosc.ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
+                              &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)], PID_ES);
 }
 
 ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
