@@ -470,7 +470,7 @@ void Shutdown()
   DVDThread::Stop();
 }
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc,
+void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
   if (disc)
@@ -506,11 +506,10 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  std::unique_ptr<DiscIO::Volume> new_volume =
-      DiscIO::CreateVolumeFromFilename(s_disc_path_to_insert);
+  std::unique_ptr<DiscIO::VolumeDisc> new_disc = DiscIO::CreateDisc(s_disc_path_to_insert);
 
-  if (new_volume)
-    SetDisc(std::move(new_volume), {});
+  if (new_disc)
+    SetDisc(std::move(new_disc), {});
   else
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
 

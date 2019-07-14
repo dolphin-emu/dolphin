@@ -581,8 +581,7 @@ class DiscSystemUpdater final : public SystemUpdater
 {
 public:
   DiscSystemUpdater(UpdateCallback update_callback, const std::string& image_path)
-      : m_update_callback{std::move(update_callback)}, m_volume{DiscIO::CreateVolumeFromFilename(
-                                                           image_path)}
+      : m_update_callback{std::move(update_callback)}, m_volume{DiscIO::CreateDisc(image_path)}
   {
   }
   UpdateResult DoDiscUpdate();
@@ -621,7 +620,7 @@ private:
                             std::string_view path);
 
   UpdateCallback m_update_callback;
-  std::unique_ptr<DiscIO::Volume> m_volume;
+  std::unique_ptr<DiscIO::VolumeDisc> m_volume;
   DiscIO::Partition m_partition;
 };
 

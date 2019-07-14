@@ -121,7 +121,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     SplitPath(m_file_path, nullptr, &name, &extension);
     m_file_name = name + extension;
 
-    std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(m_file_path));
+    std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
     {
       m_platform = volume->GetVolumeType();

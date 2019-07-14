@@ -223,7 +223,7 @@ bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory)
   return true;
 }
 
-FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partition)
+FileSystemGCWii::FileSystemGCWii(const VolumeDisc* volume, const Partition& partition)
     : m_valid(false), m_root(nullptr, 0, 0, 0)
 {
   u8 offset_shift;

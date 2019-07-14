@@ -14,7 +14,7 @@
 class PointerWrap;
 namespace DiscIO
 {
-class Volume;
+class VolumeDisc;
 struct Partition;
 }  // namespace DiscIO
 namespace MMIO
@@ -81,7 +81,7 @@ void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc,
+void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths);
 bool IsDiscInside();
 void EjectDisc();                                        // Must only be called on the CPU thread

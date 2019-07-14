@@ -182,10 +182,10 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   }
 
   DiscScrubber disc_scrubber;
-  std::unique_ptr<Volume> volume;
+  std::unique_ptr<VolumeDisc> volume;
   if (sub_type == 1)
   {
-    volume = CreateVolumeFromFilename(infile_path);
+    volume = CreateDisc(infile_path);
     if (!volume || !disc_scrubber.SetupScrub(volume.get(), block_size))
     {
       PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.",

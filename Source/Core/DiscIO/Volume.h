@@ -22,6 +22,7 @@ namespace DiscIO
 {
 enum class BlobType;
 class FileSystem;
+class VolumeWAD;
 
 struct Partition final
 {
@@ -141,6 +142,12 @@ protected:
   static const std::vector<u8> INVALID_CERT_CHAIN;
 };
 
-std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
+class VolumeDisc : public Volume
+{
+};
+
+std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);
+std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path);
+std::unique_ptr<Volume> CreateVolume(const std::string& path);
 
 }  // namespace DiscIO
