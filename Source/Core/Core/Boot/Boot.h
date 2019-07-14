@@ -17,7 +17,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/VolumeWad.h"
 
 namespace File
 {
@@ -75,7 +75,7 @@ struct BootParameters
   GenerateFromFile(std::vector<std::string> paths,
                    const std::optional<std::string>& savestate_path = {});
 
-  using Parameters = std::variant<Disc, Executable, DiscIO::WiiWAD, NANDTitle, IPL, DFF>;
+  using Parameters = std::variant<Disc, Executable, DiscIO::VolumeWAD, NANDTitle, IPL, DFF>;
   BootParameters(Parameters&& parameters_, const std::optional<std::string>& savestate_path_ = {});
 
   Parameters parameters;
@@ -108,7 +108,7 @@ private:
 
   static void UpdateDebugger_MapLoaded();
 
-  static bool Boot_WiiWAD(const DiscIO::WiiWAD& wad);
+  static bool Boot_WiiWAD(const DiscIO::VolumeWAD& wad);
   static bool BootNANDTitle(u64 title_id);
 
   static void SetupMSR();

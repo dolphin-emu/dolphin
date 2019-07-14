@@ -41,8 +41,6 @@ add_library(discio
   WbfsBlob.h
   WiiSaveBanner.cpp
   WiiSaveBanner.h
-  WiiWad.cpp
-  WiiWad.h
 )
 
 target_link_libraries(discio

@@ -42,13 +42,13 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeFileBlobReader.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/VolumeWad.h"
 
 namespace WiiUtils
 {
-static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
+static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
 {
-  if (!wad.IsValid())
+  if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
     PanicAlertT("WAD installation failed: The selected file is not a valid WAD.");
     return false;
@@ -110,7 +110,7 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   return true;
 }
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType install_type)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType install_type)
 {
   if (!wad.GetTMD().IsValid())
     return false;
@@ -164,8 +164,12 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
 
 bool InstallWAD(const std::string& wad_path)
 {
+  std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
+  if (!wad)
+    return false;
+
   IOS::HLE::Kernel ios;
-  return InstallWAD(ios, DiscIO::WiiWAD{wad_path}, InstallType::Permanent);
+  return InstallWAD(ios, *wad, InstallType::Permanent);
 }
 
 bool UninstallTitle(u64 title_id)
@@ -734,7 +738,7 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     ERROR_LOG(CORE, "Could not find %s", std::string(path).c_str());
     return UpdateResult::DiscReadFailed;
   }
-  const DiscIO::WiiWAD wad{std::move(blob)};
+  const DiscIO::VolumeWAD wad{std::move(blob)};
   return ImportWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 

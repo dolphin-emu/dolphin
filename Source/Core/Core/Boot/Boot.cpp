@@ -59,6 +59,7 @@ namespace fs = std::filesystem;
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeWad.h"
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
@@ -201,7 +202,11 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     return std::make_unique<BootParameters>(DFF{std::move(path)}, savestate_path);
 
   if (extension == ".wad")
-    return std::make_unique<BootParameters>(DiscIO::WiiWAD{std::move(path)}, savestate_path);
+  {
+    std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path));
+    if (wad)
+      return std::make_unique<BootParameters>(std::move(*wad), savestate_path);
+  }
 
   PanicAlertT("Could not recognize file %s", path.c_str());
   return {};
@@ -466,7 +471,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       return true;
     }
 
-    bool operator()(const DiscIO::WiiWAD& wad) const
+    bool operator()(const DiscIO::VolumeWAD& wad) const
     {
       SetDefaultDisc();
       return Boot_WiiWAD(wad);

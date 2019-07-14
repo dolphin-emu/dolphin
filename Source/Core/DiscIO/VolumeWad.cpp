@@ -61,10 +61,6 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   Read(m_cert_chain_offset, m_cert_chain_size, m_cert_chain.data());
 }
 
-VolumeWAD::~VolumeWAD()
-{
-}
-
 bool VolumeWAD::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {
   if (partition != PARTITION_NONE)
@@ -116,6 +112,24 @@ const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const
 const std::vector<u8>& VolumeWAD::GetCertificateChain(const Partition& partition) const
 {
   return m_cert_chain;
+}
+
+std::vector<u8> VolumeWAD::GetContent(u16 index) const
+{
+  u64 offset = m_data_offset;
+  for (const IOS::ES::Content& content : m_tmd.GetContents())
+  {
+    const u64 aligned_size = Common::AlignUp(content.size, 0x40);
+    if (content.index == index)
+    {
+      std::vector<u8> data(aligned_size);
+      if (!m_reader->Read(offset, aligned_size, data.data()))
+        return {};
+      return data;
+    }
+    offset += aligned_size;
+  }
+  return {};
 }
 
 std::vector<u64> VolumeWAD::GetContentOffsets() const

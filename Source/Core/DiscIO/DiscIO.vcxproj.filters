@@ -30,9 +30,6 @@
     <ClCompile Include="FileSystemGCWii.cpp">
       <Filter>FileSystem</Filter>
     </ClCompile>
-    <ClCompile Include="WiiWad.cpp">
-      <Filter>NAND</Filter>
-    </ClCompile>
     <ClCompile Include="NANDImporter.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
@@ -97,9 +94,6 @@
     </ClInclude>
     <ClInclude Include="FileSystemGCWii.h">
       <Filter>FileSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="WiiWad.h">
-      <Filter>NAND</Filter>
     </ClInclude>
     <ClInclude Include="NANDImporter.h">
       <Filter>NAND</Filter>
