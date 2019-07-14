@@ -1,6 +1,7 @@
 #include "VideoCommon/FramebufferShaderGen.h"
 #include <sstream>
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace FramebufferShaderGen
@@ -61,6 +62,26 @@ static void EmitSampleTexture(std::stringstream& ss, u32 n, const char* coords)
   case APIType::OpenGL:
   case APIType::Vulkan:
     ss << "texture(samp" << n << ", " << coords << ")";
+    break;
+
+  default:
+    break;
+  }
+}
+
+// Emits a texel fetch/load instruction. Assumes that "coords" is a 4-element vector, with z
+// containing the layer, and w containing the mipmap level.
+static void EmitTextureLoad(std::stringstream& ss, u32 n, const char* coords)
+{
+  switch (GetAPIType())
+  {
+  case APIType::D3D:
+    ss << "tex" << n << ".Load(" << coords << ")";
+    break;
+
+  case APIType::OpenGL:
+  case APIType::Vulkan:
+    ss << "texelFetch(samp" << n << ", (" << coords << ").xyz, (" << coords << ").w)";
     break;
 
   default:
@@ -133,7 +154,7 @@ static void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
 
 static void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
                                      u32 num_color_inputs, const char* output_type = "float4",
-                                     const char* extra_vars = "")
+                                     const char* extra_vars = "", bool emit_frag_coord = false)
 {
   switch (GetAPIType())
   {
@@ -144,6 +165,8 @@ static void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
       ss << "in float3 v_tex" << i << " : TEXCOORD" << i << ", ";
     for (u32 i = 0; i < num_color_inputs; i++)
       ss << "in float4 v_col" << i << " : COLOR" << i << ", ";
+    if (emit_frag_coord)
+      ss << "in float4 frag_coord : SV_Position, ";
     ss << extra_vars << "out " << output_type << " ocol0 : SV_Target)\n";
   }
   break;
@@ -170,6 +193,8 @@ static void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
 
     ss << "FRAGMENT_OUTPUT_LOCATION(0) out " << output_type << " ocol0;\n";
     ss << extra_vars << "\n";
+    if (emit_frag_coord)
+      ss << "#define frag_coord gl_FragCoord\n";
     ss << "void main()\n";
   }
   break;
@@ -490,6 +515,128 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
     //
     ss << "  ocol0 = val;\n";
     break;
+  }
+
+  ss << "}\n";
+  return ss.str();
+}
+
+std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureFormat to_format)
+{
+  std::stringstream ss;
+  EmitSamplerDeclarations(ss, 0, 1, false);
+  EmitPixelMainDeclaration(ss, 1, 0, "float4", "", true);
+  ss << "{\n";
+  ss << "  int layer = int(v_tex0.z);\n";
+  ss << "  int4 coords = int4(int2(frag_coord.xy), layer, 0);\n";
+
+  // Convert to a 32-bit value encompassing all channels, filling the most significant bits with
+  // zeroes.
+  ss << "  uint raw_value;\n";
+  switch (from_format)
+  {
+  case TextureFormat::I8:
+  case TextureFormat::C8:
+  {
+    ss << "  float4 temp_value = ";
+    EmitTextureLoad(ss, 0, "coords");
+    ss << ";\n";
+    ss << "  raw_value = uint(temp_value.r * 255.0);\n";
+  }
+  break;
+
+  case TextureFormat::IA8:
+  {
+    ss << "  float4 temp_value = ";
+    EmitTextureLoad(ss, 0, "coords");
+    ss << ";\n";
+    ss << "  raw_value = uint(temp_value.r * 255.0) | (uint(temp_value.a * 255.0) << 8);\n";
+  }
+  break;
+
+  case TextureFormat::IA4:
+  {
+    ss << "  float4 temp_value = ";
+    EmitTextureLoad(ss, 0, "coords");
+    ss << ";\n";
+    ss << "  raw_value = uint(temp_value.r * 15.0) | (uint(temp_value.a * 15.0) << 4);\n";
+  }
+  break;
+
+  case TextureFormat::RGB565:
+  {
+    ss << "  float4 temp_value = ";
+    EmitTextureLoad(ss, 0, "coords");
+    ss << ";\n";
+    ss << "  raw_value = uint(temp_value.b * 31.0) | (uint(temp_value.g * 63.0) << 5) |\n";
+    ss << "              (uint(temp_value.r * 31.0) << 11);\n";
+  }
+  break;
+
+  case TextureFormat::RGB5A3:
+  {
+    ss << "  float4 temp_value = ";
+    EmitTextureLoad(ss, 0, "coords");
+    ss << ";\n";
+
+    // 0.8784 = 224 / 255 which is the maximum alpha value that can be represented in 3 bits
+    ss << "  if (temp_value.a > 0.878f) {\n";
+    ss << "    raw_value = (uint(temp_value.b * 31.0)) | (uint(temp_value.g * 31.0) << 5) |\n";
+    ss << "                (uint(temp_value.r * 31.0) << 10) | 0x8000u;\n";
+    ss << "  } else {\n";
+    ss << "     raw_value = (uint(temp_value.b * 15.0)) | (uint(temp_value.g * 15.0) << 4) |\n";
+    ss << "                 (uint(temp_value.r * 15.0) << 8) | (uint(temp_value.a * 7.0) << 12);\n";
+    ss << "  }\n";
+  }
+  break;
+  }
+
+  // Now convert it to its new representation.
+  switch (to_format)
+  {
+  case TextureFormat::I8:
+  case TextureFormat::C8:
+  {
+    ss << "  ocol0.rgba = (float(raw_value & 0xFFu) / 255.0).rrrr;\n";
+  }
+  break;
+
+  case TextureFormat::IA8:
+  {
+    ss << "  ocol0.rgb = (float(raw_value & 0xFFu) / 255.0).rrr;\n";
+    ss << "  ocol0.a = float((raw_value >> 8) & 0xFFu) / 255.0;\n";
+  }
+  break;
+
+  case TextureFormat::IA4:
+  {
+    ss << "  ocol0.rgb = (float(raw_value & 0xFu) / 15.0).rrr;\n";
+    ss << "  ocol0.a = float((raw_value >> 4) & 0xFu) / 15.0;\n";
+  }
+  break;
+
+  case TextureFormat::RGB565:
+  {
+    ss << "  ocol0 = float4(float((raw_value >> 10) & 0x1Fu) / 31.0\n";
+    ss << "                 float((raw_value >> 5) & 0x1Fu) / 31.0,\n";
+    ss << "                 float(raw_value & 0x1Fu) / 31.0,, 1.0);\n";
+  }
+  break;
+
+  case TextureFormat::RGB5A3:
+  {
+    ss << "  if ((raw_value & 0x8000u) != 0u) {\n";
+    ss << "    ocol0 = float4(float((raw_value >> 10) & 0x1Fu) / 31.0,\n";
+    ss << "                   float((raw_value >> 5) & 0x1Fu) / 31.0,\n";
+    ss << "                   float(raw_value & 0x1Fu) / 31.0, 1.0);\n";
+    ss << "  } else {\n";
+    ss << "    ocol0 = float4(float((raw_value >> 8) & 0x0Fu) / 15.0,\n";
+    ss << "                   float((raw_value >> 4) & 0x0Fu) / 15.0,\n";
+    ss << "                   float(raw_value & 0x0Fu) / 15.0,\n";
+    ss << "                   float((raw_value >> 12) & 0x07u) / 7.0);\n";
+    ss << "  }\n";
+  }
+  break;
   }
 
   ss << "}\n";

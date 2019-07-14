@@ -34,6 +34,7 @@
 
 class NativeVertexFormat;
 enum class AbstractTextureFormat : u32;
+enum class TextureFormat;
 enum class TLUTFormat;
 
 namespace VideoCommon
@@ -103,6 +104,10 @@ public:
 
   // Palette texture conversion pipelines
   const AbstractPipeline* GetPaletteConversionPipeline(TLUTFormat format);
+
+  // Texture reinterpret pipelines
+  const AbstractPipeline* GetTextureReinterpretPipeline(TextureFormat from_format,
+                                                        TextureFormat to_format);
 
   // Texture decoding compute shaders
   const AbstractShader* GetTextureDecodingShader(TextureFormat format, TLUTFormat palette_format);
@@ -237,6 +242,10 @@ private:
   // Palette conversion pipelines
   std::array<std::unique_ptr<AbstractPipeline>, NUM_PALETTE_CONVERSION_SHADERS>
       m_palette_conversion_pipelines;
+
+  // Texture reinterpreting pipeline
+  std::map<std::pair<TextureFormat, TextureFormat>, std::unique_ptr<AbstractPipeline>>
+      m_texture_reinterpret_pipelines;
 
   // Texture decoding shaders
   std::map<std::pair<u32, u32>, std::unique_ptr<AbstractShader>> m_texture_decoding_shaders;
