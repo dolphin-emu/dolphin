@@ -228,10 +228,6 @@ public:
   static bool NeedsCopyFilterInShader(const EFBCopyFilterCoefficients& coefficients);
 
 protected:
-  // Applies a palette to an EFB copy/texture.
-  bool ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
-                      TLUTFormat format);
-
   // Decodes the specified data to the GPU texture specified by entry.
   // Returns false if the configuration is not supported.
   // width, height are the size of the image in pixels.

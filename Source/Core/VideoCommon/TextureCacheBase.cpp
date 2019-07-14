@@ -252,6 +252,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 TextureCacheBase::TCacheEntry*
 TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt)
 {
+  DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
+
   TextureConfig new_config = entry->texture->GetConfig();
   new_config.levels = 1;
   new_config.flags |= AbstractTextureFlag_RenderTarget;
@@ -269,8 +271,42 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
   decoded_entry->SetNotCopy();
   decoded_entry->may_have_overlapping_textures = entry->may_have_overlapping_textures;
 
-  ConvertTexture(decoded_entry, entry, palette, tlutfmt);
-  textures_by_address.emplace(entry->addr, decoded_entry);
+  g_renderer->BeginUtilityDrawing();
+
+  const u32 palette_size = entry->format == TextureFormat::I4 ? 32 : 512;
+  u32 texel_buffer_offset;
+  if (g_vertex_manager->UploadTexelBuffer(palette, palette_size,
+                                          TexelBufferFormat::TEXEL_BUFFER_FORMAT_R16_UINT,
+                                          &texel_buffer_offset))
+  {
+    struct Uniforms
+    {
+      float multiplier;
+      u32 texel_buffer_offset;
+      u32 pad[2];
+    };
+    static_assert(std::is_standard_layout<Uniforms>::value);
+    Uniforms uniforms = {};
+    uniforms.multiplier = entry->format == TextureFormat::I4 ? 15.0f : 255.0f;
+    uniforms.texel_buffer_offset = texel_buffer_offset;
+    g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+    g_renderer->SetAndDiscardFramebuffer(decoded_entry->framebuffer.get());
+    g_renderer->SetViewportAndScissor(decoded_entry->texture->GetRect());
+    g_renderer->SetPipeline(g_shader_cache->GetPaletteConversionPipeline(tlutfmt));
+    g_renderer->SetTexture(1, entry->texture.get());
+    g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
+    g_renderer->Draw(0, 3);
+    g_renderer->EndUtilityDrawing();
+    decoded_entry->texture->FinishedRendering();
+  }
+  else
+  {
+    ERROR_LOG(VIDEO, "Texel buffer upload of %u bytes failed", palette_size);
+    g_renderer->EndUtilityDrawing();
+  }
+
+  textures_by_address.emplace(decoded_entry->addr, decoded_entry);
 
   return decoded_entry;
 }
@@ -2299,51 +2335,6 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
 
   // Flush if there's sufficient draws between this copy and the last.
   g_vertex_manager->OnEFBCopyToRAM();
-}
-
-bool TextureCacheBase::ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted,
-                                      const void* palette, TLUTFormat format)
-{
-  DEBUG_ASSERT(entry->texture->GetConfig().IsRenderTarget() && entry->framebuffer);
-  if (!g_ActiveConfig.backend_info.bSupportsPaletteConversion)
-  {
-    ERROR_LOG(VIDEO, "Backend does not support palette conversion!");
-    return false;
-  }
-
-  g_renderer->BeginUtilityDrawing();
-
-  const u32 palette_size = unconverted->format == TextureFormat::I4 ? 32 : 512;
-  u32 texel_buffer_offset;
-  if (!g_vertex_manager->UploadTexelBuffer(palette, palette_size,
-                                           TexelBufferFormat::TEXEL_BUFFER_FORMAT_R16_UINT,
-                                           &texel_buffer_offset))
-  {
-    ERROR_LOG(VIDEO, "Texel buffer upload failed");
-    return false;
-  }
-
-  struct Uniforms
-  {
-    float multiplier;
-    u32 texel_buffer_offset;
-    u32 pad[2];
-  };
-  static_assert(std::is_standard_layout<Uniforms>::value);
-  Uniforms uniforms = {};
-  uniforms.multiplier = unconverted->format == TextureFormat::I4 ? 15.0f : 255.0f;
-  uniforms.texel_buffer_offset = texel_buffer_offset;
-  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
-
-  g_renderer->SetAndDiscardFramebuffer(entry->framebuffer.get());
-  g_renderer->SetViewportAndScissor(entry->texture->GetRect());
-  g_renderer->SetPipeline(g_shader_cache->GetPaletteConversionPipeline(format));
-  g_renderer->SetTexture(1, unconverted->texture.get());
-  g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
-  g_renderer->Draw(0, 3);
-  g_renderer->EndUtilityDrawing();
-  entry->texture->FinishedRendering();
-  return true;
 }
 
 bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data,
