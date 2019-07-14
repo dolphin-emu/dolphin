@@ -13,6 +13,7 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/Volume.h"
 
@@ -28,12 +29,6 @@
 // Start, Process and Finish may take some time to run.
 //
 // GetResult() can be called before the processing is finished, but the result will be incomplete.
-
-namespace IOS::ES
-{
-struct Content;
-class SignedBlobReader;
-}  // namespace IOS::ES
 
 namespace DiscIO
 {
@@ -103,7 +98,6 @@ private:
   u64 GetBiggestUsedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void SetUpHashing();
-  bool CheckContentIntegrity(const IOS::ES::Content& content);
 
   void AddProblem(Severity severity, std::string text);
 
@@ -120,6 +114,7 @@ private:
   mbedtls_sha1_context m_sha1_context;
 
   DiscScrubber m_scrubber;
+  IOS::ES::TicketReader m_ticket;
   std::vector<u64> m_content_offsets;
   u16 m_content_index = 0;
   std::vector<BlockToVerify> m_blocks;

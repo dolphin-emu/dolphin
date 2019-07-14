@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <locale>
@@ -12,12 +13,16 @@
 #include <utility>
 #include <vector>
 
+#include <mbedtls/aes.h>
+#include <mbedtls/sha1.h>
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/IOS/IOSC.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
@@ -145,6 +150,95 @@ std::vector<u64> VolumeWAD::GetContentOffsets() const
   }
 
   return content_offsets;
+}
+
+bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
+                                      const std::vector<u8>& encrypted_data,
+                                      const IOS::ES::TicketReader& ticket) const
+{
+  mbedtls_aes_context context;
+  const std::array<u8, 16> key = ticket.GetTitleKey();
+  mbedtls_aes_setkey_dec(&context, key.data(), 128);
+
+  std::array<u8, 16> iv{};
+  iv[0] = static_cast<u8>(content.index >> 8);
+  iv[1] = static_cast<u8>(content.index & 0xFF);
+
+  std::vector<u8> decrypted_data(encrypted_data.size());
+  mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, decrypted_data.size(), iv.data(),
+                        encrypted_data.data(), decrypted_data.data());
+
+  std::array<u8, 20> sha1;
+  mbedtls_sha1_ret(decrypted_data.data(), content.size, sha1.data());
+  return sha1 == content.sha1;
+}
+
+bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
+                                      const IOS::ES::TicketReader& ticket) const
+{
+  std::vector<u8> encrypted_data(Common::AlignUp(content.size, 0x40));
+  if (!m_reader->Read(content_offset, encrypted_data.size(), encrypted_data.data()))
+    return false;
+  return CheckContentIntegrity(content, encrypted_data, ticket);
+}
+
+IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
+{
+  if (!m_ticket.IsValid() || !m_tmd.IsValid())
+    return m_ticket;
+
+  const std::vector<u8> sig = m_ticket.GetSignatureData();
+  if (!std::all_of(sig.cbegin(), sig.cend(), [](u8 a) { return a == 0; }))
+  {
+    // This does not look like a typical "invalid common key index" ticket, so let's assume
+    // the index is correct. This saves some time when reading properly signed titles.
+    return m_ticket;
+  }
+
+  const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
+  if (contents.empty())
+    return m_ticket;
+
+  // Find the smallest content so that we spend as little time as possible in CheckContentIntegrity
+  IOS::ES::Content smallest_content = contents[0];
+  u64 offset_of_smallest_content = m_data_offset;
+
+  u64 offset = m_data_offset;
+  for (const IOS::ES::Content& content : contents)
+  {
+    if (content.size < smallest_content.size)
+    {
+      smallest_content = content;
+      offset_of_smallest_content = offset;
+    }
+    offset += Common::AlignUp(content.size, 0x40);
+  }
+
+  std::vector<u8> content_data(Common::AlignUp(smallest_content.size, 0x40));
+  if (!m_reader->Read(offset_of_smallest_content, content_data.size(), content_data.data()))
+    return m_ticket;
+
+  const u8 specified_index = m_ticket.GetCommonKeyIndex();
+  if (specified_index < IOS::HLE::IOSC::COMMON_KEY_HANDLES.size() &&
+      CheckContentIntegrity(smallest_content, content_data, m_ticket))
+  {
+    return m_ticket;  // The common key index is already correct
+  }
+
+  // Try every common key index except the one we already tried
+  IOS::ES::TicketReader new_ticket = m_ticket;
+  for (u8 i = 0; i < IOS::HLE::IOSC::COMMON_KEY_HANDLES.size(); ++i)
+  {
+    if (i != specified_index)
+    {
+      new_ticket.OverwriteCommonKeyIndex(i);
+      if (CheckContentIntegrity(smallest_content, content_data, new_ticket))
+        return new_ticket;  // We've found the common key index that should be used
+    }
+  }
+
+  ERROR_LOG(DISCIO, "Couldn't find valid common key for WAD file (%u specified)", specified_index);
+  return m_ticket;
 }
 
 std::string VolumeWAD::GetGameID(const Partition& partition) const

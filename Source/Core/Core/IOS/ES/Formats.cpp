@@ -455,8 +455,8 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
   u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
   if (index >= HLE::IOSC::COMMON_KEY_HANDLES.size())
   {
-    WARN_LOG(IOS_ES, "Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
-             GetTitleId(), index);
+    PanicAlert("Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
+               GetTitleId(), index);
     index = 0;
   }
   auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
@@ -533,11 +533,9 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   return ret;
 }
 
-void TicketReader::FixCommonKeyIndex()
+void TicketReader::OverwriteCommonKeyIndex(u8 index)
 {
-  u8& index = m_bytes[offsetof(Ticket, common_key_index)];
-  // Assume the ticket is using the normal common key if it's an invalid value.
-  index = index < HLE::IOSC::COMMON_KEY_HANDLES.size() ? index : 0;
+  m_bytes[offsetof(Ticket, common_key_index)] = index;
 }
 
 struct SharedContentMap::Entry
