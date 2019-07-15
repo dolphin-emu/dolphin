@@ -824,13 +824,13 @@ const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
     if (params.depth)
       WriteZ16Encoder(p, api_type, params);  // Z16H
     else
-      WriteCC8Encoder(p, "rg", api_type, params);
+      WriteCC8Encoder(p, "gr", api_type, params);
     break;
   case EFBCopyFormat::GB8:
     if (params.depth)
       WriteZ16LEncoder(p, api_type, params);  // Z16L
     else
-      WriteCC8Encoder(p, "gb", api_type, params);
+      WriteCC8Encoder(p, "bg", api_type, params);
     break;
   case EFBCopyFormat::XFB:
     WriteXFBEncoder(p, api_type, params);

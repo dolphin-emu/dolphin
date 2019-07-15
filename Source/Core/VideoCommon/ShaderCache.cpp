@@ -1255,6 +1255,44 @@ const AbstractPipeline* ShaderCache::GetPaletteConversionPipeline(TLUTFormat for
   return m_palette_conversion_pipelines[static_cast<size_t>(format)].get();
 }
 
+const AbstractPipeline* ShaderCache::GetTextureReinterpretPipeline(TextureFormat from_format,
+                                                                   TextureFormat to_format)
+{
+  const auto key = std::make_pair(from_format, to_format);
+  auto iter = m_texture_reinterpret_pipelines.find(key);
+  if (iter != m_texture_reinterpret_pipelines.end())
+    return iter->second.get();
+
+  std::string shader_source =
+      FramebufferShaderGen::GenerateTextureReinterpretShader(from_format, to_format);
+  if (shader_source.empty())
+  {
+    m_texture_reinterpret_pipelines.emplace(key, nullptr);
+    return nullptr;
+  }
+
+  std::unique_ptr<AbstractShader> shader =
+      g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_source);
+  if (!shader)
+  {
+    m_texture_reinterpret_pipelines.emplace(key, nullptr);
+    return nullptr;
+  }
+
+  AbstractPipelineConfig config;
+  config.vertex_format = nullptr;
+  config.vertex_shader = m_screen_quad_vertex_shader.get();
+  config.geometry_shader = nullptr;
+  config.pixel_shader = shader.get();
+  config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
+  config.depth_state = RenderState::GetNoDepthTestingDepthState();
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.framebuffer_state = RenderState::GetRGBA8FramebufferState();
+  config.usage = AbstractPipelineUsage::Utility;
+  auto iiter = m_texture_reinterpret_pipelines.emplace(key, g_renderer->CreatePipeline(config));
+  return iiter.first->second.get();
+}
+
 const AbstractShader* ShaderCache::GetTextureDecodingShader(TextureFormat format,
                                                             TLUTFormat palette_format)
 {
@@ -1282,5 +1320,4 @@ const AbstractShader* ShaderCache::GetTextureDecodingShader(TextureFormat format
   auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
   return iiter.first->second.get();
 }
-
 }  // namespace VideoCommon

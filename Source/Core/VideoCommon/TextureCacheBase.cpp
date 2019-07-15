@@ -252,6 +252,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 TextureCacheBase::TCacheEntry*
 TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTFormat tlutfmt)
 {
+  DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
+
   TextureConfig new_config = entry->texture->GetConfig();
   new_config.levels = 1;
   new_config.flags |= AbstractTextureFlag_RenderTarget;
@@ -269,10 +271,82 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
   decoded_entry->SetNotCopy();
   decoded_entry->may_have_overlapping_textures = entry->may_have_overlapping_textures;
 
-  ConvertTexture(decoded_entry, entry, palette, tlutfmt);
-  textures_by_address.emplace(entry->addr, decoded_entry);
+  g_renderer->BeginUtilityDrawing();
+
+  const u32 palette_size = entry->format == TextureFormat::I4 ? 32 : 512;
+  u32 texel_buffer_offset;
+  if (g_vertex_manager->UploadTexelBuffer(palette, palette_size,
+                                          TexelBufferFormat::TEXEL_BUFFER_FORMAT_R16_UINT,
+                                          &texel_buffer_offset))
+  {
+    struct Uniforms
+    {
+      float multiplier;
+      u32 texel_buffer_offset;
+      u32 pad[2];
+    };
+    static_assert(std::is_standard_layout<Uniforms>::value);
+    Uniforms uniforms = {};
+    uniforms.multiplier = entry->format == TextureFormat::I4 ? 15.0f : 255.0f;
+    uniforms.texel_buffer_offset = texel_buffer_offset;
+    g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+    g_renderer->SetAndDiscardFramebuffer(decoded_entry->framebuffer.get());
+    g_renderer->SetViewportAndScissor(decoded_entry->texture->GetRect());
+    g_renderer->SetPipeline(g_shader_cache->GetPaletteConversionPipeline(tlutfmt));
+    g_renderer->SetTexture(1, entry->texture.get());
+    g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
+    g_renderer->Draw(0, 3);
+    g_renderer->EndUtilityDrawing();
+    decoded_entry->texture->FinishedRendering();
+  }
+  else
+  {
+    ERROR_LOG(VIDEO, "Texel buffer upload of %u bytes failed", palette_size);
+    g_renderer->EndUtilityDrawing();
+  }
+
+  textures_by_address.emplace(decoded_entry->addr, decoded_entry);
 
   return decoded_entry;
+}
+
+TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entry,
+                                                                  TextureFormat new_format)
+{
+  TextureConfig new_config = existing_entry->texture->GetConfig();
+  new_config.levels = 1;
+  new_config.flags |= AbstractTextureFlag_RenderTarget;
+
+  TCacheEntry* reinterpreted_entry = AllocateCacheEntry(new_config);
+  if (!reinterpreted_entry)
+    return nullptr;
+
+  reinterpreted_entry->SetGeneralParameters(existing_entry->addr, existing_entry->size_in_bytes,
+                                            new_format, existing_entry->should_force_safe_hashing);
+  reinterpreted_entry->SetDimensions(existing_entry->native_width, existing_entry->native_height,
+                                     1);
+  reinterpreted_entry->SetHashes(existing_entry->base_hash, existing_entry->hash);
+  reinterpreted_entry->frameCount = existing_entry->frameCount;
+  reinterpreted_entry->SetNotCopy();
+  reinterpreted_entry->is_efb_copy = existing_entry->is_efb_copy;
+  reinterpreted_entry->may_have_overlapping_textures =
+      existing_entry->may_have_overlapping_textures;
+
+  g_renderer->BeginUtilityDrawing();
+  g_renderer->SetAndDiscardFramebuffer(reinterpreted_entry->framebuffer.get());
+  g_renderer->SetViewportAndScissor(reinterpreted_entry->texture->GetRect());
+  g_renderer->SetPipeline(
+      g_shader_cache->GetTextureReinterpretPipeline(existing_entry->format.texfmt, new_format));
+  g_renderer->SetTexture(0, existing_entry->texture.get());
+  g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_renderer->Draw(0, 3);
+  g_renderer->EndUtilityDrawing();
+  reinterpreted_entry->texture->FinishedRendering();
+
+  textures_by_address.emplace(reinterpreted_entry->addr, reinterpreted_entry);
+
+  return reinterpreted_entry;
 }
 
 void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* entry, u32 new_width,
@@ -349,6 +423,18 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
     {
       if (entry->hash == entry->CalculateHash())
       {
+        // If the texture formats are not compatible or convertible, skip it.
+        if (!IsCompatibleTextureFormat(entry_to_update->format.texfmt, entry->format.texfmt))
+        {
+          if (!CanReinterpretTextureOnGPU(entry_to_update->format.texfmt, entry->format.texfmt))
+          {
+            ++iter.first;
+            continue;
+          }
+
+          entry = ReinterpretEntry(entry, entry_to_update->format.texfmt);
+        }
+
         if (isPaletteTexture)
         {
           TCacheEntry* decoded_entry = ApplyPaletteToEntry(entry, palette, tlutfmt);
@@ -894,6 +980,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   TexAddrCache::iterator oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
   TexAddrCache::iterator unconverted_copy = textures_by_address.end();
+  TexAddrCache::iterator unreinterpreted_copy = textures_by_address.end();
 
   while (iter != iter_range.second)
   {
@@ -922,10 +1009,38 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
            (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)) ||
           IsPlayingBackFifologWithBrokenEFBCopies)
       {
-        // TODO: We should check format/width/height/levels for EFB copies. Checking
-        // format is complicated because EFB copy formats don't exactly match
-        // texture formats. I'm not sure what effect checking width/height/levels
-        // would have.
+        // The texture format in VRAM must match the format that the copy was created with. Some
+        // formats are inherently compatible, as the channel and bit layout is identical (e.g.
+        // I8/C8). Others have the same number of bits per texel, and can be reinterpreted on the
+        // GPU (e.g. IA4 and I8 or RGB565 and RGBA5). The only known game which reinteprets texels
+        // in this manner is Spiderman Shattered Dimensions, where it creates a copy in B8 format,
+        // and sets it up as a IA4 texture.
+        if (!IsCompatibleTextureFormat(entry->format.texfmt, texformat))
+        {
+          // Can we reinterpret this in VRAM?
+          if (CanReinterpretTextureOnGPU(entry->format.texfmt, texformat))
+          {
+            // Delay the conversion until afterwards, it's possible this texture has already been
+            // converted.
+            unreinterpreted_copy = iter++;
+            continue;
+          }
+          else
+          {
+            // If the EFB copies are in a different format and are not reinterpretable, use the RAM
+            // copy.
+            ++iter;
+            continue;
+          }
+        }
+        else
+        {
+          // Prefer the already-converted copy.
+          unconverted_copy = textures_by_address.end();
+        }
+
+        // TODO: We should check width/height/levels for EFB copies. I'm not sure what effect
+        // checking width/height/levels would have.
         if (!isPaletteTexture || !g_Config.backend_info.bSupportsPaletteConversion)
           return entry;
 
@@ -972,6 +1087,18 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
       oldest_entry = iter;
     }
     ++iter;
+  }
+
+  if (unreinterpreted_copy != textures_by_address.end())
+  {
+    TCacheEntry* decoded_entry = ReinterpretEntry(unreinterpreted_copy->second, texformat);
+
+    // It's possible to combine reinterpreted textures + palettes.
+    if (unreinterpreted_copy == unconverted_copy && decoded_entry)
+      decoded_entry = ApplyPaletteToEntry(decoded_entry, &texMem[tlutaddr], tlutfmt);
+
+    if (decoded_entry)
+      return decoded_entry;
   }
 
   if (unconverted_copy != textures_by_address.end())
@@ -2299,51 +2426,6 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
 
   // Flush if there's sufficient draws between this copy and the last.
   g_vertex_manager->OnEFBCopyToRAM();
-}
-
-bool TextureCacheBase::ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted,
-                                      const void* palette, TLUTFormat format)
-{
-  DEBUG_ASSERT(entry->texture->GetConfig().IsRenderTarget() && entry->framebuffer);
-  if (!g_ActiveConfig.backend_info.bSupportsPaletteConversion)
-  {
-    ERROR_LOG(VIDEO, "Backend does not support palette conversion!");
-    return false;
-  }
-
-  g_renderer->BeginUtilityDrawing();
-
-  const u32 palette_size = unconverted->format == TextureFormat::I4 ? 32 : 512;
-  u32 texel_buffer_offset;
-  if (!g_vertex_manager->UploadTexelBuffer(palette, palette_size,
-                                           TexelBufferFormat::TEXEL_BUFFER_FORMAT_R16_UINT,
-                                           &texel_buffer_offset))
-  {
-    ERROR_LOG(VIDEO, "Texel buffer upload failed");
-    return false;
-  }
-
-  struct Uniforms
-  {
-    float multiplier;
-    u32 texel_buffer_offset;
-    u32 pad[2];
-  };
-  static_assert(std::is_standard_layout<Uniforms>::value);
-  Uniforms uniforms = {};
-  uniforms.multiplier = unconverted->format == TextureFormat::I4 ? 15.0f : 255.0f;
-  uniforms.texel_buffer_offset = texel_buffer_offset;
-  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
-
-  g_renderer->SetAndDiscardFramebuffer(entry->framebuffer.get());
-  g_renderer->SetViewportAndScissor(entry->texture->GetRect());
-  g_renderer->SetPipeline(g_shader_cache->GetPaletteConversionPipeline(format));
-  g_renderer->SetTexture(1, unconverted->texture.get());
-  g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
-  g_renderer->Draw(0, 3);
-  g_renderer->EndUtilityDrawing();
-  entry->texture->FinishedRendering();
-  return true;
 }
 
 bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data,
