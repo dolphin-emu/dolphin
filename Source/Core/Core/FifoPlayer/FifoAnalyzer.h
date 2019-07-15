@@ -10,10 +10,10 @@
 
 namespace FifoAnalyzer
 {
-enum DecodeMode
+enum class DecodeMode
 {
-  DECODE_RECORD,
-  DECODE_PLAYBACK,
+  Record,
+  Playback,
 };
 
 u32 AnalyzeCommand(const u8* data, DecodeMode mode);

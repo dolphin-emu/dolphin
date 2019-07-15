@@ -188,7 +188,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     int array = 0xc + (cmd - OpcodeDecoder::GX_LOAD_INDX_A) / 8;
     u32 value = ReadFifo32(data);
 
-    if (mode == DECODE_RECORD)
+    if (mode == DecodeMode::Record)
       FifoRecordAnalyzer::ProcessLoadIndexedXf(value, array);
     break;
   }
@@ -229,7 +229,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
       int vertexSize = offset;
       int numVertices = ReadFifo16(data);
 
-      if (mode == DECODE_RECORD && numVertices > 0)
+      if (mode == DecodeMode::Record && numVertices > 0)
       {
         for (int i = 0; i < 12; ++i)
         {
