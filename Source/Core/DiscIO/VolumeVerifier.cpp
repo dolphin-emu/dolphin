@@ -562,7 +562,11 @@ void VolumeVerifier::CheckMisc()
   }
   else
   {
-    const char country_code = game_id_encrypted[3];
+    char country_code;
+    if (IsDisc(m_volume.GetVolumeType()))
+      country_code = game_id_encrypted[3];
+    else
+      country_code = static_cast<char>(m_volume.GetTitleID().value_or(0) & 0xff);
     if (CountryCodeToRegion(country_code, platform, region) != region)
     {
       AddProblem(Severity::Medium,
