@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include <array>
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
 
 namespace FifoAnalyzer
@@ -21,9 +22,9 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode);
 struct CPMemory
 {
   TVtxDesc vtxDesc;
-  VAT vtxAttr[8];
-  u32 arrayBases[16];
-  u32 arrayStrides[16];
+  std::array<VAT, 8> vtxAttr;
+  std::array<u32, 16> arrayBases;
+  std::array<u32, 16> arrayStrides;
 };
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem);

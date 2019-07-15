@@ -4,10 +4,10 @@
 
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 
-#include <algorithm>
 #include <numeric>
 
 #include "Common/Assert.h"
+#include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
@@ -43,24 +43,33 @@ u32 ReadFifo32(const u8*& data)
   return value;
 }
 
-void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMem)
+std::array<int, 21> CalculateVertexElementSizes(int vatIndex, const CPMemory& cpMem)
 {
   const TVtxDesc& vtxDesc = cpMem.vtxDesc;
   const VAT& vtxAttr = cpMem.vtxAttr[vatIndex];
 
   // Colors
-  const u64 colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
-  const u32 colComp[2] = {vtxAttr.g0.Color0Comp, vtxAttr.g0.Color1Comp};
+  const std::array<u64, 2> colDesc{
+      vtxDesc.Color0,
+      vtxDesc.Color1,
+  };
+  const std::array<u32, 2> colComp{
+      vtxAttr.g0.Color0Comp,
+      vtxAttr.g0.Color1Comp,
+  };
 
-  const u32 tcElements[8] = {vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements,
-                             vtxAttr.g1.Tex2CoordElements, vtxAttr.g1.Tex3CoordElements,
-                             vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
-                             vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements};
+  const std::array<u32, 8> tcElements{
+      vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements,
+      vtxAttr.g1.Tex3CoordElements, vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
+      vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements,
+  };
+  const std::array<u32, 8> tcFormat{
+      vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat,
+      vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
+      vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat,
+  };
 
-  const u32 tcFormat[8] = {vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat,
-                           vtxAttr.g1.Tex2CoordFormat, vtxAttr.g1.Tex3CoordFormat,
-                           vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
-                           vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat};
+  std::array<int, 21> sizes{};
 
   // Add position and texture matrix indices
   u64 vtxDescHex = cpMem.vtxDesc.Hex;
@@ -86,7 +95,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMe
   }
 
   // Colors
-  for (int i = 0; i < 2; i++)
+  for (size_t i = 0; i < colDesc.size(); i++)
   {
     int size = 0;
 
@@ -133,11 +142,13 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory& cpMe
 
   // Texture coordinates
   vtxDescHex = vtxDesc.Hex >> 17;
-  for (int i = 0; i < 8; i++)
+  for (size_t i = 0; i < tcFormat.size(); i++)
   {
     sizes[13 + i] = VertexLoader_TextCoord::GetSize(vtxDescHex & 3, tcFormat[i], tcElements[i]);
     vtxDescHex >>= 2;
   }
+
+  return sizes;
 }
 }  // Anonymous namespace
 
@@ -213,27 +224,28 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     {
       s_DrawingObject = true;
 
-      int sizes[21];
-      CalculateVertexElementSizes(sizes, cmd & OpcodeDecoder::GX_VAT_MASK, s_CpMem);
+      const std::array<int, 21> sizes =
+          CalculateVertexElementSizes(cmd & OpcodeDecoder::GX_VAT_MASK, s_CpMem);
 
       // Determine offset of each element that might be a vertex array
       // The first 9 elements are never vertex arrays so we just accumulate their sizes.
-      int offsets[12];
-      int offset = std::accumulate(&sizes[0], &sizes[9], 0u);
-      for (int i = 0; i < 12; ++i)
+      int offset = std::accumulate(sizes.begin(), sizes.begin() + 9, 0u);
+      std::array<int, 12> offsets;
+      for (size_t i = 0; i < offsets.size(); ++i)
       {
         offsets[i] = offset;
         offset += sizes[i + 9];
       }
 
-      int vertexSize = offset;
-      int numVertices = ReadFifo16(data);
+      const int vertexSize = offset;
+      const int numVertices = ReadFifo16(data);
 
       if (mode == DecodeMode::Record && numVertices > 0)
       {
-        for (int i = 0; i < 12; ++i)
+        for (size_t i = 0; i < offsets.size(); ++i)
         {
-          FifoRecordAnalyzer::WriteVertexArray(i, data + offsets[i], vertexSize, numVertices);
+          FifoRecordAnalyzer::WriteVertexArray(static_cast<int>(i), data + offsets[i], vertexSize,
+                                               numVertices);
         }
       }
 
