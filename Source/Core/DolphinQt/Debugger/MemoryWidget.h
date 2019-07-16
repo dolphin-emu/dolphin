@@ -9,7 +9,6 @@
 #include <QDockWidget>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/AddressSpace.h"
 
 class MemoryViewWidget;
 class QCheckBox;

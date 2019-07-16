@@ -6,7 +6,7 @@
 
 #include <optional>
 
-#include "Core/Core.h"
+#include "Common/CommonTypes.h"
 
 namespace AddressSpace
 {
