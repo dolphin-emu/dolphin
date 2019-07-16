@@ -9,8 +9,9 @@
 #include <cstddef>
 #include <ctime>
 #include <iomanip>
-#include <sstream>
 #include <string>
+
+#include <fmt/time.h>
 
 #include "Common/CommonTypes.h"
 
@@ -124,8 +125,6 @@ std::string SettingsHandler::GenerateSerialNumber()
   // Must be 9 characters at most; otherwise the serial number will be rejected by SDK libraries,
   // as there is a check to ensure the string length is strictly lower than 10.
   // 3 for %j, 2 for %H, 2 for %M, 2 for %S.
-  std::stringstream stream;
-  stream << std::put_time(std::localtime(&t), "%j%H%M%S");
-  return stream.str();
+  return fmt::format("{:%j%H%M%S}", *std::localtime(&t));
 }
 }  // namespace Common
