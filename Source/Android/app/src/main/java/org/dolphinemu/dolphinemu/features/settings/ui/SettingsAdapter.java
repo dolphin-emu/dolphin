@@ -24,6 +24,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
@@ -78,6 +79,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         return new CheckBoxSettingViewHolder(view, this);
 
       case SettingsItem.TYPE_STRING_SINGLE_CHOICE:
+      case SettingsItem.TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS:
       case SettingsItem.TYPE_SINGLE_CHOICE:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
         return new SingleChoiceViewHolder(view, this);
@@ -183,6 +185,22 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     builder.setTitle(item.getNameId());
     builder.setSingleChoiceItems(item.getChoicesId(), item.getSelectValueIndex(), this);
+
+    mDialog = builder.show();
+  }
+
+  public void onSingleChoiceDynamicDescriptionsClick(SingleChoiceSettingDynamicDescriptions item,
+          int position)
+  {
+    mClickedItem = item;
+    mClickedPosition = position;
+
+    int value = getSelectionForSingleChoiceDynamicDescriptionsValue(item);
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
+
+    builder.setTitle(item.getNameId());
+    builder.setSingleChoiceItems(item.getChoicesId(), value, this);
 
     mDialog = builder.show();
   }
@@ -312,6 +330,24 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       closeDialog();
     }
+    else if (mClickedItem instanceof SingleChoiceSettingDynamicDescriptions)
+    {
+      SingleChoiceSettingDynamicDescriptions scSetting =
+              (SingleChoiceSettingDynamicDescriptions) mClickedItem;
+
+      int value = getValueForSingleChoiceDynamicDescriptionsSelection(scSetting, which);
+      if (scSetting.getSelectedValue() != value)
+        mView.onSettingChanged();
+
+      // Get the backing Setting, which may be null (if for example it was missing from the file)
+      IntSetting setting = scSetting.setSelectedValue(value);
+      if (setting != null)
+      {
+        mView.putSetting(setting);
+      }
+
+      closeDialog();
+    }
     else if (mClickedItem instanceof StringSingleChoiceSetting)
     {
       StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
@@ -415,6 +451,48 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   }
 
   private int getSelectionForSingleChoiceValue(SingleChoiceSetting item)
+  {
+    int value = item.getSelectedValue();
+    int valuesId = item.getValuesId();
+
+    if (valuesId > 0)
+    {
+      int[] valuesArray = mContext.getResources().getIntArray(valuesId);
+      for (int index = 0; index < valuesArray.length; index++)
+      {
+        int current = valuesArray[index];
+        if (current == value)
+        {
+          return index;
+        }
+      }
+    }
+    else
+    {
+      return value;
+    }
+
+    return -1;
+  }
+
+  private int getValueForSingleChoiceDynamicDescriptionsSelection(
+          SingleChoiceSettingDynamicDescriptions item, int which)
+  {
+    int valuesId = item.getValuesId();
+
+    if (valuesId > 0)
+    {
+      int[] valuesArray = mContext.getResources().getIntArray(valuesId);
+      return valuesArray[which];
+    }
+    else
+    {
+      return which;
+    }
+  }
+
+  private int getSelectionForSingleChoiceDynamicDescriptionsValue(
+          SingleChoiceSettingDynamicDescriptions item)
   {
     int value = item.getSelectedValue();
     int valuesId = item.getValuesId();

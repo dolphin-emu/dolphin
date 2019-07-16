@@ -123,6 +123,20 @@
         <item>3</item>
     </integer-array>
 
+    <!-- Ubershader Mode Dynamic Descriptions -->
+    <string-array name="shaderCompilationDescriptionEntries" translatable="false">
+        <item>Synchronous: Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low. Recommended for low-end hardware.\nIf unsure, select this mode.</item>
+        <item>Synchronous (Ubershaders): Ubershaders will always be used. Provides a near stutter-free experience at the cost of high GPU performance requirements. Only recommended for high-end systems.</item>
+        <item>Asynchronous (Ubershaders): Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering. In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.</item>
+        <item>Asynchronous (Skip Drawing): Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn\'t, at the cost of introducing visual glitches and broken effects. Not recommended, only use if the other options give poor results on your system.</item>
+    </string-array>
+    <integer-array name="shaderCompilationDescriptionValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
         <item>1x Native (640x528)</item>

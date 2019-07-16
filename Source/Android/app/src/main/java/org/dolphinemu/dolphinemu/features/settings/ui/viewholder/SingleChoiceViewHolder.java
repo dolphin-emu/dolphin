@@ -7,6 +7,7 @@ import android.widget.TextView;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
@@ -63,6 +64,22 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       if (valueIndex != -1)
         mTextSettingDescription.setText(choices[valueIndex]);
     }
+    else if (item instanceof SingleChoiceSettingDynamicDescriptions)
+    {
+      SingleChoiceSettingDynamicDescriptions setting =
+              (SingleChoiceSettingDynamicDescriptions) item;
+      int selected = setting.getSelectedValue();
+      Resources resMgr = mTextSettingDescription.getContext().getResources();
+      String[] choices = resMgr.getStringArray(setting.getDescriptionChoicesId());
+      int[] values = resMgr.getIntArray(setting.getDescriptionValuesId());
+      for (int i = 0; i < values.length; ++i)
+      {
+        if (values[i] == selected)
+        {
+          mTextSettingDescription.setText(choices[i]);
+        }
+      }
+    }
   }
 
   @Override
@@ -76,6 +93,11 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     else if (mItem instanceof StringSingleChoiceSetting)
     {
       getAdapter().onStringSingleChoiceClick((StringSingleChoiceSetting) mItem, position);
+    }
+    else if (mItem instanceof SingleChoiceSettingDynamicDescriptions)
+    {
+      getAdapter().onSingleChoiceDynamicDescriptionsClick(
+              (SingleChoiceSettingDynamicDescriptions) mItem, position);
     }
   }
 }

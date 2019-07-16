@@ -18,6 +18,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
@@ -418,10 +419,11 @@ public final class SettingsFragmentPresenter
             R.array.videoBackendValues, 0, videoBackend));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, Settings.SECTION_GFX_SETTINGS,
             R.string.show_fps, R.string.show_fps_description, false, showFps));
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE,
-            Settings.SECTION_GFX_SETTINGS, R.string.shader_compilation_mode,
-            R.string.shader_compilation_mode_description, R.array.shaderCompilationModeEntries,
-            R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
+    sl.add(new SingleChoiceSettingDynamicDescriptions(SettingsFile.KEY_SHADER_COMPILATION_MODE,
+            Settings.SECTION_GFX_SETTINGS, R.string.shader_compilation_mode, 0,
+            R.array.shaderCompilationModeEntries,
+            R.array.shaderCompilationModeValues, R.array.shaderCompilationDescriptionEntries,
+            R.array.shaderCompilationDescriptionValues, 0, shaderCompilationMode));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, Settings.SECTION_GFX_SETTINGS,
             R.string.wait_for_shaders, R.string.wait_for_shaders_description, false,
             waitForShaders));
