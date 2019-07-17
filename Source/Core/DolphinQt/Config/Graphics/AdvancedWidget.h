@@ -8,6 +8,7 @@
 
 class GraphicsWindow;
 class QCheckBox;
+class QSpinBox;
 
 class AdvancedWidget final : public GraphicsWidget
 {
@@ -42,6 +43,7 @@ private:
   // Frame dumping
   QCheckBox* m_dump_use_ffv1;
   QCheckBox* m_use_fullres_framedumps;
+  QSpinBox* m_dump_bitrate;
 
   // Misc
   QCheckBox* m_enable_cropping;

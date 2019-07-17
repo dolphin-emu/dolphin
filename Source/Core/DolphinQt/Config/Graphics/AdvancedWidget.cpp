@@ -7,6 +7,8 @@
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
+#include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -16,6 +18,7 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/Graphics/GraphicsInteger.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Settings.h"
 
@@ -88,10 +91,13 @@ void AdvancedWidget::CreateWidgets()
   m_use_fullres_framedumps = new GraphicsBool(tr("Dump at Internal Resolution"),
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
+  m_dump_bitrate = new GraphicsInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
 
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
   dump_layout->addWidget(m_dump_use_ffv1, 0, 1);
+  dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 1, 0);
+  dump_layout->addWidget(m_dump_bitrate, 1, 1);
 #endif
 
   // Misc.
@@ -137,19 +143,22 @@ void AdvancedWidget::CreateWidgets()
 void AdvancedWidget::ConnectWidgets()
 {
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
 void AdvancedWidget::LoadSettings()
 {
   m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
+  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
+
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
 }
 
 void AdvancedWidget::SaveSettings()
 {
-  const auto hires_enabled = Config::Get(Config::GFX_HIRES_TEXTURES);
-  m_prefetch_custom_textures->setEnabled(hires_enabled);
+  m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
+  m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
 
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
 }
