@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 
 // Global flag to signal if FifoRecorder is active.
 extern bool g_bRecordFifoData;

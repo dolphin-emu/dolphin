@@ -5,8 +5,8 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/VideoCommon.h"
 
 namespace TextureEncoder
 {

@@ -18,6 +18,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DebugUtil

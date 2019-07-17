@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/BPFunctions.h"
+
 #include <algorithm>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
-#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/RenderBase.h"

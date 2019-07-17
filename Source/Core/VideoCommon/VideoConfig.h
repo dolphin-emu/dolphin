@@ -14,7 +14,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/VideoCommon.h"
+
+enum class APIType;
 
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG 1

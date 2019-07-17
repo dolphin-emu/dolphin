@@ -16,15 +16,15 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VideoCommon.h"
 
-struct VideoConfig;
 class AbstractFramebuffer;
 class AbstractStagingTexture;
+struct VideoConfig;
 
 struct TextureAndTLUTFormat
 {

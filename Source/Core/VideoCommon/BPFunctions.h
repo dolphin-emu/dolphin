@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "VideoCommon/VideoCommon.h"
+#include "Common/MathUtil.h"
 
 struct BPCmd;
 

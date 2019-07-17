@@ -14,6 +14,7 @@
 
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
 {

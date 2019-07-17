@@ -19,8 +19,6 @@
 #include "Common/Flag.h"
 #include "Common/Semaphore.h"
 
-#include "VideoCommon/VideoCommon.h"
-
 #include "VideoBackends/Vulkan/Constants.h"
 
 namespace Vulkan

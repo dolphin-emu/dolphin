@@ -22,7 +22,7 @@
 #include <string>
 #include <tuple>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -74,6 +74,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -87,7 +88,9 @@ static float AspectToWidescreen(float aspect)
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
                    AbstractTextureFormat backbuffer_format)
     : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
-      m_backbuffer_scale(backbuffer_scale), m_backbuffer_format(backbuffer_format)
+      m_backbuffer_scale(backbuffer_scale),
+      m_backbuffer_format(backbuffer_format), m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{
+                                                                                   MAX_XFB_HEIGHT}
 {
   UpdateActiveConfig();
   UpdateDrawRectangle();
