@@ -66,13 +66,10 @@ void AdvancedWidget::CreateWidgets()
   m_load_custom_textures = new GraphicsBool(tr("Load Custom Textures"), Config::GFX_HIRES_TEXTURES);
   m_prefetch_custom_textures =
       new GraphicsBool(tr("Prefetch Custom Textures"), Config::GFX_CACHE_HIRES_TEXTURES);
-  m_use_fullres_framedumps = new GraphicsBool(tr("Internal Resolution Frame Dumps"),
-                                              Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_efb_target = new GraphicsBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
   m_disable_vram_copies =
       new GraphicsBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
   m_enable_freelook = new GraphicsBool(tr("Free Look"), Config::GFX_FREE_LOOK);
-  m_dump_use_ffv1 = new GraphicsBool(tr("Frame Dumps Use FFV1"), Config::GFX_USE_FFV1);
 
   utility_layout->addWidget(m_load_custom_textures, 0, 0);
   utility_layout->addWidget(m_prefetch_custom_textures, 0, 1);
@@ -83,9 +80,18 @@ void AdvancedWidget::CreateWidgets()
   utility_layout->addWidget(m_dump_textures, 2, 0);
   utility_layout->addWidget(m_dump_efb_target, 2, 1);
 
-  utility_layout->addWidget(m_use_fullres_framedumps, 3, 0);
+  // Frame dumping
+  auto* dump_box = new QGroupBox(tr("Frame Dumping"));
+  auto* dump_layout = new QGridLayout();
+  dump_box->setLayout(dump_layout);
+
+  m_use_fullres_framedumps = new GraphicsBool(tr("Dump at Internal Resolution"),
+                                              Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
+  m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
+
+  dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
-  utility_layout->addWidget(m_dump_use_ffv1, 3, 1);
+  dump_layout->addWidget(m_dump_use_ffv1, 0, 1);
 #endif
 
   // Misc.
@@ -120,6 +126,7 @@ void AdvancedWidget::CreateWidgets()
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
+  main_layout->addWidget(dump_box);
   main_layout->addWidget(misc_box);
   main_layout->addWidget(experimental_box);
   main_layout->addStretch();

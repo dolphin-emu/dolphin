@@ -36,10 +36,12 @@ private:
   QCheckBox* m_prefetch_custom_textures;
   QCheckBox* m_dump_efb_target;
   QCheckBox* m_disable_vram_copies;
-  QCheckBox* m_dump_use_ffv1;
   QCheckBox* m_load_custom_textures;
-  QCheckBox* m_use_fullres_framedumps;
   QCheckBox* m_enable_freelook;
+
+  // Frame dumping
+  QCheckBox* m_dump_use_ffv1;
+  QCheckBox* m_use_fullres_framedumps;
 
   // Misc
   QCheckBox* m_enable_cropping;
