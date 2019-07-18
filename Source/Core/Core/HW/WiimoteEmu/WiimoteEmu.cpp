@@ -28,6 +28,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/DesiredWiimoteState.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DesiredExtensionState.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
@@ -182,6 +183,7 @@ void Wiimote::Reset()
   {
     // Switch to desired M+ status and extension (if any).
     // M+ and EXT are reset on attachment.
+    // This also ensures that the balance board extension is attached if needed.
     HandleExtensionSwap(static_cast<ExtensionNumber>(m_attachments->GetSelectedAttachment()),
                         m_motion_plus_setting.GetValue());
   }
@@ -280,6 +282,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::Shinkansen>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoardExt>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 

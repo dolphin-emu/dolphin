@@ -23,6 +23,8 @@ enum ExtensionNumber : u8
   TATACON,
   SHINKANSEN,
 
+  BALANCE_BOARD,
+
   MAX
 };
 
