@@ -138,6 +138,12 @@ ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGrou
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetBalanceBoardGroup(int number, WiimoteEmu::BalanceBoardGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetBalanceBoardGroup(group);
+}
+
 void Shutdown()
 {
   s_config.UnregisterHotplugCallback();

@@ -397,6 +397,13 @@ ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
       ->GetGroup(group);
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetBalanceBoardGroup(BalanceBoardGroup group) const
+{
+  return static_cast<BalanceBoard*>(
+             m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
+      ->GetGroup(group);
+}
+
 bool Wiimote::ProcessExtensionPortEvent()
 {
   // WiiBrew: Following a connection or disconnection event on the Extension Port,

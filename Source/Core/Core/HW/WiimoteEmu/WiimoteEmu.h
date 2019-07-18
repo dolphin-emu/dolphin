@@ -63,6 +63,7 @@ enum class TurntableGroup;
 enum class UDrawTabletGroup;
 enum class DrawsomeTabletGroup;
 enum class TaTaConGroup;
+enum class BalanceBoardGroup;
 
 template <typename T>
 void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
@@ -123,6 +124,7 @@ public:
   ControllerEmu::ControlGroup* GetUDrawTabletGroup(UDrawTabletGroup group) const;
   ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const;
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
+  ControllerEmu::ControlGroup* GetBalanceBoardGroup(BalanceBoardGroup group) const;
 
   void Update() override;
   void EventLinked() override;
