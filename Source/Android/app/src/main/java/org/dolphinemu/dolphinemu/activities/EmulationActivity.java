@@ -216,7 +216,7 @@ public final class EmulationActivity extends AppCompatActivity
     else
     {
       // Display the path to the file as the game title in the menu.
-      launcher.putExtra(EXTRA_SELECTED_TITLE, filePaths);
+      launcher.putExtra(EXTRA_SELECTED_TITLE, filePaths[0]);
 
       // Use 00000000 as the game ID. This should match the Desktop version behavior.
       // TODO: This should really be pulled from the Core.
