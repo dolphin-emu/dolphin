@@ -149,7 +149,18 @@ void Wiimote::HandleExtensionSwap(ExtensionNumber desired_extension_number,
   if (WIIMOTE_BALANCE_BOARD == m_index)
   {
     // Prevent M+ or anything else silly from being attached to a balance board.
-    // In the future if we support an emulated balance board we can force the BB "extension" here.
+    if (m_is_motion_plus_attached)
+    {
+      m_is_motion_plus_attached = false;
+      m_motion_plus.GetExtPort().AttachExtension(GetNoneExtension());
+    }
+    // Also force the BB "extension".
+    if (m_active_extension != ExtensionNumber::BALANCE_BOARD)
+    {
+      m_active_extension = ExtensionNumber::BALANCE_BOARD;
+      m_extension_port.AttachExtension(GetActiveExtension());
+      GetActiveExtension()->Reset();
+    }
     return;
   }
 
