@@ -11,13 +11,17 @@
 
 namespace ControllerEmu
 {
+class AnalogStick;
 class ControlGroup;
+class Triggers;
 }  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
 enum class BalanceBoardGroup
 {
+  Balance,
+  Weight
 };
 
 class BalanceBoardExt : public Extension1stParty
@@ -37,6 +41,8 @@ public:
 
   BalanceBoardExt();
 
+  static constexpr float DEFAULT_WEIGHT = 63.5;  // kilograms; no specific meaning to this value
+
   void BuildDesiredExtensionState(DesiredExtensionState* target_state) override;
   void Update(const DesiredExtensionState& target_state) override;
   void Reset() override;
@@ -46,6 +52,21 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  // Use the same calibration data for all sensors.
+  // Wii Fit appears to convert to this internally (so it doesn't care about differences smaller
+  // than a gram). Normal balance boards tend to be less precise, usually around 10 grams.
+  static constexpr u16 WEIGHT_0_KG = 0;
+  static constexpr u16 WEIGHT_17_KG = 17000;
+  static constexpr u16 WEIGHT_34_KG = 34000;
+  // Chosen arbitrarily from the value for pokechu22's board.  As long as the calibration and
+  // actual temperatures match, the value here doesn't matter.
+  static constexpr u8 TEMPERATURE = 0x19;
+
 private:
+  u16 ConvertToSensorWeight(double weight_in_kilos);
+  void ComputeCalibrationChecksum();
+
+  ControllerEmu::AnalogStick* m_balance;
+  ControllerEmu::Triggers* m_weight;
 };
 }  // namespace WiimoteEmu

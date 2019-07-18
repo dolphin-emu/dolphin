@@ -9,6 +9,7 @@
 #include <QLabel>
 
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
@@ -34,6 +35,7 @@ WiimoteEmuExtension::WiimoteEmuExtension(MappingWindow* window) : MappingWidget(
   CreateDrawsomeTabletLayout();
   CreateTaTaConLayout();
   CreateShinkansenLayout();
+  CreateBalanceBoardLayout();
   CreateMainLayout();
 
   ChangeExtensionType(WiimoteEmu::ExtensionNumber::NONE);
@@ -241,6 +243,23 @@ void WiimoteEmuExtension::CreateShinkansenLayout()
   m_shinkansen_box->setLayout(hbox);
 }
 
+void WiimoteEmuExtension::CreateBalanceBoardLayout()
+{
+  auto* layout = new QGridLayout();
+  m_balance_board_box = new QGroupBox(tr("Balance Board"), this);
+
+  layout->addWidget(
+      CreateGroupBox(tr("Balance"), Wiimote::GetBalanceBoardGroup(
+                                        GetPort(), WiimoteEmu::BalanceBoardGroup::Balance)),
+      0, 0);
+  layout->addWidget(
+      CreateGroupBox(tr("Balance"), Wiimote::GetBalanceBoardGroup(
+                                        GetPort(), WiimoteEmu::BalanceBoardGroup::Weight)),
+      0, 1);
+
+  m_balance_board_box->setLayout(layout);
+}
+
 void WiimoteEmuExtension::CreateMainLayout()
 {
   m_main_layout = new QHBoxLayout();
@@ -255,6 +274,7 @@ void WiimoteEmuExtension::CreateMainLayout()
   m_main_layout->addWidget(m_drawsome_tablet_box);
   m_main_layout->addWidget(m_tatacon_box);
   m_main_layout->addWidget(m_shinkansen_box);
+  m_main_layout->addWidget(m_balance_board_box);
 
   setLayout(m_main_layout);
 }
@@ -288,4 +308,5 @@ void WiimoteEmuExtension::ChangeExtensionType(u32 type)
   m_drawsome_tablet_box->setHidden(type != ExtensionNumber::DRAWSOME_TABLET);
   m_tatacon_box->setHidden(type != ExtensionNumber::TATACON);
   m_shinkansen_box->setHidden(type != ExtensionNumber::SHINKANSEN);
+  m_balance_board_box->setHidden(type != ExtensionNumber::BALANCE_BOARD);
 }
