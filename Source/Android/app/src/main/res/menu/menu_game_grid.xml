@@ -31,5 +31,10 @@
         android:title="@string/grid_menu_refresh"
         android:icon="@drawable/ic_refresh"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_open_file"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="Open File"
+        app:showAsAction="ifRoom" />
 
 </menu>

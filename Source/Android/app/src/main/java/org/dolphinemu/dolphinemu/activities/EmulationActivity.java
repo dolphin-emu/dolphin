@@ -198,6 +198,38 @@ public final class EmulationActivity extends AppCompatActivity
     activity.startActivity(launcher);
   }
 
+  public static void launchFile(FragmentActivity activity, String[] filePaths)
+  {
+    Intent launcher = new Intent(activity, EmulationActivity.class);
+    launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
+
+    // Try parsing a GameFile first. This should succeed for disc images.
+    GameFile gameFile = GameFile.parse(filePaths[0]);
+    if (gameFile != null)
+    {
+      // We don't want to pollute the game file cache with this new file,
+      // so we can't just call launch() and let it handle the setup.
+      launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
+      launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
+      launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
+    }
+    else
+    {
+      // Display the path to the file as the game title in the menu.
+      launcher.putExtra(EXTRA_SELECTED_TITLE, filePaths);
+
+      // Use 00000000 as the game ID. This should match the Desktop version behavior.
+      // TODO: This should really be pulled from the Core.
+      launcher.putExtra(EXTRA_SELECTED_GAMEID, "00000000");
+
+      // GameFile might be a FIFO log. Assume GameCube for the platform. It doesn't really matter
+      // anyway, since this only controls the input, and the FIFO player doesn't take any input.
+      launcher.putExtra(EXTRA_PLATFORM, Platform.GAMECUBE);
+    }
+
+    activity.startActivity(launcher);
+  }
+
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -589,7 +621,7 @@ public final class EmulationActivity extends AppCompatActivity
         return;
 
       case MENU_ACTION_CHANGE_DISC:
-        FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
+        FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC, false);
         return;
 
       case MENU_SET_IR_SENSITIVITY:

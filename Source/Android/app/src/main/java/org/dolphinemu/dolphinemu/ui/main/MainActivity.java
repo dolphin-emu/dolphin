@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
@@ -143,6 +144,12 @@ public final class MainActivity extends AppCompatActivity implements MainView
     FileBrowserHelper.openDirectoryPicker(this);
   }
 
+  @Override
+  public void launchOpenFileActivity()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_OPEN_FILE, true);
+  }
+
   /**
    * @param requestCode An int describing whether the Activity that is returning did so successfully.
    * @param resultCode  An int describing what Activity is giving us this callback.
@@ -158,6 +165,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_OPEN_FILE:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
         }
         break;
     }
