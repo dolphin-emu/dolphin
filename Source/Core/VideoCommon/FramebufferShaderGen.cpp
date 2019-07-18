@@ -597,29 +597,30 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
   case TextureFormat::I8:
   case TextureFormat::C8:
   {
-    ss << "  ocol0.rgba = (float(raw_value & 0xFFu) / 255.0).rrrr;\n";
+    ss << "  float orgba = float(raw_value & 0xFFu) / 255.0;\n";
+    ss << "  ocol0 = float4(orgba, orgba, orgba, orgba);\n";
   }
   break;
 
   case TextureFormat::IA8:
   {
-    ss << "  ocol0.rgb = (float(raw_value & 0xFFu) / 255.0).rrr;\n";
-    ss << "  ocol0.a = float((raw_value >> 8) & 0xFFu) / 255.0;\n";
+    ss << "  float orgb = float(raw_value & 0xFFu) / 255.0;\n";
+    ss << "  ocol0 = float4(orgb, orgb, orgb, float((raw_value >> 8) & 0xFFu) / 255.0);\n";
   }
   break;
 
   case TextureFormat::IA4:
   {
-    ss << "  ocol0.rgb = (float(raw_value & 0xFu) / 15.0).rrr;\n";
-    ss << "  ocol0.a = float((raw_value >> 4) & 0xFu) / 15.0;\n";
+    ss << "  float orgb = float(raw_value & 0xFu) / 15.0;\n";
+    ss << "  ocol0 = float4(orgb, orgb, orgb, float((raw_value >> 4) & 0xFu) / 15.0);\n";
   }
   break;
 
   case TextureFormat::RGB565:
   {
-    ss << "  ocol0 = float4(float((raw_value >> 10) & 0x1Fu) / 31.0\n";
+    ss << "  ocol0 = float4(float((raw_value >> 10) & 0x1Fu) / 31.0,\n";
     ss << "                 float((raw_value >> 5) & 0x1Fu) / 31.0,\n";
-    ss << "                 float(raw_value & 0x1Fu) / 31.0,, 1.0);\n";
+    ss << "                 float(raw_value & 0x1Fu) / 31.0, 1.0);\n";
   }
   break;
 
