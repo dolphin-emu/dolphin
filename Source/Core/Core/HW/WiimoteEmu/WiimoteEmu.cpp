@@ -432,6 +432,13 @@ ControllerEmu::ControlGroup* Wiimote::GetShinkansenGroup(ShinkansenGroup group) 
       ->GetGroup(group);
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetBalanceBoardGroup(BalanceBoardGroup group) const
+{
+  return static_cast<BalanceBoardExt*>(
+             m_attachments->GetAttachmentList()[ExtensionNumber::BALANCE_BOARD].get())
+      ->GetGroup(group);
+}
+
 bool Wiimote::ProcessExtensionPortEvent()
 {
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
