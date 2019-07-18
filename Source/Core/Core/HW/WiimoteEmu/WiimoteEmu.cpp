@@ -27,6 +27,7 @@
 
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/DrawsomeTablet.h"
 #include "Core/HW/WiimoteEmu/Extension/Drums.h"
@@ -174,6 +175,7 @@ void Wiimote::Reset()
 
   // Switch to desired M+ status and extension (if any).
   // M+ and EXT are reset on attachment.
+  // This also ensures that the balance board extension is attached if needed.
   HandleExtensionSwap();
 
   // Reset sub-devices.
@@ -249,6 +251,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::UDrawTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::DrawsomeTablet>());
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::TaTaCon>());
+  m_attachments->AddAttachment(std::make_unique<WiimoteEmu::BalanceBoard>());
 
   m_attachments->AddSetting(&m_motion_plus_setting, {_trans("Attach MotionPlus")}, true);
 
