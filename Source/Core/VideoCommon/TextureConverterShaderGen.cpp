@@ -190,7 +190,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
       break;
 
     case EFBCopyFormat::RGBA8:  // Z24X8
-      out.Write("  ocol0 = float4(texcol.rgb, 0.0);\n");
+      out.Write("  ocol0 = float4(texcol.rgb, 1.0);\n");
       break;
 
     case EFBCopyFormat::G8:  // Z8M
