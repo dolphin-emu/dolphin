@@ -59,7 +59,10 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
 
   IOS::HLE::Device::ES::Context context;
   IOS::HLE::ReturnCode ret;
+
+  // A lot of people use fakesigned WADs, so disable signature checking temporarily when installing
   const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
+  SConfig::GetInstance().m_enable_signature_checks = false;
 
   IOS::ES::TicketReader ticket = wad.GetTicket();
   // Ensure the common key index is correct, as it's checked by IOS.
@@ -69,13 +72,6 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
                                  IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
          (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
   {
-    if (checks_enabled && ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&
-        AskYesNoT("This WAD has not been signed by Nintendo. Continue to import?"))
-    {
-      SConfig::GetInstance().m_enable_signature_checks = false;
-      continue;
-    }
-
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
       PanicAlertT("WAD installation failed: Could not initialise title import (error %d).", ret);
     SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
