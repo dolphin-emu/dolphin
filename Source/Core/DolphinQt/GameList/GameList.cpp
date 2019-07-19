@@ -337,13 +337,13 @@ void GameList::ShowContextMenu(const QPoint&)
       connect(wad_install_action, &QAction::triggered, this, &GameList::InstallWAD);
       connect(wad_uninstall_action, &QAction::triggered, this, &GameList::UninstallWAD);
 
-      for (QAction* a : {wad_install_action, wad_uninstall_action})
-      {
-        a->setEnabled(!Core::IsRunning());
-        menu->addAction(a);
-      }
-      if (!Core::IsRunning())
-        wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
+      wad_install_action->setEnabled(!Core::IsRunning() &&
+                                     !WiiUtils::IsTitleInstalled(game->GetTitleID()));
+      wad_uninstall_action->setEnabled(!Core::IsRunning() &&
+                                       WiiUtils::IsTitleInstalled(game->GetTitleID()));
+
+      menu->addAction(wad_install_action);
+      menu->addAction(wad_uninstall_action);
 
       connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu,
               [=](Core::State state) {
