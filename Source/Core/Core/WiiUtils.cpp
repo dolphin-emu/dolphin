@@ -60,24 +60,20 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
   IOS::HLE::Device::ES::Context context;
   IOS::HLE::ReturnCode ret;
 
-  // A lot of people use fakesigned WADs, so disable signature checking temporarily when installing
-  const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
-  SConfig::GetInstance().m_enable_signature_checks = false;
-
   IOS::ES::TicketReader ticket = wad.GetTicket();
   // Ensure the common key index is correct, as it's checked by IOS.
   ticket.FixCommonKeyIndex();
 
   while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
-                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
-         (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
+                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised,
+                                 IOS::HLE::Device::ES::VerifySignature::No)) < 0 ||
+         (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain(),
+                                    IOS::HLE::Device::ES::VerifySignature::No)) < 0)
   {
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
       PanicAlertT("WAD installation failed: Could not initialise title import (error %d).", ret);
-    SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
     return false;
   }
-  SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
 
   const bool contents_imported = [&]() {
     const u64 title_id = tmd.GetTitleId();

@@ -120,12 +120,6 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
 ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
                           const std::vector<u8>& certs_bytes)
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
-  {
-    WARN_LOG(IOS_ES, "VerifySign: signature checks are disabled. Skipping.");
-    return IPC_SUCCESS;
-  }
-
   const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(certs_bytes);
   if (certs.empty())
     return ES_EINVAL;

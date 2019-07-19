@@ -166,8 +166,6 @@ struct SConfig
   std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
   bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
 
-  bool m_enable_signature_checks = true;
-
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
 

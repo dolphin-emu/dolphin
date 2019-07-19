@@ -841,9 +841,6 @@ static const std::string CERT_STORE_PATH = "/sys/cert.sys";
 
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
-    return IPC_SUCCESS;
-
   const auto store_file =
       m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
   if (!store_file)
@@ -884,9 +881,6 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
                                const IOS::ES::SignedBlobReader& signed_blob,
                                const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
-    return IPC_SUCCESS;
-
   if (!signed_blob.IsSignatureValid())
     return ES_EINVAL;
 
