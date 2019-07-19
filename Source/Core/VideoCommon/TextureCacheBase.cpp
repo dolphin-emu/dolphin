@@ -254,6 +254,14 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
 {
   DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
 
+  const AbstractPipeline* pipeline = g_shader_cache->GetPaletteConversionPipeline(tlutfmt);
+  if (!pipeline)
+  {
+    ERROR_LOG(VIDEO, "Failed to get conversion pipeline for format 0x%02X",
+              static_cast<u32>(tlutfmt));
+    return nullptr;
+  }
+
   TextureConfig new_config = entry->texture->GetConfig();
   new_config.levels = 1;
   new_config.flags |= AbstractTextureFlag_RenderTarget;
@@ -293,7 +301,7 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
 
     g_renderer->SetAndDiscardFramebuffer(decoded_entry->framebuffer.get());
     g_renderer->SetViewportAndScissor(decoded_entry->texture->GetRect());
-    g_renderer->SetPipeline(g_shader_cache->GetPaletteConversionPipeline(tlutfmt));
+    g_renderer->SetPipeline(pipeline);
     g_renderer->SetTexture(1, entry->texture.get());
     g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
     g_renderer->Draw(0, 3);
@@ -314,6 +322,16 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
 TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entry,
                                                                   TextureFormat new_format)
 {
+  const AbstractPipeline* pipeline =
+      g_shader_cache->GetTextureReinterpretPipeline(existing_entry->format.texfmt, new_format);
+  if (!pipeline)
+  {
+    ERROR_LOG(VIDEO,
+              "Failed to obtain texture reinterpreting pipeline from format 0x%02X to 0x%02X",
+              static_cast<u32>(existing_entry->format.texfmt), static_cast<u32>(new_format));
+    return nullptr;
+  }
+
   TextureConfig new_config = existing_entry->texture->GetConfig();
   new_config.levels = 1;
   new_config.flags |= AbstractTextureFlag_RenderTarget;
@@ -336,8 +354,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEn
   g_renderer->BeginUtilityDrawing();
   g_renderer->SetAndDiscardFramebuffer(reinterpreted_entry->framebuffer.get());
   g_renderer->SetViewportAndScissor(reinterpreted_entry->texture->GetRect());
-  g_renderer->SetPipeline(
-      g_shader_cache->GetTextureReinterpretPipeline(existing_entry->format.texfmt, new_format));
+  g_renderer->SetPipeline(pipeline);
   g_renderer->SetTexture(0, existing_entry->texture.get());
   g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
   g_renderer->Draw(0, 3);
@@ -432,7 +449,10 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* pale
             continue;
           }
 
-          entry = ReinterpretEntry(entry, entry_to_update->format.texfmt);
+          TCacheEntry* reinterpreted_entry =
+              ReinterpretEntry(entry, entry_to_update->format.texfmt);
+          if (reinterpreted_entry)
+            entry = reinterpreted_entry;
         }
 
         if (isPaletteTexture)
