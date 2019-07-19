@@ -8,6 +8,7 @@
 
 #include <imgui.h>
 
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 Statistics g_stats;

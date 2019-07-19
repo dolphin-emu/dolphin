@@ -5,15 +5,12 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/VideoCommon.h"
-
-class GLContext;
+#include "Common/MathUtil.h"
 
 class AbstractTexture;
+class GLContext;
 struct WindowSystemInfo;
 
 class SWOGLWindow

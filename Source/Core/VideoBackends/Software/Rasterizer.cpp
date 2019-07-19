@@ -2,16 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/Rasterizer.h"
+
 #include <algorithm>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
-#include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 

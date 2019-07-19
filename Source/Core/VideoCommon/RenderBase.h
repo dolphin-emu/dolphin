@@ -33,7 +33,6 @@
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
-#include "VideoCommon/VideoCommon.h"
 
 class AbstractFramebuffer;
 class AbstractPipeline;
@@ -359,8 +358,8 @@ private:
   u64 m_last_xfb_id = std::numeric_limits<u64>::max();
 
   // Note: Only used for auto-ir
-  u32 m_last_xfb_width = MAX_XFB_WIDTH;
-  u32 m_last_xfb_height = MAX_XFB_HEIGHT;
+  u32 m_last_xfb_width = 0;
+  u32 m_last_xfb_height = 0;
 
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToFFMPEG(const FrameDumpConfig& config);
