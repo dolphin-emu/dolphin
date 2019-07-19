@@ -11,6 +11,8 @@ public class GameFile
     mPointer = pointer;
   }
 
+  public native static GameFile parse(String path);
+
   @Override
   public native void finalize();
 

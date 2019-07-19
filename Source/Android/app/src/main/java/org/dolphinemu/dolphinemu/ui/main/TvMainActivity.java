@@ -144,6 +144,12 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
+  public void launchOpenFileActivity()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_OPEN_FILE, true);
+  }
+
+  @Override
   public void showGames()
   {
     // Kicks off the program services to update all channels
@@ -169,6 +175,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_OPEN_FILE:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
         }
         break;
     }
