@@ -670,7 +670,7 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   }
 }
 
-void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
+void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform)
 {
   const u64 tmd_title_id = tmd.GetTitleId();
 
@@ -678,12 +678,12 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   // the disc header instead of the TMD. They can differ.
   // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
   // a disc game, because ES has no reason to be accessing the disc directly.)
-  if (!DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
+  if (platform == DiscIO::Platform::WiiWAD ||
+      !DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    const DiscIO::Country country =
-        DiscIO::CountryCodeToCountry(static_cast<u8>(tmd_title_id), DiscIO::Platform::WiiWAD,
-                                     tmd.GetRegion(), tmd.GetTitleVersion());
+    const DiscIO::Country country = DiscIO::CountryCodeToCountry(
+        static_cast<u8>(tmd_title_id), platform, tmd.GetRegion(), tmd.GetTitleVersion());
     SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id, tmd.GetTitleVersion(),
                            country);
   }
@@ -902,7 +902,7 @@ struct SetGameMetadata
     }
 
     const IOS::ES::TMDReader& tmd = wad.GetTMD();
-    config->SetRunningGameMetadata(tmd);
+    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
     config->bWii = true;
     *region = tmd.GetRegion();
     return true;
@@ -917,7 +917,7 @@ struct SetGameMetadata
       PanicAlertT("This title cannot be booted.");
       return false;
     }
-    config->SetRunningGameMetadata(tmd);
+    config->SetRunningGameMetadata(tmd, DiscIO::Platform::WiiWAD);
     config->bWii = true;
     *region = tmd.GetRegion();
     return true;
