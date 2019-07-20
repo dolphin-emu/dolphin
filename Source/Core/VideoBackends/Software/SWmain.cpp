@@ -53,6 +53,13 @@ std::string VideoSoftware::GetDisplayName() const
   return _trans("Software Renderer");
 }
 
+std::optional<std::string> VideoSoftware::GetWarningMessage() const
+{
+  return _trans("The software renderer is significantly slower than other "
+                "backends and is only recommended for debugging purposes.\n\nDo you "
+                "really want to enable software rendering? If unsure, select 'No'.");
+}
+
 void VideoSoftware::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
