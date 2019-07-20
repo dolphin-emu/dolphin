@@ -68,7 +68,10 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return true;
 
     if (button == QMessageBox::Ignore)
+    {
       Common::SetEnableAlert(false);
+      return true;
+    }
 
     return false;
   });
