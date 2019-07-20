@@ -83,35 +83,27 @@ std::string GetStringT(const char* string)
 bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 {
   // Read message and write it to the log
-  std::string caption;
+  const char* caption = "";
   char buffer[2048];
 
-  static std::string info_caption;
-  static std::string warn_caption;
-  static std::string ques_caption;
-  static std::string crit_caption;
-
-  if (info_caption.empty())
-  {
-    info_caption = s_str_translator(_trans("Information"));
-    ques_caption = s_str_translator(_trans("Question"));
-    warn_caption = s_str_translator(_trans("Warning"));
-    crit_caption = s_str_translator(_trans("Critical"));
-  }
+  static const std::string info_caption = s_str_translator(_trans("Information"));
+  static const std::string warn_caption = s_str_translator(_trans("Question"));
+  static const std::string ques_caption = s_str_translator(_trans("Warning"));
+  static const std::string crit_caption = s_str_translator(_trans("Critical"));
 
   switch (style)
   {
   case MsgType::Information:
-    caption = info_caption;
+    caption = info_caption.c_str();
     break;
   case MsgType::Question:
-    caption = ques_caption;
+    caption = ques_caption.c_str();
     break;
   case MsgType::Warning:
-    caption = warn_caption;
+    caption = warn_caption.c_str();
     break;
   case MsgType::Critical:
-    caption = crit_caption;
+    caption = crit_caption.c_str();
     break;
   }
 
@@ -120,13 +112,13 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
   CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
   va_end(args);
 
-  ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
+  ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
   if (s_msg_handler != nullptr &&
       (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
   {
-    return s_msg_handler(caption.c_str(), buffer, yes_no, style);
+    return s_msg_handler(caption, buffer, yes_no, style);
   }
 
   return true;
