@@ -81,10 +81,10 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
                              D3D11_SDK_VERSION, &device, &feature_level, &context);
 
     // Debugbreak on D3D error
-    if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&s_debug))))
+    if (SUCCEEDED(hr) && SUCCEEDED(device.As(&s_debug)))
     {
       ComPtr<ID3D11InfoQueue> info_queue;
-      if (SUCCEEDED(s_debug->QueryInterface(IID_PPV_ARGS(&info_queue))))
+      if (SUCCEEDED(s_debug.As(&info_queue)))
       {
         info_queue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
         info_queue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
@@ -121,7 +121,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
     return false;
   }
 
-  hr = device->QueryInterface(IID_PPV_ARGS(&device1));
+  hr = device.As(&device1);
   if (FAILED(hr))
   {
     WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
