@@ -171,6 +171,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
   // Use temporary device if we don't have one already.
   Common::DynamicLibrary temp_lib;
   ComPtr<ID3D11Device> temp_device = device;
+  D3D_FEATURE_LEVEL temp_feature_level = feature_level;
   if (!temp_device)
   {
     ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
@@ -178,7 +179,7 @@ std::vector<u32> GetAAModes(u32 adapter_index)
       return {};
 
     ComPtr<IDXGIAdapter> adapter;
-    temp_dxgi_factory->EnumAdapters(adapter_index, &adapter);
+    temp_dxgi_factory->EnumAdapters(adapter_index, adapter.GetAddressOf());
 
     PFN_D3D11_CREATE_DEVICE d3d11_create_device;
     if (!temp_lib.Open("d3d11.dll") ||
@@ -187,21 +188,21 @@ std::vector<u32> GetAAModes(u32 adapter_index)
       return {};
     }
 
-    HRESULT hr = d3d11_create_device(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0,
-                                     s_supported_feature_levels.data(),
-                                     static_cast<UINT>(s_supported_feature_levels.size()),
-                                     D3D11_SDK_VERSION, &temp_device, nullptr, nullptr);
+    HRESULT hr = d3d11_create_device(
+        adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
+        static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
+        temp_device.GetAddressOf(), &temp_feature_level, nullptr);
     if (FAILED(hr))
       return {};
   }
 
   // NOTE: D3D 10.0 doesn't support multisampled resources which are bound as depth buffers AND
   // shader resources. Thus, we can't have MSAA with 10.0 level hardware.
-  if (temp_device->GetFeatureLevel() == D3D_FEATURE_LEVEL_10_0)
+  if (temp_feature_level == D3D_FEATURE_LEVEL_10_0)
     return {};
 
   std::vector<u32> aa_modes;
-  for (u32 samples = 1; samples < D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
+  for (u32 samples = 1; samples <= D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
   {
     UINT quality_levels = 0;
     if (SUCCEEDED(temp_device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples,
