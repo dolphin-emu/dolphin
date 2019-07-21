@@ -9,8 +9,9 @@
 #include <cstddef>
 #include <ctime>
 #include <iomanip>
-#include <sstream>
 #include <string>
+
+#include <fmt/time.h>
 
 #include "Common/CommonTypes.h"
 
@@ -38,27 +39,27 @@ void SettingsHandler::SetBytes(Buffer&& buffer)
   Decrypt();
 }
 
-std::string SettingsHandler::GetValue(const std::string& key) const
+std::string SettingsHandler::GetValue(std::string_view key) const
 {
-  std::string delim = std::string("\r\n");
-  std::string toFind = delim + key + "=";
+  constexpr char delim[] = "\r\n";
+  std::string toFind = std::string(delim).append(key).append("=");
   size_t found = decoded.find(toFind);
 
-  if (found != decoded.npos)
+  if (found != std::string_view::npos)
   {
     size_t delimFound = decoded.find(delim, found + toFind.length());
-    if (delimFound == decoded.npos)
+    if (delimFound == std::string_view::npos)
       delimFound = decoded.length() - 1;
     return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
   }
   else
   {
-    toFind = key + "=";
+    toFind = std::string(key).append("=");
     found = decoded.find(toFind);
     if (found == 0)
     {
       size_t delimFound = decoded.find(delim, found + toFind.length());
-      if (delimFound == decoded.npos)
+      if (delimFound == std::string_view::npos)
         delimFound = decoded.length() - 1;
       return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
     }
@@ -89,7 +90,7 @@ void SettingsHandler::Reset()
   m_buffer = {};
 }
 
-void SettingsHandler::AddSetting(const std::string& key, const std::string& value)
+void SettingsHandler::AddSetting(std::string_view key, std::string_view value)
 {
   for (const char& c : key)
   {
@@ -124,8 +125,6 @@ std::string SettingsHandler::GenerateSerialNumber()
   // Must be 9 characters at most; otherwise the serial number will be rejected by SDK libraries,
   // as there is a check to ensure the string length is strictly lower than 10.
   // 3 for %j, 2 for %H, 2 for %M, 2 for %S.
-  std::stringstream stream;
-  stream << std::put_time(std::localtime(&t), "%j%H%M%S");
-  return stream.str();
+  return fmt::format("{:%j%H%M%S}", *std::localtime(&t));
 }
 }  // namespace Common
