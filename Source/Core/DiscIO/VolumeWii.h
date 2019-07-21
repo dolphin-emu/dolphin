@@ -27,7 +27,7 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class VolumeWii : public Volume
+class VolumeWii : public VolumeDisc
 {
 public:
   VolumeWii(std::unique_ptr<BlobReader> reader);

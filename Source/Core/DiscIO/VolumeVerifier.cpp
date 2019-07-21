@@ -770,10 +770,7 @@ void VolumeVerifier::Process()
 
 bool VolumeVerifier::CheckContentIntegrity(const IOS::ES::Content& content)
 {
-  const u64 padded_size = Common::AlignUp(content.size, 0x40);
-  std::vector<u8> encrypted_data(padded_size);
-  m_volume.Read(m_content_offsets[m_content_index], padded_size, encrypted_data.data(),
-                PARTITION_NONE);
+  std::vector<u8> encrypted_data = m_volume.GetContent(content.index);
 
   mbedtls_aes_context context;
   const std::array<u8, 16> key = m_volume.GetTicket(PARTITION_NONE).GetTitleKey();
@@ -783,8 +780,8 @@ bool VolumeVerifier::CheckContentIntegrity(const IOS::ES::Content& content)
   iv[0] = static_cast<u8>(content.index >> 8);
   iv[1] = static_cast<u8>(content.index & 0xFF);
 
-  std::vector<u8> decrypted_data(padded_size);
-  mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, padded_size, iv.data(),
+  std::vector<u8> decrypted_data(Common::AlignUp(content.size, 0x40));
+  mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, decrypted_data.size(), iv.data(),
                         encrypted_data.data(), decrypted_data.data());
 
   std::array<u8, 20> sha1;

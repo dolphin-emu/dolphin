@@ -17,7 +17,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/VolumeWad.h"
 
 namespace File
 {
@@ -39,7 +39,7 @@ struct BootParameters
   struct Disc
   {
     std::string path;
-    std::unique_ptr<DiscIO::Volume> volume;
+    std::unique_ptr<DiscIO::VolumeDisc> volume;
     std::vector<std::string> auto_disc_change_paths;
   };
 
@@ -75,7 +75,7 @@ struct BootParameters
   GenerateFromFile(std::vector<std::string> paths,
                    const std::optional<std::string>& savestate_path = {});
 
-  using Parameters = std::variant<Disc, Executable, DiscIO::WiiWAD, NANDTitle, IPL, DFF>;
+  using Parameters = std::variant<Disc, Executable, DiscIO::VolumeWAD, NANDTitle, IPL, DFF>;
   BootParameters(Parameters&& parameters_, const std::optional<std::string>& savestate_path_ = {});
 
   Parameters parameters;
@@ -102,21 +102,21 @@ public:
   static bool LoadMapFromFilename();
 
 private:
-  static bool DVDRead(const DiscIO::Volume& volume, u64 dvd_offset, u32 output_address, u32 length,
-                      const DiscIO::Partition& partition);
+  static bool DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address,
+                      u32 length, const DiscIO::Partition& partition);
   static void RunFunction(u32 address);
 
   static void UpdateDebugger_MapLoaded();
 
-  static bool Boot_WiiWAD(const DiscIO::WiiWAD& wad);
+  static bool Boot_WiiWAD(const DiscIO::VolumeWAD& wad);
   static bool BootNANDTitle(u64 title_id);
 
   static void SetupMSR();
   static void SetupBAT(bool is_wii);
-  static bool RunApploader(bool is_wii, const DiscIO::Volume& volume);
-  static bool EmulatedBS2_GC(const DiscIO::Volume& volume);
-  static bool EmulatedBS2_Wii(const DiscIO::Volume& volume);
-  static bool EmulatedBS2(bool is_wii, const DiscIO::Volume& volume);
+  static bool RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume);
+  static bool EmulatedBS2_GC(const DiscIO::VolumeDisc& volume);
+  static bool EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume);
+  static bool EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
 
   static void SetupGCMemory();

@@ -49,7 +49,7 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/VolumeWad.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -888,9 +888,9 @@ struct SetGameMetadata
     return true;
   }
 
-  bool operator()(const DiscIO::WiiWAD& wad) const
+  bool operator()(const DiscIO::VolumeWAD& wad) const
   {
-    if (!wad.IsValid() || !wad.GetTMD().IsValid())
+    if (!wad.GetTMD().IsValid())
     {
       PanicAlertT("This WAD is not valid.");
       return false;

@@ -57,7 +57,6 @@
     <ClCompile Include="VolumeWii.cpp" />
     <ClCompile Include="WbfsBlob.cpp" />
     <ClCompile Include="WiiSaveBanner.cpp" />
-    <ClCompile Include="WiiWad.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Blob.h" />
@@ -81,7 +80,6 @@
     <ClInclude Include="VolumeWii.h" />
     <ClInclude Include="WbfsBlob.h" />
     <ClInclude Include="WiiSaveBanner.h" />
-    <ClInclude Include="WiiWad.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

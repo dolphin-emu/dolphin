@@ -17,7 +17,7 @@
 
 namespace DiscIO
 {
-class Volume;
+class VolumeDisc;
 struct Partition;
 
 class FileInfoGCWii : public FileInfo
@@ -87,7 +87,7 @@ private:
 class FileSystemGCWii : public FileSystem
 {
 public:
-  FileSystemGCWii(const Volume* volume, const Partition& partition);
+  FileSystemGCWii(const VolumeDisc* volume, const Partition& partition);
   ~FileSystemGCWii() override;
 
   bool IsValid() const override { return m_valid; }

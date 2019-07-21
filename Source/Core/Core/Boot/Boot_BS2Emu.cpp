@@ -85,7 +85,7 @@ void CBoot::SetupBAT(bool is_wii)
   PowerPC::IBATUpdated();
 }
 
-bool CBoot::RunApploader(bool is_wii, const DiscIO::Volume& volume)
+bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume)
 {
   const DiscIO::Partition partition = volume.GetGamePartition();
 
@@ -200,7 +200,7 @@ void CBoot::SetupGCMemory()
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(const DiscIO::Volume& volume)
+bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -366,7 +366,7 @@ static void WriteEmptyPlayRecord()
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
+bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
 {
   INFO_LOG(BOOT, "Faking Wii BS2...");
   if (volume.GetVolumeType() != DiscIO::Platform::WiiDisc)
@@ -426,7 +426,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
 
 // Returns true if apploader has run successfully. If is_wii is true, the disc
 // that volume refers to must currently be inserted into the emulated disc drive.
-bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::Volume& volume)
+bool CBoot::EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume)
 {
   return is_wii ? EmulatedBS2_Wii(volume) : EmulatedBS2_GC(volume);
 }

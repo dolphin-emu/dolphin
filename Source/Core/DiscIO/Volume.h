@@ -22,6 +22,7 @@ namespace DiscIO
 {
 enum class BlobType;
 class FileSystem;
+class VolumeWAD;
 
 struct Partition final
 {
@@ -73,6 +74,7 @@ public:
   {
     return INVALID_CERT_CHAIN;
   }
+  virtual std::vector<u8> GetContent(u16 index) const { return {}; }
   virtual std::vector<u64> GetContentOffsets() const { return {}; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
@@ -141,6 +143,12 @@ protected:
   static const std::vector<u8> INVALID_CERT_CHAIN;
 };
 
-std::unique_ptr<Volume> CreateVolumeFromFilename(const std::string& filename);
+class VolumeDisc : public Volume
+{
+};
+
+std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);
+std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path);
+std::unique_ptr<Volume> CreateVolume(const std::string& path);
 
 }  // namespace DiscIO

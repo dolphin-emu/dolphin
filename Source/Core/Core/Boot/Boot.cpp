@@ -59,6 +59,7 @@ namespace fs = std::filesystem;
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeWad.h"
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
@@ -161,10 +162,10 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
-    std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolumeFromFilename(path);
-    if (volume)
+    std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
+    if (disc)
     {
-      return std::make_unique<BootParameters>(Disc{std::move(path), std::move(volume), paths},
+      return std::make_unique<BootParameters>(Disc{std::move(path), std::move(disc), paths},
                                               savestate_path);
     }
 
@@ -201,7 +202,11 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     return std::make_unique<BootParameters>(DFF{std::move(path)}, savestate_path);
 
   if (extension == ".wad")
-    return std::make_unique<BootParameters>(DiscIO::WiiWAD{std::move(path)}, savestate_path);
+  {
+    std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path));
+    if (wad)
+      return std::make_unique<BootParameters>(std::move(*wad), savestate_path);
+  }
 
   PanicAlertT("Could not recognize file %s", path.c_str());
   return {};
@@ -221,19 +226,19 @@ BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
 // Inserts a disc into the emulated disc drive and returns a pointer to it.
 // The returned pointer must only be used while we are still booting,
 // because DVDThread can do whatever it wants to the disc after that.
-static const DiscIO::Volume* SetDisc(std::unique_ptr<DiscIO::Volume> volume,
-                                     std::vector<std::string> auto_disc_change_paths = {})
+static const DiscIO::VolumeDisc* SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
+                                         std::vector<std::string> auto_disc_change_paths = {})
 {
-  const DiscIO::Volume* pointer = volume.get();
-  DVDInterface::SetDisc(std::move(volume), auto_disc_change_paths);
+  const DiscIO::VolumeDisc* pointer = disc.get();
+  DVDInterface::SetDisc(std::move(disc), auto_disc_change_paths);
   return pointer;
 }
 
-bool CBoot::DVDRead(const DiscIO::Volume& volume, u64 dvd_offset, u32 output_address, u32 length,
+bool CBoot::DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address, u32 length,
                     const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
-  if (!volume.Read(dvd_offset, length, buffer.data(), partition))
+  if (!disc.Read(dvd_offset, length, buffer.data(), partition))
     return false;
   Memory::CopyToEmu(output_address, buffer.data(), length);
   return true;
@@ -365,7 +370,7 @@ static void SetDefaultDisc()
 {
   const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
   if (!default_iso.empty())
-    SetDisc(DiscIO::CreateVolumeFromFilename(default_iso));
+    SetDisc(DiscIO::CreateDisc(default_iso));
 }
 
 static void CopyDefaultExceptionHandlers()
@@ -401,7 +406,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     bool operator()(BootParameters::Disc& disc) const
     {
       NOTICE_LOG(BOOT, "Booting from disc: %s", disc.path.c_str());
-      const DiscIO::Volume* volume = SetDisc(std::move(disc.volume), disc.auto_disc_change_paths);
+      const DiscIO::VolumeDisc* volume =
+          SetDisc(std::move(disc.volume), disc.auto_disc_change_paths);
 
       if (!volume)
         return false;
@@ -465,7 +471,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       return true;
     }
 
-    bool operator()(const DiscIO::WiiWAD& wad) const
+    bool operator()(const DiscIO::VolumeWAD& wad) const
     {
       SetDefaultDisc();
       return Boot_WiiWAD(wad);
@@ -495,7 +501,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (ipl.disc)
       {
         NOTICE_LOG(BOOT, "Inserting disc: %s", ipl.disc->path.c_str());
-        SetDisc(DiscIO::CreateVolumeFromFilename(ipl.disc->path), ipl.disc->auto_disc_change_paths);
+        SetDisc(DiscIO::CreateDisc(ipl.disc->path), ipl.disc->auto_disc_change_paths);
       }
 
       if (LoadMapFromFilename())
