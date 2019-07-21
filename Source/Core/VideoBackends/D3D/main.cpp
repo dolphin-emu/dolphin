@@ -63,16 +63,13 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsClipControl = true;
   g_Config.backend_info.bSupportsDepthClamp = true;
   g_Config.backend_info.bSupportsReversedDepthRange = false;
-  g_Config.backend_info.bSupportsLogicOp = true;
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
-  g_Config.backend_info.bSupportsST3CTextures = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
   g_Config.backend_info.bSupportsLargePoints = false;
   g_Config.backend_info.bSupportsPartialDepthCopies = false;
   g_Config.backend_info.bSupportsBitfield = false;
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
-  g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = true;
   g_Config.backend_info.bSupportsST3CTextures = true;
@@ -84,6 +81,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsShaderBinaries = true;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);

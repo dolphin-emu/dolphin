@@ -43,6 +43,9 @@ std::vector<u32> GetAAModes(u32 adapter_index);
 // Checks for support of the given texture format.
 bool SupportsTextureFormat(DXGI_FORMAT format);
 
+// Checks for logic op support.
+bool SupportsLogicOp(u32 adapter_index);
+
 }  // namespace D3D
 
 }  // namespace DX11

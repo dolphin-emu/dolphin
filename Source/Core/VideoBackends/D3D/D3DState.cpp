@@ -359,7 +359,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logicopenable && D3D::device1)
+  if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];

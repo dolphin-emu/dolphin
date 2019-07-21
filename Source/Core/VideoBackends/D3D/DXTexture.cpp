@@ -12,6 +12,7 @@
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3DCommon/Common.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
@@ -360,10 +361,10 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
     if (FAILED(hr))
       return nullptr;
 
-    // Only create the integer RTV on Win8+.
+    // Only create the integer RTV when logic ops are supported (Win8+).
     DXGI_FORMAT integer_format =
         D3DCommon::GetRTVFormatForAbstractFormat(color_attachment->GetFormat(), true);
-    if (D3D::device1 && integer_format != desc.Format)
+    if (g_ActiveConfig.backend_info.bSupportsLogicOp && integer_format != desc.Format)
     {
       desc.Format = integer_format;
       hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,

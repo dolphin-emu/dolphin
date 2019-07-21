@@ -64,7 +64,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   }
 
   ComPtr<IDXGIAdapter> adapter;
-  HRESULT hr = dxgi_factory->EnumAdapters(adapter_index, &adapter);
+  HRESULT hr = dxgi_factory->EnumAdapters(adapter_index, adapter.GetAddressOf());
   if (FAILED(hr))
   {
     WARN_LOG(VIDEO, "Adapter %u not found, using default", adapter_index);
@@ -75,10 +75,10 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   // version of the DirectX SDK. If it does, simply fallback to a non-debug device.
   if (enable_debug_layer)
   {
-    hr = d3d11_create_device(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-                             D3D11_CREATE_DEVICE_DEBUG, s_supported_feature_levels.data(),
-                             static_cast<UINT>(s_supported_feature_levels.size()),
-                             D3D11_SDK_VERSION, &device, &feature_level, &context);
+    hr = d3d11_create_device(
+        adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_DEBUG,
+        s_supported_feature_levels.data(), static_cast<UINT>(s_supported_feature_levels.size()),
+        D3D11_SDK_VERSION, device.GetAddressOf(), &feature_level, context.GetAddressOf());
 
     // Debugbreak on D3D error
     if (SUCCEEDED(hr) && SUCCEEDED(device.As(&s_debug)))
@@ -105,10 +105,10 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
 
   if (!enable_debug_layer || FAILED(hr))
   {
-    hr = d3d11_create_device(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0,
-                             s_supported_feature_levels.data(),
-                             static_cast<UINT>(s_supported_feature_levels.size()),
-                             D3D11_SDK_VERSION, &device, &feature_level, &context);
+    hr = d3d11_create_device(
+        adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
+        static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
+        device.GetAddressOf(), &feature_level, context.GetAddressOf());
   }
 
   if (FAILED(hr))
@@ -125,7 +125,6 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   if (FAILED(hr))
   {
     WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
-    g_Config.backend_info.bSupportsLogicOp = false;
   }
 
   stateman = std::make_unique<StateManager>();
@@ -223,6 +222,53 @@ bool SupportsTextureFormat(DXGI_FORMAT format)
     return false;
 
   return (support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
+bool SupportsLogicOp(u32 adapter_index)
+{
+  // Use temporary device if we don't have one already.
+  Common::DynamicLibrary temp_lib;
+  ComPtr<ID3D11Device1> temp_device1 = device1;
+  if (!device)
+  {
+    ComPtr<ID3D11Device> temp_device;
+
+    ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
+    if (!temp_dxgi_factory)
+      return false;
+
+    ComPtr<IDXGIAdapter> adapter;
+    temp_dxgi_factory->EnumAdapters(adapter_index, adapter.GetAddressOf());
+
+    PFN_D3D11_CREATE_DEVICE d3d11_create_device;
+    if (!temp_lib.Open("d3d11.dll") ||
+        !temp_lib.GetSymbol("D3D11CreateDevice", &d3d11_create_device))
+    {
+      return false;
+    }
+
+    HRESULT hr = d3d11_create_device(
+        adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, s_supported_feature_levels.data(),
+        static_cast<UINT>(s_supported_feature_levels.size()), D3D11_SDK_VERSION,
+        temp_device.GetAddressOf(), nullptr, nullptr);
+    if (FAILED(hr))
+      return false;
+
+    if (FAILED(temp_device.As(&temp_device1)))
+      return false;
+  }
+
+  if (!temp_device1)
+    return false;
+
+  D3D11_FEATURE_DATA_D3D11_OPTIONS options{};
+  if (FAILED(temp_device1->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS, &options,
+                                               sizeof(options))))
+  {
+    return false;
+  }
+
+  return options.OutputMergerLogicOp != FALSE;
 }
 
 }  // namespace D3D
