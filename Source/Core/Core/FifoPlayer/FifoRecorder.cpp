@@ -77,12 +77,14 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
   {
     // Assumes data contains all information for the command
     // Calls FifoRecorder::UseMemory
-    u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DECODE_RECORD);
+    const u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DecodeMode::Record);
 
     // Make sure FifoPlayer's command analyzer agrees about the size of the command.
     if (analyzed_size != size)
+    {
       PanicAlert("FifoRecorder: Expected command to be %i bytes long, we were given %i bytes",
                  analyzed_size, size);
+    }
 
     // Copy data to buffer
     size_t currentSize = m_FifoData.size();
