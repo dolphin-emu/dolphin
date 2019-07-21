@@ -37,6 +37,31 @@ std::string VideoBackend::GetDisplayName() const
   return _trans("Direct3D 11");
 }
 
+std::optional<std::string> VideoBackend::GetWarningMessage() const
+{
+  std::optional<std::string> result;
+
+  // If user is on Win7, show a warning about partial DX11.1 support
+  // This is being called BEFORE FillBackendInfo is called for this backend,
+  // so query for logic op support manually
+  bool supportsLogicOp = false;
+  if (D3DCommon::LoadLibraries())
+  {
+    supportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
+    D3DCommon::UnloadLibraries();
+  }
+
+  if (!supportsLogicOp)
+  {
+    result = _trans("Direct3D 11 renderer requires support for features not supported by your "
+                    "system configuration. This is most likely because you are using Windows 7. "
+                    "You may still use this backend, but you might encounter graphical artifacts."
+                    "\n\nDo you really want to switch to Direct3D 11? If unsure, select 'No'.");
+  }
+
+  return result;
+}
+
 void VideoBackend::InitBackendInfo()
 {
   if (!D3DCommon::LoadLibraries())
