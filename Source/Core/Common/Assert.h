@@ -15,7 +15,7 @@
   {                                                                                                \
     if (!(_a_))                                                                                    \
     {                                                                                              \
-      if (!PanicYesNo(_fmt_ "\n\nIgnore and continue?", __VA_ARGS__))                              \
+      if (!PanicYesNo(_fmt_, __VA_ARGS__))                                                         \
         Crash();                                                                                   \
     }                                                                                              \
   } while (0)
