@@ -20,7 +20,7 @@ public:
   ~DXTexture();
 
   static std::unique_ptr<DXTexture> Create(const TextureConfig& config);
-  static std::unique_ptr<DXTexture> CreateAdopted(ID3D11Texture2D* texture);
+  static std::unique_ptr<DXTexture> CreateAdopted(ComPtr<ID3D11Texture2D> texture);
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
@@ -36,7 +36,7 @@ public:
   ID3D11UnorderedAccessView* GetD3DUAV() const { return m_uav.Get(); }
 
 private:
-  DXTexture(const TextureConfig& config, ID3D11Texture2D* texture);
+  DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture);
 
   bool CreateSRV();
   bool CreateUAV();
@@ -67,7 +67,8 @@ public:
                                                   const TextureConfig& config);
 
 private:
-  DXStagingTexture(StagingTextureType type, const TextureConfig& config, ID3D11Texture2D* tex);
+  DXStagingTexture(StagingTextureType type, const TextureConfig& config,
+                   ComPtr<ID3D11Texture2D> tex);
 
   ComPtr<ID3D11Texture2D> m_tex = nullptr;
 };
@@ -77,8 +78,8 @@ class DXFramebuffer final : public AbstractFramebuffer
 public:
   DXFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
                 AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width,
-                u32 height, u32 layers, u32 samples, ID3D11RenderTargetView* rtv,
-                ID3D11RenderTargetView* integer_rtv, ID3D11DepthStencilView* dsv);
+                u32 height, u32 layers, u32 samples, ComPtr<ID3D11RenderTargetView> rtv,
+                ComPtr<ID3D11RenderTargetView> integer_rtv, ComPtr<ID3D11DepthStencilView> dsv);
   ~DXFramebuffer() override;
 
   ID3D11RenderTargetView* const* GetRTVArray() const { return m_rtv.GetAddressOf(); }

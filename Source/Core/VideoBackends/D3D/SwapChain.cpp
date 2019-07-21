@@ -33,7 +33,7 @@ bool SwapChain::CreateSwapChainBuffers()
   if (FAILED(hr))
     return false;
 
-  m_texture = DXTexture::CreateAdopted(texture.Get());
+  m_texture = DXTexture::CreateAdopted(std::move(texture));
   if (!m_texture)
     return false;
 
