@@ -124,8 +124,8 @@ void CodeViewWidget::Update()
 
   for (int i = 0; i < rowCount(); i++)
   {
-    u32 addr = m_address - ((rowCount() / 2) * 4) + i * 4;
-    u32 color = PowerPC::debug_interface.GetColor(addr);
+    const u32 addr = m_address - ((rowCount() / 2) * 4) + i * 4;
+    const u32 color = PowerPC::debug_interface.GetColor(addr);
     auto* bp_item = new QTableWidgetItem;
     auto* addr_item = new QTableWidgetItem(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 
