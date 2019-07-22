@@ -150,6 +150,9 @@ Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_r
 {
   switch (country_code)
   {
+  case '\2':
+    return expected_region;  // Wii Menu (same title ID for all regions)
+
   case 'J':
     return Region::NTSC_J;
 
