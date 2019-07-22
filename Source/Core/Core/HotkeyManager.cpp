@@ -20,7 +20,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 133> s_hotkey_labels{{
+constexpr std::array<const char*, 134> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -78,6 +78,7 @@ constexpr std::array<const char*, 133> s_hotkey_labels{{
     _trans("Connect Wii Remote 3"),
     _trans("Connect Wii Remote 4"),
     _trans("Connect Balance Board"),
+    _trans("Toggle SD Card"),
     _trans("Toggle USB Keyboard"),
 
     _trans("Next Profile for Wii Remote 1"),
