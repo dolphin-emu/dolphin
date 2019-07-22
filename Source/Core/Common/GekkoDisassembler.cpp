@@ -626,11 +626,11 @@ void GekkoDisassembler::bli(u32 in)
   m_displacement = d;
 }
 
-void GekkoDisassembler::mcrf(u32 in, char c)
+void GekkoDisassembler::mcrf(u32 in, std::string_view suffix)
 {
   if ((in & 0x0063f801) == 0)
   {
-    m_opcode = fmt::format("mcrf{}", c);
+    m_opcode = fmt::format("mcrf{}", suffix);
     m_operands = fmt::format("cr{}, cr{}", PPCGETCRD(in), PPCGETCRA(in));
   }
   else
@@ -680,7 +680,7 @@ void GekkoDisassembler::rlw(u32 in, std::string_view name, int i)
   int mb = (int)PPCGETC(in);
   int me = (int)PPCGETM(in);
 
-  m_opcode = fmt::format("rlw{}{}", name, (in & 1) ? '.' : '\0');
+  m_opcode = fmt::format("rlw{}{}", name, (in & 1) ? "." : "");
   m_operands = fmt::format("{}, {}, {}{}, {}, {} ({:08x})", regnames[a], regnames[s], regsel[i],
                            bsh, mb, me, HelperRotateMask(bsh, mb, me));
 }
@@ -699,7 +699,7 @@ void GekkoDisassembler::rld(u32 in, std::string_view name, int i)
   int m = (int)(in & 0x7e0) >> 5;
 
   m_flags |= PPCF_64;
-  m_opcode = fmt::format("rld{}{}", name, (in & 1) ? '.' : '\0');
+  m_opcode = fmt::format("rld{}{}", name, (in & 1) ? "." : "");
   m_operands = fmt::format("{}, {}, {}{}, {}", regnames[a], regnames[s], regsel[i], bsh, m);
 }
 
@@ -815,7 +815,7 @@ void GekkoDisassembler::mtcr(u32 in)
   }
   else
   {
-    m_opcode = fmt::format("mtcr{}", crm == 0xff ? '\0' : 'f');
+    m_opcode = fmt::format("mtcr{}", crm == 0xff ? "" : "f");
 
     if (crm != 0xff)
       m_operands += fmt::format("0x{:02x},", crm);
@@ -910,19 +910,18 @@ void GekkoDisassembler::mtb(u32 in)
   {
     m_operands += regnames[d];
 
-    char x;
+    const char* x = "";
     switch (tbr)
     {
     case 268:
-      x = 'l';
+      x = "l";
       break;
 
     case 269:
-      x = 'u';
+      x = "u";
       break;
 
     default:
-      x = '\0';
       m_flags |= PPCF_SUPER;
       m_operands += fmt::format(",{}", tbr);
       break;
@@ -939,7 +938,7 @@ void GekkoDisassembler::sradi(u32 in)
   int bsh = (int)(((in & 2) << 4) + PPCGETB(in));
 
   m_flags |= PPCF_64;
-  m_opcode = fmt::format("sradi{}", (in & 1) ? '.' : '\0');
+  m_opcode = fmt::format("sradi{}", (in & 1) ? "." : "");
   m_operands = fmt::format("{}, {}, {}", regnames[a], regnames[s], bsh);
 }
 
@@ -1374,7 +1373,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
     switch (PPCGETIDX2(in))
     {
     case 0:
-      mcrf(in, '\0');  // mcrf
+      mcrf(in, "");  // mcrf
       break;
 
     case 16:
@@ -2268,7 +2267,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 64:
-        mcrf(in, 's');  // mcrfs
+        mcrf(in, "s");  // mcrfs
         break;
 
       case 70:

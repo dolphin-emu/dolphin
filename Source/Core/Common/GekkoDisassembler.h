@@ -65,7 +65,7 @@ private:
   static size_t branch(u32 in, std::string_view bname, int aform, int bdisp);
   static void bc(u32 in);
   static void bli(u32 in);
-  static void mcrf(u32 in, char c);
+  static void mcrf(u32 in, std::string_view suffix);
   static void crop(u32 in, std::string_view n1, std::string_view n2);
   static void nooper(u32 in, std::string_view name, unsigned char dmode);
   static void rlw(u32 in, std::string_view name, int i);
