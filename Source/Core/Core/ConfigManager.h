@@ -54,7 +54,7 @@ struct BootParameters;
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
-#define BACKEND_WASAPI "WASAPI (Exclusive Mode)"
+#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
 
 enum class GPUDeterminismMode
 {
