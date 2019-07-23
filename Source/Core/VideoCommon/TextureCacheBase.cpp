@@ -24,6 +24,7 @@
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -469,7 +470,7 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
   std::vector<u8> texture_data;
   p.Do(texture_data);
 
-  if (p.GetMode() != PointerWrap::MODE_READ)
+  if (p.GetMode() != PointerWrap::MODE_READ || texture_data.empty())
     return std::nullopt;
 
   auto tex = AllocateTexture(config);
@@ -546,20 +547,23 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   // of address/hash to entry ID.
   std::vector<std::pair<u32, u32>> textures_by_address_list;
   std::vector<std::pair<u64, u32>> textures_by_hash_list;
-  for (const auto& it : textures_by_address)
+  if (Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE))
   {
-    if (ShouldSaveEntry(it.second))
+    for (const auto& it : textures_by_address)
     {
-      u32 id = AddCacheEntryToMap(it.second);
-      textures_by_address_list.push_back(std::make_pair(it.first, id));
+      if (ShouldSaveEntry(it.second))
+      {
+        u32 id = AddCacheEntryToMap(it.second);
+        textures_by_address_list.push_back(std::make_pair(it.first, id));
+      }
     }
-  }
-  for (const auto& it : textures_by_hash)
-  {
-    if (ShouldSaveEntry(it.second))
+    for (const auto& it : textures_by_hash)
     {
-      u32 id = AddCacheEntryToMap(it.second);
-      textures_by_hash_list.push_back(std::make_pair(it.first, id));
+      if (ShouldSaveEntry(it.second))
+      {
+        u32 id = AddCacheEntryToMap(it.second);
+        textures_by_hash_list.push_back(std::make_pair(it.first, id));
+      }
     }
   }
 

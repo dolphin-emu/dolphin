@@ -10,6 +10,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -861,6 +862,11 @@ void FramebufferManager::DestroyPokePipelines()
 void FramebufferManager::DoState(PointerWrap& p)
 {
   FlushEFBPokes();
+
+  bool save_efb_state = Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
+  p.Do(save_efb_state);
+  if (!save_efb_state)
+    return;
 
   if (p.GetMode() == PointerWrap::MODE_WRITE || p.GetMode() == PointerWrap::MODE_MEASURE)
     DoSaveState(p);
