@@ -222,10 +222,10 @@ void CheatsManager::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-  connect(m_match_new, &QPushButton::pressed, this, &CheatsManager::NewSearch);
-  connect(m_match_next, &QPushButton::pressed, this, &CheatsManager::NextSearch);
-  connect(m_match_refresh, &QPushButton::pressed, this, &CheatsManager::Update);
-  connect(m_match_reset, &QPushButton::pressed, this, &CheatsManager::Reset);
+  connect(m_match_new, &QPushButton::clicked, this, &CheatsManager::NewSearch);
+  connect(m_match_next, &QPushButton::clicked, this, &CheatsManager::NextSearch);
+  connect(m_match_refresh, &QPushButton::clicked, this, &CheatsManager::Update);
+  connect(m_match_reset, &QPushButton::clicked, this, &CheatsManager::Reset);
 
   m_match_table->setContextMenuPolicy(Qt::CustomContextMenu);
   m_watch_table->setContextMenuPolicy(Qt::CustomContextMenu);

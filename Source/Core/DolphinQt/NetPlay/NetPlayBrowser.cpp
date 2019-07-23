@@ -128,7 +128,7 @@ void NetPlayBrowser::ConnectWidgets()
 
   connect(m_button_box, &QDialogButtonBox::accepted, this, &NetPlayBrowser::accept);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &NetPlayBrowser::reject);
-  connect(m_button_refresh, &QPushButton::pressed, this, &NetPlayBrowser::Refresh);
+  connect(m_button_refresh, &QPushButton::clicked, this, &NetPlayBrowser::Refresh);
 
   connect(m_radio_all, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
   connect(m_radio_private, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);

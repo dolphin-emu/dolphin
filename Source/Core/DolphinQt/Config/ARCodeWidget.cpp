@@ -80,9 +80,9 @@ void ARCodeWidget::ConnectWidgets()
   connect(m_code_list, &QListWidget::customContextMenuRequested, this,
           &ARCodeWidget::OnContextMenuRequested);
 
-  connect(m_code_add, &QPushButton::pressed, this, &ARCodeWidget::OnCodeAddPressed);
-  connect(m_code_edit, &QPushButton::pressed, this, &ARCodeWidget::OnCodeEditPressed);
-  connect(m_code_remove, &QPushButton::pressed, this, &ARCodeWidget::OnCodeRemovePressed);
+  connect(m_code_add, &QPushButton::clicked, this, &ARCodeWidget::OnCodeAddClicked);
+  connect(m_code_edit, &QPushButton::clicked, this, &ARCodeWidget::OnCodeEditClicked);
+  connect(m_code_remove, &QPushButton::clicked, this, &ARCodeWidget::OnCodeRemoveClicked);
 }
 
 void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
@@ -183,7 +183,7 @@ void ARCodeWidget::AddCode(ActionReplay::ARCode code)
   SaveCodes();
 }
 
-void ARCodeWidget::OnCodeAddPressed()
+void ARCodeWidget::OnCodeAddClicked()
 {
   ActionReplay::ARCode ar;
   ar.active = true;
@@ -201,7 +201,7 @@ void ARCodeWidget::OnCodeAddPressed()
   }
 }
 
-void ARCodeWidget::OnCodeEditPressed()
+void ARCodeWidget::OnCodeEditClicked()
 {
   auto items = m_code_list->selectedItems();
 
@@ -228,7 +228,7 @@ void ARCodeWidget::OnCodeEditPressed()
   UpdateList();
 }
 
-void ARCodeWidget::OnCodeRemovePressed()
+void ARCodeWidget::OnCodeRemoveClicked()
 {
   auto items = m_code_list->selectedItems();
 

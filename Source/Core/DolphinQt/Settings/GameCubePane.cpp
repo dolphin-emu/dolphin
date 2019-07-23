@@ -142,7 +142,7 @@ void GameCubePane::ConnectWidgets()
             [this, i] { UpdateButton(i); });
     connect(m_slot_combos[i], QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &GameCubePane::SaveSettings);
-    connect(m_slot_buttons[i], &QPushButton::pressed, this, [this, i] { OnConfigPressed(i); });
+    connect(m_slot_buttons[i], &QPushButton::clicked, [this, i] { OnConfigPressed(i); });
   }
 }
 

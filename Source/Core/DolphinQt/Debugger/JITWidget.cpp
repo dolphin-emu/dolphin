@@ -113,7 +113,7 @@ void JITWidget::CreateWidgets()
 
 void JITWidget::ConnectWidgets()
 {
-  connect(m_refresh_button, &QPushButton::pressed, this, &JITWidget::Update);
+  connect(m_refresh_button, &QPushButton::clicked, this, &JITWidget::Update);
 }
 
 void JITWidget::Compare(u32 address)

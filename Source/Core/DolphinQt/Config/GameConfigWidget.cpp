@@ -204,7 +204,7 @@ void GameConfigWidget::CreateWidgets()
 void GameConfigWidget::ConnectWidgets()
 {
   // Buttons
-  connect(m_refresh_config, &QPushButton::pressed, this, &GameConfigWidget::LoadSettings);
+  connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
   for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                          m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})

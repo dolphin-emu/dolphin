@@ -163,9 +163,9 @@ void FIFOPlayerWindow::CreateWidgets()
 void FIFOPlayerWindow::ConnectWidgets()
 {
   connect(m_load, &QPushButton::clicked, this, &FIFOPlayerWindow::LoadRecording);
-  connect(m_save, &QPushButton::pressed, this, &FIFOPlayerWindow::SaveRecording);
-  connect(m_record, &QPushButton::pressed, this, &FIFOPlayerWindow::StartRecording);
-  connect(m_stop, &QPushButton::pressed, this, &FIFOPlayerWindow::StopRecording);
+  connect(m_save, &QPushButton::clicked, this, &FIFOPlayerWindow::SaveRecording);
+  connect(m_record, &QPushButton::clicked, this, &FIFOPlayerWindow::StartRecording);
+  connect(m_stop, &QPushButton::clicked, this, &FIFOPlayerWindow::StopRecording);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &FIFOPlayerWindow::reject);
   connect(m_early_memory_updates, &QCheckBox::toggled, this,
           &FIFOPlayerWindow::OnEarlyMemoryUpdatesChanged);

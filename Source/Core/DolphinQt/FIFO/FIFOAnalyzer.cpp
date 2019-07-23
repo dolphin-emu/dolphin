@@ -109,9 +109,9 @@ void FIFOAnalyzer::ConnectWidgets()
   connect(m_detail_list, &QListWidget::itemSelectionChanged, this,
           &FIFOAnalyzer::UpdateDescription);
 
-  connect(m_search_new, &QPushButton::pressed, this, &FIFOAnalyzer::BeginSearch);
-  connect(m_search_next, &QPushButton::pressed, this, &FIFOAnalyzer::FindNext);
-  connect(m_search_previous, &QPushButton::pressed, this, &FIFOAnalyzer::FindPrevious);
+  connect(m_search_new, &QPushButton::clicked, this, &FIFOAnalyzer::BeginSearch);
+  connect(m_search_next, &QPushButton::clicked, this, &FIFOAnalyzer::FindNext);
+  connect(m_search_previous, &QPushButton::clicked, this, &FIFOAnalyzer::FindPrevious);
 }
 
 void FIFOAnalyzer::Update()

@@ -82,7 +82,7 @@ void WiiPane::ConnectLayout()
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
   connect(m_whitelist_usb_add_button, &QPushButton::clicked, this,
           &WiiPane::OnUSBWhitelistAddButton);
-  connect(m_whitelist_usb_remove_button, &QPushButton::pressed, this,
+  connect(m_whitelist_usb_remove_button, &QPushButton::clicked, this,
           &WiiPane::OnUSBWhitelistRemoveButton);
 
   // Wii Remote Settings

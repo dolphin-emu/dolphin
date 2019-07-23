@@ -58,9 +58,9 @@ void PatchesWidget::ConnectWidgets()
 {
   connect(m_list, &QListWidget::itemSelectionChanged, this, &PatchesWidget::UpdateActions);
   connect(m_list, &QListWidget::itemChanged, this, &PatchesWidget::OnItemChanged);
-  connect(m_remove_button, &QPushButton::pressed, this, &PatchesWidget::OnRemove);
-  connect(m_add_button, &QPushButton::pressed, this, &PatchesWidget::OnAdd);
-  connect(m_edit_button, &QPushButton::pressed, this, &PatchesWidget::OnEdit);
+  connect(m_remove_button, &QPushButton::clicked, this, &PatchesWidget::OnRemove);
+  connect(m_add_button, &QPushButton::clicked, this, &PatchesWidget::OnAdd);
+  connect(m_edit_button, &QPushButton::clicked, this, &PatchesWidget::OnEdit);
 }
 
 void PatchesWidget::OnItemChanged(QListWidgetItem* item)

@@ -80,6 +80,6 @@ void CheatWarningWidget::Update(bool running)
 
 void CheatWarningWidget::ConnectWidgets()
 {
-  connect(m_config_button, &QPushButton::pressed, this,
+  connect(m_config_button, &QPushButton::clicked, this,
           &CheatWarningWidget::OpenCheatEnableSettings);
 }

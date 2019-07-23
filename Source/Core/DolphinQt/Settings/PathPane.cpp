@@ -135,7 +135,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   vlayout->addWidget(recursive_checkbox);
   vlayout->addWidget(auto_checkbox);
 
-  connect(recursive_checkbox, &QCheckBox::toggled, this, [](bool checked) {
+  connect(recursive_checkbox, &QCheckBox::toggled, [](bool checked) {
     SConfig::GetInstance().m_RecursiveISOFolder = checked;
     Settings::Instance().RefreshGameList();
   });
@@ -144,7 +144,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
           &Settings::SetAutoRefreshEnabled);
 
   connect(add, &QPushButton::clicked, this, &PathPane::Browse);
-  connect(m_remove_path, &QPushButton::pressed, this, &PathPane::RemovePath);
+  connect(m_remove_path, &QPushButton::clicked, this, &PathPane::RemovePath);
 
   game_box->setLayout(vlayout);
   return game_box;
@@ -161,7 +161,7 @@ QGridLayout* PathPane::MakePathsLayout()
   connect(&Settings::Instance(), &Settings::DefaultGameChanged,
           [this](const QString& path) { m_game_edit->setText(path); });
   QPushButton* game_open = new QPushButton(QStringLiteral("..."));
-  connect(game_open, &QPushButton::pressed, this, &PathPane::BrowseDefaultGame);
+  connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);
   layout->addWidget(new QLabel(tr("Default ISO:")), 0, 0);
   layout->addWidget(m_game_edit, 0, 1);
   layout->addWidget(game_open, 0, 2);
@@ -169,7 +169,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_nand_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_FS_PATH)));
   connect(m_nand_edit, &QLineEdit::editingFinished, this, &PathPane::OnNANDPathChanged);
   QPushButton* nand_open = new QPushButton(QStringLiteral("..."));
-  connect(nand_open, &QPushButton::pressed, this, &PathPane::BrowseWiiNAND);
+  connect(nand_open, &QPushButton::clicked, this, &PathPane::BrowseWiiNAND);
   layout->addWidget(new QLabel(tr("Wii NAND Root:")), 1, 0);
   layout->addWidget(m_nand_edit, 1, 1);
   layout->addWidget(nand_open, 1, 2);
@@ -178,7 +178,7 @@ QGridLayout* PathPane::MakePathsLayout()
   connect(m_dump_edit, &QLineEdit::editingFinished,
           [=] { Config::SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
   QPushButton* dump_open = new QPushButton(QStringLiteral("..."));
-  connect(dump_open, &QPushButton::pressed, this, &PathPane::BrowseDump);
+  connect(dump_open, &QPushButton::clicked, this, &PathPane::BrowseDump);
   layout->addWidget(new QLabel(tr("Dump Path:")), 2, 0);
   layout->addWidget(m_dump_edit, 2, 1);
   layout->addWidget(dump_open, 2, 2);
@@ -186,7 +186,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_sdcard_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)));
   connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
   QPushButton* sdcard_open = new QPushButton(QStringLiteral("..."));
-  connect(sdcard_open, &QPushButton::pressed, this, &PathPane::BrowseSDCard);
+  connect(sdcard_open, &QPushButton::clicked, this, &PathPane::BrowseSDCard);
   layout->addWidget(new QLabel(tr("SD Card Path:")), 3, 0);
   layout->addWidget(m_sdcard_edit, 3, 1);
   layout->addWidget(sdcard_open, 3, 2);
