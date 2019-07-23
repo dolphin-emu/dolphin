@@ -11,7 +11,6 @@
 #include <string>
 #include <unordered_set>
 
-#include <mbedtls/aes.h>
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
 #include <zlib.h>
@@ -608,29 +607,33 @@ void VolumeVerifier::CheckMisc()
     }
   }
 
-  const IOS::ES::TicketReader& ticket = m_volume.GetTicket(m_volume.GetGamePartition());
-  if (ticket.IsValid())
+  m_ticket = m_volume.GetTicket(m_volume.GetGamePartition());
+  if (m_ticket.IsValid())
   {
-    const u8 common_key = ticket.GetCommonKeyIndex();
+    const u8 specified_common_key_index = m_ticket.GetCommonKeyIndex();
 
-    if (common_key > 1)
+    // Wii discs only use common key 0 (regular) and common key 1 (Korean), not common key 2 (vWii).
+    if (m_volume.GetVolumeType() == Platform::WiiDisc && specified_common_key_index > 1)
     {
-      // Many fakesigned WADs have the common key index set to a (random?) bogus value.
-      // For WADs, Dolphin will detect this and use common key 0 instead, making this low severity.
-      const Severity severity =
-          m_volume.GetVolumeType() == Platform::WiiWAD ? Severity::Low : Severity::High;
-      // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-      AddProblem(severity, Common::GetStringT("This title is set to use an invalid common key."));
-    }
-
-    if (common_key == 1 && region != Region::NTSC_K)
-    {
-      // Apparently a certain pirate WAD of Chronos Twins DX unluckily got an index of 1,
-      // which Dolphin does not change to 0 because 1 is valid on Korean Wiis.
-      // https://forums.dolphin-emu.org/Thread-wiiware-chronos-twins-dx
       AddProblem(Severity::High,
                  // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-                 Common::GetStringT("This non-Korean title is set to use the Korean common key."));
+                 Common::GetStringT("This title is set to use an invalid common key."));
+    }
+
+    if (m_volume.GetVolumeType() == Platform::WiiWAD)
+    {
+      m_ticket = m_volume.GetTicketWithFixedCommonKey();
+      const u8 fixed_common_key_index = m_ticket.GetCommonKeyIndex();
+      if (specified_common_key_index != fixed_common_key_index)
+      {
+        // Many fakesigned WADs have the common key index set to a (random?) bogus value.
+        // For WADs, Dolphin will detect this and use the correct key, making this low severity.
+        std::string text = StringFromFormat(
+            // i18n: This is "common" as in "shared", not the opposite of "uncommon"
+            Common::GetStringT("The specified common key index is %u but should be %u.").c_str(),
+            specified_common_key_index, fixed_common_key_index);
+        AddProblem(Severity::Low, std::move(text));
+      }
     }
   }
 
@@ -741,7 +744,7 @@ void VolumeVerifier::Process()
 
   if (content_read)
   {
-    if (!CheckContentIntegrity(content))
+    if (!m_volume.CheckContentIntegrity(content, m_content_offsets[m_content_index], m_ticket))
     {
       AddProblem(
           Severity::High,
@@ -770,27 +773,6 @@ void VolumeVerifier::Process()
     }
     m_block_index++;
   }
-}
-
-bool VolumeVerifier::CheckContentIntegrity(const IOS::ES::Content& content)
-{
-  std::vector<u8> encrypted_data = m_volume.GetContent(content.index);
-
-  mbedtls_aes_context context;
-  const std::array<u8, 16> key = m_volume.GetTicket(PARTITION_NONE).GetTitleKey();
-  mbedtls_aes_setkey_dec(&context, key.data(), 128);
-
-  std::array<u8, 16> iv{};
-  iv[0] = static_cast<u8>(content.index >> 8);
-  iv[1] = static_cast<u8>(content.index & 0xFF);
-
-  std::vector<u8> decrypted_data(Common::AlignUp(content.size, 0x40));
-  mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, decrypted_data.size(), iv.data(),
-                        encrypted_data.data(), decrypted_data.data());
-
-  std::array<u8, 20> sha1;
-  mbedtls_sha1_ret(decrypted_data.data(), content.size, sha1.data());
-  return sha1 == content.sha1;
 }
 
 u64 VolumeVerifier::GetBytesProcessed() const

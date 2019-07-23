@@ -452,14 +452,14 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
   u8 iv[16] = {};
   std::copy_n(&m_bytes[offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
 
-  const u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
-  auto common_key_handle =
-      index != 1 ? HLE::IOSC::HANDLE_COMMON_KEY : HLE::IOSC::HANDLE_NEW_COMMON_KEY;
-  if (index != 0 && index != 1)
+  u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
+  if (index >= HLE::IOSC::COMMON_KEY_HANDLES.size())
   {
-    WARN_LOG(IOS_ES, "Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
-             GetTitleId(), index);
+    PanicAlert("Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
+               GetTitleId(), index);
+    index = 0;
   }
+  auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
 
   std::array<u8, 16> key;
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
@@ -533,11 +533,9 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   return ret;
 }
 
-void TicketReader::FixCommonKeyIndex()
+void TicketReader::OverwriteCommonKeyIndex(u8 index)
 {
-  u8& index = m_bytes[offsetof(Ticket, common_key_index)];
-  // Assume the ticket is using the normal common key if it's an invalid value.
-  index = index <= 1 ? index : 0;
+  m_bytes[offsetof(Ticket, common_key_index)] = index;
 }
 
 struct SharedContentMap::Entry

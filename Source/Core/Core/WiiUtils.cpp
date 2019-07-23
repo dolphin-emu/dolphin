@@ -61,9 +61,8 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
   IOS::HLE::ReturnCode ret;
   const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
 
-  IOS::ES::TicketReader ticket = wad.GetTicket();
   // Ensure the common key index is correct, as it's checked by IOS.
-  ticket.FixCommonKeyIndex();
+  IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
   while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
                                  IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||

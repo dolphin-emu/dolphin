@@ -257,9 +257,8 @@ public:
   // and has a title key that must be decrypted first.
   HLE::ReturnCode Unpersonalise(HLE::IOSC& iosc);
 
-  // Reset the common key field back to 0 if it's an incorrect value.
   // Intended for use before importing fakesigned tickets, which tend to have a high bogus index.
-  void FixCommonKeyIndex();
+  void OverwriteCommonKeyIndex(u8 index);
 };
 
 class SharedContentMap final

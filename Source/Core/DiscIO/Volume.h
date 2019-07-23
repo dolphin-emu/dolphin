@@ -76,6 +76,12 @@ public:
   }
   virtual std::vector<u8> GetContent(u16 index) const { return {}; }
   virtual std::vector<u64> GetContentOffsets() const { return {}; }
+  virtual bool CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
+                                     const IOS::ES::TicketReader& ticket) const
+  {
+    return false;
+  }
+  virtual IOS::ES::TicketReader GetTicketWithFixedCommonKey() const { return {}; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
   virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
