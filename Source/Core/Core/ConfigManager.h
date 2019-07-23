@@ -20,6 +20,7 @@ namespace DiscIO
 {
 enum class Country;
 enum class Language;
+enum class Platform;
 enum class Region;
 struct Partition;
 class Volume;
@@ -200,7 +201,7 @@ struct SConfig
   u16 GetRevision() const { return m_revision; }
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
-  void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd);
+  void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
 
   void LoadDefaults();
   // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions

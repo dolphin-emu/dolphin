@@ -18,13 +18,19 @@
 
 class PointerWrap;
 
+namespace DiscIO
+{
+enum class Platform;
+}
+
 namespace IOS::HLE::Device
 {
 struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_,
+              DiscIO::Platform platform);
 
   IOS::ES::TicketReader ticket;
   IOS::ES::TMDReader tmd;
