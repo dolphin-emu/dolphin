@@ -12,7 +12,6 @@
 #include <ShObjIdl.h>
 #include <shellapi.h>
 
-#include "Common/Flag.h"
 #include "Common/StringUtil.h"
 
 namespace
@@ -23,8 +22,7 @@ HWND total_progressbar_handle = nullptr;
 HWND current_progressbar_handle = nullptr;
 ITaskbarList3* taskbar_list = nullptr;
 
-Common::Flag running;
-Common::Flag request_stop;
+std::thread ui_thread;
 
 int GetWindowHeight(HWND hwnd)
 {
@@ -32,6 +30,17 @@ int GetWindowHeight(HWND hwnd)
   GetWindowRect(hwnd, &rect);
 
   return rect.bottom - rect.top;
+}
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  switch (uMsg)
+  {
+  case WM_DESTROY:
+    PostQuitMessage(0);
+    return 0;
+  }
+  return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 };  // namespace
 
@@ -46,7 +55,7 @@ bool InitWindow()
   InitCommonControls();
 
   WNDCLASS wndcl = {};
-  wndcl.lpfnWndProc = DefWindowProcW;
+  wndcl.lpfnWndProc = WindowProc;
   wndcl.hbrBackground = GetSysColorBrush(COLOR_MENU);
   wndcl.lpszClassName = L"UPDATER";
 
@@ -124,14 +133,6 @@ bool InitWindow()
   return true;
 }
 
-void Destroy()
-{
-  DestroyWindow(window_handle);
-  DestroyWindow(label_handle);
-  DestroyWindow(total_progressbar_handle);
-  DestroyWindow(current_progressbar_handle);
-}
-
 void SetTotalMarquee(bool marquee)
 {
   SetWindowLong(total_progressbar_handle, GWL_STYLE,
@@ -199,49 +200,40 @@ void SetDescription(const std::string& text)
 
 void MessageLoop()
 {
-  request_stop.Clear();
-  running.Set();
-
   if (!InitWindow())
   {
-    running.Clear();
     MessageBox(nullptr, L"Window init failed!", L"", MB_ICONERROR);
+    // Destroying the parent (if exists) destroys all children windows
+    if (window_handle)
+    {
+      DestroyWindow(window_handle);
+      window_handle = nullptr;
+    }
+    return;
   }
 
   SetTotalMarquee(true);
   SetCurrentMarquee(true);
 
-  while (!request_stop.IsSet())
+  MSG msg;
+  while (GetMessage(&msg, nullptr, 0, 0))
   {
-    MSG msg;
-    while (PeekMessage(&msg, window_handle, 0, 0, PM_REMOVE))
-    {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-    }
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
   }
-
-  running.Clear();
-
-  Destroy();
 }
 
 void Init()
 {
-  std::thread thread(MessageLoop);
-  thread.detach();
+  ui_thread = std::thread(MessageLoop);
 }
 
 void Stop()
 {
-  if (!running.IsSet())
-    return;
+  if (window_handle)
+    PostMessage(window_handle, WM_CLOSE, 0, 0);
 
-  request_stop.Set();
-
-  while (running.IsSet())
-  {
-  }
+  ui_thread.join();
 }
 
 void LaunchApplication(std::string path)
@@ -259,8 +251,11 @@ void Sleep(int sleep)
 void WaitForPID(u32 pid)
 {
   HANDLE parent_handle = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
-  WaitForSingleObject(parent_handle, INFINITE);
-  CloseHandle(parent_handle);
+  if (parent_handle)
+  {
+    WaitForSingleObject(parent_handle, INFINITE);
+    CloseHandle(parent_handle);
+  }
 }
 
 void SetVisible(bool visible)

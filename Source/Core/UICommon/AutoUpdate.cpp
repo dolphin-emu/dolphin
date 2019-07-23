@@ -234,12 +234,16 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   INFO_LOG(COMMON, "Updater command line: %s", command_line.c_str());
 
 #ifdef _WIN32
-  STARTUPINFO sinfo = {sizeof(info)};
+  STARTUPINFO sinfo = {sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
-  if (!CreateProcessW(UTF8ToUTF16(reloc_updater_path).c_str(),
-                      const_cast<wchar_t*>(UTF8ToUTF16(command_line).c_str()), nullptr, nullptr,
-                      FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
+  if (CreateProcessW(UTF8ToUTF16(reloc_updater_path).c_str(), UTF8ToUTF16(command_line).data(),
+                     nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
+  {
+    CloseHandle(pinfo.hThread);
+    CloseHandle(pinfo.hProcess);
+  }
+  else
   {
     ERROR_LOG(COMMON, "Could not start updater process: error=%d", GetLastError());
   }
