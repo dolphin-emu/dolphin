@@ -1086,7 +1086,11 @@ void MainWindow::HideRenderWidget(bool reinit)
     // Remove the widget from the stack and reparent it to nullptr, so that it can draw
     // itself in a new window if it wants. Disconnect the title updates.
     m_stack->removeWidget(m_render_widget);
-    m_render_widget->setParent(nullptr);
+
+    // Don't bother unparenting it if we're going to destroy the window anyway.
+    if (!reinit)
+      m_render_widget->setParent(nullptr);
+
     m_rendering_to_main = false;
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
@@ -1098,9 +1102,7 @@ void MainWindow::HideRenderWidget(bool reinit)
   // recreated
   if (reinit)
   {
-    m_render_widget->hide();
     disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-
     m_render_widget->removeEventFilter(this);
     m_render_widget->deleteLater();
 
