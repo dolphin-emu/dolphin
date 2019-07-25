@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -230,6 +231,39 @@ TASSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, int defaul
   layout->addWidget(value);
   if (orientation == Qt::Vertical)
     layout->setAlignment(slider, Qt::AlignRight);
+
+  return value;
+}
+
+// The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
+// This is done to avoid ambigous shortcuts
+QDoubleSpinBox* TASInputWindow::CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
+                                                            QKeySequence shortcut_key_sequence,
+                                                            QWidget* shortcut_widget)
+{
+  auto* value = new QDoubleSpinBox();
+  value->setRange(min, max);
+  value->setDecimals(2);
+  value->setSuffix(QStringLiteral("kg"));
+  auto* slider = new QSlider(Qt::Orientation::Horizontal);
+  slider->setRange(min * 100, max * 100);
+  slider->setFocusPolicy(Qt::ClickFocus);
+  slider->setSingleStep(100);
+  slider->setPageStep(1000);
+  slider->setTickPosition(QSlider::TickPosition::TicksBelow);
+
+  connect(slider, &QSlider::valueChanged, value, [value](int i) { value->setValue(i / 100.0); });
+  connect(value, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+          slider, [slider](double d) { slider->setValue((int)(d * 100)); });
+
+  auto* shortcut = new QShortcut(shortcut_key_sequence, shortcut_widget);
+  connect(shortcut, &QShortcut::activated, [value] {
+    value->setFocus();
+    value->selectAll();
+  });
+
+  layout->addWidget(slider);
+  layout->addWidget(value);
 
   return value;
 }

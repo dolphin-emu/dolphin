@@ -17,7 +17,7 @@
 
 class QBoxLayout;
 class QCheckBox;
-class QDialog;
+class QDoubleSpinBox;
 class QGroupBox;
 class QSpinBox;
 class QString;
@@ -67,6 +67,9 @@ protected:
   TASSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, int max,
                                     QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                     QWidget* shortcut_widget);
+  QDoubleSpinBox* CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
+                                              QKeySequence shortcut_key_sequence,
+                                              QWidget* shortcut_widget);
 
   QGroupBox* m_settings_box;
   QCheckBox* m_use_controller;
