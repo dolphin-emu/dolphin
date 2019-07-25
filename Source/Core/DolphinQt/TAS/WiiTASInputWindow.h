@@ -76,6 +76,9 @@ private:
   QSpinBox* m_classic_right_stick_y_value;
   QSpinBox* m_left_trigger_value;
   QSpinBox* m_right_trigger_value;
+  QSpinBox* m_weight_total_value;
+  QSpinBox* m_horizontal_balance_value;
+  QSpinBox* m_vertical_balance_value;
   QGroupBox* m_remote_orientation_box;
   QGroupBox* m_nunchuk_orientation_box;
   QGroupBox* m_ir_box;
@@ -86,4 +89,5 @@ private:
   QGroupBox* m_nunchuk_buttons_box;
   QGroupBox* m_classic_buttons_box;
   QGroupBox* m_triggers_box;
+  QGroupBox* m_balance_board_box;
 };

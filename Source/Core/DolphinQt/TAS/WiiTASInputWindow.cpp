@@ -12,15 +12,15 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/Core.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
-#include "Core/HW/WiimoteEmu/Extension/Classic.h"
-#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
-
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -30,6 +30,7 @@
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/TAS/BalanceBoardWidget.h"
 #include "DolphinQt/TAS/IRWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
@@ -91,6 +92,53 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       CreateStickInputs(tr("Right Stick"), m_classic_right_stick_x_value,
                         m_classic_right_stick_y_value, 31, 31, Qt::Key_Q, Qt::Key_W);
 
+  const QKeySequence balance_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_X);
+  const QKeySequence balance_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_Y);
+  const QKeySequence balance_weight_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_W);
+
+  m_balance_board_box = new QGroupBox(
+      QStringLiteral("%1 (%2/%3/%4)")
+          .arg(tr("Balance"), balance_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
+               balance_y_shortcut_key_sequence.toString(QKeySequence::NativeText),
+               balance_weight_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+
+  auto* bal_x_layout = new QHBoxLayout;
+  m_horizontal_balance_value = CreateSliderValuePair(
+      bal_x_layout, BalanceBoardWidget::balance_range / 2, BalanceBoardWidget::balance_range,
+      balance_x_shortcut_key_sequence, Qt::Horizontal, m_balance_board_box);
+
+  auto* bal_y_layout = new QVBoxLayout;
+  m_vertical_balance_value = CreateSliderValuePair(
+      bal_y_layout, BalanceBoardWidget::balance_range / 2, BalanceBoardWidget::balance_range,
+      balance_y_shortcut_key_sequence, Qt::Vertical, m_balance_board_box);
+  m_vertical_balance_value->setMaximumWidth(60);
+
+  auto* bal_weight_layout = new QHBoxLayout;
+  m_weight_total_value =
+      CreateSliderValuePair(bal_weight_layout, 63500, 150000, balance_weight_shortcut_key_sequence,
+                            Qt::Horizontal, m_balance_board_box);
+
+  auto* bal_visual = new BalanceBoardWidget(this);
+  connect(m_horizontal_balance_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+          bal_visual, &BalanceBoardWidget::SetX);
+  connect(m_vertical_balance_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+          bal_visual, &BalanceBoardWidget::SetY);
+  connect(bal_visual, &BalanceBoardWidget::ChangedX, m_horizontal_balance_value,
+          &QSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedY, m_vertical_balance_value, &QSpinBox::setValue);
+
+  auto* bal_ar = new AspectRatioWidget(bal_visual, 20, 12);
+
+  auto* bal_visual_layout = new QHBoxLayout;
+  bal_visual_layout->addWidget(bal_ar);
+  bal_visual_layout->addLayout(bal_y_layout);
+
+  auto* bal_layout = new QVBoxLayout;
+  bal_layout->addLayout(bal_x_layout);
+  bal_layout->addLayout(bal_visual_layout);
+  bal_layout->addLayout(bal_weight_layout);
+  m_balance_board_box->setLayout(bal_layout);
+
   // Need to enforce the same minimum width because otherwise the different lengths in the labels
   // used on the QGroupBox will cause the StickWidgets to have different sizes.
   m_ir_box->setMinimumWidth(20);
@@ -103,6 +151,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   top_layout->addWidget(m_nunchuk_stick_box);
   top_layout->addWidget(m_classic_left_stick_box);
   top_layout->addWidget(m_classic_right_stick_box);
+  top_layout->addWidget(m_balance_board_box);
 
   auto* remote_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
@@ -285,6 +334,7 @@ void WiiTASInputWindow::UpdateExt(WiimoteEmu::ExtensionNumber ext)
     m_nunchuk_buttons_box->show();
     m_remote_buttons_box->show();
     m_classic_buttons_box->hide();
+    m_balance_board_box->hide();
   }
   else if (ext == WiimoteEmu::ExtensionNumber::CLASSIC)
   {
@@ -299,6 +349,22 @@ void WiiTASInputWindow::UpdateExt(WiimoteEmu::ExtensionNumber ext)
     m_remote_buttons_box->hide();
     m_nunchuk_buttons_box->hide();
     m_classic_buttons_box->show();
+    m_balance_board_box->hide();
+  }
+  else if (ext == WiimoteEmu::ExtensionNumber::BALANCE_BOARD)
+  {
+    setWindowTitle(tr("Wii TAS Input %1 - Balance Board").arg(m_num + 1));
+    m_ir_box->hide();
+    m_nunchuk_stick_box->hide();
+    m_classic_right_stick_box->hide();
+    m_classic_left_stick_box->hide();
+    m_remote_orientation_box->hide();
+    m_nunchuk_orientation_box->hide();
+    m_triggers_box->hide();
+    m_remote_buttons_box->show();
+    m_nunchuk_buttons_box->hide();
+    m_classic_buttons_box->hide();
+    m_balance_board_box->show();
   }
   else
   {
@@ -313,6 +379,7 @@ void WiiTASInputWindow::UpdateExt(WiimoteEmu::ExtensionNumber ext)
     m_remote_buttons_box->show();
     m_nunchuk_buttons_box->hide();
     m_classic_buttons_box->hide();
+    m_balance_board_box->hide();
   }
 }
 
@@ -494,5 +561,40 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
     cc.SetLeftTrigger(lt);
 
     key.Encrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
+  }
+
+  if (rpt.HasExt() && m_balance_board_box->isVisible())
+  {
+    using WiimoteEmu::BalanceBoard;
+
+    u8* const ext_data = rpt.GetExtDataPtr();
+    // TODO: This code exists to read existing data, as well as to write TAS data;
+    // currently it is only reading...
+    BalanceBoard::DataFormat bb_data = Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data);
+
+    int weight = m_weight_total_value->value();
+    u16 horizontal = 500, vertical = 500;
+    GetSpinBoxU16(m_horizontal_balance_value, horizontal);
+    GetSpinBoxU16(m_vertical_balance_value, vertical);
+    const u16 top_right =
+        weight * (horizontal + vertical) / (4 * BalanceBoardWidget::balance_range);
+    const u16 bottom_right = weight *
+                             (horizontal + (BalanceBoardWidget::balance_range - vertical)) /
+                             (4 * BalanceBoardWidget::balance_range);
+    const u16 top_left = weight * ((BalanceBoardWidget::balance_range - horizontal) + vertical) /
+                         (4 * BalanceBoardWidget::balance_range);
+    const u16 bottom_left = weight *
+                            ((BalanceBoardWidget::balance_range - horizontal) +
+                             (BalanceBoardWidget::balance_range - vertical)) /
+                            (4 * BalanceBoardWidget::balance_range);
+    bb_data.top_right = Common::swap16(top_right);
+    bb_data.bottom_right = Common::swap16(bottom_right);
+    bb_data.top_left = Common::swap16(top_left);
+    bb_data.bottom_left = Common::swap16(bottom_left);
+    bb_data.temperature = BalanceBoard::TEMPERATURE;
+    bb_data.battery = 0x83;
+
+    Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data) = bb_data;
+    key.Encrypt(ext_data, 0, sizeof(BalanceBoard::DataFormat));
   }
 }
