@@ -13,12 +13,17 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
+#include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
@@ -30,6 +35,7 @@
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/SetWindowDecorations.h"
+#include "DolphinQt/TAS/BalanceBoardWidget.h"
 #include "DolphinQt/TAS/IRWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/TASSpinBox.h"
@@ -99,6 +105,82 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       CreateStickInputs(tr("Right Stick"), WiimoteEmu::Classic::RIGHT_STICK_GROUP,
                         &m_classic_overrider, 0, 0, 31, 31, Qt::Key_Q, Qt::Key_W);
 
+  const QKeySequence balance_tl_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_L);
+  const QKeySequence balance_tr_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_R);
+  const QKeySequence balance_bl_shortcut_key_sequence =
+      QKeySequence(Qt::ALT | Qt::SHIFT | Qt::Key_L);
+  const QKeySequence balance_br_shortcut_key_sequence =
+      QKeySequence(Qt::ALT | Qt::SHIFT | Qt::Key_R);
+  const QKeySequence balance_weight_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_W);
+
+  m_balance_board_box = new QGroupBox(
+      QStringLiteral("%1 (%2/%3/%4)")
+          .arg(tr("Balance"), balance_tl_shortcut_key_sequence.toString(QKeySequence::NativeText),
+               balance_tr_shortcut_key_sequence.toString(QKeySequence::NativeText),
+               balance_weight_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+
+  auto* bal_top_layout = new QHBoxLayout;
+  m_top_left_balance_value = CreateWeightSliderValuePair(
+      bal_top_layout, -34, 68, balance_tl_shortcut_key_sequence, m_balance_board_box);
+  m_top_right_balance_value = CreateWeightSliderValuePair(
+      bal_top_layout, -34, 68, balance_tr_shortcut_key_sequence, m_balance_board_box);
+
+  auto* bal_bottom_layout = new QHBoxLayout;
+  m_bottom_left_balance_value = CreateWeightSliderValuePair(
+      bal_bottom_layout, -34, 68, balance_bl_shortcut_key_sequence, m_balance_board_box);
+  m_bottom_right_balance_value = CreateWeightSliderValuePair(
+      bal_bottom_layout, -34, 68, balance_br_shortcut_key_sequence, m_balance_board_box);
+
+  auto* bal_weight_layout = new QHBoxLayout;
+  m_total_weight_value = CreateWeightSliderValuePair(
+      bal_weight_layout, 0, 136, balance_weight_shortcut_key_sequence, m_balance_board_box);
+
+  auto* bal_visual = new BalanceBoardWidget(this);
+  connect(m_top_right_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetTR);
+  connect(m_bottom_right_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetBR);
+  connect(m_top_left_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetTL);
+  connect(m_bottom_left_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetBL);
+  connect(bal_visual, &BalanceBoardWidget::ChangedTR, m_top_right_balance_value,
+          &QDoubleSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedBR, m_bottom_right_balance_value,
+          &QDoubleSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedTL, m_top_left_balance_value,
+          &QDoubleSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedBL, m_bottom_left_balance_value,
+          &QDoubleSpinBox::setValue);
+
+  m_top_right_balance_value->setValue(WiimoteEmu::BalanceBoardExt::DEFAULT_WEIGHT / 4);
+  m_bottom_right_balance_value->setValue(WiimoteEmu::BalanceBoardExt::DEFAULT_WEIGHT / 4);
+  m_top_left_balance_value->setValue(WiimoteEmu::BalanceBoardExt::DEFAULT_WEIGHT / 4);
+  m_bottom_left_balance_value->setValue(WiimoteEmu::BalanceBoardExt::DEFAULT_WEIGHT / 4);
+
+  connect(m_total_weight_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetTotal);
+  connect(bal_visual, &BalanceBoardWidget::ChangedTotal, m_total_weight_value,
+          &QDoubleSpinBox::setValue);
+  m_total_weight_value->setValue(WiimoteEmu::BalanceBoardExt::DEFAULT_WEIGHT);
+
+  auto* bal_ar = new AspectRatioWidget(bal_visual, 20, 12);
+  bal_ar->setMinimumHeight(120);
+  auto* bal_visual_layout = new QHBoxLayout;
+  bal_visual_layout->addWidget(bal_ar);
+
+  auto* bal_layout = new QVBoxLayout;
+  bal_layout->addLayout(bal_top_layout);
+  bal_layout->addLayout(bal_visual_layout);
+  bal_layout->addLayout(bal_bottom_layout);
+  bal_layout->addLayout(bal_weight_layout);
+  m_balance_board_box->setLayout(bal_layout);
+
   // Need to enforce the same minimum width because otherwise the different lengths in the labels
   // used on the QGroupBox will cause the StickWidgets to have different sizes.
   m_ir_box->setMinimumWidth(20);
@@ -109,6 +191,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   top_layout->addWidget(m_nunchuk_stick_box);
   top_layout->addWidget(m_classic_left_stick_box);
   top_layout->addWidget(m_classic_right_stick_box);
+  top_layout->addWidget(m_balance_board_box);
 
   m_remote_accelerometer_box = new QGroupBox(tr("Wii Remote Accelerometer"));
 
@@ -397,6 +480,10 @@ void WiiTASInputWindow::LoadExtensionAndMotionPlus()
     m_active_extension = wiimote->GetActiveExtensionNumber();
     m_is_motion_plus_attached = wiimote->GetMotionPlusSetting().GetValue();
   }
+  else if (m_num == WIIMOTE_BALANCE_BOARD)
+  {
+    m_active_extension = WiimoteEmu::ExtensionNumber::BALANCE_BOARD;
+  }
   else
   {
     Common::IniFile ini;
@@ -410,6 +497,8 @@ void WiiTASInputWindow::LoadExtensionAndMotionPlus()
       m_active_extension = WiimoteEmu::ExtensionNumber::NUNCHUK;
     else if (extension == "Classic")
       m_active_extension = WiimoteEmu::ExtensionNumber::CLASSIC;
+    else if (extension == "BalanceBoard")
+      m_active_extension = WiimoteEmu::ExtensionNumber::BALANCE_BOARD;
     else
       m_active_extension = WiimoteEmu::ExtensionNumber::NONE;
 
@@ -452,6 +541,7 @@ void WiiTASInputWindow::UpdateControlVisibility()
     SetQWidgetWindowDecorations(m_remote_buttons_box);
     m_remote_buttons_box->show();
     m_classic_buttons_box->hide();
+    m_balance_board_box->hide();
   }
   else if (m_active_extension == WiimoteEmu::ExtensionNumber::CLASSIC)
   {
@@ -471,6 +561,23 @@ void WiiTASInputWindow::UpdateControlVisibility()
     m_nunchuk_buttons_box->hide();
     SetQWidgetWindowDecorations(m_classic_buttons_box);
     m_classic_buttons_box->show();
+    m_balance_board_box->hide();
+  }
+  else if (m_active_extension == WiimoteEmu::ExtensionNumber::BALANCE_BOARD)
+  {
+    setWindowTitle(tr("Wii TAS Input %1 - Balance Board").arg(m_num + 1));
+    m_ir_box->hide();
+    m_nunchuk_stick_box->hide();
+    m_classic_right_stick_box->hide();
+    m_classic_left_stick_box->hide();
+    m_remote_accelerometer_box->hide();
+    m_remote_gyroscope_box->hide();
+    m_nunchuk_accelerometer_box->hide();
+    m_triggers_box->hide();
+    m_remote_buttons_box->show();
+    m_nunchuk_buttons_box->hide();
+    m_classic_buttons_box->hide();
+    m_balance_board_box->show();
   }
   else
   {
@@ -488,6 +595,7 @@ void WiiTASInputWindow::UpdateControlVisibility()
     m_remote_buttons_box->show();
     m_nunchuk_buttons_box->hide();
     m_classic_buttons_box->hide();
+    m_balance_board_box->hide();
   }
 
   // Without these calls, switching between attachments can result in the Stick/IRWidgets being
@@ -528,4 +636,36 @@ void WiiTASInputWindow::UpdateInputOverrideFunction()
 
   if (m_active_extension == WiimoteEmu::ExtensionNumber::CLASSIC)
     GetExtension()->SetInputOverrideFunction(m_classic_overrider.GetInputOverrideFunction());
+
+  /*
+  if (rpt.HasExt() && m_balance_board_box->isVisible())
+  {
+    using WiimoteEmu::BalanceBoard;
+
+    u8* const ext_data = rpt.GetExtDataPtr();
+    BalanceBoard::DataFormat bb_data = Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data);
+
+    // TODO: Reading the existing values, but then just clobbering them instead of using them if
+    // controller input is enabled
+    double top_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.top_right));
+    double bottom_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.bottom_right));
+    double top_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.top_left));
+    double bottom_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.bottom_left));
+
+    top_right = m_top_right_balance_value->value();
+    bottom_right = m_bottom_right_balance_value->value();
+    top_left = m_top_left_balance_value->value();
+    bottom_left = m_bottom_left_balance_value->value();
+
+    bb_data.top_right = Common::swap16(BalanceBoard::ConvertToSensorWeight(top_right));
+    bb_data.bottom_right = Common::swap16(BalanceBoard::ConvertToSensorWeight(bottom_right));
+    bb_data.top_left = Common::swap16(BalanceBoard::ConvertToSensorWeight(top_left));
+    bb_data.bottom_left = Common::swap16(BalanceBoard::ConvertToSensorWeight(bottom_left));
+    bb_data.temperature = BalanceBoard::TEMPERATURE;
+    bb_data.battery = 0x83;
+
+    Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data) = bb_data;
+    key.Encrypt(ext_data, 0, sizeof(BalanceBoard::DataFormat));
+  }
+*/
 }
