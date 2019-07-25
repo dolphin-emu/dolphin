@@ -25,6 +25,7 @@
 #include <imgui.h>
 
 #include "Common/Assert.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
@@ -1324,8 +1325,11 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     }
 
     // Update our last xfb values
-    m_last_xfb_width = (fb_width < 1 || fb_width > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_width;
-    m_last_xfb_height = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
+    m_last_xfb_addr = xfb_addr;
+    m_last_xfb_ticks = ticks;
+    m_last_xfb_width = fb_width;
+    m_last_xfb_stride = fb_stride;
+    m_last_xfb_height = fb_height;
   }
   else
   {
@@ -1679,6 +1683,27 @@ bool Renderer::UseVertexDepthRange() const
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
+}
+
+void Renderer::DoState(PointerWrap& p)
+{
+  p.Do(m_aspect_wide);
+  p.Do(m_frame_count);
+  p.Do(m_prev_efb_format);
+  p.Do(m_last_xfb_ticks);
+  p.Do(m_last_xfb_addr);
+  p.Do(m_last_xfb_width);
+  p.Do(m_last_xfb_stride);
+  p.Do(m_last_xfb_height);
+
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    // Force the next xfb to be displayed.
+    m_last_xfb_id = std::numeric_limits<u64>::max();
+
+    // And actually display it.
+    Swap(m_last_xfb_addr, m_last_xfb_width, m_last_xfb_stride, m_last_xfb_height, m_last_xfb_ticks);
+  }
 }
 
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()

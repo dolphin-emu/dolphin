@@ -7,8 +7,10 @@
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/VertexManagerBase.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
@@ -464,6 +466,20 @@ bool FramebufferManager::CompileReadbackPipelines()
       return false;
   }
 
+  // EFB restore pipeline
+  auto restore_shader = g_renderer->CreateShaderFromSource(
+      ShaderStage::Pixel, FramebufferShaderGen::GenerateEFBRestorePixelShader());
+  if (!restore_shader)
+    return false;
+
+  config.framebuffer_state = GetEFBFramebufferState();
+  config.framebuffer_state.per_sample_shading = false;
+  config.vertex_shader = g_shader_cache->GetScreenQuadVertexShader();
+  config.pixel_shader = restore_shader.get();
+  m_efb_restore_pipeline = g_renderer->CreatePipeline(config);
+  if (!m_efb_restore_pipeline)
+    return false;
+
   return true;
 }
 
@@ -841,4 +857,108 @@ void FramebufferManager::DestroyPokePipelines()
   m_depth_poke_pipeline.reset();
   m_color_poke_pipeline.reset();
   m_poke_vertex_format.reset();
+}
+
+void FramebufferManager::DoState(PointerWrap& p)
+{
+  FlushEFBPokes();
+
+  bool save_efb_state = Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
+  p.Do(save_efb_state);
+  if (!save_efb_state)
+    return;
+
+  if (p.GetMode() == PointerWrap::MODE_WRITE || p.GetMode() == PointerWrap::MODE_MEASURE)
+    DoSaveState(p);
+  else
+    DoLoadState(p);
+}
+
+void FramebufferManager::DoSaveState(PointerWrap& p)
+{
+  // For multisampling, we need to resolve first before we can save.
+  // This won't be bit-exact when loading, which could cause interesting rendering side-effects for
+  // a frame. But whatever, MSAA doesn't exactly behave that well anyway.
+  AbstractTexture* color_texture = ResolveEFBColorTexture(m_efb_color_texture->GetRect());
+  AbstractTexture* depth_texture = ResolveEFBDepthTexture(m_efb_depth_texture->GetRect());
+
+  // We don't want to save these as rendertarget textures, just the data itself when deserializing.
+  const TextureConfig color_texture_config(color_texture->GetWidth(), color_texture->GetHeight(),
+                                           color_texture->GetLevels(), color_texture->GetLayers(),
+                                           1, GetEFBColorFormat(), 0);
+  g_texture_cache->SerializeTexture(color_texture, color_texture_config, p);
+
+  if (GetEFBDepthFormat() == AbstractTextureFormat::D32F)
+  {
+    const TextureConfig depth_texture_config(
+        depth_texture->GetWidth(), depth_texture->GetHeight(), depth_texture->GetLevels(),
+        depth_texture->GetLayers(), 1,
+        AbstractTexture::GetColorFormatForDepthFormat(GetEFBDepthFormat()), 0);
+    g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
+  }
+  else
+  {
+    // If the EFB is backed by a D24S8 texture, we first have to convert it to R32F.
+    const TextureConfig temp_texture_config(depth_texture->GetWidth(), depth_texture->GetHeight(),
+                                            depth_texture->GetLevels(), depth_texture->GetLayers(),
+                                            1, AbstractTextureFormat::R32F,
+                                            AbstractTextureFlag_RenderTarget);
+    std::unique_ptr<AbstractTexture> temp_texture = g_renderer->CreateTexture(temp_texture_config);
+    std::unique_ptr<AbstractFramebuffer> temp_fb =
+        g_renderer->CreateFramebuffer(temp_texture.get(), nullptr);
+    if (temp_texture && temp_fb)
+    {
+      g_renderer->ScaleTexture(temp_fb.get(), temp_texture->GetRect(), depth_texture,
+                               depth_texture->GetRect());
+
+      const TextureConfig depth_texture_config(
+          depth_texture->GetWidth(), depth_texture->GetHeight(), depth_texture->GetLevels(),
+          depth_texture->GetLayers(), 1, temp_texture->GetFormat(), 0);
+      g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
+    }
+    else
+    {
+      PanicAlert("Failed to create temp texture for depth saving");
+      g_texture_cache->SerializeTexture(color_texture, color_texture_config, p);
+    }
+  }
+}
+
+void FramebufferManager::DoLoadState(PointerWrap& p)
+{
+  // Invalidate any peek cache tiles.
+  InvalidatePeekCache(true);
+
+  // Deserialize the color and depth textures. This could fail.
+  auto color_tex = g_texture_cache->DeserializeTexture(p);
+  auto depth_tex = g_texture_cache->DeserializeTexture(p);
+
+  // If the stereo mode is different in the save state, throw it away.
+  if (!color_tex || !depth_tex ||
+      color_tex->texture->GetLayers() != m_efb_color_texture->GetLayers())
+  {
+    WARN_LOG(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
+    g_renderer->SetAndClearFramebuffer(
+        m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
+        g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
+    return;
+  }
+
+  // Size differences are okay here, since the linear filtering will downscale/upscale it.
+  // Depth buffer is always point sampled, since we don't want to interpolate depth values.
+  const bool rescale = color_tex->texture->GetWidth() != m_efb_color_texture->GetWidth() ||
+                       color_tex->texture->GetHeight() != m_efb_color_texture->GetHeight();
+
+  // Draw the deserialized textures over the EFB.
+  g_renderer->BeginUtilityDrawing();
+  g_renderer->SetAndDiscardFramebuffer(m_efb_framebuffer.get());
+  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
+  g_renderer->SetPipeline(m_efb_restore_pipeline.get());
+  g_renderer->SetTexture(0, color_tex->texture.get());
+  g_renderer->SetTexture(1, depth_tex->texture.get());
+  g_renderer->SetSamplerState(0, rescale ? RenderState::GetLinearSamplerState() :
+                                           RenderState::GetPointSamplerState());
+  g_renderer->SetSamplerState(1, RenderState::GetPointSamplerState());
+  g_renderer->Draw(0, 3);
+  g_renderer->EndUtilityDrawing();
 }

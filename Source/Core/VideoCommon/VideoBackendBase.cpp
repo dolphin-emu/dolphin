@@ -40,6 +40,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -236,41 +237,22 @@ void VideoBackendBase::PopulateBackendInfo()
   g_Config.Refresh();
 }
 
-// Run from the CPU thread
 void VideoBackendBase::DoState(PointerWrap& p)
 {
-  bool software = false;
-  p.Do(software);
-
-  if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+  if (!SConfig::GetInstance().bCPUThread)
   {
-    // change mode to abort load of incompatible save state.
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    VideoCommon_DoState(p);
+    return;
   }
 
-  VideoCommon_DoState(p);
-  p.DoMarker("VideoCommon");
+  AsyncRequests::Event ev = {};
+  ev.do_save_state.p = &p;
+  ev.type = AsyncRequests::Event::DO_SAVE_STATE;
+  AsyncRequests::GetInstance()->PushEvent(ev, true);
 
-  // Refresh state.
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    m_invalid = true;
-
-    // Clear all caches that touch RAM
-    // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
-    VertexLoaderManager::MarkAllDirty();
-  }
-}
-
-void VideoBackendBase::CheckInvalidState()
-{
-  if (m_invalid)
-  {
-    m_invalid = false;
-
-    BPReload();
-    g_texture_cache->Invalidate();
-  }
+  // Let the GPU thread sleep after loading the state, so we're not spinning if paused after loading
+  // a state. The next GP burst will wake it up again.
+  Fifo::GpuMaySleep();
 }
 
 void VideoBackendBase::InitializeShared()
@@ -281,8 +263,6 @@ void VideoBackendBase::InitializeShared()
 
   // do not initialize again for the config window
   m_initialized = true;
-
-  m_invalid = false;
 
   CommandProcessor::Init();
   Fifo::Init();

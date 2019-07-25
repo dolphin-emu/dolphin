@@ -17,6 +17,7 @@
 #include "VideoCommon/TextureConfig.h"
 
 class NativeVertexFormat;
+class PointerWrap;
 
 enum class EFBReinterpretType
 {
@@ -95,6 +96,9 @@ public:
   void PokeEFBDepth(u32 x, u32 y, float depth);
   void FlushEFBPokes();
 
+  // Save state load/save.
+  void DoState(PointerWrap& p);
+
 protected:
   struct EFBPokeVertex
   {
@@ -145,6 +149,9 @@ protected:
   void DrawPokeVertices(const EFBPokeVertex* vertices, u32 vertex_count,
                         const AbstractPipeline* pipeline);
 
+  void DoLoadState(PointerWrap& p);
+  void DoSaveState(PointerWrap& p);
+
   std::unique_ptr<AbstractTexture> m_efb_color_texture;
   std::unique_ptr<AbstractTexture> m_efb_convert_color_texture;
   std::unique_ptr<AbstractTexture> m_efb_depth_texture;
@@ -155,6 +162,9 @@ protected:
   std::unique_ptr<AbstractFramebuffer> m_efb_convert_framebuffer;
   std::unique_ptr<AbstractFramebuffer> m_efb_depth_resolve_framebuffer;
   std::unique_ptr<AbstractPipeline> m_efb_depth_resolve_pipeline;
+
+  // Pipeline for restoring the contents of the EFB from a save state
+  std::unique_ptr<AbstractPipeline> m_efb_restore_pipeline;
 
   // Format conversion shaders
   std::array<std::unique_ptr<AbstractPipeline>, 6> m_format_conversion_pipelines;

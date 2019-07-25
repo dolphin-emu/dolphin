@@ -100,10 +100,13 @@ void HacksWidget::CreateWidgets()
   m_disable_bounding_box =
       new GraphicsBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
   m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUDING);
+  m_save_texture_cache_state =
+      new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
 
   other_layout->addWidget(m_fast_depth_calculation, 0, 0);
   other_layout->addWidget(m_disable_bounding_box, 0, 1);
   other_layout->addWidget(m_vertex_rounding, 1, 0);
+  other_layout->addWidget(m_save_texture_cache_state, 1, 1);
 
   main_layout->addWidget(efb_box);
   main_layout->addWidget(texture_cache_box);
@@ -244,6 +247,10 @@ void HacksWidget::AddDescriptions()
   static const char TR_DISABLE_BOUNDINGBOX_DESCRIPTION[] =
       QT_TR_NOOP("Disables bounding box emulation.\n\nThis may improve GPU performance "
                  "significantly, but some games will break.\n\nIf unsure, leave this checked.");
+  static const char TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION[] = QT_TR_NOOP(
+      "Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies "
+      "in save states. Fixes missing and/or non-upscaled textures/objects when loading "
+      "states at the cost of additional save/load time.\n\nIf unsure, leave this checked.");
   static const char TR_VERTEX_ROUNDING_DESCRIPTION[] =
       QT_TR_NOOP("Rounds 2D vertices to whole pixels.\n\nFixes graphical problems in some games at "
                  "higher internal resolutions. This setting has no effect when native internal "
@@ -259,6 +266,7 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_gpu_texture_decoding, TR_GPU_DECODING_DESCRIPTION);
   AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
   AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);
+  AddDescription(m_save_texture_cache_state, TR_SAVE_TEXTURE_CACHE_TO_STATE_DESCRIPTION);
   AddDescription(m_vertex_rounding, TR_VERTEX_ROUNDING_DESCRIPTION);
 }
 

@@ -13,6 +13,7 @@
 #include "Common/Flag.h"
 
 struct EfbPokeData;
+class PointerWrap;
 
 class AsyncRequests
 {
@@ -28,6 +29,7 @@ public:
       SWAP_EVENT,
       BBOX_READ,
       PERF_QUERY,
+      DO_SAVE_STATE,
     } type;
     u64 time;
 
@@ -64,6 +66,11 @@ public:
       struct
       {
       } perf_query;
+
+      struct
+      {
+        PointerWrap* p;
+      } do_save_state;
     };
   };
 

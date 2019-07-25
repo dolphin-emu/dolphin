@@ -90,6 +90,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_SHADER_COMPILATION_MODE.location,
       Config::GFX_SHADER_COMPILER_THREADS.location,
       Config::GFX_SHADER_PRECOMPILER_THREADS.location,
+      Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE.location,
 
       Config::GFX_SW_ZCOMPLOC.location,
       Config::GFX_SW_ZFREEZE.location,

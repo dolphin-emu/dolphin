@@ -11,6 +11,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoState.h"
 
 AsyncRequests AsyncRequests::s_singleton;
 
@@ -153,6 +154,10 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
   case Event::PERF_QUERY:
     g_perf_query->FlushResults();
+    break;
+
+  case Event::DO_SAVE_STATE:
+    VideoCommon_DoState(*e.do_save_state.p);
     break;
   }
 }

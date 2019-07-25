@@ -6,6 +6,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <queue>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
@@ -44,6 +45,7 @@ static bool s_state_paused_and_locked = false;
 static bool s_state_system_request_stepping = false;
 static bool s_state_cpu_step_instruction = false;
 static Common::Event* s_state_cpu_step_instruction_sync = nullptr;
+static std::queue<std::function<void()>> s_pending_jobs;
 
 void Init(PowerPC::CPUCore cpu_core)
 {
@@ -60,6 +62,9 @@ void Shutdown()
 // Requires holding s_state_change_lock
 static void FlushStepSyncEventLocked()
 {
+  if (!s_state_cpu_step_instruction)
+    return;
+
   if (s_state_cpu_step_instruction_sync)
   {
     s_state_cpu_step_instruction_sync->Set();
@@ -68,12 +73,25 @@ static void FlushStepSyncEventLocked()
   s_state_cpu_step_instruction = false;
 }
 
+static void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
+{
+  while (!s_pending_jobs.empty())
+  {
+    auto callback = s_pending_jobs.front();
+    s_pending_jobs.pop();
+    state_lock.unlock();
+    callback();
+    state_lock.lock();
+  }
+}
+
 void Run()
 {
   std::unique_lock<std::mutex> state_lock(s_state_change_lock);
   while (s_state != State::PowerDown)
   {
     s_state_cpu_cvar.wait(state_lock, [] { return !s_state_paused_and_locked; });
+    ExecutePendingJobs(state_lock);
 
     switch (s_state)
     {
@@ -108,8 +126,10 @@ void Run()
 
     case State::Stepping:
       // Wait for step command.
-      s_state_cpu_cvar.wait(state_lock,
-                            [] { return s_state_cpu_step_instruction || !IsStepping(); });
+      s_state_cpu_cvar.wait(state_lock, [&state_lock] {
+        ExecutePendingJobs(state_lock);
+        return s_state_cpu_step_instruction || !IsStepping();
+      });
       if (!IsStepping())
       {
         // Signal event if the mode changes.
@@ -330,4 +350,11 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
   }
   return was_unpaused;
 }
+
+void AddCPUThreadJob(std::function<void()> function)
+{
+  std::unique_lock<std::mutex> state_lock(s_state_change_lock);
+  s_pending_jobs.push(std::move(function));
+}
+
 }  // namespace CPU

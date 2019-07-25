@@ -338,9 +338,6 @@ void VertexManagerBase::Flush()
 
   m_is_flushed = true;
 
-  // loading a state will invalidate BP, so check for it
-  g_video_backend->CheckInvalidState();
-
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame%d:\n texgen=%u, numchan=%u, dualtex=%u, ztex=%u, cole=%u, alpe=%u, ze=%u",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
@@ -464,6 +461,16 @@ void VertexManagerBase::Flush()
 
 void VertexManagerBase::DoState(PointerWrap& p)
 {
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    // Flush old vertex data before loading state.
+    Flush();
+
+    // Clear all caches that touch RAM
+    // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
+    VertexLoaderManager::MarkAllDirty();
+  }
+
   p.Do(m_zslope);
 }
 

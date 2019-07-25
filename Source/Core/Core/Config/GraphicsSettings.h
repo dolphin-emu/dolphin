@@ -67,6 +67,7 @@ extern const ConfigInfo<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING;
 extern const ConfigInfo<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE;
 extern const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS;
 extern const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS;
+extern const ConfigInfo<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE;
 
 extern const ConfigInfo<bool> GFX_SW_ZCOMPLOC;
 extern const ConfigInfo<bool> GFX_SW_ZFREEZE;
