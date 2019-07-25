@@ -71,7 +71,7 @@ void NewPatchDialog::ConnectWidgets()
   connect(m_name_edit, static_cast<void (QLineEdit::*)(const QString&)>(&QLineEdit::textEdited),
           [this](const QString& name) { m_patch.name = name.toStdString(); });
 
-  connect(m_add_button, &QPushButton::pressed, this, &NewPatchDialog::AddEntry);
+  connect(m_add_button, &QPushButton::clicked, this, &NewPatchDialog::AddEntry);
 
   connect(m_button_box, &QDialogButtonBox::accepted, this, &NewPatchDialog::accept);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -164,7 +164,7 @@ QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
             value->setPalette(palette);
           });
 
-  connect(remove, &QPushButton::pressed, [this, box, entry] {
+  connect(remove, &QPushButton::clicked, [this, box, entry] {
     if (m_patch.entries.size() > 1)
     {
       box->setVisible(false);

@@ -145,7 +145,7 @@ void EnhancementsWidget::ConnectWidgets()
 
             SaveSettings();
           });
-  connect(m_configure_pp_effect, &QPushButton::pressed, this,
+  connect(m_configure_pp_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 

@@ -225,15 +225,15 @@ void MemoryWidget::ConnectWidgets()
   connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
   connect(m_find_hex, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
 
-  connect(m_set_value, &QPushButton::pressed, this, &MemoryWidget::OnSetValue);
+  connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
 
-  connect(m_dump_mram, &QPushButton::pressed, this, &MemoryWidget::OnDumpMRAM);
-  connect(m_dump_exram, &QPushButton::pressed, this, &MemoryWidget::OnDumpExRAM);
-  connect(m_dump_aram, &QPushButton::pressed, this, &MemoryWidget::OnDumpARAM);
-  connect(m_dump_fake_vmem, &QPushButton::pressed, this, &MemoryWidget::OnDumpFakeVMEM);
+  connect(m_dump_mram, &QPushButton::clicked, this, &MemoryWidget::OnDumpMRAM);
+  connect(m_dump_exram, &QPushButton::clicked, this, &MemoryWidget::OnDumpExRAM);
+  connect(m_dump_aram, &QPushButton::clicked, this, &MemoryWidget::OnDumpARAM);
+  connect(m_dump_fake_vmem, &QPushButton::clicked, this, &MemoryWidget::OnDumpFakeVMEM);
 
-  connect(m_find_next, &QPushButton::pressed, this, &MemoryWidget::OnFindNextValue);
-  connect(m_find_previous, &QPushButton::pressed, this, &MemoryWidget::OnFindPreviousValue);
+  connect(m_find_next, &QPushButton::clicked, this, &MemoryWidget::OnFindNextValue);
+  connect(m_find_previous, &QPushButton::clicked, this, &MemoryWidget::OnFindPreviousValue);
 
   for (auto* radio :
        {m_address_space_effective, m_address_space_auxiliary, m_address_space_physical})

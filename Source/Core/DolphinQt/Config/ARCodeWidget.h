@@ -45,9 +45,9 @@ private:
   void SaveCodes();
   void SortAlphabetically();
 
-  void OnCodeAddPressed();
-  void OnCodeEditPressed();
-  void OnCodeRemovePressed();
+  void OnCodeAddClicked();
+  void OnCodeEditClicked();
+  void OnCodeRemoveClicked();
 
   void OnListReordered();
 

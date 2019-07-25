@@ -62,7 +62,7 @@ void SearchBar::Hide()
 void SearchBar::ConnectWidgets()
 {
   connect(m_search_edit, &QLineEdit::textChanged, this, &SearchBar::Search);
-  connect(m_close_button, &QPushButton::pressed, this, &SearchBar::Hide);
+  connect(m_close_button, &QPushButton::clicked, this, &SearchBar::Hide);
 }
 
 bool SearchBar::eventFilter(QObject* object, QEvent* event)
