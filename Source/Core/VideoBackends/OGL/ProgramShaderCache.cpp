@@ -519,7 +519,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
                             geometry_shader ? geometry_shader->GetID() : 0,
                             pixel_shader ? pixel_shader->GetID() : 0};
   {
-    std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
+    std::lock_guard guard{s_pipeline_program_lock};
     auto iter = s_pipeline_programs.find(key);
     if (iter != s_pipeline_programs.end())
     {
@@ -597,7 +597,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
   }
 
   // Lock to insert. A duplicate program may have been created in the meantime.
-  std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
+  std::lock_guard guard{s_pipeline_program_lock};
   auto iter = s_pipeline_programs.find(key);
   if (iter != s_pipeline_programs.end())
   {
@@ -627,8 +627,8 @@ void ProgramShaderCache::ReleasePipelineProgram(PipelineProgram* prog)
 
   prog->shader.Destroy();
 
-  std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
-  auto iter = s_pipeline_programs.find(prog->key);
+  std::lock_guard guard{s_pipeline_program_lock};
+  const auto iter = s_pipeline_programs.find(prog->key);
   ASSERT(iter != s_pipeline_programs.end() && prog == iter->second.get());
   s_pipeline_programs.erase(iter);
 }
