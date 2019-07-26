@@ -4,6 +4,7 @@
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
+#include <array>
 #include <atomic>
 #include <limits>
 #include <memory>
@@ -267,19 +268,19 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);
 }
 
-bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string& code)
+bool ProgramShaderCache::CompileComputeShader(SHADER& shader, std::string_view code)
 {
   // We need to enable GL_ARB_compute_shader for drivers that support the extension,
   // but not GLSL 4.3. Mesa is one example.
-  std::string header;
+  std::string full_code;
   if (g_ActiveConfig.backend_info.bSupportsComputeShaders &&
       g_ogl_config.eSupportedGLSLVersion < Glsl430)
   {
-    header = "#extension GL_ARB_compute_shader : enable\n";
+    full_code = "#extension GL_ARB_compute_shader : enable\n";
   }
 
-  std::string full_code = header + code;
-  GLuint shader_id = CompileSingleShader(GL_COMPUTE_SHADER, full_code);
+  full_code += code;
+  const GLuint shader_id = CompileSingleShader(GL_COMPUTE_SHADER, full_code);
   if (!shader_id)
     return false;
 
@@ -291,7 +292,7 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
   // original shaders aren't needed any more
   glDeleteShader(shader_id);
 
-  if (!CheckProgramLinkResult(shader.glprogid, &full_code, nullptr, nullptr))
+  if (!CheckProgramLinkResult(shader.glprogid, full_code, {}, {}))
   {
     shader.Destroy();
     return false;
@@ -301,13 +302,21 @@ bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string&
   return true;
 }
 
-GLuint ProgramShaderCache::CompileSingleShader(GLenum type, const std::string& code)
+GLuint ProgramShaderCache::CompileSingleShader(GLenum type, std::string_view code)
 {
-  GLuint result = glCreateShader(type);
+  const GLuint result = glCreateShader(type);
 
-  const char* src[] = {s_glsl_header.c_str(), code.c_str()};
+  constexpr GLsizei num_strings = 2;
+  const std::array<const char*, num_strings> src{
+      s_glsl_header.data(),
+      code.data(),
+  };
+  const std::array<GLint, num_strings> src_sizes{
+      static_cast<GLint>(s_glsl_header.size()),
+      static_cast<GLint>(code.size()),
+  };
 
-  glShaderSource(result, 2, src, nullptr);
+  glShaderSource(result, num_strings, src.data(), src_sizes.data());
   glCompileShader(result);
 
   if (!CheckShaderCompileResult(result, type, code))
@@ -320,7 +329,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLenum type, const std::string& c
   return result;
 }
 
-bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const std::string& code)
+bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::string_view code)
 {
   GLint compileStatus;
   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
@@ -374,8 +383,8 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
   return true;
 }
 
-bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string* vcode,
-                                                const std::string* pcode, const std::string* gcode)
+bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcode,
+                                                std::string_view pcode, std::string_view gcode)
 {
   GLint linkStatus;
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
@@ -393,12 +402,12 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string* vc
           StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
-      if (vcode)
-        file << s_glsl_header << *vcode << '\n';
-      if (gcode)
-        file << s_glsl_header << *gcode << '\n';
-      if (pcode)
-        file << s_glsl_header << *pcode << '\n';
+      if (!vcode.empty())
+        file << s_glsl_header << vcode << '\n';
+      if (!gcode.empty())
+        file << s_glsl_header << gcode << '\n';
+      if (!pcode.empty())
+        file << s_glsl_header << pcode << '\n';
 
       file << info_log;
       file.close();
@@ -583,10 +592,10 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     if (!s_is_shared_context && vao != s_last_VAO)
       glBindVertexArray(s_last_VAO);
 
-    if (!ProgramShaderCache::CheckProgramLinkResult(
-            prog->shader.glprogid, vertex_shader ? &vertex_shader->GetSource() : nullptr,
-            geometry_shader ? &geometry_shader->GetSource() : nullptr,
-            pixel_shader ? &pixel_shader->GetSource() : nullptr))
+    if (!CheckProgramLinkResult(prog->shader.glprogid,
+                                vertex_shader ? vertex_shader->GetSource() : std::string_view{},
+                                geometry_shader ? geometry_shader->GetSource() : std::string_view{},
+                                pixel_shader ? pixel_shader->GetSource() : std::string_view{}))
     {
       prog->shader.Destroy();
       return nullptr;
