@@ -132,9 +132,10 @@ bool Shader::CompileShader(D3D_FEATURE_LEVEL feature_level, BinaryData* out_byte
 
 AbstractShader::BinaryData Shader::CreateByteCode(const void* data, size_t length)
 {
-  BinaryData bytecode(length);
-  std::memcpy(bytecode.data(), data, length);
-  return bytecode;
+  const auto* const begin = static_cast<const u8*>(data);
+  const auto* const end = begin + length;
+
+  return {begin, end};
 }
 
 }  // namespace D3DCommon
