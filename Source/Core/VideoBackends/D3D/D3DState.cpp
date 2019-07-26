@@ -386,6 +386,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     {
       return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
     }
+    WARN_LOG(VIDEO, "Creating D3D blend state failed with an error: %x", hr);
   }
 
   D3D11_BLEND_DESC desc = {};
