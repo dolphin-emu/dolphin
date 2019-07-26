@@ -105,9 +105,9 @@ public:
   static void ReleasePipelineProgram(PipelineProgram* prog);
 
 private:
-  typedef std::unordered_map<PipelineProgramKey, std::unique_ptr<PipelineProgram>,
-                             PipelineProgramKeyHash>
-      PipelineProgramMap;
+  using PipelineProgramMap =
+      std::unordered_map<PipelineProgramKey, std::unique_ptr<PipelineProgram>,
+                         PipelineProgramKeyHash>;
 
   static void CreateAttributelessVAO();
 
