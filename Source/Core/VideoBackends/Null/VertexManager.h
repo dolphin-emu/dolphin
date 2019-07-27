@@ -12,7 +12,7 @@ class VertexManager final : public VertexManagerBase
 {
 public:
   VertexManager();
-  ~VertexManager();
+  ~VertexManager() override;
 
 protected:
   void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
