@@ -111,7 +111,6 @@ void WiimoteControllersWidget::CreateLayout()
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
   m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
   m_wiimote_continuous_scanning = new QCheckBox(tr("Continuous Scanning"));
-  m_wiimote_real_balance_board = new QCheckBox(tr("Real Balance Board"));
   m_wiimote_speaker_data = new QCheckBox(tr("Enable Speaker Data"));
   m_wiimote_ciface = new QCheckBox(tr("Connect Wii Remotes for Emulated Controllers"));
 
@@ -136,12 +135,22 @@ void WiimoteControllersWidget::CreateLayout()
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    auto* wm_label = m_wiimote_labels[i] = new QLabel(tr("Wii Remote %1").arg(i + 1));
+    auto text = (i == WIIMOTE_BALANCE_BOARD ? tr("Balance Board") : tr("Wii Remote %1").arg(i + 1));
+    auto* wm_label = m_wiimote_labels[i] = new QLabel(text);
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
     auto* wm_button = m_wiimote_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
-    for (const auto& item : {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote")})
-      wm_box->addItem(item);
+    wm_box->addItem(tr("None"));
+    if (i == WIIMOTE_BALANCE_BOARD)
+    {
+      wm_box->addItem(tr("Emulated Balance Board"));
+      wm_box->addItem(tr("Real Balance Board"));
+    }
+    else
+    {
+      wm_box->addItem(tr("Emulated Wii Remote"));
+      wm_box->addItem(tr("Real Wii Remote"));
+    }
 
     int wm_row = m_wiimote_layout->rowCount();
     m_wiimote_layout->addWidget(wm_label, wm_row, 1);
@@ -149,7 +158,6 @@ void WiimoteControllersWidget::CreateLayout()
     m_wiimote_layout->addWidget(wm_button, wm_row, 3);
   }
 
-  m_wiimote_layout->addWidget(m_wiimote_real_balance_board, m_wiimote_layout->rowCount(), 1, 1, -1);
   m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 1, 1, -1);
 
   m_wiimote_layout->addWidget(m_wiimote_ciface, m_wiimote_layout->rowCount(), 0, 1, -1);
@@ -185,8 +193,6 @@ void WiimoteControllersWidget::ConnectWidgets()
     LoadSettings(Core::GetState(Core::System::GetInstance()));
   });
 
-  connect(m_wiimote_real_balance_board, &QCheckBox::toggled, this,
-          &WiimoteControllersWidget::SaveSettings);
   connect(m_wiimote_speaker_data, &QCheckBox::toggled, this,
           &WiimoteControllersWidget::SaveSettings);
   connect(m_wiimote_sync, &QPushButton::clicked, this,
@@ -274,8 +280,6 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
     SignalBlocking(m_wiimote_boxes[i])
         ->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
   }
-  SignalBlocking(m_wiimote_real_balance_board)
-      ->setChecked(Config::Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real);
   SignalBlocking(m_wiimote_speaker_data)
       ->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
   SignalBlocking(m_wiimote_ciface)
@@ -319,7 +323,6 @@ void WiimoteControllersWidget::LoadSettings(Core::State state)
                                      static_cast<int>(i) < num_local_wiimotes);
   }
 
-  m_wiimote_real_balance_board->setEnabled(enable_emu_bt && !running_netplay);
   m_wiimote_speaker_data->setEnabled(enable_emu_bt && !running_netplay);
 
   const bool ciface_wiimotes = m_wiimote_ciface->isChecked();
@@ -341,10 +344,6 @@ void WiimoteControllersWidget::SaveSettings()
                              m_wiimote_continuous_scanning->isChecked());
     Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED,
                              m_wiimote_passthrough->isChecked());
-
-    const WiimoteSource bb_source =
-        m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
-    Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
     for (size_t i = 0; i < m_wiimote_groups.size(); i++)
     {
