@@ -3,10 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Null/VertexManager.h"
-#include "VideoBackends/Null/Render.h"
-
-#include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/VertexLoaderManager.h"
 
 namespace Null
 {

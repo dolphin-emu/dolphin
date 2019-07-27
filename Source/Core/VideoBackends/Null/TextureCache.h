@@ -4,21 +4,12 @@
 
 #pragma once
 
-#include <memory>
-
-#include "VideoBackends/Null/NullTexture.h"
-
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureConfig.h"
 
 namespace Null
 {
-class TextureCache : public TextureCacheBase
+class TextureCache final : public TextureCacheBase
 {
-public:
-  TextureCache() {}
-  ~TextureCache() {}
-
 protected:
   void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
                u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
