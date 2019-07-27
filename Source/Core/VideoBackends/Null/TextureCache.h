@@ -8,7 +8,7 @@
 
 namespace Null
 {
-class TextureCache : public TextureCacheBase
+class TextureCache final : public TextureCacheBase
 {
 protected:
   void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,

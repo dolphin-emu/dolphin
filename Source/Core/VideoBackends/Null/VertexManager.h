@@ -8,7 +8,7 @@
 
 namespace Null
 {
-class VertexManager : public VertexManagerBase
+class VertexManager final : public VertexManagerBase
 {
 public:
   VertexManager();

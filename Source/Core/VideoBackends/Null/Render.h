@@ -8,7 +8,7 @@
 
 namespace Null
 {
-class Renderer : public ::Renderer
+class Renderer final : public ::Renderer
 {
 public:
   Renderer();

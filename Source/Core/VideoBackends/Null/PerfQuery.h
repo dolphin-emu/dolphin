@@ -8,7 +8,7 @@
 
 namespace Null
 {
-class PerfQuery : public PerfQueryBase
+class PerfQuery final : public PerfQueryBase
 {
 public:
   void EnableQuery(PerfQueryGroup type) override {}

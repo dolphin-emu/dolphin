@@ -8,7 +8,7 @@
 
 namespace Null
 {
-class VideoBackend : public VideoBackendBase
+class VideoBackend final : public VideoBackendBase
 {
   bool Initialize(const WindowSystemInfo& wsi) override;
   void Shutdown() override;
