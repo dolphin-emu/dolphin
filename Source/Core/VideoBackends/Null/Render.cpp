@@ -2,10 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Logging/Log.h"
+#include "VideoBackends/Null/Render.h"
 
 #include "VideoBackends/Null/NullTexture.h"
-#include "VideoBackends/Null/Render.h"
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"

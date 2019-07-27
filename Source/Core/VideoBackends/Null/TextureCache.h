@@ -4,12 +4,7 @@
 
 #pragma once
 
-#include <memory>
-
-#include "VideoBackends/Null/NullTexture.h"
-
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureConfig.h"
 
 namespace Null
 {

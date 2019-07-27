@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "VideoCommon/VertexManagerBase.h"
 
 namespace Null
