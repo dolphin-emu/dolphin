@@ -16,8 +16,6 @@ public:
   DXShader(ShaderStage stage, BinaryData bytecode, ID3D11DeviceChild* shader);
   ~DXShader() override;
 
-  const BinaryData& GetByteCode() const { return m_bytecode; }
-
   ID3D11VertexShader* GetD3DVertexShader() const;
   ID3D11GeometryShader* GetD3DGeometryShader() const;
   ID3D11PixelShader* GetD3DPixelShader() const;

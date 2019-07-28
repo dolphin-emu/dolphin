@@ -89,8 +89,8 @@ static const char* GetCompileTarget(D3D_FEATURE_LEVEL feature_level, ShaderStage
   }
 }
 
-bool Shader::CompileShader(D3D_FEATURE_LEVEL feature_level, BinaryData* out_bytecode,
-                           ShaderStage stage, std::string_view source)
+std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL feature_level,
+                                                        ShaderStage stage, std::string_view source)
 {
   static constexpr D3D_SHADER_MACRO macros[] = {{"API_D3D", "1"}, {nullptr, nullptr}};
   const UINT flags = g_ActiveConfig.bEnableValidationLayer ?
@@ -116,7 +116,7 @@ bool Shader::CompileShader(D3D_FEATURE_LEVEL feature_level, BinaryData* out_byte
 
     PanicAlert("Failed to compile %s:\nDebug info (%s):\n%s", filename.c_str(), target,
                static_cast<const char*>(errors->GetBufferPointer()));
-    return false;
+    return std::nullopt;
   }
 
   if (errors && errors->GetBufferSize() > 0)
@@ -125,16 +125,15 @@ bool Shader::CompileShader(D3D_FEATURE_LEVEL feature_level, BinaryData* out_byte
              static_cast<const char*>(errors->GetBufferPointer()));
   }
 
-  out_bytecode->resize(code->GetBufferSize());
-  std::memcpy(out_bytecode->data(), code->GetBufferPointer(), code->GetBufferSize());
-  return true;
+  return CreateByteCode(code->GetBufferPointer(), code->GetBufferSize());
 }
 
 AbstractShader::BinaryData Shader::CreateByteCode(const void* data, size_t length)
 {
-  BinaryData bytecode(length);
-  std::memcpy(bytecode.data(), data, length);
-  return bytecode;
+  const auto* const begin = static_cast<const u8*>(data);
+  const auto* const end = begin + length;
+
+  return {begin, end};
 }
 
 }  // namespace D3DCommon
