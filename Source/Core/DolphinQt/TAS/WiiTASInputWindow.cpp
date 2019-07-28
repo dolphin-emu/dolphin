@@ -451,7 +451,7 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
     if (mode == WiimoteEmu::CameraLogic::IR_MODE_BASIC)
     {
       memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRBasic) * 2);
-      auto* const ir_basic = reinterpret_cast<WiimoteEmu::IRBasic*>(ir_data);
+      std::array<WiimoteEmu::IRBasic, 2> ir_basic;
       for (int i = 0; i < 2; ++i)
       {
         if (x[i * 2] < 1024 && y < 768)
@@ -471,13 +471,14 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
           ir_basic[i].y2hi = y >> 8;
         }
       }
+      Common::BitCastPtr<std::array<WiimoteEmu::IRBasic, 2>>(ir_data) = ir_basic;
     }
     else
     {
       // TODO: this code doesnt work, resulting in no IR TAS inputs in e.g. wii sports menu when no
       // remote extension is used
       memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRExtended) * 4);
-      auto* const ir_extended = reinterpret_cast<WiimoteEmu::IRExtended*>(ir_data);
+      std::array<WiimoteEmu::IRExtended, 4> ir_extended;
       for (size_t i = 0; i < x.size(); ++i)
       {
         if (x[i] < 1024 && y < 768)
@@ -491,14 +492,17 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
           ir_extended[i].size = 10;
         }
       }
+      Common::BitCastPtr<std::array<WiimoteEmu::IRExtended, 4>>(ir_data) = ir_extended;
     }
   }
 
   if (rpt.HasExt() && m_nunchuk_stick_box->isVisible())
   {
+    using WiimoteEmu::Nunchuk;
+
     u8* const ext_data = rpt.GetExtDataPtr();
 
-    auto& nunchuk = *reinterpret_cast<WiimoteEmu::Nunchuk::DataFormat*>(ext_data);
+    Nunchuk::DataFormat nunchuk = Common::BitCastPtr<Nunchuk::DataFormat>(ext_data);
 
     GetSpinBoxU8(m_nunchuk_stick_x_value, nunchuk.jx);
     GetSpinBoxU8(m_nunchuk_stick_y_value, nunchuk.jy);
@@ -514,15 +518,18 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
     GetButton<u8>(m_z_button, bt, WiimoteEmu::Nunchuk::BUTTON_Z);
     nunchuk.SetButtons(bt);
 
-    key.Encrypt(reinterpret_cast<u8*>(&nunchuk), 0, sizeof(nunchuk));
+    Common::BitCastPtr<Nunchuk::DataFormat>(ext_data) = nunchuk;
+    key.Encrypt(ext_data, 0, sizeof(Nunchuk::DataFormat));
   }
 
   if (m_classic_left_stick_box->isVisible())
   {
-    u8* const ext_data = rpt.GetExtDataPtr();
+    using WiimoteEmu::Classic;
 
-    auto& cc = *reinterpret_cast<WiimoteEmu::Classic::DataFormat*>(ext_data);
-    key.Decrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
+    u8* const ext_data = rpt.GetExtDataPtr();
+    key.Decrypt(ext_data, 0, sizeof(Classic::DataFormat));
+
+    Classic::DataFormat cc = Common::BitCastPtr<Classic::DataFormat>(ext_data);
 
     u16 bt = cc.GetButtons();
     GetButton<u16>(m_classic_a_button, bt, WiimoteEmu::Classic::BUTTON_A);
@@ -560,7 +567,8 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
     GetSpinBoxU8(m_left_trigger_value, lt);
     cc.SetLeftTrigger(lt);
 
-    key.Encrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
+    Common::BitCastPtr<Classic::DataFormat>(ext_data) = cc;
+    key.Encrypt(ext_data, 0, sizeof(Classic::DataFormat));
   }
 
   if (rpt.HasExt() && m_balance_board_box->isVisible())
