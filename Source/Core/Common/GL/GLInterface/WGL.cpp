@@ -241,53 +241,10 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   int theight = window_rect.bottom - window_rect.top;
   m_backbuffer_width = twidth;
   m_backbuffer_height = theight;
+  m_stereo = stereo;
 
-  const DWORD stereo_flag = stereo ? PFD_STEREO : 0;
-
-  // clang-format off
-  static const PIXELFORMATDESCRIPTOR pfd = {
-      sizeof(PIXELFORMATDESCRIPTOR),  // Size Of This Pixel Format Descriptor
-      1,                              // Version Number
-      PFD_DRAW_TO_WINDOW |            // Format Must Support Window
-          PFD_SUPPORT_OPENGL |        // Format Must Support OpenGL
-          PFD_DOUBLEBUFFER |          // Must Support Double Buffering
-          stereo_flag,                // Could Support Quad Buffering
-      PFD_TYPE_RGBA,                  // Request An RGBA Format
-      32,                             // Select Our Color Depth
-      0,
-      0, 0, 0, 0, 0,   // Color Bits Ignored
-      0,               // 8bit Alpha Buffer
-      0,               // Shift Bit Ignored
-      0,               // No Accumulation Buffer
-      0, 0, 0, 0,      // Accumulation Bits Ignored
-      0,               // 0Bit Z-Buffer (Depth Buffer)
-      0,               // 0bit Stencil Buffer
-      0,               // No Auxiliary Buffer
-      PFD_MAIN_PLANE,  // Main Drawing Layer
-      0,               // Reserved
-      0, 0, 0          // Layer Masks Ignored
-  };
-  // clang-format on
-
-  m_dc = GetDC(m_window_handle);
-  if (!m_dc)
-  {
-    PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
+  if (!InitializeDC())
     return false;
-  }
-
-  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
-  if (!pixel_format)
-  {
-    PanicAlert("(2) Can't find a suitable PixelFormat.");
-    return false;
-  }
-
-  if (!SetPixelFormat(m_dc, pixel_format, &pfd))
-  {
-    PanicAlert("(3) Can't set the PixelFormat.");
-    return false;
-  }
 
   m_rc = wglCreateContext(m_dc);
   if (!m_rc)
@@ -336,6 +293,58 @@ bool GLContextWGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool cor
   }
 
   return MakeCurrent();
+}
+
+bool GLContextWGL::InitializeDC()
+{
+  const DWORD stereo_flag = m_stereo ? PFD_STEREO : 0;
+
+  // clang-format off
+  static const PIXELFORMATDESCRIPTOR pfd = {
+      sizeof(PIXELFORMATDESCRIPTOR),  // Size Of This Pixel Format Descriptor
+      1,                              // Version Number
+      PFD_DRAW_TO_WINDOW |            // Format Must Support Window
+          PFD_SUPPORT_OPENGL |        // Format Must Support OpenGL
+          PFD_DOUBLEBUFFER |          // Must Support Double Buffering
+          stereo_flag,                // Could Support Quad Buffering
+      PFD_TYPE_RGBA,                  // Request An RGBA Format
+      32,                             // Select Our Color Depth
+      0,
+      0, 0, 0, 0, 0,   // Color Bits Ignored
+      0,               // 8bit Alpha Buffer
+      0,               // Shift Bit Ignored
+      0,               // No Accumulation Buffer
+      0, 0, 0, 0,      // Accumulation Bits Ignored
+      0,               // 0Bit Z-Buffer (Depth Buffer)
+      0,               // 0bit Stencil Buffer
+      0,               // No Auxiliary Buffer
+      PFD_MAIN_PLANE,  // Main Drawing Layer
+      0,               // Reserved
+      0, 0, 0          // Layer Masks Ignored
+  };
+  // clang-format on
+
+  m_dc = GetDC(m_window_handle);
+  if (!m_dc)
+  {
+    PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
+    return false;
+  }
+
+  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
+  if (!pixel_format)
+  {
+    PanicAlert("(2) Can't find a suitable PixelFormat.");
+    return false;
+  }
+
+  if (!SetPixelFormat(m_dc, pixel_format, &pfd))
+  {
+    PanicAlert("(3) Can't set the PixelFormat.");
+    return false;
+  }
+
+  return true;
 }
 
 std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
@@ -494,4 +503,27 @@ void GLContextWGL::Update()
   // Get the new window width and height
   m_backbuffer_width = rcWindow.right - rcWindow.left;
   m_backbuffer_height = rcWindow.bottom - rcWindow.top;
+}
+
+void GLContextWGL::UpdateSurface(void* window_handle)
+{
+  if (m_window_handle == window_handle)
+    return;
+
+  wglMakeCurrent(nullptr, nullptr);
+
+  if (m_dc)
+  {
+    ReleaseDC(m_window_handle, m_dc);
+    m_dc = nullptr;
+  }
+
+  m_window_handle = static_cast<HWND>(window_handle);
+  if (!InitializeDC())
+    ERROR_LOG(VIDEO, "Failed to get new DC for surface update");
+
+  if (!wglMakeCurrent(m_dc, m_rc))
+    ERROR_LOG(VIDEO, "Failed to make new context current after surface update");
+
+  GLContextWGL::Update();
 }
