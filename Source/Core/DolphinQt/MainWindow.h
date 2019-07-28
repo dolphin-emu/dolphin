@@ -113,7 +113,6 @@ private:
   void ConnectHost();
   void ConnectHotkeys();
   void ConnectMenuBar();
-  void ConnectRenderWidget();
   void ConnectStack();
   void ConnectToolBar();
 
@@ -137,8 +136,9 @@ private:
   void StartGame(const std::vector<std::string>& paths,
                  const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
-  void ShowRenderWidget();
-  void HideRenderWidget(bool reinit = true);
+  void CreateRenderWidget(bool render_to_main, bool fullscreen);
+  void UpdateRenderWidget(bool render_to_main, bool fullscreen);
+  void DestroyRenderWidget(bool reset_controller_interface);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();

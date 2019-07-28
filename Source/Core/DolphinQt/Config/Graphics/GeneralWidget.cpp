@@ -23,6 +23,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
@@ -93,6 +94,8 @@ void GeneralWidget::CreateWidgets()
   m_show_messages =
       new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
   m_render_main_window = new GraphicsBool(tr("Render to Main Window"), Config::MAIN_RENDER_TO_MAIN);
+  connect(m_render_main_window, &GraphicsBool::stateChanged,
+          [](int) { Host::GetInstance()->UpdateRenderWidget(); });
 
   m_options_box->setLayout(m_options_layout);
 
@@ -185,7 +188,6 @@ void GeneralWidget::SaveSettings()
 void GeneralWidget::OnEmulationStateChanged(bool running)
 {
   m_backend_combo->setEnabled(!running);
-  m_render_main_window->setEnabled(!running);
 
   const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);

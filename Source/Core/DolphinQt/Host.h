@@ -36,6 +36,7 @@ signals:
   void UpdateProgressDialog(QString label, int position, int maximum);
   void UpdateDisasmDialog();
   void NotifyMapLoaded();
+  void UpdateRenderWidget();
 
 private:
   Host();

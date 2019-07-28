@@ -42,6 +42,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setWindowIcon(Resources::GetAppIcon());
   setWindowRole(QStringLiteral("renderer"));
   setAcceptDrops(true);
+  setFocusPolicy(Qt::StrongFocus);
 
   QPalette p;
   p.setColor(QPalette::Window, Qt::black);
@@ -62,17 +63,6 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
     if (state == Core::State::Running)
       SetImGuiKeyMap();
   });
-
-  // We have to use Qt::DirectConnection here because we don't want those signals to get queued
-  // (which results in them not getting called)
-  connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen,
-          Qt::DirectConnection);
-  connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
-          Qt::DirectConnection);
-  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
-          Qt::DirectConnection);
-  connect(this, &RenderWidget::FocusChanged, Host::GetInstance(), &Host::SetRenderFocus,
-          Qt::DirectConnection);
 
   m_mouse_timer = new QTimer(this);
   connect(m_mouse_timer, &QTimer::timeout, this, &RenderWidget::HandleCursorTimer);
