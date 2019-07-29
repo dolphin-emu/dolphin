@@ -350,12 +350,13 @@ MainWindow::~MainWindow()
   delete m_render_widget;
   delete m_netplay_dialog;
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     delete m_gc_tas_input_windows[i];
     delete m_gba_tas_input_windows[i];
-    delete m_wii_tas_input_windows[i];
   }
+  for (int i = 0; i < num_wii_controllers; i++)
+    delete m_wii_tas_input_windows[i];
 
   ShutdownControllers();
 
@@ -458,12 +459,13 @@ void MainWindow::CreateComponents()
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
     m_gba_tas_input_windows[i] = new GBATASInputWindow(nullptr, i);
-    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
+  for (int i = 0; i < num_wii_controllers; i++)
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
 
   m_jit_widget = new JITWidget(m_system, this);
   m_log_widget = new LogWidget(this);
@@ -1873,7 +1875,7 @@ void MainWindow::OnStartRecording()
   Movie::ControllerTypeArray controllers{};
   Movie::WiimoteEnabledArray wiimotes{};
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
@@ -1882,6 +1884,10 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
+  }
+
+  for (int i = 0; i < num_wii_controllers; i++)
+  {
     wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
