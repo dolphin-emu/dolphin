@@ -223,7 +223,7 @@ private:
   NetPlaySetupDialog* m_netplay_setup_dialog;
   static constexpr int num_gc_controllers = 4;
   std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
-  static constexpr int num_wii_controllers = 4;
+  static constexpr int num_wii_controllers = 5;
   std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
 
   BreakpointWidget* m_breakpoint_widget;

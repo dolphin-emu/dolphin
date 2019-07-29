@@ -54,6 +54,7 @@
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 #include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/Extension/BalanceBoard.h"
 #include "Core/HW/WiimoteEmu/Extension/Classic.h"
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
@@ -83,7 +84,7 @@ static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
 
-static u8 s_controllers = 0;
+static u16 s_controllers = 0;
 static ControllerState s_padState;
 static DTMHeader tmpHeader;
 static std::vector<u8> s_temp_input;
@@ -111,7 +112,7 @@ static bool s_bPolled = false;
 
 // s_InputDisplay is used by both CPU and GPU (is mutable).
 static std::mutex s_input_display_lock;
-static std::string s_InputDisplay[8];
+static std::array<std::string, SerialInterface::MAX_SI_CHANNELS + MAX_BBMOTES> s_InputDisplay;
 
 static GCManipFunction s_gc_manip_func;
 static WiiManipFunction s_wii_manip_func;
@@ -159,19 +160,22 @@ std::string GetInputDisplay()
   if (!IsMovieActive())
   {
     s_controllers = 0;
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
         s_controllers |= (1 << i);
+    }
+    for (int i = 0; i < MAX_BBMOTES; ++i)
+    {
       if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-        s_controllers |= (1 << (i + 4));
+        s_controllers |= (1 << (i + SerialInterface::MAX_SI_CHANNELS));
     }
   }
 
   std::string input_display;
   {
     std::lock_guard guard(s_input_display_lock);
-    for (int i = 0; i < 8; ++i)
+    for (size_t i = 0; i < s_InputDisplay.size(); ++i)
     {
       if ((s_controllers & (1 << i)) != 0)
         input_display += s_InputDisplay[i] + '\n';
@@ -397,7 +401,7 @@ bool IsUsingBongo(int controller)
 
 bool IsUsingWiimote(int wiimote)
 {
-  return ((s_controllers & (1 << (wiimote + 4))) != 0);
+  return ((s_controllers & (1 << (wiimote + SerialInterface::MAX_SI_CHANNELS))) != 0);
 }
 
 bool IsConfigSaved()
@@ -462,16 +466,16 @@ void ChangeWiiPads(bool instantly)
 {
   int controllers = 0;
 
-  for (int i = 0; i < MAX_WIIMOTES; ++i)
+  for (int i = 0; i < MAX_BBMOTES; ++i)
     if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
       controllers |= (1 << i);
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
-  if (instantly && (s_controllers >> 4) == controllers)
+  if (instantly && (s_controllers >> SerialInterface::MAX_SI_CHANNELS) == controllers)
     return;
 
   const auto bt = WiiUtils::GetBluetoothEmuDevice();
-  for (int i = 0; i < MAX_WIIMOTES; ++i)
+  for (int i = 0; i < MAX_BBMOTES; ++i)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
@@ -640,9 +644,8 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
                                      ExtensionNumber ext, const EncryptionKey& key)
 {
-  int controllerID = remoteID + 4;
-
-  std::string display_str = fmt::format("R{}:", remoteID + 1);
+  std::string display_str =
+      (remoteID == WIIMOTE_BALANCE_BOARD ? "BB:" : fmt::format("R{}:", remoteID + 1));
 
   if (rpt.HasCore())
   {
@@ -763,8 +766,23 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", 31);
   }
 
+  // Balance board
+  if (rpt.HasExt() && ext == ExtensionNumber::BALANCE_BOARD)
+  {
+    const u8* const extData = rpt.GetExtDataPtr();
+
+    BalanceBoard::DataFormat bb;
+    memcpy(&bb, extData, sizeof(bb));
+    key.Decrypt((u8*)&bb, 0, sizeof(bb));
+
+    display_str += Analog1DToString(Common::swap16(bb.top_right), " TR", -1);
+    display_str += Analog1DToString(Common::swap16(bb.bottom_right), " BR", -1);
+    display_str += Analog1DToString(Common::swap16(bb.top_left), " TL", -1);
+    display_str += Analog1DToString(Common::swap16(bb.bottom_left), " BL", -1);
+  }
+
   std::lock_guard guard(s_input_display_lock);
-  s_InputDisplay[controllerID] = std::move(display_str);
+  s_InputDisplay[remoteID + SerialInterface::MAX_SI_CHANNELS] = std::move(display_str);
 }
 
 // NOTE: CPU Thread
@@ -844,6 +862,8 @@ void RecordWiimote(int wiimote, const u8* data, u8 size)
 void ReadHeader()
 {
   s_controllers = tmpHeader.controllers;
+  if (tmpHeader.bBalanceBoard)
+    s_controllers |= 1 << (SerialInterface::MAX_SI_CHANNELS + WIIMOTE_BALANCE_BOARD);
   s_recordingStartTime = tmpHeader.recordingStartTime;
   if (s_rerecords < tmpHeader.numRerecords)
     s_rerecords = tmpHeader.numRerecords;
@@ -1298,6 +1318,8 @@ void SaveRecording(const std::string& filename)
   header.bWii = SConfig::GetInstance().bWii;
   header.bFollowBranch = SConfig::GetInstance().bJITFollowBranch;
   header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
+  header.bBalanceBoard =
+      (s_controllers & (1 << (SerialInterface::MAX_SI_CHANNELS + WIIMOTE_BALANCE_BOARD))) != 0;
 
   header.bFromSaveState = s_bRecordingFromSaveState;
   header.frameCount = s_totalFrames;
