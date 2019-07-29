@@ -10,6 +10,8 @@
 #include <string_view>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/Wiimote.h"
 
 struct BootParameters;
 
@@ -43,8 +45,8 @@ enum class ControllerType
   GC,
   GBA,
 };
-using ControllerTypeArray = std::array<ControllerType, 4>;
-using WiimoteEnabledArray = std::array<bool, 4>;
+using ControllerTypeArray = std::array<ControllerType, SerialInterface::MAX_SI_CHANNELS>;
+using WiimoteEnabledArray = std::array<bool, MAX_BBMOTES>;
 
 // GameCube Controller State
 #pragma pack(push, 1)
@@ -125,7 +127,8 @@ struct DTMHeader
   bool bUseFMA;
   u8 GBAControllers;                // GBA Controllers plugged in (the bits are ports 1-4)
   bool bWidescreen;                 // true indicates SYSCONF aspect ratio is 16:9, false for 4:3
-  std::array<u8, 6> reserved;       // Padding for any new config options
+  bool bBalanceBoard;
+  std::array<u8, 5> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
