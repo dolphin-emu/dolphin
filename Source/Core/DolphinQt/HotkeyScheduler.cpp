@@ -337,7 +337,7 @@ void HotkeyScheduler::Run()
           OSD::AddMessage("Internal Resolution: Native");
           break;
         default:
-          OSD::AddMessage("Internal Resolution: %dx", g_Config.iEFBScale);
+          OSD::AddMessage(StringFromFormat("Internal Resolution: %dx", g_Config.iEFBScale));
           break;
         }
       };
