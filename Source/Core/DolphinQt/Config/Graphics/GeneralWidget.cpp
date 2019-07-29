@@ -157,29 +157,41 @@ void GeneralWidget::LoadSettings()
 void GeneralWidget::SaveSettings()
 {
   // Video Backend
-  const auto current_backend = m_backend_combo->currentData().toString().toStdString();
-  if (SConfig::GetInstance().m_strVideoBackend != current_backend)
+  const std::string old_backend = SConfig::GetInstance().m_strVideoBackend;
+  const std::string new_backend = m_backend_combo->currentData().toString().toStdString();
+  if (old_backend == new_backend)
+    return;
+
+  // try the new backend, and check for warnings
+  SConfig::GetInstance().m_strVideoBackend = new_backend;
+  VideoBackendBase::PopulateBackendInfo();
+
+  auto warning_message = g_video_backend->GetWarningMessage();
+  if (warning_message)
   {
-    if (current_backend == "Software Renderer")
+    ModalMessageBox confirm_sw(this);
+
+    confirm_sw.setIcon(QMessageBox::Warning);
+    confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirm_sw.setWindowTitle(tr("Confirm backend change"));
+    confirm_sw.setText(QString::fromStdString(*warning_message) +
+                       tr("\n\nAre you sure you want to switch backends? If unsure, select 'No'."));
+
+    if (confirm_sw.exec() != QMessageBox::Yes)
     {
-      ModalMessageBox confirm_sw(this);
-
-      confirm_sw.setIcon(QMessageBox::Warning);
-      confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-      confirm_sw.setWindowTitle(tr("Confirm backend change"));
-      confirm_sw.setText(tr("The software renderer is significantly slower than other "
-                            "backends and is only recommended for debugging purposes.\n\nDo you "
-                            "really want to enable software rendering? If unsure, select 'No'."));
-
-      if (confirm_sw.exec() != QMessageBox::Yes)
-      {
-        m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-            QVariant(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend))));
-        return;
-      }
+      // restore old backend
+      SConfig::GetInstance().m_strVideoBackend = old_backend;
+      VideoBackendBase::PopulateBackendInfo();
+      m_backend_combo->setCurrentIndex(
+          m_backend_combo->findData(QVariant(QString::fromStdString(old_backend))));
+      return;
     }
-    emit BackendChanged(QString::fromStdString(current_backend));
+
+    // Don't display the warning message when booting.
+    Settings::Instance().SetDisplayedGraphicsWarningMessage(true);
   }
+
+  emit BackendChanged(QString::fromStdString(new_backend));
 }
 
 void GeneralWidget::OnEmulationStateChanged(bool running)

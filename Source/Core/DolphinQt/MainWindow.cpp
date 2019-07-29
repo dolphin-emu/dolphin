@@ -110,6 +110,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/NetPlayChatUI.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -929,6 +930,9 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     return;
   }
 
+  if (!ConfirmStartWithVideoBackendWarning())
+    return;
+
   // We need the render widget before booting.
   ShowRenderWidget();
 
@@ -1051,6 +1055,35 @@ void MainWindow::HideRenderWidget(bool reinit)
     // is next started, it will be swapped back to the new render widget.
     g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_surface);
   }
+}
+
+bool MainWindow::ConfirmStartWithVideoBackendWarning()
+{
+  if (Settings::Instance().HasDisplayedGraphicsWarningMessage())
+    return true;
+
+  VideoBackendBase::PopulateBackendInfo();
+  auto warning_message = g_video_backend->GetWarningMessage();
+  if (!warning_message)
+  {
+    // No need to check the device on every startup if it's good.
+    Settings::Instance().SetDisplayedGraphicsWarningMessage(true);
+    return true;
+  }
+
+  ModalMessageBox confirm(this);
+  confirm.setIcon(QMessageBox::Warning);
+  confirm.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  confirm.setWindowTitle(tr("Confirm startup"));
+  confirm.setText(QString::fromStdString(*warning_message) +
+                  tr("\n\nAre you sure you want to start Dolphin with this configuration?"));
+
+  if (confirm.exec() == QMessageBox::No)
+    return false;
+
+  // Prevent the message from being displayed again.
+  Settings::Instance().SetDisplayedGraphicsWarningMessage(true);
+  return true;
 }
 
 void MainWindow::ShowControllersWindow()

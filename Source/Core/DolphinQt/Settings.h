@@ -97,6 +97,8 @@ public:
   bool GetHideCursor() const;
   void SetKeepWindowOnTop(bool top);
   bool IsKeepWindowOnTopEnabled() const;
+  bool HasDisplayedGraphicsWarningMessage() const;
+  void SetDisplayedGraphicsWarningMessage(bool displayed);
 
   // Audio
   int GetVolume() const;

@@ -230,6 +230,16 @@ bool Settings::IsKeepWindowOnTopEnabled() const
   return Config::Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
 }
 
+bool Settings::HasDisplayedGraphicsWarningMessage() const
+{
+  return GetQSettings().value(QStringLiteral("DisplayedGraphicsWarningMessage"), false).toBool();
+}
+
+void Settings::SetDisplayedGraphicsWarningMessage(bool displayed)
+{
+  GetQSettings().setValue(QStringLiteral("DisplayedGraphicsWarningMessage"), displayed);
+}
+
 int Settings::GetVolume() const
 {
   return SConfig::GetInstance().m_Volume;
