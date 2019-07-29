@@ -3,12 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <list>
 #include <map>
 #include <mutex>
 #include <string>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
