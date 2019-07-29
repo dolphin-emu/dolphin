@@ -26,14 +26,14 @@ constexpr float WINDOW_PADDING = 4.0f;  // Pixels between subsequent OSD message
 
 struct Message
 {
-  Message() {}
+  Message() = default;
   Message(const std::string& text_, u32 timestamp_, u32 color_)
       : text(text_), timestamp(timestamp_), color(color_)
   {
   }
   std::string text;
-  u32 timestamp;
-  u32 color;
+  u32 timestamp = 0;
+  u32 color = 0;
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
