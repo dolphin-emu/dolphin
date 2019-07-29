@@ -180,7 +180,7 @@ bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
   if (enable_debug_layer)
   {
     ComPtr<ID3D12InfoQueue> info_queue;
-    if (SUCCEEDED(m_device->QueryInterface(IID_PPV_ARGS(&info_queue))))
+    if (SUCCEEDED(m_device.As(&info_queue)))
     {
       info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
       info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);

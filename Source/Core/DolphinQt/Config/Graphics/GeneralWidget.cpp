@@ -160,16 +160,16 @@ void GeneralWidget::SaveSettings()
   const auto current_backend = m_backend_combo->currentData().toString().toStdString();
   if (SConfig::GetInstance().m_strVideoBackend != current_backend)
   {
-    if (current_backend == "Software Renderer")
+    auto warningMessage =
+        g_available_video_backends[m_backend_combo->currentIndex()]->GetWarningMessage();
+    if (warningMessage)
     {
       ModalMessageBox confirm_sw(this);
 
       confirm_sw.setIcon(QMessageBox::Warning);
       confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       confirm_sw.setWindowTitle(tr("Confirm backend change"));
-      confirm_sw.setText(tr("The software renderer is significantly slower than other "
-                            "backends and is only recommended for debugging purposes.\n\nDo you "
-                            "really want to enable software rendering? If unsure, select 'No'."));
+      confirm_sw.setText(tr(warningMessage->c_str()));
 
       if (confirm_sw.exec() != QMessageBox::Yes)
       {

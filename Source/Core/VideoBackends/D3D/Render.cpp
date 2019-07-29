@@ -82,10 +82,10 @@ void Renderer::Create3DVisionTexture(int width, int height)
 
   CD3D11_TEXTURE2D_DESC texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, width * 2, height + 1, 1, 1,
                                      D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
-  ID3D11Texture2D* texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&texture_desc, &sys_data, &texture);
+  ComPtr<ID3D11Texture2D> texture;
+  HRESULT hr = D3D::device->CreateTexture2D(&texture_desc, &sys_data, texture.GetAddressOf());
   CHECK(SUCCEEDED(hr), "Create 3D Vision Texture");
-  m_3d_vision_texture = DXTexture::CreateAdopted(texture);
+  m_3d_vision_texture = DXTexture::CreateAdopted(std::move(texture));
   m_3d_vision_framebuffer = DXFramebuffer::Create(m_3d_vision_texture.get(), nullptr);
 }
 

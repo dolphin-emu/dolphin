@@ -347,10 +347,9 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   }
 
   ComPtr<ID3D11SamplerState> res;
-  HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
+  HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
   CHECK(SUCCEEDED(hr), "Creating D3D sampler state failed");
-  m_sampler.emplace(state.hex, res);
-  return res.Get();
+  return m_sampler.emplace(state.hex, std::move(res)).first->second.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendingState state)
@@ -360,7 +359,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   if (it != m_blend.end())
     return it->second.Get();
 
-  if (state.logicopenable && D3D::device1)
+  if (state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp)
   {
     D3D11_BLEND_DESC1 desc = {};
     D3D11_RENDER_TARGET_BLEND_DESC1& tdesc = desc.RenderTarget[0];
@@ -381,13 +380,13 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     tdesc.LogicOpEnable = TRUE;
     tdesc.LogicOp = logic_ops[state.logicmode];
 
-    ID3D11BlendState1* res;
-    HRESULT hr = D3D::device1->CreateBlendState1(&desc, &res);
+    ComPtr<ID3D11BlendState1> res;
+    HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
     if (SUCCEEDED(hr))
     {
-      m_blend.emplace(state.hex, res);
-      return res;
+      return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
     }
+    WARN_LOG(VIDEO, "Creating D3D blend state failed with an error: %x", hr);
   }
 
   D3D11_BLEND_DESC desc = {};
@@ -425,10 +424,9 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   tdesc.BlendOpAlpha = state.subtractAlpha ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
   ComPtr<ID3D11BlendState> res;
-  HRESULT hr = D3D::device->CreateBlendState(&desc, &res);
+  HRESULT hr = D3D::device->CreateBlendState(&desc, res.GetAddressOf());
   CHECK(SUCCEEDED(hr), "Creating D3D blend state failed");
-  m_blend.emplace(state.hex, res);
-  return res.Get();
+  return m_blend.emplace(state.hex, std::move(res)).first->second.Get();
 }
 
 ID3D11RasterizerState* StateCache::Get(RasterizationState state)
@@ -447,10 +445,9 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
-  HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
+  HRESULT hr = D3D::device->CreateRasterizerState(&desc, res.GetAddressOf());
   CHECK(SUCCEEDED(hr), "Creating D3D rasterizer state failed");
-  m_raster.emplace(state.hex, res);
-  return res.Get();
+  return m_raster.emplace(state.hex, std::move(res)).first->second.Get();
 }
 
 ID3D11DepthStencilState* StateCache::Get(DepthState state)
@@ -490,10 +487,9 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   }
 
   ComPtr<ID3D11DepthStencilState> res;
-  HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
+  HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
   CHECK(SUCCEEDED(hr), "Creating D3D depth stencil state failed");
-  m_depth.emplace(state.hex, res);
-  return res.Get();
+  return m_depth.emplace(state.hex, std::move(res)).first->second.Get();
 }
 
 D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitive)
