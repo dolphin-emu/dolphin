@@ -80,14 +80,14 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
 
 void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 rgba)
 {
-  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  std::lock_guard lock{s_messages_mutex};
   s_messages.erase(type);
   s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
 void AddMessage(std::string message, u32 ms, u32 rgba)
 {
-  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  std::lock_guard lock{s_messages_mutex};
   s_messages.emplace(MessageType::Typeless,
                      Message(std::move(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
@@ -98,7 +98,7 @@ void DrawMessages()
     return;
 
   {
-    std::lock_guard<std::mutex> lock(s_messages_mutex);
+    std::lock_guard lock{s_messages_mutex};
 
     const u32 now = Common::Timer::GetTimeMs();
     float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x;
@@ -122,7 +122,7 @@ void DrawMessages()
 
 void ClearMessages()
 {
-  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  std::lock_guard lock{s_messages_mutex};
   s_messages.clear();
 }
 }  // namespace OSD
