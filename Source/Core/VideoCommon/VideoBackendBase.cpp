@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -235,6 +236,65 @@ void VideoBackendBase::PopulateBackendInfo()
   ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
   g_video_backend->InitBackendInfo();
   g_Config.Refresh();
+}
+
+std::optional<std::string> VideoBackendBase::GetWarningMessage()
+{
+  // Software renderer warning.
+  if (g_video_backend->GetName() == "Software Renderer")
+  {
+    return Common::GetStringT("The software renderer is significantly slower than other "
+                              "backends and is only recommended for debugging purposes.");
+  }
+
+  // Feature checks.
+  std::vector<std::string> missing_features;
+  if (!g_Config.backend_info.bSupportsLogicOp)
+    missing_features.push_back(Common::GetStringT("Framebuffer Logical Operations"));
+  if (!g_Config.backend_info.bSupportsDualSourceBlend)
+    missing_features.push_back(Common::GetStringT("Dual-Source Blending"));
+  if (!g_Config.backend_info.bSupportsEarlyZ)
+    missing_features.push_back(Common::GetStringT("Early-Depth Tests"));
+  if (!g_Config.backend_info.bSupportsDepthClamp)
+    missing_features.push_back(Common::GetStringT("Depth Clamping"));
+  if (!g_Config.backend_info.bSupportsBBox)
+    missing_features.push_back(Common::GetStringT("Fragment Atomics (Bounding Box)"));
+  if (!g_Config.backend_info.bSupportsPaletteConversion)
+    missing_features.push_back(Common::GetStringT("Texture Buffers (Palette Conversion)"));
+
+  // Performance feature checks.
+  std::vector<std::string> missing_perf_features;
+  if (!g_Config.backend_info.bSupportsGPUTextureDecoding)
+    missing_perf_features.push_back(Common::GetStringT("GPU Texture Decoding"));
+
+  if (missing_features.empty() && missing_perf_features.empty())
+    return std::nullopt;
+
+  std::stringstream ss;
+  ss << Common::GetStringT("Your GPU or driver does not support") << ":\n";
+
+  if (!missing_features.empty())
+  {
+    for (const std::string& str : missing_features)
+      ss << " - " << str << "\n";
+    ss << "\n";
+    ss << Common::GetStringT(
+        "This may have an effect on rendering in some games, causing visual glitches.");
+  }
+
+  if (!missing_perf_features.empty())
+  {
+    if (!missing_features.empty())
+      ss << "\n\n" << Common::GetStringT("It also does not support") << ":\n";
+
+    for (const std::string& str : missing_perf_features)
+      ss << " - " << str << "\n";
+    ss << "\n";
+    ss << Common::GetStringT(
+        "This may have an effect on performance in some games, reducing emulation speed.");
+  }
+
+  return ss.str();
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -62,6 +63,9 @@ public:
   // Fills the backend_info fields with the capabilities of the selected backend/device.
   // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfo();
+
+  // Returns a warning message, if any, for the current config.
+  static std::optional<std::string> GetWarningMessage();
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);

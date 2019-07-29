@@ -140,6 +140,10 @@ private:
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true);
 
+  // Displays any warning message from the video backend based on the current config.
+  // Returns true if no message was displayed, or the user clicked yes to ignore.
+  bool ConfirmStartWithVideoBackendWarning();
+
   void ShowSettingsWindow();
   void ShowGeneralWindow();
   void ShowAudioWindow();
