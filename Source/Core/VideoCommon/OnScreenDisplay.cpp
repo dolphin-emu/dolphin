@@ -27,8 +27,8 @@ constexpr float WINDOW_PADDING = 4.0f;  // Pixels between subsequent OSD message
 struct Message
 {
   Message() = default;
-  Message(const std::string& text_, u32 timestamp_, u32 color_)
-      : text(text_), timestamp(timestamp_), color(color_)
+  Message(std::string text_, u32 timestamp_, u32 color_)
+      : text(std::move(text_)), timestamp(timestamp_), color(color_)
   {
   }
   std::string text;
@@ -79,18 +79,18 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
   return window_height;
 }
 
-void AddTypedMessage(MessageType type, const std::string& message, u32 ms, u32 rgba)
+void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 rgba)
 {
   std::lock_guard<std::mutex> lock(s_messages_mutex);
   s_messages.erase(type);
-  s_messages.emplace(type, Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+  s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
-void AddMessage(const std::string& message, u32 ms, u32 rgba)
+void AddMessage(std::string message, u32 ms, u32 rgba)
 {
   std::lock_guard<std::mutex> lock(s_messages_mutex);
   s_messages.emplace(MessageType::Typeless,
-                     Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+                     Message(std::move(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
 void DrawMessages()

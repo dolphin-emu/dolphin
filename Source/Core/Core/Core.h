@@ -63,7 +63,7 @@ void SaveScreenShot(const std::string& name, bool wait_for_completion = false);
 void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data, u32 size);
 
 // This displays messages in a user-visible way.
-void DisplayMessage(const std::string& message, int time_in_ms);
+void DisplayMessage(std::string message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
 void OnFrameEnd();

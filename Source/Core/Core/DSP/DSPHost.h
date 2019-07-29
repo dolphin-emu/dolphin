@@ -17,7 +17,7 @@ namespace DSP::Host
 {
 u8 ReadHostMemory(u32 addr);
 void WriteHostMemory(u8 value, u32 addr);
-void OSD_AddMessage(const std::string& str, u32 ms);
+void OSD_AddMessage(std::string str, u32 ms);
 bool OnThread();
 bool IsWiiHost();
 void InterruptRequest();

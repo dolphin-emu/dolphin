@@ -22,7 +22,7 @@ u8 DSP::Host::ReadHostMemory(u32 addr)
 void DSP::Host::WriteHostMemory(u8 value, u32 addr)
 {
 }
-void DSP::Host::OSD_AddMessage(const std::string& str, u32 ms)
+void DSP::Host::OSD_AddMessage(std::string str, u32 ms)
 {
 }
 bool DSP::Host::OnThread()
