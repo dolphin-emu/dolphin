@@ -101,7 +101,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     indicator_layout->setAlignment(Qt::AlignCenter);
     form_layout->addRow(indicator_layout);
 
-    connect(this, &MappingWidget::Update, indicator, QOverload<>::of(&MappingIndicator::update));
+    connect(this, &MappingWidget::Update, indicator, qOverload<>(&MappingIndicator::update));
 
     const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
                                   group->type == ControllerEmu::GroupType::Stick ||

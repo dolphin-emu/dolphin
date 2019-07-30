@@ -58,10 +58,8 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_ir_y_value->setMaximumWidth(60);
 
   auto* visual = new IRWidget(this);
-  connect(m_ir_x_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), visual,
-          &IRWidget::SetX);
-  connect(m_ir_y_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), visual,
-          &IRWidget::SetY);
+  connect(m_ir_x_value, qOverload<int>(&QSpinBox::valueChanged), visual, &IRWidget::SetX);
+  connect(m_ir_y_value, qOverload<int>(&QSpinBox::valueChanged), visual, &IRWidget::SetY);
   connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
   connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
 

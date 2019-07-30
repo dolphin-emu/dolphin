@@ -111,11 +111,11 @@ void SoftwareRendererWidget::CreateWidgets()
 
 void SoftwareRendererWidget::ConnectWidgets()
 {
-  connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+  connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_object_range_min, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+  connect(m_object_range_min, qOverload<int>(&QSpinBox::valueChanged),
           [this](int) { SaveSettings(); });
-  connect(m_object_range_max, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+  connect(m_object_range_max, qOverload<int>(&QSpinBox::valueChanged),
           [this](int) { SaveSettings(); });
 }
 

@@ -96,16 +96,14 @@ void GeneralPane::ConnectLayout()
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
-    connect(m_combobox_update_track,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_combobox_update_track, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GeneralPane::OnSaveConfig);
     connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
             &GeneralPane::LoadConfig);
   }
 
   // Advanced
-  connect(m_combobox_speedlimit,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+  connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged),
           [this]() { OnSaveConfig(); });
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

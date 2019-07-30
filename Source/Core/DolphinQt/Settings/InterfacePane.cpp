@@ -188,14 +188,11 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
+  connect(m_combobox_theme, qOverload<const QString&>(&QComboBox::currentIndexChanged),
           &Settings::Instance(), &Settings::SetThemeName);
-  connect(m_combobox_userstyle,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_userstyle, qOverload<const QString&>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);

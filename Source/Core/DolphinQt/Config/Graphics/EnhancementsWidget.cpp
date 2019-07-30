@@ -144,18 +144,17 @@ void EnhancementsWidget::CreateWidgets()
 
 void EnhancementsWidget::ConnectWidgets()
 {
-  connect(m_aa_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+  connect(m_aa_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_pp_effect, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+  connect(m_pp_effect, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this] {
-            m_block_save = true;
-            LoadPPShaders();
-            m_block_save = false;
+  connect(m_3d_mode, qOverload<int>(&QComboBox::currentIndexChanged), [this] {
+    m_block_save = true;
+    LoadPPShaders();
+    m_block_save = false;
 
-            SaveSettings();
-          });
+    SaveSettings();
+  });
   connect(m_configure_pp_effect, &QPushButton::clicked, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
