@@ -16,7 +16,7 @@ class QTextEdit;
 class GameConfigEdit : public QWidget
 {
 public:
-  explicit GameConfigEdit(QWidget* parent, const QString& path, bool read_only);
+  explicit GameConfigEdit(QWidget* parent, QString path, bool read_only);
 
 protected:
   void keyPressEvent(QKeyEvent* e) override;
