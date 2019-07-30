@@ -107,9 +107,10 @@ void Wiimote::Reset()
     file.read(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
     file.close();
   }
-  else
+  else if (m_index != WIIMOTE_BALANCE_BOARD)
   {
     // Load some default data.
+    // Note that the balance board starts with all-0 EEPROM, while regular remotes have some data.
 
     // IR calibration:
     std::array<u8, 11> ir_calibration = {
@@ -170,8 +171,11 @@ void Wiimote::Reset()
 
   // Initialize i2c bus:
   m_i2c_bus.Reset();
-  m_i2c_bus.AddSlave(&m_speaker_logic);
-  m_i2c_bus.AddSlave(&m_camera_logic);
+  if (m_index != WIIMOTE_BALANCE_BOARD)
+  {
+    m_i2c_bus.AddSlave(&m_speaker_logic);
+    m_i2c_bus.AddSlave(&m_camera_logic);
+  }
 
   // Reset extension connections to NONE:
   m_is_motion_plus_attached = false;
