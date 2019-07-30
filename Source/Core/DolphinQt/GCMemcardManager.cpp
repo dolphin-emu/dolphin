@@ -165,13 +165,13 @@ void GCMemcardManager::UpdateSlotTable(int slot)
   auto& memcard = m_slot_memcard[slot];
   auto* table = m_slot_table[slot];
 
-  auto create_item = [](const QString string = QStringLiteral("")) {
+  const auto create_item = [](const QString& string = {}) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;
   };
 
-  auto strip_garbage = [](const std::string s) {
+  const auto strip_garbage = [](const std::string& s) {
     auto offset = s.find('\0');
     if (offset == std::string::npos)
       offset = s.length();

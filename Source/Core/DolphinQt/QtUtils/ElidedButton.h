@@ -10,8 +10,7 @@ class ElidedButton : public QPushButton
 {
   Q_OBJECT
 public:
-  explicit ElidedButton(const QString& text = QStringLiteral(""),
-                        Qt::TextElideMode elide_mode = Qt::ElideRight);
+  explicit ElidedButton(const QString& text = {}, Qt::TextElideMode elide_mode = Qt::ElideRight);
 
   Qt::TextElideMode elideMode() const;
   void setElideMode(Qt::TextElideMode elide_mode);

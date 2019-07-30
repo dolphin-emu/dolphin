@@ -179,7 +179,7 @@ void GameConfigEdit::SetOption(const QString& section, const QString& key, const
     if (value_cursor.isNull())
     {
       section_cursor.clearSelection();
-      section_cursor.insertText(QStringLiteral("\n") + new_line);
+      section_cursor.insertText(QLatin1Char{'\n'} + new_line);
     }
     else
     {

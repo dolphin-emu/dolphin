@@ -33,7 +33,7 @@ QString GetExpressionForControl(const QString& control_name,
   if (control_device != default_device)
   {
     expr += QString::fromStdString(control_device.ToString());
-    expr += QStringLiteral(":");
+    expr += QLatin1Char{':'};
   }
 
   // append the control name

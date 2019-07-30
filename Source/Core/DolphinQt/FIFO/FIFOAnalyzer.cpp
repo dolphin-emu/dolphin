@@ -475,7 +475,7 @@ void FIFOAnalyzer::UpdateDescription()
     text += name.empty() ?
                 QStringLiteral("UNKNOWN_%1").arg(*(cmddata + 1), 2, 16, QLatin1Char('0')) :
                 QString::fromStdString(name);
-    text += QStringLiteral("\n");
+    text += QLatin1Char{'\n'};
 
     if (desc.empty())
       text += tr("No description available");

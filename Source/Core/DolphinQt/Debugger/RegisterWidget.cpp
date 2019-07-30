@@ -81,7 +81,7 @@ void RegisterWidget::CreateWidgets()
   QStringList empty_list;
 
   for (auto i = 0; i < 9; i++)
-    empty_list << QStringLiteral("");
+    empty_list << QString{};
 
   m_table->setHorizontalHeaderLabels(empty_list);
 

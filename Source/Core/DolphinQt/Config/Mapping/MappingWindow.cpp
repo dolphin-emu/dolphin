@@ -308,8 +308,8 @@ void MappingWindow::OnGlobalDevicesChanged()
     {
       // Selected device is not currently attached.
       const auto qname = QString::fromStdString(default_device);
-      m_devices_combo->addItem(
-          QStringLiteral("[") + tr("disconnected") + QStringLiteral("] ") + qname, qname);
+      m_devices_combo->addItem(QLatin1Char{'['} + tr("disconnected") + QStringLiteral("] ") + qname,
+                               qname);
       m_devices_combo->setCurrentIndex(m_devices_combo->count() - 1);
     }
   }
@@ -339,7 +339,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   case Type::MAPPING_GC_MICROPHONE:
     widget = new GCMicrophone(this);
     setWindowTitle(tr("GameCube Microphone Slot %1")
-                       .arg(GetPort() == 0 ? QStringLiteral("A") : QStringLiteral("B")));
+                       .arg(GetPort() == 0 ? QLatin1Char{'A'} : QLatin1Char{'B'}));
     AddWidget(tr("Microphone"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:

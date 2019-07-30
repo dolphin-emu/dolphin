@@ -169,7 +169,8 @@ void MemoryViewWidget::Update()
     case Type::ASCII:
       update_values([&accessors](u32 address) {
         const char value = accessors->ReadU8(address);
-        return std::isprint(value) ? QString{QChar::fromLatin1(value)} : QStringLiteral(".");
+        return std::isprint(value) ? QString{QChar::fromLatin1(value)} :
+                                     QString{QChar::fromLatin1('.')};
       });
       break;
     case Type::U16:

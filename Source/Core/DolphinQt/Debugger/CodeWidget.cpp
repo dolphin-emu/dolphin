@@ -314,9 +314,9 @@ void CodeWidget::UpdateCallstack()
 
 void CodeWidget::UpdateSymbols()
 {
-  QString selection = m_symbols_list->selectedItems().isEmpty() ?
-                          QStringLiteral("") :
-                          m_symbols_list->selectedItems()[0]->text();
+  const QString selection = m_symbols_list->selectedItems().isEmpty() ?
+                                QString{} :
+                                m_symbols_list->selectedItems()[0]->text();
   m_symbols_list->clear();
 
   for (const auto& symbol : g_symbolDB.Symbols())

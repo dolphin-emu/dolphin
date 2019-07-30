@@ -189,7 +189,7 @@ void EnhancementsWidget::LoadPPShaders()
   m_pp_effect->setEnabled(supports_postprocessing);
 
   m_pp_effect->setToolTip(supports_postprocessing ?
-                              QStringLiteral("") :
+                              QString{} :
                               tr("%1 doesn't support this feature.")
                                   .arg(tr(g_video_backend->GetDisplayName().c_str())));
 

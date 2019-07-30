@@ -349,10 +349,9 @@ void NetPlaySetupDialog::PopulateGameList()
 
   m_host_games->sortItems();
 
-  QString selected_game = Settings::GetQSettings()
-                              .value(QStringLiteral("netplay/hostgame"), QStringLiteral(""))
-                              .toString();
-  auto find_list = m_host_games->findItems(selected_game, Qt::MatchFlag::MatchExactly);
+  const QString selected_game =
+      Settings::GetQSettings().value(QStringLiteral("netplay/hostgame"), QString{}).toString();
+  const auto find_list = m_host_games->findItems(selected_game, Qt::MatchFlag::MatchExactly);
 
   if (find_list.count() > 0)
     m_host_games->setCurrentItem(find_list[0]);
