@@ -247,7 +247,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   setLayout(layout);
 
-  u8 ext = 0;
+  WiimoteEmu::ExtensionNumber ext = WiimoteEmu::ExtensionNumber::NONE;
   if (Core::IsRunning())
   {
     ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))
@@ -261,16 +261,18 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
     ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
 
     if (extension == "Nunchuk")
-      ext = 1;
+      ext = WiimoteEmu::ExtensionNumber::NUNCHUK;
     if (extension == "Classic")
-      ext = 2;
+      ext = WiimoteEmu::ExtensionNumber::CLASSIC;
+    if (extension == "BalanceBoard")
+      ext = WiimoteEmu::ExtensionNumber::BALANCE_BOARD;
   }
   UpdateExt(ext);
 }
 
-void WiiTASInputWindow::UpdateExt(u8 ext)
+void WiiTASInputWindow::UpdateExt(WiimoteEmu::ExtensionNumber ext)
 {
-  if (ext == 1)
+  if (ext == WiimoteEmu::ExtensionNumber::NUNCHUK)
   {
     setWindowTitle(tr("Wii TAS Input %1 - Wii Remote + Nunchuk").arg(m_num + 1));
     m_ir_box->show();
@@ -284,7 +286,7 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
     m_remote_buttons_box->show();
     m_classic_buttons_box->hide();
   }
-  else if (ext == 2)
+  else if (ext == WiimoteEmu::ExtensionNumber::CLASSIC)
   {
     setWindowTitle(tr("Wii TAS Input %1 - Classic Controller").arg(m_num + 1));
     m_ir_box->hide();
@@ -314,7 +316,7 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
   }
 }
 
-void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
+void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionNumber ext,
                                   const WiimoteEmu::EncryptionKey& key)
 {
   if (!isVisible())

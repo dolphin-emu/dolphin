@@ -26,7 +26,8 @@ class DataReportBuilder;
 namespace WiimoteEmu
 {
 class EncryptionKey;
-}
+enum ExtensionNumber : u8;
+}  // namespace WiimoteEmu
 
 // Per-(video )Movie actions
 
@@ -176,27 +177,28 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 void LoadInput(const std::string& movie_path);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt, int ext,
-                 const WiimoteEmu::EncryptionKey& key);
+bool PlayWiimote(int wiimote, WiimoteCommon::DataReportBuilder& rpt,
+                 WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
 void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt, int ext,
-                        const WiimoteEmu::EncryptionKey& key);
+void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt,
+                        WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
 
 // Done this way to avoid mixing of core and gui code
 using GCManipFunction = std::function<void(GCPadStatus*, int)>;
-using WiiManipFunction = std::function<void(WiimoteCommon::DataReportBuilder&, int, int,
-                                            const WiimoteEmu::EncryptionKey&)>;
+using WiiManipFunction =
+    std::function<void(WiimoteCommon::DataReportBuilder&, int, WiimoteEmu::ExtensionNumber,
+                       const WiimoteEmu::EncryptionKey&)>;
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
-void CallWiiInputManip(WiimoteCommon::DataReportBuilder& rpt, int controllerID, int ext,
-                       const WiimoteEmu::EncryptionKey& key);
+void CallWiiInputManip(WiimoteCommon::DataReportBuilder& rpt, int controllerID,
+                       WiimoteEmu::ExtensionNumber ext, const WiimoteEmu::EncryptionKey& key);
 }  // namespace Movie
