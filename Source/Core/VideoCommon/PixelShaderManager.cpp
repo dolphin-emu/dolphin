@@ -2,16 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cmath>
-#include <cstring>
+#include "VideoCommon/PixelShaderManager.h"
+
+#include <iterator>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 
 static bool s_bFogRangeAdjustChanged;
@@ -25,7 +26,6 @@ static u32 s_dstalpha;
 static u32 s_late_ztest;
 static u32 s_rgba6_format;
 static u32 s_dither;
-static u32 s_bounding_box;
 
 static u32 s_blend_enable;
 static u32 s_blend_src_factor;
@@ -35,11 +35,34 @@ static u32 s_blend_dst_factor_alpha;
 static u32 s_blend_subtract;
 static u32 s_blend_subtract_alpha;
 
-using uint4 = std::array<u32, 4>;
-static std::array<uint4, 16> s_pack1;  // .xy - combiners, .z - tevind, .w - iref
-static std::array<uint4, 8> s_pack2;   // .x - tevorder, .y - tevksel
-
 PixelShaderConstants PixelShaderManager::constants;
+using uint4 = std::array<u32, 4>;
+using int4 = std::array<s32, 4>;
+static struct ConstantsPadding
+{
+  u32 genmode;                  // .z
+  u32 alphaTest;                // .w
+  u32 fogParam3;                // .x
+  u32 fogRangeBase;             // .y
+  u32 dstalpha;                 // .z
+  u32 ztex_op;                  // .w
+  u32 late_ztest;               // .x (bool)
+  u32 rgba6_format;             // .y (bool)
+  u32 dither;                   // .z (bool)
+  u32 bounding_box;             // .w (bool)
+  std::array<uint4, 16> pack1;  // .xy - combiners, .z - tevind, .w - iref
+  std::array<uint4, 8> pack2;   // .x - tevorder, .y - tevksel
+  std::array<int4, 32> konst;   // .rgba
+  // The following are used in ubershaders when using shader_framebuffer_fetch blending
+  u32 blend_enable;
+  u32 blend_src_factor;
+  u32 blend_src_factor_alpha;
+  u32 blend_dst_factor;
+  u32 blend_dst_factor_alpha;
+  u32 blend_subtract;
+  u32 blend_subtract_alpha;
+} StatePaddingAfter{};
+
 bool PixelShaderManager::dirty;
 
 void PixelShaderManager::Init()
@@ -50,7 +73,7 @@ void PixelShaderManager::Init()
   s_bFogRangeAdjustChanged = true;
   s_bViewPortChanged = false;
   s_bIndirectDirty = false;
-  s_bDestAlphaDirty = false;
+  s_bDestAlphaDirty = true;
 
   s_alphaTest = 0;
   s_fogRangeBase = 0;
@@ -58,7 +81,6 @@ void PixelShaderManager::Init()
   s_late_ztest = 0;
   s_rgba6_format = 0;
   s_dither = 0;
-  s_bounding_box = 0;
 
   s_blend_enable = 0;
   s_blend_src_factor = 0;
@@ -67,9 +89,6 @@ void PixelShaderManager::Init()
   s_blend_dst_factor_alpha = 0;
   s_blend_subtract = 0;
   s_blend_subtract_alpha = 0;
-
-  memset(s_pack1.data(), 0, 16 * 4 * 4);
-  memset(s_pack2.data(), 0, 8 * 4 * 4);
 
   SetIndMatrixChanged(0);
   SetIndMatrixChanged(1);
@@ -124,7 +143,7 @@ void PixelShaderManager::SetConstants()
       constants.fogf[3] =
           static_cast<float>(g_renderer->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
 
-      for (size_t i = 0, vec_index = 0; i < ArraySize(bpmem.fogRange.K); i++)
+      for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); i++)
       {
         constexpr float scale = 4.0f;
         constants.fogrange[vec_index / 4][vec_index % 4] = bpmem.fogRange.K[i].GetValue(0) * scale;
@@ -178,49 +197,41 @@ void PixelShaderManager::SetConstants()
 void PixelShaderManager::SetTevColor(int index, int component, s32 value)
 {
   auto& c = constants.colors[index];
-  c[component] = value;
-  dirty = true;
-
-  PRIM_LOG("tev color%d: %d %d %d %d", index, c[0], c[1], c[2], c[3]);
+  if(c[component] != value)
+  {
+    c[component] = value;
+    dirty = true;
+  }
 }
 
 void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
 {
   auto& c = constants.kcolors[index];
-  c[component] = value;
-  dirty = true;
+  if(c[component] != value)
+  {
+    c[component] = value;
+    dirty = true;
+  }
 }
 
 void PixelShaderManager::SetTevOrder(int index, u32 order)
 {
-  if (s_pack2[index][0] != order)
-  {
-    s_pack2[index][0] = order;
-    dirty = true;
-  }
+
 }
 
 void PixelShaderManager::SetTevKSel(int index, u32 ksel)
 {
-  if (s_pack2[index][1] != ksel)
-  {
-    s_pack2[index][1] = ksel;
-    dirty = true;
-  }
+
 }
 
 void PixelShaderManager::SetTevCombiner(int index, int alpha, u32 combiner)
 {
-  if (s_pack1[index][alpha] != combiner)
-  {
-    s_pack1[index][alpha] = combiner;
-    dirty = true;
-  }
+
 }
 
 void PixelShaderManager::SetTevIndirectChanged()
 {
-  s_bIndirectDirty = true;
+
 }
 
 void PixelShaderManager::SetAlpha()
@@ -356,7 +367,7 @@ void PixelShaderManager::SetZTextureTypeChanged()
 
 void PixelShaderManager::SetZTextureOpChanged()
 {
-  dirty = true;
+
 }
 
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
@@ -413,8 +424,7 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 
 void PixelShaderManager::SetGenModeChanged()
 {
-  s_bIndirectDirty = true;
-  dirty = true;
+
 }
 
 void PixelShaderManager::SetZModeControl()
@@ -482,14 +492,18 @@ void PixelShaderManager::SetBlendModeChanged()
 
 void PixelShaderManager::SetBoundingBoxActive(bool active)
 {
-  const bool enable =
-      active && g_ActiveConfig.bBBoxEnable && g_ActiveConfig.BBoxUseFragmentShaderImplementation();
-
-  if (enable == (s_bounding_box != 0))
-    return;
-
-  s_bounding_box = active;
-  dirty = true;
+  if (active)
+  {
+    if (!g_ActiveConfig.backend_info.bSupportsBBox)
+    {
+      OSD::AddTypedMessage(OSD::MessageType::BoundingBoxNotice, "Bounding box is not available!",
+                           4000);
+    }
+    else if (g_ActiveConfig.bBBoxEnable)
+    {
+      OSD::AddTypedMessage(OSD::MessageType::BoundingBoxNotice, "Bounding box is active.", 4000);
+    }
+  }
 }
 
 void PixelShaderManager::DoState(PointerWrap& p)
@@ -500,6 +514,7 @@ void PixelShaderManager::DoState(PointerWrap& p)
   p.Do(s_bDestAlphaDirty);
 
   p.Do(constants);
+  p.Do(StatePaddingAfter);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {

@@ -96,42 +96,19 @@ GLuint CompileProgram(const std::string& vertexShader, const std::string& fragme
   return programID;
 }
 
-void EnablePrimitiveRestart(const GLContext* context)
-{
-  constexpr GLuint PRIMITIVE_RESTART_INDEX = 65535;
-
-  if (context->IsGLES())
-  {
-    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-  }
-  else
-  {
-    if (GLExtensions::Version() >= 310)
-    {
-      glEnable(GL_PRIMITIVE_RESTART);
-      glPrimitiveRestartIndex(PRIMITIVE_RESTART_INDEX);
-    }
-    else
-    {
-      glEnableClientState(GL_PRIMITIVE_RESTART_NV);
-      glPrimitiveRestartIndexNV(PRIMITIVE_RESTART_INDEX);
-    }
-  }
-}
-
 GLenum MapToGLPrimitive(PrimitiveType primitive_type)
 {
-	switch (primitive_type)
-	{
-	case PrimitiveType::Points:
-		return GL_POINTS;
-	case PrimitiveType::Lines:
-		return GL_LINES;
-	case PrimitiveType::Triangles:
-		return GL_TRIANGLES;
-	default:
-		return 0;
-	}
+  switch (primitive_type)
+  {
+  case PrimitiveType::Points:
+    return GL_POINTS;
+  case PrimitiveType::Lines:
+    return GL_LINES;
+  case PrimitiveType::Triangles:
+    return GL_TRIANGLES;
+  default:
+    return 0;
+  }
 }
 
 }  // namespace GLUtil

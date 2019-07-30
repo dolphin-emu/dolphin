@@ -68,6 +68,7 @@ FIRFilter::~FIRFilter()
     delete[] filterCoeffs;
 }
 
+
 // Usual C-version of the filter routine for stereo sound
 uint FIRFilter::evaluateFilterStereo(SAMPLETYPE *dest, const SAMPLETYPE *src, uint numSamples) const
 {
@@ -124,8 +125,6 @@ uint FIRFilter::evaluateFilterStereo(SAMPLETYPE *dest, const SAMPLETYPE *src, ui
     }
     return numSamples - length;
 }
-
-
 
 
 // Usual C-version of the filter routine for mono sound
@@ -253,7 +252,6 @@ uint FIRFilter::getLength() const
 }
 
 
-
 // Applies the filter to the given sequence of samples. 
 //
 // Note : The amount of outputted samples is by value of 'filter_length' 
@@ -281,7 +279,6 @@ uint FIRFilter::evaluate(SAMPLETYPE *dest, const SAMPLETYPE *src, uint numSample
         return evaluateFilterMulti(dest, src, numSamples, numChannels);
     }
 }
-
 
 
 // Operator 'new' is overloaded so that it automatically creates a suitable instance 

@@ -9,9 +9,10 @@
 #include "Common/CommonTypes.h"
 
 class QAction;
+class QCloseEvent;
+class QShowEvent;
 class QTableWidget;
 class QToolBar;
-class QCloseEvent;
 
 class BreakpointWidget : public QDockWidget
 {
@@ -25,6 +26,7 @@ public:
                      bool do_break = true);
   void AddRangedMBP(u32 from, u32 to, bool do_read = true, bool do_write = true, bool do_log = true,
                     bool do_break = true);
+  void UpdateButtonsEnabled();
   void Update();
 
 signals:
@@ -33,6 +35,7 @@ signals:
 
 protected:
   void closeEvent(QCloseEvent*) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   void CreateWidgets();

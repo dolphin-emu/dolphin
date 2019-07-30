@@ -5,10 +5,10 @@
 #include <array>
 
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/D3DBlob.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/DXShader.h"
+#include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexManager.h"
-#include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
 namespace DX11
@@ -16,7 +16,7 @@ namespace DX11
 std::mutex s_input_layout_lock;
 
 std::unique_ptr<NativeVertexFormat>
-VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<D3DVertexFormat>(vtx_decl);
 }
@@ -77,11 +77,11 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
   return retval;
 }
 
-D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
-{
-  this->vtx_decl = _vtx_decl;
+D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
+    : NativeVertexFormat(vtx_decl)
 
-  const AttributeFormat* format = &_vtx_decl.position;
+{
+  const AttributeFormat* format = &vtx_decl.position;
   if (format->enable)
   {
     m_elems[m_num_elems].SemanticName = "POSITION";
@@ -93,7 +93,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 
   for (int i = 0; i < 3; i++)
   {
-    format = &_vtx_decl.normals[i];
+    format = &vtx_decl.normals[i];
     if (format->enable)
     {
       m_elems[m_num_elems].SemanticName = "NORMAL";
@@ -107,7 +107,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 
   for (int i = 0; i < 2; i++)
   {
-    format = &_vtx_decl.colors[i];
+    format = &vtx_decl.colors[i];
     if (format->enable)
     {
       m_elems[m_num_elems].SemanticName = "COLOR";
@@ -121,7 +121,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 
   for (int i = 0; i < 8; i++)
   {
-    format = &_vtx_decl.texcoords[i];
+    format = &vtx_decl.texcoords[i];
     if (format->enable)
     {
       m_elems[m_num_elems].SemanticName = "TEXCOORD";
@@ -133,7 +133,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
     }
   }
 
-  format = &_vtx_decl.posmtx;
+  format = &vtx_decl.posmtx;
   if (format->enable)
   {
     m_elems[m_num_elems].SemanticName = "BLENDINDICES";
@@ -147,10 +147,11 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 D3DVertexFormat::~D3DVertexFormat()
 {
   ID3D11InputLayout* layout = m_layout.load();
-  SAFE_RELEASE(layout);
+  if (layout)
+    layout->Release();
 }
 
-ID3D11InputLayout* D3DVertexFormat::GetInputLayout(D3DBlob* vs_bytecode)
+ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size_t vs_bytecode_size)
 {
   // CreateInputLayout requires a shader input, but it only looks at the signature of the shader,
   // so we don't need to recompute it if the shader changes.
@@ -158,18 +159,18 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(D3DBlob* vs_bytecode)
   if (layout)
     return layout;
 
-  HRESULT hr = DX11::D3D::device->CreateInputLayout(
-      m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &layout);
-  if (FAILED(hr))
-    PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-  DX11::D3D::SetDebugObjectName(m_layout, "input layout used to emulate the GX pipeline");
+  HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
+                                              vs_bytecode_size, &layout);
+  CHECK(SUCCEEDED(hr), "Failed to create input layout");
 
   // This method can be called from multiple threads, so ensure that only one thread sets the
   // cached input layout pointer. If another thread beats this thread, use the existing layout.
   ID3D11InputLayout* expected = nullptr;
   if (!m_layout.compare_exchange_strong(expected, layout))
   {
-    SAFE_RELEASE(layout);
+    if (layout)
+      layout->Release();
+
     layout = expected;
   }
 

@@ -44,6 +44,7 @@ add_library(cubeb
   src/cubeb_panner.cpp
   src/cubeb_log.cpp
   src/cubeb_strings.c
+  src/cubeb_utils.cpp
    $<TARGET_OBJECTS:speex>)
 target_include_directories(cubeb
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
@@ -152,7 +153,7 @@ if(USE_WASAPI)
   target_sources(cubeb PRIVATE
     src/cubeb_wasapi.cpp)
   target_compile_definitions(cubeb PRIVATE USE_WASAPI)
-  target_link_libraries(cubeb PRIVATE avrt)
+  target_link_libraries(cubeb PRIVATE avrt ole32)
 endif()
 
 check_include_files("windows.h;mmsystem.h" USE_WINMM)
@@ -166,7 +167,8 @@ endif()
 check_include_files(SLES/OpenSLES.h USE_OPENSL)
 if(USE_OPENSL)
   target_sources(cubeb PRIVATE
-    src/cubeb_opensl.c)
+    src/cubeb_opensl.c
+    src/cubeb-jni.cpp)
   target_compile_definitions(cubeb PRIVATE USE_OPENSL)
   target_link_libraries(cubeb PRIVATE OpenSLES)
 endif()
@@ -185,6 +187,14 @@ if(USE_SNDIO)
     src/cubeb_sndio.c)
   target_compile_definitions(cubeb PRIVATE USE_SNDIO)
   target_link_libraries(cubeb PRIVATE sndio)
+endif()
+
+check_include_files(sys/audioio.h USE_SUN)
+if(USE_SUN)
+  target_sources(cubeb PRIVATE
+    src/cubeb_sun.c)
+  target_compile_definitions(cubeb PRIVATE USE_SUN)
+  target_link_libraries(cubeb PRIVATE pthread)
 endif()
 
 check_include_files(kai.h USE_KAI)

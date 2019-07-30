@@ -14,6 +14,7 @@
 
 #include "VideoCommon/RenderBase.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -42,32 +43,33 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
-#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/Debugger.h"
-#include "VideoCommon/FPSCounter.h"
-#include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/FrameDump.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/RasterFont.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-
-// TODO: Move these out of here.
-int frameCount;
 
 std::unique_ptr<Renderer> g_renderer;
 
@@ -76,30 +78,177 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height)
+Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
+                   AbstractTextureFormat backbuffer_format)
+    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
+      m_backbuffer_scale(backbuffer_scale),
+      m_backbuffer_format(backbuffer_format), m_last_xfb_width{MAX_XFB_WIDTH}, m_last_xfb_height{
+                                                                                   MAX_XFB_HEIGHT}
 {
-  UpdateActiveConfig();
-  UpdateDrawRectangle();
-  CalculateTargetSize();
-
   m_aspect_wide = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
-
-  m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
-  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
+  UpdateActiveConfig();
 }
 
 Renderer::~Renderer() = default;
+
+bool Renderer::Initialize()
+{
+  UpdateDrawRectangle();
+  CalculateTargetSize();
+
+  m_raster_font = std::make_unique<VideoCommon::RasterFont>();
+  if (!m_raster_font->Initialize(m_backbuffer_format))
+    return false;
+
+  m_post_processor = std::make_unique<VideoCommon::PostProcessing>();
+  return m_post_processor->Initialize(m_backbuffer_format);
+}
 
 void Renderer::Shutdown()
 {
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
+  m_post_processor.reset();
+  m_raster_font.reset();
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
-                           float Gamma)
+void Renderer::BeginUtilityDrawing()
+{
+  g_vertex_manager->Flush();
+}
+
+void Renderer::EndUtilityDrawing()
+{
+  // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
+  g_framebuffer_manager->BindEFBFramebuffer();
+  BPFunctions::SetScissor();
+  BPFunctions::SetViewport();
+}
+
+void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
+{
+  m_current_framebuffer = framebuffer;
+}
+
+void Renderer::SetAndDiscardFramebuffer(AbstractFramebuffer* framebuffer)
+{
+  m_current_framebuffer = framebuffer;
+}
+
+void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value, float depth_value)
+{
+  m_current_framebuffer = framebuffer;
+}
+
+bool Renderer::EFBHasAlphaChannel() const
+{
+  return m_prev_efb_format == PEControl::RGBA6_Z24;
+}
+
+void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
+                           bool zEnable, u32 color, u32 z)
+{
+  g_framebuffer_manager->ClearEFB(rc, colorEnable, alphaEnable, zEnable, color, z);
+}
+
+void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
+{
+  g_framebuffer_manager->ReinterpretPixelData(convtype);
+}
+
+u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
+{
+  if (type == EFBAccessType::PeekColor)
+  {
+    u32 color = g_framebuffer_manager->PeekEFBColor(x, y);
+
+    // a little-endian value is expected to be returned
+    color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
+
+    // check what to do with the alpha channel (GX_PokeAlphaRead)
+    PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
+
+    if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
+    {
+      color = RGBA8ToRGBA6ToRGBA8(color);
+    }
+    else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+    {
+      color = RGBA8ToRGB565ToRGBA8(color);
+    }
+    if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
+    {
+      color |= 0xFF000000;
+    }
+
+    if (alpha_read_mode.ReadMode == 2)
+    {
+      return color;  // GX_READ_NONE
+    }
+    else if (alpha_read_mode.ReadMode == 1)
+    {
+      return color | 0xFF000000;  // GX_READ_FF
+    }
+    else /*if(alpha_read_mode.ReadMode == 0)*/
+    {
+      return color & 0x00FFFFFF;  // GX_READ_00
+    }
+  }
+  else  // if (type == EFBAccessType::PeekZ)
+  {
+    // Depth buffer is inverted for improved precision near far plane
+    float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
+    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      depth = 1.0f - depth;
+
+    u32 ret = 0;
+    if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+    {
+      // if Z is in 16 bit format you must return a 16 bit integer
+      ret = std::clamp<u32>(static_cast<u32>(depth * 65536.0f), 0, 0xFFFF);
+    }
+    else
+    {
+      ret = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+    }
+
+    return ret;
+  }
+}
+
+void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
+{
+  if (type == EFBAccessType::PokeColor)
+  {
+    for (size_t i = 0; i < num_points; i++)
+    {
+      // Convert to expected format (BGRA->RGBA)
+      // TODO: Check alpha, depending on mode?
+      const EfbPokeData& point = points[i];
+      u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
+                   ((point.data << 16) & 0xFF0000));
+      g_framebuffer_manager->PokeEFBColor(point.x, point.y, color);
+    }
+  }
+  else  // if (type == EFBAccessType::PokeZ)
+  {
+    for (size_t i = 0; i < num_points; i++)
+    {
+      // Convert to floating-point depth.
+      const EfbPokeData& point = points[i];
+      float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
+      if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+        depth = 1.0f - depth;
+
+      g_framebuffer_manager->PokeEFBDepth(point.x, point.y, depth);
+    }
+  }
+}
+
+void Renderer::RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
+                           u32 fbHeight, float Gamma)
 {
   CheckFifoRecording();
 
@@ -107,19 +256,24 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
     return;
 }
 
-unsigned int Renderer::GetEFBScale() const
+float Renderer::GetEFBScale() const
 {
-  return m_efb_scale;
+  return m_efb_scale / 100.0f;
+}
+
+bool Renderer::IsScaledEFB() const
+{
+  return m_efb_scale != 100;
 }
 
 int Renderer::EFBToScaledX(int x) const
 {
-  return x * static_cast<int>(m_efb_scale);
+  return x * m_efb_scale / 100.0f;
 }
 
 int Renderer::EFBToScaledY(int y) const
 {
-  return y * static_cast<int>(m_efb_scale);
+  return y * m_efb_scale / 100.0f;
 }
 
 float Renderer::EFBToScaledXf(float x) const
@@ -134,7 +288,7 @@ float Renderer::EFBToScaledYf(float y) const
 
 std::tuple<int, int> Renderer::CalculateTargetScale(int x, int y) const
 {
-  return std::make_tuple(x * static_cast<int>(m_efb_scale), y * static_cast<int>(m_efb_scale));
+  return std::make_tuple(x * m_efb_scale / 100.0f, y * m_efb_scale / 100.0f);
 }
 
 // return true if target size changed
@@ -143,51 +297,46 @@ bool Renderer::CalculateTargetSize()
   if (g_ActiveConfig.iEFBScale == EFB_SCALE_AUTO_INTEGRAL)
   {
     // Set a scale based on the window size
-    int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
-    int height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
+    int width = EFB_WIDTH * m_target_rectangle.GetWidth() * 100 / m_last_xfb_width;
+    int height = EFB_HEIGHT * m_target_rectangle.GetHeight() * 100 / m_last_xfb_height;
     m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
   }
   else
   {
     m_efb_scale = g_ActiveConfig.iEFBScale;
+    if (m_efb_scale < 10)
+      m_efb_scale *= 100;
   }
 
   const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
-  if (max_size < EFB_WIDTH * m_efb_scale)
-    m_efb_scale = max_size / EFB_WIDTH;
+  if (max_size < EFB_WIDTH * m_efb_scale / 100)
+    m_efb_scale = max_size * 100 / EFB_WIDTH;
 
   int new_efb_width = 0;
   int new_efb_height = 0;
   std::tie(new_efb_width, new_efb_height) = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
+  new_efb_width = std::max(new_efb_width, 1);
+  new_efb_height = std::max(new_efb_height, 1);
 
   if (new_efb_width != m_target_width || new_efb_height != m_target_height)
   {
+    std::string msg;
+    const char* backend = SConfig::GetInstance().m_strVideoBackend.c_str();
+    if (SConfig::GetInstance().bMMU)
+    {
+      msg = StringFromFormat("Backend: %s - MMU: On - Scale: %.02f", backend, m_efb_scale / 100.0f);
+    }
+    else
+    {
+      msg = StringFromFormat("Backend: %s - Scale: %.02f", backend, m_efb_scale / 100.0f);
+    }
+    OSD::AddTypedMessage(OSD::MessageType::EFBScale, msg, 4000);
     m_target_width = new_efb_width;
     m_target_height = new_efb_height;
     PixelShaderManager::SetEfbScaleChanged(EFBToScaledXf(1), EFBToScaledYf(1));
     return true;
   }
   return false;
-}
-
-std::tuple<TargetRectangle, TargetRectangle>
-Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
-{
-  // Resize target to half its original size
-  TargetRectangle draw_rc = rc;
-  int width = rc.right - rc.left;
-  draw_rc.left += width / 4;
-  draw_rc.right -= width / 4;
-
-  // Create two target rectangle offset to the sides of the backbuffer
-  TargetRectangle left_rc = draw_rc;
-  TargetRectangle right_rc = draw_rc;
-  left_rc.left -= m_backbuffer_width / 4;
-  left_rc.right -= m_backbuffer_width / 4;
-  right_rc.left += m_backbuffer_width / 4;
-  right_rc.right += m_backbuffer_width / 4;
-
-  return std::make_tuple(left_rc, right_rc);
 }
 
 void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_completion)
@@ -206,175 +355,98 @@ void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_complet
   }
 }
 
-bool Renderer::CheckForHostConfigChanges()
+void Renderer::CheckForConfigChanges()
 {
-  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
-  if (new_host_config.bits == m_last_host_config_bits &&
-      m_last_efb_multisamples == g_ActiveConfig.iMultisamples)
+  const ShaderHostConfig old_shader_host_config = ShaderHostConfig::GetCurrent();
+  const u32 old_multisamples = g_ActiveConfig.iMultisamples;
+  const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  const int old_efb_access_tile_size = g_ActiveConfig.iEFBAccessTileSize;
+  const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  const bool old_vsync = g_ActiveConfig.bVSyncActive;
+  const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+
+  UpdateActiveConfig();
+
+  // Update texture cache settings with any changed options.
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
+
+  // EFB tile cache doesn't need to notify the backend.
+  if (old_efb_access_tile_size != g_ActiveConfig.iEFBAccessTileSize)
+    g_framebuffer_manager->SetEFBCacheTileSize(std::max(g_ActiveConfig.iEFBAccessTileSize, 0));
+
+  // Check for post-processing shader changes. Done up here as it doesn't affect anything outside
+  // the post-processor. Note that options are applied every frame, so no need to check those.
+  if (m_post_processor->GetConfig()->GetShader() != g_ActiveConfig.sPostProcessingShader)
   {
-    return false;
+    OSD::AddMessage(StringFromFormat("Reload post processing shader: %s",
+                                     g_ActiveConfig.sPostProcessingShader.c_str()));
+
+    // The existing shader must not be in use when it's destroyed
+    WaitForGPUIdle();
+
+    m_post_processor->RecompileShader();
   }
 
-  m_last_host_config_bits = new_host_config.bits;
-  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
+  // Determine which (if any) settings have changed.
+  ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
+  u32 changed_bits = 0;
+  if (old_shader_host_config.bits != new_host_config.bits)
+    changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;
+  if (old_multisamples != g_ActiveConfig.iMultisamples)
+    changed_bits |= CONFIG_CHANGE_BIT_MULTISAMPLES;
+  if (old_anisotropy != g_ActiveConfig.iMaxAnisotropy)
+    changed_bits |= CONFIG_CHANGE_BIT_ANISOTROPY;
+  if (old_force_filtering != g_ActiveConfig.bForceFiltering)
+    changed_bits |= CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING;
+  if (old_vsync != g_ActiveConfig.bVSyncActive)
+    changed_bits |= CONFIG_CHANGE_BIT_VSYNC;
+  if (old_bbox != g_ActiveConfig.bBBoxEnable)
+    changed_bits |= CONFIG_CHANGE_BIT_BBOX;
+  if (CalculateTargetSize())
+    changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
 
-  // Reload shaders.
-  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
-  SetPipeline(nullptr);
-  g_vertex_manager->InvalidatePipelineObject();
-  g_shader_cache->SetHostConfig(new_host_config, g_ActiveConfig.iMultisamples);
-  return true;
+  // No changes?
+  if (changed_bits == 0)
+    return;
+
+  // Notify the backend of the changes, if any.
+  OnConfigChanged(changed_bits);
+
+  // Framebuffer changed?
+  if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_TARGET_SIZE))
+  {
+    g_framebuffer_manager->RecreateEFBFramebuffer();
+  }
+
+  // Reload shaders if host config has changed.
+  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
+  {
+    OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+    WaitForGPUIdle();
+    SetPipeline(nullptr);
+    g_vertex_manager->InvalidatePipelineObject();
+    g_shader_cache->SetHostConfig(new_host_config);
+    g_shader_cache->Reload();
+    g_framebuffer_manager->RecompileShaders();
+  }
+
+  // Viewport and scissor rect have to be reset since they will be scaled differently.
+  if (changed_bits & CONFIG_CHANGE_BIT_TARGET_SIZE)
+  {
+    BPFunctions::SetViewport();
+    BPFunctions::SetScissor();
+  }
 }
 
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  bool bShowFPS = g_ActiveConfig.bShowFPS || _CoreParameter.m_InterfaceExtendedFPSInfo;
-  std::string final_yellow, final_cyan;
+  RenderText(m_debug_title_text, 10, 18, 0xFF00FFFF);
+}
 
-  if (bShowFPS || _CoreParameter.m_ShowFrameCount)
-  {
-    if (bShowFPS)
-    {
-      //final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
-      final_cyan += m_debug_title_text;
-    }
-
-    if (bShowFPS && _CoreParameter.m_ShowFrameCount)
-      final_cyan += " - ";
-
-    if (_CoreParameter.m_ShowFrameCount)
-    {
-      final_cyan += StringFromFormat("Frame: %" PRIu64, Movie::GetCurrentFrame());
-      if (Movie::IsPlayingInput())
-        final_cyan += StringFromFormat("\nInput: %" PRIu64 " / %" PRIu64,
-                                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount());
-    }
-
-    if (_CoreParameter.m_InterfaceExtendedFPSInfo && !final_cyan.empty())
-    {
-      final_cyan += StringFromFormat(" | DRAW: %d\n", stats.thisFrame.numDrawCalls);
-    }
-    else
-    {
-      final_cyan += "\n";
-    }
-    final_yellow += "\n";
-  }
-
-  if (_CoreParameter.m_ShowLag)
-  {
-    final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
-    final_yellow += "\n";
-  }
-
-  if (_CoreParameter.m_ShowInputDisplay)
-  {
-    final_cyan += Movie::GetInputDisplay();
-    final_yellow += "\n";
-  }
-
-  if (_CoreParameter.m_ShowRTC)
-  {
-    final_cyan += Movie::GetRTCDisplay();
-    final_yellow += "\n";
-  }
-
-  // OSD Menu messages
-  if (m_osd_message > 0)
-  {
-    m_osd_time = Common::Timer::GetTimeMs() + 3000;
-    m_osd_message = -m_osd_message;
-  }
-
-  if (static_cast<u32>(m_osd_time) > Common::Timer::GetTimeMs())
-  {
-    std::string res_text;
-    switch (g_ActiveConfig.iEFBScale)
-    {
-    case EFB_SCALE_AUTO_INTEGRAL:
-      res_text = "Auto (integral)";
-      break;
-    case 1:
-      res_text = "Native";
-      break;
-    default:
-      res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale);
-      break;
-    }
-    const char* ar_text = "";
-    switch (g_ActiveConfig.aspect_mode)
-    {
-    case AspectMode::Stretch:
-      ar_text = "Stretch";
-      break;
-    case AspectMode::Analog:
-      ar_text = "Force 4:3";
-      break;
-    case AspectMode::AnalogWide:
-      ar_text = "Force 16:9";
-      break;
-    case AspectMode::Auto:
-    default:
-      ar_text = "Auto";
-      break;
-    }
-    const std::string audio_text = _CoreParameter.m_IsMuted ?
-                                       "Muted" :
-                                       std::to_string(_CoreParameter.m_Volume) + "%";
-
-    const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
-    const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
-
-    // The rows
-    const std::string lines[] = {
-        std::string("Internal Resolution: ") + res_text,
-        std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
-        std::string("Copy EFB: ") + efbcopy_text,
-        std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-        _CoreParameter.m_EmulationSpeed <= 0 ?
-            "Speed Limit: Unlimited" :
-            StringFromFormat("Speed Limit: %li%%",
-                             std::lround(_CoreParameter.m_EmulationSpeed * 100.f)),
-        std::string("Copy XFB: ") + xfbcopy_text +
-            (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
-        "Volume: " + audio_text,
-    };
-
-    enum
-    {
-      lines_count = sizeof(lines) / sizeof(*lines)
-    };
-
-    // The latest changed setting in yellow
-    for (int i = 0; i != lines_count; ++i)
-    {
-      if (m_osd_message == -i - 1)
-        final_yellow += lines[i];
-      final_yellow += '\n';
-    }
-
-    // The other settings in cyan
-    for (int i = 0; i != lines_count; ++i)
-    {
-      if (m_osd_message != -i - 1)
-        final_cyan += lines[i];
-      final_cyan += '\n';
-    }
-  }
-
-  final_cyan += Common::Profiler::ToString();
-
-  if (g_ActiveConfig.bOverlayStats)
-    final_cyan += Statistics::ToString();
-
-  if (g_ActiveConfig.bOverlayProjStats)
-    final_cyan += Statistics::ToStringProj();
-
-  // and then the text
-  RenderText(final_cyan, 20, 20, 0xFF00FFFF);
-  RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
+{
+  m_raster_font->Draw(text, left, top, color);
 }
 
 float Renderer::CalculateDrawAspectRatio() const
@@ -397,6 +469,42 @@ float Renderer::CalculateDrawAspectRatio() const
   }
 }
 
+void Renderer::AdjustRectanglesToFitBounds(MathUtil::Rectangle<int>& dst,
+                                           MathUtil::Rectangle<int>& src)
+{
+  float scale = g_ActiveConfig.fDisplayScale;
+
+  int delta_x = std::lround(dst.GetWidth() * (scale - 1.0f) / 4.0f);
+  int delta_y = std::lround(dst.GetHeight() * (scale - 1.0f) / 4.0f);
+
+  dst.left = dst.left - delta_x;
+  dst.top = dst.top - delta_y;
+  dst.right = dst.right + delta_x;
+  dst.bottom = dst.bottom + delta_y;
+
+  if (dst.GetWidth() > m_backbuffer_width)
+  {
+    delta_x =
+        std::lround(src.GetWidth() * (1.0f - m_backbuffer_width / (float)dst.GetWidth()) / 2.0f);
+    src.left += delta_x;
+    src.right -= delta_x;
+
+    dst.left = 0;
+    dst.right = m_backbuffer_width;
+  }
+
+  if (dst.GetHeight() > m_backbuffer_height)
+  {
+    delta_y =
+        std::lround(src.GetHeight() * (1.0f - m_backbuffer_height / (float)dst.GetHeight()) / 2.0f);
+    src.top += delta_y;
+    src.bottom -= delta_y;
+
+    dst.top = 0;
+    dst.bottom = m_backbuffer_height;
+  }
+}
+
 bool Renderer::IsHeadless() const
 {
   return true;
@@ -413,6 +521,87 @@ void Renderer::ResizeSurface()
 {
   std::lock_guard<std::mutex> lock(m_swap_mutex);
   m_surface_resized.Set();
+}
+
+void Renderer::SetViewportAndScissor(const MathUtil::Rectangle<int>& rect, float min_depth,
+                                     float max_depth)
+{
+  SetViewport(static_cast<float>(rect.left), static_cast<float>(rect.top),
+              static_cast<float>(rect.GetWidth()), static_cast<float>(rect.GetHeight()), min_depth,
+              max_depth);
+  SetScissorRect(rect);
+}
+
+void Renderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
+                            const MathUtil::Rectangle<int>& dst_rect,
+                            const AbstractTexture* src_texture,
+                            const MathUtil::Rectangle<int>& src_rect)
+{
+  ASSERT(dst_framebuffer->GetColorFormat() == AbstractTextureFormat::RGBA8);
+
+  BeginUtilityDrawing();
+
+  // The shader needs to know the source rectangle.
+  const auto converted_src_rect = g_renderer->ConvertFramebufferRectangle(
+      src_rect, src_texture->GetWidth(), src_texture->GetHeight());
+  const float rcp_src_width = 1.0f / src_texture->GetWidth();
+  const float rcp_src_height = 1.0f / src_texture->GetHeight();
+  const std::array<float, 4> uniforms = {{converted_src_rect.left * rcp_src_width,
+                                          converted_src_rect.top * rcp_src_height,
+                                          converted_src_rect.GetWidth() * rcp_src_width,
+                                          converted_src_rect.GetHeight() * rcp_src_height}};
+  g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
+
+  // Discard if we're overwriting the whole thing.
+  if (static_cast<u32>(dst_rect.GetWidth()) == dst_framebuffer->GetWidth() &&
+      static_cast<u32>(dst_rect.GetHeight()) == dst_framebuffer->GetHeight())
+  {
+    SetAndDiscardFramebuffer(dst_framebuffer);
+  }
+  else
+  {
+    SetFramebuffer(dst_framebuffer);
+  }
+
+  SetViewportAndScissor(ConvertFramebufferRectangle(dst_rect, dst_framebuffer));
+  SetPipeline(g_shader_cache->GetRGBA8CopyPipeline());
+  SetTexture(0, src_texture);
+  SetSamplerState(0, RenderState::GetLinearSamplerState());
+  Draw(0, 3);
+  EndUtilityDrawing();
+  if (dst_framebuffer->GetColorAttachment())
+    dst_framebuffer->GetColorAttachment()->FinishedRendering();
+}
+
+MathUtil::Rectangle<int>
+Renderer::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
+                                      const AbstractFramebuffer* framebuffer)
+{
+  return ConvertFramebufferRectangle(rect, framebuffer->GetWidth(), framebuffer->GetHeight());
+}
+
+MathUtil::Rectangle<int> Renderer::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
+                                                               u32 fb_width, u32 fb_height)
+{
+  MathUtil::Rectangle<int> ret = rect;
+  // In OpenGL we have a left-hand NDC(Normalized Device Coordinates) space, y is upward
+  // in Vulkan we have a right-hand NDC(Normalized Device Coordinates) space, y is downward
+  if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
+  {
+    ret.top = fb_height - rect.bottom;
+    ret.bottom = fb_height - rect.top;
+  }
+  return ret;
+}
+
+MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc)
+{
+  MathUtil::Rectangle<int> result;
+  result.left = EFBToScaledX(rc.left);
+  result.top = EFBToScaledY(rc.top);
+  result.right = EFBToScaledX(rc.right);
+  result.bottom = EFBToScaledY(rc.bottom);
+  return result;
 }
 
 std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
@@ -527,16 +716,12 @@ void Renderer::UpdateDrawRectangle()
     crop_width = win_width;
   }
 
-  // Clamp the draw width/height to the screen size, to ensure we don't render off-screen.
-  draw_width = std::min(draw_width, win_width);
-  draw_height = std::min(draw_height, win_height);
-
   // ensure divisibility by 4 to make it compatible with all the video encoders
   draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
   draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
 
-  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
-  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
+  m_target_rectangle.left = static_cast<int>(win_width - draw_width) / 2;
+  m_target_rectangle.top = static_cast<int>(win_height - draw_height) / 2;
   m_target_rectangle.right = m_target_rectangle.left + static_cast<int>(draw_width);
   m_target_rectangle.bottom = m_target_rectangle.top + static_cast<int>(draw_height);
 }
@@ -626,8 +811,7 @@ void Renderer::RecordVideoMemory()
                                              texMem);
 }
 
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    u64 ticks)
+void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   const AspectMode suggested = g_ActiveConfig.suggested_aspect_mode;
   if (suggested == AspectMode::Analog || suggested == AspectMode::AnalogWide)
@@ -660,55 +844,56 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // behind the renderer.
   FlushFrameDump();
 
-  if (xfbAddr && fbWidth && fbStride && fbHeight)
+  if (xfb_addr && fb_width && fb_stride && fb_height)
   {
-    constexpr int force_safe_texture_cache_hash = 0;
     // Get the current XFB from texture cache
-    auto* xfb_entry = g_texture_cache->GetXFBTexture(
-        xfbAddr, fbStride, fbHeight, TextureFormat::XFB, force_safe_texture_cache_hash);
-
+    MathUtil::Rectangle<int> xfb_rect;
+    const auto* xfb_entry =
+        g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
-      const TextureConfig& texture_config = xfb_entry->texture->GetConfig();
-      m_last_xfb_texture = xfb_entry->texture.get();
       m_last_xfb_id = xfb_entry->id;
-      m_last_xfb_ticks = ticks;
 
-      auto xfb_rect = texture_config.GetRect();
-
-      // It's possible that the returned XFB texture is native resolution
-      // even when we're rendering at higher than native resolution
-      // if the XFB was was loaded entirely from console memory.
-      // If so, adjust the rectangle by native resolution instead of scaled resolution.
-      const u32 native_stride_width_difference = fbStride - fbWidth;
-      if (texture_config.width == xfb_entry->native_width)
-        xfb_rect.right -= native_stride_width_difference;
-      else
-        xfb_rect.right -= EFBToScaledX(native_stride_width_difference);
-
-      m_last_xfb_region = xfb_rect;
-
-      // TODO: merge more generic parts into VideoCommon
+      // Since we use the common pipelines here and draw vertices if a batch is currently being
+      // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
+      // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
+      // Render the XFB to the screen.
+      BeginUtilityDrawing();
+      if (!IsHeadless())
       {
-        std::lock_guard<std::mutex> guard(m_swap_mutex);
-        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks);
+        BindBackbuffer({0.0f, 0.0f, 0.0f, 1.0f});
+        UpdateDrawRectangle();
+
+        // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
+        auto render_target_rc = m_target_rectangle;
+        auto render_source_rc = xfb_rect;
+        AdjustRectanglesToFitBounds(render_target_rc, render_source_rc);
+        RenderXFBToScreen(render_target_rc, xfb_entry->texture.get(), render_source_rc);
+
+        // HUD
+        m_raster_font->Prepare();
+        DrawDebugText();
+        OSD::DrawMessages();
+
+        // Present to the window system.
+        {
+          std::lock_guard<std::mutex> guard(m_swap_mutex);
+          PresentBackbuffer();
+        }
+
+        // Update the window size based on the frame that was just rendered.
+        // Due to depending on guest state, we need to call this every frame.
+        SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
       }
 
-      // Update the window size based on the frame that was just rendered.
-      // Due to depending on guest state, we need to call this every frame.
-      SetWindowSize(texture_config.width, texture_config.height);
-
       if (IsFrameDumping())
-        DumpCurrentFrame();
-
-      frameCount++;
-      GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
+        DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
 
       // Begin new frame
-      // Set default viewport and scissor, for the clear to work correctly
-      // New frame
-      stats.ResetFrame();
+      m_frame_count++;
+      g_stats.ResetFrame();
       g_shader_cache->RetrieveAsyncShaders();
+      g_vertex_manager->OnEndFrame();
 
       // We invalidate the pipeline object at the start of the frame.
       // This is for the rare case where only a single pipeline configuration is used,
@@ -720,13 +905,41 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
       g_texture_cache->FlushEFBCopies();
 
+      // Remove stale EFB/XFB copies.
+      g_texture_cache->Cleanup(m_frame_count);
+
+      // Handle any config changes, this gets propogated to the backend.
+      if (g_ActiveConfig.bDirty)
+      {
+        g_ActiveConfig.bDirty = false;
+        CheckForConfigChanges();
+      }
+      g_Config.iSaveTargetId = 0;
+
+      EndUtilityDrawing();
+
       Core::Callback_VideoCopiedToXFB(true);
+    }
+    else
+    {
+      Flush();
     }
 
     // Update our last xfb values
-    m_last_xfb_width = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    m_last_xfb_height = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+    m_last_xfb_width = (fb_width < 1 || fb_width > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_width;
+    m_last_xfb_height = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
   }
+  else
+  {
+    Flush();
+  }
+}
+
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
+{
+  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
 }
 
 bool Renderer::IsFrameDumping()
@@ -740,74 +953,88 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpCurrentFrame()
+void Renderer::DumpCurrentFrame(const AbstractTexture* src_texture,
+                                const MathUtil::Rectangle<int>& src_rect, u64 ticks)
 {
-  // Scale/render to frame dump texture.
-  RenderFrameDump();
-
-  // Queue a readback for the next frame.
-  QueueFrameDumpReadback();
-}
-
-void Renderer::RenderFrameDump()
-{
+  int source_width = src_rect.GetWidth();
+  int source_height = src_rect.GetHeight();
   int target_width, target_height;
   if (!g_ActiveConfig.bInternalResolutionFrameDumps && !IsHeadless())
   {
-    auto target_rect = GetTargetRectangle();
-    target_width = target_rect.GetWidth();
-    target_height = target_rect.GetHeight();
+    target_width = m_target_rectangle.GetWidth();
+    target_height = m_target_rectangle.GetHeight();
   }
   else
   {
-    std::tie(target_width, target_height) = CalculateOutputDimensions(
-        m_last_xfb_texture->GetConfig().width, m_last_xfb_texture->GetConfig().height);
+    std::tie(target_width, target_height) = CalculateOutputDimensions(source_width, source_height);
   }
 
-  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
-  // Or, resize texture if it isn't large enough to accommodate the current frame.
-  if (!m_frame_dump_render_texture ||
-      m_frame_dump_render_texture->GetConfig().width != static_cast<u32>(target_width) ||
-      m_frame_dump_render_texture->GetConfig().height != static_cast<u32>(target_height))
+  // We only need to render a copy if we need to stretch/scale the XFB copy.
+  MathUtil::Rectangle<int> copy_rect = src_rect;
+  if (source_width != target_width || source_height != target_height)
   {
-    // Recreate texture objects. Release before creating so we don't temporarily use twice the RAM.
-    TextureConfig config(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, true);
-    m_frame_dump_render_texture.reset();
-    m_frame_dump_render_texture = CreateTexture(config);
-    ASSERT(m_frame_dump_render_texture);
+    if (!CheckFrameDumpRenderTexture(target_width, target_height))
+      return;
+
+    ScaleTexture(m_frame_dump_render_framebuffer.get(), m_frame_dump_render_framebuffer->GetRect(),
+                 src_texture, src_rect);
+    src_texture = m_frame_dump_render_texture.get();
+    copy_rect = src_texture->GetRect();
   }
 
-  // Scaling is likely to occur here, but if possible, do a bit-for-bit copy.
-  if (m_last_xfb_region.GetWidth() != target_width ||
-      m_last_xfb_region.GetHeight() != target_height)
-  {
-    m_frame_dump_render_texture->ScaleRectangleFromTexture(
-        m_last_xfb_texture, m_last_xfb_region, EFBRectangle{0, 0, target_width, target_height});
-  }
-  else
-  {
-    m_frame_dump_render_texture->CopyRectangleFromTexture(
-        m_last_xfb_texture, m_last_xfb_region, 0, 0,
-        EFBRectangle{0, 0, target_width, target_height}, 0, 0);
-  }
-}
-
-void Renderer::QueueFrameDumpReadback()
-{
-  // Index 0 was just sent to AVI dump. Swap with the second texture.
+  // Index 0 was just sent to FFMPEG dump. Swap with the second texture.
   if (m_frame_dump_readback_textures[0])
     std::swap(m_frame_dump_readback_textures[0], m_frame_dump_readback_textures[1]);
 
-  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_textures[0];
-  if (!rbtex || rbtex->GetConfig() != m_frame_dump_render_texture->GetConfig())
+  if (!CheckFrameDumpReadbackTexture(target_width, target_height))
+    return;
+
+  m_frame_dump_readback_textures[0]->CopyFromTexture(src_texture, copy_rect, 0, 0,
+                                                     m_frame_dump_readback_textures[0]->GetRect());
+  m_last_frame_state = FrameDump::FetchState(ticks);
+  m_last_frame_exported = true;
+}
+
+bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
+{
+  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
+  // Or, resize texture if it isn't large enough to accommodate the current frame.
+  if (m_frame_dump_render_texture && m_frame_dump_render_texture->GetWidth() == target_width &&
+      m_frame_dump_render_texture->GetHeight() == target_height)
   {
-    rbtex = CreateStagingTexture(StagingTextureType::Readback,
-                                 m_frame_dump_render_texture->GetConfig());
+    return true;
   }
 
-  m_last_frame_state = AVIDump::FetchState(m_last_xfb_ticks);
-  m_last_frame_exported = true;
-  rbtex->CopyFromTexture(m_frame_dump_render_texture.get(), 0, 0);
+  // Recreate texture, but release before creating so we don't temporarily use twice the RAM.
+  m_frame_dump_render_framebuffer.reset();
+  m_frame_dump_render_texture.reset();
+  m_frame_dump_render_texture =
+      CreateTexture(TextureConfig(target_width, target_height, 1, 1, 1,
+                                  AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget));
+  if (!m_frame_dump_render_texture)
+  {
+    PanicAlert("Failed to allocate frame dump render texture");
+    return false;
+  }
+  m_frame_dump_render_framebuffer = CreateFramebuffer(m_frame_dump_render_texture.get(), nullptr);
+  ASSERT(m_frame_dump_render_framebuffer);
+  return true;
+}
+
+bool Renderer::CheckFrameDumpReadbackTexture(u32 target_width, u32 target_height)
+{
+  std::unique_ptr<AbstractStagingTexture>& rbtex = m_frame_dump_readback_textures[0];
+  if (rbtex && rbtex->GetWidth() == target_width && rbtex->GetHeight() == target_height)
+    return true;
+
+  rbtex.reset();
+  rbtex = CreateStagingTexture(
+      StagingTextureType::Readback,
+      TextureConfig(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, 0));
+  if (!rbtex)
+    return false;
+
+  return true;
 }
 
 void Renderer::FlushFrameDump()
@@ -852,12 +1079,14 @@ void Renderer::ShutdownFrameDumping()
   m_frame_dump_start.Set();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();
+  m_frame_dump_render_framebuffer.reset();
   m_frame_dump_render_texture.reset();
   for (auto& tex : m_frame_dump_readback_textures)
     tex.reset();
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride,
+                             const FrameDump::Frame& state)
 {
   m_frame_dump_config = FrameDumpConfig{data, w, h, stride, state};
 
@@ -886,16 +1115,16 @@ void Renderer::FinishFrameData()
 void Renderer::RunFrameDumps()
 {
   Common::SetCurrentThreadName("FrameDumping");
-  bool dump_to_avi = !g_ActiveConfig.bDumpFramesAsImages;
+  bool dump_to_ffmpeg = !g_ActiveConfig.bDumpFramesAsImages;
   bool frame_dump_started = false;
 
-// If Dolphin was compiled without libav, we only support dumping to images.
+// If Dolphin was compiled without ffmpeg, we only support dumping to images.
 #if !defined(HAVE_FFMPEG)
-  if (dump_to_avi)
+  if (dump_to_ffmpeg)
   {
-    WARN_LOG(VIDEO, "AVI frame dump requested, but Dolphin was compiled without libav. "
-                    "Frame dump will be saved as images instead.");
-    dump_to_avi = false;
+    WARN_LOG(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
+                    "Frames will be saved as PNG images instead.");
+    dump_to_ffmpeg = false;
   }
 #endif
 
@@ -925,8 +1154,8 @@ void Renderer::RunFrameDumps()
     {
       if (!frame_dump_started)
       {
-        if (dump_to_avi)
-          frame_dump_started = StartFrameDumpToAVI(config);
+        if (dump_to_ffmpeg)
+          frame_dump_started = StartFrameDumpToFFMPEG(config);
         else
           frame_dump_started = StartFrameDumpToImage(config);
 
@@ -938,8 +1167,8 @@ void Renderer::RunFrameDumps()
       // If we failed to start frame dumping, don't write a frame.
       if (frame_dump_started)
       {
-        if (dump_to_avi)
-          DumpFrameToAVI(config);
+        if (dump_to_ffmpeg)
+          DumpFrameToFFMPEG(config);
         else
           DumpFrameToImage(config);
       }
@@ -951,40 +1180,40 @@ void Renderer::RunFrameDumps()
   if (frame_dump_started)
   {
     // No additional cleanup is needed when dumping to images.
-    if (dump_to_avi)
-      StopFrameDumpToAVI();
+    if (dump_to_ffmpeg)
+      StopFrameDumpToFFMPEG();
   }
 }
 
 #if defined(HAVE_FFMPEG)
 
-bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToFFMPEG(const FrameDumpConfig& config)
 {
-  return AVIDump::Start(config.width, config.height);
+  return FrameDump::Start(config.width, config.height);
 }
 
-void Renderer::DumpFrameToAVI(const FrameDumpConfig& config)
+void Renderer::DumpFrameToFFMPEG(const FrameDumpConfig& config)
 {
-  AVIDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
+  FrameDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
 }
 
-void Renderer::StopFrameDumpToAVI()
+void Renderer::StopFrameDumpToFFMPEG()
 {
-  AVIDump::Stop();
+  FrameDump::Stop();
 }
 
 #else
 
-bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
+bool Renderer::StartFrameDumpToFFMPEG(const FrameDumpConfig& config)
 {
   return false;
 }
 
-void Renderer::DumpFrameToAVI(const FrameDumpConfig& config)
+void Renderer::DumpFrameToFFMPEG(const FrameDumpConfig& config)
 {
 }
 
-void Renderer::StopFrameDumpToAVI()
+void Renderer::StopFrameDumpToFFMPEG()
 {
 }
 
@@ -1044,9 +1273,4 @@ bool Renderer::UseVertexDepthRange() const
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
 {
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
-}
-
-void Renderer::ShowOSDMessage(OSDMessage message)
-{
-  m_osd_message = static_cast<s32>(message);
 }

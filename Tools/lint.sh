@@ -9,10 +9,16 @@ if ! [ -x "$(command -v git)" ]; then
   exit 1
 fi
 
-REQUIRED_CLANG_FORMAT_MAJOR=5
+REQUIRED_CLANG_FORMAT_MAJOR=7
 REQUIRED_CLANG_FORMAT_MINOR=0
+CLANG_FORMAT=clang-format
+CLANG_FORMAT_MAJOR=clang-format-${REQUIRED_CLANG_FORMAT_MAJOR}
+CLANG_FORMAT_MAJOR_MINOR=${CLANG_FORMAT_MAJOR}.${REQUIRED_CLANG_FORMAT_MINOR}
 
-if ! [ -x "$(command -v clang-format)" ]; then
+if [ -x "$(command -v $CLANG_FORMAT_MAJOR)" ]; then CLANG_FORMAT=$CLANG_FORMAT_MAJOR; fi
+if [ -x "$(command -v $CLANG_FORMAT_MAJOR_MINOR)" ]; then CLANG_FORMAT=$CLANG_FORMAT_MAJOR_MINOR; fi
+
+if ! [ -x "$(command -v $CLANG_FORMAT)" ]; then
   echo >&2 "error: clang-format is not installed"
   echo >&2 "Install clang-format version ${REQUIRED_CLANG_FORMAT_MAJOR}.${REQUIRED_CLANG_FORMAT_MINOR}.*"
   exit 1
@@ -30,7 +36,7 @@ if [ $# -gt 0 ]; then
 fi
 
 if [ $FORCE -eq 0 ]; then
-  CLANG_FORMAT_VERSION=$(clang-format -version | cut -d' ' -f3)
+  CLANG_FORMAT_VERSION=$($CLANG_FORMAT -version | cut -d' ' -f3)
   CLANG_FORMAT_MAJOR=$(echo $CLANG_FORMAT_VERSION | cut -d'.' -f1)
   CLANG_FORMAT_MINOR=$(echo $CLANG_FORMAT_VERSION | cut -d'.' -f2)
 
@@ -96,7 +102,7 @@ for f in ${modified_files}; do
   fi
 
   # Check for clang-format issues.
-  d=$(clang-format ${f} | (diff -u "${f}" - || true))
+  d=$($CLANG_FORMAT ${f} | (diff -u "${f}" - || true))
   if ! [ -z "${d}" ]; then
     echo "!!! ${f} not compliant to coding style, here is the fix:"
     echo "${d}"

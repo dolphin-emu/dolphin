@@ -2,8 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/StringUtil.h"
+
 #include <algorithm>
-#include <cinttypes>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -18,11 +19,12 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #ifdef _WIN32
@@ -51,12 +53,12 @@ std::string HexDump(const u8* data, size_t size)
   std::string out;
   for (size_t row_start = 0; row_start < size; row_start += BYTES_PER_LINE)
   {
-    out += StringFromFormat("%06zx: ", row_start);
+    out += fmt::format("{:06x}: ", row_start);
     for (size_t i = 0; i < BYTES_PER_LINE; ++i)
     {
       if (row_start + i < size)
       {
-        out += StringFromFormat("%02hhx ", data[row_start + i]);
+        out += fmt::format("{:02x} ", data[row_start + i]);
       }
       else
       {
@@ -227,7 +229,7 @@ std::string StripSpaces(const std::string& str)
 // ends, as done by StripSpaces above, for example.
 std::string StripQuotes(const std::string& s)
 {
-  if (s.size() && '\"' == s[0] && '\"' == *s.rbegin())
+  if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
     return s.substr(1, s.size() - 2);
   else
     return s;
@@ -307,27 +309,27 @@ bool TryParse(const std::string& str, bool* const output)
 
 std::string ValueToString(u16 value)
 {
-  return StringFromFormat("0x%04x", value);
+  return fmt::format("0x{:04x}", value);
 }
 
 std::string ValueToString(u32 value)
 {
-  return StringFromFormat("0x%08x", value);
+  return fmt::format("0x{:08x}", value);
 }
 
 std::string ValueToString(u64 value)
 {
-  return StringFromFormat("0x%016" PRIx64, value);
+  return fmt::format("0x{:016x}", value);
 }
 
 std::string ValueToString(float value)
 {
-  return StringFromFormat("%#.9g", value);
+  return fmt::format("{:#.9g}", value);
 }
 
 std::string ValueToString(double value)
 {
-  return StringFromFormat("%#.17g", value);
+  return fmt::format("{:#.17g}", value);
 }
 
 std::string ValueToString(int value)
@@ -337,7 +339,7 @@ std::string ValueToString(int value)
 
 std::string ValueToString(s64 value)
 {
-  return StringFromFormat("%" PRId64, value);
+  return std::to_string(value);
 }
 
 std::string ValueToString(bool value)
@@ -489,20 +491,25 @@ std::wstring CPToUTF16(u32 code_page, const std::string& input)
 
 std::string UTF16ToCP(u32 code_page, const std::wstring& input)
 {
-  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, false);
-
   std::string output;
-  output.resize(size);
 
-  if (size == 0 ||
-      size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size()), nullptr, false))
+  if (0 != input.size())
   {
-    const DWORD error_code = GetLastError();
-    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
-    output.clear();
+    // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
+    auto const size = WideCharToMultiByte(
+        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, false);
+
+    output.resize(size);
+
+    if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                    &output[0], static_cast<int>(output.size()), nullptr, false))
+    {
+      const DWORD error_code = GetLastError();
+      ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
+      output.clear();
+    }
   }
+
   return output;
 }
 
@@ -633,4 +640,27 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
   return CodeToUTF8("UTF-16BE", std::u16string(str, static_cast<size_t>(str_end - str)));
 }
 
+#endif
+
+#ifdef HAS_STD_FILESYSTEM
+// This is a replacement for path::u8path, which is deprecated starting with C++20.
+std::filesystem::path StringToPath(std::string_view path)
+{
+#ifdef _MSC_VER
+  return std::filesystem::path(UTF8ToUTF16(std::string(path)));
+#else
+  return std::filesystem::path(path);
+#endif
+}
+
+// This is a replacement for path::u8string that always has the return type std::string.
+// path::u8string returns std::u8string starting with C++20, which is annoying to convert.
+std::string PathToString(const std::filesystem::path& path)
+{
+#ifdef _MSC_VER
+  return UTF16ToUTF8(path.native());
+#else
+  return path.native();
+#endif
+}
 #endif

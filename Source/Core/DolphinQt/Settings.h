@@ -9,7 +9,6 @@
 #include <QFont>
 #include <QObject>
 #include <QSettings>
-#include <QVector>
 
 namespace Core
 {
@@ -29,7 +28,6 @@ class NetPlayServer;
 
 class GameListModel;
 class InputConfig;
-class QFont;
 
 // UI settings to be stored in the config directory.
 class Settings final : public QObject
@@ -89,6 +87,8 @@ public:
   bool IsBatchModeEnabled() const;
   void SetBatchModeEnabled(bool batch);
 
+  bool IsSDCardInserted() const;
+  void SetSDCardInserted(bool inserted);
   bool IsUSBKeyboardConnected() const;
   void SetUSBKeyboardConnected(bool connected);
 
@@ -174,6 +174,7 @@ signals:
   void AutoUpdateTrackChanged(const QString& mode);
   void AnalyticsToggled(bool enabled);
   void DevicesChanged();
+  void SDCardInsertionChanged(bool inserted);
   void USBKeyboardConnectionChanged(bool connected);
 
 private:

@@ -2,6 +2,7 @@
 // Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
 // Copyright (C) 2012-2013 LunarG, Inc.
 // Copyright (C) 2017 ARM Limited.
+// Copyright (C) 2015-2018 Google, Inc.
 //
 // All rights reserved.
 //
@@ -98,6 +99,8 @@ void TType::buildMangledName(TString& mangledName) const
             mangledName += "S";
         if (sampler.external)
             mangledName += "E";
+        if (sampler.yuv)
+            mangledName += "Y";
         switch (sampler.dim) {
         case Esd1D:       mangledName += "1";  break;
         case Esd2D:       mangledName += "2";  break;
@@ -173,37 +176,77 @@ void TType::buildMangledName(TString& mangledName) const
 // Dump functions.
 //
 
-void TVariable::dump(TInfoSink& infoSink) const
+void TSymbol::dumpExtensions(TInfoSink& infoSink) const
 {
-    infoSink.debug << getName().c_str() << ": " << type.getStorageQualifierString() << " " << type.getBasicTypeString();
-    if (type.isArray()) {
-        infoSink.debug << "[0]";
+    int numExtensions = getNumExtensions();
+    if (numExtensions) {
+        infoSink.debug << " <";
+
+        for (int i = 0; i < numExtensions; i++)
+            infoSink.debug << getExtensions()[i] << ",";
+
+        infoSink.debug << ">";
     }
+}
+
+void TVariable::dump(TInfoSink& infoSink, bool complete) const
+{
+    if (complete) {
+        infoSink.debug << getName().c_str() << ": " << type.getCompleteString();
+        dumpExtensions(infoSink);
+    } else {
+        infoSink.debug << getName().c_str() << ": " << type.getStorageQualifierString() << " "
+                       << type.getBasicTypeString();
+
+        if (type.isArray())
+            infoSink.debug << "[0]";
+    }
+
     infoSink.debug << "\n";
 }
 
-void TFunction::dump(TInfoSink& infoSink) const
+void TFunction::dump(TInfoSink& infoSink, bool complete) const
 {
-    infoSink.debug << getName().c_str() << ": " <<  returnType.getBasicTypeString() << " " << getMangledName().c_str() << "\n";
+    if (complete) {
+        infoSink.debug << getName().c_str() << ": " << returnType.getCompleteString() << " " << getName().c_str()
+                       << "(";
+
+        int numParams = getParamCount();
+        for (int i = 0; i < numParams; i++) {
+            const TParameter &param = parameters[i];
+            infoSink.debug << param.type->getCompleteString() << " "
+                           << (param.type->isStruct() ? "of " + param.type->getTypeName() + " " : "")
+                           << (param.name ? *param.name : "") << (i < numParams - 1 ? "," : "");
+        }
+
+        infoSink.debug << ")";
+        dumpExtensions(infoSink);
+    } else {
+        infoSink.debug << getName().c_str() << ": " << returnType.getBasicTypeString() << " "
+                       << getMangledName().c_str() << "n";
+    }
+
+    infoSink.debug << "\n";
 }
 
-void TAnonMember::dump(TInfoSink& TInfoSink) const
+void TAnonMember::dump(TInfoSink& TInfoSink, bool) const
 {
-    TInfoSink.debug << "anonymous member " << getMemberNumber() << " of " << getAnonContainer().getName().c_str() << "\n";
+    TInfoSink.debug << "anonymous member " << getMemberNumber() << " of " << getAnonContainer().getName().c_str()
+                    << "\n";
 }
 
-void TSymbolTableLevel::dump(TInfoSink &infoSink) const
+void TSymbolTableLevel::dump(TInfoSink& infoSink, bool complete) const
 {
     tLevel::const_iterator it;
     for (it = level.begin(); it != level.end(); ++it)
-        (*it).second->dump(infoSink);
+        (*it).second->dump(infoSink, complete);
 }
 
-void TSymbolTable::dump(TInfoSink &infoSink) const
+void TSymbolTable::dump(TInfoSink& infoSink, bool complete) const
 {
     for (int level = currentLevel(); level >= 0; --level) {
         infoSink.debug << "LEVEL " << level << "\n";
-        table[level]->dump(infoSink);
+        table[level]->dump(infoSink, complete);
     }
 }
 
@@ -286,19 +329,25 @@ TVariable::TVariable(const TVariable& copyOf) : TSymbol(copyOf)
 {
     type.deepCopy(copyOf.type);
     userType = copyOf.userType;
-    numExtensions = 0;
-    extensions = 0;
-    if (copyOf.numExtensions != 0)
-        setExtensions(copyOf.numExtensions, copyOf.extensions);
+
+    // we don't support specialization-constant subtrees in cloned tables, only extensions
+    constSubtree = nullptr;
+    extensions = nullptr;
+    memberExtensions = nullptr;
+    if (copyOf.getNumExtensions() > 0)
+        setExtensions(copyOf.getNumExtensions(), copyOf.getExtensions());
+    if (copyOf.hasMemberExtensions()) {
+        for (int m = 0; m < (int)copyOf.type.getStruct()->size(); ++m) {
+            if (copyOf.getNumMemberExtensions(m) > 0)
+                setMemberExtensions(m, copyOf.getNumMemberExtensions(m), copyOf.getMemberExtensions(m));
+        }
+    }
 
     if (! copyOf.constArray.empty()) {
         assert(! copyOf.type.isStruct());
         TConstUnionArray newArray(copyOf.constArray, 0, copyOf.constArray.size());
         constArray = newArray;
     }
-
-    // don't support specialization-constant subtrees in cloned tables
-    constSubtree = nullptr;
 }
 
 TVariable* TVariable::clone() const
@@ -316,10 +365,9 @@ TFunction::TFunction(const TFunction& copyOf) : TSymbol(copyOf)
         parameters.back().copyParam(copyOf.parameters[i]);
     }
 
-    numExtensions = 0;
-    extensions = 0;
-    if (copyOf.extensions != 0)
-        setExtensions(copyOf.numExtensions, copyOf.extensions);
+    extensions = nullptr;
+    if (copyOf.getNumExtensions() > 0)
+        setExtensions(copyOf.getNumExtensions(), copyOf.getExtensions());
     returnType.deepCopy(copyOf.returnType);
     mangledName = copyOf.mangledName;
     op = copyOf.op;
@@ -358,12 +406,12 @@ TSymbolTableLevel* TSymbolTableLevel::clone() const
         const TAnonMember* anon = iter->second->getAsAnonMember();
         if (anon) {
             // Insert all the anonymous members of this same container at once,
-            // avoid inserting the other members in the future, once this has been done,
+            // avoid inserting the remaining members in the future, once this has been done,
             // allowing them to all be part of the same new container.
             if (! containerCopied[anon->getAnonId()]) {
                 TVariable* container = anon->getAnonContainer().clone();
                 container->changeName(NewPoolTString(""));
-                // insert the whole container
+                // insert the container and all its members
                 symTableLevel->insert(*container, false);
                 containerCopied[anon->getAnonId()] = true;
             }

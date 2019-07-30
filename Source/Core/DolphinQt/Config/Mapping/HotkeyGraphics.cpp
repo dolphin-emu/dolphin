@@ -4,9 +4,8 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyGraphics.h"
 
+#include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 
 #include "Core/HotkeyManager.h"
 
@@ -17,17 +16,16 @@ HotkeyGraphics::HotkeyGraphics(MappingWindow* window) : MappingWidget(window)
 
 void HotkeyGraphics::CreateMainLayout()
 {
-  m_main_layout = new QHBoxLayout();
+  m_main_layout = new QGridLayout();
 
   m_main_layout->addWidget(
-      CreateGroupBox(tr("Freelook"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_FREELOOK)));
+      CreateGroupBox(tr("Freelook"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_FREELOOK)), 0, 0, -1, 1);
 
-  auto* vbox = new QVBoxLayout();
-  vbox->addWidget(CreateGroupBox(tr("Graphics Toggles"),
-                                 HotkeyManagerEmu::GetHotkeyGroup(HKGP_GRAPHICS_TOGGLES)));
-  vbox->addWidget(
-      CreateGroupBox(tr("Internal Resolution"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_IR)));
-  m_main_layout->addLayout(vbox);
+  m_main_layout->addWidget(CreateGroupBox(tr("Graphics Toggles"),
+                                          HotkeyManagerEmu::GetHotkeyGroup(HKGP_GRAPHICS_TOGGLES)),
+                           0, 1);
+  m_main_layout->addWidget(
+      CreateGroupBox(tr("Internal Resolution"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_IR)), 1, 1);
 
   setLayout(m_main_layout);
 }

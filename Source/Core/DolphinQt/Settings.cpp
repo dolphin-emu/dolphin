@@ -7,7 +7,6 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
-#include <QSettings>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -19,6 +18,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/IOS/IOS.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
@@ -217,13 +217,13 @@ void Settings::SetKeepWindowOnTop(bool top)
   if (IsKeepWindowOnTopEnabled() == top)
     return;
 
-  SConfig::GetInstance().bKeepWindowOnTop = top;
+  Config::SetBaseOrCurrent(Config::MAIN_KEEP_WINDOW_ON_TOP, top);
   emit KeepWindowOnTopChanged(top);
 }
 
 bool Settings::IsKeepWindowOnTopEnabled() const
 {
-  return SConfig::GetInstance().bKeepWindowOnTop;
+  return Config::Get(Config::MAIN_KEEP_WINDOW_ON_TOP);
 }
 
 int Settings::GetVolume() const
@@ -526,6 +526,24 @@ bool Settings::IsBatchModeEnabled() const
 void Settings::SetBatchModeEnabled(bool batch)
 {
   m_batch = batch;
+}
+
+bool Settings::IsSDCardInserted() const
+{
+  return SConfig::GetInstance().m_WiiSDCard;
+}
+
+void Settings::SetSDCardInserted(bool inserted)
+{
+  if (IsSDCardInserted() != inserted)
+  {
+    SConfig::GetInstance().m_WiiSDCard = inserted;
+    emit SDCardInsertionChanged(inserted);
+
+    auto* ios = IOS::HLE::GetIOS();
+    if (ios)
+      ios->SDIO_EventNotify();
+  }
 }
 
 bool Settings::IsUSBKeyboardConnected() const

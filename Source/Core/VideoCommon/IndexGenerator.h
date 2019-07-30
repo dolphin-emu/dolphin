@@ -12,22 +12,24 @@
 class IndexGenerator
 {
 public:
-  // Init
-  static void Init();
   static void Start(u16* Indexptr);
 
   static void AddIndices(int primitive, u32 numVertices);
 
+  static void AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices);
+
   // returns numprimitives
   static u32 GetNumVerts() { return base_index; }
   static u32 GetIndexLen() { return (u32)(index_buffer_current - BASEIptr); }
-  static u32 GetRemainingIndices();
+  static u32 GetRemainingIndices() { return 65535 - base_index; }
 
 private:
   // Triangles
   static u16* AddList(u16* Iptr, u32 numVerts, u32 index);
   static u16* AddStrip(u16* Iptr, u32 numVerts, u32 index);
   static u16* AddFan(u16* Iptr, u32 numVerts, u32 index);
+
+  // Quads
   static u16* AddQuads(u16* Iptr, u32 numVerts, u32 index);
   static u16* AddQuads_nonstandard(u16* Iptr, u32 numVerts, u32 index);
 

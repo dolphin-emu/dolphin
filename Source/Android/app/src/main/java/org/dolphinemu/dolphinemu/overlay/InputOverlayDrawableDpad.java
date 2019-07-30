@@ -6,76 +6,49 @@
 
 package org.dolphinemu.dolphinemu.overlay;
 
-import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
-import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
-/**
- * Custom {@link BitmapDrawable} that is capable
- * of storing it's own ID.
- */
 public final class InputOverlayDrawableDpad
 {
   // The ID identifying what type of button this Drawable represents.
-  private int[] mButtonType = new int[4];
+  private int[] mButtonIds = new int[4];
   private boolean[] mPressStates = new boolean[4];
-  private int mTrackId;
+  private int mPointerId;
   private int mPreviousTouchX, mPreviousTouchY;
   private int mControlPositionX, mControlPositionY;
-  private int mWidth;
-  private int mHeight;
   private BitmapDrawable mDefaultStateBitmap;
   private BitmapDrawable mPressedOneDirectionStateBitmap;
   private BitmapDrawable mPressedTwoDirectionsStateBitmap;
 
-  /**
-   * Constructor
-   *
-   * @param res                             {@link Resources} instance.
-   * @param defaultStateBitmap              {@link Bitmap} of the default state.
-   * @param pressedOneDirectionStateBitmap  {@link Bitmap} of the pressed state in one direction.
-   * @param pressedTwoDirectionsStateBitmap {@link Bitmap} of the pressed state in two direction.
-   * @param buttonUp                        Identifier for the up button.
-   * @param buttonDown                      Identifier for the down button.
-   * @param buttonLeft                      Identifier for the left button.
-   * @param buttonRight                     Identifier for the right button.
-   */
-  public InputOverlayDrawableDpad(Resources res,
-    Bitmap defaultStateBitmap,
-    Bitmap pressedOneDirectionStateBitmap,
-    Bitmap pressedTwoDirectionsStateBitmap,
-    int buttonUp, int buttonDown,
-    int buttonLeft, int buttonRight)
+  public InputOverlayDrawableDpad(BitmapDrawable defaultBitmap, BitmapDrawable onePressedBitmap,
+                                  BitmapDrawable twoPressedBitmap,
+                                  int buttonUp, int buttonDown, int buttonLeft, int buttonRight)
   {
-    mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
-    mPressedOneDirectionStateBitmap = new BitmapDrawable(res, pressedOneDirectionStateBitmap);
-    mPressedTwoDirectionsStateBitmap = new BitmapDrawable(res, pressedTwoDirectionsStateBitmap);
+    mPointerId = -1;
+    mDefaultStateBitmap = defaultBitmap;
+    mPressedOneDirectionStateBitmap = onePressedBitmap;
+    mPressedTwoDirectionsStateBitmap = twoPressedBitmap;
 
-    mWidth = mDefaultStateBitmap.getIntrinsicWidth();
-    mHeight = mDefaultStateBitmap.getIntrinsicHeight();
-
-    mButtonType[0] = buttonUp;
-    mButtonType[1] = buttonDown;
-    mButtonType[2] = buttonLeft;
-    mButtonType[3] = buttonRight;
+    mButtonIds[0] = buttonUp;
+    mButtonIds[1] = buttonDown;
+    mButtonIds[2] = buttonLeft;
+    mButtonIds[3] = buttonRight;
 
     mPressStates[0] = false;
     mPressStates[1] = false;
     mPressStates[2] = false;
     mPressStates[3] = false;
-
-    mTrackId = -1;
   }
 
   public void onDraw(Canvas canvas)
   {
-    int px = mControlPositionX + (mWidth / 2);
-    int py = mControlPositionY + (mHeight / 2);
+    Rect bounds = getBounds();
+    int px = mControlPositionX + (bounds.width() / 2);
+    int py = mControlPositionY + (bounds.height() / 2);
 
     boolean up = mPressStates[0];
     boolean down = mPressStates[1];
@@ -140,48 +113,36 @@ public final class InputOverlayDrawableDpad
     }
   }
 
-  /**
-   * Gets one of the InputOverlayDrawableDpad's button IDs.
-   *
-   * @return the requested InputOverlayDrawableDpad's button ID.
-   */
-  public int getId(int direction)
+  public int getButtonId(int direction)
   {
-    return mButtonType[direction];
+    return mButtonIds[direction];
   }
 
-  public int getTrackId()
+  public int getPointerId()
   {
-    return mTrackId;
+    return mPointerId;
   }
 
-  public boolean onConfigureTouch(MotionEvent event)
+  public void onConfigureBegin(int x, int y)
   {
-    int pointerIndex = event.getActionIndex();
-    int fingerPositionX = (int) event.getX(pointerIndex);
-    int fingerPositionY = (int) event.getY(pointerIndex);
-    switch (event.getAction())
-    {
-      case MotionEvent.ACTION_DOWN:
-        mPreviousTouchX = fingerPositionX;
-        mPreviousTouchY = fingerPositionY;
-        break;
-      case MotionEvent.ACTION_MOVE:
-        mControlPositionX += fingerPositionX - mPreviousTouchX;
-        mControlPositionY += fingerPositionY - mPreviousTouchY;
-        setBounds(mControlPositionX, mControlPositionY, mWidth + mControlPositionX,
-          mHeight + mControlPositionY);
-        mPreviousTouchX = fingerPositionX;
-        mPreviousTouchY = fingerPositionY;
-        break;
+    mPreviousTouchX = x;
+    mPreviousTouchY = y;
+  }
 
-    }
-    return true;
+  public void onConfigureMove(int x, int y)
+  {
+    Rect bounds = getBounds();
+    mControlPositionX += x - mPreviousTouchX;
+    mControlPositionY += y - mPreviousTouchY;
+    setBounds(new Rect(mControlPositionX, mControlPositionY,
+      mControlPositionX + bounds.width(), mControlPositionY + bounds.height()));
+    mPreviousTouchX = x;
+    mPreviousTouchY = y;
   }
 
   public void onPointerDown(int id, float x, float y)
   {
-    mTrackId = id;
+    mPointerId = id;
     setDpadState((int)x, (int)y);
   }
 
@@ -192,7 +153,7 @@ public final class InputOverlayDrawableDpad
 
   public void onPointerUp(int id, float x, float y)
   {
-    mTrackId = -1;
+    mPointerId = -1;
     setDpadState((int)x, (int)y);
   }
 
@@ -202,26 +163,21 @@ public final class InputOverlayDrawableDpad
     mControlPositionY = y;
   }
 
-  public int getWidth()
-  {
-    return mWidth;
-  }
-
-  public int getHeight()
-  {
-    return mHeight;
-  }
-
   public Rect getBounds()
   {
     return mDefaultStateBitmap.getBounds();
   }
 
-  public void setBounds(int left, int top, int right, int bottom)
+  public void setBounds(Rect bounds)
   {
-    mDefaultStateBitmap.setBounds(left, top, right, bottom);
-    mPressedOneDirectionStateBitmap.setBounds(left, top, right, bottom);
-    mPressedTwoDirectionsStateBitmap.setBounds(left, top, right, bottom);
+    mDefaultStateBitmap.setBounds(bounds);
+    mPressedOneDirectionStateBitmap.setBounds(bounds);
+    mPressedTwoDirectionsStateBitmap.setBounds(bounds);
+  }
+
+  public void setAlpha(int value)
+  {
+    mDefaultStateBitmap.setAlpha(value);
   }
 
   private void setDpadState(int pointerX, int pointerY)
@@ -229,17 +185,17 @@ public final class InputOverlayDrawableDpad
     // Up, Down, Left, Right
     boolean[] pressed = {false, false, false, false};
 
-    if(mTrackId != -1)
+    if(mPointerId != -1)
     {
-      Rect bounds = mDefaultStateBitmap.getBounds();
+      Rect bounds = getBounds();
 
-      if (bounds.top + (mHeight / 3) > pointerY)
+      if (bounds.top + (bounds.height() / 3) > pointerY)
         pressed[0] = true;
-      if (bounds.bottom - (mHeight / 3) < pointerY)
+      else if (bounds.bottom - (bounds.height() / 3) < pointerY)
         pressed[1] = true;
-      if (bounds.left + (mWidth / 3) > pointerX)
+      if (bounds.left + (bounds.width() / 3) > pointerX)
         pressed[2] = true;
-      if (bounds.right - (mWidth / 3) < pointerX)
+      else if (bounds.right - (bounds.width() / 3) < pointerX)
         pressed[3] = true;
     }
 
@@ -248,7 +204,7 @@ public final class InputOverlayDrawableDpad
       if(pressed[i] != mPressStates[i])
       {
         NativeLibrary
-          .onGamePadEvent(NativeLibrary.TouchScreenDevice, mButtonType[i],
+          .onGamePadEvent(NativeLibrary.TouchScreenDevice, mButtonIds[i],
             pressed[i] ? NativeLibrary.ButtonState.PRESSED : NativeLibrary.ButtonState.RELEASED);
       }
     }

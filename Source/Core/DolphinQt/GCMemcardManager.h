@@ -17,6 +17,7 @@ class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
+class QPixmap;
 class QPushButton;
 class QTableWidget;
 class QTimer;

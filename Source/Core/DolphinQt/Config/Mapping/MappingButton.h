@@ -11,7 +11,6 @@ class ControlReference;
 class MappingWidget;
 class QEvent;
 class QMouseEvent;
-class QTimer;
 
 class MappingButton : public ElidedButton
 {
@@ -19,21 +18,17 @@ class MappingButton : public ElidedButton
 public:
   MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator);
 
-  void Clear();
-  void Update();
   void Detect();
   bool IsInput() const;
 
-signals:
+private:
+  void Clear();
+  void UpdateIndicator();
+  void ConfigChanged();
   void AdvancedPressed();
 
-private:
   void mouseReleaseEvent(QMouseEvent* event) override;
-
-  void OnButtonTimeout();
-  void Connect();
 
   MappingWidget* m_parent;
   ControlReference* m_reference;
-  QTimer* m_timer;
 };

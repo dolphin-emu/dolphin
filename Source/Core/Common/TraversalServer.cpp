@@ -3,13 +3,13 @@
 // The central server implementation.
 #include <arpa/inet.h>
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <unordered_map>
@@ -112,7 +112,7 @@ struct hash<TraversalHostId>
     return p[0] ^ ((p[1] << 13) | (p[1] >> 19));
   }
 };
-}
+}  // namespace std
 
 static int sock;
 static std::unordered_map<TraversalRequestId, OutgoingPacketInfo> outgoingPackets;
@@ -411,12 +411,9 @@ int main()
     // note: switch to recvmmsg (yes, mmsg) if this becomes
     // expensive
     rv = recvfrom(sock, &packet, sizeof(packet), 0, (sockaddr*)&raddr, &addrLen);
-    if (gettimeofday(&tv, nullptr) < 0)
-    {
-      perror("gettimeofday");
-      exit(1);
-    }
-    currentTime = (u64)tv.tv_sec * 1000000 + tv.tv_usec;
+    currentTime = std::chrono::duration_cast<std::chrono::microseconds>(
+                      std::chrono::system_clock::now().time_since_epoch())
+                      .count();
     if (rv < 0)
     {
       if (errno != EINTR && errno != EAGAIN)

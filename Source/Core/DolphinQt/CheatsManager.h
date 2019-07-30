@@ -4,11 +4,11 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
 #include <QDialog>
-#include <QString>
 
 #include "Common/CommonTypes.h"
 
@@ -49,7 +49,7 @@ private:
   void OnStateChanged(Core::State state);
 
   size_t GetTypeSize() const;
-  bool MatchesSearch(u32 addr) const;
+  std::function<bool(u32)> CreateMatchFunction();
 
   void Reset();
   void NewSearch();

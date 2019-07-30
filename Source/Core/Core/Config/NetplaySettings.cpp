@@ -19,6 +19,15 @@ const ConfigInfo<std::string> NETPLAY_TRAVERSAL_SERVER{{System::Main, "NetPlay",
 const ConfigInfo<u16> NETPLAY_TRAVERSAL_PORT{{System::Main, "NetPlay", "TraversalPort"}, 6262};
 const ConfigInfo<std::string> NETPLAY_TRAVERSAL_CHOICE{{System::Main, "NetPlay", "TraversalChoice"},
                                                        "direct"};
+const ConfigInfo<std::string> NETPLAY_INDEX_URL{{System::Main, "NetPlay", "IndexServer"},
+                                                "https://lobby.dolphin-emu.org"};
+
+const ConfigInfo<bool> NETPLAY_USE_INDEX{{System::Main, "NetPlay", "UseIndex"}, false};
+const ConfigInfo<std::string> NETPLAY_INDEX_NAME{{System::Main, "NetPlay", "IndexName"}, ""};
+const ConfigInfo<std::string> NETPLAY_INDEX_REGION{{System::Main, "NetPlay", "IndexRegion"}, ""};
+const ConfigInfo<std::string> NETPLAY_INDEX_PASSWORD{{System::Main, "NetPlay", "IndexPassword"},
+                                                     ""};
+
 const ConfigInfo<std::string> NETPLAY_HOST_CODE{{System::Main, "NetPlay", "HostCode"}, "00000000"};
 
 const ConfigInfo<u16> NETPLAY_HOST_PORT{{System::Main, "NetPlay", "HostPort"}, DEFAULT_LISTEN_PORT};
@@ -33,6 +42,11 @@ const ConfigInfo<bool> NETPLAY_USE_UPNP{{System::Main, "NetPlay", "UseUPNP"}, fa
 
 const ConfigInfo<bool> NETPLAY_ENABLE_QOS{{System::Main, "NetPlay", "EnableQoS"}, true};
 
+const ConfigInfo<bool> NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT{
+    {System::Main, "NetPlay", "EnableChunkedUploadLimit"}, false};
+const ConfigInfo<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT{{System::Main, "NetPlay", "ChunkedUploadLimit"},
+                                                   3000};
+
 const ConfigInfo<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 5};
 const ConfigInfo<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 1};
 
@@ -46,7 +60,11 @@ const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE{{System::Main, "NetPlay", "Re
                                                    false};
 const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
                                                     false};
-const ConfigInfo<bool> NETPLAY_HOST_INPUT_AUTHORITY{{System::Main, "NetPlay", "HostInputAuthority"},
-                                                    false};
+const ConfigInfo<std::string> NETPLAY_NETWORK_MODE{{System::Main, "NetPlay", "NetworkMode"},
+                                                   "fixeddelay"};
+const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES{{System::Main, "NetPlay", "SyncAllWiiSaves"},
+                                                  false};
+const ConfigInfo<bool> NETPLAY_GOLF_MODE_OVERLAY{{System::Main, "NetPlay", "GolfModeOverlay"},
+                                                 true};
 
 }  // namespace Config

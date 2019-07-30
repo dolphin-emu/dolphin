@@ -25,4 +25,4 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size,
                      const std::string& title);
 void AddAutoBreakpoints();
 
-}  // end of namespace Debugger
+}  // namespace Dolphin_Debugger

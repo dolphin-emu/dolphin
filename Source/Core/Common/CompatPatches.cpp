@@ -8,6 +8,8 @@
 #include <vector>
 #include <winternl.h>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/LdrWatcher.h"
 #include "Common/StringUtil.h"
@@ -213,41 +215,41 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       auto patcher = ImportPatcher(event.base_address);
                       patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
                     }});
-  watcher->Install({{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
-                      // ucrtbase implements caching between fseek/fread, old versions have a bug
-                      // such that some reads return incorrect data. This causes noticable bugs
-                      // in dolphin since we use these APIs for reading game images.
-                      Version version;
-                      if (!GetModuleVersion(event.name.c_str(), &version))
-                        return;
-                      const u16 fixed_build = 10548;
-                      if (version.build >= fixed_build)
-                        return;
-                      const UcrtPatchInfo patches[] = {
-                          // 10.0.10240.16384 (th1.150709-1700)
-                          {0xF61ED, 0x6AE7B, 5},
-                          // 10.0.10240.16390 (th1_st1.150714-1601)
-                          {0xF5ED9, 0x6AE7B, 5},
-                          // 10.0.10137.0 (th1.150602-2238)
-                          {0xF8B5E, 0x63ED6, 2},
-                      };
-                      for (const auto& patch : patches)
-                      {
-                        if (ApplyUcrtPatch(event.name.c_str(), patch))
-                          return;
-                      }
-                      // If we reach here, the version is buggy (afaik) and patching failed
-                      auto msg = StringFromFormat(
-                          "You are running %S version %d.%d.%d.%d.\n"
-                          "An important fix affecting Dolphin was introduced in build %d.\n"
-                          "You can use Dolphin, but there will be known bugs.\n"
-                          "Please update this file by installing the latest Universal C Runtime.\n",
-                          event.name.c_str(), version.major, version.minor, version.build,
-                          version.qfe, fixed_build);
-                      // Use MessageBox for maximal user annoyance
-                      MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION",
-                                  MB_ICONEXCLAMATION);
-                    }});
+  watcher->Install(
+      {{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
+         // ucrtbase implements caching between fseek/fread, old versions have a bug
+         // such that some reads return incorrect data. This causes noticable bugs
+         // in dolphin since we use these APIs for reading game images.
+         Version version;
+         if (!GetModuleVersion(event.name.c_str(), &version))
+           return;
+         const u16 fixed_build = 10548;
+         if (version.build >= fixed_build)
+           return;
+         const UcrtPatchInfo patches[] = {
+             // 10.0.10240.16384 (th1.150709-1700)
+             {0xF61ED, 0x6AE7B, 5},
+             // 10.0.10240.16390 (th1_st1.150714-1601)
+             {0xF5ED9, 0x6AE7B, 5},
+             // 10.0.10137.0 (th1.150602-2238)
+             {0xF8B5E, 0x63ED6, 2},
+         };
+         for (const auto& patch : patches)
+         {
+           if (ApplyUcrtPatch(event.name.c_str(), patch))
+             return;
+         }
+         // If we reach here, the version is buggy (afaik) and patching failed
+         const auto msg =
+             fmt::format("You are running {} version {}.{}.{}.{}.\n"
+                         "An important fix affecting Dolphin was introduced in build {}.\n"
+                         "You can use Dolphin, but there will be known bugs.\n"
+                         "Please update this file by installing the latest Universal C Runtime.\n",
+                         UTF16ToUTF8(event.name), version.major, version.minor, version.build,
+                         version.qfe, fixed_build);
+         // Use MessageBox for maximal user annoyance
+         MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
+       }});
 }
 
 int __cdecl EnableCompatPatches()

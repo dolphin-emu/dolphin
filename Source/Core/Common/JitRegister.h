@@ -30,4 +30,4 @@ inline void Register(const void* start, const void* end, const char* format, ...
   RegisterV(start, code_size, format, args);
   va_end(args);
 }
-}
+}  // namespace JitRegister

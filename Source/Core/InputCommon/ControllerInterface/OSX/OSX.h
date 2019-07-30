@@ -4,14 +4,11 @@
 
 #pragma once
 
-namespace ciface
-{
-namespace OSX
+namespace ciface::OSX
 {
 void Init(void* window);
 void PopulateDevices(void* window);
 void DeInit();
 
 void DeviceElementDebugPrint(const void*, void*);
-}
-}
+}  // namespace ciface::OSX

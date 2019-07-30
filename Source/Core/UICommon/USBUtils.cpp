@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/LibusbUtils.h"
 #include "UICommon/USBUtils.h"
 
 // Because opening and getting the device name from devices is slow, especially on Windows
@@ -34,21 +35,17 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
   std::map<std::pair<u16, u16>, std::string> devices;
 
 #ifdef __LIBUSB__
-  libusb_context* context = nullptr;
-  if (libusb_init(&context) < 0)
+  LibusbUtils::Context context;
+  if (!context.IsValid())
     return devices;
 
-  libusb_device** list;
-  const ssize_t cnt = libusb_get_device_list(context, &list);
-  for (ssize_t i = 0; i < cnt; ++i)
-  {
+  context.GetDeviceList([&](libusb_device* device) {
     libusb_device_descriptor descr;
-    libusb_get_device_descriptor(list[i], &descr);
+    libusb_get_device_descriptor(device, &descr);
     const std::pair<u16, u16> vid_pid{descr.idVendor, descr.idProduct};
     devices[vid_pid] = GetDeviceName(vid_pid);
-  }
-  libusb_free_device_list(list, 1);
-  libusb_exit(context);
+    return true;
+  });
 #endif
 
   return devices;

@@ -9,65 +9,93 @@
 #include <jni.h>
 
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
-
 static JavaVM* s_java_vm;
-
-static jclass s_native_library_class;
-static jmethodID s_display_alert_msg;
-static jmethodID s_rumble_output_method;
-
-static jclass s_game_file_class;
-static jfieldID s_game_file_pointer;
-static jmethodID s_game_file_constructor;
-
-static jclass s_game_file_cache_class;
-static jfieldID s_game_file_cache_pointer;
 
 namespace IDCache
 {
-JavaVM* GetJavaVM()
+NativeLibrary sNativeLibrary;
+IniFile sIniFile;
+GameFile sGameFile;
+WiimoteAdapter sWiimoteAdapter;
+
+void NativeLibrary::OnLoad(JNIEnv* env)
 {
-  return s_java_vm;
+  jclass clazz = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
+  Clazz = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
+  DisplayAlertMsg = env->GetStaticMethodID(Clazz, "displayAlertMsg",
+                                           "(Ljava/lang/String;Ljava/lang/String;Z)Z");
+  RumbleOutputMethod = env->GetStaticMethodID(Clazz, "rumble", "(ID)V");
+  UpdateWindowSize = env->GetStaticMethodID(Clazz, "updateWindowSize", "(II)V");
+  BindSystemBack = env->GetStaticMethodID(Clazz, "bindSystemBack", "(Ljava/lang/String;)V");
+  GetEmulationContext = env->GetStaticMethodID(Clazz, "getEmulationContext", "()Landroid/content/Context;");
 }
 
-jclass GetNativeLibraryClass()
+void NativeLibrary::OnUnload(JNIEnv* env)
 {
-  return s_native_library_class;
+  env->DeleteGlobalRef(Clazz);
+  Clazz = nullptr;
 }
 
-jmethodID GetDisplayAlertMsg()
+void IniFile::OnLoad(JNIEnv* env)
 {
-  return s_display_alert_msg;
+  jclass clazz = env->FindClass("org/dolphinemu/dolphinemu/model/IniFile");
+  Clazz = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
+  Pointer = env->GetFieldID(Clazz, "mPointer", "J");
 }
 
-jmethodID GetRumbleOutputMethod()
+void IniFile::OnUnload(JNIEnv* env)
 {
-  return s_rumble_output_method;
+  env->DeleteGlobalRef(Clazz);
+  Clazz = nullptr;
 }
 
-jclass GetGameFileClass()
+void GameFile::OnLoad(JNIEnv* env)
 {
-  return s_game_file_class;
+  jclass clazz = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");
+  Clazz = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
+  Pointer = env->GetFieldID(Clazz, "mPointer", "J");
+  Constructor = env->GetMethodID(Clazz, "<init>", "(J)V");
 }
 
-jfieldID GetGameFilePointer()
+void GameFile::OnUnload(JNIEnv* env)
 {
-  return s_game_file_pointer;
+  env->DeleteGlobalRef(Clazz);
+  Clazz = nullptr;
 }
 
-jmethodID GetGameFileConstructor()
+void WiimoteAdapter::OnLoad(JNIEnv* env)
 {
-  return s_game_file_constructor;
+  jclass clazz = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_WiimoteAdapter");
+  Clazz = reinterpret_cast<jclass>(env->NewGlobalRef(clazz));
 }
 
-jclass GetGameFileCacheClass()
+void WiimoteAdapter::OnUnload(JNIEnv* env)
 {
-  return s_game_file_cache_class;
+  env->DeleteGlobalRef(Clazz);
+  Clazz = nullptr;
 }
 
-jfieldID GetGameFileCachePointer()
+JNIEnv* GetEnvForThread()
 {
-  return s_game_file_cache_pointer;
+  thread_local static struct OwnedEnv
+  {
+    OwnedEnv()
+    {
+      status = s_java_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+      if (status == JNI_EDETACHED)
+        s_java_vm->AttachCurrentThread(&env, nullptr);
+    }
+
+    ~OwnedEnv()
+    {
+      if (status == JNI_EDETACHED)
+        s_java_vm->DetachCurrentThread();
+    }
+
+    int status;
+    JNIEnv* env = nullptr;
+  } owned;
+  return owned.env;
 }
 
 }  // namespace IDCache
@@ -84,23 +112,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
     return JNI_ERR;
 
-  const jclass native_library_class = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
-  s_native_library_class = reinterpret_cast<jclass>(env->NewGlobalRef(native_library_class));
-  s_display_alert_msg = env->GetStaticMethodID(s_native_library_class, "displayAlertMsg",
-                                               "(Ljava/lang/String;Ljava/lang/String;Z)Z");
-  s_rumble_output_method = env->GetStaticMethodID(s_native_library_class, "rumble", "(ID)V");
-
-  const jclass game_file_class = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");
-  s_game_file_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_class));
-  s_game_file_pointer = env->GetFieldID(game_file_class, "mPointer", "J");
-  s_game_file_constructor = env->GetMethodID(game_file_class, "<init>", "(J)V");
-
-  const jclass game_file_cache_class =
-      env->FindClass("org/dolphinemu/dolphinemu/model/GameFileCache");
-  s_game_file_cache_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_cache_class));
-  s_game_file_cache_pointer = env->GetFieldID(game_file_cache_class, "mPointer", "J");
-
-  WiimoteReal::InitAdapterClass();
+  IDCache::sNativeLibrary.OnLoad(env);
+  IDCache::sIniFile.OnLoad(env);
+  IDCache::sGameFile.OnLoad(env);
+  IDCache::sWiimoteAdapter.OnLoad(env);
 
   return JNI_VERSION;
 }
@@ -113,9 +128,10 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
 
   UICommon::Shutdown();
 
-  env->DeleteGlobalRef(s_native_library_class);
-  env->DeleteGlobalRef(s_game_file_class);
-  env->DeleteGlobalRef(s_game_file_cache_class);
+  IDCache::sNativeLibrary.OnUnload(env);
+  IDCache::sIniFile.OnUnload(env);
+  IDCache::sGameFile.OnUnload(env);
+  IDCache::sWiimoteAdapter.OnUnload(env);
 }
 
 #ifdef __cplusplus

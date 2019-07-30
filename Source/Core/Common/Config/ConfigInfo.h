@@ -50,4 +50,4 @@ struct ConfigInfo
   ConfigLocation location;
   T default_value;
 };
-}
+}  // namespace Config

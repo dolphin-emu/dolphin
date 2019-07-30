@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <QAction>
-#include <QLineEdit>
 #include <QToolBar>
+
+class QAction;
 
 namespace Core
 {

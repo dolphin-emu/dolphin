@@ -8,6 +8,7 @@
 
 #include <array>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -27,11 +28,11 @@ public:
   SettingsHandler();
   explicit SettingsHandler(Buffer&& buffer);
 
-  void AddSetting(const std::string& key, const std::string& value);
+  void AddSetting(std::string_view key, std::string_view value);
 
   const Buffer& GetBytes() const;
   void SetBytes(Buffer&& buffer);
-  std::string GetValue(const std::string& key) const;
+  std::string GetValue(std::string_view key) const;
 
   void Decrypt();
   void Reset();

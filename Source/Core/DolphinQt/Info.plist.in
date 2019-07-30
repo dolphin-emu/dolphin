@@ -13,6 +13,7 @@
                 <string>gcm</string>
                 <string>gcz</string>
                 <string>iso</string>
+                <string>m3u</string>
                 <string>tgc</string>
                 <string>wad</string>
                 <string>wbfs</string>
@@ -48,6 +49,8 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>CSResourcesFileMapped</key>
+    <true/>
+    <key>NSRequiresAquaSystemAppearance</key>
     <true/>
 </dict>
 </plist>

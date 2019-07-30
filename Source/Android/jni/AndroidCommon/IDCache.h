@@ -8,17 +8,52 @@
 
 namespace IDCache
 {
-JavaVM* GetJavaVM();
 
-jclass GetNativeLibraryClass();
-jmethodID GetDisplayAlertMsg();
-jmethodID GetRumbleOutputMethod();
+struct NativeLibrary
+{
+  void OnLoad(JNIEnv* env);
+  void OnUnload(JNIEnv* env);
 
-jclass GetGameFileClass();
-jfieldID GetGameFilePointer();
-jmethodID GetGameFileConstructor();
+  jclass Clazz;
+  jmethodID DisplayAlertMsg;
+  jmethodID RumbleOutputMethod;
+  jmethodID UpdateWindowSize;
+  jmethodID BindSystemBack;
+  jmethodID GetEmulationContext;
+};
 
-jclass GetGameFileCacheClass();
-jfieldID GetGameFileCachePointer();
+struct IniFile
+{
+    void OnLoad(JNIEnv* env);
+    void OnUnload(JNIEnv* env);
+
+    jclass Clazz;
+    jfieldID Pointer;
+};
+
+struct GameFile
+{
+  void OnLoad(JNIEnv* env);
+  void OnUnload(JNIEnv* env);
+
+  jclass Clazz;
+  jfieldID Pointer;
+  jmethodID Constructor;
+};
+
+struct WiimoteAdapter
+{
+  void OnLoad(JNIEnv* env);
+  void OnUnload(JNIEnv* env);
+
+  jclass Clazz;
+};
+
+JNIEnv* GetEnvForThread();
+
+extern NativeLibrary sNativeLibrary;
+extern IniFile sIniFile;
+extern GameFile sGameFile;
+extern WiimoteAdapter sWiimoteAdapter;
 
 }  // namespace IDCache

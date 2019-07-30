@@ -708,12 +708,9 @@ struct FogParams
 
   union FogColor
   {
-    struct
-    {
-      u8 b;
-      u8 g;
-      u8 r;
-    };
+    BitField<0, 8, u32> b;
+    BitField<8, 8, u32> g;
+    BitField<16, 8, u32> r;
     u32 hex;
   };
 
@@ -891,14 +888,11 @@ union AlphaTest
     XNOR = 3
   };
 
-  struct
-  {
-    u32 ref0:8;
-    u32 ref1:8;
-    CompareMode comp0:3;
-    CompareMode comp1:3;
-    Op logic:2;
-  };
+  BitField<0, 8, u32> ref0;
+  BitField<8, 8, u32> ref1;
+  BitField<16, 3, CompareMode> comp0;
+  BitField<19, 3, CompareMode> comp1;
+  BitField<22, 2, Op> logic;
 
   u32 hex;
 

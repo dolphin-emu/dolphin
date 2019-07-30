@@ -10,7 +10,7 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.services.USBPermService;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class Java_WiimoteAdapter
 
   private static void RequestPermission()
   {
-    Context context = NativeLibrary.sEmulationActivity.get();
+    Context context = EmulationActivity.get();
     if (context != null)
     {
       HashMap<String, UsbDevice> devices = manager.getDeviceList();

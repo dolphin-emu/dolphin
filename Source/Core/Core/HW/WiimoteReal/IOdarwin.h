@@ -20,7 +20,7 @@ public:
 private:
   bool stopScanning = false;
 };
-}
+}  // namespace WiimoteReal
 
 #else
 #include "Core/HW/WiimoteReal/IODummy.h"

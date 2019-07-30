@@ -12,7 +12,8 @@
 namespace PatchEngine
 {
 struct Patch;
-}
+struct PatchEntry;
+}  // namespace PatchEngine
 
 class QDialogButtonBox;
 class QGroupBox;
@@ -32,7 +33,7 @@ private:
 
   void accept() override;
 
-  QGroupBox* CreateEntry(int index);
+  QGroupBox* CreateEntry(PatchEngine::PatchEntry& entry);
 
   QLineEdit* m_name_edit;
   QWidget* m_entry_widget;
@@ -43,5 +44,4 @@ private:
   std::vector<QLineEdit*> m_edits;
 
   PatchEngine::Patch& m_patch;
-  int m_id = 0;
 };

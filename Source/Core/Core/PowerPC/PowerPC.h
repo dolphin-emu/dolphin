@@ -4,16 +4,17 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
 #include <iosfwd>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/ConditionRegister.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 
@@ -57,6 +58,43 @@ struct TLBEntry
   u8 recent = 0;
 };
 
+struct PairedSingle
+{
+  u64 PS0AsU64() const { return ps0; }
+  u64 PS1AsU64() const { return ps1; }
+
+  u32 PS0AsU32() const { return static_cast<u32>(ps0); }
+  u32 PS1AsU32() const { return static_cast<u32>(ps1); }
+
+  double PS0AsDouble() const;
+  double PS1AsDouble() const;
+
+  void SetPS0(u64 value) { ps0 = value; }
+  void SetPS0(double value);
+
+  void SetPS1(u64 value) { ps1 = value; }
+  void SetPS1(double value);
+
+  void SetBoth(u64 lhs, u64 rhs)
+  {
+    SetPS0(lhs);
+    SetPS1(rhs);
+  }
+  void SetBoth(double lhs, double rhs)
+  {
+    SetPS0(lhs);
+    SetPS1(rhs);
+  }
+
+  void Fill(u64 value) { SetBoth(value, value); }
+  void Fill(double value) { SetBoth(value, value); }
+
+  u64 ps0 = 0;
+  u64 ps1 = 0;
+};
+// Paired single must be standard layout in order for offsetof to work, which is used by the JITs
+static_assert(std::is_standard_layout<PairedSingle>(), "PairedSingle must be standard layout");
+
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
 struct PowerPCState
 {
@@ -65,20 +103,7 @@ struct PowerPCState
   u32 pc;  // program counter
   u32 npc;
 
-  // Optimized CR implementation. Instead of storing CR in its PowerPC format
-  // (4 bit value, SO/EQ/LT/GT), we store instead a 64 bit value for each of
-  // the 8 CR register parts. This 64 bit value follows this format:
-  //   - SO iff. bit 61 is set
-  //   - EQ iff. lower 32 bits == 0
-  //   - GT iff. (s64)cr_val > 0
-  //   - LT iff. bit 62 is set
-  //
-  // This has the interesting property that sign-extending the result of an
-  // operation from 32 to 64 bits results in a 64 bit value that works as a
-  // CR value. Checking each part of CR is also fast, as it is equivalent to
-  // testing one bit or the low 32 bit part of a register. And CR can still
-  // be manipulated bit by bit fairly easily.
-  u64 cr_val[8];
+  ConditionRegister cr;
 
   UReg_MSR msr;      // machine state register
   UReg_FPSCR fpscr;  // floating point flags/status bits
@@ -114,7 +139,7 @@ struct PowerPCState
   // The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
   // but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
   // Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
-  alignas(16) u64 ps[32][2];
+  alignas(16) PairedSingle ps[32];
 
   u32 sr[16];  // Segment registers.
 
@@ -131,6 +156,13 @@ struct PowerPCState
   u32 pagetable_hashmask;
 
   InstructionCache iCache;
+
+  void UpdateCR1()
+  {
+    cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
+  }
+
+  void SetSR(u32 index, u32 value);
 };
 
 #if _M_X86_64
@@ -175,9 +207,6 @@ void CheckExternalExceptions();
 void CheckBreakPoints();
 void RunLoop();
 
-u32 CompactCR();
-void ExpandCR(u32 cr);
-
 u64 ReadFullTimeBaseValue();
 void WriteFullTimeBaseValue(u64 value);
 
@@ -212,88 +241,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define TL PowerPC::ppcState.spr[SPR_TL]
 #define TU PowerPC::ppcState.spr[SPR_TU]
 
-#define rPS0(i) (*(double*)(&PowerPC::ppcState.ps[i][0]))
-#define rPS1(i) (*(double*)(&PowerPC::ppcState.ps[i][1]))
-
-#define riPS0(i) (*(u64*)(&PowerPC::ppcState.ps[i][0]))
-#define riPS1(i) (*(u64*)(&PowerPC::ppcState.ps[i][1]))
-
-enum CRBits
-{
-  CR_SO = 1,
-  CR_EQ = 2,
-  CR_GT = 4,
-  CR_LT = 8,
-
-  CR_SO_BIT = 0,
-  CR_EQ_BIT = 1,
-  CR_GT_BIT = 2,
-  CR_LT_BIT = 3,
-};
-
-// Convert between PPC and internal representation of CR.
-inline u64 PPCCRToInternal(u8 value)
-{
-  u64 cr_val = 0x100000000;
-  cr_val |= (u64) !!(value & CR_SO) << 61;
-  cr_val |= (u64) !(value & CR_EQ);
-  cr_val |= (u64) !(value & CR_GT) << 63;
-  cr_val |= (u64) !!(value & CR_LT) << 62;
-
-  return cr_val;
-}
-
-// convert flags into 64-bit CR values with a lookup table
-extern const std::array<u64, 16> m_crTable;
-
-// Warning: these CR operations are fairly slow since they need to convert from
-// PowerPC format (4 bit) to our internal 64 bit format. See the definition of
-// ppcState.cr_val for more explanations.
-inline void SetCRField(u32 cr_field, u32 value)
-{
-  PowerPC::ppcState.cr_val[cr_field] = m_crTable[value];
-}
-
-inline u32 GetCRField(u32 cr_field)
-{
-  const u64 cr_val = PowerPC::ppcState.cr_val[cr_field];
-  u32 ppc_cr = 0;
-
-  // SO
-  ppc_cr |= !!(cr_val & (1ull << 61));
-  // EQ
-  ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << 1;
-  // GT
-  ppc_cr |= (static_cast<s64>(cr_val) > 0) << 2;
-  // LT
-  ppc_cr |= !!(cr_val & (1ull << 62)) << 3;
-
-  return ppc_cr;
-}
-
-inline u32 GetCRBit(u32 bit)
-{
-  return (GetCRField(bit >> 2) >> (3 - (bit & 3))) & 1;
-}
-
-inline void SetCRBit(u32 bit, u32 value)
-{
-  if (value & 1)
-    SetCRField(bit >> 2, GetCRField(bit >> 2) | (0x8 >> (bit & 3)));
-  else
-    SetCRField(bit >> 2, GetCRField(bit >> 2) & ~(0x8 >> (bit & 3)));
-}
-
-// SetCR and GetCR are fairly slow. Should be avoided if possible.
-inline void SetCR(u32 new_cr)
-{
-  PowerPC::ExpandCR(new_cr);
-}
-
-inline u32 GetCR()
-{
-  return PowerPC::CompactCR();
-}
+#define rPS(i) (PowerPC::ppcState.ps[(i)])
 
 inline void SetCarry(u32 ca)
 {

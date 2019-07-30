@@ -16,16 +16,12 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 
-import java.lang.ref.WeakReference;
-
 /**
  * Class which contains methods that interact
  * with the native side of the Dolphin code.
  */
 public final class NativeLibrary
 {
-  public static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
-
   /**
    * Button type for use in onTouchEvent
    */
@@ -53,6 +49,8 @@ public final class NativeLibrary
     public static final int STICK_C_RIGHT = 19;
     public static final int TRIGGER_L = 20;
     public static final int TRIGGER_R = 21;
+    public static final int TRIGGER_L_ANALOG = 22;
+    public static final int TRIGGER_R_ANALOG = 23;
     public static final int WIIMOTE_BUTTON_A = 100;
     public static final int WIIMOTE_BUTTON_B = 101;
     public static final int WIIMOTE_BUTTON_MINUS = 102;
@@ -69,8 +67,6 @@ public final class NativeLibrary
     public static final int WIIMOTE_IR_DOWN = 113;
     public static final int WIIMOTE_IR_LEFT = 114;
     public static final int WIIMOTE_IR_RIGHT = 115;
-    public static final int WIIMOTE_IR_FORWARD = 116;
-    public static final int WIIMOTE_IR_BACKWARD = 117;
     public static final int WIIMOTE_IR_HIDE = 118;
     public static final int WIIMOTE_SWING = 119;
     public static final int WIIMOTE_SWING_UP = 120;
@@ -88,6 +84,13 @@ public final class NativeLibrary
     public static final int WIIMOTE_SHAKE_X = 132;
     public static final int WIIMOTE_SHAKE_Y = 133;
     public static final int WIIMOTE_SHAKE_Z = 134;
+    public static final int HOTKEYS_SIDEWAYS_TOGGLE = 135;
+    public static final int HOTKEYS_UPRIGHT_TOGGLE = 136;
+    public static final int HOTKEYS_SIDEWAYS_HOLD = 137;
+    public static final int HOTKEYS_UPRIGHT_HOLD = 138;
+    public static final int WIIMOTE_IR_RECENTER = 139;
+    public static final int WIIMOTE_TILT_TOGGLE = 140;
+    // Nunchuk
     public static final int NUNCHUK_BUTTON_C = 200;
     public static final int NUNCHUK_BUTTON_Z = 201;
     public static final int NUNCHUK_STICK = 202;
@@ -111,6 +114,7 @@ public final class NativeLibrary
     public static final int NUNCHUK_SHAKE_X = 220;
     public static final int NUNCHUK_SHAKE_Y = 221;
     public static final int NUNCHUK_SHAKE_Z = 222;
+    // Classic
     public static final int CLASSIC_BUTTON_A = 300;
     public static final int CLASSIC_BUTTON_B = 301;
     public static final int CLASSIC_BUTTON_X = 302;
@@ -201,30 +205,6 @@ public final class NativeLibrary
   }
 
   /**
-   * Sysconf settings
-   */
-  public static final class SYSCONFSetting
-  {
-    // SYSCONF.IPL
-    public static final int SYSCONF_SCREENSAVER = 0;
-    public static final int SYSCONF_LANGUAGE = 1;
-    public static final int SYSCONF_WIDESCREEN = 2;
-    public static final int SYSCONF_PROGRESSIVE_SCAN = 3;
-    public static final int SYSCONF_PAL60 = 4;
-
-    // SYSCONF.BT
-    public static final int SYSCONF_SENSOR_BAR_POSITION = 5;
-    public static final int SYSCONF_SENSOR_BAR_SENSITIVITY = 6;
-    public static final int SYSCONF_SPEAKER_VOLUME = 7;
-    public static final int SYSCONF_WIIMOTE_MOTOR = 8;
-  }
-
-  private NativeLibrary()
-  {
-    // Disallows instantiation.
-  }
-
-  /**
    * Default touchscreen device
    */
   public static final String TouchScreenDevice = "Touchscreen";
@@ -263,26 +243,10 @@ public final class NativeLibrary
 
   public static native void SaveGameIniFile(String gameId);
 
-  public static native String GetUserSetting(String gameID, String Section, String Key);
-
   public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
 
   public static native void SetProfileSetting(String profile, String Section, String Key,
           String Value);
-
-  public static native void InitGameIni(String gameID);
-
-  /**
-   * Gets a value from a key in the given ini-based config file.
-   *
-   * @param configFile The ini-based config file to get the value from.
-   * @param Section    The section key that the actual key is in.
-   * @param Key        The key to get the value from.
-   * @param Default    The value to return in the event the given key doesn't exist.
-   * @return the value stored at the key, or a default value if it doesn't exist.
-   */
-  public static native String GetConfig(String configFile, String Section, String Key,
-    String Default);
 
   /**
    * Sets a value to a key in the given ini config file.
@@ -293,15 +257,6 @@ public final class NativeLibrary
    * @param Value      The string to set the ini key to.
    */
   public static native void SetConfig(String configFile, String Section, String Key, String Value);
-
-  /**
-   * Gets the Dolphin version string.
-   *
-   * @return the Dolphin version string.
-   */
-  public static native String GetVersionString();
-
-  public static native String GetGitRevision();
 
   /**
    * Saves a screen capture of the game
@@ -366,16 +321,6 @@ public final class NativeLibrary
   /**
    * Get sysconf settings
    */
-  public static native int[] getSysconfSettings();
-
-  /**
-   * Set sysconf settings
-   */
-  public static native void setSysconfSettings(int[] settings);
-
-  /**
-   * Get sysconf settings
-   */
   public static native int[] getRunningSettings();
 
   /**
@@ -389,14 +334,9 @@ public final class NativeLibrary
   public static native void setSystemLanguage(String language);
 
   /**
-   * Begins emulation.
-   */
-  public static native void Run(String path);
-
-  /**
    * Begins emulation from the specified savestate.
    */
-  public static native void Run(String path, String savestatePath, boolean deleteSavestate);
+  public static native void Run(String[] path, String savestatePath);
 
   public static native void ChangeDisc(String path);
 
@@ -404,6 +344,8 @@ public final class NativeLibrary
   public static native void SurfaceChanged(Surface surf);
 
   public static native void SurfaceDestroyed();
+
+  public static native void SetScaledDensity(float scaledDensity);
 
   /**
    * Unpauses emulation from a paused state.
@@ -438,14 +380,11 @@ public final class NativeLibrary
   public static native void WriteProfileResults();
 
   /**
-   * Native EGL functions not exposed by Java bindings
-   **/
-  public static native void eglBindAPI(int api);
-
-  /**
    * Provides a way to refresh the connections on Wiimotes
    */
   public static native void RefreshWiimotes();
+
+  public static native void ReloadWiimoteConfig();
 
   private static boolean alertResult = false;
 
@@ -453,7 +392,7 @@ public final class NativeLibrary
     final boolean yesNo)
   {
     Log.error("[NativeLibrary] Alert: " + text);
-    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    final EmulationActivity emulationActivity = EmulationActivity.get();
     boolean result = false;
     if (emulationActivity == null)
     {
@@ -528,20 +467,39 @@ public final class NativeLibrary
     return result;
   }
 
-  public static void setEmulationActivity(EmulationActivity emulationActivity)
-  {
-    sEmulationActivity = new WeakReference<>(emulationActivity);
-  }
-
-  public static void clearEmulationActivity()
-  {
-    sEmulationActivity.clear();
-  }
-
   public static boolean isNetworkConnected(Context context)
   {
     ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     return activeNetwork != null && activeNetwork.isConnected();
   }
+
+  public static void updateWindowSize(int width, int height)
+  {
+    final EmulationActivity emulationActivity = EmulationActivity.get();
+    if (emulationActivity != null)
+    {
+      emulationActivity.runOnUiThread(emulationActivity::updateTouchPointer);
+    }
+  }
+
+  public static void bindSystemBack(String binding)
+  {
+    EmulationActivity.get().bindSystemBack(binding);
+  }
+
+  public static Context getEmulationContext()
+  {
+    return EmulationActivity.get();
+  }
+
+  public static native String DecryptARCode(String codes);
+
+  public static native float GetGameAspectRatio();
+
+  public static native float GetGameDisplayScale();
+
+  public static native void CreateUserDirectories();
+
+  public static native void SetSysDirectory(String path);
 }

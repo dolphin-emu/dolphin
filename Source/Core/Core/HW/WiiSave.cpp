@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstring>
 #include <mbedtls/md5.h>
+#include <mbedtls/sha1.h>
 #include <memory>
 #include <optional>
 #include <string>
@@ -91,7 +92,7 @@ public:
     header.banner[7] &= ~1;
 
     Md5 md5_calc;
-    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     header.md5 = std::move(md5_calc);
     return header;
   }
@@ -143,7 +144,7 @@ public:
       else if (file.type == SaveFile::Type::Directory)
       {
         const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path);
-        if (!meta || meta->is_file)
+        if (meta && meta->is_file)
           return false;
 
         const FS::ResultCode result = m_fs->CreateDirectory(*m_uid, *m_gid, path, 0, modes);
@@ -263,7 +264,7 @@ public:
     Md5 md5_file = header.md5;
     header.md5 = s_md5_blanker;
     Md5 md5_calc;
-    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     if (md5_file != md5_calc)
     {
       ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
@@ -311,17 +312,20 @@ public:
           std::string{file_hdr.name.data(), strnlen(file_hdr.name.data(), file_hdr.name.size())};
       if (type == SaveFile::Type::File)
       {
-        const u32 rounded_size = Common::AlignUp<u32>(file_hdr.size, BLOCK_SZ);
+        const u32 size = file_hdr.size;
+        const u32 rounded_size = Common::AlignUp<u32>(size, BLOCK_SZ);
         const u64 pos = m_file.Tell();
         std::array<u8, 0x10> iv = file_hdr.iv;
 
-        save_file.data = [this, rounded_size, iv, pos]() mutable -> std::optional<std::vector<u8>> {
+        save_file.data = [this, size, rounded_size, iv,
+                          pos]() mutable -> std::optional<std::vector<u8>> {
           std::vector<u8> file_data(rounded_size);
           if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
             return {};
 
           m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
                          file_data.data(), IOS::PID_ES);
+          file_data.resize(size);
           return file_data;
         };
         m_file.Seek(pos + rounded_size, SEEK_SET);
@@ -400,17 +404,21 @@ private:
       return false;
 
     // Read data to sign.
-    const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
-    auto data = std::make_unique<u8[]>(data_size);
-    m_file.Seek(sizeof(Header), SEEK_SET);
-    if (!m_file.ReadBytes(data.get(), data_size))
-      return false;
+    std::array<u8, 20> data_sha1;
+    {
+      const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
+      auto data = std::make_unique<u8[]>(data_size);
+      m_file.Seek(sizeof(Header), SEEK_SET);
+      if (!m_file.ReadBytes(data.get(), data_size))
+        return false;
+      mbedtls_sha1_ret(data.get(), data_size, data_sha1.data());
+    }
 
     // Sign the data.
     IOS::CertECC ap_cert;
     Common::ec::Signature ap_sig;
-    m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU, data.get(),
-                data_size);
+    m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
+                data_sha1.data(), static_cast<u32>(data_sha1.size()));
 
     // Write signatures.
     if (!m_file.Seek(0, SEEK_END))

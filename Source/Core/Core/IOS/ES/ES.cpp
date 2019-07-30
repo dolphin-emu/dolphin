@@ -25,6 +25,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
+#include "DiscIO/Enums.h"
 
 namespace IOS::HLE::Device
 {
@@ -93,7 +94,8 @@ void TitleContext::DoState(PointerWrap& p)
   p.Do(active);
 }
 
-void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
+void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_,
+                          DiscIO::Platform platform)
 {
   if (!tmd_.IsValid() || !ticket_.IsValid())
   {
@@ -108,7 +110,7 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   // Interesting title changes (channel or disc game launch) always happen after an IOS reload.
   if (first_change)
   {
-    SConfig::GetInstance().SetRunningGameMetadata(tmd);
+    SConfig::GetInstance().SetRunningGameMetadata(tmd, platform);
     first_change = false;
   }
 }
@@ -298,7 +300,7 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return LaunchTitle(required_ios);
   }
 
-  m_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);
   INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
@@ -648,7 +650,7 @@ ReturnCode ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketRead
   if (tmd.GetTitleId() != ticket.GetTitleId())
     return ES_EINVAL;
 
-  m_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiDisc);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // XXX: We are supposed to verify the TMD and ticket here, but cannot because
@@ -767,11 +769,10 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
     return ret;
 
   const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
-  if (index > 1)
+  if (index >= IOSC::COMMON_KEY_HANDLES.size())
     return ES_INVALID_TICKET;
 
-  auto common_key_handle = index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY;
-  return m_ios.GetIOSC().ImportSecretKey(*handle, common_key_handle, iv.data(),
+  return m_ios.GetIOSC().ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
                                          &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)],
                                          PID_ES);
 }

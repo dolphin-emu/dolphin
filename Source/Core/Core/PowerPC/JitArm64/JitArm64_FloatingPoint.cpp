@@ -252,6 +252,12 @@ void JitArm64::frspx(UGeckoInstruction inst)
   }
 }
 
+// fcmpo, Floating Compare Ordered
+// An ordered comparison checks if neither operand is NaN.
+//
+// fcmpu, Floating Compare Unordered
+// An unordered comparison checks if either operand is a NaN.
+//
 void JitArm64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -262,6 +268,10 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   int crf = inst.CRFD;
 
   bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true);
+
+  // fcmpo, temp fx for SD Gundam
+  FALLBACK_IF(a != b && inst.SUBOP10 == 32);
+
   RegType type = singles ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
   ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToSingle : EncodeRegToDouble;
 
@@ -293,7 +303,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   SetJumpTarget(pNaN);
 
-  MOVI2R(XA, PowerPC::PPCCRToInternal(PowerPC::CR_SO));
+  MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
 
   if (a != b)
   {
@@ -314,6 +324,8 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   SetJumpTarget(continue1);
 }
 
+// fctiw: Floating Convert to Integer Word
+// fctiwz: Floating Convert to Integer Word with Round toward Zero
 void JitArm64::fctiwzx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
@@ -323,6 +335,8 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   u32 b = inst.FB, d = inst.FD;
 
   bool single = fpr.IsSingle(b, true);
+  // temp fix for eternal darkness
+  FALLBACK_IF(!single);
 
   ARM64Reg VB = fpr.R(b, single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR);
   ARM64Reg VD = fpr.RW(d);
@@ -341,6 +355,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   {
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
     m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
+    //m_float_emit.FCVTS(EncodeRegToDouble(VD), EncodeRegToDouble(VB), ROUND_Z);
   }
   m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
   fpr.Unlock(V0);

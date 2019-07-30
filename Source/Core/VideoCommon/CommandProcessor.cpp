@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
@@ -18,6 +19,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace CommandProcessor
 {
@@ -138,12 +140,19 @@ void Init()
   et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
+u32 GetPhysicalAddressMask()
+{
+  // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
+  // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.
+  return SConfig::GetInstance().bWii ? 0x1fffffff : 0x03ffffff;
+}
+
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   constexpr u16 WMASK_NONE = 0x0000;
   constexpr u16 WMASK_ALL = 0xffff;
   constexpr u16 WMASK_LO_ALIGN_32BIT = 0xffe0;
-  const u16 WMASK_HI_RESTRICT = SConfig::GetInstance().bWii ? 0x1fff : 0x03ff;
+  const u16 WMASK_HI_RESTRICT = GetPhysicalAddressMask() >> 16;
 
   struct
   {
@@ -276,15 +285,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](u32, u16 val) {
                    WriteHigh(fifo.CPReadWriteDistance, val & WMASK_HI_RESTRICT);
                    Fifo::SyncGPU(Fifo::SyncGPUReason::Other);
-                   if (fifo.CPReadWriteDistance == 0)
-                   {
-                     GPFifo::ResetGatherPipe();
-                     Fifo::ResetVideoBuffer();
-                   }
-                   else
-                   {
-                     Fifo::ResetVideoBuffer();
-                   }
                    Fifo::RunGpu();
                  }));
   mmio->Register(
@@ -527,40 +527,8 @@ void SetCpClearRegister()
 void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
 {
   // TODO(Omega): Maybe dump FIFO to file on this error
-  PanicAlertT("GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
-              "This means one of the following:\n"
-              "* The emulated GPU got desynced, disabling dual core can help\n"
-              "* Command stream corrupted by some spurious memory bug\n"
-              "* This really is an unknown opcode (unlikely)\n"
-              "* Some other sort of bug\n\n"
-              "Further errors will be sent to the Video Backend log and\n"
-              "Dolphin will now likely crash or hang. Enjoy.",
-              cmd_byte, buffer, preprocess ? "preprocess=true" : "preprocess=false");
-
-  {
-    PanicAlert("Illegal command %02x\n"
-               "CPBase: 0x%08x\n"
-               "CPEnd: 0x%08x\n"
-               "CPHiWatermark: 0x%08x\n"
-               "CPLoWatermark: 0x%08x\n"
-               "CPReadWriteDistance: 0x%08x\n"
-               "CPWritePointer: 0x%08x\n"
-               "CPReadPointer: 0x%08x\n"
-               "CPBreakpoint: 0x%08x\n"
-               "bFF_GPReadEnable: %s\n"
-               "bFF_BPEnable: %s\n"
-               "bFF_BPInt: %s\n"
-               "bFF_Breakpoint: %s\n"
-               "bFF_GPLinkEnable: %s\n"
-               "bFF_HiWatermarkInt: %s\n"
-               "bFF_LoWatermarkInt: %s\n",
-               cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark,
-               fifo.CPReadWriteDistance, fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint,
-               fifo.bFF_GPReadEnable ? "true" : "false", fifo.bFF_BPEnable ? "true" : "false",
-               fifo.bFF_BPInt ? "true" : "false", fifo.bFF_Breakpoint ? "true" : "false",
-               fifo.bFF_GPLinkEnable ? "true" : "false", fifo.bFF_HiWatermarkInt ? "true" : "false",
-               fifo.bFF_LoWatermarkInt ? "true" : "false");
-  }
+  OSD::AddMessage(StringFromFormat("GFX FIFO: Unknown Opcode (0x%02x @ %p, preprocess=%s)",
+                                   cmd_byte, buffer, preprocess ? "true" : "false"), 5000);
 }
 
 }  // end of namespace CommandProcessor

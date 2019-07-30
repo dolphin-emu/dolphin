@@ -27,7 +27,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 14;  // Last changed in PR 7441
+static constexpr u32 CACHE_REVISION = 15;  // Last changed in PR 7816
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -162,6 +162,7 @@ bool GameFileCache::UpdateAdditionalMetadata(
 
 bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file)
 {
+#ifndef ANDROID
   const bool wii_banner_changed = (*game_file)->WiiBannerChanged();
   const bool custom_banner_changed = (*game_file)->CustomBannerChanged();
 
@@ -190,6 +191,9 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   *game_file = std::move(copy);
 
   return true;
+#else
+  return false;
+#endif
 }
 
 bool GameFileCache::Load()
@@ -228,7 +232,7 @@ bool GameFileCache::SyncCacheFile(bool save)
   else
   {
     std::vector<u8> buffer(f.GetSize());
-    if (buffer.size() && f.ReadBytes(buffer.data(), buffer.size()))
+    if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
     {
       u8* ptr = buffer.data();
       PointerWrap p(&ptr, PointerWrap::MODE_READ);
@@ -269,4 +273,4 @@ void GameFileCache::DoState(PointerWrap* p, u64 size)
   });
 }
 
-}  // namespace DiscIO
+}  // namespace UICommon

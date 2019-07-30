@@ -13,6 +13,7 @@
 class QKeyEvent;
 class QMouseEvent;
 class QResizeEvent;
+class QShowEvent;
 
 class CodeViewWidget : public QTableWidget
 {
@@ -30,12 +31,16 @@ public:
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
+  // Set tighter row height. Set BP column sizing. This needs to run when font type changes.
+  void FontBasedSizing();
   void Update();
 
   void ToggleBreakpoint();
   void AddBreakpoint();
+
 signals:
   void RequestPPCComparison(u32 addr);
+  void ShowMemory(u32 address);
   void SymbolsChanged();
   void BreakpointsChanged();
 
@@ -52,11 +57,13 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
   void OnContextMenu();
 
   void OnFollowBranch();
   void OnCopyAddress();
+  void OnShowInMemory();
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();

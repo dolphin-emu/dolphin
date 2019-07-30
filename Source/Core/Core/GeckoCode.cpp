@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Gecko2AR.h"
 
 namespace Gecko
 {
@@ -71,9 +72,10 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
   s_active_codes.clear();
   if (SConfig::GetInstance().bEnableCheats)
   {
-    s_active_codes.reserve(gcodes.size());
-    std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-                 [](const GeckoCode& code) { return code.enabled; });
+    Gecko2AR::SetActiveCodes(gcodes);
+    //s_active_codes.reserve(gcodes.size());
+    //std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
+    //             [](const GeckoCode& code) { return code.enabled; });
   }
   s_active_codes.shrink_to_fit();
 
@@ -268,12 +270,12 @@ void RunCodeHandler()
   PowerPC::HostWrite_U32(SFP, SP + 8);  // Real stack frame
   PowerPC::HostWrite_U32(PC, SP + 12);
   PowerPC::HostWrite_U32(LR, SP + 16);
-  PowerPC::HostWrite_U32(PowerPC::CompactCR(), SP + 20);
+  PowerPC::HostWrite_U32(PowerPC::ppcState.cr.Get(), SP + 20);
   // Registers FPR0->13 are volatile
   for (int i = 0; i < 14; ++i)
   {
-    PowerPC::HostWrite_U64(riPS0(i), SP + 24 + 2 * i * sizeof(u64));
-    PowerPC::HostWrite_U64(riPS1(i), SP + 24 + (2 * i + 1) * sizeof(u64));
+    PowerPC::HostWrite_U64(rPS(i).PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
+    PowerPC::HostWrite_U64(rPS(i).PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
   }
   DEBUG_LOG(ACTIONREPLAY,
             "GeckoCodes: Initiating phantom branch-and-link. "

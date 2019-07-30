@@ -14,7 +14,7 @@ namespace ControllerEmu
 {
 class ControlGroup;
 class Buttons;
-}
+}  // namespace ControllerEmu
 
 enum class KeyboardGroup
 {

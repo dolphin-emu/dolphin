@@ -110,7 +110,7 @@ public:
         FIRFilterMMX();
         ~FIRFilterMMX();
 
-        virtual void setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor);
+        virtual void setCoefficients(const short *coeffs, uint newLength, uint uResultDivFactor);
     };
 
 #endif // SOUNDTOUCH_ALLOW_MMX
@@ -129,7 +129,7 @@ public:
         FIRFilterSSE();
         ~FIRFilterSSE();
 
-        virtual void setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor);
+        virtual void setCoefficients(const float *coeffs, uint newLength, uint uResultDivFactor);
     };
 
 #endif // SOUNDTOUCH_ALLOW_SSE

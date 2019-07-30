@@ -180,6 +180,9 @@ bool WiimoteDevice::LinkChannel()
   DEBUG_LOG(IOS_WIIMOTE, "ConnectionState CONN_LINKING -> CONN_COMPLETE");
   m_connection_state = ConnectionState::Complete;
 
+  // Update wiimote connection status in the UI
+  Host_UpdateDisasmDialog();
+
   return false;
 }
 
@@ -218,8 +221,12 @@ void WiimoteDevice::EventDisconnect()
   Wiimote::ControlChannel(m_connection_handle & 0xFF, 99, nullptr, 0);
 
   m_connection_state = ConnectionState::Inactive;
+
   // Clear channel flags
   ResetChannels();
+
+  // Update wiimote connection status in the UI
+  Host_UpdateDisasmDialog();
 }
 
 bool WiimoteDevice::EventPagingChanged(u8 page_mode) const
@@ -635,16 +642,16 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_o
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
 }
 
-  //
-  //
-  //
-  //
-  // ---  SDP
-  //
-  //
-  //
-  //
-  //
+//
+//
+//
+//
+// ---  SDP
+//
+//
+//
+//
+//
 
 #define SDP_UINT8 0x08
 #define SDP_UINT16 0x09
@@ -918,14 +925,9 @@ namespace Core
 // a reporting mode. size is the byte size of the report.
 void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data, u32 size)
 {
-  DEBUG_LOG(WIIMOTE, "====================");
-  DEBUG_LOG(WIIMOTE, "Callback_WiimoteInterruptChannel: (Wiimote: #%i)", number);
-  DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(data, size, 50).c_str());
-  DEBUG_LOG(WIIMOTE, "   Channel: %x", channel_id);
-
   const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
       IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/oh1/57e/305"));
   if (bt)
     bt->AccessWiimoteByIndex(number)->ReceiveL2capData(channel_id, data, size);
 }
-}
+}  // namespace Core

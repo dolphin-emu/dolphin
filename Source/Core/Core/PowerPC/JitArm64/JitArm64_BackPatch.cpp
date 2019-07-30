@@ -34,7 +34,7 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
 
   ERROR_LOG(DYNA_REC, "Memory Around PC");
 
-  std::string pc_memory = "";
+  std::string pc_memory;
   for (u64 pc = (ctx->CTX_PC - 32); pc < (ctx->CTX_PC + 32); pc += 16)
   {
     pc_memory += StringFromFormat("%08x%08x%08x%08x", Common::swap32(*(u32*)pc),

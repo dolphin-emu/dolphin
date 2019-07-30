@@ -17,15 +17,16 @@
         android:id="@+id/text_setting_value"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:layout_width="wrap_content"
+        android:textAlignment="textEnd"
+        android:layout_width="36dp"
         android:layout_height="wrap_content" />
 
     <SeekBar
         android:id="@+id/seekbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/spacing_large"
-        android:layout_marginRight="@dimen/spacing_large"
+        android:layout_marginLeft="@dimen/spacing_small"
+        android:layout_marginRight="@dimen/spacing_small"
         android:layout_toEndOf="@id/text_setting_name"
         android:layout_toStartOf="@id/text_setting_value"
         android:layout_centerVertical="true"

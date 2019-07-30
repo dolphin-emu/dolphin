@@ -39,4 +39,5 @@ tasks.xml
 build/
 *.so
 *.iml
+*.log
 build.properties

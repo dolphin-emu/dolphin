@@ -4,6 +4,7 @@
 
 #include "Core/PowerPC/PowerPC.h"
 
+#include <algorithm>
 #include <cstring>
 #include <istream>
 #include <ostream>
@@ -11,6 +12,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
@@ -42,6 +44,27 @@ MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
 static CoreTiming::EventType* s_invalidate_cache_thread_safe;
+
+double PairedSingle::PS0AsDouble() const
+{
+  return Common::BitCast<double>(ps0);
+}
+
+double PairedSingle::PS1AsDouble() const
+{
+  return Common::BitCast<double>(ps1);
+}
+
+void PairedSingle::SetPS0(double value)
+{
+  ps0 = Common::BitCast<u64>(value);
+}
+
+void PairedSingle::SetPS1(double value)
+{
+  ps1 = Common::BitCast<u64>(value);
+}
+
 static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
 {
   ppcState.iCache.Invalidate(static_cast<u32>(userdata));
@@ -71,24 +94,6 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
   return os;
 }
 
-u32 CompactCR()
-{
-  u32 new_cr = 0;
-  for (u32 i = 0; i < 8; i++)
-  {
-    new_cr |= GetCRField(i) << (28 - i * 4);
-  }
-  return new_cr;
-}
-
-void ExpandCR(u32 cr)
-{
-  for (u32 i = 0; i < 8; i++)
-  {
-    SetCRField(i, (cr >> (28 - i * 4)) & 0xF);
-  }
-}
-
 void DoState(PointerWrap& p)
 {
   // some of this code has been disabled, because
@@ -104,7 +109,7 @@ void DoState(PointerWrap& p)
   p.DoArray(ppcState.gpr);
   p.Do(ppcState.pc);
   p.Do(ppcState.npc);
-  p.DoArray(ppcState.cr_val);
+  p.DoArray(ppcState.cr.fields);
   p.Do(ppcState.msr);
   p.Do(ppcState.fpscr);
   p.Do(ppcState.Exceptions);
@@ -135,21 +140,30 @@ void DoState(PointerWrap& p)
 
 static void ResetRegisters()
 {
-  memset(ppcState.ps, 0, sizeof(ppcState.ps));
-  memset(ppcState.sr, 0, sizeof(ppcState.sr));
-  memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
-  memset(ppcState.spr, 0, sizeof(ppcState.spr));
-  /*
-  0x00080200 = lonestar 2.0
-  0x00088202 = lonestar 2.2
-  0x70000100 = gekko 1.0
-  0x00080100 = gekko 2.0
-  0x00083203 = gekko 2.3a
-  0x00083213 = gekko 2.3b
-  0x00083204 = gekko 2.4
-  0x00083214 = gekko 2.4e (8SE) - retail HW2
-  */
-  ppcState.spr[SPR_PVR] = 0x00083214;
+  std::fill(std::begin(ppcState.ps), std::end(ppcState.ps), PairedSingle{});
+  std::fill(std::begin(ppcState.sr), std::end(ppcState.sr), 0U);
+  std::fill(std::begin(ppcState.gpr), std::end(ppcState.gpr), 0U);
+  std::fill(std::begin(ppcState.spr), std::end(ppcState.spr), 0U);
+
+  // Gamecube:
+  // 0x00080200 = lonestar 2.0
+  // 0x00088202 = lonestar 2.2
+  // 0x70000100 = gekko 1.0
+  // 0x00080100 = gekko 2.0
+  // 0x00083203 = gekko 2.3a
+  // 0x00083213 = gekko 2.3b
+  // 0x00083204 = gekko 2.4
+  // 0x00083214 = gekko 2.4e (8SE) - retail HW2
+  // Wii:
+  // 0x00087102 = broadway retail hw
+  if (SConfig::GetInstance().bWii)
+  {
+    ppcState.spr[SPR_PVR] = 0x00087102;
+  }
+  else
+  {
+    ppcState.spr[SPR_PVR] = 0x00083214;
+  }
   ppcState.spr[SPR_HID1] = 0x80000000;  // We're running at 3x the bus clock
   ppcState.spr[SPR_ECID_U] = 0x0d96e200;
   ppcState.spr[SPR_ECID_M] = 0x1840c00d;
@@ -159,8 +173,11 @@ static void ResetRegisters()
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
-  for (auto& v : ppcState.cr_val)
+  for (auto& v : ppcState.cr.fields)
+  {
     v = 0x8000000000000001;
+  }
+  SetXER({});
 
   DBATUpdated();
   IBATUpdated();
@@ -204,13 +221,13 @@ static void InitializeCPUCore(CPUCore cpu_core)
 const std::vector<CPUCore>& AvailableCPUCores()
 {
   static const std::vector<CPUCore> cpu_cores = {
-      CPUCore::Interpreter,
-      CPUCore::CachedInterpreter,
 #ifdef _M_X86_64
       CPUCore::JIT64,
 #elif defined(_M_ARM_64)
       CPUCore::JITARM64,
 #endif
+      CPUCore::CachedInterpreter,
+      CPUCore::Interpreter,
   };
 
   return cpu_cores;
@@ -590,6 +607,12 @@ void CheckBreakPoints()
     if (PowerPC::breakpoints.IsTempBreakPoint(PC))
       PowerPC::breakpoints.Remove(PC);
   }
+}
+
+void PowerPCState::SetSR(u32 index, u32 value)
+{
+  DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", pc, index, value);
+  sr[index] = value;
 }
 
 // FPSCR update functions

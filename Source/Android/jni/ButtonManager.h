@@ -34,6 +34,8 @@ enum ButtonType
   STICK_C_RIGHT = 19,
   TRIGGER_L = 20,
   TRIGGER_R = 21,
+  TRIGGER_L_ANALOG = 22,
+  TRIGGER_R_ANALOG = 23,
   // Wiimote
   WIIMOTE_BUTTON_A = 100,
   WIIMOTE_BUTTON_B = 101,
@@ -70,6 +72,12 @@ enum ButtonType
   WIIMOTE_SHAKE_X = 132,
   WIIMOTE_SHAKE_Y = 133,
   WIIMOTE_SHAKE_Z = 134,
+  // Hotkeys
+  HOTKEYS_SIDEWAYS_TOGGLE = 135,
+  HOTKEYS_UPRIGHT_TOGGLE = 136,
+  HOTKEYS_SIDEWAYS_HOLD = 137,
+  HOTKEYS_UPRIGHT_HOLD = 138,
+  WIIMOTE_IR_RECENTER = 139,
   // Nunchuk
   NUNCHUK_BUTTON_C = 200,
   NUNCHUK_BUTTON_Z = 201,
@@ -256,4 +264,4 @@ float GetAxisValue(int padID, ButtonType axis);
 bool GamepadEvent(const std::string& dev, int button, int action);
 void GamepadAxisEvent(const std::string& dev, int axis, float value);
 void Shutdown();
-}
+}  // namespace ButtonManager

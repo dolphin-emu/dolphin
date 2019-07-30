@@ -57,7 +57,6 @@ public abstract class AbstractFilePickerActivity<T> extends AppCompatActivity
         implements AbstractFilePickerFragment.OnFilePickedListener {
     public static final String EXTRA_START_PATH = "nononsense.intent" + ".START_PATH";
     public static final String EXTRA_MODE = "nononsense.intent.MODE";
-    public static final String EXTRA_ALLOW_CREATE_DIR = "nononsense.intent" + ".ALLOW_CREATE_DIR";
     public static final String EXTRA_SINGLE_CLICK = "nononsense.intent" + ".SINGLE_CLICK";
     // For compatibility
     public static final String EXTRA_ALLOW_MULTIPLE = "android.intent.extra" + ".ALLOW_MULTIPLE";
@@ -70,7 +69,6 @@ public abstract class AbstractFilePickerActivity<T> extends AppCompatActivity
     protected static final String TAG = "filepicker_fragment";
     protected String startPath = null;
     protected int mode = AbstractFilePickerFragment.MODE_FILE;
-    protected boolean allowCreateDir = false;
     protected boolean allowMultiple = false;
     private boolean allowExistingFile = true;
     protected boolean singleClick = false;
@@ -85,7 +83,6 @@ public abstract class AbstractFilePickerActivity<T> extends AppCompatActivity
         if (intent != null) {
             startPath = intent.getStringExtra(EXTRA_START_PATH);
             mode = intent.getIntExtra(EXTRA_MODE, mode);
-            allowCreateDir = intent.getBooleanExtra(EXTRA_ALLOW_CREATE_DIR, allowCreateDir);
             allowMultiple = intent.getBooleanExtra(EXTRA_ALLOW_MULTIPLE, allowMultiple);
             allowExistingFile = intent.getBooleanExtra(EXTRA_ALLOW_EXISTING_FILE, allowExistingFile);
             singleClick = intent.getBooleanExtra(EXTRA_SINGLE_CLICK, singleClick);
@@ -103,7 +100,7 @@ public abstract class AbstractFilePickerActivity<T> extends AppCompatActivity
         Fragment fragment = fm.findFragmentByTag(TAG);
 
         if (fragment == null) {
-            fragment = getFragment(startPath, mode, allowMultiple, allowCreateDir, allowExistingFile, singleClick);
+            fragment = getFragment(startPath, mode, allowMultiple, allowExistingFile, singleClick);
         }
 
         if (fragment != null) {
@@ -113,8 +110,7 @@ public abstract class AbstractFilePickerActivity<T> extends AppCompatActivity
 
     protected abstract AbstractFilePickerFragment<T> getFragment(
             @Nullable final String startPath, final int mode, final boolean allowMultiple,
-            final boolean allowCreateDir, final boolean allowExistingFile,
-            final boolean singleClick);
+            final boolean allowExistingFile, final boolean singleClick);
 
     @Override
     public void onSaveInstanceState(Bundle b) {

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+    <Button
+        android:id="@+id/button_delete"
+        android:background="@drawable/close_icon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/button_load_state"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/state_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00:00"/>
+
+        <TextView
+            android:id="@+id/state_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01-01-01, 2000"/>
+    </LinearLayout>
+
+    <Button
+        android:text="@string/load"
+        android:id="@+id/button_load_state"
+        style="?android:attr/borderlessButtonStyle"
+        android:minWidth="0dp"
+        android:layout_margin="@dimen/spacing_small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/separator"
+        android:stateListAnimator="@null"/>
+
+    <View
+        android:id="@+id/separator"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/button_save_state"
+        android:layout_width="1dp"
+        android:layout_height="20dp"
+        android:background="@color/light_grey"/>
+
+    <Button
+        android:text="@string/save"
+        android:id="@+id/button_save_state"
+        style="?android:attr/borderlessButtonStyle"
+        android:minWidth="0dp"
+        android:layout_margin="@dimen/spacing_small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:stateListAnimator="@null"/>
+
+</RelativeLayout>

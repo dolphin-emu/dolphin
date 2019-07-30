@@ -4,83 +4,77 @@
 
 #pragma once
 
-#include <string>
+#include <array>
 
 struct Statistics
 {
-  int numPixelShadersCreated;
-  int numPixelShadersAlive;
-  int numVertexShadersCreated;
-  int numVertexShadersAlive;
+  int num_pixel_shaders_created;
+  int num_pixel_shaders_alive;
+  int num_vertex_shaders_created;
+  int num_vertex_shaders_alive;
 
-  int numTexturesCreated;
-  int numTexturesUploaded;
-  int numTexturesAlive;
+  int num_textures_created;
+  int num_textures_uploaded;
+  int num_textures_alive;
 
-  int numVertexLoaders;
+  int num_vertex_loaders;
 
-  float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
-  float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
-  float gproj_6, gproj_7, gproj_8, gproj_9, gproj_10, gproj_11, gproj_12, gproj_13, gproj_14,
-      gproj_15;
-
-  float g2proj_0, g2proj_1, g2proj_2, g2proj_3, g2proj_4, g2proj_5;
-  float g2proj_6, g2proj_7, g2proj_8, g2proj_9, g2proj_10, g2proj_11, g2proj_12, g2proj_13,
-      g2proj_14, g2proj_15;
+  std::array<float, 6> proj;
+  std::array<float, 16> gproj;
+  std::array<float, 16> g2proj;
 
   struct ThisFrame
   {
-    int numBPLoads;
-    int numCPLoads;
-    int numXFLoads;
+    int num_bp_loads;
+    int num_cp_loads;
+    int num_xf_loads;
 
-    int numBPLoadsInDL;
-    int numCPLoadsInDL;
-    int numXFLoadsInDL;
+    int num_bp_loads_in_dl;
+    int num_cp_loads_in_dl;
+    int num_xf_loads_in_dl;
 
-    int numPrims;
-    int numDLPrims;
-    int numShaderChanges;
+    int num_prims;
+    int num_dl_prims;
+    int num_shader_changes;
 
-    int numPrimitiveJoins;
-    int numDrawCalls;
+    int num_primitive_joins;
+    int num_draw_calls;
 
-    int numDListsCalled;
+    int num_dlists_called;
 
-    int bytesVertexStreamed;
-    int bytesIndexStreamed;
-    int bytesUniformStreamed;
+    int bytes_vertex_streamed;
+    int bytes_index_streamed;
+    int bytes_uniform_streamed;
 
-    int numTrianglesClipped;
-    int numTrianglesIn;
-    int numTrianglesRejected;
-    int numTrianglesCulled;
-    int numDrawnObjects;
-    int rasterizedPixels;
-    int numTrianglesDrawn;
-    int numVerticesLoaded;
-    int tevPixelsIn;
-    int tevPixelsOut;
+    int num_triangles_clipped;
+    int num_triangles_in;
+    int num_triangles_rejected;
+    int num_triangles_culled;
+    int num_drawn_objects;
+    int rasterized_pixels;
+    int num_triangles_drawn;
+    int num_vertices_loaded;
+    int tev_pixels_in;
+    int tev_pixels_out;
+
+    int num_efb_peeks;
+    int num_efb_pokes;
   };
-  ThisFrame thisFrame;
+  ThisFrame this_frame;
   void ResetFrame();
-  static void SwapDL();
-
-  static std::string ToString();
-  static std::string ToStringProj();
+  void SwapDL();
+  void Display() const;
+  void DisplayProj() const;
 };
 
-extern Statistics stats;
+extern Statistics g_stats;
 
 #define STATISTICS
 
 #ifdef STATISTICS
 #define INCSTAT(a) (a)++;
-#define DECSTAT(a) (a)--;
 #define ADDSTAT(a, b) (a) += (b);
 #define SETSTAT(a, x) (a) = (int)(x);
-#define SETSTAT_UINT(a, x) (a) = (u32)(x);
-#define SETSTAT_FT(a, x) (a) = (float)(x);
 #else
 #define INCSTAT(a) ;
 #define ADDSTAT(a, b) ;

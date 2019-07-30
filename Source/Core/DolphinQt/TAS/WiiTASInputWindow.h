@@ -6,53 +6,59 @@
 
 #include "DolphinQt/TAS/TASInputWindow.h"
 
+namespace WiimoteCommon
+{
+class DataReportBuilder;
+}
+
 namespace WiimoteEmu
 {
-struct ReportFeatures;
+class EncryptionKey;
 }
-class QCheckBox;
+
 class QGroupBox;
 class QSpinBox;
-struct wiimote_key;
+class TASCheckBox;
 
 class WiiTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:
   explicit WiiTASInputWindow(QWidget* parent, int num);
-  void GetValues(u8* input_data, WiimoteEmu::ReportFeatures rptf, int ext, wiimote_key key);
+  void GetValues(WiimoteCommon::DataReportBuilder& rpt, int ext,
+                 const WiimoteEmu::EncryptionKey& key);
 
 private:
   void UpdateExt(u8 ext);
   int m_num;
-  QCheckBox* m_a_button;
-  QCheckBox* m_b_button;
-  QCheckBox* m_1_button;
-  QCheckBox* m_2_button;
-  QCheckBox* m_plus_button;
-  QCheckBox* m_minus_button;
-  QCheckBox* m_home_button;
-  QCheckBox* m_left_button;
-  QCheckBox* m_up_button;
-  QCheckBox* m_down_button;
-  QCheckBox* m_right_button;
-  QCheckBox* m_c_button;
-  QCheckBox* m_z_button;
-  QCheckBox* m_classic_a_button;
-  QCheckBox* m_classic_b_button;
-  QCheckBox* m_classic_x_button;
-  QCheckBox* m_classic_y_button;
-  QCheckBox* m_classic_plus_button;
-  QCheckBox* m_classic_minus_button;
-  QCheckBox* m_classic_l_button;
-  QCheckBox* m_classic_r_button;
-  QCheckBox* m_classic_zl_button;
-  QCheckBox* m_classic_zr_button;
-  QCheckBox* m_classic_home_button;
-  QCheckBox* m_classic_left_button;
-  QCheckBox* m_classic_up_button;
-  QCheckBox* m_classic_down_button;
-  QCheckBox* m_classic_right_button;
+  TASCheckBox* m_a_button;
+  TASCheckBox* m_b_button;
+  TASCheckBox* m_1_button;
+  TASCheckBox* m_2_button;
+  TASCheckBox* m_plus_button;
+  TASCheckBox* m_minus_button;
+  TASCheckBox* m_home_button;
+  TASCheckBox* m_left_button;
+  TASCheckBox* m_up_button;
+  TASCheckBox* m_down_button;
+  TASCheckBox* m_right_button;
+  TASCheckBox* m_c_button;
+  TASCheckBox* m_z_button;
+  TASCheckBox* m_classic_a_button;
+  TASCheckBox* m_classic_b_button;
+  TASCheckBox* m_classic_x_button;
+  TASCheckBox* m_classic_y_button;
+  TASCheckBox* m_classic_plus_button;
+  TASCheckBox* m_classic_minus_button;
+  TASCheckBox* m_classic_l_button;
+  TASCheckBox* m_classic_r_button;
+  TASCheckBox* m_classic_zl_button;
+  TASCheckBox* m_classic_zr_button;
+  TASCheckBox* m_classic_home_button;
+  TASCheckBox* m_classic_left_button;
+  TASCheckBox* m_classic_up_button;
+  TASCheckBox* m_classic_down_button;
+  TASCheckBox* m_classic_right_button;
   QSpinBox* m_remote_orientation_x_value;
   QSpinBox* m_remote_orientation_y_value;
   QSpinBox* m_remote_orientation_z_value;

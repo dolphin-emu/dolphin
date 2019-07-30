@@ -147,7 +147,7 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size, const
   GENERIC_LOG(type, LogTypes::LDEBUG, "%s", title.c_str());
   for (u32 j = 0; j < size;)
   {
-    std::string hex_line = "";
+    std::string hex_line;
     for (int i = 0; i < 16; i++)
     {
       hex_line += StringFromFormat("%02x ", data[j++]);
@@ -159,4 +159,4 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size, const
   }
 }
 
-}  // end of namespace Debugger
+}  // namespace Dolphin_Debugger

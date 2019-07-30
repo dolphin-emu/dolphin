@@ -23,6 +23,9 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
+typedef void(APIENTRYP PFNDODISCARDFRAMEBUFFEREXT)(GLenum target, GLsizei numAttachments,
+                                                   const GLenum *attachments);
+
 typedef void(APIENTRYP PFNDOLBINDFRAMEBUFFERPROC)(GLenum target, GLuint framebuffer);
 typedef void(APIENTRYP PFNDOLBINDRENDERBUFFERPROC)(GLenum target, GLuint renderbuffer);
 typedef void(APIENTRYP PFNDOLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1,
@@ -62,6 +65,7 @@ typedef void(APIENTRYP PFNDOLRENDERBUFFERSTORAGEMULTISAMPLEPROC)(GLenum target, 
                                                                  GLenum internalformat,
                                                                  GLsizei width, GLsizei height);
 
+extern PFNDODISCARDFRAMEBUFFEREXT doDiscardFramebufferEXT;
 extern PFNDOLBINDFRAMEBUFFERPROC dolBindFramebuffer;
 extern PFNDOLBINDRENDERBUFFERPROC dolBindRenderbuffer;
 extern PFNDOLBLITFRAMEBUFFERPROC dolBlitFramebuffer;
@@ -83,6 +87,7 @@ extern PFNDOLISRENDERBUFFERPROC dolIsRenderbuffer;
 extern PFNDOLRENDERBUFFERSTORAGEPROC dolRenderbufferStorage;
 extern PFNDOLRENDERBUFFERSTORAGEMULTISAMPLEPROC dolRenderbufferStorageMultisample;
 
+#define glDiscardFramebufferEXT doDiscardFramebufferEXT
 #define glBindFramebuffer dolBindFramebuffer
 #define glBindRenderbuffer dolBindRenderbuffer
 #define glBlitFramebuffer dolBlitFramebuffer

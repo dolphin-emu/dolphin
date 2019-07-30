@@ -4,16 +4,8 @@
 
 #pragma once
 
-#include <cstddef>
 #include <string>
 #include "Common/CommonTypes.h"
-
-// Will fail to compile on a non-array:
-template <typename T, size_t N>
-constexpr size_t ArraySize(T (&arr)[N])
-{
-  return N;
-}
 
 #ifndef _WIN32
 

@@ -31,19 +31,21 @@ public final class SliderViewHolder extends SettingViewHolder
   public void bind(SettingsItem item)
   {
     mItem = (SliderSetting) item;
-
     mTextSettingName.setText(item.getNameId());
-
     if (item.getDescriptionId() > 0)
     {
       mTextSettingDescription.setText(item.getDescriptionId());
+    }
+    else
+    {
+      mTextSettingDescription.setText(mItem.getSelectedValue() + mItem.getUnits());
     }
   }
 
   @Override
   public void onClick(View clicked)
   {
-    getAdapter().onSliderClick(mItem);
+    getAdapter().onSliderClick(mItem, getAdapterPosition());
   }
 }
 

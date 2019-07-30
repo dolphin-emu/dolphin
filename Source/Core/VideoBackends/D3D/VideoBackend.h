@@ -11,6 +11,7 @@ namespace DX11
 {
 class VideoBackend : public VideoBackendBase
 {
+public:
   bool Initialize(const WindowSystemInfo& wsi) override;
   void Shutdown() override;
 
@@ -18,5 +19,8 @@ class VideoBackend : public VideoBackendBase
   std::string GetDisplayName() const override;
 
   void InitBackendInfo() override;
+
+private:
+  void FillBackendInfo();
 };
 }  // namespace DX11

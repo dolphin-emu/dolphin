@@ -1,6 +1,8 @@
 #ifndef _CUBEB_JNI_INSTANCES_H_
 #define _CUBEB_JNI_INSTANCES_H_
 
+#include "jni/AndroidCommon/IDCache.h"
+
 /*
  * The methods in this file offer a way to pass in the required
  * JNI instances in the cubeb library. By default they return NULL.
@@ -18,13 +20,13 @@
 JNIEnv *
 cubeb_get_jni_env_for_thread()
 {
-  return nullptr;
+  return IDCache::GetEnvForThread();
 }
 
 jobject
 cubeb_jni_get_context_instance()
 {
-  return nullptr;
+  return IDCache::GetEnvForThread()->CallObjectMethod(IDCache::sNativeLibrary.Clazz, IDCache::sNativeLibrary.GetEmulationContext);
 }
 
 #endif //_CUBEB_JNI_INSTANCES_H_

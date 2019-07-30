@@ -6,7 +6,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
-class QHBoxLayout;
+class QGridLayout;
 
 class HotkeyGeneral final : public MappingWidget
 {
@@ -22,5 +22,5 @@ private:
   void CreateMainLayout();
 
   // Main
-  QHBoxLayout* m_main_layout;
+  QGridLayout* m_main_layout;
 };

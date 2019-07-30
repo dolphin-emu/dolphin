@@ -25,10 +25,10 @@ public:
                                const std::string& audio_backend)
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
-    if (video_backend.size())
+    if (!video_backend.empty())
       m_values.emplace_back(std::make_tuple(Config::MAIN_GFX_BACKEND.location, video_backend));
 
-    if (audio_backend.size())
+    if (!audio_backend.empty())
       m_values.emplace_back(
           std::make_tuple(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE")));
 
@@ -75,7 +75,7 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");
   parser->add_option("-e", "--exec")
-      .action("store")
+      .action("append")
       .metavar("<file>")
       .type("string")
       .help("Load the specified file");
@@ -135,4 +135,4 @@ optparse::Values& ParseArguments(optparse::OptionParser* parser,
   AddConfigLayer(options);
   return options;
 }
-}
+}  // namespace CommandLineParse

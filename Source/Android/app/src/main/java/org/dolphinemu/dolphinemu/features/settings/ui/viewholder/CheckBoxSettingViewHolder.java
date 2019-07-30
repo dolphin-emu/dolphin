@@ -35,14 +35,11 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
   public void bind(SettingsItem item)
   {
     mItem = (CheckBoxSetting) item;
-
     mTextSettingName.setText(item.getNameId());
-
     if (item.getDescriptionId() > 0)
     {
       mTextSettingDescription.setText(item.getDescriptionId());
     }
-
     mCheckbox.setChecked(mItem.isChecked());
   }
 
@@ -50,7 +47,6 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
   public void onClick(View clicked)
   {
     mCheckbox.toggle();
-
     getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
   }
 }

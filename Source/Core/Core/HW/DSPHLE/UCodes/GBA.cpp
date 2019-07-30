@@ -12,9 +12,7 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 void ProcessGBACrypto(u32 address)
 {
@@ -137,5 +135,4 @@ void GBAUCode::HandleMail(u32 mail)
     WARN_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
   }
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

@@ -28,92 +28,33 @@
         android:title="@string/emulation_quicksave"/>
 
     <item
-        android:id="@+id/menu_quickload"
+        android:id="@+id/menu_emulation_edit_layout"
         app:showAsAction="never"
-        android:icon="@drawable/ic_quickload"
-        android:title="@string/emulation_quickload"/>
-
-    <!-- Save State Slots -->
-    <item
-        android:id="@+id/menu_emulation_save_root"
-        app:showAsAction="never"
-        android:title="@string/emulation_savestate">
-        <menu>
-            <item
-                android:id="@+id/menu_emulation_save_1"
-                android:title="@string/emulation_slot1"/>
-
-            <item
-                android:id="@+id/menu_emulation_save_2"
-                android:title="@string/emulation_slot2"/>
-
-            <item
-                android:id="@+id/menu_emulation_save_3"
-                android:title="@string/emulation_slot3"/>
-
-            <item
-                android:id="@+id/menu_emulation_save_4"
-                android:title="@string/emulation_slot4"/>
-
-            <item
-                android:id="@+id/menu_emulation_save_5"
-                android:title="@string/emulation_slot5"/>
-        </menu>
-    </item>
-
-    <!-- Load State Slots -->
-    <item
-        android:id="@+id/menu_emulation_load_root"
-        app:showAsAction="never"
-        android:title="@string/emulation_loadstate">
-        <menu>
-            <item
-                android:id="@+id/menu_emulation_load_1"
-                android:title="@string/emulation_slot1"/>
-
-            <item
-                android:id="@+id/menu_emulation_load_2"
-                android:title="@string/emulation_slot2"/>
-
-            <item
-                android:id="@+id/menu_emulation_load_3"
-                android:title="@string/emulation_slot3"/>
-
-            <item
-                android:id="@+id/menu_emulation_load_4"
-                android:title="@string/emulation_slot4"/>
-
-            <item
-                android:id="@+id/menu_emulation_load_5"
-                android:title="@string/emulation_slot5"/>
-        </menu>
-    </item>
+        android:title="@string/emulation_edit_layout"/>
 
     <item
-        android:id="@+id/menu_emulation_configure_controls"
+        android:id="@+id/menu_emulation_toggle_controls"
         app:showAsAction="never"
-        android:title="@string/emulation_configure_controls">
-        <menu>
-            <item
-                android:id="@+id/menu_emulation_edit_layout"
-                android:title="@string/emulation_edit_layout"/>
+        android:title="@string/emulation_toggle_controls"/>
 
-            <item
-                android:id="@+id/menu_emulation_toggle_controls"
-                android:title="@string/emulation_toggle_controls"/>
+    <item
+        android:id="@+id/menu_emulation_adjust_scale"
+        app:showAsAction="never"
+        android:title="@string/emulation_control_scale"/>
 
-            <item
-                android:id="@+id/menu_emulation_adjust_scale"
-                android:title="@string/emulation_control_scale"/>
+    <item
+        android:id="@+id/menu_emulation_joystick_settings"
+        app:showAsAction="never"
+        android:title="@string/emulation_joystick_settings"/>
 
-            <item
-                android:id="@+id/menu_emulation_joystick_settings"
-                android:title="@string/emulation_joystick_settings"/>
+    <item
+        android:id="@+id/menu_emulation_sensor_settings"
+        app:showAsAction="never"
+        android:title="@string/emulation_sensor_settings"/>
 
-            <item
-                android:id="@+id/menu_emulation_sensor_settings"
-                android:title="@string/emulation_sensor_settings"/>
-        </menu>
-    </item>
+    <item
+        android:id="@+id/menu_change_disc"
+        app:showAsAction="never"
+        android:title="@string/emulation_change_disc"/>
 
 </menu>

@@ -15,7 +15,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/WiiUtils.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/VolumeWad.h"
 
 bool CBoot::BootNANDTitle(const u64 title_id)
 {
@@ -34,7 +34,7 @@ bool CBoot::BootNANDTitle(const u64 title_id)
   return es->LaunchTitle(title_id);
 }
 
-bool CBoot::Boot_WiiWAD(const DiscIO::WiiWAD& wad)
+bool CBoot::Boot_WiiWAD(const DiscIO::VolumeWAD& wad)
 {
   if (!WiiUtils::InstallWAD(*IOS::HLE::GetIOS(), wad, WiiUtils::InstallType::Temporary))
   {

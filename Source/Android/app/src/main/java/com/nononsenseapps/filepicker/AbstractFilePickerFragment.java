@@ -6,7 +6,6 @@
 
 package com.nononsenseapps.filepicker;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
@@ -25,9 +24,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -53,8 +49,7 @@ import static com.nononsenseapps.filepicker.Utils.appendPath;
  * interface.
  */
 public abstract class AbstractFilePickerFragment<T> extends Fragment
-        implements LoaderManager.LoaderCallbacks<SortedList<T>>,
-        NewItemFragment.OnNewFolderListener, LogicHandler<T> {
+        implements LoaderManager.LoaderCallbacks<SortedList<T>>, LogicHandler<T> {
 
     // The different preset modes of operation. This impacts the behaviour
     // and possible actions in the UI.
@@ -66,8 +61,6 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
     public static final String KEY_START_PATH = "KEY_START_PATH";
     // See MODE_XXX constants above for possible values
     public static final String KEY_MODE = "KEY_MODE";
-    // If it should be possible to create directories.
-    public static final String KEY_ALLOW_DIR_CREATE = "KEY_ALLOW_DIR_CREATE";
     // Allow multiple items to be selected.
     public static final String KEY_ALLOW_MULTIPLE = "KEY_ALLOW_MULTIPLE";
     // Allow an existing file to be selected under MODE_NEW_FILE
@@ -80,7 +73,6 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
     protected final HashSet<CheckableViewHolder> mCheckedVisibleViewHolders;
     protected int mode = MODE_FILE;
     protected T mCurrentPath = null;
-    protected boolean allowCreateDir = false;
     protected boolean allowMultiple = false;
     protected boolean allowExistingFile = true;
     protected boolean singleClick = false;
@@ -129,13 +121,12 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
      * @param startPath      path to directory the picker will show upon start
      * @param mode           what is allowed to be selected (dirs, files, both)
      * @param allowMultiple  selecting a single item or several?
-     * @param allowDirCreate can new directories be created?
      * @param allowExistingFile if selecting a "new" file, can existing files be chosen
      * @param singleClick    selecting an item does not require a press on OK
      */
     public void setArgs(@Nullable final String startPath, final int mode,
-                        final boolean allowMultiple, final boolean allowDirCreate,
-                        final boolean allowExistingFile, final boolean singleClick) {
+                        final boolean allowMultiple, final boolean allowExistingFile,
+                        final boolean singleClick) {
         // Validate some assumptions so users don't get surprised (or get surprised early)
         if (mode == MODE_NEW_FILE && allowMultiple) {
             throw new IllegalArgumentException(
@@ -154,7 +145,6 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
         if (startPath != null) {
             b.putString(KEY_START_PATH, startPath);
         }
-        b.putBoolean(KEY_ALLOW_DIR_CREATE, allowDirCreate);
         b.putBoolean(KEY_ALLOW_MULTIPLE, allowMultiple);
         b.putBoolean(KEY_ALLOW_EXISTING_FILE, allowExistingFile);
         b.putBoolean(KEY_SINGLE_CLICK, singleClick);
@@ -386,13 +376,6 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
         }
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setHasOptionsMenu(true);
-    }
-
     /**
      * Called when the fragment's activity has been created and this
      * fragment's view hierarchy instantiated.  It can be used to do final
@@ -413,8 +396,6 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
         if (mCurrentPath == null) {
             if (savedInstanceState != null) {
                 mode = savedInstanceState.getInt(KEY_MODE, mode);
-                allowCreateDir = savedInstanceState
-                        .getBoolean(KEY_ALLOW_DIR_CREATE, allowCreateDir);
                 allowMultiple = savedInstanceState
                         .getBoolean(KEY_ALLOW_MULTIPLE, allowMultiple);
                 allowExistingFile = savedInstanceState
@@ -428,8 +409,6 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
                 }
             } else if (getArguments() != null) {
                 mode = getArguments().getInt(KEY_MODE, mode);
-                allowCreateDir = getArguments()
-                        .getBoolean(KEY_ALLOW_DIR_CREATE, allowCreateDir);
                 allowMultiple = getArguments()
                         .getBoolean(KEY_ALLOW_MULTIPLE, allowMultiple);
                 allowExistingFile = getArguments()
@@ -474,34 +453,10 @@ public abstract class AbstractFilePickerFragment<T> extends Fragment
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.picker_actions, menu);
-
-        MenuItem item = menu.findItem(R.id.nnf_action_createdir);
-        item.setVisible(allowCreateDir);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem) {
-        if (R.id.nnf_action_createdir == menuItem.getItemId()) {
-            Activity activity = getActivity();
-            if (activity instanceof AppCompatActivity) {
-                NewFolderFragment.showDialog(((AppCompatActivity) activity).getSupportFragmentManager(),
-                        AbstractFilePickerFragment.this);
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
-    @Override
     public void onSaveInstanceState(Bundle b) {
         b.putString(KEY_CURRENT_PATH, mCurrentPath.toString());
         b.putBoolean(KEY_ALLOW_MULTIPLE, allowMultiple);
         b.putBoolean(KEY_ALLOW_EXISTING_FILE, allowExistingFile);
-        b.putBoolean(KEY_ALLOW_DIR_CREATE, allowCreateDir);
         b.putBoolean(KEY_SINGLE_CLICK, singleClick);
         b.putInt(KEY_MODE, mode);
         super.onSaveInstanceState(b);

@@ -15,9 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class DSPHLE;
 
@@ -155,5 +153,4 @@ private:
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

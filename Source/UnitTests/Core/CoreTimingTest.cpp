@@ -120,7 +120,7 @@ void FifoCallback(u64 userdata, s64 lateness)
   EXPECT_EQ(s_lateness, lateness);
   ++s_counter;
 }
-}
+}  // namespace SharedSlotTest
 
 TEST(CoreTiming, SharedSlot)
 {
@@ -183,7 +183,7 @@ static void RescheduleCallback(u64 userdata, s64 lateness)
   if (s_reschedules > 0)
     CoreTiming::ScheduleEvent(1000, reinterpret_cast<CoreTiming::EventType*>(userdata), userdata);
 }
-}
+}  // namespace ChainSchedulingTest
 
 TEST(CoreTiming, ChainScheduling)
 {
@@ -235,7 +235,7 @@ static void ChainCallback(u64 userdata, s64 lateness)
 
   CoreTiming::ScheduleEvent(-1000, s_cb_next, userdata - 1);
 }
-}
+}  // namespace ScheduleIntoPastTest
 
 // This can happen when scheduling from outside the CPU Thread.
 // Also, if the callback is very late, it may reschedule itself for the next period which

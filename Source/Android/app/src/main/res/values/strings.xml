@@ -15,6 +15,7 @@
     <string name="controller_3">GameCube Controller 4</string>
     <!-- END WARNING -->
 
+    <string name="wiimote_hotkeys">Hotkeys</string>
     <string name="controller_control">Control Stick</string>
     <string name="controller_c">C Stick</string>
     <string name="controller_trig">Triggers</string>
@@ -40,8 +41,8 @@
     <string name="wiimote_shake">Shake</string>
 
     <string name="input_binding">Input Binding</string>
-    <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
-    <string name="input_rumble_description">Press or move any input to set rumble.</string>
+    <string name="input_binding_description">Press or move an input to bind it to &lt;b>%1$s&lt;/b>.</string>
+    <string name="input_rumble_description">Press or move any input to set &lt;b>rumble&lt;/b>.</string>
 
     <!-- Generic buttons (Shared with lots of stuff) -->
     <string name="generic_buttons">Buttons</string>
@@ -57,6 +58,8 @@
     <string name="generic_yellow">Yellow</string>
     <string name="generic_blue">Blue</string>
     <string name="generic_orange">Orange</string>
+    <string name="hotkey_sideways_toggle">Sideways Toggle</string>
+    <string name="hotkey_upright_toggle">Upright Toggle</string>
 
     <!-- GameCube buttons (May be shared with other stuff too) -->
     <string name="button_a">A</string>
@@ -67,6 +70,9 @@
     <string name="button_z">Z</string>
     <string name="trigger_left">L</string>
     <string name="trigger_right">R</string>
+    <string name="trigger_left_analog">L Analog</string>
+    <string name="trigger_right_analog">R Analog</string>
+    <string name="system_back">System Back</string>
 
     <!-- Wii Remote buttons (May be shared with other stuff too) -->
     <string name="button_one">1</string>
@@ -120,7 +126,7 @@
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
-    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
+    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
     <string name="speed_limit">Speed Limit</string>
@@ -128,15 +134,20 @@
     <string name="gamecube_submenu">GameCube</string>
     <string name="gamecube_system_language">System Language</string>
     <string name="override_gamecube_language">Override Language on NTSC games</string>
-    <string name="slot_a_device">GameCube Slot A Device</string>
-    <string name="slot_b_device">GameCube Slot B Device</string>
+    <string name="slot_a_device">Slot A Device</string>
+    <string name="slot_b_device">Slot B Device</string>
+    <string name="serial_port_1">Serial Port 1</string>
     <string name="wii_submenu">Wii</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
+    <string name="wii_sd_card">Insert SD Card</string>
+    <string name="wii_sd_card_description">Saved to /Wii/sd.raw (default size is 128mb).</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
+    <string name="audio_stretch_max_latency">Stretching Buffer Size</string>
+    <string name="audio_stretch_max_latency_description">Size of audio stretch buffer in milliseconds. Values too low may cause audio crackling.</string>
 
     <string name="sync_on_skip_idle">Sync On Skip Idle</string>
     <string name="sync_on_skip_idle_description">Wait to process events until the GPU thread finished.</string>
@@ -152,17 +163,17 @@
     <string name="audio_backend_description">Set backend used for audio output.</string>
     <string name="enable_cheats">Enable Cheats</string>
     <string name="enable_cheats_description">Put AR &amp; Gecko Codes in game setting file.</string>
+    <string name="auto_disc_change">Change Discs Automatically</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
     <string name="panic_handlers">Use Panic Handlers</string>
-    <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
+    <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>
-    <string name="graphics_enhancements_and_hacks">Enhancements &amp; Hacks</string>
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
@@ -172,9 +183,9 @@
 
     <string name="enhancements_submenu">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>
-    <string name="internal_resolution_description">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
+    <string name="internal_resolution_description">A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
     <string name="FSAA">Full-scene Anti-aliasing</string>
-    <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
+    <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
     <string name="anisotropic_filtering_description">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
     <string name="post_processing_shader">Post-Processing Effect</string>
@@ -182,31 +193,23 @@
     <string name="postprocessing_shader">Post Processing Shader</string>
     <string name="postprocessing_shader_description">Apply a post-processing effect after finishing a frame.</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
-    <string name="scaled_efb_copy_description">Greatly increases quality of textures generated using render to texture effects. Raising the internal resolution will improve the effect of this setting. Slightly decreases performance and possibly causes issues (although unlikely).</string>
+    <string name="scaled_efb_copy_description">Increases quality of textures generated using render to texture effects. Slightly decreases performance and possibly causes issues (although unlikely).</string>
     <string name="per_pixel_lighting">Per-Pixel Lighting</string>
-    <string name="per_pixel_lighting_description">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU). This usually is a safe enhancement, but might cause issues sometimes.</string>
+    <string name="per_pixel_lighting_description">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU).</string>
     <string name="force_texture_filtering">Force Texture Filtering</string>
     <string name="force_texture_filtering_description">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
     <string name="force_24bit_color">Force 24-Bit Color</string>
-    <string name="force_24bit_color_description">Forces the game to render the RGB color channels in 24-bit, thereby increasing quality by reducing color banding.\nIt has no impact on performance and causes few graphical issues. If unsure, leave this checked.</string>
+    <string name="force_24bit_color_description">Forces the game to render the RGB color channels in 24-bit, thereby increasing quality by reducing color banding.</string>
     <string name="disable_fog">Disable Fog</string>
-    <string name="disable_fog_description">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
+    <string name="disable_fog_description">Makes distant objects more visible by removing fog, thus increasing the overall detail.</string>
     <string name="disable_copy_filter">Disable Copy Filter</string>
     <string name="disable_copy_filter_description">Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". Disabling the filter is usually safe, and may result in a sharper image.</string>
     <string name="arbitrary_mipmap_detection">Arbitrary Mipmap Detection</string>
     <string name="arbitrary_mipmap_detection_description">Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.\nMay have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures.\n\nIf unsure, leave this checked.</string>
-    <string name="stereoscopy_submenu">Stereoscopy</string>
-    <string name="stereoscopy_submenu_description">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
     <string name="wide_screen_hack">Widescreen Hack</string>
     <string name="wide_screen_hack_description">Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9. Rarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches. If unsure, leave this unchecked.</string>
-    <string name="stereoscopy_mode">Stereoscopy Mode</string>
-    <string name="stereoscopy_mode_description">Select the stereoscopic 3D mode.</string>
-    <string name="stereoscopy_depth">Depth</string>
-    <string name="stereoscopy_depth_description">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
-    <string name="stereoscopy_convergence">Convergence</string>
-    <string name="stereoscopy_convergence_description">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
-    <string name="stereoscopy_swap_eyes">Swap Eyes</string>
-    <string name="stereoscopy_swap_eyes_description">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
+    <string name="backend_multithreading">Backend Multithreading</string> <!--Backend Multithreading is only disabled by default on Android  -->
+    <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave unchecked.</string>
 
     <string name="hacks_submenu">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
@@ -218,6 +221,8 @@
     <string name="efb_copy_method_description">Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games. If unsure, leave this checked.</string>
     <string name="defer_efb_copies">Defer EFB Copies to RAM</string>
     <string name="defer_efb_copies_description">Waits until the game synchronizes with the emulated GPU before writing the contents of EFB copies to RAM. May result in faster performance.</string>
+    <string name="efb_defer_invalidation">Defer EFB Cache Invalidation</string>
+    <string name="efb_defer_invalidation_description">Defers invalidation of the EFB access cache until a GPU synchronization command is executed.</string>
     <string name="texture_cache">Texture Cache</string>
     <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
     <string name="texture_cache_accuracy_description">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
@@ -228,10 +233,10 @@
     <string name="xfb_copy_method_description">Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games that need to readback from memory. If unsure, leave this checked.</string>
     <string name="immediate_xfb">Immediately Present XFB</string>
     <string name="immediate_xfb_description">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
-    <string name="disable_destination_alpha">Disable Destination Alpha</string>
-    <string name="disable_destination_alpha_description">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>
     <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values.</string>
+    <string name="tmem_cache_emulation">TMEM Cache Emulation</string>
+    <string name="tmem_cache_emulation_description">Reuse textures from the cache without validation under certain conditions.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
@@ -239,13 +244,22 @@
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
+    <!-- Debug -->
+    <string name="debug_submenu">Debug</string>
+    <string name="debug_warning">Warning: These settings will slow emulation</string>
+    <string name="debug_jitoff">Jit Disabled</string>
+    <string name="debug_jitloadstoreoff">Jit Load Store Disabled</string>
+    <string name="debug_jitloadstorefloatingoff">Jit Load Store Floating Point Disabled</string>
+    <string name="debug_jitloadstorepairedoff">Jit Load Store Paired Disabled</string>
+    <string name="debug_jitfloatingpointoff">Jit Floating Point Disabled</string>
+    <string name="debug_jitintegeroff">Jit Integer Disabled</string>
+    <string name="debug_jitpairedoff">Jit Paired Disabled</string>
+    <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
+    <string name="debug_jitbranchoff">Jit Branch Disabled</string>
+
     <!-- Miscellaneous -->
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
+    <string name="off">Off</string>
     <string name="clear">Clear</string>
-    <string name="disabled">Disabled</string>
     <string name="other">Other</string>
 
     <!-- Game Grid Screen-->
@@ -254,8 +268,10 @@
     <string name="grid_menu_gcpad_settings">GameCube Input</string>
     <string name="grid_menu_wiimote_settings">Wii Input</string>
     <string name="grid_menu_refresh">Refresh Library</string>
+    <string name="grid_menu_open_file">Run Files</string>
 
     <!-- Add Directory Screen-->
+    <string name="toggle_list">Toggle List</string>
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="add_directory_up_one_level">Up one level</string>
     <string name="add_directory_empty_folder">That folder is empty.</string>
@@ -264,6 +280,8 @@
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>
     <string name="preferences_game_settings">Game Settings</string>
+    <string name="per_game_settings">Game Settings: %1$s</string>
+    <string name="settings_saved_notice">Saved settings to INI files.</string>
     <string name="preferences_extensions">Extension Bindings</string>
 
     <!-- Emulation Menu -->
@@ -286,10 +304,12 @@
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Adjust Scale</string>
+    <string name="emulation_control_alpha">Adujst Opacity</string>
+    <string name="emulation_control_reset_layout">Reset Layout</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
-    <string name="emulation_touch_overlay_reset">Reset Overlay</string>
+    <string name="emulation_reload_wiimote_config">Reload Config</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
@@ -313,23 +333,34 @@
     <!-- Extra Leanback Homescreen Channels-->
     <string name="homescreen_favorites">Favorites</string>
 
-    <string name="emulation_joystick_settings">Joystick Settings</string>
-    <string name="emulation_sensor_settings">Sensor Settings</string>
+    <string name="state_saves">State Saves</string>
+    <string name="save">Save</string>
+    <string name="load">Load</string>
+    <string name="setting_display_scale">Display Scale</string>
+    <string name="emulation_joystick_settings">Joystick Emulation</string>
+    <string name="emulation_sensor_settings">Sensor Emulation</string>
     <string name="game_platform_wii">[Wii] %1$s %2$s</string>
     <string name="game_platform_ngc">[NGC] %1$s %2$s</string>
     <string name="game_platform_ware">[Ware] %1$s %2$s</string>
+    <string name="game_platform_n64">[N64] %1$s %2$s</string>
+    <string name="game_platform_nes">[NES] %1$s %2$s</string>
+    <string name="game_platform_sms">[SMS] %1$s %2$s</string>
+    <string name="game_platform_smd">[SMD] %1$s %2$s</string>
+    <string name="game_platform_c64">[C64] %1$s %2$s</string>
+    <string name="game_platform_snes">[SNES] %1$s %2$s</string>
     <string name="delete_game_setting">Delete Settings</string>
     <string name="delete_game_file">Delete Game</string>
-    <string name="clear_game_data">Clear Data</string>
+    <string name="clear_game_data">Clear Cache</string>
     <string name="cheat_code">Cheat Code</string>
-    <string name="save_code">Save</string>
     <string name="toast_save_code_ok">Code Saved!</string>
     <string name="toast_save_code_no">Save Failed!</string>
     <string name="touch_screen_pointer">Touch Screen emulate IR</string>
+    <string name="touch_screen_pointer_recenter">IR always back to center</string>
     <string name="joystick_relative_center">Joystick use relative center</string>
-    <string name="interface_show_extended_fps">Show Extended FPS</string>
     <string name="use_builtin_title_database">Use Built-In Database of Game Names</string>
-    <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>
+    <string name="touch_ir_click">Click</string>
+    <string name="touch_ir_stick">Stick</string>
+    <string name="delete_cache_toast">Delete %1$d cache files.</string>
 
     <string name="sysconf_screensaver">Screensaver</string>
     <string name="sysconf_language">System Language</string>
@@ -352,4 +383,10 @@
     <string name="nnf_list_cancel">@android:string/cancel</string>
     <string name="nnf_new_folder_ok">@android:string/ok</string>
     <string name="nnf_new_folder_cancel">@android:string/cancel</string>
+
+    <!-- Misc -->
+    <string name="pitch">Total Pitch</string>
+    <string name="yaw">Total Yaw</string>
+    <string name="vertical_offset">Vertical Offset</string>
+
 </resources>

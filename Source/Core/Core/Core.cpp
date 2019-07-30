@@ -32,16 +32,11 @@
 #include "Common/Timer.h"
 
 #include "Core/Analytics.h"
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/Host.h"
-#include "Core/MemTools.h"
-#ifdef USE_MEMORYWATCHER
-#include "Core/MemoryWatcher.h"
-#endif
-#include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
@@ -53,7 +48,9 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/Host.h"
 #include "Core/IOS/IOS.h"
+#include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -65,6 +62,10 @@
 
 #ifdef USE_GDBSTUB
 #include "Core/PowerPC/GDBStub.h"
+#endif
+
+#ifdef USE_MEMORYWATCHER
+#include "Core/MemoryWatcher.h"
 #endif
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -100,6 +101,10 @@ static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
 
+#ifdef USE_MEMORYWATCHER
+static std::unique_ptr<MemoryWatcher> s_memory_watcher;
+#endif
+
 struct HostJob
 {
   std::function<void()> job;
@@ -126,6 +131,14 @@ void FrameUpdateOnCPUThread()
 {
   if (NetPlay::IsNetPlayRunning())
     NetPlay::NetPlayClient::SendTimeBase();
+}
+
+void OnFrameEnd()
+{
+#ifdef USE_MEMORYWATCHER
+  if (s_memory_watcher)
+    s_memory_watcher->Step();
+#endif
 }
 
 // Display messages and return values
@@ -217,6 +230,9 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
+  // Issue any API calls which must occur on the main thread for the graphics backend.
+  g_video_backend->PrepareWindow(wsi);
+
   // Start the emu thread
   s_emu_thread = std::thread(EmuThread, std::move(boot), wsi);
   return true;
@@ -227,12 +243,10 @@ static void ResetRumble()
 #if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
 #endif
-#if defined(CIFACE_USE_XINPUT) || defined(CIFACE_USE_DINPUT)
   if (!Pad::IsInitialized())
     return;
   for (int i = 0; i < 4; ++i)
     Pad::ResetRumble(i);
-#endif
 }
 
 // Called from GUI thread
@@ -244,6 +258,10 @@ void Stop()  // - Hammertime!
   const SConfig& _CoreParameter = SConfig::GetInstance();
 
   s_is_stopping = true;
+
+  // Notify state changed callback
+  if (s_on_state_changed_callback)
+    s_on_state_changed_callback(State::Stopping);
 
   // Dump left over jobs
   HostDispatchJobs();
@@ -269,7 +287,7 @@ void Stop()  // - Hammertime!
   ResetRumble();
 
 #ifdef USE_MEMORYWATCHER
-  MemoryWatcher::Shutdown();
+  s_memory_watcher.reset();
 #endif
 }
 
@@ -306,16 +324,12 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
     Common::SetCurrentThreadName("CPU thread");
   else
     Common::SetCurrentThreadName("CPU-GPU thread");
-#ifndef ANDROID
-  // This needs to be delayed until after the video backend is ready.
-  DolphinAnalytics::Instance()->ReportGameStart();
-#endif
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
 
 #ifdef USE_MEMORYWATCHER
-  MemoryWatcher::Init();
+  s_memory_watcher = std::make_unique<MemoryWatcher>();
 #endif
 
   if (savestate_path)
@@ -474,7 +488,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   else
   {
-    // Update references in case controllers were refreshed
     g_controller_interface.ChangeWindow(wsi.render_surface);
     Pad::LoadConfig();
     Keyboard::LoadConfig();
@@ -484,24 +497,31 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   const bool delete_savestate = boot->delete_savestate;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
+  bool init_wiimotes = false;
   if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     if (init_controllers)
     {
       Wiimote::Initialize(savestate_path ? Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
                                            Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+      init_wiimotes = true;
     }
     else
     {
       Wiimote::LoadConfig();
     }
+
+    if (NetPlay::IsNetPlayRunning())
+      NetPlay::SetupWiimotes();
   }
 
-  Common::ScopeGuard controller_guard{[init_controllers] {
+  Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
     if (!init_controllers)
       return;
 
-    Wiimote::Shutdown();
+    if (init_wiimotes)
+      Wiimote::Shutdown();
+
     Keyboard::Shutdown();
     Pad::Shutdown();
     g_controller_interface.Shutdown();
@@ -790,59 +810,21 @@ void Callback_VideoCopiedToXFB(bool video_update)
 
 void UpdateTitle()
 {
-  const SConfig& _CoreParameter = SConfig::GetInstance();
   u32 ElapseTime = (u32)s_timer.GetTimeDifference();
   s_request_refresh_info = false;
 
   if (ElapseTime == 0)
     ElapseTime = 1;
 
-  float FPS = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
-  float VPS = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
-  float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) /
-                        (VideoInterface::GetTargetRefreshRate() * ElapseTime));
+  float FPS = s_drawn_frame.load() * 1000.0f / ElapseTime;
+  float VPS = s_drawn_video.load() * 1000.0f / ElapseTime;
+  float Speed = VPS * 100.0f / VideoInterface::GetTargetRefreshRate();
 
   std::string SFPS;
 
-  if (Movie::IsPlayingInput())
+  if(g_ActiveConfig.bShowFPS)
   {
-    SFPS = StringFromFormat("Input: %u/%u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-      (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetTotalInputCount(),
-      (u32)Movie::GetCurrentFrame(), FPS, VPS, Speed);
-  }
-  else if (Movie::IsRecordingInput())
-  {
-    SFPS = StringFromFormat("Input: %u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-      (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetCurrentFrame(), FPS,
-      VPS, Speed);
-  }
-  else if (_CoreParameter.m_InterfaceExtendedFPSInfo)
-  {
-    // Use extended or summary information. The summary information does not print the ticks data,
-    // that's more of a debugging interest, it can always be optional of course if someone is
-    // interested.
-    static u64 ticks = 0;
-    static u64 idleTicks = 0;
-    u64 newTicks = CoreTiming::GetTicks();
-    u64 newIdleTicks = CoreTiming::GetIdleTicks();
-
-    u64 diff = (newTicks - ticks) / 1000000;
-    u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-
-    ticks = newTicks;
-    idleTicks = newIdleTicks;
-
-    float TicksPercentage =
-        (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
-
-    SFPS = StringFromFormat(
-      "FPS: %.0f - VPS: %.0f - %.0f%% | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
-      FPS, VPS, Speed,
-      (int)(diff), (int)(diff - idleDiff), (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
-  }
-  else if(g_ActiveConfig.bShowFPS)
-  {
-    SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
+    SFPS = StringFromFormat("FPS: %.0f - VPS:%.0f - %.0f%%", FPS, VPS, Speed);
   }
 
   // Update the audio timestretcher with the current speed
@@ -852,18 +834,7 @@ void UpdateTitle()
     pMixer->UpdateSpeed((float)Speed / 100);
   }
 
-#ifdef __ANDROID__
   g_renderer->UpdateDebugTitle(SFPS);
-#else
-  if (_CoreParameter.m_show_active_title)
-  {
-    const std::string& title = SConfig::GetInstance().GetTitleDescription();
-    if (!title.empty())
-      SFPS += " | " + title;
-  }
-
-  Host_UpdateTitle(SFPS);
-#endif
 }
 
 void Shutdown()

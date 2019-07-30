@@ -4,21 +4,38 @@
 
 #pragma once
 
-#include <cstring>
+#include <algorithm>
+#include <cctype>
 #include <list>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {
-  bool operator()(const std::string& a, const std::string& b) const
+  // Allow heterogenous lookup.
+  using is_transparent = void;
+
+  bool operator()(std::string_view a, std::string_view b) const
   {
-    return strcasecmp(a.c_str(), b.c_str()) < 0;
+    return std::lexicographical_compare(
+        a.begin(), a.end(), b.begin(), b.end(), [](char lhs, char rhs) {
+          return std::tolower(static_cast<u8>(lhs)) < std::tolower(static_cast<u8>(rhs));
+        });
+  }
+
+  static bool IsEqual(std::string_view a, std::string_view b)
+  {
+    if (a.size() != b.size())
+      return false;
+
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char lhs, char rhs) {
+      return std::tolower(static_cast<u8>(lhs)) == std::tolower(static_cast<u8>(rhs));
+    });
   }
 };
 
@@ -32,32 +49,31 @@ public:
   public:
     Section();
     explicit Section(std::string name_);
-    bool Exists(const std::string& key) const;
-    bool Delete(const std::string& key);
+    bool Exists(std::string_view key) const;
+    bool Delete(std::string_view key);
 
-    void Set(const std::string& key, const std::string& newValue);
+    void Set(const std::string& key, std::string new_value);
+
     template <typename T>
-    void Set(const std::string& key, const T& new_value)
+    void Set(const std::string& key, T&& new_value)
     {
-      Set(key, ValueToString(new_value));
+      Set(key, ValueToString(std::forward<T>(new_value)));
     }
 
     template <typename T>
-    void Set(const std::string& key, const T& new_value, const std::common_type_t<T>& default_value)
+    void Set(const std::string& key, T&& new_value, const std::common_type_t<T>& default_value)
     {
       if (new_value != default_value)
-        Set(key, new_value);
+        Set(key, std::forward<T>(new_value));
       else
         Delete(key);
     }
 
-    void Set(const std::string& key, const std::vector<std::string>& newValues);
+    bool Get(std::string_view key, std::string* value,
+             const std::string& default_value = NULL_STRING) const;
 
-    bool Get(const std::string& key, std::string* value,
-             const std::string& defaultValue = NULL_STRING) const;
     template <typename T>
-    bool Get(const std::string& key, T* value,
-             const std::common_type_t<T>& default_value = {}) const
+    bool Get(std::string_view key, T* value, const std::common_type_t<T>& default_value = {}) const
     {
       std::string temp;
       bool retval = Get(key, &temp);
@@ -66,10 +82,8 @@ public:
       *value = default_value;
       return false;
     }
-    bool Get(const std::string& key, std::vector<std::string>* values) const;
 
-    void SetLines(const std::vector<std::string>& lines);
-    void SetLines(std::vector<std::string>&& lines);
+    void SetLines(std::vector<std::string> lines);
     bool GetLines(std::vector<std::string>* lines, const bool remove_comments = true) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
@@ -88,6 +102,9 @@ public:
     std::vector<std::string> m_lines;
   };
 
+  IniFile();
+  ~IniFile();
+
   /**
    * Loads sections and keys.
    * @param filename filename of the ini file which should be loaded
@@ -103,41 +120,40 @@ public:
   bool Save(const std::string& filename);
 
   // Returns true if key exists in section
-  bool Exists(const std::string& sectionName, const std::string& key) const;
+  bool Exists(std::string_view section_name, std::string_view key) const;
 
   template <typename T>
-  bool GetIfExists(const std::string& sectionName, const std::string& key, T* value)
+  bool GetIfExists(std::string_view section_name, std::string_view key, T* value)
   {
-    if (Exists(sectionName, key))
-      return GetOrCreateSection(sectionName)->Get(key, value);
+    if (Exists(section_name, key))
+      return GetOrCreateSection(section_name)->Get(key, value);
 
     return false;
   }
 
   template <typename T>
-  bool GetIfExists(const std::string& sectionName, const std::string& key, T* value, T defaultValue)
+  bool GetIfExists(std::string_view section_name, std::string_view key, T* value, T default_value)
   {
-    if (Exists(sectionName, key))
-      return GetOrCreateSection(sectionName)->Get(key, value, defaultValue);
-    else
-      *value = defaultValue;
+    if (Exists(section_name, key))
+      return GetOrCreateSection(section_name)->Get(key, value, default_value);
 
+    *value = default_value;
     return false;
   }
 
-  bool GetKeys(const std::string& sectionName, std::vector<std::string>* keys) const;
+  bool GetKeys(std::string_view section_name, std::vector<std::string>* keys) const;
 
-  void SetLines(const std::string& sectionName, const std::vector<std::string>& lines);
-  void SetLines(const std::string& section_name, std::vector<std::string>&& lines);
-  bool GetLines(const std::string& sectionName, std::vector<std::string>* lines,
-                const bool remove_comments = true) const;
+  void SetLines(std::string_view section_name, const std::vector<std::string>& lines);
+  void SetLines(std::string_view section_name, std::vector<std::string>&& lines);
+  bool GetLines(std::string_view section_name, std::vector<std::string>* lines,
+                bool remove_comments = true) const;
 
-  bool DeleteKey(const std::string& sectionName, const std::string& key);
-  bool DeleteSection(const std::string& sectionName);
+  bool DeleteKey(std::string_view section_name, std::string_view key);
+  bool DeleteSection(std::string_view section_name);
 
   void SortSections();
 
-  Section* GetOrCreateSection(const std::string& section);
+  Section* GetOrCreateSection(std::string_view section_name);
 
   // This function is related to parsing data from lines of INI files
   // It's used outside of IniFile, which is why it is exposed publicly
@@ -149,8 +165,8 @@ public:
 private:
   std::list<Section> sections;
 
-  const Section* GetSection(const std::string& section) const;
-  Section* GetSection(const std::string& section);
+  const Section* GetSection(std::string_view section_name) const;
+  Section* GetSection(std::string_view section_name);
 
   static const std::string& NULL_STRING;
 };

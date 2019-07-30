@@ -49,7 +49,7 @@ public:
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override {}
 };
-}
+}  // namespace WiimoteReal
 
 #else
 #include "Core/HW/WiimoteReal/IODummy.h"

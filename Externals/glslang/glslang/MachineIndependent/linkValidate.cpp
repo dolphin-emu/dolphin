@@ -1,6 +1,7 @@
 //
 // Copyright (C) 2013 LunarG, Inc.
 // Copyright (C) 2017 ARM Limited.
+// Copyright (C) 2015-2018 Google, Inc.
 //
 // All rights reserved.
 //
@@ -221,8 +222,14 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
         else if (xfbBuffers[b].stride != unit.xfbBuffers[b].stride)
             error(infoSink, "Contradictory xfb_stride");
         xfbBuffers[b].implicitStride = std::max(xfbBuffers[b].implicitStride, unit.xfbBuffers[b].implicitStride);
-        if (unit.xfbBuffers[b].containsDouble)
-            xfbBuffers[b].containsDouble = true;
+        if (unit.xfbBuffers[b].contains64BitType)
+            xfbBuffers[b].contains64BitType = true;
+#ifdef AMD_EXTENSIONS
+        if (unit.xfbBuffers[b].contains32BitType)
+            xfbBuffers[b].contains32BitType = true;
+        if (unit.xfbBuffers[b].contains16BitType)
+            xfbBuffers[b].contains16BitType = true;
+#endif
         // TODO: 4.4 link: enhanced layouts: compare ranges
     }
 
@@ -260,6 +267,7 @@ void TIntermediate::mergeModes(TInfoSink& infoSink, TIntermediate& unit)
 
     MERGE_TRUE(needToLegalize);
     MERGE_TRUE(binaryDoubleOutput);
+    MERGE_TRUE(usePhysicalStorageBuffer);
 }
 
 //
@@ -632,8 +640,14 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
         error(infoSink, "Cannot use both gl_FragColor and gl_FragData");
 
     for (size_t b = 0; b < xfbBuffers.size(); ++b) {
-        if (xfbBuffers[b].containsDouble)
+        if (xfbBuffers[b].contains64BitType)
             RoundToPow2(xfbBuffers[b].implicitStride, 8);
+#ifdef AMD_EXTENSIONS
+        else if (xfbBuffers[b].contains32BitType)
+            RoundToPow2(xfbBuffers[b].implicitStride, 4);
+        else if (xfbBuffers[b].contains16BitType)
+            RoundToPow2(xfbBuffers[b].implicitStride, 2);
+#endif
 
         // "It is a compile-time or link-time error to have
         // any xfb_offset that overflows xfb_stride, whether stated on declarations before or after the xfb_stride, or
@@ -648,18 +662,31 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
             xfbBuffers[b].stride = xfbBuffers[b].implicitStride;
 
         // "If the buffer is capturing any
-        // outputs with double-precision components, the stride must be a multiple of 8, otherwise it must be a
+        // outputs with double-precision or 64-bit integer components, the stride must be a multiple of 8, otherwise it must be a
         // multiple of 4, or a compile-time or link-time error results."
-        if (xfbBuffers[b].containsDouble && ! IsMultipleOfPow2(xfbBuffers[b].stride, 8)) {
-            error(infoSink, "xfb_stride must be multiple of 8 for buffer holding a double:");
+        if (xfbBuffers[b].contains64BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 8)) {
+            error(infoSink, "xfb_stride must be multiple of 8 for buffer holding a double or 64-bit integer:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
+#ifdef AMD_EXTENSIONS
+        } else if (xfbBuffers[b].contains32BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 4)) {
+#else
         } else if (! IsMultipleOfPow2(xfbBuffers[b].stride, 4)) {
+#endif
             error(infoSink, "xfb_stride must be multiple of 4:");
             infoSink.info.prefix(EPrefixError);
             infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
         }
+#ifdef AMD_EXTENSIONS
+        // "If the buffer is capturing any
+        // outputs with half-precision or 16-bit integer components, the stride must be a multiple of 2"
+        else if (xfbBuffers[b].contains16BitType && ! IsMultipleOfPow2(xfbBuffers[b].stride, 2)) {
+            error(infoSink, "xfb_stride must be multiple of 2 for buffer holding a half float or 16-bit integer:");
+            infoSink.info.prefix(EPrefixError);
+            infoSink.info << "    xfb_buffer " << (unsigned int)b << ", xfb_stride " << xfbBuffers[b].stride << "\n";
+        }
 
+#endif
         // "The resulting stride (implicit or explicit), when divided by 4, must be less than or equal to the
         // implementation-dependent constant gl_MaxTransformFeedbackInterleavedComponents."
         if (xfbBuffers[b].stride > (unsigned int)(4 * resources.maxTransformFeedbackInterleavedComponents)) {
@@ -712,7 +739,7 @@ void TIntermediate::finalCheck(TInfoSink& infoSink, bool keepUncalled)
     case EShLangMissNV:
     case EShLangCallableNV:
         if (numShaderRecordNVBlocks > 1)
-            error(infoSink, "Only one shaderRecordNVX buffer block is allowed per stage");
+            error(infoSink, "Only one shaderRecordNV buffer block is allowed per stage");
         break;
     case EShLangMeshNV:
         // NV_mesh_shader doesn't allow use of both single-view and per-view builtins.
@@ -1258,7 +1285,11 @@ int TIntermediate::addXfbBufferOffset(const TType& type)
     TXfbBuffer& buffer = xfbBuffers[qualifier.layoutXfbBuffer];
 
     // compute the range
-    unsigned int size = computeTypeXfbSize(type, buffer.containsDouble);
+#ifdef AMD_EXTENSIONS
+    unsigned int size = computeTypeXfbSize(type, buffer.contains64BitType, buffer.contains32BitType, buffer.contains16BitType);
+#else
+    unsigned int size = computeTypeXfbSize(type, buffer.contains64BitType);
+#endif
     buffer.implicitStride = std::max(buffer.implicitStride, qualifier.layoutXfbOffset + size);
     TRange range(qualifier.layoutXfbOffset, qualifier.layoutXfbOffset + size - 1);
 
@@ -1277,11 +1308,18 @@ int TIntermediate::addXfbBufferOffset(const TType& type)
 
 // Recursively figure out how many bytes of xfb buffer are used by the given type.
 // Return the size of type, in bytes.
-// Sets containsDouble to true if the type contains a double.
-// N.B. Caller must set containsDouble to false before calling.
-unsigned int TIntermediate::computeTypeXfbSize(const TType& type, bool& containsDouble) const
+// Sets contains64BitType to true if the type contains a 64-bit data type.
+#ifdef AMD_EXTENSIONS
+// Sets contains32BitType to true if the type contains a 32-bit data type.
+// Sets contains16BitType to true if the type contains a 16-bit data type.
+// N.B. Caller must set contains64BitType, contains32BitType, and contains16BitType to false before calling.
+unsigned int TIntermediate::computeTypeXfbSize(const TType& type, bool& contains64BitType, bool& contains32BitType, bool& contains16BitType) const
+#else
+// N.B. Caller must set contains64BitType to false before calling.
+unsigned int TIntermediate::computeTypeXfbSize(const TType& type, bool& contains64BitType) const
+#endif
 {
-    // "...if applied to an aggregate containing a double, the offset must also be a multiple of 8,
+    // "...if applied to an aggregate containing a double or 64-bit integer, the offset must also be a multiple of 8,
     // and the space taken in the buffer will be a multiple of 8.
     // ...within the qualified entity, subsequent components are each
     // assigned, in order, to the next available offset aligned to a multiple of
@@ -1292,29 +1330,59 @@ unsigned int TIntermediate::computeTypeXfbSize(const TType& type, bool& contains
         // TODO: perf: this can be flattened by using getCumulativeArraySize(), and a deref that discards all arrayness
         assert(type.isSizedArray());
         TType elementType(type, 0);
-        return type.getOuterArraySize() * computeTypeXfbSize(elementType, containsDouble);
+#ifdef AMD_EXTENSIONS
+        return type.getOuterArraySize() * computeTypeXfbSize(elementType, contains64BitType, contains16BitType, contains16BitType);
+#else
+        return type.getOuterArraySize() * computeTypeXfbSize(elementType, contains64BitType);
+#endif
     }
 
     if (type.isStruct()) {
         unsigned int size = 0;
-        bool structContainsDouble = false;
+        bool structContains64BitType = false;
+#ifdef AMD_EXTENSIONS
+        bool structContains32BitType = false;
+        bool structContains16BitType = false;
+#endif
         for (int member = 0; member < (int)type.getStruct()->size(); ++member) {
             TType memberType(type, member);
             // "... if applied to
-            // an aggregate containing a double, the offset must also be a multiple of 8,
+            // an aggregate containing a double or 64-bit integer, the offset must also be a multiple of 8,
             // and the space taken in the buffer will be a multiple of 8."
-            bool memberContainsDouble = false;
-            int memberSize = computeTypeXfbSize(memberType, memberContainsDouble);
-            if (memberContainsDouble) {
-                structContainsDouble = true;
+            bool memberContains64BitType = false;
+#ifdef AMD_EXTENSIONS
+            bool memberContains32BitType = false;
+            bool memberContains16BitType = false;
+            int memberSize = computeTypeXfbSize(memberType, memberContains64BitType, memberContains32BitType, memberContains16BitType);
+#else
+            int memberSize = computeTypeXfbSize(memberType, memberContains64BitType);
+#endif
+            if (memberContains64BitType) {
+                structContains64BitType = true;
                 RoundToPow2(size, 8);
+#ifdef AMD_EXTENSIONS
+            } else if (memberContains32BitType) {
+                structContains32BitType = true;
+                RoundToPow2(size, 4);
+            } else if (memberContains16BitType) {
+                structContains16BitType = true;
+                RoundToPow2(size, 2);
+#endif
             }
             size += memberSize;
         }
 
-        if (structContainsDouble) {
-            containsDouble = true;
+        if (structContains64BitType) {
+            contains64BitType = true;
             RoundToPow2(size, 8);
+#ifdef AMD_EXTENSIONS
+        } else if (structContains32BitType) {
+            contains32BitType = true;
+            RoundToPow2(size, 4);
+        } else if (structContains16BitType) {
+            contains16BitType = true;
+            RoundToPow2(size, 2);
+#endif
         }
         return size;
     }
@@ -1331,11 +1399,23 @@ unsigned int TIntermediate::computeTypeXfbSize(const TType& type, bool& contains
         numComponents = 1;
     }
 
-    if (type.getBasicType() == EbtDouble) {
-        containsDouble = true;
+    if (type.getBasicType() == EbtDouble || type.getBasicType() == EbtInt64 || type.getBasicType() == EbtUint64) {
+        contains64BitType = true;
         return 8 * numComponents;
+#ifdef AMD_EXTENSIONS
+    } else if (type.getBasicType() == EbtFloat16 || type.getBasicType() == EbtInt16 || type.getBasicType() == EbtUint16) {
+        contains16BitType = true;
+        return 2 * numComponents;
+    } else if (type.getBasicType() == EbtInt8 || type.getBasicType() == EbtUint8)
+        return numComponents;
+    else {
+        contains32BitType = true;
+        return 4 * numComponents;
+    }
+#else
     } else
         return 4 * numComponents;
+#endif
 }
 
 const int baseAlignmentVec4Std140 = 16;
@@ -1354,6 +1434,7 @@ int TIntermediate::getBaseAlignmentScalar(const TType& type, int& size)
     case EbtUint8:   size = 1; return 1;
     case EbtInt16:
     case EbtUint16:  size = 2; return 2;
+    case EbtReference: size = 8; return 8;
     default:         size = 4; return 4;
     }
 }
@@ -1372,10 +1453,11 @@ int TIntermediate::getBaseAlignmentScalar(const TType& type, int& size)
 // stride comes from the flattening down to vectors.
 //
 // Return value is the alignment of the type.
-int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, bool std140, bool rowMajor)
+int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor)
 {
     int alignment;
 
+    bool std140 = layoutPacking == glslang::ElpStd140;
     // When using the std140 storage layout, structures will be laid out in buffer
     // storage with its members stored in monotonically increasing order based on their
     // location in the declaration. A structure and each structure member have a base
@@ -1439,7 +1521,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, b
     if (type.isArray()) {
         // TODO: perf: this might be flattened by using getCumulativeArraySize(), and a deref that discards all arrayness
         TType derefType(type, 0);
-        alignment = getBaseAlignment(derefType, size, dummyStride, std140, rowMajor);
+        alignment = getBaseAlignment(derefType, size, dummyStride, layoutPacking, rowMajor);
         if (std140)
             alignment = std::max(baseAlignmentVec4Std140, alignment);
         RoundToPow2(size, alignment);
@@ -1459,7 +1541,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, b
             int memberSize;
             // modify just the children's view of matrix layout, if there is one for this member
             TLayoutMatrix subMatrixLayout = memberList[m].type->getQualifier().layoutMatrix;
-            int memberAlignment = getBaseAlignment(*memberList[m].type, memberSize, dummyStride, std140,
+            int memberAlignment = getBaseAlignment(*memberList[m].type, memberSize, dummyStride, layoutPacking,
                                                    (subMatrixLayout != ElmNone) ? (subMatrixLayout == ElmRowMajor) : rowMajor);
             maxAlignment = std::max(maxAlignment, memberAlignment);
             RoundToPow2(size, memberAlignment);
@@ -1498,7 +1580,7 @@ int TIntermediate::getBaseAlignment(const TType& type, int& size, int& stride, b
         // rule 5: deref to row, not to column, meaning the size of vector is num columns instead of num rows
         TType derefType(type, 0, rowMajor);
 
-        alignment = getBaseAlignment(derefType, size, dummyStride, std140, rowMajor);
+        alignment = getBaseAlignment(derefType, size, dummyStride, layoutPacking, rowMajor);
         if (std140)
             alignment = std::max(baseAlignmentVec4Std140, alignment);
         RoundToPow2(size, alignment);
@@ -1524,6 +1606,151 @@ bool TIntermediate::improperStraddle(const TType& type, int size, int offset)
 
     return size <= 16 ? offset / 16 != (offset + size - 1) / 16
                       : offset % 16 != 0;
+}
+
+int TIntermediate::getScalarAlignment(const TType& type, int& size, int& stride, bool rowMajor)
+{
+    int alignment;
+
+    stride = 0;
+    int dummyStride;
+
+    if (type.isArray()) {
+        TType derefType(type, 0);
+        alignment = getScalarAlignment(derefType, size, dummyStride, rowMajor);
+
+        stride = size;
+        RoundToPow2(stride, alignment);
+
+        size = stride * (type.getOuterArraySize() - 1) + size;
+        return alignment;
+    }
+
+    if (type.getBasicType() == EbtStruct) {
+        const TTypeList& memberList = *type.getStruct();
+
+        size = 0;
+        int maxAlignment = 0;
+        for (size_t m = 0; m < memberList.size(); ++m) {
+            int memberSize;
+            // modify just the children's view of matrix layout, if there is one for this member
+            TLayoutMatrix subMatrixLayout = memberList[m].type->getQualifier().layoutMatrix;
+            int memberAlignment = getScalarAlignment(*memberList[m].type, memberSize, dummyStride,
+                                                     (subMatrixLayout != ElmNone) ? (subMatrixLayout == ElmRowMajor) : rowMajor);
+            maxAlignment = std::max(maxAlignment, memberAlignment);
+            RoundToPow2(size, memberAlignment);
+            size += memberSize;
+        }
+
+        return maxAlignment;
+    }
+
+    if (type.isScalar())
+        return getBaseAlignmentScalar(type, size);
+
+    if (type.isVector()) {
+        int scalarAlign = getBaseAlignmentScalar(type, size);
+        
+        size *= type.getVectorSize();
+        return scalarAlign;
+    }
+
+    if (type.isMatrix()) {
+        TType derefType(type, 0, rowMajor);
+
+        alignment = getScalarAlignment(derefType, size, dummyStride, rowMajor);
+
+        stride = size;  // use intra-matrix stride for stride of a just a matrix
+        if (rowMajor)
+            size = stride * type.getMatrixRows();
+        else
+            size = stride * type.getMatrixCols();
+
+        return alignment;
+    }
+
+    assert(0);  // all cases should be covered above
+    size = 1;
+    return 1;    
+}
+
+int TIntermediate::getMemberAlignment(const TType& type, int& size, int& stride, TLayoutPacking layoutPacking, bool rowMajor)
+{
+    if (layoutPacking == glslang::ElpScalar) {
+        return getScalarAlignment(type, size, stride, rowMajor);
+    } else {
+        return getBaseAlignment(type, size, stride, layoutPacking, rowMajor);
+    }
+}
+
+// shared calculation by getOffset and getOffsets
+void TIntermediate::updateOffset(const TType& parentType, const TType& memberType, int& offset, int& memberSize)
+{
+    int dummyStride;
+
+    // modify just the children's view of matrix layout, if there is one for this member
+    TLayoutMatrix subMatrixLayout = memberType.getQualifier().layoutMatrix;
+    int memberAlignment = getMemberAlignment(memberType, memberSize, dummyStride,
+                                             parentType.getQualifier().layoutPacking,
+                                             subMatrixLayout != ElmNone
+                                                 ? subMatrixLayout == ElmRowMajor
+                                                 : parentType.getQualifier().layoutMatrix == ElmRowMajor);
+    RoundToPow2(offset, memberAlignment);
+}
+
+// Lookup or calculate the offset of a block member, using the recursively
+// defined block offset rules.
+int TIntermediate::getOffset(const TType& type, int index)
+{
+    const TTypeList& memberList = *type.getStruct();
+
+    // Don't calculate offset if one is present, it could be user supplied
+    // and different than what would be calculated.  That is, this is faster,
+    // but not just an optimization.
+    if (memberList[index].type->getQualifier().hasOffset())
+        return memberList[index].type->getQualifier().layoutOffset;
+
+    int memberSize = 0;
+    int offset = 0;
+    for (int m = 0; m <= index; ++m) {
+        updateOffset(type, *memberList[m].type, offset, memberSize);
+
+        if (m < index)
+            offset += memberSize;
+    }
+
+    return offset;
+}
+
+// Calculate the block data size.
+// Block arrayness is not taken into account, each element is backed by a separate buffer.
+int TIntermediate::getBlockSize(const TType& blockType)
+{
+    const TTypeList& memberList = *blockType.getStruct();
+    int lastIndex = (int)memberList.size() - 1;
+    int lastOffset = getOffset(blockType, lastIndex);
+
+    int lastMemberSize;
+    int dummyStride;
+    getMemberAlignment(*memberList[lastIndex].type, lastMemberSize, dummyStride,
+                       blockType.getQualifier().layoutPacking,
+                       blockType.getQualifier().layoutMatrix == ElmRowMajor);
+
+    return lastOffset + lastMemberSize;
+}
+
+int TIntermediate::computeBufferReferenceTypeSize(const TType& type)
+{
+    assert(type.getBasicType() == EbtReference);
+    int size = getBlockSize(*type.getReferentType());
+
+    int align = type.getBufferReferenceAlignment();
+
+    if (align) {
+        size = (size + align - 1) & ~(align-1);
+    }
+
+    return size;
 }
 
 } // end namespace glslang

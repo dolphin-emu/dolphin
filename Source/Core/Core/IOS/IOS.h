@@ -19,9 +19,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace FS
 {
@@ -32,7 +30,7 @@ namespace Device
 {
 class Device;
 class ES;
-}
+}  // namespace Device
 
 struct Request;
 struct OpenRequest;
@@ -146,5 +144,4 @@ void Init();
 void Shutdown();
 EmulationKernel* GetIOS();
 
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

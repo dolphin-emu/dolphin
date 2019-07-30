@@ -1,12 +1,12 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
@@ -19,7 +19,7 @@ public class PermissionsHandler
   public static final int REQUEST_CODE_WRITE_PERMISSION = 500;
 
   @TargetApi(Build.VERSION_CODES.M)
-  public static boolean checkWritePermission(final FragmentActivity activity)
+  public static boolean checkWritePermission(final Activity activity)
   {
     if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
     {
@@ -57,14 +57,14 @@ public class PermissionsHandler
     return true;
   }
 
-  private static void showMessageOKCancel(final FragmentActivity activity, String message,
+  private static void showMessageOKCancel(final Context context, String message,
     DialogInterface.OnClickListener okListener)
   {
-    new AlertDialog.Builder(activity)
+    new AlertDialog.Builder(context)
       .setMessage(message)
       .setPositiveButton(android.R.string.ok, okListener)
       .setNegativeButton(android.R.string.cancel, (dialogInterface, i) ->
-        Toast.makeText(activity, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+        Toast.makeText(context, R.string.write_permission_needed, Toast.LENGTH_SHORT)
           .show())
       .create()
       .show();

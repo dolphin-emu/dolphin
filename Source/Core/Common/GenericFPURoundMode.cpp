@@ -26,4 +26,4 @@ void LoadSIMDState()
 void LoadDefaultSIMDState()
 {
 }
-}
+}  // namespace FPURoundMode

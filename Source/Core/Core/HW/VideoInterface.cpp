@@ -4,6 +4,7 @@
 
 #include "Core/HW/VideoInterface.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -12,7 +13,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -328,7 +328,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         u16 value = static_cast<u16>(1 + m_HTiming0.HLW *
                                              (CoreTiming::GetTicks() - s_ticks_last_line_start) /
                                              (GetTicksPerHalfLine()));
-        return MathUtil::Clamp(value, static_cast<u16>(1), static_cast<u16>(m_HTiming0.HLW * 2));
+        return std::clamp<u16>(value, 1, m_HTiming0.HLW * 2);
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
         WARN_LOG(VIDEOINTERFACE,
@@ -686,6 +686,9 @@ static void BeginField(FieldType field, u64 ticks)
     xfbAddr = GetXFBAddressTop();
   }
 
+  // Multiply the stride by 2 to get the byte offset for each subsequent line.
+  fbStride *= 2;
+
   if (potentially_interlaced_xfb && interlaced_video_mode && g_ActiveConfig.bForceProgressive)
   {
     // Strictly speaking, in interlaced mode, we're only supposed to read
@@ -704,10 +707,10 @@ static void BeginField(FieldType field, u64 ticks)
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
     if (field == FieldType::Odd && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 && xfbAddr)
-      xfbAddr -= fbStride * 2;
+      xfbAddr -= fbStride;
 
     if (field == FieldType::Even && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 && xfbAddr)
-      xfbAddr -= fbStride * 2;
+      xfbAddr -= fbStride;
   }
 
   LogField(field, xfbAddr);
@@ -723,6 +726,7 @@ static void BeginField(FieldType field, u64 ticks)
 static void EndField()
 {
   Core::VideoThrottle();
+  Core::OnFrameEnd();
 }
 
 // Purpose: Send VI interrupt when triggered
@@ -787,10 +791,8 @@ void Update(u64 ticks)
 }
 
 // Create a fake VI mode for a fifolog
-void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height)
+void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
 {
-  u32 fb_stride = fb_width;
-
   bool interlaced = fb_height > 480 / 2;
   if (interlaced)
   {
@@ -807,7 +809,7 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height)
   m_VBlankTimingEven.PRB = 503 - fb_height * 2;
   m_VBlankTimingEven.PSB = 4;
   m_PictureConfiguration.WPL = fb_width / 16;
-  m_PictureConfiguration.STD = fb_stride / 16;
+  m_PictureConfiguration.STD = (fb_stride / 2) / 16;
 
   UpdateParameters();
 

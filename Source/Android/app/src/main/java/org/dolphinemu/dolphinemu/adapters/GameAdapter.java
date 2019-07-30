@@ -20,6 +20,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   View.OnClickListener,
   View.OnLongClickListener
 {
+  private int mResourceId;
   private List<GameFile> mGameFiles;
 
   /**
@@ -43,13 +44,19 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     // Create a new view.
     View gameCard = LayoutInflater.from(parent.getContext())
-      .inflate(R.layout.card_game, parent, false);
+      .inflate(viewType, parent, false);
 
     gameCard.setOnClickListener(this);
     gameCard.setOnLongClickListener(this);
 
     // Use that view to create a ViewHolder.
     return new GameViewHolder(gameCard);
+  }
+
+  @Override
+  public int getItemViewType(int position)
+  {
+    return mResourceId;
   }
 
   /**
@@ -69,15 +76,60 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
     holder.textGameTitle.setText(gameFile.getTitle());
     holder.textCompany.setText(gameFile.getCompany());
 
-    final int[] platforms =
-      {R.string.game_platform_ngc, R.string.game_platform_wii, R.string.game_platform_ware};
-    Context context = holder.textPlatform.getContext();
-    String[] countryNames = context.getResources().getStringArray(R.array.countryNames);
+    final int[] platforms = {
+      R.string.game_platform_ngc,
+      R.string.game_platform_wii,
+      R.string.game_platform_ware,
+      R.string.game_platform_n64,
+      R.string.game_platform_nes,
+      R.string.game_platform_sms,
+      R.string.game_platform_smd,
+      R.string.game_platform_c64,
+      R.string.game_platform_snes,
+    };
+    final Context context = holder.textPlatform.getContext();
+    final String[] countryNames = context.getResources().getStringArray(R.array.countryNames);
+    int platform = gameFile.getPlatform();
+    int country = gameFile.getCountry();
     int discNumber = gameFile.getDiscNumber() + 1;
+    if (platform == 2)
+    {
+      // WiiWAD, Virtual Console
+      String gameId = gameFile.getGameId();
+      switch (gameId.charAt(0))
+      {
+        case 'N':
+          // N64
+          platform = 3;
+          break;
+        case 'F':
+          // NES
+          platform = 4;
+          break;
+        case 'L':
+          // SMS
+          platform = 5;
+          break;
+        case 'M':
+          // SMD
+          platform = 6;
+          break;
+        case 'C':
+          // C64
+          platform = 7;
+          break;
+        case 'J':
+          // SNES
+          platform = 8;
+          break;
+      }
+    }
     String discInfo = discNumber > 1 ? "DISC-" + discNumber : "";
-    holder.textPlatform.setText(context.getString(platforms[gameFile.getPlatform()],
-      countryNames[gameFile.getCountry()], discInfo));
-
+    if (platform < 0 || platform >= platforms.length)
+      platform = 2;
+    if (country < 0 || country >= countryNames.length)
+      country = countryNames.length - 1;
+    holder.textPlatform.setText(context.getString(platforms[platform], countryNames[country], discInfo));
     holder.gameFile = gameFile;
   }
 
@@ -113,6 +165,11 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
     notifyDataSetChanged();
   }
 
+  public void setResourceId(int resId)
+  {
+    mResourceId = resId;
+  }
+
   /**
    * Launches the game that was clicked on.
    *
@@ -122,7 +179,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   public void onClick(View view)
   {
     GameViewHolder holder = (GameViewHolder) view.getTag();
-    EmulationActivity.launch((FragmentActivity) view.getContext(), holder.gameFile, null);
+    EmulationActivity.launch(view.getContext(), holder.gameFile, null);
   }
 
   /**

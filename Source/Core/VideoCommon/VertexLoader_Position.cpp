@@ -16,14 +16,16 @@
 #include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VideoCommon.h"
 
+namespace
+{
 template <typename T>
-float PosScale(T val, float scale)
+constexpr float PosScale(T val, float scale)
 {
   return val * scale;
 }
 
 template <>
-float PosScale(float val, float scale)
+constexpr float PosScale(float val, [[maybe_unused]] float scale)
 {
   return val;
 }
@@ -32,13 +34,13 @@ template <typename T, int N>
 void Pos_ReadDirect(VertexLoader* loader)
 {
   static_assert(N <= 3, "N > 3 is not sane!");
-  auto const scale = loader->m_posScale;
+  const auto scale = loader->m_posScale;
   DataReader dst(g_vertex_manager_write_ptr, nullptr);
   DataReader src(g_video_buffer_read_ptr, nullptr);
 
   for (int i = 0; i < N; ++i)
   {
-    float value = PosScale(src.Read<T>(), scale);
+    const float value = PosScale(src.Read<T>(), scale);
     if (loader->m_counter < 3)
       VertexLoaderManager::position_cache[loader->m_counter][i] = value;
     dst.Write(value);
@@ -55,17 +57,17 @@ void Pos_ReadIndex(VertexLoader* loader)
   static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
   static_assert(N <= 3, "N > 3 is not sane!");
 
-  auto const index = DataRead<I>();
+  const auto index = DataRead<I>();
   loader->m_vertexSkip = index == std::numeric_limits<I>::max();
-  auto const data =
+  const auto data =
       reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[ARRAY_POSITION] +
                                  (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
-  auto const scale = loader->m_posScale;
+  const auto scale = loader->m_posScale;
   DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
   for (int i = 0; i < N; ++i)
   {
-    float value = PosScale(Common::FromBigEndian(data[i]), scale);
+    const float value = PosScale(Common::FromBigEndian(data[i]), scale);
     if (loader->m_counter < 3)
       VertexLoaderManager::position_cache[loader->m_counter][i] = value;
     dst.Write(value);
@@ -75,7 +77,7 @@ void Pos_ReadIndex(VertexLoader* loader)
   LOG_VTX();
 }
 
-static TPipelineFunction tableReadPosition[4][8][2] = {
+constexpr TPipelineFunction s_table_read_position[4][8][2] = {
     {
         {
             nullptr,
@@ -166,104 +168,44 @@ static TPipelineFunction tableReadPosition[4][8][2] = {
     },
 };
 
-static int tableReadPositionVertexSize[4][8][2] = {
+constexpr u32 s_table_read_position_vertex_size[4][8][2] = {
     {
-        {
-            0,
-            0,
-        },
-        {
-            0,
-            0,
-        },
-        {
-            0,
-            0,
-        },
-        {
-            0,
-            0,
-        },
-        {
-            0,
-            0,
-        },
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {0, 0},
     },
     {
-        {
-            2,
-            3,
-        },
-        {
-            2,
-            3,
-        },
-        {
-            4,
-            6,
-        },
-        {
-            4,
-            6,
-        },
-        {
-            8,
-            12,
-        },
+        {2, 3},
+        {2, 3},
+        {4, 6},
+        {4, 6},
+        {8, 12},
     },
     {
-        {
-            1,
-            1,
-        },
-        {
-            1,
-            1,
-        },
-        {
-            1,
-            1,
-        },
-        {
-            1,
-            1,
-        },
-        {
-            1,
-            1,
-        },
+        {1, 1},
+        {1, 1},
+        {1, 1},
+        {1, 1},
+        {1, 1},
     },
     {
-        {
-            2,
-            2,
-        },
-        {
-            2,
-            2,
-        },
-        {
-            2,
-            2,
-        },
-        {
-            2,
-            2,
-        },
-        {
-            2,
-            2,
-        },
+        {2, 2},
+        {2, 2},
+        {2, 2},
+        {2, 2},
+        {2, 2},
     },
 };
+}  // Anonymous namespace
 
-unsigned int VertexLoader_Position::GetSize(u64 _type, unsigned int _format, unsigned int _elements)
+u32 VertexLoader_Position::GetSize(u64 type, u32 format, u32 elements)
 {
-  return tableReadPositionVertexSize[_type][_format][_elements];
+  return s_table_read_position_vertex_size[type][format][elements];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(u64 _type, unsigned int _format,
-                                                     unsigned int _elements)
+TPipelineFunction VertexLoader_Position::GetFunction(u64 type, u32 format, u32 elements)
 {
-  return tableReadPosition[_type][_format][_elements];
+  return s_table_read_position[type][format][elements];
 }

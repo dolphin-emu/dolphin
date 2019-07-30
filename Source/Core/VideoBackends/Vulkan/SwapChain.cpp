@@ -13,21 +13,19 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/RenderBase.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-#include <X11/Xlib-xcb.h>
-#include <X11/Xlib.h>
 #endif
 
 namespace Vulkan
 {
-SwapChain::SwapChain(void* display_handle, void* native_handle, VkSurfaceKHR surface, bool vsync)
-    : m_display_handle(display_handle), m_native_handle(native_handle), m_surface(surface),
-      m_vsync_enabled(vsync)
+SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
+    : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync)
 {
 }
 
@@ -38,102 +36,103 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_handle, void* hwnd)
+VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSystemInfo& wsi)
 {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
-  VkWin32SurfaceCreateInfoKHR surface_create_info = {
-      VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
-      nullptr,                                          // const void*                   pNext
-      0,                                                // VkWin32SurfaceCreateFlagsKHR  flags
-      nullptr,                                          // HINSTANCE                     hinstance
-      reinterpret_cast<HWND>(hwnd)                      // HWND                          hwnd
-  };
-
-  VkSurfaceKHR surface;
-  VkResult res = vkCreateWin32SurfaceKHR(instance, &surface_create_info, nullptr, &surface);
-  if (res != VK_SUCCESS)
+  if (wsi.type == WindowSystemType::Windows)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateWin32SurfaceKHR failed: ");
-    return VK_NULL_HANDLE;
+    VkWin32SurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
+        nullptr,                                          // const void*                   pNext
+        0,                                                // VkWin32SurfaceCreateFlagsKHR  flags
+        nullptr,                                          // HINSTANCE                     hinstance
+        reinterpret_cast<HWND>(wsi.render_surface)        // HWND                          hwnd
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateWin32SurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateWin32SurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
   }
-
-  return surface;
-
-#elif defined(VK_USE_PLATFORM_XLIB_KHR)
-  VkXlibSurfaceCreateInfoKHR surface_create_info = {
-      VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
-      nullptr,                                         // const void*                   pNext
-      0,                                               // VkXlibSurfaceCreateFlagsKHR   flags
-      static_cast<Display*>(display_handle),           // Display*                      dpy
-      reinterpret_cast<Window>(hwnd)                   // Window                        window
-  };
-
-  VkSurfaceKHR surface;
-  VkResult res = vkCreateXlibSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateXlibSurfaceKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  return surface;
-
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-  // If we ever switch to using xcb, we should pass the display handle as well.
-  xcb_connection_t* connection = XGetXCBConnection(display_handle);
-
-  VkXcbSurfaceCreateInfoKHR surface_create_info = {
-      VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
-      nullptr,                                        // const void*                   pNext
-      0,                                              // VkXcbSurfaceCreateFlagsKHR    flags
-      connection,                                     // xcb_connection_t*             connection
-      static_cast<xcb_window_t>(reinterpret_cast<uintptr_t>(hwnd))  // xcb_window_t window
-  };
-
-  VkSurfaceKHR surface;
-  VkResult res = vkCreateXcbSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateXcbSurfaceKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  return surface;
-
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-  VkAndroidSurfaceCreateInfoKHR surface_create_info = {
-      VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
-      nullptr,                                            // const void*                    pNext
-      0,                                                  // VkAndroidSurfaceCreateFlagsKHR flags
-      reinterpret_cast<ANativeWindow*>(hwnd)              // ANativeWindow*                 window
-  };
-
-  VkSurfaceKHR surface;
-  VkResult res = vkCreateAndroidSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateAndroidSurfaceKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  return surface;
-
-#else
-  return VK_NULL_HANDLE;
 #endif
+
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
+  if (wsi.type == WindowSystemType::X11)
+  {
+    VkXlibSurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
+        nullptr,                                         // const void*                   pNext
+        0,                                               // VkXlibSurfaceCreateFlagsKHR   flags
+        static_cast<Display*>(wsi.display_connection),   // Display*                      dpy
+        reinterpret_cast<Window>(wsi.render_surface)     // Window                        window
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateXlibSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateXlibSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+  if (wsi.type == WindowSystemType::Android)
+  {
+    VkAndroidSurfaceCreateInfoKHR surface_create_info = {
+        VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
+        nullptr,                                            // const void*                    pNext
+        0,                                                  // VkAndroidSurfaceCreateFlagsKHR flags
+        reinterpret_cast<ANativeWindow*>(wsi.render_surface)  // ANativeWindow* window
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateAndroidSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateAndroidSurfaceKHR failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+  if (wsi.type == WindowSystemType::MacOS)
+  {
+    VkMacOSSurfaceCreateInfoMVK surface_create_info = {
+        VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_surface};
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateMacOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateMacOSSurfaceMVK failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
+  return VK_NULL_HANDLE;
 }
 
-std::unique_ptr<SwapChain> SwapChain::Create(void* display_handle, void* native_handle,
-                                             VkSurfaceKHR surface, bool vsync)
+std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi, VkSurfaceKHR surface,
+                                             bool vsync)
 {
-  std::unique_ptr<SwapChain> swap_chain =
-      std::make_unique<SwapChain>(display_handle, native_handle, surface, vsync);
-
-  if (!swap_chain->CreateSwapChain() || !swap_chain->CreateRenderPass() ||
-      !swap_chain->SetupSwapChainImages())
-  {
+  std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(wsi, surface, vsync);
+  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
     return nullptr;
-  }
 
   return swap_chain;
 }
@@ -162,13 +161,27 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  // Use the first surface format, just use what it prefers.
-  // Some drivers seem to return a SRGB format here (Intel Mesa).
-  // This results in gamma correction when presenting to the screen, which we don't want.
-  // Use a linear format instead, if this is the case.
-  m_surface_format.format = Util::GetLinearFormat(surface_formats[0].format);
-  m_surface_format.colorSpace = surface_formats[0].colorSpace;
-  return true;
+  // Try to find a suitable format.
+  for (const VkSurfaceFormatKHR& surface_format : surface_formats)
+  {
+    // Some drivers seem to return a SRGB format here (Intel Mesa).
+    // This results in gamma correction when presenting to the screen, which we don't want.
+    // Use a linear format instead, if this is the case.
+    VkFormat format = VKTexture::GetLinearFormat(surface_format.format);
+    if (format == VK_FORMAT_R8G8B8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::RGBA8;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::BGRA8;
+    else
+      continue;
+
+    m_surface_format.format = format;
+    m_surface_format.colorSpace = surface_format.colorSpace;
+    return true;
+  }
+
+  PanicAlert("Failed to find a suitable format for swap chain buffers.");
+  return false;
 }
 
 bool SwapChain::SelectPresentMode()
@@ -223,14 +236,6 @@ bool SwapChain::SelectPresentMode()
   return true;
 }
 
-bool SwapChain::CreateRenderPass()
-{
-  // render pass for rendering to the swap chain
-  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
-                                                VK_ATTACHMENT_LOAD_OP_CLEAR);
-  return m_render_pass != VK_NULL_HANDLE;
-}
-
 bool SwapChain::CreateSwapChain()
 {
   // Look up surface properties to determine image count and dimensions
@@ -262,10 +267,10 @@ bool SwapChain::CreateSwapChain()
     size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
     size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
   }
-  size.width = MathUtil::Clamp(size.width, surface_capabilities.minImageExtent.width,
-                               surface_capabilities.maxImageExtent.width);
-  size.height = MathUtil::Clamp(size.height, surface_capabilities.minImageExtent.height,
-                                surface_capabilities.maxImageExtent.height);
+  size.width = std::clamp(size.width, surface_capabilities.minImageExtent.width,
+                          surface_capabilities.maxImageExtent.width);
+  size.height = std::clamp(size.height, surface_capabilities.minImageExtent.height,
+                           surface_capabilities.maxImageExtent.height);
 
   // Prefer identity transform if possible
   VkSurfaceTransformFlagBitsKHR transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
@@ -354,6 +359,8 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
+  const TextureConfig texture_config(TextureConfig(
+      m_width, m_height, 1, m_layers, 1, m_texture_format, AbstractTextureFlag_RenderTarget));
   m_swap_chain_images.reserve(image_count);
   for (uint32_t i = 0; i < image_count; i++)
   {
@@ -361,26 +368,17 @@ bool SwapChain::SetupSwapChainImages()
     image.image = images[i];
 
     // Create texture object, which creates a view of the backbuffer
-    image.texture = Texture2D::CreateFromExistingImage(
-        m_width, m_height, 1, 1, m_surface_format.format, VK_SAMPLE_COUNT_1_BIT,
-        VK_IMAGE_VIEW_TYPE_2D, image.image);
+    image.texture =
+        VKTexture::CreateAdopted(texture_config, image.image,
+                                 m_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
+                                 VK_IMAGE_LAYOUT_UNDEFINED);
+    if (!image.texture)
+      return false;
 
-    VkImageView view = image.texture->GetView();
-    VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                                nullptr,
-                                                0,
-                                                m_render_pass,
-                                                1,
-                                                &view,
-                                                m_width,
-                                                m_height,
-                                                m_layers};
-
-    res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
-                              &image.framebuffer);
-    if (res != VK_SUCCESS)
+    image.framebuffer = VKFramebuffer::Create(image.texture.get(), nullptr);
+    if (!image.framebuffer)
     {
-      LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+      image.texture.reset();
       return false;
     }
 
@@ -392,10 +390,11 @@ bool SwapChain::SetupSwapChainImages()
 
 void SwapChain::DestroySwapChainImages()
 {
-  for (const auto& it : m_swap_chain_images)
+  for (auto& it : m_swap_chain_images)
   {
     // Images themselves are cleaned up by the swap chain object
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), it.framebuffer, nullptr);
+    it.framebuffer.reset();
+    it.texture.reset();
   }
   m_swap_chain_images.clear();
 }
@@ -409,11 +408,11 @@ void SwapChain::DestroySwapChain()
   m_swap_chain = VK_NULL_HANDLE;
 }
 
-VkResult SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
+VkResult SwapChain::AcquireNextImage()
 {
-  VkResult res =
-      vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
-                            available_semaphore, VK_NULL_HANDLE, &m_current_swap_chain_image_index);
+  VkResult res = vkAcquireNextImageKHR(g_vulkan_context->GetDevice(), m_swap_chain, UINT64_MAX,
+                                       g_command_buffer_mgr->GetCurrentCommandBufferSemaphore(),
+                                       VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
 
@@ -463,9 +462,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
   DestroySurface();
 
   // Re-create the surface with the new native handle
-  m_native_handle = native_handle;
-  m_surface =
-      CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_display_handle, native_handle);
+  m_wsi.render_surface = native_handle;
+  m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_wsi);
   if (m_surface == VK_NULL_HANDLE)
     return false;
 
@@ -486,7 +484,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   }
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain() || !SetupSwapChainImages() || !CreateRenderPass())
+  if (!CreateSwapChain() || !SetupSwapChainImages())
     return false;
 
   return true;

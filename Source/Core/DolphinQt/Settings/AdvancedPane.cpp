@@ -91,7 +91,7 @@ void AdvancedPane::CreateLayout()
 
   auto* custom_rtc_description =
       new QLabel(tr("This setting allows you to set a custom real time clock (RTC) separate from "
-                    "your current system time.\n\nIf you're unsure, leave this disabled."));
+                    "your current system time.\n\nIf unsure, leave this unchecked."));
   custom_rtc_description->setWordWrap(true);
   rtc_options->layout()->addWidget(custom_rtc_description);
 
@@ -135,6 +135,12 @@ void AdvancedPane::Update()
   const bool running = Core::GetState() != Core::State::Uninitialized;
   const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
+
+  QFont bf = font();
+  bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
+             Config::LayerType::Base);
+  m_cpu_clock_override_checkbox->setFont(bf);
+  m_cpu_clock_override_checkbox->setChecked(enable_cpu_clock_override_widgets);
 
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EditorActivity;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
@@ -37,6 +39,7 @@ public final class GameDetailsDialog extends DialogFragment
     return fragment;
   }
 
+  @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
@@ -52,9 +55,13 @@ public final class GameDetailsDialog extends DialogFragment
     textGameTitle.setText(gameFile.getTitle());
 
     // game filename
-    String gamePath = gameFile.getPath();
+    String gamePath = gameFile.getGameId();
+    if(gameFile.getPlatform() > 0)
+    {
+      gamePath += ", " + gameFile.getTitlePath();
+    }
     TextView textGameFilename = contents.findViewById(R.id.text_game_filename);
-    textGameFilename.setText(gamePath.substring(gamePath.lastIndexOf("/") + 1));
+    textGameFilename.setText(gamePath);
 
     //
     Button buttonDeleteSetting = contents.findViewById(R.id.button_delete_setting);
@@ -69,7 +76,7 @@ public final class GameDetailsDialog extends DialogFragment
     buttonCheatCode.setOnClickListener(view ->
     {
       this.dismiss();
-      CheatCodeDialog.newInstance(gamePath).show(getFragmentManager(), "CheatCodeDialog");
+      EditorActivity.launch(getContext(), gameFile.getPath());
     });
 
     //
@@ -93,14 +100,14 @@ public final class GameDetailsDialog extends DialogFragment
     buttonGameSetting.setOnClickListener(view ->
     {
       this.dismiss();
-      SettingsActivity.launch(getActivity(), MenuTag.CONFIG, gameFile.getGameId());
+      SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameFile.getGameId());
     });
 
     Button buttonLaunch = contents.findViewById(R.id.button_quick_load);
     buttonLaunch.setOnClickListener(view ->
     {
       this.dismiss();
-      EmulationActivity.launch(getActivity(), gameFile, gameFile.getLastSavedState());
+      EmulationActivity.launch(getContext(), gameFile, gameFile.getLastSavedState());
     });
 
     ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);

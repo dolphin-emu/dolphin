@@ -24,9 +24,7 @@
 // core isn't used, for example in an asm/disasm tool, then most of these
 // can be stubbed out.
 
-namespace DSP
-{
-namespace Host
+namespace DSP::Host
 {
 u8 ReadHostMemory(u32 addr)
 {
@@ -84,5 +82,4 @@ void UpdateDebugger()
 {
   Host_RefreshDSPDebuggerWindow();
 }
-}  // namespace Host
-}  // namespace DSP
+}  // namespace DSP::Host

@@ -2,14 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/PerfQuery.h"
+
 #include <memory>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/Render.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -54,7 +55,7 @@ void PerfQuery::FlushResults()
 void PerfQuery::ResetQuery()
 {
   m_query_count = 0;
-  std::fill_n(m_results, ArraySize(m_results), 0);
+  std::fill(std::begin(m_results), std::end(m_results), 0);
 }
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)

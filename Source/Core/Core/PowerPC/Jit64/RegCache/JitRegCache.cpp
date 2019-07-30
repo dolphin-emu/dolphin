@@ -226,7 +226,7 @@ void RCX64Reg::Realize()
   }
 }
 
-RCX64Reg::operator X64Reg() const &
+RCX64Reg::operator X64Reg() const&
 {
   if (const preg_t* preg = std::get_if<preg_t>(&contents))
   {
@@ -241,7 +241,7 @@ RCX64Reg::operator X64Reg() const &
   return {};
 }
 
-RCX64Reg::operator OpArg() const &
+RCX64Reg::operator OpArg() const&
 {
   return Gen::R(RCX64Reg::operator X64Reg());
 }

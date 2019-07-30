@@ -11,6 +11,7 @@
 
 class CPUCoreBase;
 class PointerWrap;
+class JitBase;
 
 namespace PowerPC
 {
@@ -65,5 +66,8 @@ void InvalidateICache(u32 address, u32 size, bool forced);
 
 void CompileExceptionCheck(ExceptionType type);
 
+/// used for the page fault unit test, don't use outside of tests!
+void SetJit(JitBase* jit);
+
 void Shutdown();
-}
+}  // namespace JitInterface

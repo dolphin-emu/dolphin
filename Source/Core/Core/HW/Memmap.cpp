@@ -51,8 +51,6 @@ static Common::MemArena g_arena;
 static bool m_IsInitialized = false;  // Save the Init(), Shutdown() state
 // END STATE_TO_SAVE
 
-static u32 m_uPointerMask;
-
 u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
@@ -214,15 +212,9 @@ void Init()
 #endif
 
   if (wii)
-  {
-    m_uPointerMask = 0x3FFFFFFF;
     mmio_mapping = InitMMIOWii();
-  }
   else
-  {
-    m_uPointerMask = 0x03FFFFFF;
     mmio_mapping = InitMMIO();
-  }
 
   Clear();
 
@@ -278,17 +270,7 @@ void DoState(PointerWrap& p)
   p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
   p.DoMarker("Memory RAM");
   if (m_pFakeVMEM)
-  {
     p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
-  }
-  /*else
-  {
-    u64 v = 0;
-    for(int i = 0; i < (FAKEVMEM_SIZE >> 8); ++i)
-    {
-      p.Do(v);
-    }
-  }*/
   p.DoMarker("Memory FakeVMEM");
   if (wii)
     p.DoArray(m_pEXRAM, EXRAM_SIZE);
@@ -411,7 +393,7 @@ u8* GetPointer(u32 address)
 {
   // TODO: Should we be masking off more bits here?  Can all devices access
   // EXRAM?
-  address &= m_uPointerMask;
+  address &= 0x3FFFFFFF;
   if (address < REALRAM_SIZE)
     return m_pRAM + address;
 
@@ -479,4 +461,4 @@ void Write_U64_Swap(u64 value, u32 address)
   std::memcpy(GetPointer(address), &value, sizeof(u64));
 }
 
-}  // namespace
+}  // namespace Memory

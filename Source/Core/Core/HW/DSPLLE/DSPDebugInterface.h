@@ -8,11 +8,11 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/Debug/MemoryPatches.h"
+#include "Common/Debug/Watches.h"
 #include "Common/DebugInterface.h"
 
-namespace DSP
-{
-namespace LLE
+namespace DSP::LLE
 {
 class DSPPatches : public Common::Debug::MemoryPatches
 {
@@ -23,15 +23,17 @@ private:
 class DSPDebugInterface final : public Common::DebugInterface
 {
 public:
-  DSPDebugInterface() {}
+  DSPDebugInterface();
+  ~DSPDebugInterface() override;
+
   // Watches
-  std::size_t SetWatch(u32 address, const std::string& name = "") override;
+  std::size_t SetWatch(u32 address, std::string name = "") override;
   const Common::Debug::Watch& GetWatch(std::size_t index) const override;
   const std::vector<Common::Debug::Watch>& GetWatches() const override;
   void UnsetWatch(u32 address) override;
-  void UpdateWatch(std::size_t index, u32 address, const std::string& name) override;
+  void UpdateWatch(std::size_t index, u32 address, std::string name) override;
   void UpdateWatchAddress(std::size_t index, u32 address) override;
-  void UpdateWatchName(std::size_t index, const std::string& name) override;
+  void UpdateWatchName(std::size_t index, std::string name) override;
   void EnableWatch(std::size_t index) override;
   void DisableWatch(std::size_t index) override;
   bool HasEnabledWatch(u32 address) const override;
@@ -51,27 +53,25 @@ public:
   bool HasEnabledPatch(u32 address) const override;
   void ClearPatches() override;
 
-  std::string Disassemble(unsigned int address) override;
-  std::string GetRawMemoryString(int memory, unsigned int address) override;
-  int GetInstructionSize(int instruction) override { return 1; }
-  bool IsAlive() override;
-  bool IsBreakpoint(unsigned int address) override;
-  void SetBreakpoint(unsigned int address) override;
-  void ClearBreakpoint(unsigned int address) override;
+  std::string Disassemble(u32 address) const override;
+  std::string GetRawMemoryString(int memory, u32 address) const override;
+  bool IsAlive() const override;
+  bool IsBreakpoint(u32 address) const override;
+  void SetBreakpoint(u32 address) override;
+  void ClearBreakpoint(u32 address) override;
   void ClearAllBreakpoints() override;
-  void ToggleBreakpoint(unsigned int address) override;
+  void ToggleBreakpoint(u32 address) override;
   void ClearAllMemChecks() override;
-  bool IsMemCheck(unsigned int address, size_t size) override;
-  void ToggleMemCheck(unsigned int address, bool read = true, bool write = true,
-                      bool log = true) override;
-  unsigned int ReadMemory(unsigned int address) override;
-  unsigned int ReadInstruction(unsigned int address) override;
-  unsigned int GetPC() override;
-  void SetPC(unsigned int address) override;
+  bool IsMemCheck(u32 address, size_t size) const override;
+  void ToggleMemCheck(u32 address, bool read = true, bool write = true, bool log = true) override;
+  u32 ReadMemory(u32 address) const override;
+  u32 ReadInstruction(u32 address) const override;
+  u32 GetPC() const override;
+  void SetPC(u32 address) override;
   void Step() override {}
   void RunToBreakpoint() override;
-  int GetColor(unsigned int address) override;
-  std::string GetDescription(unsigned int address) override;
+  u32 GetColor(u32 address) const override;
+  std::string GetDescription(u32 address) const override;
 
   void Clear() override;
 
@@ -79,5 +79,4 @@ private:
   Common::Debug::Watches m_watches;
   DSPPatches m_patches;
 };
-}  // namespace LLE
-}  // namespace DSP
+}  // namespace DSP::LLE

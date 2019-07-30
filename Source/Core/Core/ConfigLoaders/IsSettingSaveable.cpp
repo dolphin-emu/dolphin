@@ -31,6 +31,27 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::MAIN_DEFAULT_ISO.location,
       Config::MAIN_MEMCARD_A_PATH.location,
       Config::MAIN_MEMCARD_B_PATH.location,
+      Config::MAIN_AUTO_DISC_CHANGE.location,
+      Config::MAIN_SYNC_ON_SKIP_IDLE.location,
+      Config::MAIN_OVERCLOCK_ENABLE.location,
+      Config::MAIN_OVERCLOCK.location,
+      Config::MAIN_JIT_FOLLOW_BRANCH.location,
+
+      // Main.Controls
+
+      Config::MAIN_IR_PITCH.location,
+      Config::MAIN_IR_YAW.location,
+      Config::MAIN_IR_VERTICAL_OFFSET.location,
+
+      // Main.Display
+#ifndef ANDROID
+      Config::MAIN_FULLSCREEN_DISPLAY_RES.location,
+      Config::MAIN_FULLSCREEN.location,
+      Config::MAIN_RENDER_TO_MAIN.location,
+      Config::MAIN_RENDER_WINDOW_AUTOSIZE.location,
+      Config::MAIN_KEEP_WINDOW_ON_TOP.location,
+      Config::MAIN_DISABLE_SCREENSAVER.location,
+#endif
 
       // Graphics.Hardware
 
@@ -42,6 +63,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_WIDESCREEN_HACK.location,
       Config::GFX_ASPECT_RATIO.location,
       Config::GFX_CROP.location,
+      Config::GFX_DISPLAY_SCALE.location,
       Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES.location,
       Config::GFX_SHOW_FPS.location,
       Config::GFX_SHOW_NETPLAY_PING.location,
@@ -102,8 +124,9 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       // Graphics.Hacks
 
       Config::GFX_HACK_EFB_ACCESS_ENABLE.location,
+      Config::GFX_HACK_EFB_DEFER_INVALIDATION.location,
+      Config::GFX_HACK_EFB_ACCESS_TILE_SIZE.location,
       Config::GFX_HACK_BBOX_ENABLE.location,
-      Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION.location,
       Config::GFX_HACK_FORCE_PROGRESSIVE.location,
       Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location,
       Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM.location,
@@ -112,6 +135,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_HACK_IMMEDIATE_XFB.location,
       Config::GFX_HACK_COPY_EFB_SCALED.location,
       Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location,
+      Config::GFX_HACK_TMEM_CACHE_EMULATION.location,
       Config::GFX_HACK_VERTEX_ROUDING.location,
 
       // Graphics.GameSpecific

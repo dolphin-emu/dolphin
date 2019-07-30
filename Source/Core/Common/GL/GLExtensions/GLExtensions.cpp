@@ -11,6 +11,7 @@
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
+
 #endif
 
 // gl_1_1
@@ -855,6 +856,9 @@ PFNDOLBINDVERTEXARRAYPROC dolBindVertexArray;
 PFNDOLDELETEVERTEXARRAYSPROC dolDeleteVertexArrays;
 PFNDOLGENVERTEXARRAYSPROC dolGenVertexArrays;
 PFNDOLISVERTEXARRAYPROC dolIsVertexArray;
+
+// ARB_framebuffer_object
+PFNDODISCARDFRAMEBUFFEREXT doDiscardFramebufferEXT;
 
 // ARB_framebuffer_object
 PFNDOLBINDFRAMEBUFFERPROC dolBindFramebuffer;
@@ -1914,6 +1918,9 @@ const GLFunc gl_function_array[] = {
     GLFUNC_SUFFIX(glIsVertexArray, APPLE,
                   "GL_APPLE_vertex_array_object !GL_ARB_vertex_array_object"),
 
+    // EXT_discard_framebuffer
+    GLFUNC_REQUIRES(glDiscardFramebufferEXT, "GL_EXT_discard_framebuffer"),
+
     // ARB_framebuffer_object
     GLFUNC_REQUIRES(glFramebufferTexture1D, "GL_ARB_framebuffer_object"),
     GLFUNC_REQUIRES(glFramebufferTexture3D, "GL_ARB_framebuffer_object"),
@@ -2097,6 +2104,9 @@ const GLFunc gl_function_array[] = {
 
     // ARB_clip_control
     GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control !VERSION_4_5"),
+
+    // EXT_clip_control
+    GLFUNC_SUFFIX(glClipControl, EXT, "GL_EXT_clip_control !GL_ARB_clip_control"),
 
     // ARB_copy_image
     GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image !VERSION_4_3 |VERSION_GLES_3_2"),

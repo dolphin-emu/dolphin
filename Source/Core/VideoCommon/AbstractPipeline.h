@@ -45,25 +45,7 @@ struct AbstractPipelineConfig
   RasterizationState rasterization_state;
   DepthState depth_state;
   BlendingState blending_state;
-
-  union FramebufferState
-  {
-	struct {
-		AbstractTextureFormat color_texture_format : 8;
-		AbstractTextureFormat depth_texture_format : 8;
-		u32 samples : 8;
-		u32 per_sample_shading : 1;
-	};
-	u32 hex;
-
-    bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
-    bool operator!=(const FramebufferState& rhs) const { return hex != rhs.hex; }
-    FramebufferState& operator=(const FramebufferState& rhs)
-    {
-      hex = rhs.hex;
-      return *this;
-    }
-  } framebuffer_state;
+  FramebufferState framebuffer_state;
 
   AbstractPipelineUsage usage;
 
@@ -93,4 +75,10 @@ class AbstractPipeline
 public:
   AbstractPipeline() = default;
   virtual ~AbstractPipeline() = default;
+
+  // "Cache data" can be used to assist a driver with creating pipelines by using previously
+  // compiled shader ISA. The abstract shaders and creation struct are still required to create
+  // pipeline objects, the cache is optionally used by the driver to speed up compilation.
+  using CacheData = std::vector<u8>;
+  virtual CacheData GetCacheData() const { return {}; }
 };

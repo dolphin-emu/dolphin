@@ -57,9 +57,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 static std::unique_ptr<EmulationKernel> s_ios;
 
@@ -630,7 +628,7 @@ void Kernel::UpdateIPC()
   if (!IsReady())
     return;
 
-  if (m_request_queue.size())
+  if (!m_request_queue.empty())
   {
     ClearX1();
     GenerateAck(m_request_queue.front());
@@ -640,7 +638,7 @@ void Kernel::UpdateIPC()
     return;
   }
 
-  if (m_reply_queue.size())
+  if (!m_reply_queue.empty())
   {
     GenerateReply(m_reply_queue.front());
     DEBUG_LOG(IOS, "<<-- Reply to IPC Request @ 0x%08x", m_reply_queue.front());
@@ -648,7 +646,7 @@ void Kernel::UpdateIPC()
     return;
   }
 
-  if (m_ack_queue.size())
+  if (!m_ack_queue.empty())
   {
     GenerateAck(m_ack_queue.front());
     WARN_LOG(IOS, "<<-- Double-ack to IPC Request @ 0x%08x", m_ack_queue.front());
@@ -801,5 +799,4 @@ EmulationKernel* GetIOS()
 {
   return s_ios.get();
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

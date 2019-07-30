@@ -92,9 +92,9 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
       {GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT}};
 
   glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S,
-                      address_modes[static_cast<u32>(params.wrap_u)]);
+                      address_modes[static_cast<u32>(params.wrap_u.Value())]);
   glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T,
-                      address_modes[static_cast<u32>(params.wrap_v)]);
+                      address_modes[static_cast<u32>(params.wrap_v.Value())]);
 
   glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.min_lod / 16.f);
   glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.max_lod / 16.f);
@@ -102,7 +102,8 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
   if (!static_cast<Renderer*>(g_renderer.get())->IsGLES())
     glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.lod_bias / 256.f);
 
-  if (params.anisotropic_filtering && g_ogl_config.bSupportsAniso)
+  if (g_ActiveConfig.iMaxAnisotropy > 0 &&
+      params.anisotropic_filtering && g_ogl_config.bSupportsAniso)
   {
     glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT,
                         static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy));

@@ -1,0 +1,4 @@
+# RTAE41, RTAP41 = Tom Clancy's H.A.W.X. 2
+
+[Core]
+JITFollowBranch = False

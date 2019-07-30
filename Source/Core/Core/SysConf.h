@@ -19,7 +19,7 @@ namespace IOS::HLE::FS
 {
 class FileHandle;
 class FileSystem;
-}
+}  // namespace IOS::HLE::FS
 
 class SysConf final
 {

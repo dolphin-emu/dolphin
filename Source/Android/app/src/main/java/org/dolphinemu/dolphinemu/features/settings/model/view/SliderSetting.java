@@ -10,7 +10,6 @@ public final class SliderSetting extends SettingsItem
 {
   private int mMax;
   private int mDefaultValue;
-
   private String mUnits;
 
   public SliderSetting(String key, String section, int titleId, int descriptionId, int max,
@@ -62,51 +61,38 @@ public final class SliderSetting extends SettingsItem
 
   public boolean isPercentSetting()
   {
-    return getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
-            || getKey().equals(SettingsFile.KEY_SPEED_LIMIT);
+    return "%".equals(mUnits);
   }
 
-  /**
-   * Write a value to the backing int. If that int was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the int.
-   * @return null if overwritten successfully otherwise; a newly created IntSetting.
-   */
-  public IntSetting setSelectedValue(int selection)
+  public Setting setSelectedValue(int selection)
   {
     if (getSetting() == null)
     {
-      IntSetting setting = new IntSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
+      if(isPercentSetting())
+      {
+        FloatSetting setting = new FloatSetting(getKey(), getSection(), selection / 100.0f);
+        setSetting(setting);
+        return setting;
+      }
+      else
+      {
+        IntSetting setting = new IntSetting(getKey(), getSection(), selection);
+        setSetting(setting);
+        return setting;
+      }
+    }
+    else if(getSetting() instanceof FloatSetting)
+    {
+      FloatSetting setting = (FloatSetting) getSetting();
+      if(isPercentSetting())
+        setting.setValue(selection / 100.0f);
+      else
+        setting.setValue(selection);
+      return null;
     }
     else
     {
       IntSetting setting = (IntSetting) getSetting();
-      setting.setValue(selection);
-      return null;
-    }
-  }
-
-  /**
-   * Write a value to the backing float. If that float was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the float.
-   * @return null if overwritten successfully otherwise; a newly created FloatSetting.
-   */
-  public FloatSetting setSelectedValue(float selection)
-  {
-    if (getSetting() == null)
-    {
-      FloatSetting setting = new FloatSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      FloatSetting setting = (FloatSetting) getSetting();
       setting.setValue(selection);
       return null;
     }

@@ -12,47 +12,51 @@
 #include <OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
-#include <QMessageBox>
 #include <QObject>
 #include <QPushButton>
 #include <QWidget>
 
 #include "Common/MsgHandler.h"
+
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Translation.h"
 #include "DolphinQt/Updater.h"
+
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
-static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
+static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
+                              Common::MsgType style)
 {
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
-    QMessageBox message_box(QApplication::activeWindow());
+    ModalMessageBox message_box(QApplication::activeWindow());
     message_box.setWindowTitle(QString::fromUtf8(caption));
     message_box.setText(QString::fromUtf8(text));
 
     message_box.setStandardButtons(yes_no ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Ok);
-    if (style == MsgType::Warning)
+    if (style == Common::MsgType::Warning)
       message_box.addButton(QMessageBox::Ignore)->setText(QObject::tr("Ignore for this session"));
 
     message_box.setIcon([&] {
       switch (style)
       {
-      case MsgType::Information:
+      case Common::MsgType::Information:
         return QMessageBox::Information;
-      case MsgType::Question:
+      case Common::MsgType::Question:
         return QMessageBox::Question;
-      case MsgType::Warning:
+      case Common::MsgType::Warning:
         return QMessageBox::Warning;
-      case MsgType::Critical:
+      case Common::MsgType::Critical:
         return QMessageBox::Critical;
       }
       // appease MSVC
@@ -64,7 +68,10 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return true;
 
     if (button == QMessageBox::Ignore)
-      SetEnableAlert(false);
+    {
+      Common::SetEnableAlert(false);
+      return true;
+    }
 
     return false;
   });
@@ -134,7 +141,7 @@ int main(int argc, char* argv[])
   Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
 
   // Hook up alerts from core
-  RegisterMsgAlertHandler(QtMsgAlertHandler);
+  Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
 
   // Hook up translations
   Translation::Initialize();
@@ -147,7 +154,10 @@ int main(int argc, char* argv[])
   std::unique_ptr<BootParameters> boot;
   if (options.is_set("exec"))
   {
-    boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
+    const std::list<std::string> paths_list = options.all("exec");
+    const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
+                                         std::make_move_iterator(std::end(paths_list))};
+    boot = BootParameters::GenerateFromFile(paths);
   }
   else if (options.is_set("nand_title"))
   {
@@ -159,7 +169,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-      QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
+      ModalMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
     }
   }
   else if (!args.empty())
@@ -170,9 +180,9 @@ int main(int argc, char* argv[])
   int retval;
 
   {
-    DolphinAnalytics::Instance()->ReportDolphinStart("qt");
+    DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
-    MainWindow win{std::move(boot)};
+    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
@@ -180,7 +190,7 @@ int main(int argc, char* argv[])
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)
     {
-      QMessageBox analytics_prompt(&win);
+      ModalMessageBox analytics_prompt(&win);
 
       analytics_prompt.setIcon(QMessageBox::Question);
       analytics_prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -203,7 +213,7 @@ int main(int argc, char* argv[])
       SConfig::GetInstance().m_analytics_permission_asked = true;
       Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
-      DolphinAnalytics::Instance()->ReloadConfig();
+      DolphinAnalytics::Instance().ReloadConfig();
     }
 #endif
 

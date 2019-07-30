@@ -107,4 +107,4 @@ private:
   ElementPtr* m_read_ptr;
   std::atomic<u32> m_size;
 };
-}
+}  // namespace Common

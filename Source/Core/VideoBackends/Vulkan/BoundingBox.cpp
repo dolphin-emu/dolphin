@@ -13,7 +13,6 @@
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan
@@ -33,7 +32,7 @@ BoundingBox::~BoundingBox()
 
 bool BoundingBox::Initialize()
 {
-  if (!g_vulkan_context->SupportsBoundingBox())
+  if (!g_ActiveConfig.backend_info.bSupportsBBox)
   {
     WARN_LOG(VIDEO, "Vulkan: Bounding box is unsupported by your device.");
     return true;
@@ -45,6 +44,8 @@ bool BoundingBox::Initialize()
   if (!CreateReadbackBuffer())
     return false;
 
+  // Bind bounding box to state tracker
+  StateTracker::GetInstance()->SetSSBO(m_gpu_buffer, 0, BUFFER_SIZE);
   return true;
 }
 
@@ -79,7 +80,7 @@ void BoundingBox::Flush()
       StateTracker::GetInstance()->EndRenderPass();
 
       // Ensure GPU buffer is in a state where it can be transferred to.
-      Util::BufferMemoryBarrier(
+      StagingBuffer::BufferMemoryBarrier(
           g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
           VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, 0,
           BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -95,10 +96,10 @@ void BoundingBox::Flush()
   // Restore fragment shader access to the buffer.
   if (updated_buffer)
   {
-    Util::BufferMemoryBarrier(
+    StagingBuffer::BufferMemoryBarrier(
         g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
-        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
   }
 
   // We're now up-to-date.
@@ -160,46 +161,8 @@ bool BoundingBox::CreateGPUBuffer()
       nullptr                                // const uint32_t*        pQueueFamilyIndices
   };
 
-  VkBuffer buffer;
-  VkResult res = vkCreateBuffer(g_vulkan_context->GetDevice(), &info, nullptr, &buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
-    return false;
-  }
-
-  VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(g_vulkan_context->GetDevice(), buffer, &memory_requirements);
-
-  uint32_t memory_type_index = g_vulkan_context->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  VkMemoryAllocateInfo memory_allocate_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
-      nullptr,                                 // const void*        pNext
-      memory_requirements.size,                // VkDeviceSize       allocationSize
-      memory_type_index                        // uint32_t           memoryTypeIndex
-  };
-  VkDeviceMemory memory;
-  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_allocate_info, nullptr, &memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), buffer, nullptr);
-    return false;
-  }
-
-  res = vkBindBufferMemory(g_vulkan_context->GetDevice(), buffer, memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), buffer, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), memory, nullptr);
-    return false;
-  }
-
-  m_gpu_buffer = buffer;
-  m_gpu_memory = memory;
-  return true;
+  VkResult res = g_vulkan_context->Allocate(&info, &m_gpu_buffer, &m_gpu_memory);
+  return res == VK_SUCCESS;
 }
 
 bool BoundingBox::CreateReadbackBuffer()
@@ -219,10 +182,10 @@ void BoundingBox::Readback()
   StateTracker::GetInstance()->EndRenderPass();
 
   // Ensure all writes are completed to the GPU buffer prior to the transfer.
-  Util::BufferMemoryBarrier(
+  StagingBuffer::BufferMemoryBarrier(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
       VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, 0,
-      BUFFER_SIZE, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      BUFFER_SIZE, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
   m_readback_buffer->PrepareForGPUWrite(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                         VK_ACCESS_TRANSFER_WRITE_BIT,
                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -233,15 +196,15 @@ void BoundingBox::Readback()
                   m_readback_buffer->GetBuffer(), 1, &region);
 
   // Restore GPU buffer access.
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer,
-                            VK_ACCESS_TRANSFER_READ_BIT,
-                            VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
-                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+  StagingBuffer::BufferMemoryBarrier(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_gpu_buffer, VK_ACCESS_TRANSFER_READ_BIT,
+      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, 0, BUFFER_SIZE,
+      VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
   m_readback_buffer->FlushGPUCache(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
   // Wait until these commands complete.
-  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+  Renderer::GetInstance()->ExecuteCommandBuffer(false, true);
 
   // Cache is now valid.
   m_readback_buffer->InvalidateCPUCache();

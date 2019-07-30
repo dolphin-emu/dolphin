@@ -4,15 +4,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class DSPHLE;
 
@@ -54,7 +52,7 @@ private:
       s32 tmp = (u32)(*buf)[i] * (u32)vol;
       tmp >>= 16 - B;
 
-      (*buf)[i] = (s16)MathUtil::Clamp(tmp, -0x8000, 0x7FFF);
+      (*buf)[i] = (s16)std::clamp(tmp, -0x8000, 0x7FFF);
     }
   }
   template <size_t N>
@@ -96,7 +94,7 @@ private:
     while (count--)
     {
       s32 vol_src = ((s32)*src++ * (s32)vol) >> 15;
-      *dst++ += MathUtil::Clamp(vol_src, -0x8000, 0x7FFF);
+      *dst++ += std::clamp(vol_src, -0x8000, 0x7FFF);
     }
   }
 
@@ -286,5 +284,4 @@ private:
   // Main object handling audio rendering logic and state.
   ZeldaAudioRenderer m_renderer;
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

@@ -6,6 +6,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -65,8 +66,28 @@ ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::Turntable
       ->GetTurntableGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetUDrawTabletGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
+                                                    WiimoteEmu::DrawsomeTabletGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetDrawsomeTabletGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
+}
+
 void Shutdown()
 {
+  s_config.UnregisterHotplugCallback();
+
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
@@ -80,7 +101,7 @@ void Initialize(InitializeMode init_mode)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
   }
 
-  g_controller_interface.RegisterDevicesChangedCallback(LoadConfig);
+  s_config.RegisterHotplugCallback();
 
   LoadConfig();
 
@@ -135,20 +156,28 @@ void Pause()
 // An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL channel.
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (g_wiimote_sources[number])
+  if (WIIMOTE_SRC_EMU == g_wiimote_sources[number])
   {
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->ControlChannel(channel_id, data, size);
+  }
+  else
+  {
+    WiimoteReal::ControlChannel(number, channel_id, data, size);
   }
 }
 
 // An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT channel.
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (g_wiimote_sources[number])
+  if (WIIMOTE_SRC_EMU == g_wiimote_sources[number])
   {
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->InterruptChannel(channel_id, data, size);
+  }
+  else
+  {
+    WiimoteReal::InterruptChannel(number, channel_id, data, size);
   }
 }
 
@@ -213,6 +242,26 @@ unsigned int GetAttached()
 void DoState(PointerWrap& p)
 {
   for (int i = 0; i < MAX_BBMOTES; ++i)
-    static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
+  {
+    auto state_wiimote_source = u8(g_wiimote_sources[i]);
+    p.Do(state_wiimote_source);
+
+    if (WIIMOTE_SRC_EMU == state_wiimote_source)
+    {
+      // Sync complete state of emulated wiimotes.
+      static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
+    }
+
+    if (p.GetMode() == PointerWrap::MODE_READ)
+    {
+      // If using a real wiimote or the save-state source does not match the current source,
+      // then force a reconnection on load.
+      if (WIIMOTE_SRC_REAL == g_wiimote_sources[i] || state_wiimote_source != g_wiimote_sources[i])
+      {
+        Connect(i, false);
+        Connect(i, true);
+      }
+    }
+  }
 }
-}
+}  // namespace Wiimote

@@ -236,13 +236,8 @@ int MixerContext::auto_matrix()
       matrix[SIDE_LEFT][BACK_CENTER] += M_SQRT1_2;
       matrix[SIDE_RIGHT][BACK_CENTER] += M_SQRT1_2;
     } else if (out_ch_layout & CHANNEL_FRONT_LEFT) {
-      if (unaccounted & (CHANNEL_BACK_LEFT | CHANNEL_SIDE_LEFT)) {
-        matrix[FRONT_LEFT][BACK_CENTER] -= _surround_mix_level * M_SQRT1_2;
-        matrix[FRONT_RIGHT][BACK_CENTER] += _surround_mix_level * M_SQRT1_2;
-      } else {
-        matrix[FRONT_LEFT][BACK_CENTER] -= _surround_mix_level;
-        matrix[FRONT_RIGHT][BACK_CENTER] += _surround_mix_level;
-      }
+      matrix[FRONT_LEFT][BACK_CENTER] += _surround_mix_level * M_SQRT1_2;
+      matrix[FRONT_RIGHT][BACK_CENTER] += _surround_mix_level * M_SQRT1_2;
     } else if (out_ch_layout & CHANNEL_FRONT_CENTER) {
       matrix[FRONT_CENTER][BACK_CENTER] +=
         _surround_mix_level * M_SQRT1_2;
@@ -261,10 +256,8 @@ int MixerContext::auto_matrix()
         matrix[SIDE_RIGHT][BACK_RIGHT] += 1.0;
       }
     } else if (out_ch_layout & CHANNEL_FRONT_LEFT) {
-      matrix[FRONT_LEFT][BACK_LEFT] -= _surround_mix_level * M_SQRT1_2;
-      matrix[FRONT_LEFT][BACK_RIGHT] -= _surround_mix_level * M_SQRT1_2;
-      matrix[FRONT_RIGHT][BACK_LEFT] += _surround_mix_level * M_SQRT1_2;
-      matrix[FRONT_RIGHT][BACK_RIGHT] += _surround_mix_level * M_SQRT1_2;
+      matrix[FRONT_LEFT][BACK_LEFT] += _surround_mix_level;
+      matrix[FRONT_RIGHT][BACK_RIGHT] += _surround_mix_level;
     } else if (out_ch_layout & CHANNEL_FRONT_CENTER) {
       matrix[FRONT_CENTER][BACK_LEFT] += _surround_mix_level * M_SQRT1_2;
       matrix[FRONT_CENTER][BACK_RIGHT] += _surround_mix_level * M_SQRT1_2;
@@ -286,10 +279,8 @@ int MixerContext::auto_matrix()
       matrix[BACK_CENTER][SIDE_LEFT] += M_SQRT1_2;
       matrix[BACK_CENTER][SIDE_RIGHT] += M_SQRT1_2;
     } else if (out_ch_layout & CHANNEL_FRONT_LEFT) {
-      matrix[FRONT_LEFT][SIDE_LEFT] -= _surround_mix_level * M_SQRT1_2;
-      matrix[FRONT_LEFT][SIDE_RIGHT] -= _surround_mix_level * M_SQRT1_2;
-      matrix[FRONT_RIGHT][SIDE_LEFT] += _surround_mix_level * M_SQRT1_2;
-      matrix[FRONT_RIGHT][SIDE_RIGHT] += _surround_mix_level * M_SQRT1_2;
+      matrix[FRONT_LEFT][SIDE_LEFT] += _surround_mix_level;
+      matrix[FRONT_RIGHT][SIDE_RIGHT] += _surround_mix_level;
     } else if (out_ch_layout & CHANNEL_FRONT_CENTER) {
       matrix[FRONT_CENTER][SIDE_LEFT] += _surround_mix_level * M_SQRT1_2;
       matrix[FRONT_CENTER][SIDE_RIGHT] += _surround_mix_level * M_SQRT1_2;

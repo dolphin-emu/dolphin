@@ -16,8 +16,10 @@
 #include "Common/Align.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
@@ -35,6 +37,8 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
 
 // The minimum time it takes for the DVD drive to process a command (in
 // microseconds)
@@ -55,29 +59,49 @@ constexpr u64 BUFFER_TRANSFER_RATE = 32 * 1024 * 1024;
 
 namespace DVDInterface
 {
+// "low" error codes
+constexpr u32 ERROR_READY = 0x0000000;          // Ready.
+constexpr u32 ERROR_COVER_L = 0x01000000;       // Cover is opened.
+constexpr u32 ERROR_CHANGE_DISK = 0x02000000;   // Disk change.
+constexpr u32 ERROR_NO_DISK = 0x03000000;       // No disk.
+constexpr u32 ERROR_MOTOR_STOP_L = 0x04000000;  // Motor stop.
+constexpr u32 ERROR_NO_DISKID_L = 0x05000000;   // Disk ID not read.
+
+// "high" error codes
+constexpr u32 ERROR_NONE = 0x000000;          // No error.
+constexpr u32 ERROR_MOTOR_STOP_H = 0x020400;  // Motor stopped.
+constexpr u32 ERROR_NO_DISKID_H = 0x020401;   // Disk ID not read.
+constexpr u32 ERROR_COVER_H = 0x023a00;       // Medium not present / Cover opened.
+constexpr u32 ERROR_SEEK_NDONE = 0x030200;    // No seek complete.
+constexpr u32 ERROR_READ = 0x031100;          // Unrecovered read error.
+constexpr u32 ERROR_PROTOCOL = 0x040800;      // Transfer protocol error.
+constexpr u32 ERROR_INV_CMD = 0x052000;       // Invalid command operation code.
+constexpr u32 ERROR_AUDIO_BUF = 0x052001;     // Audio Buffer not set.
+constexpr u32 ERROR_BLOCK_OOB = 0x052100;     // Logical block address out of bounds.
+constexpr u32 ERROR_INV_FIELD = 0x052400;     // Invalid field in command packet.
+constexpr u32 ERROR_INV_AUDIO = 0x052401;     // Invalid audio command.
+constexpr u32 ERROR_INV_PERIOD = 0x052402;    // Configuration out of permitted period.
+constexpr u32 ERROR_END_USR_AREA = 0x056300;  // End of user area encountered on this track.
+constexpr u32 ERROR_MEDIUM = 0x062800;        // Medium may have changed.
+constexpr u32 ERROR_MEDIUM_REQ = 0x0b5a01;    // Operator medium removal request.
+
 // internal hardware addresses
-enum
-{
-  DI_STATUS_REGISTER = 0x00,
-  DI_COVER_REGISTER = 0x04,
-  DI_COMMAND_0 = 0x08,
-  DI_COMMAND_1 = 0x0C,
-  DI_COMMAND_2 = 0x10,
-  DI_DMA_ADDRESS_REGISTER = 0x14,
-  DI_DMA_LENGTH_REGISTER = 0x18,
-  DI_DMA_CONTROL_REGISTER = 0x1C,
-  DI_IMMEDIATE_DATA_BUFFER = 0x20,
-  DI_CONFIG_REGISTER = 0x24
-};
+constexpr u32 DI_STATUS_REGISTER = 0x00;
+constexpr u32 DI_COVER_REGISTER = 0x04;
+constexpr u32 DI_COMMAND_0 = 0x08;
+constexpr u32 DI_COMMAND_1 = 0x0C;
+constexpr u32 DI_COMMAND_2 = 0x10;
+constexpr u32 DI_DMA_ADDRESS_REGISTER = 0x14;
+constexpr u32 DI_DMA_LENGTH_REGISTER = 0x18;
+constexpr u32 DI_DMA_CONTROL_REGISTER = 0x1C;
+constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
+constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
 // debug commands which may be ORd
-enum
-{
-  STOP_DRIVE = 0,
-  START_DRIVE = 0x100,
-  ACCEPT_COPY = 0x4000,
-  DISC_CHECK = 0x8000,
-};
+constexpr u32 STOP_DRIVE = 0;
+constexpr u32 START_DRIVE = 0x100;
+constexpr u32 ACCEPT_COPY = 0x4000;
+constexpr u32 DISC_CHECK = 0x8000;
 
 // DI Status Register
 union UDISR
@@ -231,12 +255,16 @@ static u64 s_read_buffer_end_offset;
 
 // Disc changing
 static std::string s_disc_path_to_insert;
+static std::vector<std::string> s_auto_disc_change_paths;
+static size_t s_auto_disc_change_index;
 
 // Events
 static CoreTiming::EventType* s_finish_executing_command;
+static CoreTiming::EventType* s_auto_change_disc;
 static CoreTiming::EventType* s_eject_disc;
 static CoreTiming::EventType* s_insert_disc;
 
+static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate);
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
@@ -392,6 +420,7 @@ void Init()
   Reset();
   s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
 
+  s_auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
   s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
   s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
@@ -441,10 +470,20 @@ void Shutdown()
   DVDThread::Stop();
 }
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
+void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
+             std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
   if (disc)
     s_current_partition = disc->GetGamePartition();
+
+  if (auto_disc_change_paths)
+  {
+    ASSERT_MSG(DISCIO, (*auto_disc_change_paths).size() != 1,
+               "Cannot automatically change between one disc");
+
+    s_auto_disc_change_paths = *auto_disc_change_paths;
+    s_auto_disc_change_index = 0;
+  }
 
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
@@ -455,18 +494,22 @@ bool IsDiscInside()
   return DVDThread::HasDisc();
 }
 
+static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate)
+{
+  AutoChangeDisc();
+}
+
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  SetDisc(nullptr);
+  SetDisc(nullptr, {});
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  std::unique_ptr<DiscIO::Volume> new_volume =
-      DiscIO::CreateVolumeFromFilename(s_disc_path_to_insert);
+  std::unique_ptr<DiscIO::VolumeDisc> new_disc = DiscIO::CreateDisc(s_disc_path_to_insert);
 
-  if (new_volume)
-    SetDisc(std::move(new_volume));
+  if (new_disc)
+    SetDisc(std::move(new_disc), {});
   else
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
 
@@ -477,6 +520,20 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 void EjectDisc()
 {
   CoreTiming::ScheduleEvent(0, s_eject_disc);
+}
+
+// Must only be called on the CPU thread
+void ChangeDisc(const std::vector<std::string>& paths)
+{
+  ASSERT_MSG(DISCIO, !paths.empty(), "Trying to insert an empty list of discs");
+
+  if (paths.size() > 1)
+  {
+    s_auto_disc_change_paths = paths;
+    s_auto_disc_change_index = 0;
+  }
+
+  ChangeDisc(paths[0]);
 }
 
 // Must only be called on the CPU thread
@@ -493,6 +550,28 @@ void ChangeDisc(const std::string& new_path)
   s_disc_path_to_insert = new_path;
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
   Movie::SignalDiscChange(new_path);
+
+  for (size_t i = 0; i < s_auto_disc_change_paths.size(); ++i)
+  {
+    if (s_auto_disc_change_paths[i] == new_path)
+    {
+      s_auto_disc_change_index = i;
+      return;
+    }
+  }
+
+  s_auto_disc_change_paths.clear();
+}
+
+// Must only be called on the CPU thread
+bool AutoChangeDisc()
+{
+  if (s_auto_disc_change_paths.empty())
+    return false;
+
+  s_auto_disc_change_index = (s_auto_disc_change_index + 1) % s_auto_disc_change_paths.size();
+  ChangeDisc(s_auto_disc_change_paths[s_auto_disc_change_index]);
+  return true;
 }
 
 void SetLidOpen()
@@ -961,7 +1040,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     case 0x01:  // Returns the current offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08" PRIx64,
                s_audio_position);
-      WriteImmediate(static_cast<u32>(s_audio_position >> 2), output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>((s_audio_position & 0xffffffffffff8000ull) >> 2),
+                     output_address, reply_to_ios);
       break;
     case 0x02:  // Returns the start offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08" PRIx64,
@@ -982,12 +1062,25 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   break;
 
   case DVDLowStopMotor:
+  {
     INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", command_1 ? "eject" : "",
              command_2 ? "kill!" : "");
 
-    if (command_1 && !command_2)
+    const bool force_eject = command_1 && !command_2;
+
+    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
+        DVDThread::IsInsertedDiscRunning() && !s_auto_disc_change_paths.empty())
+    {
+      CoreTiming::ScheduleEvent(force_eject ? 0 : SystemTimers::GetTicksPerSecond() / 2,
+                                s_auto_change_disc);
+      OSD::AddMessage("Changing discs automatically...", OSD::Duration::NORMAL);
+    }
+    else if (force_eject)
+    {
       EjectDiscCallback(0, 0);
+    }
     break;
+  }
 
   // DVD Audio Enable/Disable (Immediate). GC uses this, and apparently Wii also does...?
   case DVDLowAudioBufferConfig:
@@ -1221,7 +1314,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
       // TODO: This calculation is slightly wrong when decrypt is true - it uses the size of
       // the copy from IOS to PPC but is supposed to model the copy from the disc drive to IOS.
       ticks_until_completion +=
-          static_cast<u64>(chunk_length) * SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
+          static_cast<u64>(chunk_length) * ticks_per_second / BUFFER_TRANSFER_RATE;
       buffered_blocks++;
     }
     else
@@ -1233,6 +1326,15 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
         // Unbuffered seek+read
         ticks_until_completion += static_cast<u64>(
             ticks_per_second * DVDMath::CalculateSeekTime(head_position, dvd_offset));
+
+        // TODO: The above emulates seeking and then reading one ECC block of data,
+        // and then the below emulates the rotational latency. The rotational latency
+        // should actually happen before reading data from the disc.
+
+        const double time_after_seek =
+            (CoreTiming::GetTicks() + ticks_until_completion) / ticks_per_second;
+        ticks_until_completion += ticks_per_second * DVDMath::CalculateRotationalLatency(
+                                                         dvd_offset, time_after_seek, wii_disc);
 
         DEBUG_LOG(DVDINTERFACE, "Seek+read 0x%" PRIx32 " bytes @ 0x%" PRIx64 " ticks=%" PRId64,
                   chunk_length, offset, ticks_until_completion);
@@ -1298,4 +1400,4 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
             ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }
 
-}  // namespace
+}  // namespace DVDInterface

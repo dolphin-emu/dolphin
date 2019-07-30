@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -93,6 +94,7 @@ public:
   // Not guaranteed to return a meaningful value for files.
   virtual u32 GetTotalChildren() const = 0;
   virtual std::string GetName() const = 0;
+  virtual bool NameCaseInsensitiveEquals(std::string_view other) const = 0;
   // GetPath will find the parents of the current object and call GetName on them,
   // so it's slower than other functions. If you're traversing through folders
   // to get a file and its path, building the path while traversing is faster.
@@ -117,7 +119,7 @@ public:
   // are only valid for as long as the file system object is valid.
   virtual const FileInfo& GetRoot() const = 0;
   // Returns nullptr if not found
-  virtual std::unique_ptr<FileInfo> FindFileInfo(const std::string& path) const = 0;
+  virtual std::unique_ptr<FileInfo> FindFileInfo(std::string_view path) const = 0;
   // Returns nullptr if not found
   virtual std::unique_ptr<FileInfo> FindFileInfo(u64 disc_offset) const = 0;
 };

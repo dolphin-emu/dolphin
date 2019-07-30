@@ -299,24 +299,6 @@ public class FilePickerFragment extends AbstractFilePickerFragment<File> {
     }
 
     /**
-     * Name is validated to be non-null, non-empty and not containing any
-     * slashes.
-     *
-     * @param name The name of the folder the user wishes to create.
-     */
-    @Override
-    public void onNewFolder(@NonNull final String name) {
-        File folder = new File(mCurrentPath, name);
-
-        if (folder.mkdir()) {
-            refresh(folder);
-        } else {
-            Toast.makeText(getActivity(), R.string.nnf_create_folder_error,
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
      * Used by the list to determine whether a file should be displayed or not.
      * Default behavior is to always display folders. If files can be selected,
      * then files are also displayed. Set the showHiddenFiles property to show

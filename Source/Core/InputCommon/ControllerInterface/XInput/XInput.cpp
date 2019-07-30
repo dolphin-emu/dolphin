@@ -8,9 +8,7 @@
 #define XINPUT_GAMEPAD_GUIDE 0x0400
 #endif
 
-namespace ciface
-{
-namespace XInput
+namespace ciface::XInput
 {
 static const struct
 {
@@ -91,6 +89,8 @@ void PopulateDevices()
 {
   if (!hXInput)
     return;
+
+  g_controller_interface.RemoveDevice([](const auto* dev) { return dev->GetSource() == "XInput"; });
 
   XINPUT_CAPABILITIES caps;
   for (int i = 0; i != 4; ++i)
@@ -192,6 +192,11 @@ void Device::UpdateMotors()
   }
 }
 
+std::optional<int> Device::GetPreferredId() const
+{
+  return m_index;
+}
+
 // GET name/source/id
 
 std::string Device::Button::GetName() const
@@ -228,7 +233,7 @@ ControlState Device::Trigger::GetState() const
 
 ControlState Device::Axis::GetState() const
 {
-  return std::max(0.0, ControlState(m_axis) / m_range);
+  return ControlState(m_axis) / m_range;
 }
 
 void Device::Motor::SetState(ControlState state)
@@ -236,5 +241,4 @@ void Device::Motor::SetState(ControlState state)
   m_motor = (WORD)(state * m_range);
   m_parent->UpdateMotors();
 }
-}
-}
+}  // namespace ciface::XInput

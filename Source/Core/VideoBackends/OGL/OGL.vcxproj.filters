@@ -7,9 +7,6 @@
     <Filter Include="GLUtil">
       <UniqueIdentifier>{5bfec41c-1031-4925-8f98-38c7b49b1924}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Logging">
-      <UniqueIdentifier>{00dadfd8-a906-4b0c-b415-d42a69cf3ca7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Render">
       <UniqueIdentifier>{696df73b-378e-4399-8f21-999b65d78dcd}</UniqueIdentifier>
     </Filter>
@@ -21,22 +18,10 @@
     <ClCompile Include="VertexManager.cpp">
       <Filter>Decoder</Filter>
     </ClCompile>
-    <ClCompile Include="TextureConverter.cpp">
-      <Filter>GLUtil</Filter>
-    </ClCompile>
-    <ClCompile Include="RasterFont.cpp">
-      <Filter>Logging</Filter>
-    </ClCompile>
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="FramebufferManager.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="PerfQuery.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcessing.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="ProgramShaderCache.cpp">
@@ -46,9 +31,6 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="StreamBuffer.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
@@ -67,22 +49,10 @@
     <ClInclude Include="VertexManager.h">
       <Filter>Decoder</Filter>
     </ClInclude>
-    <ClInclude Include="TextureConverter.h">
-      <Filter>GLUtil</Filter>
-    </ClInclude>
-    <ClInclude Include="RasterFont.h">
-      <Filter>Logging</Filter>
-    </ClInclude>
     <ClInclude Include="BoundingBox.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="FramebufferManager.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="PerfQuery.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcessing.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="ProgramShaderCache.h">
@@ -92,9 +62,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="StreamBuffer.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="SamplerCache.h" />

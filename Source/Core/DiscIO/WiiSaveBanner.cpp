@@ -4,11 +4,11 @@
 
 #include "DiscIO/WiiSaveBanner.h"
 
+#include <iterator>
 #include <string>
 #include <vector>
 
 #include "Common/ColorUtil.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/NandPaths.h"
@@ -47,12 +47,12 @@ WiiSaveBanner::WiiSaveBanner(const std::string& path) : m_path(path)
 
 std::string WiiSaveBanner::GetName() const
 {
-  return UTF16BEToUTF8(m_header.name, ArraySize(m_header.name));
+  return UTF16BEToUTF8(m_header.name, std::size(m_header.name));
 }
 
 std::string WiiSaveBanner::GetDescription() const
 {
-  return UTF16BEToUTF8(m_header.description, ArraySize(m_header.description));
+  return UTF16BEToUTF8(m_header.description, std::size(m_header.description));
 }
 
 std::vector<u32> WiiSaveBanner::GetBanner(u32* width, u32* height) const

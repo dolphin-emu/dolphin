@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -82,12 +83,25 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
   {
-    LinearLayoutManager manager = new LinearLayoutManager(mActivity);
+    //LinearLayoutManager manager = new LinearLayoutManager(mActivity);
     Drawable lineDivider = mActivity.getDrawable(R.drawable.line_divider);
     RecyclerView recyclerView = view.findViewById(R.id.list_settings);
 
+    GridLayoutManager mgr = new GridLayoutManager(mActivity, 2);
+    mgr.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup()
+    {
+      @Override public int getSpanSize(int position)
+      {
+        int viewType = mAdapter.getItemViewType(position);
+        if (SettingsItem.TYPE_INPUT_BINDING == viewType &&
+          Settings.SECTION_BINDINGS.equals(mAdapter.getSettingSection(position)))
+          return 1;
+        return 2;
+      }
+    });
+
     recyclerView.setAdapter(mAdapter);
-    recyclerView.setLayoutManager(manager);
+    recyclerView.setLayoutManager(mgr);
     recyclerView.addItemDecoration(new DividerItemDecoration(lineDivider));
 
     showSettingsList(mActivity.getSettings());
@@ -116,5 +130,10 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     {
       mAdapter.setSettings(mSettingsList);
     }
+  }
+
+  public void closeDialog()
+  {
+    mAdapter.closeDialog();
   }
 }

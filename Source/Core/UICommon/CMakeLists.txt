@@ -1,9 +1,16 @@
 add_library(uicommon
   GameFile.cpp
+  GameFile.h
   GameFileCache.cpp
+  GameFileCache.h
+  NetPlayIndex.cpp
+  NetPlayIndex.h
   UICommon.cpp
+  UICommon.h
   USBUtils.cpp
+  USBUtils.h
   VideoUtils.cpp
+  VideoUtils.h
 )
 
 target_link_libraries(uicommon
@@ -15,11 +22,22 @@ PRIVATE
 )
 
 if(NOT ANDROID)
-  target_sources(uicommon PRIVATE CommandLineParse.cpp)
-  target_sources(uicommon PRIVATE AutoUpdate.cpp)
-  target_sources(uicommon PRIVATE DiscordPresence.cpp)
-  target_sources(uicommon PRIVATE Disassembler.cpp)
-  target_link_libraries(uicommon PUBLIC cpp-optparse)
+  target_sources(uicommon PRIVATE 
+    AutoUpdate.cpp
+    AutoUpdate.h
+    CommandLineParse.cpp
+    CommandLineParse.h
+    Disassembler.cpp
+    Disassembler.h
+    DiscordPresence.cpp
+    DiscordPresence.h
+    ResourcePack/Manager.cpp
+    ResourcePack/Manager.h
+    ResourcePack/Manifest.cpp
+    ResourcePack/Manifest.h
+    ResourcePack/ResourcePack.cpp
+    ResourcePack/ResourcePack.h)
+  target_link_libraries(uicommon PUBLIC cpp-optparse minizip)
 endif()
 
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR

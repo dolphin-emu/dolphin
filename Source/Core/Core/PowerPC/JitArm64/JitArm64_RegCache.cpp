@@ -139,7 +139,7 @@ Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestGPR(size_t preg)
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestCR(size_t preg)
 {
   ASSERT(preg < GUEST_CR_COUNT);
-  return {64, PPCSTATE_OFF(cr_val[preg]), m_guest_registers[GUEST_CR_OFFSET + preg]};
+  return {64, PPCSTATE_OFF(cr.fields[preg]), m_guest_registers[GUEST_CR_OFFSET + preg]};
 }
 
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestByIndex(size_t index)
@@ -426,8 +426,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     // Else convert this register back to doubles.
     m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, REG_REG);
-
-    // fall through
+    [[fallthrough]];
   }
   case REG_REG:  // already in a reg
   {
@@ -442,8 +441,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     // Else convert this register back to a double.
     m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, REG_LOWER_PAIR);
-
-    // fall through
+    [[fallthrough]];
   }
   case REG_LOWER_PAIR:
   {
@@ -452,7 +450,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       // Load the high 64bits from the file and insert them in to the high 64bits of the host
       // register
       ARM64Reg tmp_reg = GetReg();
-      m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, PPC_REG, PPCSTATE_OFF(ps[preg][1]));
+      m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps1));
       m_float_emit->INS(64, host_reg, 1, tmp_reg, 0);
       UnlockRegister(tmp_reg);
 
@@ -476,8 +474,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
 
     m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
     reg.Load(host_reg, REG_DUP);
-
-    // fall through
+    [[fallthrough]];
   }
   case REG_DUP:
   {
@@ -506,7 +503,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
       reg.Load(host_reg, REG_LOWER_PAIR);
     }
     reg.SetDirty(false);
-    m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg][0]));
+    m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps0));
     return host_reg;
   }
   default:
@@ -549,20 +546,20 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
     case REG_REG_SINGLE:
       flush_reg = GetReg();
       m_float_emit->FCVTL(64, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
-    // fall through
+      [[fallthrough]];
     case REG_REG:
       // We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit
       // store.
       // It would take longer to do an insert to a temporary and a 64bit store than to just do this.
-      m_float_emit->STR(128, INDEX_UNSIGNED, flush_reg, PPC_REG, PPCSTATE_OFF(ps[preg][0]));
+      m_float_emit->STR(128, INDEX_UNSIGNED, flush_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps0));
       break;
     case REG_DUP_SINGLE:
       flush_reg = GetReg();
       m_float_emit->FCVT(64, 32, EncodeRegToDouble(flush_reg), EncodeRegToDouble(host_reg));
-    // fall through
+      [[fallthrough]];
     case REG_DUP:
       // Store PSR1 (which is equal to PSR0) in memory.
-      m_float_emit->STR(64, INDEX_UNSIGNED, flush_reg, PPC_REG, PPCSTATE_OFF(ps[preg][1]));
+      m_float_emit->STR(64, INDEX_UNSIGNED, flush_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps1));
       break;
     default:
       // All other types doesn't store anything in PSR1.
@@ -687,7 +684,7 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
       store_size = 64;
 
     if (dirty)
-      m_float_emit->STR(store_size, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg][0]));
+      m_float_emit->STR(store_size, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps0));
 
     if (!maintain_state)
     {
@@ -702,9 +699,9 @@ void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
       // If the paired registers were at the start of ppcState we could do an STP here.
       // Too bad moving them would break savestate compatibility between x86_64 and AArch64
       // m_float_emit->STP(64, INDEX_SIGNED, host_reg, host_reg, PPC_REG,
-      // PPCSTATE_OFF(ps[preg][0]));
-      m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg][0]));
-      m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg][1]));
+      // PPCSTATE_OFF(ps[preg].ps0));
+      m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps0));
+      m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, PPC_REG, PPCSTATE_OFF(ps[preg].ps1));
     }
 
     if (!maintain_state)

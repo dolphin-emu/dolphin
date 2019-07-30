@@ -4,67 +4,107 @@
 
 #pragma once
 
+#include <QToolButton>
 #include <QWidget>
+
+#include <deque>
+
+#include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
 {
 class Control;
 class ControlGroup;
-class NumericSetting;
-}
+class Cursor;
+class Force;
+}  // namespace ControllerEmu
 
+class QPainter;
 class QPaintEvent;
 class QTimer;
 
-class ControlReference;
+class CalibrationWidget;
 
 class MappingIndicator : public QWidget
 {
 public:
   explicit MappingIndicator(ControllerEmu::ControlGroup* group);
 
-private:
-  void BindCursorControls(bool tilt);
-  void BindStickControls();
-  void BindMixedTriggersControls();
+  void SetCalibrationWidget(CalibrationWidget* widget);
 
-  void DrawCursor(bool tilt);
-  void DrawStick();
+protected:
+  WiimoteEmu::MotionState m_motion_state{};
+
+  QPen GetBBoxPen() const;
+  QBrush GetBBoxBrush() const;
+  QColor GetRawInputColor() const;
+  QPen GetInputShapePen() const;
+  QColor GetCenterColor() const;
+  QColor GetAdjustedInputColor() const;
+  QColor GetDeadZoneColor() const;
+  QPen GetDeadZonePen() const;
+  QBrush GetDeadZoneBrush() const;
+  QColor GetTextColor() const;
+  QColor GetAltTextColor() const;
+  QColor GetGateColor() const;
+
+  double GetScale() const;
+
+private:
+  void DrawCursor(ControllerEmu::Cursor& cursor);
+  void DrawReshapableInput(ControllerEmu::ReshapableInput& stick);
   void DrawMixedTriggers();
+  void DrawForce(ControllerEmu::Force&);
+  void DrawCalibration(QPainter& p, Common::DVec2 point);
 
   void paintEvent(QPaintEvent*) override;
-  ControllerEmu::ControlGroup* m_group;
 
-  // Stick settings
-  ControlReference* m_stick_up;
-  ControlReference* m_stick_down;
-  ControlReference* m_stick_left;
-  ControlReference* m_stick_right;
-  ControlReference* m_stick_modifier;
+  bool IsCalibrating() const;
+  void UpdateCalibrationWidget(Common::DVec2 point);
 
-  ControllerEmu::NumericSetting* m_stick_radius;
-  ControllerEmu::NumericSetting* m_stick_deadzone;
+  ControllerEmu::ControlGroup* const m_group;
+  CalibrationWidget* m_calibration_widget{};
+};
 
-  // Cursor settings
-  ControlReference* m_cursor_up;
-  ControlReference* m_cursor_down;
-  ControlReference* m_cursor_left;
-  ControlReference* m_cursor_right;
-  ControlReference* m_cursor_forward;
-  ControlReference* m_cursor_backward;
+class ShakeMappingIndicator : public MappingIndicator
+{
+public:
+  explicit ShakeMappingIndicator(ControllerEmu::Shake* group);
 
-  ControllerEmu::NumericSetting* m_cursor_center;
-  ControllerEmu::NumericSetting* m_cursor_width;
-  ControllerEmu::NumericSetting* m_cursor_height;
-  ControllerEmu::NumericSetting* m_cursor_deadzone;
+  void DrawShake();
+  void paintEvent(QPaintEvent*) override;
 
-  // Triggers settings
-  ControlReference* m_mixed_triggers_r_analog;
-  ControlReference* m_mixed_triggers_r_button;
-  ControlReference* m_mixed_triggers_l_analog;
-  ControlReference* m_mixed_triggers_l_button;
+private:
+  std::deque<ControllerEmu::Shake::StateData> m_position_samples;
+  int m_grid_line_position = 0;
 
-  ControllerEmu::NumericSetting* m_mixed_triggers_threshold;
+  ControllerEmu::Shake& m_shake_group;
+};
 
-  QTimer* m_timer;
+class CalibrationWidget : public QToolButton
+{
+public:
+  CalibrationWidget(ControllerEmu::ReshapableInput& input, MappingIndicator& indicator);
+
+  void Update(Common::DVec2 point);
+
+  double GetCalibrationRadiusAtAngle(double angle) const;
+
+  Common::DVec2 GetCenter() const;
+
+  bool IsCalibrating() const;
+
+private:
+  void StartCalibration();
+  void SetupActions();
+
+  ControllerEmu::ReshapableInput& m_input;
+  MappingIndicator& m_indicator;
+  QAction* m_completion_action;
+  ControllerEmu::ReshapableInput::CalibrationData m_calibration_data;
+  QTimer* m_informative_timer;
+
+  bool m_is_centering = false;
+  Common::DVec2 m_new_center;
 };

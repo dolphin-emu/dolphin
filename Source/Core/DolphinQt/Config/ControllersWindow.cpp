@@ -14,7 +14,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScreen>
@@ -26,14 +25,15 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
-#include "Core/NetPlayProto.h"
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
 
@@ -71,6 +71,8 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
+
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void ControllersWindow::CreateGamecubeLayout()
@@ -328,11 +330,9 @@ void ControllersWindow::OnBluetoothPassthroughResetPressed()
 
   if (!ios)
   {
-    QMessageBox error(this);
-    error.setIcon(QMessageBox::Warning);
-    error.setWindowTitle(tr("Warning"));
-    error.setText(tr("Saved Wii Remote pairings can only be reset when a Wii game is running."));
-    error.exec();
+    ModalMessageBox::warning(
+        this, tr("Warning"),
+        tr("Saved Wii Remote pairings can only be reset when a Wii game is running."));
     return;
   }
 
@@ -349,11 +349,8 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
 
   if (!ios)
   {
-    QMessageBox error(this);
-    error.setIcon(QMessageBox::Warning);
-    error.setWindowTitle(tr("Warning"));
-    error.setText(tr("A sync can only be triggered when a Wii game is running."));
-    error.exec();
+    ModalMessageBox::warning(this, tr("Warning"),
+                             tr("A sync can only be triggered when a Wii game is running."));
     return;
   }
 
@@ -373,7 +370,7 @@ void ControllersWindow::OnWiimoteRefreshPressed()
 
 void ControllersWindow::OnEmulationStateChanged(bool running)
 {
-  if (!SConfig::GetInstance().bWii || NetPlay::IsNetPlayRunning())
+  if (!SConfig::GetInstance().bWii)
   {
     m_wiimote_sync->setEnabled(!running);
     m_wiimote_reset->setEnabled(!running);
@@ -431,7 +428,10 @@ void ControllersWindow::OnGCPadConfigure()
     return;
   }
 
-  MappingWindow(this, type, static_cast<int>(index)).exec();
+  MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
 }
 
 void ControllersWindow::OnWiimoteConfigure()
@@ -456,7 +456,10 @@ void ControllersWindow::OnWiimoteConfigure()
     return;
   }
 
-  MappingWindow(this, type, static_cast<int>(index)).exec();
+  MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
 }
 
 void ControllersWindow::LoadSettings()
@@ -465,8 +468,12 @@ void ControllersWindow::LoadSettings()
   {
     const std::optional<int> gc_index = ToGCMenuIndex(SConfig::GetInstance().m_SIDevice[i]);
     if (gc_index)
+    {
       m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
+      m_gc_buttons[i]->setEnabled(*gc_index != 0 && *gc_index != 6);
+    }
     m_wiimote_boxes[i]->setCurrentIndex(g_wiimote_sources[i]);
+    m_wiimote_buttons[i]->setEnabled(g_wiimote_sources[i] != 0 && g_wiimote_sources[i] != 2);
   }
   m_wiimote_real_balance_board->setChecked(g_wiimote_sources[WIIMOTE_BALANCE_BOARD] ==
                                            WIIMOTE_SRC_REAL);
@@ -497,11 +504,8 @@ void ControllersWindow::SaveSettings()
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     const int index = m_wiimote_boxes[i]->currentIndex();
-    g_wiimote_sources[i] = index;
     m_wiimote_buttons[i]->setEnabled(index != 0 && index != 2);
-
-    if (Core::IsRunning())
-      WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
+    WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
   }
 
   UICommon::SaveWiimoteSources();

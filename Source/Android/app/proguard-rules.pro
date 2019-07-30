@@ -21,9 +21,6 @@
 -dontskipnonpubliclibraryclassmembers
 -verbose
 
-# -dontwarn com.squareup.picasso.**
-# -keep class com.squareup.picasso.** { *; }
-
 -dontwarn sun.misc.Unsafe
 -keep class sun.misc.Unsafe { *; }
 
@@ -39,12 +36,13 @@
 -dontwarn javax.annotation.ParametersAreNonnullByDefault
 -keep class javax.annotation.ParametersAreNonnullByDefault { *; }
 
-# -dontwarn rx.functions.**
-# -keep class rx.functions.** { *; }
+-keep class android.support.v7.app.** { *; }
 
 -keep class org.dolphinemu.dolphinemu.NativeLibrary { *; }
 -keep class org.dolphinemu.dolphinemu.utils.Java_GCAdapter { *; }
 -keep class org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter { *; }
--keep class org.dolphinemu.dolphinemu.model.GameFile { *; }
+
+-keep class org.dolphinemu.dolphinemu.model.IniFile
+-keepclassmembers class org.dolphinemu.dolphinemu.model.IniFile { private <fields>; }
 -keepclassmembers class org.dolphinemu.dolphinemu.model.GameFile { private <fields>; }
--keepclassmembers class org.dolphinemu.dolphinemu.model.GameFileCache { private <fields>; }
+-keepclassmembers class org.dolphinemu.dolphinemu.model.GameFile { private <init>(...); }

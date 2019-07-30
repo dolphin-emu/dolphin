@@ -17,9 +17,7 @@
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 #include "InputCommon/ControllerInterface/OSX/RunLoopStopper.h"
 
-namespace ciface
-{
-namespace OSX
+namespace ciface::OSX
 {
 constexpr CFTimeInterval FOREVER = 1e20;
 static std::thread s_hotplug_thread;
@@ -227,5 +225,4 @@ void DeInit()
   IOHIDManagerClose(HIDManager, kIOHIDOptionsTypeNone);
   CFRelease(HIDManager);
 }
-}
-}
+}  // namespace ciface::OSX

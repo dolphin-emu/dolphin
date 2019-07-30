@@ -84,12 +84,16 @@ static const INIToSectionMap& GetINIToSectionMap()
 {
   static const INIToSectionMap ini_to_section = {
       {"Core", {Config::System::Main, "Core"}},
+      {"Controls", {Config::System::Main, "Controls"}},
+      {"Display", {Config::System::Main, "Display"}},
+      {"Interface", {Config::System::Main, "Interface"}},
       {"Video_Hardware", {Config::System::GFX, "Hardware"}},
       {"Video_Settings", {Config::System::GFX, "Settings"}},
       {"Video_Enhancements", {Config::System::GFX, "Enhancements"}},
       {"Video_Stereoscopy", {Config::System::GFX, "Stereoscopy"}},
       {"Video_Hacks", {Config::System::GFX, "Hacks"}},
       {"Video", {Config::System::GFX, "GameSpecific"}},
+      {"IPL", {Config::System::SYSCONF, "IPL"}},
   };
   return ini_to_section;
 }

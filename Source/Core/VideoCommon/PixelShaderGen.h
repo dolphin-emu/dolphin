@@ -18,7 +18,7 @@ struct pixel_shader_uid_data
   u32 num_values;  // TODO: Shouldn't be a u32
   u32 NumValues() const { return num_values; }
   u32 components : 2;
-  u32 doAlphaPass : 2;
+  u32 dualSrcBlend : 1;
   u32 useDstAlpha : 1;
   u32 Pretest : 2;
   u32 nIndirectStagesUsed : 4;
@@ -30,6 +30,7 @@ struct pixel_shader_uid_data
   u32 alpha_test_logic : 2;
   u32 alpha_test_use_zcomploc_hack : 1;
   u32 fog_proj : 1;
+  //-- 31
 
   u32 fog_fsel : 3;
   u32 fog_RangeBaseEnabled : 1;
@@ -44,13 +45,12 @@ struct pixel_shader_uid_data
   u32 rgba6_format : 1;
   u32 dither : 1;
   u32 uint_output : 1;
-  u32 blend_enable : 1;            // Only used with shader_framebuffer_fetch blend
-  u32 blend_src_factor : 3;        // Only used with shader_framebuffer_fetch blend
-  u32 blend_src_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
-  u32 blend_dst_factor : 3;        // Only used with shader_framebuffer_fetch blend
-  u32 blend_dst_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
-  u32 blend_subtract : 1;          // Only used with shader_framebuffer_fetch blend
-  u32 blend_subtract_alpha : 1;    // Only used with shader_framebuffer_fetch blend
+  //-- 17
+
+  // shader logic
+  u32 logic_op_enable : 1;
+  u32 logic_mode : 4;
+  u32 pad0 : 3;
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
@@ -162,12 +162,12 @@ struct pixel_shader_uid_data
 };
 #pragma pack()
 
-typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
+using PixelShaderUid = ShaderUid<pixel_shader_uid_data>;
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data);
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
-                                  bool per_pixel_lighting, bool bounding_box);
+                                  const ShaderHostConfig& host_config, bool bounding_box);
 void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid);
 PixelShaderUid GetPixelShaderUid();

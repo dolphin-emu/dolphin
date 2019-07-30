@@ -19,44 +19,54 @@ namespace Arm64Gen
 {
 namespace
 {
+
 const int kWRegSizeInBits = 32;
 const int kXRegSizeInBits = 64;
 
 // The below few functions are taken from V8.
-int CountLeadingZeros(uint64_t value, int width)
+// CountPopulation32(value) returns the number of bits set in |value|.
+inline unsigned CountPopulation32(uint32_t value)
 {
-  // TODO(jbramley): Optimize this for ARM64 hosts.
-  int count = 0;
-  uint64_t bit_test = 1ULL << (width - 1);
-  while ((count < width) && ((bit_test & value) == 0))
-  {
-    count++;
-    bit_test >>= 1;
-  }
-  return count;
+  value = ((value >> 1) & 0x55555555) + (value & 0x55555555);
+  value = ((value >> 2) & 0x33333333) + (value & 0x33333333);
+  value = ((value >> 4) & 0x0f0f0f0f) + (value & 0x0f0f0f0f);
+  value = ((value >> 8) & 0x00ff00ff) + (value & 0x00ff00ff);
+  value = ((value >> 16) & 0x0000ffff) + (value & 0x0000ffff);
+  return static_cast<unsigned>(value);
+}
+// CountPopulation64(value) returns the number of bits set in |value|.
+inline unsigned CountPopulation64(uint64_t value)
+{
+  return CountPopulation32(static_cast<uint32_t>(value)) +
+         CountPopulation32(static_cast<uint32_t>(value >> 32));
+}
+// CountLeadingZeros32(value) returns the number of zero bits following the most
+// significant 1 bit in |value| if |value| is non-zero, otherwise it returns 32.
+inline unsigned CountLeadingZeros32(uint32_t value)
+{
+  value = value | (value >> 1);
+  value = value | (value >> 2);
+  value = value | (value >> 4);
+  value = value | (value >> 8);
+  value = value | (value >> 16);
+  return CountPopulation32(~value);
+}
+// CountLeadingZeros64(value) returns the number of zero bits following the most
+// significant 1 bit in |value| if |value| is non-zero, otherwise it returns 64.
+inline unsigned CountLeadingZeros64(uint64_t value)
+{
+  value = value | (value >> 1);
+  value = value | (value >> 2);
+  value = value | (value >> 4);
+  value = value | (value >> 8);
+  value = value | (value >> 16);
+  value = value | (value >> 32);
+  return CountPopulation64(~value);
 }
 
 uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
   return value & -(int64_t)value;
-}
-
-// For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
-{
-  if (input < 4096)
-  {
-    *val = input;
-    *shift = false;
-    return true;
-  }
-  else if ((input & 0xFFF000) == input)
-  {
-    *val = input >> 12;
-    *shift = true;
-    return true;
-  }
-  return false;
 }
 
 // For AND/TST/ORR/EOR etc
@@ -151,8 +161,8 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
     // Compute the repeat distance d, and set up a bitmask covering the basic
     // unit of repetition (i.e. a word with the bottom d bits set). Also, in all
     // of these cases the N bit of the output will be zero.
-    clz_a = CountLeadingZeros(a, kXRegSizeInBits);
-    int clz_c = CountLeadingZeros(c, kXRegSizeInBits);
+    clz_a = CountLeadingZeros64(a);
+    int clz_c = CountLeadingZeros64(c);
     d = clz_a - clz_c;
     mask = ((UINT64_C(1) << d) - 1);
     out_n = 0;
@@ -178,7 +188,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // of set bits in our word, meaning that we have the trivial case of
       // d == 64 and only one 'repetition'. Set up all the same variables as in
       // the general case above, and set the N bit in the output.
-      clz_a = CountLeadingZeros(a, kXRegSizeInBits);
+      clz_a = CountLeadingZeros64(a);
       d = 64;
       mask = ~UINT64_C(0);
       out_n = 1;
@@ -210,7 +220,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       0x5555555555555555UL,
   }};
 
-  int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
+  int multiplier_idx = CountLeadingZeros64(d) - 57;
 
   // Ensure that the index to the multipliers array is within bounds.
   DEBUG_ASSERT((multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
@@ -229,7 +239,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // Count the set bits in our basic stretch. The special case of clz(0) == -1
   // makes the answer come out right for stretches that reach the very top of
   // the word (e.g. numbers like 0xffffc00000000000).
-  int clz_b = (b == 0) ? -1 : CountLeadingZeros(b, kXRegSizeInBits);
+  int clz_b = (b == 0) ? -1 : CountLeadingZeros64(b);
   int s = clz_a - clz_b;
 
   // Decide how many bits to rotate right by, to put the low bit of that basic
@@ -2002,14 +2012,9 @@ void ARM64XEmitter::ADRP(ARM64Reg Rd, s32 imm)
   EncodeAddressInst(1, Rd, imm >> 12);
 }
 
-
-static int Count(bool part[4]) {
-	int cnt = 0;
-	for (int i = 0; i < 4; i++) {
-		if (part[i])
-			cnt++;
-	}
-	return cnt;
+inline int UploadPartCount(bool part[4])
+{
+  return part[0] + part[1] + part[2] + part[3];
 }
 // Wrapper around MOVZ+MOVK (and later MOVN)
 void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
@@ -2061,7 +2066,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   u64 aligned_pc = (u64)GetCodePtr() & ~0xFFF;
   s64 aligned_offset = (s64)imm - (s64)aligned_pc;
   // The offset for ADR/ADRP is an s32, so make sure it can be represented in that
-  if (Count(upload_part) > 1 && std::abs(aligned_offset) < 0x7FFFFFFFLL)
+  if (UploadPartCount(upload_part) > 1 && std::abs(aligned_offset) < 0x7FFFFFFFLL)
   {
     // Immediate we are loading is within 4GB of our aligned range
     // Most likely a address that we can load in one or two instructions
@@ -2102,28 +2107,6 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
         MOVK(Rd, (imm >> (i * 16)) & 0xFFFF, (ShiftAmount)i);
     }
   }
-}
-
-bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
-{
-  // TODO: Also optimize for performance, not just for code size.
-  u8* start_pointer = GetWritableCodePtr();
-
-  MOVI2R(Rd, imm1);
-  int size1 = GetCodePtr() - start_pointer;
-
-  SetCodePtrUnsafe(start_pointer);
-
-  MOVI2R(Rd, imm2);
-  int size2 = GetCodePtr() - start_pointer;
-
-  SetCodePtrUnsafe(start_pointer);
-
-  bool element = size1 > size2;
-
-  MOVI2R(Rd, element ? imm2 : imm1);
-
-  return element;
 }
 
 void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
@@ -3503,7 +3486,7 @@ void ARM64FloatEmitter::SMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
   EmitCopy(b64Bit, 0, imm5, 5, Rd, Rn);
 }
 
-// One source
+// One source, Floating-point convert precision
 void ARM64FloatEmitter::FCVT(u8 size_to, u8 size_from, ARM64Reg Rd, ARM64Reg Rn)
 {
   u32 dst_encoding = 0;
@@ -4103,6 +4086,10 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     AND(Rd, Rn, imm_r, imm_s, n != 0);
   }
+  else if (imm == 0)
+  {
+    MOVI2R(Rd, 0);
+  }
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != INVALID_REG,
@@ -4119,6 +4106,13 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
   {
     ORR(Rd, Rn, imm_r, imm_s, n != 0);
+  }
+  else if (imm == 0)
+  {
+    if (Rd != Rn)
+    {
+      MOV(Rd, Rn);
+    }
   }
   else
   {
@@ -4137,6 +4131,13 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     EOR(Rd, Rn, imm_r, imm_s, n != 0);
   }
+  else if (imm == 0)
+  {
+    if (Rd != Rn)
+    {
+      MOV(Rd, Rn);
+    }
+  }
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != INVALID_REG,
@@ -4153,6 +4154,10 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   if (IsImmLogical(imm, Is64Bit(Rn) ? 64 : 32, &n, &imm_s, &imm_r))
   {
     ANDS(Rd, Rn, imm_r, imm_s, n != 0);
+  }
+  else if (imm == 0)
+  {
+    ANDS(Rd, Rn, Is64Bit(Rn) ? ZR : WZR, ArithOption(Rd, ST_LSL, 0));
   }
   else
   {
@@ -4187,10 +4192,6 @@ void ARM64XEmitter::AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, 
 void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                                     ARM64Reg scratch)
 {
-  bool has_scratch = scratch != INVALID_REG;
-  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
-  bool neg_neg = negative ? false : true;
-
   // Fast paths, aarch64 immediate instructions
   // Try them all first
   if (imm <= 0xFFF)
@@ -4198,17 +4199,20 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
     AddImmediate(Rd, Rn, imm, false, negative, flags);
     return;
   }
-  if (imm <= 0xFFFFFF && (imm & 0xFFF) == 0)
+  if ((imm & 0xFFF000) == imm)
   {
     AddImmediate(Rd, Rn, imm >> 12, true, negative, flags);
     return;
   }
+
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
+  bool neg_neg = negative ? false : true;
   if (imm_neg <= 0xFFF)
   {
     AddImmediate(Rd, Rn, imm_neg, false, neg_neg, flags);
     return;
   }
-  if (imm_neg <= 0xFFFFFF && (imm_neg & 0xFFF) == 0)
+  if ((imm_neg & 0xFFF000) == imm_neg)
   {
     AddImmediate(Rd, Rn, imm_neg >> 12, true, neg_neg, flags);
     return;
@@ -4217,24 +4221,28 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
   // ADD+ADD is slower than MOVK+ADD, but inplace.
   // But it supports a few more bits, so use it to avoid MOVK+MOVK+ADD.
   // As this splits the addition in two parts, this must not be done on setting flags.
-  if (!flags && (imm >= 0x10000u || !has_scratch) && imm < 0x1000000u)
+  bool has_scratch = scratch != INVALID_REG;
+  if(!flags)
   {
-    AddImmediate(Rd, Rn, imm & 0xFFF, false, negative, false);
-    AddImmediate(Rd, Rd, imm >> 12, true, negative, false);
-    return;
-  }
-  if (!flags && (imm_neg >= 0x10000u || !has_scratch) && imm_neg < 0x1000000u)
-  {
-    AddImmediate(Rd, Rn, imm_neg & 0xFFF, false, neg_neg, false);
-    AddImmediate(Rd, Rd, imm_neg >> 12, true, neg_neg, false);
-    return;
+    if ((imm >= 0x10000u || !has_scratch) && imm < 0x1000000u)
+    {
+      AddImmediate(Rd, Rn, imm & 0xFFF, false, negative, false);
+      AddImmediate(Rd, Rd, imm >> 12, true, negative, false);
+      return;
+    }
+    if ((imm_neg >= 0x10000u || !has_scratch) && imm_neg < 0x1000000u)
+    {
+      AddImmediate(Rd, Rn, imm_neg & 0xFFF, false, neg_neg, false);
+      AddImmediate(Rd, Rd, imm_neg >> 12, true, neg_neg, false);
+      return;
+    }
   }
 
   ASSERT_MSG(DYNA_REC, has_scratch,
              "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
              (u32)imm);
 
-  negative ^= MOVI2R2(scratch, imm, imm_neg);
+  MOVI2R(scratch, imm);
   switch ((negative << 1) | flags)
   {
   case 0:
@@ -4254,6 +4262,12 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
 
 void ARM64XEmitter::ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
+  if (imm == 0)
+  {
+    // Prefer MOV (ORR) instead of ADD for moves.
+    MOV(Rd, Rn);
+    return;
+  }
   ADDI2R_internal(Rd, Rn, imm, false, false, scratch);
 }
 
@@ -4264,6 +4278,12 @@ void ARM64XEmitter::ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 
 void ARM64XEmitter::SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
+  if (imm == 0)
+  {
+    // Prefer MOV (ORR) instead of ADD for moves.
+    MOV(Rd, Rn);
+    return;
+  }
   ADDI2R_internal(Rd, Rn, imm, true, false, scratch);
 }
 
@@ -4275,73 +4295,6 @@ void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   ADDI2R_internal(Is64Bit(Rn) ? ZR : WZR, Rn, imm, true, true, scratch);
-}
-
-bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
-{
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-    ADD(Rd, Rn, val, shift);
-  else
-    return false;
-
-  return true;
-}
-
-bool ARM64XEmitter::TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
-{
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-    SUB(Rd, Rn, val, shift);
-  else
-    return false;
-
-  return true;
-}
-
-bool ARM64XEmitter::TryCMPI2R(ARM64Reg Rn, u32 imm)
-{
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-    CMP(Rn, val, shift);
-  else
-    return false;
-
-  return true;
-}
-
-bool ARM64XEmitter::TryANDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
-{
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
-    AND(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
-
-  return true;
-}
-bool ARM64XEmitter::TryORRI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
-{
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
-    ORR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
-
-  return true;
-}
-bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
-{
-  u32 n, imm_r, imm_s;
-  if (IsImmLogical(imm, 32, &n, &imm_s, &imm_r))
-    EOR(Rd, Rn, imm_r, imm_s, n != 0);
-  else
-    return false;
-
-  return true;
 }
 
 void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool negate)
@@ -4383,4 +4336,4 @@ void ARM64FloatEmitter::MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch)
   DUP(32, Rd, Rd, 0);
 }
 
-}  // namespace
+}  // namespace Arm64Gen

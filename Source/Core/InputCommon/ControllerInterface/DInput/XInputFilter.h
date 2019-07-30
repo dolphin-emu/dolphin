@@ -7,10 +7,7 @@
 #include <Windows.h>
 #include <unordered_set>
 
-namespace ciface
-{
-namespace DInput
+namespace ciface::DInput
 {
 std::unordered_set<DWORD> GetXInputGUIDS();
-}
-}
+}  // namespace ciface::DInput

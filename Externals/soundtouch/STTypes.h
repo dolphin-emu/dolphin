@@ -55,7 +55,7 @@ typedef unsigned long   ulong;
 #define ST_NO_EXCEPTION_HANDLING 1
 #define SOUNDTOUCH_INTEGER_SAMPLES 1
 #ifdef _WIN32
-#define SOUNDTOUCH_ALLOW_SSE
+//#define SOUNDTOUCH_ALLOW_SSE
 //#define SOUNDTOUCH_ALLOW_MMX
 #endif
 

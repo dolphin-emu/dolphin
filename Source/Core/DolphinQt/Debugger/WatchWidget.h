@@ -13,6 +13,7 @@ class QTableWidget;
 class QTableWidgetItem;
 class QToolBar;
 class QCloseEvent;
+class QShowEvent;
 
 class WatchWidget : public QDockWidget
 {
@@ -27,6 +28,7 @@ signals:
 
 protected:
   void closeEvent(QCloseEvent*) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   void CreateWidgets();
@@ -35,6 +37,7 @@ private:
   void OnLoad();
   void OnSave();
 
+  void UpdateButtonsEnabled();
   void Update();
 
   void ShowContextMenu();
@@ -50,4 +53,6 @@ private:
   QTableWidget* m_table;
 
   bool m_updating = false;
+
+  static constexpr size_t NUM_COLUMNS = 6;
 };

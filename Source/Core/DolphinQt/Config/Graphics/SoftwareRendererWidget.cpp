@@ -13,6 +13,7 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -26,12 +27,15 @@
 SoftwareRendererWidget::SoftwareRendererWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 {
   CreateWidgets();
-
-  connect(parent, &GraphicsWindow::BackendChanged, [this] { LoadSettings(); });
-
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
+  emit BackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+
+  connect(parent, &GraphicsWindow::BackendChanged, [this] { LoadSettings(); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void SoftwareRendererWidget::CreateWidgets()
@@ -179,4 +183,9 @@ void SoftwareRendererWidget::AddDescriptions()
   AddDescription(m_dump_objects, TR_DUMP_OBJECTS_DESCRIPTION);
   AddDescription(m_dump_tev_stages, TR_DUMP_TEV_STAGES_DESCRIPTION);
   AddDescription(m_dump_tev_fetches, TR_DUMP_TEV_FETCHES_DESCRIPTION);
+}
+
+void SoftwareRendererWidget::OnEmulationStateChanged(bool running)
+{
+  m_backend_combo->setEnabled(!running);
 }

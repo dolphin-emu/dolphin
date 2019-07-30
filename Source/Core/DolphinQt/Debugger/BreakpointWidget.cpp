@@ -26,24 +26,23 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Breakpoints"));
   setObjectName(QStringLiteral("breakpoints"));
 
+  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
+            !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
 
   CreateWidgets();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
-    if (!Settings::Instance().IsDebugModeEnabled())
-      return;
-
-    bool is_initialised = state != Core::State::Uninitialized;
-    m_new->setEnabled(is_initialised);
-    m_load->setEnabled(is_initialised);
-    m_save->setEnabled(is_initialised);
-    if (!is_initialised)
+    UpdateButtonsEnabled();
+    if (state == Core::State::Uninitialized)
     {
       PowerPC::breakpoints.Clear();
       PowerPC::memchecks.Clear();
@@ -60,11 +59,6 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &BreakpointWidget::UpdateIcons);
   UpdateIcons();
-
-  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
-
-  Update();
 }
 
 BreakpointWidget::~BreakpointWidget()
@@ -136,8 +130,28 @@ void BreakpointWidget::closeEvent(QCloseEvent*)
   Settings::Instance().SetBreakpointsVisible(false);
 }
 
+void BreakpointWidget::showEvent(QShowEvent* event)
+{
+  UpdateButtonsEnabled();
+  Update();
+}
+
+void BreakpointWidget::UpdateButtonsEnabled()
+{
+  if (!isVisible())
+    return;
+
+  const bool is_initialised = Core::GetState() != Core::State::Uninitialized;
+  m_new->setEnabled(is_initialised);
+  m_load->setEnabled(is_initialised);
+  m_save->setEnabled(is_initialised);
+}
+
 void BreakpointWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   m_table->clear();
 
   m_table->setHorizontalHeaderLabels(
@@ -223,7 +237,7 @@ void BreakpointWidget::Update()
 
 void BreakpointWidget::OnDelete()
 {
-  if (m_table->selectedItems().size() == 0)
+  if (m_table->selectedItems().empty())
     return;
 
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();

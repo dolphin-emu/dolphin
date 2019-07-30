@@ -7,7 +7,6 @@
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
 class QComboBox;
-class QHBoxLayout;
 class WiimoteEmuExtension;
 
 class WiimoteEmuGeneral final : public MappingWidget
@@ -24,10 +23,7 @@ private:
   void CreateMainLayout();
   void Connect(MappingWindow* window);
   void OnAttachmentChanged(int index);
-  void Update();
-
-  // Main
-  QHBoxLayout* m_main_layout;
+  void ConfigChanged();
 
   // Extensions
   QComboBox* m_extension_combo;

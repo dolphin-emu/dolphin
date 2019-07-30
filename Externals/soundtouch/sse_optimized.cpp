@@ -209,7 +209,7 @@ FIRFilterSSE::~FIRFilterSSE()
 
 
 // (overloaded) Calculates filter coefficients for SSE routine
-void FIRFilterSSE::setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor)
+void FIRFilterSSE::setCoefficients(const float *coeffs, uint newLength, uint uResultDivFactor)
 {
     uint i;
     float fDivider;

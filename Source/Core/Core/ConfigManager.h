@@ -11,31 +11,40 @@
 #include <utility>
 #include <vector>
 
-#include "Common/IniFile.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/SI/SI_Device.h"
-#include "Core/TitleDatabase.h"
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+
+class IniFile;
 
 namespace DiscIO
 {
+enum class Country;
 enum class Language;
+enum class Platform;
 enum class Region;
 struct Partition;
 class Volume;
 }  // namespace DiscIO
 
-namespace IOS
+namespace ExpansionInterface
 {
-namespace ES
+enum TEXIDevices : int;
+}  // namespace ExpansionInterface
+
+namespace IOS::ES
 {
 class TMDReader;
-}
-}  // namespace IOS
+}  // namespace IOS::ES
 
 namespace PowerPC
 {
 enum class CPUCore;
 }  // namespace PowerPC
+
+namespace SerialInterface
+{
+enum SIDevices : int;
+}  // namespace SerialInterface
 
 struct BootParameters;
 
@@ -47,7 +56,7 @@ struct BootParameters;
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
-#define BACKEND_WASAPI "WASAPI (Exclusive Mode)"
+#define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
 
 enum class GPUDeterminismMode
 {
@@ -144,21 +153,6 @@ struct SConfig
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
-  // Display settings
-  std::string strFullscreenResolution;
-  int iRenderWindowXPos = std::numeric_limits<int>::min();
-  int iRenderWindowYPos = std::numeric_limits<int>::min();
-  int iRenderWindowWidth = -1;
-  int iRenderWindowHeight = -1;
-  bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
-  bool bFullscreen = false, bRenderToMain = false;
-  bool bDisableScreenSaver = false;
-
-  // Analytics settings.
-  std::string m_analytics_id;
-  bool m_analytics_enabled = false;
-  bool m_analytics_permission_asked = false;
-
   // Bluetooth passthrough mode settings
   bool m_bt_passthrough_enabled = false;
   int m_bt_passthrough_pid = -1;
@@ -202,7 +196,7 @@ struct SConfig
   u16 GetRevision() const { return m_revision; }
   void ResetRunningGameMetadata();
   void SetRunningGameMetadata(const DiscIO::Volume& volume, const DiscIO::Partition& partition);
-  void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd);
+  void SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Platform platform);
 
   void LoadDefaults();
   // Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
@@ -234,10 +228,9 @@ struct SConfig
   bool m_OCEnable;
   float m_OCFactor;
   // other interface settings
-  bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
   bool m_use_builtin_title_database = true;
-
+#ifndef ANDROID
   bool m_ListDrives;
   bool m_ListWad;
   bool m_ListElfDol;
@@ -272,6 +265,15 @@ struct SConfig
   bool m_showSizeColumn;
   bool m_showTagsColumn;
 
+  // Analytics settings.
+  std::string m_analytics_id;
+  bool m_analytics_enabled = false;
+  bool m_analytics_permission_asked = false;
+
+  // Auto-update settings
+  std::string m_auto_update_track;
+  std::string m_auto_update_hash_override;
+#endif
   std::string m_WirelessMac;
   bool m_PauseMovie;
   bool m_ShowLag;
@@ -285,6 +287,7 @@ struct SConfig
   bool m_PauseOnFocusLost;
 
   bool m_AlphaPassShadowHack;
+  bool m_LogicOpsDrawHack;
 
   // DSP settings
   bool m_DSPEnableJIT;
@@ -314,10 +317,6 @@ struct SConfig
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
 
-  // Auto-update settings
-  std::string m_auto_update_track;
-  std::string m_auto_update_hash_override;
-
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -340,40 +339,46 @@ private:
 
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);
-  void SaveDisplaySettings(IniFile& ini);
+#ifndef ANDROID
   void SaveGameListSettings(IniFile& ini);
+  void SaveAnalyticsSettings(IniFile& ini);
+  void SaveAutoUpdateSettings(IniFile& ini);
+#endif
   void SaveCoreSettings(IniFile& ini);
   void SaveDSPSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
   void SaveFifoPlayerSettings(IniFile& ini);
   void SaveNetworkSettings(IniFile& ini);
-  void SaveAnalyticsSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
-  void SaveAutoUpdateSettings(IniFile& ini);
+
+  void SaveJitDebugSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
-  void LoadDisplaySettings(IniFile& ini);
+#ifndef ANDROID
   void LoadGameListSettings(IniFile& ini);
+  void LoadAnalyticsSettings(IniFile& ini);
+  void LoadAutoUpdateSettings(IniFile& ini);
+#endif
   void LoadCoreSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadNetworkSettings(IniFile& ini);
-  void LoadAnalyticsSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
-  void LoadAutoUpdateSettings(IniFile& ini);
+  void LoadJitDebugSettings(IniFile& ini);
 
-  void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
-                              Core::TitleDatabase::TitleType type);
+  void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
+                              u64 title_id, u16 revision, DiscIO::Country country);
 
   static SConfig* m_Instance;
 
   std::string m_game_id;
+  std::string m_gametdb_id;
   std::string m_title_description;
   u64 m_title_id;
   u16 m_revision;

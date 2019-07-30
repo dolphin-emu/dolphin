@@ -30,11 +30,15 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Code"));
   setObjectName(QStringLiteral("code"));
 
+  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
 
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged,
@@ -53,8 +57,6 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
 
-  setHidden(!Settings::Instance().IsCodeVisible() || !Settings::Instance().IsDebugModeEnabled());
-
   CreateWidgets();
   ConnectWidgets();
 
@@ -62,8 +64,6 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
       settings.value(QStringLiteral("codewidget/codesplitter")).toByteArray());
   m_box_splitter->restoreState(
       settings.value(QStringLiteral("codewidget/boxsplitter")).toByteArray());
-
-  Update();
 }
 
 CodeWidget::~CodeWidget()
@@ -79,6 +79,11 @@ CodeWidget::~CodeWidget()
 void CodeWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetCodeVisible(false);
+}
+
+void CodeWidget::showEvent(QShowEvent* event)
+{
+  Update();
 }
 
 void CodeWidget::CreateWidgets()
@@ -153,12 +158,11 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
 
-  connect(m_symbols_list, &QListWidget::itemClicked, this, &CodeWidget::OnSelectSymbol);
-  connect(m_callstack_list, &QListWidget::itemSelectionChanged, this,
-          &CodeWidget::OnSelectCallstack);
-  connect(m_function_calls_list, &QListWidget::itemSelectionChanged, this,
+  connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
+  connect(m_callstack_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectCallstack);
+  connect(m_function_calls_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCalls);
-  connect(m_function_callers_list, &QListWidget::itemSelectionChanged, this,
+  connect(m_function_callers_list, &QListWidget::itemPressed, this,
           &CodeWidget::OnSelectFunctionCallers);
 
   connect(m_code_view, &CodeViewWidget::SymbolsChanged, this, &CodeWidget::UpdateSymbols);
@@ -167,6 +171,7 @@ void CodeWidget::ConnectWidgets()
 
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
           &CodeWidget::RequestPPCComparison);
+  connect(m_code_view, &CodeViewWidget::ShowMemory, this, &CodeWidget::ShowMemory);
 }
 
 void CodeWidget::OnSearchAddress()
@@ -253,10 +258,19 @@ void CodeWidget::OnSelectFunctionCallers()
 void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update)
 {
   m_code_view->SetAddress(address, update);
+
+  if (update == CodeViewWidget::SetAddressUpdate::WithUpdate)
+  {
+    raise();
+    m_code_view->setFocus();
+  }
 }
 
 void CodeWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
 
   UpdateCallstack();
@@ -409,7 +423,8 @@ static bool WillInstructionReturn(UGeckoInstruction inst)
   if (inst.hex == 0x4C000064u)
     return true;
   bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
-  bool condition = inst.BO_2 >> 4 != 0 || PowerPC::GetCRBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
+  bool condition =
+      inst.BO_2 >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !inst.LK_3;
 }

@@ -39,7 +39,7 @@ struct GekkoOPTemplate
   int opcode;
   Jit64::Instruction Inst;
 };
-}
+}  // namespace
 
 const GekkoOPTemplate primarytable[] = {
     {4, &Jit64::DynaRunTable4},    // RunTable4

@@ -54,6 +54,12 @@ public:
   void DynaRunTable59(UGeckoInstruction inst);
   void DynaRunTable63(UGeckoInstruction inst);
 
+  // Reads a given bit of a given CR register part.
+  void GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out, bool negate = false);
+  // Clobbers RDX.
+  void ClearCRFieldBit(int field, int bit);
+  void SetCRFieldBit(int field, int bit);
+
   // Force break
   void Break(UGeckoInstruction inst);
 

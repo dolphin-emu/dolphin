@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:id="@+id/input_scale"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false">
+
+        <TextView
+            android:text="@string/emulation_control_scale"
+            android:id="@+id/input_scale_name"
+            style="@style/TextAppearance.AppCompat.Headline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginStart="@dimen/spacing_large"
+            android:layout_marginTop="@dimen/spacing_large"
+            android:textSize="16sp"
+            tools:text="@string/overclock_enable"/>
+
+        <TextView
+            android:text="99%"
+            android:id="@+id/input_scale_value"
+            android:layout_width="40dp"
+            android:textAlignment="textEnd"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/input_scale_name"
+            android:layout_marginBottom="@dimen/spacing_large"
+            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:layout_marginTop="@dimen/spacing_medlarge"/>
+
+        <SeekBar
+            android:id="@+id/input_scale_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/input_scale_name"
+            android:layout_toStartOf="@id/input_scale_value"
+            android:layout_marginBottom="@dimen/spacing_large"
+            android:layout_marginTop="@dimen/spacing_medlarge"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/input_alpha"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/input_scale"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false">
+
+        <TextView
+            android:text="@string/emulation_control_alpha"
+            android:id="@+id/input_alpha_name"
+            style="@style/TextAppearance.AppCompat.Headline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginStart="@dimen/spacing_large"
+            android:layout_marginTop="@dimen/spacing_large"
+            android:textSize="16sp"
+            tools:text="@string/overclock_enable"/>
+
+        <TextView
+            android:text="99%"
+            android:id="@+id/input_alpha_value"
+            android:layout_width="40dp"
+            android:textAlignment="textEnd"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/input_alpha_name"
+            android:layout_marginBottom="@dimen/spacing_large"
+            android:layout_marginEnd="@dimen/spacing_large"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:layout_marginTop="@dimen/spacing_medlarge"/>
+
+        <SeekBar
+            android:id="@+id/input_alpha_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/input_alpha_name"
+            android:layout_toStartOf="@id/input_alpha_value"
+            android:layout_marginBottom="@dimen/spacing_large"
+            android:layout_marginTop="@dimen/spacing_medlarge"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

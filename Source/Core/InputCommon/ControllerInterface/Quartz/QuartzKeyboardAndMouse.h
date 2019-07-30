@@ -8,9 +8,7 @@
 
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace Quartz
+namespace ciface::Quartz
 {
 std::string KeycodeToName(const CGKeyCode keycode);
 
@@ -73,5 +71,4 @@ private:
 
   uint32_t m_windowid;
 };
-}  // namespace Quartz
-}  // namespace ciface
+}  // namespace ciface::Quartz

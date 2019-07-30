@@ -6,6 +6,7 @@
     <dimen name="elevation_high">4dp</dimen>
 
     <dimen name="spacing_small">4dp</dimen>
+    <dimen name="spacing_medium">8dp</dimen>
     <dimen name="spacing_medlarge">12dp</dimen>
     <dimen name="spacing_large">16dp</dimen>
 </resources>

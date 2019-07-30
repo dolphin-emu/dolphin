@@ -24,34 +24,33 @@ public:
 
   virtual ~GLContext();
 
-  Mode GetMode() { return m_opengl_mode; }
+  Mode GetMode() const { return m_opengl_mode; }
   bool IsGLES() const { return m_opengl_mode == Mode::OpenGLES; }
 
-  u32 GetBackBufferWidth() { return m_backbuffer_width; }
-  u32 GetBackBufferHeight() { return m_backbuffer_height; }
+  u32 GetBackBufferWidth() const { return m_backbuffer_width; }
+  u32 GetBackBufferHeight() const { return m_backbuffer_height; }
 
-  virtual bool IsHeadless() const;
+  virtual bool IsHeadless() const { return true; }
 
-  virtual std::unique_ptr<GLContext> CreateSharedContext();
+  virtual std::unique_ptr<GLContext> CreateSharedContext() { return nullptr; }
 
-  virtual bool MakeCurrent();
-  virtual bool ClearCurrent();
+  virtual bool MakeCurrent() { return false; }
+  virtual bool ClearCurrent() { return false; }
 
-  virtual void Update();
-  virtual void UpdateSurface(void* window_handle);
+  virtual void Update() {}
+  virtual void UpdateSurface(void* window_handle) {}
 
-  virtual void Swap();
-  virtual void SwapInterval(int interval);
+  virtual void Swap() {}
+  virtual void SwapInterval(int interval) {}
 
-  virtual void* GetFuncAddress(const std::string& name);
+  virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
 
   // Creates an instance of GLContext specific to the platform we are running on.
   // If successful, the context is made current on the calling thread.
   static std::unique_ptr<GLContext> Create(const WindowSystemInfo& wsi, bool core = true,
                                            bool prefer_egl = false, bool prefer_gles = false);
-
 protected:
-  virtual bool Initialize(void* display_handle, void* window_handle, bool core);
+  virtual bool Initialize(void* display_handle, void* window_handle, bool core) { return false; }
 
   Mode m_opengl_mode = Mode::Detect;
 

@@ -94,7 +94,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   LSL(WA, WA, 4);
 
-  MOVP2R(XB, PowerPC::m_crTable.data());
+  MOVP2R(XB, PowerPC::ConditionRegister::s_crTable.data());
   LDR(XB, XB, XA);
 
   // Clear XER[0-3]
@@ -410,82 +410,133 @@ void JitArm64::mtspr(UGeckoInstruction inst)
   STR(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF(spr) + iIndex * 4);
 }
 
+// Reads a given bit of a given CR register part.
+void JitArm64::GetCRFieldBit(int field, int bit, Arm64Gen::ARM64Reg out, bool negate)
+{
+  ARM64Reg XC = gpr.CR(field);
+  ARM64Reg WC = DecodeReg(XC);
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:  // check bit 61 set
+    UBFX(out, XC, 61, 1);
+    if (negate)
+      EOR(out, out, 0, 0, true);  // XC ^ 1
+    break;
+
+  case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
+    CMP(WC, WZR);
+    CSET(out, negate ? CC_NEQ : CC_EQ);
+    break;
+
+  case PowerPC::CR_GT_BIT:  // check val > 0
+    CMP(XC, ZR);
+    CSET(out, negate ? CC_LE : CC_GT);
+    break;
+
+  case PowerPC::CR_LT_BIT:  // check bit 62 set
+    UBFX(out, XC, 62, 1);
+    if (negate)
+      EOR(out, out, 0, 0, true);  // XC ^ 1
+    break;
+
+  default:
+    ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
+  }
+}
+
+void JitArm64::ClearCRFieldBit(int field, int bit)
+{
+  gpr.BindCRToRegister(field, true);
+  ARM64Reg XA = gpr.CR(field);
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:
+    AND(XA, XA, 64 - 62, 62, true);  // XA & ~(1<<61)
+    break;
+
+  case PowerPC::CR_EQ_BIT:
+    ORR(XA, XA, 0, 0, true);  // XA | 1<<0
+    break;
+
+  case PowerPC::CR_GT_BIT:
+    ORR(XA, XA, 64 - 63, 0, true);  // XA | 1<<63
+    break;
+
+  case PowerPC::CR_LT_BIT:
+    AND(XA, XA, 64 - 63, 62, true);  // XA & ~(1<<62)
+    break;
+  }
+}
+
+void JitArm64::SetCRFieldBit(int field, int bit)
+{
+  gpr.BindCRToRegister(field, true);
+  ARM64Reg XA = gpr.CR(field);
+
+  if (bit != PowerPC::CR_GT_BIT)
+  {
+    ARM64Reg WB = gpr.GetReg();
+    ARM64Reg XB = EncodeRegTo64(WB);
+    ORR(XB, XA, 64 - 63, 0, true);  // XA | 1<<63
+    CMP(XA, ZR);
+    CSEL(XA, XA, XB, CC_NEQ);
+    gpr.Unlock(WB);
+  }
+
+  switch (bit)
+  {
+  case PowerPC::CR_SO_BIT:
+    ORR(XA, XA, 64 - 61, 0, true);  // XA | 1<<61
+    break;
+
+  case PowerPC::CR_EQ_BIT:
+    AND(XA, XA, 32, 31, true);  // Clear lower 32bits
+    break;
+
+  case PowerPC::CR_GT_BIT:
+    AND(XA, XA, 0, 62, true);  // XA & ~(1<<63)
+    break;
+
+  case PowerPC::CR_LT_BIT:
+    ORR(XA, XA, 64 - 62, 0, true);  // XA | 1<<62
+    break;
+  }
+
+  ORR(XA, XA, 32, 0, true);  // XA | 1<<32
+}
+
 void JitArm64::crXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  // Special case: crclr
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
+  bool needCombined = true;
+  if (inst.CRBA == inst.CRBB)
   {
-    // Clear CR field bit
-    int field = inst.CRBD >> 2;
-    int bit = 3 - (inst.CRBD & 3);
-
-    gpr.BindCRToRegister(field, true);
-    ARM64Reg XA = gpr.CR(field);
-    switch (bit)
+    switch (inst.SUBOP10)
     {
-    case PowerPC::CR_SO_BIT:
-      AND(XA, XA, 64 - 62, 62, true);  // XA & ~(1<<61)
+    // crclr
+    case 129:  // crandc: A && ~B => 0
+    case 193:  // crxor:  A ^ B   => 0
+      ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+      return;
+
+    // crset
+    case 289:  // creqv: ~(A ^ B) => 1
+    case 417:  // crorc: A || ~B  => 1
+      SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+      return;
+
+    case 257:  // crand: A && B => A
+    case 449:  // cror:  A || B => A
+      needCombined = false;
       break;
 
-    case PowerPC::CR_EQ_BIT:
-      ORR(XA, XA, 0, 0, true);  // XA | 1<<0
-      break;
-
-    case PowerPC::CR_GT_BIT:
-      ORR(XA, XA, 64 - 63, 0, true);  // XA | 1<<63
-      break;
-
-    case PowerPC::CR_LT_BIT:
-      AND(XA, XA, 64 - 63, 62, true);  // XA & ~(1<<62)
+    case 33:   // crnor:  ~(A || B) => ~A
+    case 225:  // crnand: ~(A && B) => ~A
+      needCombined = false;
       break;
     }
-    return;
-  }
-
-  // Special case: crset
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
-  {
-    // SetCRFieldBit
-    int field = inst.CRBD >> 2;
-    int bit = 3 - (inst.CRBD & 3);
-
-    gpr.BindCRToRegister(field, true);
-    ARM64Reg XA = gpr.CR(field);
-
-    if (bit != PowerPC::CR_GT_BIT)
-    {
-      ARM64Reg WB = gpr.GetReg();
-      ARM64Reg XB = EncodeRegTo64(WB);
-      ORR(XB, XA, 64 - 63, 0, true);  // XA | 1<<63
-      CMP(XA, ZR);
-      CSEL(XA, XA, XB, CC_NEQ);
-      gpr.Unlock(WB);
-    }
-
-    switch (bit)
-    {
-    case PowerPC::CR_SO_BIT:
-      ORR(XA, XA, 64 - 61, 0, true);  // XA | 1<<61
-      break;
-
-    case PowerPC::CR_EQ_BIT:
-      AND(XA, XA, 32, 31, true);  // Clear lower 32bits
-      break;
-
-    case PowerPC::CR_GT_BIT:
-      AND(XA, XA, 0, 62, true);  // XA & ~(1<<63)
-      break;
-
-    case PowerPC::CR_LT_BIT:
-      ORR(XA, XA, 64 - 62, 0, true);  // XA | 1<<62
-      break;
-    }
-
-    ORR(XA, XA, 32, 0, true);  // XA | 1<<32
-    return;
   }
 
   ARM64Reg WA = gpr.GetReg();
@@ -493,70 +544,38 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   ARM64Reg WB = gpr.GetReg();
   ARM64Reg XB = EncodeRegTo64(WB);
 
-  // creqv or crnand or crnor
+  // negate: creqv or crnand or crnor
   bool negateA = inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
-  // crandc or crorc or crnand or crnor
-  bool negateB =
-      inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
-
   // GetCRFieldBit
-  for (int i = 0; i < 2; i++)
-  {
-    int field = i ? inst.CRBB >> 2 : inst.CRBA >> 2;
-    int bit = i ? 3 - (inst.CRBB & 3) : 3 - (inst.CRBA & 3);
-    ARM64Reg out = i ? XB : XA;
-    bool negate = i ? negateB : negateA;
+  GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), XA, negateA);
 
-    ARM64Reg XC = gpr.CR(field);
-    ARM64Reg WC = DecodeReg(XC);
-    switch (bit)
+  if(needCombined)
+  {
+    // negate: crandc or crorc or crnand or crnor
+    bool negateB =
+      inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+    GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), XB, negateB);
+
+    // Compute combined bit
+    switch (inst.SUBOP10)
     {
-    case PowerPC::CR_SO_BIT:  // check bit 61 set
-      UBFX(out, XC, 61, 1);
-      if (negate)
-        EOR(out, out, 0, 0, true);  // XC ^ 1
+    case 33:   // crnor: ~(A || B) == (~A && ~B)
+    case 129:  // crandc: A && ~B
+    case 257:  // crand:  A && B
+      AND(XA, XA, XB);
       break;
 
-    case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
-      CMP(WC, WZR);
-      CSET(out, negate ? CC_NEQ : CC_EQ);
+    case 193:  // crxor: A ^ B
+    case 289:  // creqv: ~(A ^ B) = ~A ^ B
+      EOR(XA, XA, XB);
       break;
 
-    case PowerPC::CR_GT_BIT:  // check val > 0
-      CMP(XC, ZR);
-      CSET(out, negate ? CC_LE : CC_GT);
+    case 225:  // crnand: ~(A && B) == (~A || ~B)
+    case 417:  // crorc: A || ~B
+    case 449:  // cror:  A || B
+      ORR(XA, XA, XB);
       break;
-
-    case PowerPC::CR_LT_BIT:  // check bit 62 set
-      UBFX(out, XC, 62, 1);
-      if (negate)
-        EOR(out, out, 0, 0, true);  // XC ^ 1
-      break;
-
-    default:
-      ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
     }
-  }
-
-  // Compute combined bit
-  switch (inst.SUBOP10)
-  {
-  case 33:   // crnor: ~(A || B) == (~A && ~B)
-  case 129:  // crandc: A && ~B
-  case 257:  // crand:  A && B
-    AND(XA, XA, XB);
-    break;
-
-  case 193:  // crxor: A ^ B
-  case 289:  // creqv: ~(A ^ B) = ~A ^ B
-    EOR(XA, XA, XB);
-    break;
-
-  case 225:  // crnand: ~(A && B) == (~A || ~B)
-  case 417:  // crorc: A || ~B
-  case 449:  // cror:  A || B
-    ORR(XA, XA, XB);
-    break;
   }
 
   // Store result bit in CRBD
@@ -604,7 +623,6 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   }
 
   ORR(XB, XB, 32, 0, true);  // XB | 1<<32
-
   gpr.Unlock(WA);
 }
 
@@ -664,7 +682,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
     ARM64Reg RS = gpr.R(inst.RS);
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XB = EncodeRegTo64(WB);
-    MOVP2R(XB, PowerPC::m_crTable.data());
+    MOVP2R(XB, PowerPC::ConditionRegister::s_crTable.data());
     for (int i = 0; i < 8; ++i)
     {
       if ((crm & (0x80 >> i)) != 0)

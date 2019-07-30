@@ -53,12 +53,14 @@ extern "C" {
     output_params.format = CUBEB_SAMPLE_FLOAT32NE;
     output_params.rate = rate;
     output_params.channels = 2;
+    output_params.layout = CUBEB_LAYOUT_UNDEFINED;
     output_params.prefs = CUBEB_STREAM_PREF_NONE;
 
     cubeb_stream_params input_params;
     input_params.format = CUBEB_SAMPLE_FLOAT32NE;
     input_params.rate = rate;
     input_params.channels = 1;
+    input_params.layout = CUBEB_LAYOUT_UNDEFINED;
     input_params.prefs = CUBEB_STREAM_PREF_NONE;
 
     cubeb_stream * stm;
@@ -102,7 +104,7 @@ extern "C" {
 
       for (i = 0; i < nframes; ++i) {
         for (c = 0; c < 2; ++c) {
-          buf[i][c] = in[i];
+          out[i][c] = in[i];
         }
       }
       return nframes;
@@ -221,10 +223,19 @@ enum {
 /** Miscellaneous stream preferences. */
 typedef enum {
   CUBEB_STREAM_PREF_NONE     = 0x00, /**< No stream preferences are requested. */
-  CUBEB_STREAM_PREF_LOOPBACK = 0x01 /**< Request a loopback stream. Should be
+  CUBEB_STREAM_PREF_LOOPBACK = 0x01, /**< Request a loopback stream. Should be
                                          specified on the input params and an
                                          output device to loopback from should
                                          be passed in place of an input device. */
+  CUBEB_STREAM_PREF_DISABLE_DEVICE_SWITCHING = 0x02, /**< Disable switching
+                                                          default device on OS
+                                                          changes. */
+  CUBEB_STREAM_PREF_VOICE = 0x04  /**< This stream is going to transport voice data.
+                                       Depending on the backend and platform, this can
+                                       change the audio input or output devices
+                                       selected, as well as the quality of the stream,
+                                       for example to accomodate bluetooth SCO modes on
+                                       bluetooth devices. */
 } cubeb_stream_prefs;
 
 /** Stream format initialization parameters. */
@@ -628,9 +639,13 @@ CUBEB_EXPORT int cubeb_device_collection_destroy(cubeb * context,
 /** Registers a callback which is called when the system detects
     a new device or a device is removed.
     @param context
-    @param devtype device type to include
+    @param devtype device type to include. Different callbacks and user pointers
+           can be registered for each devtype. The hybrid devtype
+           `CUBEB_DEVICE_TYPE_INPUT | CUBEB_DEVICE_TYPE_OUTPUT` is also valid
+           and will register the provided callback and user pointer in both sides.
     @param callback a function called whenever the system device list changes.
-           Passing NULL allow to unregister a function
+           Passing NULL allow to unregister a function. You have to unregister
+           first before you register a new callback.
     @param user_ptr pointer to user specified data which will be present in
            subsequent callbacks.
     @retval CUBEB_ERROR_NOT_SUPPORTED */

@@ -27,6 +27,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
@@ -181,9 +182,11 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   }
 
   DiscScrubber disc_scrubber;
+  std::unique_ptr<VolumeDisc> volume;
   if (sub_type == 1)
   {
-    if (!disc_scrubber.SetupScrub(infile_path, block_size))
+    volume = CreateDisc(infile_path);
+    if (!volume || !disc_scrubber.SetupScrub(volume.get(), block_size))
     {
       PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.",
                   infile_path.c_str());
@@ -197,7 +200,7 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   if (deflateInit(&z, 9) != Z_OK)
     return false;
 
-  callback(GetStringT("Files opened, ready to compress."), 0, arg);
+  callback(Common::GetStringT("Files opened, ready to compress."), 0, arg);
 
   CompressedBlobHeader header;
   header.magic_cookie = GCZ_MAGIC;
@@ -236,8 +239,8 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
       if (inpos != 0)
         ratio = (int)(100 * position / inpos);
 
-      std::string temp =
-          StringFromFormat(GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(), i,
+      const std::string temp =
+          StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(), i,
                            header.num_blocks, ratio);
       bool was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
       if (was_cancelled)
@@ -329,7 +332,7 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
 
   if (success)
   {
-    callback(GetStringT("Done compressing disc image."), 1.0f, arg);
+    callback(Common::GetStringT("Done compressing disc image."), 1.0f, arg);
   }
   return success;
 }
@@ -378,7 +381,8 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
   {
     if (i % progress_monitor == 0)
     {
-      bool was_cancelled = !callback(GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
+      const bool was_cancelled =
+          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
       if (was_cancelled)
       {
         success = false;
@@ -422,4 +426,4 @@ bool IsGCZBlob(File::IOFile& file)
   return is_gcz;
 }
 
-}  // namespace
+}  // namespace DiscIO

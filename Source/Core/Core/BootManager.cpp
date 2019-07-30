@@ -38,6 +38,7 @@
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
@@ -92,6 +93,7 @@ private:
   float m_EmulationSpeed;
   float m_OCFactor;
   bool m_OCEnable;
+  bool m_bt_passthrough_enabled;
   std::string strBackend;
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
@@ -128,6 +130,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_OCFactor = config.m_OCFactor;
   m_OCEnable = config.m_OCEnable;
+  m_bt_passthrough_enabled = config.m_bt_passthrough_enabled;
 
   std::copy(std::begin(g_wiimote_sources), std::end(g_wiimote_sources), std::begin(iWiimoteSource));
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
@@ -203,6 +206,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
   config->m_OCFactor = m_OCFactor;
   config->m_OCEnable = m_OCEnable;
+  config->m_bt_passthrough_enabled = m_bt_passthrough_enabled;
   VideoBackendBase::ActivateBackend(config->m_strVideoBackend);
 }
 
@@ -253,6 +257,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("AlphaPassShadowHack", &StartUp.m_AlphaPassShadowHack, false);
+    core_section->Get("LogicOpsDrawHack", &StartUp.m_LogicOpsDrawHack, false);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
     core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
@@ -360,8 +365,10 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.m_OCFactor = netplay_settings.m_OCFactor;
     StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
     StartUp.m_EXIDevice[1] = netplay_settings.m_EXIDevice[1];
+    StartUp.m_EXIDevice[2] = netplay_settings.m_EXIDevice[2];
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
+    config_cache.bSetEXIDevice[2] = true;
     StartUp.bFPRF = netplay_settings.m_FPRF;
     StartUp.bAccurateNaNs = netplay_settings.m_AccurateNaNs;
     StartUp.bSyncGPUOnSkipIdleHack = netplay_settings.m_SyncOnSkipIdle;
@@ -374,6 +381,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
     StartUp.bHLE_BS2 = netplay_settings.m_SkipIPL;
+    StartUp.m_bt_passthrough_enabled = false;
     if (netplay_settings.m_HostInputAuthority && !netplay_settings.m_IsHosting)
       config_cache.bSetEmulationSpeed = true;
   }

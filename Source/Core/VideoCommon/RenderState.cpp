@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include "VideoCommon/SamplerCommon.h"
+#include "VideoCommon/TextureConfig.h"
 
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
 {
@@ -24,6 +25,12 @@ void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_ty
 }
 
 RasterizationState& RasterizationState::operator=(const RasterizationState& rhs)
+{
+  hex = rhs.hex;
+  return *this;
+}
+
+FramebufferState& FramebufferState::operator=(const FramebufferState& rhs)
 {
   hex = rhs.hex;
   return *this;
@@ -185,7 +192,7 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
 
   // If mipmaps are disabled, clamp min/max lod
   max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod : 0;
-  min_lod = std::min(max_lod, tm1.min_lod);
+  min_lod = std::min(max_lod.Value(), static_cast<u64>(tm1.min_lod));
   lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias * (256 / 32) : 0;
 
   // Address modes
@@ -204,14 +211,37 @@ SamplerState& SamplerState::operator=(const SamplerState& rhs)
 
 namespace RenderState
 {
-RasterizationState GetNoCullRasterizationState()
+RasterizationState GetInvalidRasterizationState()
 {
-  RasterizationState state = {};
-  state.cullmode = GenMode::CULL_NONE;
+  RasterizationState state;
+  state.hex = UINT32_C(0xFFFFFFFF);
   return state;
 }
 
-DepthState GetNoDepthTestingDepthStencilState()
+RasterizationState GetNoCullRasterizationState(PrimitiveType primitive)
+{
+  RasterizationState state = {};
+  state.cullmode = GenMode::CULL_NONE;
+  state.primitive = primitive;
+  return state;
+}
+
+RasterizationState GetCullBackFaceRasterizationState(PrimitiveType primitive)
+{
+  RasterizationState state = {};
+  state.cullmode = GenMode::CULL_BACK;
+  state.primitive = primitive;
+  return state;
+}
+
+DepthState GetInvalidDepthState()
+{
+  DepthState state;
+  state.hex = UINT32_C(0xFFFFFFFF);
+  return state;
+}
+
+DepthState GetNoDepthTestingDepthState()
 {
   DepthState state = {};
   state.testenable = false;
@@ -220,12 +250,26 @@ DepthState GetNoDepthTestingDepthStencilState()
   return state;
 }
 
+DepthState GetAlwaysWriteDepthState()
+{
+  DepthState state = {};
+  state.testenable = true;
+  state.updateenable = true;
+  state.func = ZMode::ALWAYS;
+  return state;
+}
+
+BlendingState GetInvalidBlendingState()
+{
+  BlendingState state;
+  state.hex = UINT32_C(0xFFFFFFFF);
+  return state;
+}
+
 BlendingState GetNoBlendingBlendState()
 {
   BlendingState state = {};
   state.blendenable = false;
-  state.dstalpha = false;
-  state.alphaupdate = false;
   state.srcfactor = BlendMode::ONE;
   state.srcfactoralpha = BlendMode::ONE;
   state.dstfactor = BlendMode::ZERO;
@@ -233,6 +277,27 @@ BlendingState GetNoBlendingBlendState()
   state.logicopenable = false;
   state.colorupdate = true;
   state.alphaupdate = true;
+  return state;
+}
+
+BlendingState GetNoColorWriteBlendState()
+{
+  BlendingState state = {};
+  state.blendenable = false;
+  state.srcfactor = BlendMode::ONE;
+  state.srcfactoralpha = BlendMode::ONE;
+  state.dstfactor = BlendMode::ZERO;
+  state.dstfactoralpha = BlendMode::ZERO;
+  state.logicopenable = false;
+  state.colorupdate = false;
+  state.alphaupdate = false;
+  return state;
+}
+
+SamplerState GetInvalidSamplerState()
+{
+  SamplerState state;
+  state.hex = UINT64_C(0xFFFFFFFFFFFFFFFF);
   return state;
 }
 
@@ -265,4 +330,20 @@ SamplerState GetLinearSamplerState()
   state.anisotropic_filtering = false;
   return state;
 }
+
+FramebufferState GetColorFramebufferState(AbstractTextureFormat format)
+{
+  FramebufferState state = {};
+  state.color_texture_format = format;
+  state.depth_texture_format = AbstractTextureFormat::Undefined;
+  state.per_sample_shading = false;
+  state.samples = 1;
+  return state;
+}
+
+FramebufferState GetRGBA8FramebufferState()
+{
+  return GetColorFramebufferState(AbstractTextureFormat::RGBA8);
+}
+
 }  // namespace RenderState

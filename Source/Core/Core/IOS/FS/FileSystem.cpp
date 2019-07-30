@@ -45,8 +45,8 @@ FileHandle& FileHandle::operator=(FileHandle&& other)
 
 FileHandle::~FileHandle()
 {
-  if (m_fd && m_fs)
-    ASSERT(m_fs->Close(*m_fd) == FS::ResultCode::Success);
+  if (m_fd && m_fs && m_fs->Close(*m_fd) != FS::ResultCode::Success)
+    ASSERT(false);
 }
 
 Fd FileHandle::Release()

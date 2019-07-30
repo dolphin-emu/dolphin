@@ -16,18 +16,18 @@
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Host.h"
 
 // TODO: ugly
 #ifdef _WIN32
 #include "VideoBackends/D3D/VideoBackend.h"
+#include "VideoBackends/D3D12/VideoBackend.h"
 #endif
+#ifndef ANDROID
 #include "VideoBackends/Null/VideoBackend.h"
-#include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
-#ifndef __APPLE__
-#include "VideoBackends/Vulkan/VideoBackend.h"
 #endif
+#include "VideoBackends/OGL/VideoBackend.h"
+#include "VideoBackends/Vulkan/VideoBackend.h"
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -36,7 +36,6 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -44,6 +43,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
@@ -186,12 +186,13 @@ void VideoBackendBase::PopulateList()
   g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
 #ifdef _WIN32
   g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
+  g_available_video_backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
-#ifndef __APPLE__
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
-#endif
+#ifndef ANDROID
   g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
   g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
+#endif
 
   const auto iter =
       std::find_if(g_available_video_backends.begin(), g_available_video_backends.end(),
@@ -282,14 +283,10 @@ void VideoBackendBase::InitializeShared()
   memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
   memset(texMem, 0, TMEM_SIZE);
 
-  // Do our OSD callbacks
-  OSD::DoCallbacks(OSD::CallbackType::Initialization);
-
   // do not initialize again for the config window
   m_initialized = true;
 
   m_invalid = false;
-  frameCount = 0;
 
   CommandProcessor::Init();
   Fifo::Init();
@@ -297,19 +294,16 @@ void VideoBackendBase::InitializeShared()
   PixelEngine::Init();
   BPInit();
   VertexLoaderManager::Init();
-  IndexGenerator::Init();
   VertexShaderManager::Init();
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
+  g_Config.VerifyValidity();
   UpdateActiveConfig();
 }
 
 void VideoBackendBase::ShutdownShared()
 {
-  // Do our OSD callbacks
-  OSD::DoCallbacks(OSD::CallbackType::Shutdown);
-
   m_initialized = false;
 
   VertexLoaderManager::Clear();

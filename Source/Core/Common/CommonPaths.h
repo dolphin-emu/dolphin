@@ -21,11 +21,11 @@
 #define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
 #elif defined ANDROID
 #define USERDATA_DIR "user"
-#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
+#define DOLPHIN_DATA_DIR "/sdcard/dolphin-mmj"
 #define NOMEDIA_FILE ".nomedia"
 #else
 #define USERDATA_DIR "user"
-#define DOLPHIN_DATA_DIR "dolphin-emu"
+#define DOLPHIN_DATA_DIR "dolphin-mmj"
 #endif
 
 // Dirs in both User and Sys
@@ -65,6 +65,7 @@
 #define MEMORYWATCHER_DIR "MemoryWatcher"
 #define WFSROOT_DIR "WFS"
 #define BACKUP_DIR "Backup"
+#define RESOURCEPACK_DIR "ResourcePacks"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -89,7 +90,8 @@
 #define WII_SYSCONF "SYSCONF"
 
 // Files in the directory returned by GetUserPath(D_DUMP_IDX)
-#define RAM_DUMP "ram.raw"
+#define MEM1_DUMP "mem1.raw"
+#define MEM2_DUMP "mem2.raw"
 #define ARAM_DUMP "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
 

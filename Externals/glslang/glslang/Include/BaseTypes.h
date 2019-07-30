@@ -66,6 +66,8 @@ enum TBasicType {
     EbtAccStructNV,
 #endif
 
+    EbtReference,
+
     // HLSL types that live only temporarily.
     EbtString,
 
@@ -96,6 +98,8 @@ enum TStorageQualifier {
     EvqPayloadNV,
     EvqPayloadInNV,
     EvqHitAttrNV,
+    EvqCallableDataNV,
+    EvqCallableDataInNV,
 #endif
 
     // parameters
@@ -230,6 +234,9 @@ enum TBuiltInVariable {
     EbvViewIndex,
     EbvDeviceIndex,
 
+    EbvFragSizeEXT,
+    EbvFragInvocationCountEXT,
+
 #ifdef NV_EXTENSIONS
     EbvViewportMaskNV,
     EbvSecondaryPositionNV,
@@ -239,7 +246,7 @@ enum TBuiltInVariable {
     EbvFragFullyCoveredNV,
     EbvFragmentSizeNV,
     EbvInvocationsPerPixelNV,
-    // raytracing
+    // ray tracing
     EbvLaunchIdNV,
     EbvLaunchSizeNV,
     EbvInstanceCustomIndexNV,
@@ -253,8 +260,11 @@ enum TBuiltInVariable {
     EbvHitKindNV,
     EbvObjectToWorldNV,
     EbvWorldToObjectNV,
+    EbvIncomingRayFlagsNV,
+    // barycentrics
     EbvBaryCoordNV,
     EbvBaryCoordNoPerspNV,
+    // mesh shaders
     EbvTaskCountNV,
     EbvPrimitiveCountNV,
     EbvPrimitiveIndicesNV,
@@ -263,7 +273,13 @@ enum TBuiltInVariable {
     EbvLayerPerViewNV,
     EbvMeshViewCountNV,
     EbvMeshViewIndicesNV,
-#endif 
+#endif
+
+    // sm builtins
+    EbvWarpsPerSM,
+    EbvSMCount,
+    EbvWarpID,
+    EbvSMID,
 
     // HLSL built-ins that live only temporarily, until they get remapped
     // to one of the above.
@@ -310,9 +326,11 @@ __inline const char* GetStorageQualifierString(TStorageQualifier q)
     case EvqFragColor:      return "fragColor";      break;
     case EvqFragDepth:      return "gl_FragDepth";   break;
 #ifdef NV_EXTENSIONS
-    case EvqPayloadNV:      return "rayPayloadNVX";   break;
-    case EvqPayloadInNV:    return "rayPayloadInNVX"; break;
-    case EvqHitAttrNV:      return "hitAttributeNVX"; break;
+    case EvqPayloadNV:        return "rayPayloadNV";     break;
+    case EvqPayloadInNV:      return "rayPayloadInNV";   break;
+    case EvqHitAttrNV:        return "hitAttributeNV";   break;
+    case EvqCallableDataNV:   return "callableDataNV";   break;
+    case EvqCallableDataInNV: return "callableDataInNV"; break;
 #endif
     default:                return "unknown qualifier";
     }
@@ -328,6 +346,8 @@ __inline const char* GetBuiltInVariableString(TBuiltInVariable v)
     case EbvLocalInvocationId:    return "LocalInvocationID";
     case EbvGlobalInvocationId:   return "GlobalInvocationID";
     case EbvLocalInvocationIndex: return "LocalInvocationIndex";
+    case EbvNumSubgroups:         return "NumSubgroups";
+    case EbvSubgroupID:           return "SubgroupID";
     case EbvSubGroupSize:         return "SubGroupSize";
     case EbvSubGroupInvocation:   return "SubGroupInvocation";
     case EbvSubGroupEqMask:       return "SubGroupEqMask";
@@ -335,6 +355,13 @@ __inline const char* GetBuiltInVariableString(TBuiltInVariable v)
     case EbvSubGroupGtMask:       return "SubGroupGtMask";
     case EbvSubGroupLeMask:       return "SubGroupLeMask";
     case EbvSubGroupLtMask:       return "SubGroupLtMask";
+    case EbvSubgroupSize2:        return "SubgroupSize";
+    case EbvSubgroupInvocation2:  return "SubgroupInvocationID";
+    case EbvSubgroupEqMask2:      return "SubgroupEqMask";
+    case EbvSubgroupGeMask2:      return "SubgroupGeMask";
+    case EbvSubgroupGtMask2:      return "SubgroupGtMask";
+    case EbvSubgroupLeMask2:      return "SubgroupLeMask";
+    case EbvSubgroupLtMask2:      return "SubgroupLtMask";
     case EbvVertexId:             return "VertexId";
     case EbvInstanceId:           return "InstanceId";
     case EbvVertexIndex:          return "VertexIndex";
@@ -399,6 +426,9 @@ __inline const char* GetBuiltInVariableString(TBuiltInVariable v)
     case EbvViewIndex:                  return "ViewIndex";
     case EbvDeviceIndex:                return "DeviceIndex";
 
+    case EbvFragSizeEXT:                return "FragSizeEXT";
+    case EbvFragInvocationCountEXT:     return "FragInvocationCountEXT";
+
 #ifdef NV_EXTENSIONS
     case EbvViewportMaskNV:             return "ViewportMaskNV";
     case EbvSecondaryPositionNV:        return "SecondaryPositionNV";
@@ -408,21 +438,24 @@ __inline const char* GetBuiltInVariableString(TBuiltInVariable v)
     case EbvFragFullyCoveredNV:         return "FragFullyCoveredNV";
     case EbvFragmentSizeNV:             return "FragmentSizeNV";
     case EbvInvocationsPerPixelNV:      return "InvocationsPerPixelNV";
-    case EbvLaunchIdNV:                 return "LaunchIdNVX";
-    case EbvLaunchSizeNV:               return "LaunchSizeNVX";
-    case EbvInstanceCustomIndexNV:      return "InstanceCustomIndexNVX";
-    case EbvWorldRayOriginNV:           return "WorldRayOriginNVX";
-    case EbvWorldRayDirectionNV:        return "WorldRayDirectionNVX";
-    case EbvObjectRayOriginNV:          return "ObjectRayOriginNVX";
-    case EbvObjectRayDirectionNV:       return "ObjectRayDirectionNVX";
-    case EbvRayTminNV:                  return "ObjectRayTminNVX";
-    case EbvRayTmaxNV:                  return "ObjectRayTmaxNVX";
-    case EbvHitTNV:                     return "HitTNVX";
-    case EbvHitKindNV:                  return "HitKindNVX";
-    case EbvObjectToWorldNV:            return "ObjectToWorldNVX";
-    case EbvWorldToObjectNV:            return "WorldToObjectNVX";
+    case EbvLaunchIdNV:                 return "LaunchIdNV";
+    case EbvLaunchSizeNV:               return "LaunchSizeNV";
+    case EbvInstanceCustomIndexNV:      return "InstanceCustomIndexNV";
+    case EbvWorldRayOriginNV:           return "WorldRayOriginNV";
+    case EbvWorldRayDirectionNV:        return "WorldRayDirectionNV";
+    case EbvObjectRayOriginNV:          return "ObjectRayOriginNV";
+    case EbvObjectRayDirectionNV:       return "ObjectRayDirectionNV";
+    case EbvRayTminNV:                  return "ObjectRayTminNV";
+    case EbvRayTmaxNV:                  return "ObjectRayTmaxNV";
+    case EbvHitTNV:                     return "HitTNV";
+    case EbvHitKindNV:                  return "HitKindNV";
+    case EbvIncomingRayFlagsNV:         return "IncomingRayFlagsNV";
+    case EbvObjectToWorldNV:            return "ObjectToWorldNV";
+    case EbvWorldToObjectNV:            return "WorldToObjectNV";
+
     case EbvBaryCoordNV:                return "BaryCoordNV";
     case EbvBaryCoordNoPerspNV:         return "BaryCoordNoPerspNV";
+
     case EbvTaskCountNV:                return "TaskCountNV";
     case EbvPrimitiveCountNV:           return "PrimitiveCountNV";
     case EbvPrimitiveIndicesNV:         return "PrimitiveIndicesNV";
@@ -431,7 +464,13 @@ __inline const char* GetBuiltInVariableString(TBuiltInVariable v)
     case EbvLayerPerViewNV:             return "LayerPerViewNV";
     case EbvMeshViewCountNV:            return "MeshViewCountNV";
     case EbvMeshViewIndicesNV:          return "MeshViewIndicesNV";
-#endif 
+#endif
+
+    case EbvWarpsPerSM:                 return "WarpsPerSMNV";
+    case EbvSMCount:                    return "SMCountNV";
+    case EbvWarpID:                     return "WarpIDNV";
+    case EbvSMID:                       return "SMIDNV";
+
     default:                      return "unknown built-in variable";
     }
 }

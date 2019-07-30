@@ -4,15 +4,12 @@
 
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 
-#include <QFormLayout>
+#include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/InputConfig.h"
 
@@ -23,28 +20,25 @@ GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
 
 void GCPadEmu::CreateMainLayout()
 {
-  m_main_layout = new QHBoxLayout();
+  auto* layout = new QGridLayout;
 
-  m_main_layout->addWidget(
-      CreateGroupBox(tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons)));
-  m_main_layout->addWidget(
-      CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)));
-  m_main_layout->addWidget(
-      CreateGroupBox(tr("C Stick"), Pad::GetGroup(GetPort(), PadGroup::CStick)));
-  m_main_layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)));
+  layout->addWidget(CreateGroupBox(tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons)), 0,
+                    0);
+  layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)), 1, 0, -1,
+                    1);
+  layout->addWidget(
+      CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)), 0, 1, -1,
+      1);
+  layout->addWidget(CreateGroupBox(tr("C Stick"), Pad::GetGroup(GetPort(), PadGroup::CStick)), 0, 2,
+                    -1, 1);
+  layout->addWidget(CreateGroupBox(tr("Triggers"), Pad::GetGroup(GetPort(), PadGroup::Triggers)), 0,
+                    4);
+  layout->addWidget(CreateGroupBox(tr("Rumble"), Pad::GetGroup(GetPort(), PadGroup::Rumble)), 1, 4);
 
-  auto* hbox_layout = new QVBoxLayout();
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
+                    4);
 
-  m_main_layout->addLayout(hbox_layout);
-
-  hbox_layout->addWidget(
-      CreateGroupBox(tr("Triggers"), Pad::GetGroup(GetPort(), PadGroup::Triggers)));
-  hbox_layout->addWidget(CreateGroupBox(tr("Rumble"), Pad::GetGroup(GetPort(), PadGroup::Rumble)));
-
-  hbox_layout->addWidget(
-      CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)));
-
-  setLayout(m_main_layout);
+  setLayout(layout);
 }
 
 void GCPadEmu::LoadSettings()

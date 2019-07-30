@@ -15,14 +15,12 @@
 
 namespace DiscIO
 {
-class WiiWAD;
+class VolumeWAD;
 }
-namespace IOS
-{
-namespace HLE
+
+namespace IOS::HLE
 {
 class Kernel;
-}
 }
 
 namespace WiiUtils
@@ -33,8 +31,8 @@ enum class InstallType
   Temporary,
 };
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType type);
-// Same as the above, but constructs a temporary IOS and WiiWAD instance for importing
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType type);
+// Same as the above, but constructs a temporary IOS and VolumeWAD instance for importing
 // and does a permanent install.
 bool InstallWAD(const std::string& wad_path);
 
@@ -83,4 +81,4 @@ struct NANDCheckResult
 };
 NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios);
 bool RepairNAND(IOS::HLE::Kernel& ios);
-}
+}  // namespace WiiUtils

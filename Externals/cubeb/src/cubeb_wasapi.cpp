@@ -141,14 +141,28 @@ int wasapi_stream_stop(cubeb_stream * stm);
 int wasapi_stream_start(cubeb_stream * stm);
 void close_wasapi_stream(cubeb_stream * stm);
 int setup_wasapi_stream(cubeb_stream * stm);
+ERole pref_to_role(cubeb_stream_prefs param);
 static char const * wstr_to_utf8(wchar_t const * str);
 static std::unique_ptr<wchar_t const []> utf8_to_wstr(char const * str);
 
 }
 
+class wasapi_collection_notification_client;
+class monitor_device_notifications;
+
 struct cubeb {
   cubeb_ops const * ops = &wasapi_ops;
   cubeb_strings * device_ids;
+  /* Device enumerator to get notifications when the
+     device collection change. */
+  com_ptr<IMMDeviceEnumerator> device_collection_enumerator;
+  com_ptr<wasapi_collection_notification_client> collection_notification_client;
+  /* Collection changed for input (capture) devices. */
+  cubeb_device_collection_changed_callback input_collection_changed_callback = nullptr;
+  void * input_collection_changed_user_ptr = nullptr;
+  /* Collection changed for output (render) devices. */
+  cubeb_device_collection_changed_callback output_collection_changed_callback = nullptr;
+  void * output_collection_changed_user_ptr = nullptr;
 };
 
 class wasapi_endpoint_notification_client;
@@ -177,6 +191,8 @@ struct cubeb_stream {
    * and what will be presented in the callback. */
   cubeb_stream_params input_stream_params = { CUBEB_SAMPLE_FLOAT32NE, 0, 0, CUBEB_LAYOUT_UNDEFINED, CUBEB_STREAM_PREF_NONE };
   cubeb_stream_params output_stream_params = { CUBEB_SAMPLE_FLOAT32NE, 0, 0, CUBEB_LAYOUT_UNDEFINED, CUBEB_STREAM_PREF_NONE };
+  /* A MMDevice role for this stream: either communication or console here. */
+  ERole role;
   /* The input and output device, or NULL for default. */
   std::unique_ptr<const wchar_t[]> input_device;
   std::unique_ptr<const wchar_t[]> output_device;
@@ -270,6 +286,250 @@ struct cubeb_stream {
   std::atomic<std::atomic<bool>*> emergency_bailout;
 };
 
+class monitor_device_notifications {
+public:
+  monitor_device_notifications(cubeb * context)
+  : cubeb_context(context)
+  {
+    create_thread();
+  }
+
+  ~monitor_device_notifications()
+  {
+    SetEvent(shutdown);
+    WaitForSingleObject(thread, 5000);
+    CloseHandle(thread);
+
+    CloseHandle(input_changed);
+    CloseHandle(output_changed);
+    CloseHandle(shutdown);
+  }
+
+  void notify(EDataFlow flow)
+  {
+    XASSERT(cubeb_context);
+    if (flow == eCapture && cubeb_context->input_collection_changed_callback) {
+      bool res = SetEvent(input_changed);
+      if (!res) {
+        LOG("Failed to set input changed event");
+      }
+      return;
+    }
+    if (flow == eRender && cubeb_context->output_collection_changed_callback) {
+      bool res = SetEvent(output_changed);
+      if (!res) {
+        LOG("Failed to set output changed event");
+      }
+    }
+  }
+private:
+  static unsigned int __stdcall
+  thread_proc(LPVOID args)
+  {
+    XASSERT(args);
+    static_cast<monitor_device_notifications*>(args)
+      ->notification_thread_loop();
+    return 0;
+  }
+
+  void notification_thread_loop()
+  {
+    struct auto_com {
+      auto_com() {
+        HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+        XASSERT(SUCCEEDED(hr));
+      }
+      ~auto_com() {
+        CoUninitialize();
+      }
+    } com;
+
+    HANDLE wait_array[3] = {
+      input_changed,
+      output_changed,
+      shutdown,
+    };
+
+    while (true) {
+      Sleep(200);
+
+      DWORD wait_result = WaitForMultipleObjects(ARRAY_LENGTH(wait_array),
+                                                 wait_array,
+                                                 FALSE,
+                                                 INFINITE);
+      if (wait_result == WAIT_OBJECT_0) { // input changed
+        cubeb_context->input_collection_changed_callback(cubeb_context,
+          cubeb_context->input_collection_changed_user_ptr);
+      } else if (wait_result == WAIT_OBJECT_0 + 1) { // output changed
+        cubeb_context->output_collection_changed_callback(cubeb_context,
+          cubeb_context->output_collection_changed_user_ptr);
+      } else if (wait_result == WAIT_OBJECT_0 + 2) { // shutdown
+        break;
+      } else {
+        LOG("Unexpected result %lu", wait_result);
+      }
+    } // loop
+  }
+
+  void create_thread()
+  {
+    output_changed = CreateEvent(nullptr, 0, 0, nullptr);
+    if (!output_changed) {
+      LOG("Failed to create output changed event.");
+      return;
+    }
+
+    input_changed = CreateEvent(nullptr, 0, 0, nullptr);
+    if (!input_changed) {
+      LOG("Failed to create input changed event.");
+      return;
+    }
+
+    shutdown = CreateEvent(nullptr, 0, 0, nullptr);
+    if (!shutdown) {
+      LOG("Failed to create shutdown event.");
+      return;
+    }
+
+    thread = (HANDLE) _beginthreadex(nullptr,
+                                     256 * 1024,
+                                     thread_proc,
+                                     this,
+                                     STACK_SIZE_PARAM_IS_A_RESERVATION,
+                                     nullptr);
+    if (!thread) {
+      LOG("Failed to create thread.");
+      return;
+    }
+  }
+
+  HANDLE thread = INVALID_HANDLE_VALUE;
+  HANDLE output_changed = INVALID_HANDLE_VALUE;
+  HANDLE input_changed = INVALID_HANDLE_VALUE;
+  HANDLE shutdown = INVALID_HANDLE_VALUE;
+
+  cubeb * cubeb_context = nullptr;
+};
+
+class wasapi_collection_notification_client : public IMMNotificationClient
+{
+public:
+  /* The implementation of MSCOM was copied from MSDN. */
+  ULONG STDMETHODCALLTYPE
+  AddRef()
+  {
+    return InterlockedIncrement(&ref_count);
+  }
+
+  ULONG STDMETHODCALLTYPE
+  Release()
+  {
+    ULONG ulRef = InterlockedDecrement(&ref_count);
+    if (0 == ulRef) {
+      delete this;
+    }
+    return ulRef;
+  }
+
+  HRESULT STDMETHODCALLTYPE
+  QueryInterface(REFIID riid, VOID **ppvInterface)
+  {
+    if (__uuidof(IUnknown) == riid) {
+      AddRef();
+      *ppvInterface = (IUnknown*)this;
+    } else if (__uuidof(IMMNotificationClient) == riid) {
+      AddRef();
+      *ppvInterface = (IMMNotificationClient*)this;
+    } else {
+      *ppvInterface = NULL;
+      return E_NOINTERFACE;
+    }
+    return S_OK;
+  }
+
+  wasapi_collection_notification_client(cubeb * context)
+    : ref_count(1)
+    , cubeb_context(context)
+    , monitor_notifications(context)
+  {
+    XASSERT(cubeb_context);
+  }
+
+  virtual ~wasapi_collection_notification_client()
+  { }
+
+  HRESULT STDMETHODCALLTYPE
+  OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR device_id)
+  {
+    LOG("collection: Audio device default changed, id = %S.", device_id);
+    return S_OK;
+  }
+
+  /* The remaining methods are not implemented, they simply log when called (if
+     log is enabled), for debugging. */
+  HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR device_id)
+  {
+    LOG("collection: Audio device added.");
+    return S_OK;
+  };
+
+  HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR device_id)
+  {
+    LOG("collection: Audio device removed.");
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE
+  OnDeviceStateChanged(LPCWSTR device_id, DWORD new_state)
+  {
+    XASSERT(cubeb_context->output_collection_changed_callback ||
+            cubeb_context->input_collection_changed_callback);
+    LOG("collection: Audio device state changed, id = %S, state = %lu.", device_id, new_state);
+    EDataFlow flow;
+    HRESULT hr = GetDataFlow(device_id, &flow);
+    if (FAILED(hr)) {
+      return hr;
+    }
+    monitor_notifications.notify(flow);
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE
+  OnPropertyValueChanged(LPCWSTR device_id, const PROPERTYKEY key)
+  {
+    //Audio device property value changed.
+    return S_OK;
+  }
+
+private:
+  HRESULT GetDataFlow(LPCWSTR device_id, EDataFlow * flow)
+  {
+    com_ptr<IMMDevice> device;
+    com_ptr<IMMEndpoint> endpoint;
+
+    HRESULT hr = cubeb_context->device_collection_enumerator
+                   ->GetDevice(device_id, device.receive());
+    if (FAILED(hr)) {
+      LOG("collection: Could not get device: %lx", hr);
+      return hr;
+    }
+
+    hr = device->QueryInterface(IID_PPV_ARGS(endpoint.receive()));
+    if (FAILED(hr)) {
+      LOG("collection: Could not get endpoint: %lx", hr);
+      return hr;
+    }
+
+    return endpoint->GetDataFlow(flow);
+  }
+
+  /* refcount for this instance, necessary to implement MSCOM semantics. */
+  LONG ref_count;
+
+  cubeb * cubeb_context = nullptr;
+  monitor_device_notifications monitor_notifications;
+};
+
 class wasapi_endpoint_notification_client : public IMMNotificationClient
 {
 public:
@@ -306,9 +566,10 @@ public:
     return S_OK;
   }
 
-  wasapi_endpoint_notification_client(HANDLE event)
+  wasapi_endpoint_notification_client(HANDLE event, ERole role)
     : ref_count(1)
     , reconfigure_event(event)
+    , role(role)
   { }
 
   virtual ~wasapi_endpoint_notification_client()
@@ -317,16 +578,16 @@ public:
   HRESULT STDMETHODCALLTYPE
   OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR device_id)
   {
-    LOG("Audio device default changed.");
+    LOG("endpoint: Audio device default changed.");
 
     /* we only support a single stream type for now. */
-    if (flow != eRender && role != eConsole) {
+    if (flow != eRender && role != this->role) {
       return S_OK;
     }
 
     BOOL ok = SetEvent(reconfigure_event);
     if (!ok) {
-      LOG("SetEvent on reconfigure_event failed: %lx", GetLastError());
+      LOG("endpoint: SetEvent on reconfigure_event failed: %lx", GetLastError());
     }
 
     return S_OK;
@@ -336,33 +597,34 @@ public:
      log is enabled), for debugging. */
   HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR device_id)
   {
-    LOG("Audio device added.");
+    LOG("endpoint: Audio device added.");
     return S_OK;
   };
 
   HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR device_id)
   {
-    LOG("Audio device removed.");
+    LOG("endpoint: Audio device removed.");
     return S_OK;
   }
 
   HRESULT STDMETHODCALLTYPE
   OnDeviceStateChanged(LPCWSTR device_id, DWORD new_state)
   {
-    LOG("Audio device state changed.");
+    LOG("endpoint: Audio device state changed.");
     return S_OK;
   }
 
   HRESULT STDMETHODCALLTYPE
   OnPropertyValueChanged(LPCWSTR device_id, const PROPERTYKEY key)
   {
-    LOG("Audio device property value changed.");
+    //Audio device property value changed.
     return S_OK;
   }
 private:
   /* refcount for this instance, necessary to implement MSCOM semantics. */
   LONG ref_count;
   HANDLE reconfigure_event;
+  ERole role;
 };
 
 namespace {
@@ -997,7 +1259,7 @@ HRESULT register_notification_client(cubeb_stream * stm)
     return hr;
   }
 
-  stm->notification_client.reset(new wasapi_endpoint_notification_client(stm->reconfigure_event));
+  stm->notification_client.reset(new wasapi_endpoint_notification_client(stm->reconfigure_event, stm->role));
 
   hr = stm->device_enumerator->RegisterEndpointNotificationCallback(stm->notification_client.get());
   if (FAILED(hr)) {
@@ -1052,7 +1314,44 @@ HRESULT get_endpoint(com_ptr<IMMDevice> & device, LPCWSTR devid)
   return S_OK;
 }
 
-HRESULT get_default_endpoint(com_ptr<IMMDevice> & device, EDataFlow direction)
+HRESULT register_collection_notification_client(cubeb * context)
+{
+  HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator),
+                                NULL, CLSCTX_INPROC_SERVER,
+                                IID_PPV_ARGS(context->device_collection_enumerator.receive()));
+  if (FAILED(hr)) {
+    LOG("Could not get device enumerator: %lx", hr);
+    return hr;
+  }
+
+  context->collection_notification_client.reset(new wasapi_collection_notification_client(context));
+
+  hr = context->device_collection_enumerator->RegisterEndpointNotificationCallback(
+                                                context->collection_notification_client.get());
+  if (FAILED(hr)) {
+    LOG("Could not register endpoint notification callback: %lx", hr);
+    context->collection_notification_client.reset();
+    context->device_collection_enumerator.reset();
+  }
+
+  return hr;
+}
+
+HRESULT unregister_collection_notification_client(cubeb * context)
+{
+  HRESULT hr = context->device_collection_enumerator->
+    UnregisterEndpointNotificationCallback(context->collection_notification_client.get());
+  if (FAILED(hr)) {
+    return hr;
+  }
+
+  context->collection_notification_client = nullptr;
+  context->device_collection_enumerator = nullptr;
+
+  return hr;
+}
+
+HRESULT get_default_endpoint(com_ptr<IMMDevice> & device, EDataFlow direction, ERole role)
 {
   com_ptr<IMMDeviceEnumerator> enumerator;
   HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator),
@@ -1062,7 +1361,7 @@ HRESULT get_default_endpoint(com_ptr<IMMDevice> & device, EDataFlow direction)
     LOG("Could not get device enumerator: %lx", hr);
     return hr;
   }
-  hr = enumerator->GetDefaultAudioEndpoint(direction, eConsole, device.receive());
+  hr = enumerator->GetDefaultAudioEndpoint(direction, role, device.receive());
   if (FAILED(hr)) {
     LOG("Could not get default audio endpoint: %lx", hr);
     return hr;
@@ -1148,10 +1447,11 @@ int wasapi_init(cubeb ** context, char const * context_name)
      so that this backend is not incorrectly enabled on platforms that don't
      support WASAPI. */
   com_ptr<IMMDevice> device;
-  HRESULT hr = get_default_endpoint(device, eRender);
+  HRESULT hr = get_default_endpoint(device, eRender, eConsole);
   if (FAILED(hr)) {
+    XASSERT(hr != CO_E_NOTINITIALIZED);
     LOG("It wasn't able to find a default rendering device: %lx", hr);
-    hr = get_default_endpoint(device, eCapture);
+    hr = get_default_endpoint(device, eCapture, eConsole);
     if (FAILED(hr)) {
       LOG("It wasn't able to find a default capture device: %lx", hr);
       return CUBEB_ERROR;
@@ -1250,7 +1550,7 @@ wasapi_get_max_channel_count(cubeb * ctx, uint32_t * max_channels)
   XASSERT(ctx && max_channels);
 
   com_ptr<IMMDevice> device;
-  HRESULT hr = get_default_endpoint(device, eRender);
+  HRESULT hr = get_default_endpoint(device, eRender, eConsole);
   if (FAILED(hr)) {
     return CUBEB_ERROR;
   }
@@ -1282,8 +1582,10 @@ wasapi_get_min_latency(cubeb * ctx, cubeb_stream_params params, uint32_t * laten
     return CUBEB_ERROR_INVALID_FORMAT;
   }
 
+  ERole role = pref_to_role(params.prefs);
+
   com_ptr<IMMDevice> device;
-  HRESULT hr = get_default_endpoint(device, eRender);
+  HRESULT hr = get_default_endpoint(device, eRender, role);
   if (FAILED(hr)) {
     LOG("Could not get default endpoint: %lx", hr);
     return CUBEB_ERROR;
@@ -1323,7 +1625,7 @@ int
 wasapi_get_preferred_sample_rate(cubeb * ctx, uint32_t * rate)
 {
   com_ptr<IMMDevice> device;
-  HRESULT hr = get_default_endpoint(device, eRender);
+  HRESULT hr = get_default_endpoint(device, eRender, eConsole);
   if (FAILED(hr)) {
     return CUBEB_ERROR;
   }
@@ -1455,7 +1757,7 @@ int setup_wasapi_stream_one_side(cubeb_stream * stm,
       // If caller has requested loopback but not specified a device, look for
       // the default render device. Otherwise look for the default device
       // appropriate to the direction.
-      hr = get_default_endpoint(device, is_loopback ? eRender : direction);
+      hr = get_default_endpoint(device, is_loopback ? eRender : direction, pref_to_role(stream_params->prefs));
       if (FAILED(hr)) {
         if (is_loopback) {
           LOG("Could not get default render endpoint for loopback, error: %lx\n", hr);
@@ -1757,6 +2059,16 @@ int setup_wasapi_stream(cubeb_stream * stm)
   return CUBEB_OK;
 }
 
+ERole
+pref_to_role(cubeb_stream_prefs prefs)
+{
+  if (prefs & CUBEB_STREAM_PREF_VOICE) {
+    return eCommunications;
+  }
+
+  return eConsole;
+}
+
 int
 wasapi_stream_init(cubeb * context, cubeb_stream ** stream,
                    char const * stream_name,
@@ -1782,6 +2094,14 @@ wasapi_stream_init(cubeb * context, cubeb_stream ** stream,
   stm->data_callback = data_callback;
   stm->state_callback = state_callback;
   stm->user_ptr = user_ptr;
+
+  if (stm->output_stream_params.prefs & CUBEB_STREAM_PREF_VOICE ||
+      stm->input_stream_params.prefs & CUBEB_STREAM_PREF_VOICE) {
+    stm->role = eCommunications;
+  } else {
+    stm->role = eConsole;
+  }
+
   if (input_stream_params) {
     stm->input_stream_params = *input_stream_params;
     stm->input_device = utf8_to_wstr(reinterpret_cast<char const *>(input_device));
@@ -1838,11 +2158,16 @@ wasapi_stream_init(cubeb * context, cubeb_stream ** stream,
     return rv;
   }
 
-  HRESULT hr = register_notification_client(stm.get());
-  if (FAILED(hr)) {
-    /* this is not fatal, we can still play audio, but we won't be able
-       to keep using the default audio endpoint if it changes. */
-    LOG("failed to register notification client, %lx", hr);
+  if (!((input_stream_params ?
+         (input_stream_params->prefs & CUBEB_STREAM_PREF_DISABLE_DEVICE_SWITCHING) : 0) ||
+        (output_stream_params ?
+         (output_stream_params->prefs & CUBEB_STREAM_PREF_DISABLE_DEVICE_SWITCHING) : 0))) {
+    HRESULT hr = register_notification_client(stm.get());
+    if (FAILED(hr)) {
+      /* this is not fatal, we can still play audio, but we won't be able
+         to keep using the default audio endpoint if it changes. */
+      LOG("failed to register notification client, %lx", hr);
+    }
   }
 
   *stream = stm.release();
@@ -1888,7 +2213,9 @@ void wasapi_stream_destroy(cubeb_stream * stm)
     stm->emergency_bailout = nullptr;
   }
 
-  unregister_notification_client(stm);
+  if (stm->notification_client) {
+    unregister_notification_client(stm);
+  }
 
   CloseHandle(stm->reconfigure_event);
   CloseHandle(stm->refill_event);
@@ -2138,7 +2465,7 @@ utf8_to_wstr(char const * str)
 
   std::unique_ptr<wchar_t []> ret(new wchar_t[size]);
   ::MultiByteToWideChar(CP_UTF8, 0, str, -1, ret.get(), size);
-  return std::move(ret);
+  return ret;
 }
 
 static com_ptr<IMMDevice>
@@ -2368,6 +2695,79 @@ wasapi_device_collection_destroy(cubeb * /*ctx*/, cubeb_device_collection * coll
   return CUBEB_OK;
 }
 
+static int
+wasapi_register_device_collection_changed(cubeb * context,
+                                          cubeb_device_type devtype,
+                                          cubeb_device_collection_changed_callback collection_changed_callback,
+                                          void * user_ptr)
+{
+  if (devtype == CUBEB_DEVICE_TYPE_UNKNOWN) {
+    return CUBEB_ERROR_INVALID_PARAMETER;
+  }
+
+  if (collection_changed_callback) {
+    // Make sure it has been unregistered first.
+    XASSERT(((devtype & CUBEB_DEVICE_TYPE_INPUT) &&
+             !context->input_collection_changed_callback) ||
+            ((devtype & CUBEB_DEVICE_TYPE_OUTPUT) &&
+             !context->output_collection_changed_callback));
+
+    // Stop the notification client. Notifications arrive on
+    // a separate thread. We stop them here to avoid
+    // synchronization issues during the update.
+    if (context->device_collection_enumerator.get()) {
+      HRESULT hr = unregister_collection_notification_client(context);
+      if (FAILED(hr)) {
+        return CUBEB_ERROR;
+      }
+    }
+
+    if (devtype & CUBEB_DEVICE_TYPE_INPUT) {
+      context->input_collection_changed_callback = collection_changed_callback;
+      context->input_collection_changed_user_ptr = user_ptr;
+    }
+    if (devtype & CUBEB_DEVICE_TYPE_OUTPUT) {
+      context->output_collection_changed_callback = collection_changed_callback;
+      context->output_collection_changed_user_ptr = user_ptr;
+    }
+
+    HRESULT hr = register_collection_notification_client(context);
+    if (FAILED(hr)) {
+      return CUBEB_ERROR;
+    }
+  } else {
+    if (!context->device_collection_enumerator.get()) {
+      // Already unregistered, ignore it.
+      return CUBEB_OK;
+    }
+
+    HRESULT hr = unregister_collection_notification_client(context);
+    if (FAILED(hr)) {
+      return CUBEB_ERROR;
+    }
+    if (devtype & CUBEB_DEVICE_TYPE_INPUT) {
+      context->input_collection_changed_callback = nullptr;
+      context->input_collection_changed_user_ptr = nullptr;
+    }
+    if (devtype & CUBEB_DEVICE_TYPE_OUTPUT) {
+      context->output_collection_changed_callback = nullptr;
+      context->output_collection_changed_user_ptr = nullptr;
+    }
+
+    // If after the updates we still have registered
+    // callbacks restart the notification client.
+    if (context->input_collection_changed_callback ||
+        context->output_collection_changed_callback) {
+      hr = register_collection_notification_client(context);
+      if (FAILED(hr)) {
+        return CUBEB_ERROR;
+      }
+    }
+  }
+
+  return CUBEB_OK;
+}
+
 cubeb_ops const wasapi_ops = {
   /*.init =*/ wasapi_init,
   /*.get_backend_id =*/ wasapi_get_backend_id,
@@ -2389,6 +2789,6 @@ cubeb_ops const wasapi_ops = {
   /*.stream_get_current_device =*/ NULL,
   /*.stream_device_destroy =*/ NULL,
   /*.stream_register_device_changed_callback =*/ NULL,
-  /*.register_device_collection_changed =*/ NULL
+  /*.register_device_collection_changed =*/ wasapi_register_device_collection_changed,
 };
 } // namespace anonymous

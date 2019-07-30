@@ -14,6 +14,11 @@
 
 #include "Common/CommonTypes.h"
 
+#ifdef _MSC_VER
+#include <filesystem>
+#define HAS_STD_FILESYSTEM
+#endif
+
 std::string StringFromFormatV(const char* format, va_list args);
 
 std::string StringFromFormat(const char* format, ...)
@@ -49,7 +54,7 @@ bool TryParse(const std::string& str, u32* output);
 bool TryParse(const std::string& str, u64* output);
 
 template <typename N>
-static bool TryParse(const std::string& str, N* const output)
+inline bool TryParse(const std::string& str, N* const output)
 {
   std::istringstream iss(str);
   // is this right? not doing this breaks reading floats on locales that use different decimal
@@ -67,7 +72,8 @@ static bool TryParse(const std::string& str, N* const output)
 }
 
 template <typename N>
-bool TryParseVector(const std::string& str, std::vector<N>* output, const char delimiter = ',')
+inline bool TryParseVector(const std::string& str, std::vector<N>* output,
+                           const char delimiter = ',')
 {
   output->clear();
   std::istringstream buffer(str);
@@ -93,7 +99,7 @@ std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
 std::string ValueToString(const std::string& value);
 template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
-std::string ValueToString(T value)
+inline std::string ValueToString(T value)
 {
   return ValueToString(static_cast<std::underlying_type_t<T>>(value));
 }
@@ -155,9 +161,14 @@ inline std::string UTF8ToTStr(const std::string& str)
 
 #endif
 
+#ifdef HAS_STD_FILESYSTEM
+std::filesystem::path StringToPath(std::string_view path);
+std::string PathToString(const std::filesystem::path& path);
+#endif
+
 // Thousand separator. Turns 12345678 into 12,345,678
 template <typename I>
-std::string ThousandSeparate(I value, int spaces = 0)
+inline std::string ThousandSeparate(I value, int spaces = 0)
 {
 #ifdef _WIN32
   std::wostringstream stream;

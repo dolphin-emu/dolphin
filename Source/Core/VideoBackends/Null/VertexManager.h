@@ -17,15 +17,7 @@ public:
   VertexManager();
   ~VertexManager();
 
-  std::unique_ptr<NativeVertexFormat>
-  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
-
 protected:
-  void ResetBuffer(u32 stride) override;
-
-private:
-  void vFlush() override;
-  std::vector<u8> m_local_v_buffer;
-  std::vector<u16> m_local_i_buffer;
+  void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
 };
-}
+}  // namespace Null

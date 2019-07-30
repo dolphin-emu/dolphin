@@ -200,9 +200,9 @@ s32 DSPAssembler::ParseValue(const char* str)
     else  // Everything else is a label.
     {
       // Lookup label
-      u16 value;
-      if (m_labels.GetLabelValue(ptr, &value))
-        return value;
+      if (const std::optional<u16> value = m_labels.GetLabelValue(ptr))
+        return *value;
+
       if (m_cur_pass == 2)
         ShowError(AssemblerError::UnknownLabel, str);
     }

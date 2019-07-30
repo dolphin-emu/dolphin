@@ -149,16 +149,16 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
 
   if (arg.IsImm())
   {
-    MOV(64, PPCSTATE(cr_val[0]), Imm32(arg.SImm32()));
+    MOV(64, PPCSTATE(cr.fields[0]), Imm32(arg.SImm32()));
   }
   else if (needs_sext)
   {
     MOVSX(64, 32, RSCRATCH, arg);
-    MOV(64, PPCSTATE(cr_val[0]), R(RSCRATCH));
+    MOV(64, PPCSTATE(cr.fields[0]), R(RSCRATCH));
   }
   else
   {
-    MOV(64, PPCSTATE(cr_val[0]), arg);
+    MOV(64, PPCSTATE(cr.fields[0]), arg);
   }
 
   if (CheckMergedBranch(0))
@@ -365,11 +365,10 @@ void Jit64::DoMergedBranch()
 
   if (js.op[1].branchIsIdleLoop)
   {
-    ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(CoreTiming::Idle);
-    ABI_PopRegistersAndAdjustStack({}, 0);
-    MOV(32, PPCSTATE(pc), Imm32(js.op[1].branchTo));
-    WriteExceptionExit();
+    if (next.LK)
+      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
+
+    WriteIdleExit(js.op[1].branchTo);
   }
   else if (next.OPCD == 16)  // bcx
   {
@@ -527,12 +526,12 @@ void Jit64::cmpXX(UGeckoInstruction inst)
                                         (u64)gpr.Imm32(a) - (u64)comparand.Imm32();
     if (compareResult == (s32)compareResult)
     {
-      MOV(64, PPCSTATE(cr_val[crf]), Imm32((u32)compareResult));
+      MOV(64, PPCSTATE(cr.fields[crf]), Imm32((u32)compareResult));
     }
     else
     {
       MOV(64, R(RSCRATCH), Imm64(compareResult));
-      MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+      MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
     }
 
     if (merge_branch)
@@ -549,7 +548,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
     RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
     RegCache::Realize(Ra);
 
-    MOV(64, PPCSTATE(cr_val[crf]), Ra);
+    MOV(64, PPCSTATE(cr.fields[crf]), Ra);
     if (merge_branch)
     {
       TEST(64, Ra, Ra);
@@ -597,7 +596,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
   if (comparand.IsImm() && comparand.Imm32() == 0)
   {
-    MOV(64, PPCSTATE(cr_val[crf]), R(input));
+    MOV(64, PPCSTATE(cr.fields[crf]), R(input));
     // Place the comparison next to the branch for macro-op fusion
     if (merge_branch)
       TEST(64, R(input), R(input));
@@ -605,7 +604,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   else
   {
     SUB(64, R(input), comparand);
-    MOV(64, PPCSTATE(cr_val[crf]), R(input));
+    MOV(64, PPCSTATE(cr.fields[crf]), R(input));
   }
 
   if (merge_branch)

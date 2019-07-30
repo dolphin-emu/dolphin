@@ -29,11 +29,6 @@ void MarkAllDirty();
 // declaration, the one that was previously created will be used.
 NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl);
 
-// For vertex ubershaders, all attributes need to be present, even when the vertex
-// format does not contain them. This function returns a vertex format with dummy
-// offsets set to the unused attributes.
-NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl);
-
 // Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 void RunVertices(int vtx_attr_group, int primitive, int count, const DataReader& src);
 int GetVertexSize(int vtx_attr_group, bool is_preprocess);
@@ -54,4 +49,4 @@ extern u32 position_matrix_index[4];
 
 // VB_HAS_X. Bitmask telling what vertex components are present.
 extern u32 g_current_components;
-}
+}  // namespace VertexLoaderManager

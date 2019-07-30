@@ -2,6 +2,7 @@
 // Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
 // Copyright (C) 2012-2013 LunarG, Inc.
 // Copyright (C) 2017 ARM Limited.
+// Copyright (C) 2015-2018 Google, Inc.
 //
 // All rights reserved.
 //
@@ -99,6 +100,7 @@ using namespace glslang;
             glslang::TArraySizes* arraySizes;
             glslang::TIdentifierList* identifierList;
         };
+        glslang::TArraySizes* typeParameters;
     } interm;
 }
 
@@ -140,7 +142,7 @@ extern int yylex(YYSTYPE*, TParseContext&);
 %token <lex> U8VEC2  U8VEC3  U8VEC4
 %token <lex> VEC2 VEC3 VEC4
 %token <lex> MAT2 MAT3 MAT4 CENTROID IN OUT INOUT
-%token <lex> UNIFORM PATCH SAMPLE BUFFER SHARED NONUNIFORM PAYLOADNV PAYLOADINNV HITATTRNV
+%token <lex> UNIFORM PATCH SAMPLE BUFFER SHARED NONUNIFORM PAYLOADNV PAYLOADINNV HITATTRNV CALLDATANV CALLDATAINNV
 %token <lex> COHERENT VOLATILE RESTRICT READONLY WRITEONLY DEVICECOHERENT QUEUEFAMILYCOHERENT WORKGROUPCOHERENT SUBGROUPCOHERENT NONPRIVATE
 %token <lex> DVEC2 DVEC3 DVEC4 DMAT2 DMAT3 DMAT4
 %token <lex> F16VEC2 F16VEC3 F16VEC4 F16MAT2 F16MAT3 F16MAT4
@@ -165,6 +167,7 @@ extern int yylex(YYSTYPE*, TParseContext&);
 %token <lex> F64MAT4X2 F64MAT4X3 F64MAT4X4
 %token <lex> ATOMIC_UINT
 %token <lex> ACCSTRUCTNV
+%token <lex> FCOOPMATNV
 
 // combined image/sampler
 %token <lex> SAMPLER1D SAMPLER2D SAMPLER3D SAMPLERCUBE SAMPLER1DSHADOW SAMPLER2DSHADOW
@@ -179,6 +182,7 @@ extern int yylex(YYSTYPE*, TParseContext&);
 %token <lex> SAMPLER2DMS ISAMPLER2DMS USAMPLER2DMS
 %token <lex> SAMPLER2DMSARRAY ISAMPLER2DMSARRAY USAMPLER2DMSARRAY
 %token <lex> SAMPLEREXTERNALOES
+%token <lex> SAMPLEREXTERNAL2DY2YEXT
 
 %token <lex> F16SAMPLER1D F16SAMPLER2D F16SAMPLER3D F16SAMPLER2DRECT F16SAMPLERCUBE
 %token <lex> F16SAMPLER1DARRAY F16SAMPLER2DARRAY F16SAMPLERCUBEARRAY
@@ -270,6 +274,10 @@ extern int yylex(YYSTYPE*, TParseContext&);
 %type <interm.type> precise_qualifier invariant_qualifier interpolation_qualifier storage_qualifier precision_qualifier
 %type <interm.type> layout_qualifier layout_qualifier_id_list layout_qualifier_id
 %type <interm.type> non_uniform_qualifier
+
+%type <interm.typeParameters> type_parameter_specifier
+%type <interm.typeParameters> type_parameter_specifier_opt
+%type <interm.typeParameters> type_parameter_specifier_list
 
 %type <interm.type> type_qualifier fully_specified_type type_specifier
 %type <interm.type> single_type_qualifier
@@ -471,8 +479,8 @@ function_identifier
 
         if ($$.function == 0) {
             // error recover
-            TString empty("");
-            $$.function = new TFunction(&empty, TType(EbtVoid), EOpNull);
+            TString* empty = NewPoolTString("");
+            $$.function = new TFunction(empty, TType(EbtVoid), EOpNull);
         }
     }
     | non_uniform_qualifier {
@@ -605,6 +613,7 @@ equality_expression
         parseContext.arrayObjectCheck($2.loc, $1->getType(), "array comparison");
         parseContext.opaqueCheck($2.loc, $1->getType(), "==");
         parseContext.specializationCheck($2.loc, $1->getType(), "==");
+        parseContext.referenceCheck($2.loc, $1->getType(), "==");
         $$ = parseContext.handleBinaryMath($2.loc, "==", EOpEqual, $1, $3);
         if ($$ == 0)
             $$ = parseContext.intermediate.addConstantUnion(false, $2.loc);
@@ -613,6 +622,7 @@ equality_expression
         parseContext.arrayObjectCheck($2.loc, $1->getType(), "array comparison");
         parseContext.opaqueCheck($2.loc, $1->getType(), "!=");
         parseContext.specializationCheck($2.loc, $1->getType(), "!=");
+        parseContext.referenceCheck($2.loc, $1->getType(), "!=");
         $$ = parseContext.handleBinaryMath($2.loc, "!=", EOpNotEqual, $1, $3);
         if ($$ == 0)
             $$ = parseContext.intermediate.addConstantUnion(false, $2.loc);
@@ -1157,30 +1167,30 @@ interpolation_qualifier
     }
     | PERPRIMITIVENV {
 #ifdef NV_EXTENSIONS
+        // No need for profile version or extension check. Shader stage already checks both.
         parseContext.globalCheck($1.loc, "perprimitiveNV");
         parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangFragmentMask | EShLangMeshNVMask), "perprimitiveNV");
-        parseContext.profileRequires($1.loc, ECoreProfile, 450, E_GL_NV_mesh_shader, "perprimitiveNV");
-        parseContext.profileRequires($1.loc, EEsProfile, 320, E_GL_NV_mesh_shader, "perprimitiveNV");
+        // Fragment shader stage doesn't check for extension. So we explicitly add below extension check.
+        if (parseContext.language == EShLangFragment)
+            parseContext.requireExtensions($1.loc, 1, &E_GL_NV_mesh_shader, "perprimitiveNV");
         $$.init($1.loc);
         $$.qualifier.perPrimitiveNV = true;
 #endif
     }
     | PERVIEWNV {
 #ifdef NV_EXTENSIONS
+        // No need for profile version or extension check. Shader stage already checks both.
         parseContext.globalCheck($1.loc, "perviewNV");
         parseContext.requireStage($1.loc, EShLangMeshNV, "perviewNV");
-        parseContext.profileRequires($1.loc, ECoreProfile, 450, E_GL_NV_mesh_shader, "perviewNV");
-        parseContext.profileRequires($1.loc, EEsProfile, 320, E_GL_NV_mesh_shader, "perviewNV");
         $$.init($1.loc);
         $$.qualifier.perViewNV = true;
 #endif
     }
     | PERTASKNV {
 #ifdef NV_EXTENSIONS
+        // No need for profile version or extension check. Shader stage already checks both.
         parseContext.globalCheck($1.loc, "taskNV");
         parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangTaskNVMask | EShLangMeshNVMask), "taskNV");
-        parseContext.profileRequires($1.loc, ECoreProfile, 450, E_GL_NV_mesh_shader, "taskNV");
-        parseContext.profileRequires($1.loc, EEsProfile, 320, E_GL_NV_mesh_shader, "taskNV");
         $$.init($1.loc);
         $$.qualifier.perTaskNV = true;
 #endif
@@ -1348,32 +1358,51 @@ storage_qualifier
     }
     | HITATTRNV {
 #ifdef NV_EXTENSIONS
-        parseContext.globalCheck($1.loc, "hitAttributeNVX");
+        parseContext.globalCheck($1.loc, "hitAttributeNV");
         parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangIntersectNVMask | EShLangClosestHitNVMask
-            | EShLangAnyHitNVMask), "hitAttributeNVX");
-        parseContext.profileRequires($1.loc, ECoreProfile, 450, E_GL_NVX_raytracing, "hitAttributeNVX");
+            | EShLangAnyHitNVMask), "hitAttributeNV");
+        parseContext.profileRequires($1.loc, ECoreProfile, 460, E_GL_NV_ray_tracing, "hitAttributeNV");
         $$.init($1.loc);
         $$.qualifier.storage = EvqHitAttrNV;
 #endif
     }
     | PAYLOADNV {
 #ifdef NV_EXTENSIONS
-        parseContext.globalCheck($1.loc, "rayPayloadNVX");
+        parseContext.globalCheck($1.loc, "rayPayloadNV");
         parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangRayGenNVMask | EShLangClosestHitNVMask |
-            EShLangAnyHitNVMask | EShLangMissNVMask), "rayPayloadNVX");
-        parseContext.profileRequires($1.loc, ECoreProfile, 450, E_GL_NVX_raytracing, "rayPayloadNVX");
+            EShLangAnyHitNVMask | EShLangMissNVMask), "rayPayloadNV");
+        parseContext.profileRequires($1.loc, ECoreProfile, 460, E_GL_NV_ray_tracing, "rayPayloadNV");
         $$.init($1.loc);
         $$.qualifier.storage = EvqPayloadNV;
 #endif
     }
     | PAYLOADINNV {
 #ifdef NV_EXTENSIONS
-        parseContext.globalCheck($1.loc, "rayPayloadInNVX");
+        parseContext.globalCheck($1.loc, "rayPayloadInNV");
         parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangClosestHitNVMask |
-            EShLangAnyHitNVMask | EShLangMissNVMask), "rayPayloadInNVX");
-        parseContext.profileRequires($1.loc, ECoreProfile, 450, E_GL_NVX_raytracing, "rayPayloadInNVX");
+            EShLangAnyHitNVMask | EShLangMissNVMask), "rayPayloadInNV");
+        parseContext.profileRequires($1.loc, ECoreProfile, 460, E_GL_NV_ray_tracing, "rayPayloadInNV");
         $$.init($1.loc);
         $$.qualifier.storage = EvqPayloadInNV;
+#endif
+    }
+    | CALLDATANV {
+#ifdef NV_EXTENSIONS
+        parseContext.globalCheck($1.loc, "callableDataNV");
+        parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangRayGenNVMask |
+            EShLangClosestHitNVMask | EShLangMissNVMask | EShLangCallableNVMask), "callableDataNV");
+        parseContext.profileRequires($1.loc, ECoreProfile, 460, E_GL_NV_ray_tracing, "callableDataNV");
+        $$.init($1.loc);
+        $$.qualifier.storage = EvqCallableDataNV;
+#endif
+    }
+    | CALLDATAINNV {
+#ifdef NV_EXTENSIONS
+        parseContext.globalCheck($1.loc, "callableDataInNV");
+        parseContext.requireStage($1.loc, (EShLanguageMask)(EShLangCallableNVMask), "callableDataInNV");
+        parseContext.profileRequires($1.loc, ECoreProfile, 460, E_GL_NV_ray_tracing, "callableDataInNV");
+        $$.init($1.loc);
+        $$.qualifier.storage = EvqCallableDataInNV;
 #endif
     }
     | SHARED {
@@ -1466,15 +1495,17 @@ type_name_list
     ;
 
 type_specifier
-    : type_specifier_nonarray {
+    : type_specifier_nonarray type_parameter_specifier_opt {
         $$ = $1;
         $$.qualifier.precision = parseContext.getDefaultPrecision($$);
+        $$.typeParameters = $2;
     }
-    | type_specifier_nonarray array_specifier {
-        parseContext.arrayOfArrayVersionCheck($2.loc, $2.arraySizes);
+    | type_specifier_nonarray type_parameter_specifier_opt array_specifier {
+        parseContext.arrayOfArrayVersionCheck($3.loc, $3.arraySizes);
         $$ = $1;
         $$.qualifier.precision = parseContext.getDefaultPrecision($$);
-        $$.arraySizes = $2.arraySizes;
+        $$.typeParameters = $2;
+        $$.arraySizes = $3.arraySizes;
     }
     ;
 
@@ -1489,7 +1520,7 @@ array_specifier
         $$.arraySizes = new TArraySizes;
 
         TArraySize size;
-        parseContext.arraySizeCheck($2->getLoc(), $2, size);
+        parseContext.arraySizeCheck($2->getLoc(), $2, size, "array size");
         $$.arraySizes->addInnerSize(size);
     }
     | array_specifier LEFT_BRACKET RIGHT_BRACKET {
@@ -1500,8 +1531,40 @@ array_specifier
         $$ = $1;
 
         TArraySize size;
-        parseContext.arraySizeCheck($3->getLoc(), $3, size);
+        parseContext.arraySizeCheck($3->getLoc(), $3, size, "array size");
         $$.arraySizes->addInnerSize(size);
+    }
+    ;
+
+type_parameter_specifier_opt
+    : type_parameter_specifier {
+        $$ = $1;
+    }
+    | /* May be null */ {
+        $$ = 0;
+    }
+    ;
+
+type_parameter_specifier
+    : LEFT_ANGLE type_parameter_specifier_list RIGHT_ANGLE {
+        $$ = $2;
+    }
+    ;
+
+type_parameter_specifier_list
+    : unary_expression {
+        $$ = new TArraySizes;
+
+        TArraySize size;
+        parseContext.arraySizeCheck($1->getLoc(), $1, size, "type parameter");
+        $$->addInnerSize(size);
+    }
+    | type_parameter_specifier_list COMMA unary_expression {
+        $$ = $1;
+
+        TArraySize size;
+        parseContext.arraySizeCheck($3->getLoc(), $3, size, "type parameter");
+        $$->addInnerSize(size);
     }
     ;
 
@@ -3091,6 +3154,12 @@ type_specifier_nonarray
         $$.sampler.set(EbtFloat, Esd2D);
         $$.sampler.external = true;
     }
+    | SAMPLEREXTERNAL2DY2YEXT { // GL_EXT_YUV_target
+        $$.init($1.loc, parseContext.symbolTable.atGlobalLevel());
+        $$.basicType = EbtSampler;
+        $$.sampler.set(EbtFloat, Esd2D);
+        $$.sampler.yuv = true;
+    }
     | SUBPASSINPUT {
         parseContext.requireStage($1.loc, EShLangFragment, "subpass input");
         $$.init($1.loc, parseContext.symbolTable.atGlobalLevel());
@@ -3144,6 +3213,12 @@ type_specifier_nonarray
         $$.init($1.loc, parseContext.symbolTable.atGlobalLevel());
         $$.basicType = EbtSampler;
         $$.sampler.setSubpass(EbtUint, true);
+    }
+    | FCOOPMATNV {
+        parseContext.fcoopmatCheck($1.loc, "fcoopmatNV", parseContext.symbolTable.atBuiltInLevel());
+        $$.init($1.loc, parseContext.symbolTable.atGlobalLevel());
+        $$.basicType = EbtFloat;
+        $$.coopmat = true;
     }
     | struct_specifier {
         $$ = $1;

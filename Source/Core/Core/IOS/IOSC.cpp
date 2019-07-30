@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
 #include <mbedtls/md.h>
 #include <mbedtls/rsa.h>
 #include <mbedtls/sha1.h>
@@ -24,7 +25,6 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
@@ -252,7 +252,7 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
       Common::ec::ComputeSharedSecret(private_entry->data.data(), public_entry->data.data());
 
   std::array<u8, 20> sha1;
-  mbedtls_sha1(shared_secret.data(), shared_secret.size() / 2, sha1.data());
+  mbedtls_sha1_ret(shared_secret.data(), shared_secret.size() / 2, sha1.data());
 
   dest_entry->data.resize(AES128_KEY_SIZE);
   std::copy_n(sha1.cbegin(), AES128_KEY_SIZE, dest_entry->data.begin());
@@ -430,8 +430,8 @@ static CertECC MakeBlankEccCert(const std::string& issuer, const std::string& na
 
 CertECC IOSC::GetDeviceCertificate() const
 {
-  const std::string name = StringFromFormat("NG%08x", GetDeviceId());
-  auto cert = MakeBlankEccCert(StringFromFormat("Root-CA%08x-MS%08x", m_ca_id, m_ms_id), name,
+  const std::string name = fmt::format("NG{:08x}", GetDeviceId());
+  auto cert = MakeBlankEccCert(fmt::format("Root-CA{:08x}-MS{:08x}", m_ca_id, m_ms_id), name,
                                m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
   cert.signature.sig = m_console_signature;
   return cert;
@@ -448,17 +448,17 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   // ap_priv[0] &= 1;
 
   const std::string signer =
-      StringFromFormat("Root-CA%08x-MS%08x-NG%08x", m_ca_id, m_ms_id, GetDeviceId());
-  const std::string name = StringFromFormat("AP%016" PRIx64, title_id);
+      fmt::format("Root-CA{:08x}-MS{:08x}-NG{:08x}", m_ca_id, m_ms_id, GetDeviceId());
+  const std::string name = fmt::format("AP{:016x}", title_id);
   CertECC cert = MakeBlankEccCert(signer, name, ap_priv.data(), 0);
   // Sign the AP cert.
   const size_t skip = offsetof(CertECC, signature.issuer);
-  mbedtls_sha1(reinterpret_cast<const u8*>(&cert) + skip, sizeof(cert) - skip, hash.data());
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&cert) + skip, sizeof(cert) - skip, hash.data());
   cert.signature.sig = Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), hash.data());
   std::memcpy(ap_cert_out, &cert, sizeof(cert));
 
   // Sign the data.
-  mbedtls_sha1(data, data_size, hash.data());
+  mbedtls_sha1_ret(data, data_size, hash.data());
   const auto signature = Common::ec::Sign(ap_priv.data(), hash.data());
   std::copy(signature.cbegin(), signature.cend(), sig_out);
 }

@@ -7,12 +7,15 @@ import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 public class DolphinApplication extends Application
 {
+  static
+  {
+    System.loadLibrary("main");
+  }
+
   @Override
   public void onCreate()
   {
     super.onCreate();
-
-    System.loadLibrary("main");
 
     if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
       DirectoryInitialization.start(getApplicationContext());

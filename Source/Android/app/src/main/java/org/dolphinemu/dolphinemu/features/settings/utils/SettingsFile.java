@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -47,17 +48,19 @@ public final class SettingsFile
   public static final String KEY_JIT_FOLLOW_BRANCH = "JITFollowBranch";
   public static final String KEY_VIDEO_BACKEND = "GFXBackend";
   public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+  public static final String KEY_AUDIO_STRETCH_MAX_LATENCY = "AudioStretchMaxLatency";
   public static final String KEY_AUDIO_BACKEND = "Backend";
   public static final String KEY_ENABLE_CHEATS = "EnableCheats";
+  public static final String KEY_AUTO_DISC_CHANGE = "AutoDiscChange";
   public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
   public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
+  public static final String KEY_SERIAL_PORT_1 = "SerialPort1";
 
   public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
   public static final String KEY_OSD_MESSAGES = "OnScreenDisplayMessages";
   public static final String KEY_BUILTIN_TITLE_DATABASE = "UseBuiltinTitleDatabase";
-  public static final String KEY_SHOW_DEBUG_INFO = "ExtendedFPSInfo";
 
 
   public static final String KEY_SHOW_FPS = "ShowFPS";
@@ -73,19 +76,33 @@ public final class SettingsFile
   public static final String KEY_ARBITRARY_MIPMAP_DETECTION = "ArbitraryMipmapDetection";
   public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
   public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
+  public static final String KEY_BACKEND_MULTITHREADING = "BackendMultithreading";
 
   public static final String KEY_SKIP_EFB = "EFBAccessEnable";
   public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
   public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
   public static final String KEY_DEFER_EFB_COPIES = "DeferEFBCopies";
+  public static final String KEY_EFB_DEFER_INVALIDATION = "EFBAccessDeferInvalidation";
   public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
   public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
   public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";
   public static final String KEY_IMMEDIATE_XFB = "ImmediateXFBEnable";
   public static final String KEY_FAST_DEPTH = "FastDepthCalc";
+  public static final String KEY_TMEM_CACHE_EMULATION = "TMEMCacheEmulation";
   public static final String KEY_ASPECT_RATIO = "AspectRatio";
+  public static final String KEY_DISPLAY_SCALE = "DisplayScale";
   public static final String KEY_SHADER_COMPILATION_MODE = "ShaderCompilationMode";
   public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
+
+  public static final String KEY_DEBUG_JITOFF = "JitOff";
+  public static final String KEY_DEBUG_JITLOADSTOREOFF = "JitLoadStoreOff";
+  public static final String KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF = "JitLoadStoreFloatingOff";
+  public static final String KEY_DEBUG_JITLOADSTOREPAIREDOFF = "JitLoadStorePairedOff";
+  public static final String KEY_DEBUG_JITFLOATINGPOINTOFF = "JitFloatingPointOff";
+  public static final String KEY_DEBUG_JITINTEGEROFF = "JitIntegerOff";
+  public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
+  public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
+  public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
 
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
@@ -106,6 +123,8 @@ public final class SettingsFile
   public static final String KEY_GCBIND_C_RIGHT = "CStickRight_";
   public static final String KEY_GCBIND_TRIGGER_L = "InputL_";
   public static final String KEY_GCBIND_TRIGGER_R = "InputR_";
+  public static final String KEY_GCBIND_TRIGGER_L_ANALOG = "InputLAnalog_";
+  public static final String KEY_GCBIND_TRIGGER_R_ANALOG = "InputRAnalog_";
   public static final String KEY_GCBIND_DPAD_UP = "DPadUp_";
   public static final String KEY_GCBIND_DPAD_DOWN = "DPadDown_";
   public static final String KEY_GCBIND_DPAD_LEFT = "DPadLeft_";
@@ -123,6 +142,7 @@ public final class SettingsFile
   public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
   public static final String KEY_WIIMOTE_PROFILE = "WiimoteProfile";
 
+  public static final String KEY_SYSTEM_BACK = "SystemBackBind";
   public static final String KEY_WIIBIND_A = "WiimoteA_";
   public static final String KEY_WIIBIND_B = "WiimoteB_";
   public static final String KEY_WIIBIND_1 = "Wiimote1_";
@@ -134,9 +154,10 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_IR_DOWN = "IRDown_";
   public static final String KEY_WIIBIND_IR_LEFT = "IRLeft_";
   public static final String KEY_WIIBIND_IR_RIGHT = "IRRight_";
-  public static final String KEY_WIIBIND_IR_FORWARD = "IRForward_";
-  public static final String KEY_WIIBIND_IR_BACKWARD = "IRBackward_";
   public static final String KEY_WIIBIND_IR_HIDE = "IRHide_";
+  public static final String KEY_WIIBIND_IR_PITCH = "IRTotalPitch";
+  public static final String KEY_WIIBIND_IR_YAW = "IRTotalYaw";
+  public static final String KEY_WIIBIND_IR_VERTICAL_OFFSET = "IRVerticalOffset";
   public static final String KEY_WIIBIND_SWING_UP = "SwingUp_";
   public static final String KEY_WIIBIND_SWING_DOWN = "SwingDown_";
   public static final String KEY_WIIBIND_SWING_LEFT = "SwingLeft_";
@@ -151,6 +172,13 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_SHAKE_X = "ShakeX_";
   public static final String KEY_WIIBIND_SHAKE_Y = "ShakeY_";
   public static final String KEY_WIIBIND_SHAKE_Z = "ShakeZ_";
+  // Hotkeys
+  public static final String KEY_HOTKEYS_SIDEWAYS_TOGGLE = "Sideways_Toggle_";
+  public static final String KEY_HOTKEYS_UPRIGHT_TOGGLE = "Upright_Toggle_";
+  public static final String KEY_HOTKEYS_SIDEWAYS_HOLD = "Sideways_Hold_";
+  public static final String KEY_HOTKEYS_UPRIGHT_HOLD = "Upright_Hold_";
+  public static final String KEY_WIIMOTE_IR_RECENTER = "IR_Recenter_";
+  // Nunchuk
   public static final String KEY_WIIBIND_DPAD_UP = "WiimoteUp_";
   public static final String KEY_WIIBIND_DPAD_DOWN = "WiimoteDown_";
   public static final String KEY_WIIBIND_DPAD_LEFT = "WiimoteLeft_";
@@ -247,19 +275,14 @@ public final class SettingsFile
 
   public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
   public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
+  public static final String KEY_WII_SD_CARD = "WiiSDCard";
 
   // SYSCONF.IPL
-  public static final String KEY_SYSCONF_SCREENSAVER = "Screensaver";
-  public static final String KEY_SYSCONF_LANGUAGE = "Language";
-  public static final String KEY_SYSCONF_WIDESCREEN = "Widescreen";
-  public static final String KEY_SYSCONF_PROGRESSIVE_SCAN = "ProgressiveScan";
-  public static final String KEY_SYSCONF_PAL60 = "PAL60";
-
-  // SYSCONF.BT
-  public static final String KEY_SYSCONF_SENSOR_BAR_POSITION = "SensorBarPosition";
-  public static final String KEY_SYSCONF_SENSOR_BAR_SENSITIVITY = "SensorBarSensitivity";
-  public static final String KEY_SYSCONF_SPEAKER_VOLUME = "SpeakerVolume";
-  public static final String KEY_SYSCONF_WIIMOTE_MOTOR = "WiimoteMotor";
+  public static final String KEY_SYSCONF_SCREENSAVER = "SSV";
+  public static final String KEY_SYSCONF_LANGUAGE = "LNG";
+  public static final String KEY_SYSCONF_WIDESCREEN = "AR";
+  public static final String KEY_SYSCONF_PROGRESSIVE_SCAN = "PGS";
+  public static final String KEY_SYSCONF_PAL60 = "E60";
 
   // Internal only, not actually found in settings file.
   public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
@@ -428,7 +451,7 @@ public final class SettingsFile
     final HashMap<String, SettingSection> sections)
   {
     Set<String> sortedSections = new TreeSet<>(sections.keySet());
-
+    NativeLibrary.LoadGameIniFile(gameId);
     for (String sectionKey : sortedSections)
     {
       SettingSection section = sections.get(sectionKey);
@@ -441,22 +464,14 @@ public final class SettingsFile
       {
         continue;
       }
-      else
-      {
-        NativeLibrary.LoadGameIniFile(gameId);
-      }
+
       for (String settingKey : sortedKeySet)
       {
         Setting setting = settings.get(settingKey);
         // Special case. Extension gets saved into a controller profile
         if (settingKey.contains(SettingsFile.KEY_WIIMOTE_EXTENSION))
         {
-          String padId =
-                  setting.getKey()
-                          .substring(setting.getKey().length() - 1, setting.getKey().length());
-
-          saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, setting.getValueAsString(),
-                  padId);
+          saveCustomWiimoteSetting(gameId, setting);
         }
         else
         {
@@ -464,17 +479,7 @@ public final class SettingsFile
                   setting.getKey(), setting.getValueAsString());
         }
       }
-      NativeLibrary.SaveGameIniFile(gameId);
     }
-  }
-
-  public static void saveSingleCustomSetting(final String gameId, final String section,
-          final String key,
-          final String value)
-  {
-    NativeLibrary.LoadGameIniFile(gameId);
-    NativeLibrary.SetUserSetting(gameId, section,
-            key, value);
     NativeLibrary.SaveGameIniFile(gameId);
   }
 
@@ -482,14 +487,13 @@ public final class SettingsFile
    * Saves the wiimote setting in a profile and enables that profile.
    *
    * @param gameId
-   * @param key
-   * @param value
-   * @param padId
+   * @param setting
    */
-  public static void saveCustomWiimoteSetting(final String gameId, final String key,
-          final String value,
-          final String padId)
+  private static void saveCustomWiimoteSetting(final String gameId, Setting setting)
   {
+    final String key = SettingsFile.KEY_WIIMOTE_EXTENSION;
+    final String value = setting.getValueAsString();
+    String padId = setting.getKey().substring(setting.getKey().length() - 1);
     String profile = gameId + "_Wii" + padId;
 
     String wiiConfigPath =
@@ -511,10 +515,8 @@ public final class SettingsFile
     NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key, value);
 
     // Enable the profile
-    NativeLibrary.LoadGameIniFile(gameId);
     NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
             KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
-    NativeLibrary.SaveGameIniFile(gameId);
   }
 
   private static String mapSectionNameFromIni(String generalSectionName)
@@ -548,14 +550,14 @@ public final class SettingsFile
     // Use the first 3 chars from the gameId to load the generic game settings for all regions
     gameId = gameId.substring(0, 3);
     return new File(
-      DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" + gameId +
+      DirectoryInitialization.getInternalDirectory() + "/GameSettings/" + gameId +
         ".ini");
   }
 
   private static File getGenericGameSettingsFile(String gameId)
   {
     return new File(
-      DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" + gameId +
+      DirectoryInitialization.getInternalDirectory() + "/GameSettings/" + gameId +
         ".ini");
   }
 
@@ -662,37 +664,24 @@ public final class SettingsFile
    */
   private static void writeSection(PrintWriter writer, SettingSection section)
   {
-    // Write the section header.
-    String header = sectionAsString(section);
-    writer.println(header);
-
     // Write this section's values.
     HashMap<String, Setting> settings = section.getSettings();
-    Set<String> keySet = settings.keySet();
-    Set<String> sortedKeySet = new TreeSet<>(keySet);
+    if(settings.size() == 0)
+      return;
 
+    // Write the section header.
+    String header = "[" + section.getName() + "]";
+    writer.println(header);
+
+    Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
     for (String key : sortedKeySet)
     {
       Setting setting = settings.get(key);
-      String settingString = settingAsString(setting);
-
-      writer.println(settingString);
+      String valueAsString = setting.getValueAsString();
+      if (!TextUtils.isEmpty(valueAsString))
+      {
+        writer.println(setting.getKey() + " = " + valueAsString);
+      }
     }
-  }
-
-  private static String sectionAsString(SettingSection section)
-  {
-    return "[" + section.getName() + "]";
-  }
-
-  private static String settingAsString(Setting setting)
-  {
-    return setting.getKey() + " = " + setting.getValueAsString();
-  }
-
-  private static String customWiimoteExtSettingAsString(Setting setting)
-  {
-    return setting.getKey().substring(0, setting.getKey().length() - 1) + " = " +
-            setting.getValueAsString();
   }
 }

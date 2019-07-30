@@ -3,42 +3,23 @@ add_library(videod3d
   BoundingBox.h
   D3DBase.cpp
   D3DBase.h
-  D3DBlob.cpp
-  D3DBlob.h
-  D3DShader.cpp
-  D3DShader.h
   D3DState.cpp
   D3DState.h
-  D3DTexture.cpp
-  D3DTexture.h
-  D3DUtil.cpp
-  D3DUtil.h
   DXPipeline.cpp
   DXPipeline.h
   DXShader.cpp
   DXShader.h
   DXTexture.cpp
   DXTexture.h
-  FramebufferManager.cpp
-  FramebufferManager.h
-  GeometryShaderCache.cpp
-  GeometryShaderCache.h
   main.cpp
   NativeVertexFormat.cpp
   PerfQuery.cpp
   PerfQuery.h
-  PixelShaderCache.cpp
-  PixelShaderCache.h
-  PSTextureEncoder.cpp
-  PSTextureEncoder.h
   Render.cpp
   Render.h
-  TextureCache.cpp
-  TextureCache.h
+  SwapChain.cpp
   VertexManager.cpp
   VertexManager.h
-  VertexShaderCache.cpp
-  VertexShaderCache.h
   VideoBackend.h
 )
 
@@ -46,4 +27,5 @@ target_link_libraries(videod3d
 PUBLIC
   common
   videocommon
+  videod3dcommon
 )

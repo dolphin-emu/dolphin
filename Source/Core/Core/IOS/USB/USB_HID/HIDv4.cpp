@@ -55,7 +55,7 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
     if (request.buffer_in == 0 || request.buffer_in_size != 32)
       return GetDefaultReply(IPC_EINVAL);
     const auto device = GetDeviceByIOSID(Memory::Read_U32(request.buffer_in + 16));
-    if (!device->Attach(0))
+    if (!device->Attach())
       return GetDefaultReply(IPC_EINVAL);
     return HandleTransfer(device, request.request,
                           [&, this]() { return SubmitTransfer(*device, request); });

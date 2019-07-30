@@ -5,8 +5,10 @@
 #include <cmath>
 
 #include <QCheckBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -14,18 +16,27 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Core.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
+
+#include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
+#include "Core/HW/WiimoteEmu/Camera.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
+#include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
 
 #include "InputCommon/InputConfig.h"
+
+using namespace WiimoteCommon;
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
 {
@@ -151,89 +162,82 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   triggers_layout->addLayout(r_trigger_layout);
   m_triggers_box->setLayout(triggers_layout);
 
-  m_a_button = new QCheckBox(QStringLiteral("&A"));
-  m_b_button = new QCheckBox(QStringLiteral("&B"));
-  m_1_button = new QCheckBox(QStringLiteral("&1"));
-  m_2_button = new QCheckBox(QStringLiteral("&2"));
-  m_plus_button = new QCheckBox(QStringLiteral("&+"));
-  m_minus_button = new QCheckBox(QStringLiteral("&-"));
-  m_home_button = new QCheckBox(QStringLiteral("&HOME"));
-  m_left_button = new QCheckBox(QStringLiteral("&Left"));
-  m_up_button = new QCheckBox(QStringLiteral("&Up"));
-  m_down_button = new QCheckBox(QStringLiteral("&Down"));
-  m_right_button = new QCheckBox(QStringLiteral("&Right"));
-  m_c_button = new QCheckBox(QStringLiteral("&C"));
-  m_z_button = new QCheckBox(QStringLiteral("&Z"));
+  m_a_button = new TASCheckBox(QStringLiteral("&A"));
+  m_b_button = new TASCheckBox(QStringLiteral("&B"));
+  m_1_button = new TASCheckBox(QStringLiteral("&1"));
+  m_2_button = new TASCheckBox(QStringLiteral("&2"));
+  m_plus_button = new TASCheckBox(QStringLiteral("&+"));
+  m_minus_button = new TASCheckBox(QStringLiteral("&-"));
+  m_home_button = new TASCheckBox(QStringLiteral("&HOME"));
+  m_left_button = new TASCheckBox(QStringLiteral("&Left"));
+  m_up_button = new TASCheckBox(QStringLiteral("&Up"));
+  m_down_button = new TASCheckBox(QStringLiteral("&Down"));
+  m_right_button = new TASCheckBox(QStringLiteral("&Right"));
+  m_c_button = new TASCheckBox(QStringLiteral("&C"));
+  m_z_button = new TASCheckBox(QStringLiteral("&Z"));
 
-  auto* buttons_layout1 = new QHBoxLayout;
-  buttons_layout1->addWidget(m_a_button);
-  buttons_layout1->addWidget(m_b_button);
-  buttons_layout1->addWidget(m_1_button);
-  buttons_layout1->addWidget(m_2_button);
-  buttons_layout1->addWidget(m_plus_button);
-  buttons_layout1->addWidget(m_minus_button);
+  auto* buttons_layout = new QGridLayout;
+  buttons_layout->addWidget(m_a_button, 0, 0);
+  buttons_layout->addWidget(m_b_button, 0, 1);
+  buttons_layout->addWidget(m_1_button, 0, 2);
+  buttons_layout->addWidget(m_2_button, 0, 3);
+  buttons_layout->addWidget(m_plus_button, 0, 4);
+  buttons_layout->addWidget(m_minus_button, 0, 5);
 
-  auto* buttons_layout2 = new QHBoxLayout;
-  buttons_layout2->addWidget(m_home_button);
-  buttons_layout2->addWidget(m_left_button);
-  buttons_layout2->addWidget(m_up_button);
-  buttons_layout2->addWidget(m_down_button);
-  buttons_layout2->addWidget(m_right_button);
+  buttons_layout->addWidget(m_home_button, 1, 0);
+  buttons_layout->addWidget(m_left_button, 1, 1);
+  buttons_layout->addWidget(m_up_button, 1, 2);
+  buttons_layout->addWidget(m_down_button, 1, 3);
+  buttons_layout->addWidget(m_right_button, 1, 4);
 
-  auto* remote_buttons_layout = new QVBoxLayout;
-  remote_buttons_layout->setSizeConstraint(QLayout::SetFixedSize);
-  remote_buttons_layout->addLayout(buttons_layout1);
-  remote_buttons_layout->addLayout(buttons_layout2);
+  buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 7);
 
   m_remote_buttons_box = new QGroupBox(tr("Wii Remote Buttons"));
-  m_remote_buttons_box->setLayout(remote_buttons_layout);
+  m_remote_buttons_box->setLayout(buttons_layout);
 
   auto* nunchuk_buttons_layout = new QHBoxLayout;
   nunchuk_buttons_layout->addWidget(m_c_button);
   nunchuk_buttons_layout->addWidget(m_z_button);
+  nunchuk_buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding));
 
   m_nunchuk_buttons_box = new QGroupBox(tr("Nunchuk Buttons"));
   m_nunchuk_buttons_box->setLayout(nunchuk_buttons_layout);
 
-  m_classic_a_button = new QCheckBox(QStringLiteral("&A"));
-  m_classic_b_button = new QCheckBox(QStringLiteral("&B"));
-  m_classic_x_button = new QCheckBox(QStringLiteral("&X"));
-  m_classic_y_button = new QCheckBox(QStringLiteral("&Y"));
-  m_classic_l_button = new QCheckBox(QStringLiteral("&L"));
-  m_classic_r_button = new QCheckBox(QStringLiteral("&R"));
-  m_classic_zl_button = new QCheckBox(QStringLiteral("&ZL"));
-  m_classic_zr_button = new QCheckBox(QStringLiteral("ZR"));
-  m_classic_plus_button = new QCheckBox(QStringLiteral("&+"));
-  m_classic_minus_button = new QCheckBox(QStringLiteral("&-"));
-  m_classic_home_button = new QCheckBox(QStringLiteral("&HOME"));
-  m_classic_left_button = new QCheckBox(QStringLiteral("L&eft"));
-  m_classic_up_button = new QCheckBox(QStringLiteral("&Up"));
-  m_classic_down_button = new QCheckBox(QStringLiteral("&Down"));
-  m_classic_right_button = new QCheckBox(QStringLiteral("R&ight"));
+  m_classic_a_button = new TASCheckBox(QStringLiteral("&A"));
+  m_classic_b_button = new TASCheckBox(QStringLiteral("&B"));
+  m_classic_x_button = new TASCheckBox(QStringLiteral("&X"));
+  m_classic_y_button = new TASCheckBox(QStringLiteral("&Y"));
+  m_classic_l_button = new TASCheckBox(QStringLiteral("&L"));
+  m_classic_r_button = new TASCheckBox(QStringLiteral("&R"));
+  m_classic_zl_button = new TASCheckBox(QStringLiteral("&ZL"));
+  m_classic_zr_button = new TASCheckBox(QStringLiteral("ZR"));
+  m_classic_plus_button = new TASCheckBox(QStringLiteral("&+"));
+  m_classic_minus_button = new TASCheckBox(QStringLiteral("&-"));
+  m_classic_home_button = new TASCheckBox(QStringLiteral("&HOME"));
+  m_classic_left_button = new TASCheckBox(QStringLiteral("L&eft"));
+  m_classic_up_button = new TASCheckBox(QStringLiteral("&Up"));
+  m_classic_down_button = new TASCheckBox(QStringLiteral("&Down"));
+  m_classic_right_button = new TASCheckBox(QStringLiteral("R&ight"));
 
-  auto* classic_buttons_layout1 = new QHBoxLayout;
-  classic_buttons_layout1->addWidget(m_classic_a_button);
-  classic_buttons_layout1->addWidget(m_classic_b_button);
-  classic_buttons_layout1->addWidget(m_classic_x_button);
-  classic_buttons_layout1->addWidget(m_classic_y_button);
-  classic_buttons_layout1->addWidget(m_classic_l_button);
-  classic_buttons_layout1->addWidget(m_classic_r_button);
-  classic_buttons_layout1->addWidget(m_classic_zl_button);
-  classic_buttons_layout1->addWidget(m_classic_zr_button);
+  auto* classic_buttons_layout = new QGridLayout;
+  classic_buttons_layout->addWidget(m_classic_a_button, 0, 0);
+  classic_buttons_layout->addWidget(m_classic_b_button, 0, 1);
+  classic_buttons_layout->addWidget(m_classic_x_button, 0, 2);
+  classic_buttons_layout->addWidget(m_classic_y_button, 0, 3);
+  classic_buttons_layout->addWidget(m_classic_l_button, 0, 4);
+  classic_buttons_layout->addWidget(m_classic_r_button, 0, 5);
+  classic_buttons_layout->addWidget(m_classic_zl_button, 0, 6);
+  classic_buttons_layout->addWidget(m_classic_zr_button, 0, 7);
 
-  auto* classic_buttons_layout2 = new QHBoxLayout;
-  classic_buttons_layout2->addWidget(m_classic_plus_button);
-  classic_buttons_layout2->addWidget(m_classic_minus_button);
-  classic_buttons_layout2->addWidget(m_classic_home_button);
-  classic_buttons_layout2->addWidget(m_classic_left_button);
-  classic_buttons_layout2->addWidget(m_classic_up_button);
-  classic_buttons_layout2->addWidget(m_classic_down_button);
-  classic_buttons_layout2->addWidget(m_classic_right_button);
+  classic_buttons_layout->addWidget(m_classic_plus_button, 1, 0);
+  classic_buttons_layout->addWidget(m_classic_minus_button, 1, 1);
+  classic_buttons_layout->addWidget(m_classic_home_button, 1, 2);
+  classic_buttons_layout->addWidget(m_classic_left_button, 1, 3);
+  classic_buttons_layout->addWidget(m_classic_up_button, 1, 4);
+  classic_buttons_layout->addWidget(m_classic_down_button, 1, 5);
+  classic_buttons_layout->addWidget(m_classic_right_button, 1, 6);
 
-  auto* classic_buttons_layout = new QVBoxLayout;
-  classic_buttons_layout->setSizeConstraint(QLayout::SetFixedSize);
-  classic_buttons_layout->addLayout(classic_buttons_layout1);
-  classic_buttons_layout->addLayout(classic_buttons_layout2);
+  classic_buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 8);
 
   m_classic_buttons_box = new QGroupBox(tr("Classic Buttons"));
   m_classic_buttons_box->setLayout(classic_buttons_layout);
@@ -247,7 +251,6 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   layout->addWidget(m_nunchuk_buttons_box);
   layout->addWidget(m_classic_buttons_box);
   layout->addWidget(m_use_controller);
-  layout->setAlignment(m_nunchuk_buttons_box, Qt::AlignLeft);
 
   setLayout(layout);
 
@@ -255,7 +258,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   if (Core::IsRunning())
   {
     ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))
-              ->CurrentExtension();
+              ->GetActiveExtensionNumber();
   }
   else
   {
@@ -318,22 +321,20 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
   }
 }
 
-void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rptf, int ext,
-                                  wiimote_key key)
+void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
+                                  const WiimoteEmu::EncryptionKey& key)
 {
   if (!isVisible())
     return;
 
   UpdateExt(ext);
 
-  u8* const buttons_data = rptf.core ? (report_data + rptf.core) : nullptr;
-  u8* const accel_data = rptf.accel ? (report_data + rptf.accel) : nullptr;
-  u8* const ir_data = rptf.ir ? (report_data + rptf.ir) : nullptr;
-  u8* const ext_data = rptf.ext ? (report_data + rptf.ext) : nullptr;
-
-  if (m_remote_buttons_box->isVisible() && buttons_data)
+  if (m_remote_buttons_box->isVisible() && rpt.HasCore())
   {
-    u16& buttons = (reinterpret_cast<wm_buttons*>(buttons_data))->hex;
+    DataReportBuilder::CoreData core;
+    rpt.GetCoreData(&core);
+
+    u16& buttons = core.hex;
     GetButton<u16>(m_a_button, buttons, WiimoteEmu::Wiimote::BUTTON_A);
     GetButton<u16>(m_b_button, buttons, WiimoteEmu::Wiimote::BUTTON_B);
     GetButton<u16>(m_1_button, buttons, WiimoteEmu::Wiimote::BUTTON_ONE);
@@ -345,32 +346,28 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     GetButton<u16>(m_up_button, buttons, WiimoteEmu::Wiimote::PAD_UP);
     GetButton<u16>(m_down_button, buttons, WiimoteEmu::Wiimote::PAD_DOWN);
     GetButton<u16>(m_right_button, buttons, WiimoteEmu::Wiimote::PAD_RIGHT);
+
+    rpt.SetCoreData(core);
   }
 
-  if (m_remote_orientation_box->isVisible() && accel_data && buttons_data)
+  if (m_remote_orientation_box->isVisible() && rpt.HasAccel())
   {
-    wm_accel& accel = *reinterpret_cast<wm_accel*>(accel_data);
-    wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
+    // FYI: Interleaved reports may behave funky as not all data is always available.
 
-    u16 accel_x = (accel.x << 2) & (buttons.acc_x_lsb & 0b11);
-    u16 accel_y = (accel.y << 2) & ((buttons.acc_y_lsb & 0b1) << 1);
-    u16 accel_z = (accel.z << 2) & ((buttons.acc_z_lsb & 0b1) << 1);
+    DataReportBuilder::AccelData accel;
+    rpt.GetAccelData(&accel);
 
-    GetSpinBoxU16(m_remote_orientation_x_value, accel_x);
-    GetSpinBoxU16(m_remote_orientation_y_value, accel_y);
-    GetSpinBoxU16(m_remote_orientation_z_value, accel_z);
+    GetSpinBoxU16(m_remote_orientation_x_value, accel.x);
+    GetSpinBoxU16(m_remote_orientation_y_value, accel.y);
+    GetSpinBoxU16(m_remote_orientation_z_value, accel.z);
 
-    accel.x = accel_x >> 2;
-    accel.y = accel_y >> 2;
-    accel.z = accel_z >> 2;
-
-    buttons.acc_x_lsb = accel_x & 0b11;
-    buttons.acc_y_lsb = (accel_y >> 1) & 0b1;
-    buttons.acc_z_lsb = (accel_z >> 1) & 0b1;
+    rpt.SetAccelData(accel);
   }
 
-  if (m_ir_box->isVisible() && ir_data && !m_use_controller->isChecked())
+  if (m_ir_box->isVisible() && rpt.HasIR() && !m_use_controller->isChecked())
   {
+    u8* const ir_data = rpt.GetIRDataPtr();
+
     u16 y = m_ir_y_value->value();
     std::array<u16, 4> x;
     x[0] = m_ir_x_value->value();
@@ -378,17 +375,19 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     x[2] = x[0] - 10;
     x[3] = x[1] + 10;
 
-    u8 mode;
-    // Mode 5 not supported in core anyway.
-    if (rptf.ext)
-      mode = (rptf.ext - rptf.ir) == 10 ? 1 : 3;
-    else
-      mode = (rptf.size - rptf.ir) == 10 ? 1 : 3;
+    // FYI: This check is not entirely foolproof.
+    // TODO: IR "full" mode not implemented.
+    u8 mode = WiimoteEmu::CameraLogic::IR_MODE_BASIC;
 
-    if (mode == 1)
+    if (rpt.GetIRDataSize() == sizeof(WiimoteEmu::IRExtended) * 4)
+      mode = WiimoteEmu::CameraLogic::IR_MODE_EXTENDED;
+    else if (rpt.GetIRDataSize() == sizeof(WiimoteEmu::IRFull) * 2)
+      mode = WiimoteEmu::CameraLogic::IR_MODE_FULL;
+
+    if (mode == WiimoteEmu::CameraLogic::IR_MODE_BASIC)
     {
-      memset(ir_data, 0xFF, sizeof(wm_ir_basic) * 2);
-      wm_ir_basic* const ir_basic = reinterpret_cast<wm_ir_basic*>(ir_data);
+      memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRBasic) * 2);
+      auto* const ir_basic = reinterpret_cast<WiimoteEmu::IRBasic*>(ir_data);
       for (int i = 0; i < 2; ++i)
       {
         if (x[i * 2] < 1024 && y < 768)
@@ -413,8 +412,8 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     {
       // TODO: this code doesnt work, resulting in no IR TAS inputs in e.g. wii sports menu when no
       // remote extension is used
-      memset(ir_data, 0xFF, sizeof(wm_ir_extended) * 4);
-      wm_ir_extended* const ir_extended = reinterpret_cast<wm_ir_extended*>(ir_data);
+      memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRExtended) * 4);
+      auto* const ir_extended = reinterpret_cast<WiimoteEmu::IRExtended*>(ir_data);
       for (size_t i = 0; i < x.size(); ++i)
       {
         if (x[i] < 1024 && y < 768)
@@ -431,9 +430,11 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     }
   }
 
-  if (ext_data && m_nunchuk_stick_box->isVisible())
+  if (rpt.HasExt() && m_nunchuk_stick_box->isVisible())
   {
-    wm_nc& nunchuk = *reinterpret_cast<wm_nc*>(ext_data);
+    u8* const ext_data = rpt.GetExtDataPtr();
+
+    auto& nunchuk = *reinterpret_cast<WiimoteEmu::Nunchuk::DataFormat*>(ext_data);
 
     GetSpinBoxU8(m_nunchuk_stick_x_value, nunchuk.jx);
     GetSpinBoxU8(m_nunchuk_stick_y_value, nunchuk.jy);
@@ -459,13 +460,15 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     GetButton<u8>(m_z_button, nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
     nunchuk.bt.hex ^= 0b11;
 
-    WiimoteEncrypt(&key, reinterpret_cast<u8*>(&nunchuk), 0, sizeof(wm_nc));
+    key.Encrypt(reinterpret_cast<u8*>(&nunchuk), 0, sizeof(nunchuk));
   }
 
   if (m_classic_left_stick_box->isVisible())
   {
-    wm_classic_extension& cc = *reinterpret_cast<wm_classic_extension*>(ext_data);
-    WiimoteDecrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
+    u8* const ext_data = rpt.GetExtDataPtr();
+
+    auto& cc = *reinterpret_cast<WiimoteEmu::Classic::DataFormat*>(ext_data);
+    key.Decrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
 
     cc.bt.hex ^= 0xFFFF;
     GetButton<u16>(m_classic_a_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_A);
@@ -495,13 +498,13 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     GetSpinBoxU8(m_classic_right_stick_y_value, ry);
     cc.ry = ry;
 
-    u8 lx = cc.regular_data.lx;
+    u8 lx = cc.lx;
     GetSpinBoxU8(m_classic_left_stick_x_value, lx);
-    cc.regular_data.lx = lx;
+    cc.lx = lx;
 
-    u8 ly = cc.regular_data.ly;
+    u8 ly = cc.ly;
     GetSpinBoxU8(m_classic_left_stick_y_value, ly);
-    cc.regular_data.ly = ly;
+    cc.ly = ly;
 
     u8 rt = cc.rt;
     GetSpinBoxU8(m_right_trigger_value, rt);
@@ -512,6 +515,6 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     cc.lt1 = lt & 0b111;
     cc.lt2 = (lt >> 3) & 0b11;
 
-    WiimoteEncrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
+    key.Encrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
   }
 }

@@ -5,14 +5,22 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Timer.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/TextureConfig.h"
 
-class PostProcessingShaderConfiguration
+class AbstractPipeline;
+class AbstractShader;
+class AbstractTexture;
+
+namespace VideoCommon
+{
+class PostProcessingConfiguration
 {
 public:
   struct ConfigurationOption
@@ -43,26 +51,23 @@ public:
     std::string m_gui_name;
     std::string m_option_name;
     std::string m_dependent_option;
-    bool m_dirty;
   };
 
   using ConfigMap = std::map<std::string, ConfigurationOption>;
 
-  PostProcessingShaderConfiguration();
-  virtual ~PostProcessingShaderConfiguration();
+  PostProcessingConfiguration();
+  virtual ~PostProcessingConfiguration();
 
   // Loads the configuration with a shader
   // If the argument is "" the class will load the shader from the g_activeConfig option.
   // Returns the loaded shader source from file
-  std::string LoadShader(std::string shader = "");
+  void LoadShader(const std::string& shader);
+  void LoadDefaultShader();
   void SaveOptionsConfiguration();
-  void ReloadShader();
   const std::string& GetShader() const { return m_current_shader; }
-  bool IsDirty() const { return m_any_options_dirty; }
-  void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
+  const std::string& GetShaderCode() const { return m_current_shader_code; }
   bool HasOptions() const { return m_options.size() > 0; }
   const ConfigMap& GetOptions() const { return m_options; }
-  ConfigMap& GetOptions() { return m_options; }
   const ConfigurationOption& GetOption(const std::string& option) { return m_options[option]; }
   // For updating option's values
   void SetOptionf(const std::string& option, int index, float value);
@@ -70,27 +75,53 @@ public:
   void SetOptionb(const std::string& option, bool value);
 
 private:
-  bool m_any_options_dirty = false;
   std::string m_current_shader;
+  std::string m_current_shader_code;
   ConfigMap m_options;
 
   void LoadOptions(const std::string& code);
   void LoadOptionsConfiguration();
 };
 
-class PostProcessingShaderImplementation
+class PostProcessing
 {
 public:
-  PostProcessingShaderImplementation();
-  virtual ~PostProcessingShaderImplementation();
+  PostProcessing();
+  virtual ~PostProcessing();
 
-  static std::vector<std::string> GetShaderList(APIType api_type);
+  static std::vector<std::string> GetShaderList();
 
-  PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
+  PostProcessingConfiguration* GetConfig() { return &m_config; }
+
+  bool Initialize(AbstractTextureFormat format);
+
+  void RecompileShader();
+  void RecompilePipeline();
+
+  void BlitFromTexture(const MathUtil::Rectangle<int>& dst, const MathUtil::Rectangle<int>& src,
+                       const AbstractTexture* src_tex, int src_layer);
 
 protected:
+  std::string GetUniformBufferHeader() const;
+  std::string GetHeader() const;
+  std::string GetFooter() const;
+
+  bool CompileVertexShader();
+  bool CompilePixelShader();
+  bool CompilePipeline();
+
+  size_t CalculateUniformsSize() const;
+  void FillUniformBuffer(const MathUtil::Rectangle<int>& src, const AbstractTexture* src_tex,
+                         int src_layer);
+
   // Timer for determining our time value
   Common::Timer m_timer;
+  PostProcessingConfiguration m_config;
 
-  PostProcessingShaderConfiguration m_config;
+  std::unique_ptr<AbstractShader> m_vertex_shader;
+  std::unique_ptr<AbstractShader> m_pixel_shader;
+  std::unique_ptr<AbstractPipeline> m_pipeline;
+  AbstractTextureFormat m_framebuffer_format = AbstractTextureFormat::Undefined;
+  std::vector<u8> m_uniform_staging_buffer;
 };
+}  // namespace VideoCommon

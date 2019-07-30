@@ -11,16 +11,13 @@
 
 #include "Common/CommonTypes.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace FS
 {
 class FileSystem;
 }
 class IOSC;
-}
 }  // namespace IOS::HLE
 
 namespace WiiSave

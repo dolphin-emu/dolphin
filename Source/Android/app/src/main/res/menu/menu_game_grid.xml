@@ -9,6 +9,12 @@
         app:showAsAction="ifRoom"/>
 
     <item
+        android:id="@+id/menu_toggle_list"
+        android:title="@string/toggle_list"
+        android:icon="@drawable/ic_settings_graphics"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/menu_settings_core"
         android:title="@string/preferences_settings"
         android:icon="@drawable/ic_settings_core"
@@ -37,5 +43,11 @@
         android:title="@string/grid_menu_refresh"
         android:icon="@drawable/ic_refresh"
         app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/menu_open_file"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="@string/grid_menu_open_file"
+        app:showAsAction="ifRoom" />
 
 </menu>

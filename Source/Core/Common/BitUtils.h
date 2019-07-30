@@ -199,4 +199,56 @@ inline To BitCast(const From& source) noexcept
   std::memcpy(&storage, &source, sizeof(storage));
   return reinterpret_cast<To&>(storage);
 }
+
+template <typename T, typename PtrType>
+class BitCastPtrType
+{
+public:
+  static_assert(std::is_trivially_copyable<PtrType>(),
+                "BitCastPtr source type must be trivially copyable.");
+  static_assert(std::is_trivially_copyable<T>(),
+                "BitCastPtr destination type must be trivially copyable.");
+
+  explicit BitCastPtrType(PtrType* ptr) : m_ptr(ptr) {}
+
+  // Enable operator= only for pointers to non-const data
+  template <typename S>
+  inline typename std::enable_if<std::is_same<S, T>() && !std::is_const<PtrType>()>::type
+  operator=(const S& source)
+  {
+    std::memcpy(m_ptr, &source, sizeof(source));
+  }
+
+  inline operator T() const
+  {
+    T result;
+    std::memcpy(&result, m_ptr, sizeof(result));
+    return result;
+  }
+
+private:
+  PtrType* m_ptr;
+};
+
+// Provides an aliasing-safe alternative to reinterpret_cast'ing pointers to structs
+// Conversion constructor and operator= provided for a convenient syntax.
+// Usage: MyStruct s = BitCastPtr<MyStruct>(some_ptr);
+// BitCastPtr<MyStruct>(some_ptr) = s;
+template <typename T, typename PtrType>
+inline auto BitCastPtr(PtrType* ptr) noexcept -> BitCastPtrType<T, PtrType>
+{
+  return BitCastPtrType<T, PtrType>{ptr};
+}
+
+template <typename T>
+void SetBit(T& value, size_t bit_number, bool bit_value)
+{
+  static_assert(std::is_unsigned<T>(), "SetBit is only sane on unsigned types.");
+
+  if (bit_value)
+    value |= (T{1} << bit_number);
+  else
+    value &= ~(T{1} << bit_number);
+}
+
 }  // namespace Common

@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/VertexLoaderManager.h"
+
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -11,17 +14,17 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 
@@ -51,7 +54,7 @@ void Init()
     map_entry = nullptr;
   for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
     map_entry = nullptr;
-  SETSTAT(stats.numVertexLoaders, 0);
+  SETSTAT(g_stats.num_vertex_loaders, 0);
 }
 
 void Clear()
@@ -131,68 +134,12 @@ NativeVertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& d
   auto iter = s_native_vertex_map.find(decl);
   if (iter == s_native_vertex_map.end())
   {
-    std::unique_ptr<NativeVertexFormat> fmt = g_vertex_manager->CreateNativeVertexFormat(decl);
+    std::unique_ptr<NativeVertexFormat> fmt = g_renderer->CreateNativeVertexFormat(decl);
     auto ipair = s_native_vertex_map.emplace(decl, std::move(fmt));
     iter = ipair.first;
   }
 
   return iter->second.get();
-}
-
-NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
-{
-  // The padding in the structs can cause the memcmp() in the map to create duplicates.
-  // Avoid this by initializing the padding to zero.
-  PortableVertexDeclaration new_decl;
-  std::memset(&new_decl, 0, sizeof(new_decl));
-  new_decl.stride = decl.stride;
-
-  auto MakeDummyAttribute = [](AttributeFormat& attr, VarType type, int components, bool integer) {
-    attr.type = type;
-    attr.components = components;
-    attr.offset = 0;
-    attr.enable = true;
-    attr.integer = integer;
-  };
-  auto CopyAttribute = [](AttributeFormat& attr, const AttributeFormat& src) {
-    attr.type = src.type;
-    attr.components = src.components;
-    attr.offset = src.offset;
-    attr.enable = src.enable;
-    attr.integer = src.integer;
-  };
-
-  if (decl.position.enable)
-    CopyAttribute(new_decl.position, decl.position);
-  else
-    MakeDummyAttribute(new_decl.position, VAR_FLOAT, 1, false);
-  for (size_t i = 0; i < ArraySize(new_decl.normals); i++)
-  {
-    if (decl.normals[i].enable)
-      CopyAttribute(new_decl.normals[i], decl.normals[i]);
-    else
-      MakeDummyAttribute(new_decl.normals[i], VAR_FLOAT, 1, false);
-  }
-  for (size_t i = 0; i < ArraySize(new_decl.colors); i++)
-  {
-    if (decl.colors[i].enable)
-      CopyAttribute(new_decl.colors[i], decl.colors[i]);
-    else
-      MakeDummyAttribute(new_decl.colors[i], VAR_UNSIGNED_BYTE, 4, false);
-  }
-  for (size_t i = 0; i < ArraySize(new_decl.texcoords); i++)
-  {
-    if (decl.texcoords[i].enable)
-      CopyAttribute(new_decl.texcoords[i], decl.texcoords[i]);
-    else
-      MakeDummyAttribute(new_decl.texcoords[i], VAR_FLOAT, 1, false);
-  }
-  if (decl.posmtx.enable)
-    CopyAttribute(new_decl.posmtx, decl.posmtx);
-  else
-    MakeDummyAttribute(new_decl.posmtx, VAR_UNSIGNED_BYTE, 1, true);
-
-  return GetOrCreateMatchingFormat(new_decl);
 }
 
 static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
@@ -220,7 +167,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       s_vertex_loader_map[uid] =
           VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
       loader = s_vertex_loader_map[uid].get();
-      INCSTAT(stats.numVertexLoaders);
+      INCSTAT(g_stats.num_vertex_loaders);
     }
     if (check_for_native_format)
     {
@@ -228,9 +175,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
       std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
       if (!native)
-      {
-        native = g_vertex_manager->CreateNativeVertexFormat(format);
-      }
+        native = g_renderer->CreateNativeVertexFormat(format);
       loader->m_native_vertex_format = native.get();
     }
     state->vertex_loaders[vtx_attr_group] = loader;
@@ -281,8 +226,8 @@ void RunVertices(int vtx_attr_group, int primitive, int count, const DataReader&
 
   g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
 
-  ADDSTAT(stats.thisFrame.numPrims, count);
-  INCSTAT(stats.thisFrame.numPrimitiveJoins);
+  ADDSTAT(g_stats.this_frame.num_prims, count);
+  INCSTAT(g_stats.this_frame.num_primitive_joins);
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()
@@ -342,7 +287,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 
   // Pointers to vertex arrays in GC RAM
   case 0xA0:
-    state->array_bases[sub_cmd & 0xF] = value;
+    state->array_bases[sub_cmd & 0xF] = value & CommandProcessor::GetPhysicalAddressMask();
     state->bases_dirty = true;
     break;
 

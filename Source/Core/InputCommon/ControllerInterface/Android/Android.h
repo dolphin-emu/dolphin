@@ -7,11 +7,10 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "jni/ButtonManager.h"
 
-namespace ciface
-{
-namespace Android
+namespace ciface::Android
 {
 void PopulateDevices();
+
 class Touchscreen : public Core::Device
 {
 private:
@@ -30,6 +29,7 @@ private:
   {
   public:
     std::string GetName() const;
+    bool IsDetectable() override { return false; }
     Axis(int padID, ButtonManager::ButtonType index, float neg = 1.0f)
         : _padID(padID), _index(index), _neg(neg)
     {
@@ -64,5 +64,4 @@ public:
 private:
   const int _padID;
 };
-}
-}
+}  // namespace ciface::Android

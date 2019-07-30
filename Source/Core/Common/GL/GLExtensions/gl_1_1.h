@@ -625,6 +625,11 @@
 #define GL_ALL_CLIENT_ATTRIB_BITS 0xFFFFFFFF
 #define GL_CLIENT_ALL_ATTRIB_BITS 0xFFFFFFFF
 
+// ARB_framebuffer_object
+#define GL_COLOR_EXT   0x1800
+#define GL_DEPTH_EXT   0x1801
+#define GL_STENCIL_EXT 0x1802
+
 typedef void(APIENTRYP PFNDOLCLEARINDEXPROC)(GLfloat c);
 typedef void(APIENTRYP PFNDOLCLEARCOLORPROC)(GLclampf red, GLclampf green, GLclampf blue,
                                              GLclampf alpha);

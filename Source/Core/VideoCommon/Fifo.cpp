@@ -275,11 +275,11 @@ static u32 ReadDataFromFifoOnCPU(u32 readPtr, u32* needSize)
   }
   Memory::CopyFromEmu(write_ptr, readPtr, len);
   write_ptr += len;
-  if(write_ptr - s_video_buffer_pp_read_ptr >= *needSize)
+  if (write_ptr - s_video_buffer_pp_read_ptr >= *needSize)
   {
     *needSize = 0;
     s_video_buffer_pp_read_ptr = OpcodeDecoder::Run<true>(
-      DataReader(s_video_buffer_pp_read_ptr, write_ptr), nullptr, false, needSize);
+        DataReader(s_video_buffer_pp_read_ptr, write_ptr), nullptr, false, needSize);
   }
   // This would have to be locked if the GPU thread didn't spin.
   s_video_buffer_write_ptr = write_ptr;
@@ -329,9 +329,7 @@ void RunGpuLoop()
         else
         {
           CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
-
           AsyncRequests::GetInstance()->PullEvents();
-
           CommandProcessor::SetCPStatusFromGPU();
 
           u32 needSize = 0;
@@ -344,27 +342,25 @@ void RunGpuLoop()
 
             u32 readPtr = fifo.CPReadPointer;
             u32 readSize = ReadDataFromFifo(readPtr);
+            u8* write_ptr = s_video_buffer_write_ptr;
 
             readPtr += readSize;
             if (readPtr == fifo.CPEnd + 32)
               readPtr = fifo.CPBase;
 
-            Common::AtomicStore(fifo.CPReadPointer, readPtr);
-            Common::AtomicStore(fifo.SafeCPReadPointer, readPtr);
+            fifo.CPReadPointer = readPtr;
             Common::AtomicAdd(fifo.CPReadWriteDistance, -(s32)readSize);
 
-            ASSERT_MSG(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - readSize >= 0,
-                       "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
-                       "instability in the game. Please report it.",
-                       fifo.CPReadWriteDistance - readSize);
-
-            u8* write_ptr = s_video_buffer_write_ptr;
             if (write_ptr - s_video_buffer_read_ptr >= needSize)
             {
               u32 cyclesExecuted = 0;
               needSize = 0;
-              s_video_buffer_read_ptr = OpcodeDecoder::Run(
-                  DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false, &needSize);
+              s_video_buffer_read_ptr =
+                  OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, write_ptr),
+                                     &cyclesExecuted, false, &needSize);
+
+              if ((write_ptr - s_video_buffer_read_ptr) == 0)
+                Common::AtomicStore(fifo.SafeCPReadPointer, readPtr);
 
               if (param.bSyncGPU)
               {
@@ -391,10 +387,6 @@ void RunGpuLoop()
             if (old >= param.iSyncGpuMaxDistance)
               s_sync_wakeup_event.Set();
           }
-
-          // The fifo is empty and it's unlikely we will get any more work in the near future.
-          // Make sure VertexManager finishes drawing any primitives it has stored in it's buffer.
-          g_vertex_manager->Flush();
         }
       },
       100);
@@ -475,8 +467,8 @@ static int RunGpuOnCpu(int ticks)
       {
         u32 cycles = 0;
         need_size = 0;
-        s_video_buffer_read_ptr = OpcodeDecoder::Run(
-          DataReader(s_video_buffer_read_ptr, write_ptr), &cycles, false, &need_size);
+        s_video_buffer_read_ptr = OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, write_ptr),
+                                                     &cycles, false, &need_size);
         available_ticks -= cycles;
       }
     }
@@ -600,4 +592,4 @@ void Prepare()
   s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
   s_syncing_suspended = true;
 }
-}
+}  // namespace Fifo

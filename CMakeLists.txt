@@ -1,13 +1,11 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-# Note that the SDK determines the maximum version of which optional
-# features can be used, not the minimum required version to run.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10.0" CACHE STRING "")
 
 project(dolphin-emu)
 
@@ -25,6 +23,7 @@ endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
+option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
 option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
@@ -32,6 +31,7 @@ option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
+option(ENABLE_TESTS "Enables building the unit tests" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -106,6 +106,14 @@ endif()
 # here.  You must run "make install" to install these to the proper location
 # as defined above.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+
+if (WIN32)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif()
 
 # setup CCache
 include(CCache)
@@ -203,8 +211,8 @@ endif()
 
 
 # Enforce minimum GCC version
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
-  message(FATAL_ERROR "Dolphin requires at least GCC 6.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
+  message(FATAL_ERROR "Dolphin requires at least GCC 7.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
 endif()
 
 if(CMAKE_GENERATOR MATCHES "Ninja")
@@ -361,10 +369,19 @@ if(ENABLE_VTUNE)
   )
 endif()
 
+if(WIN32)
+  message(STATUS "Building for Windows, disabling NoGUI frontend.")
+  set(ENABLE_NOGUI OFF)
+endif()
+
 if(ANDROID)
   message(STATUS "Building for Android")
   if(NOT ENABLE_HEADLESS)
     add_definitions(-DANDROID)
+    if(ENABLE_NOGUI)
+      message(STATUS "Building Android app, disabling NoGUI frontend.")
+      set(ENABLE_NOGUI 0)
+    endif()
   else()
     # Lie to cmake a bit. We are cross compiling to Android
     # but not as a shared library. We want an executable.
@@ -385,7 +402,6 @@ if(ENABLE_HEADLESS)
   message(STATUS "Enabling Headless! Disabling GUI.")
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
-  add_definitions(-DUSE_HEADLESS)
 endif()
 
 # Set file offset size to 64 bits.
@@ -430,7 +446,12 @@ if(ENABLE_X11)
   endif()
 endif()
 
-if(ENABLE_EGL)
+if(ANDROID)
+  set(EGL_FOUND 1)
+  set(EGL_LIBRARIES EGL)
+  add_definitions(-DHAVE_EGL=1)
+  message(STATUS "EGL OpenGL interface enabled")
+elseif(ENABLE_EGL)
   find_package(EGL)
   if(EGL_FOUND)
     add_definitions(-DHAVE_EGL=1)
@@ -509,15 +530,17 @@ endif()
 #     should be linked statically)
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
-#
-if(NOT ANDROID)
-  add_subdirectory(Externals/cpp-optparse)
-endif()
 
 if (_M_X86)
   add_subdirectory(Externals/Bochs_disasm)
 endif()
 
+if(NOT ANDROID)
+  add_subdirectory(Externals/cpp-optparse)
+  add_subdirectory(Externals/minizip)
+  include_directories(External/minizip)
+endif()
+add_subdirectory(Externals/fmt EXCLUDE_FROM_ALL)
 add_subdirectory(Externals/glslang)
 
 if(USE_SHARED_ENET)
@@ -560,9 +583,6 @@ else()
   add_subdirectory(Externals/zlib)
 endif()
 
-add_subdirectory(Externals/minizip)
-include_directories(External/minizip)
-
 if(NOT APPLE)
   check_lib(LZO "(no .pc for lzo2)" lzo2 lzo/lzo1x.h QUIET)
 endif()
@@ -589,6 +609,11 @@ endif()
 # There is no system FreeSurround library.
 message(STATUS "Using static FreeSurround from Externals")
 add_subdirectory(Externals/FreeSurround)
+
+if (APPLE OR WIN32)
+  message(STATUS "Using ed25519 from Externals")
+  add_subdirectory(Externals/ed25519)
+endif()
 
 # Using static soundtouch from Externals
 # Unable to use system soundtouch library: We require shorts, not floats.
@@ -677,11 +702,11 @@ if(NOT pugixml_FOUND)
   message(STATUS "Using static pugixml from Externals")
   add_subdirectory(Externals/pugixml)
 endif()
+endif()
 
 # iconv
 find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
 find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
-endif()
 
 if (NOT ANDROID AND ICONV_LIBRARIES AND ICONV_INCLUDE_DIR)
   mark_as_advanced(ICONV_INCLUDE_DIR ICONV_LIBRARIES)
@@ -731,9 +756,11 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 ########################################
 # Unit testing.
 #
-if(NOT ANDROID)
+if(NOT ANDROID AND ENABLE_TESTS)
   message(STATUS "Using static gtest from Externals")
   add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+else()
+  message(STATUS "Unit tests are disabled")
 endif()
 
 ########################################

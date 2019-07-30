@@ -21,7 +21,7 @@ namespace File
 {
 struct FSTEntry;
 class IOFile;
-}
+}  // namespace File
 
 namespace DiscIO
 {
@@ -146,6 +146,7 @@ public:
   BlobType GetBlobType() const override;
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
+  bool IsDataSizeAccurate() const override { return true; }
 
 private:
   struct PartitionWithType
@@ -185,4 +186,4 @@ private:
   u64 m_data_size;
 };
 
-}  // namespace
+}  // namespace DiscIO

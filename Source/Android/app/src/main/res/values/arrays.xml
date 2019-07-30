@@ -5,32 +5,32 @@
 
     <!-- New UI CPU Core selection - Default -->
     <string-array name="emuCoresEntriesX86_64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT Recompiler</item>
+        <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesX86_64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>1</item>
+        <item>5</item>
+        <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT ARM64 Recompiler</item>
+        <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesARM64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>4</item>
+        <item>5</item>
+        <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesGeneric" translatable="false">
-        <item>Interpreter</item>
         <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesGeneric" translatable="false">
-        <item>0</item>
         <item>5</item>
+        <item>0</item>
     </integer-array>
 
     <!-- Wii System Languages -->
@@ -57,15 +57,6 @@
         <item>7</item>
         <item>8</item>
         <item>9</item>
-    </integer-array>
-
-    <string-array name="sensorBarPositionEntries" translatable="false">
-        <item>Bottom</item>
-        <item>Top</item>
-    </string-array>
-    <integer-array name="sensorBarPositionValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
     </integer-array>
 
     <!-- GameCube System Languages -->
@@ -98,6 +89,18 @@
         <item>0</item>
         <item>1</item>
         <item>8</item>
+    </integer-array>
+
+    <!-- SerialPort1 Device Selection -->
+    <string-array name="serialDeviceEntries" translatable="false">
+        <item>Nothing</item>
+        <item>Dummy</item>
+        <item>Broadband Adapter (TAP)</item>
+    </string-array>
+    <integer-array name="serialDeviceValues" translatable="false">
+        <item>255</item>
+        <item>0</item>
+        <item>5</item>
     </integer-array>
 
     <!-- Video backend selection -->
@@ -155,32 +158,36 @@
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
         <item>1x (640x528)</item>
-        <item>2x (1280x1056) for 720p</item>
-        <item>3x (1920x1584) for 1080p</item>
-        <item>4x (2560x2112)</item>
+        <item>1.5x (960x792) BUG</item>
+        <item>2x (1280x1056) 720p</item>
+        <item>3x (1920x1584) 1080p</item>
+        <item>4x (2560x2112) 2k</item>
     </string-array>
     <integer-array name="internalResolutionValues" translatable="false">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
+        <item>100</item>
+        <item>150</item>
+        <item>200</item>
+        <item>300</item>
+        <item>400</item>
     </integer-array>
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
-        <item>1x</item>
+        <item>Off</item>
         <item>2x</item>
         <item>4x</item>
+        <item>8x</item>
     </string-array>
     <integer-array name="FSAAValues" translatable="false">
-        <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>4</item>
+        <item>8</item>
     </integer-array>
 
     <!-- Anisotropic Filtering Preference -->
     <string-array name="anisotropicFilteringEntries" translatable="false">
-        <item>1x</item>
+        <item>Off</item>
         <item>2x</item>
         <item>4x</item>
         <item>8x</item>
@@ -227,6 +234,7 @@
     <string-array name="gcpadTypeEntries">
         <item>Disabled</item>
         <item>Emulated</item>
+        <item>GameCube Adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
@@ -237,6 +245,7 @@
     <string-array name="wiimoteTypeEntries">
         <item>Disabled</item>
         <item>Emulated</item>
+        <item>Real Wii Remote (DolphinBar required)</item>
     </string-array>
     <integer-array name="wiimoteTypeValues">
         <item>0</item>
@@ -259,20 +268,26 @@
 
     <string-array name="wiiJoystickSettings">
         <item>None</item>
-        <item>Emulate IR</item>
-        <item>Emulate Swing</item>
-        <item>Emulate Tilt</item>
-        <item>Emulate Shake</item>
+        <item>IR</item>
+        <item>Wii Swing</item>
+        <item>Wii Tilt</item>
+        <item>Wii Shake</item>
+        <item>Nunchuk Swing</item>
+        <item>Nunchuk Tilt</item>
+        <item>Nunchuk Shake</item>
     </string-array>
 
     <string-array name="wiiSensorSettings">
         <item>None</item>
-        <item>Wiimote Dpad</item>
+        <item>Wii Dpad</item>
         <item>Nunchuk Stick</item>
-        <item>Emulate IR</item>
-        <item>Emulate Swing</item>
-        <item>Emulate Tilt</item>
-        <item>Emulate Shake</item>
+        <item>IR</item>
+        <item>Wii Swing</item>
+        <item>Wii Tilt</item>
+        <item>Wii Shake</item>
+        <item>Nunchuk Swing</item>
+        <item>Nunchuk Tilt</item>
+        <item>Nunchuk Shake</item>
     </string-array>
 
     <string-array name="gcSensorSettings">
@@ -291,6 +306,8 @@
         <item>Start</item>
         <item>L</item>
         <item>R</item>
+        <item>L Analog</item>
+        <item>R Analog</item>
         <item>D-Pad</item>
         <item>Main Stick</item>
         <item>C Stick</item>
@@ -304,6 +321,8 @@
         <item>+</item>
         <item>-</item>
         <item>Home</item>
+        <item>Toggle X</item>
+        <item>Tilt Z</item>
         <item>D-Pad</item>
     </string-array>
 
@@ -315,6 +334,7 @@
         <item>+</item>
         <item>-</item>
         <item>Home</item>
+        <item>Toggle</item>
         <item>D-Pad</item>
         <item>C</item>
         <item>Z</item>
@@ -326,6 +346,8 @@
         <item>b</item>
         <item>x</item>
         <item>y</item>
+        <item>1</item>
+        <item>2</item>
         <item>+</item>
         <item>-</item>
         <item>Home</item>
@@ -336,6 +358,19 @@
         <item>D-Pad</item>
         <item>Left Stick</item>
         <item>Right Stick</item>
+    </string-array>
+
+    <string-array name="doubleTap">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+    </string-array>
+
+    <string-array name="doubleTapWithClassic">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+        <item>Classic A</item>
     </string-array>
 
 </resources>

@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -48,7 +47,6 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
@@ -56,12 +54,14 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             jniDebuggable true
+            signingConfig signingConfigs.release
         }
     }
 
     externalNativeBuild {
         cmake {
             path "../../../CMakeLists.txt"
+            version "3.10.2"
         }
     }
 
@@ -113,5 +113,5 @@ def getBuildVersionCode() {
         logger.error('Cannot find git, defaulting to dummy version number')
     }
 
-    return 0;
+    return 15808;
 }

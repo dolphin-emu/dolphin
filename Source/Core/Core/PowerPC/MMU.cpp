@@ -845,35 +845,35 @@ TranslateResult JitCache_TranslateAddress(u32 address)
   return TranslateResult{true, from_bat, tlb_addr.address};
 }
 
-  // *********************************************************************************
-  // Warning: Test Area
-  //
-  // This code is for TESTING and it works in interpreter mode ONLY. Some games (like
-  // COD iirc) work thanks to this basic TLB emulation.
-  // It is just a small hack and we have never spend enough time to finalize it.
-  // Cheers PearPC!
-  //
-  // *********************************************************************************
+// *********************************************************************************
+// Warning: Test Area
+//
+// This code is for TESTING and it works in interpreter mode ONLY. Some games (like
+// COD iirc) work thanks to this basic TLB emulation.
+// It is just a small hack and we have never spend enough time to finalize it.
+// Cheers PearPC!
+//
+// *********************************************************************************
 
-  /*
-   * PearPC
-   * ppc_mmu.cc
-   *
-   * Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
-   *
-   * This program is free software; you can redistribute it and/or modify
-   * it under the terms of the GNU General Public License version 2 as
-   * published by the Free Software Foundation.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   * GNU General Public License for more details.
-   *
-   * You should have received a copy of the GNU General Public License
-   * along with this program; if not, write to the Free Software
-   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */
+/*
+ * PearPC
+ * ppc_mmu.cc
+ *
+ * Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
 #define PPC_EXC_DSISR_PAGE (1 << 30)
 #define PPC_EXC_DSISR_PROT (1 << 27)
@@ -1302,4 +1302,14 @@ static TranslateAddressResult TranslateAddress(u32 address)
   return TranslatePageAddress(address, flag);
 }
 
-}  // namespace
+std::optional<u32> GetTranslatedAddress(u32 address)
+{
+  auto result = TranslateAddress<XCheckTLBFlag::NoException>(address);
+  if (!result.Success())
+  {
+    return std::nullopt;
+  }
+  return std::optional<u32>(result.address);
+}
+
+}  // namespace PowerPC

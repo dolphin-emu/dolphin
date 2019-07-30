@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -10,13 +11,15 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Thread.h"
+#include "Core/ConfigManager.h"
 #include "jni/ButtonManager.h"
 
 namespace ButtonManager
 {
-static const std::string touchScreenKey = "Touchscreen";
-static std::unordered_map<std::string, InputDevice*> m_controllers;
-static const char configStrings[][32] = {
+namespace
+{
+constexpr char touchScreenKey[] = "Touchscreen";
+constexpr std::array<const char*, 150> configStrings{{
     // GC
     "InputA",
     "InputB",
@@ -38,6 +41,8 @@ static const char configStrings[][32] = {
     "CStickRight",
     "InputL",
     "InputR",
+    "InputLAnalog",
+    "InputRAnalog",
     // Wiimote
     "WiimoteA",
     "WiimoteB",
@@ -71,6 +76,12 @@ static const char configStrings[][32] = {
     "ShakeX",
     "ShakeY",
     "ShakeZ",
+    // Hotkeys
+    "Sideways_Toggle",
+    "Upright_Toggle",
+    "Sideways_Hold",
+    "Upright_Hold",
+    "IR_Recenter",
     // Nunchuk
     "NunchukC",
     "NunchukZ",
@@ -168,8 +179,9 @@ static const char configStrings[][32] = {
     "TurntableCrossRight",
     // Rumble
     "Rumble",
-};
-static const ButtonType configTypes[] = {
+}};
+
+constexpr std::array<ButtonType, 150> configTypes{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -191,6 +203,8 @@ static const ButtonType configTypes[] = {
     STICK_C_RIGHT,
     TRIGGER_L,
     TRIGGER_R,
+    TRIGGER_L_ANALOG,
+    TRIGGER_R_ANALOG,
     // Wiimote
     WIIMOTE_BUTTON_A,
     WIIMOTE_BUTTON_B,
@@ -224,6 +238,12 @@ static const ButtonType configTypes[] = {
     WIIMOTE_SHAKE_X,
     WIIMOTE_SHAKE_Y,
     WIIMOTE_SHAKE_Z,
+    // Hotkeys
+    HOTKEYS_SIDEWAYS_TOGGLE,
+    HOTKEYS_UPRIGHT_TOGGLE,
+    HOTKEYS_SIDEWAYS_HOLD,
+    HOTKEYS_UPRIGHT_HOLD,
+    WIIMOTE_IR_RECENTER,
     // Nunchuk
     NUNCHUK_BUTTON_C,
     NUNCHUK_BUTTON_Z,
@@ -321,7 +341,9 @@ static const ButtonType configTypes[] = {
     TURNTABLE_CROSSFADE_RIGHT,
     // Rumble
     RUMBLE,
-};
+}};
+
+std::unordered_map<std::string, InputDevice*> m_controllers;
 
 static void AddBind(const std::string& dev, sBind* bind)
 {
@@ -334,12 +356,49 @@ static void AddBind(const std::string& dev, sBind* bind)
   m_controllers[dev] = new InputDevice(dev);
   m_controllers[dev]->AddBind(bind);
 }
+}  // Anonymous namespace
+
+static void LoadBindConfig(IniFile& ini)
+{
+  int maxID = SConfig::GetInstance().bWii ? 8 : 4;
+  IniFile::Section* section = ini.GetOrCreateSection("Android");
+  for (u32 a = 0; a < sizeof(configStrings) / sizeof(configStrings[0]); ++a)
+  {
+    for (int padID = 0; padID < maxID; ++padID)
+    {
+      BindType type;
+      int bindnum;
+      char dev[128];
+      bool hasbind = false;
+      char modifier = '+';
+      std::string value;
+      section->Get(StringFromFormat("%s_%d", configStrings[a], padID), &value, "");
+      if (value.empty())
+        continue;
+      if (std::string::npos != value.find("Axis"))
+      {
+        hasbind = true;
+        type = BIND_AXIS;
+        sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
+      }
+      else if (std::string::npos != value.find("Button"))
+      {
+        hasbind = true;
+        type = BIND_BUTTON;
+        sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
+      }
+      if (hasbind)
+        AddBind(std::string(dev),
+                new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
+    }
+  }
+}
 
 void Init(const std::string& gameId)
 {
-  const int MAX_PAD_NUM = 8;
-  // Initialize our touchScreenKey buttons
-  for (int a = 0; a < MAX_PAD_NUM; ++a)
+  // Initialize pad 0(gc 1) and pad 4(wii 1) as touch overlay controller
+  int maxID = SConfig::GetInstance().bWii ? 8 : 4;
+  for (int a = 0; a < maxID; a += 4)
   {
     // GC
     AddBind(touchScreenKey, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
@@ -363,6 +422,8 @@ void Init(const std::string& gameId)
     AddBind(touchScreenKey, new sBind(a, STICK_C_RIGHT, BIND_AXIS, STICK_C_RIGHT, 1.0f));
     AddBind(touchScreenKey, new sBind(a, TRIGGER_L, BIND_AXIS, TRIGGER_L, 1.0f));
     AddBind(touchScreenKey, new sBind(a, TRIGGER_R, BIND_AXIS, TRIGGER_R, 1.0f));
+    AddBind(touchScreenKey, new sBind(a, TRIGGER_L_ANALOG, BIND_AXIS, TRIGGER_L_ANALOG, 1.0f));
+    AddBind(touchScreenKey, new sBind(a, TRIGGER_R_ANALOG, BIND_AXIS, TRIGGER_R_ANALOG, 1.0f));
 
     // Wiimote
     AddBind(touchScreenKey, new sBind(a, WIIMOTE_BUTTON_A, BIND_BUTTON, WIIMOTE_BUTTON_A, 1.0f));
@@ -408,6 +469,18 @@ void Init(const std::string& gameId)
             new sBind(a, WIIMOTE_TILT_BACKWARD, BIND_AXIS, WIIMOTE_TILT_BACKWARD, 1.0f));
     AddBind(touchScreenKey, new sBind(a, WIIMOTE_TILT_LEFT, BIND_AXIS, WIIMOTE_TILT_LEFT, -1.0f));
     AddBind(touchScreenKey, new sBind(a, WIIMOTE_TILT_RIGHT, BIND_AXIS, WIIMOTE_TILT_RIGHT, 1.0f));
+
+    // Hotkeys
+    AddBind(touchScreenKey,
+            new sBind(a, HOTKEYS_SIDEWAYS_TOGGLE, BIND_BUTTON, HOTKEYS_SIDEWAYS_TOGGLE, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, HOTKEYS_UPRIGHT_TOGGLE, BIND_BUTTON, HOTKEYS_UPRIGHT_TOGGLE, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, HOTKEYS_SIDEWAYS_HOLD, BIND_BUTTON, HOTKEYS_SIDEWAYS_HOLD, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, HOTKEYS_UPRIGHT_HOLD, BIND_BUTTON, HOTKEYS_UPRIGHT_HOLD, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_IR_RECENTER, BIND_BUTTON, WIIMOTE_IR_RECENTER, 1.0f));
 
     // Wii: Nunchuk
     AddBind(touchScreenKey, new sBind(a, NUNCHUK_BUTTON_C, BIND_BUTTON, NUNCHUK_BUTTON_C, 1.0f));
@@ -558,71 +631,12 @@ void Init(const std::string& gameId)
     AddBind(touchScreenKey,
             new sBind(a, TURNTABLE_CROSSFADE_RIGHT, BIND_AXIS, TURNTABLE_CROSSFADE_RIGHT, 1.0f));
   }
+
   // Init our controller bindings
   IniFile ini;
-  ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
-  for (u32 a = 0; a < ArraySize(configStrings); ++a)
-  {
-    for (int padID = 0; padID < MAX_PAD_NUM; ++padID)
-    {
-      BindType type;
-      int bindnum;
-      char dev[128];
-      bool hasbind = false;
-      char modifier = '+';
-      std::string value;
-      ini.GetOrCreateSection("Android")->Get(StringFromFormat("%s_%d", configStrings[a], padID), &value, "");
-      if (value.empty())
-        continue;
-      if (std::string::npos != value.find("Axis"))
-      {
-        hasbind = true;
-        type = BIND_AXIS;
-        sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
-      }
-      else if (std::string::npos != value.find("Button"))
-      {
-        hasbind = true;
-        type = BIND_BUTTON;
-        sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
-      }
-      if (hasbind)
-        AddBind(std::string(dev),
-                new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
-    }
-  }
-
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"));
-  for (u32 a = 0; a < ArraySize(configStrings); ++a)
-  {
-    for (int padID = 0; padID < MAX_PAD_NUM; ++padID)
-    {
-      BindType type;
-      int bindnum;
-      char dev[128];
-      bool hasbind = false;
-      char modifier = '+';
-      std::string value;
-      ini.GetOrCreateSection("Android")->Get(StringFromFormat("%s_%d", configStrings[a], padID), &value, "");
-      if (value.empty())
-        continue;
-      if (std::string::npos != value.find("Axis"))
-      {
-        hasbind = true;
-        type = BIND_AXIS;
-        sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
-      }
-      else if (std::string::npos != value.find("Button"))
-      {
-        hasbind = true;
-        type = BIND_BUTTON;
-        sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
-      }
-      if (hasbind)
-        AddBind(std::string(dev),
-                new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
-    }
-  }
+  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX), true);
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"), true);
+  LoadBindConfig(ini);
 }
 
 bool GetButtonPressed(int padID, ButtonType button)
@@ -727,4 +741,4 @@ float InputDevice::AxisValue(int padID, ButtonType axis)
   else
     return _buttons[binding->second->_buttontype] == BUTTON_PRESSED ? 1.0f : 0.0f;
 }
-}
+}  // namespace ButtonManager

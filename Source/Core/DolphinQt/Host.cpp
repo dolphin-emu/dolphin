@@ -10,16 +10,20 @@
 
 #include "Common/Common.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/Host.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#include "UICommon/DiscordPresence.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -56,7 +60,7 @@ void Host::SetRenderFocus(bool focus)
   m_render_focus = focus;
   if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
     Core::RunAsCPUThread([focus] {
-      if (!SConfig::GetInstance().bRenderToMain)
+      if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
         g_renderer->SetFullscreen(focus);
     });
 }
@@ -153,4 +157,13 @@ bool Host_UINeedsControllerState()
 }
 void Host_RefreshDSPDebuggerWindow()
 {
+}
+
+void Host_TitleChanged()
+{
+#ifdef USE_DISCORD_PRESENCE
+  // TODO: Not sure if the NetPlay check is needed.
+  if (!NetPlay::IsNetPlayRunning())
+    Discord::UpdateDiscordPresence();
+#endif
 }

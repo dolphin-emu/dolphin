@@ -31,4 +31,4 @@ private:
   s32 m_histr1 = 0;
   s32 m_histr2 = 0;
 };
-}
+}  // namespace StreamADPCM

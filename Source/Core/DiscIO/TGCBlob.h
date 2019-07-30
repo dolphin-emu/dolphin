@@ -43,8 +43,9 @@ public:
   static std::unique_ptr<TGCFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::TGC; }
-  u64 GetDataSize() const override;
   u64 GetRawSize() const override { return m_size; }
+  u64 GetDataSize() const override;
+  bool IsDataSizeAccurate() const override { return true; }
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:

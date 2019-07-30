@@ -6,18 +6,6 @@
 
 #include "Common/MathUtil.h"
 
-TEST(MathUtil, Clamp)
-{
-  EXPECT_EQ(1, MathUtil::Clamp(1, 0, 2));
-  EXPECT_EQ(1.0, MathUtil::Clamp(1.0, 0.0, 2.0));
-
-  EXPECT_EQ(2, MathUtil::Clamp(4, 0, 2));
-  EXPECT_EQ(2.0, MathUtil::Clamp(4.0, 0.0, 2.0));
-
-  EXPECT_EQ(0, MathUtil::Clamp(-1, 0, 2));
-  EXPECT_EQ(0.0, MathUtil::Clamp(-1.0, 0.0, 2.0));
-}
-
 TEST(MathUtil, IntLog2)
 {
   EXPECT_EQ(0, IntLog2(1));

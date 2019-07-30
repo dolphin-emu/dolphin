@@ -2,16 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/Rasterizer.h"
+
 #include <algorithm>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
-#include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -72,12 +74,12 @@ void SetTevReg(int reg, int comp, s16 color)
 
 static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
-  INCSTAT(stats.thisFrame.rasterizedPixels);
+  INCSTAT(g_stats.this_frame.rasterized_pixels);
 
   float dx = vertexOffsetX + (float)(x - vertex0X);
   float dy = vertexOffsetY + (float)(y - vertex0Y);
 
-  s32 z = (s32)MathUtil::Clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
+  s32 z = (s32)std::clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
   if (bpmem.zmode.testenable && bpmem.zcontrol.early_ztest && g_ActiveConfig.bZComploc)
   {
@@ -267,7 +269,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
                            const OutputVertexData* v2)
 {
-  INCSTAT(stats.thisFrame.numTrianglesDrawn);
+  INCSTAT(g_stats.this_frame.num_triangles_drawn);
 
   // adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
@@ -467,4 +469,4 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
     }
   }
 }
-}
+}  // namespace Rasterizer

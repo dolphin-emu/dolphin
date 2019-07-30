@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Logging/LogManager.h"
+
 #include <algorithm>
 #include <cstdarg>
 #include <cstring>
@@ -10,12 +12,13 @@
 #include <ostream>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
-#include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
@@ -91,7 +94,7 @@ LogManager::LogManager()
   // create log containers
   m_log[LogTypes::ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
   m_log[LogTypes::AUDIO] = {"Audio", "Audio Emulator"};
-  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface (AI)"};
+  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface"};
   m_log[LogTypes::BOOT] = {"BOOT", "Boot"};
   m_log[LogTypes::COMMANDPROCESSOR] = {"CP", "CommandProc"};
   m_log[LogTypes::COMMON] = {"COMMON", "Common"};
@@ -131,11 +134,11 @@ LogManager::LogManager()
   m_log[LogTypes::PIXELENGINE] = {"PE", "PixelEngine"};
   m_log[LogTypes::PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
   m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
-  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
+  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface"};
   m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
   m_log[LogTypes::SYMBOLS] = {"SYMBOLS", "Symbols"};
   m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
-  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
+  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface"};
   m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
   m_log[LogTypes::WII_IPC] = {"WII_IPC", "WII IPC"};
 
@@ -173,6 +176,8 @@ LogManager::~LogManager()
 
 void LogManager::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_FILE, IsListenerEnabled(LogListener::FILE_LISTENER));
   Config::SetBaseOrCurrent(LOGGER_WRITE_TO_CONSOLE,
                            IsListenerEnabled(LogListener::CONSOLE_LISTENER));
@@ -205,9 +210,9 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
   char temp[MAX_MSGLEN];
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  std::string msg =
-      StringFromFormat("%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file,
-                       line, LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
+  const std::string msg =
+      fmt::format("{} {}:{} {}[{}]: {}\n", Common::Timer::GetTimeFormatted(), file, line,
+                  LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
 
   for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])

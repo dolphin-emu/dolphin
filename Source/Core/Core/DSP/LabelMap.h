@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -21,25 +23,18 @@ enum LabelType
 
 class LabelMap
 {
-  struct label_t
-  {
-    label_t(const std::string& lbl, s32 address, LabelType ltype)
-        : name(lbl), addr(address), type(ltype)
-    {
-    }
-    std::string name;
-    s32 addr;
-    LabelType type;
-  };
-  std::vector<label_t> labels;
-
 public:
   LabelMap();
-  ~LabelMap() {}
+  ~LabelMap();
+
   void RegisterDefaults();
-  void RegisterLabel(const std::string& label, u16 lval, LabelType type = LABEL_VALUE);
-  void DeleteLabel(const std::string& label);
-  bool GetLabelValue(const std::string& label, u16* value, LabelType type = LABEL_ANY) const;
+  void RegisterLabel(std::string label, u16 lval, LabelType type = LABEL_VALUE);
+  void DeleteLabel(std::string_view label);
+  std::optional<u16> GetLabelValue(const std::string& label, LabelType type = LABEL_ANY) const;
   void Clear();
+
+private:
+  struct Label;
+  std::vector<Label> labels;
 };
 }  // namespace DSP

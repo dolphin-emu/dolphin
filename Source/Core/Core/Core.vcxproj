@@ -56,7 +56,6 @@
     <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="Config\WiimoteInputSettings.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
@@ -103,6 +102,7 @@
     <ClCompile Include="FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp" />
+    <ClCompile Include="Gecko2AR.cpp" />
     <ClCompile Include="GeckoCode.cpp" />
     <ClCompile Include="GeckoCodeConfig.cpp" />
     <ClCompile Include="HLE\HLE.cpp" />
@@ -110,6 +110,7 @@
     <ClCompile Include="HLE\HLE_OS.cpp" />
     <ClCompile Include="HLE\HLE_VarArgs.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
+    <ClCompile Include="HW\AddressSpace.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\CPU.cpp" />
     <ClCompile Include="HW\DSP.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="HW\GCKeyboard.cpp" />
     <ClCompile Include="HW\GCKeyboardEmu.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCIFile.cpp" />
     <ClCompile Include="HW\GCMemcard\GCMemcard.cpp" />
     <ClCompile Include="HW\GCMemcard\GCMemcardDirectory.cpp" />
     <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp" />
@@ -170,14 +172,23 @@
     <ClCompile Include="HW\SystemTimers.cpp" />
     <ClCompile Include="HW\VideoInterface.cpp" />
     <ClCompile Include="HW\Wiimote.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Attachment.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Classic.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Drums.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Guitar.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Nunchuk.cpp" />
-    <ClCompile Include="HW\WiimoteEmu\Attachment\Turntable.cpp" />
+    <ClCompile Include="HW\WiimoteCommon\DataReport.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Camera.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Dynamics.cpp" />
     <ClCompile Include="HW\WiimoteEmu\EmuSubroutines.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Encryption.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\ExtensionPort.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Classic.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\DrawsomeTablet.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Drums.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Extension.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Guitar.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Nunchuk.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\TaTaCon.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\Turntable.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\Extension\UDrawTablet.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\I2CBus.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\MotionPlus.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Speaker.cpp" />
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp" />
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
@@ -220,6 +231,9 @@
     <ClCompile Include="IOS\USB\LibusbDevice.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="LibusbUtils.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IOS\USB\Host.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -250,6 +264,7 @@
     <ClCompile Include="PowerPC\BreakPoints.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
+    <ClCompile Include="PowerPC\ConditionRegister.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -278,7 +293,6 @@
     <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp" />
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
@@ -320,7 +334,6 @@
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Config\UISettings.h" />
-    <ClInclude Include="Config\WiimoteInputSettings.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />
@@ -359,6 +372,7 @@
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
+    <ClInclude Include="Gecko2AR.h" />
     <ClInclude Include="GeckoCode.h" />
     <ClInclude Include="GeckoCodeConfig.h" />
     <ClInclude Include="HLE\HLE.h" />
@@ -367,6 +381,7 @@
     <ClInclude Include="HLE\HLE_VarArgs.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
+    <ClInclude Include="HW\AddressSpace.h" />
     <ClInclude Include="HW\AudioInterface.h" />
     <ClInclude Include="HW\CPU.h" />
     <ClInclude Include="HW\DSP.h" />
@@ -404,6 +419,7 @@
     <ClInclude Include="HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="HW\GCKeyboard.h" />
     <ClInclude Include="HW\GCKeyboardEmu.h" />
+    <ClInclude Include="HW\GCMemcard\GCIFile.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcard.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h" />
@@ -430,19 +446,27 @@
     <ClInclude Include="HW\SystemTimers.h" />
     <ClInclude Include="HW\VideoInterface.h" />
     <ClInclude Include="HW\Wiimote.h" />
+    <ClInclude Include="HW\WiimoteCommon\DataReport.h" />
     <ClInclude Include="HW\WiimoteCommon\WiimoteConstants.h" />
     <ClInclude Include="HW\WiimoteCommon\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Attachment.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Classic.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Drums.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Guitar.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Nunchuk.h" />
-    <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h" />
+    <ClInclude Include="HW\WiimoteEmu\Camera.h" />
+    <ClInclude Include="HW\WiimoteEmu\Dynamics.h" />
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
-    <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
+    <ClInclude Include="HW\WiimoteEmu\ExtensionPort.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Classic.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\DrawsomeTablet.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Drums.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Extension.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Guitar.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Nunchuk.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\TaTaCon.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\Turntable.h" />
+    <ClInclude Include="HW\WiimoteEmu\Extension\UDrawTablet.h" />
+    <ClInclude Include="HW\WiimoteEmu\I2CBus.h" />
+    <ClInclude Include="HW\WiimoteEmu\MotionPlus.h" />
+    <ClInclude Include="HW\WiimoteEmu\Speaker.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />
-    <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="HW\WiiSave.h" />
@@ -477,6 +501,7 @@
     <ClInclude Include="IOS\STM\STM.h" />
     <ClInclude Include="IOS\USB\Common.h" />
     <ClInclude Include="IOS\USB\LibusbDevice.h" />
+    <ClInclude Include="LibusbUtils.h" />
     <ClInclude Include="IOS\USB\Host.h" />
     <ClInclude Include="IOS\USB\OH0\OH0.h" />
     <ClInclude Include="IOS\USB\OH0\OH0Device.h" />
@@ -509,6 +534,7 @@
     <ClInclude Include="PowerPC\Gekko.h" />
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
+    <ClInclude Include="PowerPC\ConditionRegister.h" />
     <ClInclude Include="PowerPC\Interpreter\ExceptionUtils.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
@@ -522,7 +548,7 @@
     <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h" />
     <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h" />
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h" />
     <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h" />
     <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h" />

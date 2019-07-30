@@ -7,11 +7,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,31 +36,45 @@ public final class GameFileCacheService extends IntentService
     return Arrays.asList(gameFiles.get());
   }
 
-  public static List<GameFile> getGameFilesForPlatform(Platform platform)
+  public static GameFile getGameFileByPath(String path)
   {
-    GameFile[] allGames = gameFiles.get();
-    ArrayList<GameFile> platformGames = new ArrayList<>();
-    for (GameFile game : allGames)
+    for(GameFile game : gameFiles.get())
     {
-      if (Platform.fromNativeInt(game.getPlatform()) == platform)
-      {
-        platformGames.add(game);
-      }
-    }
-    return platformGames;
-  }
-
-  public static GameFile getGameFileByGameId(String gameId)
-  {
-    GameFile[] allGames = gameFiles.get();
-    for (GameFile game : allGames)
-    {
-      if (game.getGameId().equals(gameId))
+      if(path.equals(game.getPath()))
       {
         return game;
       }
     }
     return null;
+  }
+
+  public static String[] getAllDiscPaths(GameFile game)
+  {
+    String[] paths = new String[2];
+    GameFile matchWithoutRevision = null;
+    paths[0] = game.getPath();
+
+    for (GameFile otherGame : gameFiles.get())
+    {
+      if (game.getGameId().equals(otherGame.getGameId()) &&
+              game.getDiscNumber() != otherGame.getDiscNumber())
+      {
+        if (game.getRevision() == otherGame.getRevision())
+        {
+          paths[1] = otherGame.getPath();
+          return paths;
+        }
+        else
+        {
+          matchWithoutRevision = otherGame;
+        }
+      }
+    }
+
+    if (matchWithoutRevision != null)
+      paths[1] = matchWithoutRevision.getPath();
+
+    return paths;
   }
 
   private static void startService(Context context, String action)
@@ -107,9 +117,12 @@ public final class GameFileCacheService extends IntentService
   @Override
   protected void onHandleIntent(Intent intent)
   {
-    // Load the game list cache if it isn't already loaded, otherwise do nothing
-    if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null)
+    if (ACTION_LOAD.equals(intent.getAction()))
     {
+      if (gameFileCache != null)
+        return;
+
+      // Load the game list cache if it isn't already loaded, otherwise do nothing
       GameFileCache temp = new GameFileCache();
       synchronized (temp)
       {
@@ -118,10 +131,12 @@ public final class GameFileCacheService extends IntentService
         updateGameFileArray();
       }
     }
-
-    // Rescan the file system and update the game list cache with the results
-    if (ACTION_RESCAN.equals(intent.getAction()) && gameFileCache != null)
+    else if (ACTION_RESCAN.equals(intent.getAction()))
     {
+      if (gameFileCache == null)
+        return;
+
+      // Rescan the file system and update the game list cache with the results
       synchronized (gameFileCache)
       {
         if (gameFileCache.scanLibrary(this))
@@ -135,7 +150,10 @@ public final class GameFileCacheService extends IntentService
   private void updateGameFileArray()
   {
     GameFile[] gameFilesTemp = gameFileCache.getAllGames();
-    Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getGameId().compareToIgnoreCase(rhs.getGameId()));
+    Arrays.sort(gameFilesTemp, (lhs, rhs) -> {
+        int ret = lhs.getGameId().compareToIgnoreCase(rhs.getGameId());
+        return ret == 0 ? Integer.compare(lhs.getDiscNumber(), rhs.getDiscNumber()) : ret;
+    });
     gameFiles.set(gameFilesTemp);
     LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BROADCAST_ACTION));
   }

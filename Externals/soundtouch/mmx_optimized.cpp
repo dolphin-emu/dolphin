@@ -217,7 +217,6 @@ void TDStretchMMX::clearCrossCorrState()
 }
 
 
-
 // MMX-optimized version of the function overlapStereo
 void TDStretchMMX::overlapStereo(short *output, const short *input) const
 {
@@ -307,7 +306,7 @@ FIRFilterMMX::~FIRFilterMMX()
 
 
 // (overloaded) Calculates filter coefficients for MMX routine
-void FIRFilterMMX::setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor)
+void FIRFilterMMX::setCoefficients(const short *coeffs, uint newLength, uint uResultDivFactor)
 {
     uint i;
     FIRFilter::setCoefficients(coeffs, newLength, uResultDivFactor);
@@ -331,7 +330,6 @@ void FIRFilterMMX::setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uin
         filterCoeffsAlign[2 * i + 7] = coeffs[i + 3];
     }
 }
-
 
 
 // mmx-optimized version of the filter routine for stereo sound

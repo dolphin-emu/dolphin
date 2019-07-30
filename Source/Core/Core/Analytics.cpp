@@ -1,5 +1,6 @@
 #include "Core/Analytics.h"
 
+#include <array>
 #include <cinttypes>
 #include <mbedtls/sha1.h>
 #include <memory>
@@ -23,6 +24,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
@@ -34,11 +36,8 @@
 
 namespace
 {
-constexpr const char* ANALYTICS_ENDPOINT = "https://analytics.dolphin-emu.org/report";
+constexpr char ANALYTICS_ENDPOINT[] = "https://analytics.dolphin-emu.org/report";
 }  // namespace
-
-std::mutex DolphinAnalytics::s_instance_mutex;
-std::shared_ptr<DolphinAnalytics> DolphinAnalytics::s_instance;
 
 #if defined(ANDROID)
 static std::function<std::string(std::string)> s_get_val_func;
@@ -54,19 +53,15 @@ DolphinAnalytics::DolphinAnalytics()
   MakeBaseBuilder();
 }
 
-std::shared_ptr<DolphinAnalytics> DolphinAnalytics::Instance()
+DolphinAnalytics& DolphinAnalytics::Instance()
 {
-  std::lock_guard<std::mutex> lk(s_instance_mutex);
-  if (!s_instance)
-  {
-    s_instance.reset(new DolphinAnalytics());
-  }
-  return s_instance;
+  static DolphinAnalytics instance;
+  return instance;
 }
 
 void DolphinAnalytics::ReloadConfig()
 {
-  std::lock_guard<std::mutex> lk(m_reporter_mutex);
+  std::lock_guard lk{m_reporter_mutex};
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
@@ -99,11 +94,11 @@ void DolphinAnalytics::GenerateNewIdentity()
   SConfig::GetInstance().SaveSettings();
 }
 
-std::string DolphinAnalytics::MakeUniqueId(const std::string& data)
+std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
 {
-  u8 digest[20];
-  std::string input = m_unique_id + data;
-  mbedtls_sha1(reinterpret_cast<const u8*>(input.c_str()), input.size(), digest);
+  std::array<u8, 20> digest;
+  const auto input = std::string{m_unique_id}.append(data);
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(input.c_str()), input.size(), digest.data());
 
   // Convert to hex string and truncate to 64 bits.
   std::string out;
@@ -114,7 +109,7 @@ std::string DolphinAnalytics::MakeUniqueId(const std::string& data)
   return out;
 }
 
-void DolphinAnalytics::ReportDolphinStart(const std::string& ui_type)
+void DolphinAnalytics::ReportDolphinStart(std::string_view ui_type)
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
   builder.AddData("type", "dolphin-start");
@@ -131,7 +126,32 @@ void DolphinAnalytics::ReportGameStart()
   builder.AddData("type", "game-start");
   Send(builder);
 
+  // Reset per-game state.
+  m_reported_quirks.fill(false);
   InitializePerformanceSampling();
+}
+
+// Keep in sync with enum class GameQuirk definition.
+constexpr std::array<const char*, 2> GAME_QUIRKS_NAMES{
+    "icache-matters",
+    "directly-reads-wiimote-input",
+};
+static_assert(GAME_QUIRKS_NAMES.size() == static_cast<u32>(GameQuirk::COUNT),
+              "Game quirks names and enum definition are out of sync.");
+
+void DolphinAnalytics::ReportGameQuirk(GameQuirk quirk)
+{
+  u32 quirk_idx = static_cast<u32>(quirk);
+
+  // Only report once per run.
+  if (m_reported_quirks[quirk_idx])
+    return;
+  m_reported_quirks[quirk_idx] = true;
+
+  Common::AnalyticsReportBuilder builder(m_per_game_builder);
+  builder.AddData("type", "quirk");
+  builder.AddData("quirk", GAME_QUIRKS_NAMES[quirk_idx]);
+  Send(builder);
 }
 
 void DolphinAnalytics::ReportPerformanceInfo(PerformanceSample&& sample)
@@ -297,7 +317,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-audio-backend", SConfig::GetInstance().sBackend);
   builder.AddData("cfg-oc-enable", SConfig::GetInstance().m_OCEnable);
   builder.AddData("cfg-oc-factor", SConfig::GetInstance().m_OCFactor);
-  builder.AddData("cfg-render-to-main", SConfig::GetInstance().bRenderToMain);
+  builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
     builder.AddData("cfg-video-backend", g_video_backend->GetName());
@@ -338,7 +358,6 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
   builder.AddData("gpu-has-oversized-viewports", g_Config.backend_info.bSupportsOversizedViewports);
   builder.AddData("gpu-has-geometry-shaders", g_Config.backend_info.bSupportsGeometryShaders);
-  builder.AddData("gpu-has-3d-vision", g_Config.backend_info.bSupports3DVision);
   builder.AddData("gpu-has-early-z", g_Config.backend_info.bSupportsEarlyZ);
   builder.AddData("gpu-has-binding-layout", g_Config.backend_info.bSupportsBindingLayout);
   builder.AddData("gpu-has-bbox", g_Config.backend_info.bSupportsBBox);
@@ -358,9 +377,9 @@ void DolphinAnalytics::MakePerGameBuilder()
   // We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind
   // of gamepad
   // or the official gamecube adapter.
-  builder.AddData("gcadapter-detected", GCAdapter::IsDetected());
+  builder.AddData("gcadapter-detected", GCAdapter::IsDetected(nullptr));
   builder.AddData("has-controller", Pad::GetConfig()->IsControllerControlledByGamepadDevice(0) ||
-                                        GCAdapter::IsDetected());
+                                        GCAdapter::IsDetected(nullptr));
 
   m_per_game_builder = builder;
 }

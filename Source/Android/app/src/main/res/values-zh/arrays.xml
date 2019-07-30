@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- All lists for ListPreference keys/values are placed here -->
+<resources>
+    <!-- New UI CPU Core selection - Default -->
+    <string-array name="emuCoresEntriesX86_64" translatable="false">
+        <item>解释器</item>
+        <item>缓存解释器</item>
+        <item>JIT 编译器</item>
+    </string-array>
+    <integer-array name="emuCoresValuesX86_64" translatable="false">
+        <item>0</item>
+        <item>5</item>
+        <item>1</item>
+    </integer-array>
+    <string-array name="emuCoresEntriesARM64" translatable="false">
+        <item>解释器</item>
+        <item>缓存解释器</item>
+        <item>JIT ARM64 编译器</item>
+    </string-array>
+    <integer-array name="emuCoresValuesARM64" translatable="false">
+        <item>0</item>
+        <item>5</item>
+        <item>4</item>
+    </integer-array>
+    <string-array name="emuCoresEntriesGeneric" translatable="false">
+        <item>解释器</item>
+        <item>缓存解释器</item>
+    </string-array>
+    <integer-array name="emuCoresValuesGeneric" translatable="false">
+        <item>0</item>
+        <item>5</item>
+    </integer-array>
+
+    <!-- Wii System Languages -->
+    <string-array name="wiiSystemLanguageEntries" translatable="false">
+        <item>日语</item>
+        <item>英语</item>
+        <item>德语</item>
+        <item>法语</item>
+        <item>西班牙语</item>
+        <item>意大利语</item>
+        <item>荷兰语</item>
+        <item>简体中文</item>
+        <item>繁体中文</item>
+        <item>韩语</item>
+    </string-array>
+    <integer-array name="wiiSystemLanguageValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </integer-array>
+
+    <string-array name="sensorBarPositionEntries" translatable="false">
+        <item>底部</item>
+        <item>顶部</item>
+    </string-array>
+    <integer-array name="sensorBarPositionValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <!-- GameCube System Languages -->
+    <string-array name="gameCubeSystemLanguageEntries" translatable="false">
+        <item>英语</item>
+        <item>德语</item>
+        <item>法语</item>
+        <item>西班牙语</item>
+        <item>意大利语</item>
+        <item>荷兰语</item>
+    </string-array>
+    <integer-array name="gameCubeSystemLanguageValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
+    <!-- Slot A Device Selection -->
+    <string-array name="slotDeviceEntries" translatable="false">
+        <item>无</item>
+        <item>虚设</item>
+        <item>存储卡</item>
+        <item>GCI文件夹</item>
+    </string-array>
+    <integer-array name="slotDeviceValues" translatable="false">
+        <item>255</item>
+        <item>0</item>
+        <item>1</item>
+        <item>8</item>
+    </integer-array>
+
+    <!-- SerialPort1 Device Selection -->
+    <string-array name="serialDeviceEntries" translatable="false">
+        <item>无</item>
+        <item>虚设</item>
+        <item>上网卡 (TAP)</item>
+    </string-array>
+    <integer-array name="serialDeviceValues" translatable="false">
+        <item>255</item>
+        <item>0</item>
+        <item>5</item>
+    </integer-array>
+
+    <!-- Video backend selection -->
+    <string-array name="videoBackendEntries" translatable="false">
+        <item>OpenGL</item>
+        <item>Vulkan</item>
+    </string-array>
+    <integer-array name="videoBackendValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
+    <!-- Wii Remote extensions -->
+    <string-array name="wiimoteExtensionsEntries" translatable="false">
+        <item>无</item>
+        <item>Nunchuk</item>
+        <item>Classic</item>
+        <item>Guitar</item>
+        <item>Drums</item>
+        <item>Turntable</item>
+    </string-array>
+    <integer-array name="wiimoteExtensionsValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
+    <!-- Texture Cache Accuracy Preference -->
+    <string-array name="textureCacheAccuracyEntries" translatable="false">
+        <item>低</item>
+        <item>中</item>
+        <item>高</item>
+    </string-array>
+    <integer-array name="textureCacheAccuracyValues" translatable="false">
+        <item>128</item>
+        <item>512</item>
+        <item>0</item>
+    </integer-array>
+
+    <!-- Ubershader Mode Preference -->
+    <string-array name="shaderCompilationModeEntries" translatable="false">
+        <item>同步</item>
+        <item>异步</item>
+    </string-array>
+    <integer-array name="shaderCompilationModeValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
+    <!-- Internal Resolution Preference -->
+    <string-array name="internalResolutionEntries" translatable="false">
+        <item>1x (640x528)</item>
+        <item>1.5x (960x792) BUG</item>
+        <item>2x (1280x1056) 720p</item>
+        <item>3x (1920x1584) 1080p</item>
+        <item>4x (2560x2112) 2k</item>
+    </string-array>
+    <integer-array name="internalResolutionValues" translatable="false">
+        <item>100</item>
+        <item>150</item>
+        <item>200</item>
+        <item>300</item>
+        <item>400</item>
+    </integer-array>
+
+    <!-- FSAA Preference -->
+    <string-array name="FSAAEntries" translatable="false">
+        <item>关闭</item>
+        <item>2x</item>
+        <item>4x</item>
+        <item>8x</item>
+    </string-array>
+    <integer-array name="FSAAValues" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>4</item>
+        <item>8</item>
+    </integer-array>
+
+    <!-- Anisotropic Filtering Preference -->
+    <string-array name="anisotropicFilteringEntries" translatable="false">
+        <item>关闭</item>
+        <item>2x</item>
+        <item>4x</item>
+        <item>8x</item>
+        <item>16x</item>
+    </string-array>
+    <integer-array name="anisotropicFilteringValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+
+    <!-- Aspect Ratio Preference -->
+    <string-array name="aspectRatioEntries" translatable="false">
+        <item>自适应</item>
+        <item>强制 16:9</item>
+        <item>强制 4:3</item>
+        <item>拉伸至全屏</item>
+    </string-array>
+    <integer-array name="aspectRatioValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
+    <string-array name="countryNames">
+        <item>Europe</item>
+        <item>Japan</item>
+        <item>USA</item>
+        <item>Australia</item>
+        <item>France</item>
+        <item>Germany</item>
+        <item>Italy</item>
+        <item>Korea</item>
+        <item>Netherlands</item>
+        <item>Russia</item>
+        <item>Spain</item>
+        <item>Taiwan</item>
+        <item>Unknown</item>
+    </string-array>
+
+    <string-array name="gcpadTypeEntries">
+        <item>禁用</item>
+        <item>模拟</item>
+    </string-array>
+    <integer-array name="gcpadTypeValues">
+        <item>0</item>
+        <item>6</item>
+        <item>12</item>
+    </integer-array>
+
+    <string-array name="wiimoteTypeEntries">
+        <item>禁用</item>
+        <item>模拟</item>
+    </string-array>
+    <integer-array name="wiimoteTypeValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="controllersEntries">
+        <item>NGC手柄</item>
+        <item>经典手柄</item>
+        <item>Wii手柄 + Nunchuk</item>
+        <item>水平Wii手柄</item>
+    </string-array>
+    <string-array name="controllersValues">
+        <item>None</item>
+        <item>Classic</item>
+        <item>Nunchuk</item>
+        <item>None</item>
+    </string-array>
+
+    <string-array name="wiiJoystickSettings">
+        <item>无</item>
+        <item>IR</item>
+        <item>Wii Swing</item>
+        <item>Wii Tilt</item>
+        <item>Wii Shake</item>
+        <item>Nunchuk Swing</item>
+        <item>Nunchuk Tilt</item>
+        <item>Nunchuk Shake</item>
+    </string-array>
+
+    <string-array name="wiiSensorSettings">
+        <item>无</item>
+        <item>Wii 方向键</item>
+        <item>Nunchuk 摇杆</item>
+        <item>IR</item>
+        <item>Wii Swing</item>
+        <item>Wii Tilt</item>
+        <item>Wii Shake</item>
+        <item>Nunchuk Swing</item>
+        <item>Nunchuk Tilt</item>
+        <item>Nunchuk Shake</item>
+    </string-array>
+
+    <string-array name="gcSensorSettings">
+        <item>无</item>
+        <item>主摇杆</item>
+        <item>C 摇杆</item>
+        <item>方向键</item>
+    </string-array>
+
+    <string-array name="gcpadButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>Z</item>
+        <item>Start</item>
+        <item>L</item>
+        <item>R</item>
+        <item>L Analog</item>
+        <item>R Analog</item>
+        <item>方向键</item>
+        <item>主摇杆</item>
+        <item>C 摇杆</item>
+    </string-array>
+
+    <string-array name="wiimoteButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>Home</item>
+        <item>Toggle X</item>
+        <item>Tilt Z</item>
+        <item>方向键</item>
+    </string-array>
+
+    <string-array name="nunchukButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>Home</item>
+        <item>Toggle</item>
+        <item>方向键</item>
+        <item>C</item>
+        <item>Z</item>
+        <item>Nunchuk 摇杆</item>
+    </string-array>
+
+    <string-array name="classicButtons">
+        <item>a</item>
+        <item>b</item>
+        <item>x</item>
+        <item>y</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>Home</item>
+        <item>L</item>
+        <item>R</item>
+        <item>ZL</item>
+        <item>ZR</item>
+        <item>方向键</item>
+        <item>左摇杆</item>
+        <item>右摇杆</item>
+    </string-array>
+
+</resources>

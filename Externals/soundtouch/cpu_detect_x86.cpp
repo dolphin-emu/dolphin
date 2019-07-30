@@ -68,7 +68,6 @@ void disableExtensions(uint dwDisableMask)
 }
 
 
-
 /// Checks which instruction set extensions are supported by the CPU.
 uint detectCPUextensions(void)
 {

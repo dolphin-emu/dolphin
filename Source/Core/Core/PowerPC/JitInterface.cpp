@@ -40,6 +40,11 @@
 
 namespace JitInterface
 {
+static JitBase* g_jit = nullptr;
+void SetJit(JitBase* jit)
+{
+  g_jit = jit;
+}
 void DoState(PointerWrap& p)
 {
   if (g_jit && p.GetMode() == PointerWrap::MODE_READ)
@@ -267,4 +272,4 @@ void Shutdown()
     g_jit = nullptr;
   }
 }
-}
+}  // namespace JitInterface

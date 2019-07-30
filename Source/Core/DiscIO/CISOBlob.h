@@ -40,6 +40,7 @@ public:
   // The CISO format does not save the original file size.
   // This function returns an upper bound.
   u64 GetDataSize() const override;
+  bool IsDataSizeAccurate() const override { return false; }
 
   u64 GetRawSize() const override;
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
@@ -56,4 +57,4 @@ private:
   MapType m_ciso_map[CISO_MAP_SIZE];
 };
 
-}  // namespace
+}  // namespace DiscIO

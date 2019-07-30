@@ -179,7 +179,7 @@ ReturnCode ES::VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ec
   }
 
   std::array<u8, 20> sha1;
-  mbedtls_sha1(hash.data(), hash.size(), sha1.data());
+  mbedtls_sha1_ret(hash.data(), hash.size(), sha1.data());
   ret = iosc.VerifyPublicKeySign(sha1, ap_cert, ecc_signature, PID_ES);
   if (ret != IPC_SUCCESS)
   {

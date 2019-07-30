@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:layout_width="match_parent"
-    android:layout_height="68dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:transitionName="card_game"
     android:focusable="true"
     android:clickable="true"
     app:cardElevation="0dp"
     android:foreground="?android:attr/selectableItemBackground">
 
-    <LinearLayout
+    <RelativeLayout
+        android:padding="@dimen/spacing_medium"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:layout_height="match_parent">
 
         <ImageView
             android:id="@+id/image_game_screen"
             android:src="@drawable/no_banner"
             android:layout_width="96dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignBottom="@id/game_info"
+            android:layout_alignTop="@id/game_info"
             android:layout_gravity="start|center"
             android:scaleType="centerCrop"/>
 
         <LinearLayout
-            android:layout_gravity="start|center"
+            android:id="@+id/game_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/image_game_screen"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="@dimen/spacing_medium"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/text_game_title"
-                style="@android:style/TextAppearance.Material.Subhead"
+                style="@android:style/TextAppearance.Material.Menu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="2dp"
                 android:ellipsize="end"
                 android:singleLine="true"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
@@ -47,26 +49,22 @@
                 android:id="@+id/text_platform"
                 android:text="@string/game_platform_wii"
                 style="@android:style/TextAppearance.Material.Caption"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="2dp"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"/>
 
             <TextView
                 android:id="@+id/text_company"
                 style="@android:style/TextAppearance.Material.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="2dp"
                 android:ellipsize="end"
                 android:singleLine="true"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
 
         </LinearLayout>
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </android.support.v7.widget.CardView>
 

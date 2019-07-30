@@ -81,4 +81,4 @@ private:
   void FlushOne();
 };
 
-}  // namespace
+}  // namespace OGL

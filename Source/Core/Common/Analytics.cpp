@@ -76,15 +76,19 @@ AnalyticsReportBuilder::AnalyticsReportBuilder()
   m_report.push_back(WIRE_FORMAT_VERSION);
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const std::string& v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, std::string_view v)
 {
   AppendType(report, TypeId::STRING);
   AppendBytes(report, reinterpret_cast<const u8*>(v.data()), static_cast<u32>(v.size()));
 }
 
+// We can't remove this overload despite the string_view overload due to the fact that
+// pointers can implicitly convert to bool, so if we removed the overload, then all
+// const char strings passed in would begin forwarding to the bool overload,
+// which is definitely not what we want to occur.
 void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const char* v)
 {
-  AppendSerializedValue(report, std::string(v));
+  AppendSerializedValue(report, std::string_view(v));
 }
 
 void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, bool v)
@@ -198,7 +202,7 @@ void StdoutAnalyticsBackend::Send(std::string report)
          HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
 }
 
-HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint) : m_endpoint(endpoint)
+HttpAnalyticsBackend::HttpAnalyticsBackend(std::string endpoint) : m_endpoint(std::move(endpoint))
 {
 }
 

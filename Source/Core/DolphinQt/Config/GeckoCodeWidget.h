@@ -36,6 +36,8 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
+  void OnListReordered();
+  void OnContextMenuRequested();
 
   void CreateWidgets();
   void ConnectWidgets();
@@ -45,9 +47,11 @@ private:
   void RemoveCode();
   void DownloadCodes();
   void SaveCodes();
+  void SortAlphabetically();
 
   const UICommon::GameFile& m_game;
   std::string m_game_id;
+  std::string m_gametdb_id;
   u16 m_game_revision;
 
   CheatWarningWidget* m_warning;

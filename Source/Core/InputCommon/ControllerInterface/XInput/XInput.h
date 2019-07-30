@@ -18,9 +18,7 @@
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path and/or _WIN32_WINNT is wrong.
 #endif
 
-namespace ciface
-{
-namespace XInput
+namespace ciface::XInput
 {
 void Init();
 void PopulateDevices();
@@ -92,8 +90,9 @@ public:
 
   Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
-  std::string GetName() const override;
-  std::string GetSource() const override;
+  std::string GetName() const final override;
+  std::string GetSource() const final override;
+  std::optional<int> GetPreferredId() const final override;
 
   void UpdateMotors();
 
@@ -104,5 +103,4 @@ private:
   const BYTE m_subtype;
   const u8 m_index;
 };
-}
-}
+}  // namespace ciface::XInput

@@ -26,6 +26,7 @@ extern const ConfigInfo<int> GFX_ADAPTER;
 extern const ConfigInfo<bool> GFX_WIDESCREEN_HACK;
 extern const ConfigInfo<AspectMode> GFX_ASPECT_RATIO;
 extern const ConfigInfo<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
+extern const ConfigInfo<float> GFX_DISPLAY_SCALE;
 extern const ConfigInfo<bool> GFX_CROP;
 extern const ConfigInfo<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const ConfigInfo<bool> GFX_SHOW_FPS;
@@ -51,7 +52,7 @@ extern const ConfigInfo<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS;
 extern const ConfigInfo<bool> GFX_ENABLE_GPU_TEXTURE_DECODING;
 extern const ConfigInfo<bool> GFX_ENABLE_PIXEL_LIGHTING;
 extern const ConfigInfo<bool> GFX_FAST_DEPTH_CALC;
-extern const ConfigInfo<u32> GFX_MSAA;
+extern const ConfigInfo<int> GFX_MSAA;
 extern const ConfigInfo<bool> GFX_SSAA;
 extern const ConfigInfo<int> GFX_EFB_SCALE;
 extern const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_ENABLE;
@@ -91,8 +92,9 @@ extern const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD;
 // Graphics.Hacks
 
 extern const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE;
+extern const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION;
+extern const ConfigInfo<int> GFX_HACK_EFB_ACCESS_TILE_SIZE;
 extern const ConfigInfo<bool> GFX_HACK_BBOX_ENABLE;
-extern const ConfigInfo<bool> GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION;
 extern const ConfigInfo<bool> GFX_HACK_FORCE_PROGRESSIVE;
 extern const ConfigInfo<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM;
 extern const ConfigInfo<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM;
@@ -101,6 +103,7 @@ extern const ConfigInfo<bool> GFX_HACK_DEFER_EFB_COPIES;
 extern const ConfigInfo<bool> GFX_HACK_IMMEDIATE_XFB;
 extern const ConfigInfo<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const ConfigInfo<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
+extern const ConfigInfo<bool> GFX_HACK_TMEM_CACHE_EMULATION;
 extern const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING;
 
 // Graphics.GameSpecific

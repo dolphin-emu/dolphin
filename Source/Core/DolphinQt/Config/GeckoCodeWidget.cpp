@@ -4,12 +4,13 @@
 
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 
+#include <QCursor>
 #include <QFontDatabase>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
-#include <QMessageBox>
+#include <QMenu>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -22,12 +23,13 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "UICommon/GameFile.h"
 
 GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision()),
-      m_restart_required(restart_required)
+    : m_game(game), m_game_id(game.GetGameID()), m_gametdb_id(game.GetGameTDBID()),
+      m_game_revision(game.GetRevision()), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -50,6 +52,8 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
+
+  m_code_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
   QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
@@ -116,12 +120,15 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_code_list, &QListWidget::itemSelectionChanged, this,
           &GeckoCodeWidget::OnSelectionChanged);
   connect(m_code_list, &QListWidget::itemChanged, this, &GeckoCodeWidget::OnItemChanged);
+  connect(m_code_list->model(), &QAbstractItemModel::rowsMoved, this,
+          &GeckoCodeWidget::OnListReordered);
+  connect(m_code_list, &QListWidget::customContextMenuRequested, this,
+          &GeckoCodeWidget::OnContextMenuRequested);
 
   connect(m_add_code, &QPushButton::pressed, this, &GeckoCodeWidget::AddCode);
   connect(m_remove_code, &QPushButton::pressed, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
-
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
 }
@@ -130,8 +137,10 @@ void GeckoCodeWidget::OnSelectionChanged()
 {
   auto items = m_code_list->selectedItems();
 
-  m_edit_code->setEnabled(!items.empty());
-  m_remove_code->setEnabled(!items.empty());
+  const bool empty = items.empty();
+
+  m_edit_code->setEnabled(!empty);
+  m_remove_code->setEnabled(!empty);
 
   if (items.empty())
     return;
@@ -222,9 +231,44 @@ void GeckoCodeWidget::SaveCodes()
 {
   IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+
   Gecko::SaveCodes(game_ini_local, m_gecko_codes);
 
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+}
+
+void GeckoCodeWidget::OnContextMenuRequested()
+{
+  QMenu menu;
+
+  menu.addAction(tr("Sort Alphabetically"), this, &GeckoCodeWidget::SortAlphabetically);
+
+  menu.exec(QCursor::pos());
+}
+
+void GeckoCodeWidget::SortAlphabetically()
+{
+  m_code_list->sortItems();
+  OnListReordered();
+}
+
+void GeckoCodeWidget::OnListReordered()
+{
+  // Reorder codes based on the indices of table item
+  std::vector<Gecko::GeckoCode> codes;
+  codes.reserve(m_gecko_codes.size());
+
+  for (int i = 0; i < m_code_list->count(); i++)
+  {
+    const int index = m_code_list->item(i)->data(Qt::UserRole).toInt();
+
+    codes.push_back(std::move(m_gecko_codes[index]));
+  }
+
+  m_gecko_codes = std::move(codes);
+
+  UpdateList();
+  SaveCodes();
 }
 
 void GeckoCodeWidget::UpdateList()
@@ -239,29 +283,32 @@ void GeckoCodeWidget::UpdateList()
                                          .replace(QStringLiteral("&lt;"), QStringLiteral("<"))
                                          .replace(QStringLiteral("&gt;"), QStringLiteral(">")));
 
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
+                   Qt::ItemIsDragEnabled);
     item->setCheckState(code.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);
   }
+
+  m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
 }
 
 void GeckoCodeWidget::DownloadCodes()
 {
   bool success;
 
-  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_game_id, &success);
+  std::vector<Gecko::GeckoCode> codes = Gecko::DownloadCodes(m_gametdb_id, &success);
 
   if (!success)
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to download codes."));
     return;
   }
 
   if (codes.empty())
   {
-    QMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
+    ModalMessageBox::critical(this, tr("Error"), tr("File contained no codes."));
     return;
   }
 
@@ -281,7 +328,8 @@ void GeckoCodeWidget::DownloadCodes()
   UpdateList();
   SaveCodes();
 
-  QMessageBox::information(this, tr("Download complete"),
-                           tr("Downloaded %1 codes. (added %2)")
-                               .arg(QString::number(codes.size()), QString::number(added_count)));
+  ModalMessageBox::information(
+      this, tr("Download complete"),
+      tr("Downloaded %1 codes. (added %2)")
+          .arg(QString::number(codes.size()), QString::number(added_count)));
 }

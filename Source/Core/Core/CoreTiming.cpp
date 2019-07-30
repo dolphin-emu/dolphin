@@ -442,4 +442,4 @@ void SetFakeTBStartTicks(u64 val)
   g.fake_TB_start_ticks = val;
 }
 
-}  // namespace
+}  // namespace CoreTiming

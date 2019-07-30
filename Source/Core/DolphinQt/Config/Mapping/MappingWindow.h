@@ -16,7 +16,6 @@ class EmulatedController;
 }
 
 class InputConfig;
-class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
 class QEvent;
@@ -49,14 +48,14 @@ public:
   explicit MappingWindow(QWidget* parent, Type type, int port_num);
 
   int GetPort() const;
-  std::shared_ptr<ciface::Core::Device> GetDevice() const;
   ControllerEmu::EmulatedController* GetController() const;
-  bool IsIterativeInput() const;
   bool IsMappingAllDevices() const;
 
 signals:
+  // Emitted when config has changed so widgets can update to reflect the change.
+  void ConfigChanged();
+  // Emitted at 30hz for real-time indicators to be updated.
   void Update();
-  void ClearFields();
   void Save();
 
 private:
@@ -74,14 +73,16 @@ private:
   void OnDeleteProfilePressed();
   void OnLoadProfilePressed();
   void OnSaveProfilePressed();
+  void UpdateProfileIndex();
+
   void OnDefaultFieldsPressed();
-  void OnDeviceChanged(int index);
+  void OnClearFieldsPressed();
+  void OnSelectDevice(int index);
   void OnGlobalDevicesChanged();
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
 
   // Main
-  QCheckBox* m_iterative_input;
   QVBoxLayout* m_main_layout;
   QHBoxLayout* m_config_layout;
   QDialogButtonBox* m_button_box;

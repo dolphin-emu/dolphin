@@ -25,4 +25,4 @@ private:
   double m_stretch_ratio = 1.0;
 };
 
-}  // AudioCommon
+}  // namespace AudioCommon

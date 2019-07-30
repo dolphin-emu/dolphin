@@ -47,6 +47,7 @@ void LogConfigWidget::CreateWidgets()
   m_verbosity_error = new QRadioButton(tr("Error"));
   m_verbosity_warning = new QRadioButton(tr("Warning"));
   m_verbosity_info = new QRadioButton(tr("Info"));
+  m_verbosity_debug = new QRadioButton(tr("Debug"));
 
   auto* outputs = new QGroupBox(tr("Logger Outputs"));
   auto* outputs_layout = new QVBoxLayout;
@@ -63,8 +64,10 @@ void LogConfigWidget::CreateWidgets()
 
   for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
   {
-    QListWidgetItem* widget = new QListWidgetItem(QString::fromStdString(
-        LogManager::GetInstance()->GetFullName(static_cast<LogTypes::LOG_TYPE>(i))));
+    const auto log_type = static_cast<LogTypes::LOG_TYPE>(i);
+    const QString full_name = QString::fromUtf8(LogManager::GetInstance()->GetFullName(log_type));
+    const QString short_name = QString::fromUtf8(LogManager::GetInstance()->GetShortName(log_type));
+    auto* widget = new QListWidgetItem(QStringLiteral("%1 (%2)").arg(full_name, short_name));
     widget->setCheckState(Qt::Unchecked);
     m_types_list->addItem(widget);
   }
@@ -74,6 +77,10 @@ void LogConfigWidget::CreateWidgets()
   verbosity_layout->addWidget(m_verbosity_error);
   verbosity_layout->addWidget(m_verbosity_warning);
   verbosity_layout->addWidget(m_verbosity_info);
+  if (MAX_LOGLEVEL == LogTypes::LOG_LEVELS::LDEBUG)
+  {
+    verbosity_layout->addWidget(m_verbosity_debug);
+  }
 
   layout->addWidget(outputs);
   outputs_layout->addWidget(m_out_file);
@@ -97,6 +104,7 @@ void LogConfigWidget::ConnectWidgets()
   connect(m_verbosity_error, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_verbosity_warning, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_verbosity_info, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
+  connect(m_verbosity_debug, &QRadioButton::toggled, this, &LogConfigWidget::SaveSettings);
 
   connect(m_out_file, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
   connect(m_out_console, &QCheckBox::toggled, this, &LogConfigWidget::SaveSettings);
@@ -131,11 +139,12 @@ void LogConfigWidget::LoadSettings()
   setFloating(settings.value(QStringLiteral("logconfigwidget/floating")).toBool());
 
   // Config - Verbosity
-  int verbosity = logmanager->GetLogLevel();
-  m_verbosity_notice->setChecked(verbosity == 1);
-  m_verbosity_error->setChecked(verbosity == 2);
-  m_verbosity_warning->setChecked(verbosity == 3);
-  m_verbosity_info->setChecked(verbosity == 4);
+  const LogTypes::LOG_LEVELS verbosity = logmanager->GetLogLevel();
+  m_verbosity_notice->setChecked(verbosity == LogTypes::LOG_LEVELS::LNOTICE);
+  m_verbosity_error->setChecked(verbosity == LogTypes::LOG_LEVELS::LERROR);
+  m_verbosity_warning->setChecked(verbosity == LogTypes::LOG_LEVELS::LWARNING);
+  m_verbosity_info->setChecked(verbosity == LogTypes::LOG_LEVELS::LINFO);
+  m_verbosity_debug->setChecked(verbosity == LogTypes::LOG_LEVELS::LDEBUG);
 
   // Config - Outputs
   m_out_file->setChecked(logmanager->IsListenerEnabled(LogListener::FILE_LISTENER));
@@ -165,22 +174,25 @@ void LogConfigWidget::SaveSettings()
   settings.setValue(QStringLiteral("logconfigwidget/floating"), isFloating());
 
   // Config - Verbosity
-  int verbosity = 1;
+  LogTypes::LOG_LEVELS verbosity = LogTypes::LOG_LEVELS::LNOTICE;
 
   if (m_verbosity_notice->isChecked())
-    verbosity = 1;
+    verbosity = LogTypes::LOG_LEVELS::LNOTICE;
 
   if (m_verbosity_error->isChecked())
-    verbosity = 2;
+    verbosity = LogTypes::LOG_LEVELS::LERROR;
 
   if (m_verbosity_warning->isChecked())
-    verbosity = 3;
+    verbosity = LogTypes::LOG_LEVELS::LWARNING;
 
   if (m_verbosity_info->isChecked())
-    verbosity = 4;
+    verbosity = LogTypes::LOG_LEVELS::LINFO;
+
+  if (m_verbosity_debug->isChecked())
+    verbosity = LogTypes::LOG_LEVELS::LDEBUG;
 
   // Config - Verbosity
-  LogManager::GetInstance()->SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
+  LogManager::GetInstance()->SetLogLevel(verbosity);
 
   // Config - Outputs
   LogManager::GetInstance()->EnableListener(LogListener::FILE_LISTENER, m_out_file->isChecked());

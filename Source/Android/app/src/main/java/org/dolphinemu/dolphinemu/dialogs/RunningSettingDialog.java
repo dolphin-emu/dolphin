@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -32,30 +33,32 @@ import java.util.ArrayList;
 
 public class RunningSettingDialog extends DialogFragment
 {
-
   public class SettingsItem
   {
-    //
-    public static final int SETTING_CHEAT_CODE = -1;
     // gfx
     public static final int SETTING_SHOW_FPS = 0;
     public static final int SETTING_SKIP_EFB = 1;
     public static final int SETTING_EFB_TEXTURE = 2;
     public static final int SETTING_IGNORE_FORMAT = 3;
     public static final int SETTING_ARBITRARY_MIPMAP_DETECTION = 4;
+    public static final int SETTING_IMMEDIATE_XFB = 5;
+    public static final int SETTING_DISPLAY_SCALE = 6;
     // core
-    public static final int SETTING_SYNC_ON_SKIP_IDLE = 5;
-    public static final int SETTING_OVERCLOCK_ENABLE = 6;
-    public static final int SETTING_OVERCLOCK_PERCENT = 7;
-    public static final int SETTING_JIT_FOLLOW_BRANCH = 8;
-    //
-    public static final int SETTING_PHONE_RUMBLE = 9;
-    public static final int SEETING_TOUCH_POINTER = 10;
-    public static final int SEETING_JOYSTICK_RELATIVE = 11;
-
+    public static final int SETTING_SYNC_ON_SKIP_IDLE = 7;
+    public static final int SETTING_OVERCLOCK_ENABLE = 8;
+    public static final int SETTING_OVERCLOCK_PERCENT = 9;
+    public static final int SETTING_JIT_FOLLOW_BRANCH = 10;
+    public static final int SETTING_IR_PITCH = 11;
+    public static final int SETTING_IR_YAW = 12;
+    public static final int SETTING_IR_VERTICAL_OFFSET = 13;
+    // pref
+    public static final int SETTING_PHONE_RUMBLE = 100;
+    public static final int SETTING_TOUCH_POINTER = 101;
+    public static final int SETTING_TOUCH_POINTER_RECENTER = 102;
+    public static final int SETTING_JOYSTICK_RELATIVE = 103;
     // view type
     public static final int TYPE_CHECKBOX = 0;
-    public static final int TYPE_RADIO_BUTTON = 1;
+    public static final int TYPE_RADIO_GROUP = 1;
     public static final int TYPE_SEEK_BAR = 2;
 
     private int mSetting;
@@ -166,11 +169,11 @@ public class RunningSettingDialog extends DialogFragment
   }
 
   public final class RadioButtonSettingViewHolder extends SettingViewHolder
-    implements CompoundButton.OnCheckedChangeListener
+    implements RadioGroup.OnCheckedChangeListener
   {
     SettingsItem mItem;
     private TextView mTextSettingName;
-    private RadioButton mRadioButton;
+    private RadioGroup mRadioGroup;
 
     public RadioButtonSettingViewHolder(View itemView)
     {
@@ -181,30 +184,59 @@ public class RunningSettingDialog extends DialogFragment
     protected void findViews(View root)
     {
       mTextSettingName = root.findViewById(R.id.text_setting_name);
-      mRadioButton = root.findViewById(R.id.radiobutton);
-      mRadioButton.setOnClickListener(this);
-      mRadioButton.setOnCheckedChangeListener(this);
+      mRadioGroup = root.findViewById(R.id.radio_group);
+      mRadioGroup.setOnCheckedChangeListener(this);
     }
 
     @Override
     public void bind(SettingsItem item)
     {
+      int checkIds[] = {R.id.radio0, R.id.radio1, R.id.radio2};
+      int index = item.getValue();
+      if(index < 0 || index >= checkIds.length)
+        index = 0;
+
       mItem = item;
       mTextSettingName.setText(item.getName());
-      mRadioButton.setChecked(mItem.getValue() > 0);
+      mRadioGroup.check(checkIds[index]);
+
+      if(item.getSetting() == SettingsItem.SETTING_TOUCH_POINTER)
+      {
+        RadioButton radio0 = mRadioGroup.findViewById(R.id.radio0);
+        radio0.setText(R.string.off);
+
+        RadioButton radio1 = mRadioGroup.findViewById(R.id.radio1);
+        radio1.setText(R.string.touch_ir_click);
+
+        RadioButton radio2 = mRadioGroup.findViewById(R.id.radio2);
+        radio2.setText(R.string.touch_ir_stick);
+      }
     }
 
     @Override
     public void onClick(View clicked)
     {
-      mRadioButton.toggle();
-      mItem.setValue(mRadioButton.isChecked() ? 1 : 0);
+
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton view, boolean isChecked)
+    public void onCheckedChanged(RadioGroup group, int checkedId)
     {
-      mItem.setValue(isChecked ? 1 : 0);
+      switch (checkedId)
+      {
+        case R.id.radio0:
+          mItem.setValue(0);
+          break;
+        case R.id.radio1:
+          mItem.setValue(1);
+          break;
+        case R.id.radio2:
+          mItem.setValue(2);
+          break;
+        default:
+          mItem.setValue(0);
+          break;
+      }
     }
   }
 
@@ -226,6 +258,7 @@ public class RunningSettingDialog extends DialogFragment
       mTextSettingName = root.findViewById(R.id.text_setting_name);
       mTextSettingValue = root.findViewById(R.id.text_setting_value);
       mSeekBar = root.findViewById(R.id.seekbar);
+      mSeekBar.setProgress(99);
     }
 
     @Override
@@ -233,21 +266,31 @@ public class RunningSettingDialog extends DialogFragment
     {
       mItem = item;
       mTextSettingName.setText(item.getName());
-      if (mItem.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT)
+      switch (item.getSetting())
       {
-        mSeekBar.setMax(300);
-      }
-      else
-      {
-        mSeekBar.setMax(10);
+        case SettingsItem.SETTING_OVERCLOCK_PERCENT:
+          mSeekBar.setMax(300);
+          break;
+        case SettingsItem.SETTING_DISPLAY_SCALE:
+          mSeekBar.setMax(200);
+          break;
+        case SettingsItem.SETTING_IR_PITCH:
+        case SettingsItem.SETTING_IR_YAW:
+        case SettingsItem.SETTING_IR_VERTICAL_OFFSET:
+          mSeekBar.setMax(50);
+          break;
+        default:
+          mSeekBar.setMax(10);
+          break;
       }
       mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
       {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean b)
         {
-          if (mItem.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT)
+          if (seekBar.getMax() > 99)
           {
+            progress = (progress / 5) * 5;
             mTextSettingValue.setText(progress + "%");
           }
           else
@@ -283,6 +326,7 @@ public class RunningSettingDialog extends DialogFragment
   {
     private int mRumble;
     private int mTouchPointer;
+    private int mIRRecenter;
     private int mJoystickRelative;
     private int[] mRunningSettings;
     private ArrayList<SettingsItem> mSettings;
@@ -290,26 +334,30 @@ public class RunningSettingDialog extends DialogFragment
     public SettingsAdapter()
     {
       int i = 0;
+      final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
       mRunningSettings = NativeLibrary.getRunningSettings();
       mSettings = new ArrayList<>();
 
-      mRumble = PreferenceManager.getDefaultSharedPreferences(getContext())
-        .getBoolean(EmulationActivity.RUMBLE_PREF_KEY, true) ? 1 : 0;
+      mRumble = prefs.getBoolean(EmulationActivity.RUMBLE_PREF_KEY, true) ? 1 : 0;
       mSettings.add(new SettingsItem(SettingsItem.SETTING_PHONE_RUMBLE, R.string.emulation_control_rumble,
         SettingsItem.TYPE_CHECKBOX, mRumble));
 
-      if(!EmulationActivity.isGameCubeGame())
+      if(!EmulationActivity.get().isGameCubeGame())
       {
-        mTouchPointer = PreferenceManager.getDefaultSharedPreferences(getContext())
-          .getBoolean(InputOverlay.POINTER_PREF_KEY, false) ? 1 : 0;
-        mSettings.add(new SettingsItem(SettingsItem.SEETING_TOUCH_POINTER, R.string.touch_screen_pointer,
-          SettingsItem.TYPE_CHECKBOX, mTouchPointer));
+        mTouchPointer = prefs.getInt(InputOverlay.POINTER_PREF_KEY, 0);
+        mSettings.add(new SettingsItem(SettingsItem.SETTING_TOUCH_POINTER,
+          R.string.touch_screen_pointer, SettingsItem.TYPE_RADIO_GROUP, mTouchPointer));
+
+        String gameId = EmulationActivity.get().getSelectedGameId();
+        String prefId = gameId.length() > 3 ? gameId.substring(0, 3) : gameId;
+        mIRRecenter = prefs.getBoolean(InputOverlay.RECENTER_PREF_KEY + "_" + prefId, false) ? 1 : 0;
+        mSettings.add(new SettingsItem(SettingsItem.SETTING_TOUCH_POINTER_RECENTER,
+          R.string.touch_screen_pointer_recenter, SettingsItem.TYPE_CHECKBOX, mIRRecenter));
       }
 
-      mJoystickRelative = PreferenceManager.getDefaultSharedPreferences(getContext())
-        .getBoolean(InputOverlay.RELATIVE_PREF_KEY, false) ? 1 : 0;
-      mSettings.add(new SettingsItem(SettingsItem.SEETING_JOYSTICK_RELATIVE, R.string.joystick_relative_center,
-        SettingsItem.TYPE_CHECKBOX, mJoystickRelative));
+      mJoystickRelative = prefs.getBoolean(InputOverlay.RELATIVE_PREF_KEY, true) ? 1 : 0;
+      mSettings.add(new SettingsItem(SettingsItem.SETTING_JOYSTICK_RELATIVE,
+        R.string.joystick_relative_center, SettingsItem.TYPE_CHECKBOX, mJoystickRelative));
 
       // gfx
       mSettings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps,
@@ -322,6 +370,10 @@ public class RunningSettingDialog extends DialogFragment
         R.string.ignore_format_changes, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
       mSettings.add(new SettingsItem(SettingsItem.SETTING_ARBITRARY_MIPMAP_DETECTION,
         R.string.arbitrary_mipmap_detection, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+      mSettings.add(new SettingsItem(SettingsItem.SETTING_IMMEDIATE_XFB,
+        R.string.immediate_xfb, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+      mSettings.add(new SettingsItem(SettingsItem.SETTING_DISPLAY_SCALE,
+        R.string.setting_display_scale, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
 
       // core
       mSettings.add(new SettingsItem(SettingsItem.SETTING_SYNC_ON_SKIP_IDLE,
@@ -333,14 +385,18 @@ public class RunningSettingDialog extends DialogFragment
       mSettings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_BRANCH,
         R.string.jit_follow_branch, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
 
-      // cheat code
-      /*String[] codes = EmulationActivity.getGameFile().getCodes();
-      for(String c : codes)
+      if(!EmulationActivity.get().isGameCubeGame())
       {
-        mSettings.add(new SettingsItem(SettingsItem.SETTING_CHEAT_CODE, c, SettingsItem.TYPE_CHECKBOX, 0));
-      }*/
+        mSettings.add(new SettingsItem(SettingsItem.SETTING_IR_PITCH,
+          R.string.pitch, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
+        mSettings.add(new SettingsItem(SettingsItem.SETTING_IR_YAW,
+          R.string.yaw, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
+        mSettings.add(new SettingsItem(SettingsItem.SETTING_IR_VERTICAL_OFFSET,
+          R.string.vertical_offset, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
+      }
     }
 
+    @NonNull
     @Override
     public SettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
     {
@@ -351,8 +407,8 @@ public class RunningSettingDialog extends DialogFragment
         case SettingsItem.TYPE_CHECKBOX:
           itemView = inflater.inflate(R.layout.list_item_running_checkbox, parent, false);
           return new CheckBoxSettingViewHolder(itemView);
-        case SettingsItem.TYPE_RADIO_BUTTON:
-          itemView = inflater.inflate(R.layout.list_item_running_radiobutton, parent, false);
+        case SettingsItem.TYPE_RADIO_GROUP:
+          itemView = inflater.inflate(R.layout.list_item_running_radio3, parent, false);
           return new RadioButtonSettingViewHolder(itemView);
         case SettingsItem.TYPE_SEEK_BAR:
           itemView = inflater.inflate(R.layout.list_item_running_seekbar, parent, false);
@@ -392,13 +448,23 @@ public class RunningSettingDialog extends DialogFragment
       }
       mSettings.remove(0);
 
-      if(!EmulationActivity.isGameCubeGame())
+      if(!EmulationActivity.get().isGameCubeGame())
       {
         int pointer = mSettings.get(0).getValue();
         if(mTouchPointer != pointer)
         {
-          editor.putBoolean(InputOverlay.POINTER_PREF_KEY, pointer > 0);
-          NativeLibrary.sEmulationActivity.get().setTouchPointerEnabled(pointer > 0);
+          editor.putInt(InputOverlay.POINTER_PREF_KEY, pointer);
+          EmulationActivity.get().setTouchPointer(pointer);
+        }
+        mSettings.remove(0);
+
+        int recenter = mSettings.get(0).getValue();
+        if(mIRRecenter != recenter)
+        {
+          String gameId = EmulationActivity.get().getSelectedGameId();
+          String prefId = gameId.length() > 3 ? gameId.substring(0, 3) : gameId;
+          editor.putBoolean(InputOverlay.RECENTER_PREF_KEY + "_" + prefId, recenter > 0);
+          InputOverlay.sIRRecenter = recenter > 0;
         }
         mSettings.remove(0);
       }
@@ -412,7 +478,6 @@ public class RunningSettingDialog extends DialogFragment
       mSettings.remove(0);
 
       editor.apply();
-
 
       // settings
       boolean isChanged = false;
@@ -428,6 +493,8 @@ public class RunningSettingDialog extends DialogFragment
       if (isChanged)
       {
         NativeLibrary.setRunningSettings(newSettings);
+        // update display scale
+        EmulationActivity.get().updateTouchPointer();
       }
     }
   }
@@ -439,6 +506,7 @@ public class RunningSettingDialog extends DialogFragment
 
   private SettingsAdapter mAdapter;
 
+  @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {

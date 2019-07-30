@@ -5,9 +5,8 @@
 #pragma once
 
 #include <QDialog>
+#include <QIcon>
 #include <memory>
-
-#include "UICommon/GameFile.h"
 
 class QStandardItem;
 class QStandardItemModel;
@@ -25,7 +24,7 @@ class FilesystemWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit FilesystemWidget(const UICommon::GameFile& game);
+  explicit FilesystemWidget(std::shared_ptr<DiscIO::Volume> volume);
   ~FilesystemWidget() override;
 
 private:
@@ -44,13 +43,14 @@ private:
                         const QString& out);
   void ExtractFile(const DiscIO::Partition& partition, const QString& path, const QString& out);
   bool ExtractSystemData(const DiscIO::Partition& partition, const QString& out);
-  void CheckIntegrity(const DiscIO::Partition& partition);
 
   DiscIO::Partition GetPartitionFromID(int id);
 
   QStandardItemModel* m_tree_model;
   QTreeView* m_tree_view;
 
-  UICommon::GameFile m_game;
-  std::unique_ptr<DiscIO::Volume> m_volume;
+  std::shared_ptr<DiscIO::Volume> m_volume;
+
+  QIcon m_folder_icon;
+  QIcon m_file_icon;
 };

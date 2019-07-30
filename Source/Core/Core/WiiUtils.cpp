@@ -4,60 +4,53 @@
 
 #include "Core/WiiUtils.h"
 
-
-#include "Common/Assert.h"
-#include "Common/CommonTypes.h"
-#include "Common/Swap.h"
-#include "Core/ConfigManager.h"
-#include "Core/IOS/ES/ES.h"
-#include "Core/SysConf.h"
-#include "DiscIO/WiiWad.h"
-
-#ifndef ANDROID
 #include <algorithm>
 #include <bitset>
 #include <cinttypes>
 #include <cstddef>
-#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
+#ifndef ANDROID
+#include <fmt/format.h>
 #include <pugixml.hpp>
-
-#include "Common/CommonPaths.h"
+#endif
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#ifndef ANDROID
 #include "Common/HttpRequest.h"
+#endif
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Swap.h"
 #include "Core/CommonTitles.h"
-
+#include "Core/ConfigManager.h"
 #include "Core/IOS/Device.h"
-
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
-
+#include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeFileBlobReader.h"
-#include "DiscIO/VolumeWii.h"
-#endif
+#include "DiscIO/VolumeWad.h"
 
 namespace WiiUtils
 {
-static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
+static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
 {
-  if (!wad.IsValid())
+  if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
     PanicAlertT("WAD installation failed: The selected file is not a valid WAD.");
     return false;
@@ -70,9 +63,8 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   IOS::HLE::ReturnCode ret;
   const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
 
-  IOS::ES::TicketReader ticket = wad.GetTicket();
   // Ensure the common key index is correct, as it's checked by IOS.
-  ticket.FixCommonKeyIndex();
+  IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
   while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
                                  IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
@@ -119,19 +111,29 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad)
   return true;
 }
 
-bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType install_type)
+bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType install_type)
 {
   if (!wad.GetTMD().IsValid())
     return false;
 
+  SysConf sysconf{ios.GetFS()};
+  SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
+  const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0));
+  const u64 title_id = wad.GetTMD().GetTitleId();
+
   // Skip the install if the WAD is already installed.
   const auto installed_contents = ios.GetES()->GetStoredContentsFromTMD(wad.GetTMD());
   if (wad.GetTMD().GetContents() == installed_contents)
+  {
+    // Clear the "temporary title ID" flag in case the user tries to permanently install a title
+    // that has already been imported as a temporary title.
+    if (previous_temporary_title_id == title_id && install_type == InstallType::Permanent)
+      tid_entry->SetData<u64>(0);
     return true;
+  }
 
   // If a different version is currently installed, warn the user to make sure
   // they don't overwrite the current version by mistake.
-  const u64 title_id = wad.GetTMD().GetTitleId();
   const IOS::ES::TMDReader installed_tmd = ios.GetES()->FindInstalledTMD(title_id);
   const bool has_another_version =
       installed_tmd.IsValid() && installed_tmd.GetTitleVersion() != wad.GetTMD().GetTitleVersion();
@@ -145,9 +147,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
   }
 
   // Delete a previous temporary title, if it exists.
-  SysConf sysconf{ios.GetFS()};
-  SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
-  if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
+  if (previous_temporary_title_id)
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
 
   if (!ImportWAD(ios, wad))
@@ -165,8 +165,12 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
 #ifndef ANDROID
 bool InstallWAD(const std::string& wad_path)
 {
+  std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(wad_path);
+  if (!wad)
+    return false;
+
   IOS::HLE::Kernel ios;
-  return InstallWAD(ios, DiscIO::WiiWAD{wad_path}, InstallType::Permanent);
+  return InstallWAD(ios, *wad, InstallType::Permanent);
 }
 
 bool UninstallTitle(u64 title_id)
@@ -231,7 +235,7 @@ std::string SystemUpdater::GetDeviceId()
   u32 ios_device_id;
   if (m_ios.GetES()->GetDeviceId(&ios_device_id) < 0)
     return "";
-  return StringFromFormat("%" PRIu64, (u64(1) << 32) | ios_device_id);
+  return std::to_string((u64(1) << 32) | ios_device_id);
 }
 
 class OnlineSystemUpdater final : public SystemUpdater
@@ -530,10 +534,9 @@ UpdateResult OnlineSystemUpdater::InstallTitleFromNUS(const std::string& prefix_
 std::pair<IOS::ES::TMDReader, std::vector<u8>>
 OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo& title)
 {
-  const std::string url =
-      (title.version == 0) ?
-          prefix_url + StringFromFormat("/%016" PRIx64 "/tmd", title.id) :
-          prefix_url + StringFromFormat("/%016" PRIx64 "/tmd.%u", title.id, title.version);
+  const std::string url = (title.version == 0) ?
+                              fmt::format("{}/{:016x}/tmd", prefix_url, title.id) :
+                              fmt::format("{}/{:016x}/tmd.{}", prefix_url, title.id, title.version);
   const Common::HttpRequest::Response response = m_http.Get(url);
   if (!response)
     return {};
@@ -558,7 +561,7 @@ OnlineSystemUpdater::DownloadTMD(const std::string& prefix_url, const TitleInfo&
 std::pair<std::vector<u8>, std::vector<u8>>
 OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleInfo& title)
 {
-  const std::string url = prefix_url + StringFromFormat("/%016" PRIx64 "/cetk", title.id);
+  const std::string url = fmt::format("{}/{:016x}/cetk", prefix_url, title.id);
   const Common::HttpRequest::Response response = m_http.Get(url);
   if (!response)
     return {};
@@ -575,7 +578,7 @@ OnlineSystemUpdater::DownloadTicket(const std::string& prefix_url, const TitleIn
 std::optional<std::vector<u8>> OnlineSystemUpdater::DownloadContent(const std::string& prefix_url,
                                                                     const TitleInfo& title, u32 cid)
 {
-  const std::string url = prefix_url + StringFromFormat("/%016" PRIx64 "/%08x", title.id, cid);
+  const std::string url = fmt::format("{}/{:016x}/{:08x}", prefix_url, title.id, cid);
   return m_http.Get(url);
 }
 
@@ -583,8 +586,7 @@ class DiscSystemUpdater final : public SystemUpdater
 {
 public:
   DiscSystemUpdater(UpdateCallback update_callback, const std::string& image_path)
-      : m_update_callback{std::move(update_callback)}, m_volume{DiscIO::CreateVolumeFromFilename(
-                                                           image_path)}
+      : m_update_callback{std::move(update_callback)}, m_volume{DiscIO::CreateDisc(image_path)}
   {
   }
   UpdateResult DoDiscUpdate();
@@ -618,12 +620,12 @@ private:
   static_assert(sizeof(Entry) == 512, "Wrong size");
 #pragma pack(pop)
 
-  UpdateResult UpdateFromManifest(const std::string& manifest_name);
+  UpdateResult UpdateFromManifest(std::string_view manifest_name);
   UpdateResult ProcessEntry(u32 type, std::bitset<32> attrs, const TitleInfo& title,
-                            const std::string& path);
+                            std::string_view path);
 
   UpdateCallback m_update_callback;
-  std::unique_ptr<DiscIO::Volume> m_volume;
+  std::unique_ptr<DiscIO::VolumeDisc> m_volume;
   DiscIO::Partition m_partition;
 };
 
@@ -655,7 +657,7 @@ UpdateResult DiscSystemUpdater::DoDiscUpdate()
   return UpdateFromManifest("__update.inf");
 }
 
-UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_name)
+UpdateResult DiscSystemUpdater::UpdateFromManifest(std::string_view manifest_name)
 {
   const DiscIO::FileSystem* disc_fs = m_volume->GetFileSystem(m_partition);
   if (!disc_fs)
@@ -693,7 +695,7 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_n
     const u64 title_id = Common::swap64(entry.data() + offsetof(Entry, title_id));
     const u16 title_version = Common::swap16(entry.data() + offsetof(Entry, title_version));
     const char* path_pointer = reinterpret_cast<const char*>(entry.data() + offsetof(Entry, path));
-    const std::string path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
+    const std::string_view path{path_pointer, strnlen(path_pointer, sizeof(Entry::path))};
 
     if (!m_update_callback(i, num_entries, title_id))
       return UpdateResult::Cancelled;
@@ -712,7 +714,7 @@ UpdateResult DiscSystemUpdater::UpdateFromManifest(const std::string& manifest_n
 }
 
 UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
-                                             const TitleInfo& title, const std::string& path)
+                                             const TitleInfo& title, std::string_view path)
 {
   // Skip any unknown type and boot2 updates (for now).
   if (type != 2 && type != 3 && type != 6 && type != 7)
@@ -734,10 +736,10 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
   auto blob = DiscIO::VolumeFileBlobReader::Create(*m_volume, m_partition, path);
   if (!blob)
   {
-    ERROR_LOG(CORE, "Could not find %s", path.c_str());
+    ERROR_LOG(CORE, "Could not find %s", std::string(path).c_str());
     return UpdateResult::DiscReadFailed;
   }
-  const DiscIO::WiiWAD wad{std::move(blob)};
+  const DiscIO::VolumeWAD wad{std::move(blob)};
   return ImportWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 
@@ -849,5 +851,5 @@ bool RepairNAND(IOS::HLE::Kernel& ios)
 {
   return !CheckNAND(ios, true).bad;
 }
-#endif
-}
+#endif // ANDROID
+}  // namespace WiiUtils

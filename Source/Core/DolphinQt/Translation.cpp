@@ -6,7 +6,6 @@
 
 #include <QApplication>
 #include <QLocale>
-#include <QMessageBox>
 #include <QTranslator>
 #include <algorithm>
 #include <cstring>
@@ -19,6 +18,8 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "UICommon/UICommon.h"
 
@@ -291,7 +292,8 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 void Translation::Initialize()
 {
   // Hook up Dolphin internal translation
-  RegisterStringTranslator([](const char* text) { return QObject::tr(text).toStdString(); });
+  Common::RegisterStringTranslator(
+      [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
   auto& configured_language = SConfig::GetInstance().m_InterfaceLanguage;
@@ -300,7 +302,7 @@ void Translation::Initialize()
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
       return;
 
-    QMessageBox::warning(
+    ModalMessageBox::warning(
         nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
     configured_language.clear();

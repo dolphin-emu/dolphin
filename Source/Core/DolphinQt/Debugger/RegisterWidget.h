@@ -13,6 +13,7 @@
 
 class QTableWidget;
 class QCloseEvent;
+class QShowEvent;
 
 class RegisterWidget : public QDockWidget
 {
@@ -30,6 +31,7 @@ signals:
 
 protected:
   void closeEvent(QCloseEvent*) override;
+  void showEvent(QShowEvent* event) override;
 
 private:
   void CreateWidgets();
@@ -41,6 +43,8 @@ private:
 
   void AddRegister(int row, int column, RegisterType type, std::string register_name,
                    std::function<u64()> get_reg, std::function<void(u64)> set_reg);
+
+  void Update();
 
   QTableWidget* m_table;
   bool m_updating = false;

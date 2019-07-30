@@ -1,5 +1,6 @@
 //
 // Copyright (C) 2014 LunarG, Inc.
+// Copyright (C) 2015-2018 Google, Inc.
 //
 // All rights reserved.
 //
@@ -82,6 +83,7 @@ const MemorySemanticsMask MemorySemanticsAllMemory =
 struct IdImmediate {
     bool isId;      // true if word is an Id, false if word is an immediate
     unsigned word;
+    IdImmediate(bool i, unsigned w) : isId(i), word(w) {}
 };
 
 //
@@ -101,6 +103,11 @@ public:
         operands.push_back(immediate);
         idOperand.push_back(false);
     }
+    void setImmediateOperand(unsigned idx, unsigned int immediate) {
+        assert(!idOperand[idx]);
+        operands[idx] = immediate;
+    }
+
     void addStringOperand(const char* str)
     {
         unsigned int word;
@@ -202,6 +209,7 @@ public:
     const std::vector<std::unique_ptr<Instruction> >& getInstructions() const {
         return instructions;
     }
+    const std::vector<std::unique_ptr<Instruction> >& getLocalVariables() const { return localVariables; }
     void setUnreachable() { unreachable = true; }
     bool isUnreachable() const { return unreachable; }
     // Returns the block's merge instruction, if one exists (otherwise null).

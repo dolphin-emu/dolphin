@@ -186,8 +186,10 @@ BPMDetect::BPMDetect(int numChannels, int aSampleRate) :
 
     // choose decimation factor so that result is approx. 1000 Hz
     decimateBy = sampleRate / TARGET_SRATE;
-    assert(decimateBy > 0);
-    assert(INPUT_BLOCK_SIZE < decimateBy * DECIMATED_BLOCK_SIZE);
+    if ((decimateBy <= 0) || (decimateBy * DECIMATED_BLOCK_SIZE < INPUT_BLOCK_SIZE))
+    {
+        ST_THROW_RT_ERROR("Too small samplerate");
+    }
 
     // Calculate window length & starting item according to desired min & max bpms
     windowLen = (60 * sampleRate) / (decimateBy * MIN_BPM);
@@ -311,7 +313,7 @@ void BPMDetect::updateXCorr(int process_samples)
     #pragma omp parallel for
     for (offs = windowStart; offs < windowLen; offs ++) 
     {
-        double sum;
+        float sum;
         int i;
 
         sum = 0;
@@ -339,7 +341,6 @@ void BPMDetect::updateBeatPos(int process_samples)
     //    static double thr = 0.0003;
     double posScale = (double)this->decimateBy / (double)this->sampleRate;
     int resetDur = (int)(0.12 / posScale + 0.5);
-    double corrScale = 1.0 / (double)(windowLen - windowStart);
 
     // prescale pbuffer
     float tmp[XCORR_UPDATE_SEQUENCE / 2];
@@ -351,7 +352,7 @@ void BPMDetect::updateBeatPos(int process_samples)
     #pragma omp parallel for
     for (int offs = windowStart; offs < windowLen; offs++)
     {
-        double sum = 0;
+        float sum = 0;
         for (int i = 0; i < process_samples; i++)
         {
             sum += tmp[i] * pBuffer[offs + i];

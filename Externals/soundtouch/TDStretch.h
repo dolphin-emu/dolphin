@@ -157,7 +157,6 @@ protected:
     void calcSeqParameters();
     void adaptNormalizer();
 
-
     /// Changes the tempo of the given sound samples.
     /// Returns amount of samples returned in the "output" buffer.
     /// The maximum amount of samples that can be returned at a time is set by
@@ -242,14 +241,12 @@ public:
         return seekWindowLength - overlapLength;
     }
 
-
 	/// return approximate initial input-output latency
 	int getLatency() const
 	{
 		return sampleReq;
 	}
 };
-
 
 
 // Implementation-specific class declarations:

@@ -22,8 +22,6 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 {
   std::lock_guard<std::recursive_mutex> lk(m_mutex);
 
-  FifoAnalyzer::Init();
-
   m_File = std::make_unique<FifoDataFile>();
 
   // TODO: This, ideally, would be deallocated when done recording.
@@ -79,12 +77,14 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
   {
     // Assumes data contains all information for the command
     // Calls FifoRecorder::UseMemory
-    u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DECODE_RECORD);
+    const u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DecodeMode::Record);
 
     // Make sure FifoPlayer's command analyzer agrees about the size of the command.
     if (analyzed_size != size)
+    {
       PanicAlert("FifoRecorder: Expected command to be %i bytes long, we were given %i bytes",
                  analyzed_size, size);
+    }
 
     // Copy data to buffer
     size_t currentSize = m_FifoData.size();
@@ -92,7 +92,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
     memcpy(&m_FifoData[currentSize], data, size);
   }
 
-  if (m_FrameEnded && m_FifoData.size() > 0)
+  if (m_FrameEnded && !m_FifoData.empty())
   {
     m_CurrentFrame.fifoData = m_FifoData;
 

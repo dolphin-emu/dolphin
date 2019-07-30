@@ -23,6 +23,6 @@ public final class StringSetting extends Setting
   @Override
   public String getValueAsString()
   {
-    return mValue;
+    return mValue == null ? "" : mValue;
   }
 }

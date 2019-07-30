@@ -9,6 +9,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -28,21 +30,20 @@ static std::string RootUserPath(std::optional<FromWhichRoot> from)
 
 std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return RootUserPath(from) + StringFromFormat("/import/%08x/%08x",
-                                               static_cast<u32>(title_id >> 32),
-                                               static_cast<u32>(title_id));
+  return RootUserPath(from) + fmt::format("/import/{:08x}/{:08x}", static_cast<u32>(title_id >> 32),
+                                          static_cast<u32>(title_id));
 }
 
 std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return StringFromFormat("%s/ticket/%08x/%08x.tik", RootUserPath(from).c_str(),
-                          static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+  return fmt::format("{}/ticket/{:08x}/{:08x}.tik", RootUserPath(from),
+                     static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
 std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return StringFromFormat("%s/title/%08x/%08x", RootUserPath(from).c_str(),
-                          static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+  return fmt::format("{}/title/{:08x}/{:08x}", RootUserPath(from), static_cast<u32>(title_id >> 32),
+                     static_cast<u32>(title_id));
 }
 
 std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from)
@@ -58,6 +59,11 @@ std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from)
 std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from)
 {
   return GetTitleContentPath(title_id, from) + "/title.tmd";
+}
+
+std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from)
+{
+  return fmt::format("{}/shared2/menu/FaceLib/RFL_DB.dat", RootUserPath(from));
 }
 
 bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64* title_id)
@@ -106,7 +112,7 @@ std::string EscapeFileName(const std::string& filename)
   for (char c : filename_with_escaped_double_underscores)
   {
     if ((c >= 0 && c <= 0x1F) || chars_to_replace.find(c) != chars_to_replace.end())
-      result.append(StringFromFormat("__%02x__", c));
+      result.append(fmt::format("__{:02x}__", c));
     else
       result.push_back(c);
   }
@@ -145,4 +151,4 @@ std::string UnescapeFileName(const std::string& filename)
 
   return result;
 }
-}
+}  // namespace Common

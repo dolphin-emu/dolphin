@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include <jni.h>
 
 namespace UICommon
@@ -14,4 +11,4 @@ namespace UICommon
 class GameFile;
 }
 
-jobject GameFileToJava(JNIEnv* env, std::shared_ptr<const UICommon::GameFile> game_file);
+jobject GameFileToJava(JNIEnv* env, const UICommon::GameFile* game_file);

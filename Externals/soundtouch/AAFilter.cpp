@@ -68,7 +68,6 @@ using namespace soundtouch;
     #define _DEBUG_SAVE_AAFIR_COEFFS(x, y)
 #endif
 
-
 /*****************************************************************************
  *
  * Implementation of the class 'AAFilter'
@@ -83,12 +82,10 @@ AAFilter::AAFilter(uint len)
 }
 
 
-
 AAFilter::~AAFilter()
 {
     delete pFIR;
 }
-
 
 
 // Sets new anti-alias filter cut-off edge frequency, scaled to
@@ -101,14 +98,12 @@ void AAFilter::setCutoffFreq(double newCutoffFreq)
 }
 
 
-
 // Sets number of FIR filter taps
 void AAFilter::setLength(uint newLength)
 {
     length = newLength;
     calculateCoeffs();
 }
-
 
 
 // Calculates coefficients for a low-pass FIR filter using Hamming window
@@ -170,12 +165,10 @@ void AAFilter::calculateCoeffs()
     for (i = 0; i < length; i ++) 
     {
         temp = work[i] * scaleCoeff;
-//#if SOUNDTOUCH_INTEGER_SAMPLES
         // scale & round to nearest integer
         temp += (temp >= 0) ? 0.5 : -0.5;
         // ensure no overfloods
         assert(temp >= -32768 && temp <= 32767);
-//#endif
         coeffs[i] = (SAMPLETYPE)temp;
     }
 

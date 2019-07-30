@@ -15,6 +15,7 @@ class QDialog;
 class QGroupBox;
 class QSpinBox;
 class QString;
+class TASCheckBox;
 
 class TASInputWindow : public QDialog
 {
@@ -32,13 +33,13 @@ protected:
                                   Qt::Orientation orientation, QWidget* shortcut_widget,
                                   bool invert = false);
   template <typename UX>
-  void GetButton(QCheckBox* button, UX& pad, UX mask);
+  void GetButton(TASCheckBox* button, UX& pad, UX mask);
   void GetSpinBoxU8(QSpinBox* spin, u8& controller_value);
   void GetSpinBoxU16(QSpinBox* spin, u16& controller_value);
   QCheckBox* m_use_controller;
 
 private:
-  std::map<QCheckBox*, bool> m_checkbox_set_by_controller;
+  std::map<TASCheckBox*, bool> m_checkbox_set_by_controller;
   std::map<QSpinBox*, u8> m_spinbox_most_recent_values_u8;
   std::map<QSpinBox*, u8> m_spinbox_most_recent_values_u16;
 };

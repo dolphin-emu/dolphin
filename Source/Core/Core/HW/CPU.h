@@ -74,4 +74,4 @@ const State* GetStatePtr();
 // "control_adjacent" causes PauseAndLock to behave like EnableStepping by modifying the
 //   state of the Audio and FIFO subsystems as well.
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true, bool control_adjacent = false);
-}
+}  // namespace CPU

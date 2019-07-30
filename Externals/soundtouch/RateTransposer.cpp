@@ -64,13 +64,11 @@ RateTransposer::RateTransposer() : FIFOProcessor(&outputBuffer)
 }
 
 
-
 RateTransposer::~RateTransposer()
 {
     delete pAAFilter;
     delete pTransposer;
 }
-
 
 
 /// Enables/disables the anti-alias filter. Zero to disable, nonzero to enable
@@ -94,7 +92,6 @@ AAFilter *RateTransposer::getAAFilter()
 {
     return pAAFilter;
 }
-
 
 
 // Sets new target iRate. Normal iRate = 1.0, smaller values represent slower 

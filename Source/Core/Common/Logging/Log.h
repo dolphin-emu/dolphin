@@ -72,7 +72,7 @@ enum LOG_LEVELS
 
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 
-}  // namespace
+}  // namespace LogTypes
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
                 const char* fmt, ...)
@@ -122,3 +122,23 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
   {                                                                                                \
     GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__);                                       \
   } while (0)
+
+
+#ifdef ANDROID
+#pragma warning(disable : 4505)  // unreferenced local function
+#pragma warning(disable : 4189)  // unreferenced local variable
+
+#undef GENERIC_LOG
+#undef ERROR_LOG
+#undef WARN_LOG
+#undef NOTICE_LOG
+#undef INFO_LOG
+#undef DEBUG_LOG
+
+#define GENERIC_LOG(t, v, ...) do {} while(0)
+#define ERROR_LOG(t, ...) do {} while(0)
+#define WARN_LOG(t, ...) do {} while(0)
+#define NOTICE_LOG(t, ...) do {} while(0)
+#define INFO_LOG(t, ...) do {} while(0)
+#define DEBUG_LOG(t, ...) do {} while(0)
+#endif

@@ -1,8 +1,8 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.util.Arrays;
@@ -22,20 +22,22 @@ public class Settings
   public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
   public static final String SECTION_GFX_HACKS = "Hacks";
 
+  public static final String SECTION_DEBUG = "Debug";
+
   public static final String SECTION_WIIMOTE = "Wiimote";
 
   public static final String SECTION_BINDINGS = "Android";
   public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
-  public static final String SECTION_SYSCONF = "Wii";
+  public static final String SECTION_WII_IPL = "IPL";
 
   private static final Map<String, List<String>> configFileSectionsMap = new HashMap<>();
 
   static
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
-      Arrays.asList(SECTION_INI_CORE, SECTION_INI_DSP, SECTION_INI_INTERFACE, SECTION_BINDINGS));
+      Arrays.asList(SECTION_INI_CORE, SECTION_INI_DSP, SECTION_INI_INTERFACE, SECTION_BINDINGS, SECTION_DEBUG, SECTION_WII_IPL));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
       Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_WIIMOTE,
@@ -80,12 +82,7 @@ public class Settings
     return sections.isEmpty();
   }
 
-  public HashMap<String, SettingSection> getSections()
-  {
-    return sections;
-  }
-
-  public void loadSettings(String gameId)
+  public void loadSettings(@Nullable String gameId)
   {
     this.sections = new Settings.SettingsSectionMap();
 
@@ -94,10 +91,6 @@ public class Settings
     {
       // for per-game settings, don't load the WiiMoteNew.ini settings
       filesToExclude.add(SettingsFile.FILE_NAME_WIIMOTE);
-    }
-    else
-    {
-      loadWiiSysconf();
     }
 
     loadDolphinSettings(filesToExclude);
@@ -114,95 +107,11 @@ public class Settings
     for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
     {
       String fileName = entry.getKey();
-      if (filesToExclude == null || !filesToExclude.contains(fileName))
+      if (!filesToExclude.contains(fileName))
       {
         sections.putAll(SettingsFile.readFile(fileName));
       }
     }
-  }
-
-  private void loadWiiSysconf()
-  {
-    int[] sysconf = NativeLibrary.getSysconfSettings();
-    SettingSection section = new SettingSection(SECTION_SYSCONF);
-
-    Setting setting = new BooleanSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SCREENSAVER] != 0);
-    section.putSetting(setting);
-
-    setting = new IntSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_LANGUAGE]);
-    section.putSetting(setting);
-
-    setting = new BooleanSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_WIDESCREEN] != 0);
-    section.putSetting(setting);
-
-    setting = new BooleanSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_PROGRESSIVE_SCAN] != 0);
-    section.putSetting(setting);
-
-    setting = new BooleanSetting(SettingsFile.KEY_SYSCONF_PAL60, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_PAL60] != 0);
-    section.putSetting(setting);
-
-    setting = new IntSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_POSITION]);
-    section.putSetting(setting);
-
-    int sensitivity = sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_SENSITIVITY];
-    setting = new IntSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, SECTION_SYSCONF,
-      (int) ((sensitivity - 4) / 123.0f * 100.0f));
-    section.putSetting(setting);
-
-    float voulme = sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SPEAKER_VOLUME];
-    setting = new IntSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, SECTION_SYSCONF,
-      (int) (voulme / 127.0f * 100.0f));
-    section.putSetting(setting);
-
-    setting = new BooleanSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, SECTION_SYSCONF,
-      sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_WIIMOTE_MOTOR] != 0);
-    section.putSetting(setting);
-
-    sections.put(SECTION_SYSCONF, section);
-  }
-
-  private void saveWiiSysconf()
-  {
-    int[] sysconf = new int[9];
-    SettingSection section = sections.get(SECTION_SYSCONF);
-
-    BooleanSetting boolSetting =
-      (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SCREENSAVER] = boolSetting.getValue() ? 1 : 0;
-
-    IntSetting intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_LANGUAGE] = intSetting.getValue();
-
-    boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_WIDESCREEN] = boolSetting.getValue() ? 1 : 0;
-
-    boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_PROGRESSIVE_SCAN] = boolSetting.getValue() ? 1 : 0;
-
-    boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_PAL60] = boolSetting.getValue() ? 1 : 0;
-
-    intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_POSITION] = intSetting.getValue();
-
-    intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_SENSITIVITY] =
-      (int) (intSetting.getValue() / 100.0f * 123.0f + 4);
-
-    intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SPEAKER_VOLUME] =
-      (int) (intSetting.getValue() / 100.0f * 127.0f);
-
-    boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
-    sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_WIIMOTE_MOTOR] = boolSetting.getValue() ? 1 : 0;
-
-    NativeLibrary.setSysconfSettings(sysconf);
   }
 
   private void loadGenericGameSettings(String gameId)
@@ -254,8 +163,6 @@ public class Settings
 
       SettingsFile.saveFile(fileName, iniSections);
     }
-
-    saveWiiSysconf();
   }
 
   public void saveCustomGameSettings(String gameId)

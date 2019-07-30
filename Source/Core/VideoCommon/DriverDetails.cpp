@@ -24,17 +24,17 @@ struct BugInfo
 
 // Local members
 #ifdef _WIN32
-const u32 m_os = OS_ALL | OS_WINDOWS;
+constexpr u32 m_os = OS_ALL | OS_WINDOWS;
 #elif ANDROID
-const u32 m_os = OS_ALL | OS_ANDROID;
+constexpr u32 m_os = OS_ALL | OS_ANDROID;
 #elif __APPLE__
-const u32 m_os = OS_ALL | OS_OSX;
+constexpr u32 m_os = OS_ALL | OS_OSX;
 #elif __linux__
-const u32 m_os = OS_ALL | OS_LINUX;
+constexpr u32 m_os = OS_ALL | OS_LINUX;
 #elif __FreeBSD__
-const u32 m_os = OS_ALL | OS_FREEBSD;
+constexpr u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
-const u32 m_os = OS_ALL | OS_OPENBSD;
+constexpr u32 m_os = OS_ALL | OS_OPENBSD;
 #endif
 
 static API m_api = API_OPENGL;
@@ -45,7 +45,7 @@ static double m_version = 0.0;
 
 // This is a list of all known bugs for each vendor
 // We use this to check if the device and driver has a issue
-static BugInfo m_known_bugs[] = {
+constexpr BugInfo m_known_bugs[] = {
     {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_BROKEN_BUFFER_STREAM, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
@@ -86,7 +86,7 @@ static BugInfo m_known_bugs[] = {
      -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN, BUG_BROKEN_CLIP_DISTANCE, -1.0,
      -1.0, true},
-    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
+    {API_VULKAN, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
      BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION, -1.0, -1.0, true},
     {API_OPENGL, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
@@ -94,8 +94,8 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, 108.4693462, true},
-    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
-     true},
+    {API_VULKAN, OS_WINDOWS, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0,
+     -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
      true},
     {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN,
@@ -107,7 +107,11 @@ static BugInfo m_known_bugs[] = {
     {API_VULKAN, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_CLEAR_LOADOP_RENDERPASS, -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN, BUG_BROKEN_D32F_CLEAR,
-     -1.0, -1.0, true}};
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN, BUG_BROKEN_REVERSED_DEPTH_RANGE,
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
+     BUG_BROKEN_REVERSED_DEPTH_RANGE, -1.0, -1.0, true}};
 
 static std::map<Bug, BugInfo> m_bugs;
 
@@ -147,7 +151,7 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
   // Clear bug list, as the API may have changed
   m_bugs.clear();
 
-  for (auto& bug : m_known_bugs)
+  for (const auto& bug : m_known_bugs)
   {
     if ((bug.m_api & api) && (bug.m_os & m_os) &&
         (bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL) &&
@@ -155,13 +159,15 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
         (bug.m_family == m_family || bug.m_family == Family::UNKNOWN) &&
         (bug.m_versionstart <= m_version || bug.m_versionstart == -1) &&
         (bug.m_versionend > m_version || bug.m_versionend == -1))
+    {
       m_bugs.emplace(bug.m_bug, bug);
+    }
   }
 }
 
 bool HasBug(Bug bug)
 {
-  auto it = m_bugs.find(bug);
+  const auto it = m_bugs.find(bug);
   if (it == m_bugs.end())
     return false;
   return it->second.m_hasbug;

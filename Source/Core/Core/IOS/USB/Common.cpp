@@ -6,9 +6,10 @@
 
 #include <algorithm>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 
@@ -89,6 +90,6 @@ void EndpointDescriptor::Swap()
 
 std::string Device::GetErrorName(const int error_code) const
 {
-  return StringFromFormat("unknown error %d", error_code);
+  return fmt::format("unknown error {}", error_code);
 }
 }  // namespace IOS::HLE::USB

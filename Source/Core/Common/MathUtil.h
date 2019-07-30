@@ -5,8 +5,6 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
-#include <cstdlib>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -17,10 +15,19 @@
 
 namespace MathUtil
 {
-template <class T>
-constexpr T Clamp(const T val, const T& min, const T& max)
+constexpr double TAU = 6.2831853071795865;
+constexpr double PI = TAU / 2;
+
+template <typename T>
+constexpr auto Sign(const T& val) -> decltype((T{} < val) - (val < T{}))
 {
-  return std::max(min, std::min(max, val));
+  return (T{} < val) - (val < T{});
+}
+
+template <typename T, typename F>
+constexpr auto Lerp(const T& x, const T& y, const F& a) -> decltype(x + (y - x) * a)
+{
+  return x + (y - x) * a;
 }
 
 template <typename T>
@@ -68,20 +75,20 @@ struct Rectangle
   // this Clamp.
   void ClampLL(T x1, T y1, T x2, T y2)
   {
-    left = Clamp(left, x1, x2);
-    right = Clamp(right, x1, x2);
-    top = Clamp(top, y2, y1);
-    bottom = Clamp(bottom, y2, y1);
+    left = std::clamp(left, x1, x2);
+    right = std::clamp(right, x1, x2);
+    top = std::clamp(top, y2, y1);
+    bottom = std::clamp(bottom, y2, y1);
   }
 
   // If the rectangle is in a coordinate system with an upper-left origin,
   // use this Clamp.
   void ClampUL(T x1, T y1, T x2, T y2)
   {
-    left = Clamp(left, x1, x2);
-    right = Clamp(right, x1, x2);
-    top = Clamp(top, y1, y2);
-    bottom = Clamp(bottom, y1, y2);
+    left = std::clamp(left, x1, x2);
+    right = std::clamp(right, x1, x2);
+    top = std::clamp(top, y1, y2);
+    bottom = std::clamp(bottom, y1, y2);
   }
 };
 
@@ -110,38 +117,3 @@ inline int IntLog2(u64 val)
   return result;
 #endif
 }
-
-// Tiny matrix/vector library.
-// Used for things like Free-Look in the gfx backend.
-
-class Matrix33
-{
-public:
-  static void LoadIdentity(Matrix33& mtx);
-
-  // set mtx to be a rotation matrix around the x axis
-  static void RotateX(Matrix33& mtx, float rad);
-  // set mtx to be a rotation matrix around the y axis
-  static void RotateY(Matrix33& mtx, float rad);
-
-  // set result = a x b
-  static void Multiply(const Matrix33& a, const Matrix33& b, Matrix33& result);
-  static void Multiply(const Matrix33& a, const float vec[3], float result[3]);
-
-  float data[9];
-};
-
-class Matrix44
-{
-public:
-  static void LoadIdentity(Matrix44& mtx);
-  static void LoadMatrix33(Matrix44& mtx, const Matrix33& m33);
-  static void Set(Matrix44& mtx, const float mtxArray[16]);
-
-  static void Translate(Matrix44& mtx, const float vec[3]);
-  static void Shear(Matrix44& mtx, const float a, const float b = 0);
-
-  static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result);
-
-  float data[16];
-};

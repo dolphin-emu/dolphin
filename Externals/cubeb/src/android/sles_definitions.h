@@ -43,10 +43,9 @@
 #define SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION   ((SLuint32) 0x00000003)
 /**   uses the main microphone tuned for audio communications */
 #define SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION ((SLuint32) 0x00000004)
+/**   uses the main microphone unprocessed */
+#define SL_ANDROID_RECORDING_PRESET_UNPROCESSED         ((SLuint32) 0x00000005)
 
-/** Audio recording get session ID (read only) */
-/** Audio recording get session ID key */
-#define SL_ANDROID_KEY_RECORDING_SESSION_ID ((const SLchar*) "androidRecordingSessionId")
 
 /*---------------------------------------------------------------------------*/
 /* Android AudioPlayer configuration                                         */
@@ -69,9 +68,35 @@
 #define SL_ANDROID_STREAM_ALARM        ((SLint32) 0x00000004)
 /*      same as android.media.AudioManager.STREAM_NOTIFICATION */
 #define SL_ANDROID_STREAM_NOTIFICATION ((SLint32) 0x00000005)
-/*      same as android.media.AudioManager.STREAM_BLUETOOTH_SCO */
-#define SL_ANDROID_STREAM_BLUETOOTH_SCO ((SLint32) 0x00000006)
-/*      same as android.media.AudioManager.STREAM_SYSTEM_ENFORCED */
-#define SL_ANDROID_STREAM_SYSTEM_ENFORCED ((SLint32) 0x00000007)
+
+
+/*---------------------------------------------------------------------------*/
+/* Android AudioPlayer and AudioRecorder configuration                       */
+/*---------------------------------------------------------------------------*/
+
+/** Audio Performance mode.
+ * Performance mode tells the framework how to configure the audio path
+ * for a player or recorder according to application performance and
+ * functional requirements.
+ * It affects the output or input latency based on acceptable tradeoffs on
+ * battery drain and use of pre or post processing effects.
+ * Performance mode should be set before realizing the object and should be
+ * read after realizing the object to check if the requested mode could be
+ * granted or not.
+ */
+/** Audio Performance mode key */
+#define SL_ANDROID_KEY_PERFORMANCE_MODE ((const SLchar*) "androidPerformanceMode")
+
+/** Audio performance values */
+/*      No specific performance requirement. Allows HW and SW pre/post processing. */
+#define SL_ANDROID_PERFORMANCE_NONE ((SLuint32) 0x00000000)
+/*      Priority given to latency. No HW or software pre/post processing.
+ *      This is the default if no performance mode is specified. */
+#define SL_ANDROID_PERFORMANCE_LATENCY ((SLuint32) 0x00000001)
+/*      Priority given to latency while still allowing HW pre and post processing. */
+#define SL_ANDROID_PERFORMANCE_LATENCY_EFFECTS ((SLuint32) 0x00000002)
+/*      Priority given to power saving if latency is not a concern.
+ *      Allows HW and SW pre/post processing. */
+#define SL_ANDROID_PERFORMANCE_POWER_SAVING ((SLuint32) 0x00000003)
 
 #endif /* OPENSL_ES_ANDROIDCONFIGURATION_H_ */

@@ -49,19 +49,20 @@ enum Vendor
 enum Driver
 {
   DRIVER_ALL = 0,
-  DRIVER_NVIDIA,     // Official Nvidia, including mobile GPU
-  DRIVER_NOUVEAU,    // OSS nouveau
-  DRIVER_ATI,        // Official ATI
-  DRIVER_R600,       // OSS Radeon
-  DRIVER_INTEL,      // Official Intel
-  DRIVER_I965,       // OSS Intel
-  DRIVER_ARM,        // Official Mali driver
-  DRIVER_LIMA,       // OSS Mali driver
-  DRIVER_QUALCOMM,   // Official Adreno driver
-  DRIVER_FREEDRENO,  // OSS Adreno driver
-  DRIVER_IMGTEC,     // Official PowerVR driver
-  DRIVER_VIVANTE,    // Official Vivante driver
-  DRIVER_UNKNOWN     // Unknown driver, default to official hardware driver
+  DRIVER_NVIDIA,       // Official Nvidia, including mobile GPU
+  DRIVER_NOUVEAU,      // OSS nouveau
+  DRIVER_ATI,          // Official ATI
+  DRIVER_R600,         // OSS Radeon
+  DRIVER_INTEL,        // Official Intel
+  DRIVER_I965,         // OSS Intel
+  DRIVER_ARM,          // Official Mali driver
+  DRIVER_LIMA,         // OSS Mali driver
+  DRIVER_QUALCOMM,     // Official Adreno driver
+  DRIVER_FREEDRENO,    // OSS Adreno driver
+  DRIVER_IMGTEC,       // Official PowerVR driver
+  DRIVER_VIVANTE,      // Official Vivante driver
+  DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
+  DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 
 enum class Family
@@ -275,6 +276,11 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_D32F_CLEAR,
+
+  // BUG: Reversed viewport depth range does not work as intended on some Vulkan drivers.
+  // The Vulkan spec allows the minDepth/maxDepth fields in the viewport to be reversed,
+  // however the implementation is broken on some drivers.
+  BUG_BROKEN_REVERSED_DEPTH_RANGE,
 };
 
 // Initializes our internal vendor, device family, and driver version

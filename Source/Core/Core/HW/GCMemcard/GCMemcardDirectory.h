@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Event.h"
+#include "Core/HW/GCMemcard/GCIFile.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
@@ -39,7 +40,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  int LoadGCI(const std::string& file_name, bool current_game_only);
+  bool LoadGCI(GCIFile gci);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* dest_address);
   s32 DirectoryWrite(u32 dest_address, u32 length, const u8* src_address);
@@ -55,7 +56,6 @@ private:
   BlockAlloc m_bat1, m_bat2;
   std::vector<GCIFile> m_saves;
 
-  std::vector<std::string> m_loaded_saves;
   std::string m_save_directory;
   Common::Event m_flush_trigger;
   std::mutex m_write_mutex;

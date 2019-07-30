@@ -30,52 +30,6 @@ const std::array<std::pair<int, int>, 9> GLContext::s_desktop_opengl_versions = 
 
 GLContext::~GLContext() = default;
 
-bool GLContext::Initialize(void* display_handle, void* window_handle, bool core)
-{
-  return false;
-}
-
-bool GLContext::IsHeadless() const
-{
-  return true;
-}
-
-std::unique_ptr<GLContext> GLContext::CreateSharedContext()
-{
-  return nullptr;
-}
-
-bool GLContext::MakeCurrent()
-{
-  return false;
-}
-
-bool GLContext::ClearCurrent()
-{
-  return false;
-}
-
-void GLContext::Update()
-{
-}
-
-void GLContext::UpdateSurface(void* window_handle)
-{
-}
-
-void GLContext::Swap()
-{
-}
-
-void GLContext::SwapInterval(int interval)
-{
-}
-
-void* GLContext::GetFuncAddress(const std::string& name)
-{
-  return nullptr;
-}
-
 std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool core,
                                              bool prefer_egl, bool prefer_gles)
 {

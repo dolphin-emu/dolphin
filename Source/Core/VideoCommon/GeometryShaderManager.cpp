@@ -14,6 +14,9 @@
 static const int LINE_PT_TEX_OFFSETS[8] = {0, 16, 8, 4, 2, 1, 1, 1};
 
 GeometryShaderConstants GeometryShaderManager::constants;
+using float4 = std::array<float, 4>;
+static float4 StatePaddingBefore{};
+
 bool GeometryShaderManager::dirty;
 
 static bool s_projection_changed;
@@ -89,10 +92,7 @@ void GeometryShaderManager::DoState(PointerWrap& p)
   p.Do(s_projection_changed);
   p.Do(s_viewport_changed);
 
-  // for save state compatibility
-  float4 __noused_stereoparams{};
-  p.Do(__noused_stereoparams);
-
+  p.Do(StatePaddingBefore);
   p.Do(constants);
 
   if (p.GetMode() == PointerWrap::MODE_READ)

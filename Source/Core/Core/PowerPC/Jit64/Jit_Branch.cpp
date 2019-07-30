@@ -93,11 +93,7 @@ void Jit64::bx(UGeckoInstruction inst)
 #endif
   if (js.op->branchIsIdleLoop)
   {
-    ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(CoreTiming::Idle);
-    ABI_PopRegistersAndAdjustStack({}, 0);
-    MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
-    WriteExceptionExit();
+    WriteIdleExit(js.op->branchTo);
   }
   else
   {
@@ -159,11 +155,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 
     if (js.op->branchIsIdleLoop)
     {
-      ABI_PushRegistersAndAdjustStack({}, 0);
-      ABI_CallFunction(CoreTiming::Idle);
-      ABI_PopRegistersAndAdjustStack({}, 0);
-      MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
-      WriteExceptionExit();
+      WriteIdleExit(js.op->branchTo);
     }
     else
     {
@@ -246,9 +238,6 @@ void Jit64::bclrx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  if (js.op->branchIsIdleLoop)
-    ERROR_LOG(POWERPC, "FIXME: IDLE LOOP DETECTED at PC %x", js.compilerPC);
-
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
@@ -288,7 +277,15 @@ void Jit64::bclrx(UGeckoInstruction inst)
     RCForkGuard fpr_guard = fpr.Fork();
     gpr.Flush();
     fpr.Flush();
-    WriteBLRExit();
+
+    if (js.op->branchIsIdleLoop)
+    {
+      WriteIdleExit(js.op->branchTo);
+    }
+    else
+    {
+      WriteBLRExit();
+    }
   }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

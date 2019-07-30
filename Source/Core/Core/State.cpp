@@ -35,7 +35,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -58,8 +58,6 @@ static unsigned char __LZO_MMODEL out[OUT_LEN];
 
 static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
-static std::string g_last_filename;
-
 static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
@@ -74,7 +72,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 99;  // Last changed in PR 6020
+static const u32 STATE_VERSION = 110;  // Last changed in PR 8036
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -151,11 +149,7 @@ static void DoState(PointerWrap& p)
   std::string version_created_by;
   if (!DoStateVersion(p, &version_created_by))
   {
-    const std::string message =
-        version_created_by.empty() ?
-            "This savestate was created using an incompatible version of Dolphin" :
-            "This savestate was created using the incompatible version " + version_created_by;
-    Core::DisplayMessage(message, OSD::Duration::NORMAL);
+    Core::DisplayMessage("This savestate was incompatible with current version!", OSD::Duration::NORMAL);
     p.SetMode(PointerWrap::MODE_MEASURE);
     return;
   }
@@ -177,10 +171,6 @@ static void DoState(PointerWrap& p)
   g_video_backend->DoState(p);
   p.DoMarker("video_backend");
 
-  if (SConfig::GetInstance().bWii)
-    Wiimote::DoState(p);
-  p.DoMarker("Wiimote");
-
   PowerPC::DoState(p);
   p.DoMarker("PowerPC");
   // CoreTiming needs to be restored before restoring Hardware because
@@ -189,13 +179,16 @@ static void DoState(PointerWrap& p)
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");
+  if (SConfig::GetInstance().bWii)
+    Wiimote::DoState(p);
+  p.DoMarker("Wiimote");
   Movie::DoState(p);
   p.DoMarker("Movie");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
 
 #if defined(HAVE_FFMPEG)
-  AVIDump::DoState();
+  FrameDump::DoState();
 #endif
 }
 
@@ -318,7 +311,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
       File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));
 
     if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
-      Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
+      Core::DisplayMessage("Failed to move previous state to state undo backup", 2000);
     else
       File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
   }
@@ -331,7 +324,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   File::IOFile f(filename, "wb");
   if (!f)
   {
-    Core::DisplayMessage("Could not save state", 2000);
+    Core::DisplayMessage("Could not save state", 4000);
     return;
   }
 
@@ -378,7 +371,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
     f.WriteBytes(buffer_data, buffer_size);
   }
 
-  Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
+  Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 4000);
   Host_UpdateMainFrame();
 }
 
@@ -402,8 +395,6 @@ void SaveAs(const std::string& filename, bool wait)
 
     if (p.GetMode() == PointerWrap::MODE_WRITE)
     {
-      Core::DisplayMessage("Saving State...", 1000);
-
       CompressAndDumpState_args save_args;
       save_args.buffer_vector = &g_current_buffer;
       save_args.buffer_mutex = &g_cs_current_buffer;
@@ -413,8 +404,6 @@ void SaveAs(const std::string& filename, bool wait)
       Flush();
       g_save_thread = std::thread(CompressAndDumpState, save_args);
       g_compressAndDumpStateSyncEvent.Wait();
-
-      g_last_filename = filename;
     }
     else
     {
@@ -430,7 +419,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   File::IOFile f(filename, "rb");
   if (!f)
   {
-    Core::DisplayMessage("State not found", 2000);
+    Core::DisplayMessage("State not found", 4000);
     return false;
   }
 
@@ -442,11 +431,11 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
 {
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
-    return translate ? GetStringT("Empty") : "Empty";
+    return translate ? Common::GetStringT("Empty") : "Empty";
 
   State::StateHeader header;
   if (!ReadHeader(filename, header))
-    return translate ? GetStringT("Unknown") : "Unknown";
+    return translate ? Common::GetStringT("Unknown") : "Unknown";
 
   return Common::Timer::GetDateTimeFormatted(header.time);
 }
@@ -457,7 +446,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   File::IOFile f(filename, "rb");
   if (!f)
   {
-    Core::DisplayMessage("State not found", 2000);
+    Core::DisplayMessage("State not found", 4000);
     return;
   }
 
@@ -467,7 +456,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
     Core::DisplayMessage(
-        StringFromFormat("State belongs to a different game (ID %.*s)", 6, header.gameID), 2000);
+        StringFromFormat("State belongs to a different game (ID %.*s)", 6, header.gameID), 4000);
     return;
   }
 
@@ -475,8 +464,6 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
   if (header.size != 0)  // non-zero size means the state is compressed
   {
-    Core::DisplayMessage("Decompressing State...", 500);
-
     buffer.resize(header.size);
 
     lzo_uint i = 0;
@@ -566,7 +553,7 @@ void LoadAs(const std::string& filename)
     {
       if (loadedSuccessfully)
       {
-        Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
+        Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 4000);
         if (File::Exists(filename + ".dtm"))
           Movie::LoadInput(filename + ".dtm");
         else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
@@ -640,7 +627,7 @@ void LoadLastSaved(int i)
   std::map<double, int> savedStates = GetSavedStates();
 
   if (i > (int)savedStates.size())
-    Core::DisplayMessage("State doesn't exist", 2000);
+    Core::DisplayMessage("State doesn't exist", 4000);
   else
   {
     std::map<double, int>::iterator it = savedStates.begin();

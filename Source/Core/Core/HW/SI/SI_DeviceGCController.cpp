@@ -26,21 +26,14 @@ namespace SerialInterface
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_number)
     : ISIDevice(device, device_number)
 {
-}
-
-void CSIDevice_GCController::Calibrate()
-{
-  GCPadStatus pad_origin = GetPadStatus();
-  memset(&m_origin, 0, sizeof(SOrigin));
-  m_origin.button = pad_origin.button;
-  m_origin.origin_stick_x = pad_origin.stickX;
-  m_origin.origin_stick_y = pad_origin.stickY;
-  m_origin.substick_x = pad_origin.substickX;
-  m_origin.substick_y = pad_origin.substickY;
-  m_origin.trigger_left = pad_origin.triggerLeft;
-  m_origin.trigger_right = pad_origin.triggerRight;
-
-  m_calibrated = true;
+  // Here we set origin to perfectly centered values.
+  // This purposely differs from real hardware which sets origin to current input state.
+  // That behavior is less than ideal as the user may have inadvertently moved from neutral.
+  // The X+Y+Start button combo can override this if desired.
+  m_origin.origin_stick_x = GCPadStatus::MAIN_STICK_CENTER_X;
+  m_origin.origin_stick_y = GCPadStatus::MAIN_STICK_CENTER_Y;
+  m_origin.substick_x = GCPadStatus::C_STICK_CENTER_X;
+  m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
@@ -87,9 +80,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   {
     INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 
-    if (!m_calibrated)
-      Calibrate();
-
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
@@ -102,9 +92,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   case CMD_RECALIBRATE:
   {
     INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
-
-    if (!m_calibrated)
-      Calibrate();
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
@@ -162,6 +149,12 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   }
 
   HandleMoviePadStatus(&pad_status);
+
+  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
+  // Watch for this to calibrate real controllers on connection.
+  if (pad_status.button & PAD_GET_ORIGIN)
+    SetOrigin(pad_status);
+
   return pad_status;
 }
 
@@ -231,12 +224,6 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
     low |= pad_status.substickX << 24;  // All 8 bits
   }
 
-  // Unset all bits except those that represent
-  // A, B, X, Y, Start and the error bits, as they
-  // are not used.
-  if (m_simulate_konga)
-    hi &= ~0x20FFFFFF;
-
   return true;
 }
 
@@ -271,21 +258,18 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
 
   if (m_last_button_combo != COMBO_NONE)
   {
-    m_timer_button_combo = CoreTiming::GetTicks();
-    if ((m_timer_button_combo - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
+    const u64 current_time = CoreTiming::GetTicks();
+    if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
+        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_RESET");
         ProcessorInterface::ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
-        m_origin.origin_stick_x = pad_status.stickX;
-        m_origin.origin_stick_y = pad_status.stickY;
-        m_origin.substick_x = pad_status.substickX;
-        m_origin.substick_y = pad_status.substickY;
-        m_origin.trigger_left = pad_status.triggerLeft;
-        m_origin.trigger_right = pad_status.triggerRight;
+        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
+        SetOrigin(pad_status);
       }
 
       m_last_button_combo = COMBO_NONE;
@@ -294,6 +278,16 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   }
 
   return COMBO_NONE;
+}
+
+void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
+{
+  m_origin.origin_stick_x = pad_status.stickX;
+  m_origin.origin_stick_y = pad_status.stickY;
+  m_origin.substick_x = pad_status.substickX;
+  m_origin.substick_y = pad_status.substickY;
+  m_origin.trigger_left = pad_status.triggerLeft;
+  m_origin.trigger_right = pad_status.triggerRight;
 }
 
 // SendCommand
@@ -342,11 +336,26 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 // Savestate support
 void CSIDevice_GCController::DoState(PointerWrap& p)
 {
-  p.Do(m_calibrated);
   p.Do(m_origin);
   p.Do(m_mode);
   p.Do(m_timer_button_combo_start);
-  p.Do(m_timer_button_combo);
   p.Do(m_last_button_combo);
 }
+
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
+    : CSIDevice_GCController(device, device_number)
+{
+}
+
+bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
+{
+  CSIDevice_GCController::GetData(hi, low);
+
+  // Unsets the first 16 bits (StickX/Y), PAD_USE_ORIGIN,
+  // and all buttons except: A, B, X, Y, Start, R
+  hi &= HI_BUTTON_MASK;
+
+  return true;
+}
+
 }  // namespace SerialInterface

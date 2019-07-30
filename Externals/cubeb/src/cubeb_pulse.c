@@ -85,6 +85,7 @@
   X(pa_context_subscribe)                       \
   X(pa_mainloop_api_once)                       \
   X(pa_get_library_version)                     \
+  X(pa_channel_map_init_auto)                   \
 
 #define MAKE_TYPEDEF(x) static typeof(x) * cubeb_##x;
 LIBPULSE_API_VISIT(MAKE_TYPEDEF);
@@ -111,8 +112,10 @@ struct cubeb {
   struct cubeb_default_sink_info * default_sink_info;
   char * context_name;
   int error;
-  cubeb_device_collection_changed_callback collection_changed_callback;
-  void * collection_changed_user_ptr;
+  cubeb_device_collection_changed_callback output_collection_changed_callback;
+  void * output_collection_changed_user_ptr;
+  cubeb_device_collection_changed_callback input_collection_changed_callback;
+  void * input_collection_changed_user_ptr;
   cubeb_strings * device_ids;
 };
 
@@ -784,6 +787,25 @@ to_pulse_format(cubeb_sample_format format)
   }
 }
 
+static cubeb_channel_layout
+pulse_default_layout_for_channels(uint32_t ch)
+{
+  assert (ch > 0 && ch <= 8);
+  switch (ch) {
+    case 1: return CUBEB_LAYOUT_MONO;
+    case 2: return CUBEB_LAYOUT_STEREO;
+    case 3: return CUBEB_LAYOUT_3F;
+    case 4: return CUBEB_LAYOUT_QUAD;
+    case 5: return CUBEB_LAYOUT_3F2;
+    case 6: return CUBEB_LAYOUT_3F_LFE |
+                   CHANNEL_SIDE_LEFT | CHANNEL_SIDE_RIGHT;
+    case 7: return CUBEB_LAYOUT_3F3R_LFE;
+    case 8: return CUBEB_LAYOUT_3F4_LFE;
+  }
+  // Never get here!
+  return CUBEB_LAYOUT_UNDEFINED;
+}
+
 static int
 create_pa_stream(cubeb_stream * stm,
                  pa_stream ** pa_stm,
@@ -807,7 +829,16 @@ create_pa_stream(cubeb_stream * stm,
   ss.channels = stream_params->channels;
 
   if (stream_params->layout == CUBEB_LAYOUT_UNDEFINED) {
-    *pa_stm = WRAP(pa_stream_new)(stm->context->context, stream_name, &ss, NULL);
+    pa_channel_map cm;
+    if (stream_params->channels <= 8 &&
+       !WRAP(pa_channel_map_init_auto)(&cm, stream_params->channels, PA_CHANNEL_MAP_DEFAULT)) {
+      LOG("Layout undefined and PulseAudio's default layout has not been configured, guess one.");
+      layout_to_channel_map(pulse_default_layout_for_channels(stream_params->channels), &cm);
+      *pa_stm = WRAP(pa_stream_new)(stm->context->context, stream_name, &ss, &cm);
+    } else {
+      LOG("Layout undefined, PulseAudio will use its default.");
+      *pa_stm = WRAP(pa_stream_new)(stm->context->context, stream_name, &ss, NULL);
+    }
   } else {
     pa_channel_map cm;
     layout_to_channel_map(stream_params->layout, &cm);
@@ -945,6 +976,7 @@ pulse_stream_init(cubeb * context,
   }
 
   *stream = stm;
+  LOG("Cubeb stream (%p) init successful.", *stream);
 
   return CUBEB_OK;
 }
@@ -976,6 +1008,7 @@ pulse_stream_destroy(cubeb_stream * stm)
   }
   WRAP(pa_threaded_mainloop_unlock)(stm->context->mainloop);
 
+  LOG("Cubeb stream (%p) destroyed successfully.", stm);
   free(stm);
 }
 
@@ -1007,6 +1040,7 @@ pulse_stream_start(cubeb_stream * stm)
     WRAP(pa_threaded_mainloop_unlock)(stm->context->mainloop);
   }
 
+  LOG("Cubeb stream (%p) started successfully.", stm);
   return CUBEB_OK;
 }
 
@@ -1022,6 +1056,7 @@ pulse_stream_stop(cubeb_stream * stm)
   WRAP(pa_threaded_mainloop_unlock)(stm->context->mainloop);
 
   stream_cork(stm, CORK | NOTIFY);
+  LOG("Cubeb stream (%p) stopped successfully.", stm);
   return CUBEB_OK;
 }
 
@@ -1496,23 +1531,28 @@ pulse_subscribe_callback(pa_context * ctx,
     if (g_cubeb_log_level) {
       if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE &&
           (t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-        LOG("Removing sink index %d", index);
+        LOG("Removing source index %d", index);
       } else if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE &&
           (t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-        LOG("Adding sink index %d", index);
+        LOG("Adding source index %d", index);
       }
       if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK &&
           (t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-        LOG("Removing source index %d", index);
+        LOG("Removing sink index %d", index);
       } else if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK &&
           (t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-        LOG("Adding source index %d", index);
+        LOG("Adding sink index %d", index);
       }
     }
 
     if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE ||
         (t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-      context->collection_changed_callback(context, context->collection_changed_user_ptr);
+      if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE) {
+        context->input_collection_changed_callback(context, context->input_collection_changed_user_ptr);
+      }
+      if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK) {
+        context->output_collection_changed_callback(context, context->output_collection_changed_user_ptr);
+      }
     }
     break;
   }
@@ -1533,24 +1573,32 @@ pulse_register_device_collection_changed(cubeb * context,
                                          cubeb_device_collection_changed_callback collection_changed_callback,
                                          void * user_ptr)
 {
-  context->collection_changed_callback = collection_changed_callback;
-  context->collection_changed_user_ptr = user_ptr;
+  if (devtype & CUBEB_DEVICE_TYPE_INPUT) {
+    context->input_collection_changed_callback = collection_changed_callback;
+    context->input_collection_changed_user_ptr = user_ptr;
+  }
+  if (devtype & CUBEB_DEVICE_TYPE_OUTPUT) {
+    context->output_collection_changed_callback = collection_changed_callback;
+    context->output_collection_changed_user_ptr = user_ptr;
+  }
 
   WRAP(pa_threaded_mainloop_lock)(context->mainloop);
 
-  pa_subscription_mask_t mask;
-  if (context->collection_changed_callback == NULL) {
-    // Unregister subscription
-    WRAP(pa_context_set_subscribe_callback)(context->context, NULL, NULL);
-    mask = PA_SUBSCRIPTION_MASK_NULL;
+  pa_subscription_mask_t mask = PA_SUBSCRIPTION_MASK_NULL;
+  if (context->input_collection_changed_callback) {
+    mask |= PA_SUBSCRIPTION_MASK_SOURCE;
+  }
+  if (context->output_collection_changed_callback) {
+    mask |= PA_SUBSCRIPTION_MASK_SINK;
+  }
+
+  if (collection_changed_callback == NULL) {
+    // Unregister subscription.
+    if (mask == PA_SUBSCRIPTION_MASK_NULL) {
+      WRAP(pa_context_set_subscribe_callback)(context->context, NULL, NULL);
+    }
   } else {
     WRAP(pa_context_set_subscribe_callback)(context->context, pulse_subscribe_callback, context);
-    if (devtype == CUBEB_DEVICE_TYPE_INPUT)
-      mask = PA_SUBSCRIPTION_MASK_SOURCE;
-    else if (devtype == CUBEB_DEVICE_TYPE_OUTPUT)
-      mask = PA_SUBSCRIPTION_MASK_SINK;
-    else
-      mask = PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SOURCE;
   }
 
   pa_operation * o;

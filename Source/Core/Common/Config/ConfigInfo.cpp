@@ -32,4 +32,4 @@ bool ConfigLocation::operator<(const ConfigLocation& other) const
   const int key_compare = strcasecmp(key.c_str(), other.key.c_str());
   return key_compare < 0;
 }
-}
+}  // namespace Config
