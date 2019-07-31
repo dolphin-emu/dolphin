@@ -168,11 +168,13 @@ void ARCodeWidget::UpdateList()
 
 void ARCodeWidget::SaveCodes()
 {
-  IniFile game_ini_local;
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-  ActionReplay::SaveCodes(&game_ini_local, m_ar_codes);
+  const auto ini_path =
+      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
 
-  game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+  IniFile game_ini_local;
+  game_ini_local.Load(ini_path);
+  ActionReplay::SaveCodes(&game_ini_local, m_ar_codes);
+  game_ini_local.Save(ini_path);
 }
 
 void ARCodeWidget::AddCode(ActionReplay::ARCode code)
