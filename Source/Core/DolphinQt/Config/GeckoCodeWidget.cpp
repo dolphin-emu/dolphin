@@ -229,12 +229,13 @@ void GeckoCodeWidget::RemoveCode()
 
 void GeckoCodeWidget::SaveCodes()
 {
+  const auto ini_path =
+      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
+
   IniFile game_ini_local;
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-
+  game_ini_local.Load(ini_path);
   Gecko::SaveCodes(game_ini_local, m_gecko_codes);
-
-  game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+  game_ini_local.Save(ini_path);
 }
 
 void GeckoCodeWidget::OnContextMenuRequested()
