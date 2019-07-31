@@ -138,7 +138,7 @@ bool VKTexture::CreateView(VkImageViewType type)
       GetVkFormat(),
       {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
        VK_COMPONENT_SWIZZLE_IDENTITY},
-      {GetImageAspectForFormat(GetFormat()), 0, GetLevels(), 0, GetLayers()}};
+      {GetImageViewAspectForFormat(GetFormat()), 0, GetLevels(), 0, GetLayers()}};
 
   VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &m_view);
   if (res != VK_SUCCESS)
@@ -229,6 +229,21 @@ VkImageAspectFlags VKTexture::GetImageAspectForFormat(AbstractTextureFormat form
     return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
   case AbstractTextureFormat::D16:
+  case AbstractTextureFormat::D32F:
+    return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+  default:
+    return VK_IMAGE_ASPECT_COLOR_BIT;
+  }
+}
+
+VkImageAspectFlags VKTexture::GetImageViewAspectForFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::D16:
+  case AbstractTextureFormat::D24_S8:
+  case AbstractTextureFormat::D32F_S8:
   case AbstractTextureFormat::D32F:
     return VK_IMAGE_ASPECT_DEPTH_BIT;
 
@@ -743,7 +758,7 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
   // Issue the image->buffer copy, but delay it for now.
   VkBufferImageCopy image_copy = {};
-  const VkImageAspectFlags aspect = VKTexture::GetImageAspectForFormat(src_tex->GetFormat());
+  const VkImageAspectFlags aspect = VKTexture::GetImageViewAspectForFormat(src_tex->GetFormat());
   image_copy.bufferOffset =
       static_cast<VkDeviceSize>(static_cast<size_t>(dst_rect.top) * m_config.GetStride() +
                                 static_cast<size_t>(dst_rect.left) * m_texel_size);
