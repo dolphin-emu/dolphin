@@ -662,4 +662,9 @@ u32 GetPollXLines()
   return s_poll.X;
 }
 
+u32 GetPollYCount()
+{
+  return s_poll.Y;
+}
+
 }  // end of namespace SerialInterface

@@ -69,7 +69,9 @@ static constexpr std::array<u32, 2> s_clock_freqs{{
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;        // number of halflines that have occurred for this full frame
 static u32 s_half_line_of_next_si_poll;  // halfline when next SI poll results should be available
-static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1;  // this is how long an SI poll takes
+static constexpr u32 num_half_lines_for_si_poll = (6 * 2);  // this is how long an SI poll takes
+static u32 s_si_poll_halfline_interval;
+static u32 s_si_poll_count;
 
 static FieldType s_current_field;
 
@@ -194,6 +196,8 @@ void Preset(bool _bNTSC)
   s_half_line_count = 1;
   s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first sampling starts at vsync
   s_current_field = FieldType::Odd;
+  s_si_poll_halfline_interval = SerialInterface::GetPollXLines();
+  s_si_poll_count = SerialInterface::GetPollYCount();
 
   UpdateParameters();
 }
@@ -733,7 +737,7 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
-  if (s_half_line_of_next_si_poll == s_half_line_count)
+  if (s_half_line_of_next_si_poll == s_half_line_count && s_si_poll_count != 0)
   {
     SerialInterface::UpdateDevices();
 
@@ -742,7 +746,10 @@ void Update(u64 ticks)
     if (Config::Get(Config::MAIN_REDUCE_POLLING_RATE))
       s_half_line_of_next_si_poll += GetHalfLinesPerEvenField() / 2;
     else
-      s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
+    {
+      s_si_poll_count--;
+      s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
+    }
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
@@ -775,11 +782,17 @@ void Update(u64 ticks)
   {
     s_half_line_count = 1;
     s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first results start at vsync
+    // latch these at vretrace
+    s_si_poll_halfline_interval = SerialInterface::GetPollXLines();
+    s_si_poll_count = SerialInterface::GetPollYCount();
   }
 
   if (s_half_line_count == GetHalfLinesPerEvenField())
   {
     s_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + num_half_lines_for_si_poll;
+    // latch these at vretrace
+    s_si_poll_halfline_interval = SerialInterface::GetPollXLines();
+    s_si_poll_count = SerialInterface::GetPollYCount();
   }
 
   if (s_half_line_count & 1)

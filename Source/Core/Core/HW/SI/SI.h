@@ -42,5 +42,6 @@ void ChangeDevice(SIDevices device, int channel);
 SIDevices GetDeviceType(int channel);
 
 u32 GetPollXLines();
+u32 GetPollYCount();
 
 }  // end of namespace SerialInterface
