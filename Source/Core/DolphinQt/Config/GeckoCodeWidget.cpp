@@ -19,6 +19,7 @@
 #include "Common/IniFile.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
@@ -45,6 +46,8 @@ GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_re
 
   UpdateList();
 }
+
+GeckoCodeWidget::~GeckoCodeWidget() = default;
 
 void GeckoCodeWidget::CreateWidgets()
 {
