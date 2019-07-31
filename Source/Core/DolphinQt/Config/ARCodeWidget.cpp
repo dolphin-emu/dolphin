@@ -191,40 +191,43 @@ void ARCodeWidget::OnCodeAddClicked()
   ar.active = true;
 
   CheatCodeEditor ed(this);
-
   ed.SetARCode(&ar);
+  if (ed.exec() == QDialog::Rejected)
+    return;
 
-  if (ed.exec())
-  {
-    m_ar_codes.push_back(std::move(ar));
+  m_ar_codes.push_back(std::move(ar));
 
-    UpdateList();
-    SaveCodes();
-  }
+  UpdateList();
+  SaveCodes();
 }
 
 void ARCodeWidget::OnCodeEditClicked()
 {
-  auto items = m_code_list->selectedItems();
-
+  const auto items = m_code_list->selectedItems();
   if (items.empty())
     return;
 
-  const auto* selected = items[0];
-
+  const auto* const selected = items[0];
   auto& current_ar = m_ar_codes[m_code_list->row(selected)];
 
-  bool user_defined = current_ar.user_defined;
-
-  ActionReplay::ARCode ar = current_ar;
-
   CheatCodeEditor ed(this);
+  if (current_ar.user_defined)
+  {
+    ed.SetARCode(&current_ar);
 
-  ed.SetARCode(user_defined ? &current_ar : &ar);
-  ed.exec();
+    if (ed.exec() == QDialog::Rejected)
+      return;
+  }
+  else
+  {
+    ActionReplay::ARCode ar = current_ar;
+    ed.SetARCode(&ar);
 
-  if (!user_defined)
-    m_ar_codes.push_back(ar);
+    if (ed.exec() == QDialog::Rejected)
+      return;
+
+    m_ar_codes.push_back(std::move(ar));
+  }
 
   SaveCodes();
   UpdateList();
