@@ -185,33 +185,29 @@ void GeckoCodeWidget::AddCode()
 
   CheatCodeEditor ed(this);
   ed.SetGeckoCode(&code);
+  if (ed.exec() == QDialog::Rejected)
+    return;
 
-  if (ed.exec())
-  {
-    m_gecko_codes.push_back(std::move(code));
-    SaveCodes();
-    UpdateList();
-  }
+  m_gecko_codes.push_back(std::move(code));
+  SaveCodes();
+  UpdateList();
 }
 
 void GeckoCodeWidget::EditCode()
 {
   const auto* item = m_code_list->currentItem();
-
   if (item == nullptr)
     return;
 
   const int index = item->data(Qt::UserRole).toInt();
 
   CheatCodeEditor ed(this);
-
   ed.SetGeckoCode(&m_gecko_codes[index]);
+  if (ed.exec() == QDialog::Rejected)
+    return;
 
-  if (ed.exec())
-  {
-    SaveCodes();
-    UpdateList();
-  }
+  SaveCodes();
+  UpdateList();
 }
 
 void GeckoCodeWidget::RemoveCode()
