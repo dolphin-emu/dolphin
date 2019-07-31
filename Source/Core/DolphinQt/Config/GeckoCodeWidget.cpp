@@ -40,7 +40,7 @@ GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_re
   // will always be stored in GS/${GAMEID}.ini
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
-  IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(m_game_id, m_game_revision);
+  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
   m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
 
   UpdateList();
