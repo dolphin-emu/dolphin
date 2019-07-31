@@ -43,6 +43,8 @@ ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game, bool restart_required
   OnSelectionChanged();
 }
 
+ARCodeWidget::~ARCodeWidget() = default;
+
 void ARCodeWidget::CreateWidgets()
 {
   m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
