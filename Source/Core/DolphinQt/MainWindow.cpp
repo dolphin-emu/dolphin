@@ -1183,8 +1183,7 @@ void MainWindow::StateLoadSlot()
 
 void MainWindow::StateSaveSlot()
 {
-  State::Save(m_state_slot, true);
-  m_menu_bar->UpdateStateSlotMenu();
+  State::Save(m_state_slot);
 }
 
 void MainWindow::StateLoadSlotAt(int slot)
@@ -1199,8 +1198,7 @@ void MainWindow::StateLoadLastSavedAt(int slot)
 
 void MainWindow::StateSaveSlotAt(int slot)
 {
-  State::Save(slot, true);
-  m_menu_bar->UpdateStateSlotMenu();
+  State::Save(slot);
 }
 
 void MainWindow::StateLoadUndo()

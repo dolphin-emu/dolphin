@@ -313,6 +313,9 @@ void MenuBar::AddEmulationMenu()
   AddStateSaveMenu(emu_menu);
   AddStateSlotMenu(emu_menu);
   UpdateStateSlotMenu();
+
+  for (QMenu* menu : {m_state_load_menu, m_state_save_menu, m_state_slot_menu})
+    connect(menu, &QMenu::aboutToShow, this, &MenuBar::UpdateStateSlotMenu);
 }
 
 void MenuBar::AddStateLoadMenu(QMenu* emu_menu)

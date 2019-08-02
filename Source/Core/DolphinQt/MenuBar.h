@@ -37,7 +37,6 @@ public:
 
   explicit MenuBar(QWidget* parent = nullptr);
 
-  void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
@@ -139,6 +138,8 @@ private:
   void AddMovieMenu();
   void AddJITMenu();
   void AddSymbolsMenu();
+
+  void UpdateStateSlotMenu();
 
   void InstallWAD();
   void ImportWiiSave();
