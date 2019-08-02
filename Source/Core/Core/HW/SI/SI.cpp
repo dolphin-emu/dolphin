@@ -634,15 +634,34 @@ void UpdateDevices()
   g_controller_interface.UpdateInput();
 
   // Update channels and set the status bit if there's new data
-  s_status_reg.RDST0 =
-      !!s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
-  s_status_reg.RDST1 =
-      !!s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
-  s_status_reg.RDST2 =
-      !!s_channel[2].device->GetData(s_channel[2].in_hi.hex, s_channel[2].in_lo.hex);
-  s_status_reg.RDST3 =
-      !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
+  std::array<u32, 4> port_enabled = {
+      s_poll.EN0,
+      s_poll.EN1,
+      s_poll.EN2,
+      s_poll.EN3,
+  };
 
+  for (size_t i = 0; i < port_enabled.size(); ++i)
+  {
+    if (port_enabled[i] == 0)
+      continue;
+    u32 in_hi, in_lo;
+    bool result = s_channel[i].device->GetData(in_hi, in_lo);
+    if (result)
+    {
+      // set RDST, update INBUFH/INBUFL, retain ERRLATCH
+      u32 error_latch = s_channel[i].in_hi.hex & 0x40000000;
+      s_channel[i].in_hi.hex = in_hi || error_latch;
+      s_channel[i].in_lo.hex = in_lo;
+      s_status_reg.hex |= (0x20000000 >> (i * 8));
+    }
+    else
+    {
+      // set NOREP, ERRSTAT, ERRLATCH
+      s_channel[i].in_hi.hex |= 0xc0000000;
+      s_status_reg.hex |= (0x08000000 >> (i * 8));
+    }
+  }
   UpdateInterrupts();
 
   // Polling finished

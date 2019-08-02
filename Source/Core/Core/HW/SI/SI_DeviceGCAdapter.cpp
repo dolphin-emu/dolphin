@@ -72,7 +72,10 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
 bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
 {
   CSIDevice_GCController::GetData(hi, low);
-
+  if (!GCAdapter::DeviceConnected(m_device_number))
+  {
+    return false;
+  }
   if (m_simulate_konga)
   {
     hi &= CSIDevice_TaruKonga::HI_BUTTON_MASK;
