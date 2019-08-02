@@ -8,7 +8,9 @@
 #include <array>
 #include <atomic>
 #include <cstring>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -280,31 +282,51 @@ static void GenerateSIInterrupt(SIInterruptType type)
   UpdateInterrupts();
 }
 
+constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
+
+// Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
+constexpr u32 ConvertSILengthField(u32 field)
+{
+  return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
+}
+
 static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   if (s_com_csr.TSTART)
   {
-    // Math in_length
-    int in_length = s_com_csr.INLNGTH;
-    if (in_length == 0)
-      in_length = 128;
-    else
-      in_length++;
-
-    // Math out_length
-    int out_length = s_com_csr.OUTLNGTH;
-    if (out_length == 0)
-      out_length = 128;
-    else
-      out_length++;
+    u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
+    u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
+    std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
     std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    int numOutput = device->RunBuffer(s_si_buffer.data(), in_length);
+    u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
 
-    DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i",
-              s_com_csr.CHANNEL, in_length, out_length, numOutput);
+    DEBUG_LOG(SERIALINTERFACE,
+              "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u  "
+              "actual_response_length: %u",
+              s_com_csr.CHANNEL, request_length, expected_response_length, actual_response_length);
+    if (expected_response_length != actual_response_length)
+    {
+      std::stringstream ss;
+      for (u8 b : request_copy)
+      {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
+      }
+      ERROR_LOG(
+          SERIALINTERFACE,
+          "RunSIBuffer: expected_response_length(%u) != actual_response_length(%u): request: %s",
+          expected_response_length, actual_response_length, ss.str().c_str());
+    }
 
-    if (numOutput != 0)
+    // TODO:
+    // 1) Wait a reasonable amount of time for the result to be available:
+    //    request is N bytes, ends with a stop bit
+    //    response in M bytes, ends with a stop bit
+    //    processing controller-side takes K us (investigate?)
+    //    each bit takes 4us ([3us low/1us high] for a 0, [1us low/3us high] for a 1)
+    //    time until response is available is at least: K + ((N*8 + 1) + (M*8 + 1)) * 4 us
+    // 2) Investigate the timeout period for NOREP0
+    if (actual_response_length != 0)
     {
       s_com_csr.TSTART = 0;
       GenerateSIInterrupt(INT_TCINT);

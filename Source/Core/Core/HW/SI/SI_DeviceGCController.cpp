@@ -36,17 +36,17 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_numb
   m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
 }
 
-int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
+int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 {
   // For debug logging only
-  ISIDevice::RunBuffer(buffer, length);
+  ISIDevice::RunBuffer(buffer, request_length);
 
   GCPadStatus pad_status = GetPadStatus();
   if (!pad_status.isConnected)
   {
     u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
     std::memcpy(buffer, &reply, sizeof(reply));
-    return 4;
+    return sizeof(reply);
   }
 
   // Read the command
@@ -60,21 +60,21 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   {
     u32 id = Common::swap32(SI_GC_CONTROLLER);
     std::memcpy(buffer, &id, sizeof(id));
-    break;
+    return sizeof(id);
   }
 
   case CMD_DIRECT:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Direct (Length: %d)", length);
+    INFO_LOG(SERIALINTERFACE, "PAD - Direct (Request length: %d)", request_length);
     u32 high, low;
     GetData(high, low);
-    for (int i = 0; i < (length - 1) / 2; i++)
+    for (int i = 0; i < 4; i++)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
       buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
     }
+    return sizeof(high) + sizeof(low);
   }
-  break;
 
   case CMD_ORIGIN:
   {
@@ -85,8 +85,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
     {
       buffer[i] = *calibration++;
     }
+    return sizeof(SOrigin);
   }
-  break;
 
   // Recalibrate (FiRES: i am not 100 percent sure about this)
   case CMD_RECALIBRATE:
@@ -98,8 +98,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
     {
       buffer[i] = *calibration++;
     }
+    return sizeof(SOrigin);
   }
-  break;
 
   // DEFAULT
   default:
@@ -110,7 +110,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   break;
   }
 
-  return length;
+  return 0;
 }
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)

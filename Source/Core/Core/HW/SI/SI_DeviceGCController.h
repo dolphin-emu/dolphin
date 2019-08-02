@@ -34,8 +34,6 @@ protected:
     u8 trigger_right;
     u8 unk_4;
     u8 unk_5;
-    u8 unk_6;
-    u8 unk_7;
   };
 
   enum EDirectCommands
@@ -86,7 +84,7 @@ public:
   CSIDevice_GCController(SIDevices device, int device_number);
 
   // Run the SI Buffer
-  int RunBuffer(u8* buffer, int length) override;
+  int RunBuffer(u8* buffer, int request_length) override;
 
   // Return true on new data
   bool GetData(u32& hi, u32& low) override;

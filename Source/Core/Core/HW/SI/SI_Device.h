@@ -73,7 +73,7 @@ public:
   SIDevices GetDeviceType() const;
 
   // Run the SI Buffer
-  virtual int RunBuffer(u8* buffer, int length);
+  virtual int RunBuffer(u8* buffer, int request_length);
   virtual int TransferInterval();
 
   // Return true on new data

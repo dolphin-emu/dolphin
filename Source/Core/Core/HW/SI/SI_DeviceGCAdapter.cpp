@@ -49,7 +49,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
   return pad_status;
 }
 
-int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
+int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
 {
   if (!Core::WantsDeterminism())
   {
@@ -66,7 +66,7 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
       return 4;
     }
   }
-  return CSIDevice_GCController::RunBuffer(buffer, length);
+  return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
 bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)

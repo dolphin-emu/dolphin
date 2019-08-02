@@ -37,15 +37,16 @@ SIDevices ISIDevice::GetDeviceType() const
   return m_device_type;
 }
 
-int ISIDevice::RunBuffer(u8* buffer, int length)
+int ISIDevice::RunBuffer(u8* buffer, int request_length)
 {
 #ifdef _DEBUG
-  DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", m_device_number, length);
+  DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", m_device_number,
+            request_length);
 
   std::string temp;
   int num = 0;
 
-  while (num < length)
+  while (num < request_length)
   {
     temp += StringFromFormat("0x%02x ", buffer[num]);
     num++;
