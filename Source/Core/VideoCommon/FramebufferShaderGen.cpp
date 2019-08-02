@@ -651,14 +651,11 @@ std::string GenerateEFBRestorePixelShader()
   EmitPixelMainDeclaration(ss, 1, 0, "float4",
                            GetAPIType() == APIType::D3D ? "out float depth : SV_Depth, " : "");
   ss << "{\n";
-  ss << "  float3 coords = float3(v_tex0.x, "
-     << (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin ? "1.0 - " : "")
-     << "v_tex0.y, v_tex0.z);\n";
   ss << "  ocol0 = ";
-  EmitSampleTexture(ss, 0, "coords");
+  EmitSampleTexture(ss, 0, "v_tex0");
   ss << ";\n";
   ss << "  " << (GetAPIType() == APIType::D3D ? "depth" : "gl_FragDepth") << " = ";
-  EmitSampleTexture(ss, 1, "coords");
+  EmitSampleTexture(ss, 1, "v_tex0");
   ss << ".r;\n";
   ss << "}\n";
   return ss.str();
