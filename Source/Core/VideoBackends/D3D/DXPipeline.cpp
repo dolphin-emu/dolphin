@@ -55,10 +55,14 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
                                vertex_shader->GetByteCode().size()) :
           nullptr;
 
-  return std::make_unique<DXPipeline>(
-      input_layout, vertex_shader->GetD3DVertexShader(),
-      geometry_shader ? geometry_shader->GetD3DGeometryShader() : nullptr,
-      pixel_shader->GetD3DPixelShader(), rasterizer_state, depth_state, blend_state,
-      primitive_topology, config.blending_state.logicopenable);
+  // Only use the integer RTV if logic op is supported, and enabled.
+  const bool use_logic_op =
+      config.blending_state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp;
+
+  return std::make_unique<DXPipeline>(input_layout, vertex_shader->GetD3DVertexShader(),
+                                      geometry_shader ? geometry_shader->GetD3DGeometryShader() :
+                                                        nullptr,
+                                      pixel_shader->GetD3DPixelShader(), rasterizer_state,
+                                      depth_state, blend_state, primitive_topology, use_logic_op);
 }
 }  // namespace DX11
