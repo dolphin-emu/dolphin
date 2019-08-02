@@ -68,6 +68,10 @@ union BlendingState
 {
   void Generate(const BPMemory& bp);
 
+  // HACK: Replaces logical operations with blend operations.
+  // Will not be bit-correct, and in some cases not even remotely in the same ballpark.
+  void ApproximateLogicOpWithBlending();
+
   BlendingState& operator=(const BlendingState& rhs);
 
   bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }

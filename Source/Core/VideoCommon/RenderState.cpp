@@ -167,6 +167,42 @@ void BlendingState::Generate(const BPMemory& bp)
   }
 }
 
+void BlendingState::ApproximateLogicOpWithBlending()
+{
+  // Any of these which use SRC as srcFactor or DST as dstFactor won't be correct.
+  // This is because the two are aliased to one another (see the enum).
+  struct LogicOpApproximation
+  {
+    bool subtract;
+    BlendMode::BlendFactor srcfactor;
+    BlendMode::BlendFactor dstfactor;
+  };
+  static constexpr std::array<LogicOpApproximation, 16> approximations = {{
+      {false, BlendMode::ZERO, BlendMode::ZERO},            // CLEAR
+      {false, BlendMode::DSTCLR, BlendMode::ZERO},          // AND
+      {true, BlendMode::ONE, BlendMode::INVSRCCLR},         // AND_REVERSE
+      {false, BlendMode::ONE, BlendMode::ZERO},             // COPY
+      {true, BlendMode::DSTCLR, BlendMode::ONE},            // AND_INVERTED
+      {false, BlendMode::ZERO, BlendMode::ONE},             // NOOP
+      {false, BlendMode::INVDSTCLR, BlendMode::INVSRCCLR},  // XOR
+      {false, BlendMode::INVDSTCLR, BlendMode::ONE},        // OR
+      {false, BlendMode::INVSRCCLR, BlendMode::INVDSTCLR},  // NOR
+      {false, BlendMode::INVSRCCLR, BlendMode::ZERO},       // EQUIV
+      {false, BlendMode::INVDSTCLR, BlendMode::INVDSTCLR},  // INVERT
+      {false, BlendMode::ONE, BlendMode::INVDSTALPHA},      // OR_REVERSE
+      {false, BlendMode::INVSRCCLR, BlendMode::INVSRCCLR},  // COPY_INVERTED
+      {false, BlendMode::INVSRCCLR, BlendMode::ONE},        // OR_INVERTED
+      {false, BlendMode::INVDSTCLR, BlendMode::INVSRCCLR},  // NAND
+      {false, BlendMode::ONE, BlendMode::ONE},              // SET
+  }};
+
+  logicopenable = false;
+  blendenable = true;
+  subtract = approximations[logicmode].subtract;
+  srcfactor = approximations[logicmode].srcfactor;
+  dstfactor = approximations[logicmode].dstfactor;
+}
+
 BlendingState& BlendingState::operator=(const BlendingState& rhs)
 {
   hex = rhs.hex;
