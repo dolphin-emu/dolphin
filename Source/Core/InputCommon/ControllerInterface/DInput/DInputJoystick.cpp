@@ -164,9 +164,8 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
   if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
   {
     const int num_ff_axes =
-        std::count_if(std::begin(objects), std::end(objects), [](DIDEVICEOBJECTINSTANCE& pdidoi) {
-          return pdidoi.dwFlags && DIDOI_FFACTUATOR;
-        });
+        std::count_if(std::begin(objects), std::end(objects),
+                      [](const auto& pdidoi) { return (pdidoi.dwFlags & DIDOI_FFACTUATOR) != 0; });
     InitForceFeedback(m_device, num_ff_axes);
   }
 
