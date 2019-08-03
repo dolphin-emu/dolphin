@@ -26,18 +26,18 @@ class VolumeWAD;
 
 struct Partition final
 {
-  Partition() : offset(std::numeric_limits<u64>::max()) {}
-  explicit Partition(u64 offset_) : offset(offset_) {}
-  bool operator==(const Partition& other) const { return offset == other.offset; }
-  bool operator!=(const Partition& other) const { return !(*this == other); }
-  bool operator<(const Partition& other) const { return offset < other.offset; }
-  bool operator>(const Partition& other) const { return other < *this; }
-  bool operator<=(const Partition& other) const { return !(*this < other); }
-  bool operator>=(const Partition& other) const { return !(*this > other); }
-  u64 offset;
+  constexpr Partition() = default;
+  constexpr explicit Partition(u64 offset_) : offset(offset_) {}
+  constexpr bool operator==(const Partition& other) const { return offset == other.offset; }
+  constexpr bool operator!=(const Partition& other) const { return !(*this == other); }
+  constexpr bool operator<(const Partition& other) const { return offset < other.offset; }
+  constexpr bool operator>(const Partition& other) const { return other < *this; }
+  constexpr bool operator<=(const Partition& other) const { return !(*this < other); }
+  constexpr bool operator>=(const Partition& other) const { return !(*this > other); }
+  u64 offset{std::numeric_limits<u64>::max()};
 };
 
-const Partition PARTITION_NONE(std::numeric_limits<u64>::max() - 1);
+constexpr Partition PARTITION_NONE(std::numeric_limits<u64>::max() - 1);
 
 class Volume
 {
