@@ -455,11 +455,12 @@ void MappingWindow::PopulateProfileSelection()
 
   const std::string profiles_path =
       File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
-  for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
+  for (const auto& filename : Common::DoFileSearch({profile_path.string()}, {".ini"}, true))
   {
-    std::string basename;
-    SplitPath(filename, nullptr, &basename, nullptr);
-    m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
+    const auto filename_path = std::filesystem::path{filename};
+    m_profiles_combo->addItem(
+        QString::fromStdString(std::filesystem::relative(filename_path, profile_path).string()),
+        QString::fromStdString(filename));
   }
 
   m_profiles_combo->insertSeparator(m_profiles_combo->count());
