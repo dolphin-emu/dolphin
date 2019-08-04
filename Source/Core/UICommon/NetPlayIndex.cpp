@@ -86,8 +86,6 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 
   for (const auto& entry : entries.get<picojson::array>())
   {
-    NetPlaySession session;
-
     const auto& name = entry.get("name");
     const auto& region = entry.get("region");
     const auto& method = entry.get("method");
@@ -107,6 +105,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
       continue;
     }
 
+    NetPlaySession session;
     session.name = name.to_str();
     session.region = region.to_str();
     session.game_id = game_id.to_str();
