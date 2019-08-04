@@ -15,6 +15,8 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
   setRange(m_setting.GetMinValue(), m_setting.GetMaxValue());
   setDecimals(2);
 
+  setFixedWidth(WIDGET_MAX_WIDTH);
+
   if (const auto ui_suffix = m_setting.GetUISuffix())
     setSuffix(QStringLiteral(" ") + tr(ui_suffix));
 
