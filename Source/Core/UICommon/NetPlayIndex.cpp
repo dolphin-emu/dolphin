@@ -25,13 +25,14 @@ NetPlayIndex::~NetPlayIndex()
     Remove();
 }
 
-static std::optional<picojson::value> ParseResponse(std::vector<u8> response)
+static std::optional<picojson::value> ParseResponse(const std::vector<u8>& response)
 {
-  std::string response_string(reinterpret_cast<char*>(response.data()), response.size());
+  const std::string response_string(reinterpret_cast<const char*>(response.data()),
+                                    response.size());
 
   picojson::value json;
 
-  auto error = picojson::parse(json, response_string);
+  const auto error = picojson::parse(json, response_string);
 
   if (!error.empty())
     return {};
