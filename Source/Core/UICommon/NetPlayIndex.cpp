@@ -221,7 +221,7 @@ void NetPlayIndex::SetPlayerCount(int player_count)
   m_player_count = player_count;
 }
 
-void NetPlayIndex::SetGame(const std::string game)
+void NetPlayIndex::SetGame(std::string game)
 {
   m_game = std::move(game);
 }
