@@ -22,6 +22,7 @@
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/Host.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -272,44 +273,44 @@ void HotkeyScheduler::Run()
       }
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))
-        m_profile_cycler.PreviousWiimoteProfile(0);
+        Wiimote::GetConfig()->GetController(0)->GetProfileManager().PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_1))
-        m_profile_cycler.NextWiimoteProfile(0);
+        Wiimote::GetConfig()->GetController(0)->GetProfileManager().NextProfile();
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_2))
-        m_profile_cycler.PreviousWiimoteProfile(1);
+        Wiimote::GetConfig()->GetController(1)->GetProfileManager().PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_2))
-        m_profile_cycler.NextWiimoteProfile(1);
+        Wiimote::GetConfig()->GetController(1)->GetProfileManager().NextProfile();
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_3))
-        m_profile_cycler.PreviousWiimoteProfile(2);
+        Wiimote::GetConfig()->GetController(2)->GetProfileManager().PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_3))
-        m_profile_cycler.NextWiimoteProfile(2);
+        Wiimote::GetConfig()->GetController(2)->GetProfileManager().NextProfile();
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_4))
-        m_profile_cycler.PreviousWiimoteProfile(3);
+        Wiimote::GetConfig()->GetController(3)->GetProfileManager().PreviousProfile();
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_4))
-        m_profile_cycler.NextWiimoteProfile(3);
+        Wiimote::GetConfig()->GetController(3)->GetProfileManager().NextProfile();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_1))
-        m_profile_cycler.PreviousWiimoteProfileForGame(0);
+        Wiimote::GetConfig()->GetController(0)->GetProfileManager().PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_1))
-        m_profile_cycler.NextWiimoteProfileForGame(0);
+        Wiimote::GetConfig()->GetController(0)->GetProfileManager().NextProfileForGame();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_2))
-        m_profile_cycler.PreviousWiimoteProfileForGame(1);
+        Wiimote::GetConfig()->GetController(1)->GetProfileManager().PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_2))
-        m_profile_cycler.NextWiimoteProfileForGame(1);
+        Wiimote::GetConfig()->GetController(1)->GetProfileManager().NextProfileForGame();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_3))
-        m_profile_cycler.PreviousWiimoteProfileForGame(2);
+        Wiimote::GetConfig()->GetController(2)->GetProfileManager().PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_3))
-        m_profile_cycler.NextWiimoteProfileForGame(2);
+        Wiimote::GetConfig()->GetController(2)->GetProfileManager().NextProfileForGame();
 
       if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_4))
-        m_profile_cycler.PreviousWiimoteProfileForGame(3);
+        Wiimote::GetConfig()->GetController(3)->GetProfileManager().PreviousProfileForGame();
       else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
-        m_profile_cycler.NextWiimoteProfileForGame(3);
+        Wiimote::GetConfig()->GetController(3)->GetProfileManager().NextProfileForGame();
 
       auto ShowVolume = []() {
         OSD::AddMessage(std::string("Volume: ") +

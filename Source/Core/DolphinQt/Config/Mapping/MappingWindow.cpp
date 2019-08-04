@@ -73,7 +73,10 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   timer->start(1000 / INDICATOR_UPDATE_FREQ);
 
   const auto lock = GetController()->GetStateLock();
+  if (m_controller->GetProfileManager().GetProfile())
+    m_ignore_profile_clears = true;
   emit ConfigChanged();
+  m_ignore_profile_clears = false;
 }
 
 void MappingWindow::CreateDevicesLayout()
@@ -226,6 +229,8 @@ void MappingWindow::OnDeleteProfilePressed()
     error.setWindowTitle(tr("Error"));
     error.setText(tr("The profile '%1' does not exist").arg(profile_name));
     error.exec();
+
+    m_controller->GetProfileManager().ClearProfile();
     return;
   }
 
@@ -245,7 +250,8 @@ void MappingWindow::OnDeleteProfilePressed()
   m_profiles_combo->removeItem(m_profiles_combo->currentIndex());
   m_profiles_combo->setCurrentIndex(-1);
 
-  File::Delete(profile_path.toStdString());
+  m_config->GetDeviceProfileContainer().DeleteProfile(profile_path.toStdString());
+  m_controller->GetProfileManager().ClearProfile();
 
   ModalMessageBox result(this);
   result.setIcon(QMessageBox::Information);
@@ -270,14 +276,12 @@ void MappingWindow::OnLoadProfilePressed()
 
   const QString profile_path = m_profiles_combo->currentData().toString();
 
-  IniFile ini;
-  ini.Load(profile_path.toStdString());
+  m_controller->GetProfileManager().SetProfile(m_profiles_combo->currentIndex());
 
-  m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
-  m_controller->UpdateReferences(g_controller_interface);
-
+  m_ignore_profile_clears = true;
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
+  m_ignore_profile_clears = false;
 }
 
 void MappingWindow::OnSaveProfilePressed()
@@ -287,9 +291,9 @@ void MappingWindow::OnSaveProfilePressed()
   if (profile_name.isEmpty())
     return;
 
-  const std::string profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
-                                   m_config->GetProfileName() + "/" + profile_name.toStdString() +
-                                   ".ini";
+  const std::string profiles_root =
+      File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
+  const std::string profile_path = profiles_root + "/" + profile_name.toStdString() + ".ini";
 
   File::CreateFullPath(profile_path);
 
@@ -298,10 +302,20 @@ void MappingWindow::OnSaveProfilePressed()
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(profile_path);
 
-  if (m_profiles_combo->findText(profile_name) == -1)
+  m_config->GetDeviceProfileContainer().EnsureProfile(profile_path, profiles_root);
+
+  auto index = m_profiles_combo->findText(profile_name);
+  if (index == -1)
+  {
   {
     PopulateProfileSelection();
     m_profiles_combo->setCurrentIndex(m_profiles_combo->findText(profile_name));
+  }
+    m_controller->GetProfileManager().SetProfile(m_profiles_combo->count() - 1);
+  }
+  else
+  {
+    m_controller->GetProfileManager().SetProfile(index);
   }
 }
 
@@ -320,6 +334,13 @@ void MappingWindow::OnSelectDevice(int)
 bool MappingWindow::IsMappingAllDevices() const
 {
   return m_devices_combo->currentIndex() == m_devices_combo->count() - 1;
+}
+
+void MappingWindow::ClearProfile()
+{
+  if (m_ignore_profile_clears)
+    return;
+  m_controller->GetProfileManager().ClearProfile();
 }
 
 void MappingWindow::RefreshDevices()
@@ -453,13 +474,15 @@ void MappingWindow::PopulateProfileSelection()
 {
   m_profiles_combo->clear();
 
-  const std::string profiles_path =
+  const std::string profile_path =
       File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
-  for (const auto& filename : Common::DoFileSearch({profile_path.string()}, {".ini"}, true))
+  for (const auto& filename : Common::DoFileSearch({profile_path}, {".ini"}, true))
   {
-    const auto filename_path = std::filesystem::path{filename};
+    std::string basename;
+    std::string basepath;
+    SplitPath(filename, &basepath, &basename, nullptr);
     m_profiles_combo->addItem(
-        QString::fromStdString(std::filesystem::relative(filename_path, profile_path).string()),
+        QString::fromStdString(basepath.substr(profile_path.size() + 1) + basename),
         QString::fromStdString(filename));
   }
 
@@ -500,6 +523,7 @@ void MappingWindow::OnDefaultFieldsPressed()
 {
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
+  m_controller->GetProfileManager().ClearProfile();
 
   const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
@@ -515,6 +539,7 @@ void MappingWindow::OnClearFieldsPressed()
   const auto default_device = m_controller->GetDefaultDevice();
   m_controller->LoadConfig(&sec);
   m_controller->SetDefaultDevice(default_device);
+  m_controller->GetProfileManager().ClearProfile();
 
   m_controller->UpdateReferences(g_controller_interface);
 
