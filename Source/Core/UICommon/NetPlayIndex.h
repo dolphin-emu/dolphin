@@ -44,7 +44,7 @@ public:
 
   static std::vector<std::pair<std::string, std::string>> GetRegions();
 
-  bool Add(NetPlaySession session);
+  bool Add(const NetPlaySession& session);
   void Remove();
 
   bool HasActiveSession() const;

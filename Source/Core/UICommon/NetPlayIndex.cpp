@@ -159,7 +159,7 @@ void NetPlayIndex::NotificationLoop()
   }
 }
 
-bool NetPlayIndex::Add(NetPlaySession session)
+bool NetPlayIndex::Add(const NetPlaySession& session)
 {
   Common::HttpRequest request;
   auto response = request.Get(
