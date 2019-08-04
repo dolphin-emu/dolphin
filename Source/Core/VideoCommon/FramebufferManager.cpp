@@ -472,6 +472,7 @@ bool FramebufferManager::CompileReadbackPipelines()
   if (!restore_shader)
     return false;
 
+  config.depth_state = RenderState::GetAlwaysWriteDepthState();
   config.framebuffer_state = GetEFBFramebufferState();
   config.framebuffer_state.per_sample_shading = false;
   config.vertex_shader = g_shader_cache->GetScreenQuadVertexShader();
