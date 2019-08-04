@@ -333,7 +333,7 @@ bool NetPlayIndex::HasActiveSession() const
   return !m_secret.empty();
 }
 
-void NetPlayIndex::SetErrorCallback(std::function<void()> function)
+void NetPlayIndex::SetErrorCallback(std::function<void()> callback)
 {
-  m_error_callback = function;
+  m_error_callback = std::move(callback);
 }
