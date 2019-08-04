@@ -8,6 +8,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -29,8 +30,8 @@ struct NetPlaySession
   bool has_password;
   bool in_game;
 
-  bool EncryptID(const std::string& password);
-  std::optional<std::string> DecryptID(const std::string& password) const;
+  bool EncryptID(std::string_view password);
+  std::optional<std::string> DecryptID(std::string_view password) const;
 };
 
 class NetPlayIndex

@@ -256,7 +256,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
 // It isn't very secure but is preferable to adding another dependency on mbedtls
 // The encrypted data is encoded as nibbles with the character 'A' as the base offset
 
-bool NetPlaySession::EncryptID(const std::string& password)
+bool NetPlaySession::EncryptID(std::string_view password)
 {
   if (password.empty())
     return false;
@@ -284,7 +284,7 @@ bool NetPlaySession::EncryptID(const std::string& password)
   return true;
 }
 
-std::optional<std::string> NetPlaySession::DecryptID(const std::string& password) const
+std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) const
 {
   if (password.empty())
     return {};
