@@ -122,11 +122,8 @@ void TextureCacheBase::Invalidate()
 {
   FlushEFBCopies();
   InvalidateAllBindPoints();
-  for (size_t i = 0; i < bound_textures.size(); ++i)
-  {
-    bound_textures[i] = nullptr;
-  }
 
+  bound_textures.fill(nullptr);
   for (auto& tex : textures_by_address)
   {
     delete tex.second;
