@@ -156,6 +156,9 @@ bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
                                       const std::vector<u8>& encrypted_data,
                                       const IOS::ES::TicketReader& ticket) const
 {
+  if (encrypted_data.size() != Common::AlignUp(content.size, 0x40))
+    return false;
+
   mbedtls_aes_context context;
   const std::array<u8, 16> key = ticket.GetTitleKey();
   mbedtls_aes_setkey_dec(&context, key.data(), 128);

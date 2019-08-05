@@ -691,8 +691,9 @@ void VolumeVerifier::Process()
   if (m_progress == m_max_progress)
     return;
 
-  IOS::ES::Content content;
+  IOS::ES::Content content{};
   bool content_read = false;
+  bool block_read = false;
   u64 bytes_to_read = BLOCK_SIZE;
   if (m_content_index < m_content_offsets.size() &&
       m_content_offsets[m_content_index] == m_progress)
@@ -709,6 +710,7 @@ void VolumeVerifier::Process()
   else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset == m_progress)
   {
     bytes_to_read = VolumeWii::BLOCK_TOTAL_SIZE;
+    block_read = true;
   }
   else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset > m_progress)
   {
@@ -716,10 +718,17 @@ void VolumeVerifier::Process()
   }
   bytes_to_read = std::min(bytes_to_read, m_max_progress - m_progress);
 
+  bool read_succeeded = false;
+  std::vector<u8> data(bytes_to_read);
+  if (m_calculating_any_hash || content_read || block_read)
+  {
+    if (m_volume.Read(m_progress, bytes_to_read, data.data(), PARTITION_NONE))
+      read_succeeded = true;
+  }
+
   if (m_calculating_any_hash)
   {
-    std::vector<u8> data(bytes_to_read);
-    if (!m_volume.Read(m_progress, bytes_to_read, data.data(), PARTITION_NONE))
+    if (!read_succeeded)
     {
       m_calculating_any_hash = false;
     }
@@ -740,11 +749,9 @@ void VolumeVerifier::Process()
     }
   }
 
-  m_progress += bytes_to_read;
-
   if (content_read)
   {
-    if (!m_volume.CheckContentIntegrity(content, m_content_offsets[m_content_index], m_ticket))
+    if (!read_succeeded || !m_volume.CheckContentIntegrity(content, data, m_ticket))
     {
       AddProblem(
           Severity::High,
@@ -754,10 +761,16 @@ void VolumeVerifier::Process()
     m_content_index++;
   }
 
-  while (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset < m_progress)
+  while (m_block_index < m_blocks.size() &&
+         m_blocks[m_block_index].offset < m_progress + bytes_to_read)
   {
-    if (!m_volume.CheckBlockIntegrity(m_blocks[m_block_index].block_index,
-                                      m_blocks[m_block_index].partition))
+    const bool success = m_blocks[m_block_index].offset == m_progress ?
+                             read_succeeded && m_volume.CheckBlockIntegrity(
+                                                   m_blocks[m_block_index].block_index, data,
+                                                   m_blocks[m_block_index].partition) :
+                             m_volume.CheckBlockIntegrity(m_blocks[m_block_index].block_index,
+                                                          m_blocks[m_block_index].partition);
+    if (!success)
     {
       const u64 offset = m_blocks[m_block_index].offset;
       if (m_scrubber.CanBlockBeScrubbed(offset))
@@ -773,6 +786,8 @@ void VolumeVerifier::Process()
     }
     m_block_index++;
   }
+
+  m_progress += bytes_to_read;
 }
 
 u64 VolumeVerifier::GetBytesProcessed() const
@@ -790,6 +805,9 @@ void VolumeVerifier::Finish()
   if (m_done)
     return;
   m_done = true;
+
+  ASSERT(m_content_index == m_content_offsets.size());
+  ASSERT(m_block_index == m_blocks.size());
 
   if (m_calculating_any_hash)
   {
