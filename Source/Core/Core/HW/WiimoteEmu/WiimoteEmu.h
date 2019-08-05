@@ -83,6 +83,11 @@ void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
 class Wiimote : public ControllerEmu::EmulatedController
 {
 public:
+  static constexpr u16 IR_LOW_X = 0x7F;
+  static constexpr u16 IR_LOW_Y = 0x5D;
+  static constexpr u16 IR_HIGH_X = 0x380;
+  static constexpr u16 IR_HIGH_Y = 0x2A2;
+
   static constexpr u8 ACCEL_ZERO_G = 0x80;
   static constexpr u8 ACCEL_ONE_G = 0x9A;
 
