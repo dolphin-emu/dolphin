@@ -45,7 +45,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 };  // namespace
 
 constexpr int PROGRESSBAR_FLAGS = WS_VISIBLE | WS_CHILD | PBS_SMOOTH | PBS_SMOOTHREVERSE;
-constexpr int WINDOW_FLAGS = WS_VISIBLE | WS_CLIPCHILDREN;
+constexpr int WINDOW_FLAGS = WS_CLIPCHILDREN;
 constexpr int PADDING_HEIGHT = 5;
 
 namespace UI
