@@ -122,11 +122,8 @@ void TextureCacheBase::Invalidate()
 {
   FlushEFBCopies();
   InvalidateAllBindPoints();
-  for (size_t i = 0; i < bound_textures.size(); ++i)
-  {
-    bound_textures[i] = nullptr;
-  }
 
+  bound_textures.fill(nullptr);
   for (auto& tex : textures_by_address)
   {
     delete tex.second;
@@ -553,16 +550,16 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     {
       if (ShouldSaveEntry(it.second))
       {
-        u32 id = AddCacheEntryToMap(it.second);
-        textures_by_address_list.push_back(std::make_pair(it.first, id));
+        const u32 id = AddCacheEntryToMap(it.second);
+        textures_by_address_list.emplace_back(it.first, id);
       }
     }
     for (const auto& it : textures_by_hash)
     {
       if (ShouldSaveEntry(it.second))
       {
-        u32 id = AddCacheEntryToMap(it.second);
-        textures_by_hash_list.push_back(std::make_pair(it.first, id));
+        const u32 id = AddCacheEntryToMap(it.second);
+        textures_by_hash_list.emplace_back(it.first, id);
       }
     }
   }
@@ -572,7 +569,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   p.Do(size);
   for (TCacheEntry* entry : entries_to_save)
   {
-    g_texture_cache->SerializeTexture(entry->texture.get(), entry->texture->GetConfig(), p);
+    SerializeTexture(entry->texture.get(), entry->texture->GetConfig(), p);
     entry->DoState(p);
   }
   p.DoMarker("TextureCacheEntries");
@@ -652,9 +649,9 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
   {
     // Even if the texture isn't valid, we still need to create the cache entry object
     // to update the point in the state state. We'll just throw it away if it's invalid.
-    auto tex = g_texture_cache->DeserializeTexture(p);
+    auto tex = DeserializeTexture(p);
     TCacheEntry* entry = new TCacheEntry(std::move(tex->texture), std::move(tex->framebuffer));
-    entry->textures_by_hash_iter = g_texture_cache->textures_by_hash.end();
+    entry->textures_by_hash_iter = textures_by_hash.end();
     entry->DoState(p);
     if (entry->texture && commit_state)
       id_map.emplace(i, entry);
