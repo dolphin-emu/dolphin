@@ -315,9 +315,7 @@ bool Renderer::CalculateTargetSize()
   if (max_size < EFB_WIDTH * m_efb_scale)
     m_efb_scale = max_size / EFB_WIDTH;
 
-  int new_efb_width = 0;
-  int new_efb_height = 0;
-  std::tie(new_efb_width, new_efb_height) = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
+  auto [new_efb_width, new_efb_height] = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
   new_efb_width = std::max(new_efb_width, 1);
   new_efb_height = std::max(new_efb_height, 1);
 
@@ -631,8 +629,8 @@ void Renderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
   BeginUtilityDrawing();
 
   // The shader needs to know the source rectangle.
-  const auto converted_src_rect = g_renderer->ConvertFramebufferRectangle(
-      src_rect, src_texture->GetWidth(), src_texture->GetHeight());
+  const auto converted_src_rect =
+      ConvertFramebufferRectangle(src_rect, src_texture->GetWidth(), src_texture->GetHeight());
   const float rcp_src_width = 1.0f / src_texture->GetWidth();
   const float rcp_src_height = 1.0f / src_texture->GetHeight();
   const std::array<float, 4> uniforms = {{converted_src_rect.left * rcp_src_width,
@@ -665,13 +663,13 @@ void Renderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
 
 MathUtil::Rectangle<int>
 Renderer::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                      const AbstractFramebuffer* framebuffer)
+                                      const AbstractFramebuffer* framebuffer) const
 {
   return ConvertFramebufferRectangle(rect, framebuffer->GetWidth(), framebuffer->GetHeight());
 }
 
 MathUtil::Rectangle<int> Renderer::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                                               u32 fb_width, u32 fb_height)
+                                                               u32 fb_width, u32 fb_height) const
 {
   MathUtil::Rectangle<int> ret = rect;
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -682,7 +680,7 @@ MathUtil::Rectangle<int> Renderer::ConvertFramebufferRectangle(const MathUtil::R
   return ret;
 }
 
-MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc)
+MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const
 {
   MathUtil::Rectangle<int> result;
   result.left = EFBToScaledX(rc.left);
@@ -816,24 +814,23 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  std::tie(width, height) = CalculateOutputDimensions(width, height);
+  const auto [out_width, out_height] = CalculateOutputDimensions(width, height);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (width != m_last_window_request_width || height != m_last_window_request_height)
-  {
-    m_last_window_request_width = width;
-    m_last_window_request_height = height;
-    Host_RequestRenderWindowSize(width, height);
-  }
+  if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
+    return;
+
+  m_last_window_request_width = out_width;
+  m_last_window_request_height = out_height;
+  Host_RequestRenderWindowSize(out_width, out_height);
 }
 
-std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height)
+std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) const
 {
   width = std::max(width, 1);
   height = std::max(height, 1);
 
-  float scaled_width, scaled_height;
-  std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
+  auto [scaled_width, scaled_height] = ScaleToDisplayAspectRatio(width, height);
 
   if (g_ActiveConfig.bCrop)
   {
@@ -1039,7 +1036,7 @@ bool Renderer::InitializeImGui()
   pconfig.framebuffer_state.samples = 1;
   pconfig.framebuffer_state.per_sample_shading = false;
   pconfig.usage = AbstractPipelineUsage::Utility;
-  m_imgui_pipeline = g_renderer->CreatePipeline(pconfig);
+  m_imgui_pipeline = CreatePipeline(pconfig);
   if (!m_imgui_pipeline)
   {
     PanicAlert("Failed to create imgui pipeline");
@@ -1210,11 +1207,9 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   else
   {
     // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-
-    size_t flush_count_4_3, flush_count_anamorphic;
-    std::tie(flush_count_4_3, flush_count_anamorphic) =
+    const auto [flush_count_4_3, flush_count_anamorphic] =
         g_vertex_manager->ResetFlushAspectRatioCount();
-    size_t flush_total = flush_count_4_3 + flush_count_anamorphic;
+    const size_t flush_total = flush_count_4_3 + flush_count_anamorphic;
 
     // Modify the threshold based on which aspect ratio we're already using: if
     // the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
@@ -1344,8 +1339,7 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
-    MathUtil::Rectangle<int> left_rc, right_rc;
-    std::tie(left_rc, right_rc) = ConvertStereoRectangle(target_rc);
+    const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 
     m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
     m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
@@ -1356,7 +1350,7 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   }
 }
 
-bool Renderer::IsFrameDumping()
+bool Renderer::IsFrameDumping() const
 {
   if (m_screenshot_request.IsSet())
     return true;

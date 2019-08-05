@@ -159,13 +159,14 @@ public:
   // Converts an upper-left to lower-left if required by the backend, optionally
   // clamping to the framebuffer size.
   MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                                       u32 fb_width, u32 fb_height);
-  MathUtil::Rectangle<int> ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                                       const AbstractFramebuffer* framebuffer);
+                                                       u32 fb_width, u32 fb_height) const;
+  MathUtil::Rectangle<int>
+  ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
+                              const AbstractFramebuffer* framebuffer) const;
 
   // EFB coordinate conversion functions
   // Use this to convert a whole native EFB rect to backbuffer coordinates
-  MathUtil::Rectangle<int> ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc);
+  MathUtil::Rectangle<int> ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const;
 
   const MathUtil::Rectangle<int>& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
@@ -324,7 +325,7 @@ protected:
 
 private:
   void RunFrameDumps();
-  std::tuple<int, int> CalculateOutputDimensions(int width, int height);
+  std::tuple<int, int> CalculateOutputDimensions(int width, int height) const;
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
   unsigned int m_efb_scale = 1;
@@ -373,7 +374,7 @@ private:
   void DumpFrameToImage(const FrameDumpConfig& config);
   void ShutdownFrameDumping();
 
-  bool IsFrameDumping();
+  bool IsFrameDumping() const;
 
   // Checks that the frame dump render texture exists and is the correct size.
   bool CheckFrameDumpRenderTexture(u32 target_width, u32 target_height);
