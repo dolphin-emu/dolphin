@@ -315,9 +315,7 @@ bool Renderer::CalculateTargetSize()
   if (max_size < EFB_WIDTH * m_efb_scale)
     m_efb_scale = max_size / EFB_WIDTH;
 
-  int new_efb_width = 0;
-  int new_efb_height = 0;
-  std::tie(new_efb_width, new_efb_height) = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
+  auto [new_efb_width, new_efb_height] = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
   new_efb_width = std::max(new_efb_width, 1);
   new_efb_height = std::max(new_efb_height, 1);
 
@@ -816,15 +814,15 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  std::tie(width, height) = CalculateOutputDimensions(width, height);
+  const auto [out_width, out_height] = CalculateOutputDimensions(width, height);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (width != m_last_window_request_width || height != m_last_window_request_height)
-  {
-    m_last_window_request_width = width;
-    m_last_window_request_height = height;
-    Host_RequestRenderWindowSize(width, height);
-  }
+  if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
+    return;
+
+  m_last_window_request_width = out_width;
+  m_last_window_request_height = out_height;
+  Host_RequestRenderWindowSize(out_width, out_height);
 }
 
 std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) const
@@ -832,8 +830,7 @@ std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) 
   width = std::max(width, 1);
   height = std::max(height, 1);
 
-  float scaled_width, scaled_height;
-  std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
+  auto [scaled_width, scaled_height] = ScaleToDisplayAspectRatio(width, height);
 
   if (g_ActiveConfig.bCrop)
   {
@@ -1210,11 +1207,9 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   else
   {
     // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
-
-    size_t flush_count_4_3, flush_count_anamorphic;
-    std::tie(flush_count_4_3, flush_count_anamorphic) =
+    const auto [flush_count_4_3, flush_count_anamorphic] =
         g_vertex_manager->ResetFlushAspectRatioCount();
-    size_t flush_total = flush_count_4_3 + flush_count_anamorphic;
+    const size_t flush_total = flush_count_4_3 + flush_count_anamorphic;
 
     // Modify the threshold based on which aspect ratio we're already using: if
     // the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
@@ -1344,8 +1339,7 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
-    MathUtil::Rectangle<int> left_rc, right_rc;
-    std::tie(left_rc, right_rc) = ConvertStereoRectangle(target_rc);
+    const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 
     m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
     m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
