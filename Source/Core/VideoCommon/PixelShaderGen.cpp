@@ -238,14 +238,9 @@ PixelShaderUid GetPixelShaderUid()
 
   for (unsigned int n = 0; n < numStages; n++)
   {
-    int texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
-    bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
-    // HACK to handle cases where the tex gen is not enabled
-    if (!bHasTexCoord)
-      texcoord = bpmem.genMode.numtexgens;
+    uid_data->stagehash[n].tevorders_texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
 
     uid_data->stagehash[n].hasindstage = bpmem.tevind[n].bt < bpmem.genMode.numindstages;
-    uid_data->stagehash[n].tevorders_texcoord = texcoord;
     if (uid_data->stagehash[n].hasindstage)
       uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
 
@@ -774,9 +769,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("col1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
-  // HACK to handle cases where the tex gen is not enabled
   if (uid_data->genMode_numtexgens == 0)
   {
+    // TODO: This is a hack to ensure that shaders still compile when setting out of bounds tex
+    // coord indices to 0.  Ideally, it shouldn't exist at all, but the exact behavior hasn't been
+    // tested.
     out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n\n");
   }
   else
@@ -795,19 +792,19 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   {
     if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
     {
-      const u32 texcoord = uid_data->GetTevindirefCoord(i);
+      u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);
 
-      if (texcoord < uid_data->genMode_numtexgens)
-      {
-        out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
-        out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
-                  (i & 1) != 0 ? "zw" : "xy");
-      }
-      else
-      {
-        out.Write("\ttempcoord = int2(0, 0);\n");
-      }
+      // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does
+      // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
+      // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
+      // the number of tex gens to 2 (bug 11462).
+      if (texcoord >= uid_data->genMode_numtexgens)
+        texcoord = 0;
+
+      out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
+      out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
+                (i & 1) ? "zw" : "xy");
 
       out.Write("\tint3 iindtex{} = ", i);
       SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
@@ -949,7 +946,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   const auto& stage = uid_data->stagehash[n];
   out.Write("\n\t// TEV stage {}\n", n);
 
-  // HACK to handle cases where the tex gen is not enabled
+  // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does not
+  // exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
   u32 texcoord = stage.tevorders_texcoord;
   const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens;
   if (!has_tex_coord)
@@ -1169,6 +1167,10 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // Emulate s24 overflows
     out.Write("\ttevcoord.xy = (tevcoord.xy << 8) >> 8;\n");
   }
+  else
+  {
+    out.Write("\ttevcoord.xy = fixpoint_uv{};\n", texcoord);
+  }
 
   TevStageCombiner::ColorCombiner cc;
   TevStageCombiner::AlphaCombiner ac;
@@ -1194,7 +1196,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("\trastemp = {}.{};\n", tev_ras_table[u32(stage.tevorders_colorchan)], rasswap);
   }
 
-  if (stage.tevorders_enable)
+  if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
     const char texswap[5] = {
@@ -1205,16 +1207,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         '\0',
     };
 
-    if (!stage.hasindstage)
-    {
-      // calc tevcord
-      if (has_tex_coord)
-        out.Write("\ttevcoord.xy = fixpoint_uv{};\n", texcoord);
-      else
-        out.Write("\ttevcoord.xy = int2(0, 0);\n");
-    }
     out.Write("\ttextemp = ");
     SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, api_type);
+  }
+  else if (uid_data->genMode_numtexgens == 0)
+  {
+    // It seems like the result is always black when no tex coords are enabled, but further testing
+    // is needed.
+    out.Write("\ttextemp = int4(0, 0, 0, 0);\n");
   }
   else
   {
