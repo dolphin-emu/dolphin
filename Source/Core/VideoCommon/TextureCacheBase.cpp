@@ -137,7 +137,7 @@ void TextureCacheBase::Invalidate()
   texture_pool.clear();
 }
 
-void TextureCacheBase::OnConfigChanged(VideoConfig& config)
+void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 {
   if (config.bHiresTextures != backup_config.hires_textures ||
       config.bCacheHiresTextures != backup_config.cache_hires_textures)

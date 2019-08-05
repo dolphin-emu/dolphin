@@ -204,7 +204,7 @@ public:
 
   bool Initialize();
 
-  void OnConfigChanged(VideoConfig& config);
+  void OnConfigChanged(const VideoConfig& config);
 
   // Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
   // frameCount is the current frame number.
