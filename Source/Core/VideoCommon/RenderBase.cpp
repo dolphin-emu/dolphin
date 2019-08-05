@@ -665,13 +665,13 @@ void Renderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
 
 MathUtil::Rectangle<int>
 Renderer::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                      const AbstractFramebuffer* framebuffer)
+                                      const AbstractFramebuffer* framebuffer) const
 {
   return ConvertFramebufferRectangle(rect, framebuffer->GetWidth(), framebuffer->GetHeight());
 }
 
 MathUtil::Rectangle<int> Renderer::ConvertFramebufferRectangle(const MathUtil::Rectangle<int>& rect,
-                                                               u32 fb_width, u32 fb_height)
+                                                               u32 fb_width, u32 fb_height) const
 {
   MathUtil::Rectangle<int> ret = rect;
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -682,7 +682,7 @@ MathUtil::Rectangle<int> Renderer::ConvertFramebufferRectangle(const MathUtil::R
   return ret;
 }
 
-MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc)
+MathUtil::Rectangle<int> Renderer::ConvertEFBRectangle(const MathUtil::Rectangle<int>& rc) const
 {
   MathUtil::Rectangle<int> result;
   result.left = EFBToScaledX(rc.left);
@@ -827,7 +827,7 @@ void Renderer::SetWindowSize(int width, int height)
   }
 }
 
-std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height)
+std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) const
 {
   width = std::max(width, 1);
   height = std::max(height, 1);
@@ -1356,7 +1356,7 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   }
 }
 
-bool Renderer::IsFrameDumping()
+bool Renderer::IsFrameDumping() const
 {
   if (m_screenshot_request.IsSet())
     return true;
