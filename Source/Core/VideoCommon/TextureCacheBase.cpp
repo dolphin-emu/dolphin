@@ -155,9 +155,7 @@ void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
       config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection)
   {
     Invalidate();
-
-    TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
-                                       g_ActiveConfig.bTexFmtOverlayCenter);
+    TexDecoder_SetTexFmtOverlayOptions(config.bTexFmtOverlayEnable, config.bTexFmtOverlayCenter);
   }
 
   SetBackupConfig(config);
