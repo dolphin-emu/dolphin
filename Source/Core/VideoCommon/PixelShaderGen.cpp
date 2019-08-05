@@ -794,16 +794,14 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       unsigned int texcoord = uid_data->GetTevindirefCoord(i);
       unsigned int texmap = uid_data->GetTevindirefMap(i);
 
-      if (texcoord < uid_data->genMode_numtexgens)
-      {
-        out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
-        out.Write("\ttempcoord = fixpoint_uv%d >> " I_INDTEXSCALE "[%d].%s;\n", texcoord, i / 2,
-                  (i & 1) ? "zw" : "xy");
-      }
-      else
-      {
-        out.Write("\ttempcoord = int2(0, 0);\n");
-      }
+      // TODO: are out-of-range values set to zero or clamped?
+      // TODO: same thing probably with direct texcoord indices?
+      if (texcoord >= uid_data->genMode_numtexgens)
+        texcoord = 0;
+
+      out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
+      out.Write("\ttempcoord = fixpoint_uv%d >> " I_INDTEXSCALE "[%d].%s;\n", texcoord, i / 2,
+                (i & 1) ? "zw" : "xy");
 
       out.Write("\tint3 iindtex%d = ", i);
       SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, ApiType);
