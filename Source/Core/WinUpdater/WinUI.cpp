@@ -12,6 +12,8 @@
 #include <ShObjIdl.h>
 #include <shellapi.h>
 
+#include "Common/Event.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 namespace
@@ -23,6 +25,7 @@ HWND current_progressbar_handle = nullptr;
 ITaskbarList3* taskbar_list = nullptr;
 
 std::thread ui_thread;
+Common::Event window_created_event;
 
 int GetWindowHeight(HWND hwnd)
 {
@@ -53,6 +56,9 @@ namespace UI
 bool InitWindow()
 {
   InitCommonControls();
+
+  // Notify main thread we're done creating the window when we return
+  Common::ScopeGuard ui_guard{[] { window_created_event.Set(); }};
 
   WNDCLASS wndcl = {};
   wndcl.lpfnWndProc = WindowProc;
@@ -226,6 +232,9 @@ void MessageLoop()
 void Init()
 {
   ui_thread = std::thread(MessageLoop);
+
+  // Wait for UI thread to finish creating the window (or at least attempting to)
+  window_created_event.Wait();
 }
 
 void Stop()
