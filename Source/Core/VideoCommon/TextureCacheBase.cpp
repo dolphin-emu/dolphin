@@ -553,16 +553,16 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     {
       if (ShouldSaveEntry(it.second))
       {
-        u32 id = AddCacheEntryToMap(it.second);
-        textures_by_address_list.push_back(std::make_pair(it.first, id));
+        const u32 id = AddCacheEntryToMap(it.second);
+        textures_by_address_list.emplace_back(it.first, id);
       }
     }
     for (const auto& it : textures_by_hash)
     {
       if (ShouldSaveEntry(it.second))
       {
-        u32 id = AddCacheEntryToMap(it.second);
-        textures_by_hash_list.push_back(std::make_pair(it.first, id));
+        const u32 id = AddCacheEntryToMap(it.second);
+        textures_by_hash_list.emplace_back(it.first, id);
       }
     }
   }
