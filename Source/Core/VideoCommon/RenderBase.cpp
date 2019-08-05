@@ -629,8 +629,8 @@ void Renderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
   BeginUtilityDrawing();
 
   // The shader needs to know the source rectangle.
-  const auto converted_src_rect = g_renderer->ConvertFramebufferRectangle(
-      src_rect, src_texture->GetWidth(), src_texture->GetHeight());
+  const auto converted_src_rect =
+      ConvertFramebufferRectangle(src_rect, src_texture->GetWidth(), src_texture->GetHeight());
   const float rcp_src_width = 1.0f / src_texture->GetWidth();
   const float rcp_src_height = 1.0f / src_texture->GetHeight();
   const std::array<float, 4> uniforms = {{converted_src_rect.left * rcp_src_width,
@@ -1036,7 +1036,7 @@ bool Renderer::InitializeImGui()
   pconfig.framebuffer_state.samples = 1;
   pconfig.framebuffer_state.per_sample_shading = false;
   pconfig.usage = AbstractPipelineUsage::Utility;
-  m_imgui_pipeline = g_renderer->CreatePipeline(pconfig);
+  m_imgui_pipeline = CreatePipeline(pconfig);
   if (!m_imgui_pipeline)
   {
     PanicAlert("Failed to create imgui pipeline");
