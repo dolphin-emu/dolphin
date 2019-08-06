@@ -1095,6 +1095,12 @@ void VolumeVerifier::Process()
     m_volume.GetTMD(PARTITION_NONE).GetContent(m_content_index, &content);
     bytes_to_read = Common::AlignUp(content.size, 0x40);
     content_read = true;
+
+    if (m_content_index + 1 < m_content_offsets.size() &&
+        m_content_offsets[m_content_index + 1] < m_progress + bytes_to_read)
+    {
+      excess_bytes = m_progress + bytes_to_read - m_content_offsets[m_content_index + 1];
+    }
   }
   else if (m_content_index < m_content_offsets.size() &&
            m_content_offsets[m_content_index] > m_progress)
