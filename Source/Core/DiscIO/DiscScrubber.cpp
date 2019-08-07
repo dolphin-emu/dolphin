@@ -44,7 +44,8 @@ bool DiscScrubber::SetupScrub(const Volume* disc, int block_size)
 
   m_file_size = m_disc->GetSize();
 
-  const size_t num_clusters = static_cast<size_t>(m_file_size / CLUSTER_SIZE);
+  // Round up when diving by CLUSTER_SIZE, otherwise MarkAsUsed might write out of bounds
+  const size_t num_clusters = static_cast<size_t>((m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE);
 
   // Warn if not DVD5 or DVD9 size
   if (num_clusters != 0x23048 && num_clusters != 0x46090)

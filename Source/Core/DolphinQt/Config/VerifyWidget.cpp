@@ -117,7 +117,7 @@ void VerifyWidget::Verify()
   verifier.Finish();
 
   DiscIO::VolumeVerifier::Result result = verifier.GetResult();
-  progress->setValue(verifier.GetBytesProcessed() / DIVISOR);
+  progress->reset();
 
   m_summary_text->setText(QString::fromStdString(result.summary_text));
 
