@@ -60,6 +60,7 @@
 
         <activity
             android:name=".features.settings.ui.SettingsActivity"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/DolphinSettingsBase"
             android:label="@string/preferences_settings"/>
 
