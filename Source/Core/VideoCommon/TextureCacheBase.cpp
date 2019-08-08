@@ -134,7 +134,7 @@ void TextureCacheBase::Invalidate()
   texture_pool.clear();
 }
 
-void TextureCacheBase::OnConfigChanged(VideoConfig& config)
+void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 {
   if (config.bHiresTextures != backup_config.hires_textures ||
       config.bCacheHiresTextures != backup_config.cache_hires_textures)
@@ -152,9 +152,7 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
       config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection)
   {
     Invalidate();
-
-    TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
-                                       g_ActiveConfig.bTexFmtOverlayCenter);
+    TexDecoder_SetTexFmtOverlayOptions(config.bTexFmtOverlayEnable, config.bTexFmtOverlayCenter);
   }
 
   SetBackupConfig(config);
