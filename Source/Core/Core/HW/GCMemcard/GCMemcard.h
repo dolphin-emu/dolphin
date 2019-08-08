@@ -438,6 +438,7 @@ public:
   std::string DEntry_GameCode(u8 index) const;
   std::string DEntry_Makercode(u8 index) const;
   std::string DEntry_BIFlags(u8 index) const;
+  bool DEntry_IsPingPong(u8 index) const;
   std::string DEntry_FileName(u8 index) const;
   u32 DEntry_ModTime(u8 index) const;
   u32 DEntry_ImageOffset(u8 index) const;

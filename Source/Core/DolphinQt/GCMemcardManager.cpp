@@ -37,6 +37,16 @@ constexpr u32 ICON_HEIGHT = 32;
 constexpr u32 ANIM_MAX_FRAMES = 8;
 constexpr float ROW_HEIGHT = 28;
 
+struct GCMemcardManager::IconAnimationData
+{
+  // the individual frames
+  std::vector<QPixmap> m_frames;
+
+  // vector containing a list of frame indices that indicate, for each time unit,
+  // the frame that should be displayed when at that time unit
+  std::vector<u8> m_frame_timing;
+};
+
 GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
 {
   CreateWidgets();
@@ -48,7 +58,9 @@ GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
   m_timer = new QTimer(this);
   connect(m_timer, &QTimer::timeout, this, &GCMemcardManager::DrawIcons);
 
-  m_timer->start(1000 / 8);
+  // individual frames of icon animations can stay on screen for 4, 8, or 12 frames at 60 FPS,
+  // which means the fastest animation and common denominator is 15 FPS or 66 milliseconds per frame
+  m_timer->start(1000 / 15);
 
   // Make the dimensions more reasonable on startup
   resize(650, 500);
@@ -182,7 +194,9 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     return s.substr(0, offset);
   };
 
-  for (int i = 0; i < memcard->GetNumFiles(); i++)
+  const u8 num_files = memcard->GetNumFiles();
+  m_slot_active_icons[slot].reserve(num_files);
+  for (int i = 0; i < num_files; i++)
   {
     int file_index = memcard->GetFileIndex(i);
     table->setRowCount(i + 1);
@@ -200,18 +214,13 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     banner->setData(Qt::DecorationRole, GetBannerFromSaveFile(file_index, slot));
     banner->setFlags(banner->flags() ^ Qt::ItemIsEditable);
 
-    auto frames = GetIconFromSaveFile(file_index, slot);
+    auto icon_data = GetIconFromSaveFile(file_index, slot);
     auto* icon = new QTableWidgetItem;
-    icon->setData(Qt::DecorationRole, frames[0]);
+    icon->setData(Qt::DecorationRole, icon_data.m_frames[0]);
 
     std::optional<DEntry> entry = memcard->GetDEntry(file_index);
 
-    // TODO: This is wrong, the animation speed is not static and is already correctly calculated in
-    // GetIconFromSaveFile(), just not returned
-    const u16 animation_speed = entry ? entry->m_animation_speed : 1;
-    const auto speed = (((animation_speed >> 8) & 1) << 2) + (animation_speed & 1);
-
-    m_slot_active_icons[slot].push_back({speed, frames});
+    m_slot_active_icons[slot].emplace_back(std::move(icon_data));
 
     table->setItem(i, 0, banner);
     table->setItem(i, 1, create_item(title));
@@ -442,25 +451,25 @@ void GCMemcardManager::FixChecksums()
 
 void GCMemcardManager::DrawIcons()
 {
-  m_current_frame++;
-  m_current_frame %= 15;
-
   const auto column = 3;
   for (int slot = 0; slot < SLOT_COUNT; slot++)
   {
     int row = 0;
-    for (auto& icon : m_slot_active_icons[slot])
+    for (const auto& icon : m_slot_active_icons[slot])
     {
-      int frame = (m_current_frame / 3 - icon.first) % icon.second.size();
+      const u64 current_time_in_animation = m_current_frame % icon.m_frame_timing.size();
+      const u8 current_frame = icon.m_frame_timing[current_time_in_animation];
 
       auto* item = new QTableWidgetItem;
-      item->setData(Qt::DecorationRole, icon.second[frame]);
+      item->setData(Qt::DecorationRole, icon.m_frames[current_frame]);
       item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 
       m_slot_table[slot]->setItem(row, column, item);
       row++;
     }
   }
+
+  ++m_current_frame;
 }
 
 QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
@@ -479,35 +488,57 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
   return QPixmap::fromImage(image);
 }
 
-std::vector<QPixmap> GCMemcardManager::GetIconFromSaveFile(int file_index, int slot)
+GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int file_index, int slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
   std::vector<u8> anim_delay(ANIM_MAX_FRAMES);
   std::vector<u32> anim_data(ICON_WIDTH * ICON_HEIGHT * ANIM_MAX_FRAMES);
 
-  std::vector<QPixmap> frame_pixmaps;
+  IconAnimationData frame_data;
 
-  u32 num_frames = memcard->ReadAnimRGBA8(file_index, anim_data.data(), anim_delay.data());
+  const u32 num_frames = memcard->ReadAnimRGBA8(file_index, anim_data.data(), anim_delay.data());
 
   // Decode Save File Animation
   if (num_frames > 0)
   {
+    frame_data.m_frames.reserve(num_frames);
     const u32 per_frame_offset = ICON_WIDTH * ICON_HEIGHT;
     for (u32 f = 0; f < num_frames; ++f)
     {
       QImage img(reinterpret_cast<u8*>(&anim_data[f * per_frame_offset]), ICON_WIDTH, ICON_HEIGHT,
                  QImage::Format_ARGB32);
-      frame_pixmaps.push_back(QPixmap::fromImage(img));
+      frame_data.m_frames.push_back(QPixmap::fromImage(img));
+      for (int i = 0; i < anim_delay[f]; ++i)
+      {
+        frame_data.m_frame_timing.push_back(static_cast<u8>(f));
+      }
+    }
+
+    const bool is_pingpong = memcard->DEntry_IsPingPong(file_index);
+    if (is_pingpong && num_frames >= 3)
+    {
+      // if the animation 'ping-pongs' between start and end then the animation frame order is
+      // something like 'abcdcbabcdcba' instead of the usual 'abcdabcdabcd'
+      // to display that correctly just append all except the first and last frame in reverse order
+      // at the end of the animation
+      for (u32 f = num_frames - 2; f > 0; --f)
+      {
+        for (int i = 0; i < anim_delay[f]; ++i)
+        {
+          frame_data.m_frame_timing.push_back(static_cast<u8>(f));
+        }
+      }
     }
   }
   else
   {
     // No Animation found, use an empty placeholder instead.
-    frame_pixmaps.push_back(QPixmap());
+    frame_data.m_frames.emplace_back();
+    frame_data.m_frame_timing.push_back(1);
   }
 
-  return frame_pixmaps;
+  return frame_data;
 }
 
 QString GCMemcardManager::GetErrorMessagesForErrorCode(const GCMemcardErrorCode& code)
