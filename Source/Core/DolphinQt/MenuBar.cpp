@@ -549,6 +549,11 @@ void MenuBar::AddHelpMenu()
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
   });
+  QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
+  connect(bugtracker, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(
+        QUrl(QStringLiteral("https://bugs.dolphin-emu.org/projects/emulator")));
+  });
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
