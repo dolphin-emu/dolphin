@@ -3,12 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <list>
 #include <map>
 #include <mutex>
 #include <string>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
@@ -26,14 +25,14 @@ constexpr float WINDOW_PADDING = 4.0f;  // Pixels between subsequent OSD message
 
 struct Message
 {
-  Message() {}
-  Message(const std::string& text_, u32 timestamp_, u32 color_)
-      : text(text_), timestamp(timestamp_), color(color_)
+  Message() = default;
+  Message(std::string text_, u32 timestamp_, u32 color_)
+      : text(std::move(text_)), timestamp(timestamp_), color(color_)
   {
   }
   std::string text;
-  u32 timestamp;
-  u32 color;
+  u32 timestamp = 0;
+  u32 color = 0;
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
@@ -79,18 +78,18 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
   return window_height;
 }
 
-void AddTypedMessage(MessageType type, const std::string& message, u32 ms, u32 rgba)
+void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 rgba)
 {
-  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  std::lock_guard lock{s_messages_mutex};
   s_messages.erase(type);
-  s_messages.emplace(type, Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+  s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
-void AddMessage(const std::string& message, u32 ms, u32 rgba)
+void AddMessage(std::string message, u32 ms, u32 rgba)
 {
-  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  std::lock_guard lock{s_messages_mutex};
   s_messages.emplace(MessageType::Typeless,
-                     Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+                     Message(std::move(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
 void DrawMessages()
@@ -99,7 +98,7 @@ void DrawMessages()
     return;
 
   {
-    std::lock_guard<std::mutex> lock(s_messages_mutex);
+    std::lock_guard lock{s_messages_mutex};
 
     const u32 now = Common::Timer::GetTimeMs();
     float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x;
@@ -123,7 +122,7 @@ void DrawMessages()
 
 void ClearMessages()
 {
-  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  std::lock_guard lock{s_messages_mutex};
   s_messages.clear();
 }
 }  // namespace OSD
