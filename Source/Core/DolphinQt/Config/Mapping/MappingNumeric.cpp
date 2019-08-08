@@ -18,7 +18,7 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
   setFixedWidth(WIDGET_MAX_WIDTH);
 
   if (const auto ui_suffix = m_setting.GetUISuffix())
-    setSuffix(QStringLiteral(" ") + tr(ui_suffix));
+    setSuffix(QLatin1Char{' '} + tr(ui_suffix));
 
   if (const auto ui_description = m_setting.GetUIDescription())
     setToolTip(tr(ui_description));

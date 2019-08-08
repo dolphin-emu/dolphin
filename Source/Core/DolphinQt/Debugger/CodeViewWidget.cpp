@@ -422,7 +422,7 @@ void CodeViewWidget::OnSelectionChanged()
   }
   else if (!styleSheet().isEmpty())
   {
-    setStyleSheet(QStringLiteral(""));
+    setStyleSheet(QString{});
   }
 }
 

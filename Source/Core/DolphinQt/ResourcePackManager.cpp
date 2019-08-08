@@ -86,8 +86,8 @@ void ResourcePackManager::RepopulateTable()
   m_table_widget->clear();
   m_table_widget->setColumnCount(6);
 
-  m_table_widget->setHorizontalHeaderLabels({QStringLiteral(""), tr("Name"), tr("Version"),
-                                             tr("Description"), tr("Author"), tr("Website")});
+  m_table_widget->setHorizontalHeaderLabels(
+      {QString{}, tr("Name"), tr("Version"), tr("Description"), tr("Author"), tr("Website")});
 
   auto* header = m_table_widget->horizontalHeader();
 

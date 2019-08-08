@@ -657,7 +657,7 @@ QStringList MainWindow::PromptFileNames()
   auto& settings = Settings::Instance().GetQSettings();
   QStringList paths = QFileDialog::getOpenFileNames(
       this, tr("Select a File"),
-      settings.value(QStringLiteral("mainwindow/lastdir"), QStringLiteral("")).toString(),
+      settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;"
          "All Files (*)"));
 

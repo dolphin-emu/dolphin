@@ -280,8 +280,8 @@ void GeckoCodeWidget::UpdateList()
     const auto& code = m_gecko_codes[i];
 
     auto* item = new QListWidgetItem(QString::fromStdString(code.name)
-                                         .replace(QStringLiteral("&lt;"), QStringLiteral("<"))
-                                         .replace(QStringLiteral("&gt;"), QStringLiteral(">")));
+                                         .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
+                                         .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>')));
 
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |
                    Qt::ItemIsDragEnabled);

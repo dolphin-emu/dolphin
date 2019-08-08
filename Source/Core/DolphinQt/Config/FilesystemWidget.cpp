@@ -263,7 +263,7 @@ DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id)
 
 void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, const QString& out)
 {
-  ExtractDirectory(partition, QStringLiteral(""), out + QStringLiteral("/files"));
+  ExtractDirectory(partition, QString{}, out + QStringLiteral("/files"));
   ExtractSystemData(partition, out);
 }
 

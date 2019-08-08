@@ -79,7 +79,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
     layout->addWidget(buttons);
 
     connect(never_btn, &QPushButton::clicked, [dialog] {
-      Settings::Instance().SetAutoUpdateTrack(QStringLiteral(""));
+      Settings::Instance().SetAutoUpdateTrack(QString{});
       dialog->reject();
     });
 

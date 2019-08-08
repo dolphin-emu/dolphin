@@ -32,8 +32,8 @@ constexpr int SLIDER_TICK_COUNT = 100;
 // Escape ampersands and remove ticks
 static QString ToDisplayString(QString&& string)
 {
-  return string.replace(QStringLiteral("&"), QStringLiteral("&&"))
-      .replace(QStringLiteral("`"), QStringLiteral(""));
+  return string.replace(QLatin1Char{'&'}, QStringLiteral("&&"))
+      .replace(QLatin1Char{'`'}, QString{});
 }
 
 bool MappingButton::IsInput() const

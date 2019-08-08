@@ -160,7 +160,7 @@ void BreakpointWidget::Update()
   int i = 0;
   m_table->setRowCount(i);
 
-  auto create_item = [](const QString string = QStringLiteral("")) {
+  const auto create_item = [](const QString string = {}) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;
@@ -224,10 +224,10 @@ void BreakpointWidget::Update()
     QString flags;
 
     if (mbp.is_break_on_read)
-      flags.append(QStringLiteral("r"));
+      flags.append(QLatin1Char{'r'});
 
     if (mbp.is_break_on_write)
-      flags.append(QStringLiteral("w"));
+      flags.append(QLatin1Char{'w'});
 
     m_table->setItem(i, 4, create_item(flags));
 

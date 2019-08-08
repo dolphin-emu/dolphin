@@ -124,7 +124,7 @@ bool CheatCodeEditor::AcceptAR()
   std::vector<ActionReplay::AREntry> entries;
   std::vector<std::string> encrypted_lines;
 
-  QStringList lines = m_code_edit->toPlainText().split(QStringLiteral("\n"));
+  QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
 
   for (int i = 0; i < lines.size(); i++)
   {
@@ -133,7 +133,7 @@ bool CheatCodeEditor::AcceptAR()
     if (line.isEmpty())
       continue;
 
-    QStringList values = line.split(QStringLiteral(" "));
+    QStringList values = line.split(QLatin1Char{' '});
 
     bool good = true;
 
@@ -152,7 +152,7 @@ bool CheatCodeEditor::AcceptAR()
     }
     else
     {
-      QStringList blocks = line.split(QStringLiteral("-"));
+      QStringList blocks = line.split(QLatin1Char{'-'});
 
       if (blocks.size() == 3 && blocks[0].size() == 4 && blocks[1].size() == 4 &&
           blocks[2].size() == 5)
@@ -230,7 +230,7 @@ bool CheatCodeEditor::AcceptGecko()
 {
   std::vector<Gecko::GeckoCode::Code> entries;
 
-  QStringList lines = m_code_edit->toPlainText().split(QStringLiteral("\n"));
+  QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
 
   for (int i = 0; i < lines.size(); i++)
   {
@@ -239,7 +239,7 @@ bool CheatCodeEditor::AcceptGecko()
     if (line.isEmpty())
       continue;
 
-    QStringList values = line.split(QStringLiteral(" "));
+    QStringList values = line.split(QLatin1Char{' '});
 
     bool good = values.size() == 2;
 
@@ -289,7 +289,7 @@ bool CheatCodeEditor::AcceptGecko()
   m_gecko_code->user_defined = true;
 
   std::vector<std::string> note_lines;
-  for (QString line : m_notes_edit->toPlainText().split(QStringLiteral("\n")))
+  for (const QString& line : m_notes_edit->toPlainText().split(QLatin1Char{'\n'}))
     note_lines.push_back(line.toStdString());
 
   m_gecko_code->notes = std::move(note_lines);

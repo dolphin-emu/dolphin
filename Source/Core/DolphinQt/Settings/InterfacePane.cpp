@@ -66,7 +66,7 @@ static QComboBox* MakeLanguageComboBox()
   };
 
   auto* combobox = new QComboBox();
-  combobox->addItem(QObject::tr("<System Language>"), QStringLiteral(""));
+  combobox->addItem(QObject::tr("<System Language>"), QString{});
   for (const auto& lang : languages)
     combobox->addItem(lang.name, QString::fromLatin1(lang.id));
 
@@ -135,7 +135,7 @@ void InterfacePane::CreateUI()
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("(None)"), QStringLiteral(""));
+  m_combobox_userstyle->addItem(tr("(None)"), QString{});
 
   for (const std::string& filename : userstyle_search_results)
   {

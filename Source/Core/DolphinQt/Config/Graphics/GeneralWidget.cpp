@@ -299,7 +299,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   m_adapter_combo->setEnabled(supports_adapters && !Core::IsRunning());
 
   m_adapter_combo->setToolTip(supports_adapters ?
-                                  QStringLiteral("") :
+                                  QString{} :
                                   tr("%1 doesn't support this feature.")
                                       .arg(tr(g_video_backend->GetDisplayName().c_str())));
 }
