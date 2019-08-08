@@ -31,8 +31,9 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr u32 BANNER_WIDTH = 96;
-constexpr u32 ANIM_FRAME_WIDTH = 32;
-constexpr u32 IMAGE_HEIGHT = 32;
+constexpr u32 BANNER_HEIGHT = 32;
+constexpr u32 ICON_WIDTH = 32;
+constexpr u32 ICON_HEIGHT = 32;
 constexpr u32 ANIM_MAX_FRAMES = 8;
 constexpr float ROW_HEIGHT = 28;
 
@@ -466,12 +467,12 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u32> pxdata(BANNER_WIDTH * IMAGE_HEIGHT);
+  std::vector<u32> pxdata(BANNER_WIDTH * BANNER_HEIGHT);
 
   QImage image;
   if (memcard->ReadBannerRGBA8(file_index, pxdata.data()))
   {
-    image = QImage(reinterpret_cast<u8*>(pxdata.data()), BANNER_WIDTH, IMAGE_HEIGHT,
+    image = QImage(reinterpret_cast<u8*>(pxdata.data()), BANNER_WIDTH, BANNER_HEIGHT,
                    QImage::Format_ARGB32);
   }
 
@@ -482,9 +483,8 @@ std::vector<QPixmap> GCMemcardManager::GetIconFromSaveFile(int file_index, int s
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u32> pxdata(BANNER_WIDTH * IMAGE_HEIGHT);
   std::vector<u8> anim_delay(ANIM_MAX_FRAMES);
-  std::vector<u32> anim_data(ANIM_FRAME_WIDTH * IMAGE_HEIGHT * ANIM_MAX_FRAMES);
+  std::vector<u32> anim_data(ICON_WIDTH * ICON_HEIGHT * ANIM_MAX_FRAMES);
 
   std::vector<QPixmap> frame_pixmaps;
 
@@ -493,35 +493,12 @@ std::vector<QPixmap> GCMemcardManager::GetIconFromSaveFile(int file_index, int s
   // Decode Save File Animation
   if (num_frames > 0)
   {
-    u32 frames = BANNER_WIDTH / ANIM_FRAME_WIDTH;
-
-    if (num_frames < frames)
+    const u32 per_frame_offset = ICON_WIDTH * ICON_HEIGHT;
+    for (u32 f = 0; f < num_frames; ++f)
     {
-      frames = num_frames;
-
-      // Clear unused frame's pixels from the buffer.
-      std::fill(pxdata.begin(), pxdata.end(), 0);
-    }
-
-    for (u32 f = 0; f < frames; ++f)
-    {
-      for (u32 y = 0; y < IMAGE_HEIGHT; ++y)
-      {
-        for (u32 x = 0; x < ANIM_FRAME_WIDTH; ++x)
-        {
-          // NOTE: pxdata is stacked horizontal, anim_data is stacked vertical
-          pxdata[y * BANNER_WIDTH + f * ANIM_FRAME_WIDTH + x] =
-              anim_data[f * ANIM_FRAME_WIDTH * IMAGE_HEIGHT + y * IMAGE_HEIGHT + x];
-        }
-      }
-    }
-    QImage anims(reinterpret_cast<u8*>(pxdata.data()), BANNER_WIDTH, IMAGE_HEIGHT,
+      QImage img(reinterpret_cast<u8*>(&anim_data[f * per_frame_offset]), ICON_WIDTH, ICON_HEIGHT,
                  QImage::Format_ARGB32);
-
-    for (u32 f = 0; f < frames; f++)
-    {
-      frame_pixmaps.push_back(
-          QPixmap::fromImage(anims.copy(ANIM_FRAME_WIDTH * f, 0, ANIM_FRAME_WIDTH, IMAGE_HEIGHT)));
+      frame_pixmaps.push_back(QPixmap::fromImage(img));
     }
   }
   else
