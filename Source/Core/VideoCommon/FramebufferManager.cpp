@@ -129,6 +129,11 @@ AbstractTextureFormat FramebufferManager::GetEFBDepthFormat()
     return AbstractTextureFormat::D32F;
 }
 
+AbstractTextureFormat FramebufferManager::GetEFBDepthCopyFormat()
+{
+  return AbstractTextureFormat::R32F;
+}
+
 static u32 CalculateEFBLayers()
 {
   return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
@@ -183,11 +188,10 @@ bool FramebufferManager::CreateEFBFramebuffer()
     m_efb_resolve_color_texture = g_renderer->CreateTexture(
         TextureConfig(efb_color_texture_config.width, efb_color_texture_config.height, 1,
                       efb_color_texture_config.layers, 1, efb_color_texture_config.format, 0));
-    m_efb_depth_resolve_texture = g_renderer->CreateTexture(TextureConfig(
-        efb_depth_texture_config.width, efb_depth_texture_config.height, 1,
-        efb_depth_texture_config.layers, 1,
-        AbstractTexture::GetColorFormatForDepthFormat(efb_depth_texture_config.format),
-        AbstractTextureFlag_RenderTarget));
+    m_efb_depth_resolve_texture = g_renderer->CreateTexture(
+        TextureConfig(efb_depth_texture_config.width, efb_depth_texture_config.height, 1,
+                      efb_depth_texture_config.layers, 1, GetEFBDepthCopyFormat(),
+                      AbstractTextureFlag_RenderTarget));
     if (!m_efb_resolve_color_texture || !m_efb_depth_resolve_texture)
       return false;
 
@@ -447,8 +451,7 @@ bool FramebufferManager::CompileReadbackPipelines()
     return false;
 
   // same for depth, except different format
-  config.framebuffer_state.color_texture_format =
-      AbstractTexture::GetColorFormatForDepthFormat(GetEFBDepthFormat());
+  config.framebuffer_state.color_texture_format = GetEFBDepthCopyFormat();
   m_efb_depth_cache.copy_pipeline = g_renderer->CreatePipeline(config);
   if (!m_efb_depth_cache.copy_pipeline)
     return false;
@@ -493,29 +496,39 @@ void FramebufferManager::DestroyReadbackPipelines()
 
 bool FramebufferManager::CreateReadbackFramebuffer()
 {
-  // Since we can't partially copy from a depth buffer directly to the staging texture in D3D, we
-  // use an intermediate buffer to avoid copying the whole texture.
-  if ((IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
-      g_renderer->GetEFBScale() != 1)
+  if (g_renderer->GetEFBScale() != 1)
   {
     const TextureConfig color_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
                                      IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
                                      1, 1, GetEFBColorFormat(), AbstractTextureFlag_RenderTarget);
-    const TextureConfig depth_config(
-        color_config.width, color_config.height, 1, 1, 1,
-        AbstractTexture::GetColorFormatForDepthFormat(GetEFBDepthFormat()),
-        AbstractTextureFlag_RenderTarget);
-
     m_efb_color_cache.texture = g_renderer->CreateTexture(color_config);
-    m_efb_depth_cache.texture = g_renderer->CreateTexture(depth_config);
-    if (!m_efb_color_cache.texture || !m_efb_depth_cache.texture)
+    if (!m_efb_color_cache.texture)
       return false;
 
     m_efb_color_cache.framebuffer =
         g_renderer->CreateFramebuffer(m_efb_color_cache.texture.get(), nullptr);
+    if (!m_efb_color_cache.framebuffer)
+      return false;
+  }
+
+  // Since we can't partially copy from a depth buffer directly to the staging texture in D3D, we
+  // use an intermediate buffer to avoid copying the whole texture.
+  if ((IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
+      !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
+                                                         GetEFBDepthCopyFormat()) ||
+      g_renderer->GetEFBScale() != 1)
+  {
+    const TextureConfig depth_config(IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_WIDTH,
+                                     IsUsingTiledEFBCache() ? m_efb_cache_tile_size : EFB_HEIGHT, 1,
+                                     1, 1, GetEFBDepthCopyFormat(),
+                                     AbstractTextureFlag_RenderTarget);
+    m_efb_depth_cache.texture = g_renderer->CreateTexture(depth_config);
+    if (!m_efb_depth_cache.texture)
+      return false;
+
     m_efb_depth_cache.framebuffer =
         g_renderer->CreateFramebuffer(m_efb_depth_cache.texture.get(), nullptr);
-    if (!m_efb_color_cache.framebuffer || !m_efb_depth_cache.framebuffer)
+    if (!m_efb_depth_cache.framebuffer)
       return false;
   }
 
@@ -525,8 +538,7 @@ bool FramebufferManager::CreateReadbackFramebuffer()
       TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBColorFormat(), 0));
   m_efb_depth_cache.readback_texture = g_renderer->CreateStagingTexture(
       StagingTextureType::Mutable,
-      TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1,
-                    AbstractTexture::GetColorFormatForDepthFormat(GetEFBDepthFormat()), 0));
+      TextureConfig(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, GetEFBDepthCopyFormat(), 0));
   if (!m_efb_color_cache.readback_texture || !m_efb_depth_cache.readback_texture)
     return false;
 
@@ -564,7 +576,10 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
   // Force the path through the intermediate texture, as we can't do an image copy from a depth
   // buffer directly to a staging texture (must be the whole resource).
   const bool force_intermediate_copy =
-      depth && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache();
+      depth &&
+      ((!g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
+       !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
+                                                          GetEFBDepthCopyFormat()));
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   EFBCacheData& data = depth ? m_efb_depth_cache : m_efb_color_cache;
@@ -889,21 +904,20 @@ void FramebufferManager::DoSaveState(PointerWrap& p)
                                            1, GetEFBColorFormat(), 0);
   g_texture_cache->SerializeTexture(color_texture, color_texture_config, p);
 
-  if (GetEFBDepthFormat() == AbstractTextureFormat::D32F)
+  if (AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
+                                                        GetEFBDepthCopyFormat()))
   {
-    const TextureConfig depth_texture_config(
-        depth_texture->GetWidth(), depth_texture->GetHeight(), depth_texture->GetLevels(),
-        depth_texture->GetLayers(), 1,
-        AbstractTexture::GetColorFormatForDepthFormat(GetEFBDepthFormat()), 0);
+    const TextureConfig depth_texture_config(depth_texture->GetWidth(), depth_texture->GetHeight(),
+                                             depth_texture->GetLevels(), depth_texture->GetLayers(),
+                                             1, GetEFBDepthCopyFormat(), 0);
     g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
   }
   else
   {
     // If the EFB is backed by a D24S8 texture, we first have to convert it to R32F.
-    const TextureConfig temp_texture_config(depth_texture->GetWidth(), depth_texture->GetHeight(),
-                                            depth_texture->GetLevels(), depth_texture->GetLayers(),
-                                            1, AbstractTextureFormat::R32F,
-                                            AbstractTextureFlag_RenderTarget);
+    const TextureConfig temp_texture_config(
+        depth_texture->GetWidth(), depth_texture->GetHeight(), depth_texture->GetLevels(),
+        depth_texture->GetLayers(), 1, GetEFBDepthCopyFormat(), AbstractTextureFlag_RenderTarget);
     std::unique_ptr<AbstractTexture> temp_texture = g_renderer->CreateTexture(temp_texture_config);
     std::unique_ptr<AbstractFramebuffer> temp_fb =
         g_renderer->CreateFramebuffer(temp_texture.get(), nullptr);

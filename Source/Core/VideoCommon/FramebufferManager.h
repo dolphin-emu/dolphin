@@ -44,6 +44,7 @@ public:
   // Does not require the framebuffer to be created. Slower than direct queries.
   static AbstractTextureFormat GetEFBColorFormat();
   static AbstractTextureFormat GetEFBDepthFormat();
+  static AbstractTextureFormat GetEFBDepthCopyFormat();
   static TextureConfig GetEFBColorTextureConfig();
   static TextureConfig GetEFBDepthTextureConfig();
 

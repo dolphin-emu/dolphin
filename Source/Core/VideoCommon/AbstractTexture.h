@@ -44,7 +44,8 @@ public:
   static bool IsCompressedFormat(AbstractTextureFormat format);
   static bool IsDepthFormat(AbstractTextureFormat format);
   static bool IsStencilFormat(AbstractTextureFormat format);
-  static AbstractTextureFormat GetColorFormatForDepthFormat(AbstractTextureFormat format);
+  static bool IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
+                                               AbstractTextureFormat color_format);
   static u32 CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length);
   static u32 GetTexelSizeForFormat(AbstractTextureFormat format);
   static u32 GetBlockSizeForFormat(AbstractTextureFormat format);

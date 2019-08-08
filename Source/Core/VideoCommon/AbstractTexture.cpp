@@ -88,20 +88,19 @@ bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
   return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
-AbstractTextureFormat AbstractTexture::GetColorFormatForDepthFormat(AbstractTextureFormat format)
+bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
+                                                       AbstractTextureFormat color_format)
 {
-  switch (format)
+  switch (depth_format)
   {
   case AbstractTextureFormat::D16:
-    return AbstractTextureFormat::R16;
+    return color_format == AbstractTextureFormat::R16;
 
-  case AbstractTextureFormat::D24_S8:  // TODO: Incorrect
   case AbstractTextureFormat::D32F:
-  case AbstractTextureFormat::D32F_S8:
-    return AbstractTextureFormat::R32F;
+    return color_format == AbstractTextureFormat::R32F;
 
   default:
-    return format;
+    return false;
   }
 }
 

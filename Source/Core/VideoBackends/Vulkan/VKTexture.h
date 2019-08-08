@@ -37,6 +37,7 @@ public:
   static VkFormat GetLinearFormat(VkFormat format);
   static VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
   static VkImageAspectFlags GetImageAspectForFormat(AbstractTextureFormat format);
+  static VkImageAspectFlags GetImageViewAspectForFormat(AbstractTextureFormat format);
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
