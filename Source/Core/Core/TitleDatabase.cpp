@@ -41,9 +41,10 @@ static Map LoadMap(const std::string& file_path)
     const size_t equals_index = line.find('=');
     if (equals_index != std::string::npos)
     {
-      const std::string_view game_id = StripSpaces(line.substr(0, equals_index));
+      const std::string_view line_view(line);
+      const std::string_view game_id = StripSpaces(line_view.substr(0, equals_index));
       if (game_id.length() >= 4)
-        map.emplace(game_id, StripSpaces(line.substr(equals_index + 1)));
+        map.emplace(game_id, StripSpaces(line_view.substr(equals_index + 1)));
     }
   }
   return map;
