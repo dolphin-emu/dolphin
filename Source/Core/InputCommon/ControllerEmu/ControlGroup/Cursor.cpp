@@ -31,6 +31,8 @@ Cursor::Cursor(std::string name, std::string ui_name)
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Relative Input Hold")));
+
   // Default values are optimized for "Super Mario Galaxy 2".
   // This seems to be acceptable for a good number of games.
 
@@ -101,7 +103,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   const double max_step = STEP_PER_SEC / 1000.0 * ms_since_update;
 
   // Relative input:
-  if (m_relative_setting.GetValue())
+  if (m_relative_setting.GetValue() ^ (controls[6]->control_ref->State() > BUTTON_THRESHOLD))
   {
     // Recenter:
     if (controls[5]->control_ref->State() > BUTTON_THRESHOLD)
