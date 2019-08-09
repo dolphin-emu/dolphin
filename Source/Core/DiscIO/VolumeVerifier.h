@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <future>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -98,6 +100,8 @@ private:
   u64 GetBiggestUsedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void SetUpHashing();
+  void WaitForAsyncOperations() const;
+  bool ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read);
 
   void AddProblem(Severity severity, std::string text);
 
@@ -112,6 +116,14 @@ private:
   unsigned long m_crc32_context = 0;
   mbedtls_md5_context m_md5_context;
   mbedtls_sha1_context m_sha1_context;
+
+  std::vector<u8> m_data;
+  std::mutex m_volume_mutex;
+  std::future<void> m_crc32_future;
+  std::future<void> m_md5_future;
+  std::future<void> m_sha1_future;
+  std::future<void> m_content_future;
+  std::future<void> m_block_future;
 
   DiscScrubber m_scrubber;
   IOS::ES::TicketReader m_ticket;

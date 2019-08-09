@@ -6,7 +6,9 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <future>
 #include <limits>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -683,6 +685,34 @@ void VolumeVerifier::SetUpHashing()
   }
 }
 
+void VolumeVerifier::WaitForAsyncOperations() const
+{
+  if (m_crc32_future.valid())
+    m_crc32_future.wait();
+  if (m_md5_future.valid())
+    m_md5_future.wait();
+  if (m_sha1_future.valid())
+    m_sha1_future.wait();
+  if (m_content_future.valid())
+    m_content_future.wait();
+  if (m_block_future.valid())
+    m_block_future.wait();
+}
+
+bool VolumeVerifier::ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read)
+{
+  std::vector<u8> data(bytes_to_read);
+  {
+    std::lock_guard lk(m_volume_mutex);
+    if (!m_volume.Read(m_progress, bytes_to_read, data.data(), PARTITION_NONE))
+      return false;
+  }
+
+  WaitForAsyncOperations();
+  m_data = std::move(data);
+  return true;
+}
+
 void VolumeVerifier::Process()
 {
   ASSERT(m_started);
@@ -691,8 +721,9 @@ void VolumeVerifier::Process()
   if (m_progress == m_max_progress)
     return;
 
-  IOS::ES::Content content;
+  IOS::ES::Content content{};
   bool content_read = false;
+  bool block_read = false;
   u64 bytes_to_read = BLOCK_SIZE;
   if (m_content_index < m_content_offsets.size() &&
       m_content_offsets[m_content_index] == m_progress)
@@ -709,6 +740,7 @@ void VolumeVerifier::Process()
   else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset == m_progress)
   {
     bytes_to_read = VolumeWii::BLOCK_TOTAL_SIZE;
+    block_read = true;
   }
   else if (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset > m_progress)
   {
@@ -716,10 +748,12 @@ void VolumeVerifier::Process()
   }
   bytes_to_read = std::min(bytes_to_read, m_max_progress - m_progress);
 
+  const bool is_data_needed = m_calculating_any_hash || content_read || block_read;
+  const bool read_succeeded = is_data_needed && ReadChunkAndWaitForAsyncOperations(bytes_to_read);
+
   if (m_calculating_any_hash)
   {
-    std::vector<u8> data(bytes_to_read);
-    if (!m_volume.Read(m_progress, bytes_to_read, data.data(), PARTITION_NONE))
+    if (!read_succeeded)
     {
       m_calculating_any_hash = false;
     }
@@ -727,52 +761,93 @@ void VolumeVerifier::Process()
     {
       if (m_hashes_to_calculate.crc32)
       {
-        // It would be nice to use crc32_z here instead of crc32, but it isn't available on Android
-        m_crc32_context =
-            crc32(m_crc32_context, data.data(), static_cast<unsigned int>(bytes_to_read));
+        m_crc32_future = std::async(std::launch::async, [this] {
+          // Would be nice to use crc32_z here instead of crc32, but it isn't available on Android
+          m_crc32_context =
+              crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(m_data.size()));
+        });
       }
 
       if (m_hashes_to_calculate.md5)
-        mbedtls_md5_update_ret(&m_md5_context, data.data(), bytes_to_read);
+      {
+        m_md5_future = std::async(std::launch::async, [this] {
+          mbedtls_md5_update_ret(&m_md5_context, m_data.data(), m_data.size());
+        });
+      }
 
       if (m_hashes_to_calculate.sha1)
-        mbedtls_sha1_update_ret(&m_sha1_context, data.data(), bytes_to_read);
+      {
+        m_sha1_future = std::async(std::launch::async, [this] {
+          mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), m_data.size());
+        });
+      }
     }
   }
 
-  m_progress += bytes_to_read;
-
   if (content_read)
   {
-    if (!m_volume.CheckContentIntegrity(content, m_content_offsets[m_content_index], m_ticket))
-    {
-      AddProblem(
-          Severity::High,
-          StringFromFormat(Common::GetStringT("Content %08x is corrupt.").c_str(), content.id));
-    }
+    m_content_future = std::async(std::launch::async, [this, read_succeeded, content] {
+      if (!read_succeeded || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
+      {
+        AddProblem(
+            Severity::High,
+            StringFromFormat(Common::GetStringT("Content %08x is corrupt.").c_str(), content.id));
+      }
+    });
 
     m_content_index++;
   }
 
-  while (m_block_index < m_blocks.size() && m_blocks[m_block_index].offset < m_progress)
+  if (m_block_index < m_blocks.size() &&
+      m_blocks[m_block_index].offset < m_progress + bytes_to_read)
   {
-    if (!m_volume.CheckBlockIntegrity(m_blocks[m_block_index].block_index,
-                                      m_blocks[m_block_index].partition))
+    m_md5_future = std::async(
+        std::launch::async,
+        [this, read_succeeded, bytes_to_read](size_t block_index, u64 progress) {
+          while (block_index < m_blocks.size() &&
+                 m_blocks[block_index].offset < progress + bytes_to_read)
+          {
+            bool success;
+            if (m_blocks[block_index].offset == progress)
+            {
+              success = read_succeeded &&
+                        m_volume.CheckBlockIntegrity(m_blocks[block_index].block_index, m_data,
+                                                     m_blocks[block_index].partition);
+            }
+            else
+            {
+              std::lock_guard lk(m_volume_mutex);
+              success = m_volume.CheckBlockIntegrity(m_blocks[block_index].block_index,
+                                                     m_blocks[block_index].partition);
+            }
+
+            if (!success)
+            {
+              const u64 offset = m_blocks[block_index].offset;
+              if (m_scrubber.CanBlockBeScrubbed(offset))
+              {
+                WARN_LOG(DISCIO, "Integrity check failed for unused block at 0x%" PRIx64, offset);
+                m_unused_block_errors[m_blocks[block_index].partition]++;
+              }
+              else
+              {
+                WARN_LOG(DISCIO, "Integrity check failed for block at 0x%" PRIx64, offset);
+                m_block_errors[m_blocks[block_index].partition]++;
+              }
+            }
+            block_index++;
+          }
+        },
+        m_block_index, m_progress);
+
+    while (m_block_index < m_blocks.size() &&
+           m_blocks[m_block_index].offset < m_progress + bytes_to_read)
     {
-      const u64 offset = m_blocks[m_block_index].offset;
-      if (m_scrubber.CanBlockBeScrubbed(offset))
-      {
-        WARN_LOG(DISCIO, "Integrity check failed for unused block at 0x%" PRIx64, offset);
-        m_unused_block_errors[m_blocks[m_block_index].partition]++;
-      }
-      else
-      {
-        WARN_LOG(DISCIO, "Integrity check failed for block at 0x%" PRIx64, offset);
-        m_block_errors[m_blocks[m_block_index].partition]++;
-      }
+      m_block_index++;
     }
-    m_block_index++;
   }
+
+  m_progress += bytes_to_read;
 }
 
 u64 VolumeVerifier::GetBytesProcessed() const
@@ -790,6 +865,11 @@ void VolumeVerifier::Finish()
   if (m_done)
     return;
   m_done = true;
+
+  WaitForAsyncOperations();
+
+  ASSERT(m_content_index == m_content_offsets.size());
+  ASSERT(m_block_index == m_blocks.size());
 
   if (m_calculating_any_hash)
   {

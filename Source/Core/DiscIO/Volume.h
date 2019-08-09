@@ -76,6 +76,12 @@ public:
   }
   virtual std::vector<u8> GetContent(u16 index) const { return {}; }
   virtual std::vector<u64> GetContentOffsets() const { return {}; }
+  virtual bool CheckContentIntegrity(const IOS::ES::Content& content,
+                                     const std::vector<u8>& encrypted_data,
+                                     const IOS::ES::TicketReader& ticket) const
+  {
+    return false;
+  }
   virtual bool CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
                                      const IOS::ES::TicketReader& ticket) const
   {
@@ -109,6 +115,11 @@ public:
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
+  virtual bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
+                                   const Partition& partition) const
+  {
+    return false;
+  }
   virtual bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const
   {
     return false;

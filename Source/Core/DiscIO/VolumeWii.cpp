@@ -447,8 +447,12 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
   return h3_table_sha1 == contents[0].sha1;
 }
 
-bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition) const
+bool VolumeWii::CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
+                                    const Partition& partition) const
 {
+  if (encrypted_data.size() != BLOCK_TOTAL_SIZE)
+    return false;
+
   auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
@@ -462,21 +466,15 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition)
   if (!aes_context)
     return false;
 
-  const u64 cluster_offset =
-      partition.offset + *partition_details.data_offset + block_index * BLOCK_TOTAL_SIZE;
-
-  // Read and decrypt the cluster metadata
-  u8 cluster_metadata_crypted[BLOCK_HEADER_SIZE];
   u8 cluster_metadata[BLOCK_HEADER_SIZE];
   u8 iv[16] = {0};
-  if (!m_reader->Read(cluster_offset, BLOCK_HEADER_SIZE, cluster_metadata_crypted))
-    return false;
   mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_HEADER_SIZE, iv,
-                        cluster_metadata_crypted, cluster_metadata);
+                        encrypted_data.data(), cluster_metadata);
 
   u8 cluster_data[BLOCK_DATA_SIZE];
-  if (!Read(block_index * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE, cluster_data, partition))
-    return false;
+  std::memcpy(iv, encrypted_data.data() + 0x3D0, 16);
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, iv,
+                        encrypted_data.data() + BLOCK_HEADER_SIZE, cluster_data);
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
@@ -502,6 +500,21 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition)
     return false;
 
   return true;
+}
+
+bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition) const
+{
+  auto it = m_partitions.find(partition);
+  if (it == m_partitions.end())
+    return false;
+  const PartitionDetails& partition_details = it->second;
+  const u64 cluster_offset =
+      partition.offset + *partition_details.data_offset + block_index * BLOCK_TOTAL_SIZE;
+
+  std::vector<u8> cluster(BLOCK_TOTAL_SIZE);
+  if (!m_reader->Read(cluster_offset, cluster.size(), cluster.data()))
+    return false;
+  return CheckBlockIntegrity(block_index, cluster, partition);
 }
 
 }  // namespace DiscIO
