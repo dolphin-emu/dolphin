@@ -25,13 +25,14 @@ NetPlayIndex::~NetPlayIndex()
     Remove();
 }
 
-static std::optional<picojson::value> ParseResponse(std::vector<u8> response)
+static std::optional<picojson::value> ParseResponse(const std::vector<u8>& response)
 {
-  std::string response_string(reinterpret_cast<char*>(response.data()), response.size());
+  const std::string response_string(reinterpret_cast<const char*>(response.data()),
+                                    response.size());
 
   picojson::value json;
 
-  auto error = picojson::parse(json, response_string);
+  const auto error = picojson::parse(json, response_string);
 
   if (!error.empty())
     return {};
@@ -86,8 +87,6 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
 
   for (const auto& entry : entries.get<picojson::array>())
   {
-    NetPlaySession session;
-
     const auto& name = entry.get("name");
     const auto& region = entry.get("region");
     const auto& method = entry.get("method");
@@ -107,6 +106,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
       continue;
     }
 
+    NetPlaySession session;
     session.name = name.to_str();
     session.region = region.to_str();
     session.game_id = game_id.to_str();
@@ -160,7 +160,7 @@ void NetPlayIndex::NotificationLoop()
   }
 }
 
-bool NetPlayIndex::Add(NetPlaySession session)
+bool NetPlayIndex::Add(const NetPlaySession& session)
 {
   Common::HttpRequest request;
   auto response = request.Get(
@@ -221,7 +221,7 @@ void NetPlayIndex::SetPlayerCount(int player_count)
   m_player_count = player_count;
 }
 
-void NetPlayIndex::SetGame(const std::string game)
+void NetPlayIndex::SetGame(std::string game)
 {
   m_game = std::move(game);
 }
@@ -257,7 +257,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayIndex::GetRegions()
 // It isn't very secure but is preferable to adding another dependency on mbedtls
 // The encrypted data is encoded as nibbles with the character 'A' as the base offset
 
-bool NetPlaySession::EncryptID(const std::string& password)
+bool NetPlaySession::EncryptID(std::string_view password)
 {
   if (password.empty())
     return false;
@@ -285,7 +285,7 @@ bool NetPlaySession::EncryptID(const std::string& password)
   return true;
 }
 
-std::optional<std::string> NetPlaySession::DecryptID(const std::string& password) const
+std::optional<std::string> NetPlaySession::DecryptID(std::string_view password) const
 {
   if (password.empty())
     return {};
@@ -333,7 +333,7 @@ bool NetPlayIndex::HasActiveSession() const
   return !m_secret.empty();
 }
 
-void NetPlayIndex::SetErrorCallback(std::function<void()> function)
+void NetPlayIndex::SetErrorCallback(std::function<void()> callback)
 {
-  m_error_callback = function;
+  m_error_callback = std::move(callback);
 }
