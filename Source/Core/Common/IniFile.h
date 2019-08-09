@@ -158,7 +158,7 @@ public:
   // This function is related to parsing data from lines of INI files
   // It's used outside of IniFile, which is why it is exposed publicly
   // In particular it is used in PostProcessing for its configuration
-  static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
+  static void ParseLine(std::string_view line, std::string* keyOut, std::string* valueOut);
 
   const std::list<Section>& GetSections() const { return sections; }
 

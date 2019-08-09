@@ -44,8 +44,8 @@ inline void CharArrayFromFormat(char (&out)[Count], const char* format, ...)
 // Good
 std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
-std::string StripSpaces(const std::string& s);
-std::string StripQuotes(const std::string& s);
+std::string_view StripSpaces(std::string_view s);
+std::string_view StripQuotes(std::string_view s);
 
 bool TryParse(const std::string& str, bool* output);
 bool TryParse(const std::string& str, u16* output);
@@ -107,50 +107,50 @@ std::string HexDump(const u8* data, size_t size);
 // TODO: kill this
 bool AsciiToHex(const std::string& _szValue, u32& result);
 
-std::string TabsToSpaces(int tab_size, const std::string& in);
+std::string TabsToSpaces(int tab_size, std::string str);
 
 std::vector<std::string> SplitString(const std::string& str, char delim);
 std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
-bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
-               std::string* _pExtension);
+bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
+               std::string* extension);
 
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
-                           const std::string& _Filename);
-std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
+void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
+                           std::string_view filename);
+std::string ReplaceAll(std::string result, std::string_view src, std::string_view dest);
 
-bool StringBeginsWith(const std::string& str, const std::string& begin);
-bool StringEndsWith(const std::string& str, const std::string& end);
+bool StringBeginsWith(std::string_view str, std::string_view begin);
+bool StringEndsWith(std::string_view str, std::string_view end);
 void StringPopBackIf(std::string* s, char c);
 
-std::string CP1252ToUTF8(const std::string& str);
-std::string SHIFTJISToUTF8(const std::string& str);
-std::string UTF8ToSHIFTJIS(const std::string& str);
-std::string UTF16ToUTF8(const std::wstring& str);
+std::string CP1252ToUTF8(std::string_view str);
+std::string SHIFTJISToUTF8(std::string_view str);
+std::string UTF8ToSHIFTJIS(std::string_view str);
+std::string UTF16ToUTF8(std::wstring_view str);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
 
 #ifdef _WIN32
 
-std::wstring UTF8ToUTF16(const std::string& str);
+std::wstring UTF8ToUTF16(std::string_view str);
 
 #ifdef _UNICODE
-inline std::string TStrToUTF8(const std::wstring& str)
+inline std::string TStrToUTF8(std::wstring_view str)
 {
   return UTF16ToUTF8(str);
 }
 
-inline std::wstring UTF8ToTStr(const std::string& str)
+inline std::wstring UTF8ToTStr(std::string_view str)
 {
   return UTF8ToUTF16(str);
 }
 #else
-inline std::string TStrToUTF8(const std::string& str)
+inline std::string TStrToUTF8(std::string_view str)
 {
   return str;
 }
 
-inline std::string UTF8ToTStr(const std::string& str)
+inline std::string UTF8ToTStr(std::string_view str)
 {
   return str;
 }
