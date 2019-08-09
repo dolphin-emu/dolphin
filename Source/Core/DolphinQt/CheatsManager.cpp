@@ -21,6 +21,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"

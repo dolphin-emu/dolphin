@@ -19,6 +19,7 @@
 #include "Common/IniFile.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
@@ -40,11 +41,13 @@ GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_re
   // will always be stored in GS/${GAMEID}.ini
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
-  IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(m_game_id, m_game_revision);
+  const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
   m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
 
   UpdateList();
 }
+
+GeckoCodeWidget::~GeckoCodeWidget() = default;
 
 void GeckoCodeWidget::CreateWidgets()
 {
@@ -185,33 +188,29 @@ void GeckoCodeWidget::AddCode()
 
   CheatCodeEditor ed(this);
   ed.SetGeckoCode(&code);
+  if (ed.exec() == QDialog::Rejected)
+    return;
 
-  if (ed.exec())
-  {
-    m_gecko_codes.push_back(std::move(code));
-    SaveCodes();
-    UpdateList();
-  }
+  m_gecko_codes.push_back(std::move(code));
+  SaveCodes();
+  UpdateList();
 }
 
 void GeckoCodeWidget::EditCode()
 {
   const auto* item = m_code_list->currentItem();
-
   if (item == nullptr)
     return;
 
   const int index = item->data(Qt::UserRole).toInt();
 
   CheatCodeEditor ed(this);
-
   ed.SetGeckoCode(&m_gecko_codes[index]);
+  if (ed.exec() == QDialog::Rejected)
+    return;
 
-  if (ed.exec())
-  {
-    SaveCodes();
-    UpdateList();
-  }
+  SaveCodes();
+  UpdateList();
 }
 
 void GeckoCodeWidget::RemoveCode()
@@ -229,12 +228,13 @@ void GeckoCodeWidget::RemoveCode()
 
 void GeckoCodeWidget::SaveCodes()
 {
+  const auto ini_path =
+      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
+
   IniFile game_ini_local;
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-
+  game_ini_local.Load(ini_path);
   Gecko::SaveCodes(game_ini_local, m_gecko_codes);
-
-  game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+  game_ini_local.Save(ini_path);
 }
 
 void GeckoCodeWidget::OnContextMenuRequested()
