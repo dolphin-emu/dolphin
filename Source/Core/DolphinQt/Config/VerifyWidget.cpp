@@ -98,18 +98,18 @@ void VerifyWidget::Verify()
   // We have to divide the number of processed bytes with something so it won't make ints overflow
   constexpr int DIVISOR = 0x100;
 
-  QProgressDialog* progress = new QProgressDialog(tr("Verifying"), tr("Cancel"), 0,
-                                                  verifier.GetTotalBytes() / DIVISOR, this);
-  progress->setWindowTitle(tr("Verifying"));
-  progress->setWindowFlags(progress->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  progress->setMinimumDuration(500);
-  progress->setWindowModality(Qt::WindowModal);
+  QProgressDialog progress(tr("Verifying"), tr("Cancel"), 0, verifier.GetTotalBytes() / DIVISOR,
+                           this);
+  progress.setWindowTitle(tr("Verifying"));
+  progress.setWindowFlags(progress.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  progress.setMinimumDuration(500);
+  progress.setWindowModality(Qt::WindowModal);
 
   verifier.Start();
   while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())
   {
-    progress->setValue(verifier.GetBytesProcessed() / DIVISOR);
-    if (progress->wasCanceled())
+    progress.setValue(verifier.GetBytesProcessed() / DIVISOR);
+    if (progress.wasCanceled())
       return;
 
     verifier.Process();
@@ -117,7 +117,7 @@ void VerifyWidget::Verify()
   verifier.Finish();
 
   DiscIO::VolumeVerifier::Result result = verifier.GetResult();
-  progress->reset();
+  progress.setValue(verifier.GetBytesProcessed() / DIVISOR);
 
   m_summary_text->setText(QString::fromStdString(result.summary_text));
 
