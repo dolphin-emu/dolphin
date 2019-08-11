@@ -1714,7 +1714,8 @@ void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
 
 void MainWindow::Show()
 {
-  QWidget::show();
+  if (!Settings::Instance().IsBatchModeEnabled())
+    QWidget::show();
 
   // If the booting of a game was requested on start up, do that now
   if (m_pending_boot != nullptr)

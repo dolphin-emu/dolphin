@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
-  Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
+  Settings::Instance().SetBatchModeEnabled(options.is_set("batch") && options.is_set("exec"));
 
   // Hook up alerts from core
   Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
@@ -217,8 +217,11 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    auto* updater = new Updater(&win);
-    updater->start();
+    if (!Settings::Instance().IsBatchModeEnabled())
+    {
+      auto* updater = new Updater(&win);
+      updater->start();
+    }
 
     retval = app.exec();
   }

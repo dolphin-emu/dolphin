@@ -96,7 +96,9 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
         .action("store_true")
         .help("Show the debugger pane and additional View menu options");
     parser->add_option("-l", "--logger").action("store_true").help("Open the logger");
-    parser->add_option("-b", "--batch").action("store_true").help("Exit Dolphin with emulation");
+    parser->add_option("-b", "--batch")
+        .action("store_true")
+        .help("Run Dolphin without the user interface (Requires --exec)");
     parser->add_option("-c", "--confirm").action("store_true").help("Set Confirm on Stop");
   }
 
