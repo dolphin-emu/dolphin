@@ -1029,7 +1029,9 @@ void GameList::OnHeaderViewChanged()
 
 void GameList::NewTag()
 {
-  auto tag = QInputDialog::getText(this, tr("New tag"), tr("Name for a new tag:"));
+  auto tag =
+      QInputDialog::getText(this, tr("New tag"), tr("Name for a new tag:"), QLineEdit::Normal,
+                            QString(), nullptr, Qt::MSWindowsFixedSizeDialogHint);
 
   if (tag.isEmpty())
     return;
@@ -1039,7 +1041,9 @@ void GameList::NewTag()
 
 void GameList::DeleteTag()
 {
-  auto tag = QInputDialog::getText(this, tr("Remove tag"), tr("Name of the tag to remove:"));
+  auto tag = QInputDialog::getText(this, tr("Remove tag"), tr("Name of the tag to remove:"),
+                                   QLineEdit::Normal, QString(), nullptr,
+                                   Qt::MSWindowsFixedSizeDialogHint);
 
   if (tag.isEmpty())
     return;

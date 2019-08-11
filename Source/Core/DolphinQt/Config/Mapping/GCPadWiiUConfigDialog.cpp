@@ -51,6 +51,7 @@ void GCPadWiiUConfigDialog::CreateLayout()
   m_layout->addWidget(m_button_box);
 
   setLayout(m_layout);
+  adjustSize();
 }
 
 void GCPadWiiUConfigDialog::ConnectWidgets()

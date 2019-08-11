@@ -78,6 +78,8 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
     layout->addWidget(update_later_check);
     layout->addWidget(buttons);
 
+    dialog->adjustSize();
+
     connect(never_btn, &QPushButton::clicked, [dialog] {
       Settings::Instance().SetAutoUpdateTrack(QString{});
       dialog->reject();

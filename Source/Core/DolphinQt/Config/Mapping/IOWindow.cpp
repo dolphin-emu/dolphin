@@ -113,6 +113,7 @@ void IOWindow::CreateMainLayout()
   m_button_box->addButton(QDialogButtonBox::Ok);
 
   setLayout(m_main_layout);
+  adjustSize();
 }
 
 void IOWindow::ConfigChanged()

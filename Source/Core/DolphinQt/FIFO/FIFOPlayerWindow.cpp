@@ -158,6 +158,7 @@ void FIFOPlayerWindow::CreateWidgets()
   tab_layout->addWidget(tab_widget);
 
   setLayout(tab_layout);
+  adjustSize();
 }
 
 void FIFOPlayerWindow::ConnectWidgets()

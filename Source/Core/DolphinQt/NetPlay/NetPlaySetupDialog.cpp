@@ -195,6 +195,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_tab_widget->addTab(host_widget, tr("Host"));
 
   setLayout(m_main_layout);
+  adjustSize();
 }
 
 void NetPlaySetupDialog::ConnectWidgets()

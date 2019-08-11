@@ -116,6 +116,7 @@ void MD5Dialog::show(const QString& title)
     m_progress_layout->addWidget(m_status_labels[player->pid]);
   }
 
+  adjustSize();
   QDialog::show();
 }
 

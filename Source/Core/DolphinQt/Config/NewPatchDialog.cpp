@@ -36,6 +36,8 @@ NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     AddEntry();
     m_patch.active = true;
   }
+
+  adjustSize();
 }
 
 void NewPatchDialog::CreateWidgets()

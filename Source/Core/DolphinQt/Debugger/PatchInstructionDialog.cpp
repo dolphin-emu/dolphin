@@ -23,6 +23,8 @@ PatchInstructionDialog::PatchInstructionDialog(QWidget* parent, u32 address, u32
   ConnectWidgets();
 
   m_input_edit->setText(QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0')));
+
+  adjustSize();
 }
 
 void PatchInstructionDialog::CreateWidgets()

@@ -43,6 +43,7 @@ void PadMappingDialog::CreateWidgets()
   m_main_layout->addWidget(m_button_box, 4, 0, 1, -1);
 
   setLayout(m_main_layout);
+  adjustSize();
 }
 
 void PadMappingDialog::ConnectWidgets()
