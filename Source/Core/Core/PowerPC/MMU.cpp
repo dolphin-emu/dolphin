@@ -557,70 +557,130 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address, MSR.DR);
+  return HostRead_U8(address, MSR.DR);
 }
 
 u16 HostRead_U16(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address, MSR.DR);
+  return HostRead_U16(address, MSR.DR);
 }
 
 u32 HostRead_U32(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address, MSR.DR);
+  return HostRead_U32(address, MSR.DR);
 }
 
 u64 HostRead_U64(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address, MSR.DR);
+  return HostRead_U64(address, MSR.DR);
 }
 
 float HostRead_F32(const u32 address)
 {
-  const u32 integral = HostRead_U32(address);
-
-  return Common::BitCast<float>(integral);
+  return HostRead_F32(address, MSR.DR);
 }
 
 double HostRead_F64(const u32 address)
 {
-  const u64 integral = HostRead_U64(address);
+  return HostRead_F64(address, MSR.DR);
+}
+
+u8 HostRead_U8(const u32 address, bool override_msr_dr)
+{
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address, override_msr_dr);
+}
+
+u16 HostRead_U16(const u32 address, bool override_msr_dr)
+{
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address, override_msr_dr);
+}
+
+u32 HostRead_U32(const u32 address, bool override_msr_dr)
+{
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address, override_msr_dr);
+}
+
+u64 HostRead_U64(const u32 address, bool override_msr_dr)
+{
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address, override_msr_dr);
+}
+
+float HostRead_F32(const u32 address, bool override_msr_dr)
+{
+  const u32 integral = HostRead_U32(address, override_msr_dr);
+
+  return Common::BitCast<float>(integral);
+}
+
+double HostRead_F64(const u32 address, bool override_msr_dr)
+{
+  const u64 integral = HostRead_U64(address, override_msr_dr);
 
   return Common::BitCast<double>(integral);
 }
 
 void HostWrite_U8(const u8 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var, MSR.DR);
+  HostWrite_U8(var, address, MSR.DR);
 }
 
 void HostWrite_U16(const u16 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var, MSR.DR);
+  HostWrite_U16(var, address, MSR.DR);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var, MSR.DR);
+  HostWrite_U32(var, address, MSR.DR);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var, MSR.DR);
+  HostWrite_U64(var, address, MSR.DR);
 }
 
 void HostWrite_F32(const float var, const u32 address)
 {
-  const u32 integral = Common::BitCast<u32>(var);
-
-  HostWrite_U32(integral, address);
+  HostWrite_F32(var, address, MSR.DR);
 }
 
 void HostWrite_F64(const double var, const u32 address)
 {
+  HostWrite_F64(var, address, MSR.DR);
+}
+
+void HostWrite_U8(const u8 var, const u32 address, bool override_msr_dr)
+{
+  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var, override_msr_dr);
+}
+
+void HostWrite_U16(const u16 var, const u32 address, bool override_msr_dr)
+{
+  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var, override_msr_dr);
+}
+
+void HostWrite_U32(const u32 var, const u32 address, bool override_msr_dr)
+{
+  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var, override_msr_dr);
+}
+
+void HostWrite_U64(const u64 var, const u32 address, bool override_msr_dr)
+{
+  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var, override_msr_dr);
+}
+
+void HostWrite_F32(const float var, const u32 address, bool override_msr_dr)
+{
+  const u32 integral = Common::BitCast<u32>(var);
+
+  HostWrite_U32(integral, address, override_msr_dr);
+}
+
+void HostWrite_F64(const double var, const u32 address, bool override_msr_dr)
+{
   const u64 integral = Common::BitCast<u64>(var);
 
-  HostWrite_U64(integral, address);
+  HostWrite_U64(integral, address, override_msr_dr);
 }
 
 std::string HostGetString(u32 address, size_t size)
@@ -680,7 +740,12 @@ static bool IsRAMAddress(u32 address, bool translate)
 
 bool HostIsRAMAddress(u32 address)
 {
-  return IsRAMAddress<XCheckTLBFlag::NoException>(address, MSR.DR);
+  return HostIsRAMAddress(address, MSR.DR);
+}
+
+bool HostIsRAMAddress(u32 address, bool override_msr_dr)
+{
+  return IsRAMAddress<XCheckTLBFlag::NoException>(address, override_msr_dr);
 }
 
 bool HostIsInstructionRAMAddress(u32 address)
