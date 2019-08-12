@@ -55,8 +55,16 @@ struct Result
   bool m_locked = false;
 };
 
+enum class CheatSearchValueRefType
+{
+  GivenValue,
+  LastValue,
+  UnknownValue
+};
+
 Q_DECLARE_METATYPE(Cheats::DataType);
 Q_DECLARE_METATYPE(Cheats::CompareType);
+Q_DECLARE_METATYPE(CheatSearchValueRefType);
 
 static void UpdatePatch(const Result& result)
 {
@@ -299,6 +307,7 @@ QWidget* CheatsManager::CreateCheatSearch()
   m_result_label = new QLabel;
   m_match_length = new QComboBox;
   m_match_operation = new QComboBox;
+  m_match_value_ref = new QComboBox;
   m_match_value = new QLineEdit;
   m_match_new = new QPushButton(tr("New Search"));
   m_match_next = new QPushButton(tr("Next Search"));
@@ -327,6 +336,13 @@ QWidget* CheatsManager::CreateCheatSearch()
   m_match_operation->addItem(tr("More or equal to"),
                              QVariant::fromValue(Cheats::CompareType::MoreEqual));
 
+  m_match_value_ref->addItem(tr("Given value"),
+                             QVariant::fromValue(CheatSearchValueRefType::GivenValue));
+  m_match_value_ref->addItem(tr("Last value"),
+                             QVariant::fromValue(CheatSearchValueRefType::LastValue));
+  m_match_value_ref->addItem(tr("Unknown value"),
+                             QVariant::fromValue(CheatSearchValueRefType::UnknownValue));
+
   auto* group_box = new QGroupBox(tr("Type"));
   auto* group_layout = new QHBoxLayout;
   group_box->setLayout(group_layout);
@@ -343,6 +359,7 @@ QWidget* CheatsManager::CreateCheatSearch()
   layout->addWidget(m_result_label);
   layout->addWidget(m_match_length);
   layout->addWidget(m_match_operation);
+  layout->addWidget(m_match_value_ref);
   layout->addWidget(m_match_value);
   layout->addWidget(group_box);
   layout->addWidget(m_match_new);
@@ -416,12 +433,36 @@ std::optional<Cheats::SearchValue> CheatsManager::ParseValue()
 
 void CheatsManager::NewSearch()
 {
-  Cheats::CompareType op = m_match_operation->currentData().value<Cheats::CompareType>();
-  std::optional<Cheats::SearchValue> value = ParseValue();
-  if (!value)
-    return;
+  CheatSearchValueRefType ref_type =
+      m_match_value_ref->currentData().value<CheatSearchValueRefType>();
 
-  auto new_results = Cheats::NewSearch(op, *value);
+  std::optional<std::vector<Cheats::SearchResult>> new_results;
+  switch (ref_type)
+  {
+  case CheatSearchValueRefType::GivenValue:
+  {
+    Cheats::CompareType op = m_match_operation->currentData().value<Cheats::CompareType>();
+    std::optional<Cheats::SearchValue> value = ParseValue();
+    if (!value)
+      return;
+
+    new_results = Cheats::NewSearch(op, *value);
+    break;
+  }
+  case CheatSearchValueRefType::UnknownValue:
+  {
+    Cheats::DataType data_type = m_match_length->currentData().value<Cheats::DataType>();
+    new_results = Cheats::NewSearch(data_type);
+    break;
+  }
+  case CheatSearchValueRefType::LastValue:
+  {
+    m_result_label->setText(tr("Cannot compare to last value on a new search."));
+    return;
+  }
+  break;
+  }
+
   if (!new_results)
   {
     m_result_label->setText(tr("Search failed. Please try again."));
@@ -437,11 +478,34 @@ void CheatsManager::NewSearch()
 void CheatsManager::NextSearch()
 {
   Cheats::CompareType op = m_match_operation->currentData().value<Cheats::CompareType>();
-  std::optional<Cheats::SearchValue> value = ParseValue();
-  if (!value)
-    return;
+  CheatSearchValueRefType ref_type =
+      m_match_value_ref->currentData().value<CheatSearchValueRefType>();
 
-  auto new_results = Cheats::NextSearch(m_results, op, *value);
+  std::optional<std::vector<Cheats::SearchResult>> new_results;
+  switch (ref_type)
+  {
+  case CheatSearchValueRefType::GivenValue:
+  {
+    std::optional<Cheats::SearchValue> value = ParseValue();
+    if (!value)
+      return;
+
+    new_results = Cheats::NextSearch(m_results, op, *value);
+    break;
+  }
+  case CheatSearchValueRefType::UnknownValue:
+  {
+    m_result_label->setText(tr("Cannot compare to unknown value on a next search."));
+    return;
+  }
+  case CheatSearchValueRefType::LastValue:
+  {
+    new_results = Cheats::NextSearch(m_results, op);
+    break;
+  }
+  break;
+  }
+
   if (!new_results)
   {
     m_result_label->setText(tr("Search failed. Please try again."));

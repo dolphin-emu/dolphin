@@ -81,6 +81,7 @@ private:
   QSplitter* m_table_splitter;
   QComboBox* m_match_length;
   QComboBox* m_match_operation;
+  QComboBox* m_match_value_ref;
   QLineEdit* m_match_value;
   QPushButton* m_match_new;
   QPushButton* m_match_next;
