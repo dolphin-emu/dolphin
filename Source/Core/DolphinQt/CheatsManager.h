@@ -6,11 +6,14 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <QDialog>
 
 #include "Common/CommonTypes.h"
+
+#include "Core/CheatSearch.h"
 
 class ARCodeWidget;
 class QComboBox;
@@ -48,20 +51,21 @@ private:
   void ConnectWidgets();
   void OnStateChanged(Core::State state);
 
-  size_t GetTypeSize() const;
-  std::function<bool(u32)> CreateMatchFunction();
-
   void Reset();
   void NewSearch();
   void NextSearch();
-  void Update();
+  void UpdateResults();
+  void UpdateGUI();
+  void UpdateResultsAndGUI();
   void GenerateARCode();
 
   void OnWatchContextMenu();
   void OnMatchContextMenu();
   void OnWatchItemChanged(QTableWidgetItem* item);
 
-  std::vector<Result> m_results;
+  std::optional<Cheats::SearchValue> ParseValue();
+
+  std::vector<Cheats::SearchResult> m_results;
   std::vector<Result> m_watch;
   std::shared_ptr<const UICommon::GameFile> m_game_file;
   QDialogButtonBox* m_button_box;
