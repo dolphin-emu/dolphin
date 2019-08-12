@@ -7,6 +7,9 @@
     <Filter Include="Boot">
       <UniqueIdentifier>{2472fb36-5473-4d49-ad2d-3699b78ab6e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Cheats">
+      <UniqueIdentifier>{a446fcc3-3d1a-44c8-b060-6a0a901ed744}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ConfigLoader">
       <UniqueIdentifier>{259a11eb-ca07-4b31-b849-7286dbd4550a}</UniqueIdentifier>
     </Filter>
@@ -204,6 +207,9 @@
     </ClCompile>
     <ClCompile Include="Boot\ElfReader.cpp">
       <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="CheatSearch.cpp">
+      <Filter>Cheats</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp">
       <Filter>Debugger</Filter>
@@ -970,6 +976,9 @@
     </ClInclude>
     <ClInclude Include="Boot\ElfTypes.h">
       <Filter>Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="CheatSearch.h">
+      <Filter>Cheats</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\Debugger_SymbolMap.h">
       <Filter>Debugger</Filter>

@@ -45,6 +45,7 @@
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
     <ClCompile Include="Boot\DolReader.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
+    <ClCompile Include="CheatSearch.cpp" />
     <ClCompile Include="Config\GraphicsSettings.cpp" />
     <ClCompile Include="Config\MainSettings.cpp" />
     <ClCompile Include="Config\NetplaySettings.cpp" />
@@ -323,6 +324,7 @@
     <ClInclude Include="Boot\DolReader.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
+    <ClInclude Include="CheatSearch.h" />
     <ClInclude Include="Config\GraphicsSettings.h" />
     <ClInclude Include="Config\MainSettings.h" />
     <ClInclude Include="Config\NetplaySettings.h" />

@@ -7,6 +7,8 @@ add_library(core
   ARDecrypt.h
   BootManager.cpp
   BootManager.h
+  CheatSearch.cpp
+  CheatSearch.h
   CommonTitles.h
   ConfigManager.cpp
   ConfigManager.h
