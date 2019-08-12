@@ -166,10 +166,10 @@ BatTable dbat_table;
 
 static void GenerateDSIException(u32 effective_address, bool write);
 
-template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static T ReadFromHardware(u32 em_address)
+template <XCheckTLBFlag flag, typename T>
+static T ReadFromHardware(u32 em_address, bool translate)
 {
-  if (!never_translate && MSR.DR)
+  if (translate)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -198,7 +198,7 @@ static T ReadFromHardware(u32 em_address)
       {
         if (addr == em_address_next_page)
           addr_translated = addr_next_page.address;
-        var = (var << 8) | ReadFromHardware<flag, u8, true>(addr_translated);
+        var = (var << 8) | ReadFromHardware<flag, u8>(addr_translated, false);
       }
       return var;
     }
@@ -254,10 +254,10 @@ static T ReadFromHardware(u32 em_address)
   return 0;
 }
 
-template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-static void WriteToHardware(u32 em_address, const T data)
+template <XCheckTLBFlag flag, typename T>
+static void WriteToHardware(u32 em_address, const T data, bool translate)
 {
-  if (!never_translate && MSR.DR)
+  if (translate)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -287,7 +287,7 @@ static void WriteToHardware(u32 em_address, const T data)
       {
         if (em_address + i == em_address_next_page)
           addr_translated = addr_next_page.address;
-        WriteToHardware<flag, u8, true>(addr_translated, static_cast<u8>(val >> (i * 8)));
+        WriteToHardware<flag, u8>(addr_translated, static_cast<u8>(val >> (i * 8)), false);
       }
       return;
     }
@@ -459,28 +459,28 @@ static void Memcheck(u32 address, u32 var, bool write, size_t size)
 
 u8 Read_U8(const u32 address)
 {
-  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
+  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address, MSR.DR);
   Memcheck(address, var, false, 1);
   return var;
 }
 
 u16 Read_U16(const u32 address)
 {
-  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
+  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address, MSR.DR);
   Memcheck(address, var, false, 2);
   return var;
 }
 
 u32 Read_U32(const u32 address)
 {
-  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
+  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address, MSR.DR);
   Memcheck(address, var, false, 4);
   return var;
 }
 
 u64 Read_U64(const u32 address)
 {
-  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
+  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address, MSR.DR);
   Memcheck(address, (u32)var, false, 8);
   return var;
 }
@@ -512,13 +512,13 @@ u32 Read_U16_ZX(const u32 address)
 void Write_U8(const u8 var, const u32 address)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var, MSR.DR);
 }
 
 void Write_U16(const u16 var, const u32 address)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var, MSR.DR);
 }
 void Write_U16_Swap(const u16 var, const u32 address)
 {
@@ -529,7 +529,7 @@ void Write_U16_Swap(const u16 var, const u32 address)
 void Write_U32(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var, MSR.DR);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
 {
@@ -540,7 +540,7 @@ void Write_U32_Swap(const u32 var, const u32 address)
 void Write_U64(const u64 var, const u32 address)
 {
   Memcheck(address, (u32)var, true, 8);
-  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var, MSR.DR);
 }
 void Write_U64_Swap(const u64 var, const u32 address)
 {
@@ -557,22 +557,22 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address, MSR.DR);
 }
 
 u16 HostRead_U16(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address, MSR.DR);
 }
 
 u32 HostRead_U32(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address, MSR.DR);
 }
 
 u64 HostRead_U64(const u32 address)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address, MSR.DR);
 }
 
 float HostRead_F32(const u32 address)
@@ -591,22 +591,22 @@ double HostRead_F64(const u32 address)
 
 void HostWrite_U8(const u8 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var, MSR.DR);
 }
 
 void HostWrite_U16(const u16 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var, MSR.DR);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var, MSR.DR);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var, MSR.DR);
 }
 
 void HostWrite_F32(const float var, const u32 address)
@@ -786,7 +786,7 @@ void ClearCacheLine(u32 address)
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 8)
-    WriteToHardware<XCheckTLBFlag::Write, u64, true>(address + i, 0);
+    WriteToHardware<XCheckTLBFlag::Write, u64>(address + i, 0, false);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
