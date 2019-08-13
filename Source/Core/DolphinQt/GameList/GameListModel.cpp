@@ -124,13 +124,13 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_DESCRIPTION:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
-      return QString::fromStdString(game.GetDescription())
+      return QString::fromStdString(game.GetDescription(true))
           .replace(QLatin1Char('\n'), QLatin1Char(' '));
     }
     break;
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return QString::fromStdString(game.GetMaker());
+      return QString::fromStdString(game.GetMaker(true));
     break;
   case COL_FILE_NAME:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
