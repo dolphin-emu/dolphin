@@ -52,6 +52,9 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  static u16 ConvertToSensorWeight(double weight_in_kilos);
+  static double ConvertToKilograms(u16 sensor_weight);
+
   // Use the same calibration data for all sensors.
   // Wii Fit internally converts to grams, but using grams for the actual values leads to
   // overflowing values, and also underflowing values when a sensor gets negative if balance is
@@ -65,8 +68,10 @@ public:
   static constexpr u8 TEMPERATURE = 0x19;
 
 private:
-  u16 ConvertToSensorWeight(double weight_in_kilos);
   void ComputeCalibrationChecksum();
+
+  static constexpr u16 LOW_WEIGHT_DELTA = WEIGHT_17_KG - WEIGHT_0_KG;
+  static constexpr u16 HIGH_WEIGHT_DELTA = WEIGHT_34_KG - WEIGHT_17_KG;
 
   ControllerEmu::AnalogStick* m_balance;
   ControllerEmu::Triggers* m_weight;

@@ -141,9 +141,6 @@ void BalanceBoardExt::LoadDefaults(const ControllerInterface& ciface)
 
 u16 BalanceBoardExt::ConvertToSensorWeight(double weight_in_kilos)
 {
-  constexpr u16 LOW_WEIGHT_DELTA = WEIGHT_17_KG - WEIGHT_0_KG;
-  constexpr u16 HIGH_WEIGHT_DELTA = WEIGHT_34_KG - WEIGHT_17_KG;
-
   // Note: this is the weight on a single sensor, so these ranges make more sense
   // (if all sensors read 34 kilos, then the overall weight would be 136 kilos or 300 pounds...)
   if (weight_in_kilos < 17)
@@ -153,6 +150,18 @@ u16 BalanceBoardExt::ConvertToSensorWeight(double weight_in_kilos)
   else
   {
     return WEIGHT_17_KG + (HIGH_WEIGHT_DELTA * (weight_in_kilos - 17) / 17);
+  }
+}
+
+double BalanceBoardExt::ConvertToKilograms(u16 sensor_weight)
+{
+  if (sensor_weight < WEIGHT_17_KG)
+  {
+    return (sensor_weight - WEIGHT_0_KG) * 17. / LOW_WEIGHT_DELTA;
+  }
+  else
+  {
+    return (sensor_weight - WEIGHT_17_KG) * 17. / HIGH_WEIGHT_DELTA + 17.;
   }
 }
 
