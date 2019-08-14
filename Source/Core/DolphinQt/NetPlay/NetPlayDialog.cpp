@@ -887,6 +887,16 @@ void NetPlayDialog::OnMsgPowerButton()
   QueueOnObject(this, [] { UICommon::TriggerSTMPowerEvent(); });
 }
 
+void NetPlayDialog::OnPlayerConnect(const std::string& player)
+{
+  DisplayMessage(tr("%1 has joined").arg(QString::fromStdString(player)), "darkcyan");
+}
+
+void NetPlayDialog::OnPlayerDisconnect(const std::string& player)
+{
+  DisplayMessage(tr("%1 has left").arg(QString::fromStdString(player)), "darkcyan");
+}
+
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 {
   QueueOnObject(this, [this, buffer] {

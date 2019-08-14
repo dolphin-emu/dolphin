@@ -46,6 +46,8 @@ public:
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
   virtual void OnMsgPowerButton() = 0;
+  virtual void OnPlayerConnect(const std::string& player) = 0;
+  virtual void OnPlayerDisconnect(const std::string& player) = 0;
   virtual void OnPadBufferChanged(u32 buffer) = 0;
   virtual void OnHostInputAuthorityChanged(bool enabled) = 0;
   virtual void OnDesync(u32 frame, const std::string& player) = 0;
