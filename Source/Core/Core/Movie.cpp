@@ -855,10 +855,13 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     memcpy(&bb, extData, sizeof(bb));
     key.Decrypt((u8*)&bb, 0, sizeof(bb));
 
-    display_str += Analog1DToString(Common::swap16(bb.top_right), " TR", -1);
-    display_str += Analog1DToString(Common::swap16(bb.bottom_right), " BR", -1);
-    display_str += Analog1DToString(Common::swap16(bb.top_left), " TL", -1);
-    display_str += Analog1DToString(Common::swap16(bb.bottom_left), " BL", -1);
+    double top_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.top_right));
+    double bottom_right = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.bottom_right));
+    double top_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.top_left));
+    double bottom_left = BalanceBoardExt::ConvertToKilograms(Common::swap16(bb.bottom_left));
+
+    display_str += fmt::format(" TR:{:5.2f}kg BR:{:5.2f}kg TL:{:5.2f}kg BL:{:5.2f}kg", top_right,
+                               bottom_right, top_left, bottom_left);
   }
 
   std::lock_guard guard(s_input_display_lock);
