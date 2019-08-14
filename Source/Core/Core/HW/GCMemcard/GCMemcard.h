@@ -311,8 +311,7 @@ struct Directory
   std::array<u8, 0x3a> m_padding;
 
   // 2 bytes at 0x1ffa: Update Counter
-  // TODO: What happens if this overflows? Is there a special case for preferring 0 over max value?
-  Common::BigEndianValue<u16> m_update_counter;
+  Common::BigEndianValue<s16> m_update_counter;
 
   // 2 bytes at 0x1ffc: Additive Checksum
   u16 m_checksum;
@@ -343,7 +342,7 @@ struct BlockAlloc
   u16 m_checksum_inv;
 
   // 2 bytes at 0x0004: Update Counter
-  Common::BigEndianValue<u16> m_update_counter;
+  Common::BigEndianValue<s16> m_update_counter;
 
   // 2 bytes at 0x0006: Free Blocks
   Common::BigEndianValue<u16> m_free_blocks;

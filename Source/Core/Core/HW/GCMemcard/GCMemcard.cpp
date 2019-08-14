@@ -249,8 +249,11 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   error_code |= bat_block_1_error_code;
 
   // select the in-use Dir and BAT blocks based on update counter
-  // TODO: Is there a special case for wraparound after 65535 block updates, or is it assumed that
-  // the hardware fails long before that anyway?
+
+  // These are compared as signed values by the GC BIOS. There is no protection against overflow, so
+  // if one block is MAX_VAL and the other is MIN_VAL it still picks the MAX_VAL one as the active
+  // one, even if that results in a corrupted memory card.
+  // TODO: We could try to be smarter about this to rescue seemingly-corrupted cards.
 
   if (card.m_directory_blocks[0].m_update_counter >= card.m_directory_blocks[1].m_update_counter)
     card.m_active_directory = 0;
