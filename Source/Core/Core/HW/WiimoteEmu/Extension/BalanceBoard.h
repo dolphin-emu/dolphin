@@ -53,11 +53,13 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
   // Use the same calibration data for all sensors.
-  // Wii Fit appears to convert to this internally (so it doesn't care about differences smaller
-  // than a gram). Normal balance boards tend to be less precise, usually around 10 grams.
-  static constexpr u16 WEIGHT_0_KG = 0;
-  static constexpr u16 WEIGHT_17_KG = 17000;
-  static constexpr u16 WEIGHT_34_KG = 34000;
+  // Wii Fit internally converts to grams, but using grams for the actual values leads to
+  // overflowing values, and also underflowing values when a sensor gets negative if balance is
+  // extremely tilted. Actual balance boards tend to have a sensitivity of about 10 grams.
+  static constexpr u16 WEIGHT_0_KG = 10000;
+  static constexpr u16 WEIGHT_17_KG = 11700;
+  static constexpr u16 WEIGHT_34_KG = 13400;
+
   // Chosen arbitrarily from the value for pokechu22's board.  As long as the calibration and
   // actual temperatures match, the value here doesn't matter.
   static constexpr u8 TEMPERATURE = 0x19;
