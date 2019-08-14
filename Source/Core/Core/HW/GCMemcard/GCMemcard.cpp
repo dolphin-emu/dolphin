@@ -94,12 +94,12 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   const u64 filesize = file.GetSize();
   const u64 filesize_megabits = BytesToMegabits(filesize).value_or(0);
   const std::array<u16, 6> valid_megabits = {{
-      MemCard59Mb,
-      MemCard123Mb,
-      MemCard251Mb,
-      Memcard507Mb,
-      MemCard1019Mb,
-      MemCard2043Mb,
+      MBIT_SIZE_MEMORY_CARD_59,
+      MBIT_SIZE_MEMORY_CARD_123,
+      MBIT_SIZE_MEMORY_CARD_251,
+      MBIT_SIZE_MEMORY_CARD_507,
+      MBIT_SIZE_MEMORY_CARD_1019,
+      MBIT_SIZE_MEMORY_CARD_2043,
   }};
 
   if (!std::any_of(valid_megabits.begin(), valid_megabits.end(),

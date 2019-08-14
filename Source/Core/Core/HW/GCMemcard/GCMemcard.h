@@ -128,17 +128,17 @@ constexpr u16 BAT_SIZE = 0xFFB;
 // possible sizes of memory cards in megabits
 // TODO: Do memory card sizes have to be power of two?
 // TODO: Are these all of them? A 4091 block card should work in theory at least.
-constexpr u16 MemCard59Mb = 0x04;
-constexpr u16 MemCard123Mb = 0x08;
-constexpr u16 MemCard251Mb = 0x10;
-constexpr u16 Memcard507Mb = 0x20;  // FIXME: case
-constexpr u16 MemCard1019Mb = 0x40;
-constexpr u16 MemCard2043Mb = 0x80;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_59 = 0x04;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_123 = 0x08;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_251 = 0x10;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_507 = 0x20;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_1019 = 0x40;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_2043 = 0x80;
 
 class MemoryCardBase
 {
 public:
-  explicit MemoryCardBase(int card_index = 0, int size_mbits = MemCard2043Mb)
+  explicit MemoryCardBase(int card_index = 0, int size_mbits = MBIT_SIZE_MEMORY_CARD_2043)
       : m_card_index(card_index), m_nintendo_card_id(size_mbits)
   {
   }
@@ -210,7 +210,8 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  explicit Header(int slot = 0, u16 size_mbits = MemCard2043Mb, bool shift_jis = false);
+  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
+                  bool shift_jis = false);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;
@@ -353,7 +354,7 @@ struct BlockAlloc
   // 0x1ff8 bytes at 0x000a: Map of allocated Blocks
   std::array<Common::BigEndianValue<u16>, BAT_SIZE> m_map;
 
-  explicit BlockAlloc(u16 size_mbits = MemCard2043Mb);
+  explicit BlockAlloc(u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043);
 
   u16 GetNextBlock(u16 block) const;
   u16 NextFreeBlock(u16 max_block, u16 starting_block = MC_FST_BLOCKS) const;
@@ -408,8 +409,9 @@ public:
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
   bool Save();
-  bool Format(bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
-  static bool Format(u8* card_data, bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
+  bool Format(bool shift_jis = false, u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
+  static bool Format(u8* card_data, bool shift_jis = false,
+                     u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
   static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);
   static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
