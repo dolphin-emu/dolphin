@@ -17,6 +17,8 @@
 #include <QLineEdit>
 #include <QPixmap>
 #include <QPushButton>
+#include <QString>
+#include <QStringList>
 #include <QTableWidget>
 #include <QTimer>
 
@@ -241,14 +243,20 @@ void GCMemcardManager::UpdateActions()
 
 void GCMemcardManager::SetSlotFile(int slot, QString path)
 {
-  // TODO: Check error codes and give reasonable error messages.
   auto [error_code, memcard] = GCMemcard::Open(path.toStdString());
 
-  if (error_code.HasCriticalErrors() || !memcard || !memcard->IsValid())
-    return;
-
-  m_slot_file_edit[slot]->setText(path);
-  m_slot_memcard[slot] = std::make_unique<GCMemcard>(std::move(*memcard));
+  if (!error_code.HasCriticalErrors() && memcard && memcard->IsValid())
+  {
+    m_slot_file_edit[slot]->setText(path);
+    m_slot_memcard[slot] = std::make_unique<GCMemcard>(std::move(*memcard));
+  }
+  else
+  {
+    m_slot_memcard[slot] = nullptr;
+    ModalMessageBox::critical(
+        this, tr("Error"),
+        tr("Failed opening memory card:\n%1").arg(GetErrorMessagesForErrorCode(error_code)));
+  }
 
   UpdateSlotTable(slot);
   UpdateActions();
@@ -523,4 +531,38 @@ std::vector<QPixmap> GCMemcardManager::GetIconFromSaveFile(int file_index, int s
   }
 
   return frame_pixmaps;
+}
+
+QString GCMemcardManager::GetErrorMessagesForErrorCode(const GCMemcardErrorCode& code)
+{
+  QStringList sl;
+
+  if (code.Test(GCMemcardValidityIssues::FAILED_TO_OPEN))
+    sl.push_back(tr("Couldn't open file."));
+
+  if (code.Test(GCMemcardValidityIssues::IO_ERROR))
+    sl.push_back(tr("Couldn't read file."));
+
+  if (code.Test(GCMemcardValidityIssues::INVALID_CARD_SIZE))
+    sl.push_back(tr("Filesize does not match any known GameCube Memory Card size."));
+
+  if (code.Test(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE))
+    sl.push_back(tr("Filesize in header mismatches actual card size."));
+
+  if (code.Test(GCMemcardValidityIssues::INVALID_CHECKSUM))
+    sl.push_back(tr("Invalid checksums."));
+
+  if (code.Test(GCMemcardValidityIssues::FREE_BLOCK_MISMATCH))
+    sl.push_back(tr("Mismatch between free block count in header and actually unused blocks."));
+
+  if (code.Test(GCMemcardValidityIssues::DIR_BAT_INCONSISTENT))
+    sl.push_back(tr("Mismatch between internal data structures."));
+
+  if (code.Test(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA))
+    sl.push_back(tr("Data in area of file that should be unused."));
+
+  if (sl.empty())
+    return QStringLiteral("No errors.");
+
+  return sl.join(QStringLiteral("\n"));
 }

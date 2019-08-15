@@ -28,6 +28,7 @@
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 enum
@@ -212,16 +213,15 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (File::Exists(filename.toStdString()))
     {
-      // TODO: check error codes and give reasonable error messages
       auto [error_code, mc] = GCMemcard::Open(filename.toStdString());
 
       if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
       {
-        ModalMessageBox::critical(this, tr("Error"),
-                                  tr("Cannot use that file as a memory card.\n%1\n"
-                                     "is not a valid GameCube memory card file")
-                                      .arg(filename));
-
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
+                .arg(filename)
+                .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
         return;
       }
     }
