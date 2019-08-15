@@ -88,6 +88,7 @@ enum class GCMemcardValidityIssues
   INVALID_CHECKSUM,
   MISMATCHED_CARD_SIZE,
   FREE_BLOCK_MISMATCH,
+  DIR_BAT_INCONSISTENT,
   DATA_IN_UNUSED_AREA,
   COUNT
 };
@@ -302,6 +303,8 @@ struct DEntry
 };
 static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
+struct BlockAlloc;
+
 struct Directory
 {
   // 127 files of 0x40 bytes each
@@ -330,6 +333,8 @@ struct Directory
   std::pair<u16, u16> CalculateChecksums() const;
 
   GCMemcardErrorCode CheckForErrors() const;
+
+  GCMemcardErrorCode CheckForErrorsWithBat(const BlockAlloc& bat) const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 

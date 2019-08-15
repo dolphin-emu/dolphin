@@ -43,7 +43,8 @@ bool GCMemcardErrorCode::HasCriticalErrors() const
          Test(GCMemcardValidityIssues::INVALID_CARD_SIZE) ||
          Test(GCMemcardValidityIssues::INVALID_CHECKSUM) ||
          Test(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE) ||
-         Test(GCMemcardValidityIssues::FREE_BLOCK_MISMATCH);
+         Test(GCMemcardValidityIssues::FREE_BLOCK_MISMATCH) ||
+         Test(GCMemcardValidityIssues::DIR_BAT_INCONSISTENT);
 }
 
 bool GCMemcardErrorCode::Test(GCMemcardValidityIssues code) const
@@ -265,10 +266,12 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   else
     card.m_active_bat = 1;
 
-  // TODO: Do a card-wide corruption check here, such as cross-checking the active Dir's files with
-  // the active BAT's allocated sectors. The GC BIOS does at the very least recognize if a file's
-  // number of used blocks is inconsistent between the two, and will count a card as corrupted if
-  // that is the case.
+  // check for consistency between the active Dir and BAT
+  const GCMemcardErrorCode dir_bat_consistency_error_code =
+      card.GetActiveDirectory().CheckForErrorsWithBat(card.GetActiveBat());
+  error_code |= dir_bat_consistency_error_code;
+  if (error_code.HasCriticalErrors())
+    return std::make_pair(error_code, std::nullopt);
 
   card.m_valid = true;
 
@@ -1620,6 +1623,63 @@ GCMemcardErrorCode Directory::CheckForErrors() const
   // unused area, should always be filled with 0xFF
   if (std::any_of(m_padding.begin(), m_padding.end(), [](u8 val) { return val != 0xFF; }))
     error_code.Set(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA);
+
+  return error_code;
+}
+
+GCMemcardErrorCode Directory::CheckForErrorsWithBat(const BlockAlloc& bat) const
+{
+  GCMemcardErrorCode error_code;
+
+  for (u8 i = 0; i < DIRLEN; ++i)
+  {
+    const DEntry& entry = m_dir_entries[i];
+    if (entry.m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+      continue;
+
+    // check if we end up with the same number of blocks when traversing through the BAT using the
+    // given first block
+    const u16 dir_number_of_blocks = entry.m_block_count;
+    const u16 dir_first_block = entry.m_first_block;
+    bool bat_block_count_matches = false;
+    {
+      u16 remaining_blocks = dir_number_of_blocks;
+      u16 current_block = dir_first_block;
+      while (true)
+      {
+        if (remaining_blocks == 0)
+        {
+          // we should be at the last block but haven't seen the last-block BAT indicator yet, file
+          // is larger according to BAT, so we're inconsistent
+          break;
+        }
+        --remaining_blocks;
+        const u16 next_block = bat.GetNextBlock(current_block);
+        if (next_block == 0)
+        {
+          // current block is out-of-range or next block is unallocated, this is definitely wrong
+          break;
+        }
+        if (next_block == 0xFFFF)
+        {
+          // we're at the final block according to the BAT
+          // if there are zero remaining blocks according to the directory we're consistent,
+          // otherwise the file is smaller according to the BAT and we're inconsistent
+          bat_block_count_matches = remaining_blocks == 0;
+          break;
+        }
+        current_block = next_block;
+      }
+    }
+
+    if (!bat_block_count_matches)
+    {
+      error_code.Set(GCMemcardValidityIssues::DIR_BAT_INCONSISTENT);
+      break;
+    }
+  }
+
+  // TODO: We could also check if every allocated BAT block is actually reachable with the files.
 
   return error_code;
 }
