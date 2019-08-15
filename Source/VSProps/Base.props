@@ -88,9 +88,9 @@
       <!--Enable latest C++ standard-->
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <!--Enable Standard Conformance-->
-      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
+      <ConformanceMode>true</ConformanceMode>
       <!--Enforce some behaviors as standards-conformant when they don't default as such-->
-      <AdditionalOptions>/Zc:inline /Zc:throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
       <!--Treat sources as utf-8-->
@@ -103,7 +103,7 @@
                 seem to be a way to only ignore the specific instance we don't care about...
       4351  new behavior: elements of array 'array' will be default initialized
       -->
-      <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;4351;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Warnings one may want to ignore when using Level4.
       4201  nonstandard extension used : nameless struct/union
       4127  conditional expression is constant
