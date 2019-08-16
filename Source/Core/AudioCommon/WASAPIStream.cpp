@@ -12,18 +12,24 @@
 #include <mmdeviceapi.h>
 #include <devpkey.h>
 #include <functiondiscoverykeys_devpkey.h>
-#include <thread>
+#include <wil/resource.h>
 // clang-format on
 
+#include <thread>
+
+#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
+using Microsoft::WRL::ComPtr;
+
 WASAPIStream::WASAPIStream()
 {
-  CoInitialize(nullptr);
+  if (SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
+    m_coinitialize.activate();
 
   m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
   m_format.Format.nChannels = 2;
@@ -39,20 +45,12 @@ WASAPIStream::WASAPIStream()
 
 WASAPIStream::~WASAPIStream()
 {
-  if (m_enumerator)
-    m_enumerator->Release();
-
-  if (m_need_data_event)
-    CloseHandle(m_need_data_event);
-
   if (m_running)
   {
     m_running = false;
     if (m_thread.joinable())
       m_thread.join();
   }
-
-  CoUninitialize();
 }
 
 bool WASAPIStream::isValid()
@@ -82,134 +80,119 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
 
 std::vector<std::string> WASAPIStream::GetAvailableDevices()
 {
-  CoInitialize(nullptr);
+  HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+  // RPC_E_CHANGED_MODE means that thread has COM already initialized with a different threading
+  // model. We don't necessarily need multithreaded model here, so don't treat this as an error
+  if (result != RPC_E_CHANGED_MODE && !HandleWinAPI("Failed to call CoInitialize", result))
+    return {};
 
-  IMMDeviceEnumerator* enumerator = nullptr;
+  wil::unique_couninitialize_call cleanup;
+  if (FAILED(result))
+    cleanup.release();  // CoUninitialize must be matched with each successful CoInitialize call, so
+                        // don't call it if initialize fails
 
-  HRESULT result =
-      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                       __uuidof(IMMDeviceEnumerator), reinterpret_cast<LPVOID*>(&enumerator));
+  ComPtr<IMMDeviceEnumerator> enumerator;
+
+  result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                            IID_PPV_ARGS(enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return {};
 
-  std::vector<std::string> device_names;
-  IMMDeviceCollection* devices;
-  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
+  ComPtr<IMMDeviceCollection> devices;
+  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, devices.GetAddressOf());
 
   if (!HandleWinAPI("Failed to get available devices", result))
-  {
-    CoUninitialize();
     return {};
-  }
 
   UINT count;
   devices->GetCount(&count);
 
+  std::vector<std::string> device_names;
+  device_names.reserve(count);
+
   for (u32 i = 0; i < count; i++)
   {
-    IMMDevice* device;
-    devices->Item(i, &device);
+    ComPtr<IMMDevice> device;
+    devices->Item(i, device.GetAddressOf());
     if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
       continue;
 
-    LPWSTR device_id;
-    device->GetId(&device_id);
+    ComPtr<IPropertyStore> device_properties;
 
-    IPropertyStore* device_properties;
-
-    result = device->OpenPropertyStore(STGM_READ, &device_properties);
+    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       continue;
 
-    PROPVARIANT device_name;
-    PropVariantInit(&device_name);
-
-    device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
+    wil::unique_prop_variant device_name;
+    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
 
     device_names.push_back(TStrToUTF8(device_name.pwszVal));
-
-    PropVariantClear(&device_name);
   }
-
-  devices->Release();
-  enumerator->Release();
-
-  CoUninitialize();
 
   return device_names;
 }
 
-IMMDevice* WASAPIStream::GetDeviceByName(std::string name)
+ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string name)
 {
-  CoInitialize(nullptr);
+  HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+  // RPC_E_CHANGED_MODE means that thread has COM already initialized with a different threading
+  // model. We don't necessarily need multithreaded model here, so don't treat this as an error
+  if (result != RPC_E_CHANGED_MODE && !HandleWinAPI("Failed to call CoInitialize", result))
+    return nullptr;
 
-  IMMDeviceEnumerator* enumerator = nullptr;
+  wil::unique_couninitialize_call cleanup;
+  if (FAILED(result))
+    cleanup.release();  // CoUninitialize must be matched with each successful CoInitialize call, so
+                        // don't call it if initialize fails
 
-  HRESULT result =
-      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                       __uuidof(IMMDeviceEnumerator), reinterpret_cast<LPVOID*>(&enumerator));
+  ComPtr<IMMDeviceEnumerator> enumerator;
+
+  result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                            IID_PPV_ARGS(enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return nullptr;
 
-  IMMDeviceCollection* devices;
-  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
+  ComPtr<IMMDeviceCollection> devices;
+  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, devices.GetAddressOf());
 
   if (!HandleWinAPI("Failed to get available devices", result))
-  {
-    return {};
-  }
+    return nullptr;
 
   UINT count;
   devices->GetCount(&count);
 
   for (u32 i = 0; i < count; i++)
   {
-    IMMDevice* device;
-    devices->Item(i, &device);
+    ComPtr<IMMDevice> device;
+    devices->Item(i, device.GetAddressOf());
     if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
       continue;
 
-    LPWSTR device_id;
-    device->GetId(&device_id);
+    ComPtr<IPropertyStore> device_properties;
 
-    IPropertyStore* device_properties;
-
-    result = device->OpenPropertyStore(STGM_READ, &device_properties);
+    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       continue;
 
-    PROPVARIANT device_name;
-    PropVariantInit(&device_name);
-
-    device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
+    wil::unique_prop_variant device_name;
+    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
 
     if (TStrToUTF8(device_name.pwszVal) == name)
-    {
-      devices->Release();
-      enumerator->Release();
-      CoUninitialize();
       return device;
-    }
-
-    PropVariantClear(&device_name);
   }
-
-  devices->Release();
-  enumerator->Release();
-  CoUninitialize();
 
   return nullptr;
 }
 
 bool WASAPIStream::Init()
 {
-  HRESULT result =
-      CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                       __uuidof(IMMDeviceEnumerator), reinterpret_cast<LPVOID*>(&m_enumerator));
+  ASSERT(m_enumerator == nullptr);
+  HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
+                                    IID_PPV_ARGS(m_enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
     return false;
@@ -221,13 +204,13 @@ bool WASAPIStream::SetRunning(bool running)
 {
   if (running)
   {
-    IMMDevice* device = nullptr;
+    ComPtr<IMMDevice> device;
 
     HRESULT result;
 
     if (SConfig::GetInstance().sWASAPIDevice == "default")
     {
-      result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+      result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
     }
     else
     {
@@ -238,59 +221,46 @@ bool WASAPIStream::SetRunning(bool running)
       {
         ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
                       SConfig::GetInstance().sWASAPIDevice);
-        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+        result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
       }
     }
 
     if (!HandleWinAPI("Failed to obtain default endpoint", result))
       return false;
 
-    LPWSTR device_id;
-    device->GetId(&device_id);
-
     // Show a friendly name in the log
-    IPropertyStore* device_properties;
+    ComPtr<IPropertyStore> device_properties;
 
-    result = device->OpenPropertyStore(STGM_READ, &device_properties);
+    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
 
     if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
       return false;
 
-    PROPVARIANT device_name;
-    PropVariantInit(&device_name);
-
-    device_properties->GetValue(PKEY_Device_FriendlyName, &device_name);
+    wil::unique_prop_variant device_name;
+    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
 
     INFO_LOG_FMT(AUDIO, "Using audio endpoint '{}'", TStrToUTF8(device_name.pwszVal));
 
-    PropVariantClear(&device_name);
+    ComPtr<IAudioClient> audio_client;
 
     // Get IAudioDevice
     result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                              reinterpret_cast<LPVOID*>(&m_audio_client));
+                              reinterpret_cast<LPVOID*>(audio_client.GetAddressOf()));
 
     if (!HandleWinAPI("Failed to activate IAudioClient", result))
-    {
-      device->Release();
       return false;
-    }
 
     REFERENCE_TIME device_period = 0;
 
-    result = m_audio_client->GetDevicePeriod(nullptr, &device_period);
+    result = audio_client->GetDevicePeriod(nullptr, &device_period);
 
     device_period += SConfig::GetInstance().iLatency * (10000 / m_format.Format.nChannels);
     INFO_LOG_FMT(AUDIO, "Audio period set to {}", device_period);
 
     if (!HandleWinAPI("Failed to obtain device period", result))
-    {
-      device->Release();
-      m_audio_client->Release();
-      m_audio_client = nullptr;
       return false;
-    }
 
-    result = m_audio_client->Initialize(
+    result = audio_client->Initialize(
         AUDCLNT_SHAREMODE_EXCLUSIVE,
         AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
         device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
@@ -305,86 +275,60 @@ bool WASAPIStream::SetRunning(bool running)
 
     if (result == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED)
     {
-      result = m_audio_client->GetBufferSize(&m_frames_in_buffer);
-      m_audio_client->Release();
+      result = audio_client->GetBufferSize(&m_frames_in_buffer);
 
       if (!HandleWinAPI("Failed to get aligned buffer size", result))
-      {
-        device->Release();
-        m_audio_client->Release();
-        m_audio_client = nullptr;
         return false;
-      }
 
       // Get IAudioDevice
       result = device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                reinterpret_cast<LPVOID*>(&m_audio_client));
+                                reinterpret_cast<LPVOID*>(audio_client.ReleaseAndGetAddressOf()));
 
       if (!HandleWinAPI("Failed to reactivate IAudioClient", result))
-      {
-        device->Release();
         return false;
-      }
 
       device_period =
           static_cast<REFERENCE_TIME>(
               10000.0 * 1000 * m_frames_in_buffer / m_format.Format.nSamplesPerSec + 0.5) +
           SConfig::GetInstance().iLatency * 10000;
 
-      result = m_audio_client->Initialize(
+      result = audio_client->Initialize(
           AUDCLNT_SHAREMODE_EXCLUSIVE,
           AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, device_period,
           device_period, reinterpret_cast<WAVEFORMATEX*>(&m_format), nullptr);
     }
 
     if (!HandleWinAPI("Failed to initialize IAudioClient", result))
-    {
-      device->Release();
-      m_audio_client->Release();
-      m_audio_client = nullptr;
       return false;
-    }
 
-    result = m_audio_client->GetBufferSize(&m_frames_in_buffer);
+    result = audio_client->GetBufferSize(&m_frames_in_buffer);
 
     if (!HandleWinAPI("Failed to get buffer size from IAudioClient", result))
-    {
-      device->Release();
-      m_audio_client->Release();
-      m_audio_client = nullptr;
       return false;
-    }
 
-    result = m_audio_client->GetService(__uuidof(IAudioRenderClient),
-                                        reinterpret_cast<LPVOID*>(&m_audio_renderer));
+    ComPtr<IAudioRenderClient> audio_renderer;
+
+    result = audio_client->GetService(IID_PPV_ARGS(audio_renderer.GetAddressOf()));
 
     if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
-    {
-      device->Release();
-      m_audio_client->Release();
-      m_audio_client = nullptr;
       return false;
-    }
 
-    m_need_data_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    m_audio_client->SetEventHandle(m_need_data_event);
+    wil::unique_event_nothrow need_data_event;
+    need_data_event.create();
 
-    result = m_audio_client->Start();
+    audio_client->SetEventHandle(need_data_event.get());
+
+    result = audio_client->Start();
 
     if (!HandleWinAPI("Failed to get IAudioRenderClient from IAudioClient", result))
-    {
-      device->Release();
-      m_audio_renderer->Release();
-      m_audio_renderer = nullptr;
-      m_audio_client->Release();
-      m_audio_client = nullptr;
-      CloseHandle(m_need_data_event);
       return false;
-    }
-
-    device->Release();
 
     INFO_LOG_FMT(AUDIO, "WASAPI: Successfully initialized!");
+
+    // "Commit" audio client and audio renderer now
+    m_audio_client = std::move(audio_client);
+    m_audio_renderer = std::move(audio_renderer);
+    m_need_data_event = std::move(need_data_event);
 
     m_running = true;
     m_thread = std::thread([this] { SoundLoop(); });
@@ -401,14 +345,9 @@ bool WASAPIStream::SetRunning(bool running)
     {
     }
 
-    if (m_audio_client)
-    {
-      m_audio_renderer->Release();
-      m_audio_renderer = nullptr;
-
-      m_audio_client->Release();
-      m_audio_client = nullptr;
-    }
+    m_need_data_event.reset();
+    m_audio_renderer.Reset();
+    m_audio_client.Reset();
   }
 
   return true;
@@ -432,7 +371,7 @@ void WASAPIStream::SoundLoop()
     if (!m_audio_renderer)
       continue;
 
-    WaitForSingleObject(m_need_data_event, 1000);
+    WaitForSingleObject(m_need_data_event.get(), 1000);
 
     m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
     GetMixer()->Mix(reinterpret_cast<s16*>(data), m_frames_in_buffer);
