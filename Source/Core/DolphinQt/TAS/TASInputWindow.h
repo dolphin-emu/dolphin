@@ -11,7 +11,7 @@
 struct GCPadStatus;
 class QBoxLayout;
 class QCheckBox;
-class QDialog;
+class QDoubleSpinBox;
 class QGroupBox;
 class QSpinBox;
 class QString;
@@ -36,6 +36,10 @@ protected:
   QSpinBox* CreateSliderValuePair(QBoxLayout* layout, int default_, u16 max,
                                   QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
                                   QWidget* shortcut_widget, bool invert = false);
+  QDoubleSpinBox* CreateWeightSliderValuePair(QBoxLayout* layout, int min, int max,
+                                              QKeySequence shortcut_key_sequence,
+                                              QWidget* shortcut_widget);
+
   template <typename UX>
   void GetButton(TASCheckBox* button, UX& pad, UX mask);
   void GetSpinBoxU8(QSpinBox* spin, u8& controller_value);

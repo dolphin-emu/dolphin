@@ -14,15 +14,19 @@ class BalanceBoardWidget : public QWidget
 public:
   explicit BalanceBoardWidget(QWidget* parent);
 
-  static constexpr u16 balance_range = 1000;
-
 signals:
-  void ChangedX(u16 x);
-  void ChangedY(u16 y);
+  void ChangedTR(double top_right);
+  void ChangedBR(double bottom_right);
+  void ChangedTL(double top_left);
+  void ChangedBL(double bottom_left);
+  void ChangedTotal(double total_weight);
 
 public slots:
-  void SetX(u16 x);
-  void SetY(u16 y);
+  void SetTR(double top_right);
+  void SetBR(double bottom_right);
+  void SetTL(double top_left);
+  void SetBL(double bottom_left);
+  void SetTotal(double total_weight);
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -31,7 +35,10 @@ protected:
   void handleMouseEvent(QMouseEvent* event);
 
 private:
-  u16 m_x = 0;
-  u16 m_y = 0;
+  double TotalWeight() { return m_top_right + m_bottom_right + m_top_left + m_bottom_left; }
+  double m_top_right = 0;
+  double m_bottom_right = 0;
+  double m_top_left = 0;
+  double m_bottom_left = 0;
   bool m_ignore_movement = false;
 };

@@ -92,50 +92,80 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       CreateStickInputs(tr("Right Stick"), m_classic_right_stick_x_value,
                         m_classic_right_stick_y_value, 31, 31, Qt::Key_Q, Qt::Key_W);
 
-  const QKeySequence balance_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_X);
-  const QKeySequence balance_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_Y);
+  const QKeySequence balance_tl_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_L);
+  const QKeySequence balance_tr_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_R);
+  const QKeySequence balance_bl_shortcut_key_sequence =
+      QKeySequence(Qt::ALT + Qt::SHIFT + Qt::Key_L);
+  const QKeySequence balance_br_shortcut_key_sequence =
+      QKeySequence(Qt::ALT + Qt::SHIFT + Qt::Key_R);
   const QKeySequence balance_weight_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_W);
 
   m_balance_board_box = new QGroupBox(
       QStringLiteral("%1 (%2/%3/%4)")
-          .arg(tr("Balance"), balance_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
-               balance_y_shortcut_key_sequence.toString(QKeySequence::NativeText),
+          .arg(tr("Balance"), balance_tl_shortcut_key_sequence.toString(QKeySequence::NativeText),
+               balance_tr_shortcut_key_sequence.toString(QKeySequence::NativeText),
                balance_weight_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
-  auto* bal_x_layout = new QHBoxLayout;
-  m_horizontal_balance_value = CreateSliderValuePair(
-      bal_x_layout, BalanceBoardWidget::balance_range / 2, BalanceBoardWidget::balance_range,
-      balance_x_shortcut_key_sequence, Qt::Horizontal, m_balance_board_box);
+  auto* bal_top_layout = new QHBoxLayout;
+  m_top_left_balance_value = CreateWeightSliderValuePair(
+      bal_top_layout, -34, 68, balance_tl_shortcut_key_sequence, m_balance_board_box);
+  m_top_right_balance_value = CreateWeightSliderValuePair(
+      bal_top_layout, -34, 68, balance_tr_shortcut_key_sequence, m_balance_board_box);
 
-  auto* bal_y_layout = new QVBoxLayout;
-  m_vertical_balance_value = CreateSliderValuePair(
-      bal_y_layout, BalanceBoardWidget::balance_range / 2, BalanceBoardWidget::balance_range,
-      balance_y_shortcut_key_sequence, Qt::Vertical, m_balance_board_box);
-  m_vertical_balance_value->setMaximumWidth(60);
+  auto* bal_bottom_layout = new QHBoxLayout;
+  m_bottom_left_balance_value = CreateWeightSliderValuePair(
+      bal_bottom_layout, -34, 68, balance_bl_shortcut_key_sequence, m_balance_board_box);
+  m_bottom_right_balance_value = CreateWeightSliderValuePair(
+      bal_bottom_layout, -34, 68, balance_br_shortcut_key_sequence, m_balance_board_box);
 
   auto* bal_weight_layout = new QHBoxLayout;
-  m_weight_total_value =
-      CreateSliderValuePair(bal_weight_layout, 63500, 150000, balance_weight_shortcut_key_sequence,
-                            Qt::Horizontal, m_balance_board_box);
+  m_total_weight_value = CreateWeightSliderValuePair(
+      bal_weight_layout, 0, 136, balance_weight_shortcut_key_sequence, m_balance_board_box);
 
   auto* bal_visual = new BalanceBoardWidget(this);
-  connect(m_horizontal_balance_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-          bal_visual, &BalanceBoardWidget::SetX);
-  connect(m_vertical_balance_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-          bal_visual, &BalanceBoardWidget::SetY);
-  connect(bal_visual, &BalanceBoardWidget::ChangedX, m_horizontal_balance_value,
-          &QSpinBox::setValue);
-  connect(bal_visual, &BalanceBoardWidget::ChangedY, m_vertical_balance_value, &QSpinBox::setValue);
+  connect(m_top_right_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetTR);
+  connect(m_bottom_right_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetBR);
+  connect(m_top_left_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetTL);
+  connect(m_bottom_left_balance_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetBL);
+  connect(bal_visual, &BalanceBoardWidget::ChangedTR, m_top_right_balance_value,
+          &QDoubleSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedBR, m_bottom_right_balance_value,
+          &QDoubleSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedTL, m_top_left_balance_value,
+          &QDoubleSpinBox::setValue);
+  connect(bal_visual, &BalanceBoardWidget::ChangedBL, m_bottom_left_balance_value,
+          &QDoubleSpinBox::setValue);
+
+  constexpr double DEFAULT_WEIGHT = 63.5;
+  m_top_right_balance_value->setValue(DEFAULT_WEIGHT / 4);
+  m_bottom_right_balance_value->setValue(DEFAULT_WEIGHT / 4);
+  m_top_left_balance_value->setValue(DEFAULT_WEIGHT / 4);
+  m_bottom_left_balance_value->setValue(DEFAULT_WEIGHT / 4);
+
+  connect(m_total_weight_value,
+          static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), bal_visual,
+          &BalanceBoardWidget::SetTotal);
+  connect(bal_visual, &BalanceBoardWidget::ChangedTotal, m_total_weight_value,
+          &QDoubleSpinBox::setValue);
+  m_total_weight_value->setValue(DEFAULT_WEIGHT);
 
   auto* bal_ar = new AspectRatioWidget(bal_visual, 20, 12);
-
+  bal_ar->setMinimumHeight(120);
   auto* bal_visual_layout = new QHBoxLayout;
   bal_visual_layout->addWidget(bal_ar);
-  bal_visual_layout->addLayout(bal_y_layout);
 
   auto* bal_layout = new QVBoxLayout;
-  bal_layout->addLayout(bal_x_layout);
+  bal_layout->addLayout(bal_top_layout);
   bal_layout->addLayout(bal_visual_layout);
+  bal_layout->addLayout(bal_bottom_layout);
   bal_layout->addLayout(bal_weight_layout);
   m_balance_board_box->setLayout(bal_layout);
 
@@ -576,29 +606,24 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, WiimoteEmu::ExtensionN
     using WiimoteEmu::BalanceBoard;
 
     u8* const ext_data = rpt.GetExtDataPtr();
-    // TODO: This code exists to read existing data, as well as to write TAS data;
-    // currently it is only reading...
     BalanceBoard::DataFormat bb_data = Common::BitCastPtr<BalanceBoard::DataFormat>(ext_data);
 
-    int weight = m_weight_total_value->value();
-    u16 horizontal = 500, vertical = 500;
-    GetSpinBoxU16(m_horizontal_balance_value, horizontal);
-    GetSpinBoxU16(m_vertical_balance_value, vertical);
-    const u16 top_right =
-        weight * (horizontal + vertical) / (4 * BalanceBoardWidget::balance_range);
-    const u16 bottom_right = weight *
-                             (horizontal + (BalanceBoardWidget::balance_range - vertical)) /
-                             (4 * BalanceBoardWidget::balance_range);
-    const u16 top_left = weight * ((BalanceBoardWidget::balance_range - horizontal) + vertical) /
-                         (4 * BalanceBoardWidget::balance_range);
-    const u16 bottom_left = weight *
-                            ((BalanceBoardWidget::balance_range - horizontal) +
-                             (BalanceBoardWidget::balance_range - vertical)) /
-                            (4 * BalanceBoardWidget::balance_range);
-    bb_data.top_right = Common::swap16(top_right);
-    bb_data.bottom_right = Common::swap16(bottom_right);
-    bb_data.top_left = Common::swap16(top_left);
-    bb_data.bottom_left = Common::swap16(bottom_left);
+    // TODO: Reading the existing values, but then just clobbering them instead of using them if
+    // controller input is enabled
+    double top_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.top_right));
+    double bottom_right = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.bottom_right));
+    double top_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.top_left));
+    double bottom_left = BalanceBoard::ConvertToKilograms(Common::swap16(bb_data.bottom_left));
+
+    top_right = m_top_right_balance_value->value();
+    bottom_right = m_bottom_right_balance_value->value();
+    top_left = m_top_left_balance_value->value();
+    bottom_left = m_bottom_left_balance_value->value();
+
+    bb_data.top_right = Common::swap16(BalanceBoard::ConvertToSensorWeight(top_right));
+    bb_data.bottom_right = Common::swap16(BalanceBoard::ConvertToSensorWeight(bottom_right));
+    bb_data.top_left = Common::swap16(BalanceBoard::ConvertToSensorWeight(top_left));
+    bb_data.bottom_left = Common::swap16(BalanceBoard::ConvertToSensorWeight(bottom_left));
     bb_data.temperature = BalanceBoard::TEMPERATURE;
     bb_data.battery = 0x83;
 

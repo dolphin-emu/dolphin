@@ -15,21 +15,67 @@
 BalanceBoardWidget::BalanceBoardWidget(QWidget* parent) : QWidget(parent)
 {
   setMouseTracking(false);
-  setToolTip(tr("Left click to set the IR value.\n"
-                "Right click to re-center it."));
+  setToolTip(tr("Left click to set the balance value.\n"
+                "Right click to return to perfect balance."));
 }
 
-void BalanceBoardWidget::SetX(u16 x)
+void BalanceBoardWidget::SetTR(double top_right)
 {
-  m_x = std::min(balance_range, x);
-
+  m_top_right = top_right;
+  emit ChangedTotal(TotalWeight());
   update();
 }
 
-void BalanceBoardWidget::SetY(u16 y)
+void BalanceBoardWidget::SetBR(double bottom_right)
 {
-  m_y = std::min(balance_range, y);
+  m_bottom_right = bottom_right;
+  emit ChangedTotal(TotalWeight());
+  update();
+}
 
+void BalanceBoardWidget::SetTL(double top_left)
+{
+  m_top_left = top_left;
+  emit ChangedTotal(TotalWeight());
+  update();
+}
+
+void BalanceBoardWidget::SetBL(double bottom_left)
+{
+  m_bottom_left = bottom_left;
+  emit ChangedTotal(TotalWeight());
+  update();
+}
+
+void BalanceBoardWidget::SetTotal(double total)
+{
+  const double current_total = TotalWeight();
+  if (current_total != 0)
+  {
+    const double ratio = total / current_total;
+    m_top_right *= ratio;
+    m_bottom_right *= ratio;
+    m_top_left *= ratio;
+    m_bottom_left *= ratio;
+  }
+  else
+  {
+    m_top_right = total / 4;
+    m_bottom_right = total / 4;
+    m_top_left = total / 4;
+    m_bottom_left = total / 4;
+  }
+  emit ChangedTR(m_top_right);
+  emit ChangedBR(m_bottom_right);
+  emit ChangedTL(m_top_left);
+  emit ChangedBL(m_bottom_left);
+
+  const double new_total = TotalWeight();
+  if (new_total != total)
+  {
+    // This probably shouldn't happen, and I probably should round out numbers a bit closer
+    emit ChangedTotal(new_total);
+  }
   update();
 }
 
@@ -46,9 +92,17 @@ void BalanceBoardWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(0, height() / 2, width(), height() / 2);
   painter.drawLine(width() / 2, 0, width() / 2, height());
 
-  // convert from value space to widget space
-  const int x = (m_x * width()) / balance_range;
-  const int y = height() - (m_y * height()) / balance_range;
+  // Compute center of balance
+  const double total = TotalWeight();
+  const double right = m_top_right + m_bottom_right;
+  const double left = m_top_left + m_bottom_left;
+  const double top = m_top_right + m_top_left;
+  const double bottom = m_bottom_right + m_bottom_left;
+  const double com_x = (total != 0) ? (right - left) / total : 0;
+  const double com_y = (total != 0) ? (top - bottom) / total : 0;
+
+  const int x = (int)((com_x + 1) * width() / 2);
+  const int y = (int)((1 - com_y) * height() / 2);
 
   painter.drawLine(width() / 2, height() / 2, x, y);
 
@@ -72,22 +126,29 @@ void BalanceBoardWidget::mouseMoveEvent(QMouseEvent* event)
 
 void BalanceBoardWidget::handleMouseEvent(QMouseEvent* event)
 {
+  const double total = TotalWeight();
   if (event->button() == Qt::RightButton)
   {
-    m_x = std::round(balance_range / 2.);
-    m_y = std::round(balance_range / 2.);
+    m_top_right = total / 4;
+    m_bottom_right = total / 4;
+    m_top_left = total / 4;
+    m_bottom_left = total / 4;
   }
   else
   {
     // convert from widget space to value space
-    const int new_x = (event->x() * balance_range) / width();
-    const int new_y = balance_range - (event->y() * balance_range) / height();
+    const double com_x = std::clamp((event->x() * 2.) / width() - 1, -1., 1.);
+    const double com_y = std::clamp(1 - (event->y() * 2.) / height(), -1., 1.);
 
-    m_x = std::max(0, std::min(static_cast<int>(balance_range), new_x));
-    m_y = std::max(0, std::min(static_cast<int>(balance_range), new_y));
+    m_top_right = total * (1 + com_x + com_y) / 4;
+    m_bottom_right = total * (1 + com_x - com_y) / 4;
+    m_top_left = total * (1 - com_x + com_y) / 4;
+    m_bottom_left = total * (1 - com_x - com_y) / 4;
   }
 
-  emit ChangedX(m_x);
-  emit ChangedY(m_y);
+  emit ChangedTR(m_top_right);
+  emit ChangedBR(m_bottom_right);
+  emit ChangedTL(m_top_left);
+  emit ChangedBL(m_bottom_left);
   update();
 }
