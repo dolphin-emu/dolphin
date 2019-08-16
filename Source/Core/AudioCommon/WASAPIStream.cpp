@@ -62,7 +62,7 @@ bool WASAPIStream::isValid()
 
 static bool HandleWinAPI(std::string_view message, HRESULT result)
 {
-  if (result != S_OK)
+  if (FAILED(result))
   {
     _com_error err(result);
     std::string error = TStrToUTF8(err.ErrorMessage());
@@ -77,7 +77,7 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
     ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {}", message, error);
   }
 
-  return result == S_OK;
+  return SUCCEEDED(result);
 }
 
 std::vector<std::string> WASAPIStream::GetAvailableDevices()
