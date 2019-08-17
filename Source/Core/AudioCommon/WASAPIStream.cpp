@@ -361,14 +361,23 @@ void WASAPIStream::SoundLoop()
     WaitForSingleObject(m_need_data_event.get(), 1000);
 
     m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
-    GetMixer()->Mix(reinterpret_cast<s16*>(data), m_frames_in_buffer);
 
-    float volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume / 100.;
+    s16* audio_data = reinterpret_cast<s16*>(data);
+    GetMixer()->Mix(audio_data, m_frames_in_buffer);
 
-    for (u32 i = 0; i < m_frames_in_buffer * 2; i++)
-      reinterpret_cast<s16*>(data)[i] = static_cast<s16>(reinterpret_cast<s16*>(data)[i] * volume);
+    const SConfig& config = SConfig::GetInstance();
+    const bool is_muted = config.m_IsMuted || config.m_Volume == 0;
+    const bool need_volume_adjustment = config.m_Volume != 100 && !is_muted;
 
-    m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, 0);
+    if (need_volume_adjustment)
+    {
+      const float volume = config.m_Volume / 100.0f;
+
+      for (u32 i = 0; i < m_frames_in_buffer * 2; i++)
+        *audio_data++ *= volume;
+    }
+
+    m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, is_muted ? AUDCLNT_BUFFERFLAGS_SILENT : 0);
   }
 }
 
