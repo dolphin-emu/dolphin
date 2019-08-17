@@ -1,4 +1,10 @@
 add_library(inputcommon
+  DynamicInputTextureConfiguration.cpp
+  DynamicInputTextureConfiguration.h
+  DynamicInputTextureManager.cpp
+  DynamicInputTextureManager.h
+  ImageOperations.cpp
+  ImageOperations.h
   InputConfig.cpp
   InputConfig.h
   InputProfile.cpp
@@ -66,6 +72,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
+  png
 )
 
 if(WIN32)

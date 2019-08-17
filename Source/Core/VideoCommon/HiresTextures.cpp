@@ -76,8 +76,7 @@ void HiresTexture::Update()
 
   if (!g_ActiveConfig.bHiresTextures)
   {
-    s_textureMap.clear();
-    s_textureCache.clear();
+    Clear();
     return;
   }
 
@@ -144,6 +143,12 @@ void HiresTexture::Update()
     s_textureCacheAbortLoading.Clear();
     s_prefetcher = std::thread(Prefetch);
   }
+}
+
+void HiresTexture::Clear()
+{
+  s_textureMap.clear();
+  s_textureCache.clear();
 }
 
 void HiresTexture::Prefetch()

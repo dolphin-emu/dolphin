@@ -112,6 +112,12 @@ void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
   }
 }
 
+void EmulatedController::SetDynamicInputTextureManager(
+    InputCommon::DynamicInputTextureManager* dynamic_input_tex_config_manager)
+{
+  m_dynamic_input_tex_config_manager = dynamic_input_tex_config_manager;
+}
+
 void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& base)
 {
   std::string defdev = GetDefaultDevice().ToString();
@@ -123,6 +129,11 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
 
   for (auto& cg : groups)
     cg->LoadConfig(sec, defdev, base);
+
+  if (base.empty())
+  {
+    GenerateTextures(sec);
+  }
 }
 
 void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& base)
@@ -133,6 +144,11 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
 
   for (auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);
+
+  if (base.empty())
+  {
+    GenerateTextures(sec);
+  }
 }
 
 void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
@@ -145,6 +161,14 @@ void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
   if (!default_device_string.empty())
   {
     SetDefaultDevice(default_device_string);
+  }
+}
+
+void EmulatedController::GenerateTextures(IniFile::Section* sec)
+{
+  if (m_dynamic_input_tex_config_manager)
+  {
+    m_dynamic_input_tex_config_manager->GenerateTextures(sec, GetName());
   }
 }
 }  // namespace ControllerEmu

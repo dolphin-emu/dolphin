@@ -138,6 +138,8 @@
     <ClCompile Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp">
       <Filter>ControllerInterface\DualShockUDPClient</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicInputTextureConfiguration.cpp" />
+    <ClCompile Include="DynamicInputTextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -250,6 +252,8 @@
     <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPProto.h">
       <Filter>ControllerInterface\DualShockUDPClient</Filter>
     </ClInclude>
+    <ClInclude Include="DynamicInputTextureConfiguration.h" />
+    <ClInclude Include="DynamicInputTextureManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

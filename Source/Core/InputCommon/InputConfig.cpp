@@ -39,6 +39,8 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string ir_values[3];
 #endif
 
+  m_dynamic_input_tex_config_manager.Load();
+
   if (SConfig::GetInstance().GetGameID() != "00000000")
   {
     std::string type;
@@ -189,6 +191,11 @@ void InputConfig::RegisterHotplugCallback()
 void InputConfig::UnregisterHotplugCallback()
 {
   g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+}
+
+void InputConfig::OnControllerCreated(ControllerEmu::EmulatedController& controller)
+{
+  controller.SetDynamicInputTextureManager(&m_dynamic_input_tex_config_manager);
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

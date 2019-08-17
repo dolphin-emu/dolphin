@@ -22,6 +22,7 @@ class HiresTexture
 public:
   static void Init();
   static void Update();
+  static void Clear();
   static void Shutdown();
 
   static std::shared_ptr<HiresTexture> Search(const u8* texture, size_t texture_size,

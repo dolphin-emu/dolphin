@@ -1138,6 +1138,11 @@ void Renderer::EndUIFrame()
   BeginImGuiFrame();
 }
 
+void Renderer::ForceReloadTextures()
+{
+  m_force_reload_textures.Set();
+}
+
 // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
 void Renderer::UpdateWidescreenHeuristic()
 {
@@ -1302,9 +1307,17 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       // state changes the specialized shader will not take over.
       g_vertex_manager->InvalidatePipelineObject();
 
-      // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
-      // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
-      g_texture_cache->FlushEFBCopies();
+      if (m_force_reload_textures.TestAndClear())
+      {
+        g_texture_cache->ForceReload();
+      }
+      else
+      {
+        // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
+        // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending
+        // copies.
+        g_texture_cache->FlushEFBCopies();
+      }
 
       if (!is_duplicate_frame)
       {

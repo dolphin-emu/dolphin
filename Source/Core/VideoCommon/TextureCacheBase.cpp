@@ -137,6 +137,17 @@ void TextureCacheBase::Invalidate()
   texture_pool.clear();
 }
 
+void TextureCacheBase::ForceReload()
+{
+  Invalidate();
+
+  // Clear all current hires textures, they are invalid
+  HiresTexture::Clear();
+
+  // Load fresh
+  HiresTexture::Update();
+}
+
 void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
 {
   if (config.bHiresTextures != backup_config.hires_textures ||
