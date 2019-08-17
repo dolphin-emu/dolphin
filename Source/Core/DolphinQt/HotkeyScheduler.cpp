@@ -302,8 +302,7 @@ void HotkeyScheduler::Run()
         OSD::AddMessage(std::string("Volume: ") +
                         (SConfig::GetInstance().m_IsMuted ?
                              "Muted" :
-                             std::to_string(SConfig::GetInstance().m_Volume)) +
-                        "%");
+                             std::to_string(SConfig::GetInstance().m_Volume) + "%"));
       };
 
       // Volume
