@@ -59,13 +59,15 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
 {
   if (FAILED(result))
   {
-    _com_error err(result);
-    std::string error = TStrToUTF8(err.ErrorMessage());
+    std::string error;
 
     switch (result)
     {
     case AUDCLNT_E_DEVICE_IN_USE:
       error = "Audio endpoint already in use!";
+      break;
+    default:
+      error = TStrToUTF8(_com_error(result).ErrorMessage()).c_str();
       break;
     }
 
@@ -74,6 +76,7 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
 
   return SUCCEEDED(result);
 }
+
 
 std::vector<std::string> WASAPIStream::GetAvailableDevices()
 {
@@ -131,7 +134,7 @@ std::vector<std::string> WASAPIStream::GetAvailableDevices()
   return device_names;
 }
 
-ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string name)
+ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 {
   HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
   // RPC_E_CHANGED_MODE means that thread has COM already initialized with a different threading

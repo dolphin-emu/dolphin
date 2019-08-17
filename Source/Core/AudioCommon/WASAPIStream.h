@@ -40,7 +40,7 @@ public:
 
   static bool isValid();
   static std::vector<std::string> GetAvailableDevices();
-  static Microsoft::WRL::ComPtr<IMMDevice> GetDeviceByName(std::string name);
+  static Microsoft::WRL::ComPtr<IMMDevice> GetDeviceByName(std::string_view name);
 
 private:
   u32 m_frames_in_buffer = 0;
