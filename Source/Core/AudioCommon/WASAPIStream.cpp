@@ -152,7 +152,7 @@ IMMDevice* WASAPIStream::GetDeviceByName(std::string name)
                        __uuidof(IMMDeviceEnumerator), reinterpret_cast<LPVOID*>(&enumerator));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
-    return false;
+    return nullptr;
 
   IMMDeviceCollection* devices;
   result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices);
