@@ -45,7 +45,6 @@ public:
 private:
   u32 m_frames_in_buffer = 0;
   std::atomic<bool> m_running = false;
-  std::atomic<bool> m_stopped = false;
   std::thread m_thread;
 
   // CoUninitialize must be called after all WASAPI COM objects have been destroyed,
