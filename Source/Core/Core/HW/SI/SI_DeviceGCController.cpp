@@ -111,8 +111,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
 {
-  INFO_LOG(SERIALINTERFACE, "HandleMoviePadStatus input timestamp: %llu device_number: %d",
-           Common::Timer::GetTimeUs(), m_device_number);
   Movie::CallGCInputManip(pad_status, m_device_number);
 
   Movie::SetPolledDevice();

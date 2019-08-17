@@ -64,6 +64,26 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
       return 0;
     }
   }
+  // Read the command
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
+  switch (command)
+  {
+  case CMD_ORIGIN:
+  case CMD_RECALIBRATE:
+  {
+    SOrigin origin = {};
+    GCAdapter::origin_data od;
+    GCAdapter::GetOrigin(m_device_number, &od);
+    origin.origin_stick_x = od.stickX;
+    origin.origin_stick_y = od.stickY;
+    origin.substick_x = od.substickX;
+    origin.substick_y = od.substickY;
+    origin.trigger_left = od.triggerL;
+    origin.trigger_right = od.triggerR;
+    std::copy_n(reinterpret_cast<u8*>(&origin), sizeof(SOrigin), buffer);
+    return sizeof(SOrigin);
+  }
+  }
   return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 

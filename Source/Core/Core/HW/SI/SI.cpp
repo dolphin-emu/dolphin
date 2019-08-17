@@ -660,7 +660,6 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
   if (s_com_csr.TSTART)
   {
     u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
-    u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
     std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
     std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
@@ -671,9 +670,6 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
             EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) - cycles_late,
         s_get_response_event[s_com_csr.CHANNEL], SiGetMaskForChannel(s_com_csr.CHANNEL));
 
-    INFO_LOG(SERIALINTERFACE,
-             "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u",
-             s_com_csr.CHANNEL, request_length, expected_response_length);
     // TODO:
     // Wait a reasonable amount of time for the result to be available:
     //    request is N bytes, ends with a stop bit
@@ -1054,8 +1050,6 @@ void TriggerPoll(s64 cycles_late)
                                   EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) -
                                   cycles_late,
                               s_poll_get_response_event, user_data);
-
-    INFO_LOG(SERIALINTERFACE, "TriggerPoll: user_data: %x", user_data);
   }
 
   // Polling finished
