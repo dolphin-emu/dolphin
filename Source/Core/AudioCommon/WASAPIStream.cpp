@@ -45,7 +45,7 @@ WASAPIStream::WASAPIStream()
 
 WASAPIStream::~WASAPIStream()
 {
-  m_running = false;
+  m_running.store(false, std::memory_order_relaxed);
   if (m_thread.joinable())
     m_thread.join();
 }
@@ -327,12 +327,12 @@ bool WASAPIStream::SetRunning(bool running)
     m_audio_renderer = std::move(audio_renderer);
     m_need_data_event = std::move(need_data_event);
 
-    m_running = true;
+    m_running.store(true, std::memory_order_relaxed);
     m_thread = std::thread([this] { SoundLoop(); });
   }
   else
   {
-    m_running = false;
+    m_running.store(false, std::memory_order_relaxed);
 
     if (m_thread.joinable())
       m_thread.join();
@@ -356,7 +356,7 @@ void WASAPIStream::SoundLoop()
     m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, AUDCLNT_BUFFERFLAGS_SILENT);
   }
 
-  while (m_running)
+  while (m_running.load(std::memory_order_relaxed))
   {
     if (!m_audio_renderer)
       continue;
