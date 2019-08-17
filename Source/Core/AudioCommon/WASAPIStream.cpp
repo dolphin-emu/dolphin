@@ -45,12 +45,9 @@ WASAPIStream::WASAPIStream()
 
 WASAPIStream::~WASAPIStream()
 {
-  if (m_running)
-  {
-    m_running = false;
-    if (m_thread.joinable())
-      m_thread.join();
-  }
+  m_running = false;
+  if (m_thread.joinable())
+    m_thread.join();
 }
 
 bool WASAPIStream::isValid()
@@ -332,7 +329,6 @@ bool WASAPIStream::SetRunning(bool running)
 
     m_running = true;
     m_thread = std::thread([this] { SoundLoop(); });
-    m_thread.detach();
   }
   else
   {
@@ -340,10 +336,6 @@ bool WASAPIStream::SetRunning(bool running)
 
     if (m_thread.joinable())
       m_thread.join();
-
-    while (!m_stopped)
-    {
-    }
 
     m_need_data_event.reset();
     m_audio_renderer.Reset();
@@ -364,8 +356,6 @@ void WASAPIStream::SoundLoop()
     m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, AUDCLNT_BUFFERFLAGS_SILENT);
   }
 
-  m_stopped = false;
-
   while (m_running)
   {
     if (!m_audio_renderer)
@@ -383,8 +373,6 @@ void WASAPIStream::SoundLoop()
 
     m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, 0);
   }
-
-  m_stopped = true;
 }
 
 #endif  // _WIN32
