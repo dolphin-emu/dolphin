@@ -77,14 +77,13 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
   return SUCCEEDED(result);
 }
 
-
-std::vector<std::string> WASAPIStream::GetAvailableDevices()
+static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::string)>& callback)
 {
   HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
   // RPC_E_CHANGED_MODE means that thread has COM already initialized with a different threading
   // model. We don't necessarily need multithreaded model here, so don't treat this as an error
   if (result != RPC_E_CHANGED_MODE && !HandleWinAPI("Failed to call CoInitialize", result))
-    return {};
+    return;
 
   wil::unique_couninitialize_call cleanup;
   if (FAILED(result))
@@ -97,19 +96,16 @@ std::vector<std::string> WASAPIStream::GetAvailableDevices()
                             IID_PPV_ARGS(enumerator.GetAddressOf()));
 
   if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
-    return {};
+    return;
 
   ComPtr<IMMDeviceCollection> devices;
   result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, devices.GetAddressOf());
 
   if (!HandleWinAPI("Failed to get available devices", result))
-    return {};
+    return;
 
   UINT count;
   devices->GetCount(&count);
-
-  std::vector<std::string> device_names;
-  device_names.reserve(count);
 
   for (u32 i = 0; i < count; i++)
   {
@@ -128,64 +124,37 @@ std::vector<std::string> WASAPIStream::GetAvailableDevices()
     wil::unique_prop_variant device_name;
     device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
 
-    device_names.push_back(TStrToUTF8(device_name.pwszVal));
+    if (!callback(std::move(device), TStrToUTF8(device_name.pwszVal)))
+      break;
   }
+}
+
+std::vector<std::string> WASAPIStream::GetAvailableDevices()
+{
+  std::vector<std::string> device_names;
+
+  ForEachNamedDevice([&device_names](ComPtr<IMMDevice>, std::string n) {
+    device_names.push_back(std::move(n));
+    return true;
+  });
 
   return device_names;
 }
 
 ComPtr<IMMDevice> WASAPIStream::GetDeviceByName(std::string_view name)
 {
-  HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-  // RPC_E_CHANGED_MODE means that thread has COM already initialized with a different threading
-  // model. We don't necessarily need multithreaded model here, so don't treat this as an error
-  if (result != RPC_E_CHANGED_MODE && !HandleWinAPI("Failed to call CoInitialize", result))
-    return nullptr;
+  ComPtr<IMMDevice> device;
 
-  wil::unique_couninitialize_call cleanup;
-  if (FAILED(result))
-    cleanup.release();  // CoUninitialize must be matched with each successful CoInitialize call, so
-                        // don't call it if initialize fails
+  ForEachNamedDevice([&device, &name](ComPtr<IMMDevice> d, std::string n) {
+    if (n == name)
+    {
+      device = std::move(d);
+      return false;
+    }
+    return true;
+  });
 
-  ComPtr<IMMDeviceEnumerator> enumerator;
-
-  result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER,
-                            IID_PPV_ARGS(enumerator.GetAddressOf()));
-
-  if (!HandleWinAPI("Failed to create MMDeviceEnumerator", result))
-    return nullptr;
-
-  ComPtr<IMMDeviceCollection> devices;
-  result = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, devices.GetAddressOf());
-
-  if (!HandleWinAPI("Failed to get available devices", result))
-    return nullptr;
-
-  UINT count;
-  devices->GetCount(&count);
-
-  for (u32 i = 0; i < count; i++)
-  {
-    ComPtr<IMMDevice> device;
-    devices->Item(i, device.GetAddressOf());
-    if (!HandleWinAPI("Failed to get device " + std::to_string(i), result))
-      continue;
-
-    ComPtr<IPropertyStore> device_properties;
-
-    result = device->OpenPropertyStore(STGM_READ, device_properties.GetAddressOf());
-
-    if (!HandleWinAPI("Failed to initialize IPropertyStore", result))
-      continue;
-
-    wil::unique_prop_variant device_name;
-    device_properties->GetValue(PKEY_Device_FriendlyName, device_name.addressof());
-
-    if (TStrToUTF8(device_name.pwszVal) == name)
-      return device;
-  }
-
-  return nullptr;
+  return device;
 }
 
 bool WASAPIStream::Init()
