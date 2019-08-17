@@ -353,17 +353,11 @@ void WASAPIStream::SoundLoop()
   Common::SetCurrentThreadName("WASAPI Handler");
   BYTE* data;
 
-  if (m_audio_renderer)
-  {
-    m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
-    m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, AUDCLNT_BUFFERFLAGS_SILENT);
-  }
+  m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
+  m_audio_renderer->ReleaseBuffer(m_frames_in_buffer, AUDCLNT_BUFFERFLAGS_SILENT);
 
   while (m_running.load(std::memory_order_relaxed))
   {
-    if (!m_audio_renderer)
-      continue;
-
     WaitForSingleObject(m_need_data_event.get(), 1000);
 
     m_audio_renderer->GetBuffer(m_frames_in_buffer, &data);
