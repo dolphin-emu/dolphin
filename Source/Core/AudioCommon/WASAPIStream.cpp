@@ -300,7 +300,7 @@ bool WASAPIStream::SetRunning(bool running)
     m_need_data_event = std::move(need_data_event);
 
     m_running.store(true, std::memory_order_relaxed);
-    m_thread = std::thread([this] { SoundLoop(); });
+    m_thread = std::thread(&WASAPIStream::SoundLoop, this);
   }
   else
   {
