@@ -183,10 +183,7 @@ void Stop()
 
   while (s_state_cpu_thread_active)
   {
-    std::cv_status status =
-        s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::milliseconds(100));
-    if (status == std::cv_status::timeout)
-      Host_YieldToUI();
+    s_state_cpu_idle_cvar.wait(state_lock);
   }
 
   RunAdjacentSystems(false);
@@ -252,10 +249,7 @@ void EnableStepping(bool stepping)
 
     while (s_state_cpu_thread_active)
     {
-      std::cv_status status =
-          s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::milliseconds(100));
-      if (status == std::cv_status::timeout)
-        Host_YieldToUI();
+      s_state_cpu_idle_cvar.wait(state_lock);
     }
 
     RunAdjacentSystems(false);
@@ -303,10 +297,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
 
     while (s_state_cpu_thread_active)
     {
-      std::cv_status status =
-          s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::milliseconds(100));
-      if (status == std::cv_status::timeout)
-        Host_YieldToUI();
+      s_state_cpu_idle_cvar.wait(state_lock);
     }
 
     if (control_adjacent)
