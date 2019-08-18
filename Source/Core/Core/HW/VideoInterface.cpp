@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
+#include "Common/Timer.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -668,6 +669,7 @@ static void LogField(FieldType field, u32 xfb_address)
             m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
 }
 
+static u64 s_field_count = 0;
 static void BeginField(FieldType field, u64 ticks)
 {
   // Could we fit a second line of data in the stride?
@@ -734,6 +736,20 @@ static void EndField()
   Core::OnFrameEnd();
 }
 
+static void TrySIPoll(s64 cycles_late)
+{
+  DEBUG_LOG(SERIALINTERFACE, "new poll,%llu,%u,%llu,%llu", s_field_count,
+            s_si_poll_samples_remaining, CoreTiming::GetTicks(), Common::Timer::GetTimeUs());
+  SerialInterface::TriggerPoll(cycles_late);
+  s_si_poll_samples_remaining--;
+
+  // If this setting is enabled, only poll twice per field instead of what the game wanted. It
+  // maybe set during NetPlay or Movie playback.
+  if (Config::Get(Config::MAIN_REDUCE_POLLING_RATE))
+    s_half_line_of_next_si_poll = s_half_line_count + (GetHalfLinesPerEvenField() / 2);
+  else
+    s_half_line_of_next_si_poll = s_half_line_count + s_latched_si_poll_x;
+}
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(s64 cycles_late)
@@ -741,15 +757,7 @@ void Update(s64 cycles_late)
   u64 ticks = CoreTiming::GetTicks() - cycles_late;
   if ((s_half_line_of_next_si_poll == s_half_line_count) && (s_si_poll_samples_remaining != 0))
   {
-    SerialInterface::TriggerPoll(cycles_late);
-    s_si_poll_samples_remaining--;
-
-    // If this setting is enabled, only poll twice per field instead of what the game wanted. It may
-    // be set during NetPlay or Movie playback.
-    if (Config::Get(Config::MAIN_REDUCE_POLLING_RATE))
-      s_half_line_of_next_si_poll += GetHalfLinesPerEvenField() / 2;
-    else
-      s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
+    TrySIPoll(cycles_late);
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
@@ -778,21 +786,29 @@ void Update(s64 cycles_late)
 
   s_half_line_count++;
 
-  if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
+  if (s_half_line_count == GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
   {
+    s_field_count++;
+    DEBUG_LOG(SERIALINTERFACE, "new field,%llu,0,%llu,%llu", s_field_count, CoreTiming::GetTicks(),
+              Common::Timer::GetTimeUs());
     // Relatch at vsync
     s_latched_si_poll_x = 2 * SerialInterface::GetPollXLines();
     s_si_poll_samples_remaining = SerialInterface::GetPollYSampleCount();
     s_half_line_count = 1;
-    s_half_line_of_next_si_poll = 1;  // first results start at vsync
+    TrySIPoll(cycles_late);
+    s_half_line_of_next_si_poll -= 2;
   }
 
   if (s_half_line_count == GetHalfLinesPerEvenField())
   {
+    s_field_count++;
+    DEBUG_LOG(SERIALINTERFACE, "new field,%llu,0,%llu,%llu", s_field_count, CoreTiming::GetTicks(),
+              Common::Timer::GetTimeUs());
     // Relatch at vsync
     s_latched_si_poll_x = 2 * SerialInterface::GetPollXLines();
     s_si_poll_samples_remaining = SerialInterface::GetPollYSampleCount();
-    s_half_line_of_next_si_poll = GetHalfLinesPerEvenField();
+    TrySIPoll(cycles_late);
+    s_half_line_of_next_si_poll -= 2;
   }
 
   if (s_half_line_count & 1)
