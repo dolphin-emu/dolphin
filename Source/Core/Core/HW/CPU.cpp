@@ -87,7 +87,7 @@ static void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 
 void Run()
 {
-  std::unique_lock<std::mutex> state_lock(s_state_change_lock);
+  std::unique_lock state_lock(s_state_change_lock);
   while (s_state != State::PowerDown)
   {
     s_state_cpu_cvar.wait(state_lock, [] { return !s_state_paused_and_locked; });
@@ -177,7 +177,7 @@ void Stop()
   // Change state and wait for it to be acknowledged.
   // We don't need the stepping lock because State::PowerDown is a priority state which
   // will stick permanently.
-  std::unique_lock<std::mutex> state_lock(s_state_change_lock);
+  std::unique_lock state_lock(s_state_change_lock);
   s_state = State::PowerDown;
   s_state_cpu_cvar.notify_one();
 
@@ -211,7 +211,7 @@ void Reset()
 
 void StepOpcode(Common::Event* event)
 {
-  std::lock_guard<std::mutex> state_lock(s_state_change_lock);
+  std::lock_guard state_lock(s_state_change_lock);
   // If we're not stepping then this is pointless
   if (!IsStepping())
   {
@@ -240,8 +240,8 @@ static bool SetStateLocked(State s)
 
 void EnableStepping(bool stepping)
 {
-  std::lock_guard<std::mutex> stepping_lock(s_stepping_lock);
-  std::unique_lock<std::mutex> state_lock(s_state_change_lock);
+  std::lock_guard stepping_lock(s_stepping_lock);
+  std::unique_lock state_lock(s_state_change_lock);
 
   if (stepping)
   {
@@ -263,7 +263,7 @@ void EnableStepping(bool stepping)
 
 void Break()
 {
-  std::lock_guard<std::mutex> state_lock(s_state_change_lock);
+  std::lock_guard state_lock(s_state_change_lock);
 
   // If another thread is trying to PauseAndLock then we need to remember this
   // for later to ignore the unpause_on_unlock.
@@ -289,7 +289,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
   {
     s_stepping_lock.lock();
 
-    std::unique_lock<std::mutex> state_lock(s_state_change_lock);
+    std::unique_lock state_lock(s_state_change_lock);
     s_state_paused_and_locked = true;
 
     was_unpaused = s_state == State::Running;
@@ -322,7 +322,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
     }
 
     {
-      std::lock_guard<std::mutex> state_lock(s_state_change_lock);
+      std::lock_guard state_lock(s_state_change_lock);
       if (s_state_system_request_stepping)
       {
         s_state_system_request_stepping = false;
@@ -344,7 +344,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
 
 void AddCPUThreadJob(std::function<void()> function)
 {
-  std::unique_lock<std::mutex> state_lock(s_state_change_lock);
+  std::unique_lock state_lock(s_state_change_lock);
   s_pending_jobs.push(std::move(function));
 }
 
