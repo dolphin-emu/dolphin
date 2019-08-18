@@ -635,7 +635,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   u32 mask = 0xF << shift;
 
   // Only clear exception bits (but not FEX/VX).
-  mask &= 0x9FF87000;
+  mask &= FPSCR_FX | FPSCR_ANY_X;
 
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
   if (cpu_info.bBMI1)
@@ -649,7 +649,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
     SHR(32, R(RSCRATCH2), Imm8(shift));
     AND(32, R(RSCRATCH2), Imm32(0xF));
   }
-  AND(32, R(RSCRATCH), Imm32(mask));
+  AND(32, R(RSCRATCH), Imm32(~mask));
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
   LEA(64, RSCRATCH, MConst(PowerPC::ConditionRegister::s_crTable));
   MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
