@@ -13,10 +13,10 @@
 
 namespace IOS::HLE
 {
-constexpr u32 MEM1_SIZE = 0x01800000;
-constexpr u32 MEM1_END = 0x81800000;
+constexpr u32 MEM1_SIZE = 0x03000000;
+constexpr u32 MEM1_END = 0x83000000;
 constexpr u32 MEM1_ARENA_BEGIN = 0x00000000;
-constexpr u32 MEM1_ARENA_END = 0x81800000;
+constexpr u32 MEM1_ARENA_END = 0x83000000;
 constexpr u32 MEM2_SIZE = 0x4000000;
 constexpr u32 MEM2_ARENA_BEGIN = 0x90000800;
 constexpr u32 HOLLYWOOD_REVISION = 0x00000011;
