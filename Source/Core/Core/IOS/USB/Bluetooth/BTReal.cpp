@@ -32,6 +32,10 @@
 
 namespace IOS::HLE::Device
 {
+constexpr u8 REQUEST_TYPE = static_cast<u8>(LIBUSB_ENDPOINT_OUT) |
+                            static_cast<u8>(LIBUSB_REQUEST_TYPE_CLASS) |
+                            static_cast<u8>(LIBUSB_RECIPIENT_INTERFACE);
+
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
   const int vid = SConfig::GetInstance().m_bt_passthrough_vid;
@@ -347,17 +351,15 @@ void BluetoothReal::WaitForHCICommandComplete(const u16 opcode)
 
 void BluetoothReal::SendHCIResetCommand()
 {
-  const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
   u8 packet[3] = {};
   const u16 payload[] = {HCI_CMD_RESET};
   memcpy(packet, payload, sizeof(payload));
-  libusb_control_transfer(m_handle, type, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
+  libusb_control_transfer(m_handle, REQUEST_TYPE, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
   INFO_LOG(IOS_WIIMOTE, "Sent a reset command to adapter");
 }
 
 void BluetoothReal::SendHCIDeleteLinkKeyCommand()
 {
-  const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
   struct Payload
   {
     hci_cmd_hdr_t header;
@@ -369,7 +371,7 @@ void BluetoothReal::SendHCIDeleteLinkKeyCommand()
   payload.command.bdaddr = {};
   payload.command.delete_all = true;
 
-  libusb_control_transfer(m_handle, type, 0, 0, 0, reinterpret_cast<u8*>(&payload),
+  libusb_control_transfer(m_handle, REQUEST_TYPE, 0, 0, 0, reinterpret_cast<u8*>(&payload),
                           static_cast<u16>(sizeof(payload)), TIMEOUT);
 }
 
@@ -378,7 +380,6 @@ bool BluetoothReal::SendHCIStoreLinkKeyCommand()
   if (m_link_keys.empty())
     return false;
 
-  const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
   // The HCI command field is limited to uint8_t, and libusb to uint16_t.
   const u8 payload_size =
       static_cast<u8>(sizeof(hci_write_stored_link_key_cp)) +
@@ -408,8 +409,8 @@ bool BluetoothReal::SendHCIStoreLinkKeyCommand()
     iterator += entry.second.size();
   }
 
-  libusb_control_transfer(m_handle, type, 0, 0, 0, packet.data(), static_cast<u16>(packet.size()),
-                          TIMEOUT);
+  libusb_control_transfer(m_handle, REQUEST_TYPE, 0, 0, 0, packet.data(),
+                          static_cast<u16>(packet.size()), TIMEOUT);
   return true;
 }
 
