@@ -11,6 +11,7 @@
 #include <CommCtrl.h>
 #include <ShObjIdl.h>
 #include <shellapi.h>
+#include <wrl/client.h>
 
 #include "Common/Event.h"
 #include "Common/ScopeGuard.h"
@@ -22,7 +23,7 @@ HWND window_handle = nullptr;
 HWND label_handle = nullptr;
 HWND total_progressbar_handle = nullptr;
 HWND current_progressbar_handle = nullptr;
-ITaskbarList3* taskbar_list = nullptr;
+Microsoft::WRL::ComPtr<ITaskbarList3> taskbar_list;
 
 std::thread ui_thread;
 Common::Event window_created_event;
@@ -75,15 +76,13 @@ bool InitWindow()
   if (!window_handle)
     return false;
 
-  if (FAILED(CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER,
-                              IID_PPV_ARGS(&taskbar_list))))
+  if (SUCCEEDED(CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER,
+                                 IID_PPV_ARGS(taskbar_list.GetAddressOf()))))
   {
-    taskbar_list = nullptr;
-  }
-  if (taskbar_list && FAILED(taskbar_list->HrInit()))
-  {
-    taskbar_list->Release();
-    taskbar_list = nullptr;
+    if (FAILED(taskbar_list->HrInit()))
+    {
+      taskbar_list.Reset();
+    }
   }
 
   int y = PADDING_HEIGHT;
@@ -206,6 +205,14 @@ void SetDescription(const std::string& text)
 
 void MessageLoop()
 {
+  HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+  Common::ScopeGuard ui_guard{[result] {
+    taskbar_list.Reset();
+    if (SUCCEEDED(result))
+      CoUninitialize();
+  }};
+
   if (!InitWindow())
   {
     MessageBox(nullptr, L"Window init failed!", L"", MB_ICONERROR);
