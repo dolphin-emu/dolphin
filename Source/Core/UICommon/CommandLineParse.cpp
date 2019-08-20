@@ -26,11 +26,10 @@ public:
       : ConfigLayerLoader(Config::LayerType::CommandLine)
   {
     if (!video_backend.empty())
-      m_values.emplace_back(std::make_tuple(Config::MAIN_GFX_BACKEND.location, video_backend));
+      m_values.emplace_back(Config::MAIN_GFX_BACKEND.location, video_backend);
 
     if (!audio_backend.empty())
-      m_values.emplace_back(
-          std::make_tuple(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE")));
+      m_values.emplace_back(Config::MAIN_DSP_HLE.location, ValueToString(audio_backend == "HLE"));
 
     // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
@@ -45,7 +44,8 @@ public:
       if (system)
       {
         m_values.emplace_back(
-            std::make_tuple(Config::ConfigLocation{*system, section, key}, value));
+            Config::ConfigLocation{std::move(*system), std::move(section), std::move(key)},
+            std::move(value));
       }
     }
   }
@@ -96,7 +96,9 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
         .action("store_true")
         .help("Show the debugger pane and additional View menu options");
     parser->add_option("-l", "--logger").action("store_true").help("Open the logger");
-    parser->add_option("-b", "--batch").action("store_true").help("Exit Dolphin with emulation");
+    parser->add_option("-b", "--batch")
+        .action("store_true")
+        .help("Run Dolphin without the user interface (Requires --exec)");
     parser->add_option("-c", "--confirm").action("store_true").help("Set Confirm on Stop");
   }
 
