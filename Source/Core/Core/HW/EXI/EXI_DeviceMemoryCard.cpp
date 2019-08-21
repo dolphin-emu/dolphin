@@ -141,7 +141,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   bool useMC251;
   IniFile gameIni = SConfig::GetInstance().LoadGameIni();
   gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
-  u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
+  u16 sizeMb = useMC251 ? MBIT_SIZE_MEMORY_CARD_251 : MBIT_SIZE_MEMORY_CARD_2043;
 
   if (gciFolder)
   {
@@ -241,7 +241,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
   MemoryCard::CheckPath(filename, region_dir, is_slot_a);
 
-  if (sizeMb == MemCard251Mb)
+  if (sizeMb == MBIT_SIZE_MEMORY_CARD_251)
     filename.insert(filename.find_last_of("."), ".251");
 
   memorycard = std::make_unique<MemoryCard>(filename, card_index, sizeMb);

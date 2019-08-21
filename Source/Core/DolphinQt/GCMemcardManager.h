@@ -12,6 +12,7 @@
 #include <QDialog>
 
 class GCMemcard;
+class GCMemcardErrorCode;
 
 class QDialogButtonBox;
 class QGroupBox;
@@ -19,6 +20,7 @@ class QLabel;
 class QLineEdit;
 class QPixmap;
 class QPushButton;
+class QString;
 class QTableWidget;
 class QTimer;
 
@@ -28,6 +30,8 @@ class GCMemcardManager : public QDialog
 public:
   explicit GCMemcardManager(QWidget* parent = nullptr);
   ~GCMemcardManager();
+
+  static QString GetErrorMessagesForErrorCode(const GCMemcardErrorCode& code);
 
 private:
   void CreateWidgets();

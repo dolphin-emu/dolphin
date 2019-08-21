@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <string>
 #include <vector>
 
@@ -79,6 +80,31 @@ enum class GCMemcardRemoveFileRetVal
   DELETE_FAIL,
 };
 
+enum class GCMemcardValidityIssues
+{
+  FAILED_TO_OPEN,
+  IO_ERROR,
+  INVALID_CARD_SIZE,
+  INVALID_CHECKSUM,
+  MISMATCHED_CARD_SIZE,
+  FREE_BLOCK_MISMATCH,
+  DIR_BAT_INCONSISTENT,
+  DATA_IN_UNUSED_AREA,
+  COUNT
+};
+
+class GCMemcardErrorCode
+{
+public:
+  bool HasCriticalErrors() const;
+  bool Test(GCMemcardValidityIssues code) const;
+  void Set(GCMemcardValidityIssues code);
+  GCMemcardErrorCode& operator|=(const GCMemcardErrorCode& other);
+
+private:
+  std::bitset<static_cast<size_t>(GCMemcardValidityIssues::COUNT)> m_errors;
+};
+
 // size of a single memory card block in bytes
 constexpr u32 BLOCK_SIZE = 0x2000;
 
@@ -103,17 +129,17 @@ constexpr u16 BAT_SIZE = 0xFFB;
 // possible sizes of memory cards in megabits
 // TODO: Do memory card sizes have to be power of two?
 // TODO: Are these all of them? A 4091 block card should work in theory at least.
-constexpr u16 MemCard59Mb = 0x04;
-constexpr u16 MemCard123Mb = 0x08;
-constexpr u16 MemCard251Mb = 0x10;
-constexpr u16 Memcard507Mb = 0x20;
-constexpr u16 MemCard1019Mb = 0x40;
-constexpr u16 MemCard2043Mb = 0x80;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_59 = 0x04;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_123 = 0x08;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_251 = 0x10;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_507 = 0x20;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_1019 = 0x40;
+constexpr u16 MBIT_SIZE_MEMORY_CARD_2043 = 0x80;
 
 class MemoryCardBase
 {
 public:
-  explicit MemoryCardBase(int card_index = 0, int size_mbits = MemCard2043Mb)
+  explicit MemoryCardBase(int card_index = 0, int size_mbits = MBIT_SIZE_MEMORY_CARD_2043)
       : m_card_index(card_index), m_nintendo_card_id(size_mbits)
   {
   }
@@ -185,13 +211,16 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  explicit Header(int slot = 0, u16 size_mbits = MemCard2043Mb, bool shift_jis = false);
+  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
+                  bool shift_jis = false);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
 
@@ -274,6 +303,8 @@ struct DEntry
 };
 static_assert(sizeof(DEntry) == DENTRY_SIZE);
 
+struct BlockAlloc;
+
 struct Directory
 {
   // 127 files of 0x40 bytes each
@@ -283,8 +314,7 @@ struct Directory
   std::array<u8, 0x3a> m_padding;
 
   // 2 bytes at 0x1ffa: Update Counter
-  // TODO: What happens if this overflows? Is there a special case for preferring 0 over max value?
-  Common::BigEndianValue<u16> m_update_counter;
+  Common::BigEndianValue<s16> m_update_counter;
 
   // 2 bytes at 0x1ffc: Additive Checksum
   u16 m_checksum;
@@ -301,6 +331,10 @@ struct Directory
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  GCMemcardErrorCode CheckForErrors() const;
+
+  GCMemcardErrorCode CheckForErrorsWithBat(const BlockAlloc& bat) const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
 
@@ -313,7 +347,7 @@ struct BlockAlloc
   u16 m_checksum_inv;
 
   // 2 bytes at 0x0004: Update Counter
-  Common::BigEndianValue<u16> m_update_counter;
+  Common::BigEndianValue<s16> m_update_counter;
 
   // 2 bytes at 0x0006: Free Blocks
   Common::BigEndianValue<u16> m_free_blocks;
@@ -324,7 +358,7 @@ struct BlockAlloc
   // 0x1ff8 bytes at 0x000a: Map of allocated Blocks
   std::array<Common::BigEndianValue<u16>, BAT_SIZE> m_map;
 
-  explicit BlockAlloc(u16 size_mbits = MemCard2043Mb);
+  explicit BlockAlloc(u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043);
 
   u16 GetNextBlock(u16 block) const;
   u16 NextFreeBlock(u16 max_block, u16 starting_block = MC_FST_BLOCKS) const;
@@ -333,6 +367,8 @@ struct BlockAlloc
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
+
+  GCMemcardErrorCode CheckForErrors(u16 size_mbits) const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 #pragma pack(pop)
@@ -354,8 +390,9 @@ private:
   int m_active_directory;
   int m_active_bat;
 
+  GCMemcard();
+
   GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
-  void InitActiveDirBat();
 
   const Directory& GetActiveDirectory() const;
   const BlockAlloc& GetActiveBat() const;
@@ -364,8 +401,9 @@ private:
   void UpdateBat(const BlockAlloc& bat);
 
 public:
-  explicit GCMemcard(const std::string& fileName, bool forceCreation = false,
-                     bool shift_jis = false);
+  static std::optional<GCMemcard> Create(std::string filename, u16 size_mbits, bool shift_jis);
+
+  static std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> Open(std::string filename);
 
   GCMemcard(const GCMemcard&) = delete;
   GCMemcard& operator=(const GCMemcard&) = delete;
@@ -375,14 +413,14 @@ public:
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
   bool Save();
-  bool Format(bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
-  static bool Format(u8* card_data, bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
+  bool Format(bool shift_jis = false, u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
+  static bool Format(u8* card_data, bool shift_jis = false,
+                     u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
   static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);
   static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                    std::vector<GCMBlock>& FileBuffer);
 
-  u32 TestChecksums() const;
   bool FixChecksums();
 
   // get number of file entries in the directory

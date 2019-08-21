@@ -27,196 +27,255 @@ static void ByteSwap(u8* valueA, u8* valueB)
   *valueB = tmp;
 }
 
-GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift_jis)
-    : m_valid(false), m_filename(filename)
+static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
-  // Currently there is a string freeze. instead of adding a new message about needing r/w
-  // open file read only, if write is denied the error will be reported at that point
-  File::IOFile mcdFile(m_filename, "rb");
-  if (!mcdFile.IsOpen())
-  {
-    if (!forceCreation)
-    {
-      if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memory Card?", filename.c_str()))
-        return;
-      shift_jis =
-          AskYesNoT("Format as Shift JIS (Japanese)?\nChoose no for Windows-1252 (Western)");
-    }
-    Format(shift_jis);
-    return;
-  }
-  else
-  {
-    // This function can be removed once more about hdr is known and we can check for a valid header
-    std::string fileType;
-    SplitPath(filename, nullptr, nullptr, &fileType);
-    if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
-    {
-      PanicAlertT("File has the extension \"%s\".\nValid extensions are (.raw/.gcp)",
-                  fileType.c_str());
-      return;
-    }
-    auto size = mcdFile.GetSize();
-    if (size < MC_FST_BLOCKS * BLOCK_SIZE)
-    {
-      PanicAlertT("%s failed to load as a memory card.\nFile is not large enough to be a valid "
-                  "memory card file (0x%x bytes)",
-                  filename.c_str(), (unsigned)size);
-      return;
-    }
-    if (size % BLOCK_SIZE)
-    {
-      PanicAlertT("%s failed to load as a memory card.\nCard file size is invalid (0x%x bytes)",
-                  filename.c_str(), (unsigned)size);
-      return;
-    }
-
-    m_size_mb = (u16)((size / BLOCK_SIZE) / MBIT_TO_BLOCKS);
-    switch (m_size_mb)
-    {
-    case MemCard59Mb:
-    case MemCard123Mb:
-    case MemCard251Mb:
-    case Memcard507Mb:
-    case MemCard1019Mb:
-    case MemCard2043Mb:
-      break;
-    default:
-      PanicAlertT("%s failed to load as a memory card.\nCard size is invalid (0x%x bytes)",
-                  filename.c_str(), (unsigned)size);
-      return;
-    }
-  }
-
-  mcdFile.Seek(0, SEEK_SET);
-  if (!mcdFile.ReadBytes(&m_header_block, BLOCK_SIZE))
-  {
-    PanicAlertT("Failed to read header correctly\n(0x0000-0x1FFF)");
-    return;
-  }
-  if (m_size_mb != m_header_block.m_size_mb)
-  {
-    PanicAlertT("Memory card file size does not match the header size");
-    return;
-  }
-
-  if (!mcdFile.ReadBytes(&m_directory_blocks[0], BLOCK_SIZE))
-  {
-    PanicAlertT("Failed to read 1st directory block correctly\n(0x2000-0x3FFF)");
-    return;
-  }
-
-  if (!mcdFile.ReadBytes(&m_directory_blocks[1], BLOCK_SIZE))
-  {
-    PanicAlertT("Failed to read 2nd directory block correctly\n(0x4000-0x5FFF)");
-    return;
-  }
-
-  if (!mcdFile.ReadBytes(&m_bat_blocks[0], BLOCK_SIZE))
-  {
-    PanicAlertT("Failed to read 1st block allocation table block correctly\n(0x6000-0x7FFF)");
-    return;
-  }
-
-  if (!mcdFile.ReadBytes(&m_bat_blocks[1], BLOCK_SIZE))
-  {
-    PanicAlertT("Failed to read 2nd block allocation table block correctly\n(0x8000-0x9FFF)");
-    return;
-  }
-
-  u32 csums = TestChecksums();
-
-  if (csums & 0x1)
-  {
-    // header checksum error!
-    // invalid files do not always get here
-    PanicAlertT("Header checksum failed");
-    return;
-  }
-
-  if (csums & 0x2)  // 1st directory block checksum error!
-  {
-    if (csums & 0x4)
-    {
-      // 2nd block is also wrong!
-      PanicAlertT("Both directory block checksums are invalid");
-      return;
-    }
-    else
-    {
-      // FIXME: This is probably incorrect behavior, confirm what actually happens on hardware here.
-      // The currently active directory block and currently active BAT block don't necessarily have
-      // to correlate.
-
-      // 2nd block is correct, restore
-      m_directory_blocks[0] = m_directory_blocks[1];
-      m_bat_blocks[0] = m_bat_blocks[1];
-
-      // update checksums
-      csums = TestChecksums();
-    }
-  }
-
-  if (csums & 0x8)  // 1st BAT checksum error!
-  {
-    if (csums & 0x10)
-    {
-      // 2nd BAT is also wrong!
-      PanicAlertT("Both Block Allocation Table block checksums are invalid");
-      return;
-    }
-    else
-    {
-      // FIXME: Same as above, this feels incorrect.
-
-      // 2nd block is correct, restore
-      m_directory_blocks[0] = m_directory_blocks[1];
-      m_bat_blocks[0] = m_bat_blocks[1];
-
-      // update checksums
-      csums = TestChecksums();
-    }
-  }
-
-  mcdFile.Seek(0xa000, SEEK_SET);
-
-  m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
-  m_data_blocks.reserve(m_size_blocks - MC_FST_BLOCKS);
-
-  m_valid = true;
-  for (u32 i = MC_FST_BLOCKS; i < m_size_blocks; ++i)
-  {
-    GCMBlock b;
-    if (mcdFile.ReadBytes(b.m_block.data(), b.m_block.size()))
-    {
-      m_data_blocks.push_back(b);
-    }
-    else
-    {
-      PanicAlertT("Failed to read block %u of the save data\nMemory card may be truncated\nFile "
-                  "position: 0x%" PRIx64,
-                  i, mcdFile.Tell());
-      m_valid = false;
-      break;
-    }
-  }
-
-  mcdFile.Close();
-
-  InitActiveDirBat();
+  const u64 factor = ((1024 * 1024) / 8);
+  const u64 megabits = bytes / factor;
+  const u64 remainder = bytes % factor;
+  if (remainder != 0)
+    return std::nullopt;
+  return megabits;
 }
 
-void GCMemcard::InitActiveDirBat()
+bool GCMemcardErrorCode::HasCriticalErrors() const
 {
-  if (m_directory_blocks[0].m_update_counter > m_directory_blocks[1].m_update_counter)
-    m_active_directory = 0;
-  else
-    m_active_directory = 1;
+  return Test(GCMemcardValidityIssues::FAILED_TO_OPEN) || Test(GCMemcardValidityIssues::IO_ERROR) ||
+         Test(GCMemcardValidityIssues::INVALID_CARD_SIZE) ||
+         Test(GCMemcardValidityIssues::INVALID_CHECKSUM) ||
+         Test(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE) ||
+         Test(GCMemcardValidityIssues::FREE_BLOCK_MISMATCH) ||
+         Test(GCMemcardValidityIssues::DIR_BAT_INCONSISTENT);
+}
 
-  if (m_bat_blocks[0].m_update_counter > m_bat_blocks[1].m_update_counter)
-    m_active_bat = 0;
+bool GCMemcardErrorCode::Test(GCMemcardValidityIssues code) const
+{
+  return m_errors.test(static_cast<size_t>(code));
+}
+
+void GCMemcardErrorCode::Set(GCMemcardValidityIssues code)
+{
+  m_errors.set(static_cast<size_t>(code));
+}
+
+GCMemcardErrorCode& GCMemcardErrorCode::operator|=(const GCMemcardErrorCode& other)
+{
+  this->m_errors |= other.m_errors;
+  return *this;
+}
+
+GCMemcard::GCMemcard()
+    : m_valid(false), m_size_blocks(0), m_size_mb(0), m_active_directory(0), m_active_bat(0)
+{
+}
+
+std::optional<GCMemcard> GCMemcard::Create(std::string filename, u16 size_mbits, bool shift_jis)
+{
+  GCMemcard card;
+  card.m_filename = std::move(filename);
+
+  // TODO: Format() not only formats the card but also writes it to disk at m_filename.
+  // Those tasks should probably be separated.
+  if (!card.Format(shift_jis, size_mbits))
+    return std::nullopt;
+
+  return std::move(card);
+}
+
+std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::string filename)
+{
+  GCMemcardErrorCode error_code;
+  File::IOFile file(filename, "rb");
+  if (!file.IsOpen())
+  {
+    error_code.Set(GCMemcardValidityIssues::FAILED_TO_OPEN);
+    return std::make_pair(error_code, std::nullopt);
+  }
+
+  // check if the filesize is a valid memory card size
+  const u64 filesize = file.GetSize();
+  const u64 filesize_megabits = BytesToMegabits(filesize).value_or(0);
+  const std::array<u16, 6> valid_megabits = {{
+      MBIT_SIZE_MEMORY_CARD_59,
+      MBIT_SIZE_MEMORY_CARD_123,
+      MBIT_SIZE_MEMORY_CARD_251,
+      MBIT_SIZE_MEMORY_CARD_507,
+      MBIT_SIZE_MEMORY_CARD_1019,
+      MBIT_SIZE_MEMORY_CARD_2043,
+  }};
+
+  if (!std::any_of(valid_megabits.begin(), valid_megabits.end(),
+                   [filesize_megabits](u64 mbits) { return mbits == filesize_megabits; }))
+  {
+    error_code.Set(GCMemcardValidityIssues::INVALID_CARD_SIZE);
+    return std::make_pair(error_code, std::nullopt);
+  }
+
+  const u16 card_size_mbits = static_cast<u16>(filesize_megabits);
+
+  // read the entire card into memory
+  GCMemcard card;
+  file.Seek(0, SEEK_SET);
+  if (!file.ReadBytes(&card.m_header_block, BLOCK_SIZE) ||
+      !file.ReadBytes(&card.m_directory_blocks[0], BLOCK_SIZE) ||
+      !file.ReadBytes(&card.m_directory_blocks[1], BLOCK_SIZE) ||
+      !file.ReadBytes(&card.m_bat_blocks[0], BLOCK_SIZE) ||
+      !file.ReadBytes(&card.m_bat_blocks[1], BLOCK_SIZE))
+  {
+    error_code.Set(GCMemcardValidityIssues::IO_ERROR);
+    return std::make_pair(error_code, std::nullopt);
+  }
+
+  const u16 card_size_blocks = card_size_mbits * MBIT_TO_BLOCKS;
+  const u16 user_data_blocks = card_size_blocks - MC_FST_BLOCKS;
+  card.m_data_blocks.reserve(user_data_blocks);
+  for (u16 i = 0; i < user_data_blocks; ++i)
+  {
+    GCMBlock& block = card.m_data_blocks.emplace_back();
+    if (!file.ReadArray(block.m_block.data(), BLOCK_SIZE))
+    {
+      error_code.Set(GCMemcardValidityIssues::IO_ERROR);
+      return std::make_pair(error_code, std::nullopt);
+    }
+  }
+
+  file.Close();
+
+  card.m_filename = std::move(filename);
+  card.m_size_blocks = card_size_blocks;
+  card.m_size_mb = card_size_mbits;
+
+  // can return invalid card size, invalid checksum, data in unused area
+  // data in unused area is okay, otherwise fail
+  const GCMemcardErrorCode header_error_code = card.m_header_block.CheckForErrors(card_size_mbits);
+  error_code |= header_error_code;
+  if (header_error_code.HasCriticalErrors())
+    return std::make_pair(error_code, std::nullopt);
+
+  // The GC BIOS counts any card as corrupted as long as at least any two of [dir0, dir1, bat0,
+  // bat1] are corrupted. Yes, even if we have one valid dir and one valid bat, and even if those
+  // are both supposedly the newer ones.
+  //
+  // If both blocks of a single category are non-corrupted the used block depends on the update
+  // counter. If both blocks have the same update counter, it prefers block 0. Otherwise it prefers
+  // whichever block has the higher value. Essentially, if (0.update_ctr >= 1.update_ctr) { use 0 }
+  // else { use 1 }.
+  //
+  // If a single block of the four is corrupted, the non-corrupted one of the same category is
+  // immediately copied over the corrupted block with an incremented update counter. At this point
+  // both blocks contain the same data, so it's hard to tell which one is used, but presumably it
+  // uses the one with the now-higher update counter, same as it would have otherwise.
+  //
+  // This rule only applies for errors within a single block! That is, invalid checksums for both
+  // types, and free block mismatch for the BATs. Once two valid blocks have been selected but it
+  // later turns out they do not match eachother (eg. claimed block count of a file in the directory
+  // does not match the actual block count arrived at by following BAT), the card will be treated as
+  // corrupted, even if perhaps a different combination of the two blocks would result in a valid
+  // memory card.
+
+  // can return invalid checksum, data in unused area
+  GCMemcardErrorCode dir_block_0_error_code = card.m_directory_blocks[0].CheckForErrors();
+  GCMemcardErrorCode dir_block_1_error_code = card.m_directory_blocks[1].CheckForErrors();
+
+  // can return invalid card size, invalid checksum, data in unused area, free block mismatch
+  GCMemcardErrorCode bat_block_0_error_code = card.m_bat_blocks[0].CheckForErrors(card_size_mbits);
+  GCMemcardErrorCode bat_block_1_error_code = card.m_bat_blocks[1].CheckForErrors(card_size_mbits);
+
+  const bool dir_block_0_valid = !dir_block_0_error_code.HasCriticalErrors();
+  const bool dir_block_1_valid = !dir_block_1_error_code.HasCriticalErrors();
+  const bool bat_block_0_valid = !bat_block_0_error_code.HasCriticalErrors();
+  const bool bat_block_1_valid = !bat_block_1_error_code.HasCriticalErrors();
+
+  // if any two (at least) blocks are corrupted return failure
+  // TODO: Consider allowing a recovery option when there's still a valid one of each type.
+  int number_of_corrupted_dir_bat_blocks = 0;
+  if (!dir_block_0_valid)
+    ++number_of_corrupted_dir_bat_blocks;
+  if (!dir_block_1_valid)
+    ++number_of_corrupted_dir_bat_blocks;
+  if (!bat_block_0_valid)
+    ++number_of_corrupted_dir_bat_blocks;
+  if (!bat_block_1_valid)
+    ++number_of_corrupted_dir_bat_blocks;
+
+  if (number_of_corrupted_dir_bat_blocks > 1)
+  {
+    error_code |= dir_block_0_error_code;
+    error_code |= dir_block_1_error_code;
+    error_code |= bat_block_0_error_code;
+    error_code |= bat_block_1_error_code;
+    return std::make_pair(error_code, std::nullopt);
+  }
+
+  // if exactly one block is corrupted copy and update it over the non-corrupted block
+  if (number_of_corrupted_dir_bat_blocks == 1)
+  {
+    if (!dir_block_0_valid)
+    {
+      card.m_directory_blocks[0] = card.m_directory_blocks[1];
+      card.m_directory_blocks[0].m_update_counter = card.m_directory_blocks[0].m_update_counter + 1;
+      card.m_directory_blocks[0].FixChecksums();
+      dir_block_0_error_code = card.m_directory_blocks[0].CheckForErrors();
+    }
+    else if (!dir_block_1_valid)
+    {
+      card.m_directory_blocks[1] = card.m_directory_blocks[0];
+      card.m_directory_blocks[1].m_update_counter = card.m_directory_blocks[1].m_update_counter + 1;
+      card.m_directory_blocks[1].FixChecksums();
+      dir_block_1_error_code = card.m_directory_blocks[1].CheckForErrors();
+    }
+    else if (!bat_block_0_valid)
+    {
+      card.m_bat_blocks[0] = card.m_bat_blocks[1];
+      card.m_bat_blocks[0].m_update_counter = card.m_bat_blocks[0].m_update_counter + 1;
+      card.m_bat_blocks[0].FixChecksums();
+      bat_block_0_error_code = card.m_bat_blocks[0].CheckForErrors(card_size_mbits);
+    }
+    else if (!bat_block_1_valid)
+    {
+      card.m_bat_blocks[1] = card.m_bat_blocks[0];
+      card.m_bat_blocks[1].m_update_counter = card.m_bat_blocks[1].m_update_counter + 1;
+      card.m_bat_blocks[1].FixChecksums();
+      bat_block_1_error_code = card.m_bat_blocks[1].CheckForErrors(card_size_mbits);
+    }
+    else
+    {
+      // should never reach here
+      assert(0);
+    }
+  }
+
+  error_code |= dir_block_0_error_code;
+  error_code |= dir_block_1_error_code;
+  error_code |= bat_block_0_error_code;
+  error_code |= bat_block_1_error_code;
+
+  // select the in-use Dir and BAT blocks based on update counter
+
+  // These are compared as signed values by the GC BIOS. There is no protection against overflow, so
+  // if one block is MAX_VAL and the other is MIN_VAL it still picks the MAX_VAL one as the active
+  // one, even if that results in a corrupted memory card.
+  // TODO: We could try to be smarter about this to rescue seemingly-corrupted cards.
+
+  if (card.m_directory_blocks[0].m_update_counter >= card.m_directory_blocks[1].m_update_counter)
+    card.m_active_directory = 0;
   else
-    m_active_bat = 1;
+    card.m_active_directory = 1;
+
+  if (card.m_bat_blocks[0].m_update_counter >= card.m_bat_blocks[1].m_update_counter)
+    card.m_active_bat = 0;
+  else
+    card.m_active_bat = 1;
+
+  // check for consistency between the active Dir and BAT
+  const GCMemcardErrorCode dir_bat_consistency_error_code =
+      card.GetActiveDirectory().CheckForErrorsWithBat(card.GetActiveBat());
+  error_code |= dir_bat_consistency_error_code;
+  if (error_code.HasCriticalErrors())
+    return std::make_pair(error_code, std::nullopt);
+
+  card.m_valid = true;
+
+  return std::make_pair(error_code, std::move(card));
 }
 
 const Directory& GCMemcard::GetActiveDirectory() const
@@ -290,31 +349,6 @@ std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size)
     inv_csum = 0;
 
   return std::make_pair(csum, inv_csum);
-}
-
-u32 GCMemcard::TestChecksums() const
-{
-  const auto [csum_hdr, cinv_hdr] = m_header_block.CalculateChecksums();
-  const auto [csum_dir0, cinv_dir0] = m_directory_blocks[0].CalculateChecksums();
-  const auto [csum_dir1, cinv_dir1] = m_directory_blocks[1].CalculateChecksums();
-  const auto [csum_bat0, cinv_bat0] = m_bat_blocks[0].CalculateChecksums();
-  const auto [csum_bat1, cinv_bat1] = m_bat_blocks[1].CalculateChecksums();
-
-  u32 results = 0;
-  if ((m_header_block.m_checksum != csum_hdr) || (m_header_block.m_checksum_inv != cinv_hdr))
-    results |= 1;
-  if ((m_directory_blocks[0].m_checksum != csum_dir0) ||
-      (m_directory_blocks[0].m_checksum_inv != cinv_dir0))
-    results |= 2;
-  if ((m_directory_blocks[1].m_checksum != csum_dir1) ||
-      (m_directory_blocks[1].m_checksum_inv != cinv_dir1))
-    results |= 4;
-  if ((m_bat_blocks[0].m_checksum != csum_bat0) || (m_bat_blocks[0].m_checksum_inv != cinv_bat0))
-    results |= 8;
-  if ((m_bat_blocks[1].m_checksum != csum_bat1) || (m_bat_blocks[1].m_checksum_inv != cinv_bat1))
-    results |= 16;
-
-  return results;
 }
 
 bool GCMemcard::FixChecksums()
@@ -677,6 +711,50 @@ std::pair<u16, u16> BlockAlloc::CalculateChecksums() const
   constexpr size_t checksum_area_end = sizeof(BlockAlloc);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
+}
+
+GCMemcardErrorCode BlockAlloc::CheckForErrors(u16 size_mbits) const
+{
+  GCMemcardErrorCode error_code;
+
+  // verify checksums
+  const auto [checksum_sum, checksum_inv] = CalculateChecksums();
+  if (checksum_sum != m_checksum || checksum_inv != m_checksum_inv)
+    error_code.Set(GCMemcardValidityIssues::INVALID_CHECKSUM);
+
+  if (size_mbits > 0 && size_mbits <= 256)
+  {
+    // check if free block count matches the actual amount of free blocks in m_map
+    const u16 total_available_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
+    assert(total_available_blocks <= m_map.size());
+    u16 blocks_in_use = 0;
+    for (size_t i = 0; i < total_available_blocks; ++i)
+    {
+      if (m_map[i] != 0)
+        ++blocks_in_use;
+    }
+    const u16 free_blocks = total_available_blocks - blocks_in_use;
+
+    if (free_blocks != m_free_blocks)
+      error_code.Set(GCMemcardValidityIssues::FREE_BLOCK_MISMATCH);
+
+    // remaining blocks map to nothing on hardware and must be empty
+    for (size_t i = total_available_blocks; i < m_map.size(); ++i)
+    {
+      if (m_map[i] != 0)
+      {
+        error_code.Set(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA);
+        break;
+      }
+    }
+  }
+  else
+  {
+    // card size is outside the range of blocks that can be addressed
+    error_code.Set(GCMemcardValidityIssues::INVALID_CARD_SIZE);
+  }
+
+  return error_code;
 }
 
 GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
@@ -1253,7 +1331,8 @@ bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
   m_data_blocks.clear();
   m_data_blocks.resize(m_size_blocks - MC_FST_BLOCKS);
 
-  InitActiveDirBat();
+  m_active_directory = 0;
+  m_active_bat = 0;
   m_valid = true;
 
   return Save();
@@ -1473,6 +1552,29 @@ std::pair<u16, u16> Header::CalculateChecksums() const
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
+GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
+{
+  GCMemcardErrorCode error_code;
+
+  // total card size should match card size in header
+  if (m_size_mb != card_size_mbits)
+    error_code.Set(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE);
+
+  // unused areas, should always be filled with 0xFF
+  if (std::any_of(m_unused_1.begin(), m_unused_1.end(), [](u8 val) { return val != 0xFF; }) ||
+      std::any_of(m_unused_2.begin(), m_unused_2.end(), [](u8 val) { return val != 0xFF; }))
+  {
+    error_code.Set(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA);
+  }
+
+  // verify checksums
+  const auto [checksum_sum, checksum_inv] = CalculateChecksums();
+  if (checksum_sum != m_checksum || checksum_inv != m_checksum_inv)
+    error_code.Set(GCMemcardValidityIssues::INVALID_CHECKSUM);
+
+  return error_code;
+}
+
 Directory::Directory()
 {
   memset(this, 0xFF, BLOCK_SIZE);
@@ -1507,4 +1609,77 @@ std::pair<u16, u16> Directory::CalculateChecksums() const
   constexpr size_t checksum_area_end = offsetof(Directory, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
+}
+
+GCMemcardErrorCode Directory::CheckForErrors() const
+{
+  GCMemcardErrorCode error_code;
+
+  // verify checksums
+  const auto [checksum_sum, checksum_inv] = CalculateChecksums();
+  if (checksum_sum != m_checksum || checksum_inv != m_checksum_inv)
+    error_code.Set(GCMemcardValidityIssues::INVALID_CHECKSUM);
+
+  // unused area, should always be filled with 0xFF
+  if (std::any_of(m_padding.begin(), m_padding.end(), [](u8 val) { return val != 0xFF; }))
+    error_code.Set(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA);
+
+  return error_code;
+}
+
+GCMemcardErrorCode Directory::CheckForErrorsWithBat(const BlockAlloc& bat) const
+{
+  GCMemcardErrorCode error_code;
+
+  for (u8 i = 0; i < DIRLEN; ++i)
+  {
+    const DEntry& entry = m_dir_entries[i];
+    if (entry.m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+      continue;
+
+    // check if we end up with the same number of blocks when traversing through the BAT using the
+    // given first block
+    const u16 dir_number_of_blocks = entry.m_block_count;
+    const u16 dir_first_block = entry.m_first_block;
+    bool bat_block_count_matches = false;
+    {
+      u16 remaining_blocks = dir_number_of_blocks;
+      u16 current_block = dir_first_block;
+      while (true)
+      {
+        if (remaining_blocks == 0)
+        {
+          // we should be at the last block but haven't seen the last-block BAT indicator yet, file
+          // is larger according to BAT, so we're inconsistent
+          break;
+        }
+        --remaining_blocks;
+        const u16 next_block = bat.GetNextBlock(current_block);
+        if (next_block == 0)
+        {
+          // current block is out-of-range or next block is unallocated, this is definitely wrong
+          break;
+        }
+        if (next_block == 0xFFFF)
+        {
+          // we're at the final block according to the BAT
+          // if there are zero remaining blocks according to the directory we're consistent,
+          // otherwise the file is smaller according to the BAT and we're inconsistent
+          bat_block_count_matches = remaining_blocks == 0;
+          break;
+        }
+        current_block = next_block;
+      }
+    }
+
+    if (!bat_block_count_matches)
+    {
+      error_code.Set(GCMemcardValidityIssues::DIR_BAT_INCONSISTENT);
+      break;
+    }
+  }
+
+  // TODO: We could also check if every allocated BAT block is actually reachable with the files.
+
+  return error_code;
 }
