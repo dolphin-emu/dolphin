@@ -114,7 +114,8 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_stop->setEnabled(false);
     m_recording_export->setEnabled(false);
   }
-  m_recording_play->setEnabled(!running);
+  m_recording_play->setEnabled(m_game_selected && !running);
+  m_recording_start->setEnabled((m_game_selected || running) && !Movie::IsPlayingInput());
 
   // Options
   m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
@@ -1109,15 +1110,15 @@ void MenuBar::NANDExtractCertificates()
 
 void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file)
 {
-  const bool game_selected = !!game_file;
+  m_game_selected = !!game_file;
 
-  m_recording_play->setEnabled(game_selected && !Core::IsRunning());
-  m_recording_start->setEnabled(game_selected && !Movie::IsPlayingInput());
+  m_recording_play->setEnabled(m_game_selected && !Core::IsRunning());
+  m_recording_start->setEnabled((m_game_selected || Core::IsRunning()) && !Movie::IsPlayingInput());
 }
 
 void MenuBar::OnRecordingStatusChanged(bool recording)
 {
-  m_recording_start->setEnabled(!recording);
+  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning()));
   m_recording_stop->setEnabled(recording);
   m_recording_export->setEnabled(recording);
 }
