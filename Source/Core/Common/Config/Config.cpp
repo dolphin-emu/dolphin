@@ -5,51 +5,78 @@
 #include <algorithm>
 #include <list>
 #include <map>
+#if __APPLE__
+#include <mutex>
+#else
+#include <shared_mutex>
+#endif
 
 #include "Common/Config/Config.h"
 
 namespace Config
 {
+using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
+
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
 static u32 s_callback_guards = 0;
 
-Layers* GetLayers()
-{
-  return &s_layers;
-}
+// Mac supports shared_mutex since 10.12 and we're targeting 10.10,
+// so only use unique locks there...
+#if __APPLE__
+static std::mutex s_layers_rw_lock;
 
-void AddLayer(std::unique_ptr<Layer> layer)
+using ReadLock = std::unique_lock<std::mutex>;
+using WriteLock = std::unique_lock<std::mutex>;
+#else
+static std::shared_mutex s_layers_rw_lock;
+
+using ReadLock = std::shared_lock<std::shared_mutex>;
+using WriteLock = std::unique_lock<std::shared_mutex>;
+#endif
+
+void AddLayerInternal(std::shared_ptr<Layer> layer)
 {
-  s_layers[layer->GetLayer()] = std::move(layer);
+  {
+    WriteLock lock(s_layers_rw_lock);
+
+    const Config::LayerType layer_type = layer->GetLayer();
+    s_layers.insert_or_assign(layer_type, std::move(layer));
+  }
   InvokeConfigChangedCallbacks();
 }
 
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader)
 {
-  AddLayer(std::make_unique<Layer>(std::move(loader)));
+  AddLayerInternal(std::make_shared<Layer>(std::move(loader)));
 }
 
-Layer* GetLayer(LayerType layer)
+std::shared_ptr<Layer> GetLayer(LayerType layer)
 {
-  if (!LayerExists(layer))
-    return nullptr;
-  return s_layers[layer].get();
+  ReadLock lock(s_layers_rw_lock);
+
+  std::shared_ptr<Layer> result;
+  const auto it = s_layers.find(layer);
+  if (it != s_layers.end())
+  {
+    result = it->second;
+  }
+  return result;
 }
 
 void RemoveLayer(LayerType layer)
 {
-  s_layers.erase(layer);
+  {
+    WriteLock lock(s_layers_rw_lock);
+
+    s_layers.erase(layer);
+  }
   InvokeConfigChangedCallbacks();
-}
-bool LayerExists(LayerType layer)
-{
-  return s_layers.find(layer) != s_layers.end();
 }
 
 void AddConfigChangedCallback(ConfigChangedCallback func)
 {
-  s_callbacks.emplace_back(func);
+  s_callbacks.emplace_back(std::move(func));
 }
 
 void InvokeConfigChangedCallbacks()
@@ -64,15 +91,23 @@ void InvokeConfigChangedCallbacks()
 // Explicit load and save of layers
 void Load()
 {
-  for (auto& layer : s_layers)
-    layer.second->Load();
+  {
+    ReadLock lock(s_layers_rw_lock);
+
+    for (auto& layer : s_layers)
+      layer.second->Load();
+  }
   InvokeConfigChangedCallbacks();
 }
 
 void Save()
 {
-  for (auto& layer : s_layers)
-    layer.second->Save();
+  {
+    ReadLock lock(s_layers_rw_lock);
+
+    for (auto& layer : s_layers)
+      layer.second->Save();
+  }
   InvokeConfigChangedCallbacks();
 }
 
@@ -84,13 +119,17 @@ void Init()
 
 void Shutdown()
 {
+  WriteLock lock(s_layers_rw_lock);
+
   s_layers.clear();
   s_callbacks.clear();
 }
 
 void ClearCurrentRunLayer()
 {
-  s_layers[LayerType::CurrentRun] = std::make_unique<Layer>(LayerType::CurrentRun);
+  WriteLock lock(s_layers_rw_lock);
+
+  s_layers.insert_or_assign(LayerType::CurrentRun, std::make_shared<Layer>(LayerType::CurrentRun));
 }
 
 static const std::map<System, std::string> system_to_name = {
@@ -129,13 +168,16 @@ const std::string& GetLayerName(LayerType layer)
 
 LayerType GetActiveLayerForConfig(const ConfigLocation& config)
 {
+  ReadLock lock(s_layers_rw_lock);
+
   for (auto layer : SEARCH_ORDER)
   {
-    if (!LayerExists(layer))
-      continue;
-
-    if (GetLayer(layer)->Exists(config))
-      return layer;
+    const auto it = s_layers.find(layer);
+    if (it != s_layers.end())
+    {
+      if (it->second->Exists(config))
+        return layer;
+    }
   }
 
   // If config is not present in any layer, base layer is considered active.

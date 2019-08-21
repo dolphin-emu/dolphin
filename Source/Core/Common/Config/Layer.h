@@ -103,18 +103,18 @@ public:
   void DeleteAllKeys();
 
   template <typename T>
-  T Get(const ConfigInfo<T>& config_info)
+  T Get(const ConfigInfo<T>& config_info) const
   {
     return Get<T>(config_info.location).value_or(config_info.default_value);
   }
 
   template <typename T>
-  std::optional<T> Get(const ConfigLocation& location)
+  std::optional<T> Get(const ConfigLocation& location) const
   {
-    const std::optional<std::string>& str_value = m_map[location];
-    if (!str_value)
+    const auto iter = m_map.find(location);
+    if (iter == m_map.end() || !iter->second.has_value())
       return std::nullopt;
-    return detail::TryParse<T>(*str_value);
+    return detail::TryParse<T>(*iter->second);
   }
 
   template <typename T>
@@ -129,13 +129,13 @@ public:
     Set(location, ValueToString(value));
   }
 
-  void Set(const ConfigLocation& location, const std::string& new_value)
+  void Set(const ConfigLocation& location, std::string new_value)
   {
-    std::optional<std::string>& current_value = m_map[location];
-    if (current_value == new_value)
+    const auto iter = m_map.find(location);
+    if (iter != m_map.end() && iter->second == new_value)
       return;
     m_is_dirty = true;
-    current_value = new_value;
+    m_map.insert_or_assign(location, std::move(new_value));
   }
 
   Section GetSection(System system, const std::string& section);

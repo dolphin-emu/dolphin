@@ -16,16 +16,12 @@
 
 namespace Config
 {
-using Layers = std::map<LayerType, std::unique_ptr<Layer>>;
 using ConfigChangedCallback = std::function<void()>;
 
 // Layer management
-Layers* GetLayers();
-void AddLayer(std::unique_ptr<Layer> layer);
 void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
-Layer* GetLayer(LayerType layer);
+std::shared_ptr<Layer> GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
-bool LayerExists(LayerType layer);
 
 void AddConfigChangedCallback(ConfigChangedCallback func);
 void InvokeConfigChangedCallbacks();
