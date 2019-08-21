@@ -31,6 +31,15 @@
     <string name="wiimote_7">Wii Remote 4</string>
     <!-- END WARNING -->
 
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
+            is made that they are placed together so that we can access them sequentially in a loop.
+            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
+    <string name="wiimote_extension_4">Wii Remote Extension 1</string>
+    <string name="wiimote_extension_5">Wii Remote Extension 2</string>
+    <string name="wiimote_extension_6">Wii Remote Extension 3</string>
+    <string name="wiimote_extension_7">Wii Remote Extension 4</string>
+    <!-- END WARNING -->
+
     <string name="wiimote_extensions">Extension</string>
     <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
     <string name="wiimote_ir">IR</string>

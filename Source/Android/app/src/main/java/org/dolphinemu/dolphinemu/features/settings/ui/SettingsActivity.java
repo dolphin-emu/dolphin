@@ -98,7 +98,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     mPresenter.onBackPressed();
   }
 
-
   @Override
   public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack,
           String gameID)
