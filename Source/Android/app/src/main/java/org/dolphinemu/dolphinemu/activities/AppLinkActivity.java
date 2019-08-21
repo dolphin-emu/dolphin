@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
@@ -26,6 +28,7 @@ public class AppLinkActivity extends FragmentActivity
 
   private AppLinkHelper.PlayAction playAction;
   private DirectoryStateReceiver directoryStateReceiver;
+  private BroadcastReceiver gameFileCacheReceiver;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -63,8 +66,11 @@ public class AppLinkActivity extends FragmentActivity
    */
   private void initResources()
   {
-    IntentFilter statusIntentFilter = new IntentFilter(
+    IntentFilter directoryStateIntentFilter = new IntentFilter(
             DirectoryInitialization.BROADCAST_ACTION);
+
+    IntentFilter gameFileCacheIntentFilter = new IntentFilter(
+            GameFileCacheService.BROADCAST_ACTION);
 
     directoryStateReceiver =
             new DirectoryStateReceiver(directoryInitializationState ->
@@ -72,7 +78,7 @@ public class AppLinkActivity extends FragmentActivity
               if (directoryInitializationState ==
                       DirectoryInitialization.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
               {
-                play(playAction);
+                tryPlay(playAction);
               }
               else if (directoryInitializationState ==
                       DirectoryInitialization.DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
@@ -88,10 +94,23 @@ public class AppLinkActivity extends FragmentActivity
               }
             });
 
-    // Registers the DirectoryStateReceiver and its intent filters
-    LocalBroadcastManager.getInstance(this).registerReceiver(
-            directoryStateReceiver,
-            statusIntentFilter);
+    gameFileCacheReceiver =
+            new BroadcastReceiver()
+            {
+              @Override
+              public void onReceive(Context context, Intent intent)
+              {
+                if (DirectoryInitialization.areDolphinDirectoriesReady())
+                {
+                  tryPlay(playAction);
+                }
+              }
+            };
+
+    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+    broadcastManager.registerReceiver(directoryStateReceiver, directoryStateIntentFilter);
+    broadcastManager.registerReceiver(gameFileCacheReceiver, gameFileCacheIntentFilter);
+
     DirectoryInitialization.start(this);
     GameFileCacheService.startLoad(this);
   }
@@ -107,17 +126,31 @@ public class AppLinkActivity extends FragmentActivity
     finish();
   }
 
+  private void tryPlay(AppLinkHelper.PlayAction action)
+  {
+    // TODO: This approach of getting the game from the game file cache without rescanning
+    // the library means that we can fail to launch games if the cache file has been deleted.
+
+    GameFile game = GameFileCacheService.getGameFileByGameId(action.getGameId());
+
+    // If game == null and the load isn't done, wait for the next GameFileCacheService broadcast.
+    // If game == null and the load is done, call play with a null game, making us exit in failure.
+    if (game != null || GameFileCacheService.hasLoadedCache())
+    {
+      play(action, game);
+    }
+  }
+
   /**
    * Action if program(game) is selected
    */
-  private void play(AppLinkHelper.PlayAction action)
+  private void play(AppLinkHelper.PlayAction action, GameFile game)
   {
     Log.d(TAG, "Playing game "
             + action.getGameId()
             + " from channel "
             + action.getChannelId());
 
-    GameFile game = GameFileCacheService.getGameFileByGameId(action.getGameId());
     if (game == null)
       Log.e(TAG, "Invalid Game: " + action.getGameId());
     else
