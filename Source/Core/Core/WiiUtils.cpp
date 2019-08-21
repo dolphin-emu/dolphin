@@ -46,7 +46,8 @@
 
 namespace WiiUtils
 {
-static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
+static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad,
+                      IOS::HLE::Device::ES::VerifySignature verify_signature)
 {
   if (!wad.GetTicket().IsValid() || !wad.GetTMD().IsValid())
   {
@@ -59,28 +60,20 @@ static bool ImportWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad)
 
   IOS::HLE::Device::ES::Context context;
   IOS::HLE::ReturnCode ret;
-  const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
 
   // Ensure the common key index is correct, as it's checked by IOS.
   IOS::ES::TicketReader ticket = wad.GetTicketWithFixedCommonKey();
 
   while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain(),
-                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised)) < 0 ||
-         (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
+                                 IOS::HLE::Device::ES::TicketImportType::Unpersonalised,
+                                 verify_signature)) < 0 ||
+         (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain(),
+                                    verify_signature)) < 0)
   {
-    if (checks_enabled && ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&
-        AskYesNoT("This WAD has not been signed by Nintendo. Continue to import?"))
-    {
-      SConfig::GetInstance().m_enable_signature_checks = false;
-      continue;
-    }
-
     if (ret != IOS::HLE::IOSC_FAIL_CHECKVALUE)
       PanicAlertT("WAD installation failed: Could not initialise title import (error %d).", ret);
-    SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
     return false;
   }
-  SConfig::GetInstance().m_enable_signature_checks = checks_enabled;
 
   const bool contents_imported = [&]() {
     const u64 title_id = tmd.GetTitleId();
@@ -148,7 +141,8 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::VolumeWAD& wad, InstallType
   if (previous_temporary_title_id)
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
 
-  if (!ImportWAD(ios, wad))
+  // A lot of people use fakesigned WADs, so disable signature checking when installing a WAD.
+  if (!ImportWAD(ios, wad, IOS::HLE::Device::ES::VerifySignature::No))
     return false;
 
   // Keep track of the title ID so this title can be removed to make room for any future install.
@@ -738,7 +732,8 @@ UpdateResult DiscSystemUpdater::ProcessEntry(u32 type, std::bitset<32> attrs,
     return UpdateResult::DiscReadFailed;
   }
   const DiscIO::VolumeWAD wad{std::move(blob)};
-  return ImportWAD(m_ios, wad) ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
+  const bool success = ImportWAD(m_ios, wad, IOS::HLE::Device::ES::VerifySignature::Yes);
+  return success ? UpdateResult::Succeeded : UpdateResult::ImportFailed;
 }
 
 UpdateResult DoOnlineUpdate(UpdateCallback update_callback, const std::string& region)

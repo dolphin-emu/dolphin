@@ -110,11 +110,18 @@ public:
     // Ticket is unpersonalised, so ignore any console specific decryption data.
     Unpersonalised,
   };
+  enum class VerifySignature
+  {
+    No,
+    Yes,
+  };
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
-                          TicketImportType type = TicketImportType::PossiblyPersonalised);
+                          TicketImportType type = TicketImportType::PossiblyPersonalised,
+                          VerifySignature verify_signature = VerifySignature::Yes);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
-                             const std::vector<u8>& cert_chain);
+                             const std::vector<u8>& cert_chain,
+                             VerifySignature verify_signature = VerifySignature::Yes);
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
   ReturnCode ImportContentEnd(Context& context, u32 content_fd);
