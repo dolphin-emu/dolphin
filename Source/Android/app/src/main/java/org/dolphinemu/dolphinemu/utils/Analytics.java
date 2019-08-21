@@ -18,8 +18,6 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public class Analytics
 {
-  private static DirectoryStateReceiver directoryStateReceiver;
-
   private static final String analyticsAsked =
           Settings.SECTION_ANALYTICS + "_" + SettingsFile.KEY_ANALYTICS_PERMISSION_ASKED;
   private static final String analyticsEnabled =
@@ -35,31 +33,8 @@ public class Analytics
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     if (!preferences.getBoolean(analyticsAsked, false))
     {
-      if (!DirectoryInitialization.areDolphinDirectoriesReady())
-      {
-        // Wait for directories to get initialized
-        IntentFilter statusIntentFilter = new IntentFilter(
-                DirectoryInitialization.BROADCAST_ACTION);
-
-        directoryStateReceiver = new DirectoryStateReceiver(directoryInitializationState ->
-        {
-          if (directoryInitializationState ==
-                  DirectoryInitialization.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-          {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(directoryStateReceiver);
-            directoryStateReceiver = null;
-            showMessage(context, preferences);
-          }
-        });
-        // Registers the DirectoryStateReceiver and its intent filters
-        LocalBroadcastManager.getInstance(context).registerReceiver(
-                directoryStateReceiver,
-                statusIntentFilter);
-      }
-      else
-      {
-        showMessage(context, preferences);
-      }
+      new AfterDirectoryInitializationRunner().run(context,
+              () -> showMessage(context, preferences));
     }
   }
 

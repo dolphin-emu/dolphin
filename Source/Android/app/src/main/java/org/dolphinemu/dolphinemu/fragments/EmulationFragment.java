@@ -82,12 +82,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
     String[] gamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-    boolean firstOpen = preferences.getBoolean(StartupHandler.NEW_SESSION, true);
-    SharedPreferences.Editor sPrefsEditor = preferences.edit();
-    sPrefsEditor.putBoolean(StartupHandler.NEW_SESSION, false);
-    sPrefsEditor.apply();
-    mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath(), firstOpen);
+    mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath());
   }
 
   /**
@@ -271,12 +266,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     private Surface mSurface;
     private boolean mRunWhenSurfaceIsValid;
     private boolean loadPreviousTemporaryState;
-    private boolean firstOpen;
     private final String temporaryStatePath;
 
-    EmulationState(String[] gamePaths, String temporaryStatePath, boolean firstOpen)
+    EmulationState(String[] gamePaths, String temporaryStatePath)
     {
-      this.firstOpen = firstOpen;
       mGamePaths = gamePaths;
       this.temporaryStatePath = temporaryStatePath;
       // Starting state is stopped.
@@ -420,7 +413,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
           else
           {
             Log.debug("[EmulationFragment] Starting emulation thread.");
-            NativeLibrary.Run(mGamePaths, firstOpen);
+            NativeLibrary.Run(mGamePaths);
           }
         }, "NativeEmulation");
         mEmulationThread.start();

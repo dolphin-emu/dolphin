@@ -245,12 +245,14 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCo
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
                                                                                  jobject obj,
                                                                                  jboolean enable);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv* env,
+                                                                               jobject obj);
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv* env, jobject obj);
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv* env, jobject obj);
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jboolean jfirstOpen);
-
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2(
+    JNIEnv* env, jobject obj, jstring jFile);
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
     JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate);
@@ -585,6 +587,27 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadWiimot
   Wiimote::LoadConfig();
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadConfig(JNIEnv* env,
+                                                                                 jobject obj)
+{
+  SConfig::GetInstance().LoadSettings();
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv* env,
+                                                                               jobject obj)
+{
+  Common::RegisterMsgAlertHandler(&MsgAlert);
+  Common::AndroidSetReportHandler(&ReportSend);
+  DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
+  UICommon::Init();
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv* env, jobject obj)
+{
+  DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
+}
+
 // Returns the scale factor for imgui rendering.
 // Based on the scaledDensity of the device's display metrics.
 static float GetRenderSurfaceScale(JNIEnv* env)
@@ -630,23 +653,13 @@ static float GetRenderSurfaceScale(JNIEnv* env)
   return scaled_density;
 }
 
-static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool first_open,
+static void Run(JNIEnv* env, const std::vector<std::string>& paths,
                 std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
 {
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
 
-  Common::RegisterMsgAlertHandler(&MsgAlert);
-  Common::AndroidSetReportHandler(&ReportSend);
-  DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
-
   std::unique_lock<std::mutex> guard(s_host_identity_lock);
-  UICommon::Init();
-
-  if (first_open)
-  {
-    DolphinAnalytics::Instance().ReportDolphinStart(GetAnalyticValue("DEVICE_TYPE"));
-  }
 
   WiimoteReal::InitAdapterClass();
 
@@ -679,7 +692,6 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool first_o
 
   Core::Shutdown();
   ButtonManager::Shutdown();
-  UICommon::Shutdown();
   guard.unlock();
 
   if (s_surf)
@@ -689,17 +701,17 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool first_o
   }
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jobjectArray jPaths, jboolean jfirstOpen)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2(
+    JNIEnv* env, jobject obj, jobjectArray jPaths)
 {
-  Run(env, JStringArrayToVector(env, jPaths), jfirstOpen);
+  Run(env, JStringArrayToVector(env, jPaths));
 }
 
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Ljava_lang_String_2Z(
     JNIEnv* env, jobject obj, jobjectArray jPaths, jstring jSavestate, jboolean jDeleteSavestate)
 {
-  Run(env, JStringArrayToVector(env, jPaths), false, GetJString(env, jSavestate), jDeleteSavestate);
+  Run(env, JStringArrayToVector(env, jPaths), GetJString(env, jSavestate), jDeleteSavestate);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env,

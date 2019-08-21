@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 
 import android.text.TextUtils;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
@@ -175,6 +176,9 @@ public class Settings
 
         SettingsFile.saveFile(fileName, iniSections, view);
       }
+
+      // Notify the native code of the changes
+      NativeLibrary.ReloadConfig();
     }
     else
     {
