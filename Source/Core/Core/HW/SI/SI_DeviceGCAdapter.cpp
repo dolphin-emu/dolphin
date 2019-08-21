@@ -28,7 +28,7 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
     m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[pad_num];
 }
 
-GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
+GCPadStatus CSIDevice_GCAdapter::GetPadStatus(bool new_movie_sample)
 {
   GCPadStatus pad_status = {};
 
@@ -38,8 +38,8 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
   {
     pad_status = GCAdapter::Input(m_device_number);
   }
-
-  HandleMoviePadStatus(&pad_status);
+  if (new_movie_sample)
+    HandleMoviePadStatus(&pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -61,17 +61,35 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int request_length)
     // into this port on the hardware gc adapter, exposing it to the game.
     if (!GCAdapter::DeviceConnected(m_device_number))
     {
-      u32 device = Common::swap32(SI_NONE);
-      memcpy(buffer, &device, sizeof(device));
-      return 4;
+      return 0;
     }
+  }
+  // Read the command
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
+  switch (command)
+  {
+  case CMD_ORIGIN:
+  case CMD_RECALIBRATE:
+  {
+    SOrigin origin = {};
+    GCAdapter::origin_data od;
+    GCAdapter::GetOrigin(m_device_number, &od);
+    origin.origin_stick_x = od.stickX;
+    origin.origin_stick_y = od.stickY;
+    origin.substick_x = od.substickX;
+    origin.substick_y = od.substickY;
+    origin.trigger_left = od.triggerL;
+    origin.trigger_right = od.triggerR;
+    std::copy_n(reinterpret_cast<u8*>(&origin), sizeof(SOrigin), buffer);
+    return sizeof(SOrigin);
+  }
   }
   return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
-bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
+bool CSIDevice_GCAdapter::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
-  CSIDevice_GCController::GetData(hi, low);
+  CSIDevice_GCController::GetData(pad_status, hi, low);
 
   if (m_simulate_konga)
   {

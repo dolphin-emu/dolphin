@@ -31,7 +31,7 @@ void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-void UpdateDevices();
+void TriggerPoll(s64 cycles_late);
 
 void RemoveDevice(int device_number);
 void AddDevice(SIDevices device, int device_number);
@@ -42,5 +42,6 @@ void ChangeDevice(SIDevices device, int channel);
 SIDevices GetDeviceType(int channel);
 
 u32 GetPollXLines();
+u32 GetPollYSampleCount();
 
 }  // end of namespace SerialInterface

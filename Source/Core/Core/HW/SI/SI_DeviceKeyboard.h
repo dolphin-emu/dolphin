@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Core/HW/SI/SI_Device.h"
+#include "InputCommon/GCPadStatus.h"
 
 class PointerWrap;
 struct KeyboardStatus;
@@ -21,7 +22,7 @@ public:
   int RunBuffer(u8* buffer, int request_length) override;
 
   // Return true on new data
-  bool GetData(u32& hi, u32& low) override;
+  bool GetData(GCPadStatus& pad_status, u32& hi, u32& low) override;
 
   KeyboardStatus GetKeyboardStatus() const;
   void MapKeys(const KeyboardStatus& key_status, u8* key);

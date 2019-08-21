@@ -11,6 +11,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+#include "Common/Timer.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -41,12 +42,10 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   // For debug logging only
   ISIDevice::RunBuffer(buffer, request_length);
 
-  GCPadStatus pad_status = GetPadStatus();
+  GCPadStatus pad_status = GetPadStatus(false);
   if (!pad_status.isConnected)
   {
-    u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
-    std::memcpy(buffer, &reply, sizeof(reply));
-    return sizeof(reply);
+    return 0;
   }
 
   // Read the command
@@ -59,15 +58,14 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   case CMD_ID:
   {
     u32 id = Common::swap32(SI_GC_CONTROLLER);
-    std::memcpy(buffer, &id, sizeof(id));
-    return sizeof(id);
+    std::memcpy(buffer, &id, 3);
+    return 3;
   }
 
   case CMD_DIRECT:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Direct (Request length: %d)", request_length);
     u32 high, low;
-    GetData(high, low);
+    GetData(pad_status, high, low);
     for (int i = 0; i < 4; i++)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
@@ -78,8 +76,6 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 
   case CMD_ORIGIN:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
-
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
@@ -137,7 +133,7 @@ void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
   }
 }
 
-GCPadStatus CSIDevice_GCController::GetPadStatus()
+GCPadStatus CSIDevice_GCController::GetPadStatus(bool new_movie_sample)
 {
   GCPadStatus pad_status = {};
 
@@ -164,10 +160,8 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 // [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
 //  |\_ ERR_LATCH (error latched - check SISR)
 //  |_ ERR_STATUS (error on last GetData or SendCmd?)
-bool CSIDevice_GCController::GetData(u32& hi, u32& low)
+bool CSIDevice_GCController::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
-  GCPadStatus pad_status = GetPadStatus();
-
   if (!pad_status.isConnected)
   {
     hi = 0x80000000;
@@ -347,9 +341,9 @@ CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
 {
 }
 
-bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
+bool CSIDevice_TaruKonga::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
-  CSIDevice_GCController::GetData(hi, low);
+  CSIDevice_GCController::GetData(pad_status, hi, low);
 
   // Unsets the first 16 bits (StickX/Y), PAD_USE_ORIGIN,
   // and all buttons except: A, B, X, Y, Start, R

@@ -12,6 +12,7 @@
 #include <memory>
 #include <sstream>
 
+#include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
@@ -210,6 +211,13 @@ union USIEXIClockCount
 static CoreTiming::EventType* s_change_device_event;
 static CoreTiming::EventType* s_tranfer_pending_event;
 
+static CoreTiming::EventType* s_get_response_event[MAX_SI_CHANNELS];
+static CoreTiming::EventType* s_complete_transfer_event[MAX_SI_CHANNELS];
+
+// These are separate, and batch all the polls together.
+static CoreTiming::EventType* s_poll_get_response_event;
+static CoreTiming::EventType* s_poll_complete_transfer_event;
+
 // User-configured device type. possibly overridden by TAS/Netplay
 static std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> s_desired_device_types;
 
@@ -242,12 +250,6 @@ static void SetNoResponse(u32 channel)
   s_com_csr.COMERR = 1;
 }
 
-static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
-{
-  // The purpose of this callback is to simply re-enable device changes.
-  s_channel[user_data].has_recent_device_change = false;
-}
-
 static void UpdateInterrupts()
 {
   // check if we have to update the RDSTINT flag
@@ -267,21 +269,6 @@ static void UpdateInterrupts()
   }
 }
 
-static void GenerateSIInterrupt(SIInterruptType type)
-{
-  switch (type)
-  {
-  case INT_RDSTINT:
-    s_com_csr.RDSTINT = 1;
-    break;
-  case INT_TCINT:
-    s_com_csr.TCINT = 1;
-    break;
-  }
-
-  UpdateInterrupts();
-}
-
 constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
 
 // Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
@@ -290,51 +277,406 @@ constexpr u32 ConvertSILengthField(u32 field)
   return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
 }
 
+constexpr u32 SI_MICROSECONDS_PER_BIT_FROM_CONSOLE = 5;
+constexpr u32 SI_MICROSECONDS_PER_BIT_FROM_CONTROLLER = 4;
+constexpr u32 SI_MICROSECONDS_PER_STOP_BIT = 4;
+
+s32 EstimateTicksForXfer(size_t bit_count, u32 bit_time)
+{
+  return static_cast<s32>(bit_count * bit_time * SystemTimers::GetTicksPerSecond() / 1000000);
+}
+
+constexpr u64 SI_FLAG_CHAN_MASK = 0x000000000000000full;
+constexpr u64 SI_FLAG_CHAN0 = 0x0000000000000001ull;
+constexpr u64 SI_FLAG_CHAN1 = 0x0000000000000002ull;
+constexpr u64 SI_FLAG_CHAN2 = 0x0000000000000004ull;
+constexpr u64 SI_FLAG_CHAN3 = 0x0000000000000008ull;
+constexpr u64 SI_FLAG_POLL = 0x0000000000000010ull;
+
+constexpr u64 SI_STAT_FLAG_MASK = 0x0000000000000ff00ull;
+constexpr u64 SI_STAT_FLAG_NOREP = 0x0000000000000100ull;
+constexpr u64 SI_STAT_FLAG_COLL = 0x0000000000000200ull;
+constexpr u64 SI_STAT_FLAG_OVRUN = 0x0000000000000400ull;
+constexpr u64 SI_STAT_FLAG_UNRUN = 0x0000000000000800ull;
+constexpr u64 SI_STAT_FLAG_TCINT = 0x0000000000001000ull;
+constexpr u64 SI_STAT_FLAG_RDST = 0x0000000000002000ull;
+
+constexpr u64 SiGetChanCount(u64 userdata)
+{
+  return Common::CountSetBits(userdata & SI_FLAG_CHAN_MASK);
+}
+
+constexpr u64 SiGetStatusFlag(u64 flag, u64 channel)
+{
+  return (flag & SI_STAT_FLAG_MASK) << (channel * 8);
+}
+
+constexpr u64 SiGetStatusFlagMaskAllChannels(u64 flag)
+{
+  return flag | (flag << 8) | (flag << 16) | (flag << 24);
+}
+
+constexpr u32 SiGetFirstChannel(u64 userdata)
+{
+  if (userdata & SI_FLAG_CHAN0)
+    return 0;
+  if (userdata & SI_FLAG_CHAN1)
+    return 1;
+  if (userdata & SI_FLAG_CHAN2)
+    return 2;
+  if (userdata & SI_FLAG_CHAN3)
+    return 3;
+  return 0;
+}
+constexpr u32 SiGetMaskForChannel(u64 channel)
+{
+  if (channel > MAX_SI_CHANNELS)
+  {
+    return 0;  // no mask
+  }
+  return SI_FLAG_CHAN0 << channel;
+}
+
+static void CompleteTransferHandler(u64 user_data, s64 cycles_late)
+{
+  u32 channel_count = SiGetChanCount(user_data);
+  bool is_poll = user_data & SI_FLAG_POLL;
+
+  if (channel_count == 0)
+  {
+    return;
+  }
+
+  if (!is_poll)
+  {
+    if (!s_com_csr.TSTART)
+      return;
+
+    // This can only have multiple channels if polled
+    if ((channel_count > 1) && !is_poll)
+    {
+      ERROR_LOG(SERIALINTERFACE, "SI::CompleteTransferHandler: is_poll: %u channel_count: %u",
+                is_poll, channel_count);
+    }
+    u32 channel = SiGetFirstChannel(user_data);
+    u32 register_channel = s_com_csr.CHANNEL;
+    if (channel != register_channel)
+    {
+      ERROR_LOG(SERIALINTERFACE,
+                "SI::CompleteTransferHandler: is_poll: %u channel: %u register_channel: %u",
+                is_poll, channel, register_channel);
+    }
+    // RDST should not be set for non-poll
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, channel))
+    {
+      ERROR_LOG(SERIALINTERFACE, "SI::CompleteTransferHandler: is_rdst set for channel: %u",
+                channel);
+    }
+  }
+
+  // poll has new data
+  if (user_data & SiGetStatusFlagMaskAllChannels(SI_STAT_FLAG_RDST))
+  {
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, 0))
+    {
+      s_status_reg.RDST0 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, 1))
+    {
+      s_status_reg.RDST1 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, 2))
+    {
+      s_status_reg.RDST2 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, 3))
+    {
+      s_status_reg.RDST3 = 1;
+    }
+  }
+
+  bool set_communication_error = false;
+  // no response
+  if (user_data & SiGetStatusFlagMaskAllChannels(SI_STAT_FLAG_NOREP))
+  {
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_NOREP, 0))
+    {
+      s_status_reg.NOREP0 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_NOREP, 1))
+    {
+      s_status_reg.NOREP1 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_NOREP, 2))
+    {
+      s_status_reg.NOREP2 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_NOREP, 3))
+    {
+      s_status_reg.NOREP3 = 1;
+    }
+    set_communication_error = true;
+  }
+
+  // collision
+  if (user_data & SiGetStatusFlagMaskAllChannels(SI_STAT_FLAG_COLL))
+  {
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_COLL, 0))
+    {
+      s_status_reg.COLL0 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_COLL, 1))
+    {
+      s_status_reg.COLL1 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_COLL, 2))
+    {
+      s_status_reg.COLL2 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_COLL, 3))
+    {
+      s_status_reg.COLL3 = 1;
+    }
+    set_communication_error = true;
+  }
+
+  // response overrun
+  if (user_data & SiGetStatusFlagMaskAllChannels(SI_STAT_FLAG_OVRUN))
+  {
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 0))
+    {
+      s_status_reg.OVRUN0 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 1))
+    {
+      s_status_reg.OVRUN1 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 2))
+    {
+      s_status_reg.OVRUN2 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 3))
+    {
+      s_status_reg.OVRUN3 = 1;
+    }
+    set_communication_error = true;
+  }
+
+  // response underrun
+  if (user_data & SiGetStatusFlagMaskAllChannels(SI_STAT_FLAG_UNRUN))
+  {
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_UNRUN, 0))
+    {
+      s_status_reg.UNRUN0 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 1))
+    {
+      s_status_reg.UNRUN1 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 2))
+    {
+      s_status_reg.UNRUN2 = 1;
+    }
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_OVRUN, 3))
+    {
+      s_status_reg.UNRUN3 = 1;
+    }
+    set_communication_error = true;
+  }
+
+  if (is_poll)
+  {
+    for (u32 i = 0; i < MAX_SI_CHANNELS; ++i)
+    {
+      if (user_data & SiGetMaskForChannel(i))
+      {
+        if (set_communication_error)
+        {
+          s_channel[i].in_hi.ERRSTAT = 1;
+          s_channel[i].in_hi.ERRLATCH = 1;
+        }
+        else
+        {
+          s_channel[i].in_hi.ERRSTAT = 0;
+        }
+      }
+    }
+  }
+  else
+  {
+    if (set_communication_error)
+    {
+      s_com_csr.COMERR = 1;
+    }
+    u32 channel = SiGetFirstChannel(user_data);
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_TCINT, channel))
+    {
+      s_com_csr.TCINT = 1;
+    }
+    s_com_csr.TSTART = 0;
+  }
+  UpdateInterrupts();
+}
+
+static void GetResponseHandler(u64 user_data, s64 cycles_late)
+{
+  u32 channel_count = SiGetChanCount(user_data);
+  bool is_poll = user_data & SI_FLAG_POLL;
+
+  if (channel_count == 0)
+  {
+    return;
+  }
+
+  u32 expected_response_length = 8;
+  if (!is_poll)
+  {
+    if (!s_com_csr.TSTART)
+      return;
+
+    // This can only have multiple channels if polled
+    if ((channel_count > 1) && !is_poll)
+    {
+      ERROR_LOG(SERIALINTERFACE, "SI::GetResponseHandler: is_poll: %u channel_count: %u", is_poll,
+                channel_count);
+    }
+    u32 channel = SiGetFirstChannel(user_data);
+    u32 register_channel = s_com_csr.CHANNEL;
+    if (channel != register_channel)
+    {
+      ERROR_LOG(SERIALINTERFACE,
+                "SI::GetResponseHandler: is_poll: %u channel: %u register_channel: %u", is_poll,
+                channel, register_channel);
+    }
+    // RDST should not be set for non-poll
+    if (user_data & SiGetStatusFlag(SI_STAT_FLAG_RDST, channel))
+    {
+      ERROR_LOG(SERIALINTERFACE, "SI::GetResponseHandler: is_rdst set for channel: %u", channel);
+    }
+    expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
+  }
+
+  std::array<u8, 128> rcv_buffer;
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  {
+    if (user_data & SiGetMaskForChannel(i))
+    {
+      std::unique_ptr<ISIDevice>& device = s_channel[i].device;
+      size_t actual_response_length = device->RecvResponse(rcv_buffer.data(), rcv_buffer.size());
+      if (actual_response_length == 0)
+      {
+        // TODO:
+        // Investigate the timeout period for NOREP
+        user_data |= SiGetStatusFlag(SI_STAT_FLAG_NOREP, i);
+        if (!is_poll)
+        {
+          user_data |= SiGetStatusFlag(SI_STAT_FLAG_TCINT, i);
+        }
+      }
+      else
+      {
+        if (is_poll)
+        {
+          do
+          {
+            // copy up to 8 bytes, but don't overwrite existing data if the response is short
+            s_channel[i].in_hi.INPUT0 = rcv_buffer[0] & 0x3f;
+            if (actual_response_length == 1)
+              break;
+            s_channel[i].in_hi.INPUT1 = rcv_buffer[1];
+            if (actual_response_length == 2)
+              break;
+            s_channel[i].in_hi.INPUT2 = rcv_buffer[2];
+            if (actual_response_length == 3)
+              break;
+            s_channel[i].in_hi.INPUT3 = rcv_buffer[3];
+            if (actual_response_length == 4)
+              break;
+            s_channel[i].in_lo.INPUT4 = rcv_buffer[4];
+            if (actual_response_length == 5)
+              break;
+            s_channel[i].in_lo.INPUT5 = rcv_buffer[5];
+            if (actual_response_length == 6)
+              break;
+            s_channel[i].in_lo.INPUT6 = rcv_buffer[6];
+            if (actual_response_length == 7)
+              break;
+            s_channel[i].in_lo.INPUT7 = rcv_buffer[7];
+          } while (0);
+          user_data |= SiGetStatusFlag(SI_STAT_FLAG_RDST, i);
+        }
+        else
+        {
+          // copy up to s_si_buffer.size() bytes
+          std::copy(rcv_buffer.data(),
+                    rcv_buffer.data() + std::min(actual_response_length, s_si_buffer.size()),
+                    s_si_buffer.data());
+          user_data |= SiGetStatusFlag(SI_STAT_FLAG_TCINT, i);
+        }
+        if (expected_response_length != actual_response_length)
+        {
+          std::stringstream ss;
+          for (u8 b : device->GetRequestBuffer())
+          {
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
+          }
+
+          ERROR_LOG(
+              SERIALINTERFACE,
+              "GetResponseHandler: expected_response_length(%u) != actual_response_length(%u): "
+              "request: %s user_data: %x",
+              expected_response_length, actual_response_length, ss.str().c_str(), user_data);
+          if (expected_response_length < actual_response_length)
+          {
+            user_data |= SiGetStatusFlag(SI_STAT_FLAG_OVRUN, i);
+          }
+          else
+          {
+            user_data |= SiGetStatusFlag(SI_STAT_FLAG_UNRUN, i);
+          }
+        }
+      }
+    }
+  }
+  CoreTiming::EventType* event = s_poll_complete_transfer_event;
+  if (!is_poll)
+  {
+    event = s_complete_transfer_event[s_com_csr.CHANNEL];
+  }
+  CoreTiming::ScheduleEvent(
+      EstimateTicksForXfer(expected_response_length * 8, SI_MICROSECONDS_PER_BIT_FROM_CONTROLLER) +
+          EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) - cycles_late,
+      event, user_data);
+}
+
+static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
+{
+  // The purpose of this callback is to simply re-enable device changes.
+  s_channel[user_data].has_recent_device_change = false;
+}
+
 static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   if (s_com_csr.TSTART)
   {
     u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
-    u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
     std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
     std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
+    device->SendRequest(s_si_buffer.data(), request_length);
 
-    DEBUG_LOG(SERIALINTERFACE,
-              "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u  "
-              "actual_response_length: %u",
-              s_com_csr.CHANNEL, request_length, expected_response_length, actual_response_length);
-    if (expected_response_length != actual_response_length)
-    {
-      std::stringstream ss;
-      for (u8 b : request_copy)
-      {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
-      }
-      ERROR_LOG(
-          SERIALINTERFACE,
-          "RunSIBuffer: expected_response_length(%u) != actual_response_length(%u): request: %s",
-          expected_response_length, actual_response_length, ss.str().c_str());
-    }
+    CoreTiming::ScheduleEvent(
+        EstimateTicksForXfer(request_length * 8, SI_MICROSECONDS_PER_BIT_FROM_CONSOLE) +
+            EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) - cycles_late,
+        s_get_response_event[s_com_csr.CHANNEL], SiGetMaskForChannel(s_com_csr.CHANNEL));
 
     // TODO:
-    // 1) Wait a reasonable amount of time for the result to be available:
+    // Wait a reasonable amount of time for the result to be available:
     //    request is N bytes, ends with a stop bit
     //    response in M bytes, ends with a stop bit
     //    processing controller-side takes K us (investigate?)
-    //    each bit takes 4us ([3us low/1us high] for a 0, [1us low/3us high] for a 1)
+    //    each bit takes 5us (from console) or 4us (from controller). Stop bits take 4us.
     //    time until response is available is at least: K + ((N*8 + 1) + (M*8 + 1)) * 4 us
-    // 2) Investigate the timeout period for NOREP0
-    if (actual_response_length != 0)
-    {
-      s_com_csr.TSTART = 0;
-      GenerateSIInterrupt(INT_TCINT);
-    }
-    else
-    {
-      CoreTiming::ScheduleEvent(device->TransferInterval() - cycles_late, s_tranfer_pending_event);
-    }
   }
 }
 
@@ -415,6 +757,22 @@ void Init()
 
   s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
   s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
+
+  s_get_response_event[0] = CoreTiming::RegisterEvent("SI_GetResponse0", GetResponseHandler);
+  s_complete_transfer_event[0] =
+      CoreTiming::RegisterEvent("SI_CompleteTransfer0", CompleteTransferHandler);
+  s_get_response_event[1] = CoreTiming::RegisterEvent("SI_GetResponse1", GetResponseHandler);
+  s_complete_transfer_event[1] =
+      CoreTiming::RegisterEvent("SI_CompleteTransfer1", CompleteTransferHandler);
+  s_get_response_event[2] = CoreTiming::RegisterEvent("SI_GetResponse2", GetResponseHandler);
+  s_complete_transfer_event[2] =
+      CoreTiming::RegisterEvent("SI_CompleteTransfer2", CompleteTransferHandler);
+  s_get_response_event[3] = CoreTiming::RegisterEvent("SI_GetResponse3", GetResponseHandler);
+  s_complete_transfer_event[3] =
+      CoreTiming::RegisterEvent("SI_CompleteTransfer3", CompleteTransferHandler);
+  s_poll_get_response_event = CoreTiming::RegisterEvent("SI_GetResponsePoll", GetResponseHandler);
+  s_poll_complete_transfer_event =
+      CoreTiming::RegisterEvent("SI_CompleteTransferPoll", CompleteTransferHandler);
 }
 
 void Shutdown()
@@ -633,7 +991,21 @@ static void ChangeDeviceDeterministic(SIDevices device, int channel)
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event, channel);
 }
 
-void UpdateDevices()
+bool SiIsChannelPollEnabled(u32 channel)
+{
+  std::array<bool, MAX_SI_CHANNELS> enabled_bits = {
+      static_cast<bool>(s_poll.EN0),
+      static_cast<bool>(s_poll.EN1),
+      static_cast<bool>(s_poll.EN2),
+      static_cast<bool>(s_poll.EN3),
+  };
+  if (channel < MAX_SI_CHANNELS)
+  {
+    return enabled_bits[channel];
+  }
+  return false;
+}
+void TriggerPoll(s64 cycles_late)
 {
   // Check for device change requests:
   for (int i = 0; i != MAX_SI_CHANNELS; ++i)
@@ -655,17 +1027,30 @@ void UpdateDevices()
   // Typically 120hz but is variable
   g_controller_interface.UpdateInput();
 
-  // Update channels and set the status bit if there's new data
-  s_status_reg.RDST0 =
-      !!s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
-  s_status_reg.RDST1 =
-      !!s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
-  s_status_reg.RDST2 =
-      !!s_channel[2].device->GetData(s_channel[2].in_hi.hex, s_channel[2].in_lo.hex);
-  s_status_reg.RDST3 =
-      !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
+  u64 user_data = SI_FLAG_POLL;
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  {
+    if (!SiIsChannelPollEnabled(i))
+    {
+      continue;
+    }
+    user_data |= SiGetMaskForChannel(i);
+    std::array<u8, 3> request_buffer = {
+        static_cast<u8>(s_channel[i].out.CMD),
+        static_cast<u8>(s_channel[i].out.OUTPUT0),
+        static_cast<u8>(s_channel[i].out.OUTPUT1),
+    };
+    s_channel[i].device->SendRequest(request_buffer.data(), request_buffer.size());
+  }
 
-  UpdateInterrupts();
+  if (user_data & SI_FLAG_CHAN_MASK)
+  {
+    // poll commands have length=3
+    CoreTiming::ScheduleEvent(EstimateTicksForXfer(3 * 8, SI_MICROSECONDS_PER_BIT_FROM_CONSOLE) +
+                                  EstimateTicksForXfer(1, SI_MICROSECONDS_PER_STOP_BIT) -
+                                  cycles_late,
+                              s_poll_get_response_event, user_data);
+  }
 
   // Polling finished
   NetPlay::SetSIPollBatching(false);
@@ -682,6 +1067,11 @@ SIDevices GetDeviceType(int channel)
 u32 GetPollXLines()
 {
   return s_poll.X;
+}
+
+u32 GetPollYSampleCount()
+{
+  return s_poll.Y;
 }
 
 }  // end of namespace SerialInterface

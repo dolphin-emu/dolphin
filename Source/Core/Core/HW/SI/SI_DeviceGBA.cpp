@@ -359,7 +359,7 @@ int CSIDevice_GBA::TransferInterval()
   return GetTransferTime(m_last_cmd);
 }
 
-bool CSIDevice_GBA::GetData(u32& hi, u32& low)
+bool CSIDevice_GBA::GetData(GCPadStatus& pad_status, u32& hi, u32& low)
 {
   return false;
 }

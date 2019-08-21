@@ -45,9 +45,22 @@ static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
 static u8 s_controller_rumble[4];
 
-static std::mutex s_mutex;
-static u8 s_controller_payload[37];
-static u8 s_controller_payload_swap[37];
+struct poll_data
+{
+  u8 status;
+  u8 buttons1;
+  u8 buttons2;
+  u8 stickX;
+  u8 stickY;
+  u8 substickX;
+  u8 substickY;
+  u8 triggerL;
+  u8 triggerR;
+};
+
+static std::mutex s_poll_mutex;
+static std::array<poll_data, SerialInterface::MAX_SI_CHANNELS> s_controller_payload;
+static std::array<origin_data, SerialInterface::MAX_SI_CHANNELS> s_controller_origin;
 
 static std::atomic<int> s_controller_payload_size = {0};
 
@@ -84,15 +97,21 @@ static void Read()
   int payload_size = 0;
   while (s_adapter_thread_running.IsSet())
   {
-    libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap,
-                              sizeof(s_controller_payload_swap), &payload_size, 16);
-
+    std::array<u8, 37> transfer_buffer;
+    libusb_interrupt_transfer(s_handle, s_endpoint_in, &transfer_buffer[0], sizeof(transfer_buffer),
+                              &payload_size, 16);
+    if ((payload_size == 37) && (transfer_buffer[0] == 0x21))
     {
-      std::lock_guard<std::mutex> lk(s_mutex);
-      std::swap(s_controller_payload_swap, s_controller_payload);
-      s_controller_payload_size.store(payload_size);
+      {
+        std::lock_guard<std::mutex> lk(s_poll_mutex);
+        std::copy_n(&transfer_buffer[1], sizeof(s_controller_payload),
+                    reinterpret_cast<u8*>(&s_controller_payload));
+      }
     }
-
+    else
+    {
+      std::fill_n(reinterpret_cast<u8*>(&s_controller_payload), sizeof(s_controller_payload), 0);
+    }
     Common::YieldCPU();
   }
 }
@@ -339,7 +358,7 @@ static void AddGCAdapter(libusb_device* device)
       for (u8 e = 0; e < interface->bNumEndpoints; e++)
       {
         const libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
-        if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
+        if ((endpoint->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK) == LIBUSB_ENDPOINT_IN)
           s_endpoint_in = endpoint->bEndpointAddress;
         else
           s_endpoint_out = endpoint->bEndpointAddress;
@@ -406,101 +425,116 @@ static void Reset()
 
 GCPadStatus Input(int chan)
 {
+  GCPadStatus pad = {};
   if (!UseAdapter())
-    return {};
+    return pad;
 
   if (s_handle == nullptr || s_status != ADAPTER_DETECTED)
-    return {};
-
-  int payload_size = 0;
-  u8 controller_payload_copy[37];
-
   {
-    std::lock_guard<std::mutex> lk(s_mutex);
-    std::copy(std::begin(s_controller_payload), std::end(s_controller_payload),
-              std::begin(controller_payload_copy));
-    payload_size = s_controller_payload_size.load();
+    return pad;
   }
 
-  GCPadStatus pad = {};
-  if (payload_size != sizeof(controller_payload_copy) ||
-      controller_payload_copy[0] != LIBUSB_DT_HID)
+  if (s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
   {
-    ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
-              controller_payload_copy[0]);
-    Reset();
+    return pad;
   }
-  else
+
+  poll_data pd;
   {
-    bool get_origin = false;
-    u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
-    if (type != ControllerTypes::CONTROLLER_NONE &&
-        s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
-    {
-      NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1,
-                 controller_payload_copy[1 + (9 * chan)]);
-      get_origin = true;
-    }
-
-    s_controller_type[chan] = type;
-
-    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
-    {
-      u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
-      u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
-
-      if (b1 & (1 << 0))
-        pad.button |= PAD_BUTTON_A;
-      if (b1 & (1 << 1))
-        pad.button |= PAD_BUTTON_B;
-      if (b1 & (1 << 2))
-        pad.button |= PAD_BUTTON_X;
-      if (b1 & (1 << 3))
-        pad.button |= PAD_BUTTON_Y;
-
-      if (b1 & (1 << 4))
-        pad.button |= PAD_BUTTON_LEFT;
-      if (b1 & (1 << 5))
-        pad.button |= PAD_BUTTON_RIGHT;
-      if (b1 & (1 << 6))
-        pad.button |= PAD_BUTTON_DOWN;
-      if (b1 & (1 << 7))
-        pad.button |= PAD_BUTTON_UP;
-
-      if (b2 & (1 << 0))
-        pad.button |= PAD_BUTTON_START;
-      if (b2 & (1 << 1))
-        pad.button |= PAD_TRIGGER_Z;
-      if (b2 & (1 << 2))
-        pad.button |= PAD_TRIGGER_R;
-      if (b2 & (1 << 3))
-        pad.button |= PAD_TRIGGER_L;
-
-      if (get_origin)
-        pad.button |= PAD_GET_ORIGIN;
-
-      pad.stickX = controller_payload_copy[1 + (9 * chan) + 3];
-      pad.stickY = controller_payload_copy[1 + (9 * chan) + 4];
-      pad.substickX = controller_payload_copy[1 + (9 * chan) + 5];
-      pad.substickY = controller_payload_copy[1 + (9 * chan) + 6];
-      pad.triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
-      pad.triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
-    }
-    else if (!Core::WantsDeterminism())
-    {
-      // This is a hack to prevent a desync due to SI devices
-      // being different and returning different values.
-      // The corresponding code in DeviceGCAdapter has the same check
-      pad.button = PAD_ERR_STATUS;
-    }
+    std::lock_guard<std::mutex> lk(s_poll_mutex);
+    pd = s_controller_payload[chan];
   }
+
+  u8 type = pd.status >> 4;
+  if (type == ControllerTypes::CONTROLLER_NONE)
+  {
+    NOTICE_LOG(SERIALINTERFACE, "Device disconnected from Port %d", chan + 1);
+    s_controller_type[chan] = ControllerTypes::CONTROLLER_NONE;
+    return pad;
+  }
+  /*
+  if (type != ControllerTypes::CONTROLLER_NONE &&
+      s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
+  {
+    NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1,
+               pd.status);
+    get_origin = true;
+  }
+  */
+
+  u8 b1 = pd.buttons1;
+  u8 b2 = pd.buttons2;
+
+  if (b1 & (1 << 0))
+    pad.button |= PAD_BUTTON_A;
+  if (b1 & (1 << 1))
+    pad.button |= PAD_BUTTON_B;
+  if (b1 & (1 << 2))
+    pad.button |= PAD_BUTTON_X;
+  if (b1 & (1 << 3))
+    pad.button |= PAD_BUTTON_Y;
+
+  if (b1 & (1 << 4))
+    pad.button |= PAD_BUTTON_LEFT;
+  if (b1 & (1 << 5))
+    pad.button |= PAD_BUTTON_RIGHT;
+  if (b1 & (1 << 6))
+    pad.button |= PAD_BUTTON_DOWN;
+  if (b1 & (1 << 7))
+    pad.button |= PAD_BUTTON_UP;
+
+  if (b2 & (1 << 0))
+    pad.button |= PAD_BUTTON_START;
+  if (b2 & (1 << 1))
+    pad.button |= PAD_TRIGGER_Z;
+  if (b2 & (1 << 2))
+    pad.button |= PAD_TRIGGER_R;
+  if (b2 & (1 << 3))
+    pad.button |= PAD_TRIGGER_L;
+
+  pad.stickX = pd.stickX;
+  pad.stickY = pd.stickY;
+  pad.substickX = pd.substickX;
+  pad.substickY = pd.substickY;
+  pad.triggerLeft = pd.triggerL;
+  pad.triggerRight = pd.triggerR;
 
   return pad;
 }
 
 bool DeviceConnected(int chan)
 {
-  return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
+  poll_data pd;
+  {
+    std::lock_guard<std::mutex> lk(s_poll_mutex);
+    pd = s_controller_payload[chan];
+  }
+
+  u8 type = pd.status >> 4;
+  if (type == ControllerTypes::CONTROLLER_NONE)
+  {
+    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
+    {
+      NOTICE_LOG(SERIALINTERFACE, "Device disconnected from Port %d", chan + 1);
+      s_controller_type[chan] = ControllerTypes::CONTROLLER_NONE;
+    }
+    return false;
+  }
+
+  if (s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
+  {
+    NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1,
+               pd.status);
+    s_controller_origin[chan].stickX = pd.stickX;
+    s_controller_origin[chan].stickY = pd.stickY;
+    s_controller_origin[chan].substickX = pd.substickX;
+    s_controller_origin[chan].substickY = pd.substickY;
+    s_controller_origin[chan].triggerL = pd.triggerL;
+    s_controller_origin[chan].triggerR = pd.triggerR;
+    s_controller_type[chan] = type;
+  }
+
+  return true;
 }
 
 void ResetDeviceType(int chan)
@@ -573,6 +607,11 @@ bool IsDetected(const char** error_message)
     *error_message = libusb_strerror(static_cast<libusb_error>(s_status));
 
   return false;
+}
+
+void GetOrigin(int chan, origin_data* origin)
+{
+  *origin = s_controller_origin[chan];
 }
 
 }  // end of namespace GCAdapter
