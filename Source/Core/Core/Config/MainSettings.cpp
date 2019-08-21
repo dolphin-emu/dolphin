@@ -28,7 +28,8 @@ const ConfigInfo<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkip
 const ConfigInfo<std::string> MAIN_DEFAULT_ISO{{System::Main, "Core", "DefaultISO"}, ""};
 const ConfigInfo<bool> MAIN_ENABLE_CHEATS{{System::Main, "Core", "EnableCheats"}, false};
 const ConfigInfo<int> MAIN_GC_LANGUAGE{{System::Main, "Core", "SelectedLanguage"}, 0};
-const ConfigInfo<bool> MAIN_OVERRIDE_GC_LANGUAGE{{System::Main, "Core", "OverrideGCLang"}, false};
+const ConfigInfo<bool> MAIN_OVERRIDE_REGION_SETTINGS{
+    {System::Main, "Core", "OverrideRegionSettings"}, false};
 const ConfigInfo<bool> MAIN_DPL2_DECODER{{System::Main, "Core", "DPL2Decoder"}, false};
 const ConfigInfo<int> MAIN_AUDIO_LATENCY{{System::Main, "Core", "AudioLatency"}, 20};
 const ConfigInfo<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, false};

@@ -145,6 +145,29 @@ Country TypicalCountryForRegion(Region region)
   }
 }
 
+Region SysConfCountryToRegion(u8 country_code)
+{
+  if (country_code == 0)
+    return Region::Unknown;
+
+  if (country_code < 0x08)  // Japan
+    return Region::NTSC_J;
+
+  if (country_code < 0x40)  // Americas
+    return Region::NTSC_U;
+
+  if (country_code < 0x80)  // Europe, Oceania, parts of Africa
+    return Region::PAL;
+
+  if (country_code < 0xa8)  // Southeast Asia
+    return country_code == 0x88 ? Region::NTSC_K : Region::NTSC_J;
+
+  if (country_code < 0xc0)  // Middle East
+    return Region::NTSC_U;
+
+  return Region::Unknown;
+}
+
 Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_region,
                            std::optional<u16> revision)
 {

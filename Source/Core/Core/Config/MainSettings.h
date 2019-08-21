@@ -30,7 +30,7 @@ extern const ConfigInfo<bool> MAIN_SYNC_ON_SKIP_IDLE;
 extern const ConfigInfo<std::string> MAIN_DEFAULT_ISO;
 extern const ConfigInfo<bool> MAIN_ENABLE_CHEATS;
 extern const ConfigInfo<int> MAIN_GC_LANGUAGE;
-extern const ConfigInfo<bool> MAIN_OVERRIDE_GC_LANGUAGE;
+extern const ConfigInfo<bool> MAIN_OVERRIDE_REGION_SETTINGS;
 extern const ConfigInfo<bool> MAIN_DPL2_DECODER;
 extern const ConfigInfo<int> MAIN_AUDIO_LATENCY;
 extern const ConfigInfo<bool> MAIN_AUDIO_STRETCH;
