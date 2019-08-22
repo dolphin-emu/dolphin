@@ -268,7 +268,7 @@ void GCMemcardManager::SetSlotFileInteractive(int slot)
       this,
       slot == 0 ? tr("Set memory card file for Slot A") : tr("Set memory card file for Slot B"),
       QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("GameCube Memory Cards (*.raw *.gcp)")));
+      tr("GameCube Memory Cards (*.raw *.gcp)") + QStringLiteral(";;") + tr("All Files (*)")));
   if (!path.isEmpty())
     m_slot_file_edit[slot]->setText(path);
 }
