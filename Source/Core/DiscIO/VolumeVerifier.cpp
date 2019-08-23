@@ -16,6 +16,7 @@
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
+#include <minizip/unzip.h>
 #include <pugixml.hpp>
 #include <zlib.h>
 
@@ -25,7 +26,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MinizipUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
@@ -46,9 +49,9 @@ namespace DiscIO
 void RedumpVerifier::Start(const Volume& volume)
 {
   if (volume.GetVolumeType() == Platform::GameCubeDisc)
-    m_dat_filename = "gamecube.dat";
+    m_platform = "gc";
   else if (volume.GetVolumeType() == Platform::WiiDisc)
-    m_dat_filename = "wii.dat";
+    m_platform = "wii";
   else
     m_result.status = Status::Error;
 
@@ -62,7 +65,35 @@ void RedumpVerifier::Start(const Volume& volume)
   m_disc_number = volume.GetDiscNumber().value_or(0);
   m_size = volume.GetSize();
 
-  m_future = std::async(std::launch::async, [this] { return ScanXML(); });
+  m_future = std::async(std::launch::async, [this] { return ScanDatfile(ReadDatfile()); });
+}
+
+std::vector<u8> RedumpVerifier::ReadDatfile()
+{
+  const std::string path = File::GetUserPath(D_REDUMPCACHE_IDX) + DIR_SEP + m_platform + ".zip";
+
+  unzFile file = unzOpen(path.c_str());
+  if (!file)
+    return {};
+
+  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
+
+  // Check that the zip file contains exactly one file
+  if (unzGoToFirstFile(file) != UNZ_OK)
+    return {};
+  if (unzGoToNextFile(file) != UNZ_END_OF_LIST_OF_FILE)
+    return {};
+
+  // Read the file
+  if (unzGoToFirstFile(file) != UNZ_OK)
+    return {};
+  unz_file_info file_info;
+  unzGetCurrentFileInfo(file, &file_info, nullptr, 0, nullptr, 0, nullptr, 0);
+  std::vector<u8> data(file_info.uncompressed_size);
+  if (!Common::ReadFileFromZip(file, &data))
+    return {};
+
+  return data;
 }
 
 static u8 ParseHexDigit(char c)
@@ -93,18 +124,13 @@ static std::vector<u8> ParseHash(const char* str)
   return hash;
 }
 
-std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanXML()
+std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const std::vector<u8>& data)
 {
-  const std::string path = File::GetUserPath(D_REDUMPCACHE_IDX) + DIR_SEP + m_dat_filename;
-
   pugi::xml_document doc;
+  if (!doc.load_buffer(data.data(), data.size()))
   {
-    std::string data;
-    if (!File::ReadFileToString(path, data) || !doc.load_buffer(data.data(), data.size()))
-    {
-      m_result = {Status::Error, Common::GetStringT("Failed to parse Redump.org data")};
-      return {};
-    }
+    m_result = {Status::Error, Common::GetStringT("Failed to parse Redump.org data")};
+    return {};
   }
 
   std::vector<PotentialMatch> potential_matches;

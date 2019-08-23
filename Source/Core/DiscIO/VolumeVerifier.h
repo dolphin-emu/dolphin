@@ -71,9 +71,10 @@ private:
     Hashes<std::vector<u8>> hashes;
   };
 
-  std::vector<PotentialMatch> ScanXML();
+  std::vector<u8> ReadDatfile();
+  std::vector<PotentialMatch> ScanDatfile(const std::vector<u8>& data);
 
-  std::string m_dat_filename;
+  std::string m_platform;
   std::string m_game_id;
   u16 m_revision;
   u8 m_disc_number;
