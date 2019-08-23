@@ -11,15 +11,19 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
+#include <pugixml.hpp>
 #include <zlib.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -39,6 +43,184 @@
 
 namespace DiscIO
 {
+void RedumpVerifier::Start(const Volume& volume)
+{
+  if (volume.GetVolumeType() == Platform::GameCubeDisc)
+    m_dat_filename = "gamecube.dat";
+  else if (volume.GetVolumeType() == Platform::WiiDisc)
+    m_dat_filename = "wii.dat";
+  else
+    m_result.status = Status::Error;
+
+  // We use GetGameTDBID instead of GetGameID so that Datel discs will be represented by an empty
+  // string, which matches Redump not having any serials for Datel discs.
+  m_game_id = volume.GetGameTDBID();
+  if (m_game_id.size() > 4)
+    m_game_id = m_game_id.substr(0, 4);
+
+  m_revision = volume.GetRevision().value_or(0);
+  m_disc_number = volume.GetDiscNumber().value_or(0);
+  m_size = volume.GetSize();
+
+  m_future = std::async(std::launch::async, [this] { return ScanXML(); });
+}
+
+static u8 ParseHexDigit(char c)
+{
+  if (c < '0')
+    return 0;  // Error
+
+  if (c >= 'a')
+    c -= 'a' - 'A';
+  if (c >= 'A')
+    c -= 'A' - ('9' + 1);
+  c -= '0';
+
+  if (c >= 0x10)
+    return 0;  // Error
+
+  return c;
+}
+
+static std::vector<u8> ParseHash(const char* str)
+{
+  std::vector<u8> hash;
+  while (str[0] && str[1])
+  {
+    hash.push_back(static_cast<u8>(ParseHexDigit(str[0]) * 0x10 + ParseHexDigit(str[1])));
+    str += 2;
+  }
+  return hash;
+}
+
+std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanXML()
+{
+  const std::string path = File::GetUserPath(D_REDUMPCACHE_IDX) + DIR_SEP + m_dat_filename;
+
+  pugi::xml_document doc;
+  {
+    std::string data;
+    if (!File::ReadFileToString(path, data) || !doc.load_buffer(data.data(), data.size()))
+    {
+      m_result = {Status::Error, Common::GetStringT("Failed to parse Redump.org data")};
+      return {};
+    }
+  }
+
+  std::vector<PotentialMatch> potential_matches;
+  const pugi::xml_node datafile = doc.child("datafile");
+  for (const pugi::xml_node game : datafile.children("game"))
+  {
+    std::string version_string = game.child("version").text().as_string();
+
+    // Strip out prefix (e.g. "v1.02" -> "02", "Rev 2" -> "2")
+    const size_t last_non_numeric = version_string.find_last_not_of("0123456789");
+    if (last_non_numeric != std::string::npos)
+      version_string = version_string.substr(last_non_numeric + 1);
+
+    const int version = version_string.empty() ? 0 : std::stoi(version_string);
+
+    // The revisions for Korean GameCube games whose four-char game IDs end in E are numbered from
+    // 0x30 in ring codes and in disc headers, but Redump switched to numbering them from 0 in 2019.
+    if (version % 0x30 != m_revision % 0x30)
+      continue;
+
+    const std::string serials = game.child("serial").text().as_string();
+    if (serials.empty())
+    {
+      // This case is reached for Datel discs
+      if (!m_game_id.empty())
+        continue;  // Non-empty m_game_id means we're verifying a non-Datel disc
+    }
+    else
+    {
+      bool serial_match_found = false;
+
+      // If a disc has multiple possible serials, they are delimited with ", ". We want to loop
+      // through all the serials until we find a match, because even though they normally only
+      // differ in the region code at the end (which we don't care about), there is an edge case
+      // disc with the game ID "G96P" and the serial "DL-DOL-D96P-EUR, DL-DOL-G96P-EUR".
+      for (const std::string& serial_str : SplitString(serials, ','))
+      {
+        const std::string_view serial = StripSpaces(serial_str);
+
+        // Skip the prefix, normally either "DL-DOL-" or "RVL-" (depending on the console),
+        // but there are some exceptions like the "RVLE-SBSE-USA-B0" serial.
+        const size_t first_dash = serial.find_first_of('-', 3);
+        const size_t game_id_start =
+            first_dash == std::string::npos ? std::string::npos : first_dash + 1;
+
+        if (serial.size() < game_id_start + 4)
+        {
+          ERROR_LOG(DISCIO, "Invalid serial in redump datfile: %s", serial_str.c_str());
+          continue;
+        }
+
+        const std::string_view game_id = serial.substr(game_id_start, 4);
+        if (game_id != m_game_id)
+          continue;
+
+        u8 disc_number = 0;
+        if (serial.size() > game_id_start + 5 && serial[game_id_start + 5] >= '0' &&
+            serial[game_id_start + 5] <= '9')
+        {
+          disc_number = serial[game_id_start + 5] - '0';
+        }
+        if (disc_number != m_disc_number)
+          continue;
+
+        serial_match_found = true;
+        break;
+      }
+      if (!serial_match_found)
+        continue;
+    }
+
+    PotentialMatch& potential_match = potential_matches.emplace_back();
+    const pugi::xml_node rom = game.child("rom");
+    potential_match.size = rom.attribute("size").as_ullong();
+    potential_match.hashes.crc32 = ParseHash(rom.attribute("crc").value());
+    potential_match.hashes.md5 = ParseHash(rom.attribute("md5").value());
+    potential_match.hashes.sha1 = ParseHash(rom.attribute("sha1").value());
+  }
+
+  return potential_matches;
+}
+
+static bool HashesMatch(const std::vector<u8>& calculated, const std::vector<u8>& expected)
+{
+  return calculated.empty() || calculated == expected;
+}
+
+RedumpVerifier::Result RedumpVerifier::Finish(const Hashes<std::vector<u8>>& hashes)
+{
+  if (m_result.status == Status::Error)
+    return m_result;
+
+  if (hashes.crc32.empty() && hashes.md5.empty() && hashes.sha1.empty())
+    return m_result;
+
+  const std::vector<PotentialMatch> potential_matches = m_future.get();
+  for (PotentialMatch p : potential_matches)
+  {
+    if (HashesMatch(hashes.crc32, p.hashes.crc32) && HashesMatch(hashes.md5, p.hashes.md5) &&
+        HashesMatch(hashes.sha1, p.hashes.sha1) && m_size == p.size)
+    {
+      return {Status::GoodDump, Common::GetStringT("Good dump")};
+    }
+  }
+
+  // We only return bad dump if there's a disc that we know this dump should match but that doesn't
+  // match. For disc without IDs (i.e. Datel discs), we don't have a good way of knowing whether we
+  // have a bad dump or just a dump that isn't in Redump, so we always pick unknown instead of bad
+  // dump for those to be on the safe side. (Besides, it's possible to dump a Datel disc correctly
+  // and have it not match Redump if you don't use the same replacement value for bad sectors.)
+  if (!potential_matches.empty() && !m_game_id.empty())
+    return {Status::BadDump, Common::GetStringT("Bad dump")};
+
+  return {Status::Unknown, Common::GetStringT("Unknown disc")};
+}
+
 constexpr u64 MINI_DVD_SIZE = 1459978240;  // GameCube
 constexpr u64 SL_DVD_SIZE = 4699979776;    // Wii retail
 constexpr u64 SL_DVD_R_SIZE = 4707319808;  // Wii RVT-R
@@ -47,12 +229,16 @@ constexpr u64 DL_DVD_R_SIZE = 8543666176;  // Wii RVT-R
 
 constexpr u64 BLOCK_SIZE = 0x20000;
 
-VolumeVerifier::VolumeVerifier(const Volume& volume, Hashes<bool> hashes_to_calculate)
-    : m_volume(volume), m_hashes_to_calculate(hashes_to_calculate),
+VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
+                               Hashes<bool> hashes_to_calculate)
+    : m_volume(volume), m_redump_verification(redump_verification),
+      m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
                              hashes_to_calculate.sha1),
       m_max_progress(volume.GetSize())
 {
+  if (!m_calculating_any_hash)
+    m_redump_verification = false;
 }
 
 VolumeVerifier::~VolumeVerifier() = default;
@@ -61,6 +247,9 @@ void VolumeVerifier::Start()
 {
   ASSERT(!m_started);
   m_started = true;
+
+  if (m_redump_verification)
+    m_redump_verifier.Start(m_volume);
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
   m_is_datel = IsDisc(m_volume.GetVolumeType()) &&
@@ -934,6 +1123,26 @@ void VolumeVerifier::Finish()
   const Severity highest_severity =
       m_result.problems.empty() ? Severity::None : m_result.problems[0].severity;
 
+  if (m_redump_verification)
+    m_result.redump = m_redump_verifier.Finish(m_result.hashes);
+
+  if (m_result.redump.status == RedumpVerifier::Status::GoodDump ||
+      (m_volume.GetVolumeType() == Platform::WiiWAD && !m_is_not_retail &&
+       m_result.problems.empty()))
+  {
+    if (m_result.problems.empty())
+    {
+      m_result.summary_text = Common::GetStringT("This is a good dump.");
+    }
+    else
+    {
+      m_result.summary_text =
+          Common::GetStringT("This is a good dump according to Redump.org, but Dolphin has found "
+                             "problems. This might be a bug in Dolphin.");
+    }
+    return;
+  }
+
   if (m_is_datel)
   {
     m_result.summary_text = Common::GetStringT("Dolphin is unable to verify unlicensed discs.");
@@ -948,35 +1157,49 @@ void VolumeVerifier::Finish()
     return;
   }
 
-  switch (highest_severity)
+  if (m_result.redump.status == RedumpVerifier::Status::BadDump &&
+      highest_severity <= Severity::Low)
   {
-  case Severity::None:
-    if (IsWii(m_volume.GetVolumeType()) && !m_is_not_retail)
-    {
-      m_result.summary_text = Common::GetStringT(
-          "No problems were found. This does not guarantee that this is a good dump, "
-          "but since Wii titles contain a lot of verification data, it does mean that "
-          "there most likely are no problems that will affect emulation.");
-    }
-    else
-    {
-      m_result.summary_text = Common::GetStringT("No problems were found.");
-    }
-    break;
-  case Severity::Low:
-    m_result.summary_text =
-        Common::GetStringT("Problems with low severity were found. They will most "
-                           "likely not prevent the game from running.");
-    break;
-  case Severity::Medium:
-    m_result.summary_text =
-        Common::GetStringT("Problems with medium severity were found. The whole game "
-                           "or certain parts of the game might not work correctly.");
-    break;
-  case Severity::High:
     m_result.summary_text = Common::GetStringT(
-        "Problems with high severity were found. The game will most likely not work at all.");
-    break;
+        "This is a bad dump. This doesn't necessarily mean that the game won't run correctly.");
+  }
+  else
+  {
+    if (m_result.redump.status == RedumpVerifier::Status::BadDump)
+    {
+      m_result.summary_text = Common::GetStringT("This is a bad dump.") + "\n\n";
+    }
+
+    switch (highest_severity)
+    {
+    case Severity::None:
+      if (IsWii(m_volume.GetVolumeType()) && !m_is_not_retail)
+      {
+        m_result.summary_text = Common::GetStringT(
+            "No problems were found. This does not guarantee that this is a good dump, "
+            "but since Wii titles contain a lot of verification data, it does mean that "
+            "there most likely are no problems that will affect emulation.");
+      }
+      else
+      {
+        m_result.summary_text = Common::GetStringT("No problems were found.");
+      }
+      break;
+    case Severity::Low:
+      m_result.summary_text =
+          Common::GetStringT("Problems with low severity were found. They will most "
+                             "likely not prevent the game from running.");
+      break;
+    case Severity::Medium:
+      m_result.summary_text +=
+          Common::GetStringT("Problems with medium severity were found. The whole game "
+                             "or certain parts of the game might not work correctly.");
+      break;
+    case Severity::High:
+      m_result.summary_text += Common::GetStringT(
+          "Problems with high severity were found. The game will most likely not work at all.");
+      break;
+    }
   }
 
   if (m_volume.GetVolumeType() == Platform::GameCubeDisc)
