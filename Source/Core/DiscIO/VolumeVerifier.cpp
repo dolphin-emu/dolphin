@@ -24,13 +24,16 @@
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MinizipUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Common/Version.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
@@ -46,15 +49,11 @@
 
 namespace DiscIO
 {
+RedumpVerifier::DownloadState RedumpVerifier::m_gc_download_state;
+RedumpVerifier::DownloadState RedumpVerifier::m_wii_download_state;
+
 void RedumpVerifier::Start(const Volume& volume)
 {
-  if (volume.GetVolumeType() == Platform::GameCubeDisc)
-    m_platform = "gc";
-  else if (volume.GetVolumeType() == Platform::WiiDisc)
-    m_platform = "wii";
-  else
-    m_result.status = Status::Error;
-
   // We use GetGameTDBID instead of GetGameID so that Datel discs will be represented by an empty
   // string, which matches Redump not having any serials for Datel discs.
   m_game_id = volume.GetGameTDBID();
@@ -65,14 +64,102 @@ void RedumpVerifier::Start(const Volume& volume)
   m_disc_number = volume.GetDiscNumber().value_or(0);
   m_size = volume.GetSize();
 
-  m_future = std::async(std::launch::async, [this] { return ScanDatfile(ReadDatfile()); });
+  const DiscIO::Platform platform = volume.GetVolumeType();
+
+  m_future = std::async(std::launch::async, [this, platform]() -> std::vector<PotentialMatch> {
+    std::string system;
+    DownloadState* download_state;
+    switch (platform)
+    {
+    case Platform::GameCubeDisc:
+      system = "gc";
+      download_state = &m_gc_download_state;
+      break;
+
+    case Platform::WiiDisc:
+      system = "wii";
+      download_state = &m_wii_download_state;
+      break;
+
+    default:
+      m_result.status = Status::Error;
+      return {};
+    }
+
+    DownloadStatus status;
+    {
+      std::lock_guard lk(download_state->mutex);
+      download_state->status = DownloadDatfile(system, download_state->status);
+      status = download_state->status;
+    }
+
+    switch (download_state->status)
+    {
+    case DownloadStatus::FailButOldCacheAvailable:
+      ERROR_LOG(DISCIO, "Failed to fetch data from Redump.org, using old cached data instead");
+      [[fallthrough]];
+    case DownloadStatus::Success:
+      return ScanDatfile(ReadDatfile(system));
+
+    case DownloadStatus::SystemNotAvailable:
+      m_result = {Status::Error, Common::GetStringT("Wii data is not public yet")};
+      return {};
+
+    case DownloadStatus::Fail:
+    default:
+      m_result = {Status::Error, Common::GetStringT("Failed to connect to Redump.org")};
+      return {};
+    }
+  });
 }
 
-std::vector<u8> RedumpVerifier::ReadDatfile()
+static std::string GetPathForSystem(const std::string& system)
 {
-  const std::string path = File::GetUserPath(D_REDUMPCACHE_IDX) + DIR_SEP + m_platform + ".zip";
+  return File::GetUserPath(D_REDUMPCACHE_IDX) + DIR_SEP + system + ".zip";
+}
 
-  unzFile file = unzOpen(path.c_str());
+RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string& system,
+                                                               DownloadStatus old_status)
+{
+  if (old_status == DownloadStatus::Success || old_status == DownloadStatus::SystemNotAvailable)
+    return old_status;
+
+  Common::HttpRequest request;
+
+  const std::optional<std::vector<u8>> result =
+      request.Get("http://redump.org/datfile/" + system + "/serial,version",
+                  {{"User-Agent", Common::scm_rev_str}});
+
+  const std::string output_path = GetPathForSystem(system);
+
+  if (!result)
+  {
+    return File::Exists(output_path) ? DownloadStatus::FailButOldCacheAvailable :
+                                       DownloadStatus::Fail;
+  }
+
+  if (result->size() > 1 && (*result)[0] == '<' && (*result)[1] == '!')
+  {
+    // This is an HTML page, not a zip file like we want
+
+    if (File::Exists(output_path))
+      return DownloadStatus::FailButOldCacheAvailable;
+
+    const std::string system_not_available_message = "System \"" + system + "\" doesn't exist.";
+    const bool system_not_available_match =
+        result->end() != std::search(result->begin(), result->end(),
+                                     system_not_available_message.begin(),
+                                     system_not_available_message.end());
+    return system_not_available_match ? DownloadStatus::SystemNotAvailable : DownloadStatus::Fail;
+  }
+
+  File::IOFile(output_path, "wb").WriteBytes(result->data(), result->size());
+  return DownloadStatus::Success;
+}
+
+std::vector<u8> RedumpVerifier::ReadDatfile(const std::string& system)
+{
+  unzFile file = unzOpen(GetPathForSystem(system).c_str());
   if (!file)
     return {};
 

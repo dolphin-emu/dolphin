@@ -65,16 +65,31 @@ public:
   Result Finish(const Hashes<std::vector<u8>>& hashes);
 
 private:
+  enum class DownloadStatus
+  {
+    NotAttempted,
+    Success,
+    Fail,
+    FailButOldCacheAvailable,
+    SystemNotAvailable,
+  };
+
+  struct DownloadState
+  {
+    std::mutex mutex;
+    DownloadStatus status = DownloadStatus::NotAttempted;
+  };
+
   struct PotentialMatch
   {
     u64 size;
     Hashes<std::vector<u8>> hashes;
   };
 
-  std::vector<u8> ReadDatfile();
+  static DownloadStatus DownloadDatfile(const std::string& system, DownloadStatus old_status);
+  static std::vector<u8> ReadDatfile(const std::string& system);
   std::vector<PotentialMatch> ScanDatfile(const std::vector<u8>& data);
 
-  std::string m_platform;
   std::string m_game_id;
   u16 m_revision;
   u8 m_disc_number;
@@ -82,6 +97,9 @@ private:
 
   std::future<std::vector<PotentialMatch>> m_future;
   Result m_result;
+
+  static DownloadState m_gc_download_state;
+  static DownloadState m_wii_download_state;
 };
 
 class VolumeVerifier final
