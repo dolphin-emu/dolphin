@@ -526,6 +526,9 @@
     <ClCompile Include="HW\WiimoteEmu\Encryption.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
+    <ClCompile Include="HW\WiimoteEmu\SystemBattery.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
@@ -1236,6 +1239,9 @@
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\Encryption.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiimoteEmu\SystemBattery.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h">

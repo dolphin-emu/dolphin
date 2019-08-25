@@ -245,6 +245,7 @@ private:
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
   ControllerEmu::SettingValue<double> m_battery_setting;
+  ControllerEmu::SettingValue<bool> m_system_battery_setting;
   ControllerEmu::SettingValue<double> m_speaker_pan_setting;
   ControllerEmu::SettingValue<bool> m_motion_plus_setting;
 

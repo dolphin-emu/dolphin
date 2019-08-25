@@ -196,6 +196,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                          _trans("%")},
                         95, 0, 100);
 
+  m_options->AddSetting(&m_system_battery_setting,
+                        {_trans("Use system battery status if possible")}, true);
+
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
   m_options->AddSetting(&m_upright_setting,

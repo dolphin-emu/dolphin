@@ -291,6 +291,8 @@ add_library(core
   HW/WiimoteEmu/MotionPlus.h
   HW/WiimoteEmu/Speaker.cpp
   HW/WiimoteEmu/Speaker.h
+  HW/WiimoteEmu/SystemBattery.cpp
+  HW/WiimoteEmu/SystemBattery.h
   HW/WiimoteEmu/WiimoteEmu.cpp
   HW/WiimoteEmu/WiimoteEmu.h
   HW/WiimoteEmu/Extension/Classic.cpp

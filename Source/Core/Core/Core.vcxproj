@@ -190,6 +190,7 @@
     <ClCompile Include="HW\WiimoteEmu\I2CBus.cpp" />
     <ClCompile Include="HW\WiimoteEmu\MotionPlus.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Speaker.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\SystemBattery.cpp" />
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp" />
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp" />
@@ -465,6 +466,7 @@
     <ClInclude Include="HW\WiimoteEmu\I2CBus.h" />
     <ClInclude Include="HW\WiimoteEmu\MotionPlus.h" />
     <ClInclude Include="HW\WiimoteEmu\Speaker.h" />
+    <ClInclude Include="HW\WiimoteEmu\SystemBattery.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />

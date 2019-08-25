@@ -16,6 +16,7 @@
 #include "Core/Analytics.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/SystemBattery.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -240,12 +241,34 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Max battery level seems to be 0xc8 (decimal 200)
   constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
 
-  m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
-
   if (Core::WantsDeterminism())
   {
     // One less thing to break determinism:
     m_status.battery = MAX_BATTERY_LEVEL;
+  }
+  else if (std::optional<float> battery;
+           m_system_battery_setting.GetValue() && (battery = GetSystemBatteryLevel()))
+  {
+    // The HOME Menu and Metroid Prime 3 battery bars work like:
+    // 84+ => 4/4, 67+ => 3/4, 51+ => 2/4, 3+ 1/4, 2 or less => 0/4
+    // Something that fits those values is more useful than just multiplying
+    // by MAX_BATTERY_LEVEL (otherwise e.g. 50% battery status shows up as 4/4)
+    // The following math is not based on real battery behaviour, it just makes
+    // good-looking numbers..
+    constexpr float LOW = 0.3f;
+    if (*battery > LOW)
+    {
+      *battery = std::exp(*battery) / M_E;
+    }
+    else
+    {
+      *battery *= std::exp(LOW) / M_E / LOW;
+    }
+    m_status.battery = u8(std::lround(*battery * 100));
+  }
+  else
+  {
+    m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
   }
 
   // Less than 0x20 triggers the low-battery flag:
