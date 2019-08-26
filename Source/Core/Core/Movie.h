@@ -107,7 +107,7 @@ struct DTMHeader
   bool bNetPlay;
   bool bPAL60;
   u8 language;
-  bool bReducePollingRate;
+  u8 reserved3;
   bool bFollowBranch;
   std::array<u8, 9> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.

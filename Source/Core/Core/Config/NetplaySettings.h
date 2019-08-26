@@ -47,7 +47,6 @@ extern const ConfigInfo<bool> NETPLAY_LOAD_WII_SAVE;
 extern const ConfigInfo<bool> NETPLAY_SYNC_SAVES;
 extern const ConfigInfo<bool> NETPLAY_SYNC_CODES;
 extern const ConfigInfo<bool> NETPLAY_RECORD_INPUTS;
-extern const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE;
 extern const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC;
 extern const ConfigInfo<std::string> NETPLAY_NETWORK_MODE;
 extern const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES;

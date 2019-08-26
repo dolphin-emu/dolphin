@@ -56,8 +56,6 @@ const ConfigInfo<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiS
 const ConfigInfo<bool> NETPLAY_SYNC_SAVES{{System::Main, "NetPlay", "SyncSaves"}, true};
 const ConfigInfo<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};
 const ConfigInfo<bool> NETPLAY_RECORD_INPUTS{{System::Main, "NetPlay", "RecordInputs"}, false};
-const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE{{System::Main, "NetPlay", "ReducePollingRate"},
-                                                   false};
 const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
                                                     false};
 const ConfigInfo<std::string> NETPLAY_NETWORK_MODE{{System::Main, "NetPlay", "NetworkMode"},

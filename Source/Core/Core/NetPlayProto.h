@@ -33,7 +33,6 @@ struct NetSettings
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
   bool m_CopyWiiSave;
-  bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
   std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
