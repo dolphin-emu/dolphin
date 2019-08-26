@@ -190,6 +190,11 @@ bool IsRunningInCurrentThread()
   return IsRunning() && IsCPUThread();
 }
 
+bool IsBooted()
+{
+  return s_hardware_initialized.IsSet() && !s_is_stopping.IsSet();
+}
+
 bool IsCPUThread()
 {
   return tls_is_cpu_thread;
@@ -804,7 +809,7 @@ void RunAsCPUThread(std::function<void()> function)
 void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 {
   // If the CPU thread is not running, assume there is no active CPU thread we can race against.
-  if (!IsRunning() || IsCPUThread())
+  if (!IsBooted() || IsCPUThread())
   {
     function();
     return;
