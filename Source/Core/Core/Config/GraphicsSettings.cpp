@@ -61,6 +61,7 @@ const ConfigInfo<bool> GFX_FAST_DEPTH_CALC{{System::GFX, "Settings", "FastDepthC
 const ConfigInfo<u32> GFX_MSAA{{System::GFX, "Settings", "MSAA"}, 1};
 const ConfigInfo<bool> GFX_SSAA{{System::GFX, "Settings", "SSAA"}, false};
 const ConfigInfo<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 1};
+const ConfigInfo<int> GFX_MAX_EFB_SCALE{{System::GFX, "Settings", "MaxInternalResolution"}, 8};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOverlayEnable"},
                                                  false};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"},

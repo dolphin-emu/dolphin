@@ -54,6 +54,7 @@ extern const ConfigInfo<bool> GFX_FAST_DEPTH_CALC;
 extern const ConfigInfo<u32> GFX_MSAA;
 extern const ConfigInfo<bool> GFX_SSAA;
 extern const ConfigInfo<int> GFX_EFB_SCALE;
+extern const ConfigInfo<int> GFX_MAX_EFB_SCALE;
 extern const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_ENABLE;
 extern const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_CENTER;
 extern const ConfigInfo<bool> GFX_ENABLE_WIREFRAME;

@@ -26,6 +26,7 @@
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
@@ -48,21 +49,29 @@ void EnhancementsWidget::CreateWidgets()
   auto* enhancements_layout = new QGridLayout();
   enhancements_box->setLayout(enhancements_layout);
 
-  m_ir_combo = new GraphicsChoice({tr("Auto (Multiple of 640x528)"), tr("Native (640x528)"),
-                                   tr("2x Native (1280x1056) for 720p"),
-                                   tr("3x Native (1920x1584) for 1080p"),
-                                   tr("4x Native (2560x2112) for 1440p"),
-                                   tr("5x Native (3200x2640)"), tr("6x Native (3840x3168) for 4K"),
-                                   tr("7x Native (4480x3696)"), tr("8x Native (5120x4224) for 5K")},
-                                  Config::GFX_EFB_SCALE);
+  // Only display the first 8 scales, which most users will not go beyond.
+  QStringList resolution_options{
+      tr("Auto (Multiple of 640x528)"),      tr("Native (640x528)"),
+      tr("2x Native (1280x1056) for 720p"),  tr("3x Native (1920x1584) for 1080p"),
+      tr("4x Native (2560x2112) for 1440p"), tr("5x Native (3200x2640)"),
+      tr("6x Native (3840x3168) for 4K"),    tr("7x Native (4480x3696)"),
+      tr("8x Native (5120x4224) for 5K")};
+  const int visible_resolution_option_count = static_cast<int>(resolution_options.size());
 
-  if (g_Config.iEFBScale > 8)
+  // If the current scale is greater than the max scale in the ini, add sufficient options so that
+  // when the settings are saved we don't lose the user-modified value from the ini.
+  const int max_efb_scale =
+      std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
+  for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
   {
-    m_ir_combo->addItem(tr("Custom"));
-    m_ir_combo->setCurrentIndex(m_ir_combo->count() - 1);
+    resolution_options.append(tr("%1x Native (%2x%3)")
+                                  .arg(QString::number(scale),
+                                       QString::number(static_cast<int>(EFB_WIDTH) * scale),
+                                       QString::number(static_cast<int>(EFB_HEIGHT) * scale)));
   }
 
-  m_ir_combo->setMaxVisibleItems(m_ir_combo->count());
+  m_ir_combo = new GraphicsChoice(resolution_options, Config::GFX_EFB_SCALE);
+  m_ir_combo->setMaxVisibleItems(visible_resolution_option_count);
 
   m_aa_combo = new QComboBox();
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
