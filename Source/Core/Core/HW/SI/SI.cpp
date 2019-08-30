@@ -312,7 +312,7 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
       {
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
       }
-      ERROR_LOG(
+      DEBUG_LOG(
           SERIALINTERFACE,
           "RunSIBuffer: expected_response_length(%u) != actual_response_length(%u): request: %s",
           expected_response_length, actual_response_length, ss.str().c_str());
