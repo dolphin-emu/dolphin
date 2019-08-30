@@ -11,7 +11,6 @@
 #include <QGridLayout>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QScrollBar>
 #include <QTimer>
 
 #include "Core/ConfigManager.h"
@@ -68,31 +67,10 @@ void LogWidget::UpdateLog()
   if (m_log_queue.empty())
     return;
 
-  auto* vscroll = m_log_text->verticalScrollBar();
-  auto* hscroll = m_log_text->horizontalScrollBar();
-
-  // If the vertical scrollbar is within 50 units of the maximum value, count it as being at the
-  // bottom
-  bool vscroll_bottom = vscroll->maximum() - vscroll->value() < 50;
-
-  int old_horizontal = hscroll->value();
-  int old_vertical = vscroll->value();
-
   for (size_t i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
   {
     m_log_text->appendHtml(m_log_queue.front());
     m_log_queue.pop();
-  }
-
-  if (hscroll->value() != old_horizontal)
-    hscroll->setValue(old_horizontal);
-
-  if (vscroll->value() != old_vertical)
-  {
-    if (vscroll_bottom)
-      vscroll->setValue(vscroll->maximum());
-    else
-      vscroll->setValue(old_vertical);
   }
 }
 
@@ -148,13 +126,15 @@ void LogWidget::CreateWidgets()
 
 void LogWidget::ConnectWidgets()
 {
-  connect(m_log_clear, &QPushButton::clicked, m_log_text, &QPlainTextEdit::clear);
+  connect(m_log_clear, &QPushButton::clicked, [this] {
+    m_log_text->clear();
+    m_log_queue = {};
+  });
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
   connect(m_log_font, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &LogWidget::SaveSettings);
   connect(this, &QDockWidget::topLevelChanged, this, &LogWidget::SaveSettings);
-  connect(&Settings::Instance(), &Settings::LogVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+  connect(&Settings::Instance(), &Settings::LogVisibilityChanged, this, &LogWidget::setVisible);
 }
 
 void LogWidget::LoadSettings()
