@@ -8,6 +8,7 @@
 
 #include <mutex>
 #include <queue>
+#include <string>
 
 #include "Common/Logging/LogManager.h"
 
@@ -46,6 +47,8 @@ private:
 
   QTimer* m_timer;
 
+  using LogEntry = std::pair<std::string, LogTypes::LOG_LEVELS>;
+
   std::mutex m_log_mutex;
-  std::queue<QString> m_log_queue;
+  std::queue<LogEntry> m_log_queue;
 };

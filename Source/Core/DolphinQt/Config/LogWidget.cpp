@@ -15,12 +15,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
-
-#include "Core/ConfigManager.h"
-
-#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 // Delay in ms between calls of UpdateLog()
@@ -30,7 +24,13 @@ constexpr int MAX_LOG_LINES = 5000;
 // Maximum lines to process at a time
 constexpr size_t MAX_LOG_LINES_TO_UPDATE = 200;
 // Timestamp length
-constexpr int TIMESTAMP_LENGTH = 10;
+constexpr size_t TIMESTAMP_LENGTH = 10;
+
+// A helper function to construct QString from std::string_view in one line
+static QString QStringFromStringView(std::string_view str)
+{
+  return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
+}
 
 LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(this))
 {
@@ -67,15 +67,50 @@ LogWidget::~LogWidget()
 
 void LogWidget::UpdateLog()
 {
-  std::lock_guard<std::mutex> lock(m_log_mutex);
-
-  if (m_log_queue.empty())
-    return;
-
-  for (size_t i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
+  std::vector<LogEntry> elements_to_push;
   {
-    m_log_text->appendHtml(m_log_queue.front());
-    m_log_queue.pop();
+    std::lock_guard lock(m_log_mutex);
+    if (m_log_queue.empty())
+      return;
+
+    elements_to_push.reserve(std::min(MAX_LOG_LINES_TO_UPDATE, m_log_queue.size()));
+
+    for (size_t i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
+    {
+      elements_to_push.push_back(std::move(m_log_queue.front()));
+      m_log_queue.pop();
+    }
+  }
+
+  for (auto& line : elements_to_push)
+  {
+    const char* color = "white";
+    switch (std::get<LogTypes::LOG_LEVELS>(line))
+    {
+    case LogTypes::LOG_LEVELS::LERROR:
+      color = "red";
+      break;
+    case LogTypes::LOG_LEVELS::LWARNING:
+      color = "yellow";
+      break;
+    case LogTypes::LOG_LEVELS::LNOTICE:
+      color = "lime";
+      break;
+    case LogTypes::LOG_LEVELS::LINFO:
+      color = "cyan";
+      break;
+    case LogTypes::LOG_LEVELS::LDEBUG:
+      color = "lightgrey";
+      break;
+    }
+
+    const std::string_view str_view(std::get<std::string>(line));
+
+    m_log_text->appendHtml(
+        QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
+            .arg(QStringFromStringView(str_view.substr(0, TIMESTAMP_LENGTH)),
+                 QString::fromUtf8(color),
+                 QStringFromStringView(str_view.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
   }
 }
 
@@ -179,40 +214,13 @@ void LogWidget::SaveSettings()
 
 void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
-  // The text has to be copied here as it will be deallocated after this method has returned
-  std::string str(text);
+  size_t text_length = strlen(text);
+  while (text_length > 0 && text[text_length - 1] == '\n')
+    text_length--;
 
-  QueueOnObject(this, [this, level, str]() mutable {
-    std::lock_guard<std::mutex> lock(m_log_mutex);
-
-    const char* color = "white";
-
-    switch (level)
-    {
-    case LogTypes::LOG_LEVELS::LERROR:
-      color = "red";
-      break;
-    case LogTypes::LOG_LEVELS::LWARNING:
-      color = "yellow";
-      break;
-    case LogTypes::LOG_LEVELS::LNOTICE:
-      color = "lime";
-      break;
-    case LogTypes::LOG_LEVELS::LINFO:
-      color = "cyan";
-      break;
-    case LogTypes::LOG_LEVELS::LDEBUG:
-      color = "lightgrey";
-      break;
-    }
-
-    StringPopBackIf(&str, '\n');
-    m_log_queue.push(
-        QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
-            .arg(QString::fromStdString(str.substr(0, TIMESTAMP_LENGTH)),
-                 QString::fromStdString(color),
-                 QString::fromStdString(str.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
-  });
+  std::lock_guard lock(m_log_mutex);
+  m_log_queue.emplace(std::piecewise_construct, std::forward_as_tuple(text, text_length),
+                      std::forward_as_tuple(level));
 }
 
 void LogWidget::closeEvent(QCloseEvent*)
