@@ -46,7 +46,12 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
   ConnectWidgets();
 
   connect(m_timer, &QTimer::timeout, this, &LogWidget::UpdateLog);
-  m_timer->start(UPDATE_LOG_DELAY);
+  connect(this, &QDockWidget::visibilityChanged, [this](bool visible) {
+    if (visible)
+      m_timer->start(UPDATE_LOG_DELAY);
+    else
+      m_timer->stop();
+  });
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
