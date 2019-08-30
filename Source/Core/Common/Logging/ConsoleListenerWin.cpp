@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include "Common/Logging/ConsoleListener.h"
+#include "Common/StringUtil.h"
 
 ConsoleListener::ConsoleListener()
 {
@@ -16,5 +17,5 @@ ConsoleListener::~ConsoleListener()
 
 void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
-  ::OutputDebugStringA(text);
+  ::OutputDebugStringW(UTF8ToUTF16(text).c_str());
 }
