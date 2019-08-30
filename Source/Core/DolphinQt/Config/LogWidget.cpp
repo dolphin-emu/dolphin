@@ -8,12 +8,13 @@
 #include <QComboBox>
 #include <QFont>
 #include <QFontDatabase>
-#include <QGroupBox>
+#include <QGridLayout>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollBar>
-#include <QTextEdit>
 #include <QTimer>
-#include <QVBoxLayout>
+
+#include "Core/ConfigManager.h"
 
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -25,8 +26,10 @@
 
 // Delay in ms between calls of UpdateLog()
 constexpr int UPDATE_LOG_DELAY = 100;
+// Maximum number of lines to show in log viewer
+constexpr int MAX_LOG_LINES = 5000;
 // Maximum lines to process at a time
-constexpr int MAX_LOG_LINES = 200;
+constexpr size_t MAX_LOG_LINES_TO_UPDATE = 200;
 // Timestamp length
 constexpr int TIMESTAMP_LENGTH = 10;
 
@@ -75,9 +78,9 @@ void LogWidget::UpdateLog()
   int old_horizontal = hscroll->value();
   int old_vertical = vscroll->value();
 
-  for (int i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES; i++)
+  for (size_t i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
   {
-    m_log_text->append(m_log_queue.front());
+    m_log_text->appendHtml(m_log_queue.front());
     m_log_queue.pop();
   }
 
@@ -115,8 +118,7 @@ void LogWidget::UpdateFont()
 void LogWidget::CreateWidgets()
 {
   // Log
-  m_tab_log = new QWidget;
-  m_log_text = new QTextEdit;
+  m_log_text = new QPlainTextEdit;
   m_log_wrap = new QCheckBox(tr("Word Wrap"));
   m_log_font = new QComboBox;
   m_log_clear = new QPushButton(tr("Clear"));
@@ -124,7 +126,6 @@ void LogWidget::CreateWidgets()
   m_log_font->addItems({tr("Default Font"), tr("Monospaced Font"), tr("Selected Font")});
 
   auto* log_layout = new QGridLayout;
-  m_tab_log->setLayout(log_layout);
   log_layout->addWidget(m_log_wrap, 0, 0);
   log_layout->addWidget(m_log_font, 0, 1);
   log_layout->addWidget(m_log_clear, 0, 2);
@@ -136,6 +137,8 @@ void LogWidget::CreateWidgets()
   setWidget(widget);
 
   m_log_text->setReadOnly(true);
+  m_log_text->setUndoRedoEnabled(false);
+  m_log_text->setMaximumBlockCount(MAX_LOG_LINES);
 
   QPalette palette = m_log_text->palette();
   palette.setColor(QPalette::Base, Qt::black);
@@ -145,7 +148,7 @@ void LogWidget::CreateWidgets()
 
 void LogWidget::ConnectWidgets()
 {
-  connect(m_log_clear, &QPushButton::clicked, m_log_text, &QTextEdit::clear);
+  connect(m_log_clear, &QPushButton::clicked, m_log_text, &QPlainTextEdit::clear);
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
   connect(m_log_font, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &LogWidget::SaveSettings);
@@ -163,7 +166,8 @@ void LogWidget::LoadSettings()
 
   // Log - Wrap Lines
   m_log_wrap->setChecked(settings.value(QStringLiteral("logging/wraplines")).toBool());
-  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QTextEdit::WidgetWidth : QTextEdit::NoWrap);
+  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
+                                                        QPlainTextEdit::NoWrap);
 
   // Log - Font Selection
   // Currently "Debugger Font" is not supported as there is no Qt Debugger, defaulting to Monospace
@@ -180,7 +184,8 @@ void LogWidget::SaveSettings()
 
   // Log - Wrap Lines
   settings.setValue(QStringLiteral("logging/wraplines"), m_log_wrap->isChecked());
-  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QTextEdit::WidgetWidth : QTextEdit::NoWrap);
+  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
+                                                        QPlainTextEdit::NoWrap);
 
   // Log - Font Selection
   settings.setValue(QStringLiteral("logging/font"), m_log_font->currentIndex());

@@ -14,9 +14,8 @@
 class QCheckBox;
 class QCloseEvent;
 class QComboBox;
+class QPlainTextEdit;
 class QPushButton;
-class QVBoxLayout;
-class QTextEdit;
 class QTimer;
 
 class LogWidget final : public QDockWidget, LogListener
@@ -43,9 +42,7 @@ private:
   QCheckBox* m_log_wrap;
   QComboBox* m_log_font;
   QPushButton* m_log_clear;
-  QVBoxLayout* m_main_layout;
-  QTextEdit* m_log_text;
-  QWidget* m_tab_log;
+  QPlainTextEdit* m_log_text;
 
   QTimer* m_timer;
 
