@@ -19,8 +19,6 @@
 
 // Delay in ms between calls of UpdateLog()
 constexpr int UPDATE_LOG_DELAY = 100;
-// Maximum number of lines to show in log viewer
-constexpr int MAX_LOG_LINES = 5000;
 // Maximum lines to process at a time
 constexpr size_t MAX_LOG_LINES_TO_UPDATE = 200;
 // Timestamp length
@@ -70,16 +68,13 @@ void LogWidget::UpdateLog()
   std::vector<LogEntry> elements_to_push;
   {
     std::lock_guard lock(m_log_mutex);
-    if (m_log_queue.empty())
+    if (m_log_ring_buffer.empty())
       return;
 
-    elements_to_push.reserve(std::min(MAX_LOG_LINES_TO_UPDATE, m_log_queue.size()));
+    elements_to_push.reserve(std::min(MAX_LOG_LINES_TO_UPDATE, m_log_ring_buffer.size()));
 
-    for (size_t i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
-    {
-      elements_to_push.push_back(std::move(m_log_queue.front()));
-      m_log_queue.pop();
-    }
+    for (size_t i = 0; !m_log_ring_buffer.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
+      elements_to_push.push_back(std::move(m_log_ring_buffer.pop_front()));
   }
 
   for (auto& line : elements_to_push)
@@ -168,7 +163,7 @@ void LogWidget::ConnectWidgets()
 {
   connect(m_log_clear, &QPushButton::clicked, [this] {
     m_log_text->clear();
-    m_log_queue = {};
+    m_log_ring_buffer.clear();
   });
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
   connect(m_log_font, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
@@ -219,8 +214,8 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
     text_length--;
 
   std::lock_guard lock(m_log_mutex);
-  m_log_queue.emplace(std::piecewise_construct, std::forward_as_tuple(text, text_length),
-                      std::forward_as_tuple(level));
+  m_log_ring_buffer.emplace(std::piecewise_construct, std::forward_as_tuple(text, text_length),
+                            std::forward_as_tuple(level));
 }
 
 void LogWidget::closeEvent(QCloseEvent*)
