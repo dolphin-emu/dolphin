@@ -18,6 +18,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
@@ -418,15 +419,16 @@ public final class SettingsFragmentPresenter
             R.array.videoBackendValues, 0, videoBackend));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, Settings.SECTION_GFX_SETTINGS,
             R.string.show_fps, R.string.show_fps_description, false, showFps));
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE,
-            Settings.SECTION_GFX_SETTINGS, R.string.shader_compilation_mode,
-            R.string.shader_compilation_mode_description, R.array.shaderCompilationModeEntries,
-            R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
+    sl.add(new SingleChoiceSettingDynamicDescriptions(SettingsFile.KEY_SHADER_COMPILATION_MODE,
+            Settings.SECTION_GFX_SETTINGS, R.string.shader_compilation_mode, 0,
+            R.array.shaderCompilationModeEntries,
+            R.array.shaderCompilationModeValues, R.array.shaderCompilationDescriptionEntries,
+            R.array.shaderCompilationDescriptionValues, 0, shaderCompilationMode));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, Settings.SECTION_GFX_SETTINGS,
             R.string.wait_for_shaders, R.string.wait_for_shaders_description, false,
             waitForShaders));
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, Settings.SECTION_GFX_SETTINGS,
-            R.string.aspect_ratio, R.string.aspect_ratio_description, R.array.aspectRatioEntries,
+            R.string.aspect_ratio, 0, R.array.aspectRatioEntries,
             R.array.aspectRatioValues, 0, aspectRatio));
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
@@ -682,7 +684,7 @@ public final class SettingsFragmentPresenter
     Setting swapEyes = stereoScopySection.getSetting(SettingsFile.KEY_STEREO_SWAP);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, Settings.SECTION_STEREOSCOPY,
-            R.string.stereoscopy_mode, R.string.stereoscopy_mode_description,
+            R.string.stereoscopy_mode, 0,
             R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
     sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, Settings.SECTION_STEREOSCOPY,
             R.string.stereoscopy_depth, R.string.stereoscopy_depth_description, 100, "%", 20,
