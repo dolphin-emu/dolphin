@@ -24,6 +24,7 @@
 
 #include "Core/HW/DSP.h"
 
+#include <algorithm>
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
@@ -33,7 +34,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-
+#include "Core/HW/AddressSpace.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -119,10 +120,20 @@ union ARAM_Info
   u16 Hex = 0;
   struct
   {
-    u16 size : 6;
+    u16 base_size : 3;
+    u16 expansion_size : 3;
     u16 unk : 1;
     u16 : 9;
   };
+};
+
+enum
+{
+  ARAM_SIZE_02MB = 0b000,
+  ARAM_SIZE_04MB = 0b001,
+  ARAM_SIZE_08MB = 0b010,
+  ARAM_SIZE_16MB = 0b011,
+  ARAM_SIZE_32MB = 0b100,
 };
 
 // STATE_TO_SAVE
@@ -165,12 +176,19 @@ static void Do_ARAM_DMA();
 static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
 
 static CoreTiming::EventType* s_et_GenerateDSPInterrupt;
-static CoreTiming::EventType* s_et_CompleteARAM;
+static CoreTiming::EventType* s_et_ContinueARAM;
 
-static void CompleteARAM(u64 userdata, s64 cyclesLate)
+static void ContinueARAM(u64 userdata, s64 cyclesLate)
 {
-  s_dspState.DMAState = 0;
-  GenerateDSPInterrupt(INT_ARAM);
+  if (s_arDMA.Cnt.count == 0)
+  {
+    s_dspState.DMAState = 0;
+    GenerateDSPInterrupt(INT_ARAM);
+  }
+  else
+  {
+    Do_ARAM_DMA();
+  }
 }
 
 DSPEmulator* GetDSPEmulator()
@@ -182,7 +200,7 @@ void Init(bool hle)
 {
   Reinit(hle);
   s_et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
-  s_et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
+  s_et_ContinueARAM = CoreTiming::RegisterEvent("ARAMint", ContinueARAM);
 }
 
 void Reinit(bool hle)
@@ -193,9 +211,9 @@ void Reinit(bool hle)
   if (SConfig::GetInstance().bWii)
   {
     s_ARAM.wii_mode = true;
-    s_ARAM.size = Memory::EXRAM_SIZE;
-    s_ARAM.mask = Memory::EXRAM_MASK;
-    s_ARAM.ptr = Memory::m_pEXRAM;
+    s_ARAM.size = 0;
+    s_ARAM.mask = 0;
+    s_ARAM.ptr = nullptr;
   }
   else
   {
@@ -300,7 +318,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         // Not really sure if this is correct, but it works...
         // Kind of a hack because DSP_CONTROL_MASK should make this bit
         // only viewable to DSP emulator
-        if (val & 1 /*DSPReset*/)
+        if (val & 1)  // DSPReset
         {
           s_audioDMA.AudioDMAControl.Hex = 0;
         }
@@ -472,140 +490,138 @@ void UpdateAudioDMA()
   }
 }
 
-static void Do_ARAM_DMA()
+static constexpr u32 ARAM_MEMORY_WRAP_MASK = 0x3ffffe0;
+
+// Used when converting from a smaller memory size to 16MB
+static constexpr u32 ARAM_UPPER_MASK1 = 0xfffffe00;
+static constexpr u32 ARAM_LOWER_MASK1 = 0x000001ff;
+
+// Used when converting from a larger memory size to 16MB
+static constexpr u32 ARAM_UPPER_MASK2 = 0xff800000;
+static constexpr u32 ARAM_LOWER_MASK2 = 0x003fffff;
+
+// Depending on the size ARAM is configured as, the mapping to the underlying physical ARAM can
+// change. These mappings have been confirmed on hardware.
+
+template <u32 MB_SIZE>
+static std::optional<u32> ARAM_map_to_16MB(u32 address)
 {
-  s_dspState.DMAState = 1;
+  static_assert((MB_SIZE == 2) || (MB_SIZE == 4) || (MB_SIZE == 8) || (MB_SIZE == 16) ||
+                (MB_SIZE == 32));
 
-  // ARAM DMA transfer rate has been measured on real hw
-  int ticksToTransfer = (s_arDMA.Cnt.count / 32) * 246;
-  CoreTiming::ScheduleEvent(ticksToTransfer, s_et_CompleteARAM);
-
-  // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
-  if (s_arDMA.Cnt.dir)
+  address &= ARAM_MEMORY_WRAP_MASK;
+  if (address >= MB_SIZE * 1024 * 1024)
   {
-    // ARAM -> MRAM
-    DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
-              s_arDMA.Cnt.count, s_arDMA.ARAddr, s_arDMA.MMAddr, PC);
-
-    // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
-    s_arDMA.ARAddr &= 0x3ffffff;
-    s_arDMA.MMAddr &= 0x3ffffff;
-
-    if (s_arDMA.ARAddr < s_ARAM.size)
-    {
-      while (s_arDMA.Cnt.count)
-      {
-        // These are logically separated in code to show that a memory map has been set up
-        // See below in the write section for more information
-        if ((s_ARAM_Info.Hex & 0xf) == 3)
-        {
-          Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
-        }
-        else if ((s_ARAM_Info.Hex & 0xf) == 4)
-        {
-          Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
-        }
-        else
-        {
-          Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
-        }
-
-        s_arDMA.MMAddr += 8;
-        s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
-      }
-    }
-    else
-    {
-      // Assuming no external ARAM installed; returns zeros on out of bounds reads (verified on real
-      // HW)
-      while (s_arDMA.Cnt.count)
-      {
-        Memory::Write_U64(0, s_arDMA.MMAddr);
-        s_arDMA.MMAddr += 8;
-        s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
-      }
-    }
+    return std::nullopt;
+  }
+  if constexpr (MB_SIZE < 16)
+  {
+    return ((address & ARAM_UPPER_MASK1) << 1) | (address & ARAM_LOWER_MASK1);
+  }
+  else if constexpr (MB_SIZE > 16)
+  {
+    return ((address & ARAM_UPPER_MASK2) >> 1) | (address & ARAM_LOWER_MASK2);
   }
   else
   {
-    // MRAM -> ARAM
-    DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
-              s_arDMA.Cnt.count, s_arDMA.MMAddr, s_arDMA.ARAddr, PC);
-
-    // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
-    s_arDMA.ARAddr &= 0x3ffffff;
-    s_arDMA.MMAddr &= 0x3ffffff;
-
-    if (s_arDMA.ARAddr < s_ARAM.size)
-    {
-      while (s_arDMA.Cnt.count)
-      {
-        if ((s_ARAM_Info.Hex & 0xf) == 3)
-        {
-          *(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask] =
-              Common::swap64(Memory::Read_U64(s_arDMA.MMAddr));
-        }
-        else if ((s_ARAM_Info.Hex & 0xf) == 4)
-        {
-          if (s_arDMA.ARAddr < 0x400000)
-          {
-            *(u64*)&s_ARAM.ptr[(s_arDMA.ARAddr + 0x400000) & s_ARAM.mask] =
-                Common::swap64(Memory::Read_U64(s_arDMA.MMAddr));
-          }
-          *(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask] =
-              Common::swap64(Memory::Read_U64(s_arDMA.MMAddr));
-        }
-        else
-        {
-          *(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask] =
-              Common::swap64(Memory::Read_U64(s_arDMA.MMAddr));
-        }
-
-        s_arDMA.MMAddr += 8;
-        s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
-      }
-    }
-    else
-    {
-      // Assuming no external ARAM installed; writes nothing to ARAM when out of bounds (verified on
-      // real HW)
-      s_arDMA.MMAddr += s_arDMA.Cnt.count;
-      s_arDMA.ARAddr += s_arDMA.Cnt.count;
-      s_arDMA.Cnt.count = 0;
-    }
+    return address;
   }
 }
 
-// (shuffle2) I still don't believe that this hack is actually needed... :(
-// Maybe the Wii Sports ucode is processed incorrectly?
-// (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
-u8 ReadARAM(u32 address)
+using ARAM_ADDRESS_CONVERSION_F = std::optional<u32> (*)(u32 address);
+constexpr std::array<ARAM_ADDRESS_CONVERSION_F, 8> conversion_functions = {
+    &ARAM_map_to_16MB<2>,  &ARAM_map_to_16MB<4>,  &ARAM_map_to_16MB<8>,  &ARAM_map_to_16MB<16>,
+    &ARAM_map_to_16MB<32>, &ARAM_map_to_16MB<32>, &ARAM_map_to_16MB<32>, &ARAM_map_to_16MB<32>,
+};
+
+enum
 {
+  ARAM_DMA_DIR_TO_ARAM = 0,
+  ARAM_DMA_DIR_FROM_ARAM = 1,
+};
+
+// Size of the smallest unit of transfer to/from ARAM via DMA.
+constexpr u32 ARAM_LINE_SIZE = 0x20;
+
+// Maximum number of lines to transfer at a time via DMA.
+constexpr u32 ARAM_MAX_TRANSFER_CHUNKING = 0x10;
+
+// The number of clock ticks for each line to be transferred.
+constexpr u32 TICKS_TO_TRANSFER_LINE = 246;
+
+static void Do_ARAM_DMA()
+{
+  constexpr std::array<const char*, 2> aram_transfer_direction = {"to", "from"};
+
+  s_dspState.DMAState = 1;
+  // ARAM is mirrored every 64MB (verified on real HW) - done in address conversion func
+  // Source/destination/count aligned to 32 bytes      - done in MMIO handler
+
+  u32 lines_to_transfer = std::min(s_arDMA.Cnt.count / ARAM_LINE_SIZE, ARAM_MAX_TRANSFER_CHUNKING);
+  u32 ticks_to_transfer = lines_to_transfer * TICKS_TO_TRANSFER_LINE;
+  CoreTiming::ScheduleEvent(ticks_to_transfer, s_et_ContinueARAM);
+
+  DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes %s ARAM %08x %s MRAM %08x PC: %08x", s_arDMA.Cnt.count,
+            aram_transfer_direction[s_arDMA.Cnt.dir], s_arDMA.ARAddr,
+            aram_transfer_direction[1 - s_arDMA.Cnt.dir], s_arDMA.MMAddr, PC);
+
   if (s_ARAM.wii_mode)
   {
-    if (address & 0x10000000)
-      return s_ARAM.ptr[address & s_ARAM.mask];
-    else
-      return Memory::Read_U8(address & Memory::RAM_MASK);
+    // Wii has no physical ARAM
+    if (s_arDMA.Cnt.dir == ARAM_DMA_DIR_FROM_ARAM)
+    {
+      std::fill_n(Memory::GetPointer(s_arDMA.MMAddr), ARAM_LINE_SIZE * lines_to_transfer, 0);
+    }
+    s_arDMA.MMAddr += ARAM_LINE_SIZE * lines_to_transfer;
+    s_arDMA.ARAddr += ARAM_LINE_SIZE * lines_to_transfer;
+    s_arDMA.Cnt.count -= ARAM_LINE_SIZE * lines_to_transfer;
+    return;
   }
-  else
+
+  const ARAM_ADDRESS_CONVERSION_F convert_address = conversion_functions[s_ARAM_Info.base_size];
+  for (u32 n = 0; n < lines_to_transfer; ++n)
   {
-    return s_ARAM.ptr[address & s_ARAM.mask];
+    std::optional<u32> physical_aram_addr = convert_address(s_arDMA.ARAddr);
+    if (physical_aram_addr)
+    {
+      u8* copy_pointers[2] = {Memory::GetPointer(s_arDMA.MMAddr), &s_ARAM.ptr[*physical_aram_addr]};
+      std::copy_n(copy_pointers[s_arDMA.Cnt.dir], ARAM_LINE_SIZE,
+                  copy_pointers[1 - s_arDMA.Cnt.dir]);
+    }
+    else if (s_arDMA.Cnt.dir == ARAM_DMA_DIR_FROM_ARAM)
+    {
+      // ARAM returns zeros on out of bounds reads (verified on real HW)
+      // ARAM writes nothing on out of bounds writes (verified on real HW)
+      std::fill_n(Memory::GetPointer(s_arDMA.MMAddr), ARAM_LINE_SIZE, 0);
+    }
+    s_arDMA.MMAddr += ARAM_LINE_SIZE;
+    s_arDMA.ARAddr += ARAM_LINE_SIZE;
   }
+  s_arDMA.Cnt.count -= ARAM_LINE_SIZE * lines_to_transfer;
+}  // namespace DSP
+
+u8 ReadARAM(u32 address)
+{
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(
+      s_ARAM.wii_mode ? AddressSpace::Type::Physical : AddressSpace::Type::Auxiliary);
+  return accessors->ReadU8(address);
 }
 
 void WriteARAM(u8 value, u32 address)
 {
-  // TODO: verify this on Wii
-  s_ARAM.ptr[address & s_ARAM.mask] = value;
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(
+      s_ARAM.wii_mode ? AddressSpace::Type::Physical : AddressSpace::Type::Auxiliary);
+  accessors->WriteU8(address, value);
 }
 
 u8* GetARAMPtr()
 {
   return s_ARAM.ptr;
+}
+
+u32 GetARAMPhysicalSize()
+{
+  return s_ARAM.size;
 }
 
 }  // end of namespace DSP
