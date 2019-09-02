@@ -187,7 +187,6 @@ void SetLidOpen();
 void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
-void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios);
 bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
                         const DiscIO::Partition& partition, ReplyType reply_type,
                         DIInterruptType* interrupt_type);
@@ -319,7 +318,7 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
   else
   {
     // There's nothing to read, so using DVDThread is unnecessary.
-    u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT);
+    u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
     CoreTiming::ScheduleEvent(ticks_to_dtk, s_finish_executing_command, userdata);
   }
 }
@@ -340,7 +339,7 @@ void Init()
   s_finish_executing_command =
       CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
 
-  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT);
+  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
   CoreTiming::ScheduleEvent(0, s_finish_executing_command, userdata);
 }
 
@@ -500,7 +499,7 @@ void SetLidOpen()
   u32 old_value = s_DICVR.CVR;
   s_DICVR.CVR = IsDiscInside() ? 0 : 1;
   if (s_DICVR.CVR != old_value)
-    GenerateDIInterrupt(INT_CVRINT);
+    GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
 
 bool UpdateRunningGameMetadata(std::optional<u64> title_id)
@@ -576,8 +575,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_DICR.Hex = val & 7;
                    if (s_DICR.TSTART)
                    {
-                     ExecuteCommand(s_DICMDBUF[0], s_DICMDBUF[1], s_DICMDBUF[2], s_DIMAR,
-                                    s_DILENGTH, false);
+                     ExecuteCommand(ReplyType::Interrupt);
                    }
                  }));
 
@@ -605,29 +603,59 @@ void GenerateDIInterrupt(DIInterruptType dvd_interrupt)
 {
   switch (dvd_interrupt)
   {
-  case INT_DEINT:
-    s_DISR.DEINT = 1;
+  case DIInterruptType::DEINT:
+    s_DISR.DEINT = true;
     break;
-  case INT_TCINT:
-    s_DISR.TCINT = 1;
+  case DIInterruptType::TCINT:
+    s_DISR.TCINT = true;
     break;
-  case INT_BRKINT:
-    s_DISR.BRKINT = 1;
+  case DIInterruptType::BRKINT:
+    s_DISR.BRKINT = true;
     break;
-  case INT_CVRINT:
-    s_DICVR.CVRINT = 1;
+  case DIInterruptType::CVRINT:
+    s_DICVR.CVRINT = true;
     break;
   }
 
   UpdateInterrupts();
 }
 
-void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios)
+void SetInterruptEnabled(DIInterruptType interrupt, bool enabled)
 {
-  if (reply_to_ios)
-    Memory::Write_U32(value, output_address);
-  else
-    s_DIIMMBUF = value;
+  switch (interrupt)
+  {
+  case DIInterruptType::DEINT:
+    s_DISR.DEINTMASK = enabled;
+    break;
+  case DIInterruptType::TCINT:
+    s_DISR.TCINTMASK = enabled;
+    break;
+  case DIInterruptType::BRKINT:
+    s_DISR.BRKINTMASK = enabled;
+    break;
+  case DIInterruptType::CVRINT:
+    s_DICVR.CVRINTMASK = enabled;
+    break;
+  }
+}
+
+void ClearInterrupt(DIInterruptType interrupt)
+{
+  switch (interrupt)
+  {
+  case DIInterruptType::DEINT:
+    s_DISR.DEINT = false;
+    break;
+  case DIInterruptType::TCINT:
+    s_DISR.TCINT = false;
+    break;
+  case DIInterruptType::BRKINT:
+    s_DISR.BRKINT = false;
+    break;
+  case DIInterruptType::CVRINT:
+    s_DICVR.CVRINT = false;
+    break;
+  }
 }
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
@@ -639,13 +667,13 @@ bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 
   {
     // Disc read fails
     SetHighError(ERROR_NO_DISK_H);
-    *interrupt_type = INT_DEINT;
+    *interrupt_type = DIInterruptType::DEINT;
     return false;
   }
   else
   {
     // Disc read succeeds
-    *interrupt_type = INT_TCINT;
+    *interrupt_type = DIInterruptType::TCINT;
   }
 
   if (dvd_length > output_length)
@@ -662,254 +690,150 @@ bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 
 // When the command has finished executing, callback_event_type
 // will be called using CoreTiming::ScheduleEvent,
 // with the userdata set to the interrupt type.
-void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
-                    u32 output_length, bool reply_to_ios)
+void ExecuteCommand(ReplyType reply_type)
 {
-  ReplyType reply_type = reply_to_ios ? ReplyType::IOS : ReplyType::Interrupt;
-  DIInterruptType interrupt_type = INT_TCINT;
+  DIInterruptType interrupt_type = DIInterruptType::TCINT;
   bool command_handled_by_thread = false;
 
   // DVDLowRequestError needs access to the error code set by the previous command
-  if (command_0 >> 24 != DVDLowRequestError)
+  if (static_cast<DICommand>(s_DICMDBUF[0] >> 24) != DICommand::RequestError)
     SetHighError(0);
 
-  switch (command_0 >> 24)
+  switch (static_cast<DICommand>(s_DICMDBUF[0] >> 24))
   {
-  // Seems to be used by both GC and Wii
-  case DVDLowInquiry:
+  // Used by both GC and Wii
+  case DICommand::Inquiry:
     // (shuffle2) Taken from my Wii
-    Memory::Write_U32(0x00000002, output_address);
-    Memory::Write_U32(0x20060526, output_address + 4);
-    // This was in the oubuf even though this cmd is only supposed to reply with 64bits
-    // However, this and other tests strongly suggest that the buffer is static, and it's never -
-    // or rarely cleared.
-    Memory::Write_U32(0x41000000, output_address + 8);
+    Memory::Write_U32(0x00000002, s_DIMAR);      // Revision level, device code
+    Memory::Write_U32(0x20060526, s_DIMAR + 4);  // Release date
+    Memory::Write_U32(0x41000000, s_DIMAR + 8);  // Version
 
-    INFO_LOG(DVDINTERFACE, "DVDLowInquiry (Buffer 0x%08x, 0x%x)", output_address, output_length);
+    INFO_LOG(DVDINTERFACE, "DVDLowInquiry (Buffer 0x%08x, 0x%x)", s_DIMAR, s_DILENGTH);
     break;
 
-  // Only seems to be used from WII_IPC, not through direct access
-  case DVDLowReadDiskID:
-    INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
-    command_handled_by_thread =
-        ExecuteReadCommand(0, output_address, 0x20, output_length, DiscIO::PARTITION_NONE,
-                           reply_type, &interrupt_type);
-    break;
-
-  // Only used from WII_IPC. This is the only read command that decrypts data
-  case DVDLowRead:
-    INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2,
-             command_1);
-    command_handled_by_thread =
-        ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
-                           s_current_partition, reply_type, &interrupt_type);
-    break;
-
-  // Probably only used by Wii
-  case DVDLowWaitForCoverClose:
-    INFO_LOG(DVDINTERFACE, "DVDLowWaitForCoverClose");
-    interrupt_type = (DIInterruptType)4;  // ???
-    break;
-
-  // "Set Extension"...not sure what it does. GC only?
-  case 0x55:
+  // GC-only patched drive firmware command, used by libogc
+  case DICommand::Unknown55:
     INFO_LOG(DVDINTERFACE, "SetExtension");
     break;
 
-  // Probably only used though WII_IPC
-  case DVDLowGetCoverReg:
-    WriteImmediate(s_DICVR.Hex, output_address, reply_to_ios);
-    DEBUG_LOG(DVDINTERFACE, "DVDLowGetCoverReg 0x%08x", s_DICVR.Hex);
-    break;
-
-  // Probably only used by Wii
-  case DVDLowNotifyReset:
-    ERROR_LOG(DVDINTERFACE, "DVDLowNotifyReset");
-    PanicAlert("DVDLowNotifyReset");
-    break;
-  // Probably only used by Wii
-  case DVDLowReadDvdPhysical:
-    ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdPhysical");
-    PanicAlert("DVDLowReadDvdPhysical");
-    break;
-  // Probably only used by Wii
-  case DVDLowReadDvdCopyright:
-    ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdCopyright");
-    PanicAlert("DVDLowReadDvdCopyright");
-    break;
-  // Probably only used by Wii
-  case DVDLowReadDvdDiscKey:
-    ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdDiscKey");
-    PanicAlert("DVDLowReadDvdDiscKey");
-    break;
-
-  // Probably only used by Wii
-  case DVDLowClearCoverInterrupt:
-    DEBUG_LOG(DVDINTERFACE, "DVDLowClearCoverInterrupt");
-    s_DICVR.CVRINT = 0;
-    break;
-
-  // Probably only used by Wii
-  case DVDLowGetCoverStatus:
-    WriteImmediate(IsDiscInside() ? 2 : 1, output_address, reply_to_ios);
-    INFO_LOG(DVDINTERFACE, "DVDLowGetCoverStatus: Disc %sInserted", IsDiscInside() ? "" : "Not ");
-    break;
-
-  // Probably only used by Wii
-  case DVDLowReset:
-    INFO_LOG(DVDINTERFACE, "DVDLowReset");
-    break;
-
-  // Probably only used by Wii
-  case DVDLowClosePartition:
-    INFO_LOG(DVDINTERFACE, "DVDLowClosePartition");
-    break;
-
-  // Probably only used by Wii
-  case DVDLowUnencryptedRead:
-    INFO_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x",
-             (u64)command_2 << 2, command_1);
-
-    // We must make sure it is in a valid area! (#001 check)
-    // Are these checks correct? They seem to mix 32-bit offsets and 8-bit lengths
-    // * 0x00000000 - 0x00014000 (limit of older IOS versions)
-    // * 0x460a0000 - 0x460a0008
-    // * 0x7ed40000 - 0x7ed40008
-    if (((command_2 > 0x00000000 && command_2 < 0x00014000) ||
-         (((command_2 + command_1) > 0x00000000) && (command_2 + command_1) < 0x00014000) ||
-         (command_2 > 0x460a0000 && command_2 < 0x460a0008) ||
-         (((command_2 + command_1) > 0x460a0000) && (command_2 + command_1) < 0x460a0008) ||
-         (command_2 > 0x7ed40000 && command_2 < 0x7ed40008) ||
-         (((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
-    {
-      command_handled_by_thread =
-          ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
-                             DiscIO::PARTITION_NONE, reply_type, &interrupt_type);
-    }
-    else
-    {
-      WARN_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: trying to read out of bounds @ %09" PRIx64,
-               (u64)command_2 << 2);
-      s_error_code = ERROR_READY | ERROR_BLOCK_OOB;
-      // Should cause software to call DVDLowRequestError
-      interrupt_type = INT_BRKINT;
-    }
-
-    break;
-
-  // Probably only used by Wii
-  case DVDLowEnableDvdVideo:
-    ERROR_LOG(DVDINTERFACE, "DVDLowEnableDvdVideo");
-    break;
-
-  // New Super Mario Bros. Wii sends these commands,
-  // but it seems we don't need to implement anything.
-  // Probably only used by Wii
-  case 0x95:
-  case 0x96:
-    ERROR_LOG(DVDINTERFACE, "Unimplemented BCA command 0x%08x (Buffer 0x%08x, 0x%x)", command_0,
-              output_address, output_length);
-    break;
-
-  // Probably only used by Wii
-  case DVDLowReportKey:
+  // Wii-exclusive
+  case DICommand::ReportKey:
     INFO_LOG(DVDINTERFACE, "DVDLowReportKey");
     // Does not work on retail discs/drives
     // Retail games send this command to see if they are running on real retail hw
     SetHighError(ERROR_INV_CMD);
-    interrupt_type = INT_BRKINT;
+    interrupt_type = DIInterruptType::DEINT;
     break;
 
-  // DMA Read from Disc. Only seems to be used through direct access, not WII_IPC
-  case 0xA8:
-    switch (command_0 & 0xFF)
+  // DMA Read from Disc. Only used through direct access on GC; direct use is prohibited by
+  // IOS (which uses it internally)
+  case DICommand::Read:
+    switch (s_DICMDBUF[0] & 0xFF)
     {
     case 0x00:  // Read Sector
     {
-      u64 iDVDOffset = (u64)command_1 << 2;
+      u64 iDVDOffset = static_cast<u64>(s_DICMDBUF[1]) << 2;
 
       INFO_LOG(DVDINTERFACE,
                "Read: DVDOffset=%08" PRIx64
                ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
-               iDVDOffset, output_address, command_2, output_length);
+               iDVDOffset, s_DIMAR, s_DICMDBUF[2], s_DILENGTH);
 
       command_handled_by_thread =
-          ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length,
-                             DiscIO::PARTITION_NONE, reply_type, &interrupt_type);
+          ExecuteReadCommand(iDVDOffset, s_DIMAR, s_DICMDBUF[2], s_DILENGTH, DiscIO::PARTITION_NONE,
+                             reply_type, &interrupt_type);
     }
     break;
 
     case 0x40:  // Read DiscID
-      INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
-      command_handled_by_thread =
-          ExecuteReadCommand(0, output_address, 0x20, output_length, DiscIO::PARTITION_NONE,
-                             reply_type, &interrupt_type);
+      INFO_LOG(DVDINTERFACE, "Read DiscID: buffer %08x", s_DIMAR);
+      command_handled_by_thread = ExecuteReadCommand(
+          0, s_DIMAR, 0x20, s_DILENGTH, DiscIO::PARTITION_NONE, reply_type, &interrupt_type);
       break;
 
     default:
-      ERROR_LOG(DVDINTERFACE, "Unknown read subcommand: %08x", command_0);
+      ERROR_LOG(DVDINTERFACE, "Unknown read subcommand: %08x", s_DICMDBUF[0]);
       break;
     }
     break;
 
-  // Seems to be used by both GC and Wii
-  case DVDLowSeek:
+  // Used by both GC and Wii
+  case DICommand::Seek:
     // Currently unimplemented
-    INFO_LOG(DVDINTERFACE, "Seek: offset=%09" PRIx64 " (ignoring)", (u64)command_1 << 2);
+    INFO_LOG(DVDINTERFACE, "Seek: offset=%09" PRIx64 " (ignoring)",
+             static_cast<u64>(s_DICMDBUF[1]) << 2);
     break;
 
-  // Probably only used by Wii
-  case DVDLowReadDvd:
+  // Wii-exclusive
+  case DICommand::ReadDVDMetadata:
+    switch ((s_DICMDBUF[0] >> 16) & 0xFF)
+    {
+    case 0:
+      ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdPhysical");
+      break;
+    case 1:
+      ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdCopyright");
+      break;
+    case 2:
+      ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdDiscKey");
+      break;
+    default:
+      ERROR_LOG(DVDINTERFACE, "Unknown 0xAD subcommand in %08x", s_DICMDBUF[0]);
+      break;
+    }
+    break;
+  // Wii-exclusive
+  case DICommand::ReadDVD:
     ERROR_LOG(DVDINTERFACE, "DVDLowReadDvd");
     break;
-  // Probably only used by Wii
-  case DVDLowReadDvdConfig:
+  // Wii-exclusive
+  case DICommand::ReadDVDConfig:
     ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdConfig");
     break;
-  // Probably only used by Wii
-  case DVDLowStopLaser:
+  // Wii-exclusive
+  case DICommand::StopLaser:
     ERROR_LOG(DVDINTERFACE, "DVDLowStopLaser");
     break;
-  // Probably only used by Wii
-  case DVDLowOffset:
+  // Wii-exclusive
+  case DICommand::Offset:
     ERROR_LOG(DVDINTERFACE, "DVDLowOffset");
     break;
-  // Probably only used by Wii
-  case DVDLowReadDiskBca:
+  // Wii-exclusive
+  case DICommand::ReadBCA:
     WARN_LOG(DVDINTERFACE, "DVDLowReadDiskBca");
-    Memory::Write_U32(1, output_address + 0x30);
+    Memory::Write_U32(1, s_DIMAR + 0x30);
     break;
-  // Probably only used by Wii
-  case DVDLowRequestDiscStatus:
+  // Wii-exclusive
+  case DICommand::RequestDiscStatus:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestDiscStatus");
     break;
-  // Probably only used by Wii
-  case DVDLowRequestRetryNumber:
+  // Wii-exclusive
+  case DICommand::RequestRetryNumber:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestRetryNumber");
     break;
-  // Probably only used by Wii
-  case DVDLowSetMaximumRotation:
+  // Wii-exclusive
+  case DICommand::SetMaximumRotation:
     ERROR_LOG(DVDINTERFACE, "DVDLowSetMaximumRotation");
     break;
-  // Probably only used by Wii
-  case DVDLowSerMeasControl:
+  // Wii-exclusive
+  case DICommand::SerMeasControl:
     ERROR_LOG(DVDINTERFACE, "DVDLowSerMeasControl");
     break;
 
   // Used by both GC and Wii
-  case DVDLowRequestError:
+  case DICommand::RequestError:
     INFO_LOG(DVDINTERFACE, "Requesting error... (0x%08x)", s_error_code);
-    WriteImmediate(s_error_code, output_address, reply_to_ios);
+    s_DIIMMBUF = s_error_code;
     SetHighError(0);
     break;
 
-  // Audio Stream (Immediate). Only seems to be used by some GC games
+  // Audio Stream (Immediate). Only used by some GC games, but does exist on the Wii
   // (command_0 >> 16) & 0xFF = Subcommand
   // command_1 << 2           = Offset on disc
   // command_2                = Length of the stream
-  case 0xE1:
+  case DICommand::AudioStream:
   {
-    u8 cancel_stream = (command_0 >> 16) & 0xFF;
+    u8 cancel_stream = (s_DICMDBUF[0] >> 16) & 0xFF;
     if (cancel_stream)
     {
       s_stop_at_track_end = false;
@@ -917,14 +841,14 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     }
     else
     {
-      if ((command_1 == 0) && (command_2 == 0))
+      if ((s_DICMDBUF[1] == 0) && (s_DICMDBUF[2] == 0))
       {
         s_stop_at_track_end = true;
       }
       else if (!s_stop_at_track_end)
       {
-        s_next_start = static_cast<u64>(command_1) << 2;
-        s_next_length = command_2;
+        s_next_start = static_cast<u64>(s_DICMDBUF[1]) << 2;
+        s_next_length = s_DICMDBUF[2];
         if (!s_stream)
         {
           s_current_start = s_next_start;
@@ -936,15 +860,15 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
       }
     }
 
-    INFO_LOG(DVDINTERFACE, "(Audio) Stream cmd: %08x offset: %08" PRIx64 " length: %08x", command_0,
-             (u64)command_1 << 2, command_2);
+    INFO_LOG(DVDINTERFACE, "(Audio) Stream cmd: %08x offset: %08" PRIx64 " length: %08x",
+             s_DICMDBUF[0], (u64)s_DICMDBUF[1] << 2, s_DICMDBUF[2]);
   }
   break;
 
-  // Request Audio Status (Immediate). Only seems to be used by some GC games
-  case 0xE2:
+  // Request Audio Status (Immediate). Only used by some GC games, but does exist on the Wii
+  case DICommand::RequestAudioStatus:
   {
-    switch (command_0 >> 16 & 0xFF)
+    switch (s_DICMDBUF[0] >> 16 & 0xFF)
     {
     case 0x00:  // Returns streaming status
       INFO_LOG(DVDINTERFACE,
@@ -953,38 +877,38 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
                "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
                s_audio_position, s_current_start + s_current_length, s_current_start,
                s_current_length);
-      WriteImmediate(s_stream ? 1 : 0, output_address, reply_to_ios);
+      s_DIIMMBUF = (s_stream ? 1 : 0);
       break;
     case 0x01:  // Returns the current offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08" PRIx64,
                s_audio_position);
-      WriteImmediate(static_cast<u32>((s_audio_position & 0xffffffffffff8000ull) >> 2),
-                     output_address, reply_to_ios);
+      s_DIIMMBUF = static_cast<u32>((s_audio_position & 0xffffffffffff8000ull) >> 2);
       break;
     case 0x02:  // Returns the start offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08" PRIx64,
                s_current_start);
-      WriteImmediate(static_cast<u32>(s_current_start >> 2), output_address, reply_to_ios);
+      s_DIIMMBUF = static_cast<u32>(s_current_start >> 2);
       break;
     case 0x03:  // Returns the total length
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentLength:%08x",
                s_current_length);
-      WriteImmediate(s_current_length, output_address, reply_to_ios);
+      s_DIIMMBUF = s_current_length;
       break;
     default:
       INFO_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s",
-               command_0 >> 16 & 0xFF, s_stream ? "on" : "off");
+               s_DICMDBUF[0] >> 16 & 0xFF, s_stream ? "on" : "off");
       break;
     }
   }
   break;
 
-  case DVDLowStopMotor:
+  // Used by both GC and Wii
+  case DICommand::StopMotor:
   {
-    INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", command_1 ? "eject" : "",
-             command_2 ? "kill!" : "");
+    INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", s_DICMDBUF[1] ? "eject" : "",
+             s_DICMDBUF[2] ? "kill!" : "");
 
-    const bool force_eject = command_1 && !command_2;
+    const bool force_eject = s_DICMDBUF[1] && !s_DICMDBUF[2];
 
     if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
         DVDThread::IsInsertedDiscRunning() && !s_auto_disc_change_paths.empty())
@@ -1001,7 +925,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   }
 
   // DVD Audio Enable/Disable (Immediate). GC uses this, and apparently Wii also does...?
-  case DVDLowAudioBufferConfig:
+  case DICommand::AudioBufferConfig:
     // The IPL uses this command to enable or disable DTK audio depending on the value of byte 0x8
     // in the disc header. See http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm for more info.
     // The link is dead, but you can access the page using the Wayback Machine at archive.org.
@@ -1010,35 +934,36 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     // Should we be failing with an error code when the game tries to use the 0xE1 command?
     // (Not that this should matter normally, since games that use DTK set the header byte to 1)
 
-    if ((command_0 >> 16) & 0xFF)
+    if ((s_DICMDBUF[0] >> 16) & 0xFF)
       INFO_LOG(DVDINTERFACE, "DTK enabled");
     else
       INFO_LOG(DVDINTERFACE, "DTK disabled");
     break;
 
-  // yet another (GC?) command we prolly don't care about
-  case 0xEE:
+  // GC-only patched drive firmware command, used by libogc
+  case DICommand::UnknownEE:
     INFO_LOG(DVDINTERFACE, "SetStatus");
     break;
 
   // Debug commands; see yagcd. We don't really care
   // NOTE: commands to stream data will send...a raw data stream
   // This will appear as unknown commands, unless the check is re-instated to catch such data.
-  // Can probably only be used through direct access
-  case 0xFE:
-    ERROR_LOG(DVDINTERFACE, "Unsupported DVD Drive debug command 0x%08x", command_0);
+  // Can only be used through direct access and only after unlocked.
+  case DICommand::Debug:
+    ERROR_LOG(DVDINTERFACE, "Unsupported DVD Drive debug command 0x%08x", s_DICMDBUF[0]);
     break;
 
   // Unlock Commands. 1: "MATSHITA" 2: "DVD-GAME"
   // Just for fun
-  // Can probably only be used through direct access
-  case 0xFF:
+  // Can only be used through direct access.  The unlock command doesn't seem to work on the Wii.
+  case DICommand::DebugUnlock:
   {
-    if (command_0 == 0xFF014D41 && command_1 == 0x54534849 && command_2 == 0x54410200)
+    if (s_DICMDBUF[0] == 0xFF014D41 && s_DICMDBUF[1] == 0x54534849 && s_DICMDBUF[2] == 0x54410200)
     {
       INFO_LOG(DVDINTERFACE, "Unlock test 1 passed");
     }
-    else if (command_0 == 0xFF004456 && command_1 == 0x442D4741 && command_2 == 0x4D450300)
+    else if (s_DICMDBUF[0] == 0xFF004456 && s_DICMDBUF[1] == 0x442D4741 &&
+             s_DICMDBUF[2] == 0x4D450300)
     {
       INFO_LOG(DVDINTERFACE, "Unlock test 2 passed");
     }
@@ -1050,11 +975,28 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   break;
 
   default:
-    ERROR_LOG(DVDINTERFACE, "Unknown command 0x%08x (Buffer 0x%08x, 0x%x)", command_0,
-              output_address, output_length);
-    PanicAlertT("Unknown DVD command %08x - fatal error", command_0);
+    ERROR_LOG(DVDINTERFACE, "Unknown command 0x%08x (Buffer 0x%08x, 0x%x)", s_DICMDBUF[0], s_DIMAR,
+              s_DILENGTH);
+    PanicAlertT("Unknown DVD command %08x - fatal error", s_DICMDBUF[0]);
     break;
   }
+
+  if (!command_handled_by_thread)
+  {
+    // TODO: Needs testing to determine if COMMAND_LATENCY_US is accurate for this
+    CoreTiming::ScheduleEvent(COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+                              s_finish_executing_command,
+                              PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
+  }
+}
+
+void PerformDecryptingRead(u32 position, u32 length, u32 output_address, ReplyType reply_type)
+{
+  DIInterruptType interrupt_type = DIInterruptType::TCINT;
+
+  const bool command_handled_by_thread =
+      ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length,
+                         s_current_partition, reply_type, &interrupt_type);
 
   if (!command_handled_by_thread)
   {
@@ -1114,9 +1056,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::IOS:
   {
-    auto di = IOS::HLE::GetIOS()->GetDeviceByName("/dev/di");
-    if (di)
-      std::static_pointer_cast<IOS::HLE::Device::DI>(di)->FinishIOCtl(interrupt_type);
+    IOS::HLE::Device::DI::InterruptFromDVDInterface(interrupt_type);
     break;
   }
 

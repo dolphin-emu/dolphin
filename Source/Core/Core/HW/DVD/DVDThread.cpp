@@ -354,8 +354,8 @@ static void FinishRead(u64 id, s64 cycles_late)
   }
 
   // Notify the emulated software that the command has been executed
-  DVDInterface::FinishExecutingCommand(request.reply_type, DVDInterface::INT_TCINT, cycles_late,
-                                       buffer);
+  DVDInterface::FinishExecutingCommand(request.reply_type, DVDInterface::DIInterruptType::TCINT,
+                                       cycles_late, buffer);
 }
 
 static void DVDThread()
