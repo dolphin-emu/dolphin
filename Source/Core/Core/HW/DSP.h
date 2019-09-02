@@ -26,8 +26,7 @@ enum DSPInterruptType
 enum
 {
   ARAM_SIZE = 0x01000000,  // 16 MB
-  // ARAM_SIZE is always a power-of-two, so (ARAM_SIZE-1) is the mask
-  ARAM_MASK = ARAM_SIZE - 1,
+  ARAM_MASK = 0x00FFFFFF,
 };
 
 // UDSPControl
