@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-25 11:23+0200\n"
-"PO-Revision-Date: 2019-08-25 09:23+0000\n"
+"POT-Creation-Date: 2019-09-02 11:06+0200\n"
+"PO-Revision-Date: 2019-09-02 09:07+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/delroth/dolphin-"
 "emu/language/nb/)\n"
@@ -181,15 +181,15 @@ msgstr ""
 "%2 objekt(er)\n"
 "Nåværende bilderute: %3"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:892
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:882
 msgid "%1 has joined"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:897
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:887
 msgid "%1 has left"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1018
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1008
 msgid "%1 is now golfing"
 msgstr "%1 golfer nå"
 
@@ -576,7 +576,7 @@ msgstr "+ LEGG TIL"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:712
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:703
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
 msgid "..."
 msgstr "…"
@@ -1170,7 +1170,7 @@ msgstr "Er du sikker på at du vil slette denne filen?"
 msgid "Are you sure you want to delete this pack?"
 msgstr "Er du sikker på at du vil slette denne pakken?"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:525
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:516
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Er du sikker på at du vil avslutte NetPlay?"
 
@@ -1183,7 +1183,7 @@ msgstr "Er du sikker?"
 msgid "Aspect Ratio:"
 msgstr "Billedforhold:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:239
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:232
 msgid "Assign Controller Ports"
 msgstr "Velg kontrollerporter"
 
@@ -1231,7 +1231,7 @@ msgstr "Auto (Multiplum av 640x528)"
 msgid "Auto Update Settings"
 msgstr "Autooppdater innstillinger "
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:421
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:413
 msgid ""
 "Auto internal resolution is not allowed in strict sync mode, as it depends "
 "on window size.\n"
@@ -1443,12 +1443,12 @@ msgstr "Utforsk &NetPlay-sesjoner"
 msgid "Buffer Size:"
 msgstr "Hurtiglagerstørrelse:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:907
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:897
 msgid "Buffer size changed to %1"
 msgstr "Bufferstørrelse endret til %1"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:101
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:938
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:928
 msgid "Buffer:"
 msgstr "Mellomlager:"
 
@@ -1622,7 +1622,7 @@ msgid "Changing cheats will only take effect when the game is restarted."
 msgstr ""
 "Endring av juksekode vil kun tre i kraft etter at spillet er startet på nytt."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:210
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:203
 msgid "Chat"
 msgstr "Sludringsutløp"
 
@@ -1658,7 +1658,7 @@ msgstr ""
 "Sjekk om du har tillatelsene påkrevd for å slette denne filen, eller om "
 "filen fortsatt er i bruk."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:160
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:153
 msgid "Checksum"
 msgstr "Sjekksum"
 
@@ -1722,7 +1722,7 @@ msgstr "Kode"
 msgid "Code:"
 msgstr "Kode:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1568
+#: Source/Core/Core/NetPlayClient.cpp:1567
 msgid "Codes received!"
 msgstr "Koder mottatt!"
 
@@ -1814,7 +1814,7 @@ msgid "Confirm on Stop"
 msgstr "Bekreft ved stans"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1143
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:524
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:515
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:237
 msgid "Confirmation"
 msgstr "Bekreftelse"
@@ -1963,9 +1963,9 @@ msgstr ""
 msgid "Convergence:"
 msgstr "Konvergens:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:236
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:721
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:757
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:229
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:712
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:748
 msgid "Copy"
 msgstr "Kopier"
 
@@ -2117,7 +2117,7 @@ msgstr ""
 "I så tilfelle, må du kanskje re-spesifisere minnekortsplasseringen i "
 "innstillingene."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:973
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:963
 msgid "Couldn't look up central server"
 msgstr "Kunne ikke finne sentral tjener"
 
@@ -2176,7 +2176,7 @@ msgstr "Kryssutfasing"
 msgid "Current Region"
 msgstr "Nåværende region"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:161
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:154
 msgid "Current game"
 msgstr "Nåværende spill"
 
@@ -2243,7 +2243,7 @@ msgstr "Datatype"
 msgid "Data in area of file that should be unused."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1526
+#: Source/Core/Core/NetPlayClient.cpp:1525
 msgid "Data received!"
 msgstr "Data mottatt!"
 
@@ -2607,7 +2607,7 @@ msgstr "Dolphin kunne ikke fullføre den forespurte handligen."
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "Dolphin er en fri og åpen kildekode-basert GameCube og Wii-emulator."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:978
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:968
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin er for gammel for traverseringsserveren"
 
@@ -2660,11 +2660,11 @@ msgstr "Last ned koder fra WiiRD-databasen"
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "Last ned spillcover fra GabeTDB.com for bruk i portrettmodus"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:332
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:334
 msgid "Download complete"
 msgstr "Nedlasting fullført"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:333
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:335
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "Lastet %1 koder. (Lagt til %2)"
 
@@ -2828,7 +2828,7 @@ msgstr ""
 "%d. %d -- Hvis du nylig har oppdatert din Dolphin-distribusjon, kreves "
 "sannsynligvis en omstart for at Windows skal detektere den nye driveren."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:136
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:129
 msgid ""
 "Each player sends their own inputs to the game, with equal buffer size for "
 "all players, configured by the host.\n"
@@ -3121,8 +3121,8 @@ msgstr "Er lik"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:205
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:322
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:265
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:305
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:311
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:307
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:313
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:182
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:221
@@ -3157,9 +3157,9 @@ msgstr "Er lik"
 #: Source/Core/DolphinQt/MenuBar.cpp:1370
 #: Source/Core/DolphinQt/MenuBar.cpp:1423
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:299
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:420
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:726
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:962
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:412
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:717
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:952
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:321
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:327
 #: Source/Core/DolphinQt/RenderWidget.cpp:127
@@ -3188,15 +3188,15 @@ msgstr "Feil ved henting av sesjonsliste: %1"
 msgid "Error occured while loading some texture packs"
 msgstr "En feil skjedde under lasting av noen teksturpakker"
 
-#: Source/Core/Core/NetPlayClient.cpp:1555
+#: Source/Core/Core/NetPlayClient.cpp:1554
 msgid "Error processing codes."
 msgstr "Feil ved synkronisering av juksekoder!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1527
+#: Source/Core/Core/NetPlayClient.cpp:1526
 msgid "Error processing data."
 msgstr "Feil ved bearbeidelse av data. "
 
-#: Source/Core/Core/NetPlayServer.cpp:1795
+#: Source/Core/Core/NetPlayServer.cpp:1794
 #, c-format
 msgid "Error reading file: %s"
 msgstr "Feil ved lesing av fil: %s"
@@ -3209,7 +3209,7 @@ msgstr "Feil ved synkronisering av juksekoder!"
 msgid "Error synchronizing save data!"
 msgstr "Feil ved synkronisering av lagringsdata!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1618
+#: Source/Core/Core/NetPlayClient.cpp:1617
 #, c-format
 msgid "Error writing file: %s"
 msgstr "Feil ved skriving av fil: %s"
@@ -3307,7 +3307,7 @@ msgstr "Eksporterte %n lagringsfil(er)."
 msgid "Extension"
 msgstr "Utvidelse"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:548
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
 msgstr "Ekstern"
 
@@ -3358,7 +3358,7 @@ msgid ""
 "%1"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:397
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:389
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "Kunne ikke legge denne sesjonen til NetPlay-indeks: %1"
 
@@ -3370,7 +3370,7 @@ msgstr "Kunne ikke legge til på signaturfil '%1'"
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Kunne ikke gjøre krav på grensesnitt for BT-gjennompass"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:963
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:953
 msgid "Failed to connect to server: %1"
 msgstr "Kunne ikke koble til server: %1"
 
@@ -3387,7 +3387,7 @@ msgstr "Kunne ikke lage D3D swap chain"
 msgid "Failed to create DXGI factory"
 msgstr "Kunne ikke lage DXGI factory"
 
-#: Source/Core/Core/NetPlayClient.cpp:833
+#: Source/Core/Core/NetPlayClient.cpp:832
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr "Kunne ikke slette NetPlay-minnekort. Verifiser dine skrivetillatelser."
 
@@ -3400,7 +3400,7 @@ msgstr "Klarte ikke å slette valgt fil."
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "Kunne koble fra kernel driver for BT gjennompass: %s"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:305
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:307
 msgid "Failed to download codes."
 msgstr "Nedlasting av koder mislyktes."
 
@@ -3522,12 +3522,12 @@ msgstr "Klarte ikke å pone Blåtannsenhet: %s"
 msgid "Failed to open config file!"
 msgstr "Kunne ikke åpne konfigurasjonsfil!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1761
+#: Source/Core/Core/NetPlayServer.cpp:1760
 #, c-format
 msgid "Failed to open file \"%s\"."
 msgstr "Kunne ikke åpne fil \"%s\"."
 
-#: Source/Core/Core/NetPlayClient.cpp:1588
+#: Source/Core/Core/NetPlayClient.cpp:1587
 #, c-format
 msgid "Failed to open file \"%s\". Verify your write permissions."
 msgstr "Kunne ikke åpne fil \"%s\". Verifiser dine skrivetillatelser."
@@ -3578,12 +3578,12 @@ msgstr "Kunne ikke slette fil"
 msgid "Failed to remove this title from the NAND."
 msgstr "Kunne ikke fjerne denne tittelen fra NAND."
 
-#: Source/Core/Core/NetPlayClient.cpp:858
+#: Source/Core/Core/NetPlayClient.cpp:857
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr ""
 "Kunne ikke tilbakestille NetPlay GCI-mappe. Verifiser dine skrivetillatelser."
 
-#: Source/Core/Core/NetPlayClient.cpp:888
+#: Source/Core/Core/NetPlayClient.cpp:887
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr ""
 "Kunne ikke tilbakestille NetPlay NAND-mappe. Verifiser dine "
@@ -3617,11 +3617,11 @@ msgstr "Kunne ikke avinstallere pakke: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Kunne ikke skrive BT.DINF til SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:914
+#: Source/Core/Core/NetPlayClient.cpp:913
 msgid "Failed to write Mii data."
 msgstr "Skriving av Mii-data mislyktes."
 
-#: Source/Core/Core/NetPlayClient.cpp:995
+#: Source/Core/Core/NetPlayClient.cpp:994
 msgid "Failed to write Wii save."
 msgstr "Skriving til Wii-lagringsfil mislyktes."
 
@@ -3646,7 +3646,7 @@ msgstr ""
 msgid "Failure"
 msgstr "Feil"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:134
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:127
 msgid "Fair Input Delay"
 msgstr ""
 
@@ -3682,7 +3682,7 @@ msgstr "Filnavn"
 msgid "File Size"
 msgstr "Filstørrelse"
 
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:311
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:313
 msgid "File contained no codes."
 msgstr "Filen inneholdt ingen koder."
 
@@ -4076,15 +4076,15 @@ msgstr "Spill-ID"
 msgid "Game ID:"
 msgstr "Spill-ID:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:654
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:645
 msgid "Game Status"
 msgstr "Spillstatus"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:824
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:815
 msgid "Game changed to \"%1\""
 msgstr "Spill endret til \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1482
+#: Source/Core/Core/NetPlayClient.cpp:1481
 msgid "Game is already running!"
 msgstr "Spillet kjører allerede!"
 
@@ -4199,7 +4199,7 @@ msgstr "Tyskland"
 msgid "GiB"
 msgstr "GiB"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:146
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:139
 msgid "Golf Mode"
 msgstr "Golfmodus"
 
@@ -4292,7 +4292,7 @@ msgstr "Vert"
 msgid "Host Code:"
 msgstr "Vertskode:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:140
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:133
 msgid "Host Input Authority"
 msgstr "Host Input-autoritet"
 
@@ -4300,7 +4300,7 @@ msgstr "Host Input-autoritet"
 msgid "Host Size"
 msgstr "Vertstørrelse"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:142
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:135
 msgid ""
 "Host has control of sending all inputs to the game, as received from other "
 "players, giving the host zero latency but increasing latency for others.\n"
@@ -4308,11 +4308,11 @@ msgid ""
 "latency connections."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:916
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:906
 msgid "Host input authority disabled"
 msgstr "Host input-autoritet deaktivert"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:916
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:906
 msgid "Host input authority enabled"
 msgstr "Host input-autoritet aktivert"
 
@@ -4386,7 +4386,7 @@ msgstr "ISO-detaljer"
 msgid "Icon"
 msgstr "Ikon"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:148
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:141
 msgid ""
 "Identical to Host Input Authority, except the \"Host\" (who has zero "
 "latency) can be switched at any time.\n"
@@ -4622,13 +4622,13 @@ msgstr "Intensitet"
 msgid "Interface"
 msgstr "Kontrollpanel"
 
-#: Source/Core/Core/NetPlayServer.cpp:1802
-#: Source/Core/Core/NetPlayServer.cpp:1857 Source/Core/Core/State.cpp:368
+#: Source/Core/Core/NetPlayServer.cpp:1801
+#: Source/Core/Core/NetPlayServer.cpp:1856 Source/Core/Core/State.cpp:368
 msgid "Internal LZO Error - compression failed"
 msgstr "Intern LZO-feil - komprimering mislyktes"
 
-#: Source/Core/Core/NetPlayClient.cpp:1612
-#: Source/Core/Core/NetPlayClient.cpp:1654
+#: Source/Core/Core/NetPlayClient.cpp:1611
+#: Source/Core/Core/NetPlayClient.cpp:1653
 msgid "Internal LZO Error - decompression failed"
 msgstr "Intern LZO-feil - dekomprimering mislyktes"
 
@@ -4687,7 +4687,7 @@ msgstr "Ugyldig kallstakk"
 msgid "Invalid checksums."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1767
+#: Source/Core/Core/NetPlayClient.cpp:1766
 msgid "Invalid host"
 msgstr "Ugyldig vert"
 
@@ -4833,7 +4833,7 @@ msgstr "Taster"
 msgid "KiB"
 msgstr "KiB"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:238
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:231
 msgid "Kick Player"
 msgstr "Spark spiller"
 
@@ -5102,7 +5102,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:553
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:544
 msgid "Local"
 msgstr "Lokal"
 
@@ -5144,7 +5144,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:956
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:946
 msgid "Lost connection to NetPlay server..."
 msgstr "Mistet tilkobling til NetPlay-tjener…"
 
@@ -5205,7 +5205,7 @@ msgstr ""
 msgid "Manage NAND"
 msgstr "Administrer NAND"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:654
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:645
 msgid "Mapping"
 msgstr "Mapping"
 
@@ -5213,11 +5213,11 @@ msgstr "Mapping"
 msgid "Match Found"
 msgstr "Treff funnet"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:938
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:928
 msgid "Max Buffer:"
 msgstr "Maksimal Buffer:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:906
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:896
 msgid "Max buffer size changed to %1"
 msgstr "Maksimum bufferstørrelse endret til %1"
 
@@ -5460,11 +5460,11 @@ msgstr "NetPlay-innstillinger"
 msgid "Netherlands"
 msgstr "Nederland"
 
-#: Source/Core/Core/NetPlayClient.cpp:2461
+#: Source/Core/Core/NetPlayClient.cpp:2460
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "NetPlay har desynkronisert i NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:1984
+#: Source/Core/Core/NetPlayClient.cpp:1983
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 "NetPlay har desynkronisert. Det er ikke mulig å hente seg inn igjen fra "
@@ -5645,7 +5645,7 @@ msgstr "Ingen"
 msgid "North America"
 msgstr "Nord-Amerika"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:673
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:664
 msgid "Not Found"
 msgstr "Ikke funnet"
 
@@ -5653,7 +5653,7 @@ msgstr "Ikke funnet"
 msgid "Not Set"
 msgstr "Ikke satt"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:413
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:405
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "Ikke alle spillere har spillet. Vil du virkelig starte?"
 
@@ -5701,7 +5701,7 @@ msgstr "Nunchuk-orientering"
 msgid "Nunchuk Stick"
 msgstr "Nunchuck-Joystick"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:672
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:663
 msgid "OK"
 msgstr "Ok"
 
@@ -5819,7 +5819,7 @@ msgstr "Oransje"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:84
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:94
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:174
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:167
 msgid "Other"
 msgstr "Annet"
 
@@ -5832,7 +5832,7 @@ msgstr "Andre Status-hurtigtaster"
 msgid "Other State Management"
 msgstr "Annen Statusadministrering"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:164
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:157
 msgid "Other game..."
 msgstr "Andre spill..."
 
@@ -5964,7 +5964,7 @@ msgstr "PiB"
 msgid "Pick a debug font"
 msgstr "Velg en debug-font"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:654
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:645
 msgid "Ping"
 msgstr "Ping"
 
@@ -5989,12 +5989,12 @@ msgstr "Spill av opptak"
 msgid "Playback Options"
 msgstr "Avspillingsalterntiver"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:654
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:645
 msgid "Player"
 msgstr "Spiller"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:219
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:233
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:226
 msgid "Players"
 msgstr "Spillere"
 
@@ -6013,7 +6013,7 @@ msgstr "Port %1"
 msgid "Port:"
 msgstr "Port:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:949
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:939
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr ""
 "Potensiell desynkronisering oppdaget: %1 kan ha desynkroniser i bilde %2"
@@ -6173,11 +6173,11 @@ msgstr "Tøm spillistehurtiglager"
 msgid "Put Main Menu roms in User/GC/{region}."
 msgstr "Plasser hovedmeny-romfiler i User/GC/{region}."
 
-#: Source/Core/Core/NetPlayClient.cpp:1305
+#: Source/Core/Core/NetPlayClient.cpp:1304
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "Quality of Service (QoS) kunne ikke aktiveres."
 
-#: Source/Core/Core/NetPlayClient.cpp:1301
+#: Source/Core/Core/NetPlayClient.cpp:1300
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Quality of Service (QoS) ble aktivert."
 
@@ -6261,7 +6261,7 @@ msgstr "Sentrer igjen"
 msgid "Record"
 msgstr "Opptak"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:175
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:168
 msgid "Record Inputs"
 msgstr "Ta opp inndata"
 
@@ -6289,10 +6289,6 @@ msgstr "Rød venstre"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:44
 msgid "Red Right"
 msgstr "Rød høyre"
-
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:127
-msgid "Reduce Polling Rate"
-msgstr "Reduser spørrerate"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:299
 msgid ""
@@ -6457,7 +6453,7 @@ msgstr "Omstart påkrevd"
 msgid "Restore instruction"
 msgstr "Tilbakestill instruksjon"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:727
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:718
 msgid "Retry"
 msgstr "Prøv igjen"
 
@@ -6465,7 +6461,7 @@ msgstr "Prøv igjen"
 msgid "Return Speed"
 msgstr "Returhastighet"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:654
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:645
 msgid "Revision"
 msgstr "Revisjon"
 
@@ -6509,7 +6505,7 @@ msgstr "Rokketromme"
 msgid "Rocker Up"
 msgstr "Rokke Opp"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:547
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:538
 msgid "Room ID"
 msgstr "Rom-ID"
 
@@ -6549,7 +6545,7 @@ msgstr "Kjør &Til Hit"
 msgid "Russia"
 msgstr "Russland"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:171
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:164
 msgid "SD Card"
 msgstr "SD-kort"
 
@@ -6943,9 +6939,9 @@ msgstr "Valgt skrifttype"
 msgid "Selected controller profile does not exist"
 msgstr "Valgt kontrolprofil finnes ikke"
 
-#: Source/Core/Core/NetPlayServer.cpp:1396
-#: Source/Core/Core/NetPlayServer.cpp:1621
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:429
+#: Source/Core/Core/NetPlayServer.cpp:1395
+#: Source/Core/Core/NetPlayServer.cpp:1620
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:421
 msgid "Selected game doesn't exist in game list!"
 msgstr "Valgt spill eksisterer ikke i spillisten!"
 
@@ -7035,7 +7031,7 @@ msgstr ""
 "\n"
 "Hvis usikker, bruk OpenGL."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:213
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:206
 msgid "Send"
 msgstr "Send"
 
@@ -7043,7 +7039,7 @@ msgstr "Send"
 msgid "Sensor Bar Position:"
 msgstr "Sensorbjelkeposisjon:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1764
+#: Source/Core/Core/NetPlayClient.cpp:1763
 msgid "Server rejected traversal attempt"
 msgstr "Tjeneren avslo traverseringsforsøk"
 
@@ -7184,7 +7180,7 @@ msgstr "Vis GameCube"
 msgid "Show Germany"
 msgstr "Vis Tyskland"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:177
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:170
 msgid "Show Golf Mode Overlay"
 msgstr "Vil Golf-modus Overlegg"
 
@@ -7446,7 +7442,7 @@ msgstr ""
 "Vennligst sjekk de markerte verdiene."
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:105
-#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:244
+#: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:246
 msgid "Sort Alphabetically"
 msgstr ""
 
@@ -7504,7 +7500,7 @@ msgstr "Start Inndata-&opptak"
 msgid "Start Recording"
 msgstr "Start opptak"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:856
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:846
 msgid "Started game"
 msgstr "Startet spill"
 
@@ -7587,7 +7583,7 @@ msgstr "Stopp"
 msgid "Stop Playing/Recording Input"
 msgstr "Stopp Spill/Opptak inndata"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:346
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:339
 msgid "Stopped game"
 msgstr "Stoppet spill"
 
@@ -7683,7 +7679,7 @@ msgstr "Penn"
 msgid "Success"
 msgstr "Suksess"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:396
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:388
 msgid "Successfully added to the NetPlay index"
 msgstr "Lagt til i NetPlay indeks."
 
@@ -7825,15 +7821,15 @@ msgstr ""
 "Synkroniserer GPU- og CPU-trådene for å hindre tilfeldige frys i "
 "dobbelkjernemodus. (PÅ = kompatibel, AV = raskt)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1119
+#: Source/Core/Core/NetPlayClient.cpp:1118
 msgid "Synchronizing AR codes..."
 msgstr "Synkroniserer AR-koder..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1050
+#: Source/Core/Core/NetPlayClient.cpp:1049
 msgid "Synchronizing Gecko codes..."
 msgstr "Synkroniserer Gecko-koder..."
 
-#: Source/Core/Core/NetPlayClient.cpp:815
+#: Source/Core/Core/NetPlayClient.cpp:814
 msgid "Synchronizing save data..."
 msgstr "Synkroniserer lagringsdata..."
 
@@ -8442,12 +8438,6 @@ msgstr ""
 "Dette vil begrense hastigheten til klump-opplasting per klient, som bruker "
 "for lagringsfilsynkronisering."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:129
-msgid ""
-"This will reduce bandwidth usage by polling GameCube controllers only twice "
-"per frame. Does not affect Wii Remotes."
-msgstr ""
-
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:120
 msgid ""
 "This will sync additional graphics settings, and force everyone to the same "
@@ -8617,8 +8607,8 @@ msgstr "Berør"
 msgid "Traditional Chinese"
 msgstr "Tradisjonell Kinesisk"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:973
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:977
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:963
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:967
 msgid "Traversal Error"
 msgstr "Traverseringsfeil"
 
@@ -8626,7 +8616,7 @@ msgstr "Traverseringsfeil"
 msgid "Traversal Server"
 msgstr "Traverserings-tjener"
 
-#: Source/Core/Core/NetPlayClient.cpp:1761
+#: Source/Core/Core/NetPlayClient.cpp:1760
 msgid "Traversal server timed out connecting to the host"
 msgstr "Tidsavbrudd for traverseringstjener under tilkobling til vert"
 
@@ -8773,7 +8763,7 @@ msgstr "USA(De forente stater)"
 #: Source/Core/Core/State.cpp:460 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:41
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:746
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:737
 msgid "Unknown"
 msgstr "Ukjent"
 
@@ -8791,7 +8781,7 @@ msgstr ""
 "Ukjent SYNC_GECKO_CODES-melding med id: %d mottat fra spiller: %d Sparker "
 "spiller!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1007
+#: Source/Core/Core/NetPlayClient.cpp:1006
 #, c-format
 msgid "Unknown SYNC_SAVE_DATA message received with id: %d"
 msgstr "Ukjent SYNC_SAVE_DATA melding mottat med id: %d"
@@ -8805,12 +8795,12 @@ msgstr ""
 "Ukjent SYNC_SAVE_DATA melding med id: %d motttatt fra spiller: %d Sparker "
 "spiller!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1770
+#: Source/Core/Core/NetPlayClient.cpp:1769
 #, c-format
 msgid "Unknown error %x"
 msgstr "Ukjent feil %x"
 
-#: Source/Core/Core/NetPlayClient.cpp:1220
+#: Source/Core/Core/NetPlayClient.cpp:1219
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Ukjent melding mottatt med ID: %d"
@@ -9136,7 +9126,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
 #: Source/Core/DolphinQt/MenuBar.cpp:1219
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:412
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:404
 msgid "Warning"
 msgstr "Advarsel"
 
