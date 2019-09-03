@@ -26,6 +26,7 @@ public:
   // Returns true if the stereo mode is quad-buffering.
   static bool WantsStereo();
 
+  const WindowSystemInfo& GetWindowSystemInfo() const { return m_wsi; }
   IDXGISwapChain* GetDXGISwapChain() const { return m_swap_chain.Get(); }
   AbstractTextureFormat GetFormat() const { return m_texture_format; }
   u32 GetWidth() const { return m_width; }
@@ -42,7 +43,7 @@ public:
   bool CheckForFullscreenChange();
 
   // Presents the swap chain to the screen.
-  virtual bool Present();
+  bool Present();
 
   bool ChangeSurface(void* native_handle);
   bool ResizeSwapChain();

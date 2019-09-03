@@ -443,9 +443,19 @@ void Renderer::PresentBackbuffer()
   m_current_framebuffer = nullptr;
 
   m_swap_chain->GetCurrentTexture()->TransitionToState(D3D12_RESOURCE_STATE_PRESENT);
-  ExecuteCommandList(false);
 
-  m_swap_chain->Present();
+  // Execute the command buffer and present the backbuffer. This has two paths depending on if we're
+  // using 12on7 or running on Windows 10.
+  PerfQuery::GetInstance()->ResolveQueries();
+  g_dx_context->ExecuteCommandListAndPresent(m_swap_chain.get(), false);
+  m_dirty_bits = DirtyState_All;
+}
+
+void Renderer::ExecuteCommandList(bool wait_for_completion)
+{
+  PerfQuery::GetInstance()->ResolveQueries();
+  g_dx_context->ExecuteCommandList(wait_for_completion);
+  m_dirty_bits = DirtyState_All;
 }
 
 void Renderer::OnConfigChanged(u32 bits)
@@ -470,13 +480,6 @@ void Renderer::OnConfigChanged(u32 bits)
   // If the host config changed (e.g. bbox/per-pixel-shading), recreate the root signature.
   if (bits & CONFIG_CHANGE_BIT_HOST_CONFIG)
     g_dx_context->RecreateGXRootSignature();
-}
-
-void Renderer::ExecuteCommandList(bool wait_for_completion)
-{
-  PerfQuery::GetInstance()->ResolveQueries();
-  g_dx_context->ExecuteCommandList(wait_for_completion);
-  m_dirty_bits = DirtyState_All;
 }
 
 void Renderer::SetConstantBuffer(u32 index, D3D12_GPU_VIRTUAL_ADDRESS address)

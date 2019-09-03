@@ -4,6 +4,7 @@
 
 #include "VideoBackends/D3D12/DXContext.h"
 
+#include <D3D12Downlevel.h>
 #include <algorithm>
 #include <array>
 #include <dxgi1_2.h>
@@ -14,8 +15,10 @@
 #include "Common/DynamicLibrary.h"
 #include "Common/StringUtil.h"
 #include "VideoBackends/D3D12/Common.h"
+#include "VideoBackends/D3D12/DXTexture.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoBackends/D3D12/StreamBuffer.h"
+#include "VideoBackends/D3D12/SwapChain.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12
@@ -28,6 +31,38 @@ static PFN_D3D12_CREATE_DEVICE s_d3d12_create_device;
 static PFN_D3D12_GET_DEBUG_INTERFACE s_d3d12_get_debug_interface;
 static PFN_D3D12_SERIALIZE_ROOT_SIGNATURE s_d3d12_serialize_root_signature;
 
+static bool LoadD3D12Library()
+{
+  if (s_d3d12_library.IsOpen())
+    return true;
+
+  // Try downlevel for Win7 support first.
+  if (!s_d3d12_library.Open("12on7\\d3d12.dll") && !s_d3d12_library.Open("d3d12.dll"))
+  {
+    PanicAlertT("d3d12.dll could not be loaded.");
+    return false;
+  }
+
+  if (!s_d3d12_library.GetSymbol("D3D12CreateDevice", &s_d3d12_create_device) ||
+      !s_d3d12_library.GetSymbol("D3D12GetDebugInterface", &s_d3d12_get_debug_interface) ||
+      !s_d3d12_library.GetSymbol("D3D12SerializeRootSignature", &s_d3d12_serialize_root_signature))
+  {
+    PanicAlertT("d3d12.dll could not be loaded.");
+    s_d3d12_library.Close();
+    return false;
+  }
+
+  return true;
+}
+
+static void UnloadD3D12Library()
+{
+  s_d3d12_serialize_root_signature = nullptr;
+  s_d3d12_get_debug_interface = nullptr;
+  s_d3d12_create_device = nullptr;
+  s_d3d12_library.Close();
+}
+
 DXContext::DXContext() = default;
 
 DXContext::~DXContext()
@@ -39,9 +74,8 @@ DXContext::~DXContext()
 std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
 {
   // Use a temporary device if we aren't booting.
-  Common::DynamicLibrary temp_lib;
-  ComPtr<ID3D12Device> temp_device = g_dx_context ? g_dx_context->m_device : nullptr;
-  if (!temp_device)
+  ComPtr<ID3D12Device> device = g_dx_context ? g_dx_context->m_device : nullptr;
+  if (!device)
   {
     ComPtr<IDXGIFactory> temp_dxgi_factory = D3DCommon::CreateDXGIFactory(false);
     if (!temp_dxgi_factory)
@@ -50,17 +84,16 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
     ComPtr<IDXGIAdapter> adapter;
     temp_dxgi_factory->EnumAdapters(adapter_index, &adapter);
 
-    PFN_D3D12_CREATE_DEVICE d3d12_create_device;
-    if (!temp_lib.Open("d3d12.dll") ||
-        !temp_lib.GetSymbol("D3D12CreateDevice", &d3d12_create_device))
+    if (!LoadD3D12Library())
+      return {};
+
+    HRESULT hr = s_d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0,
+                                       IID_PPV_ARGS(device.GetAddressOf()));
+    if (!SUCCEEDED(hr))
     {
+      UnloadD3D12Library();
       return {};
     }
-
-    HRESULT hr =
-        d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
-    if (!SUCCEEDED(hr))
-      return {};
   }
 
   std::vector<u32> aa_modes;
@@ -70,12 +103,17 @@ std::vector<u32> DXContext::GetAAModes(u32 adapter_index)
     multisample_quality_levels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     multisample_quality_levels.SampleCount = samples;
 
-    temp_device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
-                                     &multisample_quality_levels,
-                                     sizeof(multisample_quality_levels));
+    device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+                                &multisample_quality_levels, sizeof(multisample_quality_levels));
 
     if (multisample_quality_levels.NumQualityLevels > 0)
       aa_modes.push_back(samples);
+  }
+
+  if (!g_dx_context)
+  {
+    device.Reset();
+    UnloadD3D12Library();
   }
 
   return aa_modes;
@@ -94,19 +132,15 @@ bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
 bool DXContext::Create(u32 adapter_index, bool enable_debug_layer)
 {
   ASSERT(!g_dx_context);
-  if (!s_d3d12_library.Open("d3d12.dll") ||
-      !s_d3d12_library.GetSymbol("D3D12CreateDevice", &s_d3d12_create_device) ||
-      !s_d3d12_library.GetSymbol("D3D12GetDebugInterface", &s_d3d12_get_debug_interface) ||
-      !s_d3d12_library.GetSymbol("D3D12SerializeRootSignature", &s_d3d12_serialize_root_signature))
+  if (!LoadD3D12Library())
   {
     PanicAlertT("d3d12.dll could not be loaded.");
-    s_d3d12_library.Close();
     return false;
   }
 
   if (!D3DCommon::LoadLibraries())
   {
-    s_d3d12_library.Close();
+    UnloadD3D12Library();
     return false;
   }
 
@@ -133,10 +167,7 @@ void DXContext::Destroy()
   if (g_dx_context)
     g_dx_context.reset();
 
-  s_d3d12_serialize_root_signature = nullptr;
-  s_d3d12_get_debug_interface = nullptr;
-  s_d3d12_create_device = nullptr;
-  s_d3d12_library.Close();
+  UnloadD3D12Library();
   D3DCommon::UnloadLibraries();
 }
 
@@ -209,7 +240,18 @@ bool DXContext::CreateCommandQueue()
                                                D3D12_COMMAND_QUEUE_FLAG_NONE};
   HRESULT hr = m_device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_command_queue));
   CHECK(SUCCEEDED(hr), "Create command queue");
-  return SUCCEEDED(hr);
+
+  // Check for downlevel queue.
+  hr = m_command_queue.As(&m_command_queue_downlevel);
+  if (FAILED(hr))
+  {
+    // Running on Windows 10.
+    return true;
+  }
+
+  WARN_LOG(HOST_GPU,
+           "Using DirectX 12 on Windows 7, this is experimental and you may encounter issues.");
+  return true;
 }
 
 bool DXContext::CreateFence()
@@ -477,6 +519,34 @@ void DXContext::ExecuteCommandList(bool wait_for_completion)
   const std::array<ID3D12CommandList*, 1> execute_lists{res.command_list.Get()};
   m_command_queue->ExecuteCommandLists(static_cast<UINT>(execute_lists.size()),
                                        execute_lists.data());
+
+  // Update fence when GPU has completed.
+  hr = m_command_queue->Signal(m_fence.Get(), m_current_fence_value);
+  CHECK(SUCCEEDED(hr), "Signal fence");
+
+  MoveToNextCommandList();
+  if (wait_for_completion)
+    WaitForFence(res.ready_fence_value);
+}
+
+void DXContext::ExecuteCommandListAndPresent(SwapChain* swap_chain, bool wait_for_completion)
+{
+  if (!Is12On7Device())
+  {
+    ExecuteCommandList(wait_for_completion);
+    swap_chain->Present();
+    return;
+  }
+
+  // Presenting closes and submits the command list on 12on7.
+  CommandListResources& res = m_command_lists[m_current_command_list];
+  HRESULT hr = m_command_queue_downlevel->Present(
+      res.command_list.Get(), swap_chain->GetCurrentTexture()->GetResource(),
+      static_cast<HWND>(swap_chain->GetWindowSystemInfo().render_surface),
+      g_ActiveConfig.bVSyncActive ? D3D12_DOWNLEVEL_PRESENT_FLAG_WAIT_FOR_VBLANK :
+                                    D3D12_DOWNLEVEL_PRESENT_FLAG_NONE);
+  CHECK(SUCCEEDED(hr), "Submit and downlevel present");
+  swap_chain->MoveToNextBuffer();
 
   // Update fence when GPU has completed.
   hr = m_command_queue->Signal(m_fence.Get(), m_current_fence_value);

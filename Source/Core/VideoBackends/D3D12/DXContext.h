@@ -13,9 +13,12 @@
 #include "VideoBackends/D3D12/StreamBuffer.h"
 
 struct IDXGIFactory;
+struct ID3D12CommandQueueDownlevel;
 
 namespace DX12
 {
+class SwapChain;
+
 // Vertex/Pixel shader root parameters
 enum ROOT_PARAMETER
 {
@@ -55,6 +58,7 @@ public:
   IDXGIFactory* GetDXGIFactory() const { return m_dxgi_factory.Get(); }
   ID3D12Device* GetDevice() const { return m_device.Get(); }
   ID3D12CommandQueue* GetCommandQueue() const { return m_command_queue.Get(); }
+  bool Is12On7Device() const { return static_cast<bool>(m_command_queue_downlevel); }
 
   // Returns the current command list, commands can be recorded directly.
   ID3D12GraphicsCommandList* GetCommandList() const
@@ -107,6 +111,9 @@ public:
 
   // Executes the current command list.
   void ExecuteCommandList(bool wait_for_completion);
+
+  // Executes the command list and presents the backbuffer.
+  void ExecuteCommandListAndPresent(SwapChain* swap_chain, bool wait_for_completion);
 
   // Waits for a specific fence.
   void WaitForFence(u64 fence);
@@ -161,10 +168,11 @@ private:
   ComPtr<ID3D12Debug> m_debug_interface;
   ComPtr<ID3D12Device> m_device;
   ComPtr<ID3D12CommandQueue> m_command_queue;
+  ComPtr<ID3D12CommandQueueDownlevel> m_command_queue_downlevel;
 
   ComPtr<ID3D12Fence> m_fence = nullptr;
   HANDLE m_fence_event = {};
-  u32 m_current_fence_value = 0;
+  u64 m_current_fence_value = 0;
   u64 m_completed_fence_value = 0;
 
   std::array<CommandListResources, NUM_COMMAND_LISTS> m_command_lists;

@@ -29,19 +29,27 @@ public:
 
   static std::unique_ptr<SwapChain> Create(const WindowSystemInfo& wsi);
 
-  bool Present() override;
+  bool Present();
 
   DXTexture* GetCurrentTexture() const { return m_buffers[m_current_buffer].texture.get(); }
   DXFramebuffer* GetCurrentFramebuffer() const
   {
     return m_buffers[m_current_buffer].framebuffer.get();
   }
+  void MoveToNextBuffer() { m_current_buffer = (m_current_buffer + 1) % SWAP_CHAIN_BUFFER_COUNT; }
+
+  bool CheckForFullscreenChange();
+  bool ChangeSurface(void* native_handle);
+  bool ResizeSwapChain();
+  void SetStereo(bool stereo);
 
 protected:
   bool CreateSwapChainBuffers() override;
   void DestroySwapChainBuffers() override;
 
 private:
+  void UpdateSizeFromWindow();
+
   struct BufferResources
   {
     std::unique_ptr<DXTexture> texture;
