@@ -92,6 +92,7 @@ void VideoBackend::FillBackendInfo()
         g_dx_context->SupportsTextureFormat(DXGI_FORMAT_BC3_UNORM);
     g_Config.backend_info.bSupportsBPTCTextures =
         g_dx_context->SupportsTextureFormat(DXGI_FORMAT_BC7_UNORM);
+    g_Config.backend_info.bSupportsLogicOp = g_dx_context->SupportsLogicOp();
   }
 }
 

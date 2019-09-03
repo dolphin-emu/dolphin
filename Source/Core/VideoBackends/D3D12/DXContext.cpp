@@ -129,6 +129,17 @@ bool DXContext::SupportsTextureFormat(DXGI_FORMAT format)
          (support.Support1 & required) == required;
 }
 
+bool DXContext::SupportsLogicOp()
+{
+  D3D12_FEATURE_DATA_D3D12_OPTIONS options = {};
+  HRESULT hr =
+      m_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &options, sizeof(options));
+  if (FAILED(hr))
+    return false;
+
+  return options.OutputMergerLogicOp;
+}
+
 bool DXContext::Create(u32 adapter_index, bool enable_debug_layer)
 {
   ASSERT(!g_dx_context);
