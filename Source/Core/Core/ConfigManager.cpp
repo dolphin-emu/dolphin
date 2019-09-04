@@ -234,6 +234,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
   core->Set("RunCompareServer", bRunCompareServer);
   core->Set("RunCompareClient", bRunCompareClient);
+  core->Set("MMU", bMMU);
   core->Set("EmulationSpeed", m_EmulationSpeed);
   core->Set("Overclock", m_OCFactor);
   core->Set("OverclockEnable", m_OCEnable);
@@ -765,11 +766,7 @@ void SConfig::LoadDefaults()
   bFastmem = true;
   bFPRF = false;
   bAccurateNaNs = false;
-#ifdef _M_X86_64
-  bMMU = true;
-#else
   bMMU = false;
-#endif
   bLowDCBZHack = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
