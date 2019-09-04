@@ -152,7 +152,14 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
     DICMDBUF1 = 0;
     DICMDBUF2 = 0x20;
     return StartDMATransfer(0x20, request);
-    // TODO: also include the post-read second read
+    // TODO: Include an additional read that happens on Wii discs, or at least
+    // emulate its side effect of disabling DTK configuration
+    // if (Memory::Read_U32(request.buffer_out + 24) == 0x5d1c9ea3) { // Wii Magic
+    //   if (!m_has_read_encryption_info) {
+    //     // Read 0x44 (=> 0x60) bytes starting from offset 8 or byte 0x20;
+    //     // byte 0x60 is disable hashing and byte 0x61 is disable encryption
+    //   }
+    // }
   case DIIoctl::DVDLowRead:
   {
     // TODO.  Needs to include decryption.

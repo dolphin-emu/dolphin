@@ -212,6 +212,21 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
 
   DVDReadDiscID(volume, 0x00000000);
 
+  bool streaming = Memory::Read_U8(0x80000008);
+  if (streaming)
+  {
+    u8 streaming_size = Memory::Read_U8(0x80000009);
+    // If the streaming buffer size is 0, then BS2 uses a default size of 10 instead.
+    // No known game uses a size other than the default.
+    if (streaming_size == 0)
+      streaming_size = 10;
+    DVDInterface::AudioBufferConfig(true, streaming_size);
+  }
+  else
+  {
+    DVDInterface::AudioBufferConfig(false, 0);
+  }
+
   const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
 
   // Setup pointers like real BS2 does

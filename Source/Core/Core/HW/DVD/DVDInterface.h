@@ -127,6 +127,8 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id = {});
 void ChangePartition(const DiscIO::Partition& partition);
 void ExecuteCommand(ReplyType reply_type);
 void PerformDecryptingRead(u32 position, u32 length, u32 output_address, ReplyType reply_type);
+// Exposed for use by emulated BS2; does not perform any checks on drive state
+void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length);
 
 void SetLowError(u32 low_error);
 void SetHighError(u32 high_error);

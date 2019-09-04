@@ -155,6 +155,9 @@ static u32 s_current_length;
 static u64 s_next_start;
 static u32 s_next_length;
 static u32 s_pending_samples;
+static bool s_can_configure_dtk = true;
+static bool s_enable_dtk = false;
+static u8 s_dtk_buffer_length = 0;  // TODO: figure out how this affects the regular buffer
 
 // Disc drive state
 static u32 s_error_code = 0;
@@ -215,6 +218,9 @@ void DoState(PointerWrap& p)
   p.Do(s_next_start);
   p.Do(s_next_length);
   p.Do(s_pending_samples);
+  p.Do(s_can_configure_dtk);
+  p.Do(s_enable_dtk);
+  p.Do(s_dtk_buffer_length);
 
   p.Do(s_error_code);
   p.Do(s_current_partition);
@@ -285,21 +291,31 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
   return bytes_to_process;
 }
 
-static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_late)
+static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
+                                 s64 cycles_late)
 {
-  // Send audio to the mixer.
-  std::vector<s16> temp_pcm(s_pending_samples * 2, 0);
-  ProcessDTKSamples(&temp_pcm, audio_data);
-  g_sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
-
   // Determine which audio data to read next.
   static const int MAXIMUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
   u64 read_offset = 0;
   u32 read_length = 0;
-  if (s_stream && AudioInterface::IsPlaying())
+
+  if (interrupt_type == DIInterruptType::TCINT)
   {
-    read_offset = s_audio_position;
-    read_length = AdvanceDTK(MAXIMUM_SAMPLES, &s_pending_samples);
+    // Send audio to the mixer.
+    std::vector<s16> temp_pcm(s_pending_samples * 2, 0);
+    ProcessDTKSamples(&temp_pcm, audio_data);
+    g_sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
+
+    if (s_stream && AudioInterface::IsPlaying())
+    {
+      read_offset = s_audio_position;
+      read_length = AdvanceDTK(MAXIMUM_SAMPLES, &s_pending_samples);
+    }
+    else
+    {
+      read_length = 0;
+      s_pending_samples = MAXIMUM_SAMPLES;
+    }
   }
   else
   {
@@ -367,6 +383,9 @@ void Reset(bool spinup)
   s_current_start = 0;
   s_current_length = 0;
   s_pending_samples = 0;
+  s_can_configure_dtk = true;
+  s_enable_dtk = false;
+  s_dtk_buffer_length = 0;
 
   if (!IsDiscInside())
   {
@@ -792,6 +811,7 @@ void ExecuteCommand(ReplyType reply_type)
                ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
                iDVDOffset, s_DIMAR, s_DICMDBUF[2], s_DILENGTH);
 
+      s_can_configure_dtk = false;
       command_handled_by_thread =
           ExecuteReadCommand(iDVDOffset, s_DIMAR, s_DICMDBUF[2], s_DILENGTH, DiscIO::PARTITION_NONE,
                              reply_type, &interrupt_type);
@@ -808,6 +828,14 @@ void ExecuteCommand(ReplyType reply_type)
       {
         SetLowError(ERROR_READY);
       }
+      else
+      {
+        // The first disc ID reading is required before DTK can be configured.
+        // If the disc ID is read again (or any other read occurs), it no longer can
+        // be configured.
+        s_can_configure_dtk = false;
+      }
+
       command_handled_by_thread = ExecuteReadCommand(
           0, s_DIMAR, 0x20, s_DILENGTH, DiscIO::PARTITION_NONE, reply_type, &interrupt_type);
       break;
@@ -894,22 +922,42 @@ void ExecuteCommand(ReplyType reply_type)
   // command_2                = Length of the stream
   case DICommand::AudioStream:
   {
-    u8 cancel_stream = (s_DICMDBUF[0] >> 16) & 0xFF;
-    if (cancel_stream)
+    if (!CheckReadPreconditions())
     {
-      s_stop_at_track_end = false;
-      s_stream = false;
+      ERROR_LOG(DVDINTERFACE, "Cannot play audio (command %08x)", s_DICMDBUF[0]);
+      SetHighError(ERROR_AUDIO_BUF);
+      interrupt_type = DIInterruptType::DEINT;
+      break;
     }
-    else
+    if (!s_enable_dtk)
     {
-      if ((s_DICMDBUF[1] == 0) && (s_DICMDBUF[2] == 0))
+      ERROR_LOG(DVDINTERFACE,
+                "Attempted to change playing audio while audio is disabled!  (%08x %08x %08x)",
+                s_DICMDBUF[0], s_DICMDBUF[1], s_DICMDBUF[2]);
+      SetHighError(ERROR_AUDIO_BUF);
+      interrupt_type = DIInterruptType::DEINT;
+      break;
+    }
+
+    s_can_configure_dtk = false;
+
+    switch ((s_DICMDBUF[0] >> 16) & 0xFF)
+    {
+    case 0x00:
+    {
+      u64 offset = static_cast<u64>(s_DICMDBUF[1]) << 2;
+      u32 length = s_DICMDBUF[2];
+      INFO_LOG(DVDINTERFACE, "(Audio) Start stream: offset: %08" PRIx64 " length: %08x", offset,
+               length);
+
+      if ((offset == 0) && (length == 0))
       {
         s_stop_at_track_end = true;
       }
       else if (!s_stop_at_track_end)
       {
-        s_next_start = static_cast<u64>(s_DICMDBUF[1]) << 2;
-        s_next_length = s_DICMDBUF[2];
+        s_next_start = offset;
+        s_next_length = length;
         if (!s_stream)
         {
           s_current_start = s_next_start;
@@ -919,16 +967,34 @@ void ExecuteCommand(ReplyType reply_type)
           s_stream = true;
         }
       }
+      break;
     }
-
-    INFO_LOG(DVDINTERFACE, "(Audio) Stream cmd: %08x offset: %08" PRIx64 " length: %08x",
-             s_DICMDBUF[0], (u64)s_DICMDBUF[1] << 2, s_DICMDBUF[2]);
+    case 0x01:
+      INFO_LOG(DVDINTERFACE, "(Audio) Stop stream");
+      s_stop_at_track_end = false;
+      s_stream = false;
+      break;
+    default:
+      ERROR_LOG(DVDINTERFACE, "Invalid audio command!  (%08x %08x %08x)", s_DICMDBUF[0],
+                s_DICMDBUF[1], s_DICMDBUF[2]);
+      SetHighError(ERROR_INV_AUDIO);
+      interrupt_type = DIInterruptType::DEINT;
+      break;
+    }
   }
   break;
 
   // Request Audio Status (Immediate). Only used by some GC games, but does exist on the Wii
   case DICommand::RequestAudioStatus:
   {
+    if (!s_enable_dtk)
+    {
+      ERROR_LOG(DVDINTERFACE, "Attempted to request audio status while audio is disabled!");
+      SetHighError(ERROR_AUDIO_BUF);
+      interrupt_type = DIInterruptType::DEINT;
+      break;
+    }
+
     switch (s_DICMDBUF[0] >> 16 & 0xFF)
     {
     case 0x00:  // Returns streaming status
@@ -956,8 +1022,10 @@ void ExecuteCommand(ReplyType reply_type)
       s_DIIMMBUF = s_current_length;
       break;
     default:
-      INFO_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s",
-               s_DICMDBUF[0] >> 16 & 0xFF, s_stream ? "on" : "off");
+      ERROR_LOG(DVDINTERFACE, "Invalid audio status command!  (%08x %08x %08x)", s_DICMDBUF[0],
+                s_DICMDBUF[1], s_DICMDBUF[2]);
+      SetHighError(ERROR_INV_AUDIO);
+      interrupt_type = DIInterruptType::DEINT;
       break;
     }
   }
@@ -987,20 +1055,24 @@ void ExecuteCommand(ReplyType reply_type)
     break;
   }
 
-  // DVD Audio Enable/Disable (Immediate). GC uses this, and apparently Wii also does...?
+  // DVD Audio Enable/Disable (Immediate). GC uses this, and the Wii can use it to configure GC
+  // games.
   case DICommand::AudioBufferConfig:
     // The IPL uses this command to enable or disable DTK audio depending on the value of byte 0x8
     // in the disc header. See http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm for more info.
     // The link is dead, but you can access the page using the Wayback Machine at archive.org.
 
-    // TODO: Dolphin doesn't prevent the game from using DTK when the IPL doesn't enable it.
-    // Should we be failing with an error code when the game tries to use the 0xE1 command?
-    // (Not that this should matter normally, since games that use DTK set the header byte to 1)
+    // This command can only be used immediately after reading the disc ID, before any other
+    // reads. Too early, and you get ERROR_NO_DISKID.  Too late, and you get ERROR_INV_PERIOD.
+    if (!s_can_configure_dtk)
+    {
+      ERROR_LOG(DVDINTERFACE, "Attempted to change DTK configuration after a read has been made!");
+      SetHighError(ERROR_INV_PERIOD);
+      interrupt_type = DIInterruptType::DEINT;
+      break;
+    }
 
-    if ((s_DICMDBUF[0] >> 16) & 0xFF)
-      INFO_LOG(DVDINTERFACE, "DTK enabled");
-    else
-      INFO_LOG(DVDINTERFACE, "DTK disabled");
+    AudioBufferConfig((s_DICMDBUF[0] >> 16) & 1, s_DICMDBUF[0] & 0xf);
     break;
 
   // GC-only patched drive firmware command, used by libogc
@@ -1056,6 +1128,7 @@ void ExecuteCommand(ReplyType reply_type)
 void PerformDecryptingRead(u32 position, u32 length, u32 output_address, ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
+  s_can_configure_dtk = false;
 
   const bool command_handled_by_thread =
       ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length,
@@ -1068,6 +1141,16 @@ void PerformDecryptingRead(u32 position, u32 length, u32 output_address, ReplyTy
                               s_finish_executing_command,
                               PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
+}
+
+void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length)
+{
+  s_enable_dtk = enable_dtk;
+  s_dtk_buffer_length = dtk_buffer_length;
+  if (s_enable_dtk)
+    INFO_LOG(DVDINTERFACE, "DTK enabled: buffer size %d", s_dtk_buffer_length);
+  else
+    INFO_LOG(DVDINTERFACE, "DTK disabled");
 }
 
 u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type)
@@ -1125,7 +1208,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::DTK:
   {
-    DTKStreamingCallback(data, cycles_late);
+    DTKStreamingCallback(interrupt_type, data, cycles_late);
     break;
   }
   }
