@@ -90,6 +90,8 @@ add_library(videocommon
   TextureDecoder_Util.h
   TextureInfo.cpp
   TextureInfo.h
+  TMEM.cpp
+  TMEM.h
   UberShaderCommon.cpp
   UberShaderCommon.h
   UberShaderPixel.cpp
@@ -170,12 +172,12 @@ if(FFmpeg_FOUND)
     FFmpeg::swresample
     FFmpeg::swscale
   )
-  if(APPLE) 
+  if(APPLE)
     target_link_libraries(videocommon PRIVATE
       ${COREMEDIA_LIBRARY}
       ${VIDEOTOOLBOX_LIBRARY}
       ${COREVIDEO_LIBRARY}
-      ${AUDIOTOOLBOX_LIBRARY}    
+      ${AUDIOTOOLBOX_LIBRARY}
     )
   endif()
 endif()
