@@ -1175,54 +1175,40 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
       // First icon_speed = 0 indicates there aren't any more icons
       break;
     }
-    if (fmts[i] != 0)
-    {
-      switch (fmts[i])
-      {
-      case CI8SHARED:  // CI8 with shared palette
-        Common::DecodeCI8Image(buffer, data[i], sharedPal, 32, 32);
-        buffer += 32 * 32;
-        break;
-      case RGB5A3:  // RGB5A3
-        Common::Decode5A3Image(buffer, (u16*)(data[i]), 32, 32);
-        buffer += 32 * 32;
-        break;
-      case CI8:  // CI8 with own palette
-        const u16* paldata = reinterpret_cast<u16*>(data[i] + 32 * 32);
-        Common::DecodeCI8Image(buffer, data[i], paldata, 32, 32);
-        buffer += 32 * 32;
-        break;
-      }
-    }
-    else
+
+    int frame_index = i;
+    if (fmts[frame_index] == 0)
     {
       // Speed is set but there's no actual icon
       // This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
-      // These "blank frames" show the next icon
-      for (int j = i; j < 8; ++j)
+      // These "blank frames" show the next frame instead
+      for (int j = frame_index; j < 8; ++j)
       {
         if (fmts[j] != 0)
         {
-          switch (fmts[j])
-          {
-          case CI8SHARED:  // CI8 with shared palette
-            Common::DecodeCI8Image(buffer, data[j], sharedPal, 32, 32);
-            break;
-          case RGB5A3:  // RGB5A3
-            Common::Decode5A3Image(buffer, (u16*)(data[j]), 32, 32);
-            buffer += 32 * 32;
-            break;
-          case CI8:  // CI8 with own palette
-            const u16* paldata = reinterpret_cast<u16*>(data[j] + 32 * 32);
-            Common::DecodeCI8Image(buffer, data[j], paldata, 32, 32);
-            buffer += 32 * 32;
-            break;
-          }
+          frame_index = j;
+          break;
         }
       }
     }
-  }
 
+    switch (fmts[frame_index])
+    {
+    case CI8SHARED:  // CI8 with shared palette
+      Common::DecodeCI8Image(buffer, data[frame_index], sharedPal, 32, 32);
+      buffer += 32 * 32;
+      break;
+    case RGB5A3:  // RGB5A3
+      Common::Decode5A3Image(buffer, (u16*)(data[frame_index]), 32, 32);
+      buffer += 32 * 32;
+      break;
+    case CI8:  // CI8 with own palette
+      const u16* paldata = reinterpret_cast<u16*>(data[frame_index] + 32 * 32);
+      Common::DecodeCI8Image(buffer, data[frame_index], paldata, 32, 32);
+      buffer += 32 * 32;
+      break;
+    }
+  }
   return frames;
 }
 
