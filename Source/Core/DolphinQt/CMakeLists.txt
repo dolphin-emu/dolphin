@@ -140,6 +140,8 @@ add_executable(dolphin-emu
   Config/Mapping/WiimoteEmuGeneral.h
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/Mapping/WiimoteEmuMotionControl.h
+  Config/Mapping/WiimoteEmuMotionControlIMU.cpp
+  Config/Mapping/WiimoteEmuMotionControlIMU.h
   Config/NewPatchDialog.cpp
   Config/NewPatchDialog.h
   Config/PatchesWidget.cpp

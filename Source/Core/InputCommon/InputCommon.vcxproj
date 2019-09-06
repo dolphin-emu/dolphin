@@ -36,6 +36,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUAccelerometer.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUCursor.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUGyroscope.cpp" />
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
     <ClCompile Include="ControllerEmu\StickGate.cpp" />
     <ClCompile Include="ControllerEmu\Control\Control.cpp" />
@@ -53,6 +56,7 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Tilt.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp" />
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp" />
+    <ClCompile Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServer.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
     <ClCompile Include="ControllerInterface\Device.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInput.cpp" />
@@ -76,6 +80,9 @@
     <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUAccelerometer.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUCursor.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUGyroscope.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
     <ClInclude Include="ControllerEmu\StickGate.h" />
     <ClInclude Include="ControllerEmu\Control\Control.h" />
@@ -93,6 +100,8 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Tilt.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h" />
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h" />
+    <ClInclude Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServer.h" />
+    <ClInclude Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServerProto.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />
     <ClInclude Include="ControllerInterface\Device.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h" />

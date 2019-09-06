@@ -89,6 +89,7 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuExtension.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\NewPatchDialog.h" />
@@ -283,6 +284,7 @@
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtension.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
@@ -332,6 +334,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\NewPatchDialog.cpp" />

@@ -40,6 +40,9 @@ enum class GroupType
   Triggers,
   Slider,
   Shake,
+  IMUAccelerometer,
+  IMUGyroscope,
+  IMUCursor
 };
 
 class ControlGroup

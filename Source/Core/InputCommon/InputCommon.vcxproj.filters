@@ -28,6 +28,9 @@
     <Filter Include="ControllerInterface\XInput">
       <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerInterface\CemuHookUDPServer">
+      <UniqueIdentifier>{4f71c21c-85eb-4e76-ad64-40fd97bc3d6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GCAdapter.cpp" />
@@ -118,6 +121,18 @@
     </ClCompile>
     <ClCompile Include="InputProfile.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUCursor.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServer.cpp">
+      <Filter>ControllerInterface\CemuHookUDPServer</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUAccelerometer.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUGyroscope.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
   </ItemGroup>
@@ -215,6 +230,21 @@
     <ClInclude Include="InputProfile.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUCursor.h">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServer.h">
+      <Filter>ControllerInterface\CemuHookUDPServer</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUAccelerometer.h">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUGyroscope.h">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServerProto.h">
+      <Filter>ControllerInterface\CemuHookUDPServer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

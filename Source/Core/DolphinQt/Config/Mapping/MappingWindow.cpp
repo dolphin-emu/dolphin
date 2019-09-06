@@ -35,6 +35,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuGeneral.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
+#include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Settings.h"
@@ -348,7 +349,8 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new WiimoteEmuGeneral(this, extension);
     setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
-    AddWidget(tr("Motion Controls"), new WiimoteEmuMotionControl(this));
+    AddWidget(tr("Motion Simulation"), new WiimoteEmuMotionControl(this));
+    AddWidget(tr("Motion Input"), new WiimoteEmuMotionControlIMU(this));
     AddWidget(tr("Extension"), extension);
     break;
   }

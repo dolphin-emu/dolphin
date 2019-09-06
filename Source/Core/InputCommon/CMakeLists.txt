@@ -25,6 +25,12 @@ add_library(inputcommon
   ControllerEmu/ControlGroup/Cursor.h
   ControllerEmu/ControlGroup/Force.cpp
   ControllerEmu/ControlGroup/Force.h
+  ControllerEmu/ControlGroup/IMUAccelerometer.cpp
+  ControllerEmu/ControlGroup/IMUAccelerometer.h
+  ControllerEmu/ControlGroup/IMUCursor.cpp
+  ControllerEmu/ControlGroup/IMUCursor.h
+  ControllerEmu/ControlGroup/IMUGyroscope.cpp
+  ControllerEmu/ControlGroup/IMUGyroscope.h
   ControllerEmu/ControlGroup/MixedTriggers.cpp
   ControllerEmu/ControlGroup/MixedTriggers.h
   ControllerEmu/ControlGroup/ModifySettingsButton.cpp
@@ -37,6 +43,9 @@ add_library(inputcommon
   ControllerEmu/ControlGroup/Triggers.h
   ControllerEmu/Setting/NumericSetting.cpp
   ControllerEmu/Setting/NumericSetting.h
+  ControllerInterface/CemuHookUDPServer/CemuHookUDPServer.cpp
+  ControllerInterface/CemuHookUDPServer/CemuHookUDPServer.h
+  ControllerInterface/CemuHookUDPServer/CemuHookUDPServerProto.h
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/ControllerInterface.h
   ControllerInterface/Device.cpp
