@@ -57,6 +57,7 @@
     <ClCompile Include="TextureDecoder_Generic.cpp">
       <ExcludedFromBuild Condition="'$(Platform)'=='x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TmemBase.cpp" />
     <ClCompile Include="UberShaderCommon.cpp" />
     <ClCompile Include="UberShaderPixel.cpp" />
     <ClCompile Include="Statistics.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="NetPlayChatUI.h" />
     <ClInclude Include="NetPlayGolfUI.h" />
     <ClInclude Include="ShaderCache.h" />
+    <ClInclude Include="TmemBase.h" />
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />

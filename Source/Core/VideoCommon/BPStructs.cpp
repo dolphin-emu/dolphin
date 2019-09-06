@@ -32,6 +32,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TmemBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -458,8 +459,7 @@ static void BPWritten(const BPCmd& bp)
   }
     return;
   case BPMEM_TEXINVALIDATE:
-    // TODO: Needs some restructuring in TextureCacheBase.
-    TextureCacheBase::InvalidateAllBindPoints();
+    TmemBase::Invalidate(bp.newvalue);
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
@@ -668,14 +668,17 @@ static void BPWritten(const BPCmd& bp)
   // --------------------------------------------
   case BPMEM_TX_SETIMAGE0:
   case BPMEM_TX_SETIMAGE0_4:
-  case BPMEM_TX_SETIMAGE1:
-  case BPMEM_TX_SETIMAGE1_4:
-  case BPMEM_TX_SETIMAGE2:
-  case BPMEM_TX_SETIMAGE2_4:
   case BPMEM_TX_SETIMAGE3:
   case BPMEM_TX_SETIMAGE3_4:
     TextureCacheBase::InvalidateAllBindPoints();
     return;
+  case BPMEM_TX_SETIMAGE1:
+  case BPMEM_TX_SETIMAGE1_4:
+  case BPMEM_TX_SETIMAGE2:
+  case BPMEM_TX_SETIMAGE2_4:
+    TmemBase::ConfigurationChanged(bp.address, bp.newvalue);
+    return;
+
   // -------------------------------
   // Set a TLUT
   // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)

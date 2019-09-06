@@ -209,6 +209,7 @@
     <ClCompile Include="VertexLoaderARM64.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
+    <ClCompile Include="TmemBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -404,9 +405,13 @@
     <ClInclude Include="NetPlayGolfUI.h">
       <Filter>Util</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="VertexLoaderARM64.h">
       <Filter>Vertex Loading</Filter>
     </ClInclude>
+=======
+    <ClInclude Include="TmemBase.h" />
+>>>>>>> b1b4095e8d... Extend Minimal TMEM cache implementation
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
