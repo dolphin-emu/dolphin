@@ -105,7 +105,7 @@ static inline u32 calculate_unit_size(TexImage2 config)
 
 static bool overlap(int a, int a_size, int b, int b_size)
 {
-  return (a <= b && (a + a_size) >= b) || (b <= a && (b + b_size) >= a);
+  return (a <= b && (a + a_size) > b) || (b <= a && (b + b_size) > a);
 }
 
 static bool process_overlaps_single(u8 unit_id, int base, int size)
