@@ -40,7 +40,7 @@ public class GameSettingsDialog extends DialogFragment
     String gameId = getArguments().getString(ARG_GAMEID);
     int platform = getArguments().getInt(ARG_PLATFORM);
 
-    builder.setTitle(getActivity().getString(R.string.preferences_game_settings))
+    builder.setTitle(getActivity().getString(R.string.preferences_game_settings) + ": " + gameId)
             .setItems(platform == Platform.GAMECUBE.toInt() ?
                     R.array.gameSettingsMenusGC :
                     R.array.gameSettingsMenusWii, (dialog, which) ->
