@@ -158,7 +158,7 @@ void Bind(u8 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
   unit_state.even_size = calculate_unit_size(unit_state.even);
   unit_state.odd_size = 0;  // reset
 
-  bool fits = (width * height * 512) <= unit_state.even_size;
+  bool fits = (width * height * 32) <= unit_state.even_size;
 
   if (is_mipmapped || is_32_bit)
   {
@@ -168,7 +168,7 @@ void Bind(u8 unit, int width, int height, bool is_mipmapped, bool is_32_bit)
     unit_state.odd_base = unit_state.odd.tmem_odd << 5;
     unit_state.odd_size = calculate_unit_size(unit_state.odd);
 
-    fits = fits && (width * height * 512) <= unit_state.odd_size;
+    fits = fits && (width * height * 32) <= unit_state.odd_size;
   }
   else
   {
