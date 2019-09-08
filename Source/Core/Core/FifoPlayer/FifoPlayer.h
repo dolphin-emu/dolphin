@@ -93,7 +93,7 @@ public:
   // Default is disabled
   void SetEarlyMemoryUpdates(bool enabled) { m_EarlyMemoryUpdates = enabled; }
   // Callbacks
-  void SetFileLoadedCallback(CallbackFunc callback) { m_FileLoadedCb = callback; }
+  void SetFileLoadedCallback(CallbackFunc callback);
   void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = callback; }
   static FifoPlayer& GetInstance();
 
