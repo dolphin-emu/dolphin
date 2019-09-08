@@ -170,7 +170,7 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
 
 void FifoPlayer::SetFileLoadedCallback(CallbackFunc callback)
 {
-  m_FileLoadedCb = callback;
+  m_FileLoadedCb = std::move(callback);
 
   // Trigger the callback immediatly if the file is already loaded.
   if (GetFile() != nullptr)
