@@ -80,6 +80,45 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
   return false;
 }
 
+#ifdef _WIN32
+// Taken from https://github.com/qt/qtbase/blob/835c3e94f6089751421a19008d442faec9649ed8/src/platformsupport/fontdatabases/windows/qwindowsfontdatabase.cpp#L2064
+int defaultVerticalDPI()
+{
+  static int vDPI = -1;
+  if (vDPI == -1)
+  {
+    if (HDC defaultDC = GetDC(0))
+    {
+      vDPI = GetDeviceCaps(defaultDC, LOGPIXELSY);
+      ReleaseDC(0, defaultDC);
+    }
+    else
+    {
+      // FIXME: Resolve now or return 96 and keep unresolved?
+      vDPI = 96;
+    }
+  }
+  return vDPI;
+}
+
+// Taken from https://github.com/qt/qtbase/blob/835c3e94f6089751421a19008d442faec9649ed8/src/platformsupport/fontdatabases/windows/qwindowsfontdatabase.cpp#L2048
+QFont LOGFONT_to_QFont(const LOGFONT& logFont, int verticalDPI_In = 0)
+{
+  if (verticalDPI_In <= 0)
+    verticalDPI_In = defaultVerticalDPI();
+  QFont qFont(QString::fromWCharArray(logFont.lfFaceName));
+  qFont.setItalic(logFont.lfItalic);
+  //if (logFont.lfWeight != FW_DONTCARE)
+  //  qFont.setWeight(QPlatformFontDatabase::weightFromInteger(logFont.lfWeight));
+  const qreal logFontHeight = qAbs(logFont.lfHeight);
+  qFont.setPointSizeF(logFontHeight * 72.0 / qreal(verticalDPI_In));
+  qFont.setUnderline(logFont.lfUnderline);
+  qFont.setOverline(false);
+  qFont.setStrikeOut(logFont.lfStrikeOut);
+  return qFont;
+}
+#endif
+
 // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
 // /SubSystem:Windows
 int main(int argc, char* argv[])
@@ -112,15 +151,7 @@ int main(int argc, char* argv[])
   {
     // Sadly Qt 5 doesn't support turning a native font handle into a QFont so this is the next best
     // thing
-    QFont font = QApplication::font();
-    font.setFamily(QString::fromStdString(UTF16ToUTF8(logfont.lfFaceName)));
-
-    font.setItalic(logfont.lfItalic);
-    font.setStrikeOut(logfont.lfStrikeOut);
-    font.setUnderline(logfont.lfUnderline);
-
-    // The default font size is a bit too small
-    font.setPointSize(QFontInfo(font).pointSize() * 1.2);
+    QFont font = LOGFONT_to_QFont(logfont);
 
     QApplication::setFont(font);
   }
