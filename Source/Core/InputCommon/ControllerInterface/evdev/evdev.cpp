@@ -4,14 +4,13 @@
 
 #include <algorithm>
 #include <cstring>
-#include <fcntl.h>
-#include <libudev.h>
-#include <map>
 #include <memory>
 #include <string>
-#include <unistd.h>
 
+#include <fcntl.h>
+#include <libudev.h>
 #include <sys/eventfd.h>
+#include <unistd.h>
 
 #include "Common/Assert.h"
 #include "Common/Flag.h"
@@ -73,12 +72,12 @@ void AddDeviceNode(const char* devnode)
   auto evdev_device = FindDeviceWithUniqueID(libevdev_get_uniq(dev));
   if (evdev_device)
   {
-    evdev_device->AddNode(fd, dev);
+    evdev_device->AddNode(devnode, fd, dev);
   }
   else
   {
     evdev_device = std::make_shared<evdevDevice>();
-    const bool was_interesting = evdev_device->AddNode(fd, dev);
+    const bool was_interesting = evdev_device->AddNode(devnode, fd, dev);
 
     if (was_interesting)
     {
@@ -228,40 +227,44 @@ void Shutdown()
   StopHotplugThread();
 }
 
-evdevDevice::evdevDevice()
+bool evdevDevice::AddNode(const std::string& devnode, int fd, libevdev* dev)
 {
-}
+  const auto [iter, inserted] = m_nodes.emplace(libevdev_get_name(dev), Node{});
 
-bool evdevDevice::AddNode(int fd, libevdev* dev)
-{
-  m_fds.push_back(fd);
-  m_devices.push_back(dev);
+  // Update name to that of the node that comes first alphabetically.
+  m_name = StripSpaces(m_nodes.begin()->first);
 
-  if (m_name.empty())
-    m_name = StripSpaces(libevdev_get_name(dev));
+  auto& node = iter->second;
+  node.fd = fd;
+  node.device = dev;
 
   // Buttons (and keyboard keys)
-  int num_buttons = 0;
-  for (int key = 0; key < KEY_MAX; key++)
+  for (int key = 0; key != KEY_CNT; key++)
   {
     if (libevdev_has_event_code(dev, EV_KEY, key))
-    {
-      AddInput(new Button(m_button_count++, key, dev));
-      ++num_buttons;
-    }
+      AddInput(new Button(node.button_count++, key, node));
   }
 
   // Absolute axis (thumbsticks)
-  int num_axis = 0;
-  for (int axis = 0; axis < 0x100; axis++)
+  for (int axis = 0; axis < ABS_CNT; axis++)
   {
     if (libevdev_has_event_code(dev, EV_ABS, axis))
     {
-      AddAnalogInputs(new Axis(m_axis_count, axis, false, dev),
-                      new Axis(m_axis_count, axis, true, dev));
-      ++m_axis_count;
-      ++num_axis;
+      AddAnalogInputs(new Axis(node.axis_count, axis, false, node),
+                      new Axis(node.axis_count, axis, true, node));
+      ++node.axis_count;
     }
+  }
+
+  u32 button_count = 0;
+  u32 axis_count = 0;
+  for (auto& [devnode, node] : m_nodes)
+  {
+    node.button_start = button_count;
+    node.axis_start = axis_count;
+
+    button_count += node.button_count;
+    axis_count += node.axis_count;
   }
 
   // Disable autocenter
@@ -304,24 +307,26 @@ bool evdevDevice::AddNode(int fd, libevdev* dev)
   // TODO: Add leds as output devices
 
   // Was there some reasoning behind these numbers?
-  return num_axis >= 2 || num_buttons >= 8;
+  return node.axis_count >= 2 || node.button_count >= 8;
 }
 
 const char* evdevDevice::GetUniqueID() const
 {
-  if (m_devices.empty())
+  if (m_nodes.empty())
     return nullptr;
 
-  return libevdev_get_uniq(m_devices.front());
+  return libevdev_get_uniq(m_nodes.begin()->second.device);
 }
+
+evdevDevice::evdevDevice() = default;
 
 evdevDevice::~evdevDevice()
 {
-  for (libevdev* dev : m_devices)
-    libevdev_free(dev);
-
-  for (int fd : m_fds)
-    close(fd);
+  for (auto& [devnode, node] : m_nodes)
+  {
+    libevdev_free(node.device);
+    close(node.fd);
+  }
 }
 
 void evdevDevice::UpdateInput()
@@ -330,25 +335,25 @@ void evdevDevice::UpdateInput()
   // libevdev will keep track of the actual controller state internally which can be queried
   // later with libevdev_fetch_event_value()
 
-  for (libevdev* dev : m_devices)
+  for (auto& [devnode, node] : m_nodes)
   {
     int rc = LIBEVDEV_READ_STATUS_SUCCESS;
     while (rc >= 0)
     {
       input_event ev;
       if (LIBEVDEV_READ_STATUS_SYNC == rc)
-        rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
+        rc = libevdev_next_event(node.device, LIBEVDEV_READ_FLAG_SYNC, &ev);
       else
-        rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
+        rc = libevdev_next_event(node.device, LIBEVDEV_READ_FLAG_NORMAL, &ev);
     }
   }
 }
 
 bool evdevDevice::IsValid() const
 {
-  for (libevdev* dev : m_devices)
+  for (auto& [devnode, node] : m_nodes)
   {
-    const int current_fd = libevdev_get_fd(dev);
+    const int current_fd = libevdev_get_fd(node.device);
 
     if (current_fd == -1)
       return false;
@@ -363,35 +368,37 @@ bool evdevDevice::IsValid() const
     libevdev_free(device);
   }
 
-  return !m_devices.empty();
+  return !m_nodes.empty();
 }
 
 std::string evdevDevice::Button::GetName() const
 {
   // Buttons below 0x100 are mostly keyboard keys, and the names make sense
-  if (m_code < 0x100)
+  // Only do this for the first "node" to prevent name collisions.
+  if (m_code < 0x100 && m_node.button_start == 0)
   {
     const char* name = libevdev_event_code_get_name(EV_KEY, m_code);
     if (name)
       return std::string(StripSpaces(name));
   }
+
   // But controllers use codes above 0x100, and the standard label often doesn't match.
   // We are better off with Button 0 and so on.
-  return "Button " + std::to_string(m_index);
+  return "Button " + std::to_string(m_node.button_start + m_index);
 }
 
 ControlState evdevDevice::Button::GetState() const
 {
   int value = 0;
-  libevdev_fetch_event_value(m_dev, EV_KEY, m_code, &value);
+  libevdev_fetch_event_value(m_node.device, EV_KEY, m_code, &value);
   return value;
 }
 
-evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, libevdev* dev)
-    : m_code(code), m_index(index), m_dev(dev)
+evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, const Node& node)
+    : m_code(code), m_index(index), m_node(node)
 {
-  const int min = libevdev_get_abs_minimum(m_dev, m_code);
-  const int max = libevdev_get_abs_maximum(m_dev, m_code);
+  const int min = libevdev_get_abs_minimum(node.device, m_code);
+  const int max = libevdev_get_abs_maximum(node.device, m_code);
 
   m_base = (max + min) / 2;
   m_range = (upper ? max : min) - m_base;
@@ -399,13 +406,13 @@ evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, libevdev* dev)
 
 std::string evdevDevice::Axis::GetName() const
 {
-  return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
+  return "Axis " + std::to_string(m_node.axis_start + m_index) + (m_range < 0 ? '-' : '+');
 }
 
 ControlState evdevDevice::Axis::GetState() const
 {
   int value = 0;
-  libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
+  libevdev_fetch_event_value(m_node.device, EV_ABS, m_code, &value);
 
   return ControlState(value - m_base) / m_range;
 }

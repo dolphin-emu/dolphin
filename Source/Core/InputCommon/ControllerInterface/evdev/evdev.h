@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include <libevdev/libevdev.h>
+#include <map>
 #include <string>
 #include <vector>
+
+#include <libevdev/libevdev.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -19,24 +21,36 @@ void Shutdown();
 class evdevDevice : public Core::Device
 {
 private:
+  struct Node
+  {
+    int fd;
+    libevdev* device;
+
+    u8 button_count = 0;
+    u8 axis_count = 0;
+
+    u32 button_start = 0;
+    u32 axis_start = 0;
+  };
+
   class Button : public Core::Device::Input
   {
   public:
     std::string GetName() const override;
-    Button(u8 index, u16 code, libevdev* dev) : m_index(index), m_code(code), m_dev(dev) {}
+    Button(u8 index, u16 code, const Node& node) : m_index(index), m_code(code), m_node(node) {}
     ControlState GetState() const override;
 
   private:
     const u8 m_index;
     const u16 m_code;
-    libevdev* m_dev;
+    const Node& m_node;
   };
 
   class Axis : public Core::Device::Input
   {
   public:
     std::string GetName() const override;
-    Axis(u8 index, u16 code, bool upper, libevdev* dev);
+    Axis(u8 index, u16 code, bool upper, const Node& node);
     ControlState GetState() const override;
 
   private:
@@ -44,7 +58,7 @@ private:
     const u8 m_index;
     int m_range;
     int m_base;
-    libevdev* m_dev;
+    const Node& m_node;
   };
 
   class Effect : public Core::Device::Output
@@ -108,7 +122,7 @@ public:
   ~evdevDevice();
 
   // Return true if node was "interesting".
-  bool AddNode(int fd, libevdev* dev);
+  bool AddNode(const std::string& devnode, int fd, libevdev* dev);
 
   const char* GetUniqueID() const;
 
@@ -116,11 +130,7 @@ public:
   std::string GetSource() const override { return "evdev"; }
 
 private:
-  std::vector<int> m_fds;
-  std::vector<libevdev*> m_devices;
+  std::map<std::string, Node> m_nodes;
   std::string m_name;
-
-  u32 m_button_count = 0;
-  u32 m_axis_count = 0;
 };
 }  // namespace ciface::evdev
