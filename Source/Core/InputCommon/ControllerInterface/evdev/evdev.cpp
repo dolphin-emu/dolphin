@@ -32,7 +32,61 @@ static int s_wakeup_eventfd;
 // There is no easy way to get the device name from only a dev node
 // during a device removed event, since libevdev can't work on removed devices;
 // sysfs is not stable, so this is probably the easiest way to get a name for a node.
-static std::map<std::string, std::string> s_devnode_name_map;
+static std::map<std::string, std::shared_ptr<evdevDevice>> s_devnode_name_map;
+
+std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id)
+{
+  if (!unique_id)
+    return nullptr;
+
+  for (auto& [node, device] : s_devnode_name_map)
+  {
+    const auto* dev_uniq = device->GetUniqueID();
+
+    if (dev_uniq && 0 == std::strcmp(dev_uniq, unique_id))
+      return device;
+  }
+
+  return nullptr;
+}
+
+void AddDeviceNode(const char* devnode)
+{
+  // Unfortunately udev gives us no way to filter out the non event device interfaces.
+  // So we open it and see if it works with evdev ioctls or not.
+
+  // The device file will be read on one of the main threads, so we open in non-blocking mode.
+  const int fd = open(devnode, O_RDWR | O_NONBLOCK);
+  if (fd == -1)
+  {
+    return;
+  }
+
+  libevdev* dev = nullptr;
+  if (libevdev_new_from_fd(fd, &dev) != 0)
+  {
+    // This usually fails because the device node isn't an evdev device, such as /dev/input/js0
+    close(fd);
+    return;
+  }
+
+  auto evdev_device = FindDeviceWithUniqueID(libevdev_get_uniq(dev));
+  if (evdev_device)
+  {
+    evdev_device->AddNode(fd, dev);
+  }
+  else
+  {
+    evdev_device = std::make_shared<evdevDevice>();
+    const bool was_interesting = evdev_device->AddNode(fd, dev);
+
+    if (was_interesting)
+    {
+      s_devnode_name_map.emplace(devnode, evdev_device);
+      g_controller_interface.AddDevice(std::move(evdev_device));
+    }
+  }
+}
 
 static void HotplugThreadFunc()
 {
@@ -82,21 +136,17 @@ static void HotplugThreadFunc()
         continue;
       }
 
-      const std::string& name = it->second;
-      g_controller_interface.RemoveDevice([&name](const auto& device) {
-        return device->GetSource() == "evdev" && device->GetName() == name && !device->IsValid();
+      const auto* ptr = it->second.get();
+      g_controller_interface.RemoveDevice([&ptr](const auto& device) {
+        return device->GetSource() == "evdev" && static_cast<const evdevDevice*>(device) == ptr &&
+               !device->IsValid();
       });
 
       s_devnode_name_map.erase(devnode);
     }
     else if (strcmp(action, "add") == 0)
     {
-      const auto device = std::make_shared<evdevDevice>(devnode);
-      if (device->IsInteresting())
-      {
-        s_devnode_name_map.emplace(devnode, device->GetName());
-        g_controller_interface.AddDevice(std::move(device));
-      }
+      AddDeviceNode(devnode);
     }
   }
   NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
@@ -165,15 +215,7 @@ void PopulateDevices()
     const char* devnode = udev_device_get_devnode(dev);
     if (devnode)
     {
-      // Unfortunately udev gives us no way to filter out the non event device interfaces.
-      // So we open it and see if it works with evdev ioctls or not.
-      const auto input = std::make_shared<evdevDevice>(devnode);
-
-      if (input->IsInteresting())
-      {
-        s_devnode_name_map.emplace(devnode, input->GetName());
-        g_controller_interface.AddDevice(std::move(input));
-      }
+      AddDeviceNode(devnode);
     }
     udev_device_unref(dev);
   }
@@ -186,92 +228,100 @@ void Shutdown()
   StopHotplugThread();
 }
 
-evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
+evdevDevice::evdevDevice()
 {
-  // The device file will be read on one of the main threads, so we open in non-blocking mode.
-  m_fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);
-  if (m_fd == -1)
-  {
-    return;
-  }
+}
 
-  if (libevdev_new_from_fd(m_fd, &m_dev) != 0)
-  {
-    // This usually fails because the device node isn't an evdev device, such as /dev/input/js0
-    close(m_fd);
-    m_fd = -1;
-    return;
-  }
+bool evdevDevice::AddNode(int fd, libevdev* dev)
+{
+  m_fds.push_back(fd);
+  m_devices.push_back(dev);
 
-  m_name = StripSpaces(libevdev_get_name(m_dev));
+  if (m_name.empty())
+    m_name = StripSpaces(libevdev_get_name(dev));
 
   // Buttons (and keyboard keys)
   int num_buttons = 0;
   for (int key = 0; key < KEY_MAX; key++)
   {
-    if (libevdev_has_event_code(m_dev, EV_KEY, key))
-      AddInput(new Button(num_buttons++, key, m_dev));
+    if (libevdev_has_event_code(dev, EV_KEY, key))
+    {
+      AddInput(new Button(m_button_count++, key, dev));
+      ++num_buttons;
+    }
   }
 
   // Absolute axis (thumbsticks)
   int num_axis = 0;
   for (int axis = 0; axis < 0x100; axis++)
   {
-    if (libevdev_has_event_code(m_dev, EV_ABS, axis))
+    if (libevdev_has_event_code(dev, EV_ABS, axis))
     {
-      AddAnalogInputs(new Axis(num_axis, axis, false, m_dev),
-                      new Axis(num_axis, axis, true, m_dev));
+      AddAnalogInputs(new Axis(m_axis_count, axis, false, dev),
+                      new Axis(m_axis_count, axis, true, dev));
+      ++m_axis_count;
       ++num_axis;
     }
   }
 
   // Disable autocenter
-  if (libevdev_has_event_code(m_dev, EV_FF, FF_AUTOCENTER))
+  if (libevdev_has_event_code(dev, EV_FF, FF_AUTOCENTER))
   {
     input_event ie = {};
     ie.type = EV_FF;
     ie.code = FF_AUTOCENTER;
     ie.value = 0;
 
-    static_cast<void>(write(m_fd, &ie, sizeof(ie)));
+    static_cast<void>(write(fd, &ie, sizeof(ie)));
   }
 
+  // FYI: Force names will collide if two nodes with the same "uniq" name support effects.
+  // I don't think that is going to be a problem.
+
   // Constant FF effect
-  if (libevdev_has_event_code(m_dev, EV_FF, FF_CONSTANT))
+  if (libevdev_has_event_code(dev, EV_FF, FF_CONSTANT))
   {
-    AddOutput(new ConstantEffect(m_fd));
+    AddOutput(new ConstantEffect(fd));
   }
 
   // Periodic FF effects
-  if (libevdev_has_event_code(m_dev, EV_FF, FF_PERIODIC))
+  if (libevdev_has_event_code(dev, EV_FF, FF_PERIODIC))
   {
     for (auto wave : {FF_SINE, FF_SQUARE, FF_TRIANGLE, FF_SAW_UP, FF_SAW_DOWN})
     {
-      if (libevdev_has_event_code(m_dev, EV_FF, wave))
-        AddOutput(new PeriodicEffect(m_fd, wave));
+      if (libevdev_has_event_code(dev, EV_FF, wave))
+        AddOutput(new PeriodicEffect(fd, wave));
     }
   }
 
   // Rumble (i.e. Left/Right) (i.e. Strong/Weak) effect
-  if (libevdev_has_event_code(m_dev, EV_FF, FF_RUMBLE))
+  if (libevdev_has_event_code(dev, EV_FF, FF_RUMBLE))
   {
-    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::Strong));
-    AddOutput(new RumbleEffect(m_fd, RumbleEffect::Motor::Weak));
+    AddOutput(new RumbleEffect(fd, RumbleEffect::Motor::Strong));
+    AddOutput(new RumbleEffect(fd, RumbleEffect::Motor::Weak));
   }
 
   // TODO: Add leds as output devices
 
   // Was there some reasoning behind these numbers?
-  m_interesting = num_axis >= 2 || num_buttons >= 8;
+  return num_axis >= 2 || num_buttons >= 8;
+}
+
+const char* evdevDevice::GetUniqueID() const
+{
+  if (m_devices.empty())
+    return nullptr;
+
+  return libevdev_get_uniq(m_devices.front());
 }
 
 evdevDevice::~evdevDevice()
 {
-  if (m_fd != -1)
-  {
-    libevdev_free(m_dev);
-    close(m_fd);
-  }
+  for (libevdev* dev : m_devices)
+    libevdev_free(dev);
+
+  for (int fd : m_fds)
+    close(fd);
 }
 
 void evdevDevice::UpdateInput()
@@ -279,31 +329,41 @@ void evdevDevice::UpdateInput()
   // Run through all evdev events
   // libevdev will keep track of the actual controller state internally which can be queried
   // later with libevdev_fetch_event_value()
-  int rc = LIBEVDEV_READ_STATUS_SUCCESS;
-  while (rc >= 0)
+
+  for (libevdev* dev : m_devices)
   {
-    input_event ev;
-    if (LIBEVDEV_READ_STATUS_SYNC == rc)
-      rc = libevdev_next_event(m_dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
-    else
-      rc = libevdev_next_event(m_dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
+    int rc = LIBEVDEV_READ_STATUS_SUCCESS;
+    while (rc >= 0)
+    {
+      input_event ev;
+      if (LIBEVDEV_READ_STATUS_SYNC == rc)
+        rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_SYNC, &ev);
+      else
+        rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
+    }
   }
 }
 
 bool evdevDevice::IsValid() const
 {
-  int current_fd = libevdev_get_fd(m_dev);
-  if (current_fd == -1)
-    return false;
-
-  libevdev* device;
-  if (libevdev_new_from_fd(current_fd, &device) != 0)
+  for (libevdev* dev : m_devices)
   {
-    close(current_fd);
-    return false;
+    const int current_fd = libevdev_get_fd(dev);
+
+    if (current_fd == -1)
+      return false;
+
+    libevdev* device = nullptr;
+    if (libevdev_new_from_fd(current_fd, &device) != 0)
+    {
+      close(current_fd);
+      return false;
+    }
+
+    libevdev_free(device);
   }
-  libevdev_free(device);
-  return true;
+
+  return !m_devices.empty();
 }
 
 std::string evdevDevice::Button::GetName() const
