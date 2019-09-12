@@ -348,21 +348,22 @@ Region GetSysMenuRegion(u16 title_version)
 
 std::string GetSysMenuVersionString(u16 title_version)
 {
-  std::string region_letter;
+  std::string version;
+  char region_letter = '\0';
 
   switch (GetSysMenuRegion(title_version))
   {
   case Region::NTSC_J:
-    region_letter = "J";
+    region_letter = 'J';
     break;
   case Region::NTSC_U:
-    region_letter = "U";
+    region_letter = 'U';
     break;
   case Region::PAL:
-    region_letter = "E";
+    region_letter = 'E';
     break;
   case Region::NTSC_K:
-    region_letter = "K";
+    region_letter = 'K';
     break;
   case Region::Unknown:
     WARN_LOG(DISCIO, "Unknown region for Wii Menu version %u", title_version);
@@ -372,36 +373,55 @@ std::string GetSysMenuVersionString(u16 title_version)
   switch (title_version & 0xff0)
   {
   case 32:
-    return "1.0" + region_letter;
+    version = "1.0";
+    break;
   case 96:
   case 128:
-    return "2.0" + region_letter;
+    version = "2.0";
+    break;
   case 160:
-    return "2.1" + region_letter;
+    version = "2.1";
+    break;
   case 192:
-    return "2.2" + region_letter;
+    version = "2.2";
+    break;
   case 224:
-    return "3.0" + region_letter;
+    version = "3.0";
+    break;
   case 256:
-    return "3.1" + region_letter;
+    version = "3.1";
+    break;
   case 288:
-    return "3.2" + region_letter;
+    version = "3.2";
+    break;
   case 320:
   case 352:
-    return "3.3" + region_letter;
+    version = "3.3";
+    break;
   case 384:
-    return (region_letter != "K" ? "3.4" : "3.5") + region_letter;
+    version = (region_letter != 'K' ? "3.4" : "3.5");
+    break;
   case 416:
-    return "4.0" + region_letter;
+    version = "4.0";
+    break;
   case 448:
-    return "4.1" + region_letter;
+    version = "4.1";
+    break;
   case 480:
-    return "4.2" + region_letter;
+    version = "4.2";
+    break;
   case 512:
-    return "4.3" + region_letter;
+    version = "4.3";
+    break;
   default:
-    return "?.?" + region_letter;
+    version = "?.?";
+    break;
   }
+
+  if (region_letter != '\0')
+    version += region_letter;
+
+  return version;
 }
 
 const std::string& GetCompanyFromID(const std::string& company_id)
