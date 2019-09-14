@@ -27,23 +27,37 @@ static bool s_sound_stream_running = false;
 constexpr int AUDIO_VOLUME_MIN = 0;
 constexpr int AUDIO_VOLUME_MAX = 100;
 
+static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view backend)
+{
+  if (backend == BACKEND_CUBEB)
+    return std::make_unique<CubebStream>();
+  else if (backend == BACKEND_OPENAL && OpenALStream::isValid())
+    return std::make_unique<OpenALStream>();
+  else if (backend == BACKEND_NULLSOUND)
+    return std::make_unique<NullSound>();
+  else if (backend == BACKEND_ALSA && AlsaSound::isValid())
+    return std::make_unique<AlsaSound>();
+  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
+    return std::make_unique<PulseAudio>();
+  else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
+    return std::make_unique<OpenSLESStream>();
+  else if (backend == BACKEND_WASAPI && WASAPIStream::isValid())
+    return std::make_unique<WASAPIStream>();
+  return {};
+}
+
 void InitSoundStream()
 {
   std::string backend = SConfig::GetInstance().sBackend;
-  if (backend == BACKEND_CUBEB)
-    g_sound_stream = std::make_unique<CubebStream>();
-  else if (backend == BACKEND_OPENAL && OpenALStream::isValid())
-    g_sound_stream = std::make_unique<OpenALStream>();
-  else if (backend == BACKEND_NULLSOUND)
-    g_sound_stream = std::make_unique<NullSound>();
-  else if (backend == BACKEND_ALSA && AlsaSound::isValid())
-    g_sound_stream = std::make_unique<AlsaSound>();
-  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
-    g_sound_stream = std::make_unique<PulseAudio>();
-  else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
-    g_sound_stream = std::make_unique<OpenSLESStream>();
-  else if (backend == BACKEND_WASAPI && WASAPIStream::isValid())
-    g_sound_stream = std::make_unique<WASAPIStream>();
+  g_sound_stream = CreateSoundStreamForBackend(backend);
+
+  if (!g_sound_stream)
+  {
+    WARN_LOG(AUDIO, "Unknown backend %s, using %s instead.", backend.c_str(),
+             GetDefaultSoundBackend().c_str());
+    backend = GetDefaultSoundBackend();
+    g_sound_stream = CreateSoundStreamForBackend(GetDefaultSoundBackend());
+  }
 
   if (!g_sound_stream || !g_sound_stream->Init())
   {
