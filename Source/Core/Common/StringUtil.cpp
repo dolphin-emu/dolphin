@@ -398,7 +398,7 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
   if (strings.empty())
     return "";
 
-  std::stringstream res;
+  std::ostringstream res;
   std::copy(strings.begin(), strings.end(),
             std::ostream_iterator<std::string>(res, delimiter.c_str()));
 

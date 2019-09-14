@@ -185,7 +185,7 @@ std::string GetRTCDisplay()
   const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
   const tm* const gm_time = gmtime(&current_time);
 
-  std::stringstream format_time;
+  std::ostringstream format_time;
   format_time << std::put_time(gm_time, "Date/Time: %c\n");
   return format_time.str();
 }
