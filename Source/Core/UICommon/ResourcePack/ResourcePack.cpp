@@ -5,6 +5,8 @@
 #include "UICommon/ResourcePack/ResourcePack.h"
 
 #include <algorithm>
+#include <array>
+#include <utility>
 
 #include <unzip.h>
 
@@ -21,6 +23,12 @@
 namespace ResourcePack
 {
 constexpr char TEXTURE_PATH[] = HIRES_TEXTURES_DIR DIR_SEP;
+constexpr char DYNAMIC_INPUT_PATH[] = DYNAMICINPUT_DIR DIR_SEP;
+
+bool ResourcePack::ResourceFile::operator<(const ResourcePack::ResourceFile& file) const
+{
+  return input_path < file.input_path;
+}
 
 ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 {
@@ -79,26 +87,52 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
   unzGoToFirstFile(file);
 
+  constexpr std::array<ResourceType, 2> resource_types = {ResourceType::TEXTURE,
+                                                          ResourceType::DYNAMIC_INPUT};
+
   do
   {
     std::string filename(256, '\0');
 
-    unz_file_info texture_info;
-    unzGetCurrentFileInfo(file, &texture_info, filename.data(), static_cast<u16>(filename.size()),
+    unz_file_info file_info;
+    unzGetCurrentFileInfo(file, &file_info, filename.data(), static_cast<u16>(filename.size()),
                           nullptr, 0, nullptr, 0);
 
-    if (filename.compare(0, 9, "textures/") != 0 || texture_info.uncompressed_size == 0)
-      continue;
-
-    // If a texture is compressed and the manifest doesn't state that, abort.
-    if (!m_manifest->IsCompressed() && texture_info.compression_method != 0)
+    for (auto resource_type : resource_types)
     {
-      m_valid = false;
-      m_error = "Texture " + filename + " is compressed!";
-      return;
-    }
+      std::string zip_directory_root;
+      std::string load_directory_root;
+      if (resource_type == ResourceType::TEXTURE)
+      {
+        zip_directory_root = "textures/";
+        load_directory_root = TEXTURE_PATH;
+      }
+      else
+      {
+        zip_directory_root = "dynamic_input/";
+        load_directory_root = DYNAMIC_INPUT_PATH;
+      }
 
-    m_textures.push_back(filename.substr(9));
+      if (filename.compare(0, zip_directory_root.size(), zip_directory_root) != 0 ||
+          file_info.uncompressed_size == 0)
+      {
+        continue;
+      }
+
+      // If a file is compressed and the manifest doesn't state that, abort.
+      if (!m_manifest->IsCompressed() && file_info.compression_method != 0)
+      {
+        m_valid = false;
+        m_error =
+            "File " + filename + " is compressed when the resource pack says it shouldn't be!";
+        return;
+      }
+
+      m_files.emplace(ResourceFile{filename,
+                                   load_directory_root + filename.substr(zip_directory_root.size()),
+                                   resource_type});
+      m_types_provided |= static_cast<u32>(resource_type);
+    }
   } while (unzGoToNextFile(file) != UNZ_END_OF_LIST_OF_FILE);
 }
 
@@ -127,9 +161,14 @@ const Manifest* ResourcePack::GetManifest() const
   return m_manifest.get();
 }
 
-const std::vector<std::string>& ResourcePack::GetTextures() const
+const std::set<ResourcePack::ResourceFile>& ResourcePack::GetFiles() const
 {
-  return m_textures;
+  return m_files;
+}
+
+u32 ResourcePack::GetResourceTypesSupported() const
+{
+  return m_types_provided;
 }
 
 bool ResourcePack::Install(const std::string& path)
@@ -140,18 +179,17 @@ bool ResourcePack::Install(const std::string& path)
     return false;
   }
 
-  auto file = unzOpen(m_path.c_str());
-  Common::ScopeGuard file_guard{[&] { unzClose(file); }};
+  auto resource_pack = unzOpen(m_path.c_str());
+  Common::ScopeGuard file_guard{[&] { unzClose(resource_pack); }};
 
-  for (const auto& texture : m_textures)
+  for (const auto& file : m_files)
   {
     bool provided_by_other_pack = false;
 
-    // Check if a higher priority pack already provides a given texture, don't overwrite it
+    // Check if a higher priority pack already provides a given file, don't overwrite it
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
-      if (std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
-          pack->GetTextures().end())
+      if (pack->GetFiles().count(file) != 0)
       {
         provided_by_other_pack = true;
         break;
@@ -161,15 +199,16 @@ bool ResourcePack::Install(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    if (unzLocateFile(file, ("textures/" + texture).c_str(), 0) != UNZ_OK)
+    if (unzLocateFile(resource_pack, (file.input_path).c_str(), 0) != UNZ_OK)
     {
-      m_error = "Failed to locate texture " + texture;
+      m_error = "Failed to locate file " + file.input_path;
       return false;
     }
 
-    const std::string texture_path = path + TEXTURE_PATH + texture;
+    const std::string output_path = path + file.output_path;
+
     std::string m_full_dir;
-    SplitPath(texture_path, &m_full_dir, nullptr, nullptr);
+    SplitPath(output_path, &m_full_dir, nullptr, nullptr);
 
     if (!File::CreateFullPath(m_full_dir))
     {
@@ -177,21 +216,21 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    unz_file_info texture_info;
-    unzGetCurrentFileInfo(file, &texture_info, nullptr, 0, nullptr, 0, nullptr, 0);
+    unz_file_info file_info;
+    unzGetCurrentFileInfo(resource_pack, &file_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-    std::vector<char> data(texture_info.uncompressed_size);
-    if (!Common::ReadFileFromZip(file, &data))
+    std::vector<char> data(file_info.uncompressed_size);
+    if (!Common::ReadFileFromZip(resource_pack, &data))
     {
-      m_error = "Failed to read texture " + texture;
+      m_error = "Failed to read " + file.input_path;
       return false;
     }
 
-    std::ofstream out(texture_path, std::ios::trunc | std::ios::binary);
+    std::ofstream out(output_path, std::ios::trunc | std::ios::binary);
 
     if (!out.good())
     {
-      m_error = "Failed to write " + texture;
+      m_error = "Failed to write " + output_path;
       return false;
     }
 
@@ -215,16 +254,14 @@ bool ResourcePack::Uninstall(const std::string& path)
 
   SetInstalled(*this, false);
 
-  for (const auto& texture : m_textures)
+  for (const auto& file : m_files)
   {
     bool provided_by_other_pack = false;
 
-    // Check if a higher priority pack already provides a given texture, don't delete it
+    // Check if a higher priority pack already provides a given file, don't delete it
     for (const auto& pack : GetHigherPriorityPacks(*this))
     {
-      if (::ResourcePack::IsInstalled(*pack) &&
-          std::find(pack->GetTextures().begin(), pack->GetTextures().end(), texture) !=
-              pack->GetTextures().end())
+      if (::ResourcePack::IsInstalled(*pack) && pack->GetFiles().count(file) != 0)
       {
         provided_by_other_pack = true;
         break;
@@ -234,12 +271,10 @@ bool ResourcePack::Uninstall(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    // Check if a lower priority pack provides a given texture - if so, install it.
+    // Check if a lower priority pack provides a given file - if so, install it.
     for (auto& pack : lower)
     {
-      if (::ResourcePack::IsInstalled(*pack) &&
-          std::find(pack->GetTextures().rbegin(), pack->GetTextures().rend(), texture) !=
-              pack->GetTextures().rend())
+      if (::ResourcePack::IsInstalled(*pack) && pack->GetFiles().count(file) != 0)
       {
         pack->Install(path);
 
@@ -251,19 +286,29 @@ bool ResourcePack::Uninstall(const std::string& path)
     if (provided_by_other_pack)
       continue;
 
-    const std::string texture_path = path + TEXTURE_PATH + texture;
-    if (File::Exists(texture_path) && !File::Delete(texture_path))
+    const std::string output_path = path + file.output_path;
+    if (File::Exists(output_path) && !File::Delete(output_path))
     {
-      m_error = "Failed to delete texture " + texture;
+      m_error = "Failed to delete file " + output_path;
       return false;
     }
 
     // Recursively delete empty directories
 
     std::string dir;
-    SplitPath(texture_path, &dir, nullptr, nullptr);
+    SplitPath(output_path, &dir, nullptr, nullptr);
 
-    while (dir.length() > (path + TEXTURE_PATH).length())
+    std::string root = "";
+    if (file.type == ResourceType::TEXTURE)
+    {
+      root = path + TEXTURE_PATH;
+    }
+    else if (file.type == ResourceType::DYNAMIC_INPUT)
+    {
+      root = path + DYNAMIC_INPUT_PATH;
+    }
+
+    while (dir.length() > root.length())
     {
       auto is_empty = Common::DoFileSearch({dir}).empty();
 

@@ -13,8 +13,16 @@
 #include <QUrl>
 
 #include "Common/FileUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/Wiimote.h"
+
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "InputCommon/InputConfig.h"
 #include "UICommon/ResourcePack/Manager.h"
+
+#include "VideoCommon/RenderBase.h"
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
 {
@@ -193,6 +201,7 @@ void ResourcePackManager::Install()
     return;
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
+  const u32 types_supported_by_pack = item.GetResourceTypesSupported();
 
   bool success = item.Install(File::GetUserPath(D_LOAD_IDX));
 
@@ -203,7 +212,7 @@ void ResourcePackManager::Install()
         tr("Failed to install pack: %1").arg(QString::fromStdString(item.GetError())));
   }
 
-  RepopulateTable();
+  OnPacksChanged(types_supported_by_pack);
 }
 
 void ResourcePackManager::Uninstall()
@@ -214,6 +223,7 @@ void ResourcePackManager::Uninstall()
     return;
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
+  const u32 types_supported_by_pack = item.GetResourceTypesSupported();
 
   bool success = item.Uninstall(File::GetUserPath(D_LOAD_IDX));
 
@@ -224,7 +234,7 @@ void ResourcePackManager::Uninstall()
         tr("Failed to uninstall pack: %1").arg(QString::fromStdString(item.GetError())));
   }
 
-  RepopulateTable();
+  OnPacksChanged(types_supported_by_pack);
 }
 
 void ResourcePackManager::Remove()
@@ -261,14 +271,21 @@ void ResourcePackManager::PriorityDown()
     return;
 
   auto& pack = ResourcePack::GetPacks()[row];
-  std::string path = pack.GetPath();
+  const std::string path = pack.GetPath();
+  const u32 types_supported_by_pack = pack.GetResourceTypesSupported();
 
   row--;
 
+  const bool was_installed = ResourcePack::IsInstalled(pack);
   ResourcePack::Remove(pack);
   ResourcePack::Add(path, row);
 
-  RepopulateTable();
+  if (was_installed)
+  {
+    ResourcePack::GetPacks()[row].Install(File::GetUserPath(D_LOAD_IDX));
+  }
+
+  OnPacksChanged(types_supported_by_pack);
 
   m_table_widget->selectRow(row == 0 ? m_table_widget->rowCount() - 1 : row);
 }
@@ -286,14 +303,21 @@ void ResourcePackManager::PriorityUp()
     return;
 
   auto& pack = ResourcePack::GetPacks()[row];
-  std::string path = pack.GetPath();
+  const std::string path = pack.GetPath();
+  const u32 types_supported_by_pack = pack.GetResourceTypesSupported();
 
   row++;
 
+  const bool was_installed = ResourcePack::IsInstalled(pack);
   ResourcePack::Remove(pack);
   ResourcePack::Add(path, items[0]->row() == m_table_widget->rowCount() ? -1 : row);
 
-  RepopulateTable();
+  if (was_installed)
+  {
+    ResourcePack::GetPacks()[row].Install(File::GetUserPath(D_LOAD_IDX));
+  }
+
+  OnPacksChanged(types_supported_by_pack);
 
   m_table_widget->selectRow(row == m_table_widget->rowCount() - 1 ? 0 : row);
 }
@@ -302,6 +326,28 @@ void ResourcePackManager::Refresh()
 {
   ResourcePack::Init();
   RepopulateTable();
+}
+
+void ResourcePackManager::OnPacksChanged(u32 types)
+{
+  RepopulateTable();
+
+  if (types & static_cast<u32>(ResourcePack::ResourcePack::ResourceType::DYNAMIC_INPUT))
+  {
+    if (SConfig::GetInstance().bWii)
+    {
+      Wiimote::GetConfig()->LoadConfig(false);
+    }
+    else
+    {
+      Pad::LoadConfig();
+    }
+  }
+  else if (types & static_cast<u32>(ResourcePack::ResourcePack::ResourceType::TEXTURE) &&
+           g_renderer)
+  {
+    g_renderer->ForceReloadTextures();
+  }
 }
 
 void ResourcePackManager::SelectionChanged()

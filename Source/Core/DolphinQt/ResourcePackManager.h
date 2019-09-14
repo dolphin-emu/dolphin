@@ -6,6 +6,8 @@
 
 #include <QDialog>
 
+#include "Common/CommonTypes.h"
+
 class QPushButton;
 class QTableWidget;
 class QTableWidgetItem;
@@ -27,6 +29,7 @@ private:
   void PriorityUp();
   void PriorityDown();
   void Refresh();
+  void OnPacksChanged(u32 types);
 
   void SelectionChanged();
   void ItemDoubleClicked(QTableWidgetItem* item);

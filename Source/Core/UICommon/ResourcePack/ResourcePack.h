@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -17,6 +18,20 @@ namespace ResourcePack
 class ResourcePack
 {
 public:
+  enum class ResourceType : u32
+  {
+    TEXTURE = 0x01,
+    DYNAMIC_INPUT = 0x02
+  };
+  struct ResourceFile
+  {
+    std::string input_path;
+    std::string output_path;
+    ResourceType type;
+
+    bool operator<(const ResourcePack::ResourceFile& file) const;
+  };
+
   explicit ResourcePack(const std::string& path);
 
   bool IsValid() const;
@@ -25,7 +40,8 @@ public:
   const std::string& GetPath() const;
   const std::string& GetError() const;
   const Manifest* GetManifest() const;
-  const std::vector<std::string>& GetTextures() const;
+  const std::set<ResourceFile>& GetFiles() const;
+  u32 GetResourceTypesSupported() const;
 
   bool Install(const std::string& path);
   bool Uninstall(const std::string& path);
@@ -40,7 +56,9 @@ private:
   std::string m_error;
 
   std::shared_ptr<Manifest> m_manifest;
-  std::vector<std::string> m_textures;
+  std::set<ResourceFile> m_files;
+  u32 m_types_provided = 0;
   std::vector<char> m_logo_data;
 };
+
 }  // namespace ResourcePack
