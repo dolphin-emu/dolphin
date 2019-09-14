@@ -73,10 +73,10 @@
       This numeral indicates the "minimum system required" to run the resulting
       program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
       _WIN32_WINNT just removes up-level API declarations from headers. This is a
-      problem for XAudio2 and XInput, where Dolphin expects to compile against the
-      Win8+ versions of their headers. So while we really need Vista+ level of
-      support, we declare Win8+ here globally. If this becomes a problem, the
-      higher declaration can be contained to just the XAudio2/XInput related code.
+      problem for XInput, where Dolphin expects to compile against the Win8+
+      versions of the headers. So while we really need Vista+ level of support,
+      we declare Win8+ here globally. If this becomes a problem, the higher
+      declaration can be contained to just the XInput related code.
       -->
       <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>

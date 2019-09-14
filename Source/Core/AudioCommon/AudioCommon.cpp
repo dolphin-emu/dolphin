@@ -11,8 +11,6 @@
 #include "AudioCommon/OpenSLESStream.h"
 #include "AudioCommon/PulseAudioStream.h"
 #include "AudioCommon/WASAPIStream.h"
-#include "AudioCommon/XAudio2Stream.h"
-#include "AudioCommon/XAudio2_7Stream.h"
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -38,13 +36,6 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<OpenALStream>();
   else if (backend == BACKEND_NULLSOUND)
     g_sound_stream = std::make_unique<NullSound>();
-  else if (backend == BACKEND_XAUDIO2)
-  {
-    if (XAudio2::isValid())
-      g_sound_stream = std::make_unique<XAudio2>();
-    else if (XAudio2_7::isValid())
-      g_sound_stream = std::make_unique<XAudio2_7>();
-  }
   else if (backend == BACKEND_ALSA && AlsaSound::isValid())
     g_sound_stream = std::make_unique<AlsaSound>();
   else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
@@ -101,8 +92,6 @@ std::vector<std::string> GetSoundBackends()
 
   backends.emplace_back(BACKEND_NULLSOUND);
   backends.emplace_back(BACKEND_CUBEB);
-  if (XAudio2_7::isValid() || XAudio2::isValid())
-    backends.emplace_back(BACKEND_XAUDIO2);
   if (AlsaSound::isValid())
     backends.emplace_back(BACKEND_ALSA);
   if (PulseAudio::isValid())
@@ -127,8 +116,6 @@ bool SupportsDPL2Decoder(std::string_view backend)
     return true;
   if (backend == BACKEND_PULSEAUDIO)
     return true;
-  if (backend == BACKEND_XAUDIO2)
-    return true;
   return false;
 }
 
@@ -142,8 +129,7 @@ bool SupportsVolumeChanges(std::string_view backend)
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2 ||
-         backend == BACKEND_WASAPI;
+  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
 void UpdateSoundStream()

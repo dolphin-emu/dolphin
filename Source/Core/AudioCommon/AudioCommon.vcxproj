@@ -46,10 +46,6 @@
     <ClCompile Include="WASAPIStream.cpp" />
     <ClCompile Include="SurroundDecoder.cpp" />
     <ClCompile Include="WaveFile.cpp" />
-    <ClCompile Include="XAudio2Stream.cpp" />
-    <ClCompile Include="XAudio2_7Stream.cpp">
-      <AdditionalIncludeDirectories>$(ExternalsDir)XAudio2_7;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlsaSoundStream.h" />
@@ -66,8 +62,6 @@
     <ClInclude Include="WASAPIStream.h" />
     <ClInclude Include="SurroundDecoder.h" />
     <ClInclude Include="WaveFile.h" />
-    <ClInclude Include="XAudio2Stream.h" />
-    <ClInclude Include="XAudio2_7Stream.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
