@@ -991,11 +991,6 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     {
       s_stop_at_track_end = false;
       s_stream = false;
-      s_audio_position = 0;
-      s_next_start = 0;
-      s_next_length = 0;
-      s_current_start = 0;
-      s_current_length = 0;
     }
     else
     {
@@ -1051,7 +1046,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     case 0x03:  // Returns the total length
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentLength:%08x",
                s_current_length);
-      WriteImmediate(static_cast<u32>(s_current_length >> 2), output_address, reply_to_ios);
+      WriteImmediate(s_current_length, output_address, reply_to_ios);
       break;
     default:
       INFO_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s",
