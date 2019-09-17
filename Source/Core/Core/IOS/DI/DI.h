@@ -11,7 +11,9 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "DiscIO/Volume.h"
 
+class CBoot;
 class PointerWrap;
 
 namespace DVDInterface
@@ -36,6 +38,7 @@ public:
   DI(Kernel& ios, const std::string& device_name);
 
   static void InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type);
+  static DiscIO::Partition GetCurrentPartition();
 
   void DoState(PointerWrap& p) override;
 
@@ -116,6 +119,7 @@ private:
     bool m_copy_diimmbuf;
   };
 
+  friend class ::CBoot;
   friend void ::IOS::HLE::Init();
 
   void ProcessQueuedIOCtl();
@@ -125,6 +129,7 @@ private:
   std::optional<DIResult> StartImmediateTransfer(const IOCtlRequest& request,
                                                  bool write_to_buf = true);
 
+  void ChangePartition(const DiscIO::Partition partition);
   void InitializeIfFirstTime();
   void ResetDIRegisters();
   static void FinishDICommandCallback(u64 userdata, s64 ticksbehind);
@@ -134,6 +139,8 @@ private:
 
   std::optional<ExecutingCommandInfo> m_executing_command;
   std::deque<u32> m_commands_to_execute;
+
+  DiscIO::Partition m_current_partition = DiscIO::PARTITION_NONE;
 
   bool m_has_initialized = false;
   u32 m_last_length = 0;

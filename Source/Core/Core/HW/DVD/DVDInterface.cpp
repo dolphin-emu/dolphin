@@ -161,7 +161,6 @@ static u8 s_dtk_buffer_length = 0;  // TODO: figure out how this affects the reg
 
 // Disc drive state
 static u32 s_error_code = 0;
-static DiscIO::Partition s_current_partition;
 
 // Disc drive timing
 static u64 s_read_buffer_start_time;
@@ -223,7 +222,6 @@ void DoState(PointerWrap& p)
   p.Do(s_dtk_buffer_length);
 
   p.Do(s_error_code);
-  p.Do(s_current_partition);
 
   p.Do(s_read_buffer_start_time);
   p.Do(s_read_buffer_end_time);
@@ -426,8 +424,6 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 {
   bool had_disc = IsDiscInside();
   bool has_disc = static_cast<bool>(disc);
-  if (has_disc)
-    s_current_partition = disc->GetGamePartition();
 
   if (auto_disc_change_paths)
   {
@@ -548,12 +544,8 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
   if (!DVDThread::HasDisc())
     return false;
 
-  return DVDThread::UpdateRunningGameMetadata(s_current_partition, title_id);
-}
-
-void ChangePartition(const DiscIO::Partition& partition)
-{
-  s_current_partition = partition;
+  return DVDThread::UpdateRunningGameMetadata(IOS::HLE::Device::DI::GetCurrentPartition(),
+                                              title_id);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -1125,14 +1117,15 @@ void ExecuteCommand(ReplyType reply_type)
   }
 }
 
-void PerformDecryptingRead(u32 position, u32 length, u32 output_address, ReplyType reply_type)
+void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
+                           const DiscIO::Partition& partition, ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
   s_can_configure_dtk = false;
 
   const bool command_handled_by_thread =
-      ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length,
-                         s_current_partition, reply_type, &interrupt_type);
+      ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length, partition,
+                         reply_type, &interrupt_type);
 
   if (!command_handled_by_thread)
   {

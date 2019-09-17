@@ -22,6 +22,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/DI/DI.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -420,6 +421,12 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
   if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
+
+  auto di = std::static_pointer_cast<IOS::HLE::Device::DI>(
+      IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
+
+  di->InitializeIfFirstTime();
+  di->ChangePartition(data_partition);
 
   DVDReadDiscID(volume, 0x00000000);
 

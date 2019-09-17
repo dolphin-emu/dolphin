@@ -52,6 +52,7 @@ void DI::DoState(PointerWrap& p)
   DoStateShared(p);
   p.Do(m_commands_to_execute);
   p.Do(m_executing_command);
+  p.Do(m_current_partition);
   p.Do(m_has_initialized);
   p.Do(m_last_length);
 }
@@ -162,11 +163,15 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
     // }
   case DIIoctl::DVDLowRead:
   {
-    // TODO.  Needs to include decryption.
     const u32 length = Memory::Read_U32(request.buffer_in + 4);
     const u32 position = Memory::Read_U32(request.buffer_in + 8);
     INFO_LOG(IOS_DI, "DVDLowRead: offset 0x%08x (byte 0x%09" PRIx64 "), length 0x%x", position,
              static_cast<u64>(position) << 2, length);
+    if (m_current_partition == DiscIO::PARTITION_NONE)
+    {
+      ERROR_LOG(IOS_DI, "Attempted to perform a decrypting read when no partition is open!");
+      return DIResult::SecurityError;
+    }
     if (request.buffer_out_size < length)
     {
       WARN_LOG(IOS_DI,
@@ -176,7 +181,7 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
       return DIResult::SecurityError;
     }
     m_last_length = position;  // An actual mistake in IOS
-    DVDInterface::PerformDecryptingRead(position, length, request.buffer_out,
+    DVDInterface::PerformDecryptingRead(position, length, request.buffer_out, m_current_partition,
                                         DVDInterface::ReplyType::IOS);
     return {};
   }
@@ -194,7 +199,6 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
   case DIIoctl::DVDLowNotifyReset:
     INFO_LOG(IOS_DI, "DVDLowNotifyReset");
     ResetDIRegisters();
-    // Should also reset current partition and such
     return DIResult::Success;
   case DIIoctl::DVDLowSetSpinupFlag:
     ERROR_LOG(IOS_DI, "DVDLowSetSpinupFlag - not a valid command, rejecting");
@@ -258,7 +262,6 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_DI, "DVDLowReset %s spinup", spinup ? "with" : "without");
     DVDInterface::Reset(spinup);
     ResetDIRegisters();
-    // Should also reset current partition and such
     return DIResult::Success;
   }
   case DIIoctl::DVDLowOpenPartition:
@@ -266,7 +269,7 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
     return DIResult::SecurityError;
   case DIIoctl::DVDLowClosePartition:
     INFO_LOG(IOS_DI, "DVDLowClosePartition");
-    DVDInterface::ChangePartition(DiscIO::PARTITION_NONE);
+    ChangePartition(DiscIO::PARTITION_NONE);
     return DIResult::Success;
   case DIIoctl::DVDLowUnencryptedRead:
   {
@@ -614,23 +617,29 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
                 request.in_vectors.size(), request.io_vectors.size());
       break;
     }
-    DEBUG_ASSERT_MSG(IOS_DI, request.in_vectors[1].address == 0, "DVDLowOpenPartition with ticket");
-    DEBUG_ASSERT_MSG(IOS_DI, request.in_vectors[2].address == 0,
-                     "DVDLowOpenPartition with cert chain");
+    if (request.in_vectors[1].address != 0)
+    {
+      ERROR_LOG(IOS_DI,
+                "DVDLowOpenPartition with ticket - not implemented, ignoring ticket parameter");
+    }
+    if (request.in_vectors[2].address != 0)
+    {
+      ERROR_LOG(IOS_DI,
+                "DVDLowOpenPartition with cert chain - not implemented, ignoring certs parameter");
+    }
 
     const u64 partition_offset =
         static_cast<u64>(Memory::Read_U32(request.in_vectors[0].address + 4)) << 2;
-    const DiscIO::Partition partition(partition_offset);
-    DVDInterface::ChangePartition(partition);
+    ChangePartition(DiscIO::Partition(partition_offset));
 
     INFO_LOG(IOS_DI, "DVDLowOpenPartition: partition_offset 0x%09" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    const IOS::ES::TMDReader tmd = DVDThread::GetTMD(partition);
+    const IOS::ES::TMDReader tmd = DVDThread::GetTMD(m_current_partition);
     const std::vector<u8>& raw_tmd = tmd.GetBytes();
     Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
-    ReturnCode es_result = m_ios.GetES()->DIVerify(tmd, DVDThread::GetTicket(partition));
+    ReturnCode es_result = m_ios.GetES()->DIVerify(tmd, DVDThread::GetTicket(m_current_partition));
     Memory::Write_U32(es_result, request.io_vectors[1].address);
 
     return_value = DIResult::Success;
@@ -661,6 +670,21 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
   return GetDefaultReply(static_cast<s32>(return_value));
 }
 
+void DI::ChangePartition(const DiscIO::Partition partition)
+{
+  m_current_partition = partition;
+}
+
+DiscIO::Partition DI::GetCurrentPartition()
+{
+  auto di = IOS::HLE::GetIOS()->GetDeviceByName("/dev/di");
+  // Note that this function is called in Gamecube mode for UpdateRunningGameMetadata,
+  // so both cases are hit in normal circumstances.
+  if (!di)
+    return DiscIO::PARTITION_NONE;
+  return std::static_pointer_cast<DI>(di)->m_current_partition;
+}
+
 void DI::InitializeIfFirstTime()
 {
   // Match the behavior of Nintendo's initDvdDriverStage2, which is called the first time
@@ -687,5 +711,7 @@ void DI::ResetDIRegisters()
   DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::TCINT, true);
   DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::DEINT, true);
   DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, false);
+  // Close the current partition, if there is one
+  ChangePartition(DiscIO::PARTITION_NONE);
 }
 }  // namespace IOS::HLE::Device
