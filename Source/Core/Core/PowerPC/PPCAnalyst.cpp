@@ -203,7 +203,9 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
       (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
        PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
     return false;
-  if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
+  if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL))
+    return false;
+  if ((b_flags & FL_OE_BIT) && b.inst.OE)
     return false;
   if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
     return false;
@@ -439,8 +441,8 @@ static bool isCmp(const CodeOp& a)
 
 static bool isCarryOp(const CodeOp& a)
 {
-  return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
-         a.opinfo->type == OpType::Integer;
+  return a.opinfo->type == OpType::Integer && (a.opinfo->flags & FL_SET_CA) &&
+         !((a.opinfo->flags & FL_OE_BIT) && a.inst.OE);
 }
 
 static bool isCror(const CodeOp& a)
@@ -771,8 +773,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     num_inst++;
 
     const UGeckoInstruction inst = result.hex;
-    GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
+    const IForm::IForm iform = PPCTables::DecodeIForm(inst);
+    const GekkoOPInfo* opinfo = &PPCTables::GetIFormInfo(iform);
     code[i] = {};
+    code[i].iform = iform;
     code[i].opinfo = opinfo;
     code[i].address = address;
     code[i].inst = inst;

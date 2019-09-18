@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <map>
 #include <unordered_set>
@@ -13,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Instructions.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -23,7 +25,6 @@
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
 #define FALLBACK_IF(cond)                                                                          \
@@ -116,6 +117,13 @@ public:
   virtual bool HandleStackFault() { return false; }
 
   static constexpr std::size_t code_buffer_size = 32000;
+
+  struct CompileCount
+  {
+    u32 compile_count;
+    u32 last_use;
+  };
+  std::array<CompileCount, IForm::NUM_IFORMS> compile_counts = {};
 
   // This should probably be removed from public:
   JitOptions jo{};

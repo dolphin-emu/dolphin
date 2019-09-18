@@ -37,12 +37,16 @@ u32 last_pc;
 bool Interpreter::m_end_block;
 
 // function tables
-std::array<Interpreter::Instruction, 64> Interpreter::m_op_table;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table4;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table19;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table31;
-std::array<Interpreter::Instruction, 32> Interpreter::m_op_table59;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table63;
+const std::array<Interpreter::Instruction, IForm::NUM_IFORMS> Interpreter::m_op_table = {{
+    Interpreter::unknown_instruction,
+#define ILLEGAL(name)
+#define INST(name, type, flags, cycles) Interpreter::name,
+#define TABLE(name, bits, shift, start, end)
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+}};
 
 namespace
 {
@@ -80,30 +84,8 @@ void UpdatePC()
 }
 }  // Anonymous namespace
 
-void Interpreter::RunTable4(UGeckoInstruction inst)
-{
-  m_op_table4[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable19(UGeckoInstruction inst)
-{
-  m_op_table19[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable31(UGeckoInstruction inst)
-{
-  m_op_table31[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable59(UGeckoInstruction inst)
-{
-  m_op_table59[inst.SUBOP5](inst);
-}
-void Interpreter::RunTable63(UGeckoInstruction inst)
-{
-  m_op_table63[inst.SUBOP10](inst);
-}
-
 void Interpreter::Init()
 {
-  InitializeInstructionTables();
   m_reserve = false;
   m_end_block = false;
 }
@@ -181,34 +163,23 @@ int Interpreter::SingleStepInner()
 
   if (m_prev_inst.hex != 0)
   {
+    IForm::IForm iform = PPCTables::DecodeIForm(m_prev_inst);
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
       GenerateProgramException();
       CheckExceptions();
     }
-    else if (MSR.FP)
+    else if (!MSR.FP && (PPCTables::GetIFormInfo(iform).flags & FL_USE_FPU))
     {
-      m_op_table[m_prev_inst.OPCD](m_prev_inst);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
-      {
-        CheckExceptions();
-      }
+      PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+      CheckExceptions();
     }
     else
     {
-      // check if we have to generate a FPU unavailable exception or a program exception.
-      if (PPCTables::UsesFPU(m_prev_inst))
+      m_op_table[iform](m_prev_inst);
+      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
       {
-        PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
         CheckExceptions();
-      }
-      else
-      {
-        m_op_table[m_prev_inst.OPCD](m_prev_inst);
-        if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
-        {
-          CheckExceptions();
-        }
       }
     }
   }

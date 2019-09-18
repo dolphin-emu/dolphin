@@ -25,7 +25,8 @@ namespace PPCAnalyst
 struct CodeOp  // 16B
 {
   UGeckoInstruction inst;
-  GekkoOPInfo* opinfo;
+  IForm::IForm iform;
+  const GekkoOPInfo* opinfo;
   u32 address;
   u32 branchTo;  // if UINT32_MAX, not a branch
   BitSet32 regsOut;

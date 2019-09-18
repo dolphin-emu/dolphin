@@ -1440,7 +1440,7 @@ void MenuBar::ClearCache()
 
 void MenuBar::LogInstructions()
 {
-  PPCTables::LogCompiledInstructions();
+  JitInterface::LogCompiledInstructions();
 }
 
 void MenuBar::SearchInstruction()

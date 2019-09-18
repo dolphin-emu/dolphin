@@ -8,6 +8,7 @@
 #include <cstddef>
 
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Instructions.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 // Flags that indicate what an instruction can do.
@@ -47,7 +48,7 @@ enum
   FL_LOADSTORE = (1 << 19),   // Used to indicate a load/store instruction.
   FL_SET_FPRF = (1 << 20),    // Sets bits in the FPRF.
   FL_READ_FPRF = (1 << 21),   // Reads bits from the FPRF.
-  FL_SET_OE = (1 << 22),      // Sets the overflow flag.
+  FL_OE_BIT = (1 << 22),      // Sets the overflow flag.
   FL_IN_FLOAT_A = (1 << 23),  // frA is used as an input.
   FL_IN_FLOAT_B = (1 << 24),  // frB is used as an input.
   FL_IN_FLOAT_C = (1 << 25),  // frC is used as an input.
@@ -91,30 +92,17 @@ struct GekkoOPInfo
   OpType type;
   int flags;
   int numCycles;
-  u64 runCount;
-  int compileCount;
-  u32 lastUse;
 };
-extern std::array<GekkoOPInfo*, 64> m_infoTable;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable4;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable19;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable31;
-extern std::array<GekkoOPInfo*, 32> m_infoTable59;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable63;
-
-extern std::array<GekkoOPInfo*, 512> m_allInstructions;
-extern size_t m_numInstructions;
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction inst);
+IForm::IForm DecodeIForm(UGeckoInstruction inst);
+const GekkoOPInfo& GetIFormInfo(IForm::IForm);
+const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst);
 Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst);
 
 bool IsValidInstruction(UGeckoInstruction inst);
 bool UsesFPU(UGeckoInstruction inst);
 
-void CountInstruction(UGeckoInstruction inst);
-void PrintInstructionRunCounts();
-void LogCompiledInstructions();
 const char* GetInstructionName(UGeckoInstruction inst);
 }  // namespace PPCTables

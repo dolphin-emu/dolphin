@@ -273,7 +273,6 @@
     <ClCompile Include="PowerPC\Interpreter\Interpreter_LoadStorePaired.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Paired.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
-    <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp" />

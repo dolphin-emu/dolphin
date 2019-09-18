@@ -362,19 +362,13 @@ const GekkoOPTemplate table63_2[] = {
 
 void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
+  u32 iform = PPCTables::DecodeIForm(op.inst);
   (this->*dynaOpTable[op.inst.OPCD])(op.inst);
 
-  GekkoOPInfo* info = op.opinfo;
-  if (info)
+  if (iform)
   {
-#ifdef OPLOG
-    if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
-    {
-      rsplocations.push_back(js.compilerPC);
-    }
-#endif
-    info->compileCount++;
-    info->lastUse = js.compilerPC;
+    compile_counts[iform].compile_count++;
+    compile_counts[iform].last_use = js.compilerPC;
   }
 }
 

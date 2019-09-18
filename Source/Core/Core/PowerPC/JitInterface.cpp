@@ -19,7 +19,9 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Core.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -272,4 +274,23 @@ void Shutdown()
     g_jit = nullptr;
   }
 }
+
+void LogCompiledInstructions()
+{
+  if (!g_jit)
+    return;
+  static unsigned int time = 0;
+
+  File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
+                 "w");
+  for (IForm::IForm iform = 0; iform < IForm::NUM_IFORMS; iform++)
+  {
+    const JitBase::CompileCount& count = g_jit->compile_counts[iform];
+    fprintf(f.GetHandle(), "%s\t%i\t%08x\n", PPCTables::GetIFormInfo(iform).opname,
+            count.compile_count, count.last_use);
+  }
+
+  ++time;
+}
+
 }  // namespace JitInterface

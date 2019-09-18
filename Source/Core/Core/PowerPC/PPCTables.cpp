@@ -13,108 +13,126 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PowerPC.h"
 
-std::array<GekkoOPInfo*, 64> m_infoTable;
-std::array<GekkoOPInfo*, 1024> m_infoTable4;
-std::array<GekkoOPInfo*, 1024> m_infoTable19;
-std::array<GekkoOPInfo*, 1024> m_infoTable31;
-std::array<GekkoOPInfo*, 32> m_infoTable59;
-std::array<GekkoOPInfo*, 1024> m_infoTable63;
+namespace
+{
+constexpr std::array<GekkoOPInfo, IForm::NUM_IFORMS> info_table = {{
+    {"unknown_instruction", OpType::Unknown, FL_ENDBLOCK, 0},
+#define ILLEGAL(name)
+#define INST(name, type, flags, cycles) {#name, OpType::type, flags, cycles},
+#define TABLE(name, bits, shift, start, end)
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+}};
 
-std::array<GekkoOPInfo*, 512> m_allInstructions;
-size_t m_numInstructions;
+namespace DispatchCode
+{
+enum
+{
+#define ILLEGAL(name) Illegal_##name,
+#define INST(name, type, flags, cycles) Inst_##name,
+#define TABLE(name, bits, shift, start, end) Table_##name,
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+  NUM_CODES
+};
+enum
+{
+#define ILLEGAL(name)
+#define INST(name, type, flags, cycles)
+#define TABLE(name, bits, shift, start, end) TableIndex_##name,
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+  NUM_TABLES
+};
+#define ILLEGAL(name)
+#define INST(name, type, flags, cycles)
+#define TABLE(name, bits, shift, start, end)                                                       \
+  static_assert((1 << bits) - 1 == end - start, "Table " #name " has incorrect size");
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+}  // namespace DispatchCode
+
+static_assert(IForm::NUM_IFORMS + DispatchCode::NUM_TABLES < 256,
+              "too many instruction forms / dispatch tables");
+constexpr std::array<u8, DispatchCode::NUM_CODES> dispatch_table = {{
+#define ILLEGAL(name) 0,
+#define INST(name, type, flags, cycles) IForm::name,
+#define TABLE(name, bits, shift, start, end) IForm::NUM_IFORMS + DispatchCode::TableIndex_##name,
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+}};
+
+struct Table
+{
+  u16 start;
+  u8 bits;
+  u8 shift;
+};
+constexpr std::array<Table, DispatchCode::NUM_TABLES> tables_table = {{
+#define ILLEGAL(name)
+#define INST(name, type, flags, cycles)
+#define TABLE(name, bits, shift, start, end) {DispatchCode::start, bits, shift},
+#include "Core/PowerPC/Instructions.in.cpp"
+#undef ILLEGAL
+#undef INST
+#undef TABLE
+}};
+
+}  // namespace
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
+IForm::IForm DecodeIForm(UGeckoInstruction inst)
 {
-  const GekkoOPInfo* info = m_infoTable[inst.OPCD];
-  if (info->type == OpType::Subtable)
+  u32 field_value = inst.hex >> 26;
+  size_t table_start = 0;
+  while (1)
   {
-    switch (inst.OPCD)
+    IForm::IForm dispatch_value = dispatch_table[table_start + field_value];
+    if (dispatch_value < IForm::NUM_IFORMS)
     {
-    case 4:
-      return m_infoTable4[inst.SUBOP10];
-    case 19:
-      return m_infoTable19[inst.SUBOP10];
-    case 31:
-      return m_infoTable31[inst.SUBOP10];
-    case 59:
-      return m_infoTable59[inst.SUBOP5];
-    case 63:
-      return m_infoTable63[inst.SUBOP10];
-    default:
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op %08x @ %08x", inst.hex, PC);
-      return nullptr;
+      return dispatch_value;
     }
+    const Table& table_info = tables_table[dispatch_value - IForm::NUM_IFORMS];
+    table_start = table_info.start;
+    field_value = ((1 << table_info.bits) - 1) & inst.hex >> table_info.shift;
   }
-  else
-  {
-    if (info->type == OpType::Invalid)
-    {
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op %08x @ %08x", inst.hex, PC);
-      return nullptr;
-    }
-    return m_infoTable[inst.OPCD];
-  }
+}
+
+const GekkoOPInfo& GetIFormInfo(IForm::IForm iform)
+{
+  return info_table[iform];
+}
+
+const GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
+{
+  IForm::IForm iform = DecodeIForm(inst);
+  return iform != 0 ? &info_table[iform] : nullptr;
 }
 
 Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
 {
-  const GekkoOPInfo* info = m_infoTable[inst.OPCD];
-  if (info->type == OpType::Subtable)
-  {
-    switch (inst.OPCD)
-    {
-    case 4:
-      return Interpreter::m_op_table4[inst.SUBOP10];
-    case 19:
-      return Interpreter::m_op_table19[inst.SUBOP10];
-    case 31:
-      return Interpreter::m_op_table31[inst.SUBOP10];
-    case 59:
-      return Interpreter::m_op_table59[inst.SUBOP5];
-    case 63:
-      return Interpreter::m_op_table63[inst.SUBOP10];
-    default:
-      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid subtable op %08x @ %08x", inst.hex, PC);
-      return nullptr;
-    }
-  }
-  else
-  {
-    if (info->type == OpType::Invalid)
-    {
-      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid op %08x @ %08x", inst.hex, PC);
-      return nullptr;
-    }
-    return Interpreter::m_op_table[inst.OPCD];
-  }
+  return Interpreter::m_op_table[DecodeIForm(inst)];
 }
 
 bool UsesFPU(UGeckoInstruction inst)
 {
-  GekkoOPInfo* const info = GetOpInfo(inst);
-
-  return (info->flags & FL_USE_FPU) != 0;
+  return (info_table[DecodeIForm(inst.hex)].flags & FL_USE_FPU) != 0;
 }
-
-#define OPLOG
-#define OP_TO_LOG "mtfsb0x"
-
-#ifdef OPLOG
-namespace
-{
-std::vector<u32> rsplocations;
-}
-#endif
 
 const char* GetInstructionName(UGeckoInstruction inst)
 {
@@ -126,76 +144,6 @@ bool IsValidInstruction(UGeckoInstruction inst)
 {
   const GekkoOPInfo* info = GetOpInfo(inst);
   return info != nullptr && info->type != OpType::Unknown;
-}
-
-void CountInstruction(UGeckoInstruction inst)
-{
-  GekkoOPInfo* info = GetOpInfo(inst);
-  if (info)
-  {
-    info->runCount++;
-  }
-}
-
-void PrintInstructionRunCounts()
-{
-  typedef std::pair<const char*, u64> OpInfo;
-  std::vector<OpInfo> temp;
-  temp.reserve(m_numInstructions);
-  for (size_t i = 0; i < m_numInstructions; ++i)
-  {
-    GekkoOPInfo* pInst = m_allInstructions[i];
-    temp.emplace_back(pInst->opname, pInst->runCount);
-  }
-  std::sort(temp.begin(), temp.end(),
-            [](const OpInfo& a, const OpInfo& b) { return a.second > b.second; });
-
-  for (auto& inst : temp)
-  {
-    if (inst.second == 0)
-      break;
-
-    DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
-  }
-}
-
-void LogCompiledInstructions()
-{
-  static unsigned int time = 0;
-
-  File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-                 "w");
-  for (size_t i = 0; i < m_numInstructions; i++)
-  {
-    GekkoOPInfo* pInst = m_allInstructions[i];
-    if (pInst->compileCount > 0)
-    {
-      fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname, pInst->compileCount,
-              pInst->runCount, pInst->lastUse);
-    }
-  }
-
-  f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
-  for (size_t i = 0; i < m_numInstructions; i++)
-  {
-    GekkoOPInfo* pInst = m_allInstructions[i];
-    if (pInst->compileCount == 0)
-    {
-      fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname, pInst->compileCount,
-              pInst->runCount);
-    }
-  }
-
-#ifdef OPLOG
-  f.Open(StringFromFormat("%s" OP_TO_LOG "_at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-         "w");
-  for (auto& rsplocation : rsplocations)
-  {
-    fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);
-  }
-#endif
-
-  ++time;
 }
 
 }  // namespace PPCTables

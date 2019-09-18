@@ -70,4 +70,6 @@ void CompileExceptionCheck(ExceptionType type);
 void SetJit(JitBase* jit);
 
 void Shutdown();
+
+void LogCompiledInstructions();
 }  // namespace JitInterface
