@@ -51,7 +51,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
     if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
       return;
 
-    resize(w, h);
+    const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
+
+    resize(w / dpr, h / dpr);
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
