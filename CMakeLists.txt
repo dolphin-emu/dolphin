@@ -800,6 +800,14 @@ endif()
 
 include_directories(Externals/picojson)
 
+find_package(OpenXR)
+if(OpenXR_loader_FOUND)
+  message(STATUS "Using shared OpenXR")
+  set(USE_OPENXR 1)
+else()
+  message(STATUS "OpenXR not found")
+endif()
+
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #

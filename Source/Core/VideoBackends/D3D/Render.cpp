@@ -14,10 +14,14 @@
 #include <strsafe.h>
 #include <tuple>
 
+#define XR_USE_GRAPHICS_API_D3D11
+#include <openxr/openxr_platform.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/OpenXR.h"
 
 #include "Core/Core.h"
 
@@ -285,6 +289,27 @@ void Renderer::WaitForGPUIdle()
   D3D::context->Flush();
 }
 
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
+{
+  if (auto* const openxr_session = GetOpenXRSession())
+  {
+    const auto images = openxr_session->GetSwapchainImages(
+        XrSwapchainImageD3D11KHR{XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR});
+
+    const auto image_index = openxr_session->AcquireAndWaitForSwapchainImage();
+    ComPtr<ID3D11Texture2D> texture(images[image_index].texture);
+
+    auto dx_texture = DXTexture::CreateAdopted(std::move(texture));
+    auto fb = CreateFramebuffer(dx_texture.get(), nullptr);
+
+    SetAndClearFramebuffer(fb.get());
+  }
+
+  return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
+}
+
 void Renderer::SetFullscreen(bool enable_fullscreen)
 {
   if (m_swap_chain)
@@ -294,6 +319,15 @@ void Renderer::SetFullscreen(bool enable_fullscreen)
 bool Renderer::IsFullscreen() const
 {
   return m_swap_chain && m_swap_chain->GetFullscreen();
+}
+
+std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
+{
+  XrGraphicsBindingD3D11KHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_D3D11_KHR};
+  graphics_binding.device = D3D::device.Get();
+
+  return OpenXR::CreateSession({"XR_KHR_D3D11_enable"}, &graphics_binding,
+                               {DXGI_FORMAT_R8G8B8A8_UNORM});
 }
 
 }  // namespace DX11

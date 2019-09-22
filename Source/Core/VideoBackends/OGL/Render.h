@@ -169,6 +169,8 @@ private:
   void ApplyDepthState(const DepthState state);
   void ApplyBlendingState(const BlendingState state);
 
+  std::unique_ptr<OpenXR::Session> CreateOpenXRSession() override;
+
   std::unique_ptr<GLContext> m_main_gl_context;
   std::unique_ptr<OGLFramebuffer> m_system_framebuffer;
   std::array<const OGLTexture*, 8> m_bound_textures{};

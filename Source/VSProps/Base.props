@@ -64,6 +64,8 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zstd\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)OpenXR\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>FMT_HEADER_ONLY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_UPNP;USE_USBDK;__LIBUSB__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -141,7 +143,7 @@
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>_DEBUG;_SECURE_SCL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENXR=1;_DEBUG;_SECURE_SCL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
     </ClCompile>
@@ -155,12 +157,14 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENXR=1;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <!--Link Base-->
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <AdditionalDependencies>openxr_loader.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenXR\native\x64\release\lib</AdditionalLibraryDirectories>
     </Link>
     <!--Link Release-->
     <Link Condition="'$(Configuration)'=='Release'">

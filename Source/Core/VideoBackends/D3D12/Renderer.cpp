@@ -17,6 +17,9 @@
 #include "VideoBackends/D3D12/SwapChain.h"
 #include "VideoCommon/VideoConfig.h"
 
+#define XR_USE_GRAPHICS_API_D3D12
+#include <openxr/openxr_platform.h>
+
 namespace DX12
 {
 Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
@@ -732,6 +735,36 @@ bool Renderer::UpdateComputeUAVDescriptorTable()
   m_dirty_bits &= ~DirtyState_ComputeImageTexture;
   m_state.compute_uav_descriptor_base = handle.gpu_handle;
   return true;
+}
+
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
+{
+  if (auto* const openxr_session = GetOpenXRSession())
+  {
+    const auto images = openxr_session->GetSwapchainImages(
+        XrSwapchainImageD3D12KHR{XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR});
+
+    const auto image_index = openxr_session->AcquireAndWaitForSwapchainImage();
+    ID3D12Resource* texture(images[image_index].texture);
+
+    auto dx_texture = DXTexture::CreateAdopted(texture);
+    auto fb = CreateFramebuffer(dx_texture.get(), nullptr);
+
+    SetAndClearFramebuffer(fb.get());
+  }
+
+  return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
+}
+
+std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
+{
+  XrGraphicsBindingD3D12KHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_D3D12_KHR};
+  graphics_binding.device = g_dx_context->GetDevice();
+
+  return OpenXR::CreateSession({"XR_KHR_D3D12_enable"}, &graphics_binding,
+                               {DXGI_FORMAT_R8G8B8A8_UNORM});
 }
 
 }  // namespace DX12

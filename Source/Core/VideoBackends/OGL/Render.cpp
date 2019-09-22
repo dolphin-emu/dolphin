@@ -18,6 +18,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/OpenXR.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -980,7 +981,7 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                  const MathUtil::Rectangle<int>& source_rc)
 {
   // Quad-buffered stereo is annoying on GL.
-  if (g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
+  if (!g_ActiveConfig.IsStereoModeSeparateBuffer())
     return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
 
   glDrawBuffer(GL_BACK_LEFT);
@@ -1352,6 +1353,11 @@ void Renderer::RestoreFramebufferBinding()
   glBindFramebuffer(
       GL_FRAMEBUFFER,
       m_current_framebuffer ? static_cast<OGLFramebuffer*>(m_current_framebuffer)->GetFBO() : 0);
+}
+
+std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
+{
+  return m_main_gl_context->CreateOpenXRSession();
 }
 
 }  // namespace OGL

@@ -27,6 +27,7 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
+#include "Common/OpenXR.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
@@ -259,6 +260,8 @@ public:
   void BeginUIFrame();
   void EndUIFrame();
 
+  OpenXR::Session* GetOpenXRSession() { return m_openxr_session.get(); }
+
 protected:
   // Bitmask containing information about which configuration has changed for the backend.
   enum ConfigChangeBits : u32
@@ -297,6 +300,8 @@ protected:
   // Renders ImGui windows to the currently-bound framebuffer.
   // Should be called with the ImGui lock held.
   void DrawImGui();
+
+  virtual std::unique_ptr<OpenXR::Session> CreateOpenXRSession() { return {}; }
 
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
@@ -343,6 +348,10 @@ private:
 
   PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
   unsigned int m_efb_scale = 1;
+
+  void CheckOpenXRState();
+
+  std::unique_ptr<OpenXR::Session> m_openxr_session;
 
   // These will be set on the first call to SetWindowSize.
   int m_last_window_request_width = 0;

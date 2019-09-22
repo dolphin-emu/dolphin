@@ -96,6 +96,9 @@ public:
   bool ApplyState();
 
 protected:
+  void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                         const AbstractTexture* source_texture,
+                         const MathUtil::Rectangle<int>& source_rc) override;
   void OnConfigChanged(u32 bits) override;
 
 private:
@@ -136,6 +139,7 @@ private:
   };
 
   void CheckForSwapChainChanges();
+  std::unique_ptr<OpenXR::Session> CreateOpenXRSession() override;
 
   void BindFramebuffer(DXFramebuffer* fb);
   void SetRootSignatures();

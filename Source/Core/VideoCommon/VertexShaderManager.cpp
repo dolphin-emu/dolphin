@@ -15,6 +15,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 #include "Common/Matrix.h"
+#include "Common/OpenXR.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -416,6 +417,15 @@ void VertexShaderManager::SetConstants()
 
     if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
       corrected_matrix *= g_freelook_camera.GetView();
+
+    if (xfmem.projection.type == GX_PERSPECTIVE)
+    {
+      if (auto session = g_renderer->GetOpenXRSession())
+        corrected_matrix *= session->GetEyeViewMatrix(0, 0, 0);
+
+      if (g_ActiveConfig.bFreeLook)
+        corrected_matrix *= s_freelook_matrix;
+    }
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 

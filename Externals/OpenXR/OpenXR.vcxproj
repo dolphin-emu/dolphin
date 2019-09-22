@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\openxr\openxr.h" />
+    <ClInclude Include="include\openxr\openxr_platform.h" />
+    <ClInclude Include="include\openxr\openxr_platform_defines.h" />
+    <ClInclude Include="include\openxr\openxr_reflection.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+      <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>xcopy "$(ProjectDir)native\x64\release\bin\openxr_loader.dll" "$(BinaryOutputDir)" /y</Command>
+      <Outputs>$(BinaryOutputDir)openxr_loader.dll</Outputs>
+      <Inputs>$(ProjectDir)native\x64\release\bin\openxr_loader.dll</Inputs>
+      <Message>Copying openxr_loader.dll</Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>xcopy "$(ProjectDir)native\x64\release\bin\openxr_loader.dll" "$(BinaryOutputDir)" /y</Command>
+      <Outputs>$(BinaryOutputDir)openxr_loader.dll</Outputs>
+      <Inputs>$(ProjectDir)native\x64\release\bin\openxr_loader.dll</Inputs>
+      <Message>Copying openxr_loader.dll</Message>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

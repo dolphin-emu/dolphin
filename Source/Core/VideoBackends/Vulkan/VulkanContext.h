@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/OpenXR.h"
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
@@ -119,6 +120,8 @@ public:
   VkSurfaceFullScreenExclusiveWin32InfoEXT
   GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
 #endif
+
+  std::unique_ptr<OpenXR::Session> CreateOpenXRSession();
 
 private:
   static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,

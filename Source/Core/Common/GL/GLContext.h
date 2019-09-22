@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Common/OpenXR.h"
 #include "Common/WindowSystemInfo.h"
 
 class GLContext
@@ -44,6 +45,8 @@ public:
   virtual void SwapInterval(int interval);
 
   virtual void* GetFuncAddress(const std::string& name);
+
+  virtual std::unique_ptr<OpenXR::Session> CreateOpenXRSession();
 
   // Creates an instance of GLContext specific to the platform we are running on.
   // If successful, the context is made current on the calling thread.

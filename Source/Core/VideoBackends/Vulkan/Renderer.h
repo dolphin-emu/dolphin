@@ -99,6 +99,8 @@ private:
   void OnSwapChainResized();
   void BindFramebuffer(VKFramebuffer* fb);
 
+  std::unique_ptr<OpenXR::Session> CreateOpenXRSession() override;
+
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<BoundingBox> m_bounding_box;
 
