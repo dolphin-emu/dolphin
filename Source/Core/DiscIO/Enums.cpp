@@ -369,7 +369,7 @@ std::string GetSysMenuVersionString(u16 title_version)
     break;
   }
 
-  switch (title_version & ~0xf)
+  switch (title_version & 0xff0)
   {
   case 32:
     return "1.0" + region_letter;
