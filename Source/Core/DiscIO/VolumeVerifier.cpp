@@ -5,6 +5,7 @@
 #include "DiscIO/VolumeVerifier.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cinttypes>
 #include <future>
 #include <limits>
@@ -682,6 +683,7 @@ bool VolumeVerifier::ShouldHaveChannelPartition() const
       "RFNE01", "RFNJ01", "RFNK01", "RFNP01", "RFNW01", "RFPE01", "RFPJ01", "RFPK01", "RFPP01",
       "RFPW01", "RGWE41", "RGWJ41", "RGWP41", "RGWX41", "RMCE01", "RMCJ01", "RMCK01", "RMCP01",
   };
+  assert(std::is_sorted(channel_discs.cbegin(), channel_discs.cend()));
 
   return std::binary_search(channel_discs.cbegin(), channel_discs.cend(),
                             std::string_view(m_volume.GetGameID()));
@@ -714,6 +716,7 @@ bool VolumeVerifier::ShouldBeDualLayer() const
       "SLSEXJ", "SLSP01", "SQIE4Q", "SQIP4Q", "SQIY4Q", "SR5E41", "SR5P41", "SUOE41", "SUOP41",
       "SVXX52", "SVXY52", "SX4E01", "SX4P01", "SZ3EGT", "SZ3PGT",
   };
+  assert(std::is_sorted(dual_layer_discs.cbegin(), dual_layer_discs.cend()));
 
   return std::binary_search(dual_layer_discs.cbegin(), dual_layer_discs.cend(),
                             std::string_view(m_volume.GetGameID()));
