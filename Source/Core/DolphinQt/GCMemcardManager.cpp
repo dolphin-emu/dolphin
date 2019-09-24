@@ -332,7 +332,7 @@ void GCMemcardManager::ExportAllFiles()
 void GCMemcardManager::ImportFile()
 {
   QString path = QFileDialog::getOpenFileName(
-      this, tr("Export Save File"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+      this, tr("Import Save File"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       tr("Native GCI File (*.gci)") + QStringLiteral(";;") + tr("MadCatz Gameshark files(*.gcs)") +
           QStringLiteral(";;") + tr("Datel MaxDrive/Pro files(*.sav)"));
 
