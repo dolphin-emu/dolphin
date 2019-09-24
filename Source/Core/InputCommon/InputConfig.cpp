@@ -30,7 +30,7 @@ bool InputConfig::LoadConfig(bool isGC)
 {
   IniFile inifile;
   bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
-  std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
+  static constexpr std::array<std::string_view, MAX_BBMOTES> num = {"1", "2", "3", "4", "BB"};
   std::string profile[MAX_BBMOTES];
   std::string path;
 
@@ -58,10 +58,10 @@ bool InputConfig::LoadConfig(bool isGC)
 
     for (int i = 0; i < 4; i++)
     {
-      if (control_section->Exists(type + "Profile" + num[i]))
+      if (control_section->Exists(type + "Profile" + std::string(num[i])))
       {
         std::string profile_setting;
-        if (control_section->Get(type + "Profile" + num[i], &profile_setting))
+        if (control_section->Get(type + "Profile" + std::string(num[i]), &profile_setting))
         {
           auto profiles = InputProfile::GetProfilesFromSetting(
               profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
