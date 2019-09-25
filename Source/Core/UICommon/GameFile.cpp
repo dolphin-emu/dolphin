@@ -472,15 +472,15 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
     return m_custom_name;
 
   const std::string& database_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
-  return database_name.empty() ? GetName(true) : database_name;
+  return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
-const std::string& GameFile::GetName(bool allow_custom_name, bool long_name) const
+const std::string& GameFile::GetName(Variant variant) const
 {
-  if (allow_custom_name && !m_custom_name.empty())
+  if (variant == Variant::LongAndPossiblyCustom && !m_custom_name.empty())
     return m_custom_name;
 
-  const std::string& name = long_name ? GetLongName() : GetShortName();
+  const std::string& name = variant == Variant::ShortAndNotCustom ? GetShortName() : GetLongName();
   if (!name.empty())
     return name;
 
@@ -488,12 +488,13 @@ const std::string& GameFile::GetName(bool allow_custom_name, bool long_name) con
   return m_file_name;
 }
 
-const std::string& GameFile::GetMaker(bool allow_custom_maker, bool long_maker) const
+const std::string& GameFile::GetMaker(Variant variant) const
 {
-  if (allow_custom_maker && !m_custom_maker.empty())
+  if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
     return m_custom_maker;
 
-  const std::string& maker = long_maker ? GetLongMaker() : GetShortMaker();
+  const std::string& maker =
+      variant == Variant::ShortAndNotCustom ? GetShortMaker() : GetLongMaker();
   if (!maker.empty())
     return maker;
 
@@ -503,9 +504,9 @@ const std::string& GameFile::GetMaker(bool allow_custom_maker, bool long_maker) 
   return EMPTY_STRING;
 }
 
-const std::string& GameFile::GetDescription(bool allow_custom_description) const
+const std::string& GameFile::GetDescription(Variant variant) const
 {
-  if (allow_custom_description && !m_custom_description.empty())
+  if (variant == Variant::LongAndPossiblyCustom && !m_custom_description.empty())
     return m_custom_description;
 
   return LookupUsingConfigLanguage(m_descriptions);

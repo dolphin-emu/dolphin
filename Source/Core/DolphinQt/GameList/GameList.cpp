@@ -442,7 +442,7 @@ void GameList::ExportWiiSave()
   for (const auto& game : GetSelectedGames())
   {
     if (!WiiSave::Export(game->GetTitleID(), export_dir.toStdString()))
-      failed.push_back(game->GetName(true));
+      failed.push_back(game->GetName(UICommon::GameFile::Variant::LongAndPossiblyCustom));
   }
 
   if (!failed.isEmpty())

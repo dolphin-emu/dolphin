@@ -44,6 +44,13 @@ bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 class GameFile final
 {
 public:
+  enum class Variant
+  {
+    LongAndPossiblyCustom,
+    LongAndNotCustom,
+    ShortAndNotCustom,
+  };
+
   GameFile();
   explicit GameFile(std::string path);
   ~GameFile();
@@ -52,8 +59,8 @@ public:
   const std::string& GetFilePath() const { return m_file_path; }
   const std::string& GetFileName() const { return m_file_name; }
   const std::string& GetName(const Core::TitleDatabase& title_database) const;
-  const std::string& GetName(bool allow_custom_name, bool long_name = true) const;
-  const std::string& GetMaker(bool allow_custom_maker, bool long_maker = true) const;
+  const std::string& GetName(Variant variant) const;
+  const std::string& GetMaker(Variant variant) const;
   const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
   const std::string& GetShortName() const { return LookupUsingConfigLanguage(m_short_names); }
   const std::string& GetLongName(DiscIO::Language l) const { return Lookup(l, m_long_names); }
@@ -63,7 +70,7 @@ public:
   const std::string& GetLongMaker(DiscIO::Language l) const { return Lookup(l, m_long_makers); }
   const std::string& GetLongMaker() const { return LookupUsingConfigLanguage(m_long_makers); }
   const std::string& GetDescription(DiscIO::Language l) const { return Lookup(l, m_descriptions); }
-  const std::string& GetDescription(bool allow_custom_description) const;
+  const std::string& GetDescription(Variant variant) const;
   std::vector<DiscIO::Language> GetLanguages() const;
   const std::string& GetInternalName() const { return m_internal_name; }
   const std::string& GetGameID() const { return m_game_id; }
