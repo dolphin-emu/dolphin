@@ -1,5 +1,5 @@
-#ifndef VULKAN_VI_H_
-#define VULKAN_VI_H_ 1
+#ifndef VULKAN_METAL_H_
+#define VULKAN_METAL_H_ 1
 
 /*
 ** Copyright (c) 2015-2019 The Khronos Group Inc.
@@ -29,23 +29,30 @@ extern "C" {
 
 
 
-#define VK_NN_vi_surface 1
-#define VK_NN_VI_SURFACE_SPEC_VERSION     1
-#define VK_NN_VI_SURFACE_EXTENSION_NAME   "VK_NN_vi_surface"
-typedef VkFlags VkViSurfaceCreateFlagsNN;
-typedef struct VkViSurfaceCreateInfoNN {
-    VkStructureType             sType;
-    const void*                 pNext;
-    VkViSurfaceCreateFlagsNN    flags;
-    void*                       window;
-} VkViSurfaceCreateInfoNN;
+#define VK_EXT_metal_surface 1
 
-typedef VkResult (VKAPI_PTR *PFN_vkCreateViSurfaceNN)(VkInstance instance, const VkViSurfaceCreateInfoNN* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+#ifdef __OBJC__
+@class CAMetalLayer;
+#else
+typedef void CAMetalLayer;
+#endif
+
+#define VK_EXT_METAL_SURFACE_SPEC_VERSION 1
+#define VK_EXT_METAL_SURFACE_EXTENSION_NAME "VK_EXT_metal_surface"
+typedef VkFlags VkMetalSurfaceCreateFlagsEXT;
+typedef struct VkMetalSurfaceCreateInfoEXT {
+    VkStructureType                 sType;
+    const void*                     pNext;
+    VkMetalSurfaceCreateFlagsEXT    flags;
+    const CAMetalLayer*             pLayer;
+} VkMetalSurfaceCreateInfoEXT;
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateMetalSurfaceEXT)(VkInstance instance, const VkMetalSurfaceCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
 
 #ifndef VK_NO_PROTOTYPES
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateViSurfaceNN(
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateMetalSurfaceEXT(
     VkInstance                                  instance,
-    const VkViSurfaceCreateInfoNN*              pCreateInfo,
+    const VkMetalSurfaceCreateInfoEXT*          pCreateInfo,
     const VkAllocationCallbacks*                pAllocator,
     VkSurfaceKHR*                               pSurface);
 #endif

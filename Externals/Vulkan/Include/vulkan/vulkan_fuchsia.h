@@ -1,5 +1,5 @@
-#ifndef VULKAN_VI_H_
-#define VULKAN_VI_H_ 1
+#ifndef VULKAN_FUCHSIA_H_
+#define VULKAN_FUCHSIA_H_ 1
 
 /*
 ** Copyright (c) 2015-2019 The Khronos Group Inc.
@@ -29,23 +29,23 @@ extern "C" {
 
 
 
-#define VK_NN_vi_surface 1
-#define VK_NN_VI_SURFACE_SPEC_VERSION     1
-#define VK_NN_VI_SURFACE_EXTENSION_NAME   "VK_NN_vi_surface"
-typedef VkFlags VkViSurfaceCreateFlagsNN;
-typedef struct VkViSurfaceCreateInfoNN {
-    VkStructureType             sType;
-    const void*                 pNext;
-    VkViSurfaceCreateFlagsNN    flags;
-    void*                       window;
-} VkViSurfaceCreateInfoNN;
+#define VK_FUCHSIA_imagepipe_surface 1
+#define VK_FUCHSIA_IMAGEPIPE_SURFACE_SPEC_VERSION 1
+#define VK_FUCHSIA_IMAGEPIPE_SURFACE_EXTENSION_NAME "VK_FUCHSIA_imagepipe_surface"
+typedef VkFlags VkImagePipeSurfaceCreateFlagsFUCHSIA;
+typedef struct VkImagePipeSurfaceCreateInfoFUCHSIA {
+    VkStructureType                         sType;
+    const void*                             pNext;
+    VkImagePipeSurfaceCreateFlagsFUCHSIA    flags;
+    zx_handle_t                             imagePipeHandle;
+} VkImagePipeSurfaceCreateInfoFUCHSIA;
 
-typedef VkResult (VKAPI_PTR *PFN_vkCreateViSurfaceNN)(VkInstance instance, const VkViSurfaceCreateInfoNN* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+typedef VkResult (VKAPI_PTR *PFN_vkCreateImagePipeSurfaceFUCHSIA)(VkInstance instance, const VkImagePipeSurfaceCreateInfoFUCHSIA* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
 
 #ifndef VK_NO_PROTOTYPES
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateViSurfaceNN(
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateImagePipeSurfaceFUCHSIA(
     VkInstance                                  instance,
-    const VkViSurfaceCreateInfoNN*              pCreateInfo,
+    const VkImagePipeSurfaceCreateInfoFUCHSIA*  pCreateInfo,
     const VkAllocationCallbacks*                pAllocator,
     VkSurfaceKHR*                               pSurface);
 #endif
