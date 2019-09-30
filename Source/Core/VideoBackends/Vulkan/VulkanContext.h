@@ -111,6 +111,15 @@ public:
   // Returns true if the specified extension is supported and enabled.
   bool SupportsDeviceExtension(const char* name) const;
 
+  // Returns true if exclusive fullscreen is supported for the given surface.
+  bool SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface);
+
+#ifdef WIN32
+  // Returns the platform-specific exclusive fullscreen structure.
+  VkSurfaceFullScreenExclusiveWin32InfoEXT
+  GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
+#endif
+
 private:
   static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,
                                        WindowSystemType wstype, bool enable_debug_report);

@@ -280,13 +280,39 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
   CheckForSurfaceChange();
   CheckForSurfaceResize();
 
-  VkResult res = g_command_buffer_mgr->CheckLastPresentFail() ? VK_ERROR_OUT_OF_DATE_KHR :
-                                                                m_swap_chain->AcquireNextImage();
-  if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
+  // Check for exclusive fullscreen request.
+  if (m_swap_chain->GetCurrentFullscreenState() != m_swap_chain->GetNextFullscreenState() &&
+      !m_swap_chain->SetFullscreenState(m_swap_chain->GetNextFullscreenState()))
+  {
+    // if it fails, don't keep trying
+    m_swap_chain->SetNextFullscreenState(m_swap_chain->GetCurrentFullscreenState());
+  }
+
+  VkResult res = g_command_buffer_mgr->CheckLastPresentFail() ?
+                     g_command_buffer_mgr->GetLastPresentResult() :
+                     m_swap_chain->AcquireNextImage();
+  if (res != VK_SUCCESS)
   {
     // Execute cmdbuffer before resizing, as the last frame could still be presenting.
     ExecuteCommandBuffer(false, true);
-    m_swap_chain->ResizeSwapChain();
+
+    // Was this a lost exclusive fullscreen?
+    if (res == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+    {
+      // The present keeps returning exclusive mode lost unless we re-create the swap chain.
+      INFO_LOG(VIDEO, "Lost exclusive fullscreen.");
+      m_swap_chain->RecreateSwapChain();
+    }
+    else if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+      m_swap_chain->ResizeSwapChain();
+    }
+    else
+    {
+      ERROR_LOG(VIDEO, "Unknown present error 0x%08X, please report.", res);
+      m_swap_chain->RecreateSwapChain();
+    }
+
     res = m_swap_chain->AcquireNextImage();
   }
   if (res != VK_SUCCESS)
@@ -321,6 +347,19 @@ void Renderer::PresentBackbuffer()
 
   // New cmdbuffer, so invalidate state.
   StateTracker::GetInstance()->InvalidateCachedState();
+}
+
+void Renderer::SetFullscreen(bool enable_fullscreen)
+{
+  if (!m_swap_chain->IsFullscreenSupported())
+    return;
+
+  m_swap_chain->SetNextFullscreenState(enable_fullscreen);
+}
+
+bool Renderer::IsFullscreen() const
+{
+  return m_swap_chain && m_swap_chain->GetCurrentFullscreenState();
 }
 
 void Renderer::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)

@@ -62,6 +62,17 @@ public:
   // Change vsync enabled state. This may fail as it causes a swapchain recreation.
   bool SetVSync(bool enabled);
 
+  // Is exclusive fullscreen supported?
+  bool IsFullscreenSupported() const { return m_fullscreen_supported; }
+
+  // Retrieves the "next" fullscreen state. Safe to call off-thread.
+  bool GetCurrentFullscreenState() const { return m_current_fullscreen_state; }
+  bool GetNextFullscreenState() const { return m_next_fullscreen_state; }
+  void SetNextFullscreenState(bool state) { m_next_fullscreen_state = state; }
+
+  // Updates the fullscreen state. Must call on-thread.
+  bool SetFullscreenState(bool state);
+
 private:
   bool SelectSurfaceFormat();
   bool SelectPresentMode();
@@ -86,7 +97,10 @@ private:
   VkSurfaceFormatKHR m_surface_format = {};
   VkPresentModeKHR m_present_mode = VK_PRESENT_MODE_RANGE_SIZE_KHR;
   AbstractTextureFormat m_texture_format = AbstractTextureFormat::Undefined;
-  bool m_vsync_enabled;
+  bool m_vsync_enabled = false;
+  bool m_fullscreen_supported = false;
+  bool m_current_fullscreen_state = false;
+  bool m_next_fullscreen_state = false;
 
   VkSwapchainKHR m_swap_chain = VK_NULL_HANDLE;
   std::vector<SwapChainImage> m_swap_chain_images;
