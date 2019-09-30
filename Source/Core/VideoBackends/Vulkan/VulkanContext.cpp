@@ -88,7 +88,7 @@ bool VulkanContext::CheckValidationLayerAvailablility()
 VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
                                                bool enable_validation_layer)
 {
-  ExtensionList enabled_extensions;
+  std::vector<const char*> enabled_extensions;
   if (!SelectInstanceExtensions(&enabled_extensions, wstype, enable_debug_report))
     return VK_NULL_HANDLE;
 
@@ -143,8 +143,8 @@ VkInstance VulkanContext::CreateVulkanInstance(WindowSystemType wstype, bool ena
   return instance;
 }
 
-bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, WindowSystemType wstype,
-                                             bool enable_debug_report)
+bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension_list,
+                                             WindowSystemType wstype, bool enable_debug_report)
 {
   u32 extension_count = 0;
   VkResult res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -168,7 +168,7 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, Wind
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);
 
-  auto SupportsExtension = [&](const char* name, bool required) {
+  auto AddExtension = [&](const char* name, bool required) {
     if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
@@ -186,43 +186,40 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, Wind
   };
 
   // Common extensions
-  if (wstype != WindowSystemType::Headless &&
-      !SupportsExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
+  if (wstype != WindowSystemType::Headless && !AddExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
   if (wstype == WindowSystemType::Windows &&
-      !SupportsExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, true))
+      !AddExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
 #endif
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
-  if (wstype == WindowSystemType::X11 &&
-      !SupportsExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
+  if (wstype == WindowSystemType::X11 && !AddExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if (wstype == WindowSystemType::Android &&
-      !SupportsExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
+      !AddExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
 #endif
 #if defined(VK_USE_PLATFORM_MACOS_MVK)
-  if (wstype == WindowSystemType::MacOS &&
-      !SupportsExtension(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, true))
+  if (wstype == WindowSystemType::MacOS && !AddExtension(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
 #endif
 
   // VK_EXT_debug_report
-  if (enable_debug_report && !SupportsExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, false))
+  if (enable_debug_report && !AddExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, false))
     WARN_LOG(VIDEO, "Vulkan: Debug report requested, but extension is not available.");
 
   return true;
@@ -424,7 +421,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
   return context;
 }
 
-bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface)
+bool VulkanContext::SelectDeviceExtensions(bool enable_surface)
 {
   u32 extension_count = 0;
   VkResult res =
@@ -449,14 +446,14 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);
 
-  auto SupportsExtension = [&](const char* name, bool required) {
+  auto AddExtension = [&](const char* name, bool required) {
     if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
                      }) != available_extension_list.end())
     {
       INFO_LOG(VIDEO, "Enabling extension: %s", name);
-      extension_list->push_back(name);
+      m_device_extensions.push_back(name);
       return true;
     }
 
@@ -466,7 +463,7 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
     return false;
   };
 
-  if (enable_surface && !SupportsExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
+  if (enable_surface && !AddExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
     return false;
 
   return true;
@@ -606,14 +603,18 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   }
   device_info.pQueueCreateInfos = queue_infos.data();
 
-  ExtensionList enabled_extensions;
-  if (!SelectDeviceExtensions(&enabled_extensions, surface != VK_NULL_HANDLE))
+  if (!SelectDeviceExtensions(surface != VK_NULL_HANDLE))
     return false;
+
+  // convert std::string list to a char pointer list which we can feed in
+  std::vector<const char*> extension_name_pointers;
+  for (const std::string& name : m_device_extensions)
+    extension_name_pointers.push_back(name.c_str());
 
   device_info.enabledLayerCount = 0;
   device_info.ppEnabledLayerNames = nullptr;
-  device_info.enabledExtensionCount = static_cast<uint32_t>(enabled_extensions.size());
-  device_info.ppEnabledExtensionNames = enabled_extensions.data();
+  device_info.enabledExtensionCount = static_cast<uint32_t>(extension_name_pointers.size());
+  device_info.ppEnabledExtensionNames = extension_name_pointers.data();
 
   // Check for required features before creating.
   if (!SelectDeviceFeatures())
@@ -811,6 +812,12 @@ u32 VulkanContext::GetReadbackMemoryType(u32 bits, bool* is_coherent)
   // We should have at least one host visible memory type...
   PanicAlert("Unable to get memory type for upload.");
   return 0;
+}
+
+bool VulkanContext::SupportsDeviceExtension(const char* name) const
+{
+  return std::any_of(m_device_extensions.begin(), m_device_extensions.end(),
+                     [name](const std::string& extension) { return extension == name; });
 }
 
 void VulkanContext::InitDriverDetails()
