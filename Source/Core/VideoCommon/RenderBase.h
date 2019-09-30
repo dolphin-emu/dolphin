@@ -196,7 +196,7 @@ public:
   float EFBToScaledYf(float y) const;
 
   // Random utilities
-  void SaveScreenshot(const std::string& filename, bool wait_for_completion);
+  void SaveScreenshot(std::string filename, bool wait_for_completion);
   void DrawDebugText();
 
   // ImGui initialization depends on being able to create textures and pipelines, so do it last.
