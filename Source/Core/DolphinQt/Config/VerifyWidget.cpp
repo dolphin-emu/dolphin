@@ -138,6 +138,8 @@ void VerifyWidget::Verify()
     case DiscIO::VolumeVerifier::Severity::High:
       severity = tr("High");
       break;
+    case DiscIO::VolumeVerifier::Severity::None:
+      break;
     }
 
     SetProblemCellText(i, 0, QString::fromStdString(problem.text));
