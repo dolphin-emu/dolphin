@@ -222,6 +222,8 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   if (enable_debug_report && !AddExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, false))
     WARN_LOG(VIDEO, "Vulkan: Debug report requested, but extension is not available.");
 
+  AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
+
   return true;
 }
 
