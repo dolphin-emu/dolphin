@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-02 11:06+0200\n"
-"PO-Revision-Date: 2019-09-02 09:07+0000\n"
+"POT-Creation-Date: 2019-10-01 15:34+0200\n"
+"PO-Revision-Date: 2019-10-01 13:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -173,7 +173,7 @@ msgid "%1 doesn't support this feature on your system."
 msgstr "%1 ondersteunt deze functie niet op uw systeem."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:193
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:303
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:304
 msgid "%1 doesn't support this feature."
 msgstr "%1 ondersteunt deze functie niet."
 
@@ -189,7 +189,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:882
 msgid "%1 has joined"
-msgstr "%1 is erbij gekomen"
+msgstr "%1 doet nu mee"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:887
 msgid "%1 has left"
@@ -303,7 +303,7 @@ msgstr "&Toevoegen..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:494
 msgid "&Audio Settings"
-msgstr "&Geluids Instellingen"
+msgstr "&Geluidsinstellingen"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:189
 msgid "&Auto Update:"
@@ -355,7 +355,7 @@ msgstr "&Code"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:496
 msgid "&Controller Settings"
-msgstr "&Controller Instellingen"
+msgstr "&Controllerinstellingen"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:248
 msgid "&Copy address"
@@ -423,7 +423,7 @@ msgstr "&Help"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:497
 msgid "&Hotkey Settings"
-msgstr "&Sneltoets Instellingen"
+msgstr "&Sneltoetsinstellingen"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:73
 msgid "&Import..."
@@ -1059,7 +1059,7 @@ msgstr "Saves van alle spelers gesynchroniseerd."
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:144
 msgid "Allow Mismatched Region Settings"
-msgstr "Sta Niet-Overeenkomende Regio Instellingen toe"
+msgstr "Sta Niet-Overeenkomende Regio-instellingen toe"
 
 #: Source/Core/DolphinQt/Main.cpp:197
 msgid "Allow Usage Statistics Reporting"
@@ -1274,7 +1274,7 @@ msgstr "Venstergrootte Automatisch Aanpassen"
 msgid "Auto-Hide"
 msgstr "Automatisch Verbergen"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:216
 msgid ""
 "Automatically adjusts the window size to the internal resolution.\n"
 "\n"
@@ -1308,7 +1308,7 @@ msgstr "Backend Multi-threading"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:74
 msgid "Backend Settings"
-msgstr "Backend Instellingen"
+msgstr "Backendinstellingen"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:71
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:50
@@ -1928,7 +1928,7 @@ msgstr "Controllerprofiel"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:65
 msgid "Controller Settings"
-msgstr "Controller Instellingen"
+msgstr "Controllerinstellingen"
 
 #: Source/Core/DolphinQt/ToolBar.cpp:126
 msgid "Controllers"
@@ -2463,7 +2463,7 @@ msgstr "Apparaat PID (bijv., 0305)"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:75
 msgid "Device Settings"
-msgstr "Apparaat Instellingen"
+msgstr "Apparaatinstellingen"
 
 #. i18n: VID means Vendor ID (in the context of a USB device)
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:101
@@ -2867,7 +2867,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Dumpt de inhoud van EFB kopieën naar User/Dump/Textures/.\n"
+"Dumpt de inhoud van EFB-kopieën naar User/Dump/Textures/.\n"
 "\n"
 "In geval van twijfel leeg laten."
 
@@ -2945,7 +2945,7 @@ msgstr "Embedded Frame Buffer (EFB)"
 msgid "Empty"
 msgstr "Leeg"
 
-#: Source/Core/Core/Core.cpp:216
+#: Source/Core/Core/Core.cpp:217
 msgid "Emu Thread already running"
 msgstr "Emu Thread draait al"
 
@@ -3372,7 +3372,6 @@ msgid "Export Recording..."
 msgstr "Exporteer Opname..."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
 msgid "Export Save File"
 msgstr "Exporteer Save Bestand"
 
@@ -4439,7 +4438,7 @@ msgstr "Host met NetPlay"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:372
 msgid "Hotkey Settings"
-msgstr "Sneltoets Instellingen"
+msgstr "Sneltoetsinstellingen"
 
 #: Source/Core/Core/HotkeyManager.cpp:196
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
@@ -4531,13 +4530,13 @@ msgid ""
 msgstr ""
 "Indien toegestaan, kan Dolphin gegevens verzamelen over zijn prestaties, "
 "gebruik van functies en configuratie, evenals gegevens over de hardware en "
-"het besturingssysteem van uw systeem.\n"
+"het besturingssysteem van uw apparaat.\n"
 "\n"
-"Er worden nooit privégegevens verzameld. Deze informatie helpt ons te "
-"begrijpen hoe Dolphin wordt gebruikt, en voor het stellen van onze "
-"prioriteiten. Het helpt ons ook om zeldzame configuraties te herkennen die "
-"bugs en prestatie- en stabiliteitsproblemen veroorzaken. \n"
-"Deze machtiging kan op elk moment worden ingetrokken via de Dolphin "
+"Er worden nooit privégegevens verzameld. Deze informatie helpt ons begrijpen "
+"hoe Dolphin wordt gebruikt, en bij het stellen van onze prioriteiten. Het "
+"helpt ons ook om zeldzame configuraties te herkennen die bugs en prestatie- "
+"en stabiliteitsproblemen veroorzaken. \n"
+"Deze machtiging kan op elk moment worden ingetrokken via de Dolphin-"
 "instellingen."
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:56
@@ -4611,6 +4610,10 @@ msgstr ""
 #: Source/Core/DolphinQt/MenuBar.cpp:251
 msgid "Import BootMii NAND Backup..."
 msgstr "Importeer BootMii NAND Backup..."
+
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
+msgid "Import Save File"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:276
 msgid "Import Wii Save..."
@@ -5261,7 +5264,7 @@ msgstr "Log Types"
 msgid "Logger Outputs"
 msgstr "Logger Uitvoer"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:236
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:237
 msgid ""
 "Logs the render time of every frame to User/Logs/render_time.txt.\n"
 "\n"
@@ -6202,7 +6205,7 @@ msgstr "Druk Op Sync Knop"
 msgid "Pressure"
 msgstr "Druk"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:256
 msgid ""
 "Prevents shader compilation stuttering by not rendering waiting objects. Can "
 "work in scenarios where Ubershaders doesn't, at the cost of introducing "
@@ -6495,7 +6498,7 @@ msgstr "Relatieve Invoer"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:34
 msgid "Relative Input Hold"
-msgstr "Relatieve Invoer Houden"
+msgstr "Relatieve Invoer Vastouden"
 
 #: Source/Core/DolphinQt/Updater.cpp:70
 msgid "Remind Me Later"
@@ -7089,7 +7092,7 @@ msgstr "Geselecteerde controller profiel bestaat niet"
 msgid "Selected game doesn't exist in game list!"
 msgstr "Het geselecteerde spel bestaat niet in de spellijst!"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:210
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:211
 msgid ""
 "Selects a hardware adapter to use.\n"
 "\n"
@@ -7144,7 +7147,7 @@ msgstr ""
 "\n"
 "In geval van twijfel \"OpenGL\" selecteren."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:222
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:223
 msgid ""
 "Selects which aspect ratio to use when rendering.\n"
 "\n"
@@ -7164,7 +7167,7 @@ msgstr ""
 "\n"
 "In geval van twijfel \"Auto\" selecteren."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:205
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:206
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7180,7 +7183,7 @@ msgstr ""
 "\n"
 "In geval van twijfel \"OpenGL\" selecteren."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:198
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:199
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7479,7 +7482,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:240
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:241
 msgid ""
 "Shows chat messages, buffer changes, and desync alerts while playing "
 "NetPlay.\n"
@@ -7491,7 +7494,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:231
 msgid ""
 "Shows the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -7503,7 +7506,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:233
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:234
 msgid ""
 "Shows the player's maximum ping while playing on NetPlay.\n"
 "\n"
@@ -8858,7 +8861,7 @@ msgstr "USB Gecko"
 msgid "USB Whitelist Error"
 msgstr "USB Witte Lijst Fout"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:243
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:244
 msgid ""
 "Ubershaders are never used. Stuttering will occur during shader compilation, "
 "but GPU demands are low.\n"
@@ -8874,7 +8877,7 @@ msgstr ""
 "\n"
 "In geval van twijfel deze modus selecteren."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:247
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:248
 msgid ""
 "Ubershaders will always be used. Provides a near stutter-free experience at "
 "the cost of high GPU performance requirements.\n"
@@ -8886,7 +8889,7 @@ msgstr ""
 "\n"
 "Alleen aanbevolen voor high-end systemen."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:250
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:251
 msgid ""
 "Ubershaders will be used to prevent stuttering during shader compilation, "
 "but specialized shaders will be used when they will not cause stuttering.\n"
@@ -8976,7 +8979,7 @@ msgstr "Verenigde Staten"
 msgid "Unknown"
 msgstr "Onbekend"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1137
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1132
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Onbekend DVD commando %08x - fatale fout"
@@ -9097,7 +9100,7 @@ msgstr "Wii-afstandsbediening Rechtop"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:199
 msgid "Usage Statistics Reporting Settings"
-msgstr "Gebruiksstatistieken Rapportering Instellingen"
+msgstr "Gebruiksstatistieken Rapportageinstellingen"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
 msgid "Use Built-In Database of Game Names"
@@ -9155,7 +9158,7 @@ msgstr ""
 "\n"
 "In geval van twijfel geselecteerd laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:212
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:213
 msgid ""
 "Uses the entire screen for rendering.\n"
 "\n"
@@ -9169,7 +9172,7 @@ msgstr ""
 "\n"
 "In geval van twijfel leeg laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:219
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:220
 msgid ""
 "Uses the main Dolphin window for rendering rather than a separate render "
 "window.\n"
@@ -9292,7 +9295,7 @@ msgstr ""
 msgid "WASAPI (Exclusive Mode)"
 msgstr "WASAPI (Exclusieve Modus)"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:260
 msgid ""
 "Waits for all shaders to finish compiling before starting a game. Enabling "
 "this option may reduce stuttering or hitching for a short time after the "
@@ -9311,7 +9314,7 @@ msgstr ""
 "\n"
 "In geval van twijfel geselecteerd laten."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:227
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:228
 msgid ""
 "Waits for vertical blanks in order to prevent tearing.\n"
 "\n"
