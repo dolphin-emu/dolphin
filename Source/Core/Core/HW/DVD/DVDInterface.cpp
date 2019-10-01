@@ -25,6 +25,7 @@
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -473,7 +474,9 @@ void Shutdown()
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
-  if (disc)
+  bool had_disc = IsDiscInside();
+  bool has_disc = static_cast<bool>(disc);
+  if (has_disc)
     s_current_partition = disc->GetGamePartition();
 
   if (auto_disc_change_paths)
@@ -484,6 +487,10 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     s_auto_disc_change_paths = *auto_disc_change_paths;
     s_auto_disc_change_index = 0;
   }
+
+  // Assume that inserting a disc requires having an empty disc before
+  if (had_disc != has_disc)
+    ExpansionInterface::g_rtc_flags[ExpansionInterface::RTCFlag::DiscChanged] = true;
 
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
@@ -517,9 +524,11 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 }
 
 // Must only be called on the CPU thread
-void EjectDisc()
+void EjectDisc(EjectCause cause)
 {
   CoreTiming::ScheduleEvent(0, s_eject_disc);
+  if (cause == EjectCause::User)
+    ExpansionInterface::g_rtc_flags[ExpansionInterface::RTCFlag::EjectButton] = true;
 }
 
 // Must only be called on the CPU thread
@@ -545,7 +554,7 @@ void ChangeDisc(const std::string& new_path)
     return;
   }
 
-  EjectDisc();
+  EjectDisc(EjectCause::User);
 
   s_disc_path_to_insert = new_path;
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
@@ -1072,7 +1081,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     }
     else if (force_eject)
     {
-      EjectDiscCallback(0, 0);
+      EjectDisc(EjectCause::Software);
     }
     break;
   }

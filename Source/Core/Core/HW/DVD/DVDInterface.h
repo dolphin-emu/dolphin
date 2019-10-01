@@ -74,6 +74,12 @@ enum class ReplyType : u32
   DTK
 };
 
+enum class EjectCause
+{
+  User,
+  Software,
+};
+
 void Init();
 void Reset();
 void Shutdown();
@@ -84,7 +90,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths);
 bool IsDiscInside();
-void EjectDisc();                                        // Must only be called on the CPU thread
+void EjectDisc(EjectCause cause);                        // Must only be called on the CPU thread
 void ChangeDisc(const std::vector<std::string>& paths);  // Must only be called on the CPU thread
 void ChangeDisc(const std::string& new_path);            // Must only be called on the CPU thread
 bool AutoChangeDisc();                                   // Must only be called on the CPU thread
