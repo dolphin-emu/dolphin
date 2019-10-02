@@ -14,9 +14,9 @@ static APIType GetAPIType()
 static void EmitUniformBufferDeclaration(std::stringstream& ss)
 {
   if (GetAPIType() == APIType::D3D)
-    ss << "cbuffer UBO : register(b0)\n";
+    ss << "cbuffer PSBlock : register(b0)\n";
   else
-    ss << "UBO_BINDING(std140, 1) uniform UBO\n";
+    ss << "UBO_BINDING(std140, 1) uniform PSBlock\n";
 }
 
 static void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 end = 1,
@@ -658,6 +658,45 @@ std::string GenerateEFBRestorePixelShader()
   EmitSampleTexture(ss, 1, "v_tex0");
   ss << ".r;\n";
   ss << "}\n";
+  return ss.str();
+}
+
+std::string GenerateImGuiVertexShader()
+{
+  std::stringstream ss;
+
+  // Uniform buffer contains the viewport size, and we transform in the vertex shader.
+  EmitUniformBufferDeclaration(ss);
+  ss << "{\n";
+  ss << "float2 u_rcp_viewport_size_mul2;\n";
+  ss << "};\n\n";
+
+  EmitVertexMainDeclaration(ss, 1, 1, true, 1, 1);
+  ss << "{\n"
+     << "  v_tex0 = float3(rawtex0.xy, 0.0);\n"
+     << "  v_col0 = rawcolor0;\n"
+     << "  opos = float4(rawpos.x * u_rcp_viewport_size_mul2.x - 1.0,"
+     << "                1.0 - rawpos.y * u_rcp_viewport_size_mul2.y, 0.0, 1.0);\n";
+
+  // NDC space is flipped in Vulkan.
+  if (GetAPIType() == APIType::Vulkan)
+    ss << "  opos.y = -opos.y;\n";
+
+  ss << "}\n";
+  return ss.str();
+}
+
+std::string GenerateImGuiPixelShader()
+{
+  std::stringstream ss;
+  EmitSamplerDeclarations(ss, 0, 1, false);
+  EmitPixelMainDeclaration(ss, 1, 1);
+  ss << "{\n";
+  ss << "  ocol0 = ";
+  EmitSampleTexture(ss, 0, "float3(v_tex0.xy, 0.0)");
+  ss << " * v_col0;\n";
+  ss << "}\n";
+
   return ss.str();
 }
 
