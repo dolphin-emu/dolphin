@@ -40,8 +40,7 @@ enum class StereoMode : int
   TAB,
   Anaglyph,
   QuadBuffer,
-  Passive,
-  Nvidia3DVision,
+  Passive
 };
 
 enum class ShaderCompilationMode : int

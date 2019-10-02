@@ -496,21 +496,6 @@ void HotkeyScheduler::Run()
           Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
         }
       }
-
-      if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
-      {
-        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::Nvidia3DVision)
-        {
-          if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
-            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
-
-          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Nvidia3DVision);
-        }
-        else
-        {
-          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Off);
-        }
-      }
     }
 
     const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);

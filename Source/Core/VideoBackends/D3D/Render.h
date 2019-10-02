@@ -67,19 +67,13 @@ public:
   void Flush() override;
   void WaitForGPUIdle() override;
 
-  void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                         const AbstractTexture* source_texture,
-                         const MathUtil::Rectangle<int>& source_rc) override;
   void OnConfigChanged(u32 bits) override;
 
 private:
-  void Create3DVisionTexture(int width, int height);
   void CheckForSwapChainChanges();
 
   StateCache m_state_cache;
 
   std::unique_ptr<SwapChain> m_swap_chain;
-  std::unique_ptr<DXTexture> m_3d_vision_texture;
-  std::unique_ptr<DXFramebuffer> m_3d_vision_framebuffer;
 };
 }  // namespace DX11
