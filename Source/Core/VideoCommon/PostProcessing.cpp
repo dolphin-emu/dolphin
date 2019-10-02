@@ -499,7 +499,18 @@ std::string PostProcessing::GetHeader() const
   else
   {
     ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
-    ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) in VertexData {\n";
+      ss << "  float3 v_tex0;\n";
+      ss << "};\n";
+    }
+    else
+    {
+      ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+    }
+
     ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
   }
 
@@ -597,7 +608,17 @@ bool PostProcessing::CompileVertexShader()
   }
   else
   {
-    ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) out VertexData {\n";
+      ss << "  float3 v_tex0;\n";
+      ss << "};\n";
+    }
+    else
+    {
+      ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
+    }
+
     ss << "#define id gl_VertexID\n";
     ss << "#define opos gl_Position\n";
     ss << "void main() {\n";
