@@ -59,6 +59,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
@@ -442,6 +443,13 @@ void Renderer::CheckForConfigChanges()
   // Notify the backend of the changes, if any.
   OnConfigChanged(changed_bits);
 
+  // If there's any shader changes, wait for the GPU to finish before destroying anything.
+  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
+  {
+    WaitForGPUIdle();
+    SetPipeline(nullptr);
+  }
+
   // Framebuffer changed?
   if (changed_bits & (CONFIG_CHANGE_BIT_MULTISAMPLES | CONFIG_CHANGE_BIT_STEREO_MODE |
                       CONFIG_CHANGE_BIT_TARGET_SIZE))
@@ -453,8 +461,6 @@ void Renderer::CheckForConfigChanges()
   if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
   {
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
-    WaitForGPUIdle();
-    SetPipeline(nullptr);
     g_vertex_manager->InvalidatePipelineObject();
     g_shader_cache->SetHostConfig(new_host_config);
     g_shader_cache->Reload();
@@ -466,6 +472,14 @@ void Renderer::CheckForConfigChanges()
   {
     BPFunctions::SetViewport();
     BPFunctions::SetScissor();
+  }
+
+  // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
+  // rendering the UI.
+  if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
+  {
+    RecompileImGuiPipeline();
+    m_post_processor->RecompilePipeline();
   }
 }
 
@@ -916,8 +930,8 @@ static std::string GenerateImGuiVertexShader()
     ss << "void main(in float2 rawpos : POSITION,\n"
        << "          in float2 rawtex0 : TEXCOORD,\n"
        << "          in float4 rawcolor0 : COLOR,\n"
-       << "          out float2 frag_uv : TEXCOORD,\n"
-       << "          out float4 frag_color : COLOR,\n"
+       << "          out float3 v_tex0 : TEXCOORD,\n"
+       << "          out float4 v_col0 : COLOR,\n"
        << "          out float4 out_pos : SV_Position)\n";
   }
   else
@@ -925,14 +939,14 @@ static std::string GenerateImGuiVertexShader()
     ss << "ATTRIBUTE_LOCATION(" << SHADER_POSITION_ATTRIB << ") in float2 rawpos;\n"
        << "ATTRIBUTE_LOCATION(" << SHADER_TEXTURE0_ATTRIB << ") in float2 rawtex0;\n"
        << "ATTRIBUTE_LOCATION(" << SHADER_COLOR0_ATTRIB << ") in float4 rawcolor0;\n"
-       << "VARYING_LOCATION(0) out float2 frag_uv;\n"
-       << "VARYING_LOCATION(1) out float4 frag_color;\n"
+       << "VARYING_LOCATION(0) out float3 v_tex0;\n"
+       << "VARYING_LOCATION(1) out float4 v_col0;\n"
        << "void main()\n";
   }
 
   ss << "{\n"
-     << "  frag_uv = rawtex0;\n"
-     << "  frag_color = rawcolor0;\n";
+     << "  v_tex0 = float3(rawtex0, 0.0);\n"
+     << "  v_col0 = rawcolor0;\n";
 
   ss << "  " << (api_type == APIType::D3D ? "out_pos" : "gl_Position")
      << "= float4(rawpos.x * u_rcp_viewport_size_mul2.x - 1.0, 1.0 - rawpos.y * "
@@ -955,15 +969,15 @@ static std::string GenerateImGuiPixelShader()
   {
     ss << "Texture2DArray tex0 : register(t0);\n"
        << "SamplerState samp0 : register(s0);\n"
-       << "void main(in float2 frag_uv : TEXCOORD,\n"
-       << "          in float4 frag_color : COLOR,\n"
+       << "void main(in float3 v_tex0 : TEXCOORD,\n"
+       << "          in float4 v_col0 : COLOR,\n"
        << "          out float4 ocol0 : SV_Target)\n";
   }
   else
   {
     ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
-       << "VARYING_LOCATION(0) in float2 frag_uv; \n"
-       << "VARYING_LOCATION(1) in float4 frag_color;\n"
+       << "VARYING_LOCATION(0) in float3 v_tex0; \n"
+       << "VARYING_LOCATION(1) in float4 v_col0;\n"
        << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n"
        << "void main()\n";
   }
@@ -971,9 +985,9 @@ static std::string GenerateImGuiPixelShader()
   ss << "{\n";
 
   if (api_type == APIType::D3D)
-    ss << "  ocol0 = tex0.Sample(samp0, float3(frag_uv, 0.0)) * frag_color;\n";
+    ss << "  ocol0 = tex0.Sample(samp0, float3(v_tex0.xy, 0.0)) * v_col0;\n";
   else
-    ss << "  ocol0 = texture(samp0, float3(frag_uv, 0.0)) * frag_color;\n";
+    ss << "  ocol0 = texture(samp0, float3(v_tex0.xy, 0.0)) * v_col0;\n";
 
   ss << "}\n";
 
@@ -1007,42 +1021,6 @@ bool Renderer::InitializeImGui()
     return false;
   }
 
-  const std::string vertex_shader_source = GenerateImGuiVertexShader();
-  const std::string pixel_shader_source = GenerateImGuiPixelShader();
-  std::unique_ptr<AbstractShader> vertex_shader =
-      CreateShaderFromSource(ShaderStage::Vertex, vertex_shader_source);
-  std::unique_ptr<AbstractShader> pixel_shader =
-      CreateShaderFromSource(ShaderStage::Pixel, pixel_shader_source);
-  if (!vertex_shader || !pixel_shader)
-  {
-    PanicAlert("Failed to compile imgui shaders");
-    return false;
-  }
-
-  AbstractPipelineConfig pconfig = {};
-  pconfig.vertex_format = m_imgui_vertex_format.get();
-  pconfig.vertex_shader = vertex_shader.get();
-  pconfig.pixel_shader = pixel_shader.get();
-  pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
-  pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
-  pconfig.blending_state = RenderState::GetNoBlendingBlendState();
-  pconfig.blending_state.blendenable = true;
-  pconfig.blending_state.srcfactor = BlendMode::SRCALPHA;
-  pconfig.blending_state.dstfactor = BlendMode::INVSRCALPHA;
-  pconfig.blending_state.srcfactoralpha = BlendMode::ZERO;
-  pconfig.blending_state.dstfactoralpha = BlendMode::ONE;
-  pconfig.framebuffer_state.color_texture_format = m_backbuffer_format;
-  pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
-  pconfig.framebuffer_state.samples = 1;
-  pconfig.framebuffer_state.per_sample_shading = false;
-  pconfig.usage = AbstractPipelineUsage::Utility;
-  m_imgui_pipeline = CreatePipeline(pconfig);
-  if (!m_imgui_pipeline)
-  {
-    PanicAlert("Failed to create imgui pipeline");
-    return false;
-  }
-
   // Font texture(s).
   {
     ImGuiIO& io = ImGui::GetIO();
@@ -1066,8 +1044,64 @@ bool Renderer::InitializeImGui()
     m_imgui_textures.push_back(std::move(font_tex));
   }
 
+  if (!RecompileImGuiPipeline())
+    return false;
+
   m_imgui_last_frame_time = Common::Timer::GetTimeUs();
   BeginImGuiFrame();
+  return true;
+}
+
+bool Renderer::RecompileImGuiPipeline()
+{
+  std::unique_ptr<AbstractShader> vertex_shader =
+      CreateShaderFromSource(ShaderStage::Vertex, GenerateImGuiVertexShader());
+  std::unique_ptr<AbstractShader> pixel_shader =
+      CreateShaderFromSource(ShaderStage::Pixel, GenerateImGuiPixelShader());
+  if (!vertex_shader || !pixel_shader)
+  {
+    PanicAlert("Failed to compile imgui shaders");
+    return false;
+  }
+
+  // GS is used to render the UI to both eyes in stereo modes.
+  std::unique_ptr<AbstractShader> geometry_shader;
+  if (UseGeometryShaderForUI())
+  {
+    geometry_shader = CreateShaderFromSource(
+        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1));
+    if (!geometry_shader)
+    {
+      PanicAlert("Failed to compile imgui geometry shader");
+      return false;
+    }
+  }
+
+  AbstractPipelineConfig pconfig = {};
+  pconfig.vertex_format = m_imgui_vertex_format.get();
+  pconfig.vertex_shader = vertex_shader.get();
+  pconfig.geometry_shader = geometry_shader.get();
+  pconfig.pixel_shader = pixel_shader.get();
+  pconfig.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
+  pconfig.depth_state = RenderState::GetNoDepthTestingDepthState();
+  pconfig.blending_state = RenderState::GetNoBlendingBlendState();
+  pconfig.blending_state.blendenable = true;
+  pconfig.blending_state.srcfactor = BlendMode::SRCALPHA;
+  pconfig.blending_state.dstfactor = BlendMode::INVSRCALPHA;
+  pconfig.blending_state.srcfactoralpha = BlendMode::ZERO;
+  pconfig.blending_state.dstfactoralpha = BlendMode::ONE;
+  pconfig.framebuffer_state.color_texture_format = m_backbuffer_format;
+  pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
+  pconfig.framebuffer_state.samples = 1;
+  pconfig.framebuffer_state.per_sample_shading = false;
+  pconfig.usage = AbstractPipelineUsage::Utility;
+  m_imgui_pipeline = CreatePipeline(pconfig);
+  if (!m_imgui_pipeline)
+  {
+    PanicAlert("Failed to create imgui pipeline");
+    return false;
+  }
+
   return true;
 }
 
@@ -1158,6 +1192,15 @@ void Renderer::DrawImGui()
   SetScissorRect(ConvertFramebufferRectangle(
       MathUtil::Rectangle<int>(0, 0, m_backbuffer_width, m_backbuffer_height),
       m_current_framebuffer));
+}
+
+bool Renderer::UseGeometryShaderForUI() const
+{
+  // OpenGL doesn't render to a 2-layer backbuffer like D3D/Vulkan for quad-buffered stereo,
+  // instead drawing twice and the eye selected by glDrawBuffer() (see
+  // OGL::Renderer::RenderXFBToScreen).
+  return g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
+         g_ActiveConfig.backend_info.api_type != APIType::OpenGL;
 }
 
 std::unique_lock<std::mutex> Renderer::GetImGuiLock()

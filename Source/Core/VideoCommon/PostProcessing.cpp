@@ -719,15 +719,10 @@ bool PostProcessing::CompilePixelShader()
 
 bool PostProcessing::CompilePipeline()
 {
-  // OpenGL doesn't render to a 2-layer backbuffer like D3D/Vulkan for quad-buffered stereo, instead
-  // drawing twice and the eye selected by glDrawBuffer() (see OGL::Renderer::RenderXFBToScreen).
-  const bool use_quad_buffer_gs = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer &&
-                                  g_ActiveConfig.backend_info.api_type != APIType::OpenGL;
-
   AbstractPipelineConfig config = {};
   config.vertex_shader = m_vertex_shader.get();
   config.geometry_shader =
-      use_quad_buffer_gs ? g_shader_cache->GetTexcoordGeometryShader() : nullptr;
+      g_renderer->UseGeometryShaderForUI() ? g_shader_cache->GetTexcoordGeometryShader() : nullptr;
   config.pixel_shader = m_pixel_shader.get();
   config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();

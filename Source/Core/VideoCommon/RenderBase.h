@@ -199,9 +199,6 @@ public:
   void SaveScreenshot(std::string filename, bool wait_for_completion);
   void DrawDebugText();
 
-  // ImGui initialization depends on being able to create textures and pipelines, so do it last.
-  bool InitializeImGui();
-
   virtual void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                            bool zEnable, u32 color, u32 z);
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
@@ -243,6 +240,10 @@ public:
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
 
+  // Returns true if a layer-expanding geometry shader should be used when rendering the user
+  // interface and final XFB.
+  bool UseGeometryShaderForUI() const;
+
   // Returns a lock for the ImGui mutex, enabling data structures to be modified from outside.
   // Use with care, only non-drawing functions should be called from outside the video thread,
   // as the drawing is tied to a "frame".
@@ -274,6 +275,12 @@ protected:
 
   void CheckFifoRecording();
   void RecordVideoMemory();
+
+  // ImGui initialization depends on being able to create textures and pipelines, so do it last.
+  bool InitializeImGui();
+
+  // Recompiles ImGui pipeline - call when stereo mode changes.
+  bool RecompileImGuiPipeline();
 
   // Sets up ImGui state for the next frame.
   // This function itself acquires the ImGui lock, so it should not be held.
