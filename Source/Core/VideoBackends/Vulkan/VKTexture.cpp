@@ -87,8 +87,10 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
 
   VkMemoryAllocateInfo memory_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
-      g_vulkan_context->GetMemoryType(memory_requirements.memoryTypeBits,
-                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)};
+      g_vulkan_context
+          ->GetMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          false)
+          .value_or(0)};
 
   VkDeviceMemory device_memory;
   res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_info, nullptr, &device_memory);

@@ -710,96 +710,97 @@ void VulkanContext::DisableDebugReports()
   }
 }
 
-bool VulkanContext::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, u32* out_type_index)
+std::optional<u32> VulkanContext::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties,
+                                                bool strict, bool* is_coherent)
 {
+  static constexpr u32 ALL_MEMORY_PROPERTY_FLAGS = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                                                   VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+
+  const u32 mask = strict ? ALL_MEMORY_PROPERTY_FLAGS : properties;
+
   for (u32 i = 0; i < VK_MAX_MEMORY_TYPES; i++)
   {
     if ((bits & (1 << i)) != 0)
     {
-      u32 supported = m_device_memory_properties.memoryTypes[i].propertyFlags & properties;
+      const VkMemoryPropertyFlags type_flags =
+          m_device_memory_properties.memoryTypes[i].propertyFlags;
+      const VkMemoryPropertyFlags supported = type_flags & mask;
       if (supported == properties)
       {
-        *out_type_index = i;
-        return true;
+        if (is_coherent)
+          *is_coherent = (type_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
+        return i;
       }
     }
   }
 
-  return false;
-}
-
-u32 VulkanContext::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties)
-{
-  u32 type_index = VK_MAX_MEMORY_TYPES;
-  if (!GetMemoryType(bits, properties, &type_index))
-    PanicAlert("Unable to find memory type for %x:%x", bits, properties);
-
-  return type_index;
+  return std::nullopt;
 }
 
 u32 VulkanContext::GetUploadMemoryType(u32 bits, bool* is_coherent)
 {
-  // Try for coherent memory first.
-  VkMemoryPropertyFlags flags =
+  static constexpr VkMemoryPropertyFlags COHERENT_FLAGS =
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-  u32 type_index;
-  if (!GetMemoryType(bits, flags, &type_index))
-  {
-    WARN_LOG(
-        VIDEO,
-        "Vulkan: Failed to find a coherent memory type for uploads, this will affect performance.");
+  // Try for coherent memory. Some drivers (looking at you, Adreno) have the cached type before the
+  // uncached type, so use a strict check first.
+  std::optional<u32> type_index = GetMemoryType(bits, COHERENT_FLAGS, true, is_coherent);
+  if (type_index)
+    return type_index.value();
 
-    // Try non-coherent memory.
-    flags &= ~VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    if (!GetMemoryType(bits, flags, &type_index))
-    {
-      // We shouldn't have any memory types that aren't host-visible.
-      PanicAlert("Unable to get memory type for upload.");
-      type_index = 0;
-    }
+  // Try for coherent memory, with any other bits set.
+  type_index = GetMemoryType(bits, COHERENT_FLAGS, false, is_coherent);
+  if (type_index)
+  {
+    WARN_LOG(VIDEO,
+             "Strict check for upload memory properties failed, this may affect performance");
+    return type_index.value();
   }
 
-  if (is_coherent)
-    *is_coherent = ((flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0);
+  // Fall back to non-coherent memory.
+  WARN_LOG(
+      VIDEO,
+      "Vulkan: Failed to find a coherent memory type for uploads, this will affect performance.");
+  type_index = GetMemoryType(bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, false, is_coherent);
+  if (type_index)
+    return type_index.value();
 
-  return type_index;
+  // Shouldn't happen, there should be at least one host-visible heap.
+  PanicAlert("Unable to get memory type for upload.");
+  return 0;
 }
 
-u32 VulkanContext::GetReadbackMemoryType(u32 bits, bool* is_coherent, bool* is_cached)
+u32 VulkanContext::GetReadbackMemoryType(u32 bits, bool* is_coherent)
 {
-  // Try for cached and coherent memory first.
-  VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
-                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  std::optional<u32> type_index;
 
-  u32 type_index;
-  if (!GetMemoryType(bits, flags, &type_index))
-  {
-    // For readbacks, caching is more important than coherency.
-    flags &= ~VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    if (!GetMemoryType(bits, flags, &type_index))
-    {
-      WARN_LOG(VIDEO, "Vulkan: Failed to find a cached memory type for readbacks, this will affect "
-                      "performance.");
+  // Optimal config uses cached+coherent.
+  type_index =
+      GetMemoryType(bits,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
+                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    true, is_coherent);
+  if (type_index)
+    return type_index.value();
 
-      // Remove the cached bit as well.
-      flags &= ~VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-      if (!GetMemoryType(bits, flags, &type_index))
-      {
-        // We shouldn't have any memory types that aren't host-visible.
-        PanicAlert("Unable to get memory type for upload.");
-        type_index = 0;
-      }
-    }
-  }
+  // Otherwise, prefer cached over coherent if we must choose one.
+  type_index =
+      GetMemoryType(bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                    false, is_coherent);
+  if (type_index)
+    return type_index.value();
 
-  if (is_coherent)
-    *is_coherent = ((flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0);
-  if (is_cached)
-    *is_cached = ((flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) != 0);
+  WARN_LOG(VIDEO, "Vulkan: Failed to find a cached memory type for readbacks, this will affect "
+                  "performance.");
+  type_index = GetMemoryType(bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, false, is_coherent);
+  *is_coherent = false;
+  if (type_index)
+    return type_index.value();
 
-  return type_index;
+  // We should have at least one host visible memory type...
+  PanicAlert("Unable to get memory type for upload.");
+  return 0;
 }
 
 void VulkanContext::InitDriverDetails()
