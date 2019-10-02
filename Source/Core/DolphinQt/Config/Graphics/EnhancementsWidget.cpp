@@ -20,6 +20,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/VideoUtils.h"
@@ -109,9 +110,10 @@ void EnhancementsWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout();
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_3d_mode = new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"),
-                                  tr("Anaglyph"), tr("HDMI 3D"), tr("Passive")},
-                                 Config::GFX_STEREO_MODE);
+  m_3d_mode =
+      new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"),
+                          tr("HDMI 3D"), tr("Passive"), tr("NVIDIA 3D Vision")},
+                         Config::GFX_STEREO_MODE);
   m_3d_depth = new GraphicsSlider(0, 100, Config::GFX_STEREO_DEPTH);
   m_3d_convergence = new GraphicsSlider(0, 200, Config::GFX_STEREO_CONVERGENCE, 100);
   m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
@@ -228,13 +230,14 @@ void EnhancementsWidget::LoadSettings()
   bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
   bool supports_3dvision = g_Config.backend_info.bSupports3DVision;
 
-  bool has_3dvision = m_3d_mode->count() == 7;
+  if (m_3d_mode->currentIndex() == int(StereoMode::Nvidia3DVision) && !supports_3dvision)
+  {
+    m_3d_mode->setCurrentIndex(int(StereoMode::Off));
 
-  if (has_3dvision && !supports_3dvision)
-    m_3d_mode->removeItem(5);
-
-  if (!has_3dvision && supports_3dvision)
-    m_3d_mode->addItem(tr("NVIDIA 3D Vision"));
+    ModalMessageBox::information(this, tr("NVIDIA 3D Vision"),
+                                 tr("NVIDIA 3D Vision is unsupported by the selected backend. "
+                                    "Stereoscopy has been disabled."));
+  }
 
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
