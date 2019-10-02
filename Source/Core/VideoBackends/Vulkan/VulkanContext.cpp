@@ -775,6 +775,16 @@ u32 VulkanContext::GetReadbackMemoryType(u32 bits, bool* is_coherent)
 {
   std::optional<u32> type_index;
 
+  // Mali driver appears to be significantly slower for readbacks when using cached memory.
+  if (DriverDetails::HasBug(DriverDetails::BUG_SLOW_CACHED_READBACK_MEMORY))
+  {
+    type_index = GetMemoryType(
+        bits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, true,
+        is_coherent);
+    if (type_index)
+      return type_index.value();
+  }
+
   // Optimal config uses cached+coherent.
   type_index =
       GetMemoryType(bits,

@@ -281,6 +281,11 @@ enum Bug
   // The Vulkan spec allows the minDepth/maxDepth fields in the viewport to be reversed,
   // however the implementation is broken on some drivers.
   BUG_BROKEN_REVERSED_DEPTH_RANGE,
+
+  // BUG: Cached memory is significantly slower for readbacks than coherent memory in the
+  // Mali Vulkan driver, causing high CPU usage in the __pi___inval_cache_range kernel
+  // function. This flag causes readback buffers to select the coherent type.
+  BUG_SLOW_CACHED_READBACK_MEMORY,
 };
 
 // Initializes our internal vendor, device family, and driver version
