@@ -743,11 +743,15 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
 {
   if (auto* const openxr_session = GetOpenXRSession())
   {
+    const auto image_index = openxr_session->AcquireAndWaitForSwapchainImage();
+
+    if (!image_index.has_value())
+      return;
+
     const auto images = openxr_session->GetSwapchainImages(
         XrSwapchainImageD3D12KHR{XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR});
 
-    const auto image_index = openxr_session->AcquireAndWaitForSwapchainImage();
-    ID3D12Resource* texture(images[image_index].texture);
+    ID3D12Resource* texture(images[*image_index].texture);
 
     auto dx_texture = DXTexture::CreateAdopted(texture);
     auto fb = CreateFramebuffer(dx_texture.get(), nullptr);

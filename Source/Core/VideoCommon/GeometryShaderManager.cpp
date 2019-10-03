@@ -8,6 +8,8 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -45,20 +47,44 @@ void GeometryShaderManager::SetConstants()
   {
     s_projection_changed = false;
 
+    constants.stereoparams.fill(0);
+
     if (xfmem.projection.type == GX_PERSPECTIVE)
     {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
-                     (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
-      constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
-      constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
+      if (auto* const openxr_session = g_renderer->GetOpenXRSession())
+      {
+        Common::Matrix44 projection;
+        std::memcpy(projection.data.data(), VertexShaderManager::constants.projection.data(),
+                    sizeof(projection));
+
+        // We must "undo" the game's projection before applying our eye projections.
+        const auto inv_projection = projection.Inverted();
+
+        // Use the game's near and far values.
+        const float z_near = projection.data[11] / (projection.data[10] - 1);
+        const float z_far = projection.data[11] / (projection.data[10] + 1);
+
+        int eye_index = 0;
+        for (auto& eye_view : constants.eye_views)
+        {
+          eye_view = openxr_session->GetEyeViewMatrix(eye_index, z_near, z_far) * inv_projection;
+          ++eye_index;
+        }
+      }
+      else
+      {
+        float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
+                       (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+        constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
+        constants.stereoparams[1] = -constants.stereoparams[0];
+        constants.stereoparams[2] = g_ActiveConfig.iStereoConvergence *
+                                    (g_ActiveConfig.iStereoConvergencePercentage / 100.f);
+      }
     }
     else
     {
-      constants.stereoparams[0] = constants.stereoparams[1] = 0;
+      constants.eye_views.fill(Common::Matrix44::Identity());
     }
-
-    constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
-                                        (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
 
     dirty = true;
   }

@@ -15,6 +15,8 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
+#include "Common/Matrix.h"
 #include "Common/Thread.h"
 
 namespace OpenXR
@@ -26,21 +28,23 @@ static std::map<XrSession, Session*> s_session_objects;
 static std::mutex s_sessions_mutex;
 
 constexpr XrViewConfigurationType VIEW_CONFIG_TYPE = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-constexpr XrPosef IDENTITY_POSE{{0, 0, 0, 1}, {0, 0, 0}};
+constexpr XrQuaternionf IDENTITY_ORIENTATION = {0, 0, 0, 1};
+constexpr XrVector3f IDENTITY_POSITION = {0, 0, 0};
+constexpr XrPosef IDENTITY_POSE = {IDENTITY_ORIENTATION, IDENTITY_POSITION};
 
 static std::vector<const char*> s_enabled_extensions;
 
 static std::atomic<bool> s_run_event_thread;
 static std::thread s_event_thread;
 
-bool IsInit()
+bool IsInitialized()
 {
   return s_instance != XR_NULL_HANDLE;
 }
 
 bool Shutdown()
 {
-  if (!IsInit())
+  if (!IsInitialized())
     return true;
 
   s_run_event_thread = false;
@@ -118,8 +122,10 @@ void EventThreadFunc()
 
 bool Init()
 {
-  if (IsInit())
+  if (IsInitialized())
     return true;
+
+  s_enabled_extensions = {};
 
   uint32_t extension_count;
   xrEnumerateInstanceExtensionProperties(nullptr, 0, &extension_count, nullptr);
@@ -219,7 +225,7 @@ bool Init()
 
 std::unique_ptr<Session> CreateSession(const std::vector<std::string_view>& required_extensions,
                                        const void* graphics_binding,
-                                       const std::vector<int64_t>& swapchain_formats)
+                                       const std::vector<s64>& swapchain_formats)
 {
   auto session = std::make_unique<Session>();
   if (session->Create(required_extensions, graphics_binding) &&
@@ -233,6 +239,8 @@ std::unique_ptr<Session> CreateSession(const std::vector<std::string_view>& requ
   }
 }
 
+Session::Session() = default;
+
 Session::~Session()
 {
   Destroy();
@@ -243,13 +251,17 @@ bool Session::Create(const std::vector<std::string_view>& required_extensions,
 {
   Init();
 
-  if (!IsInit())
+  if (!IsInitialized())
     return false;
 
-  // If a session has already been created.
+  // Fail if Create() has already been called without a matching Destroy().
   if (IsValid())
     return false;
 
+  // FYI: OpenXR spec says zero is an invalid XrTime.
+  // We won't have a valid time until after xrWaitFrame.
+  m_predicted_display_time = 0;
+  m_display_time = 0;
   MarkValuesDirty();
 
   for (auto& ext : required_extensions)
@@ -282,18 +294,9 @@ bool Session::Create(const std::vector<std::string_view>& required_extensions,
   }
 
   XrReferenceSpaceCreateInfo space_create_info{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
-  space_create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
-  space_create_info.poseInReferenceSpace = IDENTITY_POSE;
-  XrResult result = xrCreateReferenceSpace(m_session, &space_create_info, &m_view_space);
-  if (XR_FAILED(result))
-  {
-    ERROR_LOG(VIDEO, "OpenXR: xrCreateReferenceSpace: %d", result);
-    return false;
-  }
-
   space_create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
   space_create_info.poseInReferenceSpace = IDENTITY_POSE;
-  result = xrCreateReferenceSpace(m_session, &space_create_info, &m_local_space);
+  const XrResult result = xrCreateReferenceSpace(m_session, &space_create_info, &m_local_space);
   if (XR_FAILED(result))
   {
     ERROR_LOG(VIDEO, "OpenXR: xrCreateReferenceSpace: %d", result);
@@ -347,15 +350,18 @@ bool Session::Begin()
     return false;
   }
 
-  m_run_wait_frame_thread = true;
-  m_wait_frame_thread = std::thread([this]() {
-    Common::SetCurrentThreadName("OpenXR Wait Frame");
+  if (!m_is_headless_session)
+  {
+    m_run_wait_frame_thread = true;
+    m_wait_frame_thread = std::thread([this]() {
+      Common::SetCurrentThreadName("OpenXR Wait Frame");
 
-    while (m_run_wait_frame_thread)
-    {
-      WaitFrame();
-    }
-  });
+      while (m_run_wait_frame_thread)
+      {
+        WaitFrame();
+      }
+    });
+  }
 
   return true;
 }
@@ -398,9 +404,9 @@ bool Session::WaitFrame()
     return false;
   }
 
-  m_predicted_display_time = frame_state.predictedDisplayTime;
+  // TODO: We could check frame_state.shouldRender but it's probably not a big deal.
 
-  // TODO: check frame_state.shouldRender
+  m_predicted_display_time = frame_state.predictedDisplayTime;
 
   return true;
 }
@@ -458,13 +464,14 @@ bool Session::EndFrame()
   return XR_SUCCEEDED(result);
 }
 
-bool Session::CreateSwapchain(const std::vector<int64_t>& supported_formats)
+bool Session::CreateSwapchain(const std::vector<s64>& supported_formats)
 {
   uint32_t view_count = VIEW_COUNT;
   std::vector<XrViewConfigurationView> config_views(view_count, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
   XrResult result = xrEnumerateViewConfigurationViews(s_instance, s_system_id, VIEW_CONFIG_TYPE,
                                                       view_count, &view_count, config_views.data());
 
+  // We only support 2 views (one for each eye).
   if (XR_FAILED(result) || view_count != VIEW_COUNT)
   {
     ERROR_LOG(VIDEO, "OpenXR: xrEnumerateViewConfigurationViews: %d (%d)", result, view_count);
@@ -484,7 +491,7 @@ bool Session::CreateSwapchain(const std::vector<int64_t>& supported_formats)
     return false;
   }
 
-  // Require left/right views have identical sizes
+  // Require left/right views have identical sizes.
   if (config_views[0].recommendedImageRectWidth != config_views[1].recommendedImageRectWidth ||
       config_views[0].recommendedImageRectHeight != config_views[1].recommendedImageRectHeight ||
       config_views[0].recommendedSwapchainSampleCount !=
@@ -511,7 +518,7 @@ bool Session::CreateSwapchain(const std::vector<int64_t>& supported_formats)
 
   DEBUG_LOG(VIDEO, "OpenXR: Using swapchain format: %d", m_swapchain_format);
 
-  // Create swapchain with texture array of size view_count.
+  // Create swapchain with 2 image layers (one for each view).
   XrSwapchainCreateInfo swapchain_info{XR_TYPE_SWAPCHAIN_CREATE_INFO};
   swapchain_info.createFlags = 0;
   // TODO: Are these flags sane?
@@ -545,8 +552,8 @@ bool Session::EnumerateSwapchainImages(uint32_t count, uint32_t* capacity, void*
   return XR_SUCCEEDED(result);
 }
 
-// TODO: Allow for a timeout? return optional<> ?
-uint32_t Session::AcquireAndWaitForSwapchainImage()
+// TODO: Allow for a timeout?
+std::optional<u32> Session::AcquireAndWaitForSwapchainImage()
 {
   uint32_t swapchain_image_index = 0;
   XrResult result = xrAcquireSwapchainImage(m_swapchain, nullptr, &swapchain_image_index);
@@ -574,43 +581,46 @@ bool Session::ReleaseSwapchainImage()
   return XR_SUCCEEDED(result);
 }
 
-int64_t Session::GetSwapchainFormat()
+s64 Session::GetSwapchainFormat() const
 {
   return m_swapchain_format;
 }
 
-XrExtent2Di Session::GetSwapchainSize()
+XrExtent2Di Session::GetSwapchainSize() const
 {
   return m_swapchain_size;
 }
 
-// TODO: Use near/far + make frustum
-Common::Matrix44 Session::GetEyeViewMatrix(int eye_index, float near, float far)
+Common::Matrix44 Session::GetEyeViewMatrix(int eye_index, float z_near, float z_far)
 {
   using Common::Matrix33;
   using Common::Matrix44;
 
   UpdateValuesIfDirty();
 
-  Matrix44 view_matrix = Matrix44::Identity();
-
-  auto& view = m_eye_views[eye_index];
-
-  const auto& rot = view.pose.orientation;
-  view_matrix =
-      Matrix44::FromMatrix33(Matrix33::FromQuaternion(rot.x, rot.y, rot.z, rot.w)) * view_matrix;
-
   // TODO: Make this per-game configurable.
   const float units_per_meter = 100;
 
-  const auto& pos = view.pose.position;
-  view_matrix =
-      Matrix44::Translate(Common::Vec3{pos.x, pos.y, pos.z} * units_per_meter) * view_matrix;
+  auto& view = m_eye_views[eye_index];
 
-  return view_matrix;
+  const auto& pos = view.pose.position;
+  const auto& rot = view.pose.orientation;
+
+  const auto view_matrix =
+      Matrix44::FromMatrix33(Matrix33::FromQuaternion(rot.x, rot.y, rot.z, rot.w)).Inverted() *
+      Matrix44::Translate(Common::Vec3{pos.x, pos.y, pos.z} * units_per_meter);
+
+  const auto& fov = view.fov;
+
+  float left = std::tan(fov.angleLeft) * z_near;
+  float right = std::tan(fov.angleRight) * z_near;
+  float bottom = std::tan(fov.angleDown) * z_near;
+  float top = std::tan(fov.angleUp) * z_near;
+
+  return Matrix44::Frustum(left, right, bottom, top, z_near, z_far) * view_matrix;
 }
 
-bool Session::AreValuesDirty()
+bool Session::AreValuesDirty() const
 {
   return m_eye_views[0].type != XR_TYPE_VIEW;
 }
@@ -628,11 +638,11 @@ void Session::UpdateValuesIfDirty()
   // Update our display time with the most up to date prediction
   m_display_time = m_predicted_display_time;
 
-  m_eye_views.fill({XR_TYPE_VIEW});
-
   // If WaitFrame has yet to complete we will still not have a usable time.
   if (m_display_time)
   {
+    m_eye_views.fill({XR_TYPE_VIEW});
+
     XrViewState view_state{XR_TYPE_VIEW_STATE};
 
     XrViewLocateInfo view_locate_info{XR_TYPE_VIEW_LOCATE_INFO};
@@ -648,10 +658,37 @@ void Session::UpdateValuesIfDirty()
     {
       ERROR_LOG(VIDEO, "OpenXR: xrLocateViews: %d", result);
     }
-  }
 
-  // TODO: Sanitize the eye views if the relevant view_state flags aren't set.
-  // (or if display time is not yet valid)
+    // Sanitize the eye views if the relevant flags aren't set.
+    if (!(view_state.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT))
+    {
+      WARN_LOG(VIDEO, "OpenXR: xrLocateViews: Orientation not available.");
+
+      for (auto& view : m_eye_views)
+        view.pose.orientation = IDENTITY_ORIENTATION;
+    }
+
+    if (!(view_state.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT))
+    {
+      WARN_LOG(VIDEO, "OpenXR: xrLocateViews: Position not available.");
+
+      for (auto& view : m_eye_views)
+        view.pose.position = IDENTITY_POSITION;
+    }
+  }
+  else
+  {
+    // This would only happen on start.
+    WARN_LOG(VIDEO, "OpenXR: No display time available to locate views, using fallback.");
+
+    XrView fallback_view{XR_TYPE_VIEW};
+    fallback_view.pose = IDENTITY_POSE;
+    // 45 degrees.
+    const float fov = MathUtil::TAU / 8;
+    fallback_view.fov = {-fov, fov, fov, -fov};
+
+    m_eye_views.fill(fallback_view);
+  }
 }
 
 XrSessionState Session::GetState() const
@@ -677,6 +714,9 @@ void Session::OnChangeState(XrSessionState new_state)
   case XR_SESSION_STATE_LOSS_PENDING:
   case XR_SESSION_STATE_EXITING:
     Destroy();
+    break;
+
+  default:
     break;
   }
 }
