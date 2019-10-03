@@ -881,8 +881,15 @@ void ExecuteCommand(ReplyType reply_type)
     break;
   // Wii-exclusive
   case DICommand::ReadBCA:
-    WARN_LOG(DVDINTERFACE, "DVDLowReadDiskBca");
-    Memory::Write_U32(1, s_DIMAR + 0x30);
+    WARN_LOG(DVDINTERFACE, "DVDLowReadDiskBca - supplying dummy data to appease NSMBW");
+    // NSMBW checks that the first 0x33 bytes of the BCA are 0, then it expects a 1.
+    // Most (all?) other games have 0x34 0's at the start of the BCA, but don't actually
+    // read it.  NSMBW doesn't care about the other 12 bytes (which contain manufacturing data?)
+
+    // TODO: Read the .bca file that cleanrip generates, if it exists
+    // Memory::CopyToEmu(output_address, bca_data, 0x40);
+    Memory::Memset(s_DIMAR, 0, 0x40);
+    Memory::Write_U8(1, s_DIMAR + 0x33);
     break;
   // Wii-exclusive
   case DICommand::RequestDiscStatus:
