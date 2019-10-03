@@ -321,7 +321,7 @@ Matrix44 Matrix44::Inverted() const
 
   det = 1.f / det;
 
-  Matrix44 result;
+  Matrix44 result = {};
 
   for (int i = 0; i != inv.size(); ++i)
     result.data[i] = inv[i] * det;

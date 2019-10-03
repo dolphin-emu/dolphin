@@ -235,7 +235,19 @@ void EnhancementsWidget::LoadSettings()
   LoadPPShaders();
 
   // Stereoscopy
-  const bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+#if !USE_OPENXR
+  if (m_3d_mode->currentIndex() == int(StereoMode::OpenXR))
+  {
+    m_3d_mode->setCurrentIndex(int(StereoMode::Off));
+
+    ModalMessageBox::information(this, tr("OpenXR"),
+                                 tr("This build of Dolphin was compiled without OpenXR support. "
+                                    "Stereoscopy has been disabled."));
+  }
+#endif
+
+  bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
   m_3d_depth->setEnabled(supports_stereoscopy);

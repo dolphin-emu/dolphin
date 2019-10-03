@@ -684,7 +684,7 @@ void Session::UpdateValuesIfDirty()
     XrView fallback_view{XR_TYPE_VIEW};
     fallback_view.pose = IDENTITY_POSE;
     // 45 degrees.
-    const float fov = MathUtil::TAU / 8;
+    constexpr auto fov = float(MathUtil::TAU / 8);
     fallback_view.fov = {-fov, fov, fov, -fov};
 
     m_eye_views.fill(fallback_view);

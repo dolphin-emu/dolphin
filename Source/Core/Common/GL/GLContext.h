@@ -46,7 +46,9 @@ public:
 
   virtual void* GetFuncAddress(const std::string& name);
 
+#if USE_OPENXR
   virtual std::unique_ptr<OpenXR::Session> CreateOpenXRSession();
+#endif
 
   // Creates an instance of GLContext specific to the platform we are running on.
   // If successful, the context is made current on the calling thread.

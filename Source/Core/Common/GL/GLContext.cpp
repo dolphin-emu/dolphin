@@ -76,10 +76,12 @@ void* GLContext::GetFuncAddress(const std::string& name)
   return nullptr;
 }
 
+#if USE_OPENXR
 std::unique_ptr<OpenXR::Session> GLContext::CreateOpenXRSession()
 {
   return nullptr;
 }
+#endif
 
 std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool stereo, bool core,
                                              bool prefer_egl, bool prefer_gles)

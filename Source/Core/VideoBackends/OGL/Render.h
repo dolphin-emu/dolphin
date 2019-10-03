@@ -96,6 +96,7 @@ public:
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
+
                                                          std::string_view source) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length) override;
@@ -169,7 +170,9 @@ private:
   void ApplyDepthState(const DepthState state);
   void ApplyBlendingState(const BlendingState state);
 
+#if USE_OPENXR
   std::unique_ptr<OpenXR::Session> CreateOpenXRSession() override;
+#endif
 
   std::unique_ptr<GLContext> m_main_gl_context;
   std::unique_ptr<OGLFramebuffer> m_system_framebuffer;

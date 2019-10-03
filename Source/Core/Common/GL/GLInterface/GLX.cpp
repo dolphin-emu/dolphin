@@ -7,10 +7,11 @@
 #include <array>
 #include <sstream>
 
+#if USE_OPENXR
 #define XR_USE_GRAPHICS_API_OPENGL
 #define XR_USE_PLATFORM_XLIB
-#include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
+#endif
 
 #include "Common/Logging/Log.h"
 
@@ -72,6 +73,7 @@ void* GLContextGLX::GetFuncAddress(const std::string& name)
   return reinterpret_cast<void*>(glXGetProcAddress(reinterpret_cast<const GLubyte*>(name.c_str())));
 }
 
+#if USE_OPENXR
 std::unique_ptr<OpenXR::Session> GLContextGLX::CreateOpenXRSession()
 {
   XrGraphicsBindingOpenGLXlibKHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR};
@@ -84,6 +86,7 @@ std::unique_ptr<OpenXR::Session> GLContextGLX::CreateOpenXRSession()
   return OpenXR::CreateSession({"XR_KHR_opengl_enable", "OpenGL not implemented"},
                                &graphics_binding, {});
 }
+#endif
 
 void GLContextGLX::Swap()
 {

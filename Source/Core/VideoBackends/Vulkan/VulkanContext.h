@@ -121,7 +121,9 @@ public:
   GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
 #endif
 
+#if USE_OPENXR
   std::unique_ptr<OpenXR::Session> CreateOpenXRSession();
+#endif
 
 private:
   static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,

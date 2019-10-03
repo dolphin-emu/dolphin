@@ -1355,9 +1355,11 @@ void Renderer::RestoreFramebufferBinding()
       m_current_framebuffer ? static_cast<OGLFramebuffer*>(m_current_framebuffer)->GetFBO() : 0);
 }
 
+#if USE_OPENXR
 std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
 {
   return m_main_gl_context->CreateOpenXRSession();
 }
+#endif
 
 }  // namespace OGL

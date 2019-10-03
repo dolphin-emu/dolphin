@@ -649,11 +649,13 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groups_x,
     vkCmdDispatch(g_command_buffer_mgr->GetCurrentCommandBuffer(), groups_x, groups_y, groups_z);
 }
 
+#if USE_OPENXR
 std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
 {
   // TODO: query xrGetVulkanDeviceExtensionsKHR and xrGetVulkanGraphicsDeviceKHR
 
   return g_vulkan_context->CreateOpenXRSession();
 }
+#endif
 
 }  // namespace Vulkan
