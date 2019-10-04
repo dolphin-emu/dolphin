@@ -779,6 +779,8 @@ void ExecuteCommand(ReplyType reply_type)
   // GC-only patched drive firmware command, used by libogc
   case DICommand::Unknown55:
     INFO_LOG(DVDINTERFACE, "SetExtension");
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
 
   // Wii-exclusive
@@ -863,24 +865,34 @@ void ExecuteCommand(ReplyType reply_type)
       ERROR_LOG(DVDINTERFACE, "Unknown 0xAD subcommand in %08x", s_DICMDBUF[0]);
       break;
     }
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::ReadDVD:
     ERROR_LOG(DVDINTERFACE, "DVDLowReadDvd");
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::ReadDVDConfig:
     ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdConfig");
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::StopLaser:
     ERROR_LOG(DVDINTERFACE, "DVDLowStopLaser");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_STOP_LASER);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::Offset:
     ERROR_LOG(DVDINTERFACE, "DVDLowOffset");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_OFFSET);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::ReadBCA:
@@ -899,20 +911,28 @@ void ExecuteCommand(ReplyType reply_type)
   case DICommand::RequestDiscStatus:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestDiscStatus");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_DISC_STATUS);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::RequestRetryNumber:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestRetryNumber");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_RETRY_NUMBER);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::SetMaximumRotation:
     ERROR_LOG(DVDINTERFACE, "DVDLowSetMaximumRotation");
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::SerMeasControl:
     ERROR_LOG(DVDINTERFACE, "DVDLowSerMeasControl");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_SER_MEAS_CONTROL);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
 
   // Used by both GC and Wii
@@ -1084,6 +1104,8 @@ void ExecuteCommand(ReplyType reply_type)
   // GC-only patched drive firmware command, used by libogc
   case DICommand::UnknownEE:
     INFO_LOG(DVDINTERFACE, "SetStatus");
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
 
   // Debug commands; see yagcd. We don't really care
@@ -1092,6 +1114,8 @@ void ExecuteCommand(ReplyType reply_type)
   // Can only be used through direct access and only after unlocked.
   case DICommand::Debug:
     ERROR_LOG(DVDINTERFACE, "Unsupported DVD Drive debug command 0x%08x", s_DICMDBUF[0]);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
 
   // Unlock Commands. 1: "MATSHITA" 2: "DVD-GAME"
@@ -1119,6 +1143,8 @@ void ExecuteCommand(ReplyType reply_type)
     ERROR_LOG(DVDINTERFACE, "Unknown command 0x%08x (Buffer 0x%08x, 0x%x)", s_DICMDBUF[0], s_DIMAR,
               s_DILENGTH);
     PanicAlertT("Unknown DVD command %08x - fatal error", s_DICMDBUF[0]);
+    SetHighError(ERROR_INV_CMD);
+    interrupt_type = DIInterruptType::DEINT;
     break;
   }
 
