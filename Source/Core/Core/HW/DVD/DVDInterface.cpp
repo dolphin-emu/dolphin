@@ -19,6 +19,7 @@
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Analytics.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -874,14 +875,17 @@ void ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::StopLaser:
     ERROR_LOG(DVDINTERFACE, "DVDLowStopLaser");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_STOP_LASER);
     break;
   // Wii-exclusive
   case DICommand::Offset:
     ERROR_LOG(DVDINTERFACE, "DVDLowOffset");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_OFFSET);
     break;
   // Wii-exclusive
   case DICommand::ReadBCA:
     WARN_LOG(DVDINTERFACE, "DVDLowReadDiskBca - supplying dummy data to appease NSMBW");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_READ_DISK_BCA);
     // NSMBW checks that the first 0x33 bytes of the BCA are 0, then it expects a 1.
     // Most (all?) other games have 0x34 0's at the start of the BCA, but don't actually
     // read it.  NSMBW doesn't care about the other 12 bytes (which contain manufacturing data?)
@@ -894,10 +898,12 @@ void ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::RequestDiscStatus:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestDiscStatus");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_DISC_STATUS);
     break;
   // Wii-exclusive
   case DICommand::RequestRetryNumber:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestRetryNumber");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_RETRY_NUMBER);
     break;
   // Wii-exclusive
   case DICommand::SetMaximumRotation:
@@ -906,6 +912,7 @@ void ExecuteCommand(ReplyType reply_type)
   // Wii-exclusive
   case DICommand::SerMeasControl:
     ERROR_LOG(DVDINTERFACE, "DVDLowSerMeasControl");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_SER_MEAS_CONTROL);
     break;
 
   // Used by both GC and Wii
