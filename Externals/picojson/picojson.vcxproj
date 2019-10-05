@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="picojson.h" />
+    <ClInclude Include="picojson/picojson.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="picojson.cpp" />
+    <ClCompile Include="picojson/picojson.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2C0D058E-DE35-4471-AD99-E68A2CAF9E18}</ProjectGuid>

@@ -4,22 +4,21 @@
 
 #include "UICommon/DiscordPresence.h"
 
+#include <algorithm>
+#include <cctype>
+#include <ctime>
+#include <string>
+
+#ifdef USE_DISCORD_PRESENCE
+#include <discord_rpc.h>
+#endif
+
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
-
-#ifdef USE_DISCORD_PRESENCE
-
-#include <algorithm>
-#include <cctype>
-#include <ctime>
-#include <discord-rpc/include/discord_rpc.h>
-#include <string>
-
-#endif
 
 namespace Discord
 {

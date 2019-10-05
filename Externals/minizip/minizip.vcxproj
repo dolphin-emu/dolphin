@@ -45,12 +45,12 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ioapi.c" />
-    <ClCompile Include="unzip.c" />
+    <ClCompile Include="minizip/ioapi.c" />
+    <ClCompile Include="minizip/unzip.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ioapi.h" />
-    <ClInclude Include="unzip.h" />
+    <ClInclude Include="minizip/ioapi.h" />
+    <ClInclude Include="minizip/unzip.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />

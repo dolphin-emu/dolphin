@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="add_scalar.c" />
-    <ClCompile Include="fe.c" />
-    <ClCompile Include="ge.c" />
-    <ClCompile Include="key_exchange.c" />
-    <ClCompile Include="keypair.c" />
-    <ClCompile Include="sc.c" />
-    <ClCompile Include="seed.c" />
-    <ClCompile Include="sha512.c" />
-    <ClCompile Include="sign.c" />
-    <ClCompile Include="verify.c" />
+    <ClCompile Include="ed25519/add_scalar.c" />
+    <ClCompile Include="ed25519/fe.c" />
+    <ClCompile Include="ed25519/ge.c" />
+    <ClCompile Include="ed25519/key_exchange.c" />
+    <ClCompile Include="ed25519/keypair.c" />
+    <ClCompile Include="ed25519/sc.c" />
+    <ClCompile Include="ed25519/seed.c" />
+    <ClCompile Include="ed25519/sha512.c" />
+    <ClCompile Include="ed25519/sign.c" />
+    <ClCompile Include="ed25519/verify.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ed25519.h" />
-    <ClInclude Include="fe.h" />
-    <ClInclude Include="fixedint.h" />
-    <ClInclude Include="ge.h" />
-    <ClInclude Include="precomp_data.h" />
-    <ClInclude Include="sc.h" />
-    <ClInclude Include="sha512.h" />
+    <ClInclude Include="ed25519/ed25519.h" />
+    <ClInclude Include="ed25519/fe.h" />
+    <ClInclude Include="ed25519/fixedint.h" />
+    <ClInclude Include="ed25519/ge.h" />
+    <ClInclude Include="ed25519/precomp_data.h" />
+    <ClInclude Include="ed25519/sc.h" />
+    <ClInclude Include="ed25519/sha512.h" />
   </ItemGroup>
 </Project>

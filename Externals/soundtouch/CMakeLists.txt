@@ -1,18 +1,18 @@
 set(SRCS
-	AAFilter.cpp
-	BPMDetect.cpp
-	cpu_detect_x86.cpp
-	FIFOSampleBuffer.cpp
-	FIRFilter.cpp
-	InterpolateCubic.cpp
-	InterpolateLinear.cpp
-	InterpolateShannon.cpp
-	mmx_optimized.cpp
-	PeakFinder.cpp
-	RateTransposer.cpp
-	SoundTouch.cpp
-	sse_optimized.cpp
-	TDStretch.cpp
+	soundtouch/AAFilter.cpp
+	soundtouch/BPMDetect.cpp
+	soundtouch/cpu_detect_x86.cpp
+	soundtouch/FIFOSampleBuffer.cpp
+	soundtouch/FIRFilter.cpp
+	soundtouch/InterpolateCubic.cpp
+	soundtouch/InterpolateLinear.cpp
+	soundtouch/InterpolateShannon.cpp
+	soundtouch/mmx_optimized.cpp
+	soundtouch/PeakFinder.cpp
+	soundtouch/RateTransposer.cpp
+	soundtouch/SoundTouch.cpp
+	soundtouch/sse_optimized.cpp
+	soundtouch/TDStretch.cpp
 	)
 
 add_library(SoundTouch STATIC ${SRCS})

@@ -1,6 +1,6 @@
 project(minizip C)
 
-set(SRCS ioapi.c unzip.c)
+set(SRCS minizip/ioapi.c minizip/unzip.c)
 
 add_definitions(-DNOUNCRYPT)
 if(UNIX)

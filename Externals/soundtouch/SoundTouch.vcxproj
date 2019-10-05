@@ -36,36 +36,36 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="AAFilter.cpp" />
-    <ClCompile Include="BPMDetect.cpp" />
-    <ClCompile Include="cpu_detect_x86.cpp" />
-    <ClCompile Include="FIFOSampleBuffer.cpp" />
-    <ClCompile Include="FIRFilter.cpp" />
-    <ClCompile Include="InterpolateCubic.cpp" />
-    <ClCompile Include="InterpolateLinear.cpp" />
-    <ClCompile Include="InterpolateShannon.cpp" />
-    <ClCompile Include="mmx_optimized.cpp" />
-    <ClCompile Include="PeakFinder.cpp" />
-    <ClCompile Include="RateTransposer.cpp" />
-    <ClCompile Include="SoundTouch.cpp" />
-    <ClCompile Include="sse_optimized.cpp" />
-    <ClCompile Include="TDStretch.cpp" />
+    <ClCompile Include="soundtouch/AAFilter.cpp" />
+    <ClCompile Include="soundtouch/BPMDetect.cpp" />
+    <ClCompile Include="soundtouch/cpu_detect_x86.cpp" />
+    <ClCompile Include="soundtouch/FIFOSampleBuffer.cpp" />
+    <ClCompile Include="soundtouch/FIRFilter.cpp" />
+    <ClCompile Include="soundtouch/InterpolateCubic.cpp" />
+    <ClCompile Include="soundtouch/InterpolateLinear.cpp" />
+    <ClCompile Include="soundtouch/InterpolateShannon.cpp" />
+    <ClCompile Include="soundtouch/mmx_optimized.cpp" />
+    <ClCompile Include="soundtouch/PeakFinder.cpp" />
+    <ClCompile Include="soundtouch/RateTransposer.cpp" />
+    <ClCompile Include="soundtouch/SoundTouch.cpp" />
+    <ClCompile Include="soundtouch/sse_optimized.cpp" />
+    <ClCompile Include="soundtouch/TDStretch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AAFilter.h" />
-    <ClInclude Include="BPMDetect.h" />
-    <ClInclude Include="cpu_detect.h" />
-    <ClInclude Include="FIFOSampleBuffer.h" />
-    <ClInclude Include="FIFOSamplePipe.h" />
-    <ClInclude Include="FIRFilter.h" />
-    <ClInclude Include="InterpolateCubic.h" />
-    <ClInclude Include="InterpolateLinear.h" />
-    <ClInclude Include="InterpolateShannon.h" />
-    <ClInclude Include="PeakFinder.h" />
-    <ClInclude Include="RateTransposer.h" />
-    <ClInclude Include="SoundTouch.h" />
-    <ClInclude Include="STTypes.h" />
-    <ClInclude Include="TDStretch.h" />
+    <ClInclude Include="soundtouch/AAFilter.h" />
+    <ClInclude Include="soundtouch/BPMDetect.h" />
+    <ClInclude Include="soundtouch/cpu_detect.h" />
+    <ClInclude Include="soundtouch/FIFOSampleBuffer.h" />
+    <ClInclude Include="soundtouch/FIFOSamplePipe.h" />
+    <ClInclude Include="soundtouch/FIRFilter.h" />
+    <ClInclude Include="soundtouch/InterpolateCubic.h" />
+    <ClInclude Include="soundtouch/InterpolateLinear.h" />
+    <ClInclude Include="soundtouch/InterpolateShannon.h" />
+    <ClInclude Include="soundtouch/PeakFinder.h" />
+    <ClInclude Include="soundtouch/RateTransposer.h" />
+    <ClInclude Include="soundtouch/SoundTouch.h" />
+    <ClInclude Include="soundtouch/STTypes.h" />
+    <ClInclude Include="soundtouch/TDStretch.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
