@@ -44,6 +44,9 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackButtons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
+
 namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
@@ -61,6 +64,9 @@ static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LE
 static const char* const named_buttons[] = {
     "A", "B", "1", "2", "-", "+", "Home",
 };
+
+static const char* const prime_beams[] = { "Beam 1",  "Beam 2",  "Beam 3",  "Beam 4" };
+static const char* const prime_visors[] = { "Visor 1", "Visor 2", "Visor 3", "Visor 4" };
 
 void Wiimote::Reset()
 {
@@ -215,8 +221,48 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_hotkeys->AddInput(_trans("Sideways Hold"), false);
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
+  // Adding PrimeHack Buttons
+  groups.emplace_back(m_primehack_beams = new ControllerEmu::PrimeHackButtons(_trans("Beams")));
+  for (const char* prime_button : prime_beams)
+  {
+    const std::string& ui_name = prime_button;
+    m_primehack_beams->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
+  }
+
+  groups.emplace_back(m_primehack_visors = new ControllerEmu::PrimeHackButtons(_trans("Visors")));
+  for (const char* prime_button : prime_visors)
+  {
+    const std::string& ui_name = prime_button;
+    m_primehack_visors->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
+  }
+
+  groups.emplace_back(m_primehack_fps = new ControllerEmu::PrimeHackMisc(_trans("FPS")));
+  m_primehack_fps->AddSetting(
+      &m_primehack_camera_sensitivity,
+      {"Camera Sensitivity", nullptr, nullptr, _trans("Camera Sensitivity")}, 15, 1, 100);
+
+  m_primehack_fps->AddSetting(
+      &m_primehack_cursor_sensitivity,
+      {"Cursor Sensitivity", nullptr, nullptr, _trans("Cursor Sensitivity")}, 15, 1, 100);
+
+  m_primehack_fps->AddSetting(
+      &m_primehack_fieldofview,
+      {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60, 1, 101);
+
+  groups.emplace_back(m_primehack_misc = new ControllerEmu::PrimeHackMisc(_trans("Miscelaneous")));
+  m_primehack_misc->AddSetting(
+      &m_primehack_invert_x,
+      {"Invert X axis", nullptr, nullptr, _trans("Invert X axis")}, false);
+  
+  m_primehack_misc->AddSetting(
+      &m_primehack_invert_y,
+      {"Invert Y axis", nullptr, nullptr, _trans("Invert Y axis")}, false);
+
   Reset();
 }
+
 
 std::string Wiimote::GetName() const
 {
@@ -247,6 +293,14 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
     return m_options;
   case WiimoteGroup::Hotkeys:
     return m_hotkeys;
+  case WiimoteGroup::Beams:
+    return m_primehack_beams;
+  case WiimoteGroup::Visors:
+    return m_primehack_visors;
+  case WiimoteGroup::Misc:
+    return m_primehack_misc;
+  case WiimoteGroup::FPS:
+    return m_primehack_fps;
   default:
     assert(false);
     return nullptr;

@@ -40,6 +40,7 @@ enum class GroupType
   Triggers,
   Slider,
   Shake,
+  PrimeHack
 };
 
 class ControlGroup

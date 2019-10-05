@@ -31,6 +31,8 @@ class Force;
 class ModifySettingsButton;
 class Output;
 class Tilt;
+class PrimeHackButtons;
+class PrimeHackMisc;
 }  // namespace ControllerEmu
 
 namespace WiimoteEmu
@@ -47,7 +49,12 @@ enum class WiimoteGroup
   Attachments,
 
   Options,
-  Hotkeys
+  Hotkeys,
+
+  Beams,
+  Visors,
+  FPS,
+  Misc
 };
 
 enum class NunchukGroup;
@@ -242,11 +249,22 @@ private:
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
+  ControllerEmu::PrimeHackButtons* m_primehack_beams;
+  ControllerEmu::PrimeHackButtons* m_primehack_visors;
+  ControllerEmu::PrimeHackMisc* m_primehack_misc;
+  ControllerEmu::PrimeHackMisc* m_primehack_fps;
+
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
   ControllerEmu::SettingValue<double> m_battery_setting;
   ControllerEmu::SettingValue<double> m_speaker_pan_setting;
   ControllerEmu::SettingValue<bool> m_motion_plus_setting;
+
+  ControllerEmu::SettingValue<double> m_primehack_camera_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_cursor_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_fieldofview;
+  ControllerEmu::SettingValue<bool> m_primehack_invert_y;
+  ControllerEmu::SettingValue<bool> m_primehack_invert_x;
 
   SpeakerLogic m_speaker_logic;
   MotionPlus m_motion_plus;
