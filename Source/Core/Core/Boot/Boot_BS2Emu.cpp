@@ -210,7 +210,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
 
   SetupGCMemory();
 
-  DVDRead(volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
+  DVDReadDiscID(volume, 0x00000000);
 
   const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
 
@@ -406,7 +406,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
   if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
-  DVDRead(volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
+  DVDReadDiscID(volume, 0x00000000);
 
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long

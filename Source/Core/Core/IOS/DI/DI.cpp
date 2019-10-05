@@ -249,7 +249,7 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
   {
     const bool spinup = Memory::Read_U32(request.address + 4);
     INFO_LOG(IOS_DI, "DVDLowReset %s spinup", spinup ? "with" : "without");
-    DVDInterface::Reset();
+    DVDInterface::Reset(spinup);
     ResetDIRegisters();
     // Should also reset current partition and such
     return DIResult::Success;

@@ -104,6 +104,7 @@ public:
 private:
   static bool DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address,
                       u32 length, const DiscIO::Partition& partition);
+  static bool DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address);
   static void RunFunction(u32 address);
 
   static void UpdateDebugger_MapLoaded();

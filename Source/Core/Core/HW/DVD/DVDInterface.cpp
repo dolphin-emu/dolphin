@@ -344,8 +344,10 @@ void Init()
 }
 
 // This doesn't reset any inserted disc or the cover state.
-void Reset()
+void Reset(bool spinup)
 {
+  INFO_LOG(DVDINTERFACE, "Reset %s spinup", spinup ? "with" : "without");
+
   s_DISR.Hex = 0;
   s_DICMDBUF[0] = 0;
   s_DICMDBUF[1] = 0;
@@ -366,15 +368,33 @@ void Reset()
   s_current_length = 0;
   s_pending_samples = 0;
 
-  s_error_code = 0;
+  if (!IsDiscInside())
+  {
+    // ERROR_COVER is used when the cover is open;
+    // ERROR_NO_DISK_L is used when the cover is closed but there is no disc.
+    // On the Wii, this can only happen if something other than a DVD is inserted into the disc
+    // drive (for instance, an audio CD) and only after it attempts to read it.  Otherwise, it will
+    // report the cover as opened.
+    SetLowError(ERROR_COVER);
+  }
+  else if (!spinup)
+  {
+    // Wii hardware tests indicate that this is used when ejecting and inserting a new disc, or
+    // performing a reset without spinup.
+    SetLowError(ERROR_CHANGE_DISK);
+  }
+  else
+  {
+    SetLowError(ERROR_NO_DISKID_L);
+  }
+
+  SetHighError(ERROR_NONE);
 
   // The buffer is empty at start
   s_read_buffer_start_offset = 0;
   s_read_buffer_end_offset = 0;
   s_read_buffer_start_time = 0;
   s_read_buffer_end_time = 0;
-
-  s_disc_path_to_insert.clear();
 }
 
 void Shutdown()
@@ -405,6 +425,8 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
+
+  Reset(false);
 }
 
 bool IsDiscInside()
@@ -658,15 +680,46 @@ void ClearInterrupt(DIInterruptType interrupt)
   }
 }
 
+// Checks the drive state to make sure a read-like command can be performed.
+// If false is returned, SetHighError will have been called, and the caller
+// should issue a DEINT interrupt.
+static bool CheckReadPreconditions()
+{
+  if (!IsDiscInside())  // Implies ERROR_COVER or ERROR_NO_DISK
+  {
+    ERROR_LOG(DVDINTERFACE, "No disc inside.");
+    SetHighError(ERROR_NO_DISK_H);
+    return false;
+  }
+  if ((s_error_code & LOW_ERROR_MASK) == ERROR_CHANGE_DISK)
+  {
+    ERROR_LOG(DVDINTERFACE, "Disc changed (motor stopped).");
+    SetHighError(ERROR_MEDIUM);
+    return false;
+  }
+  if ((s_error_code & LOW_ERROR_MASK) == ERROR_MOTOR_STOP_L)
+  {
+    ERROR_LOG(DVDINTERFACE, "Motor stopped.");
+    SetHighError(ERROR_MOTOR_STOP_H);
+    return false;
+  }
+  if ((s_error_code & LOW_ERROR_MASK) == ERROR_NO_DISKID_L)
+  {
+    ERROR_LOG(DVDINTERFACE, "Disc id not read.");
+    SetHighError(ERROR_NO_DISKID_H);
+    return false;
+  }
+  return true;
+}
+
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
 bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
                         const DiscIO::Partition& partition, ReplyType reply_type,
                         DIInterruptType* interrupt_type)
 {
-  if (!IsDiscInside())
+  if (!CheckReadPreconditions())
   {
     // Disc read fails
-    SetHighError(ERROR_NO_DISK_H);
     *interrupt_type = DIInterruptType::DEINT;
     return false;
   }
@@ -747,6 +800,14 @@ void ExecuteCommand(ReplyType reply_type)
 
     case 0x40:  // Read DiscID
       INFO_LOG(DVDINTERFACE, "Read DiscID: buffer %08x", s_DIMAR);
+      // TODO: It doesn't make sense to include ERROR_CHANGE_DISK here, as it implies that the drive
+      // is not spinning and reading the disc ID shouldn't change it.  However, the Wii Menu breaks
+      // without it.
+      if ((s_error_code & LOW_ERROR_MASK) == ERROR_NO_DISKID_L ||
+          (s_error_code & LOW_ERROR_MASK) == ERROR_CHANGE_DISK)
+      {
+        SetLowError(ERROR_READY);
+      }
       command_handled_by_thread = ExecuteReadCommand(
           0, s_DIMAR, 0x20, s_DILENGTH, DiscIO::PARTITION_NONE, reply_type, &interrupt_type);
       break;
@@ -905,10 +966,12 @@ void ExecuteCommand(ReplyType reply_type)
   // Used by both GC and Wii
   case DICommand::StopMotor:
   {
-    INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s", s_DICMDBUF[1] ? "eject" : "",
-             s_DICMDBUF[2] ? "kill!" : "");
+    const bool eject = (s_DICMDBUF[0] & (1 << 17));
+    const bool kill = (s_DICMDBUF[0] & (1 << 20));
+    INFO_LOG(DVDINTERFACE, "DVDLowStopMotor%s%s", eject ? " eject" : "", kill ? " kill!" : "");
 
-    const bool force_eject = s_DICMDBUF[1] && !s_DICMDBUF[2];
+    SetLowError(ERROR_MOTOR_STOP_L);
+    const bool force_eject = eject && !kill;
 
     if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
         DVDThread::IsInsertedDiscRunning() && !s_auto_disc_change_paths.empty())

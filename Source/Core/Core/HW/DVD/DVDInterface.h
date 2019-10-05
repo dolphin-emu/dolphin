@@ -102,7 +102,7 @@ enum class EjectCause
 };
 
 void Init();
-void Reset();
+void Reset(bool spinup = true);
 void Shutdown();
 void DoState(PointerWrap& p);
 
