@@ -110,11 +110,11 @@ union UDISR
   u32 Hex;
   struct
   {
-    u32 BREAK : 1;       // Stop the Device + Interrupt
-    u32 DEINITMASK : 1;  // Access Device Error Int Mask
-    u32 DEINT : 1;       // Access Device Error Int
-    u32 TCINTMASK : 1;   // Transfer Complete Int Mask
-    u32 TCINT : 1;       // Transfer Complete Int
+    u32 BREAK : 1;      // Stop the Device + Interrupt
+    u32 DEINTMASK : 1;  // Access Device Error Int Mask
+    u32 DEINT : 1;      // Access Device Error Int
+    u32 TCINTMASK : 1;  // Transfer Complete Int Mask
+    u32 TCINT : 1;      // Transfer Complete Int
     u32 BRKINTMASK : 1;
     u32 BRKINT : 1;  // w 1: clear brkint
     u32 : 25;
@@ -138,50 +138,6 @@ union UDICVR
   UDICVR(u32 _hex) { Hex = _hex; }
 };
 
-union UDICMDBUF
-{
-  u32 Hex;
-  struct
-  {
-    u8 CMDBYTE3;
-    u8 CMDBYTE2;
-    u8 CMDBYTE1;
-    u8 CMDBYTE0;
-  };
-};
-
-// DI DMA Address Register
-union UDIMAR
-{
-  u32 Hex;
-  struct
-  {
-    u32 Zerobits : 5;  // Must be zero (32byte aligned)
-    u32 : 27;
-  };
-  struct
-  {
-    u32 Address : 26;
-    u32 : 6;
-  };
-};
-
-// DI DMA Address Length Register
-union UDILENGTH
-{
-  u32 Hex;
-  struct
-  {
-    u32 Zerobits : 5;  // Must be zero (32byte aligned)
-    u32 : 27;
-  };
-  struct
-  {
-    u32 Length : 26;
-    u32 : 6;
-  };
-};
-
 // DI DMA Control Register
 union UDICR
 {
@@ -192,18 +148,6 @@ union UDICR
     u32 DMA : 1;     // 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
     u32 RW : 1;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
     u32 : 29;
-  };
-};
-
-union UDIIMMBUF
-{
-  u32 Hex;
-  struct
-  {
-    u8 REGVAL3;
-    u8 REGVAL2;
-    u8 REGVAL1;
-    u8 REGVAL0;
   };
 };
 
@@ -225,11 +169,11 @@ union UDICFG
 // Hardware registers
 static UDISR s_DISR;
 static UDICVR s_DICVR;
-static UDICMDBUF s_DICMDBUF[3];
-static UDIMAR s_DIMAR;
-static UDILENGTH s_DILENGTH;
+static u32 s_DICMDBUF[3];
+static u32 s_DIMAR;
+static u32 s_DILENGTH;
 static UDICR s_DICR;
-static UDIIMMBUF s_DIIMMBUF;
+static u32 s_DIIMMBUF;
 static UDICFG s_DICFG;
 
 static StreamADPCM::ADPCMDecoder s_adpcm_decoder;
@@ -436,13 +380,13 @@ void Init()
 void Reset()
 {
   s_DISR.Hex = 0;
-  s_DICMDBUF[0].Hex = 0;
-  s_DICMDBUF[1].Hex = 0;
-  s_DICMDBUF[2].Hex = 0;
-  s_DIMAR.Hex = 0;
-  s_DILENGTH.Hex = 0;
+  s_DICMDBUF[0] = 0;
+  s_DICMDBUF[1] = 0;
+  s_DICMDBUF[2] = 0;
+  s_DIMAR = 0;
+  s_DILENGTH = 0;
   s_DICR.Hex = 0;
-  s_DIIMMBUF.Hex = 0;
+  s_DIIMMBUF = 0;
   s_DICFG.Hex = 0;
   s_DICFG.CONFIG = 1;  // Disable bootrom descrambler
 
@@ -610,7 +554,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    UDISR tmpStatusReg(val);
 
-                   s_DISR.DEINITMASK = tmpStatusReg.DEINITMASK;
+                   s_DISR.DEINTMASK = tmpStatusReg.DEINTMASK;
                    s_DISR.TCINTMASK = tmpStatusReg.TCINTMASK;
                    s_DISR.BRKINTMASK = tmpStatusReg.BRKINTMASK;
                    s_DISR.BREAK = tmpStatusReg.BREAK;
@@ -644,31 +588,33 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    UpdateInterrupts();
                  }));
 
-  // Command registers are very similar and we can register them with a
-  // simple loop.
-  for (int i = 0; i < 3; ++i)
-    mmio->Register(base | (DI_COMMAND_0 + 4 * i), MMIO::DirectRead<u32>(&s_DICMDBUF[i].Hex),
-                   MMIO::DirectWrite<u32>(&s_DICMDBUF[i].Hex));
+  // Command registers, which have no special logic
+  mmio->Register(base | DI_COMMAND_0, MMIO::DirectRead<u32>(&s_DICMDBUF[0]),
+                 MMIO::DirectWrite<u32>(&s_DICMDBUF[0]));
+  mmio->Register(base | DI_COMMAND_1, MMIO::DirectRead<u32>(&s_DICMDBUF[1]),
+                 MMIO::DirectWrite<u32>(&s_DICMDBUF[1]));
+  mmio->Register(base | DI_COMMAND_2, MMIO::DirectRead<u32>(&s_DICMDBUF[2]),
+                 MMIO::DirectWrite<u32>(&s_DICMDBUF[2]));
 
   // DMA related registers. Mostly direct accesses (+ masking for writes to
   // handle things like address alignment) and complex write on the DMA
   // control register that will trigger the DMA.
-  mmio->Register(base | DI_DMA_ADDRESS_REGISTER, MMIO::DirectRead<u32>(&s_DIMAR.Hex),
-                 MMIO::DirectWrite<u32>(&s_DIMAR.Hex, ~0xFC00001F));
-  mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&s_DILENGTH.Hex),
-                 MMIO::DirectWrite<u32>(&s_DILENGTH.Hex, ~0x1F));
+  mmio->Register(base | DI_DMA_ADDRESS_REGISTER, MMIO::DirectRead<u32>(&s_DIMAR),
+                 MMIO::DirectWrite<u32>(&s_DIMAR, ~0xFC00001F));
+  mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&s_DILENGTH),
+                 MMIO::DirectWrite<u32>(&s_DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    s_DICR.Hex = val & 7;
                    if (s_DICR.TSTART)
                    {
-                     ExecuteCommand(s_DICMDBUF[0].Hex, s_DICMDBUF[1].Hex, s_DICMDBUF[2].Hex,
-                                    s_DIMAR.Hex, s_DILENGTH.Hex, false);
+                     ExecuteCommand(s_DICMDBUF[0], s_DICMDBUF[1], s_DICMDBUF[2], s_DIMAR,
+                                    s_DILENGTH, false);
                    }
                  }));
 
-  mmio->Register(base | DI_IMMEDIATE_DATA_BUFFER, MMIO::DirectRead<u32>(&s_DIIMMBUF.Hex),
-                 MMIO::DirectWrite<u32>(&s_DIIMMBUF.Hex));
+  mmio->Register(base | DI_IMMEDIATE_DATA_BUFFER, MMIO::DirectRead<u32>(&s_DIIMMBUF),
+                 MMIO::DirectWrite<u32>(&s_DIIMMBUF));
 
   // DI config register is read only.
   mmio->Register(base | DI_CONFIG_REGISTER, MMIO::DirectRead<u32>(&s_DICFG.Hex),
@@ -677,7 +623,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
+  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINTMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
                         (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
                         (s_DICVR.CVRINT & s_DICVR.CVRINTMASK);
 
@@ -713,7 +659,7 @@ void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios)
   if (reply_to_ios)
     Memory::Write_U32(value, output_address);
   else
-    s_DIIMMBUF.Hex = value;
+    s_DIIMMBUF = value;
 }
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
@@ -1178,7 +1124,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
     if (s_DICR.TSTART)
     {
       s_DICR.TSTART = 0;
-      s_DILENGTH.Length = 0;
+      s_DILENGTH = 0;
       GenerateDIInterrupt(interrupt_type);
     }
     break;
