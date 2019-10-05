@@ -60,32 +60,6 @@ constexpr u64 BUFFER_TRANSFER_RATE = 32 * 1024 * 1024;
 
 namespace DVDInterface
 {
-// "low" error codes
-constexpr u32 ERROR_READY = 0x0000000;          // Ready.
-constexpr u32 ERROR_COVER_L = 0x01000000;       // Cover is opened.
-constexpr u32 ERROR_CHANGE_DISK = 0x02000000;   // Disk change.
-constexpr u32 ERROR_NO_DISK = 0x03000000;       // No disk.
-constexpr u32 ERROR_MOTOR_STOP_L = 0x04000000;  // Motor stop.
-constexpr u32 ERROR_NO_DISKID_L = 0x05000000;   // Disk ID not read.
-
-// "high" error codes
-constexpr u32 ERROR_NONE = 0x000000;          // No error.
-constexpr u32 ERROR_MOTOR_STOP_H = 0x020400;  // Motor stopped.
-constexpr u32 ERROR_NO_DISKID_H = 0x020401;   // Disk ID not read.
-constexpr u32 ERROR_COVER_H = 0x023a00;       // Medium not present / Cover opened.
-constexpr u32 ERROR_SEEK_NDONE = 0x030200;    // No seek complete.
-constexpr u32 ERROR_READ = 0x031100;          // Unrecovered read error.
-constexpr u32 ERROR_PROTOCOL = 0x040800;      // Transfer protocol error.
-constexpr u32 ERROR_INV_CMD = 0x052000;       // Invalid command operation code.
-constexpr u32 ERROR_AUDIO_BUF = 0x052001;     // Audio Buffer not set.
-constexpr u32 ERROR_BLOCK_OOB = 0x052100;     // Logical block address out of bounds.
-constexpr u32 ERROR_INV_FIELD = 0x052400;     // Invalid field in command packet.
-constexpr u32 ERROR_INV_AUDIO = 0x052401;     // Invalid audio command.
-constexpr u32 ERROR_INV_PERIOD = 0x052402;    // Configuration out of permitted period.
-constexpr u32 ERROR_END_USR_AREA = 0x056300;  // End of user area encountered on this track.
-constexpr u32 ERROR_MEDIUM = 0x062800;        // Medium may have changed.
-constexpr u32 ERROR_MEDIUM_REQ = 0x0b5a01;    // Operator medium removal request.
-
 // internal hardware addresses
 constexpr u32 DI_STATUS_REGISTER = 0x00;
 constexpr u32 DI_COVER_REGISTER = 0x04;
@@ -664,7 +638,7 @@ bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 
   if (!IsDiscInside())
   {
     // Disc read fails
-    s_error_code = ERROR_NO_DISK | ERROR_COVER_H;
+    SetHighError(ERROR_NO_DISK_H);
     *interrupt_type = INT_DEINT;
     return false;
   }
@@ -697,7 +671,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
   // DVDLowRequestError needs access to the error code set by the previous command
   if (command_0 >> 24 != DVDLowRequestError)
-    s_error_code = 0;
+    SetHighError(0);
 
   switch (command_0 >> 24)
   {
@@ -842,7 +816,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     INFO_LOG(DVDINTERFACE, "DVDLowReportKey");
     // Does not work on retail discs/drives
     // Retail games send this command to see if they are running on real retail hw
-    s_error_code = ERROR_READY | ERROR_INV_CMD;
+    SetHighError(ERROR_INV_CMD);
     interrupt_type = INT_BRKINT;
     break;
 
@@ -926,7 +900,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   case DVDLowRequestError:
     INFO_LOG(DVDINTERFACE, "Requesting error... (0x%08x)", s_error_code);
     WriteImmediate(s_error_code, output_address, reply_to_ios);
-    s_error_code = 0;
+    SetHighError(0);
     break;
 
   // Audio Stream (Immediate). Only seems to be used by some GC games
@@ -1101,6 +1075,18 @@ void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late)
   ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
   DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
   FinishExecutingCommand(reply_type, interrupt_type, cycles_late);
+}
+
+void SetLowError(u32 low_error)
+{
+  DEBUG_ASSERT((low_error & HIGH_ERROR_MASK) == 0);
+  s_error_code = (s_error_code & HIGH_ERROR_MASK) | (low_error & LOW_ERROR_MASK);
+}
+
+void SetHighError(u32 high_error)
+{
+  DEBUG_ASSERT((high_error & LOW_ERROR_MASK) == 0);
+  s_error_code = (s_error_code & LOW_ERROR_MASK) | (high_error & HIGH_ERROR_MASK);
 }
 
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
