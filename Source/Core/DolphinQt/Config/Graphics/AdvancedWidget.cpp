@@ -235,8 +235,7 @@ void AdvancedWidget::AddDescriptions()
       "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
       "using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, "
       "but slightly increases input latency, makes movement less smooth and slightly decreases "
-      "performance.\n\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D "
-      "backend.\n\nIf unsure, leave this unchecked.");
+      "performance.\n\nIf unsure, leave this unchecked.");
 #endif
 
   AddDescription(m_enable_wireframe, TR_WIREFRAME_DESCRIPTION);

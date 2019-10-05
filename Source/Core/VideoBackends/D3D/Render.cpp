@@ -38,18 +38,6 @@
 
 namespace DX11
 {
-// Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
-typedef struct _Nv_Stereo_Image_Header
-{
-  unsigned int dwSignature;
-  unsigned int dwWidth;
-  unsigned int dwHeight;
-  unsigned int dwBPP;
-  unsigned int dwFlags;
-} NVSTEREOIMAGEHEADER, *LPNVSTEREOIMAGEHEADER;
-
-#define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
-
 Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale)
     : ::Renderer(swap_chain ? swap_chain->GetWidth() : 0, swap_chain ? swap_chain->GetHeight() : 0,
                  backbuffer_scale,
@@ -59,35 +47,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale
 }
 
 Renderer::~Renderer() = default;
-
-void Renderer::Create3DVisionTexture(int width, int height)
-{
-  // Create a staging texture for 3D vision with signature information in the last row.
-  // Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
-  NVSTEREOIMAGEHEADER header;
-  header.dwSignature = NVSTEREO_IMAGE_SIGNATURE;
-  header.dwWidth = static_cast<u32>(width * 2);
-  header.dwHeight = static_cast<u32>(height + 1);
-  header.dwBPP = 32;
-  header.dwFlags = 0;
-
-  const u32 pitch = static_cast<u32>(4 * width * 2);
-  const auto memory = std::make_unique<u8[]>((height + 1) * pitch);
-  u8* image_header_location = &memory[height * pitch];
-  std::memcpy(image_header_location, &header, sizeof(header));
-
-  D3D11_SUBRESOURCE_DATA sys_data;
-  sys_data.SysMemPitch = pitch;
-  sys_data.pSysMem = memory.get();
-
-  CD3D11_TEXTURE2D_DESC texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, width * 2, height + 1, 1, 1,
-                                     D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, 0, 0);
-  ComPtr<ID3D11Texture2D> texture;
-  HRESULT hr = D3D::device->CreateTexture2D(&texture_desc, &sys_data, texture.GetAddressOf());
-  CHECK(SUCCEEDED(hr), "Create 3D Vision Texture");
-  m_3d_vision_texture = DXTexture::CreateAdopted(std::move(texture));
-  m_3d_vision_framebuffer = DXFramebuffer::Create(m_3d_vision_texture.get(), nullptr);
-}
 
 bool Renderer::IsHeadless() const
 {
@@ -237,8 +196,6 @@ void Renderer::CheckForSwapChainChanges()
 
   m_backbuffer_width = m_swap_chain->GetWidth();
   m_backbuffer_height = m_swap_chain->GetHeight();
-  m_3d_vision_framebuffer.reset();
-  m_3d_vision_texture.reset();
 }
 
 void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
@@ -326,35 +283,6 @@ void Renderer::WaitForGPUIdle()
 {
   // There is no glFinish() equivalent in D3D.
   D3D::context->Flush();
-}
-
-void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
-                                 const AbstractTexture* source_texture,
-                                 const MathUtil::Rectangle<int>& source_rc)
-{
-  if (g_ActiveConfig.stereo_mode != StereoMode::Nvidia3DVision)
-    return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
-
-  if (!m_3d_vision_texture)
-    Create3DVisionTexture(m_backbuffer_width, m_backbuffer_height);
-
-  // Render to staging texture which is double the width of the backbuffer
-  SetAndClearFramebuffer(m_3d_vision_framebuffer.get());
-
-  m_post_processor->BlitFromTexture(target_rc, source_rc, source_texture, 0);
-  m_post_processor->BlitFromTexture(
-      MathUtil::Rectangle<int>(target_rc.left + m_backbuffer_width, target_rc.top,
-                               target_rc.right + m_backbuffer_width, target_rc.bottom),
-      source_rc, source_texture, 1);
-
-  // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
-  // recognize the signature and automatically include the right eye frame.
-  const CD3D11_BOX box(0, 0, 0, m_swap_chain->GetWidth(), m_swap_chain->GetHeight(), 1);
-  D3D::context->CopySubresourceRegion(m_swap_chain->GetTexture()->GetD3DTexture(), 0, 0, 0, 0,
-                                      m_3d_vision_texture->GetD3DTexture(), 0, &box);
-
-  // Restore render target to backbuffer
-  SetFramebuffer(m_swap_chain->GetFramebuffer());
 }
 
 void Renderer::SetFullscreen(bool enable_fullscreen)
