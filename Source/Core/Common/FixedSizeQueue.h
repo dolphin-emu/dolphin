@@ -21,7 +21,13 @@ public:
   void clear()
   {
     if constexpr (!std::is_trivial_v<T>)
-      storage = {};
+    {
+      // The clear of non-trivial objects previously used "storage = {}". However, this causes GCC
+      // to take a very long time to compile the file/function, as well as generating huge amounts
+      // of debug information (~2GB object file, ~600MB of debug info).
+      while (count > 0)
+        pop();
+    }
 
     head = 0;
     tail = 0;
