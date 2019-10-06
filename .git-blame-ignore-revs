@@ -1,0 +1,11 @@
+# This file can be used for git blame using --ignore-revs-file
+# or by setting blame.ignoreRevsFile in the git config.
+
+# Remove unnecessary Src/ folders
+34692ab826abc8f8faa61bdb2280b742424528f1
+
+# Reformat C++ code
+3570c7f03a2aa90aa634f96c0af1969af610f14d
+
+# Reformat Android code
+248ee12aed057acd0bdd310359c328e8d4fd5e5a
