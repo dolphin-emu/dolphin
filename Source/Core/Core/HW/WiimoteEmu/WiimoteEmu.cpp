@@ -732,18 +732,6 @@ Common::Vec3 Wiimote::GetAcceleration()
   // Our shake effects have never been affected by orientation. Should they be?
   accel += m_shake_state.acceleration;
 
-  // Simulate centripetal acceleration caused by an offset of the accelerometer sensor.
-  // Estimate of sensor position based on an image of the wii remote board:
-  constexpr float ACCELEROMETER_Y_OFFSET = 0.1f;
-
-  const auto angular_velocity = GetAngularVelocity();
-  const auto centripetal_accel =
-      // TODO: Is this the proper way to combine the x and z angular velocities?
-      std::pow(std::abs(angular_velocity.x) + std::abs(angular_velocity.z), 2) *
-      ACCELEROMETER_Y_OFFSET;
-
-  accel.y += centripetal_accel;
-
   return accel;
 }
 
