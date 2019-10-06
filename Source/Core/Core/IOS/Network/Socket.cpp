@@ -170,6 +170,12 @@ s32 WiiSocket::CloseFd()
     ReturnValue = WiiSockMan::GetNetErrorCode(EITHER(WSAENOTSOCK, EBADF), "CloseFd", false);
   }
   fd = -1;
+
+  for (auto it = pending_sockops.begin(); it != pending_sockops.end();)
+  {
+    GetIOS()->EnqueueIPCReply(it->request, -SO_ENOTCONN);
+    it = pending_sockops.erase(it);
+  }
   return ReturnValue;
 }
 
