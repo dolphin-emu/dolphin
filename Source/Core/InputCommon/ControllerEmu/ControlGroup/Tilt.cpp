@@ -31,7 +31,7 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
               _trans("°"),
               // i18n: Refers to emulated wii remote movement.
               _trans("Maximum tilt angle.")},
-             90, 0, 180);
+             85, 0, 180);
 
   AddSetting(&m_max_rotational_velocity,
              {_trans("Velocity"),
