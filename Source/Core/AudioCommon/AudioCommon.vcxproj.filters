@@ -17,12 +17,6 @@
     <ClCompile Include="OpenALStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="XAudio2Stream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="XAudio2_7Stream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
     <ClCompile Include="CubebStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
@@ -41,12 +35,6 @@
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="OpenALStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="XAudio2Stream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="XAudio2_7Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="PulseAudioStream.h">
