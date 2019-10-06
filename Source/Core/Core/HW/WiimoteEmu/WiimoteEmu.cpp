@@ -76,14 +76,30 @@ void Wiimote::Reset()
   // EEPROM
   m_eeprom = {};
 
-  // IR calibration and maybe more unknown purposes:
-  // The meaning of this data needs more investigation.
-  // Last byte is a checksum.
+  // IR calibration:
   std::array<u8, 11> ir_calibration = {
-      0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, 0x74, 0x00,
+      // Point 1
+      IR_LOW_X & 0xFF,
+      IR_LOW_Y & 0xFF,
+      // Mix
+      ((IR_LOW_Y & 0x300) >> 2) | ((IR_LOW_X & 0x300) >> 4) | ((IR_LOW_Y & 0x300) >> 6) |
+          ((IR_HIGH_X & 0x300) >> 8),
+      // Point 2
+      IR_HIGH_X & 0xFF,
+      IR_LOW_Y & 0xFF,
+      // Point 3
+      IR_HIGH_X & 0xFF,
+      IR_HIGH_Y & 0xFF,
+      // Mix
+      ((IR_HIGH_Y & 0x300) >> 2) | ((IR_HIGH_X & 0x300) >> 4) | ((IR_HIGH_Y & 0x300) >> 6) |
+          ((IR_LOW_X & 0x300) >> 8),
+      // Point 4
+      IR_LOW_X & 0xFF,
+      IR_HIGH_Y & 0xFF,
+      // Checksum
+      0x00,
   };
-  // Purposely not updating checksum because using this data results in a weird IR offset..
-  // UpdateCalibrationDataChecksum(ir_calibration, 1);
+  UpdateCalibrationDataChecksum(ir_calibration, 1);
   m_eeprom.ir_calibration_1 = ir_calibration;
   m_eeprom.ir_calibration_2 = ir_calibration;
 
