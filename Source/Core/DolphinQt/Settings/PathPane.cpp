@@ -83,6 +83,18 @@ void PathPane::BrowseLoad()
   }
 }
 
+void PathPane::BrowseResourcePack()
+{
+  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+      this, tr("Select Resource Pack Path"),
+      QString::fromStdString(Config::Get(Config::MAIN_RESOURCEPACK_PATH))));
+  if (!dir.isEmpty())
+  {
+    m_resource_pack_edit->setText(dir);
+    Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, dir.toStdString());
+  }
+}
+
 void PathPane::BrowseSDCard()
 {
   QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
@@ -203,13 +215,24 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(m_load_edit, 3, 1);
   layout->addWidget(load_open, 3, 2);
 
+  m_resource_pack_edit =
+      new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_RESOURCEPACK_PATH)));
+  connect(m_resource_pack_edit, &QLineEdit::editingFinished, [=] {
+    Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, m_resource_pack_edit->text().toStdString());
+  });
+  QPushButton* resource_pack_open = new QPushButton(QStringLiteral("..."));
+  connect(resource_pack_open, &QPushButton::clicked, this, &PathPane::BrowseResourcePack);
+  layout->addWidget(new QLabel(tr("Resource Pack Path:")), 4, 0);
+  layout->addWidget(m_resource_pack_edit, 4, 1);
+  layout->addWidget(resource_pack_open, 4, 2);
+
   m_sdcard_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)));
   connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
   QPushButton* sdcard_open = new QPushButton(QStringLiteral("..."));
   connect(sdcard_open, &QPushButton::clicked, this, &PathPane::BrowseSDCard);
-  layout->addWidget(new QLabel(tr("SD Card Path:")), 4, 0);
-  layout->addWidget(m_sdcard_edit, 4, 1);
-  layout->addWidget(sdcard_open, 4, 2);
+  layout->addWidget(new QLabel(tr("SD Card Path:")), 5, 0);
+  layout->addWidget(m_sdcard_edit, 5, 1);
+  layout->addWidget(sdcard_open, 5, 2);
 
   return layout;
 }
