@@ -192,11 +192,13 @@ u32 GetFunctionIndex(u32 address)
 
 u32 GetFirstFunctionIndex(u32 address)
 {
-  u32 index = GetFunctionIndex(address);
-  auto first = std::find_if(
-      s_original_instructions.begin(), s_original_instructions.end(),
-      [=](const auto& entry) { return entry.second == index && entry.first < address; });
-  return first == std::end(s_original_instructions) ? index : 0;
+  const u32 index = GetFunctionIndex(address);
+  // Fixed hooks use a fixed address and don't patch the whole function
+  if (index == 0 || OSPatches[index].flags == HookFlag::Fixed)
+    return index;
+
+  const auto symbol = g_symbolDB.GetSymbolFromAddr(address);
+  return (symbol && symbol->address == address) ? index : 0;
 }
 
 HookType GetFunctionTypeByIndex(u32 index)
