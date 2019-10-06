@@ -172,7 +172,7 @@ bool SetCurrentDir(const std::string& directory);
 std::string CreateTempDir();
 
 // Get a filename that can hopefully be atomically renamed to the given path.
-std::string GetTempFilenameForAtomicWrite(const std::string& path);
+std::string GetTempFilenameForAtomicWrite(std::string path);
 
 // Gets a set user directory path
 // Don't call prior to setting the base user directory

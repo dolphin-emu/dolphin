@@ -639,19 +639,21 @@ std::string CreateTempDir()
 #endif
 }
 
-std::string GetTempFilenameForAtomicWrite(const std::string& path)
+std::string GetTempFilenameForAtomicWrite(std::string path)
 {
-  std::string abs = path;
 #ifdef _WIN32
-  TCHAR absbuf[MAX_PATH];
-  if (_tfullpath(absbuf, UTF8ToTStr(path).c_str(), MAX_PATH) != nullptr)
-    abs = TStrToUTF8(absbuf);
+  std::unique_ptr<TCHAR[], decltype(&std::free)> absbuf{
+      _tfullpath(nullptr, UTF8ToTStr(path).c_str(), 0), std::free};
+  if (absbuf != nullptr)
+  {
+    path = TStrToUTF8(absbuf.get());
+  }
 #else
   char absbuf[PATH_MAX];
   if (realpath(path.c_str(), absbuf) != nullptr)
-    abs = absbuf;
+    path = absbuf;
 #endif
-  return abs + ".xxx";
+  return std::move(path) + ".xxx";
 }
 
 #if defined(__APPLE__)
