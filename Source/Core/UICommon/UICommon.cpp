@@ -62,9 +62,17 @@ static void CreateDumpPath(const std::string& path)
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
 }
 
+static void CreateLoadPath(const std::string& path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_LOAD_IDX, path + '/');
+  File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+}
+
 static void InitCustomPaths()
 {
   File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
+  CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
   const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
   if (!sd_path.empty())
