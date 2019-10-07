@@ -181,12 +181,18 @@ void AudioPane::LoadSettings()
 
   // Backend
   const auto current = SConfig::GetInstance().sBackend;
+  bool selection_set = false;
   for (const auto& backend : AudioCommon::GetSoundBackends())
   {
     m_backend_combo->addItem(tr(backend.c_str()), QVariant(QString::fromStdString(backend)));
     if (backend == current)
+    {
       m_backend_combo->setCurrentIndex(m_backend_combo->count() - 1);
+      selection_set = true;
+    }
   }
+  if (!selection_set)
+    m_backend_combo->setCurrentIndex(-1);
 
   OnBackendChanged();
 
