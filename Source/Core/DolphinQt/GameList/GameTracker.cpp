@@ -56,6 +56,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       break;
     case CommandType::Start:
       StartInternal();
+      break;
     case CommandType::AddDirectory:
       AddDirectoryInternal(command.path);
       break;
