@@ -72,7 +72,8 @@ private:
     UpdateDirectory,
     UpdateFile,
     UpdateMetadata,
-    PurgeCache
+    PurgeCache,
+    BeginRefresh,
   };
 
   struct Command

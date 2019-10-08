@@ -79,6 +79,11 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     case CommandType::PurgeCache:
       m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
       break;
+    case CommandType::BeginRefresh:
+      for (auto& file : m_tracked_files.keys())
+        emit GameRemoved(file.toStdString());
+      m_tracked_files.clear();
+      break;
     }
   });
 
@@ -177,10 +182,7 @@ void GameTracker::RemoveDirectory(const QString& dir)
 
 void GameTracker::RefreshAll()
 {
-  for (auto& file : m_tracked_files.keys())
-    emit GameRemoved(file.toStdString());
-
-  m_tracked_files.clear();
+  m_load_thread.EmplaceItem(Command{CommandType::BeginRefresh});
 
   for (const QString& dir : Settings::Instance().GetPaths())
   {
