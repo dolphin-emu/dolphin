@@ -25,7 +25,8 @@ AlsaSound::~AlsaSound()
   // Give the opportunity to the audio thread
   // to realize we are stopping the emulation
   cv.notify_one();
-  thread.join();
+  if (thread.joinable())
+    thread.join();
 }
 
 bool AlsaSound::Init()
