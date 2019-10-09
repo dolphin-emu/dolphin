@@ -64,6 +64,7 @@ void InitSoundStream()
     WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.", backend.c_str(),
              BACKEND_NULLSOUND);
     g_sound_stream = std::make_unique<NullSound>();
+    g_sound_stream->Init();
   }
 
   UpdateSoundStream();
