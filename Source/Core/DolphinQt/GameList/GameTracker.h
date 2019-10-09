@@ -74,6 +74,7 @@ private:
     UpdateMetadata,
     PurgeCache,
     BeginRefresh,
+    EndRefresh,
   };
 
   struct Command
@@ -91,6 +92,8 @@ private:
   Common::Event m_initial_games_emitted_event;
   bool m_initial_games_emitted = false;
   bool m_started = false;
+  // Count of currently running refresh jobs
+  u32 m_busy_count = 0;
 };
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)
