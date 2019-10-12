@@ -87,6 +87,14 @@ Token Lexer::GetRealLiteral(char first_char)
   return Token(TOK_INVALID);
 }
 
+Token Lexer::PeekToken()
+{
+  const auto old_it = it;
+  const auto tok = NextToken();
+  it = old_it;
+  return tok;
+}
+
 Token Lexer::NextToken()
 {
   if (it == expr.end())
@@ -99,7 +107,7 @@ Token Lexer::NextToken()
   case '\t':
   case '\n':
   case '\r':
-    return Token(TOK_DISCARD);
+    return Token(TOK_WHITESPACE);
   case '(':
     return Token(TOK_LPAREN);
   case ')':
@@ -154,8 +162,19 @@ ParseStatus Lexer::Tokenize(std::vector<Token>& tokens)
     tok.string_position = string_position;
     tok.string_length = it - expr.begin();
 
-    if (tok.type == TOK_DISCARD)
-      continue;
+    // Handle /* */ style comments.
+    if (tok.type == TOK_DIV && PeekToken().type == TOK_MUL)
+    {
+      const auto end_of_comment = expr.find("*/", it - expr.begin());
+
+      if (end_of_comment == std::string::npos)
+        return ParseStatus::SyntaxError;
+
+      tok.type = TOK_COMMENT;
+      tok.string_length = end_of_comment + 4;
+
+      it = expr.begin() + end_of_comment + 2;
+    }
 
     tokens.push_back(tok);
 
@@ -671,7 +690,17 @@ static ParseResult ParseComplexExpression(const std::string& str)
   if (tokenize_status != ParseStatus::Successful)
     return ParseResult::MakeErrorResult(Token(TOK_INVALID), _trans("Tokenizing failed."));
 
+  RemoveInertTokens(&tokens);
   return ParseTokens(tokens);
+}
+
+void RemoveInertTokens(std::vector<Token>* tokens)
+{
+  tokens->erase(std::remove_if(tokens->begin(), tokens->end(),
+                               [](const Token& tok) {
+                                 return tok.type == TOK_COMMENT || tok.type == TOK_WHITESPACE;
+                               }),
+                tokens->end());
 }
 
 static std::unique_ptr<Expression> ParseBarewordExpression(const std::string& str)

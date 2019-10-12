@@ -15,7 +15,7 @@ namespace ciface::ExpressionParser
 {
 enum TokenType
 {
-  TOK_DISCARD,
+  TOK_WHITESPACE,
   TOK_INVALID,
   TOK_EOF,
   TOK_LPAREN,
@@ -25,6 +25,7 @@ enum TokenType
   TOK_LITERAL,
   TOK_VARIABLE,
   TOK_BAREWORD,
+  TOK_COMMENT,
   // Binary Ops:
   TOK_BINARY_OPS_BEGIN,
   TOK_AND = TOK_BINARY_OPS_BEGIN,
@@ -95,6 +96,7 @@ private:
   Token GetBareword(char c);
   Token GetRealLiteral(char c);
 
+  Token PeekToken();
   Token NextToken();
 };
 
@@ -186,5 +188,6 @@ private:
 
 ParseResult ParseExpression(const std::string& expr);
 ParseResult ParseTokens(const std::vector<Token>& tokens);
+void RemoveInertTokens(std::vector<Token>* tokens);
 
 }  // namespace ciface::ExpressionParser

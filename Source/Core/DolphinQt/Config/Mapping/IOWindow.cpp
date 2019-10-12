@@ -44,14 +44,6 @@ QTextCharFormat GetSpecialCharFormat()
   return format;
 }
 
-QTextCharFormat GetOperatorCharFormat()
-{
-  QTextCharFormat format;
-  format.setFontWeight(QFont::Weight::Bold);
-  format.setForeground(QBrush{Qt::darkBlue});
-  return format;
-}
-
 QTextCharFormat GetLiteralCharFormat()
 {
   QTextCharFormat format;
@@ -77,14 +69,21 @@ QTextCharFormat GetControlCharFormat()
 QTextCharFormat GetVariableCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::magenta});
+  format.setForeground(QBrush{Qt::darkYellow});
   return format;
 }
 
 QTextCharFormat GetBarewordCharFormat()
 {
   QTextCharFormat format;
-  format.setForeground(QBrush{Qt::darkCyan});
+  format.setForeground(QBrush{Qt::darkBlue});
+  return format;
+}
+
+QTextCharFormat GetCommentCharFormat()
+{
+  QTextCharFormat format;
+  format.setForeground(QBrush{Qt::darkGray});
   return format;
 }
 }  // namespace
@@ -95,15 +94,34 @@ ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocu
 {
 }
 
-void ControlExpressionSyntaxHighlighter::highlightBlock(const QString& text)
+void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
 {
   // TODO: This is going to result in improper highlighting with non-ascii characters:
-  ciface::ExpressionParser::Lexer lexer(text.toStdString());
+  ciface::ExpressionParser::Lexer lexer(document()->toPlainText().toStdString());
 
   std::vector<ciface::ExpressionParser::Token> tokens;
   const auto tokenize_status = lexer.Tokenize(tokens);
 
   using ciface::ExpressionParser::TokenType;
+
+  const auto set_block_format = [this](int start, int count, const QTextCharFormat& format) {
+    if (start + count <= currentBlock().position() ||
+        start >= currentBlock().position() + currentBlock().length())
+    {
+      // This range is not within the current block.
+      return;
+    }
+
+    int block_start = start - currentBlock().position();
+
+    if (block_start < 0)
+    {
+      count += block_start;
+      block_start = 0;
+    }
+
+    setFormat(block_start, count, format);
+  };
 
   for (auto& token : tokens)
   {
@@ -131,22 +149,27 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString& text)
     case TokenType::TOK_VARIABLE:
       char_format = GetVariableCharFormat();
       break;
+    case TokenType::TOK_COMMENT:
+      char_format = GetCommentCharFormat();
+      break;
     default:
       if (token.IsBinaryOperator())
-        char_format = GetOperatorCharFormat();
+        char_format = GetSpecialCharFormat();
       break;
     }
 
     if (char_format.has_value())
-      setFormat(int(token.string_position), int(token.string_length), *char_format);
+      set_block_format(int(token.string_position), int(token.string_length), *char_format);
   }
 
+  // This doesn't need to be run for every "block", but it works.
   if (ciface::ExpressionParser::ParseStatus::Successful != tokenize_status)
   {
     m_result_text->setText(tr("Invalid Token."));
   }
   else
   {
+    ciface::ExpressionParser::RemoveInertTokens(&tokens);
     const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
 
     m_result_text->setText(
@@ -155,7 +178,8 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString& text)
     if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
     {
       const auto token = *parse_status.token;
-      setFormat(int(token.string_position), int(token.string_length), GetInvalidCharFormat());
+      set_block_format(int(token.string_position), int(token.string_length),
+                       GetInvalidCharFormat());
     }
   }
 }
