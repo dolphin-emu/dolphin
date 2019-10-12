@@ -40,9 +40,6 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
   m_default_device_is_connected = devi.HasConnectedDevice(m_default_device);
 
-  // Reset variables:
-  m_expression_vars.clear();
-
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
 
   UpdateReferences(env);
