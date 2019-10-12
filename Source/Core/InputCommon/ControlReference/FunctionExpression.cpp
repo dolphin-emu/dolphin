@@ -21,10 +21,14 @@ using FSec = std::chrono::duration<ControlState>;
 class ToggleExpression : public FunctionExpression
 {
 private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
     // Optional 2nd argument for clearing state:
-    return 1 == args.size() || 2 == args.size();
+    if (1 == args.size() || 2 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"toggle_state_input, [clear_state_input]"};
   }
 
   ControlState GetValue() const override
@@ -57,9 +61,13 @@ private:
 class NotExpression : public FunctionExpression
 {
 private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 1 == args.size();
+    if (1 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return 1.0 - GetArg(0).GetValue(); }
@@ -70,9 +78,13 @@ private:
 class SinExpression : public FunctionExpression
 {
 private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 1 == args.size();
+    if (1 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override { return std::sin(GetArg(0).GetValue()); }
@@ -82,9 +94,13 @@ private:
 class TimerExpression : public FunctionExpression
 {
 private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 1 == args.size();
+    if (1 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"seconds"};
   }
 
   ControlState GetValue() const override
@@ -121,9 +137,13 @@ private:
 class IfExpression : public FunctionExpression
 {
 private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 3 == args.size();
+    if (3 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"condition, true_expression, false_expression"};
   }
 
   ControlState GetValue() const override
@@ -137,9 +157,13 @@ private:
 class UnaryMinusExpression : public FunctionExpression
 {
 private:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 1 == args.size();
+    if (1 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"expression"};
   }
 
   ControlState GetValue() const override
@@ -152,9 +176,13 @@ private:
 // usage: deadzone(input, amount)
 class DeadzoneExpression : public FunctionExpression
 {
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 2 == args.size();
+    if (2 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, amount"};
   }
 
   ControlState GetValue() const override
@@ -169,9 +197,13 @@ class DeadzoneExpression : public FunctionExpression
 // seconds is seconds to change from 0.0 to 1.0
 class SmoothExpression : public FunctionExpression
 {
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 2 == args.size() || 3 == args.size();
+    if (2 == args.size() || 3 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, seconds_up, seconds_down = seconds_up"};
   }
 
   ControlState GetValue() const override
@@ -209,9 +241,13 @@ private:
 // usage: hold(input, seconds)
 class HoldExpression : public FunctionExpression
 {
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 2 == args.size();
+    if (2 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, seconds"};
   }
 
   ControlState GetValue() const override
@@ -244,9 +280,13 @@ private:
 // usage: tap(input, seconds, taps=2)
 class TapExpression : public FunctionExpression
 {
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 2 == args.size() || 3 == args.size();
+    if (2 == args.size() || 3 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, seconds, taps = 2"};
   }
 
   ControlState GetValue() const override
@@ -300,9 +340,13 @@ private:
 // speed is max movement per second
 class RelativeExpression : public FunctionExpression
 {
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return args.size() >= 2 && args.size() <= 4;
+    if (args.size() >= 2 && args.size() <= 4)
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, speed, [max_abs_value, [shared_state]]"};
   }
 
   ControlState GetValue() const override
@@ -355,9 +399,13 @@ private:
 // usage: pulse(input, seconds)
 class PulseExpression : public FunctionExpression
 {
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
+  ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    return 2 == args.size();
+    if (2 == args.size())
+      return ArgumentsAreValid{};
+    else
+      return ExpectedArguments{"input, seconds"};
   }
 
   ControlState GetValue() const override
@@ -447,7 +495,8 @@ void FunctionExpression::UpdateReferences(ControlEnvironment& env)
     arg->UpdateReferences(env);
 }
 
-bool FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args)
+FunctionExpression::ArgumentValidation
+FunctionExpression::SetArguments(std::vector<std::unique_ptr<Expression>>&& args)
 {
   m_args = std::move(args);
 

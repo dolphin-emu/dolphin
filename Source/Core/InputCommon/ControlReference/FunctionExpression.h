@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -18,15 +19,27 @@ namespace ExpressionParser
 class FunctionExpression : public Expression
 {
 public:
+  struct ArgumentsAreValid
+  {
+  };
+
+  struct ExpectedArguments
+  {
+    std::string text;
+  };
+
+  using ArgumentValidation = std::variant<ArgumentsAreValid, ExpectedArguments>;
+
   int CountNumControls() const override;
   void UpdateReferences(ControlEnvironment& env) override;
 
-  bool SetArguments(std::vector<std::unique_ptr<Expression>>&& args);
+  ArgumentValidation SetArguments(std::vector<std::unique_ptr<Expression>>&& args);
 
   void SetValue(ControlState value) override;
 
 protected:
-  virtual bool ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) = 0;
+  virtual ArgumentValidation
+  ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) = 0;
 
   Expression& GetArg(u32 number);
   const Expression& GetArg(u32 number) const;

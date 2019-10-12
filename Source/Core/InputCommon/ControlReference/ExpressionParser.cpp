@@ -469,7 +469,8 @@ private:
     return tok.type == type;
   }
 
-  ParseResult ParseFunctionArguments(std::unique_ptr<FunctionExpression>&& func,
+  ParseResult ParseFunctionArguments(const std::string_view& func_name,
+                                     std::unique_ptr<FunctionExpression>&& func,
                                      const Token& func_tok)
   {
     std::vector<std::unique_ptr<Expression>> args;
@@ -518,10 +519,15 @@ private:
       }
     }
 
-    if (!func->SetArguments(std::move(args)))
+    const auto argument_validation = func->SetArguments(std::move(args));
+
+    if (std::holds_alternative<FunctionExpression::ExpectedArguments>(argument_validation))
     {
-      // TODO: It would be nice to output how many arguments are expected.
-      return ParseResult::MakeErrorResult(func_tok, _trans("Wrong number of arguments."));
+      const auto text = std::string(func_name) + '(' +
+                        std::get<FunctionExpression::ExpectedArguments>(argument_validation).text +
+                        ')';
+
+      return ParseResult::MakeErrorResult(func_tok, _trans("Expected arguments: " + text));
     }
 
     return ParseResult::MakeSuccessfulResult(std::move(func));
@@ -543,7 +549,7 @@ private:
         return ParseAtom(control_tok);
       }
 
-      return ParseFunctionArguments(std::move(func), tok);
+      return ParseFunctionArguments(tok.data, std::move(func), tok);
     }
     case TOK_CONTROL:
     {
@@ -553,7 +559,7 @@ private:
     }
     case TOK_NOT:
     {
-      return ParseFunctionArguments(MakeFunctionExpression("not"), tok);
+      return ParseFunctionArguments("not", MakeFunctionExpression("not"), tok);
     }
     case TOK_LITERAL:
     {
@@ -571,7 +577,7 @@ private:
     {
       // An atom was expected but we got a subtraction symbol.
       // Interpret it as a unary minus function.
-      return ParseFunctionArguments(MakeFunctionExpression("minus"), tok);
+      return ParseFunctionArguments("minus", MakeFunctionExpression("minus"), tok);
     }
     default:
     {
