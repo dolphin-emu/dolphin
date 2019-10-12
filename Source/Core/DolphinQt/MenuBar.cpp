@@ -57,6 +57,13 @@
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
+QString MenuBar::GetSignatureSelector() const
+{
+  return QStringLiteral("%1 (*.dsy);; %2 (*.csv);; %3 (*.mega)")
+      .arg(tr("Dolphin Signature File"), tr("Dolphin Signature CSV File"),
+           tr("WiiTools Signature MEGA File"));
+}
+
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
   s_menu_bar = this;
@@ -1330,8 +1337,8 @@ void MenuBar::CreateSignatureFile()
   const QString text = QInputDialog::getText(
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
 
-  const QString file = QFileDialog::getSaveFileName(
-      this, tr("Save signature file"), QDir::homePath(), tr("Function signature file (*.dsy)"));
+  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"),
+                                                    QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1354,8 +1361,8 @@ void MenuBar::AppendSignatureFile()
   const QString text = QInputDialog::getText(
       this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"));
 
-  const QString file = QFileDialog::getSaveFileName(
-      this, tr("Append signature to"), QDir::homePath(), tr("Function signature file (*.dsy)"));
+  const QString file = QFileDialog::getSaveFileName(this, tr("Append signature to"),
+                                                    QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1377,8 +1384,8 @@ void MenuBar::AppendSignatureFile()
 
 void MenuBar::ApplySignatureFile()
 {
-  const QString file = QFileDialog::getOpenFileName(
-      this, tr("Apply signature file"), QDir::homePath(), tr("Function signature file (*.dsy)"));
+  const QString file = QFileDialog::getOpenFileName(this, tr("Apply signature file"),
+                                                    QDir::homePath(), GetSignatureSelector());
 
   if (file.isEmpty())
     return;
@@ -1394,21 +1401,18 @@ void MenuBar::ApplySignatureFile()
 
 void MenuBar::CombineSignatureFiles()
 {
-  const QString priorityFile =
-      QFileDialog::getOpenFileName(this, tr("Choose priority input file"), QDir::homePath(),
-                                   tr("Function signature file (*.dsy)"));
+  const QString priorityFile = QFileDialog::getOpenFileName(
+      this, tr("Choose priority input file"), QDir::homePath(), GetSignatureSelector());
   if (priorityFile.isEmpty())
     return;
 
-  const QString secondaryFile =
-      QFileDialog::getOpenFileName(this, tr("Choose secondary input file"), QDir::homePath(),
-                                   tr("Function signature file (*.dsy)"));
+  const QString secondaryFile = QFileDialog::getOpenFileName(
+      this, tr("Choose secondary input file"), QDir::homePath(), GetSignatureSelector());
   if (secondaryFile.isEmpty())
     return;
 
-  const QString saveFile =
-      QFileDialog::getSaveFileName(this, tr("Save combined output file as"), QDir::homePath(),
-                                   tr("Function signature file (*.dsy)"));
+  const QString saveFile = QFileDialog::getSaveFileName(this, tr("Save combined output file as"),
+                                                        QDir::homePath(), GetSignatureSelector());
   if (saveFile.isEmpty())
     return;
 
