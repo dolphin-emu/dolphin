@@ -71,7 +71,7 @@ public:
   std::string expr;
   std::string::iterator it;
 
-  Lexer(const std::string& expr_);
+  explicit Lexer(std::string expr_);
 
   ParseStatus Tokenize(std::vector<Token>& tokens);
 

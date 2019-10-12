@@ -34,7 +34,7 @@ bool Token::IsBinaryOperator() const
   return type >= TOK_BINARY_OPS_BEGIN && type < TOK_BINARY_OPS_END;
 }
 
-Lexer::Lexer(const std::string& expr_) : expr(expr_)
+Lexer::Lexer(std::string expr_) : expr(std::move(expr_))
 {
   it = expr.begin();
 }
