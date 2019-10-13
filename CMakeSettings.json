@@ -11,7 +11,7 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.11.1\\5.11.1\\msvc2017_64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.13.1\\5.13.1\\msvc2017_64\\lib\\cmake\\Qt5"
         }
       ]
     },
@@ -25,12 +25,8 @@
       "cmakeCommandArgs": "",
       "variables": [
         {
-          "name": "CMAKE_BUILD_TYPE",
-          "value": "Debug"
-        },
-        {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.11.1\\5.11.1\\msvc2017_64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.13.1\\5.13.1\\msvc2017_64\\lib\\cmake\\Qt5"
         }
       ]
     }
