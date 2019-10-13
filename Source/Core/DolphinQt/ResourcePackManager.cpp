@@ -142,7 +142,7 @@ void ResourcePackManager::RepopulateTable()
 
       if (ResourcePack::IsInstalled(pack))
       {
-        item->setBackgroundColor(QColor(Qt::green));
+        item->setBackground(QColor(Qt::green));
 
         auto font = item->font();
         font.setBold(true);
