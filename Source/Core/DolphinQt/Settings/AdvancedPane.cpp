@@ -5,7 +5,9 @@
 #include "DolphinQt/Settings/AdvancedPane.h"
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDateTimeEdit>
+#include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -52,24 +54,28 @@ void AdvancedPane::CreateLayout()
   cpu_options->setLayout(cpu_options_layout);
   main_layout->addWidget(cpu_options);
 
-  auto* engine_group = new QGroupBox(tr("CPU Emulation Engine"));
-  auto* engine_group_layout = new QVBoxLayout;
-  engine_group->setLayout(engine_group_layout);
-
+  QGridLayout* cpu_emulation_layout = new QGridLayout();
+  QLabel* cpu_emulation_engine_label = new QLabel(tr("CPU Emulation Engine:"));
+  m_cpu_emulation_engine_combobox = new QComboBox(this);
   for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
   {
-    m_cpu_cores.emplace_back(new QRadioButton(tr(CPU_CORE_NAMES.at(cpu_core))));
-    engine_group_layout->addWidget(m_cpu_cores.back());
+    m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
   }
+  cpu_emulation_layout->addWidget(cpu_emulation_engine_label, 0, 0);
+  cpu_emulation_layout->addWidget(m_cpu_emulation_engine_combobox, 0, 1, Qt::AlignLeft);
+  cpu_options_layout->addLayout(cpu_emulation_layout);
 
-  cpu_options_layout->addWidget(engine_group);
+  auto* clock_override = new QGroupBox(tr("Clock Override"));
+  auto* clock_override_layout = new QVBoxLayout();
+  clock_override->setLayout(clock_override_layout);
+  main_layout->addWidget(clock_override);
 
   m_cpu_clock_override_checkbox = new QCheckBox(tr("Enable Emulated CPU Clock Override"));
-  cpu_options_layout->addWidget(m_cpu_clock_override_checkbox);
+  clock_override_layout->addWidget(m_cpu_clock_override_checkbox);
 
   auto* cpu_clock_override_slider_layout = new QHBoxLayout();
   cpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
-  cpu_options_layout->addLayout(cpu_clock_override_slider_layout);
+  clock_override_layout->addLayout(cpu_clock_override_slider_layout);
 
   m_cpu_clock_override_slider = new QSlider(Qt::Horizontal);
   m_cpu_clock_override_slider->setRange(0, 150);
@@ -87,7 +93,7 @@ void AdvancedPane::CreateLayout()
                     "break games and cause glitches. Do so at your own risk. "
                     "Please do not report bugs that occur with a non-default clock."));
   cpu_clock_override_description->setWordWrap(true);
-  cpu_options_layout->addWidget(cpu_clock_override_description);
+  clock_override_layout->addWidget(cpu_clock_override_description);
 
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));
   rtc_options->setLayout(new QVBoxLayout());
@@ -123,21 +129,13 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
-  for (QRadioButton* radio_button : m_cpu_cores)
-  {
-    connect(radio_button, &QRadioButton::toggled, [this](bool toggled) {
-      for (size_t i = 0; i < m_cpu_cores.size(); ++i)
-      {
-        if (m_cpu_cores[i]->isChecked())
-        {
-          SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[i];
-          Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[i]);
-          break;
-        }
-      }
-      Update();
-    });
-  }
+  connect(m_cpu_emulation_engine_combobox,
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+          [this](int index) {
+            SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
+            Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
+            Update();
+          });
 
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
@@ -176,10 +174,10 @@ void AdvancedPane::Update()
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
 
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
-  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
+  for (int i = 0; i < available_cpu_cores.size(); ++i)
   {
     if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
-      m_cpu_cores[i]->setChecked(true);
+      m_cpu_emulation_engine_combobox->setCurrentIndex(i);
   }
 
   QFont bf = font();
@@ -211,7 +209,5 @@ void AdvancedPane::Update()
 void AdvancedPane::OnEmulationStateChanged(Core::State state)
 {
   const bool running = state != Core::State::Uninitialized;
-
-  for (QRadioButton* radio_button : m_cpu_cores)
-    radio_button->setEnabled(!running);
+  m_cpu_emulation_engine_combobox->setEnabled(!running);
 }

@@ -9,6 +9,7 @@
 #include <QWidget>
 
 class QCheckBox;
+class QComboBox;
 class QLabel;
 class QRadioButton;
 class QSlider;
@@ -31,6 +32,7 @@ private:
   void Update();
   void OnEmulationStateChanged(Core::State state);
 
+  QComboBox* m_cpu_emulation_engine_combobox;
   QCheckBox* m_cpu_clock_override_checkbox;
   QSlider* m_cpu_clock_override_slider;
   QLabel* m_cpu_clock_override_slider_label;
@@ -38,6 +40,4 @@ private:
 
   QCheckBox* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;
-
-  std::vector<QRadioButton*> m_cpu_cores;
 };
