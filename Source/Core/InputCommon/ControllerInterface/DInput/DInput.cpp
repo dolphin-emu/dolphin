@@ -11,6 +11,8 @@
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
+#include "InputCommon/DInputMouseAbsolute.h"
+
 #pragma comment(lib, "Dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
@@ -61,6 +63,8 @@ void PopulateDevices(HWND hwnd)
     ERROR_LOG(PAD, "DirectInput8Create failed.");
     return;
   }
+
+  prime::InitMouse(idi8);
 
   InitKeyboardMouse(idi8, hwnd);
   InitJoystick(idi8, hwnd);

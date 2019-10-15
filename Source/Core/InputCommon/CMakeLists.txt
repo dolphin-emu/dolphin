@@ -1,6 +1,9 @@
 add_library(inputcommon
   InputConfig.cpp
   InputConfig.h
+  GenericMouse.cpp
+	DInputMouseAbsolute.cpp
+	DInputMouseAbsolute.h
   InputProfile.cpp
   InputProfile.h
   ControllerEmu/ControllerEmu.cpp

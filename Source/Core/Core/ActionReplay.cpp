@@ -27,6 +27,7 @@
 #include <iterator>
 #include <mutex>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -41,6 +42,10 @@
 #include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
+
+#include "PrimeHack/HackConfig.h"
+#include "InputCommon/GenericMouse.h"
+#include "VideoCommon/RenderBase.h"
 
 namespace ActionReplay
 {
@@ -974,6 +979,7 @@ void RunAllActive()
   if (!SConfig::GetInstance().bEnableCheats)
     return;
 
+  prime::GetHackManager()->run_active_mods();
   // If the mutex is idle then acquiring it should be cheap, fast mutexes
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.

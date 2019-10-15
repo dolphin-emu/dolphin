@@ -8,6 +8,8 @@
 #include <vector>
 #include "Common/CommonTypes.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
+
 class IniFile;
 
 namespace ActionReplay

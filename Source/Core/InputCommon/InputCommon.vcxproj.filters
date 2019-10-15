@@ -117,6 +117,8 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
+    <ClCompile Include="DInputMouseAbsolute.cpp" />
+    <ClCompile Include="GenericMouse.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackButtons.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
@@ -216,6 +218,8 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
+    <ClInclude Include="DInputMouseAbsolute.h" />
+    <ClInclude Include="GenericMouse.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackButtons.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>

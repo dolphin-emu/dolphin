@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Common/Logging/Log.h"
+#include "Core/PrimeHack/HackConfig.h"
 
 #ifdef CIFACE_USE_WIN32
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
@@ -98,10 +99,12 @@ void ControllerInterface::RefreshDevices()
 
 #ifdef CIFACE_USE_WIN32
   ciface::Win32::PopulateDevices(m_wsi.render_surface);
+  prime::InitializeHack("Keyboard Mouse", "DInput");
 #endif
 #ifdef CIFACE_USE_XLIB
   if (m_wsi.type == WindowSystemType::X11)
     ciface::XInput2::PopulateDevices(m_wsi.render_surface);
+    prime::InitializeHack("Keyboard Mouse", "DInput");
 #endif
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)

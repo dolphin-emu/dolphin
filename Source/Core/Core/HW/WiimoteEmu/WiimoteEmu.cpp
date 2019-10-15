@@ -65,8 +65,8 @@ static const char* const named_buttons[] = {
     "A", "B", "1", "2", "-", "+", "Home",
 };
 
-static const char* const prime_beams[] = { "Beam 1",  "Beam 2",  "Beam 3",  "Beam 4" };
-static const char* const prime_visors[] = { "Visor 1", "Visor 2", "Visor 3", "Visor 4" };
+static const char* const prime_beams[] = {"Beam 1", "Beam 2", "Beam 3", "Beam 4"};
+static const char* const prime_visors[] = {"Visor 1", "Visor 2", "Visor 3", "Visor 4"};
 
 void Wiimote::Reset()
 {
@@ -247,22 +247,19 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
       &m_primehack_cursor_sensitivity,
       {"Cursor Sensitivity", nullptr, nullptr, _trans("Cursor Sensitivity")}, 15, 1, 100);
 
-  m_primehack_fps->AddSetting(
-      &m_primehack_fieldofview,
-      {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60, 1, 101);
+  m_primehack_fps->AddSetting(&m_primehack_fieldofview,
+                              {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60, 1,
+                              101);
 
   groups.emplace_back(m_primehack_misc = new ControllerEmu::PrimeHackMisc(_trans("Miscelaneous")));
-  m_primehack_misc->AddSetting(
-      &m_primehack_invert_x,
-      {"Invert X axis", nullptr, nullptr, _trans("Invert X axis")}, false);
-  
-  m_primehack_misc->AddSetting(
-      &m_primehack_invert_y,
-      {"Invert Y axis", nullptr, nullptr, _trans("Invert Y axis")}, false);
+  m_primehack_misc->AddSetting(&m_primehack_invert_x,
+                               {"Invert X axis", nullptr, nullptr, _trans("Invert X axis")}, false);
+
+  m_primehack_misc->AddSetting(&m_primehack_invert_y,
+                               {"Invert Y axis", nullptr, nullptr, _trans("Invert Y axis")}, false);
 
   Reset();
 }
-
 
 std::string Wiimote::GetName() const
 {

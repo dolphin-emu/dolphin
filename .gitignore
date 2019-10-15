@@ -36,3 +36,5 @@ CMakeLists.txt.user
 /.idea/
 # Ignore Visual Studio Code's working dir
 /.vscode/
+/Source/Core/DolphinQt/hack_config.ini
+/Source/Core/DolphinQt/.sav

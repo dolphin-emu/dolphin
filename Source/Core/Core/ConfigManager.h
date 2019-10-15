@@ -53,7 +53,6 @@ struct BootParameters;
 #define BACKEND_CUBEB "Cubeb"
 #define BACKEND_OPENAL "OpenAL"
 #define BACKEND_PULSEAUDIO "Pulse"
-#define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
 #define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
 

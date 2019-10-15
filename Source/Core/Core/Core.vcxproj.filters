@@ -166,6 +166,9 @@
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension">
       <UniqueIdentifier>{68c09d7e-4f5a-435d-a0d2-7eb7a74d7054}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PrimeHack">
+      <UniqueIdentifier>{a1b42782-823b-46d3-ab7c-6f26989ad6d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -932,6 +935,16 @@
     <ClCompile Include="HW\AddressSpace.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\ConditionRegister.cpp" />
+    <ClCompile Include="PrimeHack\HackConfig.cpp">
+      <Filter>PrimeHack</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimeHack\HackManager.cpp">
+      <Filter>PrimeHack</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimeHack\AimMods.cpp">
+      <Filter>PrimeHack</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1660,6 +1673,18 @@
     <ClInclude Include="PowerPC\ConditionRegister.h" />
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\AimMods.h">
+      <Filter>PrimeHack</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\HackConfig.h">
+      <Filter>PrimeHack</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\HackManager.h">
+      <Filter>PrimeHack</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\PrimeMod.h">
+      <Filter>PrimeHack</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

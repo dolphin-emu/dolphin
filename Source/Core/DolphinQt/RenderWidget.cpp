@@ -7,7 +7,6 @@
 #include <array>
 
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
@@ -19,6 +18,7 @@
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
+#include <QWindow>
 
 #include "imgui.h"
 
@@ -36,6 +36,9 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include "InputCommon/DInputMouseAbsolute.h"
+#include "InputCommon/GenericMouse.h"
+
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(QStringLiteral("Dolphin"));
@@ -43,7 +46,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setAcceptDrops(true);
 
   QPalette p;
-  p.setColor(QPalette::Background, Qt::black);
+  p.setColor(QPalette::Window, Qt::black);
   setPalette(p);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
@@ -162,8 +165,9 @@ void RenderWidget::showFullScreen()
 {
   QWidget::showFullScreen();
 
-  const auto dpr =
-      QGuiApplication::screens()[QApplication::desktop()->screenNumber(this)]->devicePixelRatio();
+  QScreen* screen = window()->windowHandle()->screen();
+
+  const auto dpr = screen->devicePixelRatio();
 
   emit SizeChanged(width() * dpr, height() * dpr);
 }
@@ -174,6 +178,14 @@ bool RenderWidget::event(QEvent* event)
 
   switch (event->type())
   {
+  case QEvent::Move:
+  {
+    QMoveEvent* me = static_cast<QMoveEvent*>(event);
+
+    // Window Centre for PrimeHack mouselock.
+    SET_RENDER_CENTRE((me->pos().x() + (size().width() / 2)), (me->pos().y() + (size().height() / 2)));
+    break;
+  }  
   case QEvent::Paint:
     return !autoFillBackground();
   case QEvent::KeyPress:
@@ -218,17 +230,15 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Resize:
   {
+    // Window Centre for PrimeHack mouselock.
+    SET_RENDER_CENTRE((rect().right() + rect().left()) / 2, (rect().bottom() + rect().top()) / 2);
+
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
 
-    auto* desktop = QApplication::desktop();
+    QScreen* screen = window()->windowHandle()->screen();
 
-    int screen_nr = desktop->screenNumber(this);
-
-    if (screen_nr == -1)
-      screen_nr = desktop->screenNumber(parentWidget());
-
-    const auto dpr = desktop->screen(screen_nr)->devicePixelRatio();
+    const auto dpr = screen->devicePixelRatio();
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
@@ -311,6 +321,12 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
     for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
       ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
+
+    const float scale = devicePixelRatio();
+    int x = static_cast<const QMouseEvent*>(event)->x();
+    int y = static_cast<const QMouseEvent*>(event)->y();
+
+    prime::g_mouse_input->mousePressEvent(x, y);
   }
   break;
 

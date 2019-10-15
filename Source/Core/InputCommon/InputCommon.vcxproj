@@ -66,6 +66,7 @@
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
+    <ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GCAdapter.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
@@ -73,6 +74,7 @@
       -->
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="GenericMouse.cpp" />
     <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
@@ -108,8 +110,10 @@
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
+    <ClInclude Include="DInputMouseAbsolute.h" />
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
+    <ClInclude Include="GenericMouse.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="InputProfile.h" />
   </ItemGroup>

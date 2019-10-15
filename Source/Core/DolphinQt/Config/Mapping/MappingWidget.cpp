@@ -138,6 +138,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       form_layout->addRow(tr(setting->GetUIName()), setting_widget);
   }
 
+  
+
   return group_box;
 }
 
