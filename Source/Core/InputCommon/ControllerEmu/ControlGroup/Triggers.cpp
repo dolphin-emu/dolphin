@@ -28,7 +28,7 @@ Triggers::StateData Triggers::GetState()
 
   StateData result(trigger_count);
   for (size_t i = 0; i < trigger_count; ++i)
-    result.data[i] = ApplyDeadzone(controls[i]->control_ref->State(), deadzone);
+    result.data[i] = std::min(ApplyDeadzone(controls[i]->control_ref->State(), deadzone), 1.0);
 
   return result;
 }
