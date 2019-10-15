@@ -240,6 +240,9 @@ bool RenderWidget::event(QEvent* event)
 
     const auto dpr = screen->devicePixelRatio();
 
+    // Window Centre for PrimeHack mouselock.
+    SET_RENDER_CENTRE((pos().x() + (new_size.width() / 2)), (pos().y() + (new_size.height() / 2)));
+
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
   }
