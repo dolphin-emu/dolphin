@@ -123,8 +123,10 @@ void RegisterWidget::ShowContextMenu()
     // It's not related to timekeeping devices.
     menu->addAction(tr("Add to &watch"), this,
                     [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
-    menu->addAction(tr("View &memory"));
-    menu->addAction(tr("View &code"));
+    menu->addAction(tr("View &memory"), this,
+                    [this, item] { emit RequestViewInMemory(item->GetValue()); });
+    menu->addAction(tr("View &code"), this,
+                    [this, item] { emit RequestViewInCode(item->GetValue()); });
 
     menu->addSeparator();
 
