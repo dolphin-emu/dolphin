@@ -91,12 +91,9 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
   const ControlState roll = target.x * MathUtil::PI;
   const ControlState pitch = target.y * MathUtil::PI;
 
-  // Higher values will be more responsive but will increase rate of M+ "desync".
-  // I'd rather not expose this value in the UI if not needed.
-  // Desync caused by tilt seems not as severe as accelerometer data can estimate pitch/yaw.
-  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 50);
+  const auto max_accel = std::pow(tilt_group->GetMaxRotationalVelocity(), 2) / MathUtil::TAU;
 
-  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), MAX_ACCEL, time_elapsed);
+  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), max_accel, time_elapsed);
 }
 
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/MathUtil.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -30,7 +31,15 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
               _trans("°"),
               // i18n: Refers to emulated wii remote movement.
               _trans("Maximum tilt angle.")},
-             90, 0, 180);
+             85, 0, 180);
+
+  AddSetting(&m_max_rotational_velocity,
+             {_trans("Velocity"),
+              // i18n: The symbol/abbreviation for hertz (cycles per second).
+              _trans("Hz"),
+              // i18n: Refers to emulated wii remote movement.
+              _trans("Peak complete turns per second.")},
+             7, 1, 50);
 }
 
 Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
@@ -61,6 +70,11 @@ ControlState Tilt::GetGateRadiusAtAngle(double ang) const
 ControlState Tilt::GetDefaultInputRadiusAtAngle(double ang) const
 {
   return SquareStickGate(1.0).GetRadiusAtAngle(ang);
+}
+
+ControlState Tilt::GetMaxRotationalVelocity() const
+{
+  return m_max_rotational_velocity.GetValue() * MathUtil::TAU;
 }
 
 }  // namespace ControllerEmu
