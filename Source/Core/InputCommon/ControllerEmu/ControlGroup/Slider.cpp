@@ -34,6 +34,6 @@ Slider::StateData Slider::GetState()
   const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
   const ControlState state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
 
-  return {ApplyDeadzone(state, deadzone)};
+  return {std::clamp(ApplyDeadzone(state, deadzone), -1.0, 1.0)};
 }
 }  // namespace ControllerEmu
