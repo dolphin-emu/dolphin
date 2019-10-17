@@ -473,6 +473,15 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
   return flags;
 }
 
+bool GCMemcard::DEntry_IsPingPong(u8 index) const
+{
+  if (!m_valid || index >= DIRLEN)
+    return false;
+
+  const int flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
+  return (flags & 0b0000'0100) != 0;
+}
+
 std::string GCMemcard::DEntry_FileName(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)

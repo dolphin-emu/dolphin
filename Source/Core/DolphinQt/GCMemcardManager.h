@@ -11,6 +11,8 @@
 
 #include <QDialog>
 
+#include "Common/CommonTypes.h"
+
 class GCMemcard;
 class GCMemcardErrorCode;
 
@@ -34,6 +36,8 @@ public:
   static QString GetErrorMessagesForErrorCode(const GCMemcardErrorCode& code);
 
 private:
+  struct IconAnimationData;
+
   void CreateWidgets();
   void ConnectWidgets();
 
@@ -52,7 +56,8 @@ private:
   void DrawIcons();
 
   QPixmap GetBannerFromSaveFile(int file_index, int slot);
-  std::vector<QPixmap> GetIconFromSaveFile(int file_index, int slot);
+
+  IconAnimationData GetIconFromSaveFile(int file_index, int slot);
 
   // Actions
   QPushButton* m_select_button;
@@ -65,7 +70,7 @@ private:
 
   // Slots
   static constexpr int SLOT_COUNT = 2;
-  std::array<std::vector<std::pair<int, std::vector<QPixmap>>>, SLOT_COUNT> m_slot_active_icons;
+  std::array<std::vector<IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
   std::array<std::unique_ptr<GCMemcard>, SLOT_COUNT> m_slot_memcard;
   std::array<QGroupBox*, SLOT_COUNT> m_slot_group;
   std::array<QLineEdit*, SLOT_COUNT> m_slot_file_edit;
@@ -74,7 +79,7 @@ private:
   std::array<QLabel*, SLOT_COUNT> m_slot_stat_label;
 
   int m_active_slot;
-  int m_current_frame;
+  u64 m_current_frame = 0;
 
   QDialogButtonBox* m_button_box;
   QTimer* m_timer;
