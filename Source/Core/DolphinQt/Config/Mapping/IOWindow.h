@@ -6,6 +6,7 @@
 
 #include <QDialog>
 #include <QString>
+#include <QSyntaxHighlighter>
 
 #include "Common/Flag.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -14,6 +15,7 @@ class ControlReference;
 class QAbstractButton;
 class QComboBox;
 class QDialogButtonBox;
+class QLineEdit;
 class QListWidget;
 class QVBoxLayout;
 class QWidget;
@@ -26,6 +28,19 @@ namespace ControllerEmu
 {
 class EmulatedController;
 }
+
+class ControlExpressionSyntaxHighlighter final : public QSyntaxHighlighter
+{
+  Q_OBJECT
+public:
+  ControlExpressionSyntaxHighlighter(QTextDocument* parent, QLineEdit* result);
+
+protected:
+  void highlightBlock(const QString& text) final override;
+
+private:
+  QLineEdit* const m_result_text;
+};
 
 class IOWindow final : public QDialog
 {
@@ -51,7 +66,7 @@ private:
   void OnTestButtonPressed();
   void OnRangeChanged(int range);
 
-  void AppendSelectedOption(const std::string& prefix);
+  void AppendSelectedOption();
   void UpdateOptionList();
   void UpdateDeviceList();
 
@@ -70,19 +85,18 @@ private:
 
   // Shared actions
   QPushButton* m_select_button;
-  QPushButton* m_or_button;
+  QComboBox* m_operators_combo;
 
   // Input actions
   QPushButton* m_detect_button;
-  QPushButton* m_and_button;
-  QPushButton* m_not_button;
-  QPushButton* m_add_button;
+  QComboBox* m_functions_combo;
 
   // Output actions
   QPushButton* m_test_button;
 
   // Textarea
   QPlainTextEdit* m_expression_text;
+  QLineEdit* m_parse_text;
 
   // Buttonbox
   QDialogButtonBox* m_button_box;

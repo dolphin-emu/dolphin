@@ -64,6 +64,7 @@
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
+    <ClCompile Include="ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="GCAdapter.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
@@ -100,6 +101,7 @@
     <ClInclude Include="ControllerInterface\DInput\DInputKeyboardMouse.h" />
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h" />
     <ClInclude Include="ControlReference\ControlReference.h" />
+    <ClInclude Include="ControlReference\FunctionExpression.h" />
     <ClInclude Include="ControlReference\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="ControllerInterface\Win32\Win32.h" />

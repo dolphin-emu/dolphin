@@ -100,7 +100,7 @@ void MappingButton::Detect()
     return;
 
   m_reference->SetExpression(expression.toStdString());
-  m_parent->GetController()->UpdateReferences(g_controller_interface);
+  m_parent->GetController()->UpdateSingleControlReference(g_controller_interface, m_reference);
 
   ConfigChanged();
   m_parent->SaveSettings();
@@ -111,7 +111,7 @@ void MappingButton::Clear()
   m_reference->range = 100.0 / SLIDER_TICK_COUNT;
 
   m_reference->SetExpression("");
-  m_parent->GetController()->UpdateReferences(g_controller_interface);
+  m_parent->GetController()->UpdateSingleControlReference(g_controller_interface, m_reference);
 
   m_parent->SaveSettings();
   ConfigChanged();
