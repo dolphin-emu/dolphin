@@ -12,7 +12,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QSlider>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -42,13 +41,6 @@ constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
-static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
-    {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},
-    {PowerPC::CPUCore::CachedInterpreter, QT_TR_NOOP("Cached Interpreter (slower)")},
-    {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler (recommended)")},
-    {PowerPC::CPUCore::JITARM64, QT_TR_NOOP("JIT Arm64 (experimental)")},
-};
-
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
@@ -72,7 +64,6 @@ void GeneralPane::CreateLayout()
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   CreateAnalytics();
 #endif
-  CreateAdvanced();
 
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
@@ -88,9 +79,6 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
 #endif
-
-  for (QRadioButton* radio_button : m_cpu_cores)
-    radio_button->setEnabled(!running);
 }
 
 void GeneralPane::ConnectLayout()
@@ -117,8 +105,6 @@ void GeneralPane::ConnectLayout()
   connect(m_combobox_speedlimit,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this]() { OnSaveConfig(); });
-  for (QRadioButton* radio_button : m_cpu_cores)
-    connect(radio_button, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
@@ -208,26 +194,6 @@ void GeneralPane::CreateAnalytics()
 }
 #endif
 
-void GeneralPane::CreateAdvanced()
-{
-  auto* advanced_group = new QGroupBox(tr("Advanced Settings"));
-  auto* advanced_group_layout = new QVBoxLayout;
-  advanced_group->setLayout(advanced_group_layout);
-  m_main_layout->addWidget(advanced_group);
-
-  // Speed Limit
-  auto* engine_group = new QGroupBox(tr("CPU Emulation Engine"));
-  auto* engine_group_layout = new QVBoxLayout;
-  engine_group->setLayout(engine_group_layout);
-  advanced_group_layout->addWidget(engine_group);
-
-  for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
-  {
-    m_cpu_cores.emplace_back(new QRadioButton(tr(CPU_CORE_NAMES.at(cpu_core))));
-    engine_group_layout->addWidget(m_cpu_cores.back());
-  }
-}
-
 void GeneralPane::LoadConfig()
 {
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
@@ -258,13 +224,6 @@ void GeneralPane::LoadConfig()
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-
-  const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
-  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
-  {
-    if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
-      m_cpu_cores[i]->setChecked(true);
-  }
 }
 
 static QString UpdateTrackFromIndex(int index)
@@ -318,16 +277,6 @@ void GeneralPane::OnSaveConfig()
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
-
-  for (size_t i = 0; i < m_cpu_cores.size(); ++i)
-  {
-    if (m_cpu_cores[i]->isChecked())
-    {
-      settings.cpu_core = PowerPC::AvailableCPUCores()[i];
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[i]);
-      break;
-    }
-  }
 
   settings.SaveSettings();
 }
