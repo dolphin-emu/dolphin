@@ -142,7 +142,8 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("UsePanicHandlers", bUsePanicHandlers);
+  //interface->Set("UsePanicHandlers", bUsePanicHandlers);
+  bUsePanicHandlers = false;
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
