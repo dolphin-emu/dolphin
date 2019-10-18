@@ -206,6 +206,20 @@ bool ButtonPressed(int number)
   return button_pressed;
 }
 
+bool CheckVisor(int visorcount)
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckVisorCtrl(visorcount);
+}
+
+bool CheckBeam(int beamcount)
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckBeamCtrl(beamcount);
+}
+
 // This function is called periodically by the Core to update Wiimote state.
 void Update(int number, bool connected)
 {

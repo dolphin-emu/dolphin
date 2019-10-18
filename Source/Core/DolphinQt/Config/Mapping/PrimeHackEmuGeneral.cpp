@@ -64,6 +64,7 @@ void PrimeHackEmuGeneral::OnAttachmentChanged(int extension)
 
 void PrimeHackEmuGeneral::ConfigChanged()
 {
+  
 }
 
 void PrimeHackEmuGeneral::LoadSettings()

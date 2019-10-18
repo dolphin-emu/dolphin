@@ -34,6 +34,8 @@
 #include "Core/HW/WiimoteEmu/Extension/Turntable.h"
 #include "Core/HW/WiimoteEmu/Extension/UDrawTablet.h"
 
+#include "Core/HW/WiimoteEmu/PrimeHack.h"
+
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -650,6 +652,17 @@ bool Wiimote::CheckForButtonPress()
   return (buttons != 0 || GetActiveExtension()->IsButtonPressed());
 }
 
+bool Wiimote::CheckVisorCtrl(int visorcount)
+{
+  return m_primehack_visors->controls[visorcount].get()->control_ref->State() > 0.5;
+}
+
+bool Wiimote::CheckBeamCtrl(int beamcount)
+{
+  return m_primehack_beams->controls[beamcount].get()->control_ref->State() > 0.5;
+}
+
+
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
@@ -709,6 +722,16 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
+
+  m_primehack_beams->SetControlExpression(0, "!LSHIFT & `1`");
+  m_primehack_beams->SetControlExpression(1, "!LSHIFT & `2`");
+  m_primehack_beams->SetControlExpression(2, "!LSHIFT & `3`");
+  m_primehack_beams->SetControlExpression(3, "!LSHIFT & `4`");
+
+  m_primehack_visors->SetControlExpression(0, "LSHIFT & `1`");
+  m_primehack_visors->SetControlExpression(1, "LSHIFT & `2`");
+  m_primehack_visors->SetControlExpression(2, "LSHIFT & `3`");
+  m_primehack_visors->SetControlExpression(3, "LSHIFT & `4`");
 }
 
 Extension* Wiimote::GetNoneExtension() const

@@ -127,6 +127,10 @@ public:
   void InterruptChannel(u16 channel_id, const void* data, u32 size);
   void ControlChannel(u16 channel_id, const void* data, u32 size);
   bool CheckForButtonPress();
+
+  bool CheckVisorCtrl(int visor_count);
+  bool CheckBeamCtrl(int beam_count);
+
   void Reset();
 
   void DoState(PointerWrap& p);
