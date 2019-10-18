@@ -49,6 +49,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackButtons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
 
+#include "Core/PrimeHack/HackConfig.h"
+
 namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
@@ -660,6 +662,15 @@ bool Wiimote::CheckVisorCtrl(int visorcount)
 bool Wiimote::CheckBeamCtrl(int beamcount)
 {
   return m_primehack_beams->controls[beamcount].get()->control_ref->State() > 0.5;
+}
+
+std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()
+{
+  std::tuple t = std::make_tuple(m_primehack_camera_sensitivity.GetValue(),
+                 m_primehack_cursor_sensitivity.GetValue(), m_primehack_fieldofview.GetValue(),
+                 m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue());
+
+  return t;
 }
 
 

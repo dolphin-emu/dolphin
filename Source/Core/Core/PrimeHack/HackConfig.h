@@ -17,6 +17,7 @@ namespace prime
   void LoadStateFromIni();
   bool CheckBeamCtl(int beam_num);
   bool CheckVisorCtl(int visor_num);
+  void UpdateHackSettings();
 
   float GetSensitivity();
   void SetSensitivity(float sensitivity);

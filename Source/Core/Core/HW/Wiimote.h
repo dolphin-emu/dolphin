@@ -10,6 +10,8 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
+#include <tuple>
+
 class InputConfig;
 class PointerWrap;
 
@@ -88,6 +90,8 @@ ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGrou
 
 bool CheckVisor(int visor_count);
 bool CheckBeam(int beam_count);
+
+std::tuple<double, double, double, bool, bool> PrimeSettings();
 
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size);
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size);

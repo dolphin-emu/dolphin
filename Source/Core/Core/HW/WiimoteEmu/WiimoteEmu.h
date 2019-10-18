@@ -130,6 +130,7 @@ public:
 
   bool CheckVisorCtrl(int visor_count);
   bool CheckBeamCtrl(int beam_count);
+  std::tuple <double, double, double, bool, bool> GetPrimeSettings();
 
   void Reset();
 

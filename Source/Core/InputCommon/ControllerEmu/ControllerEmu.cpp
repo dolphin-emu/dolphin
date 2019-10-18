@@ -16,6 +16,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "Core/PrimeHack/HackConfig.h"
+
 namespace ControllerEmu
 {
 static std::recursive_mutex s_get_state_mutex;

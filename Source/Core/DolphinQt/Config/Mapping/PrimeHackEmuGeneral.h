@@ -24,6 +24,8 @@ private:
   void OnAttachmentChanged(int index);
   void ConfigChanged();
 
+  void UpdateHackSettings();
+
   // Extensions
   QComboBox* m_extension_combo;
 

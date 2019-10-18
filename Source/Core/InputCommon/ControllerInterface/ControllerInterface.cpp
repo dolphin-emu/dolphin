@@ -99,6 +99,7 @@ void ControllerInterface::RefreshDevices()
 
 #ifdef CIFACE_USE_WIN32
   ciface::Win32::PopulateDevices(m_wsi.render_surface);
+
   prime::InitializeHack("Keyboard Mouse", "DInput");
 #endif
 #ifdef CIFACE_USE_XLIB

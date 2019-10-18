@@ -18,6 +18,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/InputConfig.h"
 
+#include "Core/PrimeHack/HackConfig.h"
+
 PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
     : MappingWidget(window), m_extension_widget(extension)
 {
@@ -64,17 +66,22 @@ void PrimeHackEmuGeneral::OnAttachmentChanged(int extension)
 
 void PrimeHackEmuGeneral::ConfigChanged()
 {
-  
+  prime::UpdateHackSettings();
 }
 
 void PrimeHackEmuGeneral::LoadSettings()
 {
   Wiimote::LoadConfig();
+
+  prime::UpdateHackSettings();
 }
 
 void PrimeHackEmuGeneral::SaveSettings()
 {
   Wiimote::GetConfig()->SaveConfig();
+
+  
+  prime::UpdateHackSettings();
 }
 
 InputConfig* PrimeHackEmuGeneral::GetConfig()

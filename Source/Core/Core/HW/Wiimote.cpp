@@ -23,6 +23,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
+#include "Core/PrimeHack/HackConfig.h"
+
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
 static std::array<u8, MAX_BBMOTES> s_last_connect_request_counter;
 
@@ -141,6 +143,8 @@ void LoadConfig()
 {
   s_config.LoadConfig(false);
   s_last_connect_request_counter.fill(0);
+
+  prime::UpdateHackSettings();
 }
 
 void Resume()
@@ -218,6 +222,13 @@ bool CheckBeam(int beamcount)
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
   return wiimote->CheckBeamCtrl(beamcount);
+}
+
+std::tuple<double, double, double, bool, bool> PrimeSettings()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+  
+  return wiimote->GetPrimeSettings();
 }
 
 // This function is called periodically by the Core to update Wiimote state.

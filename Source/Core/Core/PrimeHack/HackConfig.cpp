@@ -39,75 +39,6 @@ void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_d
 
   device_name = mkb_device_name;
   device_source = mkb_device_source;
-
-  IniFile cfg_file;
-  cfg_file.Load(config_path, true);
-  if (!cfg_file.GetIfExists<float>("mouse", "sensitivity", &sensitivity))
-  {
-    auto* section = cfg_file.GetOrCreateSection("mouse");
-    section->Set("sensitivity", 15.f);
-    sensitivity = 15.f;
-  }
-
-  if (!cfg_file.GetIfExists<float>("mouse", "cursor_sensitivity", &cursor_sensitivity))
-  {
-    auto* section = cfg_file.GetOrCreateSection("mouse");
-    section->Set("cursor_sensitivity", 15.f);
-    cursor_sensitivity = 15.f;
-  }
-
-  if (!cfg_file.GetIfExists<float>("misc", "fov", &camera_fov))
-  {
-    auto* section = cfg_file.GetOrCreateSection("misc");
-    section->Set("fov", 60.f);
-    camera_fov = 60.f;
-  }
-
-  if (!cfg_file.GetIfExists<bool>("misc", "inverted_y", &inverted_y))
-  {
-    auto* section = cfg_file.GetOrCreateSection("misc");
-    section->Set("inverted_y", false);
-    inverted_y = false;
-  }
-
-  if (!cfg_file.GetIfExists<bool>("misc", "inverted_x", &inverted_x))
-  {
-    auto* section = cfg_file.GetOrCreateSection("misc");
-    section->Set("inverted_x", false);
-    inverted_x = false;
-  }
-
-  control_list.resize(8);
-  for (int i = 0; i < 4; i++)
-  {
-    std::string control = std::string("index_") + std::to_string(i);
-    std::string control_expr;
-
-    if (!cfg_file.GetIfExists<std::string>("beam", control.c_str(), &control_expr))
-    {
-      auto* section = cfg_file.GetOrCreateSection("beam");
-      section->Set(control.c_str(), beam_binds[i]);
-      control_expr = beam_binds[i];
-    }
-    control_list[i] = std::make_unique<InputReference>();
-    control_list[i]->UpdateReference(
-        g_controller_interface,
-        ciface::Core::DeviceQualifier(mkb_device_source.c_str(), 0, mkb_device_name.c_str()));
-    control_list[i]->SetExpression(control_expr);
-
-    if (!cfg_file.GetIfExists<std::string>("visor", control.c_str(), &control_expr))
-    {
-      auto* section = cfg_file.GetOrCreateSection("visor");
-      section->Set(control.c_str(), visor_binds[i]);
-      control_expr = visor_binds[i];
-    }
-    control_list[i + 4] = std::make_unique<InputReference>();
-    control_list[i + 4]->SetExpression(control_expr);
-    control_list[i + 4]->UpdateReference(
-        g_controller_interface,
-        ciface::Core::DeviceQualifier(mkb_device_source.c_str(), 0, mkb_device_name.c_str()));
-  }
-  cfg_file.Save(config_path);
 }
 
 void RefreshControlDevices()
@@ -178,8 +109,24 @@ bool CheckBeamCtl(int beam_num)
 
 bool CheckVisorCtl(int visor_num)
 {
-  //return control_list[visor_num + 4]->State() > 0.5;
+  // return control_list[visor_num + 4]->State() > 0.5;
   return Wiimote::CheckVisor(visor_num);
+}
+
+void UpdateHackSettings()
+{
+  std::tuple<double, double, double, bool, bool> t = Wiimote::PrimeSettings();
+  double camera = std::get<0>(t);
+  double cursor = std::get<1>(t);
+  double fov = std::get<2>(t);
+  bool invertx = std::get<3>(t);
+  bool inverty = std::get<4>(t);
+
+  SetSensitivity((float)camera);
+  SetCursorSensitivity((float)cursor);
+  SetFov((float)fov);
+  SetInvertedX(invertx);
+  SetInvertedY(inverty);
 }
 
 std::vector<std::unique_ptr<ControlReference>>& GetMutableControls()

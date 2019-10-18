@@ -18,6 +18,8 @@
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/InputProfile.h"
 
+#include "Core/PrimeHack/HackConfig.h"
+
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
     : m_ini_name(ini_name), m_gui_name(gui_name), m_profile_name(profile_name)
@@ -138,6 +140,7 @@ bool InputConfig::LoadConfig(bool isGC)
   {
     m_controllers[0]->LoadDefaults(g_controller_interface);
     m_controllers[0]->UpdateReferences(g_controller_interface);
+
     return false;
   }
 }

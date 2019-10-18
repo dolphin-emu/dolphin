@@ -232,18 +232,8 @@ void SetUserDirectory(const std::string& custom_path)
   local = local || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
 
   // Get Program Files path in case we need it.
-  TCHAR my_documents[MAX_PATH];
-  bool my_documents_found = SUCCEEDED(
-      SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
 
-  if (local)  // Case 1-2
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
-  else if (configPath[0])  // Case 3
-    user_path = TStrToUTF8(configPath);
-  else if (my_documents_found)  // Case 4
-    user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
-  else  // Case 5
-    user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
   // Prettify the path: it will be displayed in some places, we don't want a mix
   // of \ and /.
@@ -254,7 +244,7 @@ void SetUserDirectory(const std::string& custom_path)
     user_path += DIR_SEP;
 
 #else
-  if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
+  if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
   {
     user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
   }
