@@ -15,8 +15,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (MSVC)
-  # Set warning level to 4
-  add_compile_options(/W4)
+	# TODO: Use https://cmake.org/cmake/help/latest/policy/CMP0092.html instead (once we can require CMake >= 3.15)
+  # Taken from http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.
+  foreach(flag_var
+	        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+					MAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+		# Replaces /W3 with /W4 in defaults (add_compile_options would cause very annoying warnings here)
+    string(REPLACE "/W3" "/W4" ${flag_var} "${${flag_var}}")
+  endforeach()
 
   # Disable some warnings
   add_compile_options(
