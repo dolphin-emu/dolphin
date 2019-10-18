@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControlReference/FunctionExpression.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // ControlReference
@@ -30,6 +31,9 @@ public:
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual bool IsInput() const = 0;
 
+  template <typename T>
+  T GetState();
+
   int BoundCount() const;
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
@@ -44,6 +48,18 @@ protected:
   std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
   ciface::ExpressionParser::ParseStatus m_parse_status;
 };
+
+template <>
+inline bool ControlReference::GetState<bool>()
+{
+  return State() > ciface::ExpressionParser::CONDITION_THRESHOLD;
+}
+
+template <typename T>
+T ControlReference::GetState()
+{
+  return State();
+}
 
 //
 // InputReference

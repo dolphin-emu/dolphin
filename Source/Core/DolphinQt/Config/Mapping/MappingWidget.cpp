@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QTimer>
 
+#include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
@@ -141,7 +142,31 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     }
 
     if (setting_widget)
-      form_layout->addRow(tr(setting->GetUIName()), setting_widget);
+    {
+      const auto hbox = new QHBoxLayout;
+      hbox->addWidget(setting_widget);
+
+      const auto advanced_button = new QPushButton(tr("..."));
+      advanced_button->setFixedWidth(
+          QFontMetrics(font()).boundingRect(advanced_button->text()).width() * 2);
+
+      hbox->addWidget(advanced_button);
+
+      advanced_button->connect(
+          advanced_button, &QPushButton::clicked, [this, &setting = *setting.get()]() {
+            setting.SetExpressionFromValue();
+
+            IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+            io.exec();
+
+            setting.SimplifyIfPossible();
+
+            ConfigChanged();
+            SaveSettings();
+          });
+
+      form_layout->addRow(tr(setting->GetUIName()), hbox);
+    }
   }
 
   if (group->can_be_disabled)

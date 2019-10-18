@@ -14,7 +14,6 @@ constexpr int WIDGET_MAX_WIDTH = 112;
 
 class ControlGroupBox;
 class InputConfig;
-class IOWindow;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;

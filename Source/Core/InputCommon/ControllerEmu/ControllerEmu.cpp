@@ -14,6 +14,7 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ControllerEmu
@@ -53,6 +54,9 @@ void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvir
   {
     for (auto& control : ctrlGroup->controls)
       control->control_ref->UpdateReference(env);
+
+    for (auto& setting : ctrlGroup->numeric_settings)
+      setting->GetInputReference().UpdateReference(env);
 
     // Attachments:
     if (ctrlGroup->type == GroupType::Attachments)
