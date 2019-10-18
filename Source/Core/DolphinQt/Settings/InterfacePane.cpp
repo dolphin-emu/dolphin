@@ -168,12 +168,16 @@ void InterfacePane::CreateInGame()
   m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
+  m_checkbox_use_panic_handlers->setEnabled(false);
+  m_checkbox_use_panic_handlers->setToolTip(QString::fromStdString("Disabled by Primehack"));
   m_checkbox_enable_osd = new QCheckBox(tr("Show On-Screen Display Messages"));
   m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Always Hide Mouse Cursor"));
+  m_checkbox_hide_mouse->setEnabled(true);
+  m_checkbox_hide_mouse->setToolTip(QString::fromStdString("Enabled by PrimeHack"));
 
-  groupbox_layout->addWidget(m_checkbox_top_window);
+      groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);

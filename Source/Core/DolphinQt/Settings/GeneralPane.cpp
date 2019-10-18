@@ -139,6 +139,8 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_dualcore);
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
+  m_checkbox_cheats->setEnabled(false);
+  m_checkbox_cheats->setToolTip(QString::fromStdString("Enabled by PrimeHack"));
   basic_group_layout->addWidget(m_checkbox_cheats);
 
   m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
@@ -185,6 +187,8 @@ void GeneralPane::CreateAutoUpdate()
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   m_combobox_update_track = new QComboBox(this);
+  m_combobox_update_track->setEnabled(false);
+  m_combobox_update_track->setToolTip(QString::fromStdString("Disabled by PrimeHack"));
 
   layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
 
