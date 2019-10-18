@@ -145,7 +145,8 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   //interface->Set("UsePanicHandlers", bUsePanicHandlers);
   bUsePanicHandlers = false;
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
-  interface->Set("HideCursor", bHideCursor);
+  //interface->Set("HideCursor", bHideCursor);
+  bHideCursor = true;
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
@@ -486,7 +487,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("EnableCheats", &bEnableCheats, false);
+  //core->Get("EnableCheats", &bEnableCheats, false);
+  bEnableCheats = true;
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
