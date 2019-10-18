@@ -51,8 +51,8 @@ class Wiimote
 public:
   Wiimote(const Wiimote&) = delete;
   Wiimote& operator=(const Wiimote&) = delete;
-  Wiimote(Wiimote&&) = default;
-  Wiimote& operator=(Wiimote&&) = default;
+  Wiimote(Wiimote&&) = delete;
+  Wiimote& operator=(Wiimote&&) = delete;
 
   virtual ~Wiimote() {}
   // This needs to be called in derived destructors!

@@ -26,8 +26,8 @@ public:
 
   GCMemcardDirectory(const GCMemcardDirectory&) = delete;
   GCMemcardDirectory& operator=(const GCMemcardDirectory&) = delete;
-  GCMemcardDirectory(GCMemcardDirectory&&) = default;
-  GCMemcardDirectory& operator=(GCMemcardDirectory&&) = default;
+  GCMemcardDirectory(GCMemcardDirectory&&) = delete;
+  GCMemcardDirectory& operator=(GCMemcardDirectory&&) = delete;
 
   static std::vector<std::string> GetFileNamesForGameID(const std::string& directory,
                                                         const std::string& game_id);
