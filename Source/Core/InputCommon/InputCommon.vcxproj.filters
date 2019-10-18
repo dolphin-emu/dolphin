@@ -119,12 +119,6 @@
     </ClCompile>
     <ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GenericMouse.cpp" />
-    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackButtons.cpp">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackMisc.cpp">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -220,12 +214,6 @@
     </ClInclude>
     <ClInclude Include="DInputMouseAbsolute.h" />
     <ClInclude Include="GenericMouse.h" />
-    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackButtons.h">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackMisc.h">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

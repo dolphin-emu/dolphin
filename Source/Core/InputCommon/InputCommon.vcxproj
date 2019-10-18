@@ -36,8 +36,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackButtons.cpp" />
-    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackMisc.cpp" />
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
     <ClCompile Include="ControllerEmu\StickGate.cpp" />
     <ClCompile Include="ControllerEmu\Control\Control.cpp" />
@@ -79,8 +77,6 @@
     <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackButtons.h" />
-    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackMisc.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
     <ClInclude Include="ControllerEmu\StickGate.h" />
     <ClInclude Include="ControllerEmu\Control\Control.h" />

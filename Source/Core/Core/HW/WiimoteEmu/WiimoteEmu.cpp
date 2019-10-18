@@ -46,9 +46,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackButtons.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
-
 #include "Core/PrimeHack/HackConfig.h"
 
 namespace WiimoteEmu
@@ -226,7 +223,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // Adding PrimeHack Buttons
-  groups.emplace_back(m_primehack_beams = new ControllerEmu::PrimeHackButtons(_trans("Beams")));
+  groups.emplace_back(m_primehack_beams = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   for (const char* prime_button : prime_beams)
   {
     const std::string& ui_name = prime_button;
@@ -234,7 +231,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
         new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
   }
 
-  groups.emplace_back(m_primehack_visors = new ControllerEmu::PrimeHackButtons(_trans("Visors")));
+  groups.emplace_back(m_primehack_visors = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   for (const char* prime_button : prime_visors)
   {
     const std::string& ui_name = prime_button;
@@ -242,7 +239,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
         new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
   }
 
-  groups.emplace_back(m_primehack_fps = new ControllerEmu::PrimeHackMisc(_trans("FPS")));
+  groups.emplace_back(m_primehack_fps = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_fps->AddSetting(
       &m_primehack_camera_sensitivity,
       {"Camera Sensitivity", nullptr, nullptr, _trans("Camera Sensitivity")}, 15, 1, 100);
@@ -255,7 +252,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                               {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60, 1,
                               101);
 
-  groups.emplace_back(m_primehack_misc = new ControllerEmu::PrimeHackMisc(_trans("Miscelaneous")));
+  groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_misc->AddSetting(&m_primehack_invert_x,
                                {"Invert X axis", nullptr, nullptr, _trans("Invert X axis")}, false);
 

@@ -254,10 +254,10 @@ private:
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
-  ControllerEmu::PrimeHackButtons* m_primehack_beams;
-  ControllerEmu::PrimeHackButtons* m_primehack_visors;
-  ControllerEmu::PrimeHackMisc* m_primehack_misc;
-  ControllerEmu::PrimeHackMisc* m_primehack_fps;
+  ControllerEmu::ControlGroup* m_primehack_beams;
+  ControllerEmu::ControlGroup* m_primehack_visors;
+  ControllerEmu::ControlGroup* m_primehack_misc;
+  ControllerEmu::ControlGroup* m_primehack_fps;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
