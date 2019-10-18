@@ -229,8 +229,8 @@ void IOWindow::CreateMainLayout()
   m_devices_combo = new QComboBox();
   m_option_list = new QTableWidget();
   m_select_button = new QPushButton(tr("Select"));
-  m_detect_button = new QPushButton(tr("Detect"));
-  m_test_button = new QPushButton(tr("Test"));
+  m_detect_button = new QPushButton(tr("Detect"), this);
+  m_test_button = new QPushButton(tr("Test"), this);
   m_button_box = new QDialogButtonBox();
   m_clear_button = new QPushButton(tr("Clear"));
   m_apply_button = new QPushButton(tr("Apply"));
@@ -265,7 +265,7 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr(", Comma"));
   }
 
-  m_functions_combo = new QComboBox();
+  m_functions_combo = new QComboBox(this);
   m_functions_combo->addItem(tr("Functions"));
   m_functions_combo->insertSeparator(1);
   m_functions_combo->addItem(QStringLiteral("if"));
