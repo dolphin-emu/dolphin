@@ -110,10 +110,10 @@ void GeneralWidget::CreateWidgets()
   auto* shader_compilation_layout = new QGridLayout();
 
   const std::array<const char*, 4> modes = {{
-      QT_TR_NOOP("Synchronous"),
-      QT_TR_NOOP("Synchronous (Ubershaders)"),
-      QT_TR_NOOP("Asynchronous (Ubershaders)"),
-      QT_TR_NOOP("Asynchronous (Skip Drawing)"),
+      QT_TR_NOOP("Stall game while compiling"),
+      QT_TR_NOOP("Always use Ubershaders"),
+      QT_TR_NOOP("Use Ubershader while compiling"),
+      QT_TR_NOOP("Skip drawing while compiling"),
   }};
   for (size_t i = 0; i < modes.size(); i++)
   {
