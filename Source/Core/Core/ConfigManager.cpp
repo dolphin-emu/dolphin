@@ -305,7 +305,8 @@ void SConfig::SaveAnalyticsSettings(IniFile& ini)
   analytics->Set("ID", m_analytics_id);
   //analytics->Set("Enabled", m_analytics_enabled);
   m_analytics_enabled = false;
-  analytics->Set("PermissionAsked", m_analytics_permission_asked);
+  //analytics->Set("PermissionAsked", m_analytics_permission_asked);
+  m_analytics_permission_asked = true;
 }
 
 void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
