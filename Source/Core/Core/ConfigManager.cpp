@@ -303,7 +303,8 @@ void SConfig::SaveAnalyticsSettings(IniFile& ini)
   IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
 
   analytics->Set("ID", m_analytics_id);
-  analytics->Set("Enabled", m_analytics_enabled);
+  //analytics->Set("Enabled", m_analytics_enabled);
+  m_analytics_enabled = false;
   analytics->Set("PermissionAsked", m_analytics_permission_asked);
 }
 

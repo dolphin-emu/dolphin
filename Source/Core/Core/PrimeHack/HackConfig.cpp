@@ -16,7 +16,7 @@ static std::vector<std::unique_ptr<ControlReference>> control_list;
 static float sensitivity;
 static float cursor_sensitivity;
 static float camera_fov;
-static const std::string config_path = "hack_config.ini";
+
 static std::string device_name, device_source;
 static bool inverted_y = false;
 static bool inverted_x = false;
