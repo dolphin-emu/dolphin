@@ -230,9 +230,6 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Resize:
   {
-    // Window Centre for PrimeHack mouselock.
-    SET_RENDER_CENTRE((rect().right() + rect().left()) / 2, (rect().bottom() + rect().top()) / 2);
-
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
 

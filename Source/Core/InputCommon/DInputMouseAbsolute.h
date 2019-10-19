@@ -1,14 +1,14 @@
 #pragma once
 #include "GenericMouse.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
-//#include "DolphinQt/RenderWidget.h"
 
 extern int win_x;
 extern int win_y;
 
+// it's CENTRE f&*k you
 #define SET_RENDER_CENTRE(x, y) \
-                       win_x = x; \
-                        win_y = y; \
+                      win_x = x; \
+                       win_y = y; \
 
 namespace prime
 {
