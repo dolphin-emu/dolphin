@@ -219,23 +219,23 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
-
+  //SConfig::GetInstance().GetTitleDescription()
   const std::string& title =
-      current_game.empty() ? SConfig::GetInstance().GetTitleDescription() : current_game;
+      current_game.empty() ? "PrimeHack (Dolphin)" : current_game;
   std::string game_artwork = ArtworkForGameId(SConfig::GetInstance().GetGameID());
 
   DiscordRichPresence discord_presence = {};
   if (game_artwork.empty())
   {
     discord_presence.largeImageKey = "dolphin_logo";
-    discord_presence.largeImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+    discord_presence.largeImageText = "PrimeHack is a Dolphin mod to enable FPS/Mouse controls in Metroid Prime Trilogy";
   }
   else
   {
     discord_presence.largeImageKey = game_artwork.c_str();
     discord_presence.largeImageText = title.c_str();
     discord_presence.smallImageKey = "dolphin_logo";
-    discord_presence.smallImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+    discord_presence.smallImageText = "PrimeHack is a Dolphin mod to enable FPS/Mouse controls in Metroid Prime Trilogy";
   }
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);

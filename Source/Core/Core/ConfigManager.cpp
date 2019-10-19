@@ -142,10 +142,8 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Set("ConfirmStop", bConfirmStop);
-  //interface->Set("UsePanicHandlers", bUsePanicHandlers);
-  bUsePanicHandlers = false;
+  interface->Set("UsePanicHandlers", bUsePanicHandlers);
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
-  //interface->Set("HideCursor", bHideCursor);
   bHideCursor = true;
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
@@ -305,10 +303,8 @@ void SConfig::SaveAnalyticsSettings(IniFile& ini)
   IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
 
   analytics->Set("ID", m_analytics_id);
-  //analytics->Set("Enabled", m_analytics_enabled);
-  m_analytics_enabled = false;
-  //analytics->Set("PermissionAsked", m_analytics_permission_asked);
-  m_analytics_permission_asked = true;
+  analytics->Set("Enabled", m_analytics_enabled);
+  analytics->Set("PermissionAsked", m_analytics_permission_asked);
 }
 
 void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
@@ -417,9 +413,11 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
+  //interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
+  bUsePanicHandlers = false;
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
-  interface->Get("HideCursor", &bHideCursor, false);
+  //interface->Get("HideCursor", &bHideCursor, false);
+  bHideCursor = true;
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
@@ -596,8 +594,10 @@ void SConfig::LoadAnalyticsSettings(IniFile& ini)
   IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
 
   analytics->Get("ID", &m_analytics_id, "");
-  analytics->Get("Enabled", &m_analytics_enabled, false);
-  analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
+  //analytics->Get("Enabled", &m_analytics_enabled, false);
+  m_analytics_enabled = false;
+  //analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
+  m_analytics_permission_asked = true;
 }
 
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
