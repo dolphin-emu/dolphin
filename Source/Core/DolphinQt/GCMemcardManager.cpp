@@ -186,14 +186,6 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     return item;
   };
 
-  const auto strip_garbage = [](const std::string& s) {
-    auto offset = s.find('\0');
-    if (offset == std::string::npos)
-      offset = s.length();
-
-    return s.substr(0, offset);
-  };
-
   const u8 num_files = memcard->GetNumFiles();
   m_slot_active_icons[slot].reserve(num_files);
   for (int i = 0; i < num_files; i++)
@@ -201,12 +193,16 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     int file_index = memcard->GetFileIndex(i);
     table->setRowCount(i + 1);
 
-    auto const string_decoder = memcard->IsShiftJIS() ? SHIFTJISToUTF8 : CP1252ToUTF8;
+    const auto file_comments = memcard->GetSaveComments(file_index);
 
-    QString title =
-        QString::fromStdString(strip_garbage(string_decoder(memcard->GetSaveComment1(file_index))));
-    QString comment =
-        QString::fromStdString(strip_garbage(string_decoder(memcard->GetSaveComment2(file_index))));
+    QString title;
+    QString comment;
+    if (file_comments)
+    {
+      title = QString::fromStdString(file_comments->first);
+      comment = QString::fromStdString(file_comments->second);
+    }
+
     QString blocks = QStringLiteral("%1").arg(memcard->DEntry_BlockCount(file_index));
     QString block_count = QStringLiteral("%1").arg(memcard->DEntry_FirstBlock(file_index));
 

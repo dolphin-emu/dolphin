@@ -118,7 +118,7 @@ constexpr u32 MC_FST_BLOCKS = 0x05;
 // maximum number of saves that can be stored on a single memory card
 constexpr u8 DIRLEN = 0x7F;
 
-// maximum size of memory card file comment in bytes
+// maximum size of a single memory card file comment in bytes
 constexpr u32 DENTRY_STRLEN = 0x20;
 
 // size of a single entry in the Directory in bytes
@@ -456,9 +456,10 @@ public:
   GetSaveDataBytes(u8 save_index, size_t offset = 0,
                    size_t length = std::numeric_limits<size_t>::max()) const;
 
-  u32 DEntry_CommentsAddress(u8 index) const;
-  std::string GetSaveComment1(u8 index) const;
-  std::string GetSaveComment2(u8 index) const;
+  // Returns, if available, the two strings shown on the save file in the GC BIOS, in UTF8.
+  // The first is the big line on top, usually the game title, and the second is the smaller line
+  // next to the block size, often a progress indicator or subtitle.
+  std::optional<std::pair<std::string, std::string>> GetSaveComments(u8 index) const;
 
   // Fetches a DEntry from the given file index.
   std::optional<DEntry> GetDEntry(u8 index) const;

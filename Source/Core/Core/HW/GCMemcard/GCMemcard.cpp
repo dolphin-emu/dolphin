@@ -639,43 +639,33 @@ std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(u8 save_index, size_t
   return std::make_optional(std::move(result));
 }
 
-u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
+std::optional<std::pair<std::string, std::string>> GCMemcard::GetSaveComments(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
-    return 0xFFFF;
+    return std::nullopt;
 
-  return GetActiveDirectory().m_dir_entries[index].m_comments_address;
-}
+  const u32 address = GetActiveDirectory().m_dir_entries[index].m_comments_address;
+  if (address == 0xFFFFFFFF)
+    return std::nullopt;
 
-std::string GCMemcard::GetSaveComment1(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
+  const auto data = GetSaveDataBytes(index, address, DENTRY_STRLEN * 2);
+  if (!data || data->size() != DENTRY_STRLEN * 2)
+    return std::nullopt;
 
-  u32 Comment1 = GetActiveDirectory().m_dir_entries[index].m_comments_address;
-  u32 DataBlock = GetActiveDirectory().m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
-  if ((DataBlock > m_size_blocks) || (Comment1 == 0xFFFFFFFF))
-  {
-    return "";
-  }
-  return std::string((const char*)m_data_blocks[DataBlock].m_block.data() + Comment1,
-                     DENTRY_STRLEN);
-}
+  const auto string_decoder = IsShiftJIS() ? SHIFTJISToUTF8 : CP1252ToUTF8;
+  const auto strip_null = [](const std::string& s) {
+    auto offset = s.find('\0');
+    if (offset == std::string::npos)
+      offset = s.length();
+    return s.substr(0, offset);
+  };
 
-std::string GCMemcard::GetSaveComment2(u8 index) const
-{
-  if (!m_valid || index >= DIRLEN)
-    return "";
-
-  u32 Comment1 = GetActiveDirectory().m_dir_entries[index].m_comments_address;
-  u32 Comment2 = Comment1 + DENTRY_STRLEN;
-  u32 DataBlock = GetActiveDirectory().m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
-  if ((DataBlock > m_size_blocks) || (Comment1 == 0xFFFFFFFF))
-  {
-    return "";
-  }
-  return std::string((const char*)m_data_blocks[DataBlock].m_block.data() + Comment2,
-                     DENTRY_STRLEN);
+  const u8* address_1 = data->data();
+  const u8* address_2 = address_1 + DENTRY_STRLEN;
+  const std::string encoded_1(reinterpret_cast<const char*>(address_1), DENTRY_STRLEN);
+  const std::string encoded_2(reinterpret_cast<const char*>(address_2), DENTRY_STRLEN);
+  return std::make_pair(strip_null(string_decoder(encoded_1)),
+                        strip_null(string_decoder(encoded_2)));
 }
 
 std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
