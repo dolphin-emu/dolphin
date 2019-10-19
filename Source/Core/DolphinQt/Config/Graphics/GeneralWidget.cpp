@@ -113,10 +113,10 @@ void GeneralWidget::CreateWidgets()
   auto* shader_compilation_layout = new QGridLayout();
 
   const std::array<const char*, 4> modes = {{
-      QT_TR_NOOP("Synchronous"),
-      QT_TR_NOOP("Synchronous (Ubershaders)"),
-      QT_TR_NOOP("Asynchronous (Ubershaders)"),
-      QT_TR_NOOP("Asynchronous (Skip Drawing)"),
+      QT_TR_NOOP("Specialized (Default)"),
+      QT_TR_NOOP("Exclusive Ubershaders"),
+      QT_TR_NOOP("Hybrid Ubershaders"),
+      QT_TR_NOOP("Skip Drawing"),
   }};
   for (size_t i = 0; i < modes.size(); i++)
   {
@@ -250,20 +250,22 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts "
                  "while playing NetPlay.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
-  static const char TR_SHADER_COMPILE_SYNC_DESCRIPTION[] =
+  static const char TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low.<br><br>Recommended for low-end hardware. "
                  "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>");
-  static const char TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
+  // The "very powerful GPU" mention below is by 2021 PC GPU standards
+  static const char TR_SHADER_COMPILE_EXCLUSIVE_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will always be used. Provides a near stutter-free experience at the cost of "
-      "high GPU performance requirements.<br><br><dolphin_emphasis>Only recommended "
-      "for high-end systems.</dolphin_emphasis>");
-  static const char TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
+      "very high GPU performance requirements.<br><br><dolphin_emphasis>Don't use this unless you "
+      "encountered stuttering with Hybrid Ubershaders and have a very powerful "
+      "GPU.</dolphin_emphasis>");
+  static const char TR_SHADER_COMPILE_HYBRID_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will be used to prevent stuttering during shader compilation, but "
       "specialized shaders will be used when they will not cause stuttering.<br><br>In the "
       "best case it eliminates shader compilation stuttering while having minimal "
       "performance impact, but results depend on video driver behavior.");
-  static const char TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION[] = QT_TR_NOOP(
+  static const char TR_SHADER_COMPILE_SKIP_DRAWING_DESCRIPTION[] = QT_TR_NOOP(
       "Prevents shader compilation stuttering by not rendering waiting objects. Can work in "
       "scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken "
       "effects.<br><br><dolphin_emphasis>Not recommended, only use if the other "
@@ -301,13 +303,13 @@ void GeneralWidget::AddDescriptions()
 
   m_render_main_window->SetDescription(tr(TR_RENDER_TO_MAINWINDOW_DESCRIPTION));
 
-  m_shader_compilation_mode[0]->SetDescription(tr(TR_SHADER_COMPILE_SYNC_DESCRIPTION));
+  m_shader_compilation_mode[0]->SetDescription(tr(TR_SHADER_COMPILE_SPECIALIZED_DESCRIPTION));
 
-  m_shader_compilation_mode[1]->SetDescription(tr(TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION));
+  m_shader_compilation_mode[1]->SetDescription(tr(TR_SHADER_COMPILE_EXCLUSIVE_UBER_DESCRIPTION));
 
-  m_shader_compilation_mode[2]->SetDescription(tr(TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION));
+  m_shader_compilation_mode[2]->SetDescription(tr(TR_SHADER_COMPILE_HYBRID_UBER_DESCRIPTION));
 
-  m_shader_compilation_mode[3]->SetDescription(tr(TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION));
+  m_shader_compilation_mode[3]->SetDescription(tr(TR_SHADER_COMPILE_SKIP_DRAWING_DESCRIPTION));
 
   m_wait_for_shaders->SetDescription(tr(TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION));
 }
