@@ -1186,46 +1186,47 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length)
   }
 }
 
-bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
+std::optional<std::vector<u32>> GCMemcard::ReadBannerRGBA8(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
-    return false;
+    return std::nullopt;
 
-  int flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
-  // Timesplitters 2 is the only game that I see this in
-  // May be a hack
-  if (flags == 0xFB)
-    flags = ~flags;
+  const u32 offset = GetActiveDirectory().m_dir_entries[index].m_image_offset;
+  if (offset == 0xFFFFFFFF)
+    return std::nullopt;
 
-  int bnrFormat = (flags & 3);
+  // See comment on m_banner_and_icon_flags for an explanation of these.
+  const u8 flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
+  const u8 format = (flags & 0b0000'0011);
+  if (format != MEMORY_CARD_BANNER_FORMAT_CI8 && format != MEMORY_CARD_BANNER_FORMAT_RGB5A3)
+    return std::nullopt;
 
-  if (bnrFormat == 0)
-    return false;
+  constexpr u32 pixel_count = MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT;
+  const size_t total_bytes = format == MEMORY_CARD_BANNER_FORMAT_CI8 ?
+                                 (pixel_count + MEMORY_CARD_CI8_PALETTE_ENTRIES * 2) :
+                                 (pixel_count * 2);
+  const auto data = GetSaveDataBytes(index, offset, total_bytes);
+  if (!data || data->size() != total_bytes)
+    return std::nullopt;
 
-  u32 DataOffset = GetActiveDirectory().m_dir_entries[index].m_image_offset;
-  u32 DataBlock = GetActiveDirectory().m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
-
-  if ((DataBlock > m_size_blocks) || (DataOffset == 0xFFFFFFFF))
+  std::vector<u32> rgba(pixel_count);
+  if (format == MEMORY_CARD_BANNER_FORMAT_CI8)
   {
-    return false;
-  }
-
-  const int pixels = 96 * 32;
-
-  if (bnrFormat & 1)
-  {
-    u8* pxdata = (u8*)(m_data_blocks[DataBlock].m_block.data() + DataOffset);
-    u16* paldata = (u16*)(m_data_blocks[DataBlock].m_block.data() + DataOffset + pixels);
-
-    Common::DecodeCI8Image(buffer, pxdata, paldata, 96, 32);
+    const u8* pxdata = data->data();
+    std::array<u16, MEMORY_CARD_CI8_PALETTE_ENTRIES> paldata;
+    std::memcpy(paldata.data(), data->data() + pixel_count, MEMORY_CARD_CI8_PALETTE_ENTRIES * 2);
+    Common::DecodeCI8Image(rgba.data(), pxdata, paldata.data(), MEMORY_CARD_BANNER_WIDTH,
+                           MEMORY_CARD_BANNER_HEIGHT);
   }
   else
   {
-    u16* pxdata = (u16*)(m_data_blocks[DataBlock].m_block.data() + DataOffset);
-
-    Common::Decode5A3Image(buffer, pxdata, 96, 32);
+    std::array<u16, pixel_count> pxdata;
+    std::memcpy(pxdata.data(), data->data(), pixel_count * 2);
+    Common::Decode5A3Image(rgba.data(), pxdata.data(), MEMORY_CARD_BANNER_WIDTH,
+                           MEMORY_CARD_BANNER_HEIGHT);
   }
-  return true;
+
+  return rgba;
 }
 
 u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const

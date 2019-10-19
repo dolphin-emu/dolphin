@@ -467,12 +467,12 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u32> pxdata(MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT);
+  auto pxdata = memcard->ReadBannerRGBA8(file_index);
 
   QImage image;
-  if (memcard->ReadBannerRGBA8(file_index, pxdata.data()))
+  if (pxdata)
   {
-    image = QImage(reinterpret_cast<u8*>(pxdata.data()), MEMORY_CARD_BANNER_WIDTH,
+    image = QImage(reinterpret_cast<u8*>(pxdata->data()), MEMORY_CARD_BANNER_WIDTH,
                    MEMORY_CARD_BANNER_HEIGHT, QImage::Format_ARGB32);
   }
 
