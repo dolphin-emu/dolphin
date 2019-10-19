@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-02 11:06+0200\n"
-"PO-Revision-Date: 2019-09-02 09:07+0000\n"
+"POT-Creation-Date: 2019-10-01 15:34+0200\n"
+"PO-Revision-Date: 2019-10-01 13:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
@@ -165,7 +165,7 @@ msgid "%1 doesn't support this feature on your system."
 msgstr "%1 stöder inte den här funktionen på ditt system."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:193
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:303
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:304
 msgid "%1 doesn't support this feature."
 msgstr "%1 stöder inte den här funktionen."
 
@@ -318,7 +318,7 @@ msgstr "&Bläddra..."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:553
 msgid "&Bug Tracker"
-msgstr ""
+msgstr "&Bugghanterare"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:102
 msgid "&Cancel"
@@ -1263,7 +1263,7 @@ msgstr "Autojustera fönsterstorlek"
 msgid "Auto-Hide"
 msgstr "Dölj automatiskt"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:216
 msgid ""
 "Automatically adjusts the window size to the internal resolution.\n"
 "\n"
@@ -1619,7 +1619,7 @@ msgstr "Kunde inte starta spelet för att GC-IPL-filen inte kunde hittas."
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:42
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:230
 msgid "Center"
-msgstr ""
+msgstr "Center"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:756
 msgid "Center and Calibrate"
@@ -2922,7 +2922,7 @@ msgstr "Effekt"
 #. translation via the MMU to physical addresses.
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:122
 msgid "Effective"
-msgstr ""
+msgstr "Effektiv"
 
 #: Source/Core/UICommon/UICommon.cpp:431
 msgid "EiB"
@@ -2940,7 +2940,7 @@ msgstr "Inbäddad bildrutebuffert (EFB)"
 msgid "Empty"
 msgstr "Tom"
 
-#: Source/Core/Core/Core.cpp:216
+#: Source/Core/Core/Core.cpp:217
 msgid "Emu Thread already running"
 msgstr "Emuleringstråd körs redan"
 
@@ -3362,7 +3362,6 @@ msgid "Export Recording..."
 msgstr "Exportera inspelning..."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
 msgid "Export Save File"
 msgstr "Exportera sparfil"
 
@@ -4596,6 +4595,10 @@ msgstr ""
 msgid "Import BootMii NAND Backup..."
 msgstr "Importera BootMii-NAND-kopia..."
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
+msgid "Import Save File"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:276
 msgid "Import Wii Save..."
 msgstr "Importera Wii-sparning…"
@@ -5238,7 +5241,7 @@ msgstr "Loggtyper"
 msgid "Logger Outputs"
 msgstr "Loggningsutdata"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:236
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:237
 msgid ""
 "Logs the render time of every frame to User/Logs/render_time.txt.\n"
 "\n"
@@ -6178,7 +6181,7 @@ msgstr "Synkknapptryckning"
 msgid "Pressure"
 msgstr "Tryck"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:256
 msgid ""
 "Prevents shader compilation stuttering by not rendering waiting objects. Can "
 "work in scenarios where Ubershaders doesn't, at the cost of introducing "
@@ -7063,7 +7066,7 @@ msgstr "Den valda kontrollprofilen finns inte"
 msgid "Selected game doesn't exist in game list!"
 msgstr "Det valda spelet finns inte i spellistan!"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:210
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:211
 msgid ""
 "Selects a hardware adapter to use.\n"
 "\n"
@@ -7117,7 +7120,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du välja OpenGL."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:222
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:223
 msgid ""
 "Selects which aspect ratio to use when rendering.\n"
 "\n"
@@ -7137,7 +7140,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du välja Auto."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:205
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:206
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7153,7 +7156,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du välja OpenGL."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:198
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:199
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7451,7 +7454,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:240
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:241
 msgid ""
 "Shows chat messages, buffer changes, and desync alerts while playing "
 "NetPlay.\n"
@@ -7463,7 +7466,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:231
 msgid ""
 "Shows the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -7475,7 +7478,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:233
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:234
 msgid ""
 "Shows the player's maximum ping while playing on NetPlay.\n"
 "\n"
@@ -8832,7 +8835,7 @@ msgstr "USB Gecko"
 msgid "USB Whitelist Error"
 msgstr "Ogiltig USB-enhet"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:243
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:244
 msgid ""
 "Ubershaders are never used. Stuttering will occur during shader compilation, "
 "but GPU demands are low.\n"
@@ -8848,7 +8851,7 @@ msgstr ""
 "\n"
 "Om du är osäker, välj det här läget."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:247
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:248
 msgid ""
 "Ubershaders will always be used. Provides a near stutter-free experience at "
 "the cost of high GPU performance requirements.\n"
@@ -8860,7 +8863,7 @@ msgstr ""
 "\n"
 "Rekommenderas bara för kraftfulla system."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:250
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:251
 msgid ""
 "Ubershaders will be used to prevent stuttering during shader compilation, "
 "but specialized shaders will be used when they will not cause stuttering.\n"
@@ -8948,7 +8951,7 @@ msgstr "USA"
 msgid "Unknown"
 msgstr "Okänd"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1137
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1132
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Okänt DVD-kommando %08x - katastrofalt fel"
@@ -9127,7 +9130,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta markerat."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:212
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:213
 msgid ""
 "Uses the entire screen for rendering.\n"
 "\n"
@@ -9139,7 +9142,7 @@ msgstr ""
 "\n"
 "Om detta är inaktiverat kommer ett renderingsfönster att skapas istället."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:219
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:220
 msgid ""
 "Uses the main Dolphin window for rendering rather than a separate render "
 "window.\n"
@@ -9262,7 +9265,7 @@ msgstr "WAD-installation misslyckades: Den valda filen är inte en giltig WAD."
 msgid "WASAPI (Exclusive Mode)"
 msgstr "WASAPI (exklusivt läge)"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:260
 msgid ""
 "Waits for all shaders to finish compiling before starting a game. Enabling "
 "this option may reduce stuttering or hitching for a short time after the "
@@ -9281,7 +9284,7 @@ msgstr ""
 "\n"
 "I övriga fall kan du lämna detta omarkerat om du är osäker."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:227
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:228
 msgid ""
 "Waits for vertical blanks in order to prevent tearing.\n"
 "\n"

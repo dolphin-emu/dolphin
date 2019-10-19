@@ -7,16 +7,16 @@
 #include <QDockWidget>
 
 #include <mutex>
-#include <queue>
+#include <string>
 
+#include "Common/FixedSizeQueue.h"
 #include "Common/Logging/LogManager.h"
 
 class QCheckBox;
 class QCloseEvent;
 class QComboBox;
+class QPlainTextEdit;
 class QPushButton;
-class QVBoxLayout;
-class QTextEdit;
 class QTimer;
 
 class LogWidget final : public QDockWidget, LogListener
@@ -43,12 +43,15 @@ private:
   QCheckBox* m_log_wrap;
   QComboBox* m_log_font;
   QPushButton* m_log_clear;
-  QVBoxLayout* m_main_layout;
-  QTextEdit* m_log_text;
-  QWidget* m_tab_log;
+  QPlainTextEdit* m_log_text;
 
   QTimer* m_timer;
 
+  using LogEntry = std::pair<std::string, LogTypes::LOG_LEVELS>;
+
+  // Maximum number of lines to show in log viewer
+  static constexpr int MAX_LOG_LINES = 5000;
+
   std::mutex m_log_mutex;
-  std::queue<QString> m_log_queue;
+  FixedSizeQueue<LogEntry, MAX_LOG_LINES> m_log_ring_buffer;
 };

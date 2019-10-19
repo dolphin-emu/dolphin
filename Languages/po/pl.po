@@ -19,8 +19,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-02 11:06+0200\n"
-"PO-Revision-Date: 2019-09-02 09:07+0000\n"
+"POT-Creation-Date: 2019-10-01 15:34+0200\n"
+"PO-Revision-Date: 2019-10-01 13:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Polish (http://www.transifex.com/delroth/dolphin-emu/language/"
 "pl/)\n"
@@ -142,7 +142,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:101
 msgid "%1 Graphics Configuration"
-msgstr ""
+msgstr "Konfiguracja graficzna %1"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:649
 msgid "%1 Match(es)"
@@ -150,10 +150,10 @@ msgstr "%1 dopasowanie(ań)"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:130
 msgid "%1 doesn't support this feature on your system."
-msgstr ""
+msgstr "%1 nie wspiera tej funkcji na twoim systemie."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:193
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:303
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:304
 msgid "%1 doesn't support this feature."
 msgstr "%1 nie wspiera tej funkcji."
 
@@ -169,7 +169,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:882
 msgid "%1 has joined"
-msgstr ""
+msgstr "%1 dołączył(a)"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:887
 msgid "%1 has left"
@@ -186,11 +186,11 @@ msgstr "%1 ms"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:260
 msgid "%1 session found"
-msgstr ""
+msgstr "Znaleziono %1 sesję"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:260
 msgid "%1 sessions found"
-msgstr ""
+msgstr "Znaleziono %1 sesji"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:169
 msgid "%1% (Normal Speed)"
@@ -223,7 +223,7 @@ msgstr "%i z %i bloków. Współczynnik kompresji %i%%"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:315
 #, c-format
 msgid "%s (Masterpiece)"
-msgstr ""
+msgstr "%s (Arcydzieło)"
 
 #: Source/Core/Core/Boot/Boot.cpp:336
 #, c-format
@@ -348,7 +348,7 @@ msgstr ""
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:260
 msgid "&Delete Watch"
-msgstr ""
+msgstr "&Usuń obejrzenie"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:53
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:146
@@ -402,7 +402,7 @@ msgstr "Po&moc"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:497
 msgid "&Hotkey Settings"
-msgstr "Ustawienia &skrótów klawiszowych"
+msgstr "Ustawienia &skrótów klawiaturowych"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:73
 msgid "&Import..."
@@ -881,7 +881,7 @@ msgstr "Dodaj punkt przerwania pamięci"
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:124
 msgid "Add to &watch"
-msgstr ""
+msgstr "Dodaj do &oglądania"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:272
 msgid "Add to Watch"
@@ -965,7 +965,7 @@ msgstr "Ustawienia zaawansowane"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:252
 msgid "Africa"
-msgstr ""
+msgstr "Afryka"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:271
 msgid "All Files (*)"
@@ -1002,7 +1002,7 @@ msgstr "Zapisy wszystkich graczy zsynchronizowane."
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:144
 msgid "Allow Mismatched Region Settings"
-msgstr ""
+msgstr "Zezwalaj na niedopasowane ustawienia regionalne"
 
 #: Source/Core/DolphinQt/Main.cpp:197
 msgid "Allow Usage Statistics Reporting"
@@ -1074,7 +1074,7 @@ msgstr "Antyaliasing:"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:71
 msgid "Any Region"
-msgstr ""
+msgstr "Jakikolwiek region"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1358
 msgid "Append signature to"
@@ -1200,7 +1200,7 @@ msgstr "Automatycznie dopasuj rozmiar okna"
 msgid "Auto-Hide"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:216
 msgid ""
 "Automatically adjusts the window size to the internal resolution.\n"
 "\n"
@@ -1210,12 +1210,12 @@ msgstr ""
 #. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:124
 msgid "Auxiliary"
-msgstr ""
+msgstr "Pomocnicza"
 
 #. i18n: The symbol for the unit "bytes"
 #: Source/Core/UICommon/UICommon.cpp:430
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:567
 msgid "BAT incorrect. Dolphin will now exit"
@@ -1292,7 +1292,7 @@ msgstr "Bateria"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:192
 msgid "Beta (once a month)"
-msgstr "Beta (raz na miesiąc)"
+msgstr "Beta (raz w miesiącu)"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:99
 msgid "Bitrate (kbps):"
@@ -1456,6 +1456,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Przechowuje dostosowane tekstury w pamięci systemowej RAM przy "
+"uruchomieniu.\n"
+"\n"
+"Może wymagać wykładniczo więcej RAM, lecz naprawia możliwe zacinanie.\n"
+"\n"
+"W razie wątpliwości, pozostaw odznaczone."
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:68
 msgid "Calculate"
@@ -1530,7 +1536,7 @@ msgstr ""
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:42
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:230
 msgid "Center"
-msgstr ""
+msgstr "Środek"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:756
 msgid "Center and Calibrate"
@@ -1603,7 +1609,7 @@ msgstr ""
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:250
 msgid "China"
-msgstr ""
+msgstr "Chiny"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:200
 msgid "Choose a file to open"
@@ -1825,7 +1831,7 @@ msgstr "Gałka sterująca"
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:366
 msgid "Controller Profile"
-msgstr ""
+msgstr "Profil kontrolera"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:65
 msgid "Controller Settings"
@@ -2084,7 +2090,7 @@ msgstr "Suwak"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:263
 msgid "Current Region"
-msgstr ""
+msgstr "Aktualny region"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:154
 msgid "Current game"
@@ -2092,11 +2098,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:61
 msgid "Custom"
-msgstr "Własne"
+msgstr "Dostosowane"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:69
 msgid "Custom RTC Options"
-msgstr "Opcje własnego RTC"
+msgstr "Opcje dostosowanego RTC"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:95
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:102
@@ -2305,7 +2311,7 @@ msgstr "Deterministyczna dwurdzeniowość:"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:192
 msgid "Dev (multiple times a day)"
-msgstr "Deweloperska (wiele razy na dzień)"
+msgstr "Deweloperska (wiele razy w ciągu dnia)"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:68
 msgid "Device"
@@ -2486,6 +2492,8 @@ msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
 "Double-click here to set a games directory..."
 msgstr ""
+"Dolphin nie mógł odnaleźć żadnych plików ISO lub WAD GameCube'a/Wii.\n"
+"Kliknij dwukrotnie tutaj, aby ustawić folder gier..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:599
 msgid "Dolphin failed to complete the requested action."
@@ -2497,7 +2505,7 @@ msgstr "Nie udało się wykonać wymaganego zadania."
 #. can be downloaded at no cost, but that's not what this message says.)
 #: Source/Core/DolphinQt/AboutDialog.cpp:41
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
-msgstr ""
+msgstr "Dolphin jest wolnym i otwartoźródłowym emulatorem GameCube'a oraz Wii."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:968
 msgid "Dolphin is too old for traversal server"
@@ -2647,7 +2655,7 @@ msgstr "Zrzucaj tekstury"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:91
 msgid "Dump at Internal Resolution"
-msgstr ""
+msgstr "Zrzucaj w rozdzielczości wewnętrznej"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:165
 msgid ""
@@ -2717,7 +2725,7 @@ msgstr "Wczesne aktualizacje pamięci"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:250
 msgid "East Asia"
-msgstr ""
+msgstr "Azja Wschodnia"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:200
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:197
@@ -2751,7 +2759,7 @@ msgstr "Wbudowany bufor klatki (Embedded Frame Buffer - EFB)"
 msgid "Empty"
 msgstr "Pusty"
 
-#: Source/Core/Core/Core.cpp:216
+#: Source/Core/Core/Core.cpp:217
 msgid "Emu Thread already running"
 msgstr "Wątek emulacji jest już uruchomiony"
 
@@ -2782,7 +2790,7 @@ msgstr "Włącz cheaty"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:73
 msgid "Enable Custom RTC"
-msgstr "Włącz własny RTC"
+msgstr "Włącz dostosowany RTC"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
 msgid "Enable Dual Core"
@@ -3138,7 +3146,6 @@ msgid "Export Recording..."
 msgstr "Eksportuj nagranie..."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
 msgid "Export Save File"
 msgstr ""
 
@@ -3642,23 +3649,23 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:59
 msgid "Force 16:9"
-msgstr "Wymuś 16:9"
+msgstr "Wymuszaj 16:9"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:81
 msgid "Force 24-Bit Color"
-msgstr "Wymuś 24 bitowy kolor"
+msgstr "Wymuszaj 24-bitowy kolor"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:59
 msgid "Force 4:3"
-msgstr "Wymuś 4:3"
+msgstr "Wymuszaj 4:3"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:128
 msgid "Force Listen Port:"
-msgstr "Wymuś nasłuch na porcie:"
+msgstr "Wymuszaj nasłuch na porcie:"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:77
 msgid "Force Texture Filtering"
-msgstr "Wymuś filtrowanie tekstur"
+msgstr "Wymuszaj filtrowanie tekstur"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:323
 msgid ""
@@ -3718,7 +3725,7 @@ msgstr "Zresetuj szybkość wyprzedzania klatek"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:87
 msgid "Frame Dumping"
-msgstr ""
+msgstr "Zrzucanie klatek"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:96
 msgid "Frame Range"
@@ -4151,13 +4158,13 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:372
 msgid "Hotkey Settings"
-msgstr ""
+msgstr "Ustawienia skrótów klawiaturowych"
 
 #: Source/Core/Core/HotkeyManager.cpp:196
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Hotkeys"
-msgstr "Skróty klawiszowe"
+msgstr "Skróty klawiaturowe"
 
 #. i18n: The symbol/abbreviation for hertz (cycles per second).
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:154
@@ -4232,15 +4239,15 @@ msgid ""
 "stability issues.\n"
 "This authorization can be revoked at any time through Dolphin's settings."
 msgstr ""
-"Jeśli otrzyma uprawnienie, Dolphin będzie mógł zbierać dane o swojej "
-"wydajności, użyciu funkcji, konfiguracji, a także i dane na sprzęcie twojego "
+"Jeśli zostanie to dozwolone, Dolphin będzie mógł zbierać dane o swojej "
+"wydajności, użyciu funkcji, konfiguracji, a także dane na sprzęcie twojego "
 "systemu i w systemie operacyjnym.\n"
 "\n"
-"Żadne dane osobiste nigdy nie są zbierane. Te dane pomagają nam zrozumieć "
+"Żadne dane osobiste nigdy nie są zbierane. Dane te pomagają nam zrozumieć "
 "jak ludzie i emulowane gry używają programu oraz priorytetyzować nasze "
-"starania. Pomagają one nam również identyfikować rzadkie konfiguracje, które "
+"starania. Pomagają nam one również identyfikować rzadkie konfiguracje, które "
 "powodują błędy oraz problemy z wydajnością i stabilnością.\n"
-"Autoryzacja może zostać cofnięta w każdej chwili poprzez ustawienia programu."
+"Autoryzacja może zostać wycofana w każdej chwili poprzez ustawienia programu."
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:56
 msgid "Ignore"
@@ -4293,6 +4300,10 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:251
 msgid "Import BootMii NAND Backup..."
+msgstr ""
+
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
+msgid "Import Save File"
 msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:276
@@ -4753,7 +4764,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:69
 msgid "Load Custom Textures"
-msgstr "Wczytaj własne tekstury"
+msgstr "Wczytuj dostosowane tekstury"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:234
 msgid "Load GameCube Main Menu"
@@ -4896,6 +4907,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Wczytuje dostosowane tekstury z Użytkownik/Load/Textures/<game_id>/.\n"
+"\n"
+"W razie wątpliwości, pozostaw odznaczone."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:544
 msgid "Local"
@@ -4930,7 +4944,7 @@ msgstr "Typy logów"
 msgid "Logger Outputs"
 msgstr "Logger Outputs"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:236
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:237
 msgid ""
 "Logs the render time of every frame to User/Logs/render_time.txt.\n"
 "\n"
@@ -5334,7 +5348,7 @@ msgstr "Pseudonim:"
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:239
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:240
 msgid "No"
-msgstr ""
+msgstr "Nie"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:79
 msgid "No Adapter Detected"
@@ -5376,7 +5390,7 @@ msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:963
 msgid "No problems were found."
-msgstr ""
+msgstr "Nie znaleziono żadnych problemów."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:957
 msgid ""
@@ -5415,11 +5429,11 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:218
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
-msgstr "Żaden"
+msgstr "Brak"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "North America"
-msgstr ""
+msgstr "Ameryka Północna"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:664
 msgid "Not Found"
@@ -5491,7 +5505,7 @@ msgstr "Zasięg objektu"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "Oceania"
-msgstr ""
+msgstr "Oceania"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:410
 msgid "Octal"
@@ -5600,7 +5614,7 @@ msgstr "Pozostałe"
 #: Source/Core/Core/HotkeyManager.cpp:301
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:26
 msgid "Other State Hotkeys"
-msgstr ""
+msgstr "Inne skróty klawiaturowe stanów"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:371
 msgid "Other State Management"
@@ -5800,7 +5814,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
 msgid "Prefetch Custom Textures"
-msgstr "Wstępnie pobierz własne tekstury"
+msgstr "Wstępnie pobieraj dostosowane tekstury"
 
 #: Source/Core/Core/Movie.cpp:1123
 #, c-format
@@ -5838,7 +5852,7 @@ msgstr "Naciśnij przycisk Sync"
 msgid "Pressure"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:256
 msgid ""
 "Prevents shader compilation stuttering by not rendering waiting objects. Can "
 "work in scenarios where Ubershaders doesn't, at the cost of introducing "
@@ -6097,7 +6111,7 @@ msgstr "Region"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:101
 msgid "Region:"
-msgstr ""
+msgstr "Region:"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:22
 msgid "Registers"
@@ -6550,7 +6564,7 @@ msgstr "Wybierz"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:67
 msgid "Select Dump Path"
-msgstr ""
+msgstr "Wybierz ścieżkę zrzutu"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:436
 #: Source/Core/DolphinQt/MenuBar.cpp:1024
@@ -6689,7 +6703,7 @@ msgstr "Wybrany profil kontrolera nie istnieje"
 msgid "Selected game doesn't exist in game list!"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:210
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:211
 msgid ""
 "Selects a hardware adapter to use.\n"
 "\n"
@@ -6730,7 +6744,7 @@ msgstr ""
 "\n"
 "W razie wątpliwości, wybierz OpenGL."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:222
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:223
 msgid ""
 "Selects which aspect ratio to use when rendering.\n"
 "\n"
@@ -6742,7 +6756,7 @@ msgid ""
 "If unsure, select Auto."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:205
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:206
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -6752,7 +6766,7 @@ msgid ""
 "If unsure, select OpenGL."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:198
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:199
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7042,7 +7056,7 @@ msgstr ""
 "\n"
 "W razie wątpliwości, pozostaw odznaczone."
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:240
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:241
 msgid ""
 "Shows chat messages, buffer changes, and desync alerts while playing "
 "NetPlay.\n"
@@ -7050,7 +7064,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:231
 msgid ""
 "Shows the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -7058,7 +7072,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:233
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:234
 msgid ""
 "Shows the player's maximum ping while playing on NetPlay.\n"
 "\n"
@@ -7122,11 +7136,11 @@ msgstr "Pomiń"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:44
 msgid "Skip EFB Access from CPU"
-msgstr "Pomiń dostęp EFB z CPU"
+msgstr "Pomijaj dostęp EFB z CPU"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:58
 msgid "Skip Main Menu"
-msgstr "Pomiń menu główne"
+msgstr "Pomijaj menu główne"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:148
@@ -7170,7 +7184,7 @@ msgstr ""
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "South America"
-msgstr ""
+msgstr "Ameryka Południowa"
 
 #: Source/Core/DiscIO/Enums.cpp:54
 msgid "Spain"
@@ -7200,7 +7214,7 @@ msgstr "Przyspiesz szybkość transmisji dysku"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:191
 msgid "Stable (once a year)"
-msgstr "Stabilna (raz na rok)"
+msgstr "Stabilna (raz w roku)"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Standard Controller"
@@ -7347,7 +7361,7 @@ msgstr "Rozciągnij do okna"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:118
 msgid "Strict Settings Sync"
-msgstr ""
+msgstr "Ścisła synchronizacja ustawień"
 
 #. i18n: Data type used in computing
 #: Source/Core/DolphinQt/CheatsManager.cpp:392
@@ -8003,8 +8017,8 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"To ustawienie pozwala ci ustawić własny zegar czasu rzeczywistego (real time "
-"clock - RTC) odrębny od aktualnego czasu twojego systemu.\n"
+"To ustawienie pozwala ci ustawić dostosowany zegar czasu rzeczywistego (real "
+"time clock - RTC) odrębny od aktualnego czasu twojego systemu.\n"
 "\n"
 "W razie wątpliwości, pozostaw odznaczone."
 
@@ -8155,7 +8169,7 @@ msgstr "Przełącz przycinanie"
 
 #: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Toggle Custom Textures"
-msgstr "Przełącz własne tekstury"
+msgstr "Przełącz dostosowane tekstury"
 
 #: Source/Core/Core/HotkeyManager.cpp:103
 msgid "Toggle EFB Copies"
@@ -8305,7 +8319,7 @@ msgstr "USB Gecko"
 msgid "USB Whitelist Error"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:243
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:244
 msgid ""
 "Ubershaders are never used. Stuttering will occur during shader compilation, "
 "but GPU demands are low.\n"
@@ -8315,7 +8329,7 @@ msgid ""
 "If unsure, select this mode."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:247
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:248
 msgid ""
 "Ubershaders will always be used. Provides a near stutter-free experience at "
 "the cost of high GPU performance requirements.\n"
@@ -8323,7 +8337,7 @@ msgid ""
 "Only recommended for high-end systems."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:250
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:251
 msgid ""
 "Ubershaders will be used to prevent stuttering during shader compilation, "
 "but specialized shaders will be used when they will not cause stuttering.\n"
@@ -8394,7 +8408,7 @@ msgstr "Stany Zjednoczone"
 msgid "Unknown"
 msgstr "Nieznany"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1137
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1132
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Nieznane polecenie DVD %08x - poważny błąd"
@@ -8515,11 +8529,11 @@ msgstr "Użyj wbudowanej bazy danych nazw gier"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:150
 msgid "Use Custom User Style"
-msgstr ""
+msgstr "Używaj dostosowanego stylu użytkownika"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:63
 msgid "Use Fullscreen"
-msgstr "Użyj pełnego ekranu"
+msgstr "Używaj pełnego ekranu"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:93
 msgid "Use Lossless Codec (FFV1)"
@@ -8559,7 +8573,7 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:212
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:213
 msgid ""
 "Uses the entire screen for rendering.\n"
 "\n"
@@ -8568,7 +8582,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:219
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:220
 msgid ""
 "Uses the main Dolphin window for rendering rather than a separate render "
 "window.\n"
@@ -8686,7 +8700,7 @@ msgstr ""
 msgid "WASAPI (Exclusive Mode)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:260
 msgid ""
 "Waits for all shaders to finish compiling before starting a game. Enabling "
 "this option may reduce stuttering or hitching for a short time after the "
@@ -8697,7 +8711,7 @@ msgid ""
 "Otherwise, if unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:227
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:228
 msgid ""
 "Waits for vertical blanks in order to prevent tearing.\n"
 "\n"
@@ -8952,7 +8966,7 @@ msgstr "Żółty"
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:239
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:240
 msgid "Yes"
-msgstr ""
+msgstr "Tak"
 
 #: Source/Core/VideoBackends/Vulkan/main.cpp:348
 msgid ""

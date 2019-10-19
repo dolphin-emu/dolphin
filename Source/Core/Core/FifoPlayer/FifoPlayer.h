@@ -93,8 +93,8 @@ public:
   // Default is disabled
   void SetEarlyMemoryUpdates(bool enabled) { m_EarlyMemoryUpdates = enabled; }
   // Callbacks
-  void SetFileLoadedCallback(CallbackFunc callback) { m_FileLoadedCb = callback; }
-  void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = callback; }
+  void SetFileLoadedCallback(CallbackFunc callback);
+  void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = std::move(callback); }
   static FifoPlayer& GetInstance();
 
   bool IsRunningWithFakeVideoInterfaceUpdates() const;

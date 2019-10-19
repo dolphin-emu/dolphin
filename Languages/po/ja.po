@@ -16,8 +16,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-02 11:06+0200\n"
-"PO-Revision-Date: 2019-09-02 09:07+0000\n"
+"POT-Creation-Date: 2019-10-01 15:34+0200\n"
+"PO-Revision-Date: 2019-10-01 13:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
@@ -167,7 +167,7 @@ msgid "%1 doesn't support this feature on your system."
 msgstr "%1 はあなたのシステム上でこの機能をサポートしていません"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:193
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:303
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:304
 msgid "%1 doesn't support this feature."
 msgstr "%1 はこの機能をサポートしていません"
 
@@ -1258,7 +1258,7 @@ msgstr "ウィンドウサイズを自動調整"
 msgid "Auto-Hide"
 msgstr "未操作時に隠す"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:216
 msgid ""
 "Automatically adjusts the window size to the internal resolution.\n"
 "\n"
@@ -2885,7 +2885,7 @@ msgstr "Embedded Frame Buffer (内蔵フレームバッファ)"
 msgid "Empty"
 msgstr "空き"
 
-#: Source/Core/Core/Core.cpp:216
+#: Source/Core/Core/Core.cpp:217
 msgid "Emu Thread already running"
 msgstr "エミュレーションスレッドはすでに稼働中です"
 
@@ -3294,7 +3294,6 @@ msgid "Export Recording..."
 msgstr "録画ファイルのエクスポート"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
 msgid "Export Save File"
 msgstr "セーブファイルをエクスポート"
 
@@ -4513,6 +4512,10 @@ msgstr ""
 msgid "Import BootMii NAND Backup..."
 msgstr "BootMii NAND バックアップをインポート"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:335
+msgid "Import Save File"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:276
 msgid "Import Wii Save..."
 msgstr "Wii セーブデータのインポート"
@@ -5156,7 +5159,7 @@ msgstr "表示するログ情報"
 msgid "Logger Outputs"
 msgstr "ログ出力先"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:236
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:237
 msgid ""
 "Logs the render time of every frame to User/Logs/render_time.txt.\n"
 "\n"
@@ -6095,7 +6098,7 @@ msgstr "Syncボタン 押下"
 msgid "Pressure"
 msgstr "筆圧"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:256
 msgid ""
 "Prevents shader compilation stuttering by not rendering waiting objects. Can "
 "work in scenarios where Ubershaders doesn't, at the cost of introducing "
@@ -6974,7 +6977,7 @@ msgstr "選択されたプロファイルは存在しません"
 msgid "Selected game doesn't exist in game list!"
 msgstr "選択されたゲームがゲームリストに存在しません！"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:210
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:211
 msgid ""
 "Selects a hardware adapter to use.\n"
 "\n"
@@ -7028,7 +7031,7 @@ msgstr ""
 "\n"
 "よく分からなければ、【OpenGL】を選択してください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:222
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:223
 msgid ""
 "Selects which aspect ratio to use when rendering.\n"
 "\n"
@@ -7047,7 +7050,7 @@ msgstr ""
 "\n"
 "よく分からなければ、【自動】を選択してください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:205
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:206
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7062,7 +7065,7 @@ msgstr ""
 "\n"
 "よく分からなければ、【OpenGL】を選択してください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:198
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:199
 msgid ""
 "Selects which graphics API to use internally.\n"
 "\n"
@@ -7358,7 +7361,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:240
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:241
 msgid ""
 "Shows chat messages, buffer changes, and desync alerts while playing "
 "NetPlay.\n"
@@ -7370,7 +7373,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:230
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:231
 msgid ""
 "Shows the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -7382,7 +7385,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:233
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:234
 msgid ""
 "Shows the player's maximum ping while playing on NetPlay.\n"
 "\n"
@@ -8670,7 +8673,7 @@ msgstr "USB Gecko"
 msgid "USB Whitelist Error"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:243
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:244
 msgid ""
 "Ubershaders are never used. Stuttering will occur during shader compilation, "
 "but GPU demands are low.\n"
@@ -8685,7 +8688,7 @@ msgstr ""
 "\n"
 "よく分からなければ、これを選択してください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:247
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:248
 msgid ""
 "Ubershaders will always be used. Provides a near stutter-free experience at "
 "the cost of high GPU performance requirements.\n"
@@ -8696,7 +8699,7 @@ msgstr ""
 "強力なGPUをお持ちであれば、カクつきとは無縁のゲームプレイが実現されます。高ス"
 "ペックPCにしかオススメできません。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:250
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:251
 msgid ""
 "Ubershaders will be used to prevent stuttering during shader compilation, "
 "but specialized shaders will be used when they will not cause stuttering.\n"
@@ -8780,7 +8783,7 @@ msgstr "米国"
 msgid "Unknown"
 msgstr "フィルタ無し"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1137
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1132
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Unknown DVD command %08x - fatal error"
@@ -8957,7 +8960,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを外さないでください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:212
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:213
 msgid ""
 "Uses the entire screen for rendering.\n"
 "\n"
@@ -8970,7 +8973,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:219
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:220
 msgid ""
 "Uses the main Dolphin window for rendering rather than a separate render "
 "window.\n"
@@ -9091,7 +9094,7 @@ msgstr "WAD installation failed: The selected file is not a valid WAD."
 msgid "WASAPI (Exclusive Mode)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:260
 msgid ""
 "Waits for all shaders to finish compiling before starting a game. Enabling "
 "this option may reduce stuttering or hitching for a short time after the "
@@ -9109,7 +9112,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:227
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:228
 msgid ""
 "Waits for vertical blanks in order to prevent tearing.\n"
 "\n"

@@ -13,6 +13,7 @@
 #include <variant>
 
 #include <fmt/format.h>
+#include <fmt/time.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -677,15 +678,20 @@ static std::string GenerateScreenshotFolderPath()
 
 static std::string GenerateScreenshotName()
 {
-  std::string path = GenerateScreenshotFolderPath();
-
   // append gameId, path only contains the folder here.
-  path += SConfig::GetInstance().GetGameID();
+  const std::string path_prefix =
+      GenerateScreenshotFolderPath() + SConfig::GetInstance().GetGameID();
 
-  std::string name;
-  for (int i = 1; File::Exists(name = fmt::format("{}-{}.png", path, i)); ++i)
+  const std::time_t cur_time = std::time(nullptr);
+  const std::string base_name =
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *std::localtime(&cur_time));
+
+  // First try a filename without any suffixes, if already exists then append increasing numbers
+  std::string name = fmt::format("{}.png", base_name);
+  if (File::Exists(name))
   {
-    // TODO?
+    for (u32 i = 1; File::Exists(name = fmt::format("{}_{}.png", base_name, i)); ++i)
+      ;
   }
 
   return name;
@@ -709,8 +715,8 @@ void SaveScreenShot(std::string_view name, bool wait_for_completion)
 
   SetState(State::Paused);
 
-  const std::string path = fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name);
-  g_renderer->SaveScreenshot(path, wait_for_completion);
+  g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name),
+                             wait_for_completion);
 
   if (!bPaused)
     SetState(State::Running);
