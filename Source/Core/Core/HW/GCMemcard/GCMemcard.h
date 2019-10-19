@@ -36,10 +36,6 @@ enum
   GCI = 0,
   SAV = 0x80,
   GCS = 0x110,
-
-  CI8SHARED = 1,
-  RGB5A3,
-  CI8,
 };
 
 enum class GCMemcardGetSaveDataRetVal
@@ -106,6 +102,12 @@ private:
   std::bitset<static_cast<size_t>(GCMemcardValidityIssues::COUNT)> m_errors;
 };
 
+struct GCMemcardAnimationFrameRGBA8
+{
+  std::vector<u32> image_data;
+  u8 delay;
+};
+
 // size of a single memory card block in bytes
 constexpr u32 BLOCK_SIZE = 0x2000;
 
@@ -151,6 +153,11 @@ constexpr u32 MEMORY_CARD_ICON_HEIGHT = 32;
 
 // maximum number of frames a save file's icon animation can have
 constexpr u32 MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES = 8;
+
+// color format of icon frame as stored in m_icon_format (two bits per frame)
+constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_SHARED_PALETTE = 1;
+constexpr u8 MEMORY_CARD_ICON_FORMAT_RGB5A3 = 2;
+constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 
 // number of palette entries in a CI8 palette of a banner or icon
 // each palette entry is 16 bits in RGB5A3 format
@@ -507,5 +514,5 @@ public:
   std::optional<std::vector<u32>> ReadBannerRGBA8(u8 index) const;
 
   // reads the animation frames
-  u32 ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const;
+  std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> ReadAnimRGBA8(u8 index) const;
 };

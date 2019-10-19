@@ -1229,139 +1229,145 @@ std::optional<std::vector<u32>> GCMemcard::ReadBannerRGBA8(u8 index) const
   return rgba;
 }
 
-u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
+std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA8(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
-    return 0;
+    return std::nullopt;
 
-  // To ensure only one type of icon is used
-  // Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
-  // int fmtCheck = 0;
+  u32 image_offset = GetActiveDirectory().m_dir_entries[index].m_image_offset;
+  if (image_offset == 0xFFFFFFFF)
+    return std::nullopt;
 
-  int formats = GetActiveDirectory().m_dir_entries[index].m_icon_format;
-  int fdelays = GetActiveDirectory().m_dir_entries[index].m_animation_speed;
+  // Data at m_image_offset stores first the banner, if any, and then the icon data.
+  // Skip over the banner if there is one.
+  // See ReadBannerRGBA8() for details on how the banner is stored.
+  const u8 flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
+  const u8 banner_format = (flags & 0b0000'0011);
+  const u32 banner_pixels = MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT;
+  if (banner_format == MEMORY_CARD_BANNER_FORMAT_CI8)
+    image_offset += banner_pixels + MEMORY_CARD_CI8_PALETTE_ENTRIES * 2;
+  else if (banner_format == MEMORY_CARD_BANNER_FORMAT_RGB5A3)
+    image_offset += banner_pixels * 2;
 
-  int flags = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
-  // Timesplitters 2 and 3 is the only game that I see this in
-  // May be a hack
-  // if (flags == 0xFB) flags = ~flags;
-  // Batten Kaitos has 0x65 as flag too. Everything but the first 3 bytes seems irrelevant.
-  // Something similar happens with Wario Ware Inc. AnimSpeed
-
-  int bnrFormat = (flags & 3);
-
-  u32 DataOffset = GetActiveDirectory().m_dir_entries[index].m_image_offset;
-  u32 DataBlock = GetActiveDirectory().m_dir_entries[index].m_first_block - MC_FST_BLOCKS;
-
-  if ((DataBlock > m_size_blocks) || (DataOffset == 0xFFFFFFFF))
+  // decode icon formats and frame delays
+  const u16 icon_format = GetActiveDirectory().m_dir_entries[index].m_icon_format;
+  const u16 animation_speed = GetActiveDirectory().m_dir_entries[index].m_animation_speed;
+  std::array<u8, MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES> frame_formats;
+  std::array<u8, MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES> frame_delays;
+  for (u32 i = 0; i < MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES; ++i)
   {
-    return 0;
+    frame_formats[i] = (icon_format >> (2 * i)) & 0b11;
+    frame_delays[i] = (animation_speed >> (2 * i)) & 0b11;
   }
 
-  u8* animData = (u8*)(m_data_blocks[DataBlock].m_block.data() + DataOffset);
+  // if first frame format is 0, the entire icon is skipped
+  if (frame_formats[0] == 0)
+    return std::nullopt;
 
-  switch (bnrFormat)
+  // calculate byte length of each individual icon frame and full icon data
+  constexpr u32 pixels_per_frame = MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT;
+  u32 data_length = 0;
+  u32 frame_count = 0;
+  std::array<u32, MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES> frame_offsets;
+  bool has_shared_palette = false;
+  for (u32 i = 0; i < MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES; ++i)
   {
-  case 1:
-    animData += 96 * 32 + 2 * 256;  // image+palette
-    break;
-  case 2:
-    animData += 96 * 32 * 2;
-    break;
-  }
-
-  int fmts[8];
-  u8* data[8];
-  int frames = 0;
-
-  for (int i = 0; i < 8; i++)
-  {
-    fmts[i] = (formats >> (2 * i)) & 3;
-    delays[i] = ((fdelays >> (2 * i)) & 3);
-    data[i] = animData;
-
-    if (!delays[i])
+    if (frame_delays[i] == 0)
     {
-      // First icon_speed = 0 indicates there aren't any more icons
+      // frame delay of 0 means we're out of frames
       break;
     }
-    // If speed is set there is an icon (it can be a "blank frame")
-    frames++;
-    if (fmts[i] != 0)
+
+    // otherwise this counts as a frame, even if the format is none of the three valid ones
+    // (see the actual icon decoding below for how that is handled)
+    ++frame_count;
+    frame_offsets[i] = data_length;
+
+    if (frame_formats[i] == MEMORY_CARD_ICON_FORMAT_CI8_SHARED_PALETTE)
     {
-      switch (fmts[i])
-      {
-      case CI8SHARED:  // CI8 with shared palette
-        animData += 32 * 32;
-        break;
-      case RGB5A3:  // RGB5A3
-        animData += 32 * 32 * 2;
-        break;
-      case CI8:  // CI8 with own palette
-        animData += 32 * 32 + 2 * 256;
-        break;
-      }
+      data_length += pixels_per_frame;
+      has_shared_palette = true;
+    }
+    else if (frame_formats[i] == MEMORY_CARD_ICON_FORMAT_RGB5A3)
+    {
+      data_length += pixels_per_frame * 2;
+    }
+    else if (frame_formats[i] == MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE)
+    {
+      data_length += pixels_per_frame + 2 * MEMORY_CARD_CI8_PALETTE_ENTRIES;
     }
   }
 
-  const u16* sharedPal = reinterpret_cast<u16*>(animData);
+  if (frame_count == 0)
+    return std::nullopt;
 
-  for (int i = 0; i < 8; i++)
+  const u32 shared_palette_offset = data_length;
+  if (has_shared_palette)
+    data_length += 2 * MEMORY_CARD_CI8_PALETTE_ENTRIES;
+
+  // now that we have determined the data length, fetch the actual data from the save file
+  // if anything is sketchy, bail so we don't access out of bounds
+  auto save_data_bytes = GetSaveDataBytes(index, image_offset, data_length);
+  if (!save_data_bytes || save_data_bytes->size() != data_length)
+    return std::nullopt;
+
+  // and finally, decode icons into RGBA8
+  std::array<u16, MEMORY_CARD_CI8_PALETTE_ENTRIES> shared_palette;
+  if (has_shared_palette)
   {
-    if (!delays[i])
+    std::memcpy(shared_palette.data(), save_data_bytes->data() + shared_palette_offset,
+                2 * MEMORY_CARD_CI8_PALETTE_ENTRIES);
+  }
+
+  std::vector<GCMemcardAnimationFrameRGBA8> output;
+  for (u32 i = 0; i < frame_count; ++i)
+  {
+    GCMemcardAnimationFrameRGBA8& output_frame = output.emplace_back();
+    output_frame.image_data.resize(pixels_per_frame);
+    output_frame.delay = frame_delays[i];
+
+    // Note on how to interpret this inner loop here: In the general case this just degenerates into
+    // j == i for every iteration, but in some rare cases (such as Luigi's Mansion or Pikmin) some
+    // frames will not actually have an associated format. In this case we forward to the next valid
+    // frame to decode, which appears (at least visually) to match the behavior of the GC BIOS. Note
+    // that this may end up decoding the same frame multiple times.
+    // If this happens but no next valid frame exists, we instead return a fully transparent frame,
+    // again visually matching the GC BIOS. There is no extra code necessary for this as the
+    // resize() of the vector already initializes it to a fully transparent frame.
+    for (u32 j = i; j < frame_count; ++j)
     {
-      // First icon_speed = 0 indicates there aren't any more icons
-      break;
-    }
-    if (fmts[i] != 0)
-    {
-      switch (fmts[i])
+      if (frame_formats[j] == MEMORY_CARD_ICON_FORMAT_CI8_SHARED_PALETTE)
       {
-      case CI8SHARED:  // CI8 with shared palette
-        Common::DecodeCI8Image(buffer, data[i], sharedPal, 32, 32);
-        buffer += 32 * 32;
-        break;
-      case RGB5A3:  // RGB5A3
-        Common::Decode5A3Image(buffer, (u16*)(data[i]), 32, 32);
-        buffer += 32 * 32;
-        break;
-      case CI8:  // CI8 with own palette
-        const u16* paldata = reinterpret_cast<u16*>(data[i] + 32 * 32);
-        Common::DecodeCI8Image(buffer, data[i], paldata, 32, 32);
-        buffer += 32 * 32;
+        Common::DecodeCI8Image(output_frame.image_data.data(),
+                               save_data_bytes->data() + frame_offsets[j], shared_palette.data(),
+                               MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT);
         break;
       }
-    }
-    else
-    {
-      // Speed is set but there's no actual icon
-      // This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
-      // These "blank frames" show the next icon
-      for (int j = i; j < 8; ++j)
+
+      if (frame_formats[j] == MEMORY_CARD_ICON_FORMAT_RGB5A3)
       {
-        if (fmts[j] != 0)
-        {
-          switch (fmts[j])
-          {
-          case CI8SHARED:  // CI8 with shared palette
-            Common::DecodeCI8Image(buffer, data[j], sharedPal, 32, 32);
-            break;
-          case RGB5A3:  // RGB5A3
-            Common::Decode5A3Image(buffer, (u16*)(data[j]), 32, 32);
-            buffer += 32 * 32;
-            break;
-          case CI8:  // CI8 with own palette
-            const u16* paldata = reinterpret_cast<u16*>(data[j] + 32 * 32);
-            Common::DecodeCI8Image(buffer, data[j], paldata, 32, 32);
-            buffer += 32 * 32;
-            break;
-          }
-        }
+        std::array<u16, pixels_per_frame> pxdata;
+        std::memcpy(pxdata.data(), save_data_bytes->data() + frame_offsets[j],
+                    pixels_per_frame * 2);
+        Common::Decode5A3Image(output_frame.image_data.data(), pxdata.data(),
+                               MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT);
+        break;
+      }
+
+      if (frame_formats[j] == MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE)
+      {
+        std::array<u16, MEMORY_CARD_CI8_PALETTE_ENTRIES> paldata;
+        std::memcpy(paldata.data(), save_data_bytes->data() + frame_offsets[j] + pixels_per_frame,
+                    MEMORY_CARD_CI8_PALETTE_ENTRIES * 2);
+        Common::DecodeCI8Image(output_frame.image_data.data(),
+                               save_data_bytes->data() + frame_offsets[j], paldata.data(),
+                               MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT);
+        break;
       }
     }
   }
 
-  return frames;
+  return output;
 }
 
 bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)

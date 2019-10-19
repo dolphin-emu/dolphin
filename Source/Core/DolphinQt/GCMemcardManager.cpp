@@ -483,40 +483,36 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u8> anim_delay(MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES);
-  std::vector<u32> anim_data(MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT *
-                             MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES);
-
   IconAnimationData frame_data;
 
-  const u32 num_frames = memcard->ReadAnimRGBA8(file_index, anim_data.data(), anim_delay.data());
+  const auto decoded_data = memcard->ReadAnimRGBA8(file_index);
 
   // Decode Save File Animation
-  if (num_frames > 0)
+  if (decoded_data && !decoded_data->empty())
   {
-    frame_data.m_frames.reserve(num_frames);
+    frame_data.m_frames.reserve(decoded_data->size());
     const u32 per_frame_offset = MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT;
-    for (u32 f = 0; f < num_frames; ++f)
+    for (size_t f = 0; f < decoded_data->size(); ++f)
     {
-      QImage img(reinterpret_cast<u8*>(&anim_data[f * per_frame_offset]), MEMORY_CARD_ICON_WIDTH,
-                 MEMORY_CARD_ICON_HEIGHT, QImage::Format_ARGB32);
+      QImage img(reinterpret_cast<const u8*>((*decoded_data)[f].image_data.data()),
+                 MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT, QImage::Format_ARGB32);
       frame_data.m_frames.push_back(QPixmap::fromImage(img));
-      for (int i = 0; i < anim_delay[f]; ++i)
+      for (int i = 0; i < (*decoded_data)[f].delay; ++i)
       {
         frame_data.m_frame_timing.push_back(static_cast<u8>(f));
       }
     }
 
     const bool is_pingpong = memcard->DEntry_IsPingPong(file_index);
-    if (is_pingpong && num_frames >= 3)
+    if (is_pingpong && decoded_data->size() >= 3)
     {
       // if the animation 'ping-pongs' between start and end then the animation frame order is
       // something like 'abcdcbabcdcba' instead of the usual 'abcdabcdabcd'
       // to display that correctly just append all except the first and last frame in reverse order
       // at the end of the animation
-      for (u32 f = num_frames - 2; f > 0; --f)
+      for (size_t f = decoded_data->size() - 2; f > 0; --f)
       {
-        for (int i = 0; i < anim_delay[f]; ++i)
+        for (int i = 0; i < (*decoded_data)[f].delay; ++i)
         {
           frame_data.m_frame_timing.push_back(static_cast<u8>(f));
         }
