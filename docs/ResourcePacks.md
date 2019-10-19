@@ -12,7 +12,11 @@ resource-pack.zip
 \__ textures (Directory)
     \__ GAMEID (Directory)
         \___ TEXTURES GO HERE
+\__ dynamic_input (Directory)
+    \__ GAMEID (Directory)
+        \___ JSON and PNG GO HERE
 ```
+> **_NOTE:_**  You can specify textures, dynamic_input ([Dynamic Input Textures](DynamicInputTextures.md)), or both in a pack
 
 **If you intend to use v1:** Your zip file may not be compressed or else **your pack will not load** (You can create uncompressed zips with software like 7-Zip).  
 (This is to ensure that loading textures *directly* from resource packs remains a viable option in the future)  
