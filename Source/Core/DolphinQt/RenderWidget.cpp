@@ -180,10 +180,10 @@ bool RenderWidget::event(QEvent* event)
   {
   case QEvent::Move:
   {
-    QMoveEvent* me = static_cast<QMoveEvent*>(event);
+    //QMoveEvent* me = static_cast<QMoveEvent*>(event);
 
     // Window Centre for PrimeHack mouselock.
-    SET_RENDER_CENTRE((me->pos().x() + (size().width() / 2)), (me->pos().y() + (size().height() / 2)));
+    SET_RENDER_CENTRE((pos().x() + (size().width() / 2)), (pos().y() + (size().height() / 2)));
     break;
   }  
   case QEvent::Paint:
@@ -238,7 +238,7 @@ bool RenderWidget::event(QEvent* event)
     const auto dpr = screen->devicePixelRatio();
 
     // Window Centre for PrimeHack mouselock.
-    SET_RENDER_CENTRE((pos().x() + (new_size.width() / 2)), (pos().y() + (new_size.height() / 2)));
+    SET_RENDER_CENTRE((pos().x() + ((new_size.width() * dpr) / 2)), (pos().y() + ((new_size.height() * dpr) / 2)));
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
