@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <bitset>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -450,6 +451,11 @@ public:
   u16 DEntry_FirstBlock(u8 index) const;
   // get file length in blocks
   u16 DEntry_BlockCount(u8 index) const;
+
+  std::optional<std::vector<u8>>
+  GetSaveDataBytes(u8 save_index, size_t offset = 0,
+                   size_t length = std::numeric_limits<size_t>::max()) const;
+
   u32 DEntry_CommentsAddress(u8 index) const;
   std::string GetSaveComment1(u8 index) const;
   std::string GetSaveComment2(u8 index) const;

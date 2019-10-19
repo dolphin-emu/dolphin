@@ -579,6 +579,66 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
   return blocks;
 }
 
+std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(u8 save_index, size_t offset,
+                                                           size_t length) const
+{
+  if (!m_valid || save_index >= DIRLEN)
+    return std::nullopt;
+
+  const DEntry& entry = GetActiveDirectory().m_dir_entries[save_index];
+  const BlockAlloc& bat = GetActiveBat();
+  const u16 block_count = entry.m_block_count;
+  const u16 first_block = entry.m_first_block;
+  const size_t block_max = MC_FST_BLOCKS + m_data_blocks.size();
+  if (block_count == 0xFFFF || first_block < MC_FST_BLOCKS || first_block >= block_max)
+    return std::nullopt;
+
+  const u32 file_size = block_count * BLOCK_SIZE;
+  if (offset >= file_size)
+    return std::nullopt;
+
+  const size_t bytes_to_copy = std::min(length, file_size - offset);
+  std::vector<u8> result;
+  result.reserve(bytes_to_copy);
+
+  u16 current_block = first_block;
+  size_t offset_in_current_block = offset;
+  size_t bytes_remaining = bytes_to_copy;
+
+  // skip unnecessary blocks at start
+  while (offset_in_current_block >= BLOCK_SIZE)
+  {
+    offset_in_current_block -= BLOCK_SIZE;
+    current_block = bat.GetNextBlock(current_block);
+    if (current_block < MC_FST_BLOCKS || current_block >= block_max)
+      return std::nullopt;
+  }
+
+  // then copy one block at a time into the result vector
+  while (true)
+  {
+    const GCMBlock& block = m_data_blocks[current_block - MC_FST_BLOCKS];
+    const size_t bytes_in_current_block_left = BLOCK_SIZE - offset_in_current_block;
+    const size_t bytes_in_current_block_left_to_copy =
+        std::min(bytes_remaining, bytes_in_current_block_left);
+
+    const auto data_to_copy_begin = block.m_block.begin() + offset_in_current_block;
+    const auto data_to_copy_end = data_to_copy_begin + bytes_in_current_block_left_to_copy;
+    result.insert(result.end(), data_to_copy_begin, data_to_copy_end);
+
+    bytes_remaining -= bytes_in_current_block_left_to_copy;
+    if (bytes_remaining == 0)
+      break;
+
+    offset_in_current_block = 0;
+    current_block = bat.GetNextBlock(current_block);
+    if (current_block < MC_FST_BLOCKS || current_block >= block_max)
+      return std::nullopt;
+  }
+
+  return std::make_optional(std::move(result));
+}
+
 u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
