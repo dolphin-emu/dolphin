@@ -71,9 +71,7 @@ void PrimeHackEmuGeneral::ConfigChanged()
 
 void PrimeHackEmuGeneral::LoadSettings()
 {
-  Wiimote::LoadConfig();
-
-  prime::UpdateHackSettings();
+  Wiimote::LoadConfig(); // No need to update hack settings since it's already in LoadConfig.
 }
 
 void PrimeHackEmuGeneral::SaveSettings()

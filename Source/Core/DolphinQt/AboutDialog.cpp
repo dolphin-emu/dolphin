@@ -13,7 +13,7 @@
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 {
-  setWindowTitle(tr("About Dolphin"));
+  setWindowTitle(tr("About Dolphin/PrimeHack"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   const QString small =
@@ -22,23 +22,18 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 
   QString text;
   text.append(QStringLiteral("<p style='font-size:38pt; font-weight:400; margin-bottom:0;'>") +
-              tr("Dolphin") + QStringLiteral("</p>"));
+              tr("PrimeHack") + QStringLiteral("</p>"));
   text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0;'>%1</p>")
-                  .arg(QString::fromUtf8(Common::scm_desc_str.c_str())));
-
-  text.append(small + tr("Branch: ") + QString::fromUtf8(Common::scm_branch_str.c_str()) +
-              QStringLiteral("</p>"));
-  text.append(small + tr("Revision: ") + QString::fromUtf8(Common::scm_rev_git_str.c_str()) +
-              QStringLiteral("</p>"));
+                  .arg(QString::fromUtf8("0.3.0")));
 
   text.append(medium + tr("Check for updates: ") +
               QStringLiteral(
-                  "<a href='https://dolphin-emu.org/download'>dolphin-emu.org/download</a></p>"));
+                  "<a href='https://github.com/shiiion/dolphin/releases'>github.com/shiiion/dolphin/releases</a></p>"));
   // i18n: The word "free" in the standard phrase "free and open source"
   // is "free" as in "freedom" - it refers to certain properties of the
   // software's license, not the software's price. (It is true that Dolphin
   // can be downloaded at no cost, but that's not what this message says.)
-  text.append(medium + tr("Dolphin is a free and open-source GameCube and Wii emulator.") +
+  text.append(medium + tr("PrimeHack is a mod of Dolphin to implement FPS controls into Metroid Prime Trilogy.") +
               QStringLiteral("</p>"));
   text.append(medium +
               tr("This software should not be used to play games you do not legally own.") +
@@ -47,11 +42,9 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
       medium +
       QStringLiteral(
           "<a href='https://github.com/dolphin-emu/dolphin/blob/master/license.txt'>%1</a> | "
-          "<a href='https://github.com/dolphin-emu/dolphin/graphs/contributors'>%2</a> | "
-          "<a href='https://forums.dolphin-emu.org/'>%3</a></p>")
+          "<a href='https://discord.gg/invite/hYp5Naz'>%2</a></p>")
           .arg(tr("License"))
-          .arg(tr("Authors"))
-          .arg(tr("Support")));
+          .arg(tr("Discord")));
 
   QLabel* text_label = new QLabel(text);
   text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -64,7 +57,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
                  // your language. If you aren't sure which type is appropriate, see
                  // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
                  tr("\u00A9 2003-2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
-                    "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.") +
+                    "trademarks of Nintendo. Dolphin & PrimeHack is not affiliated with Nintendo in any way.") +
                  QStringLiteral("</p>"));
 
   QLabel* logo = new QLabel();

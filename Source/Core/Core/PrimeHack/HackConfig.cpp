@@ -61,12 +61,10 @@ bool CheckVisorCtl(int visor_num)
 
 void UpdateHackSettings()
 {
-  std::tuple<double, double, double, bool, bool> t = Wiimote::PrimeSettings();
-  double camera = std::get<0>(t);
-  double cursor = std::get<1>(t);
-  double fov = std::get<2>(t);
-  bool invertx = std::get<3>(t);
-  bool inverty = std::get<4>(t);
+  double camera, cursor, fov;
+  bool invertx, inverty;
+  std::tie<double, double, double, bool, bool>(camera, cursor, fov, invertx, inverty) =
+      Wiimote::PrimeSettings();
 
   SetSensitivity((float)camera);
   SetCursorSensitivity((float)cursor);
