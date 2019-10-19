@@ -702,12 +702,6 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   for (int i = 0; i < 3; ++i)
     m_shake->SetControlExpression(i, "Click 2");
 
-  // Pointing (IR)
-  m_ir->SetControlExpression(0, "Cursor Y-");
-  m_ir->SetControlExpression(1, "Cursor Y+");
-  m_ir->SetControlExpression(2, "Cursor X-");
-  m_ir->SetControlExpression(3, "Cursor X+");
-
 // DPad
 #ifdef _WIN32
   m_dpad->SetControlExpression(0, "UP");     // Up
