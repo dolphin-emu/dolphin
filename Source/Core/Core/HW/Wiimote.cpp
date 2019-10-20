@@ -4,10 +4,10 @@
 
 #include "Core/HW/Wiimote.h"
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -20,7 +20,6 @@
 #include "Core/NetPlayClient.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
@@ -127,8 +126,8 @@ void Connect(unsigned int index, bool connect)
   if (bluetooth)
     bluetooth->AccessWiimoteByIndex(index)->Activate(connect);
 
-  const char* message = connect ? "Wii Remote %u connected" : "Wii Remote %u disconnected";
-  Core::DisplayMessage(StringFromFormat(message, index + 1), 3000);
+  const char* const message = connect ? "Wii Remote {} connected" : "Wii Remote {} disconnected";
+  Core::DisplayMessage(fmt::format(message, index + 1), 3000);
 }
 
 void ResetAllWiimotes()

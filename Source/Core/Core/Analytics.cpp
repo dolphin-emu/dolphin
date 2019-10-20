@@ -1,12 +1,13 @@
 #include "Core/Analytics.h"
 
 #include <array>
-#include <cinttypes>
-#include <mbedtls/sha1.h>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
+
+#include <fmt/format.h>
+#include <mbedtls/sha1.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -21,7 +22,6 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Random.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
@@ -87,7 +87,7 @@ void DolphinAnalytics::GenerateNewIdentity()
 {
   const u64 id_high = Common::Random::GenerateValue<u64>();
   const u64 id_low = Common::Random::GenerateValue<u64>();
-  m_unique_id = StringFromFormat("%016" PRIx64 "%016" PRIx64, id_high, id_low);
+  m_unique_id = fmt::format("{:016x}{:016x}", id_high, id_low);
 
   // Save the new id in the configuration.
   SConfig::GetInstance().m_analytics_id = m_unique_id;
@@ -104,7 +104,7 @@ std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
   std::string out;
   for (int i = 0; i < 8; ++i)
   {
-    out += StringFromFormat("%02hhx", digest[i]);
+    out += fmt::format("{:02x}", digest[i]);
   }
   return out;
 }

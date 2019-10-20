@@ -4,10 +4,12 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <disasm.h>
 #include <map>
 #include <sstream>
 #include <string>
+
+#include <disasm.h>
+#include <fmt/format.h>
 
 // for the PROFILER stuff
 #ifdef _WIN32
@@ -697,16 +699,16 @@ void Jit64::Trace()
   std::string fregs;
 
 #ifdef JIT_LOG_GPR
-  for (int i = 0; i < 32; i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
   {
-    regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+    regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
   }
 #endif
 
 #ifdef JIT_LOG_FPR
-  for (int i = 0; i < 32; i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
   {
-    fregs += StringFromFormat("f%02d: %016x ", i, rPS(i).PS0AsU64());
+    fregs += fmt::format("f{:02d}: {:016x} ", i, PowerPC::ppcState.ps[i].PS0AsU64());
   }
 #endif
 

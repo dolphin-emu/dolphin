@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -23,8 +25,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Common/Config/Config.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -54,7 +54,7 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
 
   // INIs with specific revisions
   if (revision)
-    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
+    filenames.push_back(id + fmt::format("r{}", *revision) + ".ini");
 
   return filenames;
 }
@@ -292,7 +292,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
   // Try to save to the revision specific INI first, if it exists.
   const std::string gameini_with_rev =
-      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + StringFromFormat("r%d", m_revision) + ".ini";
+      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + fmt::format("r{}", m_revision) + ".ini";
   if (File::Exists(gameini_with_rev))
   {
     ini.Save(gameini_with_rev);

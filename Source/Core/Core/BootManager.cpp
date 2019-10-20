@@ -22,12 +22,13 @@
 #include <array>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -283,7 +284,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       int source;
-      controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
+      controls_section->Get(fmt::format("PadType{}", i), &source, -1);
       if (source >= SerialInterface::SIDEVICE_NONE && source < SerialInterface::SIDEVICE_COUNT)
       {
         StartUp.m_SIDevice[i] = static_cast<SerialInterface::SIDevices>(source);
@@ -297,7 +298,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       int source;
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
-        controls_section->Get(StringFromFormat("WiimoteSource%u", i), &source, -1);
+        controls_section->Get(fmt::format("WiimoteSource{}", i), &source, -1);
         if (source != -1 && g_wiimote_sources[i] != (unsigned)source &&
             source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_REAL)
         {
@@ -335,12 +336,14 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
       {
-        if (File::Exists(File::GetUserPath(D_GCUSER_IDX) +
-                         StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
-          File::Delete(File::GetUserPath(D_GCUSER_IDX) +
-                       StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
-        if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie"))
-          File::DeleteDirRecursively(File::GetUserPath(D_GCUSER_IDX) + "Movie");
+        const auto raw_path =
+            File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", (i == 0) ? 'A' : 'B');
+        if (File::Exists(raw_path))
+          File::Delete(raw_path);
+
+        const auto movie_path = File::GetUserPath(D_GCUSER_IDX) + "Movie";
+        if (File::Exists(movie_path))
+          File::DeleteDirRecursively(movie_path);
       }
     }
   }

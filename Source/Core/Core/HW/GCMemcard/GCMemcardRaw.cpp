@@ -11,6 +11,8 @@
 #include <string>
 #include <thread>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -127,8 +129,7 @@ void MemoryCard::FlushThread()
     return;
   }
 
-  Common::SetCurrentThreadName(
-      StringFromFormat("Memcard %d flushing thread", m_card_index).c_str());
+  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_index).c_str());
 
   const auto flush_interval = std::chrono::seconds(15);
 
@@ -182,17 +183,12 @@ void MemoryCard::FlushThread()
     }
     file.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
 
-    if (!do_exit)
-    {
-      Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s",
-                                            m_card_index ? 'B' : 'A', m_filename.c_str())
-                               .c_str(),
-                           4000);
-    }
-    else
-    {
+    if (do_exit)
       return;
-    }
+
+    Core::DisplayMessage(
+        fmt::format("Wrote memory card {} contents to {}", m_card_index ? 'B' : 'A', m_filename),
+        4000);
   }
 }
 

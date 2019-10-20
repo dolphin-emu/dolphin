@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -232,8 +234,7 @@ void GCMemcardDirectory::FlushThread()
     return;
   }
 
-  Common::SetCurrentThreadName(
-      StringFromFormat("Memcard %d flushing thread", m_card_index).c_str());
+  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_index).c_str());
 
   constexpr std::chrono::seconds flush_interval{1};
   while (true)
@@ -627,15 +628,14 @@ void GCMemcardDirectory::FlushToFile()
 
           if (gci.IsGood())
           {
-            Core::DisplayMessage(
-                StringFromFormat("Wrote save contents to %s", m_saves[i].m_filename.c_str()), 4000);
+            Core::DisplayMessage(fmt::format("Wrote save contents to {}", m_saves[i].m_filename),
+                                 4000);
           }
           else
           {
             ++errors;
-            Core::DisplayMessage(StringFromFormat("Failed to write save contents to %s",
-                                                  m_saves[i].m_filename.c_str()),
-                                 4000);
+            Core::DisplayMessage(
+                fmt::format("Failed to write save contents to {}", m_saves[i].m_filename), 4000);
             ERROR_LOG(EXPANSIONINTERFACE, "Failed to save data to %s",
                       m_saves[i].m_filename.c_str());
           }

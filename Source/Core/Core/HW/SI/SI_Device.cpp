@@ -7,9 +7,10 @@
 #include <memory>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
@@ -48,7 +49,7 @@ int ISIDevice::RunBuffer(u8* buffer, int request_length)
 
   while (num < request_length)
   {
-    temp += StringFromFormat("0x%02x ", buffer[num]);
+    temp += fmt::format("0x{:02x} ", buffer[num]);
     num++;
 
     if ((num % 8) == 0)

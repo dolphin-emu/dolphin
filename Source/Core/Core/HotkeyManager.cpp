@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
@@ -426,12 +428,12 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_FREELOOK_RESET, SHIFT + " & R");
 
   // Savestates
+  const std::string non_fmt = NON + " & `F{}`";
+  const std::string shift_fmt = SHIFT + " & `F{}`";
   for (int i = 0; i < 8; i++)
   {
-    set_key_expression(HK_LOAD_STATE_SLOT_1 + i,
-                       StringFromFormat((NON + " & `F%d`").c_str(), i + 1));
-    set_key_expression(HK_SAVE_STATE_SLOT_1 + i,
-                       StringFromFormat((SHIFT + " & `F%d`").c_str(), i + 1));
+    set_key_expression(HK_LOAD_STATE_SLOT_1 + i, fmt::format(non_fmt, i + 1));
+    set_key_expression(HK_SAVE_STATE_SLOT_1 + i, fmt::format(shift_fmt, i + 1));
   }
   set_key_expression(HK_UNDO_LOAD_STATE, NON + " & `F12`");
   set_key_expression(HK_UNDO_SAVE_STATE, SHIFT + " & `F12`");

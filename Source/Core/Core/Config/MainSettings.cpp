@@ -4,9 +4,10 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include <fmt/format.h>
+
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Config/Config.h"
-#include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -56,19 +57,19 @@ const ConfigInfo<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""
 
 ConfigInfo<u32> GetInfoForSIDevice(u32 channel)
 {
-  return {{System::Main, "Core", StringFromFormat("SIDevice%u", channel)},
+  return {{System::Main, "Core", fmt::format("SIDevice{}", channel)},
           static_cast<u32>(channel == 0 ? SerialInterface::SIDEVICE_GC_CONTROLLER :
                                           SerialInterface::SIDEVICE_NONE)};
 }
 
 ConfigInfo<bool> GetInfoForAdapterRumble(u32 channel)
 {
-  return {{System::Main, "Core", StringFromFormat("AdapterRumble%u", channel)}, true};
+  return {{System::Main, "Core", fmt::format("AdapterRumble{}", channel)}, true};
 }
 
 ConfigInfo<bool> GetInfoForSimulateKonga(u32 channel)
 {
-  return {{System::Main, "Core", StringFromFormat("SimulateKonga%u", channel)}, false};
+  return {{System::Main, "Core", fmt::format("SimulateKonga{}", channel)}, false};
 }
 
 const ConfigInfo<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, false};
