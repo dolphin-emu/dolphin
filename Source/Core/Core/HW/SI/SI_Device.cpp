@@ -4,8 +4,11 @@
 
 #include "Core/HW/SI/SI_Device.h"
 
+#include <istream>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <type_traits>
 
 #include <fmt/format.h>
 
@@ -21,6 +24,28 @@
 
 namespace SerialInterface
 {
+std::ostream& operator<<(std::ostream& stream, SIDevices device)
+{
+  stream << static_cast<std::underlying_type_t<SIDevices>>(device);
+  return stream;
+}
+
+std::istream& operator>>(std::istream& stream, SIDevices& device)
+{
+  std::underlying_type_t<SIDevices> value;
+
+  if (stream >> value)
+  {
+    device = static_cast<SIDevices>(value);
+  }
+  else
+  {
+    device = SIDevices::SIDEVICE_NONE;
+  }
+
+  return stream;
+}
+
 ISIDevice::ISIDevice(SIDevices device_type, int device_number)
     : m_device_number(device_number), m_device_type(device_type)
 {

@@ -500,7 +500,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("BBA_MAC", &m_bba_mac);
   for (size_t i = 0; i < std::size(m_SIDevice); ++i)
   {
-    core->Get(fmt::format("SIDevice{}", i), (u32*)&m_SIDevice[i],
+    core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
               (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
     core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
     core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
