@@ -50,6 +50,9 @@ if (MSVC)
   add_subdirectory(PCH)
   add_definitions(/I${PCH_DIRECTORY})
   add_definitions(/Yu${PCH_PATH}) 
+
+	# Don't include timestamps in binaries
+	add_link_options(/Brepro)
 endif()
 
 # These aren't actually needed for C11/C++11

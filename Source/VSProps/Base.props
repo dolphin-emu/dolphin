@@ -162,7 +162,7 @@
       <!--See Common/CompatPatches.cpp-->
       <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
       <!--TODO fix up ffmpeg garbage-->
-      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/NODEFAULTLIB:libcmt /Brepro %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
