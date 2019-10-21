@@ -1,6 +1,7 @@
 #include "InputCommon/XInput2Mouse.h"
 
 #include "Core/Host.h"
+#include <cstring>
 
 int win_x = 0, win_y = 0;
 
@@ -141,9 +142,7 @@ void XInput2Mouse::LockCursorToGameWindow()
 {
   if (Host_RendererHasFocus() && cursor_locked)
   {
-    SetCursorPos(win_x, win_y);
-
-    XWarpPointer(display, None, DefaultRootWindow(display), 0, 0, 0, 0, cX, cY);
+    XWarpPointer(display, None, DefaultRootWindow(display), 0, 0, 0, 0, win_x, win_y);
   }
   else
   {
