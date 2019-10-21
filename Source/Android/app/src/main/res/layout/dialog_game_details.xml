@@ -51,87 +51,96 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/banner" />
 
-    <ImageView
-        android:id="@+id/icon_country"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <TextView
+        android:id="@+id/label_country"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:padding="6dp"
-        android:src="@drawable/ic_country"
+        android:gravity="start"
+        android:text="@string/game_details_country"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/divider" />
 
-    <ImageView
-        android:id="@+id/icon_company"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <TextView
+        android:id="@+id/label_company"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:padding="6dp"
-        android:src="@drawable/ic_company"
+        android:gravity="start"
+        android:text="@string/game_details_company"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/icon_country" />
+        app:layout_constraintTop_toBottomOf="@id/label_country" />
 
-    <ImageView
-        android:id="@+id/icon_game_id"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <TextView
+        android:id="@+id/label_game_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:padding="6dp"
+        android:gravity="start"
+        android:text="@string/game_details_game_id"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/icon_company" />
+        app:layout_constraintTop_toBottomOf="@id/label_company" />
 
-    <ImageView
-        android:id="@+id/icon_revision"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <TextView
+        android:id="@+id/label_revision"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:padding="6dp"
+        android:gravity="start"
+        android:text="@string/game_details_revision"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/icon_game_id"
+        app:layout_constraintTop_toBottomOf="@id/label_game_id"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/label_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="label_country,label_company,label_game_id,label_revision" />
 
     <TextView
         android:id="@+id/text_country"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:gravity="center_vertical"
+        android:gravity="end"
         tools:text="United States"
-        app:layout_constraintStart_toEndOf="@id/icon_country"
-        app:layout_constraintTop_toTopOf="@id/icon_country"
-        app:layout_constraintBottom_toBottomOf="@id/icon_country" />
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@id/label_country" />
 
     <TextView
         android:id="@+id/text_company"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:gravity="center_vertical"
+        android:gravity="end"
         tools:text="Nintendo"
-        app:layout_constraintStart_toEndOf="@id/icon_company"
-        app:layout_constraintTop_toTopOf="@id/icon_company"
-        app:layout_constraintBottom_toBottomOf="@id/icon_company" />
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@id/label_company" />
 
     <TextView
         android:id="@+id/text_game_id"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:gravity="center_vertical"
+        android:gravity="end"
         tools:text="SOME01"
-        app:layout_constraintStart_toEndOf="@id/icon_game_id"
-        app:layout_constraintTop_toTopOf="@id/icon_game_id"
-        app:layout_constraintBottom_toBottomOf="@id/icon_game_id" />
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@id/label_game_id" />
 
     <TextView
         android:id="@+id/text_revision"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:gravity="center_vertical"
+        android:gravity="end"
         tools:text="0"
-        app:layout_constraintStart_toEndOf="@id/icon_revision"
-        app:layout_constraintTop_toTopOf="@id/icon_revision"
-        app:layout_constraintBottom_toBottomOf="@id/icon_revision" />
+        app:layout_constraintStart_toEndOf="@id/label_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@id/label_revision" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
