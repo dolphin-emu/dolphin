@@ -2,8 +2,6 @@ add_library(inputcommon
   InputConfig.cpp
   InputConfig.h
   GenericMouse.cpp
-	DInputMouseAbsolute.cpp
-	DInputMouseAbsolute.h
 	XInput2Mouse.cpp
 	XInput2Mouse.h
   InputProfile.cpp
