@@ -10,7 +10,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 
 public class GameBannerRequestHandler extends RequestHandler
 {
-  private GameFile mGameFile;
+  private final GameFile mGameFile;
 
   public GameBannerRequestHandler(GameFile gameFile)
   {
