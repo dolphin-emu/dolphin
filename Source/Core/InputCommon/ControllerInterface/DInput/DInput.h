@@ -6,7 +6,7 @@
 
 #define DINPUT_SOURCE_NAME "DInput"
 
-#include <windows.h>
+//#include <windows.h>
 #include <list>
 #include <string>
 

@@ -7,7 +7,6 @@ int win_x = 0, win_y = 0;
 
 namespace prime
 {
-
 void InitMouse(IDirectInput8* const idi8)
 {
   LPDIRECTINPUTDEVICE8 mo_device = nullptr;
