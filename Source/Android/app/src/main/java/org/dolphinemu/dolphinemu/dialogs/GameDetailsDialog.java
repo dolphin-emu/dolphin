@@ -10,10 +10,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
@@ -52,8 +49,6 @@ public final class GameDetailsDialog extends DialogFragment
     TextView textGameId = contents.findViewById(R.id.text_game_id);
     TextView textRevision = contents.findViewById(R.id.text_revision);
 
-    FloatingActionButton buttonLaunch = contents.findViewById(R.id.button_launch);
-
     String country = getResources().getStringArray(R.array.countryNames)[gameFile.getCountry()];
     String description = gameFile.getDescription();
 
@@ -67,12 +62,6 @@ public final class GameDetailsDialog extends DialogFragment
     textCompany.setText(gameFile.getCompany());
     textGameId.setText(gameFile.getGameId());
     textRevision.setText(Integer.toString(gameFile.getRevision()));
-
-    buttonLaunch.setOnClickListener(view ->
-    {
-      // Start the emulation activity and send the path of the clicked ROM to it.
-      EmulationActivity.launch(getActivity(), gameFile);
-    });
 
     PicassoUtils.loadGameBanner(banner, gameFile);
 

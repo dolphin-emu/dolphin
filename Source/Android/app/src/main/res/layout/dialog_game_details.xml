@@ -1,149 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:app="http://schemas.android.com/apk/res-auto"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:paddingStart="24dp"
-             android:paddingEnd="24dp"
-             android:paddingBottom="24dp"
-             android:transitionName="card_game">
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frameLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="24dp"
+    android:transitionName="card_game">
 
-    <RelativeLayout
-        android:layout_width="480dp"
-        android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/text_game_title"
+        style="@android:style/TextAppearance.Material.Headline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:ellipsize="end"
+        tools:text="Rhythm Heaven Fever"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/banner"
-            android:layout_width="144dp"
-            android:layout_height="48dp"
-            android:layout_below="@+id/text_description"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            tools:src="@drawable/no_banner"/>
+    <TextView
+        android:id="@+id/text_description"
+        style="@android:style/TextAppearance.Material.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        tools:text="Zany rhythm action!"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_game_title" />
 
-        <TextView
-            android:id="@+id/text_game_title"
-            style="@android:style/TextAppearance.Material.Headline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:ellipsize="end"
-            tools:text="Rhythm Heaven Fever"/>
+    <ImageView
+        android:id="@+id/banner"
+        android:layout_width="144dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        tools:src="@drawable/no_banner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_description" />
 
-        <TextView
-            android:id="@+id/text_description"
-            style="@android:style/TextAppearance.Material.Caption"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignEnd="@+id/text_game_title"
-            android:layout_alignStart="@+id/text_game_title"
-            android:layout_below="@+id/text_game_title"
-            android:layout_marginTop="8dp"
-            tools:text="Zany rhythm action!"/>
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#1F000000"
+        android:layout_marginTop="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/banner" />
 
-        <View
-            android:id="@+id/divider"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_below="@+id/banner"
-            android:layout_marginTop="16dp"
-            android:background="#1F000000"/>
+    <ImageView
+        android:id="@+id/icon_country"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:padding="6dp"
+        android:src="@drawable/ic_country"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider" />
 
-        <ImageView
-            android:id="@+id/icon_country"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignStart="@+id/banner"
-            android:layout_alignTop="@+id/divider"
-            android:layout_marginTop="24dp"
-            android:padding="6dp"
-            android:src="@drawable/ic_country"/>
+    <ImageView
+        android:id="@+id/icon_company"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:padding="6dp"
+        android:src="@drawable/ic_company"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/icon_country" />
 
-        <ImageView
-            android:id="@+id/icon_company"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignStart="@+id/icon_country"
-            android:layout_below="@+id/icon_country"
-            android:layout_marginTop="16dp"
-            android:padding="6dp"
-            android:src="@drawable/ic_company"/>
+    <ImageView
+        android:id="@+id/icon_game_id"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:padding="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/icon_company" />
 
-        <ImageView
-            android:id="@+id/icon_game_id"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignStart="@+id/icon_company"
-            android:layout_below="@+id/icon_company"
-            android:layout_marginTop="16dp"
-            android:padding="6dp"/>
+    <ImageView
+        android:id="@+id/icon_revision"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:padding="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/icon_game_id"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <ImageView
-            android:id="@+id/icon_revision"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignStart="@+id/icon_game_id"
-            android:layout_below="@+id/icon_game_id"
-            android:layout_marginTop="16dp"
-            android:padding="6dp"/>
+    <TextView
+        android:id="@+id/text_country"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        tools:text="United States"
+        app:layout_constraintStart_toEndOf="@id/icon_country"
+        app:layout_constraintTop_toTopOf="@id/icon_country"
+        app:layout_constraintBottom_toBottomOf="@id/icon_country" />
 
-        <TextView
-            android:id="@+id/text_country"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_toEndOf="@+id/icon_country"
-            android:layout_alignBottom="@+id/icon_country"
-            android:layout_alignTop="@+id/icon_country"
-            android:gravity="center_vertical"
-            tools:text="United States"/>
+    <TextView
+        android:id="@+id/text_company"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        tools:text="Nintendo"
+        app:layout_constraintStart_toEndOf="@id/icon_company"
+        app:layout_constraintTop_toTopOf="@id/icon_company"
+        app:layout_constraintBottom_toBottomOf="@id/icon_company" />
 
-        <TextView
-            android:id="@+id/text_company"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/icon_company"
-            android:layout_alignStart="@+id/text_country"
-            android:layout_alignTop="@+id/icon_company"
-            android:gravity="center_vertical"
-            tools:text="Nintendo"/>
+    <TextView
+        android:id="@+id/text_game_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        tools:text="SOME01"
+        app:layout_constraintStart_toEndOf="@id/icon_game_id"
+        app:layout_constraintTop_toTopOf="@id/icon_game_id"
+        app:layout_constraintBottom_toBottomOf="@id/icon_game_id" />
 
-        <TextView
-            android:id="@+id/text_game_id"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/icon_game_id"
-            android:layout_alignStart="@+id/text_company"
-            android:layout_alignTop="@+id/icon_game_id"
-            android:gravity="center_vertical"
-            tools:text="SOME01"/>
+    <TextView
+        android:id="@+id/text_revision"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        tools:text="0"
+        app:layout_constraintStart_toEndOf="@id/icon_revision"
+        app:layout_constraintTop_toTopOf="@id/icon_revision"
+        app:layout_constraintBottom_toBottomOf="@id/icon_revision" />
 
-        <TextView
-            android:id="@+id/text_revision"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/icon_revision"
-            android:layout_alignStart="@+id/text_game_id"
-            android:layout_alignTop="@+id/icon_revision"
-            android:gravity="center_vertical"
-            tools:text="0"/>
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/button_launch"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_alignEnd="@+id/text_game_title"
-            android:layout_marginBottom="-28dp"
-            android:src="@drawable/ic_play"
-            android:stateListAnimator="@animator/button_elevation"
-            app:rippleColor="?android:colorPrimaryDark"
-            app:borderWidth="0dp"
-            app:elevation="6dp"
-            app:pressedTranslationZ="12dp"/>
-
-    </RelativeLayout>
-
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
