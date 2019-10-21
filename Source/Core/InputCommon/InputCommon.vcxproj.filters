@@ -119,6 +119,7 @@
     </ClCompile>
     <ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GenericMouse.cpp" />
+    <ClCompile Include="XInput2Mouse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -214,6 +215,7 @@
     </ClInclude>
     <ClInclude Include="DInputMouseAbsolute.h" />
     <ClInclude Include="GenericMouse.h" />
+    <ClInclude Include="XInput2Mouse.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

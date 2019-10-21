@@ -75,6 +75,7 @@
     <ClCompile Include="GenericMouse.cpp" />
     <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="InputProfile.cpp" />
+    <ClCompile Include="XInput2Mouse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="GenericMouse.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="InputProfile.h" />
+    <ClInclude Include="XInput2Mouse.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

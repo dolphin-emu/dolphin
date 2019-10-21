@@ -2,6 +2,7 @@
 
 #include "Core/Host.h"
 #include <cstring>
+#include <math.h>
 
 int win_x = 0, win_y = 0;
 
