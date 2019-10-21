@@ -40,7 +40,7 @@ private:
 
   void CreateGamecubeLayout();
   void CreateWiimoteLayout();
-  void CreateAdvancedLayout();
+  void CreateCommonLayout();
   void CreateMainLayout();
   void ConnectWidgets();
   void LoadSettings();
@@ -73,8 +73,8 @@ private:
   QCheckBox* m_wiimote_speaker_data;
   QPushButton* m_wiimote_refresh;
 
-  // Advanced
-  QGroupBox* m_advanced_box;
-  QHBoxLayout* m_advanced_layout;
-  QCheckBox* m_advanced_bg_input;
+  // Common
+  QGroupBox* m_common_box;
+  QHBoxLayout* m_common_layout;
+  QCheckBox* m_common_bg_input;
 };

@@ -67,7 +67,7 @@ ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
 
   CreateGamecubeLayout();
   CreateWiimoteLayout();
-  CreateAdvancedLayout();
+  CreateCommonLayout();
   CreateMainLayout();
   LoadSettings();
   ConnectWidgets();
@@ -199,15 +199,16 @@ void ControllersWindow::CreateWiimoteLayout()
   m_wiimote_layout->addWidget(m_wiimote_speaker_data, m_wiimote_layout->rowCount(), 1, 1, -1);
 }
 
-void ControllersWindow::CreateAdvancedLayout()
+void ControllersWindow::CreateCommonLayout()
 {
-  m_advanced_box = new QGroupBox(tr("Advanced"));
-  m_advanced_layout = new QHBoxLayout();
-  m_advanced_bg_input = new QCheckBox(tr("Background Input"));
+  // i18n: This is "common" as in "shared", not the opposite of "uncommon"
+  m_common_box = new QGroupBox(tr("Common"));
+  m_common_layout = new QHBoxLayout();
+  m_common_bg_input = new QCheckBox(tr("Background Input"));
 
-  m_advanced_layout->addWidget(m_advanced_bg_input);
+  m_common_layout->addWidget(m_common_bg_input);
 
-  m_advanced_box->setLayout(m_advanced_layout);
+  m_common_box->setLayout(m_common_layout);
 }
 
 void ControllersWindow::CreateMainLayout()
@@ -217,7 +218,7 @@ void ControllersWindow::CreateMainLayout()
 
   layout->addWidget(m_gc_box);
   layout->addWidget(m_wiimote_box);
-  layout->addWidget(m_advanced_box);
+  layout->addWidget(m_common_box);
   layout->addWidget(m_button_box);
 
   WrapInScrollArea(this, layout);
@@ -232,7 +233,7 @@ void ControllersWindow::ConnectWidgets()
   connect(m_wiimote_passthrough, &QRadioButton::toggled, this,
           &ControllersWindow::OnWiimoteModeChanged);
 
-  connect(m_advanced_bg_input, &QCheckBox::toggled, this, &ControllersWindow::SaveSettings);
+  connect(m_common_bg_input, &QCheckBox::toggled, this, &ControllersWindow::SaveSettings);
   connect(m_wiimote_continuous_scanning, &QCheckBox::toggled, this,
           &ControllersWindow::SaveSettings);
   connect(m_wiimote_real_balance_board, &QCheckBox::toggled, this,
@@ -480,7 +481,7 @@ void ControllersWindow::LoadSettings()
   m_wiimote_speaker_data->setChecked(SConfig::GetInstance().m_WiimoteEnableSpeaker);
   m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
-  m_advanced_bg_input->setChecked(SConfig::GetInstance().m_BackgroundInput);
+  m_common_bg_input->setChecked(SConfig::GetInstance().m_BackgroundInput);
 
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
     m_wiimote_passthrough->setChecked(true);
@@ -495,7 +496,7 @@ void ControllersWindow::SaveSettings()
   SConfig::GetInstance().m_WiimoteEnableSpeaker = m_wiimote_speaker_data->isChecked();
   SConfig::GetInstance().m_WiimoteContinuousScanning = m_wiimote_continuous_scanning->isChecked();
   SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
-  SConfig::GetInstance().m_BackgroundInput = m_advanced_bg_input->isChecked();
+  SConfig::GetInstance().m_BackgroundInput = m_common_bg_input->isChecked();
 
   WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD,
                                    m_wiimote_real_balance_board->isChecked() ? WIIMOTE_SRC_REAL :
