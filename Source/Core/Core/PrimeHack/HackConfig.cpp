@@ -21,9 +21,12 @@ static std::string device_name, device_source;
 static bool inverted_y = false;
 static bool inverted_x = false;
 static HackManager hack_mgr;
+bool isRunning = false;
 
 void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_device_source)
 {
+  if (isRunning) return; isRunning = true;
+
   // Create mods for all games/regions.
   hack_mgr.add_mod(std::make_unique<MP1NTSC>());
   hack_mgr.add_mod(std::make_unique<MP1PAL>());
