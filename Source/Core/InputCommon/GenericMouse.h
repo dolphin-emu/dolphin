@@ -2,6 +2,14 @@
 
 #include <stdint.h>
 
+// it's CENTRE f&*k you
+#define SET_RENDER_CENTRE(x, y)                                                                    \
+  win_x = x;                                                                                       \
+  win_y = y; \
+
+extern int win_x;
+extern int win_y;
+
 namespace prime
 {
 

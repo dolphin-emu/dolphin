@@ -36,7 +36,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-#include "InputCommon/DInputMouseAbsolute.h"
 #include "InputCommon/GenericMouse.h"
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)

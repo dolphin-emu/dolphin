@@ -2,14 +2,6 @@
 #include "GenericMouse.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 
-extern int win_x;
-extern int win_y;
-
-// it's CENTRE f&*k you
-#define SET_RENDER_CENTRE(x, y) \
-                      win_x = x; \
-                       win_y = y; \
-
 namespace prime
 {
 void InitMouse(IDirectInput8* const idi8);
