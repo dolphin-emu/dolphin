@@ -142,7 +142,7 @@ namespace prime {
     int dx = prime::g_mouse_input->GetDeltaHorizontalAxis(),
       dy = prime::g_mouse_input->GetDeltaVerticalAxis();
     float aspect_ratio = getAspectRatio();
-    if (isnan(aspect_ratio))
+    if (std::isnan(aspect_ratio))
       return;
     const float cursor_sensitivity_conv = prime::GetCursorSensitivity() / 10000.f;
     cursor_x += static_cast<float>(dx) * cursor_sensitivity_conv;
