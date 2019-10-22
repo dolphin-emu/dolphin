@@ -40,8 +40,6 @@ AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &AdvancedPane::Update);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
-          &AdvancedPane::OnEmulationStateChanged);
 }
 
 void AdvancedPane::CreateLayout()
@@ -134,7 +132,6 @@ void AdvancedPane::ConnectLayout()
           [this](int index) {
             SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
-            Update();
           });
 
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
@@ -179,6 +176,7 @@ void AdvancedPane::Update()
     if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
       m_cpu_emulation_engine_combobox->setCurrentIndex(i);
   }
+  m_cpu_emulation_engine_combobox->setEnabled(!running);
 
   QFont bf = font();
   bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
@@ -204,10 +202,4 @@ void AdvancedPane::Update()
 
   m_custom_rtc_checkbox->setEnabled(!running);
   m_custom_rtc_datetime->setEnabled(enable_custom_rtc_widgets);
-}
-
-void AdvancedPane::OnEmulationStateChanged(Core::State state)
-{
-  const bool running = state != Core::State::Uninitialized;
-  m_cpu_emulation_engine_combobox->setEnabled(!running);
 }
