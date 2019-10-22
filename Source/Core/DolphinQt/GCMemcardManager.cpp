@@ -535,7 +535,7 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
   {
     // No Animation found, use an empty placeholder instead.
     frame_data.m_frames.emplace_back();
-    frame_data.m_frame_timing.push_back(1);
+    frame_data.m_frame_timing.push_back(0);
   }
 
   return frame_data;
