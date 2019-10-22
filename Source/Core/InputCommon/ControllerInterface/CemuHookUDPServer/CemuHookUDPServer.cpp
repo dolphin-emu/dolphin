@@ -135,6 +135,7 @@ static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
 static std::mutex s_port_info_mutex;
 static Proto::MessageType::PortInfo s_port_info[Proto::PORT_COUNT];
+static sf::UdpSocket s_socket;
 
 static bool IsSameController(const Proto::MessageType::PortInfo& a,
                              const Proto::MessageType::PortInfo& b)
@@ -162,8 +163,6 @@ static void HotplugThreadFunc()
   Common::SetCurrentThreadName("CemuHookUDPServer Hotplug Thread");
   NOTICE_LOG(SERIALINTERFACE, "CemuHookUDPServer hotplug thread started");
 
-  sf::UdpSocket socket;
-
   while (s_hotplug_thread_running.IsSet())
   {
     const auto now = std::chrono::steady_clock::now();
@@ -180,7 +179,7 @@ static void HotplugThreadFunc()
       list_ports.pad_id[2] = 2;
       list_ports.pad_id[3] = 3;
       msg.Finish();
-      if (socket.send(&list_ports, sizeof list_ports, s_server_address, s_server_port) !=
+      if (s_socket.send(&list_ports, sizeof list_ports, s_server_address, s_server_port) !=
           sf::Socket::Status::Done)
         ERROR_LOG(SERIALINTERFACE, "CemuHookUDPServer HotplugThreadFunc send failed");
     }
@@ -194,7 +193,7 @@ static void HotplugThreadFunc()
     std::size_t received_bytes;
     sf::IpAddress sender;
     u16 port;
-    if (ReceiveWithTimeout(socket, &msg, sizeof(msg), received_bytes, sender, port,
+    if (ReceiveWithTimeout(s_socket, &msg, sizeof(msg), received_bytes, sender, port,
                            sf::milliseconds(timeout_ms)) == sf::Socket::Status::Done)
     {
       if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
@@ -233,14 +232,15 @@ static void StopHotplugThread()
     return;
   }
 
+  s_socket.unbind();  // interrupt blocking socket
   s_hotplug_thread.join();
 }
 
-void Init()
+static void Restart()
 {
-  s_server_enabled = Config::Get(Settings::SERVER_ENABLED);
-  s_server_address = Config::Get(Settings::SERVER_ADDRESS);
-  s_server_port = Config::Get(Settings::SERVER_PORT);
+  NOTICE_LOG(SERIALINTERFACE, "CemuHookUDPServer Restart");
+
+  StopHotplugThread();
 
   s_client_uid = Common::Random::GenerateValue<u32>();
   s_next_listports = std::chrono::steady_clock::time_point::min();
@@ -250,8 +250,30 @@ void Init()
     s_port_info[port_index].pad_id = port_index;
   }
 
+  PopulateDevices();  // remove devices
+
   if (s_server_enabled)
     StartHotplugThread();
+}
+
+static void ConfigChanged()
+{
+  bool server_enabled = Config::Get(Settings::SERVER_ENABLED);
+  std::string server_address = Config::Get(Settings::SERVER_ADDRESS);
+  u16 server_port = Config::Get(Settings::SERVER_PORT);
+  if (server_enabled != s_server_enabled || server_address != s_server_address ||
+      server_port != s_server_port)
+  {
+    s_server_enabled = server_enabled;
+    s_server_address = server_address;
+    s_server_port = server_port;
+    Restart();
+  }
+}
+
+void Init()
+{
+  Config::AddConfigChangedCallback(ConfigChanged);
 }
 
 void PopulateDevices()
@@ -273,16 +295,6 @@ void PopulateDevices()
 void DeInit()
 {
   StopHotplugThread();
-  SaveSettings();
-}
-
-void SaveSettings()
-{
-  Config::ConfigChangeCallbackGuard config_guard;
-
-  Config::SetBaseOrCurrent(Settings::SERVER_ENABLED, s_server_enabled);
-  Config::SetBaseOrCurrent(Settings::SERVER_ADDRESS, s_server_address);
-  Config::SetBaseOrCurrent(Settings::SERVER_PORT, s_server_port);
 }
 
 Device::Device(Proto::DsModel model, int index)

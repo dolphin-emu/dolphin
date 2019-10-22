@@ -31,6 +31,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 
+#include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -203,10 +204,12 @@ void ControllersWindow::CreateCommonLayout()
 {
   // i18n: This is "common" as in "shared", not the opposite of "uncommon"
   m_common_box = new QGroupBox(tr("Common"));
-  m_common_layout = new QHBoxLayout();
+  m_common_layout = new QVBoxLayout();
   m_common_bg_input = new QCheckBox(tr("Background Input"));
+  m_common_configure_controller_interface = new QPushButton(tr("Alternate Input Sources"));
 
   m_common_layout->addWidget(m_common_bg_input);
+  m_common_layout->addWidget(m_common_configure_controller_interface);
 
   m_common_box->setLayout(m_common_layout);
 }
@@ -219,6 +222,7 @@ void ControllersWindow::CreateMainLayout()
   layout->addWidget(m_gc_box);
   layout->addWidget(m_wiimote_box);
   layout->addWidget(m_common_box);
+  layout->addStretch();
   layout->addWidget(m_button_box);
 
   WrapInScrollArea(this, layout);
@@ -234,6 +238,8 @@ void ControllersWindow::ConnectWidgets()
           &ControllersWindow::OnWiimoteModeChanged);
 
   connect(m_common_bg_input, &QCheckBox::toggled, this, &ControllersWindow::SaveSettings);
+  connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
+          &ControllersWindow::OnControllerInterfaceConfigure);
   connect(m_wiimote_continuous_scanning, &QCheckBox::toggled, this,
           &ControllersWindow::SaveSettings);
   connect(m_wiimote_real_balance_board, &QCheckBox::toggled, this,
@@ -458,6 +464,14 @@ void ControllersWindow::OnWiimoteConfigure()
   }
 
   MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));
+  window->setAttribute(Qt::WA_DeleteOnClose, true);
+  window->setWindowModality(Qt::WindowModality::WindowModal);
+  window->show();
+}
+
+void ControllersWindow::OnControllerInterfaceConfigure()
+{
+  ControllerInterfaceWindow* window = new ControllerInterfaceWindow(this);
   window->setAttribute(Qt::WA_DeleteOnClose, true);
   window->setWindowModality(Qt::WindowModality::WindowModal);
   window->show();
