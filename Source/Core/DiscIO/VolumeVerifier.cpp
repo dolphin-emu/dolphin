@@ -416,7 +416,9 @@ void VolumeVerifier::CheckPartitions()
   if (std::find(types.cbegin(), types.cend(), PARTITION_UPDATE) == types.cend())
     AddProblem(Severity::Low, Common::GetStringT("The update partition is missing."));
 
-  if (std::find(types.cbegin(), types.cend(), PARTITION_DATA) == types.cend())
+  const bool has_data_partition =
+      std::find(types.cbegin(), types.cend(), PARTITION_DATA) == types.cend();
+  if (!m_is_datel && !has_data_partition)
     AddProblem(Severity::High, Common::GetStringT("The data partition is missing."));
 
   const bool has_channel_partition =
@@ -493,10 +495,13 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
                          name.c_str()));
   }
 
-  CheckCorrectlySigned(
-      partition,
-      StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
-                       name.c_str()));
+  if (!m_is_datel)
+  {
+    CheckCorrectlySigned(
+        partition,
+        StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
+                         name.c_str()));
+  }
 
   if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
   {
@@ -541,9 +546,29 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     return false;
   }
 
+  // Prepare for hash verification in the Process step
+  if (m_volume.SupportsIntegrityCheck())
+  {
+    u64 offset = m_volume.PartitionOffsetToRawOffset(0, partition);
+    const std::optional<u64> size =
+        m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE);
+    const u64 end_offset = offset + size.value_or(0);
+
+    for (size_t i = 0; offset < end_offset; ++i, offset += VolumeWii::BLOCK_TOTAL_SIZE)
+      m_blocks.emplace_back(BlockToVerify{partition, offset, i});
+
+    m_block_errors.emplace(partition, 0);
+  }
+
   const DiscIO::FileSystem* filesystem = m_volume.GetFileSystem(partition);
   if (!filesystem)
   {
+    if (m_is_datel)
+    {
+      // Datel's Wii Freeloader has an invalid FST in its only partition
+      return true;
+    }
+
     std::string text = StringFromFormat(
         Common::GetStringT("The %s partition does not have a valid file system.").c_str(),
         name.c_str());
@@ -580,20 +605,6 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
           Severity::Low,
           Common::GetStringT("The update partition does not contain the IOS used by this title."));
     }
-  }
-
-  // Prepare for hash verification in the Process step
-  if (m_volume.SupportsIntegrityCheck())
-  {
-    u64 offset = m_volume.PartitionOffsetToRawOffset(0, partition);
-    const std::optional<u64> size =
-        m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE);
-    const u64 end_offset = offset + size.value_or(0);
-
-    for (size_t i = 0; offset < end_offset; ++i, offset += VolumeWii::BLOCK_TOTAL_SIZE)
-      m_blocks.emplace_back(BlockToVerify{partition, offset, i});
-
-    m_block_errors.emplace(partition, 0);
   }
 
   return true;
@@ -704,6 +715,7 @@ void VolumeVerifier::CheckDiscSize()
   else if (!m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
+    const bool is_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
     const u64 size = m_volume.GetSize();
 
     const bool valid_gamecube = size == MINI_DVD_SIZE;
@@ -711,8 +723,8 @@ void VolumeVerifier::CheckDiscSize()
     const bool valid_debug_wii = size == SL_DVD_R_SIZE || size == DL_DVD_R_SIZE;
 
     const bool debug = IsDebugSigned();
-    if ((platform == Platform::GameCubeDisc && !valid_gamecube) ||
-        (platform == Platform::WiiDisc && (debug ? !valid_debug_wii : !valid_retail_wii)))
+    if ((is_gc_size && !valid_gamecube) ||
+        (!is_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
     {
       if (debug && valid_retail_wii)
       {
@@ -722,11 +734,7 @@ void VolumeVerifier::CheckDiscSize()
       }
       else
       {
-        const bool small =
-            (m_volume.GetVolumeType() == Platform::GameCubeDisc && size < MINI_DVD_SIZE) ||
-            (m_volume.GetVolumeType() == Platform::WiiDisc && size < SL_DVD_SIZE);
-
-        if (small)
+        if ((is_gc_size && size < MINI_DVD_SIZE) || (!is_gc_size && size < SL_DVD_SIZE))
         {
           AddProblem(
               Severity::Low,
@@ -849,7 +857,8 @@ void VolumeVerifier::CheckMisc()
   {
     AddProblem(Severity::Low, Common::GetStringT("The game ID is unusually short."));
   }
-  else if (game_id_encrypted != GAMECUBE_PLACEHOLDER_ID && game_id_encrypted != WII_PLACEHOLDER_ID)
+  else if (!m_is_datel && game_id_encrypted != GAMECUBE_PLACEHOLDER_ID &&
+           game_id_encrypted != WII_PLACEHOLDER_ID)
   {
     char country_code;
     if (IsDisc(m_volume.GetVolumeType()))
