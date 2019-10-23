@@ -57,7 +57,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
                  // your language. If you aren't sure which type is appropriate, see
                  // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
                  tr("\u00A9 2003-2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
-                    "trademarks of Nintendo. Dolphin & PrimeHack is not affiliated with Nintendo in any way.") +
+                    "trademarks of Nintendo. Dolphin & PrimeHack are not affiliated with Nintendo in any way.") +
                  QStringLiteral("</p>"));
 
   QLabel* logo = new QLabel();
