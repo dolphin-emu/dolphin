@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <regex>
 #include <string>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -21,6 +23,32 @@
 namespace ciface::ExpressionParser
 {
 using namespace ciface::Core;
+
+class HotkeySuppressions
+{
+public:
+  bool IsSuppressed(Device::Input* input) const { return m_suppressions.count(input) != 0; }
+
+  using Suppressor = std::unique_ptr<Common::ScopeGuard>;
+
+  Suppressor MakeSuppressor(Device::Input* input)
+  {
+    ++m_suppressions[input];
+    return std::make_unique<Common::ScopeGuard>([this, input]() { RemoveSuppression(input); });
+  }
+
+private:
+  void RemoveSuppression(Device::Input* input)
+  {
+    auto it = m_suppressions.find(input);
+    if (--(it->second) == 0)
+      m_suppressions.erase(it);
+  }
+
+  std::map<Device::Input*, u16> m_suppressions;
+};
+
+static HotkeySuppressions s_hotkey_suppressions;
 
 Token::Token(TokenType type_) : type(type_)
 {
@@ -201,7 +229,7 @@ public:
   explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
   ControlState GetValue() const override
   {
-    if (!input)
+    if (!input || s_hotkey_suppressions.IsSuppressed(input))
       return 0.0;
 
     // Note: Inputs may return negative values in situations where opposing directions are
@@ -224,6 +252,8 @@ public:
     input = env.FindInput(qualifier);
     output = env.FindOutput(qualifier);
   }
+
+  Device::Input* GetInput() const { return input; };
 
 private:
   ControlQualifier qualifier;
@@ -398,17 +428,31 @@ public:
 
     if (modifiers_pressed)
     {
+      auto& final_input = **m_inputs.rbegin();
+
+      // Remove supression before getting value.
+      m_suppressor = {};
+
+      const ControlState final_input_state = final_input.GetValue();
+
       // TODO: kill magic number.
-      const bool final_input_pressed = (**m_inputs.rbegin()).GetValue() > 0.5;
+      if (final_input_state < 0.5)
+        m_is_ready = true;
 
       if (m_is_ready)
-        return final_input_pressed;
+      {
+        // Only suppress input when we have at least one modifier.
+        if (m_inputs.size() > 1)
+          m_suppressor = s_hotkey_suppressions.MakeSuppressor(final_input.GetInput());
 
-      if (!final_input_pressed)
-        m_is_ready = true;
+        return final_input_state;
+      }
     }
     else
+    {
+      m_suppressor = {};
       m_is_ready = false;
+    }
 
     return 0;
   }
@@ -425,12 +469,15 @@ public:
 
   void UpdateReferences(ControlEnvironment& env) override
   {
+    m_suppressor = {};
+
     for (auto& input : m_inputs)
       input->UpdateReferences(env);
   }
 
 private:
   std::vector<std::unique_ptr<ControlExpression>> m_inputs;
+  mutable HotkeySuppressions::Suppressor m_suppressor;
   mutable bool m_is_ready = false;
 };
 
