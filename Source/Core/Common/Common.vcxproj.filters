@@ -59,6 +59,7 @@
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
+    <ClInclude Include="MinizipUtil.h" />
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />

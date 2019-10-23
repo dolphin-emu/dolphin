@@ -45,5 +45,7 @@ add_library(discio
 
 target_link_libraries(discio
 PRIVATE
+  minizip
+  pugixml
   ZLIB::ZLIB
 )
