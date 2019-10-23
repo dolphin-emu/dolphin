@@ -68,7 +68,7 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
   // Avoid that the button press itself is registered as an event
   Common::SleepCurrentThread(50);
 
-  const auto [device, input] = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
+  const auto detections = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
 
   const auto timer = new QTimer(button);
 
@@ -83,14 +83,24 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
 
   button->setText(old_text);
 
-  if (!input)
-    return {};
+  QString full_expression;
 
-  ciface::Core::DeviceQualifier device_qualifier;
-  device_qualifier.FromDevice(device.get());
+  for (auto [device, input] : detections)
+  {
+    ciface::Core::DeviceQualifier device_qualifier;
+    device_qualifier.FromDevice(device.get());
 
-  return MappingCommon::GetExpressionForControl(QString::fromStdString(input->GetName()),
-                                                device_qualifier, default_device, quote);
+    if (!full_expression.isEmpty())
+      full_expression += QChar::fromLatin1('+');
+
+    full_expression += MappingCommon::GetExpressionForControl(
+        QString::fromStdString(input->GetName()), device_qualifier, default_device, quote);
+  }
+
+  if (detections.size() > 1)
+    return QStringLiteral("@(%1)").arg(std::move(full_expression));
+
+  return full_expression;
 }
 
 void TestOutput(QPushButton* button, OutputReference* reference)

@@ -18,6 +18,7 @@
 namespace ciface::Core
 {
 // Compared to an input's current state (ideally 1.0) minus abs(initial_state) (ideally 0.0).
+// Note: Detect() logic assumes this is greater than 0.5.
 constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 
 Device::~Device()
@@ -253,13 +254,14 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
 // Inputs are considered if they are first seen in a neutral state.
 // This is useful for crazy flightsticks that have certain buttons that are always held down
 // and also properly handles detection when using "FullAnalogSurface" inputs.
-// Upon input, return the detected Device and Input, else return nullptrs
-std::pair<std::shared_ptr<Device>, Device::Input*>
+// Detects multiple inputs if they are pressed before others are released.
+// Upon input, return the detected Device and Input pairs, else return an empty container
+std::vector<std::pair<std::shared_ptr<Device>, Device::Input*>>
 DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const
 {
   struct InputState
   {
-    ciface::Core::Device::Input& input;
+    ciface::Core::Device::Input* input;
     ControlState initial_state;
   };
 
@@ -291,7 +293,7 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
 
       // Undesirable axes will have negative values here when trying to map a
       // "FullAnalogSurface".
-      input_states.push_back({*input, input->GetState()});
+      input_states.push_back({input, input->GetState()});
     }
 
     if (!input_states.empty())
@@ -301,6 +303,8 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
   if (device_states.empty())
     return {};
 
+  std::vector<std::pair<std::shared_ptr<Device>, Device::Input*>> detections;
+
   u32 time = 0;
   while (time < wait_ms)
   {
@@ -309,15 +313,30 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
 
     for (auto& device_state : device_states)
     {
-      for (auto& input_state : device_state.input_states)
+      for (std::size_t i = 0; i != device_state.input_states.size(); ++i)
       {
+        auto& input_state = device_state.input_states[i];
+
         // We want an input that was initially 0.0 and currently 1.0.
         const auto detection_score =
-            (input_state.input.GetState() - std::abs(input_state.initial_state));
+            (input_state.input->GetState() - std::abs(input_state.initial_state));
 
         if (detection_score > INPUT_DETECT_THRESHOLD)
-          return {device_state.device, &input_state.input};
+        {
+          // We found an input. Add it to our detections.
+          detections.emplace_back(device_state.device, input_state.input);
+
+          // And remove from input_states to prevent more detections.
+          device_state.input_states.erase(device_state.input_states.begin() + i--);
+        }
       }
+    }
+
+    for (auto& detection : detections)
+    {
+      // If one of our detected inputs is released we are done.
+      if (detection.second->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+        return detections;
     }
   }
 
