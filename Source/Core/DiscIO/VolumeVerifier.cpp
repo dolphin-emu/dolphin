@@ -539,7 +539,6 @@ void VolumeVerifier::CheckMisc()
   }
 
   const Region region = m_volume.GetRegion();
-  const Platform platform = m_volume.GetVolumeType();
 
   if (game_id_encrypted.size() < 4)
   {
@@ -552,7 +551,11 @@ void VolumeVerifier::CheckMisc()
       country_code = game_id_encrypted[3];
     else
       country_code = static_cast<char>(m_volume.GetTitleID().value_or(0) & 0xff);
-    if (CountryCodeToRegion(country_code, platform, region) != region)
+
+    const Platform platform = m_volume.GetVolumeType();
+    const std::optional<u16> revision = m_volume.GetRevision();
+
+    if (CountryCodeToRegion(country_code, platform, region, revision) != region)
     {
       AddProblem(Severity::Medium,
                  Common::GetStringT(
