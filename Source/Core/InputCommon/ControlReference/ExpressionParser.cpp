@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -112,6 +113,8 @@ Token Lexer::NextToken()
     return Token(TOK_LPAREN);
   case ')':
     return Token(TOK_RPAREN);
+  case '@':
+    return Token(TOK_HOTKEY);
   case '&':
     return Token(TOK_AND);
   case '|':
@@ -374,6 +377,63 @@ protected:
   ControlState* m_value_ptr{};
 };
 
+class HotkeyExpression : public Expression
+{
+public:
+  HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
+      : m_inputs(std::move(inputs))
+  {
+  }
+
+  ControlState GetValue() const override
+  {
+    if (m_inputs.empty())
+      return 0;
+
+    const bool modifiers_pressed = std::all_of(m_inputs.begin(), std::prev(m_inputs.end()),
+                                               [](const std::unique_ptr<ControlExpression>& input) {
+                                                 // TODO: kill magic number.
+                                                 return input->GetValue() > 0.5;
+                                               });
+
+    if (modifiers_pressed)
+    {
+      // TODO: kill magic number.
+      const bool final_input_pressed = (**m_inputs.rbegin()).GetValue() > 0.5;
+
+      if (m_is_ready)
+        return final_input_pressed;
+
+      if (!final_input_pressed)
+        m_is_ready = true;
+    }
+    else
+      m_is_ready = false;
+
+    return 0;
+  }
+
+  void SetValue(ControlState) override {}
+
+  int CountNumControls() const override
+  {
+    int result = 0;
+    for (auto& input : m_inputs)
+      result += input->CountNumControls();
+    return result;
+  }
+
+  void UpdateReferences(ControlEnvironment& env) override
+  {
+    for (auto& input : m_inputs)
+      input->UpdateReferences(env);
+  }
+
+private:
+  std::vector<std::unique_ptr<ControlExpression>> m_inputs;
+  mutable bool m_is_ready = false;
+};
+
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
 // right-hand child. Its intended use is for supporting old-style barewords expressions.
 class CoalesceExpression : public Expression
@@ -600,6 +660,10 @@ private:
     {
       return ParseParens();
     }
+    case TOK_HOTKEY:
+    {
+      return ParseHotkeys();
+    }
     case TOK_SUB:
     {
       // An atom was expected but we got a subtraction symbol.
@@ -682,6 +746,39 @@ private:
     }
 
     return result;
+  }
+
+  ParseResult ParseHotkeys()
+  {
+    Token tok = Chew();
+    if (tok.type != TOK_LPAREN)
+      return ParseResult::MakeErrorResult(tok, _trans("Expected opening paren."));
+
+    std::vector<std::unique_ptr<ControlExpression>> inputs;
+
+    while (true)
+    {
+      tok = Chew();
+
+      if (tok.type != TOK_CONTROL && tok.type != TOK_BAREWORD)
+        return ParseResult::MakeErrorResult(tok, _trans("Expected name of input."));
+
+      ControlQualifier cq;
+      cq.FromString(tok.data);
+      inputs.emplace_back(std::make_unique<ControlExpression>(std::move(cq)));
+
+      tok = Chew();
+
+      if (tok.type == TOK_ADD)
+        continue;
+
+      if (tok.type == TOK_RPAREN)
+        break;
+
+      return ParseResult::MakeErrorResult(tok, _trans("Expected + or closing paren."));
+    }
+
+    return ParseResult::MakeSuccessfulResult(std::make_unique<HotkeyExpression>(std::move(inputs)));
   }
 
   ParseResult ParseToplevel() { return ParseBinary(); }
