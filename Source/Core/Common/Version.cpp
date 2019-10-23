@@ -18,16 +18,7 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-const std::string scm_rev_str = "PrimeHack (v0.3.0) "
-#if !SCM_IS_MASTER
-                                "[" SCM_BRANCH_STR "] "
-#endif
-
-#ifdef __INTEL_COMPILER
-    BUILD_TYPE_STR SCM_DESC_STR "-ICC";
-#else
-    BUILD_TYPE_STR SCM_DESC_STR;
-#endif
+const std::string scm_rev_str = "PrimeHack [v0.3.0]";
 
 const std::string scm_rev_git_str = SCM_REV_STR;
 const std::string scm_desc_str = SCM_DESC_STR;

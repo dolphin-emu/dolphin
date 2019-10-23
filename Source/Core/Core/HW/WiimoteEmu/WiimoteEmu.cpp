@@ -239,16 +239,16 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
         new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
   }
 
-  groups.emplace_back(m_primehack_fps = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
-  m_primehack_fps->AddSetting(
+  groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+  m_primehack_camera->AddSetting(
       &m_primehack_camera_sensitivity,
       {"Camera Sensitivity", nullptr, nullptr, _trans("Camera Sensitivity")}, 15, 1, 100);
 
-  m_primehack_fps->AddSetting(
+  m_primehack_camera->AddSetting(
       &m_primehack_cursor_sensitivity,
       {"Cursor Sensitivity", nullptr, nullptr, _trans("Cursor Sensitivity")}, 15, 1, 100);
 
-  m_primehack_fps->AddSetting(&m_primehack_fieldofview,
+  m_primehack_camera->AddSetting(&m_primehack_fieldofview,
                               {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60, 1,
                               101);
 
@@ -297,8 +297,8 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
     return m_primehack_visors;
   case WiimoteGroup::Misc:
     return m_primehack_misc;
-  case WiimoteGroup::FPS:
-    return m_primehack_fps;
+  case WiimoteGroup::Camera:
+    return m_primehack_camera;
   default:
     assert(false);
     return nullptr;

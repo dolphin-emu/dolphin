@@ -19,15 +19,11 @@ public:
 private:
   void LoadSettings() override;
   void SaveSettings() override;
+
   void CreateMainLayout();
   void Connect(MappingWindow* window);
   void OnAttachmentChanged(int index);
   void ConfigChanged();
-
-  void UpdateHackSettings();
-
-  // Extensions
-  QComboBox* m_extension_combo;
 
   WiimoteEmuExtension* m_extension_widget;
 };

@@ -42,8 +42,8 @@ void PrimeHackEmuGeneral::CreateMainLayout()
       0, 1, -1, 1);
 
   layout->addWidget(
-     CreateGroupBox(tr("FPS"),
-                     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::FPS)),
+     CreateGroupBox(tr("Camera"),
+                     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Camera)),
       0, 2, 1, 1);
 
   layout->addWidget(

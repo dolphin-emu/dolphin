@@ -31,8 +31,6 @@ class Force;
 class ModifySettingsButton;
 class Output;
 class Tilt;
-class PrimeHackButtons;
-class PrimeHackMisc;
 }  // namespace ControllerEmu
 
 namespace WiimoteEmu
@@ -53,8 +51,8 @@ enum class WiimoteGroup
 
   Beams,
   Visors,
-  FPS,
-  Misc
+  Camera,
+  Misc,
 };
 
 enum class NunchukGroup;
@@ -257,7 +255,7 @@ private:
   ControllerEmu::ControlGroup* m_primehack_beams;
   ControllerEmu::ControlGroup* m_primehack_visors;
   ControllerEmu::ControlGroup* m_primehack_misc;
-  ControllerEmu::ControlGroup* m_primehack_fps;
+  ControllerEmu::ControlGroup* m_primehack_camera;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
