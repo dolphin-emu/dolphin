@@ -540,11 +540,14 @@ void VolumeVerifier::CheckMisc()
 
   const Region region = m_volume.GetRegion();
 
+  constexpr std::string_view GAMECUBE_PLACEHOLDER_ID = "RELSAB";
+  constexpr std::string_view WII_PLACEHOLDER_ID = "RABAZZ";
+
   if (game_id_encrypted.size() < 4)
   {
     AddProblem(Severity::Low, Common::GetStringT("The game ID is unusually short."));
   }
-  else
+  else if (game_id_encrypted != GAMECUBE_PLACEHOLDER_ID && game_id_encrypted != WII_PLACEHOLDER_ID)
   {
     char country_code;
     if (IsDisc(m_volume.GetVolumeType()))
