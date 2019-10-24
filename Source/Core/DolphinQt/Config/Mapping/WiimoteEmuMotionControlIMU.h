@@ -25,8 +25,7 @@ private:
   void LoadSettings() override;
   void SaveSettings() override;
   void CreateMainLayout();
-  static QGroupBox* AddWarning(QGroupBox* groupbox);
 
   // Main
-  QHBoxLayout* m_main_layout;
+  QVBoxLayout* m_main_layout;
 };
