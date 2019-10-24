@@ -28,7 +28,7 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
   connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
   connect(&Settings::Instance(), &Settings::GameListRefreshRequested, &m_tracker,
           &GameTracker::RefreshAll);
-  connect(&Settings::Instance(), &Settings::TitleDBReloadRequested, this,
+  connect(&Settings::Instance(), &Settings::TitleDBReloadRequested,
           [this] { m_title_database = Core::TitleDatabase(); });
 
   for (const QString& dir : Settings::Instance().GetPaths())
@@ -199,6 +199,8 @@ int GameListModel::rowCount(const QModelIndex& parent) const
 
 int GameListModel::columnCount(const QModelIndex& parent) const
 {
+  if (parent.isValid())
+    return 0;
   return NUM_COLS;
 }
 
@@ -297,7 +299,7 @@ void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& 
   else
   {
     m_games[index] = game;
-    emit dataChanged(createIndex(index, 0), createIndex(index + 1, columnCount(QModelIndex())));
+    emit dataChanged(createIndex(index, 0), createIndex(index, columnCount(QModelIndex()) - 1));
   }
 }
 
