@@ -39,6 +39,7 @@ enum TokenType
   TOK_LTHAN,
   TOK_GTHAN,
   TOK_COMMA,
+  TOK_XOR,
   TOK_BINARY_OPS_END,
 };
 

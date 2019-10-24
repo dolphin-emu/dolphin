@@ -234,6 +234,7 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr("> Greater-than"));
     m_operators_combo->addItem(tr("< Less-than"));
     m_operators_combo->addItem(tr("& And"));
+    m_operators_combo->addItem(tr("^ Xor"));
   }
   m_operators_combo->addItem(tr("| Or"));
   if (m_type == Type::Input)
