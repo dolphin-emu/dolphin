@@ -841,20 +841,26 @@ void VolumeVerifier::CheckMisc()
   }
 
   const Region region = m_volume.GetRegion();
-  const Platform platform = m_volume.GetVolumeType();
+
+  constexpr std::string_view GAMECUBE_PLACEHOLDER_ID = "RELSAB";
+  constexpr std::string_view WII_PLACEHOLDER_ID = "RABAZZ";
 
   if (game_id_encrypted.size() < 4)
   {
     AddProblem(Severity::Low, Common::GetStringT("The game ID is unusually short."));
   }
-  else
+  else if (game_id_encrypted != GAMECUBE_PLACEHOLDER_ID && game_id_encrypted != WII_PLACEHOLDER_ID)
   {
     char country_code;
     if (IsDisc(m_volume.GetVolumeType()))
       country_code = game_id_encrypted[3];
     else
       country_code = static_cast<char>(m_volume.GetTitleID().value_or(0) & 0xff);
-    if (CountryCodeToRegion(country_code, platform, region) != region)
+
+    const Platform platform = m_volume.GetVolumeType();
+    const std::optional<u16> revision = m_volume.GetRevision();
+
+    if (CountryCodeToRegion(country_code, platform, region, revision) != region)
     {
       AddProblem(Severity::Medium,
                  Common::GetStringT(
