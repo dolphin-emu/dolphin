@@ -22,6 +22,7 @@ Source/Core/Common/scmrev.h
 *.VC.opendb
 *.VC.db
 .vs/
+/Source/enc_temp_folder/
 # Ignore build info file created by QtCreator
 CMakeLists.txt.user
 # Ignore files created by posix people
