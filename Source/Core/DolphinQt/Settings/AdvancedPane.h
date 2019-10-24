@@ -30,7 +30,6 @@ private:
   void CreateLayout();
   void ConnectLayout();
   void Update();
-  void OnEmulationStateChanged(Core::State state);
 
   QComboBox* m_cpu_emulation_engine_combobox;
   QCheckBox* m_cpu_clock_override_checkbox;
