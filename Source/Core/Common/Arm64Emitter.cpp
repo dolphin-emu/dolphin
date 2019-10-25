@@ -15,6 +15,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+#ifdef IPHONEOS
+#include <libkern/OSCacheControl.h>
+#endif
+
 namespace Arm64Gen
 {
 namespace
