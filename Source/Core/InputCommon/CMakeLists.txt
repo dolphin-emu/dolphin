@@ -85,7 +85,7 @@ if(WIN32)
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.h
   )
-elseif(APPLE)
+elseif(APPLE AND NOT IOS)
   target_sources(inputcommon PRIVATE
     ControllerInterface/OSX/OSX.h
     ControllerInterface/OSX/OSX.mm

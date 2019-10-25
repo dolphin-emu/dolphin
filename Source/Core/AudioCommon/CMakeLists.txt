@@ -18,6 +18,15 @@ add_library(audiocommon
   WaveFile.h
 )
 
+if (NOT IOS)
+  target_sources(audiocommon PRIVATE
+    CubebStream.cpp
+    CubebStream.h
+    CubebUtils.cpp
+    CubebUtils.h
+  )
+endif()
+
 find_package(OpenSLES)
 if(OPENSLES_FOUND)
   message(STATUS "OpenSLES found, enabling OpenSLES sound backend")
