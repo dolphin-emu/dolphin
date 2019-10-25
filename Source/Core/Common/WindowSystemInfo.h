@@ -9,6 +9,7 @@ enum class WindowSystemType
   Headless,
   Windows,
   MacOS,
+  IPhoneOS,
   Android,
   X11,
   Wayland,
