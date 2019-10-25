@@ -473,7 +473,7 @@ public:
     if (Peek().type == TOK_EOF)
       return result;
 
-    return ParseResult::MakeErrorResult(Peek(), _trans("Expected EOF."));
+    return ParseResult::MakeErrorResult(Peek(), _trans("Expected end of expression."));
   }
 
 private:
