@@ -257,6 +257,8 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
   builder.AddData("android-model", s_get_val_func("DEVICE_MODEL"));
   builder.AddData("android-version", s_get_val_func("DEVICE_OS"));
+#elif defined(IPHONEOS)
+  builder.AddData("os-type", "ios");
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 
