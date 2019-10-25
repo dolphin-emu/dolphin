@@ -548,7 +548,6 @@ target_link_libraries(core
 PUBLIC
   audiocommon
   common
-  cubeb
   discio
   enet
   inputcommon
@@ -567,6 +566,12 @@ PRIVATE
   ZLIB::ZLIB
 )
 
+if (NOT IOS)
+  target_link_libraries(core
+  PUBLIC
+    cubeb
+  )
+endif()
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
     (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
   target_link_libraries(core PRIVATE bdisasm)
@@ -607,7 +612,7 @@ if(WIN32)
     iphlpapi.lib
   )
   target_compile_definitions(core PRIVATE "-D_WINSOCK_DEPRECATED_NO_WARNINGS")
-elseif(APPLE)
+elseif(APPLE AND NOT IOS)
   target_sources(core PRIVATE
     HW/EXI/BBA/TAP_Apple.cpp
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
