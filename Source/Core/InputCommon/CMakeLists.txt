@@ -131,7 +131,7 @@ endif()
 
 if(ANDROID)
   target_sources(inputcommon PRIVATE GCAdapter_Android.cpp)
-else()
+elseif(NOT IOS)
   target_sources(inputcommon PRIVATE
     GCAdapter.cpp
     GCAdapter.h
