@@ -17,6 +17,8 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#elif defined(IPHONEOS)
+#include <libkern/OSCacheControl.h>
 #endif
 
 namespace Arm64Gen
