@@ -72,6 +72,10 @@ if (ANDROID)
   add_subdirectory(Android/jni)
 endif()
 
+if (IOS)
+  add_subdirectory(iOS/Interface)
+endif()
+
 if (ENABLE_TESTS)
   add_subdirectory(UnitTests)
 endif()
