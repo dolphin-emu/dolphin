@@ -21,10 +21,12 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   const QString medium = QStringLiteral("<p style='margin-top:15px;'>");
 
   QString text;
+  QString prime_ver = QString::fromStdString(Common::primehack_ver);
+
   text.append(QStringLiteral("<p style='font-size:38pt; font-weight:400; margin-bottom:0;'>") +
               tr("PrimeHack") + QStringLiteral("</p>"));
   text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0;'>%1</p>")
-                  .arg(QString::fromUtf8("v0.3.1 (5.0-10966)")));
+                  .arg(prime_ver+QString::fromUtf8(" (5.0-10966)")));
 
   text.append(medium + tr("Check for updates: ") +
               QStringLiteral(

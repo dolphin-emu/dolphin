@@ -99,6 +99,7 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_primehack, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -142,6 +143,11 @@ void GeneralPane::CreateBasic()
   m_checkbox_cheats->setEnabled(false);
   m_checkbox_cheats->setToolTip(QString::fromStdString("Enabled by PrimeHack"));
   basic_group_layout->addWidget(m_checkbox_cheats);
+
+  m_checkbox_primehack = new QCheckBox(tr("Toggle PrimeHack"));
+  m_checkbox_primehack->setToolTip(QString::fromStdString("Toggle PrimeHack on or off."));
+  m_checkbox_primehack->toggle();
+  basic_group_layout->addWidget(m_checkbox_primehack);
 
   m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
   basic_group_layout->addWidget(m_checkbox_override_region_settings);
