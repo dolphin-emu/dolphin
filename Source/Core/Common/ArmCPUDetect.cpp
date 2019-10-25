@@ -8,7 +8,7 @@
 #include <string>
 #include <thread>
 
-#ifndef _WIN32
+#ifdef ANDROID
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
 #include <unistd.h>
@@ -20,7 +20,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
-#ifndef WIN32
+#ifdef ANDROID
 
 const char procfile[] = "/proc/cpuinfo";
 
@@ -46,6 +46,14 @@ static std::string GetCPUString()
   }
 
   return cpu_string;
+}
+
+#elif defined(IPHONEOS)
+
+static std::string GetCPUString()
+{
+  // TODO(OatmealDome)
+  return "Apple A-series CPU";
 }
 
 #endif
@@ -87,6 +95,16 @@ void CPUInfo::Detect()
   num_cores = sysconf(_SC_NPROCESSORS_CONF);
   strncpy(cpu_string, GetCPUString().c_str(), sizeof(cpu_string));
 
+#ifdef IPHONEOS
+  // TODO(OatmealDome): Figure out how to get this information
+  // Assume we have everything for now
+  bFP = true;
+  bASIMD = true;
+  bAES = true;
+  bCRC32 = true;
+  bSHA1 = true;
+  bSHA2 = true;
+#else
   unsigned long hwcaps = getauxval(AT_HWCAP);
   bFP = hwcaps & HWCAP_FP;
   bASIMD = hwcaps & HWCAP_ASIMD;
