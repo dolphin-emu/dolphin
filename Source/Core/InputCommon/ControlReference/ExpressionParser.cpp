@@ -24,28 +24,43 @@ namespace ciface::ExpressionParser
 {
 using namespace ciface::Core;
 
+class ControlExpression;
+
 class HotkeySuppressions
 {
 public:
-  bool IsSuppressed(Device::Input* input) const { return m_suppressions.count(input) != 0; }
-
   using Suppressor = std::unique_ptr<Common::ScopeGuard>;
 
-  Suppressor MakeSuppressor(Device::Input* input)
+  bool IsSuppressed(Device::Input* input) const
   {
-    ++m_suppressions[input];
-    return std::make_unique<Common::ScopeGuard>([this, input]() { RemoveSuppression(input); });
+    // An input is suppressed if it exists in the map (with any modifier).
+    auto it = m_suppressions.lower_bound({input, nullptr});
+    return it != m_suppressions.end() && (it->first.first == input);
   }
 
+  // Suppresses each input + modifier pair.
+  // The returned object removes the suppression on destruction.
+  Suppressor MakeSuppressor(const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
+                            const std::unique_ptr<ControlExpression>& final_input);
+
+  // Removes suppression for each input + modifier pair.
+  // The returned object restores the original suppression on destruction.
+  Suppressor MakeAntiSuppressor(const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
+                                const std::unique_ptr<ControlExpression>& final_input);
+
 private:
-  void RemoveSuppression(Device::Input* input)
+  using Suppression = std::pair<Device::Input*, Device::Input*>;
+  using SuppressionLevel = u16;
+
+  void RemoveSuppression(Device::Input* modifier, Device::Input* final_input)
   {
-    auto it = m_suppressions.find(input);
-    if (--(it->second) == 0)
+    auto it = m_suppressions.find({final_input, modifier});
+    if ((--it->second) == 0)
       m_suppressions.erase(it);
   }
 
-  std::map<Device::Input*, u16> m_suppressions;
+  // Holds counts of suppressions for each input/modifier pair.
+  std::map<Suppression, SuppressionLevel> m_suppressions;
 };
 
 static HotkeySuppressions s_hotkey_suppressions;
@@ -227,9 +242,18 @@ public:
   std::shared_ptr<Device> m_device;
 
   explicit ControlExpression(ControlQualifier qualifier_) : qualifier(qualifier_) {}
+
   ControlState GetValue() const override
   {
-    if (!input || s_hotkey_suppressions.IsSuppressed(input))
+    if (s_hotkey_suppressions.IsSuppressed(input))
+      return 0;
+    else
+      return GetValueIgnoringSuppression();
+  }
+
+  ControlState GetValueIgnoringSuppression() const
+  {
+    if (!input)
       return 0.0;
 
     // Note: Inputs may return negative values in situations where opposing directions are
@@ -260,6 +284,35 @@ private:
   Device::Input* input = nullptr;
   Device::Output* output = nullptr;
 };
+
+HotkeySuppressions::Suppressor
+HotkeySuppressions::MakeSuppressor(const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
+                                   const std::unique_ptr<ControlExpression>& final_input)
+{
+  for (auto& modifier : modifiers)
+    ++m_suppressions[{final_input->GetInput(), modifier->GetInput()}];
+
+  return std::make_unique<Common::ScopeGuard>([this, &modifiers, &final_input]() {
+    for (auto& modifier : modifiers)
+      RemoveSuppression(modifier->GetInput(), final_input->GetInput());
+  });
+}
+
+HotkeySuppressions::Suppressor HotkeySuppressions::MakeAntiSuppressor(
+    const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
+    const std::unique_ptr<ControlExpression>& final_input)
+{
+  decltype(m_suppressions) unsuppressed_modifiers;
+
+  for (auto& modifier : modifiers)
+    unsuppressed_modifiers.insert(
+        m_suppressions.extract({final_input->GetInput(), modifier->GetInput()}));
+
+  return std::make_unique<Common::ScopeGuard>(
+      [this, unsuppressed_modifiers{std::move(unsuppressed_modifiers)}]() mutable {
+        m_suppressions.merge(unsuppressed_modifiers);
+      });
+}
 
 class BinaryExpression : public Expression
 {
@@ -411,42 +464,45 @@ class HotkeyExpression : public Expression
 {
 public:
   HotkeyExpression(std::vector<std::unique_ptr<ControlExpression>> inputs)
-      : m_inputs(std::move(inputs))
+      : m_modifiers(std::move(inputs))
   {
+    m_final_input = std::move(m_modifiers.back());
+    m_modifiers.pop_back();
   }
 
   ControlState GetValue() const override
   {
-    if (m_inputs.empty())
-      return 0;
-
-    const bool modifiers_pressed = std::all_of(m_inputs.begin(), std::prev(m_inputs.end()),
+    const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
                                                [](const std::unique_ptr<ControlExpression>& input) {
                                                  // TODO: kill magic number.
                                                  return input->GetValue() > 0.5;
                                                });
 
+    const auto final_input_state = m_final_input->GetValueIgnoringSuppression();
+
     if (modifiers_pressed)
     {
-      auto& final_input = **m_inputs.rbegin();
-
-      // Remove supression before getting value.
-      m_suppressor = {};
-
-      const ControlState final_input_state = final_input.GetValue();
-
-      // TODO: kill magic number.
       if (final_input_state < 0.5)
-        m_is_ready = true;
-
-      if (m_is_ready)
       {
-        // Only suppress input when we have at least one modifier.
-        if (m_inputs.size() > 1)
-          m_suppressor = s_hotkey_suppressions.MakeSuppressor(final_input.GetInput());
+        if (!m_suppressor)
+          EnableSuppression();
 
-        return final_input_state;
+        m_is_ready = true;
       }
+
+      // Ignore suppression of our own modifiers. This also allows superset modifiers to function.
+      const auto anti_suppression =
+          s_hotkey_suppressions.MakeAntiSuppressor(m_modifiers, m_final_input);
+
+      const bool is_suppressed = s_hotkey_suppressions.IsSuppressed(m_final_input->GetInput());
+
+      // If some other hotkey suppressed us, require a release of final input to be ready again.
+      if (is_suppressed)
+        m_is_ready = false;
+
+      // Our modifiers are active. Pass through the final input.
+      if (m_is_ready)
+        return final_input_state;
     }
     else
     {
@@ -462,21 +518,31 @@ public:
   int CountNumControls() const override
   {
     int result = 0;
-    for (auto& input : m_inputs)
+    for (auto& input : m_modifiers)
       result += input->CountNumControls();
-    return result;
+    return result + m_final_input->CountNumControls();
   }
 
   void UpdateReferences(ControlEnvironment& env) override
   {
-    m_suppressor = {};
-
-    for (auto& input : m_inputs)
+    for (auto& input : m_modifiers)
       input->UpdateReferences(env);
+
+    m_final_input->UpdateReferences(env);
+
+    // We must update our suppression with valid pointers.
+    if (m_suppressor)
+      EnableSuppression();
   }
 
 private:
-  std::vector<std::unique_ptr<ControlExpression>> m_inputs;
+  void EnableSuppression() const
+  {
+    m_suppressor = s_hotkey_suppressions.MakeSuppressor(m_modifiers, m_final_input);
+  }
+
+  std::vector<std::unique_ptr<ControlExpression>> m_modifiers;
+  std::unique_ptr<ControlExpression> m_final_input;
   mutable HotkeySuppressions::Suppressor m_suppressor;
   mutable bool m_is_ready = false;
 };
