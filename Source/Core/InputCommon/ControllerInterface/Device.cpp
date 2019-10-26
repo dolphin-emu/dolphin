@@ -103,6 +103,39 @@ bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
   return old_name == name;
 }
 
+Device::CombinedInput::CombinedInput(std::string name, const Inputs& inputs)
+    : m_name(std::move(name)), m_inputs(inputs)
+{
+}
+
+ControlState Device::CombinedInput::GetState() const
+{
+  ControlState result = 0;
+
+  if (m_inputs.first)
+    result = m_inputs.first->GetState();
+
+  if (m_inputs.second)
+    result = std::max(result, m_inputs.second->GetState());
+
+  return result;
+}
+
+std::string Device::CombinedInput::GetName() const
+{
+  return m_name;
+}
+
+bool Device::CombinedInput::IsDetectable()
+{
+  return false;
+}
+
+void Device::AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs)
+{
+  AddInput(new CombinedInput(std::move(name), {FindInput(inputs.first), FindInput(inputs.second)}));
+}
+
 //
 // DeviceQualifier :: ToString
 //

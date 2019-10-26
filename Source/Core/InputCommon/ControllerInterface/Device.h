@@ -147,6 +147,23 @@ protected:
     AddInput(new FullAnalogSurface(high, low));
   }
 
+  class CombinedInput final : public Input
+  {
+  public:
+    using Inputs = std::pair<Input*, Input*>;
+
+    CombinedInput(std::string name, const Inputs& inputs);
+    ControlState GetState() const override;
+    std::string GetName() const override;
+    bool IsDetectable() override;
+
+  private:
+    const std::string m_name;
+    const std::pair<Input*, Input*> m_inputs;
+  };
+
+  void AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs);
+
 private:
   int m_id;
   std::vector<Input*> m_inputs;

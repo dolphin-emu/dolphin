@@ -143,6 +143,11 @@ KeyboardAndMouse::KeyboardAndMouse(void* window)
   for (int keycode = 0; keycode < 0x80; ++keycode)
     AddInput(new Key(keycode));
 
+  // Add combined left/right modifiers with consistent naming across platforms.
+  AddCombinedInput("Alt", {"Left Alt", "Right Alt"});
+  AddCombinedInput("Shift", {"Left Shift", "Right Shift"});
+  AddCombinedInput("Ctrl", {"Left Control", "Right Control"});
+
   m_windowid = [[reinterpret_cast<NSView*>(window) window] windowNumber];
 
   // cursor, with a hax for-loop
