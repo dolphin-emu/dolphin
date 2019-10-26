@@ -191,18 +191,23 @@ void Nunchuk::DoState(PointerWrap& p)
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
   // Stick
-  m_stick->SetControlExpression(0, "W");  // up
-  m_stick->SetControlExpression(1, "S");  // down
-  m_stick->SetControlExpression(2, "A");  // left
-  m_stick->SetControlExpression(3, "D");  // right
+  m_stick->SetControlExpression(0, "W | UP");  // up
+  m_stick->SetControlExpression(1, "S | DOWN");  // down
+  m_stick->SetControlExpression(2, "A | LEFT");  // left
+  m_stick->SetControlExpression(3, "D | RIGHT");  // right
+
+  m_tilt->SetControlExpression(0, "`Axis Y-`");
+  m_tilt->SetControlExpression(1, "`Axis Y+`");
+  m_swing->SetControlExpression(0, "`Axis Y-`");
+  m_swing->SetControlExpression(1, "`Axis Y+`");
 
   // Because our defaults use keyboard input, set calibration shape to a square.
   m_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
 // Buttons
 #ifdef _WIN32
-  m_buttons->SetControlExpression(0, "LCONTROL");  // C
-  m_buttons->SetControlExpression(1, "LSHIFT");    // Z
+  m_buttons->SetControlExpression(0, "C");  // C
+  m_buttons->SetControlExpression(1, "`Click 1`");    // Z
 #elif __APPLE__
   m_buttons->SetControlExpression(0, "Left Control");  // C
   m_buttons->SetControlExpression(1, "Left Shift");    // Z
@@ -212,7 +217,6 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Shake
-  for (int i = 0; i < 3; ++i)
-    m_shake->SetControlExpression(i, "Click 2");
+    m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
 }
 }  // namespace WiimoteEmu

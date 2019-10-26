@@ -201,7 +201,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                         {_trans("Battery"),
                          // i18n: The percent symbol.
                          _trans("%")},
-                        95, 0, 100);
+                        100, 0, 100);
 
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
@@ -254,10 +254,10 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_misc->AddSetting(&m_primehack_invert_x,
-                               {"Invert X axis", nullptr, nullptr, _trans("Invert X axis")}, false);
+                               {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
 
   m_primehack_misc->AddSetting(&m_primehack_invert_y,
-                               {"Invert Y axis", nullptr, nullptr, _trans("Invert Y axis")}, false);
+                               {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
 
   Reset();
 }
@@ -683,31 +683,30 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(1, "Click 3");
 #else
   // A
-  m_buttons->SetControlExpression(0, "Click 0");
+  m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
   // B
-  m_buttons->SetControlExpression(1, "Click 1");
+  m_buttons->SetControlExpression(1, "SPACE");
 #endif
-  m_buttons->SetControlExpression(2, "1");  // 1
-  m_buttons->SetControlExpression(3, "2");  // 2
+  m_buttons->SetControlExpression(2, "TAB");  // 1
+  m_buttons->SetControlExpression(3, "ESCAPE");  // 2
   m_buttons->SetControlExpression(4, "Q");  // -
-  m_buttons->SetControlExpression(5, "E");  // +
+  m_buttons->SetControlExpression(5, "R");  // +
 
 #ifdef _WIN32
-  m_buttons->SetControlExpression(6, "!LMENU & RETURN");  // Home
+  m_buttons->SetControlExpression(6, "");  // Home
 #else
   m_buttons->SetControlExpression(6, "!`Alt_L` & Return");  // Home
 #endif
 
   // Shake
-  for (int i = 0; i < 3; ++i)
-    m_shake->SetControlExpression(i, "Click 2");
+    m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
 
 // DPad
 #ifdef _WIN32
-  m_dpad->SetControlExpression(0, "UP");     // Up
-  m_dpad->SetControlExpression(1, "DOWN");   // Down
-  m_dpad->SetControlExpression(2, "LEFT");   // Left
-  m_dpad->SetControlExpression(3, "RIGHT");  // Right
+  m_dpad->SetControlExpression(0, "");     // Up
+  m_dpad->SetControlExpression(1, "F");   // Down
+  m_dpad->SetControlExpression(2, "");   // Left
+  m_dpad->SetControlExpression(3, "");  // Right
 #elif __APPLE__
   m_dpad->SetControlExpression(0, "Up Arrow");              // Up
   m_dpad->SetControlExpression(1, "Down Arrow");            // Down
@@ -719,21 +718,27 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_dpad->SetControlExpression(2, "Left");   // Left
   m_dpad->SetControlExpression(3, "Right");  // Right
 #endif
+  m_tilt->SetControlExpression(0, "LSHIFT & W");
+  m_tilt->SetControlExpression(1, "LSHIFT & S");
+  m_tilt->SetControlExpression(2, "LSHIFT & A");
+  m_tilt->SetControlExpression(3, "LSHIFT & D");
 
+  m_swing->SetControlExpression(4, "LSHIFT & W");
+  m_swing->SetControlExpression(5, "LSHIFT & S");
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
 
-  m_primehack_beams->SetControlExpression(0, "!LSHIFT & `1`");
-  m_primehack_beams->SetControlExpression(1, "!LSHIFT & `2`");
-  m_primehack_beams->SetControlExpression(2, "!LSHIFT & `3`");
-  m_primehack_beams->SetControlExpression(3, "!LSHIFT & `4`");
+  m_primehack_beams->SetControlExpression(0, "`1` & !E");
+  m_primehack_beams->SetControlExpression(1, "`2` & !E");
+  m_primehack_beams->SetControlExpression(2, "`3` & !E");
+  m_primehack_beams->SetControlExpression(3, "`4` & !E");
 
-  m_primehack_visors->SetControlExpression(0, "LSHIFT & `1`");
-  m_primehack_visors->SetControlExpression(1, "LSHIFT & `2`");
-  m_primehack_visors->SetControlExpression(2, "LSHIFT & `3`");
-  m_primehack_visors->SetControlExpression(3, "LSHIFT & `4`");
+  m_primehack_visors->SetControlExpression(0, "");
+  m_primehack_visors->SetControlExpression(1, "E & `1`");
+  m_primehack_visors->SetControlExpression(2, "E & `2`");
+  m_primehack_visors->SetControlExpression(3, "E & `3`");
 }
 
 Extension* Wiimote::GetNoneExtension() const
