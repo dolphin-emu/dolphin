@@ -1106,6 +1106,9 @@ void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late)
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
                             const std::vector<u8>& data)
 {
+  s_DIMAR += s_DILENGTH;
+  s_DILENGTH = 0;
+
   switch (reply_type)
   {
   case ReplyType::NoReply:
@@ -1118,7 +1121,6 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
     if (s_DICR.TSTART)
     {
       s_DICR.TSTART = 0;
-      s_DILENGTH = 0;
       GenerateDIInterrupt(interrupt_type);
     }
     break;
