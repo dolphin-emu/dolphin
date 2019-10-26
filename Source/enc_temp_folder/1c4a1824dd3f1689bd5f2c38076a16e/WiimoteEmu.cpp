@@ -692,13 +692,21 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(4, "Q");  // -
   m_buttons->SetControlExpression(5, "R");  // +
 
-// Shake
-  m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
+#ifdef _WIN32
+//  m_buttons->SetControlExpression(6, "");  // Home
+#else
+  m_buttons->SetControlExpression(6, "!`Alt_L` & Return");  // Home
+#endif
+
+  // Shake
+    m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
 
 // DPad
 #ifdef _WIN32
+//  m_dpad->SetControlExpression(0, "");     // Up
   m_dpad->SetControlExpression(1, "F");   // Down
-
+//  m_dpad->SetControlExpression(2, "");   // Left
+//  m_dpad->SetControlExpression(3, "");  // Right
 #elif __APPLE__
   m_dpad->SetControlExpression(0, "Up Arrow");              // Up
   m_dpad->SetControlExpression(1, "Down Arrow");            // Down
@@ -727,6 +735,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_beams->SetControlExpression(2, "`3` & !E");
   m_primehack_beams->SetControlExpression(3, "`4` & !E");
 
+  //m_primehack_visors->SetControlExpression(0, "");
   m_primehack_visors->SetControlExpression(1, "E & `1`");
   m_primehack_visors->SetControlExpression(2, "E & `2`");
   m_primehack_visors->SetControlExpression(3, "E & `3`");
