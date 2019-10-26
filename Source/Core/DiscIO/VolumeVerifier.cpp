@@ -153,7 +153,9 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
     return system_not_available_match ? DownloadStatus::SystemNotAvailable : DownloadStatus::Fail;
   }
 
-  File::IOFile(output_path, "wb").WriteBytes(result->data(), result->size());
+  File::CreateFullPath(output_path);
+  if (!File::IOFile(output_path, "wb").WriteBytes(result->data(), result->size()))
+    ERROR_LOG(DISCIO, "Failed to write downloaded datfile to %s", output_path.c_str());
   return DownloadStatus::Success;
 }
 
