@@ -594,7 +594,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // handle things like address alignment) and complex write on the DMA
   // control register that will trigger the DMA.
   mmio->Register(base | DI_DMA_ADDRESS_REGISTER, MMIO::DirectRead<u32>(&s_DIMAR),
-                 MMIO::DirectWrite<u32>(&s_DIMAR, ~0xFC00001F));
+                 MMIO::DirectWrite<u32>(&s_DIMAR, ~0x1F));
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&s_DILENGTH),
                  MMIO::DirectWrite<u32>(&s_DILENGTH, ~0x1F));
   mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.Hex),
