@@ -19,7 +19,6 @@ class WiiPane : public QWidget
   Q_OBJECT
 public:
   explicit WiiPane(QWidget* parent = nullptr);
-  void OnEmulationStateChanged(bool running);
 
 private:
   void PopulateUSBPassthroughListWidget();
@@ -31,6 +30,7 @@ private:
 
   void LoadConfig();
   void OnSaveConfig();
+  void OnEmulationStateChanged(bool running);
 
   void ValidateSelectionState();
 
