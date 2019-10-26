@@ -48,6 +48,7 @@ WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
   LoadConfig();
   ConnectLayout();
   ValidateSelectionState();
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void WiiPane::CreateLayout()
