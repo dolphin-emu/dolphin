@@ -14,7 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
-#ifndef ANDROID
+#ifdef ANDROID
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
 
