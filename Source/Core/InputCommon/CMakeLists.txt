@@ -43,9 +43,9 @@ add_library(inputcommon
   ControllerEmu/ControlGroup/Triggers.h
   ControllerEmu/Setting/NumericSetting.cpp
   ControllerEmu/Setting/NumericSetting.h
-  ControllerInterface/CemuHookUDPServer/CemuHookUDPServer.cpp
-  ControllerInterface/CemuHookUDPServer/CemuHookUDPServer.h
-  ControllerInterface/CemuHookUDPServer/CemuHookUDPServerProto.h
+  ControllerInterface/DualShockUDPClient/DualShockUDPClient.cpp
+  ControllerInterface/DualShockUDPClient/DualShockUDPClient.h
+  ControllerInterface/DualShockUDPClient/DualShockUDPProto.h
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/ControllerInterface.h
   ControllerInterface/Device.cpp

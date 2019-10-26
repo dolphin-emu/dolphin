@@ -29,7 +29,7 @@
 #if defined(USE_PIPES)
 #define CIFACE_USE_PIPES
 #endif
-#define CIFACE_USE_CEMUHOOKUDPSERVER
+#define CIFACE_USE_DUALSHOCKUDPCLIENT
 
 //
 // ControllerInterface

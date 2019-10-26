@@ -16,7 +16,7 @@ namespace ConfigLoaders
 {
 bool IsSettingSaveable(const Config::ConfigLocation& config_location)
 {
-  if (config_location.system == Config::System::CemuHookUdpServer)
+  if (config_location.system == Config::System::DualShockUDPClient)
     return true;
 
   if (config_location.system == Config::System::Logger)

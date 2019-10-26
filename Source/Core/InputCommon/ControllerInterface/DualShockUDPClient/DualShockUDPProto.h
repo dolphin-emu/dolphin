@@ -8,9 +8,9 @@
 
 #include "Common/CommonTypes.h"
 
-namespace ciface::CemuHookUDPServer::Proto
+namespace ciface::DualShockUDPClient::Proto
 {
-// CemuHook UDPServer protocol implementation using UdpServer.cs from
+// CemuHook DualShockUDP protocol implementation using UdpServer.cs from
 // https://github.com/Ryochan7/DS4Windows as documentation.
 //
 // WARNING: Little endian host assumed
@@ -245,7 +245,7 @@ struct Message
     if (crc32_in_header != crc32_calculated)
     {
       NOTICE_LOG(SERIALINTERFACE,
-                 "CemuHookUDPServer Received message with bad CRC in header: got %u, expected %u",
+                 "DualShockUDPClient Received message with bad CRC in header: got %u, expected %u",
                  crc32_in_header, crc32_calculated);
       return std::nullopt;
     }
@@ -267,4 +267,4 @@ struct Message
 };
 
 #pragma pack(pop)
-}  // namespace ciface::CemuHookUDPServer::Proto
+}  // namespace ciface::DualShockUDPClient::Proto

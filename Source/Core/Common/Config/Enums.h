@@ -30,7 +30,7 @@ enum class System
   GFX,
   Logger,
   Debugger,
-  CemuHookUdpServer,
+  DualShockUDPClient,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{

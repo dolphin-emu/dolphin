@@ -9,8 +9,8 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-#if defined(CIFACE_USE_CEMUHOOKUDPSERVER)
-#include "DolphinQt/Config/ControllerInterface/CemuHookUDPServerWidget.h"
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
 #endif
 
 ControllerInterfaceWindow::ControllerInterfaceWindow(QWidget* parent) : QDialog(parent)
@@ -27,9 +27,9 @@ void ControllerInterfaceWindow::CreateMainLayout()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   m_tab_widget = new QTabWidget();
-#if defined(CIFACE_USE_CEMUHOOKUDPSERVER)
-  m_udpserver_widget = new CemuHookUDPServerWidget();
-  m_tab_widget->addTab(m_udpserver_widget, tr("UDPServer"));  // TODO: use GetWrappedWidget()?
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+  m_dsuclient_widget = new DualShockUDPClientWidget();
+  m_tab_widget->addTab(m_dsuclient_widget, tr("DSU Client"));  // TODO: use GetWrappedWidget()?
 #endif
 
   auto* main_layout = new QVBoxLayout();

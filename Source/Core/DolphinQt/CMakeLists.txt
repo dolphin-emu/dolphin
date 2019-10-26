@@ -51,8 +51,8 @@ add_executable(dolphin-emu
   Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
-  Config/ControllerInterface/CemuHookUDPServerWidget.cpp
-  Config/ControllerInterface/CemuHookUDPServerWidget.h
+  Config/ControllerInterface/DualShockUDPClientWidget.cpp
+  Config/ControllerInterface/DualShockUDPClientWidget.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
   Config/ControllersWindow.cpp

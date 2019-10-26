@@ -4,7 +4,7 @@
 
 #include "Common/Config/Config.h"
 
-namespace ciface::CemuHookUDPServer
+namespace ciface::DualShockUDPClient
 {
 namespace Settings
 {
@@ -16,4 +16,4 @@ extern const Config::ConfigInfo<int> SERVER_PORT;
 void Init();
 void PopulateDevices();
 void DeInit();
-}  // namespace ciface::CemuHookUDPServer
+}  // namespace ciface::DualShockUDPClient

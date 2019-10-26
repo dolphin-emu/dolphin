@@ -10,11 +10,11 @@ class QCheckBox;
 class QLineEdit;
 class QSpinBox;
 
-class CemuHookUDPServerWidget final : public QWidget
+class DualShockUDPClientWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit CemuHookUDPServerWidget();
+  explicit DualShockUDPClientWidget();
 
 private:
   void CreateWidgets();

@@ -8,8 +8,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#if defined(CIFACE_USE_CEMUHOOKUDPSERVER)
-class CemuHookUDPServerWidget;
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+class DualShockUDPClientWidget;
 #endif
 class QTabWidget;
 class QDialogButtonBox;
@@ -26,7 +26,7 @@ private:
   QTabWidget* m_tab_widget;
   QDialogButtonBox* m_button_box;
 
-#if defined(CIFACE_USE_CEMUHOOKUDPSERVER)
-  CemuHookUDPServerWidget* m_udpserver_widget;
+#if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
+  DualShockUDPClientWidget* m_dsuclient_widget;
 #endif
 };

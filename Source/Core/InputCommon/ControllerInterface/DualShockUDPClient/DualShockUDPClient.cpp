@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/CemuHookUDPServer/CemuHookUDPServer.h"
+#include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 #include <chrono>
 #include <cstring>
@@ -19,10 +19,10 @@
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
-#include "InputCommon/ControllerInterface/CemuHookUDPServer/CemuHookUDPServerProto.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPProto.h"
 
-namespace ciface::CemuHookUDPServer
+namespace ciface::DualShockUDPClient
 {
 class Device : public Core::Device
 {
@@ -119,10 +119,10 @@ static constexpr int TOUCH_Y_AXIS_MAX = 500;
 namespace Settings
 {
 const Config::ConfigInfo<bool> SERVER_ENABLED{
-    {Config::System::CemuHookUdpServer, "Server", "Enabled"}, false};
+    {Config::System::DualShockUDPClient, "Server", "Enabled"}, false};
 const Config::ConfigInfo<std::string> SERVER_ADDRESS{
-    {Config::System::CemuHookUdpServer, "Server", "IPAddress"}, DEFAULT_SERVER_ADDRESS};
-const Config::ConfigInfo<int> SERVER_PORT{{Config::System::CemuHookUdpServer, "Server", "Port"},
+    {Config::System::DualShockUDPClient, "Server", "IPAddress"}, DEFAULT_SERVER_ADDRESS};
+const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"},
                                           DEFAULT_SERVER_PORT};
 }  // namespace Settings
 
@@ -160,8 +160,8 @@ static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, 
 
 static void HotplugThreadFunc()
 {
-  Common::SetCurrentThreadName("CemuHookUDPServer Hotplug Thread");
-  NOTICE_LOG(SERIALINTERFACE, "CemuHookUDPServer hotplug thread started");
+  Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
+  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
 
   while (s_hotplug_thread_running.IsSet())
   {
@@ -181,7 +181,7 @@ static void HotplugThreadFunc()
       msg.Finish();
       if (s_socket.send(&list_ports, sizeof list_ports, s_server_address, s_server_port) !=
           sf::Socket::Status::Done)
-        ERROR_LOG(SERIALINTERFACE, "CemuHookUDPServer HotplugThreadFunc send failed");
+        ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
     }
 
     // Receive controller port info
@@ -208,7 +208,7 @@ static void HotplugThreadFunc()
       }
     }
   }
-  NOTICE_LOG(SERIALINTERFACE, "CemuHookUDPServer hotplug thread stopped");
+  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -238,7 +238,7 @@ static void StopHotplugThread()
 
 static void Restart()
 {
-  NOTICE_LOG(SERIALINTERFACE, "CemuHookUDPServer Restart");
+  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
 
   StopHotplugThread();
 
@@ -278,10 +278,10 @@ void Init()
 
 void PopulateDevices()
 {
-  NOTICE_LOG(SERIALINTERFACE, "CemuHookUDPServer PopulateDevices");
+  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
 
   g_controller_interface.RemoveDevice(
-      [](const auto* dev) { return dev->GetSource() == "UDPServer"; });
+      [](const auto* dev) { return dev->GetSource() == "DSUClient"; });
 
   std::lock_guard<std::mutex> lock(s_port_info_mutex);
   for (int port_index = 0; port_index < Proto::PORT_COUNT; port_index++)
@@ -374,7 +374,7 @@ std::string Device::GetName() const
 
 std::string Device::GetSource() const
 {
-  return "UDPServer";
+  return "DSUClient";
 }
 
 void Device::UpdateInput()
@@ -392,7 +392,7 @@ void Device::UpdateInput()
     msg.Finish();
     if (m_socket.send(&data_req, sizeof(data_req), s_server_address, s_server_port) !=
         sf::Socket::Status::Done)
-      ERROR_LOG(SERIALINTERFACE, "CemuHookUDPServer UpdateInput send failed");
+      ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
   }
 
   // Receive and handle controller data
@@ -441,4 +441,4 @@ std::optional<int> Device::GetPreferredId() const
   return m_index;
 }
 
-}  // namespace ciface::CemuHookUDPServer
+}  // namespace ciface::DualShockUDPClient

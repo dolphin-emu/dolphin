@@ -56,13 +56,13 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Tilt.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp" />
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp" />
-    <ClCompile Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServer.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
     <ClCompile Include="ControllerInterface\Device.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInput.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputKeyboardMouse.cpp" />
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp" />
+    <ClCompile Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp" />
     <ClCompile Include="ControlReference\ControlReference.cpp" />
     <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
@@ -100,8 +100,6 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Tilt.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h" />
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h" />
-    <ClInclude Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServer.h" />
-    <ClInclude Include="ControllerInterface\CemuHookUDPServer\CemuHookUDPServerProto.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />
     <ClInclude Include="ControllerInterface\Device.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h" />
@@ -109,6 +107,8 @@
     <ClInclude Include="ControllerInterface\DInput\DInputJoystick.h" />
     <ClInclude Include="ControllerInterface\DInput\DInputKeyboardMouse.h" />
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h" />
+    <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.h" />
+    <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPProto.h" />
     <ClInclude Include="ControlReference\ControlReference.h" />
     <ClInclude Include="ControlReference\FunctionExpression.h" />
     <ClInclude Include="ControlReference\ExpressionParser.h" />
