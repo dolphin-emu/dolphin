@@ -8,7 +8,8 @@
 #include "Common/IniFile.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
@@ -138,4 +139,20 @@ void ControlGroup::SetControlExpression(int index, const std::string& expression
 {
   controls.at(index)->control_ref->SetExpression(expression);
 }
+
+void ControlGroup::AddInput(Translatability translate, std::string name_)
+{
+  controls.emplace_back(std::make_unique<Input>(translate, std::move(name_)));
+}
+
+void ControlGroup::AddInput(Translatability translate, std::string name_, std::string ui_name_)
+{
+  controls.emplace_back(std::make_unique<Input>(translate, std::move(name_), std::move(ui_name_)));
+}
+
+void ControlGroup::AddOutput(Translatability translate, std::string name_)
+{
+  controls.emplace_back(std::make_unique<Output>(translate, std::move(name_)));
+}
+
 }  // namespace ControllerEmu

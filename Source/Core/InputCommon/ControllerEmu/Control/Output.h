@@ -12,6 +12,6 @@ namespace ControllerEmu
 class Output : public Control
 {
 public:
-  Output(Translatability translate, const std::string& name);
+  Output(Translatability translate, std::string name);
 };
 }  // namespace ControllerEmu

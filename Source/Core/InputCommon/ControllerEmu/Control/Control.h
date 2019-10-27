@@ -34,10 +34,9 @@ public:
   const std::string ui_name;
 
 protected:
-  Control(std::unique_ptr<ControlReference> ref, Translatability translate, const std::string& name,
-          const std::string& ui_name);
-  Control(std::unique_ptr<ControlReference> ref, Translatability translate,
-          const std::string& name);
+  Control(std::unique_ptr<ControlReference> ref, Translatability translate, std::string name,
+          std::string ui_name);
+  Control(std::unique_ptr<ControlReference> ref, Translatability translate, std::string name);
 };
 
 }  // namespace ControllerEmu

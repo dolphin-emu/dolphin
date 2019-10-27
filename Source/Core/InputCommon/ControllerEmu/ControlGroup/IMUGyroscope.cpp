@@ -17,12 +17,12 @@ namespace ControllerEmu
 IMUGyroscope::IMUGyroscope(std::string name, std::string ui_name)
     : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUGyroscope)
 {
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Pitch Up")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Pitch Down")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Roll Left")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Roll Right")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Yaw Left")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Yaw Right")));
+  AddInput(Translate, _trans("Pitch Up"));
+  AddInput(Translate, _trans("Pitch Down"));
+  AddInput(Translate, _trans("Roll Left"));
+  AddInput(Translate, _trans("Roll Right"));
+  AddInput(Translate, _trans("Yaw Left"));
+  AddInput(Translate, _trans("Yaw Right"));
 }
 
 std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState() const

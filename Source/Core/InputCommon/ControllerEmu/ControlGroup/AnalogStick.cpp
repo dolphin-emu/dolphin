@@ -27,9 +27,9 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
     : ReshapableInput(name_, ui_name_, GroupType::Stick), m_stick_gate(std::move(stick_gate))
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
+    AddInput(Translate, named_direction);
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
+  AddInput(Translate, _trans("Modifier"));
 }
 
 AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)

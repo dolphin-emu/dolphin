@@ -26,12 +26,12 @@ Cursor::Cursor(std::string name, std::string ui_name)
       m_last_update(Clock::now())
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
+    AddInput(Translate, named_direction);
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
+  AddInput(Translate, _trans("Hide"));
+  AddInput(Translate, _trans("Recenter"));
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Relative Input Hold")));
+  AddInput(Translate, _trans("Relative Input Hold"));
 
   // Default values are optimized for "Super Mario Galaxy 2".
   // This seems to be acceptable for a good number of games.

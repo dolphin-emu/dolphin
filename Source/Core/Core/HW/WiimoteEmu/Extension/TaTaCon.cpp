@@ -41,12 +41,12 @@ TaTaCon::TaTaCon() : Extension3rdParty("TaTaCon", _trans("Taiko Drum"))
   // i18n: Refers to the "center" of a TaTaCon drum.
   groups.emplace_back(m_center = new ControllerEmu::Buttons(_trans("Center")));
   for (auto& name : position_names)
-    m_center->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, name));
+    m_center->AddInput(ControllerEmu::Translate, name);
 
   // i18n: Refers to the "rim" of a TaTaCon drum.
   groups.emplace_back(m_rim = new ControllerEmu::Buttons(_trans("Rim")));
   for (auto& name : position_names)
-    m_rim->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, name));
+    m_rim->AddInput(ControllerEmu::Translate, name);
 }
 
 void TaTaCon::Update()

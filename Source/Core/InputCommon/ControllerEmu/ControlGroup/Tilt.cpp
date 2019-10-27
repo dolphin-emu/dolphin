@@ -18,12 +18,12 @@ namespace ControllerEmu
 {
 Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::Tilt)
 {
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Left")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Right")));
+  AddInput(Translate, _trans("Forward"));
+  AddInput(Translate, _trans("Backward"));
+  AddInput(Translate, _trans("Left"));
+  AddInput(Translate, _trans("Right"));
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
+  AddInput(Translate, _trans("Modifier"));
 
   AddSetting(&m_max_angle_setting,
              {_trans("Angle"),

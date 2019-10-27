@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cassert>
+#include <string_view>
 
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
@@ -37,7 +38,7 @@ constexpr std::array<u16, 9> classic_button_bitmasks{{
     Classic::BUTTON_HOME,
 }};
 
-constexpr std::array<const char*, 9> classic_button_names{{
+constexpr std::array<std::string_view, 9> classic_button_names{{
     "A",
     "B",
     "X",
@@ -76,11 +77,11 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (const char* button_name : classic_button_names)
+  for (auto& button_name : classic_button_names)
   {
-    const std::string& ui_name = (button_name == std::string("Home")) ? "HOME" : button_name;
-    m_buttons->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::DoNotTranslate, button_name, ui_name));
+    std::string_view ui_name = (button_name == "Home") ? "HOME" : button_name;
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(button_name),
+                        std::string(ui_name));
   }
 
   // sticks
@@ -94,16 +95,14 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* trigger_name : classic_trigger_names)
   {
-    m_triggers->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::Translate, trigger_name));
+    m_triggers->AddInput(ControllerEmu::Translate, trigger_name);
   }
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
+    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
   }
 }
 
