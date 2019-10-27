@@ -33,6 +33,7 @@ extern ComPtr<ID3D11Device> device;
 extern ComPtr<ID3D11Device1> device1;
 extern ComPtr<ID3D11DeviceContext> context;
 extern D3D_FEATURE_LEVEL feature_level;
+extern ComPtr<IDXGIAdapter> adapter;
 
 bool Create(u32 adapter_index, bool enable_debug_layer);
 void Destroy();

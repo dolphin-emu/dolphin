@@ -37,6 +37,16 @@ static std::vector<const char*> s_enabled_extensions;
 static std::atomic<bool> s_run_event_thread;
 static std::thread s_event_thread;
 
+XrInstance GetInstance()
+{
+  return s_instance;
+}
+
+XrSystemId GetSystemId()
+{
+  return s_system_id;
+}
+
 bool IsInitialized()
 {
   return s_instance != XR_NULL_HANDLE;
@@ -170,10 +180,10 @@ bool Init()
   info.enabledExtensionNames = s_enabled_extensions.data();
   info.enabledExtensionCount = uint32_t(s_enabled_extensions.size());
 
-  std::strcpy(info.applicationInfo.applicationName, "dolphin-emu");
+  std::strcpy(info.applicationInfo.applicationName, "Dolphin");
   info.applicationInfo.applicationVersion = 1;
-  std::strcpy(info.applicationInfo.engineName, "");
-  info.applicationInfo.engineVersion = 0;
+  std::strcpy(info.applicationInfo.engineName, "dolphin-emu");
+  info.applicationInfo.engineVersion = 1;
   info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
   XrResult result = xrCreateInstance(&info, &s_instance);

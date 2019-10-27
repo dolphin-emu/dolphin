@@ -327,11 +327,35 @@ bool Renderer::IsFullscreen() const
 
 std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
 {
-  XrGraphicsBindingD3D11KHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_D3D11_KHR};
-  graphics_binding.device = D3D::device.Get();
+  if (OpenXR::Init())
+  {
+    XrGraphicsBindingD3D11KHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_D3D11_KHR};
+    graphics_binding.device = D3D::device.Get();
 
-  return OpenXR::CreateSession({"XR_KHR_D3D11_enable"}, &graphics_binding,
-                               {DXGI_FORMAT_R8G8B8A8_UNORM});
+    XrGraphicsRequirementsD3D11KHR requirements{XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR};
+    const XrResult result = xrGetD3D11GraphicsRequirementsKHR(OpenXR::GetInstance(),
+                                                              OpenXR::GetSystemId(), &requirements);
+    if (XR_FAILED(result))
+      ERROR_LOG(VIDEO, "OpenXR: xrGetD3D11GraphicsRequirementsKHR: %d", result);
+
+    DXGI_ADAPTER_DESC desc;
+    D3D::adapter->GetDesc(&desc);
+    if (std::memcmp(&desc.AdapterLuid, &requirements.adapterLuid, sizeof(desc.AdapterLuid)) != 0)
+      ERROR_LOG(VIDEO, "OpenXR: Current D3D11 adapter does not match OpenXR requirements.");
+
+    if (D3D::feature_level < requirements.minFeatureLevel)
+    {
+      ERROR_LOG(VIDEO,
+                "OpenXR: Current D3D11 feature level, %d, is less than required, %d. Enable OpenXR "
+                "before starting game.",
+                D3D::feature_level, requirements.minFeatureLevel);
+    }
+
+    return OpenXR::CreateSession({"XR_KHR_D3D11_enable"}, &graphics_binding,
+                                 {DXGI_FORMAT_R8G8B8A8_UNORM});
+  }
+
+  return nullptr;
 }
 
 }  // namespace DX11

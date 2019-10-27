@@ -31,6 +31,9 @@ bool IsInitialized();
 bool Init();
 bool Shutdown();
 
+XrInstance GetInstance();
+XrSystemId GetSystemId();
+
 // Unfortunately OpenXR has one event queue per instance.
 // This function forwards each event to the relevant Session object.
 void EventThreadFunc();
