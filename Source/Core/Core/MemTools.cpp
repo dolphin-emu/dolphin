@@ -24,6 +24,20 @@
 #include <unistd.h>  // Needed for _POSIX_VERSION
 #endif
 
+#if defined(__APPLE__)
+#ifdef _M_X86_64
+#define THREAD_STATE64_COUNT x86_THREAD_STATE64_COUNT
+#define THREAD_STATE64 x86_THREAD_STATE64
+#define THREAD_STATE64_t x86_thread_state64_t
+#elif defined(_M_ARM_64)
+#define THREAD_STATE64_COUNT ARM_THREAD_STATE64_COUNT
+#define THREAD_STATE64 ARM_THREAD_STATE64
+#define THREAD_STATE64_t arm_thread_state64_t
+#else
+#error Unsupported architecture
+#endif
+#endif
+
 namespace EMM
 {
 #ifdef _WIN32
@@ -121,7 +135,7 @@ static void ExceptionThread(mach_port_t port)
     int64_t code[2];
     int flavor;
     mach_msg_type_number_t old_stateCnt;
-    natural_t old_state[x86_THREAD_STATE64_COUNT];
+    natural_t old_state[THREAD_STATE64_COUNT];
     mach_msg_trailer_t trailer;
   } msg_in;
 
@@ -132,7 +146,7 @@ static void ExceptionThread(mach_port_t port)
     kern_return_t RetCode;
     int flavor;
     mach_msg_type_number_t new_stateCnt;
-    natural_t new_state[x86_THREAD_STATE64_COUNT];
+    natural_t new_state[THREAD_STATE64_COUNT];
   } msg_out;
 #pragma pack()
   memset(&msg_in, 0xee, sizeof(msg_in));
@@ -163,13 +177,13 @@ static void ExceptionThread(mach_port_t port)
       return;
     }
 
-    if (msg_in.flavor != x86_THREAD_STATE64)
+    if (msg_in.flavor != THREAD_STATE64)
     {
-      PanicAlert("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
+      PanicAlert("unknown flavor %d (expected %d)", msg_in.flavor, THREAD_STATE64);
       return;
     }
 
-    x86_thread_state64_t* state = (x86_thread_state64_t*)msg_in.old_state;
+    THREAD_STATE64_t* state = (THREAD_STATE64_t*)msg_in.old_state;
 
     bool ok = JitInterface::HandleFault((uintptr_t)msg_in.code[1], state);
 
@@ -182,9 +196,9 @@ static void ExceptionThread(mach_port_t port)
     if (ok)
     {
       msg_out.RetCode = KERN_SUCCESS;
-      msg_out.flavor = x86_THREAD_STATE64;
-      msg_out.new_stateCnt = x86_THREAD_STATE64_COUNT;
-      memcpy(msg_out.new_state, msg_in.old_state, x86_THREAD_STATE64_COUNT * sizeof(natural_t));
+      msg_out.flavor = THREAD_STATE64;
+      msg_out.new_stateCnt = THREAD_STATE64_COUNT;
+      memcpy(msg_out.new_state, msg_in.old_state, THREAD_STATE64_COUNT * sizeof(natural_t));
     }
     else
     {
@@ -216,7 +230,7 @@ void InstallExceptionHandler()
   // Debuggers set the task port, so we grab the thread port.
   CheckKR("thread_set_exception_ports",
           thread_set_exception_ports(mach_thread_self(), EXC_MASK_BAD_ACCESS, port,
-                                     EXCEPTION_STATE | MACH_EXCEPTION_CODES, x86_THREAD_STATE64));
+                                     EXCEPTION_STATE | MACH_EXCEPTION_CODES, THREAD_STATE64));
   // ...and get rid of our copy so that MACH_NOTIFY_NO_SENDERS works.
   CheckKR("mach_port_mod_refs",
           mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_SEND, -1));
