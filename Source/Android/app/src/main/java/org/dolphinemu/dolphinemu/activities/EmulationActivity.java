@@ -48,6 +48,7 @@ import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
+import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
@@ -66,6 +67,7 @@ public final class EmulationActivity extends AppCompatActivity
   private EmulationFragment mEmulationFragment;
 
   private SharedPreferences mPreferences;
+  private MotionListener mMotionListener;
   private ControllerMappingHelper mControllerMappingHelper;
 
   private Settings mSettings;
@@ -258,6 +260,7 @@ public final class EmulationActivity extends AppCompatActivity
     // first launch emulation and then ask the core which console we're emulating
     sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
     mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+    mMotionListener = new MotionListener(this);
     mControllerMappingHelper = new ControllerMappingHelper();
 
     int themeId;
@@ -345,6 +348,22 @@ public final class EmulationActivity extends AppCompatActivity
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
     mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
+  }
+
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    if (!sIsGameCubeGame)
+      mMotionListener.enable();
+  }
+
+  @Override
+  protected void onPause()
+  {
+    super.onPause();
+    if (!sIsGameCubeGame)
+      mMotionListener.disable();
   }
 
   @Override

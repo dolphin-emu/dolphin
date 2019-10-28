@@ -34,7 +34,7 @@ public final class DirectoryInitialization
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
   public static final String EXTRA_STATE = "directoryState";
-  private static final Integer WiimoteNewVersion = 2;
+  private static final int WiimoteNewVersion = 3;  // Last changed in PR 8439
   private static volatile DirectoryInitializationState directoryState = null;
   private static String userPath;
   private static String internalPath;

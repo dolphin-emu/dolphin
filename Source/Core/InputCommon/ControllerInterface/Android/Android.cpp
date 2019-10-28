@@ -185,6 +185,20 @@ Touchscreen::Touchscreen(int padID) : _padID(padID)
   AddInput(new Axis(_padID, ButtonManager::TURNTABLE_CROSSFADE_RIGHT));
   AddInput(new Axis(_padID, ButtonManager::TURNTABLE_EFFECT_DIAL));
 
+  // Wiimote IMU
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_LEFT));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_RIGHT));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_FORWARD));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_BACKWARD));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_UP));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_DOWN));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_PITCH_UP));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_PITCH_DOWN));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_ROLL_LEFT));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_ROLL_RIGHT));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_YAW_LEFT));
+  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_YAW_RIGHT));
+
   // Rumble
   AddOutput(new Motor(_padID, ButtonManager::RUMBLE));
 }

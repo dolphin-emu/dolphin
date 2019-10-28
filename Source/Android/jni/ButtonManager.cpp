@@ -18,7 +18,7 @@ namespace ButtonManager
 namespace
 {
 constexpr char touchScreenKey[] = "Touchscreen";
-constexpr std::array<const char*, 143> configStrings{{
+constexpr std::array<const char*, 155> configStrings{{
     // GC
     "InputA",
     "InputB",
@@ -168,11 +168,24 @@ constexpr std::array<const char*, 143> configStrings{{
     "TurntableEffDial",
     "TurntableCrossLeft",
     "TurntableCrossRight",
+    // Wiimote IMU
+    "WiimoteAccelLeft",
+    "WiimoteAccelRight",
+    "WiimoteAccelForward",
+    "WiimoteAccelBackward",
+    "WiimoteAccelUp",
+    "WiimoteAccelDown",
+    "WiimoteGyroPitchUp",
+    "WiimoteGyroPitchDown",
+    "WiimoteGyroRollLeft",
+    "WiimoteGyroRollRight",
+    "WiimoteGyroYawLeft",
+    "WiimoteGyroYawRight",
     // Rumble
     "Rumble",
 }};
 
-constexpr std::array<ButtonType, 143> configTypes{{
+constexpr std::array<ButtonType, 155> configTypes{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -322,6 +335,19 @@ constexpr std::array<ButtonType, 143> configTypes{{
     TURNTABLE_EFFECT_DIAL,
     TURNTABLE_CROSSFADE_LEFT,
     TURNTABLE_CROSSFADE_RIGHT,
+    // Wiimote IMU
+    WIIMOTE_ACCEL_LEFT,
+    WIIMOTE_ACCEL_RIGHT,
+    WIIMOTE_ACCEL_FORWARD,
+    WIIMOTE_ACCEL_BACKWARD,
+    WIIMOTE_ACCEL_UP,
+    WIIMOTE_ACCEL_DOWN,
+    WIIMOTE_GYRO_PITCH_UP,
+    WIIMOTE_GYRO_PITCH_DOWN,
+    WIIMOTE_GYRO_ROLL_LEFT,
+    WIIMOTE_GYRO_ROLL_RIGHT,
+    WIIMOTE_GYRO_YAW_LEFT,
+    WIIMOTE_GYRO_YAW_RIGHT,
     // Rumble
     RUMBLE,
 }};
@@ -562,6 +588,29 @@ void Init(const std::string& gameId)
             new sBind(a, TURNTABLE_CROSSFADE_LEFT, BIND_AXIS, TURNTABLE_CROSSFADE_LEFT, -1.0f));
     AddBind(touchScreenKey,
             new sBind(a, TURNTABLE_CROSSFADE_RIGHT, BIND_AXIS, TURNTABLE_CROSSFADE_RIGHT, 1.0f));
+
+    // Wiimote IMU
+    AddBind(touchScreenKey, new sBind(a, WIIMOTE_ACCEL_LEFT, BIND_AXIS, WIIMOTE_ACCEL_LEFT, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_ACCEL_RIGHT, BIND_AXIS, WIIMOTE_ACCEL_RIGHT, -1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_ACCEL_FORWARD, BIND_AXIS, WIIMOTE_ACCEL_FORWARD, -1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_ACCEL_BACKWARD, BIND_AXIS, WIIMOTE_ACCEL_BACKWARD, 1.0f));
+    AddBind(touchScreenKey, new sBind(a, WIIMOTE_ACCEL_UP, BIND_AXIS, WIIMOTE_ACCEL_UP, 1.0f));
+    AddBind(touchScreenKey, new sBind(a, WIIMOTE_ACCEL_DOWN, BIND_AXIS, WIIMOTE_ACCEL_DOWN, -1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_GYRO_PITCH_UP, BIND_AXIS, WIIMOTE_GYRO_PITCH_UP, -1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_GYRO_PITCH_DOWN, BIND_AXIS, WIIMOTE_GYRO_PITCH_DOWN, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_GYRO_ROLL_LEFT, BIND_AXIS, WIIMOTE_GYRO_ROLL_LEFT, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_GYRO_ROLL_RIGHT, BIND_AXIS, WIIMOTE_GYRO_ROLL_RIGHT, -1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_GYRO_YAW_LEFT, BIND_AXIS, WIIMOTE_GYRO_YAW_LEFT, 1.0f));
+    AddBind(touchScreenKey,
+            new sBind(a, WIIMOTE_GYRO_YAW_RIGHT, BIND_AXIS, WIIMOTE_GYRO_YAW_RIGHT, -1.0f));
   }
   // Init our controller bindings
   IniFile ini;
