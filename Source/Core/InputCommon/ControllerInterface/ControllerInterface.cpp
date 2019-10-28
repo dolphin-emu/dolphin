@@ -30,6 +30,9 @@
 #ifdef CIFACE_USE_PIPES
 #include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 #endif
+#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
+#include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
+#endif
 
 ControllerInterface g_controller_interface;
 
@@ -67,6 +70,9 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 #endif
 #ifdef CIFACE_USE_PIPES
 // nothing needed
+#endif
+#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
+  ciface::DualShockUDPClient::Init();
 #endif
 
   RefreshDevices();
@@ -122,6 +128,9 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
+#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
+  ciface::DualShockUDPClient::PopulateDevices();
+#endif
 
   m_is_populating_devices = false;
   InvokeDevicesChangedCallbacks();
@@ -171,6 +180,9 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Shutdown();
+#endif
+#ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
+  ciface::DualShockUDPClient::DeInit();
 #endif
 }
 

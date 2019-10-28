@@ -11,6 +11,9 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu
@@ -53,6 +56,9 @@ void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, flo
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
 void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
+void EmulateIMUCursor(std::optional<RotationalState>* state, ControllerEmu::IMUCursor* imu_ir_group,
+                      ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
+                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);
 
 // Convert m/s/s acceleration data to the format used by Wiimote/Nunchuk (10-bit unsigned integers).
 WiimoteCommon::DataReportBuilder::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
