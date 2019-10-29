@@ -144,7 +144,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ConfirmStop", bConfirmStop);
   interface->Set("UsePanicHandlers", bUsePanicHandlers);
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
-  bHideCursor = true;
+  interface->Set("HideCursor", bHideCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
