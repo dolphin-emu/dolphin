@@ -29,10 +29,12 @@ void DualShockUDPClientWidget::CreateWidgets()
 
   m_server_address = new QLineEdit(
       QString::fromStdString(Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS)));
+  m_server_address->setEnabled(m_server_enabled->isChecked());
 
   m_server_port = new QSpinBox();
   m_server_port->setMaximum(65535);
   m_server_port->setValue(Config::Get(ciface::DualShockUDPClient::Settings::SERVER_PORT));
+  m_server_port->setEnabled(m_server_enabled->isChecked());
 
   auto* description =
       new QLabel(tr("DSU protocol enables the use of input and motion data from compatible "
@@ -58,8 +60,10 @@ void DualShockUDPClientWidget::CreateWidgets()
 void DualShockUDPClientWidget::ConnectWidgets()
 {
   connect(m_server_enabled, &QCheckBox::toggled, this, [this] {
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVER_ENABLED,
-                             m_server_enabled->isChecked());
+    bool checked = m_server_enabled->isChecked();
+    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVER_ENABLED, checked);
+    m_server_address->setEnabled(checked);
+    m_server_port->setEnabled(checked);
   });
 
   connect(m_server_address, &QLineEdit::editingFinished, this, [this] {
