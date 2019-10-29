@@ -114,6 +114,9 @@ public:
   bool GetCheatsEnabled() const;
   void SetCheatsEnabled(bool enabled);
 
+  bool GetPrimeEnabled() const;
+  void SetPrimeEnabled(bool enabled);
+
   // Debug
   void SetDebugModeEnabled(bool enabled);
   bool IsDebugModeEnabled() const;
@@ -164,6 +167,7 @@ signals:
   void ToolBarVisibilityChanged(bool visible);
   void WidgetLockChanged(bool locked);
   void EnableCheatsChanged(bool enabled);
+  void EnablePrimeChanged(bool _t1);
   void WatchVisibilityChanged(bool visible);
   void BreakpointsVisibilityChanged(bool visible);
   void CodeVisibilityChanged(bool visible);

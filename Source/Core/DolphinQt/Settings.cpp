@@ -327,6 +327,20 @@ void Settings::SetCheatsEnabled(bool enabled)
   }
 }
 
+bool Settings::GetPrimeEnabled() const
+{
+  return SConfig::GetInstance().bEnablePrimeHack;
+}
+
+void Settings::SetPrimeEnabled(bool enabled)
+{
+  if (SConfig::GetInstance().bEnablePrimeHack != enabled)
+  {
+    SConfig::GetInstance().bEnablePrimeHack = enabled;
+    emit EnablePrimeChanged(enabled);
+  }
+}
+
 void Settings::SetDebugModeEnabled(bool enabled)
 {
   if (IsDebugModeEnabled() != enabled)

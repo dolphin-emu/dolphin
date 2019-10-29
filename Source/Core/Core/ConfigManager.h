@@ -117,6 +117,7 @@ struct SConfig
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
+  bool bEnablePrimeHack = true;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 

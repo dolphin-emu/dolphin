@@ -140,8 +140,6 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_dualcore);
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
-  m_checkbox_cheats->setEnabled(false);
-  m_checkbox_cheats->setToolTip(QString::fromStdString("Enabled by PrimeHack"));
   basic_group_layout->addWidget(m_checkbox_cheats);
 
   m_checkbox_primehack = new QCheckBox(tr("Toggle PrimeHack"));
@@ -259,6 +257,7 @@ void GeneralPane::LoadConfig()
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
+  m_checkbox_primehack->setChecked(Settings::Instance().GetPrimeEnabled());
   m_checkbox_override_region_settings->setChecked(SConfig::GetInstance().bOverrideRegionSettings);
   m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
 #ifdef USE_DISCORD_PRESENCE
@@ -322,6 +321,7 @@ void GeneralPane::OnSaveConfig()
   settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
+  Settings::Instance().SetPrimeEnabled(m_checkbox_primehack->isChecked());
   settings.bOverrideRegionSettings = m_checkbox_override_region_settings->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
