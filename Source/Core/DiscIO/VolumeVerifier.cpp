@@ -419,7 +419,7 @@ void VolumeVerifier::CheckPartitions()
     AddProblem(Severity::Low, Common::GetStringT("The update partition is missing."));
 
   const bool has_data_partition =
-      std::find(types.cbegin(), types.cend(), PARTITION_DATA) == types.cend();
+      std::find(types.cbegin(), types.cend(), PARTITION_DATA) != types.cend();
   if (!m_is_datel && !has_data_partition)
     AddProblem(Severity::High, Common::GetStringT("The data partition is missing."));
 
