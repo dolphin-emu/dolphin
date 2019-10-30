@@ -123,5 +123,5 @@ def getBuildVersionCode() {
         logger.error('Cannot find git, defaulting to dummy version number')
     }
 
-    return 0;
+    return 1;
 }
