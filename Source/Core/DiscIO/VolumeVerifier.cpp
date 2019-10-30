@@ -265,7 +265,7 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
         const size_t game_id_start =
             first_dash == std::string::npos ? std::string::npos : first_dash + 1;
 
-        if (serial.size() < game_id_start + 4)
+        if (game_id_start == std::string::npos || serial.size() < game_id_start + 4)
         {
           ERROR_LOG(DISCIO, "Invalid serial in redump datfile: %s", serial_str.c_str());
           continue;
