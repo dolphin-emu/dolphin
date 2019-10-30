@@ -92,12 +92,14 @@ namespace prime {
       mod_list[static_cast<int>(mod->game())][static_cast<int>(mod->region())].emplace_back(std::move(mod));
     }
   }
-  
-  void HackManager::remove_mod(std::unique_ptr<PrimeMod> mod)
-  {
-    if (mod_list.size() != 0)
-    {
 
-    }
-  }
+// Remove function for disabling PrimeHack. Incomplete.
+//  void HackManager::remove_mod(std::unique_ptr<PrimeMod> mod)
+//  {
+//    if (mod_list.size() != 0)
+//    {
+//      auto array = std::remove(std::begin(mod_list), std::end(mod_list), mod);
+//      
+//    }
+//  }
 }
