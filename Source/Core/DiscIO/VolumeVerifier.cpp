@@ -241,9 +241,9 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
       continue;
 
     const std::string serials = game.child("serial").text().as_string();
-    if (serials.empty())
+    if (serials.empty() || StringBeginsWith(serials, "DS"))
     {
-      // This case is reached for Datel discs
+      // GC Datel discs have no serials in Redump, Wii Datel discs have serials like "DS000101"
       if (!m_game_id.empty())
         continue;  // Non-empty m_game_id means we're verifying a non-Datel disc
     }
@@ -265,7 +265,7 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
         const size_t game_id_start =
             first_dash == std::string::npos ? std::string::npos : first_dash + 1;
 
-        if (serial.size() < game_id_start + 4)
+        if (game_id_start == std::string::npos || serial.size() < game_id_start + 4)
         {
           ERROR_LOG(DISCIO, "Invalid serial in redump datfile: %s", serial_str.c_str());
           continue;
