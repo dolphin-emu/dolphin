@@ -29,7 +29,7 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
              {_trans("Angle"),
               // i18n: The symbol/abbreviation for degrees (unit of angular measure).
               _trans("°"),
-              // i18n: Refers to emulated wii remote movement.
+              // i18n: Refers to tilting an emulated Wii Remote.
               _trans("Maximum tilt angle.")},
              85, 0, 180);
 
@@ -37,8 +37,8 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
              {_trans("Velocity"),
               // i18n: The symbol/abbreviation for hertz (cycles per second).
               _trans("Hz"),
-              // i18n: Refers to emulated wii remote movement.
-              _trans("Peak complete turns per second.")},
+              // i18n: Refers to tilting an emulated Wii Remote.
+              _trans("Peak angular velocity (measured in turns per second).")},
              7, 1, 50);
 }
 
