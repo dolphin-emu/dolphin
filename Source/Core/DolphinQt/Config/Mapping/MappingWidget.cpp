@@ -4,8 +4,10 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include <QCheckBox>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QPushButton>
 #include <QTimer>
 
@@ -136,6 +138,28 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
     if (setting_widget)
       form_layout->addRow(tr(setting->GetUIName()), setting_widget);
+  }
+
+  if (group->can_be_disabled)
+  {
+    QLabel* group_enable_label = new QLabel(tr("Enable"));
+    QCheckBox* group_enable_checkbox = new QCheckBox();
+    group_enable_checkbox->setChecked(group->enabled);
+    form_layout->insertRow(0, group_enable_label, group_enable_checkbox);
+    auto enable_group_by_checkbox = [group, form_layout, group_enable_label,
+                                     group_enable_checkbox] {
+      group->enabled = group_enable_checkbox->isChecked();
+      for (int i = 0; i < form_layout->count(); ++i)
+      {
+        QWidget* widget = form_layout->itemAt(i)->widget();
+        if (widget != nullptr && widget != group_enable_label && widget != group_enable_checkbox)
+          widget->setEnabled(group->enabled);
+      }
+    };
+    enable_group_by_checkbox();
+    connect(group_enable_checkbox, &QCheckBox::toggled, this, enable_group_by_checkbox);
+    connect(this, &MappingWidget::ConfigChanged, this,
+            [group_enable_checkbox, group] { group_enable_checkbox->setChecked(group->enabled); });
   }
 
   return group_box;

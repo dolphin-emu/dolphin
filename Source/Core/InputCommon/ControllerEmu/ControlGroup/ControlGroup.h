@@ -48,8 +48,16 @@ enum class GroupType
 class ControlGroup
 {
 public:
-  explicit ControlGroup(std::string name, GroupType type = GroupType::Other);
-  ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other);
+  enum class CanBeDisabled
+  {
+    No,
+    Yes,
+  };
+
+  explicit ControlGroup(std::string name, GroupType type = GroupType::Other,
+                        CanBeDisabled can_be_disabled = CanBeDisabled::No);
+  ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other,
+               CanBeDisabled can_be_disabled = CanBeDisabled::No);
   virtual ~ControlGroup();
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
@@ -79,7 +87,9 @@ public:
   const std::string name;
   const std::string ui_name;
   const GroupType type;
+  const bool can_be_disabled;
 
+  bool enabled = true;
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
 };
