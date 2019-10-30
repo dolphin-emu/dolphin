@@ -976,7 +976,7 @@ static bool RunCodeLocked(const ARCode& arcode)
 
 void RunAllActive()
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!SConfig::GetInstance().bEnableCheats || !SConfig::GetInstance().bEnablePrimeHack)
     return;
 
   prime::GetHackManager()->run_active_mods();
