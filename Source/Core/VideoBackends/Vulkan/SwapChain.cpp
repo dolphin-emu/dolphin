@@ -25,7 +25,8 @@
 namespace Vulkan
 {
 SwapChain::SwapChain(const WindowSystemInfo& wsi, VkSurfaceKHR surface, bool vsync)
-    : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync)
+    : m_wsi(wsi), m_surface(surface), m_vsync_enabled(vsync),
+      m_fullscreen_supported(g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface))
 {
 }
 
@@ -290,6 +291,7 @@ bool SwapChain::CreateSwapChain()
 
   // Store the old/current swap chain when recreating for resize
   VkSwapchainKHR old_swap_chain = m_swap_chain;
+  m_swap_chain = VK_NULL_HANDLE;
 
   // Now we can actually create the swap chain
   VkSwapchainCreateInfoKHR swap_chain_info = {VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -322,8 +324,36 @@ bool SwapChain::CreateSwapChain()
     swap_chain_info.pQueueFamilyIndices = indices.data();
   }
 
-  res =
-      vkCreateSwapchainKHR(g_vulkan_context->GetDevice(), &swap_chain_info, nullptr, &m_swap_chain);
+#ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
+  if (m_fullscreen_supported)
+  {
+    VkSurfaceFullScreenExclusiveInfoEXT fullscreen_support = {};
+    swap_chain_info.pNext = &fullscreen_support;
+    fullscreen_support.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+    fullscreen_support.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT;
+
+    auto platform_info = g_vulkan_context->GetPlatformExclusiveFullscreenInfo(m_wsi);
+    fullscreen_support.pNext = &platform_info;
+
+    res = vkCreateSwapchainKHR(g_vulkan_context->GetDevice(), &swap_chain_info, nullptr,
+                               &m_swap_chain);
+    if (res != VK_SUCCESS)
+    {
+      // Try without exclusive fullscreen.
+      WARN_LOG(VIDEO, "Failed to create exclusive fullscreen swapchain, trying without.");
+      swap_chain_info.pNext = nullptr;
+      g_Config.backend_info.bSupportsExclusiveFullscreen = false;
+      g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = false;
+      m_fullscreen_supported = false;
+    }
+  }
+#endif
+
+  if (m_swap_chain == VK_NULL_HANDLE)
+  {
+    res = vkCreateSwapchainKHR(g_vulkan_context->GetDevice(), &swap_chain_info, nullptr,
+                               &m_swap_chain);
+  }
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateSwapchainKHR failed: ");
@@ -414,6 +444,10 @@ void SwapChain::DestroySwapChain()
   if (m_swap_chain == VK_NULL_HANDLE)
     return;
 
+  // Release exclusive fullscreen before destroying.
+  if (m_current_fullscreen_state)
+    SetFullscreenState(false);
+
   vkDestroySwapchainKHR(g_vulkan_context->GetDevice(), m_swap_chain, nullptr);
   m_swap_chain = VK_NULL_HANDLE;
 }
@@ -464,6 +498,39 @@ bool SwapChain::SetVSync(bool enabled)
   return RecreateSwapChain();
 }
 
+bool SwapChain::SetFullscreenState(bool state)
+{
+#ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
+  if (m_current_fullscreen_state == state)
+    return true;
+
+  if (state)
+  {
+    VkResult res = vkAcquireFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkAcquireFullScreenExclusiveModeEXT failed:");
+      return false;
+    }
+
+    INFO_LOG(VIDEO, "Exclusive fullscreen acquired.");
+  }
+  else
+  {
+    VkResult res = vkReleaseFullScreenExclusiveModeEXT(g_vulkan_context->GetDevice(), m_swap_chain);
+    if (res != VK_SUCCESS)
+      LOG_VULKAN_ERROR(res, "vkReleaseFullScreenExclusiveModeEXT failed:");
+
+    INFO_LOG(VIDEO, "Exclusive fullscreen released.");
+  }
+
+  m_current_fullscreen_state = state;
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool SwapChain::RecreateSurface(void* native_handle)
 {
   // Destroy the old swap chain, images, and surface.
@@ -492,6 +559,13 @@ bool SwapChain::RecreateSurface(void* native_handle)
     PanicAlert("Recreated surface does not support presenting.");
     return false;
   }
+
+  // Update exclusive fullscreen support (unlikely to change).
+  m_fullscreen_supported = g_vulkan_context->SupportsExclusiveFullscreen(m_wsi, m_surface);
+  g_Config.backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
+  g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen = m_fullscreen_supported;
+  m_current_fullscreen_state = false;
+  m_next_fullscreen_state = false;
 
   // Finally re-create the swap chain
   if (!CreateSwapChain() || !SetupSwapChainImages())

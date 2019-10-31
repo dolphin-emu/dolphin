@@ -186,6 +186,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
                                              g_vulkan_context->GetDeviceFeatures());
   VulkanContext::PopulateBackendInfoMultisampleModes(
       &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+  g_Config.backend_info.bSupportsExclusiveFullscreen =
+      enable_surface && g_vulkan_context->SupportsExclusiveFullscreen(wsi, surface);
 
   // With the backend information populated, we can now initialize videocommon.
   InitializeShared();

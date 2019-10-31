@@ -24,6 +24,11 @@
 
 #include "vulkan/vulkan.h"
 
+// Currently, exclusive fullscreen is only supported on Windows.
+#if defined(WIN32)
+#define SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN 1
+#endif
+
 // We abuse the preprocessor here to only need to specify function names once.
 #define VULKAN_MODULE_ENTRY_POINT(name, required) extern PFN_##name name;
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required) extern PFN_##name name;

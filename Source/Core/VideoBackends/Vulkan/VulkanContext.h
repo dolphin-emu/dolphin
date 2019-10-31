@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -107,11 +108,22 @@ public:
   u32 GetUploadMemoryType(u32 bits, bool* is_coherent = nullptr);
   u32 GetReadbackMemoryType(u32 bits, bool* is_coherent = nullptr);
 
+  // Returns true if the specified extension is supported and enabled.
+  bool SupportsDeviceExtension(const char* name) const;
+
+  // Returns true if exclusive fullscreen is supported for the given surface.
+  bool SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface);
+
+#ifdef WIN32
+  // Returns the platform-specific exclusive fullscreen structure.
+  VkSurfaceFullScreenExclusiveWin32InfoEXT
+  GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
+#endif
+
 private:
-  using ExtensionList = std::vector<const char*>;
-  static bool SelectInstanceExtensions(ExtensionList* extension_list, WindowSystemType wstype,
-                                       bool enable_debug_report);
-  bool SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface);
+  static bool SelectInstanceExtensions(std::vector<const char*>* extension_list,
+                                       WindowSystemType wstype, bool enable_debug_report);
+  bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
   void InitDriverDetails();
@@ -135,6 +147,8 @@ private:
 
   u32 m_shader_subgroup_size = 1;
   bool m_supports_shader_subgroup_operations = false;
+
+  std::vector<std::string> m_device_extensions;
 };
 
 extern std::unique_ptr<VulkanContext> g_vulkan_context;

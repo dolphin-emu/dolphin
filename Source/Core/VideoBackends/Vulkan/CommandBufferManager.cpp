@@ -371,13 +371,16 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
                                      &present_image_index,
                                      nullptr};
 
-    res = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
-    if (res != VK_SUCCESS)
+    m_last_present_result = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
+    if (m_last_present_result != VK_SUCCESS)
     {
       // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
-      if (res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
-        LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
-      m_present_failed_flag.Set();
+      if (m_last_present_result != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR &&
+          m_last_present_result != VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+      {
+        LOG_VULKAN_ERROR(m_last_present_result, "vkQueuePresentKHR failed: ");
+      }
+      m_last_present_failed.Set();
     }
   }
 
