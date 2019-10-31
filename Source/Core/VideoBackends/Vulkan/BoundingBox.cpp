@@ -172,8 +172,10 @@ bool BoundingBox::CreateGPUBuffer()
   VkMemoryRequirements memory_requirements;
   vkGetBufferMemoryRequirements(g_vulkan_context->GetDevice(), buffer, &memory_requirements);
 
-  uint32_t memory_type_index = g_vulkan_context->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  uint32_t memory_type_index = g_vulkan_context
+                                   ->GetMemoryType(memory_requirements.memoryTypeBits,
+                                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false)
+                                   .value_or(0);
   VkMemoryAllocateInfo memory_allocate_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
       nullptr,                                 // const void*        pNext
