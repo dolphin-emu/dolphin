@@ -19,7 +19,11 @@
 #endif
 
 #if defined(__APPLE__)
+#if defined(IPHONEOS)
+#define VK_USE_PLATFORM_IOS_MVK
+#else
 #define VK_USE_PLATFORM_MACOS_MVK
+#endif
 #endif
 
 #include "vulkan/vulkan.h"
