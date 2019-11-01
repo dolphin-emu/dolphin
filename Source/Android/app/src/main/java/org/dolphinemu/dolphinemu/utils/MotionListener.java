@@ -1,16 +1,19 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.Surface;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 
 public class MotionListener implements SensorEventListener
 {
+  private final Activity mActivity;
   private final SensorManager mSensorManager;
   private final Sensor mAccelSensor;
   private final Sensor mGyroSensor;
@@ -18,9 +21,10 @@ public class MotionListener implements SensorEventListener
   // The same sampling period as for Wii Remotes
   private static final int SAMPLING_PERIOD_US = 1000000 / 200;
 
-  public MotionListener(Context context)
+  public MotionListener(Activity activity)
   {
-    mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+    mActivity = activity;
+    mSensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
     mAccelSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     mGyroSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
   }
@@ -28,11 +32,32 @@ public class MotionListener implements SensorEventListener
   @Override
   public void onSensorChanged(SensorEvent sensorEvent)
   {
+    float x, y;
+    float z = sensorEvent.values[2];
+    int orientation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
+    switch (orientation)
+    {
+      default:
+      case Surface.ROTATION_0:
+        x = -sensorEvent.values[0];
+        y = -sensorEvent.values[1];
+        break;
+      case Surface.ROTATION_90:
+        x = sensorEvent.values[1];
+        y = -sensorEvent.values[0];
+        break;
+      case Surface.ROTATION_180:
+        x = sensorEvent.values[0];
+        y = sensorEvent.values[1];
+        break;
+      case Surface.ROTATION_270:
+        x = -sensorEvent.values[1];
+        y = sensorEvent.values[0];
+        break;
+    }
+
     if (sensorEvent.sensor == mAccelSensor)
     {
-      float x = -sensorEvent.values[0];
-      float y = -sensorEvent.values[1];
-      float z = sensorEvent.values[2];
       NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice,
               ButtonType.WIIMOTE_ACCEL_LEFT, x);
       NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice,
@@ -49,9 +74,6 @@ public class MotionListener implements SensorEventListener
 
     if (sensorEvent.sensor == mGyroSensor)
     {
-      float x = -sensorEvent.values[0];
-      float y = -sensorEvent.values[1];
-      float z = sensorEvent.values[2];
       NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice,
               ButtonType.WIIMOTE_GYRO_PITCH_UP, x);
       NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice,
