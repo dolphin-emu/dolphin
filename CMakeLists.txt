@@ -209,7 +209,7 @@ elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQ
   set(_M_ARM_64 1)
   add_definitions(-D_M_ARM_64=1)
 
-  if (ANDROID)
+  if (ANDROID OR IOS)
     # CRC instruction set is used in the CRC32 hash function
     check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
   endif()
