@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-28 19:59+0100\n"
-"PO-Revision-Date: 2019-10-28 18:59+0000\n"
+"POT-Creation-Date: 2019-11-01 15:08+0100\n"
+"PO-Revision-Date: 2019-11-01 14:08+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
@@ -813,7 +813,7 @@ msgstr "Om Dolphin"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:177
 msgid "Accelerometer"
-msgstr ""
+msgstr "Accelerometer"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:73
 msgid "Accuracy:"
@@ -1107,7 +1107,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
-msgstr ""
+msgstr "Alternativa inmatningskällor"
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
@@ -1817,7 +1817,7 @@ msgstr "Kommentar"
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
 msgid "Common"
-msgstr ""
+msgstr "Gemensamt"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:125
 msgid "Compile Shaders Before Starting"
@@ -2321,7 +2321,7 @@ msgstr "DSP LLE-omkompilator"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:32
 msgid "DSU Client"
-msgstr ""
+msgstr "DSU-klient"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:38
 msgid ""
@@ -2330,6 +2330,10 @@ msgid ""
 "setup instructions, <a href=\"https://wiki.dolphin-emu.org/index.php?"
 "title=DSU_Client\">refer to this page</a>."
 msgstr ""
+"DSU-protokollet använder inmatning och rörelsedata från kompatibla källor, "
+"som PlayStation-, Nintendo Switch- och Steam-kontroller.<br><br>För "
+"installationsinstruktioner , <a href=\"https://wiki.dolphin-emu.org/index."
+"php?title=DSU_Client\">se denna sida</a>."
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
 msgid "Dance Mat"
@@ -3036,7 +3040,7 @@ msgstr "Emuleringshastighet"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
 msgid "Enable"
-msgstr ""
+msgstr "Aktivera"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:56
 msgid "Enable API Validation Layers"
@@ -4458,7 +4462,7 @@ msgstr "Gitarr"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:179
 msgid "Gyroscope"
-msgstr ""
+msgstr "Gyroskop"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:114
 msgid "HDMI 3D"
@@ -5464,7 +5468,7 @@ msgstr "Maxbuffert:"
 msgid "Max buffer size changed to %1"
 msgstr "Buffertstorleken ändrades till %1"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:33
 msgid "Maximum tilt angle."
 msgstr "Maximal lutningsvinkel."
@@ -5612,11 +5616,11 @@ msgstr "Mer än"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:353
 msgid "Motion Input"
-msgstr ""
+msgstr "Rörelseinmatning"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:352
 msgid "Motion Simulation"
-msgstr ""
+msgstr "Rörelsesimulering"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:87
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:199
@@ -5914,7 +5918,7 @@ msgstr "Anteckningar:"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:42
 msgid "Nothing to configure"
-msgstr ""
+msgstr "Ingenting att konfigurera"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 msgid "Notice"
@@ -6182,10 +6186,10 @@ msgstr "Pausa vid slutet av inspelningar"
 msgid "Pause on Focus Loss"
 msgstr "Pausa när fokus förloras"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:41
-msgid "Peak complete turns per second."
-msgstr "Maximalt antal kompletta varv per sekund"
+msgid "Peak angular velocity (measured in turns per second)."
+msgstr ""
 
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:56
@@ -6229,11 +6233,11 @@ msgstr "Ping"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
 msgid "Pitch Down"
-msgstr ""
+msgstr "Luta nedåt"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
 msgid "Pitch Up"
-msgstr ""
+msgstr "Luta uppåt"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:904
 #: Source/Core/DolphinQt/MenuBar.cpp:603
@@ -6787,11 +6791,11 @@ msgstr "Knapp Upp"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
 msgid "Roll Left"
-msgstr ""
+msgstr "Rulla vänster"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:26
 msgid "Roll Right"
-msgstr ""
+msgstr "Rulla höger"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:538
 msgid "Room ID"
@@ -7356,11 +7360,11 @@ msgstr "Position för Sensor Bar:"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:49
 msgid "Server IP Address"
-msgstr ""
+msgstr "Serverns IP-adress"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:51
 msgid "Server Port"
-msgstr ""
+msgstr "Serverns port"
 
 #: Source/Core/Core/NetPlayClient.cpp:1763
 msgid "Server rejected traversal attempt"
@@ -9499,6 +9503,10 @@ msgid ""
 "mapping traditional buttons, triggers or axes. You might need to configure "
 "alternate input sources before using these controls."
 msgstr ""
+"VARNING: Kontrollerna under accelerometer och gyroskop är designade för att "
+"kopplas direkt till rörelsesensorhårdvara. De är inte tänkta att användas "
+"för att mappa vanliga knappar eller spakar. Du kan behöva konfigurera "
+"alternativa inmatningskällor före du använder de här kontrollerna."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -9824,11 +9832,11 @@ msgstr "Y"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:27
 msgid "Yaw Left"
-msgstr ""
+msgstr "Gira vänster"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:28
 msgid "Yaw Right"
-msgstr ""
+msgstr "Gira höger"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:34
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:50
@@ -9840,7 +9848,7 @@ msgstr "Gul"
 msgid "Yes"
 msgstr "Ja"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:348
+#: Source/Core/VideoBackends/Vulkan/main.cpp:350
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

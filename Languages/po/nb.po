@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-28 19:59+0100\n"
-"PO-Revision-Date: 2019-10-28 18:59+0000\n"
+"POT-Creation-Date: 2019-11-01 15:08+0100\n"
+"PO-Revision-Date: 2019-11-01 14:08+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/delroth/dolphin-"
 "emu/language/nb/)\n"
@@ -5338,7 +5338,7 @@ msgstr "Maksimal Buffer:"
 msgid "Max buffer size changed to %1"
 msgstr "Maksimum bufferstørrelse endret til %1"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:33
 msgid "Maximum tilt angle."
 msgstr "Maksimum tiltvinkel"
@@ -6053,9 +6053,9 @@ msgstr "Pause på slutten av filmen"
 msgid "Pause on Focus Loss"
 msgstr "Pause ved Tapt Fokus"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:41
-msgid "Peak complete turns per second."
+msgid "Peak angular velocity (measured in turns per second)."
 msgstr ""
 
 #. i18n: Refering to emulated wii remote swing movement.
@@ -9623,7 +9623,7 @@ msgstr "Gul"
 msgid "Yes"
 msgstr "Ja"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:348
+#: Source/Core/VideoBackends/Vulkan/main.cpp:350
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

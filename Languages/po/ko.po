@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-28 19:59+0100\n"
-"PO-Revision-Date: 2019-10-28 18:59+0000\n"
+"POT-Creation-Date: 2019-11-01 15:08+0100\n"
+"PO-Revision-Date: 2019-11-01 14:08+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -5411,7 +5411,7 @@ msgstr "최대 버퍼:"
 msgid "Max buffer size changed to %1"
 msgstr "최대 버퍼 크기가 %1 로 변경되었습니다"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:33
 msgid "Maximum tilt angle."
 msgstr "최대 틸트 각도."
@@ -6125,9 +6125,9 @@ msgstr "무비의 끝에서 일시정지"
 msgid "Pause on Focus Loss"
 msgstr "초점 잃을 때 일시정지"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:41
-msgid "Peak complete turns per second."
+msgid "Peak angular velocity (measured in turns per second)."
 msgstr ""
 
 #. i18n: Refering to emulated wii remote swing movement.
@@ -9745,7 +9745,7 @@ msgstr "노랑"
 msgid "Yes"
 msgstr "예"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:348
+#: Source/Core/VideoBackends/Vulkan/main.cpp:350
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

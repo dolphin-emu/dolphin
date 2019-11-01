@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-28 19:59+0100\n"
-"PO-Revision-Date: 2019-10-28 18:59+0000\n"
+"POT-Creation-Date: 2019-11-01 15:08+0100\n"
+"PO-Revision-Date: 2019-11-01 14:08+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -821,7 +821,7 @@ msgstr "Over Dolphin"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:177
 msgid "Accelerometer"
-msgstr ""
+msgstr "Versnellingsmeter"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:73
 msgid "Accuracy:"
@@ -1118,7 +1118,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
-msgstr ""
+msgstr "Alternatieve invoerbronnen"
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
@@ -1826,7 +1826,7 @@ msgstr "Reactie"
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
 msgid "Common"
-msgstr ""
+msgstr "Gemeenschappelijk"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:125
 msgid "Compile Shaders Before Starting"
@@ -2329,7 +2329,7 @@ msgstr "DSP LLE Recompiler"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:32
 msgid "DSU Client"
-msgstr ""
+msgstr "DSU Client"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:38
 msgid ""
@@ -2338,6 +2338,11 @@ msgid ""
 "setup instructions, <a href=\"https://wiki.dolphin-emu.org/index.php?"
 "title=DSU_Client\">refer to this page</a>."
 msgstr ""
+"DSU-protocol maakt het gebruik van invoer- en bewegingsgegevens van "
+"compatibele invoerbronnen, zoals PlayStation, Nintendo Switch en Steam-"
+"controllers mogelijk. <br><br><a href=\"https://wiki.dolphin-emu.org/index."
+"php?title=DSU_Client\">Raadpleeg deze pagina voor installatie-instructies.</"
+"a>"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
 msgid "Dance Mat"
@@ -3040,7 +3045,7 @@ msgstr "Emulatiesnelheid"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
 msgid "Enable"
-msgstr ""
+msgstr "Inschakelen"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:56
 msgid "Enable API Validation Layers"
@@ -3446,11 +3451,11 @@ msgstr "Verwachte comma."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:476
 msgid "Expected end of expression."
-msgstr "Verwachte eind van uitdrukking."
+msgstr "Verwachte eind van expressie."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:611
 msgid "Expected start of expression."
-msgstr "Verwachte start van de uitdrukking."
+msgstr "Verwachte start van de expressie."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:124
 msgid "Experimental"
@@ -4470,7 +4475,7 @@ msgstr "Gitaar"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:179
 msgid "Gyroscope"
-msgstr ""
+msgstr "Gyroscoop"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:114
 msgid "HDMI 3D"
@@ -4711,8 +4716,8 @@ msgid ""
 msgstr ""
 "Gebruikt een volledig scherm modus met randloos venster dat het hele scherm "
 "opvult. Zorgt voor een snellere schakeling tussen volledig scherm en venster "
-"modus, maar verhoogt de invoer latentie iets, maakt bewegingen minder "
-"vloeiend en verminderd prestaties iets.\n"
+"modus, maar verhoogt de invoerlatentie licht, maakt bewegingen minder "
+"vloeiend en verminderd prestaties licht.\n"
 "\n"
 "In geval van twijfel leeg laten."
 
@@ -5472,7 +5477,7 @@ msgstr "Max Buffer:"
 msgid "Max buffer size changed to %1"
 msgstr "Max buffergrootte gewijzigd naar %1"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:33
 msgid "Maximum tilt angle."
 msgstr "Maximale kantel hoek."
@@ -5621,11 +5626,11 @@ msgstr "Meer dan"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:353
 msgid "Motion Input"
-msgstr ""
+msgstr "Bewegings Invoer"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:352
 msgid "Motion Simulation"
-msgstr ""
+msgstr "Bewegings Simulatie"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:87
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:199
@@ -5925,7 +5930,7 @@ msgstr "Opmerkingen:"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:42
 msgid "Nothing to configure"
-msgstr ""
+msgstr "Niets te configureren"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
 msgid "Notice"
@@ -6193,10 +6198,10 @@ msgstr "Pauzeer aan het Einde van de Film"
 msgid "Pause on Focus Loss"
 msgstr "Pauzeer bij Verliezen van Focus"
 
-#. i18n: Refers to emulated wii remote movement.
+#. i18n: Refers to tilting an emulated Wii Remote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:41
-msgid "Peak complete turns per second."
-msgstr "Piek complete rotaties per seconde."
+msgid "Peak angular velocity (measured in turns per second)."
+msgstr ""
 
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:56
@@ -6240,11 +6245,11 @@ msgstr "Ping"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
 msgid "Pitch Down"
-msgstr ""
+msgstr "Stamp Omlaag"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
 msgid "Pitch Up"
-msgstr ""
+msgstr "Stamp Omhoog"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:904
 #: Source/Core/DolphinQt/MenuBar.cpp:603
@@ -6799,11 +6804,11 @@ msgstr "Knop Omhoog"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
 msgid "Roll Left"
-msgstr ""
+msgstr "Rol Links"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:26
 msgid "Roll Right"
-msgstr ""
+msgstr "Rol Rechts"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:538
 msgid "Room ID"
@@ -7369,11 +7374,11 @@ msgstr "Sensor Bar Positie:"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:49
 msgid "Server IP Address"
-msgstr ""
+msgstr "Server IP-adres"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:51
 msgid "Server Port"
-msgstr ""
+msgstr "Server Poort"
 
 #: Source/Core/Core/NetPlayClient.cpp:1763
 msgid "Server rejected traversal attempt"
@@ -9515,6 +9520,11 @@ msgid ""
 "mapping traditional buttons, triggers or axes. You might need to configure "
 "alternate input sources before using these controls."
 msgstr ""
+"Waarschuwing: De bediening van Accelerometer en Gyroscoop is ontworpen om "
+"rechtstreeks te worden gekoppeld aan bewegingssensors. Het is niet bedoeld "
+"om te koppelen met traditionele knoppen, trekkers of sticks. Mogelijk moet u "
+"alternatieve invoerbronnen configureren voordat u deze besturing kan "
+"gebruiken."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -9841,11 +9851,11 @@ msgstr "Y"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:27
 msgid "Yaw Left"
-msgstr ""
+msgstr "Gier Links"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:28
 msgid "Yaw Right"
-msgstr ""
+msgstr "Gier Rechts"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:34
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:50
@@ -9857,7 +9867,7 @@ msgstr "Geel"
 msgid "Yes"
 msgstr "Ja"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:348
+#: Source/Core/VideoBackends/Vulkan/main.cpp:350
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "
