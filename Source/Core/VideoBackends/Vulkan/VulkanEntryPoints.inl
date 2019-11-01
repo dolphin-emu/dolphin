@@ -57,6 +57,10 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateAndroidSurfaceKHR, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateMacOSSurfaceMVK, false)
 #endif
 
+#if defined(VK_USE_PLATFORM_IOS_MVK)
+VULKAN_INSTANCE_ENTRY_POINT(vkCreateIOSSurfaceMVK, false)
+#endif
+
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDestroyDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDebugReportMessageEXT, false)
