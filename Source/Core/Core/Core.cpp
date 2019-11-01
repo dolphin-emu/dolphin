@@ -79,6 +79,7 @@
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -541,6 +542,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     PanicAlert("Failed to initialize DSP emulation!");
     return;
   }
+
+  // Inputs loading may have generated custom dynamic textures
+  // it's now ok to initialize any custom textures
+  HiresTexture::Update();
 
   AudioCommon::InitSoundStream();
   Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};

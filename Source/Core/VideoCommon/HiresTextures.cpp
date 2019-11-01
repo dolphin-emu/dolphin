@@ -51,7 +51,7 @@ static std::thread s_prefetcher;
 
 void HiresTexture::Init()
 {
-  Update();
+  // Note: Update is not called here so that we handle dynamic textures on startup more gracefully
 }
 
 void HiresTexture::Shutdown()

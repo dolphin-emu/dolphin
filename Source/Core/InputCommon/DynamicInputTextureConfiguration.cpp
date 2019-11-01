@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ImageOperations.h"
 #include "VideoCommon/RenderBase.h"
@@ -258,6 +259,8 @@ void DynamicInputTextureConfiguration::GenerateTextures(const IniFile::Section* 
   }
 
   if (!any_dirty)
+    return;
+  if (Core::GetState() == Core::State::Starting)
     return;
   if (!g_renderer)
     return;
