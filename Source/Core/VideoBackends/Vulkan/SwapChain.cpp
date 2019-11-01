@@ -125,6 +125,24 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
   }
 #endif
 
+#if defined(VK_USE_PLATFORM_IOS_MVK)
+  if (wsi.type == WindowSystemType::IPhoneOS)
+  {
+    VkIOSSurfaceCreateInfoMVK surface_create_info = {
+        VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_surface};
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateIOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateIOSSurfaceMVK failed: ");
+      return VK_NULL_HANDLE;
+    }
+
+    return surface;
+  }
+#endif
+
   return VK_NULL_HANDLE;
 }
 
