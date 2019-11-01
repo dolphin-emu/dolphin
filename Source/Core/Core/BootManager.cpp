@@ -212,6 +212,11 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
 static ConfigCache config_cache;
 
+void SetEmulationSpeedReset(bool value)
+{
+  config_cache.bSetEmulationSpeed = value;
+}
+
 static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 {
   if (mode == "auto")

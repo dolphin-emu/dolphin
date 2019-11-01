@@ -197,6 +197,7 @@
     <ClCompile Include="HW\WiiSave.cpp" />
     <ClCompile Include="IOS\Device.cpp" />
     <ClCompile Include="IOS\DeviceStub.cpp" />
+    <ClCompile Include="IOS\DolphinDevice.cpp" />
     <ClCompile Include="IOS\IOS.cpp" />
     <ClCompile Include="IOS\IOSC.cpp" />
     <ClCompile Include="IOS\MIOS.cpp" />
@@ -473,6 +474,7 @@
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IOS\Device.h" />
     <ClInclude Include="IOS\DeviceStub.h" />
+    <ClInclude Include="IOS\DolphinDevice.h" />
     <ClInclude Include="IOS\IOS.h" />
     <ClInclude Include="IOS\IOSC.h" />
     <ClInclude Include="IOS\MIOS.h" />
