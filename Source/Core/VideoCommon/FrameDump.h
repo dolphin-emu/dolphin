@@ -22,7 +22,7 @@ public:
     int savestate_index = 0;
   };
 
-  static bool Start(int w, int h);
+  static bool Start(int w, int h, bool new_segment = false);
   static void AddFrame(const u8* data, int width, int height, int stride, const Frame& state);
   static void Stop();
   static void DoState();

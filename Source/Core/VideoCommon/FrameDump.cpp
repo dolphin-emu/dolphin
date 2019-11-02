@@ -78,15 +78,18 @@ static bool AVStreamCopyContext(AVStream* stream, AVCodecContext* codec_context)
 #endif
 }
 
-bool FrameDump::Start(int w, int h)
+bool FrameDump::Start(int w, int h, bool new_segment)
 {
   s_pix_fmt = AV_PIX_FMT_RGBA;
 
   s_width = w;
   s_height = h;
-
-  s_last_frame_is_valid = false;
   s_last_pts = 0;
+
+  if (!new_segment)
+  {
+    s_last_frame_is_valid = false;
+  }
 
   InitAVCodec();
   bool success = CreateVideoFile();
@@ -435,7 +438,7 @@ void FrameDump::CheckResolution(int width, int height)
     int temp_file_index = s_file_index;
     Stop();
     s_file_index = temp_file_index + 1;
-    Start(width, height);
+    Start(width, height, true);
   }
 }
 
