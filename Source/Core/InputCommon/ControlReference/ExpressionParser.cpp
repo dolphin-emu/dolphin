@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
@@ -29,24 +30,22 @@ class ControlExpression;
 class HotkeySuppressions
 {
 public:
+  using Modifiers = std::vector<std::unique_ptr<ControlExpression>>;
   using Suppressor = std::unique_ptr<Common::ScopeGuard>;
 
   bool IsSuppressed(Device::Input* input) const
   {
-    // An input is suppressed if it exists in the map (with any modifier).
-    auto it = m_suppressions.lower_bound({input, nullptr});
-    return it != m_suppressions.end() && (it->first.first == input);
+    // Input is suppressed if it exists in the map at all.
+    return m_suppressions.lower_bound({input, nullptr}) !=
+           m_suppressions.lower_bound({input + 1, nullptr});
   }
+
+  bool IsSuppressedIgnoringModifiers(Device::Input* input, const Modifiers& ignore_modifiers) const;
 
   // Suppresses each input + modifier pair.
   // The returned object removes the suppression on destruction.
-  Suppressor MakeSuppressor(const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
-                            const std::unique_ptr<ControlExpression>& final_input);
-
-  // Removes suppression for each input + modifier pair.
-  // The returned object restores the original suppression on destruction.
-  Suppressor MakeAntiSuppressor(const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
-                                const std::unique_ptr<ControlExpression>& final_input);
+  Suppressor MakeSuppressor(const Modifiers* modifiers,
+                            const std::unique_ptr<ControlExpression>* final_input);
 
 private:
   using Suppression = std::pair<Device::Input*, Device::Input*>;
@@ -285,33 +284,30 @@ private:
   Device::Output* output = nullptr;
 };
 
-HotkeySuppressions::Suppressor
-HotkeySuppressions::MakeSuppressor(const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
-                                   const std::unique_ptr<ControlExpression>& final_input)
+bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
+                                                       const Modifiers& ignore_modifiers) const
 {
-  for (auto& modifier : modifiers)
-    ++m_suppressions[{final_input->GetInput(), modifier->GetInput()}];
+  // Input is suppressed if it exists in the map with a modifier that we aren't ignoring.
+  auto it = m_suppressions.lower_bound({input, nullptr});
+  auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
 
-  return std::make_unique<Common::ScopeGuard>([this, &modifiers, &final_input]() {
-    for (auto& modifier : modifiers)
-      RemoveSuppression(modifier->GetInput(), final_input->GetInput());
+  return std::any_of(it, it_end, [&](auto& s) {
+    return std::none_of(begin(ignore_modifiers), end(ignore_modifiers),
+                        [&](auto& m) { return m->GetInput() == s.first.second; });
   });
 }
 
-HotkeySuppressions::Suppressor HotkeySuppressions::MakeAntiSuppressor(
-    const std::vector<std::unique_ptr<ControlExpression>>& modifiers,
-    const std::unique_ptr<ControlExpression>& final_input)
+HotkeySuppressions::Suppressor
+HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
+                                   const std::unique_ptr<ControlExpression>* final_input)
 {
-  decltype(m_suppressions) unsuppressed_modifiers;
+  for (auto& modifier : *modifiers)
+    ++m_suppressions[{(*final_input)->GetInput(), modifier->GetInput()}];
 
-  for (auto& modifier : modifiers)
-    unsuppressed_modifiers.insert(
-        m_suppressions.extract({final_input->GetInput(), modifier->GetInput()}));
-
-  return std::make_unique<Common::ScopeGuard>(
-      [this, unsuppressed_modifiers{std::move(unsuppressed_modifiers)}]() mutable {
-        m_suppressions.merge(unsuppressed_modifiers);
-      });
+  return std::make_unique<Common::ScopeGuard>([this, modifiers, final_input]() {
+    for (auto& modifier : *modifiers)
+      RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
+  });
 }
 
 class BinaryExpression : public Expression
@@ -474,15 +470,14 @@ public:
   {
     const bool modifiers_pressed = std::all_of(m_modifiers.begin(), m_modifiers.end(),
                                                [](const std::unique_ptr<ControlExpression>& input) {
-                                                 // TODO: kill magic number.
-                                                 return input->GetValue() > 0.5;
+                                                 return input->GetValue() > CONDITION_THRESHOLD;
                                                });
 
     const auto final_input_state = m_final_input->GetValueIgnoringSuppression();
 
     if (modifiers_pressed)
     {
-      if (final_input_state < 0.5)
+      if (final_input_state < CONDITION_THRESHOLD)
       {
         if (!m_suppressor)
           EnableSuppression();
@@ -491,10 +486,8 @@ public:
       }
 
       // Ignore suppression of our own modifiers. This also allows superset modifiers to function.
-      const auto anti_suppression =
-          s_hotkey_suppressions.MakeAntiSuppressor(m_modifiers, m_final_input);
-
-      const bool is_suppressed = s_hotkey_suppressions.IsSuppressed(m_final_input->GetInput());
+      const bool is_suppressed = s_hotkey_suppressions.IsSuppressedIgnoringModifiers(
+          m_final_input->GetInput(), m_modifiers);
 
       // If some other hotkey suppressed us, require a release of final input to be ready again.
       if (is_suppressed)
@@ -538,10 +531,10 @@ public:
 private:
   void EnableSuppression() const
   {
-    m_suppressor = s_hotkey_suppressions.MakeSuppressor(m_modifiers, m_final_input);
+    m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
   }
 
-  std::vector<std::unique_ptr<ControlExpression>> m_modifiers;
+  HotkeySuppressions::Modifiers m_modifiers;
   std::unique_ptr<ControlExpression> m_final_input;
   mutable HotkeySuppressions::Suppressor m_suppressor;
   mutable bool m_is_ready = false;
