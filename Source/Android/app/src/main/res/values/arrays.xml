@@ -348,4 +348,15 @@
         <item>Wii Controller Settings</item>
         <item>Clear Game Settings</item>
     </string-array>
+
+    <string-array name="orientationEntries">
+        <item>Landscape</item>
+        <item>Portrait</item>
+        <item>Auto</item>
+    </string-array>
+    <integer-array name="orientationValues">
+        <item>0</item>
+        <item>1</item>
+        <item>-1</item>
+    </integer-array>
 </resources>

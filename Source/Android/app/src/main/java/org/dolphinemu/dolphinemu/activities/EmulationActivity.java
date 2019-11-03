@@ -24,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -98,7 +99,8 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
+          MENU_ACTION_SCREEN_ORIENTATION})
   public @interface MenuAction
   {
   }
@@ -132,6 +134,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
   public static final int MENU_SET_IR_SENSITIVITY = 27;
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
+  public static final int MENU_ACTION_SCREEN_ORIENTATION = 29;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -178,6 +181,8 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
+    buttonsActionsMap.append(R.id.menu_screen_orientation,
+            EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
   }
 
   private static String[] scanForSecondDisc(GameFile gameFile)
@@ -253,8 +258,12 @@ public final class EmulationActivity extends AppCompatActivity
       restoreState(savedInstanceState);
     }
 
+    mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
     mSettings = new Settings();
     mSettings.loadSettings(null);
+
+    updateOrientation();
 
     // TODO: The accurate way to find out which console we're emulating is to
     // first launch emulation and then ask the core which console we're emulating
@@ -297,17 +306,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     setContentView(R.layout.activity_emulation);
 
-
-    BooleanSetting lockLandscapeSetting =
-            (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
-                    .getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
-    boolean lockLandscape = lockLandscapeSetting == null || lockLandscapeSetting.getValue();
-    // Force landscape if set
-    if (mDeviceHasTouchScreen && lockLandscape)
-    {
-      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-    }
-
     // Find or create the EmulationFragment
     mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
             .findFragmentById(R.id.frame_emulation_fragment);
@@ -323,9 +321,6 @@ public final class EmulationActivity extends AppCompatActivity
     {
       setTitle(mSelectedTitle);
     }
-
-    mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
   }
 
   @Override
@@ -429,6 +424,12 @@ public final class EmulationActivity extends AppCompatActivity
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_FULLSCREEN |
                     View.SYSTEM_UI_FLAG_IMMERSIVE);
+  }
+
+  private void updateOrientation()
+  {
+    setRequestedOrientation(mPreferences.getInt("emulationActivityOrientation",
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
   }
 
   private void toggleMenu()
@@ -644,6 +645,10 @@ public final class EmulationActivity extends AppCompatActivity
 
       case MENU_ACTION_CHOOSE_DOUBLETAP:
         chooseDoubleTapButton();
+        return;
+
+      case MENU_ACTION_SCREEN_ORIENTATION:
+        chooseOrientation();
         return;
 
       case MENU_ACTION_EXIT:
@@ -877,6 +882,37 @@ public final class EmulationActivity extends AppCompatActivity
     {
       editor.apply();
       mEmulationFragment.refreshInputOverlay();
+    });
+
+    AlertDialog alertDialog = builder.create();
+    alertDialog.show();
+  }
+
+  private void chooseOrientation()
+  {
+    final int[] orientationValues = getResources().getIntArray(R.array.orientationValues);
+    int initialChoice = mPreferences.getInt("emulationActivityOrientation",
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+    int initialIndex = -1;
+    for (int i = 0; i < orientationValues.length; i++)
+    {
+      if (orientationValues[i] == initialChoice)
+        initialIndex = i;
+    }
+
+    final SharedPreferences.Editor editor = mPreferences.edit();
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.emulation_screen_orientation);
+    builder.setSingleChoiceItems(R.array.orientationEntries, initialIndex,
+            (dialog, indexSelected) ->
+            {
+              int orientation = orientationValues[indexSelected];
+              editor.putInt("emulationActivityOrientation", orientation);
+            });
+    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    {
+      editor.apply();
+      updateOrientation();
     });
 
     AlertDialog alertDialog = builder.create();
