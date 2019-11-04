@@ -93,6 +93,8 @@
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuExtension.h" />
+    <QtMoc Include="Config\Mapping\WiimoteEmuExtensionMotionInput.h" />
+    <QtMoc Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
@@ -292,6 +294,8 @@
     <ClCompile Include="$(QtMocOutPrefix)WiiPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiiTASInputWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtension.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtensionMotionInput.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtensionMotionSimulation.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControlIMU.cpp" />
@@ -344,6 +348,8 @@
     <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
     <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionInput.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />

@@ -21,6 +21,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace WiimoteEmu
@@ -54,6 +55,10 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
   // Inverse the default intensity so shake is opposite that of wiimote.
   // This is needed by DKCR for proper shake action detection.
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake"), -1));
+
+  // accelerometer
+  groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
+                          "IMUAccelerometer", _trans("Accelerometer")));
 }
 
 void Nunchuk::Update()
@@ -94,8 +99,10 @@ void Nunchuk::Update()
 
   const auto transformation = GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle);
 
-  Common::Vec3 accel = transformation * (m_swing_state.acceleration +
-                                         Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));
+  Common::Vec3 accel =
+      transformation *
+      (m_swing_state.acceleration +
+       m_imu_accelerometer->GetState().value_or(Common::Vec3(0, 0, float(GRAVITY_ACCELERATION))));
 
   // shake
   accel += m_shake_state.acceleration;
@@ -173,6 +180,8 @@ ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
     return m_swing;
   case NunchukGroup::Shake:
     return m_shake;
+  case NunchukGroup::IMUAccelerometer:
+    return m_imu_accelerometer;
   default:
     assert(false);
     return nullptr;
