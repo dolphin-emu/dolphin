@@ -16,6 +16,8 @@ namespace prime
 
   bool CheckBeamCtl(int beam_num);
   bool CheckVisorCtl(int visor_num);
+  bool CheckSpringBallCtl();
+
   void UpdateHackSettings();
 
   float GetSensitivity();

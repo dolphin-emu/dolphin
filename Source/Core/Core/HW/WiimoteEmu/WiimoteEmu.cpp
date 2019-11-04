@@ -258,6 +258,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   m_primehack_misc->AddSetting(&m_primehack_invert_y,
                                {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
+  m_primehack_misc->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Spring Ball", "Spring Ball"));
 
   Reset();
 }
@@ -659,6 +661,11 @@ bool Wiimote::CheckVisorCtrl(int visorcount)
 bool Wiimote::CheckBeamCtrl(int beamcount)
 {
   return m_primehack_beams->controls[beamcount].get()->control_ref->State() > 0.5;
+}
+
+bool Wiimote::CheckSpringBallCtrl()
+{
+  return m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
 }
 
 std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()

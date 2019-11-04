@@ -4,11 +4,14 @@
 
 namespace prime {
 
+  void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes);
+
   class MP1 : public PrimeMod {
   public:
     Game game() const override {
       return Game::PRIME_1;
     }
+
     void run_mod() override;
 
     virtual ~MP1() {}
@@ -28,7 +31,6 @@ namespace prime {
     virtual uint32_t global_fov2() const = 0;
 
     void beam_change_code(uint32_t base_offset);
-
   private:
     float pitch = 0;
   };
@@ -105,7 +107,6 @@ namespace prime {
     virtual uint32_t camera_offset_address() const = 0;
 
     void beam_change_code(uint32_t base_offset);
-
   private:
     float pitch = 0;
   };

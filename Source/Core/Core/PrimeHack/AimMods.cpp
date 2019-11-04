@@ -213,6 +213,11 @@ void MP1::run_mod()
     PowerPC::HostWrite_U32(1, beamchange_flag_address());
   }
 
+  if (CheckSpringBallCtl())
+  {
+    PowerPC::HostWrite_F32(1, 0x80004164);
+  }
+
   int visor_id, visor_off;
   std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors);
   if (visor_id != -1)
@@ -249,6 +254,7 @@ MP1NTSC::MP1NTSC()
   code_changes.emplace_back(0x802fb5b4, 0xd23f009c);
 
   beam_change_code(0x8018e544);
+  prime::springball_code(0x801476D0, &code_changes);
 }
 
 uint32_t MP1NTSC::lockon_address() const
@@ -310,6 +316,7 @@ MP1PAL::MP1PAL()
   code_changes.emplace_back(0x802fb84c, 0xd23f009c);
 
   beam_change_code(0x8018e7dc);
+  prime::springball_code(0x80147820, &code_changes);
 }
 
 uint32_t MP1PAL::lockon_address() const
@@ -363,25 +370,16 @@ uint32_t MP1PAL::global_fov2() const
 
 void MP2::beam_change_code(u32 base_offset)
 {
-  code_changes.emplace_back(
-      base_offset + 0x00,
-      0x3c80804d);  // lis    r4, 0x804d      ; set r4 to beam change base address
-  code_changes.emplace_back(base_offset + 0x04,
-                            0x3884d250);  // subi   r4, r4, 0x2db0  ; (0x804cd250)
+  code_changes.emplace_back(base_offset + 0x00, 0x3c80804d);  // lis    r4, 0x804d      ; set r4 to beam change base address
+  code_changes.emplace_back(base_offset + 0x04, 0x3884d250);  // subi   r4, r4, 0x2db0  ; (0x804cd250)
   code_changes.emplace_back(base_offset + 0x08, 0x80640000);  // lwz    r3, 0(r4)       ; grab flag
-  code_changes.emplace_back(base_offset + 0x0c,
-                            0x2c030000);  // cmpwi  r3, 0           ; check if beam should change
-  code_changes.emplace_back(base_offset + 0x10,
-                            0x4182005c);  // beq    0x5c            ; don't attempt beam change if 0
-  code_changes.emplace_back(
-      base_offset + 0x14,
-      0x83e40004);  // lwz    r31, 4(r4)      ; get expected beam (r31, r30 used to assign beam)
-  code_changes.emplace_back(
-      base_offset + 0x18, 0x7ffefb78);  // mr     r30, r31        ; copy expected beam to other reg
+  code_changes.emplace_back(base_offset + 0x0c, 0x2c030000);  // cmpwi  r3, 0           ; check if beam should change
+  code_changes.emplace_back(base_offset + 0x10, 0x4182005c);  // beq    0x5c            ; don't attempt beam change if 0
+  code_changes.emplace_back(base_offset + 0x14, 0x83e40004);  // lwz    r31, 4(r4)      ; get expected beam (r31, r30 used to assign beam)
+  code_changes.emplace_back(base_offset + 0x18, 0x7ffefb78);  // mr     r30, r31        ; copy expected beam to other reg
   code_changes.emplace_back(base_offset + 0x1c, 0x38600000);  // li     r3, 0           ; reset flag
   code_changes.emplace_back(base_offset + 0x20, 0x90640000);  // stw    r3, 0(r4)       ;
-  code_changes.emplace_back(base_offset + 0x24,
-                            0x48000048);  // b      0x48            ; jump forward to beam assign
+  code_changes.emplace_back(base_offset + 0x24, 0x48000048);  // b      0x48            ; jump forward to beam assign
 }
 
 void MP2::run_mod()
@@ -430,6 +428,12 @@ void MP2::run_mod()
       PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
     }
   }
+
+  if (CheckSpringBallCtl())
+  {
+    PowerPC::HostWrite_F32(1, 0x80004164);
+  }
+
   u32 camera_ptr = PowerPC::HostRead_U32(camera_ptr_address());
   u32 camera_offset =
       ((PowerPC::HostRead_U32(PowerPC::HostRead_U32(camera_offset_address())) >> 16) & 0x3ff) << 3;
@@ -455,6 +459,7 @@ MP2NTSC::MP2NTSC()
   code_changes.emplace_back(0x803054a0, 0xd23f009c);
 
   beam_change_code(0x8018cc88);
+  prime::springball_code(0x8010BD98, &code_changes);
 }
 
 uint32_t MP2NTSC::load_state_address() const
@@ -498,6 +503,7 @@ MP2PAL::MP2PAL()
   code_changes.emplace_back(0x80307d2c, 0xd23f009c);
 
   beam_change_code(0x8018e41c);
+  prime::springball_code(0x8010D440, &code_changes);
 }
 
 uint32_t MP2PAL::load_state_address() const
@@ -815,5 +821,16 @@ void MenuPAL::run_mod()
 {
   u32 cursor_base = PowerPC::HostRead_U32(0x80621ffc);
   handle_cursor(cursor_base + 0xdc, cursor_base + 0x19c, 0.95f, 0.90f);
+}
+
+
+void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes)
+{
+  code_changes->emplace_back(base_offset + 0x00, 0x3C808000);  // lis r4, 0x8000
+  code_changes->emplace_back(base_offset + 0x04, 0x60844164);  // ori r4, r4, 0x4164
+  code_changes->emplace_back(base_offset + 0x08, 0x88640000);  // lbz r3, 0(r4)
+  code_changes->emplace_back(base_offset + 0x0c, 0x38A00000);  // li r5, 0
+  code_changes->emplace_back(base_offset + 0x10, 0x98A40000);  // stb r5, 0(r4)
+  code_changes->emplace_back(base_offset + 0x14, 0x2C030000);  // cmpwi r3, 0
 }
 }  // namespace prime

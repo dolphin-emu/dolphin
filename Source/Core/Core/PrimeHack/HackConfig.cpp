@@ -58,8 +58,12 @@ bool CheckBeamCtl(int beam_num)
 
 bool CheckVisorCtl(int visor_num)
 {
-  // return control_list[visor_num + 4]->State() > 0.5;
   return Wiimote::CheckVisor(visor_num);
+}
+
+bool CheckSpringBallCtl()
+{
+  return Wiimote::CheckSpringBall();
 }
 
 void UpdateHackSettings()

@@ -128,6 +128,7 @@ public:
 
   bool CheckVisorCtrl(int visor_count);
   bool CheckBeamCtrl(int beam_count);
+  bool CheckSpringBallCtrl();
   std::tuple <double, double, double, bool, bool> GetPrimeSettings();
 
   void Reset();
@@ -254,6 +255,7 @@ private:
 
   ControllerEmu::ControlGroup* m_primehack_beams;
   ControllerEmu::ControlGroup* m_primehack_visors;
+  ControllerEmu::ControlGroup* m_primehack_motionhacks;
   ControllerEmu::ControlGroup* m_primehack_misc;
   ControllerEmu::ControlGroup* m_primehack_camera;
 
