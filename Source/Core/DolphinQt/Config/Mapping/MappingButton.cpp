@@ -53,8 +53,15 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool 
 
   setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-  setToolTip(
-      tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
+  if (IsInput())
+  {
+    setToolTip(
+        tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
+  }
+  else
+  {
+    setToolTip(tr("Left/Right-click to configure output.\nMiddle-click to clear."));
+  }
 
   connect(this, &MappingButton::clicked, this, &MappingButton::Clicked);
 
