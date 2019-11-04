@@ -56,7 +56,7 @@ MappingButton::MappingButton(MappingWidget* parent, ControlReference* ref, bool 
   setToolTip(
       tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
 
-  connect(this, &MappingButton::clicked, this, &MappingButton::Detect);
+  connect(this, &MappingButton::clicked, this, &MappingButton::Clicked);
 
   if (indicator)
     connect(parent, &MappingWidget::Update, this, &MappingButton::UpdateIndicator);
@@ -74,10 +74,13 @@ void MappingButton::AdvancedPressed()
   m_parent->SaveSettings();
 }
 
-void MappingButton::Detect()
+void MappingButton::Clicked()
 {
   if (!m_reference->IsInput())
+  {
+    AdvancedPressed();
     return;
+  }
 
   const auto default_device_qualifier = m_parent->GetController()->GetDefaultDevice();
 
@@ -141,12 +144,6 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
 {
   switch (event->button())
   {
-  case Qt::MouseButton::LeftButton:
-    if (m_reference->IsInput())
-      QPushButton::mouseReleaseEvent(event);
-    else
-      AdvancedPressed();
-    return;
   case Qt::MouseButton::MidButton:
     Clear();
     return;
@@ -154,6 +151,7 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
     AdvancedPressed();
     return;
   default:
+    QPushButton::mouseReleaseEvent(event);
     return;
   }
 }
