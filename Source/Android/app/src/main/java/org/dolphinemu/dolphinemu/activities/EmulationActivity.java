@@ -869,6 +869,8 @@ public final class EmulationActivity extends AppCompatActivity
               editor.putInt("wiiController", indexSelected);
               NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
                       getResources().getStringArray(R.array.controllersValues)[indexSelected]);
+              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1",
+                      "Options/Sideways Wiimote", indexSelected == 2 ? "True" : "False");
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
