@@ -1,4 +1,4 @@
-TITLES = https://www.gametdb.com (type: Wii language: PT_unique version: 20190127013920)
+TITLES = https://www.gametdb.com (type: Wii language: PT_unique version: 20191106234316)
 R42P69 = Os SIMS 2: Naufragos
 R43P69 = EA Sports Active
 R4PP69 = Os SIMS 2: Animais de Estimação
