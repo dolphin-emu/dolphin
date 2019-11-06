@@ -84,6 +84,8 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
+  m_checkbox_primehack->setEnabled(!running);
+
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
@@ -144,7 +146,7 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_primehack = new QCheckBox(tr("Toggle PrimeHack"));
   m_checkbox_primehack->setToolTip(QString::fromStdString("Toggle PrimeHack on or off."));
-  m_checkbox_primehack->toggle();
+
   basic_group_layout->addWidget(m_checkbox_primehack);
 
   m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
@@ -273,12 +275,12 @@ void GeneralPane::LoadConfig()
   {
     if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
       m_cpu_cores[i]->setChecked(true);
+    }
   }
-}
 
-static QString UpdateTrackFromIndex(int index)
-{
-  QString value;
+  static QString UpdateTrackFromIndex(int index)
+  {
+    QString value;
 
   switch (index)
   {

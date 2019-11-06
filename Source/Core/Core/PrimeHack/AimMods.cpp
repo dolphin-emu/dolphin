@@ -213,6 +213,8 @@ void MP1::run_mod()
     PowerPC::HostWrite_U32(1, beamchange_flag_address());
   }
 
+  PowerPC::HostRead_U32(camera_pointer_address());
+  
   if (CheckSpringBallCtl())
   {
     PowerPC::HostWrite_F32(1, 0x80004164);
@@ -293,6 +295,10 @@ uint32_t MP1NTSC::camera_pointer_address() const
 {
   return 0x804bfc30;
 }
+uint32_t MP1NTSC::ball_check_address() const
+{
+  return 0x804d7de8;
+}
 uint32_t MP1NTSC::active_camera_offset_address() const
 {
   return 0x804c4a08;
@@ -354,6 +360,10 @@ uint32_t MP1PAL::visor_base_address() const
 uint32_t MP1PAL::camera_pointer_address() const
 {
   return 0x804c3b70;
+}
+uint32_t MP1PAL::ball_check_address() const
+{
+  return 0x804d7de8;
 }
 uint32_t MP1PAL::active_camera_offset_address() const
 {
@@ -429,10 +439,7 @@ void MP2::run_mod()
     }
   }
 
-  if (CheckSpringBallCtl())
-  {
-    PowerPC::HostWrite_F32(1, 0x80004164);
-  }
+  springball_check(base_address + 0x374);
 
   u32 camera_ptr = PowerPC::HostRead_U32(camera_ptr_address());
   u32 camera_offset =
@@ -546,39 +553,25 @@ void MP3::control_state_hook(u32 base_offset, Region region)
   if (region == Region::NTSC)
   {
     code_changes.emplace_back(base_offset + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
-    code_changes.emplace_back(base_offset + 0x04,
-                              0x38636c40);  // addi r3, r3, 0x6c40  ; load 0x805c6c40 into r3
-                                            // (indirect pointer to player camera control)
+    code_changes.emplace_back(base_offset + 0x04, 0x38636c40);  // addi r3, r3, 0x6c40  ; load 0x805c6c40 into r3
+    // (indirect pointer to player camera control)
   }
   else if (region == Region::PAL)
   {
     code_changes.emplace_back(base_offset + 0x00, 0x3c60805d);  // lis  r3, 0x805d      ;
-    code_changes.emplace_back(
-        base_offset + 0x04,
-        0x3863a0c0);  // subi r3, r3, 0x5f40  ; load 0x805ca0c0 into r3, same reason as NTSC
+    code_changes.emplace_back(base_offset + 0x04, 0x3863a0c0);  // subi r3, r3, 0x5f40  ; load 0x805ca0c0 into r3, same reason as NTSC
   }
-  code_changes.emplace_back(
-      base_offset + 0x08,
-      0x8063002c);  // lwz  r3, 0x2c(r3)      ; deref player camera control base address into r3
-  code_changes.emplace_back(
-      base_offset + 0x0c,
-      0x80630004);  // lwz  r3, 0x04(r3)      ; the point at which the function which was hooked
-  code_changes.emplace_back(base_offset + 0x10,
-                            0x80632184);  // lwz  r3, 0x2184(r3)    ; should have r31 equal to the
+  code_changes.emplace_back(base_offset + 0x08, 0x8063002c);  // lwz  r3, 0x2c(r3)      ; deref player camera control base address into r3
+  code_changes.emplace_back(base_offset + 0x0c, 0x80630004);  // lwz  r3, 0x04(r3)      ; the point at which the function which was hooked
+  code_changes.emplace_back(base_offset + 0x10, 0x80632184);  // lwz  r3, 0x2184(r3)    ; should have r31 equal to the
                                           // object which is being modified
-  code_changes.emplace_back(
-      base_offset + 0x14,
-      0x7c03f800);  // cmpw r3, r31           ; if r31 is player camera control (in r3)
-  code_changes.emplace_back(base_offset + 0x18,
-                            0x4d820020);  // beqlr                  ; then DON'T store the value of
+  code_changes.emplace_back(base_offset + 0x14, 0x7c03f800);  // cmpw r3, r31           ; if r31 is player camera control (in r3)
+  code_changes.emplace_back(base_offset + 0x18, 0x4d820020);  // beqlr                  ; then DON'T store the value of
                                           // r6 into 0x78+(player camera control)
-  code_changes.emplace_back(base_offset + 0x1c,
-                            0x7fe3fb78);  // mr   r3, r31           ; otherwise do it
-  code_changes.emplace_back(base_offset + 0x20,
-                            0x90c30078);  // stw  r6, 0x78(r3)      ; this is the normal action
+  code_changes.emplace_back(base_offset + 0x1c, 0x7fe3fb78);  // mr   r3, r31           ; otherwise do it
+  code_changes.emplace_back(base_offset + 0x20, 0x90c30078);  // stw  r6, 0x78(r3)      ; this is the normal action
                                           // which was overwritten by a bl to this mini-function
-  code_changes.emplace_back(base_offset + 0x24,
-                            0x4e800020);  // blr                    ; LR wasn't changed, so we're
+  code_changes.emplace_back(base_offset + 0x24, 0x4e800020);  // blr                    ; LR wasn't changed, so we're
                                           // safe here (same case as beqlr)
 }
 
@@ -628,6 +621,11 @@ void MP3::run_mod()
   {
     PowerPC::HostWrite_U32(0, base_address + 0x174);
     return;
+  }
+
+  if (CheckSpringBallCtl())
+  {
+    PowerPC::HostWrite_F32(1, 0x80004164);
   }
 
   int dx = g_mouse_input->GetDeltaHorizontalAxis(), dy = g_mouse_input->GetDeltaVerticalAxis();
@@ -716,6 +714,7 @@ MP3NTSC::MP3NTSC()
   code_changes.emplace_back(0x80080d44, 0x60000000);
 
   control_state_hook(0x80005880, Region::NTSC);
+  prime::springball_code(0x8014C800, &code_changes);
 }
 
 void MP3NTSC::apply_mod_instructions()
@@ -788,6 +787,7 @@ MP3PAL::MP3PAL()
   code_changes.emplace_back(0x80080d44, 0x60000000);
 
   control_state_hook(0x80005880, Region::PAL);
+  prime::springball_code(0x8014C14C, &code_changes);
 }
 
 void MP3PAL::apply_mod_instructions()
@@ -832,5 +832,16 @@ void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes)
   code_changes->emplace_back(base_offset + 0x0c, 0x38A00000);  // li r5, 0
   code_changes->emplace_back(base_offset + 0x10, 0x98A40000);  // stb r5, 0(r4)
   code_changes->emplace_back(base_offset + 0x14, 0x2C030000);  // cmpwi r3, 0
+}
+
+void springball_check(u32 address)
+{
+  if (CheckSpringBallCtl())
+  {
+    u32 ball_state = PowerPC::HostRead_U32(address);
+
+    if (ball_state == 1 || ball_state == 2)
+      PowerPC::HostWrite_F32(1, 0x80004164);
+  }
 }
 }  // namespace prime

@@ -9,6 +9,7 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/ConfigManager.h"
 
 namespace prime
 {
@@ -25,6 +26,12 @@ bool isRunning = false;
 
 void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_device_source)
 {
+  if (!SConfig::GetInstance().bEnablePrimeHack)
+  {
+    isRunning = false;
+    return;
+  }
+
   if (isRunning) return; isRunning = true;
 
   // Create mods for all games/regions.
