@@ -82,6 +82,28 @@ private:
   ControllerEmu::Shake& m_shake_group;
 };
 
+class AccelerometerMappingIndicator : public MappingIndicator
+{
+public:
+  explicit AccelerometerMappingIndicator(ControllerEmu::IMUAccelerometer* group);
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  ControllerEmu::IMUAccelerometer& m_accel_group;
+};
+
+class GyroMappingIndicator : public MappingIndicator
+{
+public:
+  explicit GyroMappingIndicator(ControllerEmu::IMUGyroscope* group);
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  ControllerEmu::IMUGyroscope& m_gyro_group;
+  Common::Matrix33 m_state;
+  u32 m_stable_steps = 0;
+};
+
 class CalibrationWidget : public QToolButton
 {
 public:
