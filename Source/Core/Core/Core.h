@@ -110,4 +110,6 @@ void HostDispatchJobs();
 
 void DoFrameStep();
 
+void UpdateInputGate();
+
 }  // namespace Core

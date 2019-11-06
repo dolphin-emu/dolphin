@@ -57,8 +57,6 @@ public:
   void SetLogVisible(bool visible);
   bool IsLogConfigVisible() const;
   void SetLogConfigVisible(bool visible);
-  bool IsControllerStateNeeded() const;
-  void SetControllerStateNeeded(bool needed);
   void SetToolBarVisible(bool visible);
   bool IsToolBarVisible() const;
   void SetWidgetsLocked(bool visible);
@@ -179,7 +177,6 @@ signals:
 
 private:
   bool m_batch = false;
-  bool m_controller_state_needed = false;
   std::shared_ptr<NetPlay::NetPlayClient> m_client;
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
   Settings();

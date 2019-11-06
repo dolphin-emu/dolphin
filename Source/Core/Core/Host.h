@@ -32,7 +32,6 @@ enum class HostMessageID
   WMUserJobDispatch,
 };
 
-bool Host_UINeedsControllerState();
 bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererIsFullscreen();

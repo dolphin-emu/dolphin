@@ -388,16 +388,6 @@ bool Settings::IsBreakpointsVisible() const
   return GetQSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
 }
 
-bool Settings::IsControllerStateNeeded() const
-{
-  return m_controller_state_needed;
-}
-
-void Settings::SetControllerStateNeeded(bool needed)
-{
-  m_controller_state_needed = needed;
-}
-
 void Settings::SetCodeVisible(bool enabled)
 {
   if (IsCodeVisible() != enabled)

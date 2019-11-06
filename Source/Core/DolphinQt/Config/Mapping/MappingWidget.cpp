@@ -14,7 +14,6 @@
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -31,11 +30,8 @@ MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
 
   const auto timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, [this] {
-    // TODO: The SetControllerStateNeeded interface leaks input into the game.
     const auto lock = m_parent->GetController()->GetStateLock();
-    Settings::Instance().SetControllerStateNeeded(true);
     emit Update();
-    Settings::Instance().SetControllerStateNeeded(false);
   });
 
   timer->start(1000 / INDICATOR_UPDATE_FREQ);
