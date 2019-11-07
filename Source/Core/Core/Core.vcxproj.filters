@@ -935,6 +935,7 @@
     <ClCompile Include="HW\AddressSpace.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\ConditionRegister.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1666,9 +1667,6 @@
     <ClInclude Include="PowerPC\ConditionRegister.h" />
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Constants.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
