@@ -137,6 +137,17 @@ constexpr u16 MBIT_SIZE_MEMORY_CARD_507 = 0x20;
 constexpr u16 MBIT_SIZE_MEMORY_CARD_1019 = 0x40;
 constexpr u16 MBIT_SIZE_MEMORY_CARD_2043 = 0x80;
 
+// width and height of a save file's banner in pixels
+constexpr u32 MEMORY_CARD_BANNER_WIDTH = 96;
+constexpr u32 MEMORY_CARD_BANNER_HEIGHT = 32;
+
+// width and height of a save file's icon in pixels
+constexpr u32 MEMORY_CARD_ICON_WIDTH = 32;
+constexpr u32 MEMORY_CARD_ICON_HEIGHT = 32;
+
+// maximum number of frames a save file's icon animation can have
+constexpr u32 MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES = 8;
+
 class MemoryCardBase
 {
 public:

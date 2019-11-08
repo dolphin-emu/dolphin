@@ -30,11 +30,6 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-constexpr u32 BANNER_WIDTH = 96;
-constexpr u32 BANNER_HEIGHT = 32;
-constexpr u32 ICON_WIDTH = 32;
-constexpr u32 ICON_HEIGHT = 32;
-constexpr u32 ANIM_MAX_FRAMES = 8;
 constexpr float ROW_HEIGHT = 28;
 
 struct GCMemcardManager::IconAnimationData
@@ -472,13 +467,13 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u32> pxdata(BANNER_WIDTH * BANNER_HEIGHT);
+  std::vector<u32> pxdata(MEMORY_CARD_BANNER_WIDTH * MEMORY_CARD_BANNER_HEIGHT);
 
   QImage image;
   if (memcard->ReadBannerRGBA8(file_index, pxdata.data()))
   {
-    image = QImage(reinterpret_cast<u8*>(pxdata.data()), BANNER_WIDTH, BANNER_HEIGHT,
-                   QImage::Format_ARGB32);
+    image = QImage(reinterpret_cast<u8*>(pxdata.data()), MEMORY_CARD_BANNER_WIDTH,
+                   MEMORY_CARD_BANNER_HEIGHT, QImage::Format_ARGB32);
   }
 
   return QPixmap::fromImage(image);
@@ -488,8 +483,9 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u8> anim_delay(ANIM_MAX_FRAMES);
-  std::vector<u32> anim_data(ICON_WIDTH * ICON_HEIGHT * ANIM_MAX_FRAMES);
+  std::vector<u8> anim_delay(MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES);
+  std::vector<u32> anim_data(MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT *
+                             MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES);
 
   IconAnimationData frame_data;
 
@@ -499,11 +495,11 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
   if (num_frames > 0)
   {
     frame_data.m_frames.reserve(num_frames);
-    const u32 per_frame_offset = ICON_WIDTH * ICON_HEIGHT;
+    const u32 per_frame_offset = MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT;
     for (u32 f = 0; f < num_frames; ++f)
     {
-      QImage img(reinterpret_cast<u8*>(&anim_data[f * per_frame_offset]), ICON_WIDTH, ICON_HEIGHT,
-                 QImage::Format_ARGB32);
+      QImage img(reinterpret_cast<u8*>(&anim_data[f * per_frame_offset]), MEMORY_CARD_ICON_WIDTH,
+                 MEMORY_CARD_ICON_HEIGHT, QImage::Format_ARGB32);
       frame_data.m_frames.push_back(QPixmap::fromImage(img));
       for (int i = 0; i < anim_delay[f]; ++i)
       {
