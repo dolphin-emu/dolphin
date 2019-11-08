@@ -316,8 +316,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         state = State.PAUSED;
         Log.debug("[EmulationFragment] Pausing emulation.");
 
-        // Release the surface before pausing, since emulation has to be running for that.
-        NativeLibrary.SurfaceDestroyed();
         NativeLibrary.PauseEmulation();
       }
       else
@@ -381,19 +379,17 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         mSurface = null;
         Log.debug("[EmulationFragment] Surface destroyed.");
 
-        if (state == State.RUNNING)
+        if (state != State.STOPPED)
         {
-          NativeLibrary.SurfaceDestroyed();
-          state = State.PAUSED;
+          // In order to avoid dereferencing nullptr, we must not destroy the surface while booting
+          // the core, so wait here if necessary. An easy (but not 100% consistent) way to reach
+          // this method while the core is booting is by having landscape orientation lock enabled
+          // and starting emulation while the phone is in portrait mode, leading to the activity
+          // being recreated very soon after NativeLibrary.Run has been called.
+          NativeLibrary.WaitUntilDoneBooting();
         }
-        else if (state == State.PAUSED)
-        {
-          Log.warning("[EmulationFragment] Surface cleared while emulation paused.");
-        }
-        else
-        {
-          Log.warning("[EmulationFragment] Surface cleared while emulation stopped.");
-        }
+
+        NativeLibrary.SurfaceDestroyed();
       }
     }
 

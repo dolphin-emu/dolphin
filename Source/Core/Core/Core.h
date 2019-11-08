@@ -56,6 +56,7 @@ bool WantsDeterminism();
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state);
 State GetState();
+void WaitUntilDoneBooting();
 
 void SaveScreenShot(bool wait_for_completion = false);
 void SaveScreenShot(std::string_view name, bool wait_for_completion = false);

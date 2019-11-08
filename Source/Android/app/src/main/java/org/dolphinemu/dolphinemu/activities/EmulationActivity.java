@@ -235,10 +235,6 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
 
-    // Find the EmulationFragment
-    mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
-            .findFragmentById(R.id.frame_emulation_fragment);
-
     if (savedInstanceState == null)
     {
       // Get params we were passed
@@ -251,9 +247,7 @@ public final class EmulationActivity extends AppCompatActivity
     }
     else
     {
-      // Could have recreated the activity(rotate) before creating the fragment. If the fragment
-      // doesn't exist, treat this as a new start.
-      activityRecreated = mEmulationFragment != null;
+      activityRecreated = true;
       restoreState(savedInstanceState);
     }
 
@@ -311,9 +305,10 @@ public final class EmulationActivity extends AppCompatActivity
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
     }
 
-    if (!(mDeviceHasTouchScreen && lockLandscape &&
-            getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) &&
-            mEmulationFragment == null)
+    // Find or create the EmulationFragment
+    mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
+            .findFragmentById(R.id.frame_emulation_fragment);
+    if (mEmulationFragment == null)
     {
       mEmulationFragment = EmulationFragment.newInstance(mPaths);
       getSupportFragmentManager().beginTransaction()

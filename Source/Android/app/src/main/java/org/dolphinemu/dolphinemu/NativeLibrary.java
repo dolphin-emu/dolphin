@@ -400,6 +400,8 @@ public final class NativeLibrary
    */
   public static native void StopEmulation();
 
+  public static native void WaitUntilDoneBooting();
+
   /**
    * Returns true if emulation is running (or is paused).
    */
