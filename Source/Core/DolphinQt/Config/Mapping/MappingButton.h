@@ -18,7 +18,6 @@ class MappingButton : public ElidedButton
 public:
   MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator);
 
-  void Detect();
   bool IsInput() const;
 
 private:
@@ -27,6 +26,7 @@ private:
   void ConfigChanged();
   void AdvancedPressed();
 
+  void Clicked();
   void mouseReleaseEvent(QMouseEvent* event) override;
 
   MappingWidget* m_parent;
