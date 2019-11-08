@@ -6,7 +6,7 @@ The system requirements are similar to those listed below but neither Android no
 
 ## Downloads
 ### Windows
-Get the latest PrimeHackRelease.zip file from https://github.com/shiiion/Ishiiruka/releases
+Get the latest PrimeHackRelease.zip file from https://github.com/shiiion/dolphin/releases
 
 ### Linux
 [Downloads](https://software.opensuse.org/download.html?project=home%3AKAMiKAZOW%3AEmulators&package=primehack) are provided for various Linux distributions at [home:KAMiKAZOW:Emulators on openSUSE.org](https://build.opensuse.org/package/show/home:KAMiKAZOW:Emulators/primehack). Submit Requests to support additional distributions are accepted over there.
