@@ -75,6 +75,7 @@ public:
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
   void RefreshGameList();
+  void NotifyRefreshGameListComplete();
   void RefreshMetadata();
   void NotifyMetadataRefreshComplete();
   void ReloadTitleDB();
@@ -150,6 +151,7 @@ signals:
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
   void GameListRefreshRequested();
+  void GameListRefreshCompleted();
   void TitleDBReloadRequested();
   void MetadataRefreshRequested();
   void MetadataRefreshCompleted();
