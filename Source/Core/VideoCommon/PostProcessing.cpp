@@ -441,8 +441,8 @@ std::string PostProcessing::GetUniformBufferHeader() const
   ss << "  float4 resolution;\n";
   ss << "  float4 window_resolution;\n";
   ss << "  float4 src_rect;\n";
+  ss << "  int src_layer;\n";
   ss << "  uint time;\n";
-  ss << "  int layer;\n";
   for (u32 i = 0; i < 2; i++)
     ss << "  uint ubo_align_" << unused_counter++ << "_;\n";
   ss << "\n";
@@ -499,7 +499,18 @@ std::string PostProcessing::GetHeader() const
   else
   {
     ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
-    ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) in VertexData {\n";
+      ss << "  float3 v_tex0;\n";
+      ss << "};\n";
+    }
+    else
+    {
+      ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
+    }
+
     ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
   }
 
@@ -518,10 +529,10 @@ static float4 ocol0;
   }
 
   ss << R"(
-float4 Sample() { return texture(samp0, float3(v_tex0.xy, float(layer))); }
-float4 SampleLocation(float2 location) { return texture(samp0, float3(location, float(layer))); }
+float4 Sample() { return texture(samp0, v_tex0); }
+float4 SampleLocation(float2 location) { return texture(samp0, float3(location, float(v_tex0.z))); }
 float4 SampleLayer(int layer) { return texture(samp0, float3(v_tex0.xy, float(layer))); }
-#define SampleOffset(offset) textureOffset(samp0, float3(v_tex0.xy, float(layer)), offset)
+#define SampleOffset(offset) textureOffset(samp0, v_tex0, offset)
 
 float2 GetWindowResolution()
 {
@@ -541,6 +552,11 @@ float2 GetInvResolution()
 float2 GetCoordinates()
 {
   return v_tex0.xy;
+}
+
+float GetLayer()
+{
+  return v_tex0.z;
 }
 
 uint GetTime()
@@ -592,14 +608,24 @@ bool PostProcessing::CompileVertexShader()
   }
   else
   {
-    ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    {
+      ss << "VARYING_LOCATION(0) out VertexData {\n";
+      ss << "  float3 v_tex0;\n";
+      ss << "};\n";
+    }
+    else
+    {
+      ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
+    }
+
     ss << "#define id gl_VertexID\n";
     ss << "#define opos gl_Position\n";
     ss << "void main() {\n";
   }
   ss << "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n";
   ss << "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n";
-  ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), 0.0f);\n";
+  ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";
 
   if (g_ActiveConfig.backend_info.api_type == APIType::Vulkan)
     ss << "  opos.y = -opos.y;\n";
@@ -621,8 +647,8 @@ struct BuiltinUniforms
   float resolution[4];
   float window_resolution[4];
   float src_rect[4];
-  s32 time;
-  u32 layer;
+  s32 src_layer;
+  u32 time;
   u32 padding[2];
 };
 
@@ -646,8 +672,8 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
       {static_cast<float>(src.left) * rcp_src_width, static_cast<float>(src.top) * rcp_src_height,
        static_cast<float>(src.GetWidth()) * rcp_src_width,
        static_cast<float>(src.GetHeight()) * rcp_src_height},
-      static_cast<s32>(m_timer.GetTimeElapsed()),
-      static_cast<u32>(src_layer),
+      static_cast<s32>(src_layer),
+      static_cast<u32>(m_timer.GetTimeElapsed()),
   };
 
   u8* buf = m_uniform_staging_buffer.data();
@@ -716,9 +742,8 @@ bool PostProcessing::CompilePipeline()
 {
   AbstractPipelineConfig config = {};
   config.vertex_shader = m_vertex_shader.get();
-  config.geometry_shader = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ?
-                               g_shader_cache->GetTexcoordGeometryShader() :
-                               nullptr;
+  config.geometry_shader =
+      g_renderer->UseGeometryShaderForUI() ? g_shader_cache->GetTexcoordGeometryShader() : nullptr;
   config.pixel_shader = m_pixel_shader.get();
   config.rasterization_state = RenderState::GetNoCullRasterizationState(PrimitiveType::Triangles);
   config.depth_state = RenderState::GetNoDepthTestingDepthState();

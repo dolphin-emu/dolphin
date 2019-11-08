@@ -154,8 +154,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_texture_cache = std::make_unique<TextureCacheBase>();
   g_perf_query = std::make_unique<PerfQuery>();
-  if (!g_renderer->Initialize() || !g_vertex_manager->Initialize() ||
-      !g_shader_cache->Initialize() || !g_framebuffer_manager->Initialize() ||
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
       !g_texture_cache->Initialize())
   {
     Shutdown();
