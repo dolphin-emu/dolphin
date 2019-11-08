@@ -9,6 +9,10 @@ if(ENABLE_X11 AND X11_FOUND)
   target_sources(dolphin-nogui PRIVATE PlatformX11.cpp)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  target_sources(dolphin-nogui PRIVATE PlatformFBDev.cpp)
+endif()
+
 set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
 
 target_link_libraries(dolphin-nogui

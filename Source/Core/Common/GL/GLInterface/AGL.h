@@ -32,7 +32,7 @@ public:
   void SwapInterval(int interval) override;
 
 protected:
-  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
+  bool Initialize(const WindowSystemInfo& wsi, bool stereo, bool core) override;
 
   NSView* m_view = nullptr;
   NSOpenGLContext* m_context = nullptr;
