@@ -33,9 +33,6 @@ public:
 
   void SetCalibrationWidget(CalibrationWidget* widget);
 
-protected:
-  WiimoteEmu::MotionState m_motion_state{};
-
   QPen GetBBoxPen() const;
   QBrush GetBBoxBrush() const;
   QColor GetRawInputColor() const;
@@ -49,7 +46,10 @@ protected:
   QColor GetAltTextColor() const;
   QColor GetGateColor() const;
 
+protected:
   double GetScale() const;
+
+  WiimoteEmu::MotionState m_motion_state{};
 
 private:
   void DrawCursor(ControllerEmu::Cursor& cursor);
