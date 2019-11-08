@@ -50,6 +50,8 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &GeneralPane::OnEmulationStateChanged);
+
+  OnEmulationStateChanged(Core::GetState());
 }
 
 void GeneralPane::CreateLayout()

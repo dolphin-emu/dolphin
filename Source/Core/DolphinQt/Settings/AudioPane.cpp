@@ -37,6 +37,8 @@ AudioPane::AudioPane()
   connect(&Settings::Instance(), &Settings::VolumeChanged, this, &AudioPane::OnVolumeChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void AudioPane::CreateWidgets()
