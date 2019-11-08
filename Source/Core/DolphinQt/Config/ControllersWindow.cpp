@@ -377,13 +377,15 @@ void ControllersWindow::OnWiimoteRefreshPressed()
 
 void ControllersWindow::OnEmulationStateChanged(bool running)
 {
+  const bool passthrough = SConfig::GetInstance().m_bt_passthrough_enabled;
+
   if (!SConfig::GetInstance().bWii)
   {
-    m_wiimote_sync->setEnabled(!running);
-    m_wiimote_reset->setEnabled(!running);
+    m_wiimote_sync->setEnabled(!running && passthrough);
+    m_wiimote_reset->setEnabled(!running && passthrough);
 
     for (size_t i = 0; i < m_wiimote_groups.size(); i++)
-      m_wiimote_boxes[i]->setEnabled(!running);
+      m_wiimote_boxes[i]->setEnabled(!running && !passthrough);
   }
 
   m_wiimote_emu->setEnabled(!running);
@@ -391,9 +393,9 @@ void ControllersWindow::OnEmulationStateChanged(bool running)
 
   if (!SConfig::GetInstance().bWii)
   {
-    m_wiimote_real_balance_board->setEnabled(!running);
-    m_wiimote_continuous_scanning->setEnabled(!running);
-    m_wiimote_speaker_data->setEnabled(!running);
+    m_wiimote_real_balance_board->setEnabled(!running && !passthrough);
+    m_wiimote_continuous_scanning->setEnabled(!running && !passthrough);
+    m_wiimote_speaker_data->setEnabled(!running && !passthrough);
   }
 }
 
