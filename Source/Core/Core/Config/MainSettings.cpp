@@ -135,6 +135,9 @@ const ConfigInfo<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
 // Main.General
 
 const ConfigInfo<std::string> MAIN_DUMP_PATH{{System::Main, "General", "DumpPath"}, ""};
+const ConfigInfo<std::string> MAIN_LOAD_PATH{{System::Main, "General", "LoadPath"}, ""};
+const ConfigInfo<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "ResourcePackPath"},
+                                                     ""};
 const ConfigInfo<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const ConfigInfo<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 
