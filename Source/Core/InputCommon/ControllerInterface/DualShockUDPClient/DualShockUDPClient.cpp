@@ -108,7 +108,7 @@ private:
   int m_touch_y;
 };
 
-static constexpr double GRAVITY_ACCELERATION = 9.80665;
+using MathUtil::GRAVITY_ACCELERATION;
 static constexpr char DEFAULT_SERVER_ADDRESS[] = "127.0.0.1";
 static constexpr u16 DEFAULT_SERVER_PORT = 26760;
 static constexpr auto SERVER_REREGISTER_INTERVAL = std::chrono::seconds{1};
