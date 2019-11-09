@@ -44,6 +44,13 @@ bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 class GameFile final
 {
 public:
+  enum class Variant
+  {
+    LongAndPossiblyCustom,
+    LongAndNotCustom,
+    ShortAndNotCustom,
+  };
+
   GameFile();
   explicit GameFile(std::string path);
   ~GameFile();
@@ -52,8 +59,8 @@ public:
   const std::string& GetFilePath() const { return m_file_path; }
   const std::string& GetFileName() const { return m_file_name; }
   const std::string& GetName(const Core::TitleDatabase& title_database) const;
-  const std::string& GetName(bool long_name = true) const;
-  const std::string& GetMaker(bool long_maker = true) const;
+  const std::string& GetName(Variant variant) const;
+  const std::string& GetMaker(Variant variant) const;
   const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
   const std::string& GetShortName() const { return LookupUsingConfigLanguage(m_short_names); }
   const std::string& GetLongName(DiscIO::Language l) const { return Lookup(l, m_long_names); }
@@ -63,7 +70,7 @@ public:
   const std::string& GetLongMaker(DiscIO::Language l) const { return Lookup(l, m_long_makers); }
   const std::string& GetLongMaker() const { return LookupUsingConfigLanguage(m_long_makers); }
   const std::string& GetDescription(DiscIO::Language l) const { return Lookup(l, m_descriptions); }
-  const std::string& GetDescription() const { return LookupUsingConfigLanguage(m_descriptions); }
+  const std::string& GetDescription(Variant variant) const;
   std::vector<DiscIO::Language> GetLanguages() const;
   const std::string& GetInternalName() const { return m_internal_name; }
   const std::string& GetGameID() const { return m_game_id; }
@@ -85,6 +92,8 @@ public:
   const GameBanner& GetBannerImage() const;
   const GameCover& GetCoverImage() const;
   void DoState(PointerWrap& p);
+  bool XMLMetadataChanged();
+  void XMLMetadataCommit();
   bool WiiBannerChanged();
   void WiiBannerCommit();
   bool CustomBannerChanged();
@@ -102,6 +111,7 @@ private:
   const std::string&
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
   bool IsElfOrDol() const;
+  bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
@@ -134,6 +144,9 @@ private:
   u8 m_disc_number{};
   std::string m_apploader_date;
 
+  std::string m_custom_name;
+  std::string m_custom_description;
+  std::string m_custom_maker;
   GameBanner m_volume_banner{};
   GameBanner m_custom_banner{};
   GameCover m_default_cover{};
@@ -143,6 +156,9 @@ private:
   // of GameFiles in a threadsafe way. They should not be handled in DoState.
   struct
   {
+    std::string custom_name;
+    std::string custom_description;
+    std::string custom_maker;
     GameBanner volume_banner;
     GameBanner custom_banner;
     GameCover default_cover;

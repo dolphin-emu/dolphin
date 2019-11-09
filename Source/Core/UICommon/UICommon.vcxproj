@@ -48,6 +48,9 @@
     <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
       <Project>{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
+      <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AutoUpdate.cpp" />

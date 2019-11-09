@@ -32,6 +32,7 @@ PUBLIC
   common
   cpp-optparse
   minizip
+  pugixml
 
 PRIVATE
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
