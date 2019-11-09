@@ -4,12 +4,14 @@
 
 #include <Windows.h>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 #include <winternl.h>
 
 #include <fmt/format.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/LdrWatcher.h"
 #include "Common/StringUtil.h"
@@ -162,37 +164,26 @@ struct Version
   }
 };
 
-static bool GetModulePath(const wchar_t* name, std::wstring* path)
+static std::optional<std::wstring> GetModulePath(const wchar_t* name)
 {
   auto module = GetModuleHandleW(name);
   if (module == nullptr)
-    return false;
-  DWORD path_len = MAX_PATH;
-retry:
-  path->resize(path_len);
-  path_len = GetModuleFileNameW(module, const_cast<wchar_t*>(path->data()),
-                                static_cast<DWORD>(path->size()));
-  if (!path_len)
-    return false;
-  auto error = GetLastError();
-  if (error == ERROR_SUCCESS)
-    return true;
-  if (error == ERROR_INSUFFICIENT_BUFFER)
-    goto retry;
-  return false;
+    return std::nullopt;
+
+  return GetModuleName(module);
 }
 
 static bool GetModuleVersion(const wchar_t* name, Version* version)
 {
-  std::wstring path;
-  if (!GetModulePath(name, &path))
+  auto path = GetModulePath(name);
+  if (!path)
     return false;
   DWORD handle;
-  DWORD data_len = GetFileVersionInfoSizeW(path.c_str(), &handle);
+  DWORD data_len = GetFileVersionInfoSizeW(path->c_str(), &handle);
   if (!data_len)
     return false;
   std::vector<u8> block(data_len);
-  if (!GetFileVersionInfoW(path.c_str(), handle, data_len, block.data()))
+  if (!GetFileVersionInfoW(path->c_str(), handle, data_len, block.data()))
     return false;
   void* buf;
   UINT buf_len;
