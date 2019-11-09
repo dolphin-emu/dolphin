@@ -22,10 +22,12 @@
 #include <QTableWidget>
 #include <QTimer>
 
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -61,6 +63,8 @@ GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
   // individual frames of icon animations can stay on screen for 4, 8, or 12 frames at 60 FPS,
   // which means the fastest animation and common denominator is 15 FPS or 66 milliseconds per frame
   m_timer->start(1000 / 15);
+
+  LoadDefaultMemcards();
 
   // Make the dimensions more reasonable on startup
   resize(650, 500);
@@ -147,6 +151,22 @@ void GCMemcardManager::ConnectWidgets()
             [this, slot] { SetSlotFileInteractive(slot); });
     connect(m_slot_table[slot], &QTableWidget::itemSelectionChanged, this,
             &GCMemcardManager::UpdateActions);
+  }
+}
+
+void GCMemcardManager::LoadDefaultMemcards()
+{
+  for (int i = 0; i < SLOT_COUNT; i++)
+  {
+    if (Config::Get(i == 0 ? Config::MAIN_SLOT_A : Config::MAIN_SLOT_B) !=
+        ExpansionInterface::EXIDEVICE_MEMORYCARD)
+    {
+      continue;
+    }
+
+    const QString path = QString::fromStdString(
+        Config::Get(i == 0 ? Config::MAIN_MEMCARD_A_PATH : Config::MAIN_MEMCARD_B_PATH));
+    SetSlotFile(i, path);
   }
 }
 
