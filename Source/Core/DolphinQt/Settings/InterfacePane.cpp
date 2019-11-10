@@ -130,12 +130,12 @@ void InterfacePane::CreateUI()
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
-  m_label_userstyle = new QLabel(tr("User Style:"));
+  m_label_userstyle = new QLabel(tr("Color:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("(None)"), QString{});
+  m_combobox_userstyle->addItem(tr("Light"), QString{});
 
   for (const std::string& filename : userstyle_search_results)
   {

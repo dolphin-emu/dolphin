@@ -1,0 +1,11 @@
+﻿  add_scalar.c
+  fe.c
+  ge.c
+  keypair.c
+  key_exchange.c
+  sc.c
+  seed.c
+  sha512.c
+  sign.c
+  verify.c
+  ed25519.vcxproj -> D:\Git\Retro Nintendo Online\dolphin\Source\..\Build\x64\Release\ed25519\bin\ed25519.lib

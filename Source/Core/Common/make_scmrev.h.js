@@ -1,4 +1,6 @@
-var wshShell		= new ActiveXObject("WScript.Shell")
+//Line 94 is where to set the version
+
+var wshShell = new ActiveXObject("WScript.Shell")
 var oFS				= new ActiveXObject("Scripting.FileSystemObject");
 
 var outfile			= "./scmrev.h";
@@ -89,7 +91,7 @@ describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
-	"#define SCM_DESC_STR \"" + describe + "\"\n" +
+	"#define SCM_DESC_STR \"RNO - 11/10/19" + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + branch + "\"\n" +
 	"#define SCM_IS_MASTER " + isStable + "\n" +
 	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n" +
