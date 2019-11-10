@@ -223,8 +223,6 @@ void WiimoteLinux::IOWakeup()
 // zero = error
 int WiimoteLinux::IORead(u8* buf)
 {
-  // Block select for 1/2000th of a second
-
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(m_int_sock, &fds);
