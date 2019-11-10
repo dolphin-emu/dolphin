@@ -35,10 +35,10 @@ const std::string scm_branch_str = SCM_BRANCH_STR;
 const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
 
 #ifdef _WIN32
-const std::string netplay_dolphin_ver = SCM_DESC_STR " RNO";
+const std::string netplay_dolphin_ver = SCM_DESC_STR " Windows";
 #elif __APPLE__
-const std::string netplay_dolphin_ver = SCM_DESC_STR " RNO";
+const std::string netplay_dolphin_ver = SCM_DESC_STR " macOS";
 #else
-const std::string netplay_dolphin_ver = SCM_DESC_STR " RNO";
+const std::string netplay_dolphin_ver = SCM_DESC_STR " GNU-Linux";
 #endif
 }  // namespace Common
