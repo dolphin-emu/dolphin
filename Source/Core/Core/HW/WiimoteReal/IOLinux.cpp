@@ -6,7 +6,7 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
-#include <sys/select.h>
+#include <sys/poll.h>
 #include <unistd.h>
 
 #include "Common/CommonTypes.h"
@@ -223,20 +223,23 @@ void WiimoteLinux::IOWakeup()
 // zero = error
 int WiimoteLinux::IORead(u8* buf)
 {
-  // Block select for 1/2000th of a second
+  std::array<pollfd, 2> pollfds = {};
 
-  fd_set fds;
-  FD_ZERO(&fds);
-  FD_SET(m_int_sock, &fds);
-  FD_SET(m_wakeup_pipe_r, &fds);
+  auto& poll_wakeup = pollfds[0];
+  poll_wakeup.fd = m_wakeup_pipe_r;
+  poll_wakeup.events = POLLIN;
 
-  if (select(m_int_sock + 1, &fds, nullptr, nullptr, nullptr) == -1)
+  auto& poll_sock = pollfds[1];
+  poll_sock.fd = m_int_sock;
+  poll_sock.events = POLLIN;
+
+  if (poll(pollfds.data(), pollfds.size(), -1) == -1)
   {
-    ERROR_LOG(WIIMOTE, "Unable to select Wiimote %i input socket.", m_index + 1);
+    ERROR_LOG(WIIMOTE, "Unable to poll Wiimote %i input socket.", m_index + 1);
     return -1;
   }
 
-  if (FD_ISSET(m_wakeup_pipe_r, &fds))
+  if (poll_wakeup.revents & POLLIN)
   {
     char c;
     if (read(m_wakeup_pipe_r, &c, 1) != 1)
@@ -246,7 +249,7 @@ int WiimoteLinux::IORead(u8* buf)
     return -1;
   }
 
-  if (!FD_ISSET(m_int_sock, &fds))
+  if (!(poll_sock.revents & POLLIN))
     return -1;
 
   // Read the pending message into the buffer
