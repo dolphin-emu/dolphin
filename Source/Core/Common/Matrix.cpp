@@ -84,6 +84,23 @@ Matrix33 Matrix33::RotateZ(float rad)
   return mtx;
 }
 
+Matrix33 Matrix33::Rotate(float rad, const Vec3& axis)
+{
+  const float s = std::sin(rad);
+  const float c = std::cos(rad);
+  Matrix33 mtx;
+  mtx.data[0] = axis.x * axis.x * (1 - c) + c;
+  mtx.data[1] = axis.x * axis.y * (1 - c) - axis.z * s;
+  mtx.data[2] = axis.x * axis.z * (1 - c) + axis.y * s;
+  mtx.data[3] = axis.y * axis.x * (1 - c) + axis.z * s;
+  mtx.data[4] = axis.y * axis.y * (1 - c) + c;
+  mtx.data[5] = axis.y * axis.z * (1 - c) - axis.x * s;
+  mtx.data[6] = axis.z * axis.x * (1 - c) - axis.y * s;
+  mtx.data[7] = axis.z * axis.y * (1 - c) + axis.x * s;
+  mtx.data[8] = axis.z * axis.z * (1 - c) + c;
+  return mtx;
+}
+
 Matrix33 Matrix33::Scale(const Vec3& vec)
 {
   Matrix33 mtx = {};

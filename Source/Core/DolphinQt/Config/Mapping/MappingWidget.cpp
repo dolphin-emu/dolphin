@@ -67,6 +67,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
                               group->type == ControllerEmu::GroupType::Tilt ||
                               group->type == ControllerEmu::GroupType::MixedTriggers ||
                               group->type == ControllerEmu::GroupType::Force ||
+                              group->type == ControllerEmu::GroupType::IMUAccelerometer ||
+                              group->type == ControllerEmu::GroupType::IMUGyroscope ||
                               group->type == ControllerEmu::GroupType::Shake;
 
   const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
@@ -82,6 +84,15 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     {
     case ControllerEmu::GroupType::Shake:
       indicator = new ShakeMappingIndicator(static_cast<ControllerEmu::Shake*>(group));
+      break;
+
+    case ControllerEmu::GroupType::IMUAccelerometer:
+      indicator =
+          new AccelerometerMappingIndicator(static_cast<ControllerEmu::IMUAccelerometer*>(group));
+      break;
+
+    case ControllerEmu::GroupType::IMUGyroscope:
+      indicator = new GyroMappingIndicator(static_cast<ControllerEmu::IMUGyroscope*>(group));
       break;
 
     default:
