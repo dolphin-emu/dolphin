@@ -41,6 +41,5 @@ AbstractTextureFormat GetAbstractFormatForDXGIFormat(DXGI_FORMAT format);
 // This function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
-void SetDebugObjectName(IUnknown* resource, const char* format, ...);
-std::string GetDebugObjectName(IUnknown* resource);
+void SetDebugObjectName(IUnknown* resource, std::string_view name);
 }  // namespace D3DCommon

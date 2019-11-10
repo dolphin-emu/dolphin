@@ -268,53 +268,22 @@ AbstractTextureFormat GetAbstractFormatForDXGIFormat(DXGI_FORMAT format)
   }
 }
 
-void SetDebugObjectName(IUnknown* resource, const char* format, ...)
+void SetDebugObjectName(IUnknown* resource, std::string_view name)
 {
   if (!g_ActiveConfig.bEnableValidationLayer)
     return;
 
-  std::va_list ap;
-  va_start(ap, format);
-  std::string name = StringFromFormatV(format, ap);
-  va_end(ap);
-
   Microsoft::WRL::ComPtr<ID3D11DeviceChild> child11;
   Microsoft::WRL::ComPtr<ID3D12DeviceChild> child12;
-  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child11))))
+  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child11.GetAddressOf()))))
   {
     child11->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
-                            name.c_str());
+                            name.data());
   }
-  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child12))))
+  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child12.GetAddressOf()))))
   {
     child12->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
-                            name.c_str());
+                            name.data());
   }
-}
-
-std::string GetDebugObjectName(IUnknown* resource)
-{
-  if (!g_ActiveConfig.bEnableValidationLayer)
-    return {};
-
-  std::string name;
-  UINT size = 0;
-
-  Microsoft::WRL::ComPtr<ID3D11DeviceChild> child11;
-  Microsoft::WRL::ComPtr<ID3D12DeviceChild> child12;
-  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child11))))
-  {
-    child11->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);
-    name.resize(size);
-    child11->GetPrivateData(WKPDID_D3DDebugObjectName, &size, name.data());
-  }
-  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child12))))
-  {
-    child12->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);
-    name.resize(size);
-    child12->GetPrivateData(WKPDID_D3DDebugObjectName, &size, name.data());
-  }
-
-  return name;
 }
 }  // namespace D3DCommon
