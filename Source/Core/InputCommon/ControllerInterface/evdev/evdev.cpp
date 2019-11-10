@@ -75,11 +75,11 @@ public:
     int value = 0;
     libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
 
-    return ControlState(value - m_base) / m_range;
+    return (value - m_base) / m_range;
   }
 
 protected:
-  int m_range;
+  ControlState m_range;
   int m_base;
 };
 
