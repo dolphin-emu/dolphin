@@ -63,6 +63,8 @@ enum class InitializeMode
 
 // The Real Wii Remote sends report every ~5ms (200 Hz).
 constexpr int UPDATE_FREQ = 200;
+// Custom channel ID used in ControlChannel to indicate disconnects
+constexpr int DOLPHIN_DISCONNET_CONTROL_CHANNEL = 99;
 
 void Shutdown();
 void Initialize(InitializeMode init_mode);

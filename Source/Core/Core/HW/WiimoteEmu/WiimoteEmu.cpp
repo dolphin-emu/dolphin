@@ -572,7 +572,7 @@ void Wiimote::SendDataReport()
 void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
 {
   // Check for custom communication
-  if (99 == channel_id)
+  if (channel_id == ::Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL)
   {
     // Wii Remote disconnected.
     Reset();

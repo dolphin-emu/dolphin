@@ -218,7 +218,8 @@ void WiimoteDevice::EventConnectionAccepted()
 void WiimoteDevice::EventDisconnect()
 {
   // Send disconnect message to plugin
-  Wiimote::ControlChannel(m_connection_handle & 0xFF, 99, nullptr, 0);
+  Wiimote::ControlChannel(m_connection_handle & 0xFF, Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL,
+                          nullptr, 0);
 
   m_connection_state = ConnectionState::Inactive;
 
