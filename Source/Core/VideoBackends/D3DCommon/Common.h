@@ -8,6 +8,7 @@
 #include <dxgiformat.h>
 #include <string>
 #include <vector>
+#include <wrl/client.h>
 
 #include "Common/CommonTypes.h"
 
@@ -25,7 +26,7 @@ void UnloadLibraries();
 std::vector<std::string> GetAdapterNames();
 
 // Helper function which creates a DXGI factory.
-IDXGIFactory* CreateDXGIFactory(bool debug_device);
+Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device);
 
 // Globally-accessible D3DCompiler function.
 extern pD3DCompile d3d_compile;

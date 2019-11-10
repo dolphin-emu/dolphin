@@ -72,20 +72,20 @@ void UnloadLibraries()
   s_libraries_loaded = false;
 }
 
-IDXGIFactory* CreateDXGIFactory(bool debug_device)
+Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
 {
-  IDXGIFactory* factory;
+  Microsoft::WRL::ComPtr<IDXGIFactory> factory;
 
   // Use Win8.1 version if available.
   if (create_dxgi_factory2 &&
       SUCCEEDED(create_dxgi_factory2(debug_device ? DXGI_CREATE_FACTORY_DEBUG : 0,
-                                     IID_PPV_ARGS(&factory))))
+                                     IID_PPV_ARGS(factory.GetAddressOf()))))
   {
     return factory;
   }
 
   // Fallback to original version, without debug support.
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
     PanicAlert("CreateDXGIFactory() failed with HRESULT %08X", hr);
@@ -98,14 +98,14 @@ IDXGIFactory* CreateDXGIFactory(bool debug_device)
 std::vector<std::string> GetAdapterNames()
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
-  if (!SUCCEEDED(hr))
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
+  if (FAILED(hr))
     return {};
 
   std::vector<std::string> adapters;
-  IDXGIAdapter* adapter;
-  while (factory->EnumAdapters(static_cast<UINT>(adapters.size()), &adapter) !=
-         DXGI_ERROR_NOT_FOUND)
+  Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
+  while (factory->EnumAdapters(static_cast<UINT>(adapters.size()),
+                               adapter.ReleaseAndGetAddressOf()) != DXGI_ERROR_NOT_FOUND)
   {
     std::string name;
     DXGI_ADAPTER_DESC desc;
