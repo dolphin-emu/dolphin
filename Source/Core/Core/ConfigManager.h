@@ -173,6 +173,9 @@ struct SConfig
   bool bEnableCustomRTC;
   u32 m_customRTCValue;
 
+  // DPL2
+  bool ShouldUseDPL2Decoder() const;
+
   DiscIO::Region m_region;
 
   std::string m_strVideoBackend;
