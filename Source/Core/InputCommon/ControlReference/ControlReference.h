@@ -22,7 +22,9 @@
 class ControlReference
 {
 public:
-  static bool InputGateOn();
+  // Note: this is per thread.
+  static void SetInputGate(bool enable);
+  static bool GetInputGate();
 
   virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;

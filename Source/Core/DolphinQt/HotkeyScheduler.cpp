@@ -25,6 +25,7 @@
 
 #include "DolphinQt/Settings.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
@@ -142,7 +143,13 @@ void HotkeyScheduler::Run()
 
     if (Core::GetState() != Core::State::Stopping)
     {
+      // Obey window focus before checking hotkeys.
+      Core::UpdateInputGate();
+
       HotkeyManagerEmu::GetStatus();
+
+      // Everything else on the host thread (controller config dialog) should always get input.
+      ControlReference::SetInputGate(true);
 
       if (!Core::IsRunningAndStarted())
         continue;

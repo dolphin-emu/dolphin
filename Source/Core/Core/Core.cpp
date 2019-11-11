@@ -72,6 +72,7 @@
 #include "Core/MemoryWatcher.h"
 #endif
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -1043,6 +1044,13 @@ void DoFrameStep()
     // if not paused yet, pause immediately instead
     SetState(State::Paused);
   }
+}
+
+void UpdateInputGate()
+{
+  ControlReference::SetInputGate(
+      (SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus()) &&
+      !Host_UIBlocksControllerState());
 }
 
 }  // namespace Core

@@ -27,7 +27,6 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
-#include "DolphinQt/Settings.h"
 
 namespace
 {
@@ -589,9 +588,6 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
 
 void MappingIndicator::paintEvent(QPaintEvent*)
 {
-  // TODO: The SetControllerStateNeeded interface leaks input into the game.
-  Settings::Instance().SetControllerStateNeeded(true);
-
   switch (m_group->type)
   {
   case ControllerEmu::GroupType::Cursor:
@@ -610,8 +606,6 @@ void MappingIndicator::paintEvent(QPaintEvent*)
   default:
     break;
   }
-
-  Settings::Instance().SetControllerStateNeeded(false);
 }
 
 ShakeMappingIndicator::ShakeMappingIndicator(ControllerEmu::Shake* group)
@@ -621,9 +615,7 @@ ShakeMappingIndicator::ShakeMappingIndicator(ControllerEmu::Shake* group)
 
 void ShakeMappingIndicator::paintEvent(QPaintEvent*)
 {
-  Settings::Instance().SetControllerStateNeeded(true);
   DrawShake();
-  Settings::Instance().SetControllerStateNeeded(false);
 }
 
 void ShakeMappingIndicator::DrawShake()

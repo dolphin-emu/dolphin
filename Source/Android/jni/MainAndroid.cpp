@@ -124,11 +124,6 @@ void Host_RequestRenderWindowSize(int width, int height)
   jnicall.join();
 }
 
-bool Host_UINeedsControllerState()
-{
-  return true;
-}
-
 bool Host_RendererHasFocus()
 {
   return true;
