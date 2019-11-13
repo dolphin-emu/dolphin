@@ -30,8 +30,6 @@
 
 #include "SFML/Network.hpp"
 
-std::array<std::atomic<u32>, MAX_BBMOTES> g_wiimote_sources;
-
 namespace WiimoteReal
 {
 using namespace WiimoteCommon;
@@ -49,8 +47,48 @@ static std::mutex s_known_ids_mutex;
 
 std::mutex g_wiimotes_mutex;
 
+// Real wii remotes assigned to a particular slot.
 std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
+
+struct WiimotePoolEntry
+{
+  using Clock = std::chrono::steady_clock;
+
+  std::unique_ptr<Wiimote> wiimote;
+  Clock::time_point entry_time = Clock::now();
+
+  bool IsExpired() const
+  {
+    // Keep wii remotes in the pool for a bit before disconnecting them.
+    constexpr auto POOL_TIME = std::chrono::seconds{5};
+
+    return (Clock::now() - entry_time) > POOL_TIME;
+  }
+};
+
+// Connected wii remotes are placed here when no open slot is set to "Real".
+// They are then automatically disconnected after some time.
+std::vector<WiimotePoolEntry> g_wiimote_pool;
+
 WiimoteScanner g_wiimote_scanner;
+
+static void ProcessWiimotePool()
+{
+  std::lock_guard<std::mutex> wm_lk(g_wiimotes_mutex);
+
+  for (auto it = g_wiimote_pool.begin(); it != g_wiimote_pool.end();)
+  {
+    if (it->IsExpired())
+    {
+      INFO_LOG(WIIMOTE, "Removing expired wiimote pool entry.");
+      it = g_wiimote_pool.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+}
 
 Wiimote::Wiimote() = default;
 
@@ -478,7 +516,7 @@ static unsigned int CalculateWantedWiimotes()
   // Figure out how many real Wiimotes are required
   unsigned int wanted_wiimotes = 0;
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-    if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
+    if (WiimoteCommon::GetSource(i) == WiimoteSource::Real && !g_wiimotes[i])
       ++wanted_wiimotes;
 
   return wanted_wiimotes;
@@ -488,7 +526,7 @@ static unsigned int CalculateWantedBB()
 {
   std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   unsigned int wanted_bb = 0;
-  if (WIIMOTE_SRC_REAL & g_wiimote_sources[WIIMOTE_BALANCE_BOARD] &&
+  if (WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) == WiimoteSource::Real &&
       !g_wiimotes[WIIMOTE_BALANCE_BOARD])
     ++wanted_bb;
   return wanted_bb;
@@ -556,6 +594,8 @@ void WiimoteScanner::ThreadFunc()
   {
     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
 
+    ProcessWiimotePool();
+
     CheckForDisconnectedWiimotes();
 
     if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
@@ -619,9 +659,15 @@ bool Wiimote::Connect(int index)
 
   if (!m_run_thread.IsSet())
   {
+    m_run_thread.Set();
     StartThread();
     m_thread_ready_event.Wait();
   }
+  else
+  {
+    IOWakeup();
+  }
+
   return IsConnected();
 }
 
@@ -652,7 +698,6 @@ void Wiimote::ThreadFunc()
   }
 
   m_thread_ready_event.Set();
-  m_run_thread.Set();
 
   if (!ok)
   {
@@ -698,16 +743,16 @@ void LoadSettings()
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
     unsigned int source = 0;
-    sec.Get("Source", &source, i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
-    g_wiimote_sources[i] = source;
+    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Emulated));
+    WiimoteCommon::SetSource(i, WiimoteSource(source));
   }
 
   std::string secname("BalanceBoard");
   IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
   unsigned int bb_source = 0;
-  sec.Get("Source", &bb_source, WIIMOTE_SRC_NONE);
-  g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = bb_source;
+  sec.Get("Source", &bb_source, int(WiimoteSource::None));
+  WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, WiimoteSource(bb_source));
 }
 
 // config dialog calls this when some settings change
@@ -779,43 +824,10 @@ void Pause()
       wiimote->EmuPause();
 }
 
-void ChangeWiimoteSource(unsigned int index, int source)
-{
-  const int previous_source = g_wiimote_sources[index];
-
-  if (previous_source == source)
-  {
-    // No change. Do nothing.
-    return;
-  }
-
-  g_wiimote_sources[index] = source;
-
-  {
-    // Kill real wiimote connection (if any) (or swap to different slot)
-    std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
-    if (auto removed_wiimote = std::move(g_wiimotes[index]))
-    {
-      // See if we can use this real Wiimote in another slot.
-      // Otherwise it will be disconnected.
-      TryToConnectWiimote(std::move(removed_wiimote));
-    }
-  }
-
-  // Reconnect to the emulator.
-  Core::RunAsCPUThread([index, previous_source, source] {
-    if (previous_source != WIIMOTE_SRC_NONE)
-      ::Wiimote::Connect(index, false);
-
-    if (source == WIIMOTE_SRC_EMU)
-      ::Wiimote::Connect(index, true);
-  });
-}
-
 // Called from the Wiimote scanner thread (or UI thread on source change)
 static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int i)
 {
-  if (WIIMOTE_SRC_REAL != g_wiimote_sources[i] || g_wiimotes[i])
+  if (WiimoteCommon::GetSource(i) != WiimoteSource::Real || g_wiimotes[i])
     return false;
 
   if (!wm->Connect(i))
@@ -840,7 +852,12 @@ static void TryToConnectWiimote(std::unique_ptr<Wiimote> wm)
       return;
   }
 
-  NOTICE_LOG(WIIMOTE, "No open slot for real wiimote.");
+  INFO_LOG(WIIMOTE, "No open slot for real wiimote, adding it to the pool.");
+  wm->Connect(0);
+  // Turn on LED 1 and 4 to make it apparant this remote is in the pool.
+  const u8 led_value = u8(LED::LED_1) | u8(LED::LED_4);
+  wm->QueueReport(OutputReportID::LED, &led_value, 1);
+  g_wiimote_pool.emplace_back(WiimotePoolEntry{std::move(wm)});
 }
 
 static void TryToConnectBalanceBoard(std::unique_ptr<Wiimote> wm)
@@ -927,4 +944,27 @@ bool IsNewWiimote(const std::string& identifier)
   return s_known_ids.count(identifier) == 0;
 }
 
+void HandleWiimoteSourceChange(unsigned int index)
+{
+  std::lock_guard<std::mutex> wm_lk(g_wiimotes_mutex);
+
+  if (WiimoteCommon::GetSource(index) != WiimoteSource::Real)
+  {
+    if (auto removed_wiimote = std::move(g_wiimotes[index]))
+    {
+      removed_wiimote->EmuStop();
+      // Try to use this removed wiimote in another slot.
+      TryToConnectWiimote(std::move(removed_wiimote));
+    }
+  }
+  else if (WiimoteCommon::GetSource(index) == WiimoteSource::Real)
+  {
+    // Try to fill this slot from the pool.
+    if (!g_wiimote_pool.empty())
+    {
+      if (TryToConnectWiimoteToSlot(g_wiimote_pool.front().wiimote, index))
+        g_wiimote_pool.erase(g_wiimote_pool.begin());
+    }
+  }
+}
 };  // namespace WiimoteReal

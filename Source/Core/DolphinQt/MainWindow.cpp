@@ -115,6 +115,8 @@
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "UICommon/X11Utils.h"
+// This #define within X11/X.h conflicts with our WiimoteSource enum.
+#undef None
 #endif
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -1593,7 +1595,7 @@ void MainWindow::OnStartRecording()
     if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
 
-    if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
       controllers |= (1 << (i + 4));
   }
 
@@ -1660,7 +1662,7 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
+    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();

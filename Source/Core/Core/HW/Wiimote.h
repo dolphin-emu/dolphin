@@ -44,14 +44,18 @@ enum
 
 #define WIIMOTE_INI_NAME "WiimoteNew"
 
-enum
+enum class WiimoteSource
 {
-  WIIMOTE_SRC_NONE = 0,
-  WIIMOTE_SRC_EMU = 1,
-  WIIMOTE_SRC_REAL = 2,
+  None = 0,
+  Emulated = 1,
+  Real = 2,
 };
 
-extern std::array<std::atomic<u32>, MAX_BBMOTES> g_wiimote_sources;
+namespace WiimoteCommon
+{
+WiimoteSource GetSource(unsigned int index);
+void SetSource(unsigned int index, WiimoteSource source);
+}  // namespace WiimoteCommon
 
 namespace Wiimote
 {
@@ -74,7 +78,6 @@ void LoadConfig();
 void Resume();
 void Pause();
 
-unsigned int GetAttached();
 void DoState(PointerWrap& p);
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group);
@@ -105,4 +108,5 @@ void Pause();
 void Refresh();
 
 void LoadSettings();
+
 }  // namespace WiimoteReal

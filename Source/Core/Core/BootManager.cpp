@@ -98,7 +98,7 @@ private:
   std::string strBackend;
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
-  std::array<int, MAX_BBMOTES> iWiimoteSource;
+  std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource;
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
   std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
 };
@@ -133,7 +133,9 @@ void ConfigCache::SaveConfig(const SConfig& config)
   m_OCEnable = config.m_OCEnable;
   m_bt_passthrough_enabled = config.m_bt_passthrough_enabled;
 
-  std::copy(std::begin(g_wiimote_sources), std::end(g_wiimote_sources), std::begin(iWiimoteSource));
+  for (int i = 0; i != MAX_BBMOTES; ++i)
+    iWiimoteSource[i] = WiimoteCommon::GetSource(i);
+
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
   std::copy(std::begin(config.m_EXIDevice), std::end(config.m_EXIDevice), std::begin(m_EXIDevice));
 
@@ -180,10 +182,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
     for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
     {
       if (bSetWiimoteSource[i])
-      {
-        g_wiimote_sources[i] = iWiimoteSource[i];
-        WiimoteReal::ChangeWiimoteSource(i, iWiimoteSource[i]);
-      }
+        WiimoteCommon::SetSource(i, iWiimoteSource[i]);
     }
   }
 
@@ -304,21 +303,22 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
         controls_section->Get(fmt::format("WiimoteSource{}", i), &source, -1);
-        if (source != -1 && g_wiimote_sources[i] != (unsigned)source &&
-            source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_REAL)
+        if (source != -1 && WiimoteCommon::GetSource(i) != WiimoteSource(source) &&
+            WiimoteSource(source) >= WiimoteSource::None &&
+            WiimoteSource(source) <= WiimoteSource::Real)
         {
           config_cache.bSetWiimoteSource[i] = true;
-          g_wiimote_sources[i] = source;
-          WiimoteReal::ChangeWiimoteSource(i, source);
+          WiimoteCommon::SetSource(i, WiimoteSource(source));
         }
       }
       controls_section->Get("WiimoteSourceBB", &source, -1);
-      if (source != -1 && g_wiimote_sources[WIIMOTE_BALANCE_BOARD] != (unsigned)source &&
-          (source == WIIMOTE_SRC_NONE || source == WIIMOTE_SRC_REAL))
+      if (source != -1 &&
+          WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) != WiimoteSource(source) &&
+          (WiimoteSource(source) == WiimoteSource::None ||
+           WiimoteSource(source) == WiimoteSource::Real))
       {
         config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
-        g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
-        WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, source);
+        WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, WiimoteSource(source));
       }
     }
   }
