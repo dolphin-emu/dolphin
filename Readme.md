@@ -20,5 +20,9 @@ Windows:
 Linux:
 TBA
 
+
+##### Version
+
+Version updating is changed inside of the [make-scmrev](Source/Core/Common/make_scmrev.h.js) file
 ### License
 Dolphin RNO is licensed under the [GNU General Public License v2.0](license.txt)
