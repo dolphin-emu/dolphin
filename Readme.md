@@ -1,4 +1,4 @@
-# Dolphin RNO
+# Dolphin RNO test
 
 Dolphin RNO is an emulator for running GameCube and Wii games on Windows and Linux 
 
