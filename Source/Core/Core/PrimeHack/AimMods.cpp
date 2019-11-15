@@ -164,25 +164,16 @@ static void handle_cursor(u32 x_address, u32 y_address, float right_bound, float
 // by the mod.
 void MP1::beam_change_code(uint32_t base_offset)
 {
-  code_changes.emplace_back(
-      base_offset + 0x00,
-      0x3c80804a);  // lis    r4, 0x804a      ; set r4 to beam change base address
-  code_changes.emplace_back(base_offset + 0x04,
-                            0x388479f0);  // addi   r4, r4, 0x79f0  ; (0x804a79f0)
+  code_changes.emplace_back(base_offset + 0x00, 0x3c80804a);  // lis    r4, 0x804a      ; set r4 to beam change base address
+  code_changes.emplace_back(base_offset + 0x04, 0x388479f0);  // addi   r4, r4, 0x79f0  ; (0x804a79f0)
   code_changes.emplace_back(base_offset + 0x08, 0x80640000);  // lwz    r3, 0(r4)       ; grab flag
-  code_changes.emplace_back(base_offset + 0x0c,
-                            0x2c030000);  // cmpwi  r3, 0           ; check if beam should change
-  code_changes.emplace_back(base_offset + 0x10,
-                            0x41820058);  // beq    0x58            ; don't attempt beam change if 0
-  code_changes.emplace_back(
-      base_offset + 0x14,
-      0x83440004);  // lwz    r26, 4(r4)      ; get expected beam (r25, r26 used to assign beam)
-  code_changes.emplace_back(
-      base_offset + 0x18, 0x7f59d378);  // mr     r25, r26        ; copy expected beam to other reg
+  code_changes.emplace_back(base_offset + 0x0c, 0x2c030000);  // cmpwi  r3, 0           ; check if beam should change
+  code_changes.emplace_back(base_offset + 0x10, 0x41820058);  // beq    0x58            ; don't attempt beam change if 0
+  code_changes.emplace_back(base_offset + 0x14, 0x83440004);  // lwz    r26, 4(r4)      ; get expected beam (r25, r26 used to assign beam)
+  code_changes.emplace_back(base_offset + 0x18, 0x7f59d378);  // mr     r25, r26        ; copy expected beam to other reg
   code_changes.emplace_back(base_offset + 0x1c, 0x38600000);  // li     r3, 0           ; reset flag
   code_changes.emplace_back(base_offset + 0x20, 0x90640000);  // stw    r3, 0(r4)       ;
-  code_changes.emplace_back(base_offset + 0x24,
-                            0x48000044);  // b      0x44            ; jump forward to beam assign
+  code_changes.emplace_back(base_offset + 0x24, 0x48000044);  // b      0x44            ; jump forward to beam assign
 }
 
 void MP1::run_mod()
@@ -828,7 +819,6 @@ void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes)
   code_changes->emplace_back(base_offset + 0x14, 0x2C030000);  // cmpwi r3, 0
 }
 
-#pragma optimize("", off)
 void springball_check(u32 address)
 {
   if (CheckSpringBallCtl())
@@ -839,5 +829,4 @@ void springball_check(u32 address)
       PowerPC::HostWrite_F32(1, 0x80004164);
   }
 }
-#pragma optimize("", on)
 }  // namespace prime
