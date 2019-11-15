@@ -1,27 +1,22 @@
 package org.dolphinemu.dolphinemu.adapters;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Rect;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameSettingsDialog;
-import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 

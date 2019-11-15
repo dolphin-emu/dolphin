@@ -80,15 +80,15 @@ ext {
 }
 
 dependencies {
-    implementation "com.android.support:support-v13:$androidSupportVersion"
-    implementation "com.android.support:exifinterface:$androidSupportVersion"
-    implementation "com.android.support:cardview-v7:$androidSupportVersion"
-    implementation "com.android.support:recyclerview-v7:$androidSupportVersion"
-    implementation "com.android.support:design:$androidSupportVersion"
+    implementation 'androidx.legacy:legacy-support-v13:1.0.0'
+    implementation 'androidx.exifinterface:exifinterface:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 
     // Android TV UI libraries.
-    implementation "com.android.support:leanback-v17:$androidSupportVersion"
-    implementation "com.android.support:support-tv-provider:$androidSupportVersion"
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
     // For REST calls
     implementation 'com.android.volley:volley:1.1.0'
