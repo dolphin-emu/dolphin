@@ -826,7 +826,7 @@ void springball_check(u32 address)
     u32 ball_state = PowerPC::HostRead_U32(address);
 
     if (ball_state == 1 || ball_state == 2)
-      PowerPC::HostWrite_F32(1, 0x80004164);
+      PowerPC::HostWrite_U8(1, 0x80004164);
   }
 }
 }  // namespace prime
