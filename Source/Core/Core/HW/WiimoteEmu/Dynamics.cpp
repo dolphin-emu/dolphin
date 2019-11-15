@@ -325,6 +325,12 @@ void EmulateIMUCursor(std::optional<RotationalState>* state, ControllerEmu::IMUC
   // Avoid having to double dereference
   auto& st = *state;
 
+  if (!imu_ir_group->enabled)
+  {
+    st = std::nullopt;
+    return;
+  }
+
   auto accel = imu_accelerometer_group->GetState();
   auto ang_vel = imu_gyroscope_group->GetState();
 
