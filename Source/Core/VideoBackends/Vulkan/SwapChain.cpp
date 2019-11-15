@@ -131,8 +131,16 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
     VkIOSSurfaceCreateInfoMVK surface_create_info = {
         VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_surface};
 
-    VkSurfaceKHR surface;
-    VkResult res = vkCreateIOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+    __block VkSurfaceKHR surface;
+    __block VkResult res;
+    
+    // This needs to be done on the UI thread since vkCreateIOSSurfaceMVK calls [UIView layer],
+    // otherwise we get a really long stall on boot
+    dispatch_sync(dispatch_get_main_queue(), ^
+    {
+      res = vkCreateIOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+    });
+    
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateIOSSurfaceMVK failed: ");
