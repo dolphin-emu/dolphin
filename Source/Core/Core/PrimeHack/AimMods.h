@@ -27,6 +27,7 @@ namespace prime {
     virtual uint32_t beamchange_flag_address() const = 0;
     virtual uint32_t visor_base_address() const = 0;
     virtual uint32_t camera_pointer_address() const = 0;
+    virtual uint32_t ball_check_address() const = 0;
     virtual uint32_t active_camera_offset_address() const = 0;
     virtual uint32_t global_fov1() const = 0;
     virtual uint32_t global_fov2() const = 0;

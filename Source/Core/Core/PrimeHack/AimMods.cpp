@@ -215,10 +215,7 @@ void MP1::run_mod()
 
   PowerPC::HostRead_U32(camera_pointer_address());
   
-  if (CheckSpringBallCtl())
-  {
-    PowerPC::HostWrite_F32(1, 0x80004164);
-  }
+  springball_check(ball_check_address());
 
   int visor_id, visor_off;
   std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors);
@@ -297,7 +294,7 @@ uint32_t MP1NTSC::camera_pointer_address() const
 }
 uint32_t MP1NTSC::ball_check_address() const
 {
-  return 0x804d7de8;
+  return 0x804D3F10;
 }
 uint32_t MP1NTSC::active_camera_offset_address() const
 {
@@ -363,7 +360,7 @@ uint32_t MP1PAL::camera_pointer_address() const
 }
 uint32_t MP1PAL::ball_check_address() const
 {
-  return 0x804d7de8;
+  return 0x804D7E50;
 }
 uint32_t MP1PAL::active_camera_offset_address() const
 {
@@ -475,7 +472,7 @@ uint32_t MP2NTSC::load_state_address() const
 }
 uint32_t MP2NTSC::camera_ctl_address() const
 {
-  return 0x804e87dc;
+  return 0x804e87dc; //0x1a8
 }
 uint32_t MP2NTSC::lockon_address() const
 {
@@ -623,10 +620,7 @@ void MP3::run_mod()
     return;
   }
 
-  if (CheckSpringBallCtl())
-  {
-    PowerPC::HostWrite_F32(1, 0x80004164);
-  }
+  springball_check(base_address + 0xE884);
 
   int dx = g_mouse_input->GetDeltaHorizontalAxis(), dy = g_mouse_input->GetDeltaVerticalAxis();
   const float compensated_sens = GetSensitivity() * TURNRATE_RATIO / 60.0f;
@@ -668,7 +662,7 @@ void MP3::run_mod()
 
 uint32_t MP3NTSC::camera_ctl_address() const
 {
-  return 0x805c6c6c;
+  return 0x805c6c6c; // camera_ctl_address()) + 0x04) + 0x2184
 }
 uint32_t MP3NTSC::grapple_hook_address() const
 {
@@ -714,7 +708,7 @@ MP3NTSC::MP3NTSC()
   code_changes.emplace_back(0x80080d44, 0x60000000);
 
   control_state_hook(0x80005880, Region::NTSC);
-  prime::springball_code(0x8014C800, &code_changes);
+  prime::springball_code(0x801077D4, &code_changes);
 }
 
 void MP3NTSC::apply_mod_instructions()
@@ -787,7 +781,7 @@ MP3PAL::MP3PAL()
   code_changes.emplace_back(0x80080d44, 0x60000000);
 
   control_state_hook(0x80005880, Region::PAL);
-  prime::springball_code(0x8014C14C, &code_changes);
+  prime::springball_code(0x80107120, &code_changes);
 }
 
 void MP3PAL::apply_mod_instructions()
@@ -834,6 +828,7 @@ void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes)
   code_changes->emplace_back(base_offset + 0x14, 0x2C030000);  // cmpwi r3, 0
 }
 
+#pragma optimize("", off)
 void springball_check(u32 address)
 {
   if (CheckSpringBallCtl())
@@ -844,4 +839,5 @@ void springball_check(u32 address)
       PowerPC::HostWrite_F32(1, 0x80004164);
   }
 }
+#pragma optimize("", on)
 }  // namespace prime
