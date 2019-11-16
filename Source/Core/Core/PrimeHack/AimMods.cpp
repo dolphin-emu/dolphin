@@ -87,7 +87,6 @@ static std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4>
   return std::make_tuple(-1, 0);
 }
 
-#pragma optimize("", off)
 static int get_beam_switch(std::array<int, 4> const& beams)
 {
   static bool pressing_button = false;
@@ -155,7 +154,6 @@ static int get_beam_switch(std::array<int, 4> const& beams)
   }
   return -1;
 }
-#pragma optimize("", on)
 
 static inline bool mem_check(u32 address)
 {
