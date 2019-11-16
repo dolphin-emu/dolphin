@@ -10,11 +10,12 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -76,7 +77,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
 {
   if (func.name.empty())
-    func.Rename(StringFromFormat("zz_%08x_", startAddr));
+    func.Rename(fmt::format("zz_{:08x}_", startAddr));
   if (func.analyzed)
     return true;  // No error, just already did it.
 

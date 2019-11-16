@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -147,7 +149,7 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 {
   const std::string root_name =
-      File::GetUserPath(D_DUMPDSP_IDX) + StringFromFormat("DSP_UC_%08X", crc);
+      File::GetUserPath(D_DUMPDSP_IDX) + fmt::format("DSP_UC_{:08X}", crc);
   const std::string binary_file = root_name + ".bin";
   const std::string text_file = root_name + ".txt";
 

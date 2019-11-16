@@ -9,6 +9,8 @@
 #include <cinttypes>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
@@ -117,18 +119,16 @@ static int startTrace = 0;
 static void Trace(UGeckoInstruction& inst)
 {
   std::string regs;
-  for (int i = 0; i < 32; i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
   {
-    regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+    regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
   }
 
   std::string fregs;
-  for (int i = 0; i < 32; i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
   {
     const auto& ps = PowerPC::ppcState.ps[i];
-
-    fregs +=
-        StringFromFormat("f%02d: %08" PRIx64 " %08" PRIx64 " ", i, ps.PS0AsU64(), ps.PS1AsU64());
+    fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
   }
 
   const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);

@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -19,7 +21,6 @@
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -163,8 +164,8 @@ static void DoState(PointerWrap& p)
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
   {
-    OSD::AddMessage(StringFromFormat("Cannot load a savestate created under %s mode in %s mode",
-                                     is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
+    OSD::AddMessage(fmt::format("Cannot load a savestate created under {} mode in {} mode",
+                                is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
                     OSD::Duration::NORMAL, OSD::Color::RED);
     p.SetMode(PointerWrap::MODE_MEASURE);
     return;
@@ -382,7 +383,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
     f.WriteBytes(buffer_data, buffer_size);
   }
 
-  Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
+  Core::DisplayMessage(fmt::format("Saved State to {}", filename), 2000);
   Host_UpdateMainFrame();
 }
 
@@ -477,8 +478,9 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
-    Core::DisplayMessage(
-        StringFromFormat("State belongs to a different game (ID %.*s)", 6, header.gameID), 2000);
+    Core::DisplayMessage(fmt::format("State belongs to a different game (ID {})",
+                                     std::string_view{header.gameID, std::size(header.gameID)}),
+                         2000);
     return;
   }
 
@@ -578,7 +580,7 @@ void LoadAs(const std::string& filename)
         {
           if (loadedSuccessfully)
           {
-            Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
+            Core::DisplayMessage(fmt::format("Loaded state from {}", filename), 2000);
             if (File::Exists(filename + ".dtm"))
               Movie::LoadInput(filename + ".dtm");
             else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
@@ -633,8 +635,8 @@ void Shutdown()
 
 static std::string MakeStateFilename(int number)
 {
-  return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-                          SConfig::GetInstance().GetGameID().c_str(), number);
+  return fmt::format("{}{}.s{:02d}", File::GetUserPath(D_STATESAVES_IDX),
+                     SConfig::GetInstance().GetGameID(), number);
 }
 
 void Save(int slot, bool wait)

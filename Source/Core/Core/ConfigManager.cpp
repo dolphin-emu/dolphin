@@ -11,6 +11,8 @@
 #include <sstream>
 #include <variant>
 
+#include <fmt/format.h>
+
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Assert.h"
@@ -117,13 +119,13 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   general->Get("ISOPaths", &oldPaths, 0);
   for (int i = numPaths; i < oldPaths; i++)
   {
-    ini.DeleteKey("General", StringFromFormat("ISOPath%i", i));
+    ini.DeleteKey("General", fmt::format("ISOPath{}", i));
   }
 
   general->Set("ISOPaths", numPaths);
   for (int i = 0; i < numPaths; i++)
   {
-    general->Set(StringFromFormat("ISOPath%i", i), m_ISOFolder[i]);
+    general->Set(fmt::format("ISOPath{}", i), m_ISOFolder[i]);
   }
 
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
@@ -224,9 +226,9 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("BBA_MAC", m_bba_mac);
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
-    core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
-    core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
+    core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
+    core->Set(fmt::format("AdapterRumble{}", i), m_AdapterRumble[i]);
+    core->Set(fmt::format("SimulateKonga{}", i), m_AdapterKonga[i]);
   }
   core->Set("WiiSDCard", m_WiiSDCard);
   core->Set("WiiKeyboard", m_WiiKeyboard);
@@ -323,7 +325,7 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
 
   std::ostringstream oss;
   for (const auto& device : m_usb_passthrough_devices)
-    oss << StringFromFormat("%04x:%04x", device.first, device.second) << ',';
+    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
   std::string devices_string = oss.str();
   if (!devices_string.empty())
     devices_string.pop_back();
@@ -399,7 +401,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
     for (int i = 0; i < numISOPaths; i++)
     {
       std::string tmpPath;
-      general->Get(StringFromFormat("ISOPath%i", i), &tmpPath, "");
+      general->Get(fmt::format("ISOPath{}", i), &tmpPath, "");
       m_ISOFolder.push_back(std::move(tmpPath));
     }
   }
@@ -496,12 +498,12 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("BBA_MAC", &m_bba_mac);
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  for (size_t i = 0; i < std::size(m_SIDevice); ++i)
   {
-    core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i],
+    core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
               (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
-    core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
-    core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
+    core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
+    core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
   }
   core->Get("WiiSDCard", &m_WiiSDCard, false);
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);
@@ -702,7 +704,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   else if (title_id != 0)
   {
     m_debugger_game_id =
-        StringFromFormat("%08X_%08X", static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+        fmt::format("{:08X}_{:08X}", static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
   }
   else
   {

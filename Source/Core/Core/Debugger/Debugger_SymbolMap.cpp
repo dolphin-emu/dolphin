@@ -8,12 +8,13 @@
 #include <functional>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -81,8 +82,7 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   }
 
   CallstackEntry entry;
-  entry.Name =
-      StringFromFormat(" * %s [ LR = %08x ]\n", g_symbolDB.GetDescription(LR).c_str(), LR - 4);
+  entry.Name = fmt::format(" * {} [ LR = {:08x} ]\n", g_symbolDB.GetDescription(LR), LR - 4);
   entry.vAddress = LR - 4;
   output.push_back(entry);
 
@@ -90,7 +90,7 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
     std::string func_desc = g_symbolDB.GetDescription(func_addr);
     if (func_desc.empty() || func_desc == "Invalid")
       func_desc = "(unknown)";
-    entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", func_desc.c_str(), func_addr - 4);
+    entry.Name = fmt::format(" * {} [ addr = {:08x} ]\n", func_desc, func_addr - 4);
     entry.vAddress = func_addr - 4;
     output.push_back(entry);
   });
@@ -150,7 +150,7 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size, const
     std::string hex_line;
     for (int i = 0; i < 16; i++)
     {
-      hex_line += StringFromFormat("%02x ", data[j++]);
+      hex_line += fmt::format("{:02x} ", data[j++]);
 
       if (j >= size)
         break;

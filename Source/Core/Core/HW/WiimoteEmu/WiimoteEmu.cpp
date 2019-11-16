@@ -8,8 +8,8 @@
 #include <cassert>
 #include <memory>
 
-#include "Common/BitUtils.h"
-#include "Common/ChunkFile.h"
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
@@ -245,7 +245,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
 std::string Wiimote::GetName() const
 {
-  return StringFromFormat("Wiimote%d", 1 + m_index);
+  return fmt::format("Wiimote{}", 1 + m_index);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
