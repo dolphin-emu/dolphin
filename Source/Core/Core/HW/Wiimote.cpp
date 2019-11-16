@@ -231,6 +231,13 @@ bool CheckSpringBall()
   return wiimote->CheckSpringBallCtrl();
 }
 
+bool CheckBeamScroll(bool direction)
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckBeamScrollCtrl(direction);
+}
+
 std::tuple<double, double, double, bool, bool> PrimeSettings()
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));

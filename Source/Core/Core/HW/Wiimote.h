@@ -90,6 +90,7 @@ ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGrou
 
 bool CheckVisor(int visor_count);
 bool CheckBeam(int beam_count);
+bool CheckBeamScroll(bool direction);
 bool CheckSpringBall();
 
 std::tuple<double, double, double, bool, bool> PrimeSettings();

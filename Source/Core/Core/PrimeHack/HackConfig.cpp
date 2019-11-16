@@ -68,6 +68,12 @@ bool CheckVisorCtl(int visor_num)
   return Wiimote::CheckVisor(visor_num);
 }
 
+bool CheckBeamScrollCtl(bool direction)
+{
+  return Wiimote::CheckBeamScroll(direction);
+}
+
+
 bool CheckSpringBallCtl()
 {
   return Wiimote::CheckSpringBall();

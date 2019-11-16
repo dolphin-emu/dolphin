@@ -24,6 +24,7 @@ constexpr float TURNRATE_RATIO = 0.00498665500569808449206349206349f;
  */
 static std::array<int, 4> prime_one_beams = {0, 2, 1, 3};
 static std::array<int, 4> prime_two_beams = {0, 1, 2, 3};
+int currentbeam = -1;
 
 // it can not be explained why combat->xray->scan->thermal is the ordering...
 static std::array<std::tuple<int, int>, 4> prime_one_visors = {
@@ -86,6 +87,7 @@ static std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4>
   return std::make_tuple(-1, 0);
 }
 
+#pragma optimize("", off)
 static int get_beam_switch(std::array<int, 4> const& beams)
 {
   static bool pressing_button = false;
@@ -94,7 +96,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return beams[0];
+      return currentbeam = beams[0];
     }
   }
   else if (CheckBeamCtl(1))
@@ -102,7 +104,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return beams[1];
+      return currentbeam = beams[1];
     }
   }
   else if (CheckBeamCtl(2))
@@ -110,7 +112,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return beams[2];
+      return currentbeam = beams[2];
     }
   }
   else if (CheckBeamCtl(3))
@@ -118,7 +120,33 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return beams[3];
+      return currentbeam = beams[3];
+    }
+  }
+  else if (CheckBeamScrollCtl(true))
+  {
+    if (!pressing_button)
+    {
+      pressing_button = true;
+      currentbeam++;
+
+      if (currentbeam > 3)
+        currentbeam = 0;
+
+      return currentbeam;
+    }
+  }
+  else if (CheckBeamScrollCtl(false))
+  {
+    if (!pressing_button)
+    {
+      pressing_button = true;
+      currentbeam--;
+
+      if (currentbeam < 0)
+        currentbeam = 3;
+
+      return currentbeam;
     }
   }
   else
@@ -127,6 +155,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
   }
   return -1;
 }
+#pragma optimize("", on)
 
 static inline bool mem_check(u32 address)
 {
@@ -205,7 +234,7 @@ void MP1::run_mod()
   }
 
   PowerPC::HostRead_U32(camera_pointer_address());
-  
+
   springball_check(ball_check_address());
 
   int visor_id, visor_off;
@@ -463,7 +492,7 @@ uint32_t MP2NTSC::load_state_address() const
 }
 uint32_t MP2NTSC::camera_ctl_address() const
 {
-  return 0x804e87dc; //0x1a8
+  return 0x804e87dc;  // 0x1a8
 }
 uint32_t MP2NTSC::lockon_address() const
 {
@@ -653,7 +682,7 @@ void MP3::run_mod()
 
 uint32_t MP3NTSC::camera_ctl_address() const
 {
-  return 0x805c6c6c; // camera_ctl_address()) + 0x04) + 0x2184
+  return 0x805c6c6c;  // camera_ctl_address()) + 0x04) + 0x2184
 }
 uint32_t MP3NTSC::grapple_hook_address() const
 {
@@ -807,7 +836,6 @@ void MenuPAL::run_mod()
   u32 cursor_base = PowerPC::HostRead_U32(0x80621ffc);
   handle_cursor(cursor_base + 0xdc, cursor_base + 0x19c, 0.95f, 0.90f);
 }
-
 
 void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes)
 {
