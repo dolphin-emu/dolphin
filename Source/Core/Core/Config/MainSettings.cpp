@@ -32,6 +32,8 @@ const ConfigInfo<int> MAIN_GC_LANGUAGE{{System::Main, "Core", "SelectedLanguage"
 const ConfigInfo<bool> MAIN_OVERRIDE_REGION_SETTINGS{
     {System::Main, "Core", "OverrideRegionSettings"}, false};
 const ConfigInfo<bool> MAIN_DPL2_DECODER{{System::Main, "Core", "DPL2Decoder"}, false};
+const ConfigInfo<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY{{System::Main, "Core", "DPL2Quality"},
+                                                             AudioCommon::GetDefaultDPL2Quality()};
 const ConfigInfo<int> MAIN_AUDIO_LATENCY{{System::Main, "Core", "AudioLatency"}, 20};
 const ConfigInfo<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, false};
 const ConfigInfo<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"},
@@ -141,5 +143,4 @@ const ConfigInfo<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "
                                                      ""};
 const ConfigInfo<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const ConfigInfo<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
-
 }  // namespace Config

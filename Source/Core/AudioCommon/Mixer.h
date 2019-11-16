@@ -54,7 +54,6 @@ private:
   static constexpr u32 CONTROL_AVG = 32;  // In freq_shift per FIFO size offset
 
   const unsigned int SURROUND_CHANNELS = 6;
-  const unsigned int SURROUND_BLOCK_SIZE = 512;
 
   class MixerFifo final
   {

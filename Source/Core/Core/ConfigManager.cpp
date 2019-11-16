@@ -1065,3 +1065,8 @@ IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
 }
+
+bool SConfig::ShouldUseDPL2Decoder() const
+{
+  return bDPL2Decoder && !bDSPHLE;
+}
