@@ -352,6 +352,7 @@ void SConfig::SaveJitDebugSettings(IniFile& ini)
   section->Set("JitPairedOff", bJITPairedOff);
   section->Set("JitSystemRegistersOff", bJITSystemRegistersOff);
   section->Set("JitBranchOff", bJITBranchOff);
+  section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
 }
 
 void SConfig::LoadSettings()
@@ -644,6 +645,7 @@ void SConfig::LoadJitDebugSettings(IniFile& ini)
   section->Get("JitPairedOff", &bJITPairedOff, false);
   section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
   section->Get("JitBranchOff", &bJITBranchOff, false);
+  section->Get("JitRegisterCacheOff", &bJITRegisterCacheOff, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -800,6 +802,7 @@ void SConfig::LoadDefaults()
   bJITPairedOff = false;
   bJITSystemRegistersOff = false;
   bJITBranchOff = false;
+  bJITRegisterCacheOff = false;
 
   ResetRunningGameMetadata();
 }

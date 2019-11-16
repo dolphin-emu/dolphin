@@ -640,6 +640,8 @@ public final class SettingsFragmentPresenter
     Setting jitSystemRegistersOff =
             debugSection.getSetting(SettingsFile.KEY_DEBUG_JITSYSTEMREGISTEROFF);
     Setting jitBranchOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITBRANCHOFF);
+    Setting jitRegisterCacheOff =
+            debugSection.getSetting(SettingsFile.KEY_DEBUG_JITREGISTERCACHEOFF);
 
     sl.add(new HeaderSetting(null, null, R.string.debug_warning, 0));
 
@@ -672,6 +674,9 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITBRANCHOFF, Settings.SECTION_DEBUG,
             R.string.debug_jitbranchoff, 0, false,
             jitBranchOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITREGISTERCACHEOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitregistercacheoff, 0, false,
+            jitRegisterCacheOff));
   }
 
   private void addStereoSettings(ArrayList<SettingsItem> sl)

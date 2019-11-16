@@ -254,6 +254,7 @@
     <string name="debug_jitpairedoff">Jit Paired Disabled</string>
     <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
     <string name="debug_jitbranchoff">Jit Branch Disabled</string>
+    <string name="debug_jitregistercacheoff">Jit Register Cache Disabled</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>

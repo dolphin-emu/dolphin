@@ -776,6 +776,13 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
+      if (SConfig::GetInstance().bJITRegisterCacheOff)
+      {
+        gpr.Flush(FLUSH_ALL);
+        fpr.Flush(FLUSH_ALL);
+        FlushCarry();
+      }
+
       CompileInstruction(op);
       if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();

@@ -102,6 +102,7 @@ public final class SettingsFile
   public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
   public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
   public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
+  public static final String KEY_DEBUG_JITREGISTERCACHEOFF = "JitRegisterCacheOff";
 
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_G_TYPE = "PadType";

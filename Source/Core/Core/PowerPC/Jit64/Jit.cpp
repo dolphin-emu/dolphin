@@ -997,15 +997,23 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SetJumpTarget(noBreakpoint);
       }
 
-      // If we have an input register that is going to be used again, load it pre-emptively,
-      // even if the instruction doesn't strictly need it in a register, to avoid redundant
-      // loads later. Of course, don't do this if we're already out of registers.
-      // As a bit of a heuristic, make sure we have at least one register left over for the
-      // output, which needs to be bound in the actual instruction compilation.
-      // TODO: make this smarter in the case that we're actually register-starved, i.e.
-      // prioritize the more important registers.
-      gpr.PreloadRegisters(op.regsIn & op.gprInReg);
-      fpr.PreloadRegisters(op.fregsIn & op.fprInXmm);
+      if (SConfig::GetInstance().bJITRegisterCacheOff)
+      {
+        gpr.Flush();
+        fpr.Flush();
+      }
+      else
+      {
+        // If we have an input register that is going to be used again, load it pre-emptively,
+        // even if the instruction doesn't strictly need it in a register, to avoid redundant
+        // loads later. Of course, don't do this if we're already out of registers.
+        // As a bit of a heuristic, make sure we have at least one register left over for the
+        // output, which needs to be bound in the actual instruction compilation.
+        // TODO: make this smarter in the case that we're actually register-starved, i.e.
+        // prioritize the more important registers.
+        gpr.PreloadRegisters(op.regsIn & op.gprInReg);
+        fpr.PreloadRegisters(op.fregsIn & op.fprInXmm);
+      }
 
       CompileInstruction(op);
 
