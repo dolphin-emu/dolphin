@@ -98,12 +98,6 @@ constexpr u32 DI_DMA_CONTROL_REGISTER = 0x1C;
 constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
 constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
-// debug commands which may be ORd
-constexpr u32 STOP_DRIVE = 0;
-constexpr u32 START_DRIVE = 0x100;
-constexpr u32 ACCEPT_COPY = 0x4000;
-constexpr u32 DISC_CHECK = 0x8000;
-
 // DI Status Register
 union UDISR
 {
