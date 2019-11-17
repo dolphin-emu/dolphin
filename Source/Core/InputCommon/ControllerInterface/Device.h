@@ -22,10 +22,17 @@ namespace ciface
 // range, used for periodic haptic effects though often ignored by devices
 // TODO: Make this configurable.
 constexpr int RUMBLE_PERIOD_MS = 10;
+
 // This needs to be at least as long as the longest rumble that might ever be played.
 // Too short and it's going to stop in the middle of a long effect.
 // Infinite values are invalid for ramp effects and probably not sensible.
 constexpr int RUMBLE_LENGTH_MS = 1000 * 10;
+
+// All inputs (other than accel/gyro) return 1.0 as their maximum value.
+// Battery inputs will almost always be mapped to the "Battery" setting which is a percentage.
+// If someone actually wants to map a battery input to a regular control they can divide by 100.
+// I think this is better than requiring multiplication by 100 for the most common usage.
+constexpr ControlState BATTERY_INPUT_MAX_VALUE = 100.0;
 
 namespace Core
 {

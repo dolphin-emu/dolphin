@@ -102,6 +102,33 @@ private:
 
   using GyroInput = AccelerometerInput;
 
+  class BatteryInput final : public Input
+  {
+    using BatteryState = Proto::DsBattery;
+
+  public:
+    BatteryInput(const BatteryState& battery) : m_battery(battery) {}
+
+    std::string GetName() const override { return "Battery"; }
+
+    ControlState GetState() const override
+    {
+      switch (m_battery)
+      {
+      case BatteryState::Charging:
+      case BatteryState::Charged:
+        return BATTERY_INPUT_MAX_VALUE;
+      default:
+        return ControlState(m_battery) / ControlState(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
+      }
+    }
+
+    bool IsDetectable() override { return false; }
+
+  private:
+    const BatteryState& m_battery;
+  };
+
 public:
   void UpdateInput() override;
 
@@ -355,6 +382,8 @@ Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
   AddInput(new GyroInput("Gyro Roll Left", m_gyro.y, 1));
   AddInput(new GyroInput("Gyro Yaw Right", m_gyro.z, -1));
   AddInput(new GyroInput("Gyro Yaw Left", m_gyro.z, 1));
+
+  AddInput(new BatteryInput(m_pad_data.battery_status));
 }
 
 std::string Device::GetName() const
