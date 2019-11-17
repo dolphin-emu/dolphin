@@ -233,8 +233,8 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
-                  bool shift_jis = false);
+  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043, bool shift_jis = false,
+                  std::optional<u64> timestamp = std::nullopt);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;

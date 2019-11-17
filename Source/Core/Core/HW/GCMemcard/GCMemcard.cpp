@@ -1536,7 +1536,7 @@ void GCMBlock::Erase()
   memset(m_block.data(), 0xFF, m_block.size());
 }
 
-Header::Header(int slot, u16 size_mbits, bool shift_jis)
+Header::Header(int slot, u16 size_mbits, bool shift_jis, std::optional<u64> timestamp)
 {
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
@@ -1544,7 +1544,8 @@ Header::Header(int slot, u16 size_mbits, bool shift_jis)
   memset(this, 0xFF, BLOCK_SIZE);
   m_size_mb = size_mbits;
   m_encoding = shift_jis ? 1 : 0;
-  u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
+  u64 rand = timestamp.value_or(Common::Timer::GetLocalTimeSinceJan1970() -
+                                ExpansionInterface::CEXIIPL::GC_EPOCH);
   m_format_time = rand;
   for (int i = 0; i < 12; i++)
   {

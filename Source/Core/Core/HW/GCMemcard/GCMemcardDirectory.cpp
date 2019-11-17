@@ -148,8 +148,8 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
                                        bool shift_jis, int game_id)
     : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
-      m_hdr(slot, size_mbits, shift_jis), m_bat1(size_mbits), m_saves(0),
-      m_save_directory(directory), m_exiting(false)
+      m_hdr(slot, size_mbits, shift_jis, 60 * 60 * 24 * 365 * 2 + slot), m_bat1(size_mbits),
+      m_saves(0), m_save_directory(directory), m_exiting(false)
 {
   // Use existing header data if available
   {
