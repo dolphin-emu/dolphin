@@ -5,7 +5,10 @@
 #pragma once
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @interface MainiOS : NSObject
+
++ (void) startEmulationWithFile:(NSString*) file view:(UIView*) view;
 
 @end
