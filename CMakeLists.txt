@@ -154,22 +154,11 @@ if(GIT_FOUND)
       OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
-# version number
-set(DOLPHIN_VERSION_MAJOR "5")
-set(DOLPHIN_VERSION_MINOR "0")
-if(DOLPHIN_WC_BRANCH STREQUAL "stable")
-  set(DOLPHIN_VERSION_PATCH "0")
-else()
-  set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
-endif()
-
 # If Dolphin is not built from a Git repository, default the version info to
 # reasonable values.
-if(NOT DOLPHIN_WC_REVISION)
-  set(DOLPHIN_WC_DESCRIBE "${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}")
-  set(DOLPHIN_WC_REVISION "${DOLPHIN_WC_DESCRIBE} (no further info)")
-  set(DOLPHIN_WC_BRANCH "master")
-endif()
+set(DOLPHIN_WC_DESCRIBE "Dolphin RNO (11/17/19)")
+set(DOLPHIN_WC_REVISION "${DOLPHIN_WC_DESCRIBE} (no further info)")
+set(DOLPHIN_WC_BRANCH "master")
 
 # Architecture detection and arch specific settings
 message(STATUS "Detected architecture: ${CMAKE_SYSTEM_PROCESSOR}")

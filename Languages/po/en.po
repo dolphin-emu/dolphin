@@ -8554,7 +8554,7 @@ msgid "User Interface"
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:133
-msgid "Color:"
+msgid "User Style:"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:244
