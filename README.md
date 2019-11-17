@@ -23,8 +23,8 @@ Linux:
 3) run `cd build`
 4) run `cmake .. -DLINUX_LOCAL_DEV=true`
 5) run `make`
-run `cp -r ../Data/Sys/ Binaries/`
-run `touch Binaries/portable.txt`
+6) run `cp -r ../Data/Sys/ Binaries/`
+7) run `touch Binaries/portable.txt`
 
 ##### Version
 
