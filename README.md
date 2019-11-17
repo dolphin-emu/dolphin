@@ -26,7 +26,13 @@ Linux:
 6) run `cp -r ../Data/Sys/ Binaries/`
 7) run `touch Binaries/portable.txt`
 
-##### Version
+##### Setting Version
+
+Windows:
+Version updating is changed inside of the [make-scmrev.js](Source/Core/Common/make_scmrev.h.js) file at Line 94
+
+Linux:
+Version updating is changed inside of the [CMakeLists.txt](CMakeLists.txt) file at Line 159
 
 ### License
 Dolphin RNO is licensed under the [GNU General Public License v2.0](license.txt)
