@@ -90,7 +90,7 @@ private:
     bool IsDetectable() override { return false; }
   };
 
-  class MotionInput final : public AnalogInput<double>
+  class MotionInput final : public AnalogInput<float>
   {
   public:
     using AnalogInput::AnalogInput;
@@ -141,8 +141,6 @@ private:
   const int m_index;
   u32 m_client_uid = Common::Random::GenerateValue<u32>();
   sf::UdpSocket m_socket;
-  Common::DVec3 m_accel{};
-  Common::DVec3 m_gyro{};
   SteadyClock::time_point m_next_reregister = SteadyClock::time_point::min();
   Proto::MessageType::PadDataResponse m_pad_data{};
   Proto::Touch m_prev_touch{};
@@ -367,21 +365,25 @@ Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
   AddInput(new TouchInput("Touch Y-", m_touch_y, -TOUCH_Y_AXIS_MAX));
   AddInput(new TouchInput("Touch Y+", m_touch_y, TOUCH_Y_AXIS_MAX));
 
-  AddInput(new AccelerometerInput("Accel Left", m_accel.x, 1));
-  AddInput(new AccelerometerInput("Accel Right", m_accel.x, -1));
-  AddInput(new AccelerometerInput("Accel Backward", m_accel.y, 1));
-  AddInput(new AccelerometerInput("Accel Forward", m_accel.y, -1));
-  AddInput(new AccelerometerInput("Accel Up", m_accel.z, 1));
-  AddInput(new AccelerometerInput("Accel Down", m_accel.z, -1));
+  // Convert Gs to meters per second squared
+  constexpr auto accel_scale = 1.0 / GRAVITY_ACCELERATION;
 
-  AddInput(new GyroInput("Gyro Pitch Up", m_gyro.x, -1));
-  AddInput(new GyroInput("Gyro Pitch Down", m_gyro.x, 1));
-  AddInput(new GyroInput("Gyro Roll Right", m_gyro.y, -1));
-  AddInput(new GyroInput("Gyro Roll Left", m_gyro.y, 1));
-  AddInput(new GyroInput("Gyro Yaw Right", m_gyro.z, -1));
-  AddInput(new GyroInput("Gyro Yaw Left", m_gyro.z, 1));
+  AddInput(new AccelerometerInput("Accel Up", m_pad_data.accelerometer_y_g, -accel_scale));
+  AddInput(new AccelerometerInput("Accel Down", m_pad_data.accelerometer_y_g, accel_scale));
+  AddInput(new AccelerometerInput("Accel Left", m_pad_data.accelerometer_x_g, accel_scale));
+  AddInput(new AccelerometerInput("Accel Right", m_pad_data.accelerometer_x_g, -accel_scale));
+  AddInput(new AccelerometerInput("Accel Forward", m_pad_data.accelerometer_z_g, accel_scale));
+  AddInput(new AccelerometerInput("Accel Backward", m_pad_data.accelerometer_z_g, -accel_scale));
 
-  AddInput(new BatteryInput(m_pad_data.battery_status));
+  // Convert degrees per second to radians per second
+  constexpr auto gyro_scale = 360.0 / MathUtil::TAU;
+
+  AddInput(new GyroInput("Gyro Pitch Up", m_pad_data.gyro_pitch_deg_s, gyro_scale));
+  AddInput(new GyroInput("Gyro Pitch Down", m_pad_data.gyro_pitch_deg_s, -gyro_scale));
+  AddInput(new GyroInput("Gyro Roll Left", m_pad_data.gyro_roll_deg_s, -gyro_scale));
+  AddInput(new GyroInput("Gyro Roll Right", m_pad_data.gyro_roll_deg_s, gyro_scale));
+  AddInput(new GyroInput("Gyro Yaw Left", m_pad_data.gyro_yaw_deg_s, -gyro_scale));
+  AddInput(new GyroInput("Gyro Yaw Right", m_pad_data.gyro_yaw_deg_s, gyro_scale));
 }
 
 std::string Device::GetName() const
@@ -435,19 +437,6 @@ void Device::UpdateInput()
     if (auto pad_data = msg.CheckAndCastTo<Proto::MessageType::PadDataResponse>())
     {
       m_pad_data = *pad_data;
-
-      m_accel.x = m_pad_data.accelerometer_x_g;
-      m_accel.z = -m_pad_data.accelerometer_y_g;
-      m_accel.y = -m_pad_data.accelerometer_z_inverted_g;
-      m_gyro.x = -m_pad_data.gyro_pitch_deg_s;
-      m_gyro.z = -m_pad_data.gyro_yaw_deg_s;
-      m_gyro.y = -m_pad_data.gyro_roll_deg_s;
-
-      // Convert Gs to meters per second squared
-      m_accel = m_accel * GRAVITY_ACCELERATION;
-
-      // Convert degrees per second to radians per second
-      m_gyro = m_gyro * (MathUtil::TAU / 360);
 
       // Update touch pad relative coordinates
       if (m_pad_data.touch1.id != m_prev_touch.id)
