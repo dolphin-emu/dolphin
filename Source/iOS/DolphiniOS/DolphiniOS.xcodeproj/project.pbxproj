@@ -1,0 +1,627 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
+		B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */; };
+		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
+		B91BF377236BA5BC00199BA7 /* EmulationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF376236BA5BC00199BA7 /* EmulationViewController.m */; };
+		B91BF37A236BAA3200199BA7 /* MVKView.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF379236BAA3200199BA7 /* MVKView.m */; };
+		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
+		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
+		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B945A3752362908500B21680 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3742362908500B21680 /* AppDelegate.m */; };
+		B945A3782362908500B21680 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3772362908500B21680 /* SceneDelegate.m */; };
+		B945A37E2362908500B21680 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A37C2362908500B21680 /* Main.storyboard */; };
+		B945A3802362909500B21680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B945A37F2362909500B21680 /* Assets.xcassets */; };
+		B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A3812362909500B21680 /* LaunchScreen.storyboard */; };
+		B945A3862362909500B21680 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3852362909500B21680 /* main.m */; };
+		B945A3922362D90200B21680 /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3912362D90200B21680 /* EAGLView.m */; };
+		B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3942362D98400B21680 /* OpenGLES.framework */; };
+		B945A3972362D99000B21680 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3962362D99000B21680 /* libz.tbd */; };
+		B945A3D02362DB9800B21680 /* libdiscio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C42362DB9800B21680 /* libdiscio.a */; };
+		B945A3D12362DB9800B21680 /* libuicommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C52362DB9800B21680 /* libuicommon.a */; };
+		B945A3D22362DB9800B21680 /* libvideocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C62362DB9800B21680 /* libvideocommon.a */; };
+		B945A3D32362DB9800B21680 /* libvideovulkan.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C72362DB9800B21680 /* libvideovulkan.a */; };
+		B945A3D42362DB9800B21680 /* libcore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C82362DB9800B21680 /* libcore.a */; };
+		B945A3D52362DB9800B21680 /* libmain.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C92362DB9800B21680 /* libmain.a */; };
+		B945A3D62362DB9800B21680 /* libvideonull.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CA2362DB9800B21680 /* libvideonull.a */; };
+		B945A3D72362DB9800B21680 /* libvideoogl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CB2362DB9800B21680 /* libvideoogl.a */; };
+		B945A3D82362DB9800B21680 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CC2362DB9800B21680 /* libcommon.a */; };
+		B945A3D92362DB9800B21680 /* libvideosoftware.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CD2362DB9800B21680 /* libvideosoftware.a */; };
+		B945A3DA2362DB9800B21680 /* libaudiocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CE2362DB9800B21680 /* libaudiocommon.a */; };
+		B945A3DB2362DB9800B21680 /* libinputcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CF2362DB9800B21680 /* libinputcommon.a */; };
+		B945A3DC2362DBB200B21680 /* libfmt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A62362DB7C00B21680 /* libfmt.a */; };
+		B945A3DD2362DBB200B21680 /* libiconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AA2362DB7C00B21680 /* libiconv.a */; };
+		B945A3DE2362DBB200B21680 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A02362DB7C00B21680 /* libcurl.a */; };
+		B945A3DF2362DBB200B21680 /* libmbedtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39A2362DB7C00B21680 /* libmbedtls.a */; };
+		B945A3E02362DBB200B21680 /* libmbedx509.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AD2362DB7C00B21680 /* libmbedx509.a */; };
+		B945A3E12362DBB200B21680 /* libmbedcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39D2362DB7C00B21680 /* libmbedcrypto.a */; };
+		B945A3E22362DBB200B21680 /* libsfml-network.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A72362DB7C00B21680 /* libsfml-network.a */; };
+		B945A3E32362DBB200B21680 /* libsfml-system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A82362DB7C00B21680 /* libsfml-system.a */; };
+		B945A3E42362DBB200B21680 /* libSoundTouch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AB2362DB7C00B21680 /* libSoundTouch.a */; };
+		B945A3E52362DBB200B21680 /* libed25519.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39B2362DB7C00B21680 /* libed25519.a */; };
+		B945A3E62362DBB200B21680 /* libFreeSurround.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39C2362DB7C00B21680 /* libFreeSurround.a */; };
+		B945A3E72362DBB200B21680 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A22362DB7C00B21680 /* libpng.a */; };
+		B945A3E82362DBB200B21680 /* liblzo2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AC2362DB7C00B21680 /* liblzo2.a */; };
+		B945A3E92362DBB200B21680 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A32362DB7C00B21680 /* libminizip.a */; };
+		B945A3EA2362DBB200B21680 /* libxxhash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39E2362DB7C00B21680 /* libxxhash.a */; };
+		B945A3EB2362DBB200B21680 /* libenet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AE2362DB7C00B21680 /* libenet.a */; };
+		B945A3EC2362DBB200B21680 /* libpugixml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A42362DB7C00B21680 /* libpugixml.a */; };
+		B945A3ED2362DBB200B21680 /* libimgui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A52362DB7C00B21680 /* libimgui.a */; };
+		B945A3EE2362DBB200B21680 /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39F2362DB7C00B21680 /* libglslang.a */; };
+		B945A3EF2362DBB200B21680 /* libcpp-optparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A92362DB7C00B21680 /* libcpp-optparse.a */; };
+		B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3F32362E24000B21680 /* libc++.tbd */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B91BF385236BFA9A00199BA7 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		B91BF36C236B3FCE00199BA7 /* SoftwareTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareTableViewCell.h; sourceTree = "<group>"; };
+		B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewCell.m; sourceTree = "<group>"; };
+		B91BF36F236B3FE500199BA7 /* SoftwareTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareTableViewController.h; sourceTree = "<group>"; };
+		B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewController.m; sourceTree = "<group>"; };
+		B91BF372236B400200199BA7 /* SettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsTableViewController.h; sourceTree = "<group>"; };
+		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
+		B91BF375236BA5BC00199BA7 /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
+		B91BF376236BA5BC00199BA7 /* EmulationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EmulationViewController.m; sourceTree = "<group>"; };
+		B91BF378236BAA3200199BA7 /* MVKView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MVKView.h; sourceTree = "<group>"; };
+		B91BF379236BAA3200199BA7 /* MVKView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MVKView.m; sourceTree = "<group>"; };
+		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = ../../../build/libs/Externals/libMoltenVK.dylib; sourceTree = "<group>"; };
+		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B945A3732362908500B21680 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		B945A3742362908500B21680 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B945A3762362908500B21680 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		B945A3772362908500B21680 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		B945A37D2362908500B21680 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		B945A37F2362909500B21680 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B945A3822362909500B21680 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B945A3842362909500B21680 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B945A3852362909500B21680 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B945A3902362D90200B21680 /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
+		B945A3912362D90200B21680 /* EAGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EAGLView.m; sourceTree = "<group>"; };
+		B945A3942362D98400B21680 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		B945A3962362D99000B21680 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		B945A3982362DA7A00B21680 /* DolphiniOS */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DolphiniOS; sourceTree = "<group>"; };
+		B945A39A2362DB7C00B21680 /* libmbedtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedtls.a; path = ../../../build/libs/Externals/libmbedtls.a; sourceTree = "<group>"; };
+		B945A39B2362DB7C00B21680 /* libed25519.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libed25519.a; path = ../../../build/libs/Externals/libed25519.a; sourceTree = "<group>"; };
+		B945A39C2362DB7C00B21680 /* libFreeSurround.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFreeSurround.a; path = ../../../build/libs/Externals/libFreeSurround.a; sourceTree = "<group>"; };
+		B945A39D2362DB7C00B21680 /* libmbedcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedcrypto.a; path = ../../../build/libs/Externals/libmbedcrypto.a; sourceTree = "<group>"; };
+		B945A39E2362DB7C00B21680 /* libxxhash.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxxhash.a; path = ../../../build/libs/Externals/libxxhash.a; sourceTree = "<group>"; };
+		B945A39F2362DB7C00B21680 /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = ../../../build/libs/Externals/libglslang.a; sourceTree = "<group>"; };
+		B945A3A02362DB7C00B21680 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../../../build/libs/Externals/libcurl.a; sourceTree = "<group>"; };
+		B945A3A12362DB7C00B21680 /* libbdisasm.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbdisasm.a; path = ../../../build/libs/Externals/libbdisasm.a; sourceTree = "<group>"; };
+		B945A3A22362DB7C00B21680 /* libpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng.a; path = ../../../build/libs/Externals/libpng.a; sourceTree = "<group>"; };
+		B945A3A32362DB7C00B21680 /* libminizip.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libminizip.a; path = ../../../build/libs/Externals/libminizip.a; sourceTree = "<group>"; };
+		B945A3A42362DB7C00B21680 /* libpugixml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpugixml.a; path = ../../../build/libs/Externals/libpugixml.a; sourceTree = "<group>"; };
+		B945A3A52362DB7C00B21680 /* libimgui.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimgui.a; path = ../../../build/libs/Externals/libimgui.a; sourceTree = "<group>"; };
+		B945A3A62362DB7C00B21680 /* libfmt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfmt.a; path = ../../../build/libs/Externals/libfmt.a; sourceTree = "<group>"; };
+		B945A3A72362DB7C00B21680 /* libsfml-network.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-network.a"; path = "../../../build/libs/Externals/libsfml-network.a"; sourceTree = "<group>"; };
+		B945A3A82362DB7C00B21680 /* libsfml-system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-system.a"; path = "../../../build/libs/Externals/libsfml-system.a"; sourceTree = "<group>"; };
+		B945A3A92362DB7C00B21680 /* libcpp-optparse.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libcpp-optparse.a"; path = "../../../build/libs/Externals/libcpp-optparse.a"; sourceTree = "<group>"; };
+		B945A3AA2362DB7C00B21680 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiconv.a; path = ../../../build/libs/Externals/libiconv.a; sourceTree = "<group>"; };
+		B945A3AB2362DB7C00B21680 /* libSoundTouch.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSoundTouch.a; path = ../../../build/libs/Externals/libSoundTouch.a; sourceTree = "<group>"; };
+		B945A3AC2362DB7C00B21680 /* liblzo2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzo2.a; path = ../../../build/libs/Externals/liblzo2.a; sourceTree = "<group>"; };
+		B945A3AD2362DB7C00B21680 /* libmbedx509.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedx509.a; path = ../../../build/libs/Externals/libmbedx509.a; sourceTree = "<group>"; };
+		B945A3AE2362DB7C00B21680 /* libenet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libenet.a; path = ../../../build/libs/Externals/libenet.a; sourceTree = "<group>"; };
+		B945A3C42362DB9800B21680 /* libdiscio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdiscio.a; path = ../../../build/libs/Dolphin/libdiscio.a; sourceTree = "<group>"; };
+		B945A3C52362DB9800B21680 /* libuicommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuicommon.a; path = ../../../build/libs/Dolphin/libuicommon.a; sourceTree = "<group>"; };
+		B945A3C62362DB9800B21680 /* libvideocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideocommon.a; path = ../../../build/libs/Dolphin/libvideocommon.a; sourceTree = "<group>"; };
+		B945A3C72362DB9800B21680 /* libvideovulkan.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideovulkan.a; path = ../../../build/libs/Dolphin/libvideovulkan.a; sourceTree = "<group>"; };
+		B945A3C82362DB9800B21680 /* libcore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcore.a; path = ../../../build/libs/Dolphin/libcore.a; sourceTree = "<group>"; };
+		B945A3C92362DB9800B21680 /* libmain.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmain.a; path = ../../../build/libs/Dolphin/libmain.a; sourceTree = "<group>"; };
+		B945A3CA2362DB9800B21680 /* libvideonull.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideonull.a; path = ../../../build/libs/Dolphin/libvideonull.a; sourceTree = "<group>"; };
+		B945A3CB2362DB9800B21680 /* libvideoogl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideoogl.a; path = ../../../build/libs/Dolphin/libvideoogl.a; sourceTree = "<group>"; };
+		B945A3CC2362DB9800B21680 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = ../../../build/libs/Dolphin/libcommon.a; sourceTree = "<group>"; };
+		B945A3CD2362DB9800B21680 /* libvideosoftware.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideosoftware.a; path = ../../../build/libs/Dolphin/libvideosoftware.a; sourceTree = "<group>"; };
+		B945A3CE2362DB9800B21680 /* libaudiocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudiocommon.a; path = ../../../build/libs/Dolphin/libaudiocommon.a; sourceTree = "<group>"; };
+		B945A3CF2362DB9800B21680 /* libinputcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libinputcommon.a; path = ../../../build/libs/Dolphin/libinputcommon.a; sourceTree = "<group>"; };
+		B945A3F32362E24000B21680 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B945A36D2362908400B21680 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */,
+				B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */,
+				B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */,
+				B945A3972362D99000B21680 /* libz.tbd in Frameworks */,
+				B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */,
+				B945A3DC2362DBB200B21680 /* libfmt.a in Frameworks */,
+				B945A3DD2362DBB200B21680 /* libiconv.a in Frameworks */,
+				B945A3DE2362DBB200B21680 /* libcurl.a in Frameworks */,
+				B945A3DF2362DBB200B21680 /* libmbedtls.a in Frameworks */,
+				B945A3E02362DBB200B21680 /* libmbedx509.a in Frameworks */,
+				B945A3E12362DBB200B21680 /* libmbedcrypto.a in Frameworks */,
+				B945A3E22362DBB200B21680 /* libsfml-network.a in Frameworks */,
+				B945A3E32362DBB200B21680 /* libsfml-system.a in Frameworks */,
+				B945A3E42362DBB200B21680 /* libSoundTouch.a in Frameworks */,
+				B945A3E52362DBB200B21680 /* libed25519.a in Frameworks */,
+				B945A3E62362DBB200B21680 /* libFreeSurround.a in Frameworks */,
+				B945A3E72362DBB200B21680 /* libpng.a in Frameworks */,
+				B945A3E82362DBB200B21680 /* liblzo2.a in Frameworks */,
+				B945A3E92362DBB200B21680 /* libminizip.a in Frameworks */,
+				B945A3EA2362DBB200B21680 /* libxxhash.a in Frameworks */,
+				B945A3EB2362DBB200B21680 /* libenet.a in Frameworks */,
+				B945A3EC2362DBB200B21680 /* libpugixml.a in Frameworks */,
+				B945A3ED2362DBB200B21680 /* libimgui.a in Frameworks */,
+				B945A3EE2362DBB200B21680 /* libglslang.a in Frameworks */,
+				B945A3EF2362DBB200B21680 /* libcpp-optparse.a in Frameworks */,
+				B945A3D02362DB9800B21680 /* libdiscio.a in Frameworks */,
+				B945A3D12362DB9800B21680 /* libuicommon.a in Frameworks */,
+				B945A3D22362DB9800B21680 /* libvideocommon.a in Frameworks */,
+				B945A3D32362DB9800B21680 /* libvideovulkan.a in Frameworks */,
+				B945A3D42362DB9800B21680 /* libcore.a in Frameworks */,
+				B945A3D52362DB9800B21680 /* libmain.a in Frameworks */,
+				B945A3D62362DB9800B21680 /* libvideonull.a in Frameworks */,
+				B945A3D72362DB9800B21680 /* libvideoogl.a in Frameworks */,
+				B945A3D82362DB9800B21680 /* libcommon.a in Frameworks */,
+				B945A3D92362DB9800B21680 /* libvideosoftware.a in Frameworks */,
+				B945A3DA2362DB9800B21680 /* libaudiocommon.a in Frameworks */,
+				B945A3DB2362DB9800B21680 /* libinputcommon.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B91BF35F236B390900199BA7 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B91BF372236B400200199BA7 /* SettingsTableViewController.h */,
+				B91BF373236B400200199BA7 /* SettingsTableViewController.m */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		B91BF363236B3DEC00199BA7 /* SoftwareList */ = {
+			isa = PBXGroup;
+			children = (
+				B91BF36C236B3FCE00199BA7 /* SoftwareTableViewCell.h */,
+				B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */,
+				B91BF36F236B3FE500199BA7 /* SoftwareTableViewController.h */,
+				B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */,
+			);
+			path = SoftwareList;
+			sourceTree = "<group>";
+		};
+		B91BF364236B3DFF00199BA7 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				B91BF368236B3E3900199BA7 /* Emulation */,
+				B91BF363236B3DEC00199BA7 /* SoftwareList */,
+				B91BF35F236B390900199BA7 /* Settings */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		B91BF368236B3E3900199BA7 /* Emulation */ = {
+			isa = PBXGroup;
+			children = (
+				B945A3902362D90200B21680 /* EAGLView.h */,
+				B945A3912362D90200B21680 /* EAGLView.m */,
+				B91BF375236BA5BC00199BA7 /* EmulationViewController.h */,
+				B91BF376236BA5BC00199BA7 /* EmulationViewController.m */,
+				B91BF378236BAA3200199BA7 /* MVKView.h */,
+				B91BF379236BAA3200199BA7 /* MVKView.m */,
+			);
+			path = Emulation;
+			sourceTree = "<group>";
+		};
+		B945A3672362908400B21680 = {
+			isa = PBXGroup;
+			children = (
+				B945A3722362908500B21680 /* DolphiniOS */,
+				B945A3712362908500B21680 /* Products */,
+				B945A3932362D98300B21680 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		B945A3712362908500B21680 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B945A3702362908500B21680 /* DolphiniOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B945A3722362908500B21680 /* DolphiniOS */ = {
+			isa = PBXGroup;
+			children = (
+				B91BF364236B3DFF00199BA7 /* UI */,
+				B945A3732362908500B21680 /* AppDelegate.h */,
+				B945A3742362908500B21680 /* AppDelegate.m */,
+				B945A3762362908500B21680 /* SceneDelegate.h */,
+				B945A3772362908500B21680 /* SceneDelegate.m */,
+				B945A37C2362908500B21680 /* Main.storyboard */,
+				B945A37F2362909500B21680 /* Assets.xcassets */,
+				B945A3812362909500B21680 /* LaunchScreen.storyboard */,
+				B945A3842362909500B21680 /* Info.plist */,
+				B945A3852362909500B21680 /* main.m */,
+			);
+			path = DolphiniOS;
+			sourceTree = "<group>";
+		};
+		B945A3932362D98300B21680 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */,
+				B91BF37B236BEEF700199BA7 /* Metal.framework */,
+				B945A3F32362E24000B21680 /* libc++.tbd */,
+				B945A3CE2362DB9800B21680 /* libaudiocommon.a */,
+				B945A3CC2362DB9800B21680 /* libcommon.a */,
+				B945A3C82362DB9800B21680 /* libcore.a */,
+				B945A3C42362DB9800B21680 /* libdiscio.a */,
+				B945A3CF2362DB9800B21680 /* libinputcommon.a */,
+				B945A3C92362DB9800B21680 /* libmain.a */,
+				B945A3C52362DB9800B21680 /* libuicommon.a */,
+				B945A3C62362DB9800B21680 /* libvideocommon.a */,
+				B945A3CA2362DB9800B21680 /* libvideonull.a */,
+				B945A3CB2362DB9800B21680 /* libvideoogl.a */,
+				B945A3CD2362DB9800B21680 /* libvideosoftware.a */,
+				B945A3C72362DB9800B21680 /* libvideovulkan.a */,
+				B945A3A12362DB7C00B21680 /* libbdisasm.a */,
+				B945A3A92362DB7C00B21680 /* libcpp-optparse.a */,
+				B945A3A02362DB7C00B21680 /* libcurl.a */,
+				B945A39B2362DB7C00B21680 /* libed25519.a */,
+				B945A3AE2362DB7C00B21680 /* libenet.a */,
+				B945A3A62362DB7C00B21680 /* libfmt.a */,
+				B945A39C2362DB7C00B21680 /* libFreeSurround.a */,
+				B945A39F2362DB7C00B21680 /* libglslang.a */,
+				B945A3AA2362DB7C00B21680 /* libiconv.a */,
+				B945A3A52362DB7C00B21680 /* libimgui.a */,
+				B945A3AC2362DB7C00B21680 /* liblzo2.a */,
+				B945A39D2362DB7C00B21680 /* libmbedcrypto.a */,
+				B945A39A2362DB7C00B21680 /* libmbedtls.a */,
+				B945A3AD2362DB7C00B21680 /* libmbedx509.a */,
+				B945A3A32362DB7C00B21680 /* libminizip.a */,
+				B945A3A22362DB7C00B21680 /* libpng.a */,
+				B945A3A42362DB7C00B21680 /* libpugixml.a */,
+				B945A3A72362DB7C00B21680 /* libsfml-network.a */,
+				B945A3A82362DB7C00B21680 /* libsfml-system.a */,
+				B945A3AB2362DB7C00B21680 /* libSoundTouch.a */,
+				B945A39E2362DB7C00B21680 /* libxxhash.a */,
+				B945A3982362DA7A00B21680 /* DolphiniOS */,
+				B945A3962362D99000B21680 /* libz.tbd */,
+				B945A3942362D98400B21680 /* OpenGLES.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B945A36F2362908400B21680 /* DolphiniOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */;
+			buildPhases = (
+				B945A38C2362AEB900B21680 /* Run Script */,
+				B945A36C2362908400B21680 /* Sources */,
+				B945A36D2362908400B21680 /* Frameworks */,
+				B945A36E2362908400B21680 /* Resources */,
+				B91BF385236BFA9A00199BA7 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DolphiniOS;
+			productName = DolphiniOS;
+			productReference = B945A3702362908500B21680 /* DolphiniOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B945A3682362908400B21680 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1110;
+				ORGANIZATIONNAME = "Dolphin Team";
+				TargetAttributes = {
+					B945A36F2362908400B21680 = {
+						CreatedOnToolsVersion = 11.1;
+					};
+				};
+			};
+			buildConfigurationList = B945A36B2362908400B21680 /* Build configuration list for PBXProject "DolphiniOS" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B945A3672362908400B21680;
+			productRefGroup = B945A3712362908500B21680 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B945A36F2362908400B21680 /* DolphiniOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B945A36E2362908400B21680 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
+				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
+				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B945A38C2362AEB900B21680 /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\nCMAKE_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$ARCHS\nGENERIC_BUILD_DIR=$ROOT_DOLPHIN_DIR/build\n\nIOS_PLATFORM=OS64\nif [ $ARCHS == \"x86_64\" ]; then\n    IOS_PLATFORM=SIMULATOR64\nfi\n\nif [ ! -d \"$CMAKE_BUILD_DIR\" ]; then\n    mkdir $CMAKE_BUILD_DIR\n    cd $CMAKE_BUILD_DIR\n    \n    cmake $ROOT_DOLPHIN_DIR -DCMAKE_TOOLCHAIN_FILE=$ROOT_DOLPHIN_DIR/Source/iOS/ios.toolchain.cmake -DPLATFORM=$IOS_PLATFORM -DDEPLOYMENT_TARGET=\"12.0\"\nfi\n\ncd $CMAKE_BUILD_DIR\n\ncmake --build . --config Debug\n\nif [ ! -d \"$GENERIC_BUILD_DIR\" ]; then\n    mkdir $GENERIC_BUILD_DIR\n    mkdir $GENERIC_BUILD_DIR/libs\n    mkdir $GENERIC_BUILD_DIR/libs/Dolphin\n    mkdir $GENERIC_BUILD_DIR/libs/Externals\nfi\n\nrm -f $GENERIC_BUILD_DIR/libs/Dolphin/*.a\nrm -f $GENERIC_BUILD_DIR/libs/Externals/*.a\n\nfind Source/ -name '*.a' -exec cp -prv '{}' \"$GENERIC_BUILD_DIR/libs/Dolphin/\" ';'\n\nfind Externals/ -name '*.a' -exec cp -prv '{}' \"$GENERIC_BUILD_DIR/libs/Externals/\" ';'\n\ncp $ROOT_DOLPHIN_DIR/Externals/MoltenVK/libvulkan_iOS.dylib $GENERIC_BUILD_DIR/libs/Externals/libMoltenVK.dylib\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B945A36C2362908400B21680 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
+				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
+				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
+				B945A3862362909500B21680 /* main.m in Sources */,
+				B91BF377236BA5BC00199BA7 /* EmulationViewController.m in Sources */,
+				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */,
+				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
+				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
+				B91BF37A236BAA3200199BA7 /* MVKView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B945A37C2362908500B21680 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B945A37D2362908500B21680 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		B945A3812362909500B21680 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B945A3822362909500B21680 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		B945A3872362909500B21680 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../build/libs/Dolphin",
+					"$(SRCROOT)/../../../build/libs/Externals/**",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				SDKROOT = iphoneos;
+				VALID_ARCHS = arm64;
+			};
+			name = Debug;
+		};
+		B945A3882362909500B21680 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../build/libs/Dolphin",
+					"$(SRCROOT)/../../../build/libs/Externals/**",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = arm64;
+			};
+			name = Release;
+		};
+		B945A38A2362909500B21680 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "libstdc++";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 46669ZA7J4;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B945A38B2362909500B21680 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LIBRARY = "libstdc++";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 46669ZA7J4;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B945A36B2362908400B21680 /* Build configuration list for PBXProject "DolphiniOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B945A3872362909500B21680 /* Debug */,
+				B945A3882362909500B21680 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B945A38A2362909500B21680 /* Debug */,
+				B945A38B2362909500B21680 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B945A3682362908400B21680 /* Project object */;
+}
