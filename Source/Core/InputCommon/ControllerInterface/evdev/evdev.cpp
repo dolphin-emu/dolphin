@@ -251,8 +251,13 @@ void AddDeviceNode(const char* devnode)
 
     evdev_device->AddNode(devnode, fd, dev);
 
-    // Callbacks must be invoked as the device name and available inputs may change.
-    g_controller_interface.InvokeDevicesChangedCallbacks();
+    // Remove and re-add device as naming and inputs may have changed.
+    // This will also give it the correct index and invoke device change callbacks.
+    g_controller_interface.RemoveDevice([&evdev_device](const auto* device) {
+      return static_cast<const evdevDevice*>(device) == evdev_device.get();
+    });
+
+    g_controller_interface.AddDevice(evdev_device);
   }
   else
   {
