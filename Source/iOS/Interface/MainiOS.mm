@@ -4,9 +4,19 @@
 
 #include <string>
 
+#include "Core/Boot/Boot.h"
+
+#include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
+
+#include "Core/BootManager.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/State.h"
 
 #include "MainiOS.h"
+
+#include "UICommon/UICommon.h"
 
 void Host_NotifyMapLoaded()
 {
@@ -68,5 +78,33 @@ void Host_TitleChanged()
 }
 
 @implementation MainiOS
+
++ (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
+{
+  NSString* userDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+  UICommon::SetUserDirectory(std::string([userDirectory UTF8String]));
+
+  UICommon::Init();
+
+  WindowSystemInfo wsi;
+  wsi.type = WindowSystemType::IPhoneOS;
+  wsi.display_connection = nullptr;
+  wsi.render_surface = (__bridge void*)view;
+
+  std::unique_ptr<BootParameters> boot;
+  boot = BootParameters::GenerateFromFile([file UTF8String]);
+
+  // No use running the loop when booting fails
+  BootManager::BootCore(std::move(boot), wsi);
+
+  while (true)
+  {
+    Core::HostDispatchJobs();
+    usleep(useconds_t(100 * 1000));
+  }
+
+  Core::Shutdown();
+  UICommon::Shutdown();
+}
 
 @end
