@@ -32,11 +32,6 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-constexpr u32 BANNER_WIDTH = 96;
-constexpr u32 BANNER_HEIGHT = 32;
-constexpr u32 ICON_WIDTH = 32;
-constexpr u32 ICON_HEIGHT = 32;
-constexpr u32 ANIM_MAX_FRAMES = 8;
 constexpr float ROW_HEIGHT = 28;
 
 struct GCMemcardManager::IconAnimationData
@@ -206,14 +201,6 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     return item;
   };
 
-  const auto strip_garbage = [](const std::string& s) {
-    auto offset = s.find('\0');
-    if (offset == std::string::npos)
-      offset = s.length();
-
-    return s.substr(0, offset);
-  };
-
   const u8 num_files = memcard->GetNumFiles();
   m_slot_active_icons[slot].reserve(num_files);
   for (int i = 0; i < num_files; i++)
@@ -221,12 +208,16 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     int file_index = memcard->GetFileIndex(i);
     table->setRowCount(i + 1);
 
-    auto const string_decoder = memcard->IsShiftJIS() ? SHIFTJISToUTF8 : CP1252ToUTF8;
+    const auto file_comments = memcard->GetSaveComments(file_index);
 
-    QString title =
-        QString::fromStdString(strip_garbage(string_decoder(memcard->GetSaveComment1(file_index))));
-    QString comment =
-        QString::fromStdString(strip_garbage(string_decoder(memcard->GetSaveComment2(file_index))));
+    QString title;
+    QString comment;
+    if (file_comments)
+    {
+      title = QString::fromStdString(file_comments->first);
+      comment = QString::fromStdString(file_comments->second);
+    }
+
     QString blocks = QStringLiteral("%1").arg(memcard->DEntry_BlockCount(file_index));
     QString block_count = QStringLiteral("%1").arg(memcard->DEntry_FirstBlock(file_index));
 
@@ -496,13 +487,13 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u32> pxdata(BANNER_WIDTH * BANNER_HEIGHT);
+  auto pxdata = memcard->ReadBannerRGBA8(file_index);
 
   QImage image;
-  if (memcard->ReadBannerRGBA8(file_index, pxdata.data()))
+  if (pxdata)
   {
-    image = QImage(reinterpret_cast<u8*>(pxdata.data()), BANNER_WIDTH, BANNER_HEIGHT,
-                   QImage::Format_ARGB32);
+    image = QImage(reinterpret_cast<u8*>(pxdata->data()), MEMORY_CARD_BANNER_WIDTH,
+                   MEMORY_CARD_BANNER_HEIGHT, QImage::Format_ARGB32);
   }
 
   return QPixmap::fromImage(image);
@@ -512,39 +503,36 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
 {
   auto& memcard = m_slot_memcard[slot];
 
-  std::vector<u8> anim_delay(ANIM_MAX_FRAMES);
-  std::vector<u32> anim_data(ICON_WIDTH * ICON_HEIGHT * ANIM_MAX_FRAMES);
-
   IconAnimationData frame_data;
 
-  const u32 num_frames = memcard->ReadAnimRGBA8(file_index, anim_data.data(), anim_delay.data());
+  const auto decoded_data = memcard->ReadAnimRGBA8(file_index);
 
   // Decode Save File Animation
-  if (num_frames > 0)
+  if (decoded_data && !decoded_data->empty())
   {
-    frame_data.m_frames.reserve(num_frames);
-    const u32 per_frame_offset = ICON_WIDTH * ICON_HEIGHT;
-    for (u32 f = 0; f < num_frames; ++f)
+    frame_data.m_frames.reserve(decoded_data->size());
+    const u32 per_frame_offset = MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT;
+    for (size_t f = 0; f < decoded_data->size(); ++f)
     {
-      QImage img(reinterpret_cast<u8*>(&anim_data[f * per_frame_offset]), ICON_WIDTH, ICON_HEIGHT,
-                 QImage::Format_ARGB32);
+      QImage img(reinterpret_cast<const u8*>((*decoded_data)[f].image_data.data()),
+                 MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT, QImage::Format_ARGB32);
       frame_data.m_frames.push_back(QPixmap::fromImage(img));
-      for (int i = 0; i < anim_delay[f]; ++i)
+      for (int i = 0; i < (*decoded_data)[f].delay; ++i)
       {
         frame_data.m_frame_timing.push_back(static_cast<u8>(f));
       }
     }
 
     const bool is_pingpong = memcard->DEntry_IsPingPong(file_index);
-    if (is_pingpong && num_frames >= 3)
+    if (is_pingpong && decoded_data->size() >= 3)
     {
       // if the animation 'ping-pongs' between start and end then the animation frame order is
       // something like 'abcdcbabcdcba' instead of the usual 'abcdabcdabcd'
       // to display that correctly just append all except the first and last frame in reverse order
       // at the end of the animation
-      for (u32 f = num_frames - 2; f > 0; --f)
+      for (size_t f = decoded_data->size() - 2; f > 0; --f)
       {
-        for (int i = 0; i < anim_delay[f]; ++i)
+        for (int i = 0; i < (*decoded_data)[f].delay; ++i)
         {
           frame_data.m_frame_timing.push_back(static_cast<u8>(f));
         }
