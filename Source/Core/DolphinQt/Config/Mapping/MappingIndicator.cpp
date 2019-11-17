@@ -716,8 +716,8 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
   p.setPen(GetBBoxPen());
   p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
 
-  // UI y-axis is opposite that of acceleration Z.
-  p.scale(1.0, -1.0);
+  // UI axes are opposite that of Wii remote accelerometer.
+  p.scale(-1.0, -1.0);
 
   // Enable AA after drawing bounding box.
   p.setRenderHint(QPainter::Antialiasing, true);
@@ -780,7 +780,7 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
 
   // G-force text:
   p.setPen(GetTextColor());
-  p.scale(1.0, -1.0);
+  p.scale(-1.0, -1.0);
   p.drawText(QRectF(-2, 0, scale, scale), Qt::AlignBottom | Qt::AlignRight,
              QString::fromStdString(
                  // i18n: "g" is the symbol for "gravitational force equivalent" (g-force).
