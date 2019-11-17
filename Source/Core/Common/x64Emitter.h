@@ -430,6 +430,14 @@ public:
   void PUSHF();
   void POPF();
 
+  // Intel CPU microcode migitations that fix Intel erratum SKX102 affect the caching of certain
+  // jmp/call/ret instructions: If such instructions (or such macrofused instruction pairs) span
+  // a 32-byte boundary, they will not be cached in the host CPU's micro-op cache. In order to
+  // reduce the performance impact of these micro-op cache misses / pipeline transitions, we add
+  // NOP instructions so such flow control instructions do not cross 32-byte boundaries or end on
+  // a 32-byte boundary. See also Intel White Paper 341810-001.
+  void AddJccErratumPadding(size_t instruction_size);
+
   // Flow control
   void RET();
   void RET_FAST();

@@ -409,11 +409,29 @@ void XEmitter::Rex(int w, int r, int x, int b)
     Write8(rx);
 }
 
+void XEmitter::AddJccErratumPadding(size_t instruction_size)
+{
+  if (!cpu_info.bJccErratum)
+  {
+    return;
+  }
+
+  constexpr u64 cache_line_size = 32;  // bytes
+  const u64 remaining = cache_line_size - (reinterpret_cast<u64>(code) & (cache_line_size - 1));
+  if (remaining > instruction_size)
+  {
+    return;
+  }
+
+  NOP(remaining);
+}
+
 void XEmitter::JMP(const u8* addr, bool force5Bytes)
 {
   u64 fn = (u64)addr;
   if (!force5Bytes)
   {
+    AddJccErratumPadding(2);
     s64 distance = (s64)(fn - ((u64)code + 2));
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump target too far away, needs force5Bytes = true");
@@ -423,6 +441,7 @@ void XEmitter::JMP(const u8* addr, bool force5Bytes)
   }
   else
   {
+    AddJccErratumPadding(5);
     s64 distance = (s64)(fn - ((u64)code + 5));
 
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
@@ -434,35 +453,67 @@ void XEmitter::JMP(const u8* addr, bool force5Bytes)
 
 void XEmitter::JMPptr(const OpArg& arg2)
 {
-  OpArg arg = arg2;
-  if (arg.IsImm())
-    ASSERT_MSG(DYNA_REC, 0, "JMPptr - Imm argument");
-  arg.operandReg = 4;
-  arg.WriteREX(this, 0, 0);
-  Write8(0xFF);
-  arg.WriteRest(this);
+  const auto emit = [&] {
+    OpArg arg = arg2;
+    if (arg.IsImm())
+      ASSERT_MSG(DYNA_REC, 0, "JMPptr - Imm argument");
+    arg.operandReg = 4;
+    arg.WriteREX(this, 0, 0);
+    Write8(0xFF);
+    arg.WriteRest(this);
+  };
+
+  if (!cpu_info.bJccErratum)
+  {
+    emit();
+    return;
+  }
+
+  u8* instruction_begin = code;
+  emit();
+  u8* instruction_end = code;
+  code = instruction_begin;
+  AddJccErratumPadding(instruction_end - instruction_begin);
+  emit();
 }
 
 // Can be used to trap other processors, before overwriting their code
 // not used in Dolphin
 void XEmitter::JMPself()
 {
+  AddJccErratumPadding(2);
   Write8(0xEB);
   Write8(0xFE);
 }
 
 void XEmitter::CALLptr(OpArg arg)
 {
-  if (arg.IsImm())
-    ASSERT_MSG(DYNA_REC, 0, "CALLptr - Imm argument");
-  arg.operandReg = 2;
-  arg.WriteREX(this, 0, 0);
-  Write8(0xFF);
-  arg.WriteRest(this);
+  const auto emit = [&] {
+    if (arg.IsImm())
+      ASSERT_MSG(DYNA_REC, 0, "CALLptr - Imm argument");
+    arg.operandReg = 2;
+    arg.WriteREX(this, 0, 0);
+    Write8(0xFF);
+    arg.WriteRest(this);
+  };
+
+  if (!cpu_info.bJccErratum)
+  {
+    emit();
+    return;
+  }
+
+  u8* instruction_begin = code;
+  emit();
+  u8* instruction_end = code;
+  code = instruction_begin;
+  AddJccErratumPadding(instruction_end - instruction_begin);
+  emit();
 }
 
 void XEmitter::CALL(const void* fnptr)
 {
+  AddJccErratumPadding(5);
   u64 distance = u64(fnptr) - (u64(code) + 5);
   ASSERT_MSG(DYNA_REC, distance < 0x0000000080000000ULL || distance >= 0xFFFFFFFF80000000ULL,
              "CALL out of range (%p calls %p)", code, fnptr);
@@ -472,11 +523,12 @@ void XEmitter::CALL(const void* fnptr)
 
 FixupBranch XEmitter::CALL()
 {
+  AddJccErratumPadding(5);
   FixupBranch branch;
   branch.type = FixupBranch::Type::Branch32Bit;
-  branch.ptr = code + 5;
   Write8(0xE8);
   Write32(0);
+  branch.ptr = code;
   return branch;
 }
 
@@ -484,18 +536,20 @@ FixupBranch XEmitter::J(bool force5bytes)
 {
   FixupBranch branch;
   branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
-  branch.ptr = code + (force5bytes ? 5 : 2);
   if (!force5bytes)
   {
+    AddJccErratumPadding(2);
     // 8 bits will do
     Write8(0xEB);
     Write8(0);
   }
   else
   {
+    AddJccErratumPadding(5);
     Write8(0xE9);
     Write32(0);
   }
+  branch.ptr = code;
   return branch;
 }
 
@@ -503,28 +557,34 @@ FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
 {
   FixupBranch branch;
   branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
-  branch.ptr = code + (force5bytes ? 6 : 2);
   if (!force5bytes)
   {
+    AddJccErratumPadding(2);
     // 8 bits will do
     Write8(0x70 + conditionCode);
     Write8(0);
   }
   else
   {
+    AddJccErratumPadding(6);
     Write8(0x0F);
     Write8(0x80 + conditionCode);
     Write32(0);
   }
+  branch.ptr = code;
   return branch;
 }
 
 void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
 {
+  AddJccErratumPadding(2);
+
   u64 fn = (u64)addr;
   s64 distance = (s64)(fn - ((u64)code + 2));
+
   if (distance < -0x80 || distance >= 0x80)
   {
+    AddJccErratumPadding(6);
     distance = (s64)(fn - ((u64)code + 6));
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump target too far away, needs indirect register");
@@ -534,6 +594,7 @@ void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
   }
   else
   {
+    AddJccErratumPadding(2);
     Write8(0x70 + conditionCode);
     Write8((u8)(s8)distance);
   }
@@ -567,10 +628,12 @@ void XEmitter::INT3()
 }
 void XEmitter::RET()
 {
+  AddJccErratumPadding(1);
   Write8(0xC3);
 }
 void XEmitter::RET_FAST()
 {
+  AddJccErratumPadding(2);
   Write8(0xF3);
   Write8(0xC3);
 }  // two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to
