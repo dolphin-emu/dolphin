@@ -258,7 +258,12 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
 
 void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
 {
-  // TODO: Are writes ignored during an active read request?
+  if (m_read_request.size)
+  {
+    // FYI: Writes during an active read will occasionally produce a "busy" (0x4) ack.
+    // We won't simulate that as it often does work. Poorly programmed games may rely on it.
+    WARN_LOG(WIIMOTE, "WriteData: write during active read request.");
+  }
 
   u16 address = Common::swap16(wd.address);
 
@@ -416,9 +421,11 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
 {
   if (m_read_request.size)
   {
-    // There is already an active read request.
-    // A real wiimote ignores the new one.
-    WARN_LOG(WIIMOTE, "ReadData: ignoring read during active request.");
+    // There is already an active read being processed.
+    WARN_LOG(WIIMOTE, "ReadData: attempting read during active request.");
+
+    // A real wm+ sends a busy ack in this situation.
+    SendAck(OutputReportID::ReadData, ErrorCode::Busy);
     return;
   }
 
@@ -437,7 +444,7 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   // TODO: should this be removed and let Update() take care of it?
   ProcessReadDataRequest();
 
-  // FYI: No "ACK" is sent.
+  // FYI: No "ACK" is sent under normal situations.
 }
 
 bool Wiimote::ProcessReadDataRequest()
