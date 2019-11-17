@@ -18,11 +18,15 @@ Windows:
 4) Build
 
 Linux:
-TBA
-
+1) Clone the Git Repo
+2) Open Terminal inside of Git Repo
+3) run `cd build`
+4) run `cmake .. -DLINUX_LOCAL_DEV=true`
+5) run `make`
+6) run `cp -r ../Data/Sys/ Binaries/`
+7) run `touch Binaries/portable.txt`
 
 ##### Version
 
-Version updating is changed inside of the [make-scmrev.js](Source/Core/Common/make_scmrev.h.js) file
 ### License
 Dolphin RNO is licensed under the [GNU General Public License v2.0](license.txt)
