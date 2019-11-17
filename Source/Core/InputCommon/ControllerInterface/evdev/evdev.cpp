@@ -243,9 +243,12 @@ void AddDeviceNode(const char* devnode)
     return;
   }
 
-  auto evdev_device = FindDeviceWithUniqueID(libevdev_get_uniq(dev));
+  const auto uniq = libevdev_get_uniq(dev);
+  auto evdev_device = FindDeviceWithUniqueID(uniq);
   if (evdev_device)
   {
+    NOTICE_LOG(SERIALINTERFACE, "evdev combining devices with unique id: %s", uniq);
+
     evdev_device->AddNode(devnode, fd, dev);
 
     // Callbacks must be invoked as the device name and available inputs may change.
@@ -572,7 +575,13 @@ const char* evdevDevice::GetUniqueID() const
   if (m_nodes.empty())
     return nullptr;
 
-  return libevdev_get_uniq(m_nodes.front().device);
+  const auto uniq = libevdev_get_uniq(m_nodes.front().device);
+
+  // Some devices (e.g. Mayflash adapter) return an empty string which is not very unique.
+  if (uniq && std::strlen(uniq) == 0)
+    return nullptr;
+
+  return uniq;
 }
 
 evdevDevice::~evdevDevice()
