@@ -465,18 +465,37 @@ void GCMemcardManager::DrawIcons()
   const auto column = 3;
   for (int slot = 0; slot < SLOT_COUNT; slot++)
   {
-    int row = 0;
-    for (const auto& icon : m_slot_active_icons[slot])
+    // skip loop if the table is empty
+    if (m_slot_table[slot]->rowCount() <= 0)
+      continue;
+
+    const auto viewport = m_slot_table[slot]->viewport();
+    u32 row = m_slot_table[slot]->indexAt(viewport->rect().topLeft()).row();
+    const auto max_table_index = m_slot_table[slot]->indexAt(viewport->rect().bottomLeft());
+    const u32 max_row =
+        max_table_index.row() < 0 ? (m_slot_table[slot]->rowCount() - 1) : max_table_index.row();
+
+    for (; row <= max_row; row++)
     {
+      const auto& icon = m_slot_active_icons[slot][row];
+
+      // this icon doesn't have an animation
+      if (icon.m_frames.size() <= 1)
+        continue;
+
+      const u64 prev_time_in_animation = (m_current_frame - 1) % icon.m_frame_timing.size();
+      const u8 prev_frame = icon.m_frame_timing[prev_time_in_animation];
       const u64 current_time_in_animation = m_current_frame % icon.m_frame_timing.size();
       const u8 current_frame = icon.m_frame_timing[current_time_in_animation];
+
+      if (prev_frame == current_frame)
+        continue;
 
       auto* item = new QTableWidgetItem;
       item->setData(Qt::DecorationRole, icon.m_frames[current_frame]);
       item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 
       m_slot_table[slot]->setItem(row, column, item);
-      row++;
     }
   }
 
