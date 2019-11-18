@@ -839,9 +839,12 @@ void Callback_VideoCopiedToXFB(bool video_update)
 {
   if (video_update)
     s_drawn_frame++;
+}
 
+// Called at field boundaries in `VideoInterface::Update()`
+void FrameUpdate()
+{
   Movie::FrameUpdate();
-
   if (s_frame_step)
   {
     s_frame_step = false;

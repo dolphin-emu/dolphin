@@ -733,6 +733,12 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
+  // If this half-line is at a field boundary, potentially deal with frame-stepping
+  // and/or update movie state before dealing with anything else
+
+  if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
+    Core::FrameUpdate();
+
   // If an SI poll is scheduled to happen on this half-line, do it!
 
   if (s_half_line_of_next_si_poll == s_half_line_count)
