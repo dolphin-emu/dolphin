@@ -81,6 +81,10 @@ void Jit64AsmRoutineManager::Generate()
   ResetStack(*this);
 
   SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
+  // Prevent op-Jcc fusion by inserting a NOP. If this NOP wasn't here, the above SUB may be
+  // `memmove`-d by the emitter and this would invalidate the below `dispatcher` variable.
+  // (See also: AddJccErratumPaddingFusable)
+  NOP();
 
   dispatcher = GetCodePtr();
   // Expected result of SUB(32, PPCSTATE(downcount), Imm32(block_cycles)) is in RFLAGS.

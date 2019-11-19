@@ -1171,6 +1171,29 @@ public:
     auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
     ABI_CallFunctionPC(trampoline, reinterpret_cast<const void*>(f), p1);
   }
+
+private:
+  enum class JccFusionType
+  {
+    None,
+    All,
+    Numeric,  // jz jl jg jc jb ja (and their inverses)
+  };
+
+  template <typename Fn>
+  void EmitJccFusableInstruction(JccFusionType type, Fn&& fn)
+  {
+    jcc_fusion_type = type;
+    jcc_fusion_last_inst_start = code;
+    fn();
+    jcc_fusion_last_inst_end = code;
+  }
+
+  void AddJccErratumPaddingFusable(CCFlags cc, size_t instruction_size);
+
+  JccFusionType jcc_fusion_type = JccFusionType::None;
+  u8* jcc_fusion_last_inst_start = nullptr;
+  u8* jcc_fusion_last_inst_end = nullptr;
 };  // class XEmitter
 
 class X64CodeBlock : public Common::CodeBlock<XEmitter>
