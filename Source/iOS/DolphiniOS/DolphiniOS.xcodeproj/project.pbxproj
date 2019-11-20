@@ -63,6 +63,7 @@
 		B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09372382D89600DBBB01 /* TCJoystick.swift */; };
 		B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */; };
 		B95A09412384F32900DBBB01 /* DolphinImageTemplate.json.in in Resources */ = {isa = PBXBuildFile; fileRef = B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */; };
+		B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A0944238533DC00DBBB01 /* TCButtonType.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -147,6 +148,7 @@
 		B95A09372382D89600DBBB01 /* TCJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCJoystick.swift; sourceTree = "<group>"; };
 		B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = DolphinImages.xcassets; sourceTree = "<group>"; };
 		B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = DolphinImageTemplate.json.in; sourceTree = "<group>"; };
+		B95A0944238533DC00DBBB01 /* TCButtonType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButtonType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -331,6 +333,7 @@
 				B95A0931238275C200DBBB01 /* TCGameCubePad.xib */,
 				B95A09332382782600DBBB01 /* TCGameCubePad.swift */,
 				B95A09372382D89600DBBB01 /* TCJoystick.swift */,
+				B95A0944238533DC00DBBB01 /* TCButtonType.swift */,
 			);
 			path = TouchController;
 			sourceTree = "<group>";
@@ -460,6 +463,7 @@
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
+				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 				B91BF37A236BAA3200199BA7 /* MVKView.m in Sources */,
