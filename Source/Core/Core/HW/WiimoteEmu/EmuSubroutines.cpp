@@ -291,18 +291,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     else
     {
       std::copy_n(wd.data, wd.size, m_eeprom.data.data() + address);
-
-      // Write mii data to file
-      if (address >= 0x0FCA && address < 0x12C0)
-      {
-        // TODO: Only write parts of the Mii block.
-        // TODO: Use different files for different wiimote numbers.
-        std::ofstream file;
-        File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
-                          std::ios::binary | std::ios::out);
-        file.write((char*)m_eeprom.data.data() + 0x0FCA, 0x02f0);
-        file.close();
-      }
+      m_eeprom_dirty = true;
     }
   }
   break;
@@ -486,18 +475,6 @@ bool Wiimote::ProcessReadDataRequest()
     }
     else
     {
-      // Mii block handling:
-      // TODO: different filename for each wiimote?
-      if (m_read_request.address >= 0x0FCA && m_read_request.address < 0x12C0)
-      {
-        // TODO: Only read the Mii block parts required
-        std::ifstream file;
-        File::OpenFStream(file, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
-                          std::ios::binary | std::ios::in);
-        file.read((char*)m_eeprom.data.data() + 0x0FCA, 0x02f0);
-        file.close();
-      }
-
       // Read memory to be sent to Wii
       std::copy_n(m_eeprom.data.data() + m_read_request.address, bytes_to_read, reply.data);
       reply.size_minus_one = bytes_to_read - 1;

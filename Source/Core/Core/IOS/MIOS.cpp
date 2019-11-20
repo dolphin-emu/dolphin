@@ -20,6 +20,7 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -35,6 +36,7 @@ static void ReinitHardware()
   // MIOS appears to only reset the DI and the PPC.
   DVDInterface::Reset();
   PowerPC::Reset();
+  Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
   DSP::Reinit(SConfig::GetInstance().bDSPHLE);
   DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii, SConfig::GetInstance().bDSPThread);

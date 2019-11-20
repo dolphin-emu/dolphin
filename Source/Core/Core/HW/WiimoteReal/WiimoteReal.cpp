@@ -143,7 +143,7 @@ void Wiimote::ClearReadQueue()
 void Wiimote::ControlChannel(const u16 channel, const void* const data, const u32 size)
 {
   // Check for custom communication
-  if (channel == 99)
+  if (channel == ::Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL)
   {
     if (m_really_disconnect)
     {
