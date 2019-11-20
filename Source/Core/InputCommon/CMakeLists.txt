@@ -125,6 +125,16 @@ elseif(ANDROID)
     ControllerInterface/Touch/Touchscreen.cpp
     ControllerInterface/Touch/Touchscreen.h
   )
+elseif(IOS)
+  target_compile_definitions(inputcommon PRIVATE -DCIFACE_USE_IOS)
+  target_sources(inputcommon PRIVATE
+    ControllerInterface/Touch/ButtonManager.cpp
+    ControllerInterface/Touch/ButtonManager.h
+    ControllerInterface/Touch/Touchscreen.cpp
+    ControllerInterface/Touch/Touchscreen.h
+    ControllerInterface/iOS/iOS.mm
+    ControllerInterface/iOS/iOS.h
+  )
 endif()
 
 if(ANDROID)
