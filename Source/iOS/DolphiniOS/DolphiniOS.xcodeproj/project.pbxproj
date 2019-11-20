@@ -61,6 +61,7 @@
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
 		B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09372382D89600DBBB01 /* TCJoystick.swift */; };
+		B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -143,6 +144,7 @@
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
 		B95A09332382782600DBBB01 /* TCGameCubePad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCGameCubePad.swift; sourceTree = "<group>"; };
 		B95A09372382D89600DBBB01 /* TCJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCJoystick.swift; sourceTree = "<group>"; };
+		B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = DolphinImages.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -265,6 +267,7 @@
 				B945A3772362908500B21680 /* SceneDelegate.m */,
 				B945A37C2362908500B21680 /* Main.storyboard */,
 				B945A37F2362909500B21680 /* Assets.xcassets */,
+				B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */,
 				B945A3812362909500B21680 /* LaunchScreen.storyboard */,
 				B945A3842362909500B21680 /* Info.plist */,
 				B945A3852362909500B21680 /* main.m */,
@@ -392,6 +395,7 @@
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
+				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
