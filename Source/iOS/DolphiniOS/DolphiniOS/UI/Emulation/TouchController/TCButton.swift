@@ -26,23 +26,19 @@ class TCButton: UIButton
   {
     didSet
     {
-      sharedInit()
+      updateImage()
     }
   }
   
   override init(frame: CGRect)
   {
     super.init(frame: frame)
+    sharedInit()
   }
   
   required init?(coder: NSCoder)
   {
     super.init(coder: coder)
-  }
-  
-  override func awakeFromNib()
-  {
-    super.awakeFromNib()
     sharedInit()
   }
   
@@ -54,12 +50,22 @@ class TCButton: UIButton
   
   func sharedInit()
   {
-    self.setImage(UIImage(named: m_type)?.withRenderingMode(.alwaysOriginal), for: .normal)
-    self.setImage(UIImage(named: m_type + "_pressed")?.withRenderingMode(.alwaysOriginal), for: .selected)
     self.setTitle("", for: .normal)
-    
     self.addTarget(self, action: #selector(buttonPressed), for: .touchDown)
     self.addTarget(self, action: #selector(buttonReleased), for: .touchUpInside)
+  }
+  
+  func updateImage()
+  {
+    let buttonImage = getImage(named: m_type)
+    self.setImage(buttonImage?.withRenderingMode(.alwaysOriginal), for: .normal)
+    self.setImage(getImage(named: m_type + "_pressed")?.withRenderingMode(.alwaysOriginal), for: .selected)
+    self.frame = CGRect(origin: self.frame.origin, size: buttonImage?.size ?? CGSize(width: 192, height: 192))
+  }
+  
+  func getImage(named: String) -> UIImage?
+  {
+    return UIImage(named: named, in: Bundle(for: type(of: self)), compatibleWith: nil)
   }
   
   @objc func buttonPressed()
