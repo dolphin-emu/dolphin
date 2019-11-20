@@ -101,10 +101,14 @@ public class MotionListener implements SensorEventListener
       mSensorManager.registerListener(this, mAccelSensor, SAMPLING_PERIOD_US);
     if (mGyroSensor != null)
       mSensorManager.registerListener(this, mGyroSensor, SAMPLING_PERIOD_US);
+
+    NativeLibrary.SetMotionSensorsEnabled(mAccelSensor != null, mGyroSensor != null);
   }
 
   public void disable()
   {
     mSensorManager.unregisterListener(this);
+
+    NativeLibrary.SetMotionSensorsEnabled(false, false);
   }
 }

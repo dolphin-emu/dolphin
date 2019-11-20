@@ -265,6 +265,9 @@ public final class NativeLibrary
     Rumble.checkRumble(padID, state);
   }
 
+  public static native void SetMotionSensorsEnabled(boolean accelerometerEnabled,
+          boolean gyroscopeEnabled);
+
   public static native void NewGameIniFile();
 
   public static native void LoadGameIniFile(String gameId);

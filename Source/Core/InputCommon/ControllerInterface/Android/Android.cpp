@@ -10,6 +10,21 @@
 
 namespace ciface::Android
 {
+static bool s_accelerometer_enabled = false;
+static bool s_gyroscope_enabled = false;
+
+void SetMotionSensorsEnabled(bool accelerometer_enabled, bool gyroscope_enabled)
+{
+  const bool any_changes =
+      s_accelerometer_enabled != accelerometer_enabled || s_gyroscope_enabled != gyroscope_enabled;
+
+  s_accelerometer_enabled = accelerometer_enabled;
+  s_gyroscope_enabled = gyroscope_enabled;
+
+  if (any_changes)
+    g_controller_interface.RefreshDevices();
+}
+
 void PopulateDevices()
 {
   for (int i = 0; i < 8; ++i)
@@ -186,18 +201,26 @@ Touchscreen::Touchscreen(int padID) : _padID(padID)
   AddInput(new Axis(_padID, ButtonManager::TURNTABLE_EFFECT_DIAL));
 
   // Wiimote IMU
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_LEFT));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_RIGHT));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_FORWARD));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_BACKWARD));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_UP));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_DOWN));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_PITCH_UP));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_PITCH_DOWN));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_ROLL_LEFT));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_ROLL_RIGHT));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_YAW_LEFT));
-  AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_YAW_RIGHT));
+  // Only add inputs if we actually can receive data from the relevant sensor.
+  // Whether inputs exist affects what WiimoteEmu gets when calling ControlReference::BoundCount.
+  if (s_accelerometer_enabled)
+  {
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_LEFT));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_RIGHT));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_FORWARD));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_BACKWARD));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_UP));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_ACCEL_DOWN));
+  }
+  if (s_gyroscope_enabled)
+  {
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_PITCH_UP));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_PITCH_DOWN));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_ROLL_LEFT));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_ROLL_RIGHT));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_YAW_LEFT));
+    AddInput(new Axis(_padID, ButtonManager::WIIMOTE_GYRO_YAW_RIGHT));
+  }
 
   // Rumble
   AddOutput(new Motor(_padID, ButtonManager::RUMBLE));
