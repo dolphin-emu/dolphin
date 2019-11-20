@@ -62,6 +62,7 @@
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
 		B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09372382D89600DBBB01 /* TCJoystick.swift */; };
 		B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */; };
+		B95A09412384F32900DBBB01 /* DolphinImageTemplate.json.in in Resources */ = {isa = PBXBuildFile; fileRef = B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -145,6 +146,7 @@
 		B95A09332382782600DBBB01 /* TCGameCubePad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCGameCubePad.swift; sourceTree = "<group>"; };
 		B95A09372382D89600DBBB01 /* TCJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCJoystick.swift; sourceTree = "<group>"; };
 		B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = DolphinImages.xcassets; sourceTree = "<group>"; };
+		B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = DolphinImageTemplate.json.in; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -271,6 +273,7 @@
 				B945A3812362909500B21680 /* LaunchScreen.storyboard */,
 				B945A3842362909500B21680 /* Info.plist */,
 				B945A3852362909500B21680 /* main.m */,
+				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 			);
 			path = DolphiniOS;
 			sourceTree = "<group>";
@@ -339,7 +342,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */;
 			buildPhases = (
-				B945A38C2362AEB900B21680 /* Run Script */,
+				B945A38C2362AEB900B21680 /* Build Dolphin */,
+				B95A093F2384F18600DBBB01 /* Copy Dolphin Images */,
 				B945A36C2362908400B21680 /* Sources */,
 				B945A36D2362908400B21680 /* Frameworks */,
 				B945A36E2362908400B21680 /* Resources */,
@@ -396,6 +400,7 @@
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
+				B95A09412384F32900DBBB01 /* DolphinImageTemplate.json.in in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -403,7 +408,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		B945A38C2362AEB900B21680 /* Run Script */ = {
+		B945A38C2362AEB900B21680 /* Build Dolphin */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -412,7 +417,7 @@
 			);
 			inputPaths = (
 			);
-			name = "Run Script";
+			name = "Build Dolphin";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -420,6 +425,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
 			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\nCMAKE_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$ARCHS\nGENERIC_BUILD_DIR=$ROOT_DOLPHIN_DIR/build\n\nIOS_PLATFORM=OS64\nif [ $ARCHS == \"x86_64\" ]; then\n    IOS_PLATFORM=SIMULATOR64\nfi\n\nif [ ! -d \"$CMAKE_BUILD_DIR\" ]; then\n    mkdir $CMAKE_BUILD_DIR\n    cd $CMAKE_BUILD_DIR\n    \n    cmake $ROOT_DOLPHIN_DIR -DCMAKE_TOOLCHAIN_FILE=$ROOT_DOLPHIN_DIR/Source/iOS/ios.toolchain.cmake -DPLATFORM=$IOS_PLATFORM -DDEPLOYMENT_TARGET=\"12.0\"\nfi\n\ncd $CMAKE_BUILD_DIR\n\ncmake --build . --config Debug\n\nif [ ! -d \"$GENERIC_BUILD_DIR\" ]; then\n    mkdir $GENERIC_BUILD_DIR\n    mkdir $GENERIC_BUILD_DIR/libs\n    mkdir $GENERIC_BUILD_DIR/libs/Dolphin\n    mkdir $GENERIC_BUILD_DIR/libs/Externals\nfi\n\nrm -f $GENERIC_BUILD_DIR/libs/Dolphin/*.a\nrm -f $GENERIC_BUILD_DIR/libs/Externals/*.a\n\nfind Source/ -name '*.a' -exec cp -prv '{}' \"$GENERIC_BUILD_DIR/libs/Dolphin/\" ';'\n\nfind Externals/ -name '*.a' -exec cp -prv '{}' \"$GENERIC_BUILD_DIR/libs/Externals/\" ';'\n\ncp $ROOT_DOLPHIN_DIR/Externals/MoltenVK/libvulkan_iOS.dylib $GENERIC_BUILD_DIR/libs/Externals/libMoltenVK.dylib\n";
+		};
+		B95A093F2384F18600DBBB01 /* Copy Dolphin Images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Dolphin Images";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_SRC_DIR=$PROJECT_DIR/DolphiniOS\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\nANDROID_RES_DIR=$ROOT_DOLPHIN_DIR/Source/Android/app/src/main/res\nONEX_DIR=$ANDROID_RES_DIR/drawable-hdpi\nTWOX_DIR=$ANDROID_RES_DIR/drawable-hdpi\nTHREEX_DIR=$ANDROID_RES_DIR/drawable-hdpi\n\n# Clear all images\nrm -rf $ROOT_SRC_DIR/DolphinImages.xcassets/*.imageset\n\nfor path in $ONEX_DIR/*\ndo\n  FILENAME=$(basename \"$path\" .png)\n  \n  mkdir $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset\n  \n  cp $ONEX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@1x.png\n  cp $TWOX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@2x.png\n  cp $THREEX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@3x.png\n  \n  cp $ROOT_SRC_DIR/DolphinImageTemplate.json.in $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/Contents.json\n  \n  sed \"s/FILENAME/$FILENAME/g\" $ROOT_SRC_DIR/DolphinImageTemplate.json.in > $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/Contents.json\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
