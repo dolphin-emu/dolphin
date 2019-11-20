@@ -43,20 +43,31 @@ class TCButton: UIButton
   
   func updateImage()
   {
-    let buttonImage = getImage(named: TCButtonType(rawValue: controllerButton)!.getImageName())
+    let buttonType = TCButtonType(rawValue: controllerButton)!
+    
+    let buttonImage = getImage(named: buttonType.getImageName(), scale: buttonType.getButtonScale())
     self.setImage(buttonImage, for: .normal)
     
-    let buttonPressedImage = getImage(named: TCButtonType(rawValue: controllerButton)!.getImageName() + "_pressed")
+    let buttonPressedImage = getImage(named: buttonType.getImageName() + "_pressed", scale: buttonType.getButtonScale())
     self.setImage(buttonPressedImage, for: .selected)
-    
-    self.frame = CGRect(origin: self.frame.origin, size: buttonImage.size)
   }
   
-  func getImage(named: String) -> UIImage
+  func getImage(named: String, scale: CGFloat) -> UIImage
   {
     // In Interface Builder, the default bundle is not Dolphin's, so we must specify
     // the bundle for the image to load correctly
-    return UIImage(named: named, in: Bundle(for: type(of: self)), compatibleWith: nil)!.withRenderingMode(.alwaysOriginal)
+    let image = UIImage(named: named, in: Bundle(for: type(of: self)), compatibleWith: nil)!
+    
+    // Create a new CGSize with the new scale
+    let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+    
+    // Render the image into a context
+    UIGraphicsBeginImageContext(newSize)
+    image.draw(in: CGRect(origin: CGPoint.zero, size: newSize))
+    let newImage = UIGraphicsGetImageFromCurrentImageContext()!
+    UIGraphicsEndImageContext()
+    
+    return newImage.withRenderingMode(.alwaysOriginal)
   }
   
   @objc func buttonPressed()
