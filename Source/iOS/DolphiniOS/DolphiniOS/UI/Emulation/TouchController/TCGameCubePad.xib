@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="15505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15510"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eE9-b5-3HP" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="348" y="832" width="46" height="30"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="string" keyPath="m_type" value="gcpad_a"/>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="toi-7Z-ObZ" customClass="TCJoystick" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="156" y="670" width="192" height="192"/>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="192" id="q3S-qY-nTb"/>
+                        <constraint firstAttribute="height" constant="192" id="rcx-ph-3wT"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="string" keyPath="joystickType" value="gcpad_main_stick"/>
+                    </userDefinedRuntimeAttributes>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nKJ-u2-fT0" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="20" y="44" width="46" height="30"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="string" keyPath="m_type" value="gcpad_start"/>
+                    </userDefinedRuntimeAttributes>
+                </button>
+            </subviews>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <constraints>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="top" secondItem="nKJ-u2-fT0" secondAttribute="top" id="J47-hV-Rsp"/>
+                <constraint firstItem="eE9-b5-3HP" firstAttribute="trailing" secondItem="iN0-l3-epB" secondAttribute="trailingMargin" id="Lrr-aC-iSc"/>
+                <constraint firstItem="toi-7Z-ObZ" firstAttribute="bottom" secondItem="eE9-b5-3HP" secondAttribute="bottom" id="R4V-Pa-NNC"/>
+                <constraint firstItem="eE9-b5-3HP" firstAttribute="bottom" secondItem="vUN-kp-3ea" secondAttribute="bottom" id="Zey-R1-Xx0"/>
+                <constraint firstItem="nKJ-u2-fT0" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leadingMargin" id="bZZ-xm-fQI"/>
+                <constraint firstItem="toi-7Z-ObZ" firstAttribute="trailing" secondItem="eE9-b5-3HP" secondAttribute="leading" id="uo3-a9-Lx9"/>
+            </constraints>
+            <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <point key="canvasLocation" x="131.8840579710145" y="153.34821428571428"/>
+        </view>
+    </objects>
+</document>
