@@ -58,7 +58,7 @@ class TCJoystick: UIView
   
   func createImageView(imageName: String) -> UIImageView
   {
-    let image = UIImage(named: imageName)
+    let image = UIImage(named: imageName, in: Bundle(for: type(of: self)), compatibleWith: nil)
     let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: self.frame.width - (self.frame.width / 3), height: self.frame.height - (self.frame.height / 3)))
     imageView.image = image
     imageView.center = self.convert(self.center, from: self.superview)
