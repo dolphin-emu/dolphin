@@ -10,9 +10,12 @@
 #include "Common/WindowSystemInfo.h"
 
 #include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/State.h"
+
+#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #include "MainiOS.h"
 
@@ -99,12 +102,23 @@ void Host_TitleChanged()
 
   while (true)
   {
+    ButtonManager::Init(SConfig::GetInstance().GetGameID());
     Core::HostDispatchJobs();
     usleep(useconds_t(100 * 1000));
   }
 
   Core::Shutdown();
   UICommon::Shutdown();
+}
+
++ (void)gamepadEventForButton:(int)button action:(int)action
+{
+  ButtonManager::GamepadEvent("Touchscreen", button, action);
+}
+
++ (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value
+{
+  ButtonManager::GamepadAxisEvent("Touchscreen", axis, value);
 }
 
 @end
