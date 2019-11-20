@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #import "EmulationViewController.h"
+#import "DolphiniOS-Swift.h"
 #import "EAGLView.h"
 #import "MVKView.h"
 #import "MainiOS.h"
@@ -47,9 +48,14 @@
   {
     self.view = [[MVKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   }
+
+  UIView* padView = [[[NSBundle mainBundle] loadNibNamed:@"TCGameCubePad" owner:self
+                                                 options:nil] objectAtIndex:0];
+  padView.frame = self.view.bounds;
+  [self.view addSubview:padView];
 }
 
-- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+/*- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
   return UIInterfaceOrientationLandscapeRight;
 }
@@ -57,6 +63,6 @@
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
   return UIInterfaceOrientationMaskLandscape;
-}
+}*/
 
 @end
