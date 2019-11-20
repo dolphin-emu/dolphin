@@ -24,6 +24,9 @@
 #ifdef CIFACE_USE_ANDROID
 #include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
+#ifdef CIFACE_USE_IOS
+#include "InputCommon/ControllerInterface/iOS/iOS.h"
+#endif
 #ifdef CIFACE_USE_EVDEV
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 #endif
@@ -121,6 +124,9 @@ void ControllerInterface::RefreshDevices()
 #endif
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
+#endif
+#ifdef CIFACE_USE_IOS
+  ciface::iOS::PopulateDevices();
 #endif
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::PopulateDevices();
