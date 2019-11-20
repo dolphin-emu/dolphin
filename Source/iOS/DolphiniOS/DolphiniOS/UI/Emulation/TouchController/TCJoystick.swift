@@ -8,14 +8,7 @@ import UIKit
 @IBDesignable
 class TCJoystick: UIView
 {
-  let joystickMapping: [String: Int32] =
-  [
-    "gcpad_main_stick": 10,
-    "gcpad_c_stick": 15,
-    "nunchuk_stick": 202
-  ]
-  
-  @IBInspectable var joystickType: String = ""
+  @IBInspectable var joystickType: Int = 10 // default: GC stick
   
   override init(frame: CGRect)
   {
@@ -46,7 +39,7 @@ class TCJoystick: UIView
     self.addSubview(rangeImage)
     
     // Create handle
-    let handleView = createImageView(imageName: "gcwii_joystick")
+    let handleView = createImageView(imageName: TCButtonType(rawValue: joystickType)!.getImageName())
     let panHandler = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
     handleView.isUserInteractionEnabled = true
     handleView.addGestureRecognizer(panHandler)
@@ -58,7 +51,11 @@ class TCJoystick: UIView
   
   func createImageView(imageName: String) -> UIImageView
   {
+    // In Interface Builder, the default bundle is not Dolphin's, so we must specify
+    // the bundle for the image to load correctly
     let image = UIImage(named: imageName, in: Bundle(for: type(of: self)), compatibleWith: nil)
+    
+    // Create the view
     let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: self.frame.width - (self.frame.width / 3), height: self.frame.height - (self.frame.height / 3)))
     imageView.image = image
     imageView.center = self.convert(self.center, from: self.superview)
@@ -106,10 +103,10 @@ class TCJoystick: UIView
     }
     
     // Send axises values
-    let axisStartIdx = joystickMapping[joystickType] ?? 10
+    let axisStartIdx = joystickType
     for i in 0...3
     {
-      MainiOS.gamepadMoveEvent(forAxis: axisStartIdx + Int32(i) + 1, value: joyAxises[i])
+      MainiOS.gamepadMoveEvent(forAxis: Int32(axisStartIdx + i + 1), value: joyAxises[i])
     }
     
     gesture.view?.center = point
