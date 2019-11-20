@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.utils;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;

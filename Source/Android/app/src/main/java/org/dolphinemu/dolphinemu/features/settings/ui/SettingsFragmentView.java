@@ -1,6 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;

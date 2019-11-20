@@ -3,8 +3,9 @@ package org.dolphinemu.dolphinemu.utils;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
