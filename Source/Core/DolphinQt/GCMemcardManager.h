@@ -54,6 +54,7 @@ private:
   void ExportFiles(bool prompt);
   void ExportAllFiles();
   void FixChecksums();
+  void CreateNewCard(int slot);
   void DrawIcons();
 
   QPixmap GetBannerFromSaveFile(int file_index, int slot);
@@ -75,7 +76,8 @@ private:
   std::array<std::unique_ptr<GCMemcard>, SLOT_COUNT> m_slot_memcard;
   std::array<QGroupBox*, SLOT_COUNT> m_slot_group;
   std::array<QLineEdit*, SLOT_COUNT> m_slot_file_edit;
-  std::array<QPushButton*, SLOT_COUNT> m_slot_file_button;
+  std::array<QPushButton*, SLOT_COUNT> m_slot_open_button;
+  std::array<QPushButton*, SLOT_COUNT> m_slot_create_button;
   std::array<QTableWidget*, SLOT_COUNT> m_slot_table;
   std::array<QLabel*, SLOT_COUNT> m_slot_stat_label;
 

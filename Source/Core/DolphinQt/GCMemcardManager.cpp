@@ -30,6 +30,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
+#include "DolphinQt/GCMemcardCreateNewDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr float ROW_HEIGHT = 28;
@@ -91,7 +92,8 @@ void GCMemcardManager::CreateWidgets()
   {
     m_slot_group[i] = new QGroupBox(i == 0 ? tr("Slot A") : tr("Slot B"));
     m_slot_file_edit[i] = new QLineEdit;
-    m_slot_file_button[i] = new QPushButton(tr("&Browse..."));
+    m_slot_open_button[i] = new QPushButton(tr("&Open..."));
+    m_slot_create_button[i] = new QPushButton(tr("&Create..."));
     m_slot_table[i] = new QTableWidget;
     m_slot_table[i]->setTabKeyNavigation(false);
     m_slot_stat_label[i] = new QLabel;
@@ -107,8 +109,9 @@ void GCMemcardManager::CreateWidgets()
     m_slot_group[i]->setLayout(slot_layout);
 
     slot_layout->addWidget(m_slot_file_edit[i], 0, 0);
-    slot_layout->addWidget(m_slot_file_button[i], 0, 1);
-    slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 2);
+    slot_layout->addWidget(m_slot_open_button[i], 0, 1);
+    slot_layout->addWidget(m_slot_create_button[i], 0, 2);
+    slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 3);
     slot_layout->addWidget(m_slot_stat_label[i], 2, 0);
 
     layout->addWidget(m_slot_group[i], 0, i * 2, 9, 1);
@@ -143,8 +146,10 @@ void GCMemcardManager::ConnectWidgets()
   {
     connect(m_slot_file_edit[slot], &QLineEdit::textChanged,
             [this, slot](const QString& path) { SetSlotFile(slot, path); });
-    connect(m_slot_file_button[slot], &QPushButton::clicked,
+    connect(m_slot_open_button[slot], &QPushButton::clicked,
             [this, slot] { SetSlotFileInteractive(slot); });
+    connect(m_slot_create_button[slot], &QPushButton::clicked,
+            [this, slot] { CreateNewCard(slot); });
     connect(m_slot_table[slot], &QTableWidget::itemSelectionChanged, this,
             &GCMemcardManager::UpdateActions);
   }
@@ -457,6 +462,13 @@ void GCMemcardManager::FixChecksums()
 
   if (!memcard->Save())
     PanicAlertT("File write failed");
+}
+
+void GCMemcardManager::CreateNewCard(int slot)
+{
+  GCMemcardCreateNewDialog dialog(this);
+  if (dialog.exec() == QDialog::Accepted)
+    m_slot_file_edit[slot]->setText(QString::fromStdString(dialog.GetMemoryCardPath()));
 }
 
 void GCMemcardManager::DrawIcons()

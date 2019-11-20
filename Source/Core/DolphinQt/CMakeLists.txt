@@ -200,6 +200,8 @@ add_executable(dolphin-emu
   GameList/GridProxyModel.h
   GameList/ListProxyModel.cpp
   GameList/ListProxyModel.h
+  GCMemcardCreateNewDialog.cpp
+  GCMemcardCreateNewDialog.h
   GCMemcardManager.cpp
   GCMemcardManager.h
   QtUtils/BlockUserInputFilter.cpp
