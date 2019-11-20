@@ -359,4 +359,10 @@
         <item>1</item>
         <item>-1</item>
     </integer-array>
+
+    <string-array name="motionControlsEntries">
+        <item>Use Device Sensors (With Pointer Emulation)</item>
+        <item>Use Device Sensors (Without Pointer Emulation)</item>
+        <item>Don\'t Use Device Sensors</item>
+    </string-array>
 </resources>

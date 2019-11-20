@@ -113,6 +113,10 @@
                 android:id="@+id/menu_emulation_choose_controller"
                 android:title="@string/emulation_choose_controller"/>
             <item
+                android:id="@+id/menu_emulation_motion_controls"
+                android:title="@string/emulation_motion_controls"/>
+
+            <item
                 android:id="@+id/menu_emulation_ir_group"
                 android:title="@string/emulation_ir_group"
                 app:showAsAction="never">

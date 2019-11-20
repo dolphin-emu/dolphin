@@ -18,6 +18,8 @@ public class MotionListener implements SensorEventListener
   private final Sensor mAccelSensor;
   private final Sensor mGyroSensor;
 
+  private boolean mEnabled = false;
+
   // The same sampling period as for Wii Remotes
   private static final int SAMPLING_PERIOD_US = 1000000 / 200;
 
@@ -97,18 +99,28 @@ public class MotionListener implements SensorEventListener
 
   public void enable()
   {
+    if (mEnabled)
+      return;
+
     if (mAccelSensor != null)
       mSensorManager.registerListener(this, mAccelSensor, SAMPLING_PERIOD_US);
     if (mGyroSensor != null)
       mSensorManager.registerListener(this, mGyroSensor, SAMPLING_PERIOD_US);
 
     NativeLibrary.SetMotionSensorsEnabled(mAccelSensor != null, mGyroSensor != null);
+
+    mEnabled = true;
   }
 
   public void disable()
   {
+    if (!mEnabled)
+      return;
+
     mSensorManager.unregisterListener(this);
 
     NativeLibrary.SetMotionSensorsEnabled(false, false);
+
+    mEnabled = false;
   }
 }

@@ -100,7 +100,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-          MENU_ACTION_SCREEN_ORIENTATION})
+          MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS})
   public @interface MenuAction
   {
   }
@@ -135,6 +135,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_SET_IR_SENSITIVITY = 27;
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
   public static final int MENU_ACTION_SCREEN_ORIENTATION = 29;
+  public static final int MENU_ACTION_MOTION_CONTROLS = 30;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -183,6 +184,8 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
     buttonsActionsMap.append(R.id.menu_screen_orientation,
             EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
+    buttonsActionsMap.append(R.id.menu_emulation_motion_controls,
+            EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
 
   private static String[] scanForSecondDisc(GameFile gameFile)
@@ -349,7 +352,7 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onResume()
   {
     super.onResume();
-    if (!sIsGameCubeGame)
+    if (!sIsGameCubeGame && mPreferences.getInt("motionControlsEnabled", 0) != 2)
       mMotionListener.enable();
   }
 
@@ -357,8 +360,7 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onPause()
   {
     super.onPause();
-    if (!sIsGameCubeGame)
-      mMotionListener.disable();
+    mMotionListener.disable();
   }
 
   @Override
@@ -651,6 +653,10 @@ public final class EmulationActivity extends AppCompatActivity
         chooseOrientation();
         return;
 
+      case MENU_ACTION_MOTION_CONTROLS:
+        showMotionControlsOptions();
+        return;
+
       case MENU_ACTION_EXIT:
         // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
         if (TvUtil.isLeanback(getApplicationContext()))
@@ -883,6 +889,32 @@ public final class EmulationActivity extends AppCompatActivity
       editor.apply();
       mEmulationFragment.refreshInputOverlay();
     });
+
+    AlertDialog alertDialog = builder.create();
+    alertDialog.show();
+  }
+
+  private void showMotionControlsOptions()
+  {
+    final SharedPreferences.Editor editor = mPreferences.edit();
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.emulation_motion_controls);
+    builder.setSingleChoiceItems(R.array.motionControlsEntries,
+            mPreferences.getInt("motionControlsEnabled", 0),
+            (dialog, indexSelected) ->
+            {
+              editor.putInt("motionControlsEnabled", indexSelected);
+
+              if (indexSelected != 2)
+                mMotionListener.enable();
+              else
+                mMotionListener.disable();
+
+              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "IMUIR/Enabled",
+                      indexSelected != 1 ? "True" : "False");
+              NativeLibrary.ReloadWiimoteConfig();
+            });
+    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) -> editor.apply());
 
     AlertDialog alertDialog = builder.create();
     alertDialog.show();
