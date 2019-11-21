@@ -10,6 +10,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic) NSString* videoBackend;
 @property(nonatomic) NSString* targetFile;
+@property(nonatomic) UIView* padView;
 
 - (id)initWithFile:(NSString*)file videoBackend:(NSString*)videoBackend;
 - (void)loadView;

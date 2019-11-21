@@ -49,13 +49,13 @@
     self.view = [[MVKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   }
 
-  UIView* padView = [[[NSBundle mainBundle] loadNibNamed:@"TCGameCubePad" owner:self
-                                                 options:nil] objectAtIndex:0];
-  padView.frame = self.view.bounds;
-  [self.view addSubview:padView];
+  self.padView = [[[NSBundle mainBundle] loadNibNamed:@"TCGameCubePad" owner:self
+                                              options:nil] objectAtIndex:0];
+  self.padView.frame = self.view.bounds;
+  [self.view addSubview:self.padView];
 }
 
-/*- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
   return UIInterfaceOrientationLandscapeRight;
 }
@@ -63,6 +63,6 @@
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
   return UIInterfaceOrientationMaskLandscape;
-}*/
+}
 
 @end
