@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="15505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <device id="retina5_9" orientation="landscape" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15510"/>
@@ -11,45 +11,194 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <rect key="frame" x="0.0" y="0.0" width="812" height="375"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eE9-b5-3HP" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
-                    <rect key="frame" x="348" y="832" width="46" height="30"/>
-                    <state key="normal" title="Button"/>
-                    <userDefinedRuntimeAttributes>
-                        <userDefinedRuntimeAttribute type="string" keyPath="m_type" value="gcpad_a"/>
-                    </userDefinedRuntimeAttributes>
-                </button>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="toi-7Z-ObZ" customClass="TCJoystick" customModule="DolphiniOS" customModuleProvider="target">
-                    <rect key="frame" x="156" y="670" width="192" height="192"/>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6cT-qH-FXH" userLabel="CStick" customClass="TCJoystick" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="563" y="226" width="128" height="128"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                     <constraints>
-                        <constraint firstAttribute="width" constant="192" id="q3S-qY-nTb"/>
-                        <constraint firstAttribute="height" constant="192" id="rcx-ph-3wT"/>
+                        <constraint firstAttribute="height" constant="128" id="UXh-aZ-T4E"/>
+                        <constraint firstAttribute="width" constant="128" id="l3N-LU-ITp"/>
                     </constraints>
                     <userDefinedRuntimeAttributes>
-                        <userDefinedRuntimeAttribute type="string" keyPath="joystickType" value="gcpad_main_stick"/>
+                        <userDefinedRuntimeAttribute type="number" keyPath="joystickType">
+                            <integer key="value" value="15"/>
+                        </userDefinedRuntimeAttribute>
                     </userDefinedRuntimeAttributes>
                 </view>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nKJ-u2-fT0" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
-                    <rect key="frame" x="20" y="44" width="46" height="30"/>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hYD-T1-Tzm" userLabel="B" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="574" y="183" width="43" height="43"/>
                     <state key="normal" title="Button"/>
                     <userDefinedRuntimeAttributes>
-                        <userDefinedRuntimeAttribute type="string" keyPath="m_type" value="gcpad_start"/>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="1"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SWl-RM-2NQ" userLabel="A" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="627" y="149" width="77" height="77"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="0"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="s7i-7d-J7I" userLabel="Y" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="633.66666666666663" y="85" width="64" height="64"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="4"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="C8e-7N-JK7" userLabel="X" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="704" y="123.66666666666669" width="64" height="64"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="3"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1CL-N3-6t8" userLabel="L" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="44" y="46.666666666666657" width="77" height="77"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="20"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="v1l-us-6NF" userLabel="LeftStick" customClass="TCJoystick" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="44" y="98" width="128" height="128"/>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="128" id="0oi-D2-4f9"/>
+                        <constraint firstAttribute="height" constant="128" id="V5b-KP-5r7"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="joystickType">
+                            <integer key="value" value="10"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Xyb-aP-DFQ" userLabel="R" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="691" y="46.666666666666657" width="77" height="77"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="21"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vgB-YT-YTZ" userLabel="Z" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="556.66666666666663" y="46.666666666666657" width="77" height="77"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="icq-6D-wBP" userLabel="START" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
+                    <rect key="frame" x="161" y="63.666666666666657" width="43" height="43"/>
+                    <state key="normal" title="Button"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="controllerButton">
+                            <integer key="value" value="2"/>
+                        </userDefinedRuntimeAttribute>
                     </userDefinedRuntimeAttributes>
                 </button>
             </subviews>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
             <constraints>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="top" secondItem="nKJ-u2-fT0" secondAttribute="top" id="J47-hV-Rsp"/>
-                <constraint firstItem="eE9-b5-3HP" firstAttribute="trailing" secondItem="iN0-l3-epB" secondAttribute="trailingMargin" id="Lrr-aC-iSc"/>
-                <constraint firstItem="toi-7Z-ObZ" firstAttribute="bottom" secondItem="eE9-b5-3HP" secondAttribute="bottom" id="R4V-Pa-NNC"/>
-                <constraint firstItem="eE9-b5-3HP" firstAttribute="bottom" secondItem="vUN-kp-3ea" secondAttribute="bottom" id="Zey-R1-Xx0"/>
-                <constraint firstItem="nKJ-u2-fT0" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leadingMargin" id="bZZ-xm-fQI"/>
-                <constraint firstItem="toi-7Z-ObZ" firstAttribute="trailing" secondItem="eE9-b5-3HP" secondAttribute="leading" id="uo3-a9-Lx9"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="top" secondItem="s7i-7d-J7I" secondAttribute="bottom" id="1gc-fG-weT"/>
+                <constraint firstItem="Xyb-aP-DFQ" firstAttribute="centerX" secondItem="vgB-YT-YTZ" secondAttribute="centerX" id="41W-5s-1zS"/>
+                <constraint firstItem="icq-6D-wBP" firstAttribute="centerY" secondItem="1CL-N3-6t8" secondAttribute="centerY" id="45J-zA-tgs"/>
+                <constraint firstItem="C8e-7N-JK7" firstAttribute="leading" secondItem="SWl-RM-2NQ" secondAttribute="trailing" id="6cu-QR-cRT"/>
+                <constraint firstItem="6cT-qH-FXH" firstAttribute="bottom" secondItem="vUN-kp-3ea" secondAttribute="bottom" id="7J5-iA-j9E"/>
+                <constraint firstItem="C8e-7N-JK7" firstAttribute="top" secondItem="Xyb-aP-DFQ" secondAttribute="bottom" id="7kR-GP-SIy"/>
+                <constraint firstItem="C8e-7N-JK7" firstAttribute="trailing" secondItem="vUN-kp-3ea" secondAttribute="trailing" id="8z4-Gn-iu5"/>
+                <constraint firstItem="Xyb-aP-DFQ" firstAttribute="centerY" secondItem="vgB-YT-YTZ" secondAttribute="centerY" id="CLz-2U-k0l"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="bottom" secondItem="v1l-us-6NF" secondAttribute="bottom" id="O5D-wq-qID"/>
+                <constraint firstItem="1CL-N3-6t8" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" id="RSp-RE-XsW"/>
+                <constraint firstItem="icq-6D-wBP" firstAttribute="leading" secondItem="1CL-N3-6t8" secondAttribute="trailing" constant="40" id="ThT-l6-ljN"/>
+                <constraint firstItem="Xyb-aP-DFQ" firstAttribute="trailing" secondItem="vUN-kp-3ea" secondAttribute="trailing" id="UYj-S7-Cb6"/>
+                <constraint firstItem="s7i-7d-J7I" firstAttribute="leading" secondItem="vgB-YT-YTZ" secondAttribute="trailing" id="VmW-m5-Ywi"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="leading" secondItem="6cT-qH-FXH" secondAttribute="centerX" id="X3v-Hp-iMm"/>
+                <constraint firstItem="1CL-N3-6t8" firstAttribute="centerX" secondItem="icq-6D-wBP" secondAttribute="centerX" id="Xb0-Ok-J6g"/>
+                <constraint firstItem="Xyb-aP-DFQ" firstAttribute="centerY" secondItem="1CL-N3-6t8" secondAttribute="centerY" id="ZzF-f7-T8S"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="centerX" secondItem="s7i-7d-J7I" secondAttribute="centerX" id="aYq-tW-Rhr"/>
+                <constraint firstItem="6cT-qH-FXH" firstAttribute="top" secondItem="SWl-RM-2NQ" secondAttribute="bottom" id="gv6-w1-PXN"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="leading" secondItem="hYD-T1-Tzm" secondAttribute="trailing" constant="10" id="idO-RJ-ZdZ"/>
+                <constraint firstItem="6cT-qH-FXH" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="centerX" id="l5x-LV-5wa"/>
+                <constraint firstItem="vgB-YT-YTZ" firstAttribute="centerY" secondItem="icq-6D-wBP" secondAttribute="centerY" id="lfL-IR-Fmr">
+                    <variation key="widthClass=compact" constant="0.0"/>
+                </constraint>
+                <constraint firstItem="v1l-us-6NF" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" id="met-Jb-DaD"/>
+                <constraint firstItem="C8e-7N-JK7" firstAttribute="bottom" secondItem="SWl-RM-2NQ" secondAttribute="centerY" id="n81-hf-DI7"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="leading" secondItem="6cT-qH-FXH" secondAttribute="trailing" id="qUo-d3-DQX"/>
+                <constraint firstItem="Xyb-aP-DFQ" firstAttribute="top" secondItem="vgB-YT-YTZ" secondAttribute="bottom" id="siS-UJ-OZb"/>
+                <constraint firstItem="SWl-RM-2NQ" firstAttribute="bottom" secondItem="hYD-T1-Tzm" secondAttribute="bottom" id="wsB-QU-eR9"/>
             </constraints>
             <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <variation key="default">
+                <mask key="constraints">
+                    <exclude reference="Xb0-Ok-J6g"/>
+                    <exclude reference="45J-zA-tgs"/>
+                    <exclude reference="ThT-l6-ljN"/>
+                    <exclude reference="lfL-IR-Fmr"/>
+                    <exclude reference="l5x-LV-5wa"/>
+                    <exclude reference="VmW-m5-Ywi"/>
+                    <exclude reference="X3v-Hp-iMm"/>
+                    <exclude reference="qUo-d3-DQX"/>
+                    <exclude reference="41W-5s-1zS"/>
+                    <exclude reference="CLz-2U-k0l"/>
+                    <exclude reference="siS-UJ-OZb"/>
+                </mask>
+            </variation>
+            <variation key="widthClass=regular">
+                <mask key="constraints">
+                    <include reference="qUo-d3-DQX"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=compact-widthClass=compact">
+                <mask key="constraints">
+                    <include reference="45J-zA-tgs"/>
+                    <include reference="ThT-l6-ljN"/>
+                    <include reference="VmW-m5-Ywi"/>
+                    <include reference="X3v-Hp-iMm"/>
+                    <include reference="CLz-2U-k0l"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=compact-widthClass=regular">
+                <mask key="constraints">
+                    <include reference="45J-zA-tgs"/>
+                    <include reference="ThT-l6-ljN"/>
+                    <include reference="VmW-m5-Ywi"/>
+                    <include reference="CLz-2U-k0l"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="constraints">
+                    <include reference="Xb0-Ok-J6g"/>
+                    <include reference="lfL-IR-Fmr"/>
+                    <include reference="l5x-LV-5wa"/>
+                    <include reference="41W-5s-1zS"/>
+                    <include reference="siS-UJ-OZb"/>
+                </mask>
+            </variation>
+            <variation key="heightClass=regular-widthClass=regular">
+                <mask key="constraints">
+                    <include reference="45J-zA-tgs"/>
+                    <include reference="ThT-l6-ljN"/>
+                    <include reference="VmW-m5-Ywi"/>
+                    <include reference="CLz-2U-k0l"/>
+                </mask>
+            </variation>
             <point key="canvasLocation" x="131.8840579710145" y="153.34821428571428"/>
         </view>
     </objects>

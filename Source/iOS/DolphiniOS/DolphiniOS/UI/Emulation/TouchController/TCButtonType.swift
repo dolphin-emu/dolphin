@@ -61,11 +61,11 @@ enum TCButtonType: Int
     switch self
     {
     case .BUTTON_A, .BUTTON_Z, .TRIGGER_L, .TRIGGER_R:
-      return 0.8
+      return 0.6
     case .BUTTON_B, .BUTTON_START:
       return 0.33
     case .BUTTON_X, .BUTTON_Y:
-      return 0.7
+      return 0.5
     default:
       return 1.0
     }
