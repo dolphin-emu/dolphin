@@ -4,6 +4,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/AlsaSoundStream.h"
+#include "AudioCommon/CoreAudioSoundStream.h"
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/NullSoundStream.h"
@@ -37,6 +38,8 @@ static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view
     return std::make_unique<NullSound>();
   else if (backend == BACKEND_ALSA && AlsaSound::isValid())
     return std::make_unique<AlsaSound>();
+  else if (backend == BACKEND_COREAUDIO && CoreAudioSound::isValid())
+    return std::make_unique<CoreAudioSound>();
   else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
     return std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
@@ -92,6 +95,8 @@ std::string GetDefaultSoundBackend()
   std::string backend = BACKEND_NULLSOUND;
 #if defined ANDROID
   backend = BACKEND_OPENSLES;
+#elif defined IPHONEOS
+  backend = BACKEND_COREAUDIO;
 #elif defined __linux__
   if (AlsaSound::isValid())
     backend = BACKEND_ALSA;
@@ -149,7 +154,8 @@ bool SupportsVolumeChanges(std::string_view backend)
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
+  return backend == BACKEND_COREAUDIO || backend == BACKEND_CUBEB || backend == BACKEND_OPENAL ||
+         backend == BACKEND_WASAPI;
 }
 
 void UpdateSoundStream()
