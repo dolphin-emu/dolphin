@@ -25,6 +25,11 @@ if (NOT IOS)
     CubebUtils.cpp
     CubebUtils.h
   )
+else()
+  target_sources(audiocommon PRIVATE
+    CoreAudioSoundStream.cpp
+    CoreAudioSoundStream.h
+  )
 endif()
 
 find_package(OpenSLES)

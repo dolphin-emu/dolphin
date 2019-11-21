@@ -64,6 +64,8 @@
 		B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */; };
 		B95A09412384F32900DBBB01 /* DolphinImageTemplate.json.in in Resources */ = {isa = PBXBuildFile; fileRef = B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */; };
 		B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A0944238533DC00DBBB01 /* TCButtonType.swift */; };
+		B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09462385DE9500DBBB01 /* CoreAudio.framework */; };
+		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -149,6 +151,9 @@
 		B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = DolphinImages.xcassets; sourceTree = "<group>"; };
 		B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = DolphinImageTemplate.json.in; sourceTree = "<group>"; };
 		B95A0944238533DC00DBBB01 /* TCButtonType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButtonType.swift; sourceTree = "<group>"; };
+		B95A09462385DE9500DBBB01 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		B95A09472385DE9600DBBB01 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +162,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */,
+				B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */,
+				B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */,
 				B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */,
 				B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */,
 				B945A3972362D99000B21680 /* libz.tbd in Frameworks */,
@@ -283,6 +290,9 @@
 		B945A3932362D98300B21680 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B95A09472385DE9600DBBB01 /* AudioToolbox.framework */,
+				B95A09482385DE9600DBBB01 /* AudioUnit.framework */,
+				B95A09462385DE9500DBBB01 /* CoreAudio.framework */,
 				B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */,
 				B91BF37B236BEEF700199BA7 /* Metal.framework */,
 				B945A3F32362E24000B21680 /* libc++.tbd */,
