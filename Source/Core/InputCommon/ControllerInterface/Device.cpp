@@ -11,7 +11,8 @@
 #include <string>
 #include <tuple>
 
-#include "Common/StringUtil.h"
+#include <fmt/format.h>
+
 #include "Common/Thread.h"
 
 namespace ciface::Core
@@ -47,7 +48,7 @@ void Device::AddOutput(Device::Output* const o)
 
 std::string Device::GetQualifiedName() const
 {
-  return StringFromFormat("%s/%i/%s", this->GetSource().c_str(), GetId(), this->GetName().c_str());
+  return fmt::format("{}/{}/{}", GetSource(), GetId(), GetName());
 }
 
 Device::Input* Device::FindInput(std::string_view name) const
