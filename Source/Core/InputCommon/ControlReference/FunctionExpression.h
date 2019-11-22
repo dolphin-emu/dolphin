@@ -9,8 +9,8 @@
 #include <variant>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControlReference/FunctionExpression.h"
 
 namespace ciface::ExpressionParser
 {
