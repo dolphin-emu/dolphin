@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControlReference/FunctionExpression.h"
+
+#include <algorithm>
 #include <chrono>
 #include <cmath>
-
-#include "InputCommon/ControlReference/FunctionExpression.h"
 
 namespace ciface
 {
