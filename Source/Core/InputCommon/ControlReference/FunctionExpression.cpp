@@ -451,30 +451,30 @@ std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name
 {
   if ("not" == name)
     return std::make_unique<NotExpression>();
-  else if ("if" == name)
+  if ("if" == name)
     return std::make_unique<IfExpression>();
-  else if ("sin" == name)
+  if ("sin" == name)
     return std::make_unique<SinExpression>();
-  else if ("timer" == name)
+  if ("timer" == name)
     return std::make_unique<TimerExpression>();
-  else if ("toggle" == name)
+  if ("toggle" == name)
     return std::make_unique<ToggleExpression>();
-  else if ("minus" == name)
+  if ("minus" == name)
     return std::make_unique<UnaryMinusExpression>();
-  else if ("deadzone" == name)
+  if ("deadzone" == name)
     return std::make_unique<DeadzoneExpression>();
-  else if ("smooth" == name)
+  if ("smooth" == name)
     return std::make_unique<SmoothExpression>();
-  else if ("hold" == name)
+  if ("hold" == name)
     return std::make_unique<HoldExpression>();
-  else if ("tap" == name)
+  if ("tap" == name)
     return std::make_unique<TapExpression>();
-  else if ("relative" == name)
+  if ("relative" == name)
     return std::make_unique<RelativeExpression>();
-  else if ("pulse" == name)
+  if ("pulse" == name)
     return std::make_unique<PulseExpression>();
-  else
-    return nullptr;
+
+  return nullptr;
 }
 
 int FunctionExpression::CountNumControls() const
