@@ -4,8 +4,11 @@
 
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
+#include <algorithm>
+#include <array>
 #include <chrono>
-#include <cstring>
+#include <mutex>
+#include <tuple>
 
 #include <SFML/Network/SocketSelector.hpp>
 #include <SFML/Network/UdpSocket.hpp>
@@ -18,7 +21,6 @@
 #include "Common/Random.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPProto.h"
 
@@ -136,16 +138,15 @@ static std::chrono::steady_clock::time_point s_next_listports;
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
 static std::mutex s_port_info_mutex;
-static Proto::MessageType::PortInfo s_port_info[Proto::PORT_COUNT];
+static std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> s_port_info;
 static sf::UdpSocket s_socket;
 
 static bool IsSameController(const Proto::MessageType::PortInfo& a,
                              const Proto::MessageType::PortInfo& b)
 {
   // compare everything but battery_status
-  return a.pad_id == b.pad_id && a.pad_state == b.pad_state && a.model == b.model &&
-         a.connection_type == b.connection_type &&
-         memcmp(a.pad_mac_address, b.pad_mac_address, sizeof a.pad_mac_address) == 0;
+  return std::tie(a.pad_id, a.pad_state, a.model, a.connection_type, a.pad_mac_address) ==
+         std::tie(b.pad_id, b.pad_state, b.model, b.connection_type, b.pad_mac_address);
 }
 
 static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, std::size_t size,
@@ -176,10 +177,7 @@ static void HotplugThreadFunc()
       Proto::Message<Proto::MessageType::ListPorts> msg(s_client_uid);
       auto& list_ports = msg.m_message;
       list_ports.pad_request_count = 4;
-      list_ports.pad_id[0] = 0;
-      list_ports.pad_id[1] = 1;
-      list_ports.pad_id[2] = 2;
-      list_ports.pad_id[3] = 3;
+      list_ports.pad_id = {0, 1, 2, 3};
       msg.Finish();
       if (s_socket.send(&list_ports, sizeof list_ports, s_server_address, s_server_port) !=
           sf::Socket::Status::Done)
@@ -246,10 +244,10 @@ static void Restart()
 
   s_client_uid = Common::Random::GenerateValue<u32>();
   s_next_listports = std::chrono::steady_clock::time_point::min();
-  for (int port_index = 0; port_index < Proto::PORT_COUNT; port_index++)
+  for (size_t port_index = 0; port_index < s_port_info.size(); port_index++)
   {
     s_port_info[port_index] = {};
-    s_port_info[port_index].pad_id = port_index;
+    s_port_info[port_index].pad_id = static_cast<u8>(port_index);
   }
 
   PopulateDevices();  // remove devices
@@ -286,11 +284,14 @@ void PopulateDevices()
       [](const auto* dev) { return dev->GetSource() == "DSUClient"; });
 
   std::lock_guard<std::mutex> lock(s_port_info_mutex);
-  for (int port_index = 0; port_index < Proto::PORT_COUNT; port_index++)
+  for (size_t port_index = 0; port_index < s_port_info.size(); port_index++)
   {
-    Proto::MessageType::PortInfo port_info = s_port_info[port_index];
-    if (port_info.pad_state == Proto::DsState::Connected)
-      g_controller_interface.AddDevice(std::make_shared<Device>(port_info.model, port_index));
+    const Proto::MessageType::PortInfo& port_info = s_port_info[port_index];
+    if (port_info.pad_state != Proto::DsState::Connected)
+      continue;
+
+    g_controller_interface.AddDevice(
+        std::make_shared<Device>(port_info.model, static_cast<int>(port_index)));
   }
 }
 
