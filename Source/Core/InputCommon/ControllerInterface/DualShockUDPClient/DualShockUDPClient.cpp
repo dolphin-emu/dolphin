@@ -200,7 +200,7 @@ static void HotplugThreadFunc()
       {
         const bool port_changed = !IsSameController(*port_info, s_port_info[port_info->pad_id]);
         {
-          std::lock_guard<std::mutex> lock(s_port_info_mutex);
+          std::lock_guard lock{s_port_info_mutex};
           s_port_info[port_info->pad_id] = *port_info;
         }
         if (port_changed)
@@ -283,7 +283,7 @@ void PopulateDevices()
   g_controller_interface.RemoveDevice(
       [](const auto* dev) { return dev->GetSource() == "DSUClient"; });
 
-  std::lock_guard<std::mutex> lock(s_port_info_mutex);
+  std::lock_guard lock{s_port_info_mutex};
   for (size_t port_index = 0; port_index < s_port_info.size(); port_index++)
   {
     const Proto::MessageType::PortInfo& port_info = s_port_info[port_index];
