@@ -24,6 +24,19 @@
 
 namespace ciface::DualShockUDPClient
 {
+namespace Settings
+{
+constexpr char DEFAULT_SERVER_ADDRESS[] = "127.0.0.1";
+constexpr u16 DEFAULT_SERVER_PORT = 26760;
+
+const Config::ConfigInfo<bool> SERVER_ENABLED{
+    {Config::System::DualShockUDPClient, "Server", "Enabled"}, false};
+const Config::ConfigInfo<std::string> SERVER_ADDRESS{
+    {Config::System::DualShockUDPClient, "Server", "IPAddress"}, DEFAULT_SERVER_ADDRESS};
+const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"},
+                                          DEFAULT_SERVER_PORT};
+}  // namespace Settings
+
 class Device : public Core::Device
 {
 private:
@@ -110,22 +123,10 @@ private:
 };
 
 using MathUtil::GRAVITY_ACCELERATION;
-static constexpr char DEFAULT_SERVER_ADDRESS[] = "127.0.0.1";
-static constexpr u16 DEFAULT_SERVER_PORT = 26760;
-static constexpr auto SERVER_REREGISTER_INTERVAL = std::chrono::seconds{1};
-static constexpr auto SERVER_LISTPORTS_INTERVAL = std::chrono::seconds{1};
-static constexpr int TOUCH_X_AXIS_MAX = 1000;
-static constexpr int TOUCH_Y_AXIS_MAX = 500;
-
-namespace Settings
-{
-const Config::ConfigInfo<bool> SERVER_ENABLED{
-    {Config::System::DualShockUDPClient, "Server", "Enabled"}, false};
-const Config::ConfigInfo<std::string> SERVER_ADDRESS{
-    {Config::System::DualShockUDPClient, "Server", "IPAddress"}, DEFAULT_SERVER_ADDRESS};
-const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"},
-                                          DEFAULT_SERVER_PORT};
-}  // namespace Settings
+constexpr auto SERVER_REREGISTER_INTERVAL = std::chrono::seconds{1};
+constexpr auto SERVER_LISTPORTS_INTERVAL = std::chrono::seconds{1};
+constexpr int TOUCH_X_AXIS_MAX = 1000;
+constexpr int TOUCH_Y_AXIS_MAX = 500;
 
 static bool s_server_enabled;
 static std::string s_server_address;
