@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.leanback.app.BrowseFragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -100,7 +101,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
             .commit();
 
     // Set display parameters for the BrowseFragment
-    mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+    mBrowseFragment.setHeadersState(BrowseSupportFragment.HEADERS_ENABLED);
     mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
     buildRowsAdapter();
 
@@ -191,7 +192,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
-  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+          @NonNull int[] grantResults)
   {
     switch (requestCode)
     {

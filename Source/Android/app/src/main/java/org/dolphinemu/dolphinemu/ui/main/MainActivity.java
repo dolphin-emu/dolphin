@@ -112,10 +112,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
   // TODO: Replace with a ButterKnife injection.
   private void findViews()
   {
-    mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
-    mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
-    mTabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
-    mFab = (FloatingActionButton) findViewById(R.id.button_add_directory);
+    mToolbar = findViewById(R.id.toolbar_main);
+    mViewPager = findViewById(R.id.pager_platforms);
+    mTabLayout = findViewById(R.id.tabs_platforms);
+    mFab = findViewById(R.id.button_add_directory);
   }
 
   @Override

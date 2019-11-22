@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,7 +23,6 @@ public final class DividerItemDecoration extends RecyclerView.ItemDecoration
   private Drawable mDivider;
   private boolean mShowFirstDivider = false;
   private boolean mShowLastDivider = false;
-
 
   public DividerItemDecoration(Context context, AttributeSet attrs)
   {
@@ -54,15 +54,16 @@ public final class DividerItemDecoration extends RecyclerView.ItemDecoration
   }
 
   @Override
-  public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
-          RecyclerView.State state)
+  public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
+          @NonNull RecyclerView parent,
+          @NonNull RecyclerView.State state)
   {
     super.getItemOffsets(outRect, view, parent, state);
     if (mDivider == null)
     {
       return;
     }
-    if (parent.getChildPosition(view) < 1)
+    if (parent.getChildAdapterPosition(view) < 1)
     {
       return;
     }
@@ -78,7 +79,8 @@ public final class DividerItemDecoration extends RecyclerView.ItemDecoration
   }
 
   @Override
-  public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state)
+  public void onDrawOver(@NonNull Canvas c, @NonNull RecyclerView parent,
+          @NonNull RecyclerView.State state)
   {
     if (mDivider == null)
     {
