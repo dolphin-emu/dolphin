@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -47,6 +48,6 @@ private:
   std::vector<std::unique_ptr<Expression>> m_args;
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name);
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name);
 
 }  // namespace ciface::ExpressionParser

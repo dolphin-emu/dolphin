@@ -447,7 +447,7 @@ private:
   mutable Clock::time_point m_release_time = Clock::now();
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
 {
   if ("not" == name)
     return std::make_unique<NotExpression>();
