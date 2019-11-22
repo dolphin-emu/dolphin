@@ -39,6 +39,9 @@ const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "
                                           DEFAULT_SERVER_PORT};
 }  // namespace Settings
 
+// Clock type used for querying timeframes
+using SteadyClock = std::chrono::steady_clock;
+
 class Device : public Core::Device
 {
 private:
@@ -115,8 +118,7 @@ private:
   sf::UdpSocket m_socket;
   Common::DVec3 m_accel{};
   Common::DVec3 m_gyro{};
-  std::chrono::steady_clock::time_point m_next_reregister =
-      std::chrono::steady_clock::time_point::min();
+  SteadyClock::time_point m_next_reregister = SteadyClock::time_point::min();
   Proto::MessageType::PadDataResponse m_pad_data{};
   Proto::Touch m_prev_touch{};
   bool m_prev_touch_valid = false;
@@ -134,7 +136,7 @@ static bool s_server_enabled;
 static std::string s_server_address;
 static u16 s_server_port;
 static u32 s_client_uid;
-static std::chrono::steady_clock::time_point s_next_listports;
+static SteadyClock::time_point s_next_listports;
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
 static std::mutex s_port_info_mutex;
@@ -168,7 +170,7 @@ static void HotplugThreadFunc()
 
   while (s_hotplug_thread_running.IsSet())
   {
-    const auto now = std::chrono::steady_clock::now();
+    const auto now = SteadyClock::now();
     if (now >= s_next_listports)
     {
       s_next_listports = now + SERVER_LISTPORTS_INTERVAL;
@@ -185,16 +187,17 @@ static void HotplugThreadFunc()
     }
 
     // Receive controller port info
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
     Proto::Message<Proto::MessageType::FromServer> msg;
-    const auto timeout = s_next_listports - std::chrono::steady_clock::now();
+    const auto timeout = s_next_listports - SteadyClock::now();
     // ReceiveWithTimeout treats a timeout of zero as infinite timeout, which we don't want
-    auto timeout_ms = std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count();
-    timeout_ms = std::max<decltype(timeout_ms)>(timeout_ms, 1);
+    const auto timeout_ms = std::max(duration_cast<milliseconds>(timeout), 1ms);
     std::size_t received_bytes;
     sf::IpAddress sender;
     u16 port;
     if (ReceiveWithTimeout(s_socket, &msg, sizeof(msg), received_bytes, sender, port,
-                           sf::milliseconds(timeout_ms)) == sf::Socket::Status::Done)
+                           sf::milliseconds(timeout_ms.count())) == sf::Socket::Status::Done)
     {
       if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
       {
@@ -379,7 +382,7 @@ std::string Device::GetSource() const
 void Device::UpdateInput()
 {
   // Regularly tell the UDP server to feed us controller data
-  const auto now = std::chrono::steady_clock::now();
+  const auto now = SteadyClock::now();
   if (now >= m_next_reregister)
   {
     m_next_reregister = now + SERVER_REREGISTER_INTERVAL;
