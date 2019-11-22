@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <fmt/format.h>
+
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
@@ -270,11 +272,11 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
   std::vector<std::string> save_data(m_calibration.size());
   std::transform(
       m_calibration.begin(), m_calibration.end(), save_data.begin(),
-      [](ControlState val) { return StringFromFormat("%.2f", val * CALIBRATION_CONFIG_SCALE); });
+      [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
   section->Set(group + CALIBRATION_CONFIG_NAME, JoinStrings(save_data, " "), "");
 
-  const auto center_data = StringFromFormat("%.2f %.2f", m_center.x * CENTER_CONFIG_SCALE,
-                                            m_center.y * CENTER_CONFIG_SCALE);
+  const auto center_data = fmt::format("{:.2f} {:.2f}", m_center.x * CENTER_CONFIG_SCALE,
+                                       m_center.y * CENTER_CONFIG_SCALE);
 
   section->Set(group + CENTER_CONFIG_NAME, center_data, "");
 }

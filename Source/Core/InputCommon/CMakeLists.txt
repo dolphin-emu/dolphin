@@ -58,8 +58,12 @@ add_library(inputcommon
   ControlReference/FunctionExpression.h
 )
 
-target_link_libraries(inputcommon PUBLIC
+target_link_libraries(inputcommon
+PUBLIC
   common
+
+PRIVATE
+  fmt::fmt
 )
 
 if(WIN32)

@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 #include "Common/StringUtil.h"
@@ -338,7 +340,7 @@ ControlState KeyboardMouse::Key::GetState() const
 KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
     : m_buttons(buttons), m_index(index)
 {
-  name = StringFromFormat("Click %d", m_index + 1);
+  name = fmt::format("Click {}", m_index + 1);
 }
 
 ControlState KeyboardMouse::Button::GetState() const
@@ -349,7 +351,7 @@ ControlState KeyboardMouse::Button::GetState() const
 KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float* cursor)
     : m_cursor(cursor), m_index(index), m_positive(positive)
 {
-  name = std::string("Cursor ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+  name = fmt::format("Cursor {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
 ControlState KeyboardMouse::Cursor::GetState() const
@@ -360,7 +362,7 @@ ControlState KeyboardMouse::Cursor::GetState() const
 KeyboardMouse::Axis::Axis(u8 index, bool positive, const float* axis)
     : m_axis(axis), m_index(index), m_positive(positive)
 {
-  name = std::string("Axis ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+  name = fmt::format("Axis {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
 ControlState KeyboardMouse::Axis::GetState() const
