@@ -96,16 +96,17 @@ public:
 private:
   const Proto::DsModel m_model;
   const int m_index;
-  u32 m_client_uid;
+  u32 m_client_uid = Common::Random::GenerateValue<u32>();
   sf::UdpSocket m_socket;
-  Common::DVec3 m_accel;
-  Common::DVec3 m_gyro;
-  std::chrono::steady_clock::time_point m_next_reregister;
-  Proto::MessageType::PadDataResponse m_pad_data;
-  Proto::Touch m_prev_touch;
-  bool m_prev_touch_valid;
-  int m_touch_x;
-  int m_touch_y;
+  Common::DVec3 m_accel{};
+  Common::DVec3 m_gyro{};
+  std::chrono::steady_clock::time_point m_next_reregister =
+      std::chrono::steady_clock::time_point::min();
+  Proto::MessageType::PadDataResponse m_pad_data{};
+  Proto::Touch m_prev_touch{};
+  bool m_prev_touch_valid = false;
+  int m_touch_x = 0;
+  int m_touch_y = 0;
 };
 
 using MathUtil::GRAVITY_ACCELERATION;
@@ -297,11 +298,7 @@ void DeInit()
   StopHotplugThread();
 }
 
-Device::Device(Proto::DsModel model, int index)
-    : m_model(model), m_index(index),
-      m_client_uid(Common::Random::GenerateValue<u32>()), m_accel{}, m_gyro{},
-      m_next_reregister(std::chrono::steady_clock::time_point::min()), m_pad_data{}, m_prev_touch{},
-      m_prev_touch_valid(false), m_touch_x(0), m_touch_y(0)
+Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
 {
   m_socket.setBlocking(false);
 
