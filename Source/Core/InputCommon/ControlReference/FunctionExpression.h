@@ -12,9 +12,7 @@
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControlReference/FunctionExpression.h"
 
-namespace ciface
-{
-namespace ExpressionParser
+namespace ciface::ExpressionParser
 {
 class FunctionExpression : public Expression
 {
@@ -51,5 +49,4 @@ private:
 
 std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name);
 
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser

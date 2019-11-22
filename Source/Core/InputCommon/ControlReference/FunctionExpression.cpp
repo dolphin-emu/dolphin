@@ -8,9 +8,7 @@
 #include <chrono>
 #include <cmath>
 
-namespace ciface
-{
-namespace ExpressionParser
+namespace ciface::ExpressionParser
 {
 constexpr int LOOP_MAX_REPS = 10000;
 constexpr ControlState CONDITION_THRESHOLD = 0.5;
@@ -523,5 +521,4 @@ void FunctionExpression::SetValue(ControlState)
 {
 }
 
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser
