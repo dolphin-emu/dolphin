@@ -336,8 +336,16 @@ u32 DSPLLE::DSP_UpdateRate()
 void DSPLLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
   if (do_lock)
+  {
     m_dsp_thread_mutex.lock();
+  }
   else
+  {
     m_dsp_thread_mutex.unlock();
+
+    // Signal the DSP thread so it can perform any outstanding work now (if any)
+    s_ppc_event.Wait();
+    s_dsp_event.Set();
+  }
 }
 }  // namespace DSP::LLE
