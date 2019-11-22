@@ -22,6 +22,7 @@
 #include <string>
 #include <tuple>
 
+#include <fmt/format.h>
 #include <imgui.h>
 
 #include "Common/Assert.h"
@@ -1589,8 +1590,8 @@ void Renderer::StopFrameDumpToFFMPEG()
 
 std::string Renderer::GetFrameDumpNextImageFileName() const
 {
-  return StringFromFormat("%sframedump_%u.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                          m_frame_dump_image_counter);
+  return fmt::format("{}framedump_{}.png", File::GetUserPath(D_DUMPFRAMES_IDX),
+                     m_frame_dump_image_counter);
 }
 
 bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
