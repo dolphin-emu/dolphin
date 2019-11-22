@@ -1122,7 +1122,7 @@ void VolumeVerifier::Process()
   if (m_block_index < m_blocks.size() &&
       m_blocks[m_block_index].offset < m_progress + bytes_to_read)
   {
-    m_md5_future = std::async(
+    m_block_future = std::async(
         std::launch::async,
         [this, read_succeeded, bytes_to_read](size_t block_index, u64 progress) {
           while (block_index < m_blocks.size() &&
