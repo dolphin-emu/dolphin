@@ -67,6 +67,7 @@
 		B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09462385DE9500DBBB01 /* CoreAudio.framework */; };
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
+		B95A094F23875BC700DBBB01 /* Sys in Resources */ = {isa = PBXBuildFile; fileRef = B95A094E23875BC700DBBB01 /* Sys */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -156,6 +157,7 @@
 		B95A09472385DE9600DBBB01 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
+		B95A094E23875BC700DBBB01 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -285,6 +287,7 @@
 				B945A3842362909500B21680 /* Info.plist */,
 				B945A3852362909500B21680 /* main.m */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
+				B95A094E23875BC700DBBB01 /* Sys */,
 			);
 			path = DolphiniOS;
 			sourceTree = "<group>";
@@ -414,6 +417,7 @@
 			files = (
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
+				B95A094F23875BC700DBBB01 /* Sys in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
