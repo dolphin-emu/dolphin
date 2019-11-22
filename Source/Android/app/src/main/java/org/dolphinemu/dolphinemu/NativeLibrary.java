@@ -6,8 +6,9 @@
 
 package org.dolphinemu.dolphinemu;
 
-import android.app.AlertDialog;
 import android.view.Surface;
+
+import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;

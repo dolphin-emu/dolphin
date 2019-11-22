@@ -1,10 +1,12 @@
 package org.dolphinemu.dolphinemu.dialogs;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
@@ -59,7 +61,7 @@ public final class MotionAlertDialog extends AlertDialog
   }
 
   @Override
-  public boolean onKeyLongPress(int keyCode, KeyEvent event)
+  public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
   {
     // Option to clear by long back is only needed on the TV interface
     if (TvUtil.isLeanback(getContext()) && keyCode == KeyEvent.KEYCODE_BACK)
@@ -79,7 +81,7 @@ public final class MotionAlertDialog extends AlertDialog
   }
 
   @Override
-  public boolean dispatchGenericMotionEvent(MotionEvent event)
+  public boolean dispatchGenericMotionEvent(@NonNull MotionEvent event)
   {
     // Handle this event if we care about it, otherwise pass it down the framework
     return onMotionEvent(event) || super.dispatchGenericMotionEvent(event);

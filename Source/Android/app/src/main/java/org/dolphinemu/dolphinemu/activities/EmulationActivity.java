@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +11,8 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -326,7 +327,7 @@ public final class EmulationActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onSaveInstanceState(Bundle outState)
+  protected void onSaveInstanceState(@NonNull Bundle outState)
   {
     if (!isChangingConfigurations())
     {
@@ -384,6 +385,7 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
+    super.onActivityResult(requestCode, resultCode, result);
     switch (requestCode)
     {
       case REQUEST_CHANGE_DISC:
@@ -795,9 +797,9 @@ public final class EmulationActivity extends AppCompatActivity
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_seekbar, null);
 
-    final SeekBar seekbar = (SeekBar) view.findViewById(R.id.seekbar);
-    final TextView value = (TextView) view.findViewById(R.id.text_value);
-    final TextView units = (TextView) view.findViewById(R.id.text_units);
+    final SeekBar seekbar = view.findViewById(R.id.seekbar);
+    final TextView value = view.findViewById(R.id.text_value);
+    final TextView units = view.findViewById(R.id.text_units);
 
     seekbar.setMax(150);
     seekbar.setProgress(mPreferences.getInt("controlScale", 50));
