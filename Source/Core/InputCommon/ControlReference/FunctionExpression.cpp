@@ -10,7 +10,6 @@
 
 namespace ciface::ExpressionParser
 {
-constexpr int LOOP_MAX_REPS = 10000;
 constexpr ControlState CONDITION_THRESHOLD = 0.5;
 
 using Clock = std::chrono::steady_clock;
