@@ -1,6 +1,8 @@
 #include "Core/PrimeHack/AimMods.h"
 
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PrimeHack/HackConfig.h"
@@ -233,7 +235,7 @@ void MP1::run_mod()
 
   PowerPC::HostRead_U32(camera_pointer_address());
 
-  springball_check(ball_check_address());
+  springball_check(cplayer() + 0x2f4, cplayer() + 0x25C);
 
   int visor_id, visor_off;
   std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors);
@@ -310,9 +312,9 @@ uint32_t MP1NTSC::camera_pointer_address() const
 {
   return 0x804bfc30;
 }
-uint32_t MP1NTSC::ball_check_address() const
+uint32_t MP1NTSC::cplayer() const
 {
-  return 0x804D3F10;
+  return 0x804d3c20; // 0x804D3F14
 }
 uint32_t MP1NTSC::active_camera_offset_address() const
 {
@@ -376,9 +378,9 @@ uint32_t MP1PAL::camera_pointer_address() const
 {
   return 0x804c3b70;
 }
-uint32_t MP1PAL::ball_check_address() const
+uint32_t MP1PAL::cplayer() const
 {
-  return 0x804D7E50;
+  return 0x804d7b60;
 }
 uint32_t MP1PAL::active_camera_offset_address() const
 {
@@ -415,7 +417,8 @@ void MP2::run_mod()
     return;
   }
   u32 base_address = PowerPC::HostRead_U32(camera_ctl_address());
-  if (!mem_check(base_address))
+
+  if (!mem_check(base_address)) 
   {
     return;
   }
@@ -454,7 +457,7 @@ void MP2::run_mod()
     }
   }
 
-  springball_check(base_address + 0x374);
+  springball_check(base_address + 0x374, base_address + 0x2C4);
 
   u32 camera_ptr = PowerPC::HostRead_U32(camera_ptr_address());
   u32 camera_offset =
@@ -638,7 +641,7 @@ void MP3::run_mod()
     return;
   }
 
-  springball_check(base_address + 0xE884);
+  springball_check(base_address + 0xE884, base_address + 0x29c);
 
   int dx = g_mouse_input->GetDeltaHorizontalAxis(), dy = g_mouse_input->GetDeltaVerticalAxis();
   const float compensated_sens = GetSensitivity() * TURNRATE_RATIO / 60.0f;
@@ -845,13 +848,14 @@ void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes)
   code_changes->emplace_back(base_offset + 0x14, 0x2C030000);  // cmpwi r3, 0
 }
 
-void springball_check(u32 address)
+void springball_check(u32 ball_address, u32 movement_address)
 {
   if (CheckSpringBallCtl())
-  {
-    u32 ball_state = PowerPC::HostRead_U32(address);
+  {             
+    u32 ball_state = PowerPC::HostRead_U32(ball_address);
+    u32 movement_state = PowerPC::HostRead_U32(movement_address);
 
-    if (ball_state == 1 || ball_state == 2)
+    if ((ball_state == 1 || ball_state == 2) && movement_state == 0)
       PowerPC::HostWrite_U8(1, 0x80004164);
   }
 }
