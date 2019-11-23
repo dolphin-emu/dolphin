@@ -47,15 +47,17 @@ static void write_invalidate(u32 address, u32 value)
   PowerPC::ScheduleInvalidateCacheThreadSafe(address);
 }
 
-static std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4> const& visors)
+static std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4> const& visors, bool combat_visor)
 {
   static bool pressing_button = false;
   if (CheckVisorCtl(0))
   {
-    if (!pressing_button)
+    if (!combat_visor)
     {
-      pressing_button = true;
-      return visors[0];
+      if (!pressing_button)
+      {
+        return visors[0];
+      }
     }
   }
   else if (CheckVisorCtl(1))
@@ -233,15 +235,14 @@ void MP1::run_mod()
     PowerPC::HostWrite_U32(1, beamchange_flag_address());
   }
 
-  PowerPC::HostRead_U32(camera_pointer_address());
-
   springball_check(cplayer() + 0x2f4, cplayer() + 0x25C);
 
+  u32 visor_base = PowerPC::HostRead_U32(visor_base_address());
   int visor_id, visor_off;
-  std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors);
+  u32 currentvisor = PowerPC::HostRead_U32(visor_base + 0x1c);
+  std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, currentvisor == 0);
   if (visor_id != -1)
   {
-    u32 visor_base = PowerPC::HostRead_U32(visor_base_address());
     if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x08) + 0x30))
     {
       PowerPC::HostWrite_U32(visor_id, visor_base + 0x1c);
@@ -449,7 +450,7 @@ void MP2::run_mod()
 
   u32 visor_base = PowerPC::HostRead_U32(base_address + 0x12ec);  
   int visor_id, visor_off;
-  std::tie(visor_id, visor_off) = get_visor_switch(prime_two_visors);
+  std::tie(visor_id, visor_off) = get_visor_switch(prime_two_visors, PowerPC::HostRead_U32(visor_base + 0x34) == 0);
   if (visor_id != -1)
   {
     if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x0c) + 0x5c) != 0)
@@ -665,11 +666,11 @@ void MP3::run_mod()
   PowerPC::HostWrite_U32(0, rtoc_min_turn_rate);
   PowerPC::HostWrite_U32(*reinterpret_cast<u32*>(&pitch), base_address + 0x784);
 
+  u32 visor_base = PowerPC::HostRead_U32(base_address + 0x35a8);
   int visor_id, visor_off;
-  std::tie(visor_id, visor_off) = get_visor_switch(prime_three_visors);
+  std::tie(visor_id, visor_off) = get_visor_switch(prime_three_visors, PowerPC::HostRead_U32(visor_base + 0x34) == 0);
   if (visor_id != -1)
   {
-    u32 visor_base = PowerPC::HostRead_U32(base_address + 0x35a8);
     if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x0c) + 0x58) != 0)
     {
       PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
