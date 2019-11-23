@@ -47,7 +47,7 @@ void PrimeHackEmuGeneral::CreateMainLayout()
       0, 2, 1, 1);
 
   layout->addWidget(
-     CreateGroupBox(tr("Misc"), Wiimote::GetWiimoteGroup(
+     CreateGroupBox(tr("Misc."), Wiimote::GetWiimoteGroup(
                                                      GetPort(), WiimoteEmu::WiimoteGroup::Misc)),
       1, 2, 1, 1);
 
