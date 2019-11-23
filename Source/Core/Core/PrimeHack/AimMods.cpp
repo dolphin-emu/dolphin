@@ -26,7 +26,7 @@ constexpr float TURNRATE_RATIO = 0.00498665500569808449206349206349f;
  */
 static std::array<int, 4> prime_one_beams = {0, 2, 1, 3};
 static std::array<int, 4> prime_two_beams = {0, 1, 2, 3};
-int currentbeam = -1;
+int current_beam = -1;
 
 // it can not be explained why combat->xray->scan->thermal is the ordering...
 static std::array<std::tuple<int, int>, 4> prime_one_visors = {
@@ -97,7 +97,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return currentbeam = beams[0];
+      return current_beam = beams[0];
     }
   }
   else if (CheckBeamCtl(1))
@@ -105,7 +105,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return currentbeam = beams[1];
+      return current_beam = beams[1];
     }
   }
   else if (CheckBeamCtl(2))
@@ -113,7 +113,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return currentbeam = beams[2];
+      return current_beam = beams[2];
     }
   }
   else if (CheckBeamCtl(3))
@@ -121,7 +121,7 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      return currentbeam = beams[3];
+      return current_beam = beams[3];
     }
   }
   else if (CheckBeamScrollCtl(true))
@@ -129,12 +129,12 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      currentbeam++;
+      current_beam++;
 
-      if (currentbeam > 3)
-        currentbeam = 0;
+      if (current_beam > 3)
+        current_beam = 0;
 
-      return currentbeam;
+      return current_beam;
     }
   }
   else if (CheckBeamScrollCtl(false))
@@ -142,12 +142,12 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      currentbeam--;
+      current_beam--;
 
-      if (currentbeam < 0)
-        currentbeam = 3;
+      if (current_beam < 0)
+        current_beam = 3;
 
-      return currentbeam;
+      return current_beam;
     }
   }
   else
@@ -446,15 +446,24 @@ void MP2::run_mod()
     PowerPC::HostWrite_U32(beam_id, new_beam_address());
     PowerPC::HostWrite_U32(1, beamchange_flag_address());
   }
+
+  u32 visor_base = PowerPC::HostRead_U32(base_address + 0x12ec);  
   int visor_id, visor_off;
   std::tie(visor_id, visor_off) = get_visor_switch(prime_two_visors);
   if (visor_id != -1)
   {
-    u32 visor_base = PowerPC::HostRead_U32(base_address + 0x12ec);
     if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x0c) + 0x5c) != 0)
     {
       PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
+      }
     }
+                    
+  if (UseMP2AutoEFB())
+  {
+    bool useEFB = PowerPC::HostRead_U32(visor_base + 0x34) != 2;
+
+    if (GetEFBTexture() != useEFB)
+      SetEFBToTexture(useEFB);
   }
 
   springball_check(base_address + 0x374, base_address + 0x2C4);

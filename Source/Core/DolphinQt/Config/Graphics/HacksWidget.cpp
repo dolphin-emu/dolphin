@@ -46,6 +46,8 @@ void HacksWidget::CreateWidgets()
                                              Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, true);
   m_store_efb_copies = new GraphicsBool(tr("Store EFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  m_primehack_autoefb = new GraphicsBool(tr("Automatically disable \"EFB to Texture\" while scanning in MP2"), Config::AutoEFBMP2);
+
   m_defer_efb_copies =
       new GraphicsBool(tr("Defer EFB Copies to RAM"), Config::GFX_HACK_DEFER_EFB_COPIES);
 
@@ -53,6 +55,7 @@ void HacksWidget::CreateWidgets()
   efb_layout->addWidget(m_ignore_format_changes, 0, 1);
   efb_layout->addWidget(m_store_efb_copies, 1, 0);
   efb_layout->addWidget(m_defer_efb_copies, 1, 1);
+  efb_layout->addWidget(m_primehack_autoefb, 2, 0);
 
   // Texture Cache
   auto* texture_cache_box = new QGroupBox(tr("Texture Cache"));

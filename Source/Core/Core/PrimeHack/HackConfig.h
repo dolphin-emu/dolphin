@@ -19,6 +19,9 @@ namespace prime
   bool CheckBeamScrollCtl(bool direction);
   bool CheckSpringBallCtl();
 
+  void SetEFBToTexture(bool toggle);
+  bool UseMP2AutoEFB();
+  bool GetEFBTexture();
   void UpdateHackSettings();
 
   float GetSensitivity();

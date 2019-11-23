@@ -28,6 +28,7 @@ private:
   QCheckBox* m_skip_efb_cpu;
   QCheckBox* m_ignore_format_changes;
   QCheckBox* m_store_efb_copies;
+  QCheckBox* m_primehack_autoefb;
 
   // Texture Cache
   QLabel* m_accuracy_label;
