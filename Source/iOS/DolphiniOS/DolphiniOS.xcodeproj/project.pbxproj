@@ -10,7 +10,6 @@
 		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
 		B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */; };
 		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
-		B91BF377236BA5BC00199BA7 /* EmulationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF376236BA5BC00199BA7 /* EmulationViewController.m */; };
 		B91BF37A236BAA3200199BA7 /* MVKView.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF379236BAA3200199BA7 /* MVKView.m */; };
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
 		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
@@ -68,6 +67,7 @@
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
 		B95A094F23875BC700DBBB01 /* Sys in Resources */ = {isa = PBXBuildFile; fileRef = B95A094E23875BC700DBBB01 /* Sys */; };
+		B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -90,8 +90,6 @@
 		B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewController.m; sourceTree = "<group>"; };
 		B91BF372236B400200199BA7 /* SettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsTableViewController.h; sourceTree = "<group>"; };
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
-		B91BF375236BA5BC00199BA7 /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
-		B91BF376236BA5BC00199BA7 /* EmulationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EmulationViewController.m; sourceTree = "<group>"; };
 		B91BF378236BAA3200199BA7 /* MVKView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MVKView.h; sourceTree = "<group>"; };
 		B91BF379236BAA3200199BA7 /* MVKView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MVKView.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
@@ -158,6 +156,7 @@
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
 		B95A094E23875BC700DBBB01 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
+		B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationVIewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -246,8 +245,7 @@
 				B95A09252382667000DBBB01 /* TouchController */,
 				B945A3902362D90200B21680 /* EAGLView.h */,
 				B945A3912362D90200B21680 /* EAGLView.m */,
-				B91BF375236BA5BC00199BA7 /* EmulationViewController.h */,
-				B91BF376236BA5BC00199BA7 /* EmulationViewController.m */,
+				B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */,
 				B91BF378236BAA3200199BA7 /* MVKView.h */,
 				B91BF379236BAA3200199BA7 /* MVKView.m */,
 			);
@@ -476,11 +474,11 @@
 				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
-				B91BF377236BA5BC00199BA7 /* EmulationViewController.m in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
+				B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,

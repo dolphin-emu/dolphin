@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import "DolphiniOS-Swift.h"
 #import "SoftwareTableViewController.h"
-#import "EmulationViewController.h"
 #import "SoftwareTableViewCell.h"
 
 @interface SoftwareTableViewController ()
@@ -66,7 +66,7 @@
   NSString* filePath = [self.softwareDirectory
       stringByAppendingPathComponent:[self.softwareFiles objectAtIndex:indexPath.item]];
   EmulationViewController* viewController =
-      [[EmulationViewController alloc] initWithFile:filePath videoBackend:@"Vulkan"];
+      [[EmulationViewController alloc] initWithFile:filePath backend:@"Vulkan"];
   [self presentViewController:viewController animated:YES completion:nil];
 }
 

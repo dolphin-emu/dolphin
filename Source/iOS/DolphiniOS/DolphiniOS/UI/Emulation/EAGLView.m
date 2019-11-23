@@ -4,8 +4,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import <UIKit/UIKit.h>
-
 #import "EAGLView.h"
 
 @implementation EAGLView
