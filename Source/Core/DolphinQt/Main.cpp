@@ -5,8 +5,6 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <cstdio>
-
-#include "Common/StringUtil.h"
 #endif
 
 #include <OptionParser.h>
@@ -104,16 +102,16 @@ int main(int argc, char* argv[])
 
 #ifdef _WIN32
   // Get the default system font because Qt's way of obtaining it is outdated
-  NONCLIENTMETRICS metrics = {};
-  LOGFONT& logfont = metrics.lfMenuFont;
-  metrics.cbSize = sizeof(NONCLIENTMETRICS);
+  NONCLIENTMETRICSW metrics = {};
+  LOGFONTW& logfont = metrics.lfMenuFont;
+  metrics.cbSize = sizeof(metrics);
 
-  if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
+  if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
   {
     // Sadly Qt 5 doesn't support turning a native font handle into a QFont so this is the next best
     // thing
     QFont font = QApplication::font();
-    font.setFamily(QString::fromStdString(UTF16ToUTF8(logfont.lfFaceName)));
+    font.setFamily(QString::fromStdWString(logfont.lfFaceName));
 
     font.setItalic(logfont.lfItalic);
     font.setStrikeOut(logfont.lfStrikeOut);

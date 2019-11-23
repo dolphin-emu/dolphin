@@ -231,15 +231,14 @@ void CompatPatchesInstall(LdrWatcher* watcher)
              return;
          }
          // If we reach here, the version is buggy (afaik) and patching failed
-         const auto msg =
-             fmt::format("You are running {} version {}.{}.{}.{}.\n"
-                         "An important fix affecting Dolphin was introduced in build {}.\n"
-                         "You can use Dolphin, but there will be known bugs.\n"
-                         "Please update this file by installing the latest Universal C Runtime.\n",
-                         UTF16ToUTF8(event.name), version.major, version.minor, version.build,
-                         version.qfe, fixed_build);
+         const auto msg = fmt::format(
+             L"You are running {} version {}.{}.{}.{}.\n"
+             L"An important fix affecting Dolphin was introduced in build {}.\n"
+             L"You can use Dolphin, but there will be known bugs.\n"
+             L"Please update this file by installing the latest Universal C Runtime.\n",
+             event.name, version.major, version.minor, version.build, version.qfe, fixed_build);
          // Use MessageBox for maximal user annoyance
-         MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
+         MessageBoxW(nullptr, msg.c_str(), L"WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
        }});
 }
 
