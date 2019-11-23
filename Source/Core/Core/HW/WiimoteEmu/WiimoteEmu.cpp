@@ -249,14 +249,14 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
       {"Cursor Sensitivity", nullptr, nullptr, _trans("Cursor Sensitivity")}, 15, 1, 100);
 
   m_primehack_camera->AddSetting(&m_primehack_fieldofview,
-                              {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60, 1,
-                              101);
+                                 {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60,
+                                 1, 101);
 
-  m_primehack_camera->AddSetting(&m_primehack_invert_x,
-                               {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
+  m_primehack_camera->AddSetting(
+      &m_primehack_invert_x, {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
 
-  m_primehack_camera->AddSetting(&m_primehack_invert_y,
-                               {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
+  m_primehack_camera->AddSetting(
+      &m_primehack_invert_y, {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
 
   groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_misc->controls.emplace_back(
@@ -680,73 +680,85 @@ bool Wiimote::CheckSpringBallCtrl()
 
 std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()
 {
-  std::tuple t = std::make_tuple(m_primehack_camera_sensitivity.GetValue(),
-                 m_primehack_cursor_sensitivity.GetValue(), m_primehack_fieldofview.GetValue(),
-                 m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue());
+  std::tuple t =
+      std::make_tuple(m_primehack_camera_sensitivity.GetValue(),
+                      m_primehack_cursor_sensitivity.GetValue(), m_primehack_fieldofview.GetValue(),
+                      m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue());
 
   return t;
 }
-
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-// Buttons
+// Button defaults
 #if defined HAVE_X11 && HAVE_X11
   // A
   m_buttons->SetControlExpression(0, "Click 1");
   // B
   m_buttons->SetControlExpression(1, "Click 3");
 #else
-  // A
+  // Fire
   m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
-  // B
+  // Jump
   m_buttons->SetControlExpression(1, "SPACE");
 #endif
-  m_buttons->SetControlExpression(2, "TAB");  // 1
-  m_buttons->SetControlExpression(3, "ESCAPE");  // 2
-  m_buttons->SetControlExpression(4, "Q");  // -
-  m_buttons->SetControlExpression(5, "R");  // +
+  // Map screen
+  m_buttons->SetControlExpression(2, "TAB");
+  // Pause menu
+  m_buttons->SetControlExpression(3, "ESCAPE");
+  // Beam menu
+  m_buttons->SetControlExpression(4, "Q");
+  // Visor menu
+  m_buttons->SetControlExpression(5, "R");
 
-// Shake
+  // Shake (Only used in Prime 3, may need revision)
   m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
+  // Springball
+  m_shake->SetControlExpression(2, "LMENU");
 
 // DPad
 #ifdef _WIN32
-  m_dpad->SetControlExpression(1, "F");   // Down
+  // Missiles
+  m_dpad->SetControlExpression(1, "F");
 
 #elif __APPLE__
-  m_dpad->SetControlExpression(0, "Up Arrow");              // Up
-  m_dpad->SetControlExpression(1, "Down Arrow");            // Down
-  m_dpad->SetControlExpression(2, "Left Arrow");            // Left
-  m_dpad->SetControlExpression(3, "Right Arrow");           // Right
+  m_dpad->SetControlExpression(0, "Up Arrow");     // Up
+  m_dpad->SetControlExpression(1, "Down Arrow");   // Down
+  m_dpad->SetControlExpression(2, "Left Arrow");   // Left
+  m_dpad->SetControlExpression(3, "Right Arrow");  // Right
 #else
   m_dpad->SetControlExpression(0, "Up");     // Up
   m_dpad->SetControlExpression(1, "Down");   // Down
   m_dpad->SetControlExpression(2, "Left");   // Left
   m_dpad->SetControlExpression(3, "Right");  // Right
 #endif
-  m_tilt->SetControlExpression(0, "LSHIFT & W");
-  m_tilt->SetControlExpression(1, "LSHIFT & S");
-  m_tilt->SetControlExpression(2, "LSHIFT & A");
-  m_tilt->SetControlExpression(3, "LSHIFT & D");
-
-  m_swing->SetControlExpression(4, "LSHIFT & W");
-  m_swing->SetControlExpression(5, "LSHIFT & S");
-  // Enable Nunchuk:
+  // Motion puzzle controls
+  m_tilt->SetControlExpression(0, "LSHIFT & W");   // Push
+  m_tilt->SetControlExpression(1, "LSHIFT & S");   // Pull
+  m_tilt->SetControlExpression(2, "LSHIFT & A");   // Rotate left
+  m_tilt->SetControlExpression(3, "LSHIFT & D");   // Rotate right
+  m_swing->SetControlExpression(4, "LSHIFT & W");  // Thrust forward
+  m_swing->SetControlExpression(5, "LSHIFT & S");  // Pull back
+  // Enable Nunchuk
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
-
+  // Beams
   m_primehack_beams->SetControlExpression(0, "`1` & !E");
   m_primehack_beams->SetControlExpression(1, "`2` & !E");
   m_primehack_beams->SetControlExpression(2, "`3` & !E");
   m_primehack_beams->SetControlExpression(3, "`4` & !E");
-
-  m_primehack_visors->SetControlExpression(1, "E & `1`");
-  m_primehack_visors->SetControlExpression(2, "E & `2`");
-  m_primehack_visors->SetControlExpression(3, "E & `3`");
+  // Visors (Combination keys strongly recommended)
+  m_primehack_visors->SetControlExpression(0, "E & `1`");
+  m_primehack_visors->SetControlExpression(1, "E & `2`");
+  m_primehack_visors->SetControlExpression(2, "E & `3`");
+  m_primehack_visors->SetControlExpression(3, "E & `4`");
+  // Misc. Defaults
+  m_primehack_misc->SetControlExpression(0, "SPACE"); // Spring Ball
+  m_primehack_misc->SetControlExpression(1, "Axis Z+"); // Next beam
+  m_primehack_misc->SetControlExpression(2, "Axis Z-"); // Previous beam
 }
 
 Extension* Wiimote::GetNoneExtension() const
