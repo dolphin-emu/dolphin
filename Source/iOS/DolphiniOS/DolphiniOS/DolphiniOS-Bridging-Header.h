@@ -2,4 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import "EAGLView.h"
 #import "MainiOS.h"
+#import "MVKView.h"
