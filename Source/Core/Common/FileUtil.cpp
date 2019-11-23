@@ -691,6 +691,9 @@ std::string GetExePath()
         result = TStrToUTF8(*dolphin_exe_path);
       }
     }
+#elif defined(IPHONEOS)
+    result = GetBundleDirectory();
+    result = result.substr(0, result.find_last_of("DolphiniOS.app") + 1);
 #elif defined(__APPLE__)
     result = GetBundleDirectory();
     result = result.substr(0, result.find_last_of("Dolphin.app/Contents/MacOS") + 1);
@@ -723,7 +726,7 @@ std::string GetSysDirectory()
 {
   std::string sysDir;
 
-#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV) || defined(IPHONEOS)
 #define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
 #define SYSDATA_DIR "Contents/Resources/Sys"
