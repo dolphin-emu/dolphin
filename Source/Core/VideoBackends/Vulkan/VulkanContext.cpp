@@ -218,8 +218,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   }
 #endif
 #if defined(VK_USE_PLATFORM_IOS_MVK)
-  if (wstype == WindowSystemType::IPhoneOS &&
-      !SupportsExtension(VK_MVK_IOS_SURFACE_EXTENSION_NAME, true))
+  if (wstype == WindowSystemType::IPhoneOS && !AddExtension(VK_MVK_IOS_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
