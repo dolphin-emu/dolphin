@@ -1,9 +1,10 @@
 package org.dolphinemu.dolphinemu.dialogs;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import android.widget.Toast;
@@ -34,15 +35,16 @@ public class GameSettingsDialog extends DialogFragment
     return fragment;
   }
 
+  @NonNull
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
-    String gameId = getArguments().getString(ARG_GAMEID);
-    int platform = getArguments().getInt(ARG_PLATFORM);
+    String gameId = requireArguments().getString(ARG_GAMEID);
+    int platform = requireArguments().getInt(ARG_PLATFORM);
 
-    builder.setTitle(getActivity().getString(R.string.preferences_game_settings) + ": " + gameId)
+    builder.setTitle(requireContext().getString(R.string.preferences_game_settings) + ": " + gameId)
             .setItems(platform == Platform.GAMECUBE.toInt() ?
                     R.array.gameSettingsMenusGC :
                     R.array.gameSettingsMenusWii, (dialog, which) ->

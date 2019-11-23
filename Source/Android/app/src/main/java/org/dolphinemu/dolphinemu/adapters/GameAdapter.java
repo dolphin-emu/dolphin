@@ -1,9 +1,9 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-import android.app.AlertDialog;
 import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 

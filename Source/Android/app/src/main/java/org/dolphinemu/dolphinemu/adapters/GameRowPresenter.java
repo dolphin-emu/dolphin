@@ -1,9 +1,9 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.leanback.widget.ImageCardView;
 import androidx.leanback.widget.Presenter;
 import androidx.fragment.app.FragmentActivity;
