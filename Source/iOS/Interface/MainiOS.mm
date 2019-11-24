@@ -93,6 +93,8 @@ void Host_TitleChanged()
   wsi.type = WindowSystemType::IPhoneOS;
   wsi.display_connection = nullptr;
   wsi.render_surface = (__bridge void*)view;
+  wsi.render_surface_scale = [UIScreen mainScreen].scale;
+  
 
   std::unique_ptr<BootParameters> boot;
   boot = BootParameters::GenerateFromFile([file UTF8String]);
