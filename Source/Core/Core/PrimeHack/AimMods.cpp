@@ -26,7 +26,8 @@ constexpr float TURNRATE_RATIO = 0.00498665500569808449206349206349f;
  */
 static std::array<int, 4> prime_one_beams = {0, 2, 1, 3};
 static std::array<int, 4> prime_two_beams = {0, 1, 2, 3};
-int current_beam = -1;
+static std::array<bool, 4> beam_owned = {false, false, false, false};
+int current_beam = 0;
 
 // it can not be explained why combat->xray->scan->thermal is the ordering...
 static std::array<std::tuple<int, int>, 4> prime_one_visors = {
@@ -132,12 +133,10 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      current_beam++;
-
-      if (current_beam > 3)
-        current_beam = 0;
-
-      return current_beam;
+      for (int i = 0; i < 4; i++) {
+        if (beam_owned[current_beam = (current_beam + 1) % 4]) break;
+      }
+      return beams[current_beam];
     }
   }
   else if (CheckBeamScrollCtl(false))
@@ -145,12 +144,10 @@ static int get_beam_switch(std::array<int, 4> const& beams)
     if (!pressing_button)
     {
       pressing_button = true;
-      current_beam--;
-
-      if (current_beam < 0)
-        current_beam = 3;
-
-      return current_beam;
+      for (int i = 0; i < 4; i++) {
+        if (beam_owned[current_beam = (current_beam + 3) % 4]) break;
+      }
+      return beams[current_beam];
     }
   }
   else
@@ -229,6 +226,11 @@ void MP1::run_mod()
   PowerPC::HostWrite_U32(0, avel_limiter_address());
   PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&yaw_vel), yaw_vel_address());
 
+  for (int i = 0; i < 4; i++) {
+    u32 beam_base = PowerPC::HostRead_U32(powerups_base_address());
+    beam_owned[i] = PowerPC::HostRead_U32(beam_base + (prime_one_beams[i] * 0x08) + 0x30) ? true : false;
+  }
+
   int beam_id = get_beam_switch(prime_one_beams);
   if (beam_id != -1)
   {
@@ -238,7 +240,7 @@ void MP1::run_mod()
 
   springball_check(cplayer() + 0x2f4, cplayer() + 0x25C);
 
-  u32 visor_base = PowerPC::HostRead_U32(visor_base_address());
+  u32 visor_base = PowerPC::HostRead_U32(powerups_base_address());
   int visor_id, visor_off;
   u32 currentvisor = PowerPC::HostRead_U32(visor_base + 0x1c);
   std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, currentvisor == 0);
@@ -306,7 +308,7 @@ uint32_t MP1NTSC::beamchange_flag_address() const
 {
   return 0x804a79f0;
 }
-uint32_t MP1NTSC::visor_base_address() const
+uint32_t MP1NTSC::powerups_base_address() const
 {
   return 0x804bfcd4;
 }
@@ -372,7 +374,7 @@ uint32_t MP1PAL::beamchange_flag_address() const
 {
   return 0x804a79f0;
 }
-uint32_t MP1PAL::visor_base_address() const
+uint32_t MP1PAL::powerups_base_address() const
 {
   return 0x804c3c14;
 }
@@ -441,6 +443,11 @@ void MP2::run_mod()
   PowerPC::HostWrite_U32(*reinterpret_cast<u32*>(&pitch), base_address + 0x5f0);
   PowerPC::HostWrite_U32(*reinterpret_cast<u32*>(&pitch), arm_cannon_model_matrix + 0x24);
   PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&yaw_vel), base_address + 0x178);
+
+  for (int i = 0; i < 4; i++) {
+    u32 beam_base = PowerPC::HostRead_U32(base_address + 0x12ec);
+    beam_owned[i] = PowerPC::HostRead_U32(beam_base + (prime_two_beams[i] * 0x0c) + 0x5c) ? true : false;
+  }
 
   int beam_id = get_beam_switch(prime_two_beams);
   if (beam_id != -1)
