@@ -709,8 +709,8 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // Pause menu
   m_buttons->SetControlExpression(3, "ESCAPE");
   // Beam menu
-  m_buttons->SetControlExpression(4, "Q");
-  // Visor menu
+  //m_buttons->SetControlExpression(4, ""); (Reserved for future use)
+  // Beam menu/Hyper mode
   m_buttons->SetControlExpression(5, "R");
 
   // Shake (Only used in Prime 3, may need revision)
