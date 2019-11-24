@@ -20,7 +20,7 @@ namespace prime
   bool CheckSpringBallCtl();
 
   void SetEFBToTexture(bool toggle);
-  bool UseMP2AutoEFB();
+  bool UseMPAutoEFB();
   bool GetEFBTexture();
   void UpdateHackSettings();
 

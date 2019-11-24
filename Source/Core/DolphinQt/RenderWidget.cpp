@@ -321,11 +321,14 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
       ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
 
-    const float scale = devicePixelRatio();
-    int x = static_cast<const QMouseEvent*>(event)->x();
-    int y = static_cast<const QMouseEvent*>(event)->y();
+    if (SConfig::GetInstance().bEnablePrimeHack)
+    {
+      const float scale = devicePixelRatio();
+      int x = static_cast<const QMouseEvent*>(event)->x();
+      int y = static_cast<const QMouseEvent*>(event)->y();
 
-    prime::g_mouse_input->mousePressEvent(x, y);
+      prime::g_mouse_input->mousePressEvent(x, y);
+    }
   }
   break;
 

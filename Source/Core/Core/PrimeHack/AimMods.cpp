@@ -88,6 +88,7 @@ static std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4>
   {
     pressing_button = false;
   }
+
   return std::make_tuple(-1, 0);
 }
 
@@ -456,10 +457,10 @@ void MP2::run_mod()
     if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x0c) + 0x5c) != 0)
     {
       PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
-      }
     }
+  }
                     
-  if (UseMP2AutoEFB())
+  if (UseMPAutoEFB())
   {
     bool useEFB = PowerPC::HostRead_U32(visor_base + 0x34) != 2;
 
@@ -676,6 +677,15 @@ void MP3::run_mod()
       PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
     }
   }
+
+  if (UseMPAutoEFB())
+  {
+    bool useEFB = PowerPC::HostRead_U32(visor_base + 0x34) != 1;
+
+    if (GetEFBTexture() != useEFB)
+      SetEFBToTexture(useEFB);
+  }
+
   u32 camera_fov = PowerPC::HostRead_U32(
       PowerPC::HostRead_U32(
           PowerPC::HostRead_U32(PowerPC::HostRead_U32(camera_pointer_address()) + 0x1010) + 0x1c) +

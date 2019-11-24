@@ -136,7 +136,7 @@ const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE{
     {System::GFX, "Stereoscopy", "StereoDepthPercentage"}, 100};
 
 // Graphics.Hacks
-const ConfigInfo<bool> AutoEFBMP2{{System::GFX, "Hacks", "AutoEFBMP2"}, true};
+const ConfigInfo<bool> AutoEFBMP{{System::GFX, "Hacks", "AutoEFBMP"}, true};
 const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, true};
 const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION{
     {System::GFX, "Hacks", "EFBAccessDeferInvalidation"}, false};

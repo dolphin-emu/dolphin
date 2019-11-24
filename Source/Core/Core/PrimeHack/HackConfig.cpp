@@ -86,9 +86,9 @@ void SetEFBToTexture(bool toggle)
   return Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, toggle);
 }
 
-bool UseMP2AutoEFB()
+bool UseMPAutoEFB()
 {
-  return Config::Get(Config::AutoEFBMP2);
+  return Config::Get(Config::AutoEFBMP);
 }
 
 bool GetEFBTexture()

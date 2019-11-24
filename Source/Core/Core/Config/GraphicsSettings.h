@@ -100,7 +100,7 @@ extern const ConfigInfo<bool> GFX_STEREO_EFB_MONO_DEPTH;
 extern const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE;
 
 // Graphics.Hacks
-extern const ConfigInfo<bool> AutoEFBMP2;
+extern const ConfigInfo<bool> AutoEFBMP;
 extern const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE;
 extern const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION;
 extern const ConfigInfo<int> GFX_HACK_EFB_ACCESS_TILE_SIZE;
