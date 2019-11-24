@@ -746,12 +746,12 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_attachments->SetSelectedAttachment(DEFAULT_EXT);
   m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
   // Beams
-  m_primehack_beams->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
+  m_primehack_beams->SetControlExpression(0, "`1` & !E");
   m_primehack_beams->SetControlExpression(1, "`2` & !E");
   m_primehack_beams->SetControlExpression(2, "`3` & !E");
   m_primehack_beams->SetControlExpression(3, "`4` & !E");
   // Visors (Combination keys strongly recommended)
-  m_primehack_visors->SetControlExpression(0, "E & `1`");
+  m_primehack_visors->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
   m_primehack_visors->SetControlExpression(1, "E & `2`");
   m_primehack_visors->SetControlExpression(2, "E & `3`");
   m_primehack_visors->SetControlExpression(3, "E & `4`");
