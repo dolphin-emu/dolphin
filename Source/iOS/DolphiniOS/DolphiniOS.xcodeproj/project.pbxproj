@@ -475,7 +475,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "#!/bin/bash\n\nset -e\n\nXCENT_FILE=$DERIVED_SOURCES_DIR/../DolphiniOS.app.xcent\n\n# dynamic-codesigning is needed\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]\nthen\n  plutil -replace \"dynamic-codesigning\" -bool YES $XCENT_FILE\nelse\n  plutil -remove \"dynamic-codesigning\" $XCENT_FILE\nfi\n";
+			shellScript = "#!/bin/bash\n\nset -e\n\nXCENT_FILE=$DERIVED_SOURCES_DIR/../DolphiniOS.app.xcent\n\n# dynamic-codesigning is needed\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]\nthen\n  plutil -replace \"dynamic-codesigning\" -bool YES $XCENT_FILE\nelse\n  plutil -remove \"dynamic-codesigning\" $XCENT_FILE || true\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
