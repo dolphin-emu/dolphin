@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 import Foundation
+import MetalKit
 import UIKit
 
 class EmulationViewController: UIViewController
@@ -33,7 +34,7 @@ class EmulationViewController: UIViewController
     }
     else if (self.videoBackend == "Vulkan")
     {
-      self.view = MVKView(frame: UIScreen.main.bounds)
+      self.view = MTKView(frame: UIScreen.main.bounds)
     }
     
     let padView = Bundle(for: type(of: self)).loadNibNamed("TCGameCubePad", owner: self, options: nil)![0] as! UIView

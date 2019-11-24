@@ -10,7 +10,6 @@
 		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
 		B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */; };
 		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
-		B91BF37A236BAA3200199BA7 /* MVKView.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF379236BAA3200199BA7 /* MVKView.m */; };
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
 		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
 		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -90,8 +89,6 @@
 		B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewController.m; sourceTree = "<group>"; };
 		B91BF372236B400200199BA7 /* SettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsTableViewController.h; sourceTree = "<group>"; };
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
-		B91BF378236BAA3200199BA7 /* MVKView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MVKView.h; sourceTree = "<group>"; };
-		B91BF379236BAA3200199BA7 /* MVKView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MVKView.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = ../../../build/libs/Externals/libMoltenVK.dylib; sourceTree = "<group>"; };
 		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -246,8 +243,6 @@
 				B945A3902362D90200B21680 /* EAGLView.h */,
 				B945A3912362D90200B21680 /* EAGLView.m */,
 				B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */,
-				B91BF378236BAA3200199BA7 /* MVKView.h */,
-				B91BF379236BAA3200199BA7 /* MVKView.m */,
 			);
 			path = Emulation;
 			sourceTree = "<group>";
@@ -501,7 +496,6 @@
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
-				B91BF37A236BAA3200199BA7 /* MVKView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
