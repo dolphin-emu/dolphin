@@ -35,6 +35,7 @@ PUBLIC
   pugixml
 
 PRIVATE
+  fmt::fmt
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 
