@@ -361,6 +361,7 @@
 			buildPhases = (
 				B945A38C2362AEB900B21680 /* Build Dolphin */,
 				B95A093F2384F18600DBBB01 /* Copy Dolphin Images */,
+				B9E9E2E5238A021B00BB12A9 /* Update Entitlements */,
 				B945A36C2362908400B21680 /* Sources */,
 				B945A36D2362908400B21680 /* Frameworks */,
 				B945A36E2362908400B21680 /* Resources */,
@@ -462,6 +463,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
 			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_SRC_DIR=$PROJECT_DIR/DolphiniOS\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\nANDROID_RES_DIR=$ROOT_DOLPHIN_DIR/Source/Android/app/src/main/res\nONEX_DIR=$ANDROID_RES_DIR/drawable-hdpi\nTWOX_DIR=$ANDROID_RES_DIR/drawable-xhdpi\nTHREEX_DIR=$ANDROID_RES_DIR/drawable-xxhdpi\n\n# Clear all images\nrm -rf $ROOT_SRC_DIR/DolphinImages.xcassets/*.imageset\n\nif [ -d \"$ROOT_SRC_DIR/DolphinImages.xcassets/gcpad_a.imageset\" ]; then\n  exit 0\nfi\n\n\nfor path in $ONEX_DIR/*\ndo\n  FILENAME=$(basename \"$path\" .png)\n  \n  mkdir $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset\n  \n  cp $ONEX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@1x.png\n  cp $TWOX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@2x.png\n  cp $THREEX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@3x.png\n  \n  cp $ROOT_SRC_DIR/DolphinImageTemplate.json.in $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/Contents.json\n  \n  sed \"s/FILENAME/$FILENAME/g\" $ROOT_SRC_DIR/DolphinImageTemplate.json.in > $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/Contents.json\ndone\n";
+		};
+		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Update Entitlements";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "#!/bin/bash\n\nset -e\n\nXCENT_FILE=$DERIVED_SOURCES_DIR/../DolphiniOS.app.xcent\n\n# dynamic-codesigning is needed\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]\nthen\n  plutil -replace \"dynamic-codesigning\" -bool YES $XCENT_FILE\nelse\n  plutil -remove \"dynamic-codesigning\" $XCENT_FILE\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -639,6 +658,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_FOR_JAILBROKEN_DEVICE = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
@@ -663,6 +683,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_FOR_JAILBROKEN_DEVICE = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
