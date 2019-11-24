@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
 #include <pugixml.hpp>
 
 #include "Common/ChunkFile.h"
@@ -45,8 +46,6 @@ namespace UICommon
 {
 namespace
 {
-constexpr char COVER_URL[] = "https://art.gametdb.com/wii/cover/%s/%s.png";
-
 const std::string EMPTY_STRING;
 }  // Anonymous namespace
 
@@ -241,8 +240,8 @@ void GameFile::DownloadDefaultCover()
   }
 
   Common::HttpRequest request;
-  const auto response =
-      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_gametdb_id.c_str()));
+  constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
+  const auto response = request.Get(fmt::format(cover_url, region_code, m_gametdb_id));
 
   if (!response)
     return;
@@ -541,8 +540,8 @@ std::string GameFile::GetUniqueIdentifier() const
   std::string lower_name = name;
   std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
   if (disc_number > 1 &&
-      lower_name.find(StringFromFormat("disc %i", disc_number)) == std::string::npos &&
-      lower_name.find(StringFromFormat("disc%i", disc_number)) == std::string::npos)
+      lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
+      lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
   {
     std::string disc_text = "Disc ";
     info.push_back(disc_text + std::to_string(disc_number));
