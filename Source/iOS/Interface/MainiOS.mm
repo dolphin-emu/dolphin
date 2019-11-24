@@ -21,6 +21,8 @@
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/RenderBase.h"
+
 void Host_NotifyMapLoaded()
 {
 }
@@ -111,6 +113,12 @@ void Host_TitleChanged()
 
   Core::Shutdown();
   UICommon::Shutdown();
+}
+
++ (void)windowResized
+{
+  if (g_renderer)
+    g_renderer->ResizeSurface();
 }
 
 + (void)gamepadEventForButton:(int)button action:(int)action
