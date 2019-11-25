@@ -4,7 +4,7 @@
 
 #pragma once
 
-#ifdef __APPLE__
+#ifdef IPHONEOS
 #include <AudioUnit/AudioUnit.h>
 #endif
 
@@ -12,7 +12,7 @@
 
 class CoreAudioSound final : public SoundStream
 {
-#ifdef __APPLE__
+#ifdef IPHONEOS
 public:
   bool Init() override;
   bool SetRunning(bool running) override;
