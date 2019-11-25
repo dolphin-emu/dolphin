@@ -62,6 +62,7 @@
     <ClCompile Include="Debugger\Dump.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
     <ClCompile Include="Debugger\RSO.cpp" />
+    <ClCompile Include="Discord.cpp" />
     <ClCompile Include="DSPEmulator.cpp" />
     <ClCompile Include="DSP\DSPAccelerator.cpp" />
     <ClCompile Include="DSP\DSPAnalyzer.cpp" />
@@ -102,6 +103,7 @@
     <ClCompile Include="FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp" />
+    <ClCompile Include="Gamestate.cpp" />
     <ClCompile Include="GeckoCode.cpp" />
     <ClCompile Include="GeckoCodeConfig.cpp" />
     <ClCompile Include="HLE\HLE.cpp" />
@@ -341,6 +343,7 @@
     <ClInclude Include="Debugger\GCELF.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
     <ClInclude Include="Debugger\RSO.h" />
+    <ClInclude Include="Discord.h" />
     <ClInclude Include="DSPEmulator.h" />
     <ClInclude Include="DSP\DSPAccelerator.h" />
     <ClInclude Include="DSP\DSPAnalyzer.h" />
@@ -372,6 +375,7 @@
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
+    <ClInclude Include="Gamestate.h" />
     <ClInclude Include="GeckoCode.h" />
     <ClInclude Include="GeckoCodeConfig.h" />
     <ClInclude Include="HLE\HLE.h" />

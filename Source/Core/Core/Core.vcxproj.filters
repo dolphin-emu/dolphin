@@ -166,6 +166,9 @@
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension">
       <UniqueIdentifier>{68c09d7e-4f5a-435d-a0d2-7eb7a74d7054}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RNO">
+      <UniqueIdentifier>{2d1a5f5f-e640-4e3a-90d3-3a859070f7ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -932,6 +935,13 @@
     <ClCompile Include="HW\AddressSpace.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\ConditionRegister.cpp" />
+    <ClCompile Include="Discord.cpp">
+      <Filter>RNO</Filter>
+    </ClCompile>
+    <ClCompile Include="Gamestate.cpp">
+      <Filter>RNO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1661,8 +1671,11 @@
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Constants.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    <ClInclude Include="Discord.h">
+      <Filter>RNO</Filter>
+    </ClInclude>
+    <ClInclude Include="Gamestate.h">
+      <Filter>RNO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
