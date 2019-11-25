@@ -336,12 +336,14 @@
     </string-array>
 
     <string-array name="gameSettingsMenusGC">
+        <item>Details</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
         <item>GameCube Controller Settings</item>
         <item>Clear Game Settings</item>
     </string-array>
     <string-array name="gameSettingsMenusWii">
+        <item>Details</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
         <item>GameCube Controller Settings</item>
