@@ -166,6 +166,12 @@
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension">
       <UniqueIdentifier>{68c09d7e-4f5a-435d-a0d2-7eb7a74d7054}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PowerPC\JitArmCommon">
+      <UniqueIdentifier>{132cd43e-84be-4939-9f0c-0e7f26794598}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\JitArm64">
+      <UniqueIdentifier>{9e91e72c-e432-4e02-8e03-c45c2b6f6957}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -881,9 +887,6 @@
     <ClCompile Include="Config\UISettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp" />
     <ClCompile Include="HW\WiimoteEmu\I2CBus.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
@@ -936,6 +939,60 @@
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\ConditionRegister.cpp" />
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Integer.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStore.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStoreFloating.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStorePaired.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Paired.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_RegCache.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_SystemRegisters.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Tables.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64Cache.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitAsm.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\Jit.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\Jit_Util.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_BackPatch.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Branch.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_FloatingPoint.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1667,6 +1724,21 @@
     <ClInclude Include="PowerPC\ConditionRegister.h" />
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\JitArm64_RegCache.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\JitArm64Cache.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\Jit.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\Jit_Util.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArmCommon\BackPatch.h">
+      <Filter>PowerPC\JitArmCommon</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

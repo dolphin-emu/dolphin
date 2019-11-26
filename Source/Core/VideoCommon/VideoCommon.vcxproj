@@ -1,9 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -41,7 +49,9 @@
     <ClCompile Include="AbstractTexture.cpp" />
     <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AsyncShaderCompiler.cpp" />
-    <ClCompile Include="FrameDump.cpp" />
+    <ClCompile Include="FrameDump.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BPFunctions.cpp" />
     <ClCompile Include="BPMemory.cpp" />
@@ -71,6 +81,9 @@
     <ClCompile Include="LightingShaderGen.cpp" />
     <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="ShaderGenCommon.cpp" />
+    <ClCompile Include="TextureDecoder_Generic.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="UberShaderCommon.cpp" />
     <ClCompile Include="UberShaderPixel.cpp" />
     <ClCompile Include="Statistics.cpp" />
@@ -82,8 +95,13 @@
     <ClCompile Include="TextureConverterShaderGen.cpp" />
     <ClCompile Include="UberShaderVertex.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
+    <ClCompile Include="VertexLoaderARM64.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="VertexLoaderBase.cpp" />
-    <ClCompile Include="VertexLoaderX64.cpp" />
+    <ClCompile Include="VertexLoaderX64.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="VertexLoaderManager.cpp" />
     <ClCompile Include="VertexLoader_Color.cpp" />
     <ClCompile Include="VertexLoader_Normal.cpp" />
@@ -96,7 +114,9 @@
     <ClCompile Include="VideoConfig.cpp" />
     <ClCompile Include="VideoState.cpp" />
     <ClCompile Include="TextureDecoder_Common.cpp" />
-    <ClCompile Include="TextureDecoder_x64.cpp" />
+    <ClCompile Include="TextureDecoder_x64.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="XFMemory.cpp" />
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
@@ -154,6 +174,9 @@
     <ClInclude Include="TextureDecoder.h" />
     <ClInclude Include="UberShaderVertex.h" />
     <ClInclude Include="VertexLoader.h" />
+    <ClInclude Include="VertexLoaderARM64.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="VertexLoaderBase.h" />
     <ClInclude Include="VertexLoaderManager.h" />
     <ClInclude Include="VertexLoaderUtils.h" />
