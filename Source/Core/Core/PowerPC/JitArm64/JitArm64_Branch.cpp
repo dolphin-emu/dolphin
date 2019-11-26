@@ -143,9 +143,9 @@ void JitArm64::bcx(UGeckoInstruction inst)
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
-  FixupBranch far = B();
+  FixupBranch far_addr = B();
   SwitchToFarCode();
-  SetJumpTarget(far);
+  SetJumpTarget(far_addr);
 
   if (inst.LK)
   {
@@ -160,12 +160,12 @@ void JitArm64::bcx(UGeckoInstruction inst)
   if (js.op->branchIsIdleLoop)
   {
     // make idle loops go faster
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
+    ARM64Reg WA2 = gpr.GetReg();
+    ARM64Reg XA2 = EncodeRegTo64(WA2);
 
-    MOVP2R(XA, &CoreTiming::Idle);
-    BLR(XA);
-    gpr.Unlock(WA);
+    MOVP2R(XA2, &CoreTiming::Idle);
+    BLR(XA2);
+    gpr.Unlock(WA2);
 
     WriteExceptionExit(js.op->branchTo);
   }
@@ -260,9 +260,9 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 
   if (conditional)
   {
-    FixupBranch far = B();
+    FixupBranch far_addr = B();
     SwitchToFarCode();
-    SetJumpTarget(far);
+    SetJumpTarget(far_addr);
   }
 
   LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
