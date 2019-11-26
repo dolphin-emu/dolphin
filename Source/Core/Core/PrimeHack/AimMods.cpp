@@ -659,7 +659,7 @@ void MP3::run_mod()
     return;
   }
 
-  springball_check(base_address + 0xE884, base_address + 0x29c);
+  springball_check(base_address + 0x358, base_address + 0x29c);
 
   int dx = g_mouse_input->GetDeltaHorizontalAxis(), dy = g_mouse_input->GetDeltaVerticalAxis();
   const float compensated_sens = GetSensitivity() * TURNRATE_RATIO / 60.0f;
