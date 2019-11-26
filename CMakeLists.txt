@@ -369,11 +369,6 @@ if(ENABLE_VTUNE)
   )
 endif()
 
-if(WIN32)
-  message(STATUS "Building for Windows, disabling NoGUI frontend.")
-  set(ENABLE_NOGUI OFF)
-endif()
-
 if(ANDROID)
   message(STATUS "Building for Android")
   if(NOT ENABLE_HEADLESS)

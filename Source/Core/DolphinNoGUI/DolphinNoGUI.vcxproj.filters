@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Platform.cpp" />
+    <ClCompile Include="PlatformHeadless.cpp" />
+    <ClCompile Include="MainNoGUI.cpp" />
+    <ClCompile Include="PlatformWin32.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Platform.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="DolphinNoGUI.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DolphinNoGUI.rc" />
+  </ItemGroup>
+</Project>
