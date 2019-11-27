@@ -1,11 +1,9 @@
 package org.dolphinemu.dolphinemu.activities;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -48,8 +46,6 @@ import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
-import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
-import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
@@ -304,8 +300,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     setTheme(themeId);
 
-    Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-    Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
     Rumble.initRumble(this);
 
     setContentView(R.layout.activity_emulation);
