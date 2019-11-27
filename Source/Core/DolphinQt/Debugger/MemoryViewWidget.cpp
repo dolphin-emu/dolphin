@@ -379,7 +379,7 @@ void MemoryViewWidget::OnCopyHex()
   u64 value = accessors->ReadU64(addr);
 
   QApplication::clipboard()->setText(
-      QStringLiteral("%1").arg(value, length * 2, 16, QLatin1Char('0')).left(length * 2));
+      QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
 }
 
 void MemoryViewWidget::OnContextMenu()
