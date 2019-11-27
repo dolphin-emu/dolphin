@@ -243,10 +243,17 @@ if(WIN32)
     GL/GLInterface/WGL.h
   )
 elseif(APPLE)
-  target_sources(common PRIVATE
-    GL/GLInterface/AGL.h
-    GL/GLInterface/AGL.mm
-  )
+  if(IOS)
+    target_sources(common PRIVATE
+      GL/GLInterface/EAGL.h
+      GL/GLInterface/EAGL.mm
+    )
+  else()
+    target_sources(common PRIVATE
+      GL/GLInterface/AGL.h
+      GL/GLInterface/AGL.mm
+    )
+  endif()
 elseif(ENABLE_X11 AND X11_FOUND)
   target_sources(common PRIVATE
     GL/GLX11Window.cpp
