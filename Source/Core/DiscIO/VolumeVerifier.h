@@ -158,6 +158,7 @@ private:
   u64 GetBiggestReferencedOffset() const;
   u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
+  void CheckSuperPaperMario();
   void SetUpHashing();
   void WaitForAsyncOperations() const;
   bool ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read);
