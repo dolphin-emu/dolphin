@@ -18,7 +18,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#elif __APPLE__
+#elif defined MACOS
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOBSD.h>
 #include <IOKit/IOKitLib.h>
@@ -73,7 +73,7 @@ std::vector<std::string> GetCDDevices()
   }
   return drives;
 }
-#elif defined __APPLE__
+#elif defined MACOS
 // Returns a pointer to an array of strings with the device names
 std::vector<std::string> GetCDDevices()
 {
@@ -134,6 +134,12 @@ std::vector<std::string> GetCDDevices()
   }
   IOObjectRelease(media_iterator);
   return drives;
+}
+#elif defined IPHONEOS
+// There are no disc drives on iOS
+std::vector<std::string> GetCDDevices()
+{
+  return {};
 }
 #else
 // checklist: /dev/cdrom, /dev/dvd /dev/hd?, /dev/scd? /dev/sr?
