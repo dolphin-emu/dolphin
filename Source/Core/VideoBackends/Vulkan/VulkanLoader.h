@@ -18,12 +18,12 @@
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif
 
-#if defined(__APPLE__)
-#if defined(IPHONEOS)
-#define VK_USE_PLATFORM_IOS_MVK
-#else
+#if defined(MACOS)
 #define VK_USE_PLATFORM_MACOS_MVK
 #endif
+
+#if defined(IPHONEOS)
+#define VK_USE_PLATFORM_IOS_MVK
 #endif
 
 #include "vulkan/vulkan.h"
