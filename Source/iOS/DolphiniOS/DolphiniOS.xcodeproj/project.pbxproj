@@ -66,6 +66,7 @@
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
 		B95A094F23875BC700DBBB01 /* Sys in Resources */ = {isa = PBXBuildFile; fileRef = B95A094E23875BC700DBBB01 /* Sys */; };
+		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
 		B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -153,6 +154,7 @@
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
 		B95A094E23875BC700DBBB01 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
+		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationVIewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -240,9 +242,9 @@
 			isa = PBXGroup;
 			children = (
 				B95A09252382667000DBBB01 /* TouchController */,
+				B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */,
 				B945A3902362D90200B21680 /* EAGLView.h */,
 				B945A3912362D90200B21680 /* EAGLView.m */,
-				B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */,
 			);
 			path = Emulation;
 			sourceTree = "<group>";
@@ -343,6 +345,7 @@
 				B95A09372382D89600DBBB01 /* TCJoystick.swift */,
 				B95A0944238533DC00DBBB01 /* TCButtonType.swift */,
 				B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */,
+				B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */,
 			);
 			path = TouchController;
 			sourceTree = "<group>";
@@ -487,6 +490,7 @@
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
+				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
