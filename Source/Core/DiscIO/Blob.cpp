@@ -18,7 +18,9 @@
 #include "DiscIO/CISOBlob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DirectoryBlob.h"
+#ifndef IPHONEOS
 #include "DiscIO/DriveBlob.h"
+#endif
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/TGCBlob.h"
 #include "DiscIO/WIABlob.h"
@@ -210,8 +212,11 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
+  // You can't attach a CD drive to an iOS device.
+#ifndef IPHONEOS
   if (Common::IsCDROMDevice(filename))
     return DriveReader::Create(filename);
+#endif
 
   File::IOFile file(filename, "rb");
   u32 magic;
