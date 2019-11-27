@@ -318,6 +318,8 @@
     <string name="emulation_ir_group">Touch IR Pointer</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
+    <string name="emulation_screen_orientation">Screen Orientation</string>
+    <string name="emulation_motion_controls">Motion Controls</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

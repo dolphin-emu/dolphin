@@ -196,6 +196,18 @@ public final class NativeLibrary
     public static final int TURNTABLE_CROSSFADE = 622;
     public static final int TURNTABLE_CROSSFADE_LEFT = 623;
     public static final int TURNTABLE_CROSSFADE_RIGHT = 624;
+    public static final int WIIMOTE_ACCEL_LEFT = 625;
+    public static final int WIIMOTE_ACCEL_RIGHT = 626;
+    public static final int WIIMOTE_ACCEL_FORWARD = 627;
+    public static final int WIIMOTE_ACCEL_BACKWARD = 628;
+    public static final int WIIMOTE_ACCEL_UP = 629;
+    public static final int WIIMOTE_ACCEL_DOWN = 630;
+    public static final int WIIMOTE_GYRO_PITCH_UP = 631;
+    public static final int WIIMOTE_GYRO_PITCH_DOWN = 632;
+    public static final int WIIMOTE_GYRO_ROLL_LEFT = 633;
+    public static final int WIIMOTE_GYRO_ROLL_RIGHT = 634;
+    public static final int WIIMOTE_GYRO_YAW_LEFT = 635;
+    public static final int WIIMOTE_GYRO_YAW_RIGHT = 636;
   }
 
   /**
@@ -253,6 +265,9 @@ public final class NativeLibrary
 
     Rumble.checkRumble(padID, state);
   }
+
+  public static native void SetMotionSensorsEnabled(boolean accelerometerEnabled,
+          boolean gyroscopeEnabled);
 
   public static native void NewGameIniFile();
 
