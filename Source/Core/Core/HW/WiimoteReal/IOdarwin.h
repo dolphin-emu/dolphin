@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if defined(__APPLE__) && !defined(IPHONEOS)
+#if defined(MACOS)
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal

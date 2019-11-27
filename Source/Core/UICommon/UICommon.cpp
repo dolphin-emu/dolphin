@@ -43,7 +43,7 @@
 #include "UICommon/X11Utils.h"
 #endif
 
-#if defined(__APPLE__) && !defined(IPHONEOS)
+#if defined(MACOS)
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
@@ -426,7 +426,7 @@ void EnableScreenSaver(bool enable)
   }
 #endif
 
-#if defined(__APPLE__) && !defined(IPHONEOS)
+#if defined(MACOS)
   static IOPMAssertionID s_power_assertion = kIOPMNullAssertionID;
 
   if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
