@@ -305,6 +305,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS)
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
 
+  # Add define for macOS
+  add_definitions(-DMACOS)
+
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
   find_library(CARBON_LIBRARY Carbon)
