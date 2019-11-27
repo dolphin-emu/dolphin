@@ -345,7 +345,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     m_system_framebuffer = std::make_unique<OGLFramebuffer>(
         nullptr, nullptr, AbstractTextureFormat::RGBA8, AbstractTextureFormat::Undefined,
         std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
-        std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
+        std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1,
+        m_main_gl_context->GetDefaultFramebuffer());
     m_current_framebuffer = m_system_framebuffer.get();
   }
 
