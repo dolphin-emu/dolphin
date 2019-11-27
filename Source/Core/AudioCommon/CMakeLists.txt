@@ -3,10 +3,6 @@ add_library(audiocommon
   AudioCommon.h
   AudioStretcher.cpp
   AudioStretcher.h
-  CubebStream.cpp
-  CubebStream.h
-  CubebUtils.cpp
-  CubebUtils.h
   Enums.h
   Mixer.cpp
   Mixer.h
@@ -18,17 +14,12 @@ add_library(audiocommon
   WaveFile.h
 )
 
-if (NOT IOS)
+if(CUBEB_FOUND)
   target_sources(audiocommon PRIVATE
     CubebStream.cpp
     CubebStream.h
     CubebUtils.cpp
     CubebUtils.h
-  )
-else()
-  target_sources(audiocommon PRIVATE
-    CoreAudioSoundStream.cpp
-    CoreAudioSoundStream.h
   )
 endif()
 
@@ -86,6 +77,13 @@ if(WIN32)
 
     WASAPIStream.cpp
     WASAPIStream.h
+  )
+endif()
+
+if(IOS)
+  target_sources(audiocommon PRIVATE
+    CoreAudioSoundStream.cpp
+    CoreAudioSoundStream.h
   )
 endif()
 

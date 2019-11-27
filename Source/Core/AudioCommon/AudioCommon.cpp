@@ -30,7 +30,7 @@ constexpr int AUDIO_VOLUME_MAX = 100;
 
 static std::unique_ptr<SoundStream> CreateSoundStreamForBackend(std::string_view backend)
 {
-  if (backend == BACKEND_CUBEB)
+  if (backend == BACKEND_CUBEB && CubebStream::isValid())
     return std::make_unique<CubebStream>();
   else if (backend == BACKEND_OPENAL && OpenALStream::isValid())
     return std::make_unique<OpenALStream>();
@@ -100,7 +100,7 @@ std::string GetDefaultSoundBackend()
 #elif defined __linux__
   if (AlsaSound::isValid())
     backend = BACKEND_ALSA;
-#elif defined(__APPLE__) || defined(_WIN32)
+#elif defined HAVE_CUBEB
   backend = BACKEND_CUBEB;
 #endif
   return backend;
@@ -116,7 +116,8 @@ std::vector<std::string> GetSoundBackends()
   std::vector<std::string> backends;
 
   backends.emplace_back(BACKEND_NULLSOUND);
-  backends.emplace_back(BACKEND_CUBEB);
+  if (CubebStream::isValid())
+    backends.emplace_back(BACKEND_CUBEB);
   if (AlsaSound::isValid())
     backends.emplace_back(BACKEND_ALSA);
   if (PulseAudio::isValid())

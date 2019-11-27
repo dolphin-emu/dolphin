@@ -648,14 +648,18 @@ endif()
 add_subdirectory(Externals/soundtouch)
 include_directories(Externals)
 
-if (NOT IOS)
+# Cubeb support for iOS is old and broken.
+# See: https://github.com/kinetiknz/cubeb/issues/394
+if(NOT IOS)
   find_package(Cubeb)
   if(CUBEB_FOUND)
     message(STATUS "Using the system cubeb")
   else()
     message(STATUS "Using static cubeb from Externals")
     add_subdirectory(Externals/cubeb EXCLUDE_FROM_ALL)
+    set(CUBEB_FOUND true)
   endif()
+  add_definitions(-DHAVE_CUBEB)
 endif()
 
 if(NOT ANDROID AND NOT IOS)
