@@ -8,6 +8,7 @@
 #include <cinttypes>
 #include <future>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -972,6 +973,39 @@ void VolumeVerifier::CheckMisc()
                              "The CRC32 of this file might match the CRC32 of a good dump even "
                              "though the files are not identical."));
     }
+
+    if (StringBeginsWith(game_id_unencrypted, "R8P"))
+      CheckSuperPaperMario();
+  }
+}
+
+void VolumeVerifier::CheckSuperPaperMario()
+{
+  // When Super Paper Mario (any region/revision) reads setup/aa1_01.dat when starting a new game,
+  // it also reads a few extra bytes so that the read length is divisible by 0x20. If these extra
+  // bytes are zeroes like in good dumps, the game works correctly, but otherwise it can freeze
+  // (depending on the exact values of the extra bytes). https://bugs.dolphin-emu.org/issues/11900
+
+  const DiscIO::Partition partition = m_volume.GetGamePartition();
+  const FileSystem* fs = m_volume.GetFileSystem(partition);
+  if (!fs)
+    return;
+
+  std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
+  if (!file_info)
+    return;
+
+  const u64 offset = file_info->GetOffset() + file_info->GetSize();
+  const u64 length = Common::AlignUp(offset, 0x20) - offset;
+  std::vector<u8> data(length);
+  if (!m_volume.Read(offset, length, data.data(), partition))
+    return;
+
+  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  {
+    AddProblem(Severity::High,
+               Common::GetStringT("Some padding data that should be zero is not zero. "
+                                  "This can make the game freeze at certain points."));
   }
 }
 
