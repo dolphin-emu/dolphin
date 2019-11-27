@@ -11,14 +11,14 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Thread.h"
-#include "jni/ButtonManager.h"
+#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 namespace ButtonManager
 {
 namespace
 {
-constexpr char touchScreenKey[] = "Touchscreen";
-constexpr std::array<const char*, 155> configStrings{{
+constexpr char TOUCHSCREEN_KEY[] = "Touchscreen";
+constexpr std::array<const char*, 155> CONFIG_STRINGS{{
     // GC
     "InputA",
     "InputB",
@@ -185,7 +185,7 @@ constexpr std::array<const char*, 155> configStrings{{
     "Rumble",
 }};
 
-constexpr std::array<ButtonType, 155> configTypes{{
+constexpr std::array<ButtonType, 155> CONFIG_TYPES{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -367,261 +367,267 @@ void AddBind(const std::string& dev, sBind* bind)
 }
 }  // Anonymous namespace
 
-void Init(const std::string& gameId)
+void Init(const std::string& game_id)
 {
   // Initialize pad 0(gc 1) and pad 4(wii 1) as touch overlay controller
   for (int a = 0; a < 5; a += 4)
   {
     // GC
-    AddBind(touchScreenKey, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_B, BIND_BUTTON, BUTTON_B, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_START, BIND_BUTTON, BUTTON_START, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_X, BIND_BUTTON, BUTTON_X, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_Y, BIND_BUTTON, BUTTON_Y, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_Z, BIND_BUTTON, BUTTON_Z, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_UP, BIND_BUTTON, BUTTON_UP, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_DOWN, BIND_BUTTON, BUTTON_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_LEFT, BIND_BUTTON, BUTTON_LEFT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, BUTTON_RIGHT, BIND_BUTTON, BUTTON_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_B, BIND_BUTTON, BUTTON_B, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_START, BIND_BUTTON, BUTTON_START, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_X, BIND_BUTTON, BUTTON_X, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_Y, BIND_BUTTON, BUTTON_Y, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_Z, BIND_BUTTON, BUTTON_Z, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_UP, BIND_BUTTON, BUTTON_UP, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_DOWN, BIND_BUTTON, BUTTON_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_LEFT, BIND_BUTTON, BUTTON_LEFT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_RIGHT, BIND_BUTTON, BUTTON_RIGHT, 1.0f));
 
-    AddBind(touchScreenKey, new sBind(a, STICK_MAIN_UP, BIND_AXIS, STICK_MAIN_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_MAIN_DOWN, BIND_AXIS, STICK_MAIN_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_MAIN_LEFT, BIND_AXIS, STICK_MAIN_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_MAIN_RIGHT, BIND_AXIS, STICK_MAIN_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_C_UP, BIND_AXIS, STICK_C_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_C_DOWN, BIND_AXIS, STICK_C_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_C_LEFT, BIND_AXIS, STICK_C_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, STICK_C_RIGHT, BIND_AXIS, STICK_C_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TRIGGER_L, BIND_AXIS, TRIGGER_L, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TRIGGER_R, BIND_AXIS, TRIGGER_R, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_MAIN_UP, BIND_AXIS, STICK_MAIN_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_MAIN_DOWN, BIND_AXIS, STICK_MAIN_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_MAIN_LEFT, BIND_AXIS, STICK_MAIN_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_MAIN_RIGHT, BIND_AXIS, STICK_MAIN_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_C_UP, BIND_AXIS, STICK_C_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_C_DOWN, BIND_AXIS, STICK_C_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_C_LEFT, BIND_AXIS, STICK_C_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_C_RIGHT, BIND_AXIS, STICK_C_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TRIGGER_L, BIND_AXIS, TRIGGER_L, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TRIGGER_R, BIND_AXIS, TRIGGER_R, 1.0f));
 
     // Wiimote
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_BUTTON_A, BIND_BUTTON, WIIMOTE_BUTTON_A, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_BUTTON_B, BIND_BUTTON, WIIMOTE_BUTTON_B, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_BUTTON_A, BIND_BUTTON, WIIMOTE_BUTTON_A, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_BUTTON_B, BIND_BUTTON, WIIMOTE_BUTTON_B, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_BUTTON_MINUS, BIND_BUTTON, WIIMOTE_BUTTON_MINUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_BUTTON_PLUS, BIND_BUTTON, WIIMOTE_BUTTON_PLUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_BUTTON_HOME, BIND_BUTTON, WIIMOTE_BUTTON_HOME, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_BUTTON_1, BIND_BUTTON, WIIMOTE_BUTTON_1, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_BUTTON_2, BIND_BUTTON, WIIMOTE_BUTTON_2, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_UP, BIND_BUTTON, WIIMOTE_UP, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_DOWN, BIND_BUTTON, WIIMOTE_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_LEFT, BIND_BUTTON, WIIMOTE_LEFT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_RIGHT, BIND_BUTTON, WIIMOTE_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_HIDE, BIND_BUTTON, WIIMOTE_IR_HIDE, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_BUTTON_1, BIND_BUTTON, WIIMOTE_BUTTON_1, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_BUTTON_2, BIND_BUTTON, WIIMOTE_BUTTON_2, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_UP, BIND_BUTTON, WIIMOTE_UP, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_DOWN, BIND_BUTTON, WIIMOTE_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_LEFT, BIND_BUTTON, WIIMOTE_LEFT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_RIGHT, BIND_BUTTON, WIIMOTE_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_IR_HIDE, BIND_BUTTON, WIIMOTE_IR_HIDE, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_TILT_MODIFIER, BIND_BUTTON, WIIMOTE_TILT_MODIFIER, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_SHAKE_X, BIND_BUTTON, WIIMOTE_SHAKE_X, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_SHAKE_Y, BIND_BUTTON, WIIMOTE_SHAKE_Y, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_SHAKE_Z, BIND_BUTTON, WIIMOTE_SHAKE_Z, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_SHAKE_X, BIND_BUTTON, WIIMOTE_SHAKE_X, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_SHAKE_Y, BIND_BUTTON, WIIMOTE_SHAKE_Y, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_SHAKE_Z, BIND_BUTTON, WIIMOTE_SHAKE_Z, 1.0f));
 
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_UP, BIND_AXIS, WIIMOTE_IR_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_DOWN, BIND_AXIS, WIIMOTE_IR_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_LEFT, BIND_AXIS, WIIMOTE_IR_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_RIGHT, BIND_AXIS, WIIMOTE_IR_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_IR_FORWARD, BIND_AXIS, WIIMOTE_IR_FORWARD, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_IR_UP, BIND_AXIS, WIIMOTE_IR_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_IR_DOWN, BIND_AXIS, WIIMOTE_IR_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_IR_LEFT, BIND_AXIS, WIIMOTE_IR_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_IR_RIGHT, BIND_AXIS, WIIMOTE_IR_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, WIIMOTE_IR_FORWARD, BIND_AXIS, WIIMOTE_IR_FORWARD, -1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_IR_BACKWARD, BIND_AXIS, WIIMOTE_IR_BACKWARD, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_SWING_UP, BIND_AXIS, WIIMOTE_SWING_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_SWING_DOWN, BIND_AXIS, WIIMOTE_SWING_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_SWING_LEFT, BIND_AXIS, WIIMOTE_SWING_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_SWING_UP, BIND_AXIS, WIIMOTE_SWING_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_SWING_DOWN, BIND_AXIS, WIIMOTE_SWING_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, WIIMOTE_SWING_LEFT, BIND_AXIS, WIIMOTE_SWING_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_SWING_RIGHT, BIND_AXIS, WIIMOTE_SWING_RIGHT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_SWING_FORWARD, BIND_AXIS, WIIMOTE_SWING_FORWARD, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_SWING_BACKWARD, BIND_AXIS, WIIMOTE_SWING_BACKWARD, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_TILT_FORWARD, BIND_AXIS, WIIMOTE_TILT_FORWARD, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_TILT_BACKWARD, BIND_AXIS, WIIMOTE_TILT_BACKWARD, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_TILT_LEFT, BIND_AXIS, WIIMOTE_TILT_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_TILT_RIGHT, BIND_AXIS, WIIMOTE_TILT_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_TILT_LEFT, BIND_AXIS, WIIMOTE_TILT_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_TILT_RIGHT, BIND_AXIS, WIIMOTE_TILT_RIGHT, 1.0f));
 
     // Wii: Nunchuk
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_BUTTON_C, BIND_BUTTON, NUNCHUK_BUTTON_C, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_BUTTON_Z, BIND_BUTTON, NUNCHUK_BUTTON_Z, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_BUTTON_C, BIND_BUTTON, NUNCHUK_BUTTON_C, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_BUTTON_Z, BIND_BUTTON, NUNCHUK_BUTTON_Z, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_TILT_MODIFIER, BIND_BUTTON, NUNCHUK_TILT_MODIFIER, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_SHAKE_X, BIND_BUTTON, NUNCHUK_SHAKE_X, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_SHAKE_Y, BIND_BUTTON, NUNCHUK_SHAKE_Y, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_SHAKE_Z, BIND_BUTTON, NUNCHUK_SHAKE_Z, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_SHAKE_X, BIND_BUTTON, NUNCHUK_SHAKE_X, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_SHAKE_Y, BIND_BUTTON, NUNCHUK_SHAKE_Y, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_SHAKE_Z, BIND_BUTTON, NUNCHUK_SHAKE_Z, 1.0f));
 
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_SWING_UP, BIND_AXIS, NUNCHUK_SWING_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_SWING_DOWN, BIND_AXIS, NUNCHUK_SWING_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_SWING_LEFT, BIND_AXIS, NUNCHUK_SWING_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_SWING_UP, BIND_AXIS, NUNCHUK_SWING_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_SWING_DOWN, BIND_AXIS, NUNCHUK_SWING_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, NUNCHUK_SWING_LEFT, BIND_AXIS, NUNCHUK_SWING_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_SWING_RIGHT, BIND_AXIS, NUNCHUK_SWING_RIGHT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_SWING_FORWARD, BIND_AXIS, NUNCHUK_SWING_FORWARD, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_SWING_BACKWARD, BIND_BUTTON, NUNCHUK_SWING_BACKWARD, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_TILT_FORWARD, BIND_AXIS, NUNCHUK_TILT_FORWARD, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_TILT_BACKWARD, BIND_AXIS, NUNCHUK_TILT_BACKWARD, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_TILT_LEFT, BIND_AXIS, NUNCHUK_TILT_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_TILT_RIGHT, BIND_AXIS, NUNCHUK_TILT_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_STICK_UP, BIND_AXIS, NUNCHUK_STICK_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_STICK_DOWN, BIND_AXIS, NUNCHUK_STICK_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, NUNCHUK_STICK_LEFT, BIND_AXIS, NUNCHUK_STICK_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_TILT_LEFT, BIND_AXIS, NUNCHUK_TILT_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_TILT_RIGHT, BIND_AXIS, NUNCHUK_TILT_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_STICK_UP, BIND_AXIS, NUNCHUK_STICK_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, NUNCHUK_STICK_DOWN, BIND_AXIS, NUNCHUK_STICK_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, NUNCHUK_STICK_LEFT, BIND_AXIS, NUNCHUK_STICK_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, NUNCHUK_STICK_RIGHT, BIND_AXIS, NUNCHUK_STICK_RIGHT, 1.0f));
 
     // Wii: Classic
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_BUTTON_A, BIND_BUTTON, CLASSIC_BUTTON_A, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_BUTTON_B, BIND_BUTTON, CLASSIC_BUTTON_B, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_BUTTON_X, BIND_BUTTON, CLASSIC_BUTTON_X, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_BUTTON_Y, BIND_BUTTON, CLASSIC_BUTTON_Y, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_BUTTON_A, BIND_BUTTON, CLASSIC_BUTTON_A, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_BUTTON_B, BIND_BUTTON, CLASSIC_BUTTON_B, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_BUTTON_X, BIND_BUTTON, CLASSIC_BUTTON_X, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_BUTTON_Y, BIND_BUTTON, CLASSIC_BUTTON_Y, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_BUTTON_MINUS, BIND_BUTTON, CLASSIC_BUTTON_MINUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_BUTTON_PLUS, BIND_BUTTON, CLASSIC_BUTTON_PLUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_BUTTON_HOME, BIND_BUTTON, CLASSIC_BUTTON_HOME, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_BUTTON_ZL, BIND_BUTTON, CLASSIC_BUTTON_ZL, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_BUTTON_ZR, BIND_BUTTON, CLASSIC_BUTTON_ZR, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_DPAD_UP, BIND_BUTTON, CLASSIC_DPAD_UP, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_DPAD_DOWN, BIND_BUTTON, CLASSIC_DPAD_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_DPAD_LEFT, BIND_BUTTON, CLASSIC_DPAD_LEFT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_BUTTON_ZL, BIND_BUTTON, CLASSIC_BUTTON_ZL, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_BUTTON_ZR, BIND_BUTTON, CLASSIC_BUTTON_ZR, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_DPAD_UP, BIND_BUTTON, CLASSIC_DPAD_UP, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_DPAD_DOWN, BIND_BUTTON, CLASSIC_DPAD_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_DPAD_LEFT, BIND_BUTTON, CLASSIC_DPAD_LEFT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_DPAD_RIGHT, BIND_BUTTON, CLASSIC_DPAD_RIGHT, 1.0f));
 
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_LEFT_UP, BIND_AXIS, CLASSIC_STICK_LEFT_UP, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_LEFT_DOWN, BIND_AXIS, CLASSIC_STICK_LEFT_DOWN, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_LEFT_LEFT, BIND_AXIS, CLASSIC_STICK_LEFT_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_LEFT_RIGHT, BIND_AXIS, CLASSIC_STICK_LEFT_RIGHT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_RIGHT_UP, BIND_AXIS, CLASSIC_STICK_RIGHT_UP, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_RIGHT_DOWN, BIND_AXIS, CLASSIC_STICK_RIGHT_DOWN, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_RIGHT_LEFT, BIND_AXIS, CLASSIC_STICK_RIGHT_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, CLASSIC_STICK_RIGHT_RIGHT, BIND_AXIS, CLASSIC_STICK_RIGHT_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_TRIGGER_L, BIND_AXIS, CLASSIC_TRIGGER_L, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, CLASSIC_TRIGGER_R, BIND_AXIS, CLASSIC_TRIGGER_R, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_TRIGGER_L, BIND_AXIS, CLASSIC_TRIGGER_L, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, CLASSIC_TRIGGER_R, BIND_AXIS, CLASSIC_TRIGGER_R, 1.0f));
 
     // Wii: Guitar
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, GUITAR_BUTTON_MINUS, BIND_BUTTON, GUITAR_BUTTON_MINUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, GUITAR_BUTTON_PLUS, BIND_BUTTON, GUITAR_BUTTON_PLUS, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_FRET_GREEN, BIND_BUTTON, GUITAR_FRET_GREEN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_FRET_RED, BIND_BUTTON, GUITAR_FRET_RED, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_FRET_GREEN, BIND_BUTTON, GUITAR_FRET_GREEN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_FRET_RED, BIND_BUTTON, GUITAR_FRET_RED, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, GUITAR_FRET_YELLOW, BIND_BUTTON, GUITAR_FRET_YELLOW, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_FRET_BLUE, BIND_BUTTON, GUITAR_FRET_BLUE, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_FRET_BLUE, BIND_BUTTON, GUITAR_FRET_BLUE, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, GUITAR_FRET_ORANGE, BIND_BUTTON, GUITAR_FRET_ORANGE, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_STRUM_UP, BIND_BUTTON, GUITAR_STRUM_UP, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_STRUM_DOWN, BIND_BUTTON, GUITAR_STRUM_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_STRUM_UP, BIND_BUTTON, GUITAR_STRUM_UP, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_STRUM_DOWN, BIND_BUTTON, GUITAR_STRUM_DOWN, 1.0f));
 
-    AddBind(touchScreenKey, new sBind(a, GUITAR_STICK_UP, BIND_AXIS, GUITAR_STICK_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_STICK_DOWN, BIND_AXIS, GUITAR_STICK_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_STICK_LEFT, BIND_AXIS, GUITAR_STICK_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_STICK_RIGHT, BIND_AXIS, GUITAR_STICK_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, GUITAR_WHAMMY_BAR, BIND_AXIS, GUITAR_WHAMMY_BAR, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_STICK_UP, BIND_AXIS, GUITAR_STICK_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_STICK_DOWN, BIND_AXIS, GUITAR_STICK_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_STICK_LEFT, BIND_AXIS, GUITAR_STICK_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_STICK_RIGHT, BIND_AXIS, GUITAR_STICK_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, GUITAR_WHAMMY_BAR, BIND_AXIS, GUITAR_WHAMMY_BAR, 1.0f));
 
     // Wii: Drums
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, DRUMS_BUTTON_MINUS, BIND_BUTTON, DRUMS_BUTTON_MINUS, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_BUTTON_PLUS, BIND_BUTTON, DRUMS_BUTTON_PLUS, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_PAD_RED, BIND_BUTTON, DRUMS_PAD_RED, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_PAD_YELLOW, BIND_BUTTON, DRUMS_PAD_YELLOW, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_PAD_BLUE, BIND_BUTTON, DRUMS_PAD_BLUE, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_PAD_GREEN, BIND_BUTTON, DRUMS_PAD_GREEN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_PAD_ORANGE, BIND_BUTTON, DRUMS_PAD_ORANGE, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_PAD_BASS, BIND_BUTTON, DRUMS_PAD_BASS, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_BUTTON_PLUS, BIND_BUTTON, DRUMS_BUTTON_PLUS, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_PAD_RED, BIND_BUTTON, DRUMS_PAD_RED, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_PAD_YELLOW, BIND_BUTTON, DRUMS_PAD_YELLOW, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_PAD_BLUE, BIND_BUTTON, DRUMS_PAD_BLUE, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_PAD_GREEN, BIND_BUTTON, DRUMS_PAD_GREEN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_PAD_ORANGE, BIND_BUTTON, DRUMS_PAD_ORANGE, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_PAD_BASS, BIND_BUTTON, DRUMS_PAD_BASS, 1.0f));
 
-    AddBind(touchScreenKey, new sBind(a, DRUMS_STICK_UP, BIND_AXIS, DRUMS_STICK_UP, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_STICK_DOWN, BIND_AXIS, DRUMS_STICK_DOWN, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_STICK_LEFT, BIND_AXIS, DRUMS_STICK_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, DRUMS_STICK_RIGHT, BIND_AXIS, DRUMS_STICK_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_STICK_UP, BIND_AXIS, DRUMS_STICK_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_STICK_DOWN, BIND_AXIS, DRUMS_STICK_DOWN, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_STICK_LEFT, BIND_AXIS, DRUMS_STICK_LEFT, -1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, DRUMS_STICK_RIGHT, BIND_AXIS, DRUMS_STICK_RIGHT, 1.0f));
 
     // Wii: Turntable
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_BUTTON_GREEN_LEFT, BIND_BUTTON,
-                                      TURNTABLE_BUTTON_GREEN_LEFT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TURNTABLE_BUTTON_GREEN_LEFT, BIND_BUTTON,
+                                       TURNTABLE_BUTTON_GREEN_LEFT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_BUTTON_RED_LEFT, BIND_BUTTON, TURNTABLE_BUTTON_RED_LEFT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_BUTTON_BLUE_LEFT, BIND_BUTTON,
-                                      TURNTABLE_BUTTON_BLUE_LEFT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_BUTTON_GREEN_RIGHT, BIND_BUTTON,
-                                      TURNTABLE_BUTTON_GREEN_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_BUTTON_RED_RIGHT, BIND_BUTTON,
-                                      TURNTABLE_BUTTON_RED_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_BUTTON_BLUE_RIGHT, BIND_BUTTON,
-                                      TURNTABLE_BUTTON_BLUE_RIGHT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TURNTABLE_BUTTON_BLUE_LEFT, BIND_BUTTON,
+                                       TURNTABLE_BUTTON_BLUE_LEFT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TURNTABLE_BUTTON_GREEN_RIGHT, BIND_BUTTON,
+                                       TURNTABLE_BUTTON_GREEN_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TURNTABLE_BUTTON_RED_RIGHT, BIND_BUTTON,
+                                       TURNTABLE_BUTTON_RED_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TURNTABLE_BUTTON_BLUE_RIGHT, BIND_BUTTON,
+                                       TURNTABLE_BUTTON_BLUE_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_BUTTON_MINUS, BIND_BUTTON, TURNTABLE_BUTTON_MINUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_BUTTON_PLUS, BIND_BUTTON, TURNTABLE_BUTTON_PLUS, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_BUTTON_HOME, BIND_BUTTON, TURNTABLE_BUTTON_HOME, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_BUTTON_EUPHORIA, BIND_BUTTON, TURNTABLE_BUTTON_EUPHORIA, 1.0f));
 
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_TABLE_LEFT_LEFT, BIND_AXIS, TURNTABLE_TABLE_LEFT_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_TABLE_LEFT_RIGHT, BIND_AXIS, TURNTABLE_TABLE_LEFT_RIGHT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_TABLE_RIGHT_LEFT, BIND_AXIS, TURNTABLE_TABLE_RIGHT_LEFT, -1.0f));
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_TABLE_RIGHT_RIGHT, BIND_AXIS,
-                                      TURNTABLE_TABLE_RIGHT_RIGHT, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, TURNTABLE_STICK_UP, BIND_AXIS, TURNTABLE_STICK_UP, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TURNTABLE_TABLE_RIGHT_RIGHT, BIND_AXIS,
+                                       TURNTABLE_TABLE_RIGHT_RIGHT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, TURNTABLE_STICK_UP, BIND_AXIS, TURNTABLE_STICK_UP, -1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_STICK_DOWN, BIND_AXIS, TURNTABLE_STICK_DOWN, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_STICK_LEFT, BIND_AXIS, TURNTABLE_STICK_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_STICK_RIGHT, BIND_AXIS, TURNTABLE_STICK_RIGHT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_EFFECT_DIAL, BIND_AXIS, TURNTABLE_EFFECT_DIAL, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_CROSSFADE_LEFT, BIND_AXIS, TURNTABLE_CROSSFADE_LEFT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, TURNTABLE_CROSSFADE_RIGHT, BIND_AXIS, TURNTABLE_CROSSFADE_RIGHT, 1.0f));
 
     // Wiimote IMU
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_ACCEL_LEFT, BIND_AXIS, WIIMOTE_ACCEL_LEFT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_ACCEL_LEFT, BIND_AXIS, WIIMOTE_ACCEL_LEFT, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_ACCEL_RIGHT, BIND_AXIS, WIIMOTE_ACCEL_RIGHT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_ACCEL_FORWARD, BIND_AXIS, WIIMOTE_ACCEL_FORWARD, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_ACCEL_BACKWARD, BIND_AXIS, WIIMOTE_ACCEL_BACKWARD, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_ACCEL_UP, BIND_AXIS, WIIMOTE_ACCEL_UP, 1.0f));
-    AddBind(touchScreenKey, new sBind(a, WIIMOTE_ACCEL_DOWN, BIND_AXIS, WIIMOTE_ACCEL_DOWN, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_ACCEL_UP, BIND_AXIS, WIIMOTE_ACCEL_UP, 1.0f));
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, WIIMOTE_ACCEL_DOWN, BIND_AXIS, WIIMOTE_ACCEL_DOWN, -1.0f));
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_PITCH_UP, BIND_AXIS, WIIMOTE_GYRO_PITCH_UP, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_PITCH_DOWN, BIND_AXIS, WIIMOTE_GYRO_PITCH_DOWN, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_ROLL_LEFT, BIND_AXIS, WIIMOTE_GYRO_ROLL_LEFT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_ROLL_RIGHT, BIND_AXIS, WIIMOTE_GYRO_ROLL_RIGHT, -1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_YAW_LEFT, BIND_AXIS, WIIMOTE_GYRO_YAW_LEFT, 1.0f));
-    AddBind(touchScreenKey,
+    AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_YAW_RIGHT, BIND_AXIS, WIIMOTE_GYRO_YAW_RIGHT, -1.0f));
   }
   // Init our controller bindings
   IniFile ini;
   ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"), true);
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(gameId + ".ini"), true);
-  for (u32 a = 0; a < configStrings.size(); ++a)
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + std::string(game_id + ".ini"), true);
+  for (u32 a = 0; a < CONFIG_STRINGS.size(); ++a)
   {
-    for (int padID = 0; padID < 8; ++padID)
+    for (int pad_id = 0; pad_id < 8; ++pad_id)
     {
       std::ostringstream config;
-      config << configStrings[a] << "_" << padID;
+      config << CONFIG_STRINGS[a] << "_" << pad_id;
       BindType type;
       int bindnum;
       char dev[128];
@@ -645,29 +651,29 @@ void Init(const std::string& gameId)
       }
       if (hasbind)
         AddBind(std::string(dev),
-                new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
+                new sBind(pad_id, CONFIG_TYPES[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
     }
   }
 }
 
-bool GetButtonPressed(int padID, ButtonType button)
+bool GetButtonPressed(int pad_id, ButtonType button)
 {
-  bool pressed = m_controllers[touchScreenKey]->ButtonValue(padID, button);
+  bool pressed = m_controllers[TOUCHSCREEN_KEY]->ButtonValue(pad_id, button);
 
   for (const auto& ctrl : m_controllers)
-    pressed |= ctrl.second->ButtonValue(padID, button);
+    pressed |= ctrl.second->ButtonValue(pad_id, button);
 
   return pressed;
 }
 
-float GetAxisValue(int padID, ButtonType axis)
+float GetAxisValue(int pad_id, ButtonType axis)
 {
-  float value = m_controllers[touchScreenKey]->AxisValue(padID, axis);
+  float value = m_controllers[TOUCHSCREEN_KEY]->AxisValue(pad_id, axis);
   if (value == 0.0f)
   {
     for (const auto& ctrl : m_controllers)
     {
-      value = ctrl.second->AxisValue(padID, axis);
+      value = ctrl.second->AxisValue(pad_id, axis);
       if (value != 0.0f)
         return value;
     }
@@ -701,14 +707,14 @@ void Shutdown()
 bool InputDevice::PressEvent(int button, int action)
 {
   bool handled = false;
-  for (const auto& binding : _inputbinds)
+  for (const auto& binding : m_input_binds)
   {
-    if (binding.second->_bind == button)
+    if (binding.second->m_bind == button)
     {
-      if (binding.second->_bindtype == BIND_BUTTON)
-        _buttons[binding.second->_buttontype] = action == BUTTON_PRESSED ? true : false;
+      if (binding.second->m_bind_type == BIND_BUTTON)
+        m_buttons[binding.second->m_button_type] = action == BUTTON_PRESSED ? true : false;
       else
-        _axises[binding.second->_buttontype] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
+        m_axises[binding.second->m_button_type] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
       handled = true;
     }
   }
@@ -717,39 +723,39 @@ bool InputDevice::PressEvent(int button, int action)
 
 void InputDevice::AxisEvent(int axis, float value)
 {
-  for (const auto& binding : _inputbinds)
+  for (const auto& binding : m_input_binds)
   {
-    if (binding.second->_bind == axis)
+    if (binding.second->m_bind == axis)
     {
-      if (binding.second->_bindtype == BIND_AXIS)
-        _axises[binding.second->_buttontype] = value;
+      if (binding.second->m_bind_type == BIND_AXIS)
+        m_axises[binding.second->m_button_type] = value;
       else
-        _buttons[binding.second->_buttontype] = value > 0.5f ? true : false;
+        m_buttons[binding.second->m_button_type] = value > 0.5f ? true : false;
     }
   }
 }
 
-bool InputDevice::ButtonValue(int padID, ButtonType button)
+bool InputDevice::ButtonValue(int pad_id, ButtonType button)
 {
-  const auto& binding = _inputbinds.find(std::make_pair(padID, button));
-  if (binding == _inputbinds.end())
+  const auto& binding = m_input_binds.find(std::make_pair(pad_id, button));
+  if (binding == m_input_binds.end())
     return false;
 
-  if (binding->second->_bindtype == BIND_BUTTON)
-    return _buttons[binding->second->_buttontype];
+  if (binding->second->m_bind_type == BIND_BUTTON)
+    return m_buttons[binding->second->m_button_type];
   else
-    return (_axises[binding->second->_buttontype] * binding->second->_neg) > 0.5f;
+    return (m_axises[binding->second->m_button_type] * binding->second->m_neg) > 0.5f;
 }
 
-float InputDevice::AxisValue(int padID, ButtonType axis)
+float InputDevice::AxisValue(int pad_id, ButtonType axis)
 {
-  const auto& binding = _inputbinds.find(std::make_pair(padID, axis));
-  if (binding == _inputbinds.end())
+  const auto& binding = m_input_binds.find(std::make_pair(pad_id, axis));
+  if (binding == m_input_binds.end())
     return 0.0f;
 
-  if (binding->second->_bindtype == BIND_AXIS)
-    return _axises[binding->second->_buttontype] * binding->second->_neg;
+  if (binding->second->m_bind_type == BIND_AXIS)
+    return m_axises[binding->second->m_button_type] * binding->second->m_neg;
   else
-    return _buttons[binding->second->_buttontype] == BUTTON_PRESSED ? 1.0f : 0.0f;
+    return m_buttons[binding->second->m_button_type] == BUTTON_PRESSED ? 1.0f : 0.0f;
 }
 }  // namespace ButtonManager
