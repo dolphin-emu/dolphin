@@ -220,6 +220,7 @@ public final class SettingsFragmentPresenter
     Setting overclock = null;
     Setting speedLimit = null;
     Setting audioStretch = null;
+    Setting audioVolume = null;
     Setting overrideRegionSettings = null;
     Setting autoDiscChange = null;
     Setting analytics = null;
@@ -227,6 +228,7 @@ public final class SettingsFragmentPresenter
     Setting lockToLandscape;
 
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+    SettingSection dspSection = mSettings.getSection(Settings.SECTION_INI_DSP);
     SettingSection analyticsSection = mSettings.getSection(Settings.SECTION_ANALYTICS);
     cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
     dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
@@ -234,6 +236,7 @@ public final class SettingsFragmentPresenter
     overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
     speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
     audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+    audioVolume = dspSection.getSetting(SettingsFile.KEY_AUDIO_VOLUME);
     overrideRegionSettings = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_REGION_SETTINGS);
     autoDiscChange = coreSection.getSetting(SettingsFile.KEY_AUTO_DISC_CHANGE);
     analytics = analyticsSection.getSetting(SettingsFile.KEY_ANALYTICS_ENABLED);
@@ -275,6 +278,8 @@ public final class SettingsFragmentPresenter
             R.string.speed_limit, 0, 200, "%", 100, speedLimit));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
             R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+    sl.add(new SliderSetting(SettingsFile.KEY_AUDIO_VOLUME, Settings.SECTION_INI_DSP,
+            R.string.audio_volume, 0, 100, "%", 100, audioVolume));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_REGION_SETTINGS,
             Settings.SECTION_INI_CORE, R.string.override_region_settings, 0, false,
             overrideRegionSettings));
