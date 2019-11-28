@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 #include "Common/BitUtils.h"
@@ -19,13 +20,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-
-static void ByteSwap(u8* valueA, u8* valueB)
-{
-  u8 tmp = *valueA;
-  *valueA = *valueB;
-  *valueB = tmp;
-}
 
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
@@ -1148,38 +1142,38 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length)
     // 0x34 and 0x35, 0x36 and 0x37, 0x38 and 0x39, 0x3A and 0x3B,
     // 0x3C and 0x3D,0x3E and 0x3F.
     // It seems that sav files also swap the banner/icon flags...
-    ByteSwap(&tempDEntry.m_unused_1, &tempDEntry.m_banner_and_icon_flags);
+    std::swap(tempDEntry.m_unused_1, tempDEntry.m_banner_and_icon_flags);
 
     std::array<u8, 4> tmp;
-    memcpy(tmp.data(), &tempDEntry.m_image_offset, 4);
-    ByteSwap(&tmp[0], &tmp[1]);
-    ByteSwap(&tmp[2], &tmp[3]);
-    memcpy(&tempDEntry.m_image_offset, tmp.data(), 4);
+    std::memcpy(tmp.data(), &tempDEntry.m_image_offset, 4);
+    std::swap(tmp[0], tmp[1]);
+    std::swap(tmp[2], tmp[3]);
+    std::memcpy(&tempDEntry.m_image_offset, tmp.data(), 4);
 
-    memcpy(tmp.data(), &tempDEntry.m_icon_format, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_icon_format, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_icon_format, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_icon_format, tmp.data(), 2);
 
-    memcpy(tmp.data(), &tempDEntry.m_animation_speed, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_animation_speed, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_animation_speed, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_animation_speed, tmp.data(), 2);
 
-    ByteSwap(&tempDEntry.m_file_permissions, &tempDEntry.m_copy_counter);
+    std::swap(tempDEntry.m_file_permissions, tempDEntry.m_copy_counter);
 
-    memcpy(tmp.data(), &tempDEntry.m_first_block, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_first_block, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_first_block, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_first_block, tmp.data(), 2);
 
-    memcpy(tmp.data(), &tempDEntry.m_block_count, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_block_count, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
 
-    ByteSwap(&tempDEntry.m_unused_2[0], &tempDEntry.m_unused_2[1]);
+    std::swap(tempDEntry.m_unused_2[0], tempDEntry.m_unused_2[1]);
 
-    memcpy(tmp.data(), &tempDEntry.m_comments_address, 4);
-    ByteSwap(&tmp[0], &tmp[1]);
-    ByteSwap(&tmp[2], &tmp[3]);
-    memcpy(&tempDEntry.m_comments_address, tmp.data(), 4);
+    std::memcpy(tmp.data(), &tempDEntry.m_comments_address, 4);
+    std::swap(tmp[0], tmp[1]);
+    std::swap(tmp[2], tmp[3]);
+    std::memcpy(&tempDEntry.m_comments_address, tmp.data(), 4);
     break;
   default:
     break;
