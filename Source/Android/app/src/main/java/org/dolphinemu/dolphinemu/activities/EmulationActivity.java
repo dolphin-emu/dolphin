@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -235,6 +236,14 @@ public final class EmulationActivity extends AppCompatActivity
     }
 
     activity.startActivity(launcher);
+  }
+
+  public static void clearWiimoteNewIniLinkedPreferences(Context context)
+  {
+    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+    editor.remove("wiiController");
+    editor.remove("motionControlsEnabled");
+    editor.apply();
   }
 
   @Override
