@@ -8,9 +8,10 @@
 #include <cstring>
 #include <string>
 
+#include <fmt/format.h>
+
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-#include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
@@ -921,19 +922,19 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     const char* logicmodes[] = {"0",     "s & d",  "s & ~d",   "s",        "~s & d", "d",
                                 "s ^ d", "s | d",  "~(s | d)", "~(s ^ d)", "~d",     "s | ~d",
                                 "~s",    "~s | d", "~(s & d)", "1"};
-    *desc = StringFromFormat(
-        "Enable: %s\n"
-        "Logic ops: %s\n"
-        "Dither: %s\n"
-        "Color write: %s\n"
-        "Alpha write: %s\n"
-        "Dest factor: %s\n"
-        "Source factor: %s\n"
-        "Subtract: %s\n"
-        "Logic mode: %s\n",
-        no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-        no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
-        srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
+    *desc =
+        fmt::format("Enable: {}\n"
+                    "Logic ops: {}\n"
+                    "Dither: {}\n"
+                    "Color write: {}\n"
+                    "Alpha write: {}\n"
+                    "Dest factor: {}\n"
+                    "Source factor: {}\n"
+                    "Subtract: {}\n"
+                    "Logic mode: {}\n",
+                    no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
+                    no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
+                    srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
   }
   break;
 
@@ -952,11 +953,11 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     const char* zformats[] = {
         "linear",     "compressed (near)",     "compressed (mid)",     "compressed (far)",
         "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)"};
-    *desc = StringFromFormat("EFB pixel format: %s\n"
-                             "Depth format: %s\n"
-                             "Early depth test: %s\n",
-                             pixel_formats[config.pixel_format], zformats[config.zformat],
-                             no_yes[config.early_ztest]);
+    *desc = fmt::format("EFB pixel format: {}\n"
+                        "Depth format: {}\n"
+                        "Early depth test: {}\n",
+                        pixel_formats[config.pixel_format], zformats[config.zformat],
+                        no_yes[config.early_ztest]);
   }
   break;
 
@@ -990,7 +991,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_EFB_TL);
     X10Y10 left_top;
     left_top.hex = cmddata;
-    *desc = StringFromFormat("Left: %d\nTop: %d", left_top.x, left_top.y);
+    *desc = fmt::format("Left: {}\nTop: {}", left_top.x, left_top.y);
   }
   break;
 
@@ -1000,13 +1001,13 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_EFB_BR);
     X10Y10 width_height;
     width_height.hex = cmddata;
-    *desc = StringFromFormat("Width: %d\nHeight: %d", width_height.x + 1, width_height.y + 1);
+    *desc = fmt::format("Width: {}\nHeight: {}", width_height.x + 1, width_height.y + 1);
   }
   break;
 
   case BPMEM_EFB_ADDR:  // 0x4B
     SetRegName(BPMEM_EFB_ADDR);
-    *desc = StringFromFormat("Target address (32 byte aligned): 0x%06X", cmddata << 5);
+    *desc = fmt::format("Target address (32 byte aligned): 0x{:06X}", cmddata << 5);
     break;
 
   case BPMEM_MIPMAP_STRIDE:  // 0x4D
@@ -1016,24 +1017,23 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 
   case BPMEM_COPYYSCALE:  // 0x4E
     SetRegName(BPMEM_COPYYSCALE);
-    *desc = StringFromFormat("Scaling factor (XFB copy only): 0x%X (%f or inverted %f)", cmddata,
-                             (float)cmddata / 256.f, 256.f / (float)cmddata);
+    *desc = fmt::format("Scaling factor (XFB copy only): 0x{:X} ({} or inverted {})", cmddata,
+                        static_cast<float>(cmddata) / 256.f, 256.f / static_cast<float>(cmddata));
     break;
 
   case BPMEM_CLEAR_AR:  // 0x4F
     SetRegName(BPMEM_CLEAR_AR);
-    *desc = StringFromFormat("Alpha: 0x%02X\nRed: 0x%02X", (cmddata & 0xFF00) >> 8, cmddata & 0xFF);
+    *desc = fmt::format("Alpha: 0x{:02X}\nRed: 0x{:02X}", (cmddata & 0xFF00) >> 8, cmddata & 0xFF);
     break;
 
   case BPMEM_CLEAR_GB:  // 0x50
     SetRegName(BPMEM_CLEAR_GB);
-    *desc =
-        StringFromFormat("Green: 0x%02X\nBlue: 0x%02X", (cmddata & 0xFF00) >> 8, cmddata & 0xFF);
+    *desc = fmt::format("Green: 0x{:02X}\nBlue: 0x{:02X}", (cmddata & 0xFF00) >> 8, cmddata & 0xFF);
     break;
 
   case BPMEM_CLEAR_Z:  // 0x51
     SetRegName(BPMEM_CLEAR_Z);
-    *desc = StringFromFormat("Z value: 0x%06X", cmddata);
+    *desc = fmt::format("Z value: 0x{:06X}", cmddata);
     break;
 
   case BPMEM_TRIGGER_EFB_COPY:  // 0x52
@@ -1041,18 +1041,18 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_TRIGGER_EFB_COPY);
     UPE_Copy copy;
     copy.Hex = cmddata;
-    *desc = StringFromFormat(
-        "Clamping: %s\n"
-        "Converting from RGB to YUV: %s\n"
-        "Target pixel format: 0x%X\n"
-        "Gamma correction: %s\n"
-        "Mipmap filter: %s\n"
-        "Vertical scaling: %s\n"
-        "Clear: %s\n"
-        "Frame to field: 0x%01X\n"
-        "Copy to XFB: %s\n"
-        "Intensity format: %s\n"
-        "Automatic color conversion: %s",
+    *desc = fmt::format(
+        "Clamping: {}\n"
+        "Converting from RGB to YUV: {}\n"
+        "Target pixel format: 0x{:X}\n"
+        "Gamma correction: {}\n"
+        "Mipmap filter: {}\n"
+        "Vertical scaling: {}\n"
+        "Clear: {}\n"
+        "Frame to field: 0x{:01X}\n"
+        "Copy to XFB: {}\n"
+        "Intensity format: {}\n"
+        "Automatic color conversion: {}",
         (copy.clamp_top && copy.clamp_bottom) ?
             "Top and Bottom" :
             (copy.clamp_top) ? "Top only" : (copy.clamp_bottom) ? "Bottom only" : "None",
@@ -1061,7 +1061,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
             "1.0" :
             (copy.gamma == 1) ? "1.7" : (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
         no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
-        (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
+        static_cast<u32>(copy.frame_to_field), no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
         no_yes[copy.auto_conv]);
   }
   break;
@@ -1181,11 +1181,11 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         (cmd < BPMEM_TX_SETIMAGE0_4) ? cmd - BPMEM_TX_SETIMAGE0 : cmd - BPMEM_TX_SETIMAGE0_4 + 4;
     TexImage0 teximg;
     teximg.hex = cmddata;
-    *desc = StringFromFormat("Texture Unit: %i\n"
-                             "Width: %i\n"
-                             "Height: %i\n"
-                             "Format: %x\n",
-                             texnum, teximg.width + 1, teximg.height + 1, teximg.format);
+    *desc = fmt::format("Texture Unit: {}\n"
+                        "Width: {}\n"
+                        "Height: {}\n"
+                        "Format: {:x}\n",
+                        texnum, teximg.width + 1, teximg.height + 1, teximg.format);
   }
   break;
 
@@ -1203,13 +1203,13 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         (cmd < BPMEM_TX_SETIMAGE1_4) ? cmd - BPMEM_TX_SETIMAGE1 : cmd - BPMEM_TX_SETIMAGE1_4 + 4;
     TexImage1 teximg;
     teximg.hex = cmddata;
-    *desc = StringFromFormat("Texture Unit: %i\n"
-                             "Even TMEM Offset: %x\n"
-                             "Even TMEM Width: %i\n"
-                             "Even TMEM Height: %i\n"
-                             "Cache is manually managed: %s\n",
-                             texnum, teximg.tmem_even, teximg.cache_width, teximg.cache_height,
-                             no_yes[teximg.image_type]);
+    *desc = fmt::format("Texture Unit: {}\n"
+                        "Even TMEM Offset: {:x}\n"
+                        "Even TMEM Width: {}\n"
+                        "Even TMEM Height: {}\n"
+                        "Cache is manually managed: {}\n",
+                        texnum, teximg.tmem_even, teximg.cache_width, teximg.cache_height,
+                        no_yes[teximg.image_type]);
   }
   break;
 
@@ -1227,11 +1227,11 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         (cmd < BPMEM_TX_SETIMAGE2_4) ? cmd - BPMEM_TX_SETIMAGE2 : cmd - BPMEM_TX_SETIMAGE2_4 + 4;
     TexImage2 teximg;
     teximg.hex = cmddata;
-    *desc = StringFromFormat("Texture Unit: %i\n"
-                             "Odd TMEM Offset: %x\n"
-                             "Odd TMEM Width: %i\n"
-                             "Odd TMEM Height: %i\n",
-                             texnum, teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+    *desc = fmt::format("Texture Unit: {}\n"
+                        "Odd TMEM Offset: {:x}\n"
+                        "Odd TMEM Width: {}\n"
+                        "Odd TMEM Height: {}\n",
+                        texnum, teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
   }
   break;
 
@@ -1249,8 +1249,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         (cmd < BPMEM_TX_SETIMAGE3_4) ? cmd - BPMEM_TX_SETIMAGE3 : cmd - BPMEM_TX_SETIMAGE3_4 + 4;
     TexImage3 teximg;
     teximg.hex = cmddata;
-    *desc = StringFromFormat("Texture %i source address (32 byte aligned): 0x%06X", texnum,
-                             teximg.image_base << 5);
+    *desc = fmt::format("Texture {} source address (32 byte aligned): 0x{:06X}", texnum,
+                        teximg.image_base << 5);
   }
   break;
 
@@ -1293,19 +1293,19 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     const char* tevop[] = {"add", "sub"};
     const char* tevscale[] = {"1", "2", "4", "0.5"};
     const char* tevout[] = {"prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb"};
-    *desc = StringFromFormat("Tev stage: %d\n"
-                             "a: %s\n"
-                             "b: %s\n"
-                             "c: %s\n"
-                             "d: %s\n"
-                             "Bias: %s\n"
-                             "Op: %s\n"
-                             "Clamp: %s\n"
-                             "Scale factor: %s\n"
-                             "Dest: %s\n",
-                             (data[0] - BPMEM_TEV_COLOR_ENV) / 2, tevin[cc.a], tevin[cc.b],
-                             tevin[cc.c], tevin[cc.d], tevbias[cc.bias], tevop[cc.op],
-                             no_yes[cc.clamp], tevscale[cc.shift], tevout[cc.dest]);
+    *desc = fmt::format("Tev stage: {}\n"
+                        "a: {}\n"
+                        "b: {}\n"
+                        "c: {}\n"
+                        "d: {}\n"
+                        "Bias: {}\n"
+                        "Op: {}\n"
+                        "Clamp: {}\n"
+                        "Scale factor: {}\n"
+                        "Dest: {}\n",
+                        (data[0] - BPMEM_TEV_COLOR_ENV) / 2, tevin[cc.a], tevin[cc.b], tevin[cc.c],
+                        tevin[cc.d], tevbias[cc.bias], tevop[cc.op], no_yes[cc.clamp],
+                        tevscale[cc.shift], tevout[cc.dest]);
     break;
   }
 
@@ -1336,22 +1336,21 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     const char* tevop[] = {"add", "sub"};
     const char* tevscale[] = {"1", "2", "4", "0.5"};
     const char* tevout[] = {"prev", "c0", "c1", "c2"};
-    *desc =
-        StringFromFormat("Tev stage: %d\n"
-                         "a: %s\n"
-                         "b: %s\n"
-                         "c: %s\n"
-                         "d: %s\n"
-                         "Bias: %s\n"
-                         "Op: %s\n"
-                         "Clamp: %s\n"
-                         "Scale factor: %s\n"
-                         "Dest: %s\n"
-                         "Ras sel: %d\n"
-                         "Tex sel: %d\n",
-                         (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, tevin[ac.a], tevin[ac.b], tevin[ac.c],
-                         tevin[ac.d], tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp],
-                         tevscale[ac.shift], tevout[ac.dest], ac.rswap.Value(), ac.tswap.Value());
+    *desc = fmt::format("Tev stage: {}\n"
+                        "a: {}\n"
+                        "b: {}\n"
+                        "c: {}\n"
+                        "d: {}\n"
+                        "Bias: {}\n"
+                        "Op: {}\n"
+                        "Clamp: {}\n"
+                        "Scale factor: {}\n"
+                        "Dest: {}\n"
+                        "Ras sel: {}\n"
+                        "Tex sel: {}\n",
+                        (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, tevin[ac.a], tevin[ac.b], tevin[ac.c],
+                        tevin[ac.d], tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp],
+                        tevscale[ac.shift], tevout[ac.dest], ac.rswap.Value(), ac.tswap.Value());
     break;
   }
 
@@ -1414,11 +1413,11 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     const char* functions[] = {"NEVER",   "LESS",   "EQUAL",  "LEQUAL",
                                "GREATER", "NEQUAL", "GEQUAL", "ALWAYS"};
     const char* logic[] = {"AND", "OR", "XOR", "XNOR"};
-    *desc = StringFromFormat("Test 1: %s (ref: %#02x)\n"
-                             "Test 2: %s (ref: %#02x)\n"
-                             "Logic: %s\n",
-                             functions[test.comp0], (int)test.ref0, functions[test.comp1],
-                             (int)test.ref1, logic[test.logic]);
+    *desc = fmt::format("Test 1: {} (ref: 0x{:02x})\n"
+                        "Test 2: {} (ref: 0x{:02x})\n"
+                        "Logic: {}\n",
+                        functions[test.comp0], test.ref0.Value(), functions[test.comp1],
+                        test.ref1.Value(), logic[test.logic]);
     break;
   }
 

@@ -2,20 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/OnScreenDisplay.h"
+
 #include <algorithm>
 #include <map>
 #include <mutex>
 #include <string>
 
+#include <fmt/format.h>
 #include <imgui.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
-
-#include "VideoCommon/OnScreenDisplay.h"
 
 namespace OSD
 {
@@ -49,7 +49,7 @@ static float DrawMessage(int index, const Message& msg, const ImVec2& position, 
 {
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
-  const std::string window_name = StringFromFormat("osd_%d", index);
+  const std::string window_name = fmt::format("osd_{}", index);
 
   // The size must be reset, otherwise the length of old messages could influence new ones.
   ImGui::SetNextWindowPos(position);

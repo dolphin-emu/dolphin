@@ -132,6 +132,7 @@ target_link_libraries(videocommon
 PUBLIC
   core
 PRIVATE
+  fmt::fmt
   png
   xxhash
   imgui

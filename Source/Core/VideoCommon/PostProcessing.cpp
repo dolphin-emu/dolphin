@@ -8,6 +8,8 @@
 #include <string>
 #include <string_view>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -286,8 +288,10 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
     {
       std::string value;
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
-        value += StringFromFormat("%d%s", it.second.m_integer_values[i],
-                                  i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
+      {
+        value += fmt::format("{}{}", it.second.m_integer_values[i],
+                             i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
+      }
       ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
     }
     break;
@@ -453,7 +457,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
     if (it.second.m_type ==
         PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_BOOL)
     {
-      ss << StringFromFormat("  int %s;\n", it.first.c_str());
+      ss << fmt::format("  int {};\n", it.first);
       for (u32 i = 0; i < 3; i++)
         ss << "  int ubo_align_" << unused_counter++ << "_;\n";
     }
@@ -462,9 +466,9 @@ std::string PostProcessing::GetUniformBufferHeader() const
     {
       u32 count = static_cast<u32>(it.second.m_integer_values.size());
       if (count == 1)
-        ss << StringFromFormat("  int %s;\n", it.first.c_str());
+        ss << fmt::format("  int {};\n", it.first);
       else
-        ss << StringFromFormat("  int%u %s;\n", count, it.first.c_str());
+        ss << fmt::format("  int{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
         ss << "  int ubo_align_" << unused_counter++ << "_;\n";
@@ -474,9 +478,9 @@ std::string PostProcessing::GetUniformBufferHeader() const
     {
       u32 count = static_cast<u32>(it.second.m_float_values.size());
       if (count == 1)
-        ss << StringFromFormat("  float %s;\n", it.first.c_str());
+        ss << fmt::format("  float {};\n", it.first);
       else
-        ss << StringFromFormat("  float%u %s;\n", count, it.first.c_str());
+        ss << fmt::format("  float{} {};\n", count, it.first);
 
       for (u32 i = count; i < 4; i++)
         ss << "  float ubo_align_" << unused_counter++ << "_;\n";

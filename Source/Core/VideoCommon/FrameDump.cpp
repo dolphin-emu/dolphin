@@ -9,6 +9,8 @@
 #include <sstream>
 #include <string>
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -232,9 +234,7 @@ bool FrameDump::CreateVideoFile()
     return false;
   }
 
-  OSD::AddMessage(
-      StringFromFormat("Dumping Frames to \"%s\" (%dx%d)", dump_path.c_str(), s_width, s_height));
-
+  OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{})", dump_path, s_width, s_height));
   return true;
 }
 
