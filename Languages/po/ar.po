@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-20 18:17+0100\n"
-"PO-Revision-Date: 2019-11-20 17:17+0000\n"
+"POT-Creation-Date: 2019-11-28 13:43+0100\n"
+"PO-Revision-Date: 2019-11-28 12:43+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1356
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1390
 msgid ""
 "\n"
 "\n"
@@ -34,7 +34,7 @@ msgstr ""
 "نظرًا لأن صور قرص جيم كيوب تحتوي على القليل من بيانات التحقق ، فقد تكون هناك "
 "مشكلات يتعذر على دولفين اكتشافها."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1362
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1396
 msgid ""
 "\n"
 "\n"
@@ -92,8 +92,8 @@ msgstr "\"%s\" GC/Wii ISO غير صالح ، أو ليس GCM/ISO هو ملف ."
 #. i18n: The symbol for percent.
 #. i18n: The percent symbol.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:69
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:215
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:221
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:252
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:258
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:36
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:28
 msgid "%"
@@ -116,7 +116,7 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:200
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:209
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
@@ -203,7 +203,7 @@ msgstr "%1 وجدت جلسة"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:260
 msgid "%1 sessions found"
-msgstr "%1 العثور علي جلسات"
+msgstr "%1 العثور على جلسات"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:157
 msgid "%1% (Normal Speed)"
@@ -233,7 +233,7 @@ msgstr "%i of %i نسبة ضغط الكتل %i%%"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:648
+#: Source/Core/DiscIO/VolumeVerifier.cpp:649
 #, c-format
 msgid "%s (Masterpiece)"
 msgstr "%s (Masterpiece)"
@@ -793,7 +793,7 @@ msgstr "إحباط"
 msgid "About Dolphin"
 msgstr "ترجمة بواسطة منصور العسيري"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:177
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:214
 msgid "Accelerometer"
 msgstr "التسارع"
 
@@ -980,7 +980,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا فحدد القيمة الموجودة في أقصى اليمين"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:86
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:89
 msgid ""
 "Adjusts the emulated CPU's clock rate.\n"
 "\n"
@@ -1057,7 +1057,7 @@ msgstr "حفظ جميع اللاعبين متزامنة."
 msgid "Allow Mismatched Region Settings"
 msgstr "السماح بإعدادات المنطقة الغير متطابقة"
 
-#: Source/Core/DolphinQt/Main.cpp:215
+#: Source/Core/DolphinQt/Main.cpp:213
 msgid "Allow Usage Statistics Reporting"
 msgstr "السماح بالإبلاغ عن إحصائيات الاستخدام"
 
@@ -1091,11 +1091,11 @@ msgstr "مصادر الإدخال البديلة"
 #. devices the user actually has plugged in
 #: Source/Core/Core/HW/GCPadEmu.cpp:107
 msgid "Always Connected"
-msgstr "دائما على اتصال"
+msgstr "متصل دائما"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Always Hide Mouse Cursor"
-msgstr "دائما إخفاء مؤشر الماوس"
+msgstr "إخفاء مؤشر الماوس دائما"
 
 #: Source/Core/Common/Assert.h:60
 #, c-format
@@ -1222,7 +1222,7 @@ msgstr "(Skip Drawing) غير متزامن"
 msgid "Asynchronous (Ubershaders)"
 msgstr "(Ubershaders) غير متزامن"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:194
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:231
 msgid "Attach MotionPlus"
 msgstr "أرفق موشن بلس"
 
@@ -1328,7 +1328,7 @@ msgid "Background Input"
 msgstr "خلفية الإدخال"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:26
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:26
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:22
 msgid "Backward"
 msgstr "الى الوراء"
@@ -1337,11 +1337,11 @@ msgstr "الى الوراء"
 msgid "Bad address provided."
 msgstr "تم توفير عنوان غير صحيح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:352
+#: Source/Core/DiscIO/VolumeVerifier.cpp:353
 msgid "Bad dump"
 msgstr "تفريغ سيئ"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:500
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:503
 msgid "Bad value provided."
 msgstr "قيمة سيئة المقدمة."
 
@@ -1376,11 +1376,11 @@ msgstr "الإعدادات الأساسية"
 msgid "Bass"
 msgstr "صوت عميق"
 
-#: Source/Core/DolphinQt/Main.cpp:190
+#: Source/Core/DolphinQt/Main.cpp:188
 msgid "Batch mode cannot be used without specifying a game to launch."
-msgstr ""
+msgstr "لا يمكن استخدام وضع الدُفعات دون تحديد لعبة لإطلاقها"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:219
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:256
 msgid "Battery"
 msgstr "بطارية"
 
@@ -1504,7 +1504,7 @@ msgstr "زر"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:38
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:51
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:37
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:162
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:199
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:25
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:81
@@ -1756,7 +1756,7 @@ msgstr "مسح"
 msgid "Clear Cache"
 msgstr "مسح ذاكرة التخزين المؤقت"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:69
 msgid "Clock Override"
 msgstr "تجاوز السرعة"
 
@@ -1926,7 +1926,7 @@ msgstr "الاتصال بالإنترنت وإجراء تحديث للنظام �
 msgid "Connection Type:"
 msgstr "نوع الاتصال"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1115
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1149
 #, c-format
 msgid "Content %08x is corrupt."
 msgstr "المحتوى%08x تالف"
@@ -2253,13 +2253,13 @@ msgstr "لعبة الحالية"
 msgid "Custom"
 msgstr "مخصص"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:96
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:99
 msgid "Custom RTC Options"
 msgstr "خيارات تخصيص وقت النظام "
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:95
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:102
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:202
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:239
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:27
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:50
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:36
@@ -2363,7 +2363,7 @@ msgstr "عشري"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:99
 msgid "Decoding Quality:"
-msgstr ""
+msgstr "جودة فك التشفير:"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:310
 msgid "Decompress ISO..."
@@ -2393,7 +2393,7 @@ msgstr "تقليل سرعة المحاكاة"
 #. i18n: IR stands for internal resolution
 #: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Decrease IR"
-msgstr "IR تخفيض"
+msgstr "تقليل الأشعة تحت الحمراء"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:111
 msgid "Default"
@@ -2457,7 +2457,7 @@ msgid "Delete Selected Files..."
 msgstr "حذف الملفات المحددة"
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:113
+#: Source/Core/VideoCommon/FrameDump.cpp:112
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "حذف الملف الموجود '%s'?"
@@ -2649,7 +2649,7 @@ msgstr "مسافة"
 msgid "Distance of travel from neutral position."
 msgstr "Distance of travel from neutral position."
 
-#: Source/Core/DolphinQt/Main.cpp:217
+#: Source/Core/DolphinQt/Main.cpp:215
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "هل تسمح لشركة دولفين بالإبلاغ عن معلومات لمطوري دولفين؟"
 
@@ -2729,7 +2729,7 @@ msgstr "محاكي دولفين مفتوح المصدر لجهاز جيم كيو
 msgid "Dolphin is too old for traversal server"
 msgstr "دولفين قديم جدا لجتياز الخادم "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1303
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1337
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
@@ -2737,7 +2737,7 @@ msgstr ""
 "يتعذر على دولفين التحقق من ملفات النموذجية بشكل صحيح ، نظرًا لعدم تفريغها من "
 "الأقراص الفعلية"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1296
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1330
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "دولفين غير قادر على التحقق من الأقراص غير المرخصة."
 
@@ -2762,7 +2762,7 @@ msgstr "مزدوج"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:79
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:28
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:25
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
 msgid "Down"
 msgstr "تحت"
@@ -3031,9 +3031,9 @@ msgstr "تمكين تمديد الصوت "
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:129
 msgid "Enable Cheats"
-msgstr "تمكين الاسرار "
+msgstr "تمكين الأسرار"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:100
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:103
 msgid "Enable Custom RTC"
 msgstr "تمكين وقت مخصص"
 
@@ -3045,7 +3045,7 @@ msgstr "تمكين ثنائي النواة"
 msgid "Enable Dual Core (speedup)"
 msgstr "Enable Dual Core (لزيادة السرعة)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:71
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:74
 msgid "Enable Emulated CPU Clock Override"
 msgstr "تمكين تجاوز سرعة المعالج التي تمت محاكاتها"
 
@@ -3054,6 +3054,7 @@ msgid "Enable FPRF"
 msgstr "FPRF تمكين"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:89
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
 msgid "Enable MMU"
 msgstr "MMU تمكين"
 
@@ -3268,15 +3269,15 @@ msgstr "يساوي"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:224
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:474
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:480
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:500
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:533
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:540
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:503
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:536
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:543
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:141
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:87
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:322
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:278
-#: Source/Core/DolphinQt/Main.cpp:174 Source/Core/DolphinQt/Main.cpp:189
+#: Source/Core/DolphinQt/Main.cpp:172 Source/Core/DolphinQt/Main.cpp:187
 #: Source/Core/DolphinQt/MainWindow.cpp:245
 #: Source/Core/DolphinQt/MainWindow.cpp:252
 #: Source/Core/DolphinQt/MainWindow.cpp:951
@@ -3378,12 +3379,12 @@ msgstr ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1250
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1284
 #, c-format
 msgid "Errors were found in %zu blocks in the %s partition."
 msgstr "تم العثور على أخطاء في %zu كتل في القسم %s"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1262
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1296
 #, c-format
 msgid "Errors were found in %zu unused blocks in the %s partition."
 msgstr "تم العثور على أخطاء في %zu كتل غير مستخدمة في القسم %s"
@@ -3447,19 +3448,19 @@ msgid "Export Save File"
 msgstr "تصدير حفظ الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:361
-msgid "Export Wii Save (Experimental)"
-msgstr "(Experimental) تصدير حفظ وي"
+msgid "Export Wii Save"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:285
-msgid "Export Wii Saves (Experimental)"
-msgstr "(Experimental) تصدير حفظ وي"
+msgid "Export Wii Saves"
+msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1038
 #, c-format
 msgid "Exported %n save(s)"
 msgstr "تم التصدير %n الحفظ (الكل)"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:183
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:220
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:354
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:46
 msgid "Extension"
@@ -3530,7 +3531,7 @@ msgstr "Failed to append to signature file '%1'"
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Failed to claim interface for BT passthrough"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:110
+#: Source/Core/DiscIO/VolumeVerifier.cpp:111
 msgid "Failed to connect to Redump.org"
 msgstr "Redump.org فشل الاتصال بـ"
 
@@ -3569,11 +3570,11 @@ msgstr "Failed to detach kernel driver for BT passthrough: %s"
 msgid "Failed to download codes."
 msgstr "فشل تحميل الرموز."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:534
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:537
 msgid "Failed to dump %1: Can't open file"
 msgstr "فشل تفريغ٪ 1: لا يمكن فتح الملف"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:541
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:544
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "فشل تفريغ٪ 1: فشل في الكتابة إلى الملف"
 
@@ -3583,7 +3584,7 @@ msgstr "فشل تصدير ملفات الحفظ التالية:"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1114
 msgid "Failed to extract certificates from NAND"
-msgstr " NAND فشل استخراج شهادات من"
+msgstr "NAND فشل استخراج شهادات من"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:322
 msgid "Failed to extract file."
@@ -3610,7 +3611,7 @@ msgstr "D3D فشل في العثور على واحد أو أكثر من رموز
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:367
 msgid "Failed to import \"%1\"."
-msgstr " \"%1\" فشل الاستيراد"
+msgstr "\"%1\" فشل الاستيراد"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1025
 msgid "Failed to import save files."
@@ -3618,7 +3619,7 @@ msgstr "فشل في استيراد ملفات الحفظ."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:951
 msgid "Failed to init core"
-msgstr "فشل البدء الأساسي"
+msgstr "فشل في التهيئة الأساسية"
 
 #: Source/Core/VideoBackends/D3D/D3DBase.cpp:117
 msgid ""
@@ -3630,7 +3631,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:202
 msgid "Failed to install pack: %1"
-msgstr "فشل تثبيت الحزمة : 1%"
+msgstr "%1 :فشل تثبيت الحزمة"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:623
 #: Source/Core/DolphinQt/MenuBar.cpp:1000
@@ -3691,7 +3692,7 @@ msgstr "فشل في فتح ملف التكوين"
 #: Source/Core/Core/NetPlayServer.cpp:1759
 #, c-format
 msgid "Failed to open file \"%s\"."
-msgstr "فشل فتح ملف \"%s\"."
+msgstr "\"%s\" فشل فتح ملف"
 
 #: Source/Core/Core/NetPlayClient.cpp:1587
 #, c-format
@@ -3727,15 +3728,15 @@ msgstr ""
 "\"%s\". فشل في فتح ملف الإخراج\n"
 "تحقق من أن لديك أذونات لكتابة المجلد الهدف ومن أنه يمكن كتابة الوسائط."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:222
-#: Source/Core/DiscIO/VolumeVerifier.cpp:316
+#: Source/Core/DiscIO/VolumeVerifier.cpp:223
+#: Source/Core/DiscIO/VolumeVerifier.cpp:317
 msgid "Failed to parse Redump.org data"
 msgstr "Redump.org فشل تحليل بيانات"
 
 #: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid "Failed to read %s"
-msgstr "فشل في القراءة %s"
+msgstr "%s فشل في القراءة"
 
 #: Source/Core/DiscIO/VolumeGC.cpp:68
 msgid "Failed to read unique ID from disc image"
@@ -3747,7 +3748,7 @@ msgstr "فشل في إزالة الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:651
 msgid "Failed to remove this title from the NAND."
-msgstr " NAND فشلت إزالة هذا العنوان من"
+msgstr "NAND فشل في إزالة هذا العنوان من"
 
 #: Source/Core/Core/NetPlayClient.cpp:858
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
@@ -3779,7 +3780,7 @@ msgstr "Failed to save to signature file '%1'"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:223
 msgid "Failed to uninstall pack: %1"
-msgstr "فشل في إلغاء تثبيت الحزمة: 1%"
+msgstr "%1 فشل في إلغاء تثبيت الحزمة"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:82
 msgid "Failed to write BT.DINF to SYSCONF"
@@ -4029,7 +4030,7 @@ msgstr ""
 "إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:21
 msgid "Forward"
 msgstr "إلى الأمام"
@@ -4374,7 +4375,7 @@ msgstr "غيغابايت"
 msgid "Golf Mode"
 msgstr "Golf وضع"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:342
+#: Source/Core/DiscIO/VolumeVerifier.cpp:343
 msgid "Good dump"
 msgstr "تفريغ جيد"
 
@@ -4428,7 +4429,7 @@ msgstr "شبكة"
 msgid "Guitar"
 msgstr "Guitar"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:179
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
 msgid "Gyroscope"
 msgstr "جيروسكوب"
 
@@ -4466,7 +4467,7 @@ msgstr "عالية"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:420
 msgid "Highest"
-msgstr ""
+msgstr "الأعلى"
 
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:67
@@ -4519,7 +4520,7 @@ msgid "Hotkey Settings"
 msgstr "إعدادات مفاتيح الاختصار"
 
 #: Source/Core/Core/HotkeyManager.cpp:197
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:271
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Hotkeys"
 msgstr "مفاتيح الاختصار"
@@ -4596,7 +4597,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "إنشاء هوية "
 
-#: Source/Core/DolphinQt/Main.cpp:219
+#: Source/Core/DolphinQt/Main.cpp:217
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -4625,7 +4626,7 @@ msgstr "تجاهل"
 msgid "Ignore Format Changes"
 msgstr "تجاهل تنسيق التغييرات "
 
-#: Source/Core/DolphinQt/Main.cpp:48
+#: Source/Core/DolphinQt/Main.cpp:46
 msgid "Ignore for this session"
 msgstr "تجاهل"
 
@@ -4744,7 +4745,7 @@ msgstr "زيادة سرعة المحاكاة"
 #. i18n: IR stands for internal resolution
 #: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Increase IR"
-msgstr "IR زيادة"
+msgstr "زيادة الأشعة تحت الحمراء"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:49
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:59
@@ -4930,7 +4931,7 @@ msgstr "سلسلة البحث غير صالحة ( لا يمكن تحويل إل�
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "سلسلة البحث غير صالحة ( فقط حتى أطوال سلسلة مدعومة)"
 
-#: Source/Core/DolphinQt/Main.cpp:174
+#: Source/Core/DolphinQt/Main.cpp:172
 msgid "Invalid title ID."
 msgstr "معرف عنوان غير صالح."
 
@@ -5078,25 +5079,25 @@ msgstr "وقت الإستجابة"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:431
 msgid "Latency: ~10ms"
-msgstr ""
+msgstr "~10ms وقت الإستجابة"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:433
 msgid "Latency: ~20ms"
-msgstr ""
+msgstr "~20ms وقت الإستجابة"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:437
 msgid "Latency: ~40ms"
-msgstr ""
+msgstr "~40ms وقت الإستجابة"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:435
 msgid "Latency: ~80ms"
-msgstr ""
+msgstr "~80ms وقت الإستجابة"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:34
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:37
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:156
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
@@ -5146,6 +5147,8 @@ msgid ""
 "Left/Right-click to configure output.\n"
 "Middle-click to clear."
 msgstr ""
+"يسار / يمين انقر لتكوين الإخراج\n"
+"الأوسط--انقر لمسح"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:398
 msgid "Less or equal to"
@@ -5201,7 +5204,7 @@ msgstr "تحميل الحالة الاخيرة "
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:214
 msgid "Load Path:"
-msgstr ""
+msgstr "مسار التحميل"
 
 #: Source/Core/Core/HotkeyManager.cpp:186
 #: Source/Core/Core/HotkeyManager.cpp:298
@@ -5399,7 +5402,7 @@ msgstr "منخفضة"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:416
 msgid "Lowest"
-msgstr ""
+msgstr " الحد الأدنى"
 
 #: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:44
 msgid "MD5 Checksum"
@@ -5458,7 +5461,7 @@ msgstr "NAND إدارة"
 msgid "Mapping"
 msgstr "تعيين"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:633
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:636
 msgid "Match Found"
 msgstr "وجد تطابق"
 
@@ -5626,7 +5629,7 @@ msgid "Motion Simulation"
 msgstr "محاكاة الحركة"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:87
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:199
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:236
 msgid "Motor"
 msgstr "محرك"
 
@@ -5815,11 +5818,11 @@ msgstr "لم يتم اكتشاف محول"
 msgid "No Audio Output"
 msgstr "لا يوجد إخراج الصوت"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:644
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:647
 msgid "No Match"
 msgstr "لا تطابق"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:615
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:618
 msgid "No Value Given"
 msgstr "لا قيمة مقيمة"
 
@@ -5845,11 +5848,11 @@ msgstr "لم يتم اكتشاف أية مشكلات."
 msgid "No paths found in the M3U file \"%s\""
 msgstr "M3U لا توجد مسارات في ملف  \"%s\""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1333
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1367
 msgid "No problems were found."
 msgstr "لا توجد مشاكل."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1327
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1361
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -6064,7 +6067,7 @@ msgstr "مشغل"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:81
 #: Source/Core/Core/HW/GCPadEmu.cpp:103
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:210
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:38
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:63
 msgid "Options"
@@ -6230,11 +6233,11 @@ msgstr "debug اختر خط"
 msgid "Ping"
 msgstr "Ping"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:21
 msgid "Pitch Down"
 msgstr "Pitch Down"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:20
 msgid "Pitch Up"
 msgstr "Pitch Up"
 
@@ -6269,8 +6272,8 @@ msgid "Players"
 msgstr "اللاعبين"
 
 #. i18n: "Point" refers to the action of pointing a Wii Remote.
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:172
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:180
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:217
 msgid "Point"
 msgstr "مؤشر"
 
@@ -6329,7 +6332,7 @@ msgstr "المسبقة"
 
 #: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Press Sync Button"
-msgstr "اضغط على زر مزامنة "
+msgstr "اضغط على زر المزامنة"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/DrawsomeTablet.cpp:33
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:51
@@ -6398,7 +6401,7 @@ msgstr "خاصة و عامة"
 msgid "Problem"
 msgstr "المشكلة"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1348
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1382
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
@@ -6406,7 +6409,7 @@ msgstr ""
 "تم العثور علي مشاكل ذات خطورة عالية. فان اللعبة علي الأرجح لا تعمل علي "
 "الإطلاق"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1338
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1372
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
@@ -6414,7 +6417,7 @@ msgstr ""
 "تم العثور علي مشاكل ذات خطورة منخفضة. فإنها علي الأرجح لا تمنع اللعبة من "
 "التشغيل"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1343
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1377
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -6459,6 +6462,8 @@ msgstr "تم تمكين جودة الخدمة (QoS) بنجاح."
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:107
 msgid "Quality of the DPLII decoder. Audio latency increases with quality."
 msgstr ""
+"DPLII جودة وحدة فك الترميز\n"
+"وقت إستجابة الصوت يزيد مع الجودة"
 
 #: Source/Core/Common/MsgHandler.cpp:90
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:419
@@ -6533,7 +6538,7 @@ msgid "Real Wii Remote"
 msgstr "ريموت وي الحقيقي"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:32
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:23
 msgid "Recenter"
 msgstr "إعادة المركز"
 
@@ -6731,7 +6736,7 @@ msgstr "أدارة حزمة الموارد"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:225
 msgid "Resource Pack Path:"
-msgstr ""
+msgstr "مسار حزمة الموارد"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:273
 msgid "Restart Required"
@@ -6761,7 +6766,7 @@ msgstr "%1 مراجعة"
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:39
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:157
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
@@ -6794,11 +6799,11 @@ msgstr "Rocker Down"
 msgid "Rocker Up"
 msgstr "Rocker Up"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:22
 msgid "Roll Left"
 msgstr "Roll Left"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:26
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
 msgid "Roll Right"
 msgstr "Roll Right"
 
@@ -6828,7 +6833,7 @@ msgstr ""
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:85
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:197
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:234
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:36
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:58
 msgid "Rumble"
@@ -7114,11 +7119,11 @@ msgstr "حدد الحالة الأخيرة"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:78
 msgid "Select Load Path"
-msgstr ""
+msgstr "حدد مسار التحميل"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:89
 msgid "Select Resource Pack Path"
-msgstr ""
+msgstr "حدد مسار حزمة الموارد"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:389
 msgid "Select Slot %1 - %2"
@@ -7369,10 +7374,10 @@ msgid "Sensor Bar Position:"
 msgstr "موضع الاستشعار"
 
 #. i18n: "Serial" refers to serial numbers, e.g. RVL-RSBE-USA
-#: Source/Core/DiscIO/VolumeVerifier.cpp:315
+#: Source/Core/DiscIO/VolumeVerifier.cpp:316
 #, c-format
 msgid "Serial and/or version data is missing from %s"
-msgstr ""
+msgstr "%s بيانات التسلسل أو الإصدار مفقودة من"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:51
 msgid "Server IP Address"
@@ -7462,7 +7467,7 @@ msgid "Shader Compilation"
 msgstr "تجميع الظل"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:56
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:175
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:212
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:112
 msgid "Shake"
 msgstr "هزة"
@@ -7698,17 +7703,17 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "Side-by-Side"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:240
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:277
 msgid "Sideways Hold"
 msgstr "امسك بانحراف"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:237
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:274
 msgid "Sideways Toggle"
 msgstr "تبديل جانبية"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:230
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "Sideways Wii Remote"
-msgstr "انحراف ريموت وي "
+msgstr "انحراف ريموت وي"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:909
 msgid "Signature Database"
@@ -7779,6 +7784,12 @@ msgstr "B فتحة"
 msgid "Software Renderer"
 msgstr "Software Renderer"
 
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1007
+msgid ""
+"Some padding data that should be zero is not zero. This can make the game "
+"freeze at certain points."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:225
 msgid ""
 "Some values you provided are invalid.\n"
@@ -7806,9 +7817,9 @@ msgstr "اسبانيا"
 msgid "Spanish"
 msgstr "الأسبانية"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:250
 msgid "Speaker Pan"
-msgstr "عموم المتكلمين"
+msgstr "مكبر الصوت"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:184
 msgid "Speaker Volume:"
@@ -8107,7 +8118,7 @@ msgstr ""
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:48
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:173
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:210
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:118
 msgid "Swing"
 msgstr "تمايل"
@@ -8239,27 +8250,27 @@ msgstr "النسيج من ذاكره التخزين المؤقت"
 msgid "Texture Format Overlay"
 msgstr "طلاء تنسيق النسيج"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:593
+#: Source/Core/DiscIO/VolumeVerifier.cpp:594
 #, c-format
 msgid "The %s partition does not have a valid file system."
 msgstr "%sلا يحتوي القسم على نظام ملفات صالح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:563
+#: Source/Core/DiscIO/VolumeVerifier.cpp:564
 #, c-format
 msgid "The %s partition does not seem to contain valid data."
 msgstr "%s لا يبدو أن القسم يحتوي على بيانات صالحة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:522
+#: Source/Core/DiscIO/VolumeVerifier.cpp:523
 #, c-format
 msgid "The %s partition is not correctly signed."
 msgstr "%s لم يتم توقيع القسم بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:514
+#: Source/Core/DiscIO/VolumeVerifier.cpp:515
 #, c-format
 msgid "The %s partition is not properly aligned."
 msgstr "%s لا يتم محاذاة القسم بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:529
+#: Source/Core/DiscIO/VolumeVerifier.cpp:530
 #, c-format
 msgid "The H3 hash table for the %s partition is not correct."
 msgstr "%s H3 جدول تجزئة للقسم غير صحيح ."
@@ -8275,7 +8286,7 @@ msgstr "(CRC32: %x) الملف ليس ملف تفريغ جيد معروف"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:464
+#: Source/Core/DiscIO/VolumeVerifier.cpp:465
 msgid "The Masterpiece partitions are missing."
 msgstr "أقسام نادرة مفقودة."
 
@@ -8295,15 +8306,15 @@ msgstr "NAND تم اصلاح"
 msgid "The address is invalid"
 msgstr "عنوان غير صالح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:447
+#: Source/Core/DiscIO/VolumeVerifier.cpp:448
 msgid "The channel partition is missing."
 msgstr "قسم القناة مفقود."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:442
+#: Source/Core/DiscIO/VolumeVerifier.cpp:443
 msgid "The data partition is missing."
 msgstr "قسم البيانات مفقود."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:481
+#: Source/Core/DiscIO/VolumeVerifier.cpp:482
 msgid ""
 "The data partition is not at its normal position. This will affect the "
 "emulated loading times. When using NetPlay or sending input recordings to "
@@ -8412,26 +8423,26 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "الملف %s بالفعل مفتوح، لن الملف غير عنوان مكتوب."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:412
+#: Source/Core/DiscIO/VolumeVerifier.cpp:413
 msgid "The filesystem is invalid or could not be read."
 msgstr "نظام الملفات غير صالح أو لا يمكن قراءته."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:732
+#: Source/Core/DiscIO/VolumeVerifier.cpp:733
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr "التنسيق الذي يتم حفظ صورة القرص به لا يخزن حجم صورة القرص"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:859
+#: Source/Core/DiscIO/VolumeVerifier.cpp:860
 #, c-format
 msgid "The game ID is %s but should be %s."
 msgstr "%s معرف اللعبة هو %s ولكن يجب أن يكون."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:867
+#: Source/Core/DiscIO/VolumeVerifier.cpp:868
 msgid "The game ID is inconsistent."
 msgstr "معرف اللعبة غير متناسق."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:878
+#: Source/Core/DiscIO/VolumeVerifier.cpp:879
 msgid "The game ID is unusually short."
 msgstr "معرف اللعبة قصير بشكل غير عادي."
 
@@ -8468,7 +8479,7 @@ msgstr ""
 "رمز المضيف طويل جدًا.\n"
 "يرجى إعادة التحقق من أن لديك الرمز الصحيح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:452
+#: Source/Core/DiscIO/VolumeVerifier.cpp:453
 msgid "The install partition is missing."
 msgstr "قسم التثبيت مفقود."
 
@@ -8482,7 +8493,7 @@ msgstr "الملف الشخصي '1%' غير موجود"
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "اللعبة المسجلة (%s) ليست هي نفسها اللعبة المختارة (%s)"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:896
+#: Source/Core/DiscIO/VolumeVerifier.cpp:897
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -8535,7 +8546,7 @@ msgstr ""
 "هل تريد حقًا تمكين عرض البرامج؟ إذا لم تكن متأكدًا ، فحدد \"لا\"."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:956
+#: Source/Core/DiscIO/VolumeVerifier.cpp:957
 #, c-format
 msgid "The specified common key index is %u but should be %u."
 msgstr ""
@@ -8547,7 +8558,7 @@ msgstr ""
 msgid "The specified file \"%s\" does not exist"
 msgstr "الملف الذي حددته  (%s) غير موجود"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:497
+#: Source/Core/DiscIO/VolumeVerifier.cpp:498
 msgid "The type of a partition could not be read."
 msgstr "لا يمكن قراءة نوع القسم."
 
@@ -8558,15 +8569,15 @@ msgid ""
 msgstr ""
 "تم إلغاء التحديث. يوصى بشدة بإنهائه لتجنب إصدارات برامج النظام غير المتسقة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:626
+#: Source/Core/DiscIO/VolumeVerifier.cpp:627
 msgid "The update partition does not contain the IOS used by this title."
 msgstr "لا يحتوي قسم التحديث علي نظام التشغيل المستخدم من قبل هذا العنوان"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:437
+#: Source/Core/DiscIO/VolumeVerifier.cpp:438
 msgid "The update partition is missing."
 msgstr "قسم التحديث مفقود"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:472
+#: Source/Core/DiscIO/VolumeVerifier.cpp:473
 msgid "The update partition is not at its normal position."
 msgstr "قسم التحديث ليس في وضعه الطبيعي"
 
@@ -8574,7 +8585,7 @@ msgstr "قسم التحديث ليس في وضعه الطبيعي"
 msgid "The value is invalid"
 msgstr "قيمة غير صالحة"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:425
+#: Source/Core/DiscIO/VolumeVerifier.cpp:426
 msgid "There are too many partitions in the first partition table."
 msgstr "هناك الكثير من الأقسام في جدول القسم الأول."
 
@@ -8605,7 +8616,7 @@ msgstr ""
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:921
+#: Source/Core/DiscIO/VolumeVerifier.cpp:922
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -8617,11 +8628,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "جهاز يو إس بي مدرج بالفعل في القائمة المسموح لها"
 
-#: Source/Core/Core/ConfigManager.cpp:896
+#: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not bootable."
 msgstr "غير قابل للتمهيد WAD"
 
-#: Source/Core/Core/ConfigManager.cpp:891
+#: Source/Core/Core/ConfigManager.cpp:888
 msgid "This WAD is not valid."
 msgstr "غير صالح WAD"
 
@@ -8638,15 +8649,15 @@ msgstr ""
 msgid "This cannot be undone!"
 msgstr "هذا لا يمكن التراجع عنه"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:753
+#: Source/Core/DiscIO/VolumeVerifier.cpp:754
 msgid "This debug disc image has the size of a retail disc image."
 msgstr "تحتوي صوره القرص التصحيح هذه علي حجم صوره قرص البيع بالتجزئة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:768
+#: Source/Core/DiscIO/VolumeVerifier.cpp:769
 msgid "This disc image has an unusual size."
 msgstr "هذه صورة القرص لها حجم غير عادي."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:761
+#: Source/Core/DiscIO/VolumeVerifier.cpp:762
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
 "loading times longer. When using NetPlay or sending input recordings to "
@@ -8657,7 +8668,7 @@ msgstr ""
 "تمت محاكاتها أطول. عند استخدام اللعب عبر الشبكة أو إرسال تسجيلات الإدخال إلى "
 "أشخاص آخرين ، من المحتمل أن تواجه المزامنة إذا كان أي شخص يستخدم تفريغًا جيدًا."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:970
+#: Source/Core/DiscIO/VolumeVerifier.cpp:971
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -8669,7 +8680,7 @@ msgstr ""
 "file might match the CRC32 of a good dump even though the files are not "
 "identical."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1236
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1270
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -8677,7 +8688,7 @@ msgstr ""
 "صورة القرص هذه صغيرة جدًا وتفتقر إلى بعض البيانات. إذا كان برنامج التفريغ "
 "الخاص بك قد حفظ صورة القرص كأجزاء متعددة ، فستحتاج إلى دمجها في ملف واحد."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1233
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1267
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -8689,7 +8700,7 @@ msgstr ""
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "BootMii NAND لا يبدو هذا الملف نسخة احتياطية لـ "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:724
+#: Source/Core/DiscIO/VolumeVerifier.cpp:725
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -8709,17 +8720,17 @@ msgstr ""
 "برامج التشغيل الخاصة بها لا تدعمها. ونتيجة لذلك سوف تواجه الخلل أو يتجمد "
 "أثناء تشغيل هذه اللعبة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1318
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1352
 msgid "This is a bad dump."
 msgstr "هذا تفريغ سيء"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1312
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1346
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
 msgstr "هذا تفريغ سيء. هذا لا يعني بالضرورة أن اللعبة لن تعمل بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1288
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1322
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -8727,7 +8738,7 @@ msgstr ""
 "Redump.org هذا تفريغ جيد وفقًا لموقع\n"
 "لكن دولفين وجد مشاكل. قد يكون هذا خطأ في دولفين"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1283
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1317
 msgid "This is a good dump."
 msgstr "هذا تفريغ جيد"
 
@@ -8735,7 +8746,7 @@ msgstr "هذا تفريغ جيد"
 msgid "This session requires a password:"
 msgstr "تتطلب هذه الجلسة كلمة مرور:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:120
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:123
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -8751,20 +8762,20 @@ msgstr ""
 msgid "This software should not be used to play games you do not legally own."
 msgstr "يجب عدم استخدام هذا البرنامج لتشغيل الألعاب التي لا تملكها قانونيًا."
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:910
 msgid "This title cannot be booted."
 msgstr "لا يمكن تشغيل هذا العنوان."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:396
+#: Source/Core/DiscIO/VolumeVerifier.cpp:397
 msgid "This title is not correctly signed."
 msgstr "لم يتم توقيع هذا العنوان بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:929
+#: Source/Core/DiscIO/VolumeVerifier.cpp:930
 msgid "This title is set to use an invalid IOS."
 msgstr "This title is set to use an invalid IOS."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:943
+#: Source/Core/DiscIO/VolumeVerifier.cpp:944
 msgid "This title is set to use an invalid common key."
 msgstr "تم تعيين هذا العنوان لاستخدام مفتاح عام غير صالح"
 
@@ -8833,7 +8844,7 @@ msgid "TiB"
 msgstr "تيرابايت"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:51
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:174
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:211
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:115
 msgid "Tilt"
 msgstr "إمالة"
@@ -8955,7 +8966,7 @@ msgstr "Total Pitch"
 
 #. i18n: Refers to an amount of rotational movement about the "yaw" axis.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:48
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:31
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:30
 msgid "Total Yaw"
 msgstr "Total Yaw"
 
@@ -8966,7 +8977,7 @@ msgstr "Total rotation about the pitch axis."
 
 #. i18n: Refers to emulated wii remote movements.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:52
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:35
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:34
 msgid "Total rotation about the yaw axis."
 msgstr "Total rotation about the yaw axis."
 
@@ -9193,7 +9204,7 @@ msgstr ""
 "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking "
 "player!"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:354
+#: Source/Core/DiscIO/VolumeVerifier.cpp:355
 msgid "Unknown disc"
 msgstr "قرص غير معروف"
 
@@ -9227,7 +9238,7 @@ msgstr "عدد صحيح غير موقعة"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:77
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:41
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:27
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:24
 #: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
 msgid "Up"
 msgstr "فوق"
@@ -9275,15 +9286,15 @@ msgstr ""
 "تحديث العنوان %1...\n"
 "سوف يأخذ هذا بعض الوقت."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:241
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:278
 msgid "Upright Hold"
 msgstr "أمسك وضع عمودي"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:238
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:275
 msgid "Upright Toggle"
 msgstr "تبديل عمودي"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:227
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:264
 msgid "Upright Wii Remote"
 msgstr "ريموت وي وضع عمودي"
 
@@ -9471,12 +9482,16 @@ msgstr "(*.wad) ملفات"
 
 #: Source/Core/Core/WiiUtils.cpp:98
 msgid "WAD installation failed: Could not finalise title import."
-msgstr "فشل التثبيت: تعذر إنهاء استيراد العنوان  WAD"
+msgstr ""
+"WAD فشل التثبيت\n"
+"تعذر إنهاء استيراد العنوان"
 
 #: Source/Core/Core/WiiUtils.cpp:88
 #, c-format
 msgid "WAD installation failed: Could not import content %08x."
-msgstr "فشل التثبيت: تعذر استيراد المحتوى WAD %08x."
+msgstr ""
+"WAD فشل التثبيت\n"
+"%08xتعذر استيراد المحتوى "
 
 #: Source/Core/Core/WiiUtils.cpp:74
 #, c-format
@@ -9485,7 +9500,9 @@ msgstr "فشل التثبيت: لا يمكن تهيئة استيراد العن�
 
 #: Source/Core/Core/WiiUtils.cpp:54
 msgid "WAD installation failed: The selected file is not a valid WAD."
-msgstr "WAD فشل التثبيت: الملف المحدد ليس صالحًا WAD."
+msgstr ""
+"WAD فشل التثبيت\n"
+"الملف المحدد ليس صالحًا"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:32
 msgid ""
@@ -9741,7 +9758,7 @@ msgstr "Wii TAS Input %1 - ريموت وي + نونشوك"
 msgid "Wii and Wii Remote"
 msgstr "وي و ريموت وي"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:105
+#: Source/Core/DiscIO/VolumeVerifier.cpp:106
 msgid "Wii data is not public yet"
 msgstr "بيانات وي ليست عامة بعد"
 
@@ -9817,11 +9834,11 @@ msgstr "XF تسجيل"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:27
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
 msgid "Yaw Left"
 msgstr "Yaw Left"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:28
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
 msgid "Yaw Right"
 msgstr "Yaw Right"
 
@@ -9958,11 +9975,11 @@ msgstr "uDraw GameTablet"
 
 #: Source/Core/Core/NetPlayServer.cpp:1113
 msgid "{} failed to synchronize codes."
-msgstr ""
+msgstr "{} فشل في مزامنة الرموز"
 
 #: Source/Core/Core/NetPlayServer.cpp:1069
 msgid "{} failed to synchronize."
-msgstr ""
+msgstr "{} فشل في المزامنة"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:263
 msgid "| Or"
@@ -9984,7 +10001,7 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:50
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:59
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:62
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:33
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:32
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:31
 msgid "°"
 msgstr "°"
