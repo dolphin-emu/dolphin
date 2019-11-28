@@ -67,7 +67,7 @@ IPCCommandResult NetKDTime::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_WC24);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_WC24);
     break;
   }
 

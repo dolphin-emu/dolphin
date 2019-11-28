@@ -541,7 +541,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_UNKNOWN_42:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
                request.request, request.in_vectors.size(), request.io_vectors.size());
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_ES, Common::Log::LERROR);
     return GetDefaultReply(IPC_EINVAL);
 
   case IOCTL_ES_INVALID_3F:

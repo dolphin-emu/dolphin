@@ -22,7 +22,7 @@ USB_VEN::~USB_VEN() = default;
 
 IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), LogTypes::IOS_USB);
+  request.Log(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV5_GETVERSION:
@@ -47,7 +47,7 @@ IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_USB, LogTypes::LERROR);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
     return GetDefaultReply(IPC_SUCCESS);
   }
 }

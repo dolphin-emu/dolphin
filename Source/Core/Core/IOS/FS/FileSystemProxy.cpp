@@ -51,7 +51,8 @@ template <typename... Args>
 static void LogResult(ResultCode code, std::string_view format, Args&&... args)
 {
   const std::string command = fmt::format(format, std::forward<Args>(args)...);
-  GENERIC_LOG(LogTypes::IOS_FS, (code == ResultCode::Success ? LogTypes::LINFO : LogTypes::LERROR),
+  GENERIC_LOG(Common::Log::IOS_FS,
+              (code == ResultCode::Success ? Common::Log::LINFO : Common::Log::LERROR),
               "%s: result %d", command.c_str(), ConvertResult(code));
 }
 

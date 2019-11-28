@@ -14,26 +14,26 @@ ConsoleListener::~ConsoleListener()
 {
 }
 
-void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char* text)
+void ConsoleListener::Log(Common::Log::LOG_LEVELS level, const char* text)
 {
   android_LogPriority logLevel = ANDROID_LOG_UNKNOWN;
 
   // Map dolphin's log levels to android's
   switch (level)
   {
-  case LogTypes::LOG_LEVELS::LDEBUG:
+  case Common::Log::LOG_LEVELS::LDEBUG:
     logLevel = ANDROID_LOG_DEBUG;
     break;
-  case LogTypes::LOG_LEVELS::LINFO:
+  case Common::Log::LOG_LEVELS::LINFO:
     logLevel = ANDROID_LOG_INFO;
     break;
-  case LogTypes::LOG_LEVELS::LWARNING:
+  case Common::Log::LOG_LEVELS::LWARNING:
     logLevel = ANDROID_LOG_WARN;
     break;
-  case LogTypes::LOG_LEVELS::LERROR:
+  case Common::Log::LOG_LEVELS::LERROR:
     logLevel = ANDROID_LOG_ERROR;
     break;
-  case LogTypes::LOG_LEVELS::LNOTICE:
+  case Common::Log::LOG_LEVELS::LNOTICE:
     logLevel = ANDROID_LOG_INFO;
     break;
   }
