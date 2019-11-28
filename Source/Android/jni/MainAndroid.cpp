@@ -48,6 +48,7 @@
 #include "DiscIO/Volume.h"
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
+#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #include "UICommon/UICommon.h"
 
@@ -58,7 +59,6 @@
 #include "../../Core/Common/WindowSystemInfo.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
-#include "jni/ButtonManager.h"
 
 namespace
 {
