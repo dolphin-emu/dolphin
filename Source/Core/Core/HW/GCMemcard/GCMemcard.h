@@ -24,10 +24,6 @@ namespace File
 class IOFile;
 }
 
-#define BE64(x) (Common::swap64(x))
-#define BE32(x) (Common::swap32(x))
-#define BE16(x) (Common::swap16(x))
-
 enum
 {
   SLOT_A = 0,

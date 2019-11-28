@@ -815,9 +815,8 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   if (!m_valid)
     return GCMemcardGetSaveDataRetVal::NOMEMCARD;
 
-  u16 block = DEntry_FirstBlock(index);
-  u16 BlockCount = DEntry_BlockCount(index);
-  // u16 memcardSize = BE16(hdr.m_size_mb) * MBIT_TO_BLOCKS;
+  const u16 block = DEntry_FirstBlock(index);
+  const u16 BlockCount = DEntry_BlockCount(index);
 
   if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
   {
@@ -1427,10 +1426,10 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   const auto [serial1, serial2] = cardheader.CalculateSerial();
 
   // set new serial numbers
-  *(u16*)&FileBuffer[1].m_block[0x0066] = BE16(BE32(serial1) >> 16);
-  *(u16*)&FileBuffer[3].m_block[0x1580] = BE16(BE32(serial2) >> 16);
-  *(u16*)&FileBuffer[1].m_block[0x0060] = BE16(BE32(serial1) & 0xFFFF);
-  *(u16*)&FileBuffer[1].m_block[0x0200] = BE16(BE32(serial2) & 0xFFFF);
+  *(u16*)&FileBuffer[1].m_block[0x0066] = Common::swap16(u16(Common::swap32(serial1) >> 16));
+  *(u16*)&FileBuffer[3].m_block[0x1580] = Common::swap16(u16(Common::swap32(serial2) >> 16));
+  *(u16*)&FileBuffer[1].m_block[0x0060] = Common::swap16(u16(Common::swap32(serial1) & 0xFFFF));
+  *(u16*)&FileBuffer[1].m_block[0x0200] = Common::swap16(u16(Common::swap32(serial2) & 0xFFFF));
 
   // calc 16-bit checksum
   for (i = 0x02; i < 0x8000; i++)
@@ -1448,7 +1447,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   }
 
   // set new checksum
-  *(u16*)&FileBuffer[0].m_block[0x00] = BE16(~chksum);
+  *(u16*)&FileBuffer[0].m_block[0x00] = Common::swap16(u16(~chksum));
 
   return 1;
 }
@@ -1520,7 +1519,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   }
 
   // set new checksum
-  *(u32*)&FileBuffer[1].m_block[0x0048] = BE32(chksum ^ 0xFFFFFFFF);
+  *(u32*)&FileBuffer[1].m_block[0x0048] = Common::swap32(chksum ^ 0xFFFFFFFF);
 
   return 1;
 }
@@ -1639,7 +1638,7 @@ Directory::Directory()
 {
   memset(this, 0xFF, BLOCK_SIZE);
   m_update_counter = 0;
-  m_checksum = BE16(0xF003);
+  m_checksum = Common::swap16(0xF003);
   m_checksum_inv = 0;
 }
 
