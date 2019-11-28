@@ -355,7 +355,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS, LogTypes::LWARNING);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS, Common::Log::LWARNING);
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }

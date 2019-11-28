@@ -15,7 +15,7 @@ ConsoleListener::~ConsoleListener()
 {
 }
 
-void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char* text)
+void ConsoleListener::Log([[maybe_unused]] Common::Log::LOG_LEVELS level, const char* text)
 {
   ::OutputDebugStringW(UTF8ToUTF16(text).c_str());
 }

@@ -53,14 +53,15 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
-  LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
+  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
 }
 
 LogWidget::~LogWidget()
 {
   SaveSettings();
 
-  LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, nullptr);
+  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER,
+                                                           nullptr);
 }
 
 void LogWidget::UpdateLog()
@@ -80,21 +81,21 @@ void LogWidget::UpdateLog()
   for (auto& line : elements_to_push)
   {
     const char* color = "white";
-    switch (std::get<LogTypes::LOG_LEVELS>(line))
+    switch (std::get<Common::Log::LOG_LEVELS>(line))
     {
-    case LogTypes::LOG_LEVELS::LERROR:
+    case Common::Log::LOG_LEVELS::LERROR:
       color = "red";
       break;
-    case LogTypes::LOG_LEVELS::LWARNING:
+    case Common::Log::LOG_LEVELS::LWARNING:
       color = "yellow";
       break;
-    case LogTypes::LOG_LEVELS::LNOTICE:
+    case Common::Log::LOG_LEVELS::LNOTICE:
       color = "lime";
       break;
-    case LogTypes::LOG_LEVELS::LINFO:
+    case Common::Log::LOG_LEVELS::LINFO:
       color = "cyan";
       break;
-    case LogTypes::LOG_LEVELS::LDEBUG:
+    case Common::Log::LOG_LEVELS::LDEBUG:
       color = "lightgrey";
       break;
     }
@@ -207,7 +208,7 @@ void LogWidget::SaveSettings()
   UpdateFont();
 }
 
-void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
+void LogWidget::Log(Common::Log::LOG_LEVELS level, const char* text)
 {
   size_t text_length = strlen(text);
   while (text_length > 0 && text[text_length - 1] == '\n')

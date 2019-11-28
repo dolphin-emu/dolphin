@@ -93,7 +93,7 @@ void Init()
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   Discord::Init();
-  LogManager::Init();
+  Common::Log::LogManager::Init();
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
@@ -107,7 +107,7 @@ void Shutdown()
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
-  LogManager::Shutdown();
+  Common::Log::LogManager::Shutdown();
   Discord::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();

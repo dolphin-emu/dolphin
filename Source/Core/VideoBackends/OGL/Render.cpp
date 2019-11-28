@@ -702,7 +702,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
       glDebugMessageCallbackARB(ErrorCallback, nullptr);
     }
-    if (LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
+                                                          Common::Log::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }
@@ -1053,10 +1054,15 @@ void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
-    if (LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
+                                                          Common::Log::LERROR))
+    {
       glEnable(GL_DEBUG_OUTPUT);
+    }
     else
+    {
       glDisable(GL_DEBUG_OUTPUT);
+    }
   }
 
   // Swap the back and front buffers, presenting the image.

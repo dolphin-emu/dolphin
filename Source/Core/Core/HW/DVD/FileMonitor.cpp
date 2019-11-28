@@ -54,8 +54,11 @@ static bool IsSoundFile(const std::string& filename)
 void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
   // Do nothing if the log isn't selected
-  if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
+  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::FILEMON,
+                                                         Common::Log::LWARNING))
+  {
     return;
+  }
 
   const DiscIO::FileSystem* file_system = volume.GetFileSystem(partition);
 

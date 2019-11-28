@@ -120,7 +120,7 @@ void PrintCallstack()
   });
 }
 
-void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
+void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level)
 {
   GENERIC_LOG(type, level, "== STACK TRACE - SP = %08x ==", PowerPC::ppcState.gpr[1]);
 
@@ -142,9 +142,10 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
   });
 }
 
-void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size, const std::string& title)
+void PrintDataBuffer(Common::Log::LOG_TYPE type, const u8* data, size_t size,
+                     const std::string& title)
 {
-  GENERIC_LOG(type, LogTypes::LDEBUG, "%s", title.c_str());
+  GENERIC_LOG(type, Common::Log::LDEBUG, "%s", title.c_str());
   for (u32 j = 0; j < size;)
   {
     std::string hex_line;
@@ -155,7 +156,7 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, const u8* data, size_t size, const
       if (j >= size)
         break;
     }
-    GENERIC_LOG(type, LogTypes::LDEBUG, "   Data: %s", hex_line.c_str());
+    GENERIC_LOG(type, Common::Log::LDEBUG, "   Data: %s", hex_line.c_str());
   }
 }
 

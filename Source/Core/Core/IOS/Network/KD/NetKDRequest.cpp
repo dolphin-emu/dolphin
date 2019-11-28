@@ -145,7 +145,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+    request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   }
 
   return GetDefaultReply(return_value);
