@@ -764,6 +764,8 @@ namespace prime
     code_changes.emplace_back(0x80133970, 0x60000000);
     code_changes.emplace_back(0x8000ab58, 0x4bffad29);
     code_changes.emplace_back(0x80080d44, 0x60000000);
+    code_changes.emplace_back(0x8007fdc8, 0x480000e4);
+    code_changes.emplace_back(0x8017f88c, 0x60000000);
 
     control_state_hook(0x80005880, Region::NTSC);
     prime::springball_code(0x801077D4, &code_changes);
@@ -778,6 +780,8 @@ namespace prime
     write_invalidate(0x80133970, 0x60000000);
     write_invalidate(0x8000ab58, 0x4bffad29);
     write_invalidate(0x80080d44, 0x60000000);
+    write_invalidate(0x8007fdc8, 0x480000e4);
+    write_invalidate(0x8017f88c, 0x60000000);
   }
 
   void MP3NTSC::apply_normal_instructions()
@@ -789,6 +793,8 @@ namespace prime
     write_invalidate(0x80133970, 0x901f0174);
     write_invalidate(0x8000ab58, 0x90c30078);
     write_invalidate(0x80080d44, 0x4bffe9a5);
+    write_invalidate(0x8007fdc8, 0x418200e4);
+    write_invalidate(0x8017f88c, 0x4be8c4e5);
   }
 
   uint32_t MP3PAL::camera_ctl_address() const
@@ -837,6 +843,8 @@ namespace prime
     code_changes.emplace_back(0x801332bc, 0x60000000);
     code_changes.emplace_back(0x8000ab58, 0x4bffad29);
     code_changes.emplace_back(0x80080d44, 0x60000000);
+    code_changes.emplace_back(0x8007fdc8, 0x480000e4);
+    code_changes.emplace_back(0x8017f1d8, 0x60000000);
 
     control_state_hook(0x80005880, Region::PAL);
     prime::springball_code(0x80107120, &code_changes);
@@ -851,6 +859,8 @@ namespace prime
     write_invalidate(0x801332bc, 0x60000000);
     write_invalidate(0x8000ab58, 0x4bffad29);
     write_invalidate(0x80080d44, 0x60000000);
+    write_invalidate(0x8007fdc8, 0x480000e4);
+    write_invalidate(0x8017f1d8, 0x60000000);
   }
 
   void MP3PAL::apply_normal_instructions()
@@ -862,6 +872,8 @@ namespace prime
     write_invalidate(0x801332bc, 0x901f0174);
     write_invalidate(0x8000ab58, 0x90c30078);
     write_invalidate(0x80080d44, 0x4bffe9a5);
+    write_invalidate(0x8007fdc8, 0x418200e4);
+    write_invalidate(0x8017f1d8, 0x4be8cb99);
   }
 
   void MenuNTSC::run_mod()
