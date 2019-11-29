@@ -621,6 +621,23 @@ namespace prime
                                                                 // safe here (same case as beqlr)
   }
 
+  // Thanks to grapple slides on Elysia, this needs to be done. The slide forces your look each
+  // tick along it, and forces this with a call to lookAt. This call will be clobbered, and will
+  // opt for setting player's transform origin to the lookAt origin param.
+  void MP3::grapple_slide_no_lookat(u32 base_offset)
+  {
+    code_changes.emplace_back(base_offset + 0x00, 0x60000000);  // nop                  ; trashed because useless
+    code_changes.emplace_back(base_offset + 0x04, 0x60000000);  // nop                  ; trashed because useless
+    code_changes.emplace_back(base_offset + 0x08, 0x60000000);  // nop                  ; trashed because useless
+    code_changes.emplace_back(base_offset + 0x0c, 0xc0010240);  // lfs  f0, 0x240(r1)   ; grab the x component of new origin
+    code_changes.emplace_back(base_offset + 0x10, 0xd01f0048);  // stfs f0, 0x48(r31)   ; store it into player's xform x origin (CTransform + 0x0c)
+    code_changes.emplace_back(base_offset + 0x14, 0xc0010244);  // lfs  f0, 0x244(r1)   ; grab the y component of new origin
+    code_changes.emplace_back(base_offset + 0x18, 0xd01f0058);  // stfs f0, 0x58(r31)   ; store it into player's xform y origin (CTransform + 0x1c)
+    code_changes.emplace_back(base_offset + 0x1c, 0xc0010248);  // lfs  f0, 0x248(r1)   ; grab the z component of new origin
+    code_changes.emplace_back(base_offset + 0x20, 0xd01f0068);  // stfs f0, 0x68(r31)   ; store it into player's xform z origin (CTransform + 0xcc)
+    code_changes.emplace_back(base_offset + 0x28, 0x389f003c);  // addi r4, r31, 0x3c   ; next sub call is SetTransform, so set player's transform to their own transform (safety no-op, does other updating too)
+  }
+
   void MP3::run_mod()
   {
     u32 base_address = PowerPC::HostRead_U32(
@@ -768,6 +785,7 @@ namespace prime
     code_changes.emplace_back(0x8017f88c, 0x60000000);
 
     control_state_hook(0x80005880, Region::NTSC);
+    grapple_slide_no_lookat(0x8017f2a0);
     prime::springball_code(0x801077D4, &code_changes);
   }
 
@@ -847,6 +865,7 @@ namespace prime
     code_changes.emplace_back(0x8017f1d8, 0x60000000);
 
     control_state_hook(0x80005880, Region::PAL);
+    grapple_slide_no_lookat(0x8017ebec);
     prime::springball_code(0x80107120, &code_changes);
   }
 
