@@ -211,8 +211,6 @@ add_library(core
   HW/EXI/EXI_DeviceIPL.h
   HW/EXI/EXI_DeviceMemoryCard.cpp
   HW/EXI/EXI_DeviceMemoryCard.h
-  HW/EXI/EXI_DeviceMic.cpp
-  HW/EXI/EXI_DeviceMic.h
   HW/GCKeyboard.cpp
   HW/GCKeyboard.h
   HW/GCKeyboardEmu.cpp
@@ -591,6 +589,13 @@ if(LIBUSB_FOUND)
     IOS/USB/LibusbDevice.h
     IOS/USB/Bluetooth/BTReal.cpp
     IOS/USB/Bluetooth/BTReal.h
+  )
+endif()
+
+if(HAVE_CUBEB)
+  target_sources(core PRIVATE
+    HW/EXI/EXI_DeviceMic.cpp
+    HW/EXI/EXI_DeviceMic.h
   )
 endif()
 

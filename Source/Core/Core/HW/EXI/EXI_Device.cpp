@@ -14,7 +14,9 @@
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
+#ifdef HAVE_CUBEB
 #include "Core/HW/EXI/EXI_DeviceMic.h"
+#endif
 #include "Core/HW/Memmap.h"
 
 namespace ExpansionInterface
@@ -113,8 +115,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
     break;
 
   case EXIDEVICE_MEMORYCARD:
-  case EXIDEVICE_MEMORYCARDFOLDER:
-  {
+  case EXIDEVICE_MEMORYCARDFOLDER: {
     bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
     result = std::make_unique<CEXIMemoryCard>(channel_num, gci_folder);
     break;
@@ -127,9 +128,11 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
     result = std::make_unique<CEXIAD16>();
     break;
 
+#ifdef HAVE_CUBEB
   case EXIDEVICE_MIC:
     result = std::make_unique<CEXIMic>(channel_num);
     break;
+#endif
 
   case EXIDEVICE_ETH:
     result = std::make_unique<CEXIETHERNET>();
