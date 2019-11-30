@@ -7,13 +7,16 @@
 #include "AudioCommon/CoreAudioSoundStream.h"
 #include "Common/Logging/Log.h"
 
-OSStatus CoreAudioSound::callback(void* inRefCon, AudioUnitRenderActionFlags* ioActionFlags,
-                                  const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber,
-                                  UInt32 inNumberFrames, AudioBufferList* ioData)
+OSStatus CoreAudioSound::callback(void* ref_con, AudioUnitRenderActionFlags* action_flags,
+                                  const AudioTimeStamp* timestamp, UInt32 bus_number,
+                                  UInt32 number_frames, AudioBufferList* io_data)
 {
-  for (UInt32 i = 0; i < ioData->mNumberBuffers; i++)
-    ((CoreAudioSound*)inRefCon)
-        ->m_mixer->Mix((short*)ioData->mBuffers[i].mData, ioData->mBuffers[i].mDataByteSize / 4);
+  auto* const sound = static_cast<CoreAudioSound*>(ref_con);
+  for (UInt32 i = 0; i < io_data->mNumberBuffers; i++)
+  {
+    const AudioBuffer buffer = io_data->mBuffers[i];
+    sound->m_mixer->Mix(static_cast<short*>(buffer.mData), buffer.mDataByteSize / 4);
+  }
 
   return noErr;
 }
@@ -38,7 +41,7 @@ bool CoreAudioSound::Init()
     return false;
   }
 
-  err = AudioComponentInstanceNew(component, &audioUnit);
+  err = AudioComponentInstanceNew(component, &audio_unit);
   if (err != noErr)
   {
     ERROR_LOG(AUDIO, "error opening audio component");
@@ -46,7 +49,7 @@ bool CoreAudioSound::Init()
   }
 
   FillOutASBDForLPCM(format, m_mixer->GetSampleRate(), 2, 16, 16, false, false, false);
-  err = AudioUnitSetProperty(audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
+  err = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0,
                              &format, sizeof(AudioStreamBasicDescription));
   if (err != noErr)
   {
@@ -56,27 +59,27 @@ bool CoreAudioSound::Init()
 
   callback_struct.inputProc = callback;
   callback_struct.inputProcRefCon = this;
-  err = AudioUnitSetProperty(audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input,
-                             0, &callback_struct, sizeof callback_struct);
+  err = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_SetRenderCallback,
+                             kAudioUnitScope_Input, 0, &callback_struct, sizeof callback_struct);
   if (err != noErr)
   {
     ERROR_LOG(AUDIO, "error setting audio callback");
     return false;
   }
 
-  err = AudioUnitSetParameter(audioUnit, kHALOutputParam_Volume, kAudioUnitScope_Output, 0,
+  err = AudioUnitSetParameter(audio_unit, kHALOutputParam_Volume, kAudioUnitScope_Output, 0,
                               m_volume / 100., 0);
   if (err != noErr)
     ERROR_LOG(AUDIO, "error setting volume");
 
-  err = AudioUnitInitialize(audioUnit);
+  err = AudioUnitInitialize(audio_unit);
   if (err != noErr)
   {
     ERROR_LOG(AUDIO, "error initializing audiounit");
     return false;
   }
 
-  err = AudioOutputUnitStart(audioUnit);
+  err = AudioOutputUnitStart(audio_unit);
   if (err != noErr)
   {
     ERROR_LOG(AUDIO, "error starting audiounit");
@@ -96,7 +99,7 @@ void CoreAudioSound::SetVolume(int volume)
   OSStatus err;
   m_volume = volume;
 
-  err = AudioUnitSetParameter(audioUnit, kHALOutputParam_Volume, kAudioUnitScope_Output, 0,
+  err = AudioUnitSetParameter(audio_unit, kHALOutputParam_Volume, kAudioUnitScope_Output, 0,
                               volume / 100., 0);
   if (err != noErr)
     ERROR_LOG(AUDIO, "error setting volume");
