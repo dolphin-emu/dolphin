@@ -290,7 +290,9 @@ void Stop()  // - Hammertime!
     g_video_backend->Video_ExitLoop();
   }
 
-  Wiimote::ResetAllWiimotes();
+  if (_CoreParameter.bWii)
+    Wiimote::ResetAllWiimotes();
+
   ResetRumble();
 
 #ifdef USE_MEMORYWATCHER
