@@ -36,10 +36,21 @@ namespace Common
 void* AllocateExecutableMemory(size_t size)
 {
 #if defined(_WIN32)
-  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+  DWORD protection;
+#ifndef _WX_EXCLUSIVITY
+  protection = PAGE_EXECUTE_READWRITE;
 #else
-  void* ptr =
-      mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
+  protection = PAGE_READWRITE;
+#endif
+
+  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, protection);
+#else
+  int protection = PROT_READ | PROT_WRITE;
+#ifndef _WX_EXCLUSIVITY
+  protection |= PROT_EXEC;
+#endif
+
+  void* ptr = mmap(nullptr, size, protection, MAP_ANON | MAP_PRIVATE, -1, 0);
 
   if (ptr == MAP_FAILED)
     ptr = nullptr;
@@ -137,12 +148,33 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 #ifdef _WIN32
+  DWORD protection = PAGE_READWRITE;
+  if (allowExecute)
+  {
+#ifndef _WX_EXCLUSIVITY
+    protection = PAGE_EXECUTE_READWRITE;
+#else
+    WARN_LOG(COMMON, "UnWriteProtectMemory: Memory can't be executable and writable simultaneously "
+                     "on W^X platform");
+#endif
+  }
+
   DWORD oldValue;
-  if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE, &oldValue))
+  if (!VirtualProtect(ptr, size, protection, &oldValue))
     PanicAlert("UnWriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
-  if (mprotect(ptr, size,
-               allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ) != 0)
+  int protection = PROT_READ | PROT_WRITE;
+  if (allowExecute)
+  {
+#ifndef _WX_EXCLUSIVITY
+    protection |= PROT_EXEC;
+#else
+    WARN_LOG(COMMON, "UnWriteProtectMemory: Memory can't be executable and writable simultaneously "
+                     "on W^X platform");
+#endif
+  }
+
+  if (mprotect(ptr, size, protection) != 0)
   {
     PanicAlert("UnWriteProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
   }
