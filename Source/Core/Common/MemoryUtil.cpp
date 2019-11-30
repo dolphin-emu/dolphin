@@ -31,6 +31,7 @@
 #else
 #include <sys/sysinfo.h>
 #endif
+#include <unistd.h>
 #endif
 
 namespace Common
@@ -254,6 +255,18 @@ size_t MemPhysical()
   struct sysinfo memInfo;
   sysinfo(&memInfo);
   return (size_t)memInfo.totalram * memInfo.mem_unit;
+#endif
+}
+
+size_t PageSize()
+{
+#ifdef _WIN32
+  SYSTEM_INFO system_info;
+  GetNativeSystemInfo(&system_info);
+
+  return system_info.dwPageSize;
+#else
+  return sysconf(_SC_PAGESIZE);
 #endif
 }
 
