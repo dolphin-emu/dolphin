@@ -17,6 +17,9 @@ void FreeAlignedMemory(void* ptr);
 void ReadProtectMemory(void* ptr, size_t size);
 void WriteProtectMemory(void* ptr, size_t size, bool executable = false);
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
+#ifdef _WX_EXCLUSIVITY
+bool IsMemoryPageExecutable(void* ptr);
+#endif
 size_t MemPhysical();
 
 }  // namespace Common

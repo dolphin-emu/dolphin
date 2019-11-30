@@ -20,6 +20,11 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
+#ifdef __APPLE__
+#include <mach/mach.h>
+#include <mach/vm_map.h>
+#include <mach/vm_param.h>
+#endif
 #include <sys/sysctl.h>
 #elif defined __HAIKU__
 #include <OS.h>
@@ -180,6 +185,45 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   }
 #endif
 }
+
+#ifdef _WX_EXCLUSIVITY
+// Used on WX exclusive platforms
+bool IsMemoryPageExecutable(void* ptr)
+{
+#ifdef _WIN32
+  MEMORY_BASIC_INFORMATION memory_info;
+  if (!VirtualQuery(ptr, &memory_info, sizeof(memory_info)))
+  {
+    PanicAlert("IsMemoryPageExecutable failed!\nVirtualQuery: %s", GetLastErrorString().c_str());
+    return false;
+  }
+
+  return (memory_info.Protect & PAGE_EXECUTE_READ) == PAGE_EXECUTE_READ;
+#elif defined(__APPLE__)
+  vm_address_t address = reinterpret_cast<vm_address_t>(ptr);
+  vm_size_t size;
+  vm_region_basic_info_data_64_t region_info;
+  mach_msg_type_number_t info_count = VM_REGION_BASIC_INFO_COUNT_64;
+  memory_object_name_t object;
+
+  kern_return_t retval =
+      vm_region_64(mach_task_self(), &address, &size, VM_REGION_BASIC_INFO_64,
+                   reinterpret_cast<vm_region_info_t>(&region_info), &info_count, &object);
+  if (retval != KERN_SUCCESS)
+  {
+    PanicAlert("IsMemoryPageExecutable failed!\nvm_region_64: 0x%x", retval);
+    return false;
+  }
+
+  return (region_info.protection & VM_PROT_EXECUTE) == VM_PROT_EXECUTE;
+#else
+  // There is no POSIX API to get the current protection of a memory page. The commonly suggested
+  // workaround for Linux is to parse /proc/self/maps, but this may be too slow for a JIT, and
+  // may not work on other platforms (*BSD, for example). A workaround is needed.
+#error W^X is not supported on this platform.
+#endif
+}
+#endif
 
 size_t MemPhysical()
 {

@@ -438,6 +438,10 @@ endif()
 
 if(ENABLE_WX_EXCLUSIVITY)
   message(STATUS "Enabling WX exclusivity.")
+  if(NOT WIN32 AND NOT APPLE)
+    message(FATAL_ERROR "WX exclusivity is not supported on this platform.")
+  endif()
+
   add_definitions(-D_WX_EXCLUSIVITY)
 endif()
 
