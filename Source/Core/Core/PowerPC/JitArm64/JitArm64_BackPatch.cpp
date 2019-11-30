@@ -316,11 +316,16 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
 
   ARM64XEmitter emitter((u8*)fault_location);
 
-  emitter.BL(slow_handler_iter->second.slowmem_code);
-
   const u32 num_insts_max = fastmem_area_length / 4 - 1;
-  for (u32 i = 0; i < num_insts_max; ++i)
-    emitter.HINT(HINT_NOP);
+
+  WriteCodeAtRegion(
+      [&] {
+        emitter.BL(slow_handler_iter->second.slowmem_code);
+
+        for (u32 i = 0; i < num_insts_max; ++i)
+          emitter.HINT(HINT_NOP);
+      },
+      const_cast<u8*>(fault_location), (num_insts_max + 1) * 4);  // NOPs and one BL
 
   m_fault_to_handler.erase(slow_handler_iter);
 
