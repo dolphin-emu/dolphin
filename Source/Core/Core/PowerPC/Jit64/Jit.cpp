@@ -282,11 +282,16 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
 
   // Patch the original memory operation.
   XEmitter emitter(start);
-  emitter.JMP(trampoline, true);
-  // NOPs become dead code
-  const u8* end = info.start + info.len;
-  for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
-    emitter.INT3();
+
+  WriteCodeAtRegion(
+      [&] {
+        emitter.JMP(trampoline, true);
+        // NOPs become dead code
+        const u8* end = info.start + info.len;
+        for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
+          emitter.INT3();
+      },
+      start, info.len);
 
   // Rewind time to just before the start of the write block. If we swapped memory
   // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
@@ -783,9 +788,11 @@ void Jit64::Jit(u32 em_address)
     return;
   }
 
-  JitBlock* b = blocks.AllocateBlock(em_address);
-  DoJit(em_address, b, nextPC);
-  blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+  WriteCode([&] {
+    JitBlock* b = blocks.AllocateBlock(em_address);
+    DoJit(em_address, b, nextPC);
+    blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+  });
 }
 
 u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
