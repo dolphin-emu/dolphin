@@ -583,9 +583,11 @@ void JitArm64::Jit(u32)
     return;
   }
 
-  JitBlock* b = blocks.AllocateBlock(em_address);
-  DoJit(em_address, b, nextPC);
-  blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+  WriteCode([&] {
+    JitBlock* b = blocks.AllocateBlock(em_address);
+    DoJit(em_address, b, nextPC);
+    blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+  });
 }
 
 void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)

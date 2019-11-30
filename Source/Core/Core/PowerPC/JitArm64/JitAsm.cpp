@@ -27,167 +27,169 @@ void JitArm64::GenerateAsm()
   BitSet32 regs_to_save_fpr(ALL_CALLEE_SAVED_FPR);
   enter_code = GetCodePtr();
 
-  ABI_PushRegisters(regs_to_save);
-  m_float_emit.ABI_PushRegisters(regs_to_save_fpr, X30);
+  WriteCode([&] {
+    ABI_PushRegisters(regs_to_save);
+    m_float_emit.ABI_PushRegisters(regs_to_save_fpr, X30);
 
-  MOVP2R(PPC_REG, &PowerPC::ppcState);
+    MOVP2R(PPC_REG, &PowerPC::ppcState);
 
-  // Swap the stack pointer, so we have proper guard pages.
-  ADD(X0, SP, 0);
-  MOVP2R(X1, &m_saved_stack_pointer);
-  STR(INDEX_UNSIGNED, X0, X1, 0);
-  MOVP2R(X1, &m_stack_pointer);
-  LDR(INDEX_UNSIGNED, X0, X1, 0);
-  FixupBranch no_fake_stack = CBZ(X0);
-  ADD(SP, X0, 0);
-  SetJumpTarget(no_fake_stack);
+    // Swap the stack pointer, so we have proper guard pages.
+    ADD(X0, SP, 0);
+    MOVP2R(X1, &m_saved_stack_pointer);
+    STR(INDEX_UNSIGNED, X0, X1, 0);
+    MOVP2R(X1, &m_stack_pointer);
+    LDR(INDEX_UNSIGNED, X0, X1, 0);
+    FixupBranch no_fake_stack = CBZ(X0);
+    ADD(SP, X0, 0);
+    SetJumpTarget(no_fake_stack);
 
-  // Push {nullptr; -1} as invalid destination on the stack.
-  MOVI2R(X0, 0xFFFFFFFF);
-  STP(INDEX_PRE, ZR, X0, SP, -16);
+    // Push {nullptr; -1} as invalid destination on the stack.
+    MOVI2R(X0, 0xFFFFFFFF);
+    STP(INDEX_PRE, ZR, X0, SP, -16);
 
-  // Store the stack pointer, so we can reset it if the BLR optimization fails.
-  ADD(X0, SP, 0);
-  STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+    // Store the stack pointer, so we can reset it if the BLR optimization fails.
+    ADD(X0, SP, 0);
+    STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
 
-  // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
-  // Advance() does an exception check so we don't know what PC to use until afterwards.
-  FixupBranch to_start_of_timing_slice = B();
+    // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
+    // Advance() does an exception check so we don't know what PC to use until afterwards.
+    FixupBranch to_start_of_timing_slice = B();
 
-  // If we align the dispatcher to a page then we can load its location with one ADRP instruction
-  // do
-  // {
-  //   CoreTiming::Advance();  // <-- Checks for exceptions (changes PC)
-  //   DISPATCHER_PC = PC;
-  //   do
-  //   {
-  // dispatcher_no_check:
-  //     ExecuteBlock(JitBase::Dispatch());
-  // dispatcher:
-  //   } while (PowerPC::ppcState.downcount > 0);
-  // do_timing:
-  //   NPC = PC = DISPATCHER_PC;
-  // } while (CPU::GetState() == CPU::State::Running);
-  AlignCodePage();
-  dispatcher = GetCodePtr();
-  WARN_LOG(DYNA_REC, "Dispatcher is %p", dispatcher);
+    // If we align the dispatcher to a page then we can load its location with one ADRP instruction
+    // do
+    // {
+    //   CoreTiming::Advance();  // <-- Checks for exceptions (changes PC)
+    //   DISPATCHER_PC = PC;
+    //   do
+    //   {
+    // dispatcher_no_check:
+    //     ExecuteBlock(JitBase::Dispatch());
+    // dispatcher:
+    //   } while (PowerPC::ppcState.downcount > 0);
+    // do_timing:
+    //   NPC = PC = DISPATCHER_PC;
+    // } while (CPU::GetState() == CPU::State::Running);
+    AlignCodePage();
+    dispatcher = GetCodePtr();
+    WARN_LOG(DYNA_REC, "Dispatcher is %p", dispatcher);
 
-  // Downcount Check
-  // The result of slice decrementation should be in flags if somebody jumped here
-  // IMPORTANT - We jump on negative, not carry!!!
-  FixupBranch bail = B(CC_MI);
+    // Downcount Check
+    // The result of slice decrementation should be in flags if somebody jumped here
+    // IMPORTANT - We jump on negative, not carry!!!
+    FixupBranch bail = B(CC_MI);
 
-  dispatcher_no_check = GetCodePtr();
+    dispatcher_no_check = GetCodePtr();
 
-  bool assembly_dispatcher = true;
+    bool assembly_dispatcher = true;
 
-  if (assembly_dispatcher)
-  {
-    // set the mem_base based on MSR flags
+    if (assembly_dispatcher)
+    {
+      // set the mem_base based on MSR flags
+      LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
+      FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
+      MOVP2R(MEM_REG, Memory::physical_base);
+      FixupBranch membaseend = B();
+      SetJumpTarget(physmem);
+      MOVP2R(MEM_REG, Memory::logical_base);
+      SetJumpTarget(membaseend);
+
+      // iCache[(address >> 2) & iCache_Mask];
+      ARM64Reg pc_masked = W25;
+      ARM64Reg cache_base = X27;
+      ARM64Reg block = X30;
+      ORRI2R(pc_masked, WZR, JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3);
+      AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ST_LSL, 1));
+      MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
+      LDR(block, cache_base, EncodeRegTo64(pc_masked));
+      FixupBranch not_found = CBZ(block);
+
+      // b.effectiveAddress != addr || b.msrBits != msr
+      ARM64Reg pc_and_msr = W25;
+      ARM64Reg pc_and_msr2 = W24;
+      LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, effectiveAddress));
+      CMP(pc_and_msr, DISPATCHER_PC);
+      FixupBranch pc_missmatch = B(CC_NEQ);
+
+      LDR(INDEX_UNSIGNED, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
+      ANDI2R(pc_and_msr2, pc_and_msr2, JitBaseBlockCache::JIT_CACHE_MSR_MASK);
+      LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, msrBits));
+      CMP(pc_and_msr, pc_and_msr2);
+      FixupBranch msr_missmatch = B(CC_NEQ);
+
+      // return blocks[block_num].normalEntry;
+      LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlock, normalEntry));
+      BR(block);
+      SetJumpTarget(not_found);
+      SetJumpTarget(pc_missmatch);
+      SetJumpTarget(msr_missmatch);
+    }
+
+    // Call C version of Dispatch().
+    STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+    MOVP2R(X0, this);
+    MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
+    BLR(X30);
+
+    FixupBranch no_block_available = CBZ(X0);
+
+    // set the mem_base based on MSR flags and jump to next block.
     LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
     FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
     MOVP2R(MEM_REG, Memory::physical_base);
-    FixupBranch membaseend = B();
+    BR(X0);
     SetJumpTarget(physmem);
     MOVP2R(MEM_REG, Memory::logical_base);
-    SetJumpTarget(membaseend);
+    BR(X0);
 
-    // iCache[(address >> 2) & iCache_Mask];
-    ARM64Reg pc_masked = W25;
-    ARM64Reg cache_base = X27;
-    ARM64Reg block = X30;
-    ORRI2R(pc_masked, WZR, JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3);
-    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ST_LSL, 1));
-    MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
-    LDR(block, cache_base, EncodeRegTo64(pc_masked));
-    FixupBranch not_found = CBZ(block);
+    // Call JIT
+    SetJumpTarget(no_block_available);
+    ResetStack();
+    MOVP2R(X0, this);
+    MOV(W1, DISPATCHER_PC);
+    MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
+    BLR(X30);
+    LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+    B(dispatcher_no_check);
 
-    // b.effectiveAddress != addr || b.msrBits != msr
-    ARM64Reg pc_and_msr = W25;
-    ARM64Reg pc_and_msr2 = W24;
-    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, effectiveAddress));
-    CMP(pc_and_msr, DISPATCHER_PC);
-    FixupBranch pc_missmatch = B(CC_NEQ);
+    SetJumpTarget(bail);
+    do_timing = GetCodePtr();
+    // Write the current PC out to PPCSTATE
+    STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+    STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
-    LDR(INDEX_UNSIGNED, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
-    ANDI2R(pc_and_msr2, pc_and_msr2, JitBaseBlockCache::JIT_CACHE_MSR_MASK);
-    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, msrBits));
-    CMP(pc_and_msr, pc_and_msr2);
-    FixupBranch msr_missmatch = B(CC_NEQ);
+    // Check the state pointer to see if we are exiting
+    // Gets checked on at the end of every slice
+    MOVP2R(X0, CPU::GetStatePtr());
+    LDR(INDEX_UNSIGNED, W0, X0, 0);
 
-    // return blocks[block_num].normalEntry;
-    LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlock, normalEntry));
-    BR(block);
-    SetJumpTarget(not_found);
-    SetJumpTarget(pc_missmatch);
-    SetJumpTarget(msr_missmatch);
-  }
+    CMP(W0, 0);
+    FixupBranch Exit = B(CC_NEQ);
 
-  // Call C version of Dispatch().
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  MOVP2R(X0, this);
-  MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
-  BLR(X30);
+    SetJumpTarget(to_start_of_timing_slice);
+    MOVP2R(X30, &CoreTiming::Advance);
+    BLR(X30);
 
-  FixupBranch no_block_available = CBZ(X0);
+    // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
+    LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
-  // set the mem_base based on MSR flags and jump to next block.
-  LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
-  FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-  MOVP2R(MEM_REG, Memory::physical_base);
-  BR(X0);
-  SetJumpTarget(physmem);
-  MOVP2R(MEM_REG, Memory::logical_base);
-  BR(X0);
+    // We can safely assume that downcount >= 1
+    B(dispatcher_no_check);
 
-  // Call JIT
-  SetJumpTarget(no_block_available);
-  ResetStack();
-  MOVP2R(X0, this);
-  MOV(W1, DISPATCHER_PC);
-  MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
-  BLR(X30);
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  B(dispatcher_no_check);
+    SetJumpTarget(Exit);
 
-  SetJumpTarget(bail);
-  do_timing = GetCodePtr();
-  // Write the current PC out to PPCSTATE
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+    // Reset the stack pointer, as the BLR optimization have touched it.
+    MOVP2R(X1, &m_saved_stack_pointer);
+    LDR(INDEX_UNSIGNED, X0, X1, 0);
+    ADD(SP, X0, 0);
 
-  // Check the state pointer to see if we are exiting
-  // Gets checked on at the end of every slice
-  MOVP2R(X0, CPU::GetStatePtr());
-  LDR(INDEX_UNSIGNED, W0, X0, 0);
+    m_float_emit.ABI_PopRegisters(regs_to_save_fpr, X30);
+    ABI_PopRegisters(regs_to_save);
+    RET(X30);
 
-  CMP(W0, 0);
-  FixupBranch Exit = B(CC_NEQ);
+    JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
 
-  SetJumpTarget(to_start_of_timing_slice);
-  MOVP2R(X30, &CoreTiming::Advance);
-  BLR(X30);
-
-  // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
-  // We can safely assume that downcount >= 1
-  B(dispatcher_no_check);
-
-  SetJumpTarget(Exit);
-
-  // Reset the stack pointer, as the BLR optimization have touched it.
-  MOVP2R(X1, &m_saved_stack_pointer);
-  LDR(INDEX_UNSIGNED, X0, X1, 0);
-  ADD(SP, X0, 0);
-
-  m_float_emit.ABI_PopRegisters(regs_to_save_fpr, X30);
-  ABI_PopRegisters(regs_to_save);
-  RET(X30);
-
-  JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
-
-  GenerateCommonAsm();
+    GenerateCommonAsm();
+  });
 
   FlushIcache();
 }
