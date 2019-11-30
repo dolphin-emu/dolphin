@@ -8,6 +8,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#elif defined(IPHONEOS)
+#include <mach/mach.h>
 #endif
 
 #include "Common/CommonTypes.h"
@@ -32,6 +34,9 @@ public:
 private:
 #ifdef _WIN32
   HANDLE hMemoryMapping;
+#elif defined(IPHONEOS)
+  vm_size_t vm_size;
+  vm_address_t vm_mem;
 #else
   int fd;
 #endif
