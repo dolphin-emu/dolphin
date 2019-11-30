@@ -60,6 +60,13 @@ void MemArena::GrabSHMSegment(size_t size)
   const std::string name = "dolphin-emu." + std::to_string(GetCurrentProcessId());
   hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0,
                                      static_cast<DWORD>(size), UTF8ToTStr(name).c_str());
+#elif defined(IPHONEOS)
+  vm_size = size;
+  kern_return_t retval = vm_allocate(mach_task_self(), &vm_mem, size, VM_FLAGS_ANYWHERE);
+  if (retval != KERN_SUCCESS)
+  {
+    PanicAlert("Failed to grab a block of virtual memory: 0x%x", retval);
+  }
 #elif defined(ANDROID)
   fd = AshmemCreateFileMapping(("dolphin-emu." + std::to_string(getpid())).c_str(), size);
   if (fd < 0)
@@ -86,6 +93,10 @@ void MemArena::ReleaseSHMSegment()
 #ifdef _WIN32
   CloseHandle(hMemoryMapping);
   hMemoryMapping = 0;
+#elif defined(IPHONEOS)
+  vm_deallocate(mach_task_self(), vm_mem, vm_size);
+  vm_size = 0;
+  vm_mem = 0;
 #else
   close(fd);
 #endif
@@ -95,6 +106,24 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 {
 #ifdef _WIN32
   return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+#elif defined(IPHONEOS)
+  vm_address_t target = reinterpret_cast<vm_address_t>(base);
+  uint64_t mask = 0;
+  bool anywhere = false;
+  vm_address_t source = vm_mem + offset;
+  vm_prot_t cur_protection = 0;
+  vm_prot_t max_protection = 0;
+
+  kern_return_t retval =
+      vm_remap(mach_task_self(), &target, size, mask, anywhere, mach_task_self(), source, false,
+               &cur_protection, &max_protection, VM_INHERIT_DEFAULT);
+  if (retval != KERN_SUCCESS)
+  {
+    PanicAlert("vm_remap failed (0x%x)", retval);
+    return nullptr;
+  }
+
+  return reinterpret_cast<void*>(target);
 #else
   void* retval = mmap(base, size, PROT_READ | PROT_WRITE,
                       MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED), fd, offset);
@@ -115,6 +144,8 @@ void MemArena::ReleaseView(void* view, size_t size)
 {
 #ifdef _WIN32
   UnmapViewOfFile(view);
+#elif defined(IPHONEOS)
+  vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(view), size);
 #else
   munmap(view, size);
 #endif
@@ -137,6 +168,17 @@ u8* MemArena::FindMemoryBase()
   }
   VirtualFree(base, 0, MEM_RELEASE);
   return base;
+#elif defined(IPHONEOS)
+  vm_address_t addr = 0;
+  kern_return_t retval = vm_allocate(mach_task_self(), &addr, memory_size, VM_FLAGS_ANYWHERE);
+  if (retval != KERN_SUCCESS)
+  {
+    PanicAlert("Failed to map enough memory space: 0x%x", retval);
+    exit(0);
+  }
+
+  vm_deallocate(mach_task_self(), addr, memory_size);
+  return reinterpret_cast<u8*>(addr);
 #else
 #ifdef ANDROID
   // Android 4.3 changed how mmap works.
