@@ -41,7 +41,7 @@ VertexLoaderARM64::VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_at
 
   AllocCodeSpace(4096);
   ClearCodeSpace();
-  GenerateVertexLoader();
+  WriteCode([&] { GenerateVertexLoader(); });
   WriteProtect();
 }
 
