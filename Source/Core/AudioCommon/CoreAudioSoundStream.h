@@ -23,11 +23,11 @@ public:
   static bool isValid() { return true; }
 
 private:
-  AudioUnit audioUnit;
+  AudioUnit audio_unit;
   int m_volume;
 
-  static OSStatus callback(void* inRefCon, AudioUnitRenderActionFlags* ioActionFlags,
-                           const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber,
-                           UInt32 inNumberFrames, AudioBufferList* ioData);
+  static OSStatus callback(void* ref_con, AudioUnitRenderActionFlags* action_flags,
+                           const AudioTimeStamp* timestamp, UInt32 bus_number, UInt32 number_frames,
+                           AudioBufferList* io_data);
 #endif
 };
