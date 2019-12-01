@@ -763,6 +763,7 @@ void SConfig::LoadDefaults()
 #endif
 
   cpu_core = PowerPC::DefaultCPUCore();
+  bEnableCheats = true;
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;
