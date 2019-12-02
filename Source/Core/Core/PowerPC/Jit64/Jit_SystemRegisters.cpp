@@ -665,7 +665,7 @@ void Jit64::mffsx(UGeckoInstruction inst)
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
 
   // FPSCR.FEX = 0 (and VX for below)
-  AND(32, R(RSCRATCH), Imm32(~0x60000000));
+  AND(32, R(RSCRATCH), Imm32(~0x60000000U));
 
   // FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
   XOR(32, R(RSCRATCH2), R(RSCRATCH2));

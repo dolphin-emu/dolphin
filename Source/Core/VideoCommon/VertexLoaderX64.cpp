@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+#include <limits>
 #include <string>
 
 #include "Common/BitSet.h"
@@ -65,7 +66,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
     m_src_ofs += bits / 8;
     if (array == ARRAY_POSITION)
     {
-      CMP(bits, R(scratch1), Imm8(-1));
+      CMP(bits, R(scratch1), Imm8(std::numeric_limits<u8>::max()));
       m_skip_vertex = J_CC(CC_E, true);
     }
     IMUL(32, scratch1, MPIC(&g_main_cp_state.array_strides[array]));

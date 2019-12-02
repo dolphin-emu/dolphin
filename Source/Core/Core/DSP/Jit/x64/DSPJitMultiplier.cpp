@@ -252,7 +252,7 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
   get_long_acx(sreg, tmp1);
   MOV(64, R(RDX), R(tmp1));
   //	s64 res = prod + (ax & ~0xffff);
-  MOV(64, R(RAX), Imm64(~0xffff));
+  MOV(64, R(RAX), Imm64(~0xffffULL));
   AND(64, R(RDX), R(RAX));
   //	s64 prod = dsp_get_long_prod_round_prodl();
   get_long_prod_round_prodl();

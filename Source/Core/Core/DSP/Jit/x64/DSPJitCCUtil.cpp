@@ -61,7 +61,7 @@ void DSPEmitter::Update_SR_Register64(Gen::X64Reg val, Gen::X64Reg scratch)
 {
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
-  AND(16, sr_reg, Imm16(~SR_CMP_MASK));
+  AND(16, sr_reg, Imm16(~SR_CMP_MASK & 0xffff));
   m_gpr.PutReg(DSP_REG_SR);
   Update_SR_Register(val, scratch);
 }
@@ -73,7 +73,7 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool 
 {
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
-  AND(16, sr_reg, Imm16(~SR_CMP_MASK));
+  AND(16, sr_reg, Imm16(~SR_CMP_MASK & 0xffff));
 
   CMP(64, R(carry_ovfl), R(val));
 
@@ -111,7 +111,7 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool 
 void DSPEmitter::Update_SR_Register16(X64Reg val)
 {
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
-  AND(16, sr_reg, Imm16(~SR_CMP_MASK));
+  AND(16, sr_reg, Imm16(~SR_CMP_MASK & 0xffff));
 
   //	// 0x04
   //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
@@ -147,7 +147,7 @@ void DSPEmitter::Update_SR_Register16(X64Reg val)
 void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 {
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
-  AND(16, sr_reg, Imm16(~SR_CMP_MASK));
+  AND(16, sr_reg, Imm16(~SR_CMP_MASK & 0xffff));
 
   //	// 0x10
   //	if (_Value != (s32)_Value) g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;

@@ -41,9 +41,6 @@ if (MSVC)
     /wd4324 # Padding was added at the end of a structure because you specified a __declspec(align) value.
     /wd4714 # function 'function' marked as __forceinline not inlined
     /wd4351 # new behavior: elements of array 'array' will be default initialized
-    # TODO: Enable this warning once possible
-    /wd4245 # conversion from 'type1' to 'type2', signed/unsigned mismatch
-    # Currently jits use some annoying code patterns which makes this common
   )
 
   # Additional warnings

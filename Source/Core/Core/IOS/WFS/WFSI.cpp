@@ -551,7 +551,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_error_code);
 }
 
-u32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
+s32 WFSI::GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const
 {
   const std::string path = fmt::format("/vol/{}/title/{}/{}/meta/{:016x}.tmd", m_device_name,
                                        GroupIdStr(group_id), TitleIdStr(title_id), subtitle_id);

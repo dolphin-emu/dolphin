@@ -37,7 +37,7 @@ void Jit64::GenerateConstantOverflow(bool overflow)
   else
   {
     // XER[OV] = 0
-    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
+    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK & 0xff));
   }
 }
 
@@ -125,7 +125,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
     // Make sure not to lose the carry flags (not a big deal, this path is rare).
     PUSHF();
     // XER[OV] = 0
-    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
+    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK & 0xff));
     FixupBranch jno = J_CC(CC_NO);
     // XER[OV/SO] = 1
     MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_SO_MASK | XER_OV_MASK));
