@@ -976,10 +976,11 @@ static bool RunCodeLocked(const ARCode& arcode)
 
 void RunAllActive()
 {
-  if (!SConfig::GetInstance().bEnableCheats || !SConfig::GetInstance().bEnablePrimeHack)
-    return;
+  if (SConfig::GetInstance().bEnablePrimeHack)
+    prime::GetHackManager()->run_active_mods();
 
-  prime::GetHackManager()->run_active_mods();
+  if (!SConfig::GetInstance().bEnableCheats)
+    return;
   // If the mutex is idle then acquiring it should be cheap, fast mutexes
   // are only atomic ops unless contested. It should be rare for this to
   // be contested.

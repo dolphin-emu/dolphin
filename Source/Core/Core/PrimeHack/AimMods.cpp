@@ -239,7 +239,7 @@ namespace prime
 
     u32 visor_base = PowerPC::HostRead_U32(powerups_base_address());
     int visor_id, visor_off;
-    std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, PowerPC::HostRead_U32(visor_base + 0x1c));
+    std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, PowerPC::HostRead_U32(visor_base + 0x1c) == 0);
     if (visor_id != -1)
     {
       if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x08) + 0x30))

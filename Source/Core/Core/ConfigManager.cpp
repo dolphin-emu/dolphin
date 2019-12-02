@@ -417,8 +417,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   //interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
   bUsePanicHandlers = false;
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
-  //interface->Get("HideCursor", &bHideCursor, false);
-  bHideCursor = true;
+  interface->Get("HideCursor", &bHideCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);

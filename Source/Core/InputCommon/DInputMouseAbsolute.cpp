@@ -55,10 +55,8 @@ void DInputMouse::Init(LPDIRECTINPUTDEVICE8 mo_device)
 void DInputMouse::UpdateInput()
 {
   // safeguard
-  if (m_mo_device == nullptr || !SConfig::GetInstance().bEnableCheats || !SConfig::GetInstance().bEnablePrimeHack)
-  {
+  if (m_mo_device == nullptr || !SConfig::GetInstance().bEnablePrimeHack)
     return;
-  }
 
   DIMOUSESTATE2 input_temp;
   ULONGLONG cur_time = GetTickCount64();

@@ -167,9 +167,6 @@ void WiiPane::CreateWiiRemoteSettings()
   m_wiimote_ir_sensor_position = new QComboBox();
   m_wiimote_ir_sensor_position->addItem(tr("Top"));
   m_wiimote_ir_sensor_position->addItem(tr("Bottom"));
-  //m_wiimote_ir_sensor_position->setEditable(false);
-  m_wiimote_ir_sensor_position->setEnabled(false);
-  m_wiimote_ir_sensor_position->setToolTip(QString::fromStdString("Set to Top by PrimeHack."));
 
   // IR Sensitivity Slider
   // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
@@ -216,9 +213,8 @@ void WiiPane::LoadConfig()
 
   PopulateUSBPassthroughListWidget();
 
-  //m_wiimote_ir_sensor_position->setCurrentIndex(
-      //TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
-  m_wiimote_ir_sensor_position->setCurrentIndex(0);
+  m_wiimote_ir_sensor_position->setCurrentIndex(
+      TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
 
   m_wiimote_ir_sensitivity->setValue(Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
   m_wiimote_speaker_volume->setValue(Config::Get(Config::SYSCONF_SPEAKER_VOLUME));
