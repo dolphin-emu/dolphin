@@ -4,7 +4,7 @@
 
 #include "Core/PowerPC/PPCCache.h"
 
-#include <cstring>
+#include <array>
 
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
@@ -15,8 +15,15 @@
 
 namespace PowerPC
 {
-static const u32 s_plru_mask[8] = {11, 11, 19, 19, 37, 37, 69, 69};
-static const u32 s_plru_value[8] = {11, 3, 17, 1, 36, 4, 64, 0};
+namespace
+{
+constexpr std::array<u32, 8> s_plru_mask{
+    11, 11, 19, 19, 37, 37, 69, 69,
+};
+constexpr std::array<u32, 8> s_plru_value{
+    11, 3, 17, 1, 36, 4, 64, 0,
+};
+}  // Anonymous namespace
 
 InstructionCache::InstructionCache()
 {
@@ -59,19 +66,18 @@ InstructionCache::InstructionCache()
 
 void InstructionCache::Reset()
 {
-  memset(valid, 0, sizeof(valid));
-  memset(plru, 0, sizeof(plru));
-  memset(lookup_table, 0xff, sizeof(lookup_table));
-  memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
-  memset(lookup_table_vmem, 0xff, sizeof(lookup_table_vmem));
+  valid.fill(0);
+  plru.fill(0);
+  lookup_table.fill(0xFF);
+  lookup_table_ex.fill(0xFF);
+  lookup_table_vmem.fill(0xFF);
   JitInterface::ClearSafe();
 }
 
 void InstructionCache::Init()
 {
-  memset(data, 0, sizeof(data));
-  memset(tags, 0, sizeof(tags));
-
+  data.fill({});
+  tags.fill({});
   Reset();
 }
 
@@ -79,10 +85,12 @@ void InstructionCache::Invalidate(u32 addr)
 {
   if (!HID0.ICE)
     return;
-  // invalidates the whole set
-  u32 set = (addr >> 5) & 0x7f;
-  for (int i = 0; i < 8; i++)
-    if (valid[set] & (1 << i))
+
+  // Invalidates the whole set
+  const u32 set = (addr >> 5) & 0x7f;
+  for (size_t i = 0; i < 8; i++)
+  {
+    if (valid[set] & (1U << i))
     {
       if (tags[set][i] & (ICACHE_VMEM_BIT >> 12))
         lookup_table_vmem[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
@@ -91,6 +99,7 @@ void InstructionCache::Invalidate(u32 addr)
       else
         lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
     }
+  }
   valid[set] = 0;
   JitInterface::InvalidateICache(addr & ~0x1f, 32, false);
 }
@@ -126,7 +135,7 @@ u32 InstructionCache::ReadInstruction(u32 addr)
     else
       t = way_from_plru[plru[set]];
     // load
-    Memory::CopyFromEmu((u8*)data[set][t], (addr & ~0x1f), 32);
+    Memory::CopyFromEmu(reinterpret_cast<u8*>(data[set][t].data()), (addr & ~0x1f), 32);
     if (valid[set] & (1 << t))
     {
       if (tags[set][t] & (ICACHE_VMEM_BIT >> 12))
