@@ -27,9 +27,6 @@ struct InstructionCache
   std::array<u32, ICACHE_SETS> plru;
   std::array<u32, ICACHE_SETS> valid;
 
-  std::array<u32, 255> way_from_valid;
-  std::array<u32, 128> way_from_plru;
-
   std::array<u8, 1 << 20> lookup_table;
   std::array<u8, 1 << 21> lookup_table_ex;
   std::array<u8, 1 << 20> lookup_table_vmem;

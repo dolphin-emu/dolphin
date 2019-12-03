@@ -23,45 +23,72 @@ constexpr std::array<u32, 8> s_plru_mask{
 constexpr std::array<u32, 8> s_plru_value{
     11, 3, 17, 1, 36, 4, 64, 0,
 };
+
+constexpr std::array<u32, 255> s_way_from_valid = [] {
+  std::array<u32, 255> data{};
+  for (size_t m = 0; m < data.size(); m++)
+  {
+    u32 w = 0;
+    while ((m & (size_t{1} << w)) != 0)
+      w++;
+    data[m] = w;
+  }
+  return data;
+}();
+
+constexpr std::array<u32, 128> s_way_from_plru = [] {
+  std::array<u32, 128> data{};
+
+  for (size_t m = 0; m < data.size(); m++)
+  {
+    std::array<u32, 7> b{};
+    for (size_t i = 0; i < b.size(); i++)
+      b[i] = u32(m & (size_t{1} << i));
+
+    u32 w = 0;
+    if (b[0] != 0)
+    {
+      if (b[2] != 0)
+      {
+        if (b[6] != 0)
+          w = 7;
+        else
+          w = 6;
+      }
+      else if (b[5] != 0)
+      {
+        w = 5;
+      }
+      else
+      {
+        w = 4;
+      }
+    }
+    else if (b[1] != 0)
+    {
+      if (b[4] != 0)
+        w = 3;
+      else
+        w = 2;
+    }
+    else if (b[3] != 0)
+    {
+      w = 1;
+    }
+    else
+    {
+      w = 0;
+    }
+
+    data[m] = w;
+  }
+
+  return data;
+}();
 }  // Anonymous namespace
 
 InstructionCache::InstructionCache()
 {
-  for (u32 m = 0; m < 0xff; m++)
-  {
-    u32 w = 0;
-    while (m & (1 << w))
-      w++;
-    way_from_valid[m] = w;
-  }
-
-  for (u32 m = 0; m < 128; m++)
-  {
-    u32 b[7];
-    for (int i = 0; i < 7; i++)
-      b[i] = m & (1 << i);
-    u32 w;
-    if (b[0])
-      if (b[2])
-        if (b[6])
-          w = 7;
-        else
-          w = 6;
-      else if (b[5])
-        w = 5;
-      else
-        w = 4;
-    else if (b[1])
-      if (b[4])
-        w = 3;
-      else
-        w = 2;
-    else if (b[3])
-      w = 1;
-    else
-      w = 0;
-    way_from_plru[m] = w;
-  }
 }
 
 void InstructionCache::Reset()
@@ -131,9 +158,9 @@ u32 InstructionCache::ReadInstruction(u32 addr)
       return Memory::Read_U32(addr);
     // select a way
     if (valid[set] != 0xff)
-      t = way_from_valid[valid[set]];
+      t = s_way_from_valid[valid[set]];
     else
-      t = way_from_plru[plru[set]];
+      t = s_way_from_plru[plru[set]];
     // load
     Memory::CopyFromEmu(reinterpret_cast<u8*>(data[set][t].data()), (addr & ~0x1f), 32);
     if (valid[set] & (1 << t))
@@ -174,8 +201,6 @@ void InstructionCache::DoState(PointerWrap& p)
   p.DoArray(tags);
   p.DoArray(plru);
   p.DoArray(valid);
-  p.DoArray(way_from_valid);
-  p.DoArray(way_from_plru);
   p.DoArray(lookup_table);
   p.DoArray(lookup_table_ex);
   p.DoArray(lookup_table_vmem);
