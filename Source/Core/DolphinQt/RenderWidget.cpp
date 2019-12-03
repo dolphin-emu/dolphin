@@ -140,8 +140,7 @@ void RenderWidget::dropEvent(QDropEvent* event)
 
 void RenderWidget::OnHideCursorChanged()
 {
-  if (Settings::Instance().GetPrimeEnabled()) setCursor(Qt::BlankCursor);
-  else setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
+  setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
 }
 
 void RenderWidget::OnKeepOnTopChanged(bool top)

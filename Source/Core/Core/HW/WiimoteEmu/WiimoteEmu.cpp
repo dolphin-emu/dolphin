@@ -756,7 +756,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_visors->SetControlExpression(2, "E & `2`");
   m_primehack_visors->SetControlExpression(3, "E & `3`");
   // Misc. Defaults
-  m_primehack_misc->SetControlExpression(0, "SPACE"); // Spring Ball
+  m_primehack_misc->SetControlExpression(0, "LMENU"); // Spring Ball
   m_primehack_misc->SetControlExpression(1, "Axis Z+"); // Next beam
   m_primehack_misc->SetControlExpression(2, "Axis Z-"); // Previous beam
 }
