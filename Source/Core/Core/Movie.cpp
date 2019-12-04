@@ -112,7 +112,8 @@ static bool s_bPolled = false;
 
 // s_InputDisplay is used by both CPU and GPU (is mutable).
 static std::mutex s_input_display_lock;
-static std::array<std::string, SerialInterface::MAX_SI_CHANNELS + MAX_BBMOTES> s_InputDisplay;
+static std::array<std::string, static_cast<size_t>(SerialInterface::MAX_SI_CHANNELS) + MAX_BBMOTES>
+    s_InputDisplay;
 
 static GCManipFunction s_gc_manip_func;
 static WiiManipFunction s_wii_manip_func;
@@ -866,7 +867,8 @@ void ReadHeader()
 {
   s_controllers = tmpHeader.controllers;
   if (tmpHeader.bBalanceBoard)
-    s_controllers |= 1 << (SerialInterface::MAX_SI_CHANNELS + WIIMOTE_BALANCE_BOARD);
+    s_controllers |=
+        1 << (static_cast<size_t>(SerialInterface::MAX_SI_CHANNELS) + WIIMOTE_BALANCE_BOARD);
   s_recordingStartTime = tmpHeader.recordingStartTime;
   if (s_rerecords < tmpHeader.numRerecords)
     s_rerecords = tmpHeader.numRerecords;
@@ -1322,7 +1324,8 @@ void SaveRecording(const std::string& filename)
   header.bFollowBranch = SConfig::GetInstance().bJITFollowBranch;
   header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
   header.bBalanceBoard =
-      (s_controllers & (1 << (SerialInterface::MAX_SI_CHANNELS + WIIMOTE_BALANCE_BOARD))) != 0;
+      (s_controllers &
+       (1 << (static_cast<size_t>(SerialInterface::MAX_SI_CHANNELS) + WIIMOTE_BALANCE_BOARD))) != 0;
 
   header.bFromSaveState = s_bRecordingFromSaveState;
   header.frameCount = s_totalFrames;
