@@ -46,7 +46,7 @@ void HacksWidget::CreateWidgets()
                                              Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, true);
   m_store_efb_copies = new GraphicsBool(tr("Store EFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  m_primehack_autoefb = new GraphicsBool(tr("Automatically disable \"EFB to Texture\" while scanning in MP2 & MP3"), Config::AutoEFBMP);
+  m_primehack_autoefb = new GraphicsBool(tr("Automatically disable \"EFB to Texture\" while scanning in MP2 and MP3"), Config::AutoEFBMP);
 
   m_defer_efb_copies =
       new GraphicsBool(tr("Defer EFB Copies to RAM"), Config::GFX_HACK_DEFER_EFB_COPIES);
