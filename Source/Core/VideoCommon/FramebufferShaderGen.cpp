@@ -20,7 +20,7 @@ APIType GetAPIType()
   return g_ActiveConfig.backend_info.api_type;
 }
 
-void EmitUniformBufferDeclaration(std::stringstream& ss)
+void EmitUniformBufferDeclaration(std::ostringstream& ss)
 {
   if (GetAPIType() == APIType::D3D)
     ss << "cbuffer PSBlock : register(b0)\n";
@@ -28,7 +28,7 @@ void EmitUniformBufferDeclaration(std::stringstream& ss)
     ss << "UBO_BINDING(std140, 1) uniform PSBlock\n";
 }
 
-void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 end = 1,
+void EmitSamplerDeclarations(std::ostringstream& ss, u32 start = 0, u32 end = 1,
                              bool multisampled = false)
 {
   switch (GetAPIType())
@@ -60,7 +60,7 @@ void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 end = 1,
   }
 }
 
-void EmitSampleTexture(std::stringstream& ss, u32 n, std::string_view coords)
+void EmitSampleTexture(std::ostringstream& ss, u32 n, std::string_view coords)
 {
   switch (GetAPIType())
   {
@@ -80,7 +80,7 @@ void EmitSampleTexture(std::stringstream& ss, u32 n, std::string_view coords)
 
 // Emits a texel fetch/load instruction. Assumes that "coords" is a 4-element vector, with z
 // containing the layer, and w containing the mipmap level.
-void EmitTextureLoad(std::stringstream& ss, u32 n, std::string_view coords)
+void EmitTextureLoad(std::ostringstream& ss, u32 n, std::string_view coords)
 {
   switch (GetAPIType())
   {
@@ -98,7 +98,7 @@ void EmitTextureLoad(std::stringstream& ss, u32 n, std::string_view coords)
   }
 }
 
-void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
+void EmitVertexMainDeclaration(std::ostringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
                                bool position_input, u32 num_tex_outputs, u32 num_color_outputs,
                                std::string_view extra_inputs = {})
 {
@@ -164,7 +164,7 @@ void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 nu
   }
 }
 
-void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
+void EmitPixelMainDeclaration(std::ostringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
                               std::string_view output_type = "float4",
                               std::string_view extra_vars = {}, bool emit_frag_coord = false)
 {
@@ -219,7 +219,7 @@ void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num
 
 std::string GenerateScreenQuadVertexShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitVertexMainDeclaration(ss, 0, 0, false, 1, 0,
                             GetAPIType() == APIType::D3D ? "in uint id : SV_VertexID, " :
                                                            "#define id gl_VertexID\n");
@@ -238,7 +238,7 @@ std::string GenerateScreenQuadVertexShader()
 
 std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   if (GetAPIType() == APIType::D3D)
   {
     ss << "struct VS_OUTPUT\n"
@@ -328,7 +328,7 @@ std::string GeneratePassthroughGeometryShader(u32 num_tex, u32 num_colors)
 
 std::string GenerateTextureCopyVertexShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitUniformBufferDeclaration(ss);
   ss << "{"
         "  float2 src_offset;\n"
@@ -354,7 +354,7 @@ std::string GenerateTextureCopyVertexShader()
 
 std::string GenerateTextureCopyPixelShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitSamplerDeclarations(ss, 0, 1, false);
   EmitPixelMainDeclaration(ss, 1, 0);
   ss << "{\n"
@@ -367,7 +367,7 @@ std::string GenerateTextureCopyPixelShader()
 
 std::string GenerateColorPixelShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitPixelMainDeclaration(ss, 0, 1);
   ss << "{\n"
         "  ocol0 = v_col0;\n"
@@ -377,7 +377,7 @@ std::string GenerateColorPixelShader()
 
 std::string GenerateResolveDepthPixelShader(u32 samples)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitSamplerDeclarations(ss, 0, 1, true);
   EmitPixelMainDeclaration(ss, 1, 0, "float",
                            GetAPIType() == APIType::D3D ? "in float4 ipos : SV_Position, " : "");
@@ -405,7 +405,7 @@ std::string GenerateResolveDepthPixelShader(u32 samples)
 
 std::string GenerateClearVertexShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitUniformBufferDeclaration(ss);
   ss << "{\n"
         "  float4 clear_color;\n"
@@ -431,7 +431,7 @@ std::string GenerateClearVertexShader()
 
 std::string GenerateEFBPokeVertexShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitVertexMainDeclaration(ss, 0, 1, true, 0, 1);
   ss << "{\n"
         "  v_col0 = rawcolor0;\n"
@@ -449,7 +449,7 @@ std::string GenerateEFBPokeVertexShader()
 
 std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samples)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitSamplerDeclarations(ss, 0, 1, samples > 1);
   EmitPixelMainDeclaration(
       ss, 1, 0, "float4",
@@ -539,7 +539,7 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
 
 std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureFormat to_format)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitSamplerDeclarations(ss, 0, 1, false);
   EmitPixelMainDeclaration(ss, 1, 0, "float4", "", true);
   ss << "{\n"
@@ -662,7 +662,7 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
 
 std::string GenerateEFBRestorePixelShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitSamplerDeclarations(ss, 0, 2, false);
   EmitPixelMainDeclaration(ss, 1, 0, "float4",
                            GetAPIType() == APIType::D3D ? "out float depth : SV_Depth, " : "");
@@ -679,7 +679,7 @@ std::string GenerateEFBRestorePixelShader()
 
 std::string GenerateImGuiVertexShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
 
   // Uniform buffer contains the viewport size, and we transform in the vertex shader.
   EmitUniformBufferDeclaration(ss);
@@ -704,7 +704,7 @@ std::string GenerateImGuiVertexShader()
 
 std::string GenerateImGuiPixelShader()
 {
-  std::stringstream ss;
+  std::ostringstream ss;
   EmitSamplerDeclarations(ss, 0, 1, false);
   EmitPixelMainDeclaration(ss, 1, 1);
   ss << "{\n"
