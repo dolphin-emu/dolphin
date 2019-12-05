@@ -14,9 +14,9 @@
 // vertices.
 
 #include "VideoCommon/OpcodeDecoding.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/BPMemory.h"
@@ -26,7 +26,6 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace OpcodeDecoder
