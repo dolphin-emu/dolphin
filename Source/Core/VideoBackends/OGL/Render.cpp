@@ -786,7 +786,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
-  IndexGenerator::Init();
 
   UpdateActiveConfig();
 }

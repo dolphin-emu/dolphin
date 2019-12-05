@@ -64,7 +64,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
   }
 
-  for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++)
+  for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
   {
     const u16 index = m_cpu_index_buffer[i];
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));

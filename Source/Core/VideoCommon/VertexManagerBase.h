@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
 
@@ -65,6 +66,7 @@ public:
   virtual bool Initialize();
 
   PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
+  void AddIndices(int primitive, u32 num_vertices);
   DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
   void FlushData(u32 count, u32 stride);
 
@@ -134,7 +136,7 @@ protected:
   virtual void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex);
 
   u32 GetRemainingSize() const;
-  static u32 GetRemainingIndices(int primitive);
+  u32 GetRemainingIndices(int primitive) const;
 
   void CalculateZSlope(NativeVertexFormat* format);
   void LoadTextures();
@@ -158,6 +160,8 @@ protected:
   bool m_depth_state_changed = true;
   bool m_blending_state_changed = true;
   bool m_cull_all = false;
+
+  IndexGenerator m_index_generator;
 
 private:
   // Minimum number of draws per command buffer when attempting to preempt a readback operation.

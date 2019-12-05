@@ -17,9 +17,6 @@ namespace
 {
 constexpr u16 s_primitive_restart = UINT16_MAX;
 
-using PrimitiveFunction = u16*(*)(u16*, u32, u32);
-std::array<PrimitiveFunction, 8> s_primitive_table;
-
 template <bool pr>
 u16* WriteTriangle(u16* index_ptr, u32 index1, u32 index2, u32 index3)
 {
@@ -204,56 +201,54 @@ u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
 }
 }  // Anonymous namespace
 
-// Init
-u16* IndexGenerator::index_buffer_current;
-u16* IndexGenerator::BASEIptr;
-u32 IndexGenerator::base_index;
-
 void IndexGenerator::Init()
 {
   if (g_Config.backend_info.bSupportsPrimitiveRestart)
   {
-    s_primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<true>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<true>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<true>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<true>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<true>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<true>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<true>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<true>;
   }
   else
   {
-    s_primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<false>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<false>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<false>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
-    s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<false>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<false>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<false>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
+    m_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  s_primitive_table[OpcodeDecoder::GX_DRAW_LINES] = AddLineList;
-  s_primitive_table[OpcodeDecoder::GX_DRAW_LINE_STRIP] = AddLineStrip;
-  s_primitive_table[OpcodeDecoder::GX_DRAW_POINTS] = AddPoints;
+  m_primitive_table[OpcodeDecoder::GX_DRAW_LINES] = AddLineList;
+  m_primitive_table[OpcodeDecoder::GX_DRAW_LINE_STRIP] = AddLineStrip;
+  m_primitive_table[OpcodeDecoder::GX_DRAW_POINTS] = AddPoints;
 }
 
-void IndexGenerator::Start(u16* Indexptr)
+void IndexGenerator::Start(u16* index_ptr)
 {
-  index_buffer_current = Indexptr;
-  BASEIptr = Indexptr;
-  base_index = 0;
+  m_index_buffer_current = index_ptr;
+  m_base_index_ptr = index_ptr;
+  m_base_index = 0;
 }
 
-void IndexGenerator::AddIndices(int primitive, u32 numVerts)
+void IndexGenerator::AddIndices(int primitive, u32 num_vertices)
 {
-  index_buffer_current = s_primitive_table[primitive](index_buffer_current, numVerts, base_index);
-  base_index += numVerts;
+  m_index_buffer_current =
+      m_primitive_table[primitive](m_index_buffer_current, num_vertices, m_base_index);
+  m_base_index += num_vertices;
 }
 
 void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices)
 {
-  std::memcpy(index_buffer_current, indices, sizeof(u16) * num_indices);
-  index_buffer_current += num_indices;
-  base_index += num_vertices;
+  std::memcpy(m_index_buffer_current, indices, sizeof(u16) * num_indices);
+  m_index_buffer_current += num_indices;
+  m_base_index += num_vertices;
 }
 
-u32 IndexGenerator::GetRemainingIndices()
+u32 IndexGenerator::GetRemainingIndices() const
 {
-  u32 max_index = 65534;  // -1 is reserved for primitive restart (ogl + dx11)
-  return max_index - base_index;
+  // -1 is reserved for primitive restart (OGL + DX11)
+  constexpr u32 max_index = 65534;
+
+  return max_index - m_base_index;
 }
