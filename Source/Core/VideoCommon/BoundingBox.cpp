@@ -9,6 +9,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/PixelShaderManager.h"
 
 namespace BoundingBox
 {
@@ -29,11 +30,13 @@ std::array<u16, 4> s_coordinates{
 void Enable()
 {
   s_is_active = true;
+  PixelShaderManager::SetBoundingBoxActive(s_is_active);
 }
 
 void Disable()
 {
   s_is_active = false;
+  PixelShaderManager::SetBoundingBoxActive(s_is_active);
 }
 
 bool IsEnabled()
