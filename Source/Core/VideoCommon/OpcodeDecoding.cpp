@@ -9,10 +9,9 @@
 //  Super Mario Galaxy has nearly all geometry and more than half of the state in DLs (great!)
 
 // Note that it IS NOT GENERALLY POSSIBLE to precompile display lists! You can compile them as they
-// are
-// while interpreting them, and hope that the vertex format doesn't change, though, if you do it
-// right
-// when they are called. The reason is that the vertex format affects the sizes of the vertices.
+// are while interpreting them, and hope that the vertex format doesn't change, though, if you do
+// it right when they are called. The reason is that the vertex format affects the sizes of the
+// vertices.
 
 #include "VideoCommon/OpcodeDecoding.h"
 #include "Common/CommonTypes.h"
