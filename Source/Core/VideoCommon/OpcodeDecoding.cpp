@@ -136,7 +136,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         return finish_up();
 
       const u32 cmd2 = src.Read<u32>();
-      const int transfer_size = ((cmd2 >> 16) & 15) + 1;
+      const u32 transfer_size = ((cmd2 >> 16) & 15) + 1;
       if (src.size() < transfer_size * sizeof(u32))
         return finish_up();
 
