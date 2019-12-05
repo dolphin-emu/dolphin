@@ -279,7 +279,7 @@ static void BPWritten(const BPCmd& bp)
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
 
-      BoundingBox::active = false;
+      BoundingBox::Disable();
       PixelShaderManager::SetBoundingBoxActive(false);
 
       float yScale;
@@ -448,8 +448,8 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_CLEARBBOX1:
   case BPMEM_CLEARBBOX2:
   {
-    u8 offset = bp.address & 2;
-    BoundingBox::active = true;
+    const u8 offset = bp.address & 2;
+    BoundingBox::Enable();
     PixelShaderManager::SetBoundingBoxActive(true);
 
     if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)

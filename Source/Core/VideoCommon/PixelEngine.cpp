@@ -233,7 +233,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (int i = 0; i < 4; ++i)
   {
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](u32) {
-                     BoundingBox::active = false;
+                     BoundingBox::Disable();
                      PixelShaderManager::SetBoundingBoxActive(false);
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
