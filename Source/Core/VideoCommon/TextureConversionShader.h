@@ -28,15 +28,16 @@ struct DecodingShaderInfo
   u32 group_size_y;
   bool group_flatten;
   const char* shader_body;
+
+  // Determine how many thread groups should be dispatched for an image of the specified
+  // width/height.
+  // First is the number of X groups, second is the number of Y groups, Z is always one.
+  std::pair<u32, u32> GetDispatchCount(u32 width, u32 height) const;
 };
 
 // Obtain shader information for the specified texture format.
 // If this format does not have a shader written for it, returns nullptr.
 const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format);
-
-// Determine how many thread groups should be dispatched for an image of the specified width/height.
-// First is the number of X groups, second is the number of Y groups, Z is always one.
-std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, u32 height);
 
 // Returns the string containing the texture decoding shader for the specified format.
 std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_format);

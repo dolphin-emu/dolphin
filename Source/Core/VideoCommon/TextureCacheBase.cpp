@@ -2815,9 +2815,9 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
   g_renderer->SetComputeImageTexture(m_decoding_texture.get(), false, true);
 
-  auto dispatch_groups =
-      TextureConversionShaderTiled::GetDispatchCount(info, aligned_width, aligned_height);
-  g_renderer->DispatchComputeShader(shader, dispatch_groups.first, dispatch_groups.second, 1);
+  const auto [dispatch_groups_x, dispatch_groups_y] =
+      info->GetDispatchCount(aligned_width, aligned_height);
+  g_renderer->DispatchComputeShader(shader, dispatch_groups_x, dispatch_groups_y, 1);
 
   // Copy from decoding texture -> final texture
   // This is because we don't want to have to create compute view for every layer
