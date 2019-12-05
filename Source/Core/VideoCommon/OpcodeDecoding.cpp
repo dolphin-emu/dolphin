@@ -86,16 +86,24 @@ template <bool is_preprocess>
 u8* Run(DataReader src, u32* cycles, bool in_display_list)
 {
   u32 total_cycles = 0;
-  u8* opcode_start;
+  u8* opcode_start = nullptr;
+
+  const auto finish_up = [cycles, &opcode_start, &total_cycles] {
+    if (cycles != nullptr)
+    {
+      *cycles = total_cycles;
+    }
+    return opcode_start;
+  };
+
   while (true)
   {
     opcode_start = src.GetPointer();
 
     if (!src.size())
-      goto end;
+      return finish_up();
 
     const u8 cmd_byte = src.Read<u8>();
-    int refarray;
     switch (cmd_byte)
     {
     case GX_NOP:
@@ -110,7 +118,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     case GX_LOAD_CP_REG:
     {
       if (src.size() < 1 + 4)
-        goto end;
+        return finish_up();
 
       total_cycles += 12;
 
@@ -125,12 +133,12 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     case GX_LOAD_XF_REG:
     {
       if (src.size() < 4)
-        goto end;
+        return finish_up();
 
       const u32 cmd2 = src.Read<u32>();
       const int transfer_size = ((cmd2 >> 16) & 15) + 1;
       if (src.size() < transfer_size * sizeof(u32))
-        goto end;
+        return finish_up();
 
       total_cycles += 18 + 6 * transfer_size;
 
@@ -145,32 +153,34 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
     break;
 
-    case GX_LOAD_INDX_A:  // used for position matrices
-      refarray = 0xC;
-      goto load_indx;
-    case GX_LOAD_INDX_B:  // used for normal matrices
-      refarray = 0xD;
-      goto load_indx;
-    case GX_LOAD_INDX_C:  // used for postmatrices
-      refarray = 0xE;
-      goto load_indx;
-    case GX_LOAD_INDX_D:  // used for lights
-      refarray = 0xF;
-      goto load_indx;
-    load_indx:
+    case GX_LOAD_INDX_A:  // Used for position matrices
+    case GX_LOAD_INDX_B:  // Used for normal matrices
+    case GX_LOAD_INDX_C:  // Used for postmatrices
+    case GX_LOAD_INDX_D:  // Used for lights
+    {
       if (src.size() < 4)
-        goto end;
+        return finish_up();
+
       total_cycles += 6;
+
+      // Map the command byte to its ref array.
+      // GX_LOAD_INDX_A (32) -> 0xC
+      // GX_LOAD_INDX_B (40) -> 0xD
+      // GX_LOAD_INDX_C (48) -> 0xE
+      // GX_LOAD_INDX_D (56) -> 0xF
+      const int ref_array = (cmd_byte / 8) + 8;
+
       if (is_preprocess)
-        PreprocessIndexedXF(src.Read<u32>(), refarray);
+        PreprocessIndexedXF(src.Read<u32>(), ref_array);
       else
-        LoadIndexedXF(src.Read<u32>(), refarray);
-      break;
+        LoadIndexedXF(src.Read<u32>(), ref_array);
+    }
+    break;
 
     case GX_CMD_CALL_DL:
     {
       if (src.size() < 8)
-        goto end;
+        return finish_up();
 
       const u32 address = src.Read<u32>();
       const u32 count = src.Read<u32>();
@@ -206,7 +216,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       // tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
       {
         if (src.size() < 4)
-          goto end;
+          return finish_up();
 
         total_cycles += 12;
 
@@ -229,7 +239,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       {
         // load vertices
         if (src.size() < 2)
-          goto end;
+          return finish_up();
 
         const u16 num_vertices = src.Read<u16>();
         const int bytes = VertexLoaderManager::RunVertices(
@@ -237,7 +247,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
             (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src, is_preprocess);
 
         if (bytes < 0)
-          goto end;
+          return finish_up();
 
         src.Skip(bytes);
 
@@ -263,13 +273,6 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       FifoRecorder::GetInstance().WriteGPCommand(opcode_start, u32(opcode_end - opcode_start));
     }
   }
-
-end:
-  if (cycles)
-  {
-    *cycles = total_cycles;
-  }
-  return opcode_start;
 }
 
 template u8* Run<true>(DataReader src, u32* cycles, bool in_display_list);
