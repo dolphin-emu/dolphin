@@ -1,5 +1,11 @@
+// Copyright 2019 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "VideoCommon/FramebufferShaderGen.h"
+
 #include <sstream>
+
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderGen.h"
