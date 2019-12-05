@@ -31,9 +31,11 @@
 
 namespace OpcodeDecoder
 {
-static bool s_is_fifo_error_seen = false;
+namespace
+{
+bool s_is_fifo_error_seen = false;
 
-static u32 InterpretDisplayList(u32 address, u32 size)
+u32 InterpretDisplayList(u32 address, u32 size)
 {
   u8* start_address;
 
@@ -60,7 +62,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
   return cycles;
 }
 
-static void InterpretDisplayListPreprocess(u32 address, u32 size)
+void InterpretDisplayListPreprocess(u32 address, u32 size)
 {
   u8* const start_address = Memory::GetPointer(address);
 
@@ -71,6 +73,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 
   Run<true>(DataReader(start_address, start_address + size), nullptr, true);
 }
+}  // Anonymous namespace
 
 bool g_record_fifo_data = false;
 
