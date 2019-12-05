@@ -30,8 +30,6 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-bool g_bRecordFifoData = false;
-
 namespace OpcodeDecoder
 {
 static bool s_is_fifo_error_seen = false;
@@ -74,6 +72,8 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 
   Run<true>(DataReader(start_address, start_address + size), nullptr, true);
 }
+
+bool g_record_fifo_data = false;
 
 void Init()
 {
@@ -255,7 +255,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
 
     // Display lists get added directly into the FIFO stream
-    if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
+    if (!is_preprocess && g_record_fifo_data && cmd_byte != GX_CMD_CALL_DL)
     {
       const u8* const opcode_end = src.GetPointer();
       FifoRecorder::GetInstance().WriteGPCommand(opcode_start, u32(opcode_end - opcode_start));
