@@ -11,14 +11,13 @@
 
 enum class APIType;
 enum class TextureFormat;
-enum class EFBCopyFormat;
 enum class TLUTFormat;
 enum TexelBufferFormat : u32;
 struct EFBCopyParams;
 
 namespace TextureConversionShaderTiled
 {
-const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type);
+std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type);
 
 // Information required to compile and dispatch a texture decoding shader.
 struct DecodingShaderInfo

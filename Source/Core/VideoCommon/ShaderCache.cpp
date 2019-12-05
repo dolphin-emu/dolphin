@@ -1178,7 +1178,7 @@ const AbstractPipeline* ShaderCache::GetEFBCopyToRAMPipeline(const EFBCopyParams
   if (iter != m_efb_copy_to_ram_pipelines.end())
     return iter->second.get();
 
-  const char* const shader_code =
+  const std::string shader_code =
       TextureConversionShaderTiled::GenerateEncodingShader(uid, m_api_type);
   const auto shader = g_renderer->CreateShaderFromSource(ShaderStage::Pixel, shader_code);
   if (!shader)

@@ -2,32 +2,26 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <array>
-#include <cmath>
-#include <cstdio>
+#include "VideoCommon/TextureConversionShader.h"
+
+#include <iterator>
 #include <map>
 #include <sstream>
 
-#include "Common/CommonFuncs.h"
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-
-#define WRITE p += sprintf
 
 namespace TextureConversionShaderTiled
 {
 namespace
 {
-char s_text[16384];
-bool s_intensity_constant_added = false;
-
 // NOTE: In these uniforms, a row refers to a row of blocks, not texels.
 constexpr char s_decoding_shader_header[] = R"(
 #if defined(PALETTE_FORMAT_IA8) || defined(PALETTE_FORMAT_RGB565) || defined(PALETTE_FORMAT_RGB5A3)
@@ -584,789 +578,820 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
   }
 }
 
-void WriteHeader(char*& p, APIType ApiType)
+class EncodingShaderGenerator
 {
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+public:
+  static std::string GenerateShader(const EFBCopyParams& params, APIType api_type)
   {
-    // left, top, of source rectangle within source texture
-    // width of the destination rectangle, scale_factor (1 or 2)
-    WRITE(p, "UBO_BINDING(std140, 1) uniform PSBlock {\n");
-    WRITE(p, "  int4 position;\n");
-    WRITE(p, "  float y_scale;\n");
-    WRITE(p, "  float gamma_rcp;\n");
-    WRITE(p, "  float2 clamp_tb;\n");
-    WRITE(p, "  float3 filter_coefficients;\n");
-    WRITE(p, "};\n");
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      WRITE(p, "VARYING_LOCATION(0) in VertexData {\n");
-      WRITE(p, "  float3 v_tex0;\n");
-      WRITE(p, "};\n");
-    }
-    else
-    {
-      WRITE(p, "VARYING_LOCATION(0) in float3 v_tex0;\n");
-    }
-    WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n");
-  }
-  else  // D3D
-  {
-    WRITE(p, "cbuffer PSBlock : register(b0) {\n");
-    WRITE(p, "  int4 position;\n");
-    WRITE(p, "  float y_scale;\n");
-    WRITE(p, "  float gamma_rcp;\n");
-    WRITE(p, "  float2 clamp_tb;\n");
-    WRITE(p, "  float3 filter_coefficients;\n");
-    WRITE(p, "};\n");
-    WRITE(p, "sampler samp0 : register(s0);\n");
-    WRITE(p, "Texture2DArray Tex0 : register(t0);\n");
+    EncodingShaderGenerator generator;
+    return generator.GenerateEncodingShader(params, api_type);
   }
 
-  // D3D does not have roundEven(), only round(), which is specified "to the nearest integer".
-  // This differs from the roundEven() behavior, but to get consistency across drivers in OpenGL
-  // we need to use roundEven().
-  if (ApiType == APIType::D3D)
-    WRITE(p, "#define roundEven(x) round(x)\n");
+private:
+  explicit EncodingShaderGenerator() { m_buffer.reserve(16384); }
 
-  // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
-  WRITE(p, "float4 RGBA8ToRGB8(float4 src)\n");
-  WRITE(p, "{\n");
-  WRITE(p, "  return float4(src.xyz, 1.0);\n");
-  WRITE(p, "}\n");
+  // Appends an unformatted string to the buffer.
+  void Append(std::string_view text) { m_buffer += text; }
 
-  WRITE(p, "float4 RGBA8ToRGBA6(float4 src)\n");
-  WRITE(p, "{\n");
-  WRITE(p, "  int4 val = int4(roundEven(src * 255.0)) >> 2;\n");
-  WRITE(p, "  return float4(val) / 63.0;\n");
-  WRITE(p, "}\n");
+  // Appends a formatted string to the internal buffer using fmt format strings.
+  template <typename... Args>
+  void AppendFmt(std::string_view format, Args&&... args)
+  {
+    fmt::format_to(std::back_inserter(m_buffer), format, std::forward<Args>(args)...);
+  }
 
-  WRITE(p, "float4 RGBA8ToRGB565(float4 src)\n");
-  WRITE(p, "{\n");
-  WRITE(p, "  int4 val = int4(roundEven(src * 255.0));\n");
-  WRITE(p, "  val = int4(val.r >> 3, val.g >> 2, val.b >> 3, 1);\n");
-  WRITE(p, "  return float4(val) / float4(31.0, 63.0, 31.0, 1.0);\n");
-  WRITE(p, "}\n");
-}
-
-void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType ApiType)
-{
-  auto WriteSampleOp = [&](int yoffset) {
-    if (!params.depth)
+  std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type)
+  {
+    switch (params.copy_format)
     {
-      switch (params.efb_format)
+    case EFBCopyFormat::R4:
+      if (params.yuv)
+        WriteI4Encoder(api_type, params);
+      else
+        WriteC4Encoder("r", api_type, params);
+      break;
+    case EFBCopyFormat::RA4:
+      if (params.yuv)
+        WriteIA4Encoder(api_type, params);
+      else
+        WriteCC4Encoder("ar", api_type, params);
+      break;
+    case EFBCopyFormat::RA8:
+      if (params.yuv)
+        WriteIA8Encoder(api_type, params);
+      else
+        WriteCC8Encoder("ar", api_type, params);
+      break;
+    case EFBCopyFormat::RGB565:
+      WriteRGB565Encoder(api_type, params);
+      break;
+    case EFBCopyFormat::RGB5A3:
+      WriteRGB5A3Encoder(api_type, params);
+      break;
+    case EFBCopyFormat::RGBA8:
+      if (params.depth)
+        WriteZ24Encoder(api_type, params);
+      else
+        WriteRGBA8Encoder(api_type, params);
+      break;
+    case EFBCopyFormat::A8:
+      WriteC8Encoder("a", api_type, params);
+      break;
+    case EFBCopyFormat::R8_0x1:
+    case EFBCopyFormat::R8:
+      if (params.yuv)
+        WriteI8Encoder(api_type, params);
+      else
+        WriteC8Encoder("r", api_type, params);
+      break;
+    case EFBCopyFormat::G8:
+      if (params.depth)
+        WriteZ8Encoder("256.0", api_type, params);  // Z8M
+      else
+        WriteC8Encoder("g", api_type, params);
+      break;
+    case EFBCopyFormat::B8:
+      if (params.depth)
+        WriteZ8Encoder("65536.0", api_type, params);  // Z8L
+      else
+        WriteC8Encoder("b", api_type, params);
+      break;
+    case EFBCopyFormat::RG8:
+      if (params.depth)
+        WriteZ16Encoder(api_type, params);  // Z16H
+      else
+        WriteCC8Encoder("gr", api_type, params);
+      break;
+    case EFBCopyFormat::GB8:
+      if (params.depth)
+        WriteZ16LEncoder(api_type, params);  // Z16L
+      else
+        WriteCC8Encoder("bg", api_type, params);
+      break;
+    case EFBCopyFormat::XFB:
+      WriteXFBEncoder(api_type, params);
+      break;
+    default:
+      PanicAlert("Invalid EFB Copy Format (0x%X)! (GenerateEncodingShader)",
+                 static_cast<int>(params.copy_format));
+      break;
+    }
+
+    return m_buffer;
+  }
+
+  void WriteHeader(APIType api_type)
+  {
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    {
+      // left, top, of source rectangle within source texture
+      // width of the destination rectangle, scale_factor (1 or 2)
+      Append("UBO_BINDING(std140, 1) uniform PSBlock {\n"
+             "  int4 position;\n"
+             "  float y_scale;\n"
+             "  float gamma_rcp;\n"
+             "  float2 clamp_tb;\n"
+             "  float3 filter_coefficients;\n"
+             "};\n");
+      if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
       {
-      case PEControl::RGB8_Z24:
-        WRITE(p, "RGBA8ToRGB8(");
-        break;
-      case PEControl::RGBA6_Z24:
-        WRITE(p, "RGBA8ToRGBA6(");
-        break;
-      case PEControl::RGB565_Z16:
-        WRITE(p, "RGBA8ToRGB565(");
-        break;
-      default:
-        WRITE(p, "(");
-        break;
+        Append("VARYING_LOCATION(0) in VertexData {\n"
+               "  float3 v_tex0;\n"
+               "};\n");
       }
-    }
-    else
-    {
-      // Handle D3D depth inversion.
-      if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-        WRITE(p, "1.0 - (");
       else
-        WRITE(p, "(");
+      {
+        Append("VARYING_LOCATION(0) in float3 v_tex0;\n");
+      }
+      Append("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
+             "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n");
     }
-
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-      WRITE(p, "texture(samp0, float3(");
-    else
-      WRITE(p, "Tex0.Sample(samp0, float3(");
-
-    WRITE(p, "uv.x + float(xoffset) * pixel_size.x, ");
-
-    // Reverse the direction for OpenGL, since positive numbers are distance from the bottom row.
-    if (yoffset != 0)
+    else  // D3D
     {
-      if (ApiType == APIType::OpenGL)
-        WRITE(p, "clamp(uv.y - float(%d) * pixel_size.y, clamp_tb.x, clamp_tb.y)", yoffset);
-      else
-        WRITE(p, "clamp(uv.y + float(%d) * pixel_size.y, clamp_tb.x, clamp_tb.y)", yoffset);
-    }
-    else
-    {
-      WRITE(p, "uv.y");
+      Append("cbuffer PSBlock : register(b0) {\n"
+             "  int4 position;\n"
+             "  float y_scale;\n"
+             "  float gamma_rcp;\n"
+             "  float2 clamp_tb;\n"
+             "  float3 filter_coefficients;\n"
+             "};\n"
+             "sampler samp0 : register(s0);\n"
+             "Texture2DArray Tex0 : register(t0);\n");
     }
 
-    WRITE(p, ", 0.0)))");
-  };
+    // D3D does not have roundEven(), only round(), which is specified "to the nearest integer".
+    // This differs from the roundEven() behavior, but to get consistency across drivers in OpenGL
+    // we need to use roundEven().
+    if (api_type == APIType::D3D)
+      Append("#define roundEven(x) round(x)\n");
 
-  // The copy filter applies to both color and depth copies. This has been verified on hardware.
-  // The filter is only applied to the RGB channels, the alpha channel is left intact.
-  WRITE(p, "float4 SampleEFB(float2 uv, float2 pixel_size, int xoffset)\n");
-  WRITE(p, "{\n");
-  if (params.copy_filter)
+    // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
+    Append("float4 RGBA8ToRGB8(float4 src)\n"
+           "{\n"
+           "  return float4(src.xyz, 1.0);\n"
+           "}\n"
+           "float4 RGBA8ToRGBA6(float4 src)\n"
+           "{\n"
+           "  int4 val = int4(roundEven(src * 255.0)) >> 2;\n"
+           "  return float4(val) / 63.0;\n"
+           "}\n"
+           "float4 RGBA8ToRGB565(float4 src)\n"
+           "{\n"
+           "  int4 val = int4(roundEven(src * 255.0));\n"
+           "  val = int4(val.r >> 3, val.g >> 2, val.b >> 3, 1);\n"
+           "  return float4(val) / float4(31.0, 63.0, 31.0, 1.0);\n"
+           "}\n");
+  }
+
+  void WriteSampleFunction(const EFBCopyParams& params, APIType api_type)
   {
-    WRITE(p, "  float4 prev_row = ");
-    WriteSampleOp(-1);
-    WRITE(p, ";\n");
-    WRITE(p, "  float4 current_row = ");
-    WriteSampleOp(0);
-    WRITE(p, ";\n");
-    WRITE(p, "  float4 next_row = ");
-    WriteSampleOp(1);
-    WRITE(p, ";\n");
-    WRITE(p, "  return float4(min(prev_row.rgb * filter_coefficients[0] +\n"
+    const auto WriteSampleOp = [api_type, &params, this](int y_offset) {
+      if (!params.depth)
+      {
+        switch (params.efb_format)
+        {
+        case PEControl::RGB8_Z24:
+          Append("RGBA8ToRGB8(");
+          break;
+        case PEControl::RGBA6_Z24:
+          Append("RGBA8ToRGBA6(");
+          break;
+        case PEControl::RGB565_Z16:
+          Append("RGBA8ToRGB565(");
+          break;
+        default:
+          Append("(");
+          break;
+        }
+      }
+      else
+      {
+        // Handle D3D depth inversion.
+        if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+          Append("1.0 - (");
+        else
+          Append("(");
+      }
+
+      if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+        Append("texture(samp0, float3(");
+      else
+        Append("Tex0.Sample(samp0, float3(");
+
+      Append("uv.x + float(xoffset) * pixel_size.x, ");
+
+      // Reverse the direction for OpenGL, since positive numbers are distance from the bottom row.
+      if (y_offset != 0)
+      {
+        if (api_type == APIType::OpenGL)
+          AppendFmt("clamp(uv.y - float({}) * pixel_size.y, clamp_tb.x, clamp_tb.y)", y_offset);
+        else
+          AppendFmt("clamp(uv.y + float({}) * pixel_size.y, clamp_tb.x, clamp_tb.y)", y_offset);
+      }
+      else
+      {
+        Append("uv.y");
+      }
+
+      Append(", 0.0)))");
+    };
+
+    // The copy filter applies to both color and depth copies. This has been verified on hardware.
+    // The filter is only applied to the RGB channels, the alpha channel is left intact.
+    Append("float4 SampleEFB(float2 uv, float2 pixel_size, int xoffset)\n"
+           "{\n");
+    if (params.copy_filter)
+    {
+      Append("  float4 prev_row = ");
+      WriteSampleOp(-1);
+      Append(";\n"
+             "  float4 current_row = ");
+      WriteSampleOp(0);
+      Append(";\n"
+             "  float4 next_row = ");
+      WriteSampleOp(1);
+      Append(";\n"
+             "  return float4(min(prev_row.rgb * filter_coefficients[0] +\n"
              "                      current_row.rgb * filter_coefficients[1] +\n"
              "                      next_row.rgb * filter_coefficients[2], \n"
              "                    float3(1, 1, 1)), current_row.a);\n");
-  }
-  else
-  {
-    WRITE(p, "  float4 current_row = ");
-    WriteSampleOp(0);
-    WRITE(p, ";\n");
-    WRITE(p, "return float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
+    }
+    else
+    {
+      Append("  float4 current_row = ");
+      WriteSampleOp(0);
+      Append(";\n"
+             "return float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
              "              current_row.a);\n");
+    }
+    Append("}\n");
   }
-  WRITE(p, "}\n");
-}
 
-// block dimensions : widthStride, heightStride
-// texture dims : width, height, x offset, y offset
-void WriteSwizzler(char*& p, const EFBCopyParams& params, EFBCopyFormat format, APIType ApiType)
-{
-  WriteHeader(p, ApiType);
-  WriteSampleFunction(p, params, ApiType);
-
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  // Block dimensions  : width_stride, height_stride
+  // Texture dimensions: width, height, X offset, Y offset
+  void WriteSwizzler(const EFBCopyParams& params, EFBCopyFormat format, APIType api_type)
   {
-    WRITE(p, "void main()\n");
-    WRITE(p, "{\n"
+    WriteHeader(api_type);
+    WriteSampleFunction(params, api_type);
+
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    {
+      Append("void main()\n"
+             "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n");
-  }
-  else  // D3D
-  {
-    WRITE(p, "void main(\n");
-    WRITE(p, "  in float3 v_tex0 : TEXCOORD0,\n");
-    WRITE(p, "  in float4 rawpos : SV_Position,\n");
-    WRITE(p, "  out float4 ocol0 : SV_Target)\n");
-    WRITE(p, "{\n"
+    }
+    else  // D3D
+    {
+      Append("void main(\n"
+             "  in float3 v_tex0 : TEXCOORD0,\n"
+             "  in float4 rawpos : SV_Position,\n"
+             "  out float4 ocol0 : SV_Target)\n"
+             "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(rawpos.xy);\n");
+    }
+
+    const int blk_w = TexDecoder_GetEFBCopyBlockWidthInTexels(format);
+    const int blk_h = TexDecoder_GetEFBCopyBlockHeightInTexels(format);
+    int samples = GetEncodedSampleCount(format);
+
+    AppendFmt("  int x_block_position = (uv1.x >> {}) << {};\n", IntLog2(blk_h * blk_w / samples),
+              IntLog2(blk_w));
+    AppendFmt("  int y_block_position = uv1.y << {};\n", IntLog2(blk_h));
+    if (samples == 1)
+    {
+      // With samples == 1, we write out pairs of blocks; one A8R8, one G8B8.
+      AppendFmt("  bool first = (uv1.x & {}) == 0;\n", blk_h * blk_w / 2);
+      samples = 2;
+    }
+    AppendFmt("  int offset_in_block = uv1.x & {};\n", (blk_h * blk_w / samples) - 1);
+    AppendFmt("  int y_offset_in_block = offset_in_block >> {};\n", IntLog2(blk_w / samples));
+    AppendFmt("  int x_offset_in_block = (offset_in_block & {}) << {};\n", (blk_w / samples) - 1,
+              IntLog2(samples));
+
+    Append("  sampleUv.x = x_block_position + x_offset_in_block;\n"
+           "  sampleUv.y = y_block_position + y_offset_in_block;\n");
+
+    // sampleUv is the sample position in (int)gx_coords.
+    Append("  float2 uv0 = float2(sampleUv);\n"
+           // Move to center of pixel.
+           "  uv0 += float2(0.5, 0.5);\n"
+           // Scale by two if needed (also move to pixel
+           // borders so that linear filtering will average
+           // adjacent pixels).
+           "  uv0 *= float(position.w);\n"
+           // Move to copied rect.
+           "  uv0 += float2(position.xy);\n");
+    // Normalize to [0:1]
+    AppendFmt("  uv0 /= float2({}, {});\n", EFB_WIDTH, EFB_HEIGHT);
+
+    // Apply the Y scaling.
+    Append("  uv0 /= float2(1, y_scale);\n");
+
+    // OpenGL has to flip up and down.
+    if (api_type == APIType::OpenGL)
+    {
+      Append("  uv0.y = 1.0-uv0.y;\n");
+    }
+
+    AppendFmt("  float2 pixel_size = float2(position.w, position.w) / float2({}, {});\n", EFB_WIDTH,
+              EFB_HEIGHT);
   }
 
-  int blkW = TexDecoder_GetEFBCopyBlockWidthInTexels(format);
-  int blkH = TexDecoder_GetEFBCopyBlockHeightInTexels(format);
-  int samples = GetEncodedSampleCount(format);
-
-  WRITE(p, "  int x_block_position = (uv1.x >> %d) << %d;\n", IntLog2(blkH * blkW / samples),
-        IntLog2(blkW));
-  WRITE(p, "  int y_block_position = uv1.y << %d;\n", IntLog2(blkH));
-  if (samples == 1)
+  void WriteSampleColor(std::string_view color_comp, std::string_view dest, int x_offset)
   {
-    // With samples == 1, we write out pairs of blocks; one A8R8, one G8B8.
-    WRITE(p, "  bool first = (uv1.x & %d) == 0;\n", blkH * blkW / 2);
-    samples = 2;
+    AppendFmt("  {} = SampleEFB(uv0, pixel_size, {}).{};\n", dest, x_offset, color_comp);
   }
-  WRITE(p, "  int offset_in_block = uv1.x & %d;\n", (blkH * blkW / samples) - 1);
-  WRITE(p, "  int y_offset_in_block = offset_in_block >> %d;\n", IntLog2(blkW / samples));
-  WRITE(p, "  int x_offset_in_block = (offset_in_block & %d) << %d;\n", (blkW / samples) - 1,
-        IntLog2(samples));
 
-  WRITE(p, "  sampleUv.x = x_block_position + x_offset_in_block;\n");
-  WRITE(p, "  sampleUv.y = y_block_position + y_offset_in_block;\n");
-
-  WRITE(p,
-        "  float2 uv0 = float2(sampleUv);\n");  // sampleUv is the sample position in (int)gx_coords
-  WRITE(p, "  uv0 += float2(0.5, 0.5);\n");     // move to center of pixel
-  WRITE(p, "  uv0 *= float(position.w);\n");  // scale by two if needed (also move to pixel borders
-                                              // so that linear filtering will average adjacent
-                                              // pixel)
-  WRITE(p, "  uv0 += float2(position.xy);\n");                    // move to copied rect
-  WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);  // normalize to [0:1]
-  WRITE(p, "  uv0 /= float2(1, y_scale);\n");                     // apply the y scaling
-  if (ApiType == APIType::OpenGL)                                 // ogl has to flip up and down
+  void WriteColorToIntensity(std::string_view src, std::string_view dest)
   {
-    WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
+    if (!m_is_intensity_constant_added)
+    {
+      Append("  float4 IntensityConst = float4(0.257f,0.504f,0.098f,0.0625f);\n");
+      m_is_intensity_constant_added = true;
+    }
+    AppendFmt("  {} = dot(IntensityConst.rgb, {}.rgb);\n", dest, src);
+
+    // Don't add IntensityConst.a yet, because doing it later is faster and uses less instructions,
+    // due to vectorization.
   }
 
-  WRITE(p, "  float2 pixel_size = float2(position.w, position.w) / float2(%d, %d);\n", EFB_WIDTH,
-        EFB_HEIGHT);
-}
-
-void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
-                      APIType ApiType, const EFBCopyParams& params)
-{
-  WRITE(p, "  %s = SampleEFB(uv0, pixel_size, %d).%s;\n", dest, xoffset, colorComp);
-}
-
-void WriteColorToIntensity(char*& p, const char* src, const char* dest)
-{
-  if (!s_intensity_constant_added)
+  void WriteToBitDepth(u32 depth, std::string_view src, std::string_view dest)
   {
-    WRITE(p, "  float4 IntensityConst = float4(0.257f,0.504f,0.098f,0.0625f);\n");
-    s_intensity_constant_added = true;
+    AppendFmt("  {} = floor({} * 255.0 / exp2(8.0 - {}.0));\n", dest, src, depth);
   }
-  WRITE(p, "  %s = dot(IntensityConst.rgb, %s.rgb);\n", dest, src);
-  // don't add IntensityConst.a yet, because doing it later is faster and uses less instructions,
-  // due to vectorization
-}
 
-void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
-{
-  WRITE(p, "  %s = floor(%s * 255.0 / exp2(8.0 - %d.0));\n", dest, src, depth);
-}
-
-void WriteEncoderEnd(char*& p)
-{
-  WRITE(p, "}\n");
-  s_intensity_constant_added = false;
-}
-
-void WriteI8Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::R8, ApiType);
-  WRITE(p, "  float3 texSample;\n");
-
-  WriteSampleColor(p, "rgb", "texSample", 0, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "ocol0.b");
-
-  WriteSampleColor(p, "rgb", "texSample", 1, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "ocol0.g");
-
-  WriteSampleColor(p, "rgb", "texSample", 2, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "ocol0.r");
-
-  WriteSampleColor(p, "rgb", "texSample", 3, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "ocol0.a");
-
-  WRITE(p, "  ocol0.rgba += IntensityConst.aaaa;\n");  // see WriteColorToIntensity
-
-  WriteEncoderEnd(p);
-}
-
-void WriteI4Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::R4, ApiType);
-  WRITE(p, "  float3 texSample;\n");
-  WRITE(p, "  float4 color0;\n");
-  WRITE(p, "  float4 color1;\n");
-
-  WriteSampleColor(p, "rgb", "texSample", 0, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color0.b");
-
-  WriteSampleColor(p, "rgb", "texSample", 1, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color1.b");
-
-  WriteSampleColor(p, "rgb", "texSample", 2, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color0.g");
-
-  WriteSampleColor(p, "rgb", "texSample", 3, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color1.g");
-
-  WriteSampleColor(p, "rgb", "texSample", 4, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color0.r");
-
-  WriteSampleColor(p, "rgb", "texSample", 5, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color1.r");
-
-  WriteSampleColor(p, "rgb", "texSample", 6, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color0.a");
-
-  WriteSampleColor(p, "rgb", "texSample", 7, ApiType, params);
-  WriteColorToIntensity(p, "texSample", "color1.a");
-
-  WRITE(p, "  color0.rgba += IntensityConst.aaaa;\n");
-  WRITE(p, "  color1.rgba += IntensityConst.aaaa;\n");
-
-  WriteToBitDepth(p, 4, "color0", "color0");
-  WriteToBitDepth(p, 4, "color1", "color1");
-
-  WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
-  WriteEncoderEnd(p);
-}
-
-void WriteIA8Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RA8, ApiType);
-  WRITE(p, "  float4 texSample;\n");
-
-  WriteSampleColor(p, "rgba", "texSample", 0, ApiType, params);
-  WRITE(p, "  ocol0.b = texSample.a;\n");
-  WriteColorToIntensity(p, "texSample", "ocol0.g");
-
-  WriteSampleColor(p, "rgba", "texSample", 1, ApiType, params);
-  WRITE(p, "  ocol0.r = texSample.a;\n");
-  WriteColorToIntensity(p, "texSample", "ocol0.a");
-
-  WRITE(p, "  ocol0.ga += IntensityConst.aa;\n");
-
-  WriteEncoderEnd(p);
-}
-
-void WriteIA4Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RA4, ApiType);
-  WRITE(p, "  float4 texSample;\n");
-  WRITE(p, "  float4 color0;\n");
-  WRITE(p, "  float4 color1;\n");
-
-  WriteSampleColor(p, "rgba", "texSample", 0, ApiType, params);
-  WRITE(p, "  color0.b = texSample.a;\n");
-  WriteColorToIntensity(p, "texSample", "color1.b");
-
-  WriteSampleColor(p, "rgba", "texSample", 1, ApiType, params);
-  WRITE(p, "  color0.g = texSample.a;\n");
-  WriteColorToIntensity(p, "texSample", "color1.g");
-
-  WriteSampleColor(p, "rgba", "texSample", 2, ApiType, params);
-  WRITE(p, "  color0.r = texSample.a;\n");
-  WriteColorToIntensity(p, "texSample", "color1.r");
-
-  WriteSampleColor(p, "rgba", "texSample", 3, ApiType, params);
-  WRITE(p, "  color0.a = texSample.a;\n");
-  WriteColorToIntensity(p, "texSample", "color1.a");
-
-  WRITE(p, "  color1.rgba += IntensityConst.aaaa;\n");
-
-  WriteToBitDepth(p, 4, "color0", "color0");
-  WriteToBitDepth(p, 4, "color1", "color1");
-
-  WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
-  WriteEncoderEnd(p);
-}
-
-void WriteRGB565Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RGB565, ApiType);
-  WRITE(p, "  float3 texSample0;\n");
-  WRITE(p, "  float3 texSample1;\n");
-
-  WriteSampleColor(p, "rgb", "texSample0", 0, ApiType, params);
-  WriteSampleColor(p, "rgb", "texSample1", 1, ApiType, params);
-  WRITE(p, "  float2 texRs = float2(texSample0.r, texSample1.r);\n");
-  WRITE(p, "  float2 texGs = float2(texSample0.g, texSample1.g);\n");
-  WRITE(p, "  float2 texBs = float2(texSample0.b, texSample1.b);\n");
-
-  WriteToBitDepth(p, 6, "texGs", "float2 gInt");
-  WRITE(p, "  float2 gUpper = floor(gInt / 8.0);\n");
-  WRITE(p, "  float2 gLower = gInt - gUpper * 8.0;\n");
-
-  WriteToBitDepth(p, 5, "texRs", "ocol0.br");
-  WRITE(p, "  ocol0.br = ocol0.br * 8.0 + gUpper;\n");
-  WriteToBitDepth(p, 5, "texBs", "ocol0.ga");
-  WRITE(p, "  ocol0.ga = ocol0.ga + gLower * 32.0;\n");
-
-  WRITE(p, "  ocol0 = ocol0 / 255.0;\n");
-  WriteEncoderEnd(p);
-}
-
-void WriteRGB5A3Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RGB5A3, ApiType);
-
-  WRITE(p, "  float4 texSample;\n");
-  WRITE(p, "  float color0;\n");
-  WRITE(p, "  float gUpper;\n");
-  WRITE(p, "  float gLower;\n");
-
-  WriteSampleColor(p, "rgba", "texSample", 0, ApiType, params);
-
-  // 0.8784 = 224 / 255 which is the maximum alpha value that can be represented in 3 bits
-  WRITE(p, "if(texSample.a > 0.878f) {\n");
-
-  WriteToBitDepth(p, 5, "texSample.g", "color0");
-  WRITE(p, "  gUpper = floor(color0 / 8.0);\n");
-  WRITE(p, "  gLower = color0 - gUpper * 8.0;\n");
-
-  WriteToBitDepth(p, 5, "texSample.r", "ocol0.b");
-  WRITE(p, "  ocol0.b = ocol0.b * 4.0 + gUpper + 128.0;\n");
-  WriteToBitDepth(p, 5, "texSample.b", "ocol0.g");
-  WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0;\n");
-
-  WRITE(p, "} else {\n");
-
-  WriteToBitDepth(p, 4, "texSample.r", "ocol0.b");
-  WriteToBitDepth(p, 4, "texSample.b", "ocol0.g");
-
-  WriteToBitDepth(p, 3, "texSample.a", "color0");
-  WRITE(p, "ocol0.b = ocol0.b + color0 * 16.0;\n");
-  WriteToBitDepth(p, 4, "texSample.g", "color0");
-  WRITE(p, "ocol0.g = ocol0.g + color0 * 16.0;\n");
-
-  WRITE(p, "}\n");
-
-  WriteSampleColor(p, "rgba", "texSample", 1, ApiType, params);
-
-  WRITE(p, "if(texSample.a > 0.878f) {\n");
-
-  WriteToBitDepth(p, 5, "texSample.g", "color0");
-  WRITE(p, "  gUpper = floor(color0 / 8.0);\n");
-  WRITE(p, "  gLower = color0 - gUpper * 8.0;\n");
-
-  WriteToBitDepth(p, 5, "texSample.r", "ocol0.r");
-  WRITE(p, "  ocol0.r = ocol0.r * 4.0 + gUpper + 128.0;\n");
-  WriteToBitDepth(p, 5, "texSample.b", "ocol0.a");
-  WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0;\n");
-
-  WRITE(p, "} else {\n");
-
-  WriteToBitDepth(p, 4, "texSample.r", "ocol0.r");
-  WriteToBitDepth(p, 4, "texSample.b", "ocol0.a");
-
-  WriteToBitDepth(p, 3, "texSample.a", "color0");
-  WRITE(p, "ocol0.r = ocol0.r + color0 * 16.0;\n");
-  WriteToBitDepth(p, 4, "texSample.g", "color0");
-  WRITE(p, "ocol0.a = ocol0.a + color0 * 16.0;\n");
-
-  WRITE(p, "}\n");
-
-  WRITE(p, "  ocol0 = ocol0 / 255.0;\n");
-  WriteEncoderEnd(p);
-}
-
-void WriteRGBA8Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RGBA8, ApiType);
-
-  WRITE(p, "  float4 texSample;\n");
-  WRITE(p, "  float4 color0;\n");
-  WRITE(p, "  float4 color1;\n");
-
-  WriteSampleColor(p, "rgba", "texSample", 0, ApiType, params);
-  WRITE(p, "  color0.b = texSample.a;\n");
-  WRITE(p, "  color0.g = texSample.r;\n");
-  WRITE(p, "  color1.b = texSample.g;\n");
-  WRITE(p, "  color1.g = texSample.b;\n");
-
-  WriteSampleColor(p, "rgba", "texSample", 1, ApiType, params);
-  WRITE(p, "  color0.r = texSample.a;\n");
-  WRITE(p, "  color0.a = texSample.r;\n");
-  WRITE(p, "  color1.r = texSample.g;\n");
-  WRITE(p, "  color1.a = texSample.b;\n");
-
-  WRITE(p, "  ocol0 = first ? color0 : color1;\n");
-
-  WriteEncoderEnd(p);
-}
-
-void WriteC4Encoder(char*& p, const char* comp, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::R4, ApiType);
-  WRITE(p, "  float4 color0;\n");
-  WRITE(p, "  float4 color1;\n");
-
-  WriteSampleColor(p, comp, "color0.b", 0, ApiType, params);
-  WriteSampleColor(p, comp, "color1.b", 1, ApiType, params);
-  WriteSampleColor(p, comp, "color0.g", 2, ApiType, params);
-  WriteSampleColor(p, comp, "color1.g", 3, ApiType, params);
-  WriteSampleColor(p, comp, "color0.r", 4, ApiType, params);
-  WriteSampleColor(p, comp, "color1.r", 5, ApiType, params);
-  WriteSampleColor(p, comp, "color0.a", 6, ApiType, params);
-  WriteSampleColor(p, comp, "color1.a", 7, ApiType, params);
-
-  WriteToBitDepth(p, 4, "color0", "color0");
-  WriteToBitDepth(p, 4, "color1", "color1");
-
-  WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
-  WriteEncoderEnd(p);
-}
-
-void WriteC8Encoder(char*& p, const char* comp, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::R8, ApiType);
-
-  WriteSampleColor(p, comp, "ocol0.b", 0, ApiType, params);
-  WriteSampleColor(p, comp, "ocol0.g", 1, ApiType, params);
-  WriteSampleColor(p, comp, "ocol0.r", 2, ApiType, params);
-  WriteSampleColor(p, comp, "ocol0.a", 3, ApiType, params);
-
-  WriteEncoderEnd(p);
-}
-
-void WriteCC4Encoder(char*& p, const char* comp, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RA4, ApiType);
-  WRITE(p, "  float2 texSample;\n");
-  WRITE(p, "  float4 color0;\n");
-  WRITE(p, "  float4 color1;\n");
-
-  WriteSampleColor(p, comp, "texSample", 0, ApiType, params);
-  WRITE(p, "  color0.b = texSample.x;\n");
-  WRITE(p, "  color1.b = texSample.y;\n");
-
-  WriteSampleColor(p, comp, "texSample", 1, ApiType, params);
-  WRITE(p, "  color0.g = texSample.x;\n");
-  WRITE(p, "  color1.g = texSample.y;\n");
-
-  WriteSampleColor(p, comp, "texSample", 2, ApiType, params);
-  WRITE(p, "  color0.r = texSample.x;\n");
-  WRITE(p, "  color1.r = texSample.y;\n");
-
-  WriteSampleColor(p, comp, "texSample", 3, ApiType, params);
-  WRITE(p, "  color0.a = texSample.x;\n");
-  WRITE(p, "  color1.a = texSample.y;\n");
-
-  WriteToBitDepth(p, 4, "color0", "color0");
-  WriteToBitDepth(p, 4, "color1", "color1");
-
-  WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
-  WriteEncoderEnd(p);
-}
-
-void WriteCC8Encoder(char*& p, const char* comp, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RA8, ApiType);
-
-  WriteSampleColor(p, comp, "ocol0.bg", 0, ApiType, params);
-  WriteSampleColor(p, comp, "ocol0.ra", 1, ApiType, params);
-
-  WriteEncoderEnd(p);
-}
-
-void WriteZ8Encoder(char*& p, const char* multiplier, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::G8, ApiType);
-
-  WRITE(p, " float depth;\n");
-
-  WriteSampleColor(p, "r", "depth", 0, ApiType, params);
-  WRITE(p, "ocol0.b = frac(depth * %s);\n", multiplier);
-
-  WriteSampleColor(p, "r", "depth", 1, ApiType, params);
-  WRITE(p, "ocol0.g = frac(depth * %s);\n", multiplier);
-
-  WriteSampleColor(p, "r", "depth", 2, ApiType, params);
-  WRITE(p, "ocol0.r = frac(depth * %s);\n", multiplier);
-
-  WriteSampleColor(p, "r", "depth", 3, ApiType, params);
-  WRITE(p, "ocol0.a = frac(depth * %s);\n", multiplier);
-
-  WriteEncoderEnd(p);
-}
-
-void WriteZ16Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RA8, ApiType);
-
-  WRITE(p, "  float depth;\n");
-  WRITE(p, "  float3 expanded;\n");
-
-  // byte order is reversed
-
-  WriteSampleColor(p, "r", "depth", 0, ApiType, params);
-
-  WRITE(p, "  depth *= 16777216.0;\n");
-  WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
-  WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
-  WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
-
-  WRITE(p, "  ocol0.b = expanded.g / 255.0;\n");
-  WRITE(p, "  ocol0.g = expanded.r / 255.0;\n");
-
-  WriteSampleColor(p, "r", "depth", 1, ApiType, params);
-
-  WRITE(p, "  depth *= 16777216.0;\n");
-  WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
-  WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
-  WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
-
-  WRITE(p, "  ocol0.r = expanded.g / 255.0;\n");
-  WRITE(p, "  ocol0.a = expanded.r / 255.0;\n");
-
-  WriteEncoderEnd(p);
-}
-
-void WriteZ16LEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::GB8, ApiType);
-
-  WRITE(p, "  float depth;\n");
-  WRITE(p, "  float3 expanded;\n");
-
-  // byte order is reversed
-
-  WriteSampleColor(p, "r", "depth", 0, ApiType, params);
-
-  WRITE(p, "  depth *= 16777216.0;\n");
-  WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
-  WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
-  WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
-  WRITE(p, "  depth -= expanded.g * 256.0;\n");
-  WRITE(p, "  expanded.b = depth;\n");
-
-  WRITE(p, "  ocol0.b = expanded.b / 255.0;\n");
-  WRITE(p, "  ocol0.g = expanded.g / 255.0;\n");
-
-  WriteSampleColor(p, "r", "depth", 1, ApiType, params);
-
-  WRITE(p, "  depth *= 16777216.0;\n");
-  WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
-  WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
-  WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
-  WRITE(p, "  depth -= expanded.g * 256.0;\n");
-  WRITE(p, "  expanded.b = depth;\n");
-
-  WRITE(p, "  ocol0.r = expanded.b / 255.0;\n");
-  WRITE(p, "  ocol0.a = expanded.g / 255.0;\n");
-
-  WriteEncoderEnd(p);
-}
-
-void WriteZ24Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::RGBA8, ApiType);
-
-  WRITE(p, "  float depth0;\n");
-  WRITE(p, "  float depth1;\n");
-  WRITE(p, "  float3 expanded0;\n");
-  WRITE(p, "  float3 expanded1;\n");
-
-  WriteSampleColor(p, "r", "depth0", 0, ApiType, params);
-  WriteSampleColor(p, "r", "depth1", 1, ApiType, params);
-
-  for (int i = 0; i < 2; i++)
+  void WriteEncoderEnd()
   {
-    WRITE(p, "  depth%i *= 16777216.0;\n", i);
-
-    WRITE(p, "  expanded%i.r = floor(depth%i / (256.0 * 256.0));\n", i, i);
-    WRITE(p, "  depth%i -= expanded%i.r * 256.0 * 256.0;\n", i, i);
-    WRITE(p, "  expanded%i.g = floor(depth%i / 256.0);\n", i, i);
-    WRITE(p, "  depth%i -= expanded%i.g * 256.0;\n", i, i);
-    WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
+    Append("}\n");
+    m_is_intensity_constant_added = false;
   }
 
-  WRITE(p, "  if (!first) {\n");
-  // upper 16
-  WRITE(p, "     ocol0.b = expanded0.g / 255.0;\n");
-  WRITE(p, "     ocol0.g = expanded0.b / 255.0;\n");
-  WRITE(p, "     ocol0.r = expanded1.g / 255.0;\n");
-  WRITE(p, "     ocol0.a = expanded1.b / 255.0;\n");
-  WRITE(p, "  } else {\n");
-  // lower 8
-  WRITE(p, "     ocol0.b = 1.0;\n");
-  WRITE(p, "     ocol0.g = expanded0.r / 255.0;\n");
-  WRITE(p, "     ocol0.r = 1.0;\n");
-  WRITE(p, "     ocol0.a = expanded1.r / 255.0;\n");
-  WRITE(p, "  }\n");
+  void WriteI8Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::R8, api_type);
+    Append("  float3 texSample;\n");
 
-  WriteEncoderEnd(p);
-}
+    WriteSampleColor("rgb", "texSample", 0);
+    WriteColorToIntensity("texSample", "ocol0.b");
 
-void WriteXFBEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
-{
-  WriteSwizzler(p, params, EFBCopyFormat::XFB, ApiType);
+    WriteSampleColor("rgb", "texSample", 1);
+    WriteColorToIntensity("texSample", "ocol0.g");
 
-  WRITE(p, "float3 color0, color1;\n");
-  WriteSampleColor(p, "rgb", "color0", 0, ApiType, params);
-  WriteSampleColor(p, "rgb", "color1", 1, ApiType, params);
+    WriteSampleColor("rgb", "texSample", 2);
+    WriteColorToIntensity("texSample", "ocol0.r");
 
-  // Gamma is only applied to XFB copies.
-  WRITE(p, "  color0 = pow(color0, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
-  WRITE(p, "  color1 = pow(color1, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
+    WriteSampleColor("rgb", "texSample", 3);
+    WriteColorToIntensity("texSample", "ocol0.a");
 
-  // Convert to YUV.
-  WRITE(p, "  const float3 y_const = float3(0.257, 0.504, 0.098);\n");
-  WRITE(p, "  const float3 u_const = float3(-0.148, -0.291, 0.439);\n");
-  WRITE(p, "  const float3 v_const = float3(0.439, -0.368, -0.071);\n");
-  WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
-  WRITE(p, "  ocol0.b = dot(color0,  y_const) + 0.0625;\n");
-  WRITE(p, "  ocol0.g = dot(average, u_const) + 0.5;\n");
-  WRITE(p, "  ocol0.r = dot(color1,  y_const) + 0.0625;\n");
-  WRITE(p, "  ocol0.a = dot(average, v_const) + 0.5;\n");
+    // See WriteColorToIntensity
+    Append("  ocol0.rgba += IntensityConst.aaaa;\n");
 
-  WriteEncoderEnd(p);
-}
+    WriteEncoderEnd();
+  }
+
+  void WriteI4Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::R4, api_type);
+    Append("  float3 texSample;\n"
+           "  float4 color0;\n"
+           "  float4 color1;\n");
+
+    WriteSampleColor("rgb", "texSample", 0);
+    WriteColorToIntensity("texSample", "color0.b");
+
+    WriteSampleColor("rgb", "texSample", 1);
+    WriteColorToIntensity("texSample", "color1.b");
+
+    WriteSampleColor("rgb", "texSample", 2);
+    WriteColorToIntensity("texSample", "color0.g");
+
+    WriteSampleColor("rgb", "texSample", 3);
+    WriteColorToIntensity("texSample", "color1.g");
+
+    WriteSampleColor("rgb", "texSample", 4);
+    WriteColorToIntensity("texSample", "color0.r");
+
+    WriteSampleColor("rgb", "texSample", 5);
+    WriteColorToIntensity("texSample", "color1.r");
+
+    WriteSampleColor("rgb", "texSample", 6);
+    WriteColorToIntensity("texSample", "color0.a");
+
+    WriteSampleColor("rgb", "texSample", 7);
+    WriteColorToIntensity("texSample", "color1.a");
+
+    Append("  color0.rgba += IntensityConst.aaaa;\n"
+           "  color1.rgba += IntensityConst.aaaa;\n");
+
+    WriteToBitDepth(4, "color0", "color0");
+    WriteToBitDepth(4, "color1", "color1");
+
+    Append("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
+    WriteEncoderEnd();
+  }
+
+  void WriteIA8Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RA8, api_type);
+    Append("  float4 texSample;\n");
+
+    WriteSampleColor("rgba", "texSample", 0);
+    Append("  ocol0.b = texSample.a;\n");
+    WriteColorToIntensity("texSample", "ocol0.g");
+
+    WriteSampleColor("rgba", "texSample", 1);
+    Append("  ocol0.r = texSample.a;\n");
+    WriteColorToIntensity("texSample", "ocol0.a");
+
+    Append("  ocol0.ga += IntensityConst.aa;\n");
+
+    WriteEncoderEnd();
+  }
+
+  void WriteIA4Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RA4, api_type);
+    Append("  float4 texSample;\n"
+           "  float4 color0;\n"
+           "  float4 color1;\n");
+
+    WriteSampleColor("rgba", "texSample", 0);
+    Append("  color0.b = texSample.a;\n");
+    WriteColorToIntensity("texSample", "color1.b");
+
+    WriteSampleColor("rgba", "texSample", 1);
+    Append("  color0.g = texSample.a;\n");
+    WriteColorToIntensity("texSample", "color1.g");
+
+    WriteSampleColor("rgba", "texSample", 2);
+    Append("  color0.r = texSample.a;\n");
+    WriteColorToIntensity("texSample", "color1.r");
+
+    WriteSampleColor("rgba", "texSample", 3);
+    Append("  color0.a = texSample.a;\n");
+    WriteColorToIntensity("texSample", "color1.a");
+
+    Append("  color1.rgba += IntensityConst.aaaa;\n");
+
+    WriteToBitDepth(4, "color0", "color0");
+    WriteToBitDepth(4, "color1", "color1");
+
+    Append("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
+    WriteEncoderEnd();
+  }
+
+  void WriteRGB565Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RGB565, api_type);
+    Append("  float3 texSample0;\n"
+           "  float3 texSample1;\n");
+
+    WriteSampleColor("rgb", "texSample0", 0);
+    WriteSampleColor("rgb", "texSample1", 1);
+    Append("  float2 texRs = float2(texSample0.r, texSample1.r);\n"
+           "  float2 texGs = float2(texSample0.g, texSample1.g);\n"
+           "  float2 texBs = float2(texSample0.b, texSample1.b);\n");
+
+    WriteToBitDepth(6, "texGs", "float2 gInt");
+    Append("  float2 gUpper = floor(gInt / 8.0);\n"
+           "  float2 gLower = gInt - gUpper * 8.0;\n");
+
+    WriteToBitDepth(5, "texRs", "ocol0.br");
+    Append("  ocol0.br = ocol0.br * 8.0 + gUpper;\n");
+    WriteToBitDepth(5, "texBs", "ocol0.ga");
+    Append("  ocol0.ga = ocol0.ga + gLower * 32.0;\n");
+
+    Append("  ocol0 = ocol0 / 255.0;\n");
+    WriteEncoderEnd();
+  }
+
+  void WriteRGB5A3Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RGB5A3, api_type);
+
+    Append("  float4 texSample;\n"
+           "  float color0;\n"
+           "  float gUpper;\n"
+           "  float gLower;\n");
+
+    WriteSampleColor("rgba", "texSample", 0);
+
+    // 0.8784 = 224 / 255 which is the maximum alpha value that can be represented in 3 bits
+    Append("if(texSample.a > 0.878f) {\n");
+
+    WriteToBitDepth(5, "texSample.g", "color0");
+    Append("  gUpper = floor(color0 / 8.0);\n"
+           "  gLower = color0 - gUpper * 8.0;\n");
+
+    WriteToBitDepth(5, "texSample.r", "ocol0.b");
+    Append("  ocol0.b = ocol0.b * 4.0 + gUpper + 128.0;\n");
+    WriteToBitDepth(5, "texSample.b", "ocol0.g");
+    Append("  ocol0.g = ocol0.g + gLower * 32.0;\n");
+
+    Append("} else {\n");
+
+    WriteToBitDepth(4, "texSample.r", "ocol0.b");
+    WriteToBitDepth(4, "texSample.b", "ocol0.g");
+
+    WriteToBitDepth(3, "texSample.a", "color0");
+    Append("ocol0.b = ocol0.b + color0 * 16.0;\n");
+    WriteToBitDepth(4, "texSample.g", "color0");
+    Append("ocol0.g = ocol0.g + color0 * 16.0;\n");
+
+    Append("}\n");
+
+    WriteSampleColor("rgba", "texSample", 1);
+
+    Append("if(texSample.a > 0.878f) {\n");
+
+    WriteToBitDepth(5, "texSample.g", "color0");
+    Append("  gUpper = floor(color0 / 8.0);\n"
+           "  gLower = color0 - gUpper * 8.0;\n");
+
+    WriteToBitDepth(5, "texSample.r", "ocol0.r");
+    Append("  ocol0.r = ocol0.r * 4.0 + gUpper + 128.0;\n");
+    WriteToBitDepth(5, "texSample.b", "ocol0.a");
+    Append("  ocol0.a = ocol0.a + gLower * 32.0;\n");
+
+    Append("} else {\n");
+
+    WriteToBitDepth(4, "texSample.r", "ocol0.r");
+    WriteToBitDepth(4, "texSample.b", "ocol0.a");
+
+    WriteToBitDepth(3, "texSample.a", "color0");
+    Append("ocol0.r = ocol0.r + color0 * 16.0;\n");
+    WriteToBitDepth(4, "texSample.g", "color0");
+    Append("ocol0.a = ocol0.a + color0 * 16.0;\n");
+
+    Append("}\n");
+
+    Append("  ocol0 = ocol0 / 255.0;\n");
+    WriteEncoderEnd();
+  }
+
+  void WriteRGBA8Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RGBA8, api_type);
+
+    Append("  float4 texSample;\n"
+           "  float4 color0;\n"
+           "  float4 color1;\n");
+
+    WriteSampleColor("rgba", "texSample", 0);
+    Append("  color0.b = texSample.a;\n"
+           "  color0.g = texSample.r;\n"
+           "  color1.b = texSample.g;\n"
+           "  color1.g = texSample.b;\n");
+
+    WriteSampleColor("rgba", "texSample", 1);
+    Append("  color0.r = texSample.a;\n"
+           "  color0.a = texSample.r;\n"
+           "  color1.r = texSample.g;\n"
+           "  color1.a = texSample.b;\n");
+
+    Append("  ocol0 = first ? color0 : color1;\n");
+
+    WriteEncoderEnd();
+  }
+
+  void WriteC4Encoder(std::string_view comp, APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::R4, api_type);
+    Append("  float4 color0;\n"
+           "  float4 color1;\n");
+
+    WriteSampleColor(comp, "color0.b", 0);
+    WriteSampleColor(comp, "color1.b", 1);
+    WriteSampleColor(comp, "color0.g", 2);
+    WriteSampleColor(comp, "color1.g", 3);
+    WriteSampleColor(comp, "color0.r", 4);
+    WriteSampleColor(comp, "color1.r", 5);
+    WriteSampleColor(comp, "color0.a", 6);
+    WriteSampleColor(comp, "color1.a", 7);
+
+    WriteToBitDepth(4, "color0", "color0");
+    WriteToBitDepth(4, "color1", "color1");
+
+    Append("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
+    WriteEncoderEnd();
+  }
+
+  void WriteC8Encoder(std::string_view comp, APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::R8, api_type);
+
+    WriteSampleColor(comp, "ocol0.b", 0);
+    WriteSampleColor(comp, "ocol0.g", 1);
+    WriteSampleColor(comp, "ocol0.r", 2);
+    WriteSampleColor(comp, "ocol0.a", 3);
+
+    WriteEncoderEnd();
+  }
+
+  void WriteCC4Encoder(std::string_view comp, APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RA4, api_type);
+    Append("  float2 texSample;\n"
+           "  float4 color0;\n"
+           "  float4 color1;\n");
+
+    WriteSampleColor(comp, "texSample", 0);
+    Append("  color0.b = texSample.x;\n"
+           "  color1.b = texSample.y;\n");
+
+    WriteSampleColor(comp, "texSample", 1);
+    Append("  color0.g = texSample.x;\n"
+           "  color1.g = texSample.y;\n");
+
+    WriteSampleColor(comp, "texSample", 2);
+    Append("  color0.r = texSample.x;\n"
+           "  color1.r = texSample.y;\n");
+
+    WriteSampleColor(comp, "texSample", 3);
+    Append("  color0.a = texSample.x;\n"
+           "  color1.a = texSample.y;\n");
+
+    WriteToBitDepth(4, "color0", "color0");
+    WriteToBitDepth(4, "color1", "color1");
+
+    Append("  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
+    WriteEncoderEnd();
+  }
+
+  void WriteCC8Encoder(std::string_view comp, APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RA8, api_type);
+
+    WriteSampleColor(comp, "ocol0.bg", 0);
+    WriteSampleColor(comp, "ocol0.ra", 1);
+
+    WriteEncoderEnd();
+  }
+
+  void WriteZ8Encoder(std::string_view multiplier, APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::G8, api_type);
+
+    Append(" float depth;\n");
+
+    WriteSampleColor("r", "depth", 0);
+    AppendFmt("ocol0.b = frac(depth * {});\n", multiplier);
+
+    WriteSampleColor("r", "depth", 1);
+    AppendFmt("ocol0.g = frac(depth * {});\n", multiplier);
+
+    WriteSampleColor("r", "depth", 2);
+    AppendFmt("ocol0.r = frac(depth * {});\n", multiplier);
+
+    WriteSampleColor("r", "depth", 3);
+    AppendFmt("ocol0.a = frac(depth * {});\n", multiplier);
+
+    WriteEncoderEnd();
+  }
+
+  void WriteZ16Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RA8, api_type);
+
+    Append("  float depth;\n"
+           "  float3 expanded;\n");
+
+    // Byte order is reversed
+
+    WriteSampleColor("r", "depth", 0);
+
+    Append("  depth *= 16777216.0;\n"
+           "  expanded.r = floor(depth / (256.0 * 256.0));\n"
+           "  depth -= expanded.r * 256.0 * 256.0;\n"
+           "  expanded.g = floor(depth / 256.0);\n");
+
+    Append("  ocol0.b = expanded.g / 255.0;\n"
+           "  ocol0.g = expanded.r / 255.0;\n");
+
+    WriteSampleColor("r", "depth", 1);
+
+    Append("  depth *= 16777216.0;\n"
+           "  expanded.r = floor(depth / (256.0 * 256.0));\n"
+           "  depth -= expanded.r * 256.0 * 256.0;\n"
+           "  expanded.g = floor(depth / 256.0);\n");
+
+    Append("  ocol0.r = expanded.g / 255.0;\n"
+           "  ocol0.a = expanded.r / 255.0;\n");
+
+    WriteEncoderEnd();
+  }
+
+  void WriteZ16LEncoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::GB8, api_type);
+
+    Append("  float depth;\n"
+           "  float3 expanded;\n");
+
+    // Byte order is reversed
+
+    WriteSampleColor("r", "depth", 0);
+
+    Append("  depth *= 16777216.0;\n"
+           "  expanded.r = floor(depth / (256.0 * 256.0));\n"
+           "  depth -= expanded.r * 256.0 * 256.0;\n"
+           "  expanded.g = floor(depth / 256.0);\n"
+           "  depth -= expanded.g * 256.0;\n"
+           "  expanded.b = depth;\n");
+
+    Append("  ocol0.b = expanded.b / 255.0;\n"
+           "  ocol0.g = expanded.g / 255.0;\n");
+
+    WriteSampleColor("r", "depth", 1);
+
+    Append("  depth *= 16777216.0;\n"
+           "  expanded.r = floor(depth / (256.0 * 256.0));\n"
+           "  depth -= expanded.r * 256.0 * 256.0;\n"
+           "  expanded.g = floor(depth / 256.0);\n"
+           "  depth -= expanded.g * 256.0;\n"
+           "  expanded.b = depth;\n");
+
+    Append("  ocol0.r = expanded.b / 255.0;\n"
+           "  ocol0.a = expanded.g / 255.0;\n");
+
+    WriteEncoderEnd();
+  }
+
+  void WriteZ24Encoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::RGBA8, api_type);
+
+    Append("  float depth0;\n"
+           "  float depth1;\n"
+           "  float3 expanded0;\n"
+           "  float3 expanded1;\n");
+
+    WriteSampleColor("r", "depth0", 0);
+    WriteSampleColor("r", "depth1", 1);
+
+    for (size_t i = 0; i < 2; i++)
+    {
+      AppendFmt("  depth{} *= 16777216.0;\n", i);
+
+      AppendFmt("  expanded{}.r = floor(depth{} / (256.0 * 256.0));\n", i, i);
+      AppendFmt("  depth{} -= expanded{}.r * 256.0 * 256.0;\n", i, i);
+      AppendFmt("  expanded{}.g = floor(depth{} / 256.0);\n", i, i);
+      AppendFmt("  depth{} -= expanded{}.g * 256.0;\n", i, i);
+      AppendFmt("  expanded{}.b = depth{};\n", i, i);
+    }
+
+    Append("  if (!first) {\n");
+    // Upper 16
+    Append("     ocol0.b = expanded0.g / 255.0;\n"
+           "     ocol0.g = expanded0.b / 255.0;\n"
+           "     ocol0.r = expanded1.g / 255.0;\n"
+           "     ocol0.a = expanded1.b / 255.0;\n"
+           "  } else {\n");
+    // Lower 8
+    Append("     ocol0.b = 1.0;\n"
+           "     ocol0.g = expanded0.r / 255.0;\n"
+           "     ocol0.r = 1.0;\n"
+           "     ocol0.a = expanded1.r / 255.0;\n"
+           "  }\n");
+
+    WriteEncoderEnd();
+  }
+
+  void WriteXFBEncoder(APIType api_type, const EFBCopyParams& params)
+  {
+    WriteSwizzler(params, EFBCopyFormat::XFB, api_type);
+
+    Append("float3 color0, color1;\n");
+    WriteSampleColor("rgb", "color0", 0);
+    WriteSampleColor("rgb", "color1", 1);
+
+    // Gamma is only applied to XFB copies.
+    Append("  color0 = pow(color0, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n"
+           "  color1 = pow(color1, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
+
+    // Convert to YUV.
+    Append("  const float3 y_const = float3(0.257, 0.504, 0.098);\n"
+           "  const float3 u_const = float3(-0.148, -0.291, 0.439);\n"
+           "  const float3 v_const = float3(0.439, -0.368, -0.071);\n"
+           "  float3 average = (color0 + color1) * 0.5;\n"
+           "  ocol0.b = dot(color0,  y_const) + 0.0625;\n"
+           "  ocol0.g = dot(average, u_const) + 0.5;\n"
+           "  ocol0.r = dot(color1,  y_const) + 0.0625;\n"
+           "  ocol0.a = dot(average, v_const) + 0.5;\n");
+
+    WriteEncoderEnd();
+  }
+
+  std::string m_buffer;
+  bool m_is_intensity_constant_added = false;
+};
 }  // Anonymous namespace
 
-const char* GenerateEncodingShader(const EFBCopyParams& params, APIType api_type)
+std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type)
 {
-  s_text[sizeof(s_text) - 1] = 0x7C;  // canary
-
-  char* p = s_text;
-
-  switch (params.copy_format)
-  {
-  case EFBCopyFormat::R4:
-    if (params.yuv)
-      WriteI4Encoder(p, api_type, params);
-    else
-      WriteC4Encoder(p, "r", api_type, params);
-    break;
-  case EFBCopyFormat::RA4:
-    if (params.yuv)
-      WriteIA4Encoder(p, api_type, params);
-    else
-      WriteCC4Encoder(p, "ar", api_type, params);
-    break;
-  case EFBCopyFormat::RA8:
-    if (params.yuv)
-      WriteIA8Encoder(p, api_type, params);
-    else
-      WriteCC8Encoder(p, "ar", api_type, params);
-    break;
-  case EFBCopyFormat::RGB565:
-    WriteRGB565Encoder(p, api_type, params);
-    break;
-  case EFBCopyFormat::RGB5A3:
-    WriteRGB5A3Encoder(p, api_type, params);
-    break;
-  case EFBCopyFormat::RGBA8:
-    if (params.depth)
-      WriteZ24Encoder(p, api_type, params);
-    else
-      WriteRGBA8Encoder(p, api_type, params);
-    break;
-  case EFBCopyFormat::A8:
-    WriteC8Encoder(p, "a", api_type, params);
-    break;
-  case EFBCopyFormat::R8_0x1:
-  case EFBCopyFormat::R8:
-    if (params.yuv)
-      WriteI8Encoder(p, api_type, params);
-    else
-      WriteC8Encoder(p, "r", api_type, params);
-    break;
-  case EFBCopyFormat::G8:
-    if (params.depth)
-      WriteZ8Encoder(p, "256.0", api_type, params);  // Z8M
-    else
-      WriteC8Encoder(p, "g", api_type, params);
-    break;
-  case EFBCopyFormat::B8:
-    if (params.depth)
-      WriteZ8Encoder(p, "65536.0", api_type, params);  // Z8L
-    else
-      WriteC8Encoder(p, "b", api_type, params);
-    break;
-  case EFBCopyFormat::RG8:
-    if (params.depth)
-      WriteZ16Encoder(p, api_type, params);  // Z16H
-    else
-      WriteCC8Encoder(p, "gr", api_type, params);
-    break;
-  case EFBCopyFormat::GB8:
-    if (params.depth)
-      WriteZ16LEncoder(p, api_type, params);  // Z16L
-    else
-      WriteCC8Encoder(p, "bg", api_type, params);
-    break;
-  case EFBCopyFormat::XFB:
-    WriteXFBEncoder(p, api_type, params);
-    break;
-  default:
-    PanicAlert("Invalid EFB Copy Format (0x%X)! (GenerateEncodingShader)",
-               static_cast<int>(params.copy_format));
-    break;
-  }
-
-  if (s_text[sizeof(s_text) - 1] != 0x7C)
-    PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
-
-  return s_text;
+  return EncodingShaderGenerator::GenerateShader(params, api_type);
 }
 
 const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format)
