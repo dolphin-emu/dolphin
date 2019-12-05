@@ -124,7 +124,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       const u8 sub_cmd = src.Read<u8>();
       const u32 value = src.Read<u32>();
       LoadCPReg(sub_cmd, value, is_preprocess);
-      if (!is_preprocess)
+      if constexpr (!is_preprocess)
         INCSTAT(g_stats.this_frame.num_cp_loads);
     }
     break;
@@ -141,7 +141,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
 
       total_cycles += 18 + 6 * transfer_size;
 
-      if (!is_preprocess)
+      if constexpr (!is_preprocess)
       {
         const u32 xf_address = cmd2 & 0xFFFF;
         LoadXFReg(transfer_size, xf_address, src);
@@ -169,7 +169,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       // GX_LOAD_INDX_D (56) -> 0xF
       const int ref_array = (cmd_byte / 8) + 8;
 
-      if (is_preprocess)
+      if constexpr (is_preprocess)
         PreprocessIndexedXF(src.Read<u32>(), ref_array);
       else
         LoadIndexedXF(src.Read<u32>(), ref_array);
@@ -191,7 +191,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       }
       else
       {
-        if (is_preprocess)
+        if constexpr (is_preprocess)
           InterpretDisplayListPreprocess(address, count);
         else
           total_cycles += 6 + InterpretDisplayList(address, count);
@@ -220,7 +220,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         total_cycles += 12;
 
         const u32 bp_cmd = src.Read<u32>();
-        if (is_preprocess)
+        if constexpr (is_preprocess)
         {
           LoadBPRegPreprocess(bp_cmd);
         }
@@ -266,10 +266,13 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     }
 
     // Display lists get added directly into the FIFO stream
-    if (!is_preprocess && g_record_fifo_data && cmd_byte != GX_CMD_CALL_DL)
+    if constexpr (!is_preprocess)
     {
-      const u8* const opcode_end = src.GetPointer();
-      FifoRecorder::GetInstance().WriteGPCommand(opcode_start, u32(opcode_end - opcode_start));
+      if (g_record_fifo_data && cmd_byte != GX_CMD_CALL_DL)
+      {
+        const u8* const opcode_end = src.GetPointer();
+        FifoRecorder::GetInstance().WriteGPCommand(opcode_start, u32(opcode_end - opcode_start));
+      }
     }
   }
 }
