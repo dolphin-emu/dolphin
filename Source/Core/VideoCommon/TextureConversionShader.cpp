@@ -1439,9 +1439,7 @@ std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_form
 
 std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
 {
-  std::ostringstream ss;
-
-  ss << R"(
+  std::ostringstream ss(R"(
 int Convert3To8(int v)
 {
   // Swizzle bits: 00000123 -> 12312312
@@ -1461,7 +1459,7 @@ int Convert6To8(int v)
 {
   // Swizzle bits: 00123456 -> 12345612
   return (v << 2) | (v >> 4);
-})";
+})");
 
   switch (palette_format)
   {
@@ -1516,54 +1514,54 @@ float4 DecodePixel(int val)
     break;
   }
 
-  ss << "\n";
+  ss << '\n';
 
   if (api_type == APIType::D3D)
   {
-    ss << "Buffer<uint> tex0 : register(t0);\n";
-    ss << "Texture2DArray tex1 : register(t1);\n";
-    ss << "SamplerState samp1 : register(s1);\n";
-    ss << "cbuffer PSBlock : register(b0) {\n";
+    ss << "Buffer<uint> tex0 : register(t0);\n"
+          "Texture2DArray tex1 : register(t1);\n"
+          "SamplerState samp1 : register(s1);\n"
+          "cbuffer PSBlock : register(b0) {\n";
   }
   else
   {
-    ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
-    ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
-    ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
+    ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n"
+          "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n"
+          "UBO_BINDING(std140, 1) uniform PSBlock {\n";
   }
 
-  ss << "  float multiplier;\n";
-  ss << "  int texel_buffer_offset;\n";
-  ss << "};\n";
+  ss << "  float multiplier;\n"
+        "  int texel_buffer_offset;\n"
+        "};\n";
 
   if (api_type == APIType::D3D)
   {
-    ss << "void main(in float3 v_tex0 : TEXCOORD0, out float4 ocol0 : SV_Target) {\n";
-    ss << "  int src = int(round(tex1.Sample(samp1, v_tex0).r * multiplier));\n";
-    ss << "  src = int(tex0.Load(src + texel_buffer_offset).r);\n";
+    ss << "void main(in float3 v_tex0 : TEXCOORD0, out float4 ocol0 : SV_Target) {\n"
+          "  int src = int(round(tex1.Sample(samp1, v_tex0).r * multiplier));\n"
+          "  src = int(tex0.Load(src + texel_buffer_offset).r);\n";
   }
   else
   {
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      ss << "VARYING_LOCATION(0) in VertexData {\n";
-      ss << "  float3 v_tex0;\n";
-      ss << "};\n";
+      ss << "VARYING_LOCATION(0) in VertexData {\n"
+            "  float3 v_tex0;\n"
+            "};\n";
     }
     else
     {
       ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
     }
-    ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
-    ss << "void main() {\n";
-    ss << "  float3 coords = v_tex0;\n";
-    ss << "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
-    ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
+    ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n"
+          "void main() {\n"
+          "  float3 coords = v_tex0;\n"
+          "  int src = int(round(texture(samp1, coords).r * multiplier));\n"
+          "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
   }
 
-  ss << "  src = ((src << 8) & 0xFF00) | (src >> 8);\n";
-  ss << "  ocol0 = DecodePixel(src);\n";
-  ss << "}\n";
+  ss << "  src = ((src << 8) & 0xFF00) | (src >> 8);\n"
+        "  ocol0 = DecodePixel(src);\n"
+        "}\n";
 
   return ss.str();
 }
