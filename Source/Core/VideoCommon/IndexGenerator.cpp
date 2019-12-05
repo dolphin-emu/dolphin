@@ -9,7 +9,6 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Common/Compiler.h"
 #include "Common/Logging/Log.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VideoConfig.h"
@@ -20,6 +19,189 @@ constexpr u16 s_primitive_restart = UINT16_MAX;
 
 using PrimitiveFunction = u16*(*)(u16*, u32, u32);
 std::array<PrimitiveFunction, 8> s_primitive_table;
+
+template <bool pr>
+u16* WriteTriangle(u16* index_ptr, u32 index1, u32 index2, u32 index3)
+{
+  *index_ptr++ = index1;
+  *index_ptr++ = index2;
+  *index_ptr++ = index3;
+  if (pr)
+    *index_ptr++ = s_primitive_restart;
+  return index_ptr;
+}
+
+template <bool pr>
+u16* AddList(u16* index_ptr, u32 num_verts, u32 index)
+{
+  for (u32 i = 2; i < num_verts; i += 3)
+  {
+    index_ptr = WriteTriangle<pr>(index_ptr, index + i - 2, index + i - 1, index + i);
+  }
+  return index_ptr;
+}
+
+template <bool pr>
+u16* AddStrip(u16* index_ptr, u32 num_verts, u32 index)
+{
+  if (pr)
+  {
+    for (u32 i = 0; i < num_verts; ++i)
+    {
+      *index_ptr++ = index + i;
+    }
+    *index_ptr++ = s_primitive_restart;
+  }
+  else
+  {
+    bool wind = false;
+    for (u32 i = 2; i < num_verts; ++i)
+    {
+      index_ptr = WriteTriangle<pr>(index_ptr, index + i - 2, index + i - !wind, index + i - wind);
+
+      wind ^= true;
+    }
+  }
+  return index_ptr;
+}
+
+/**
+ * FAN simulator:
+ *
+ *   2---3
+ *  / \ / \
+ * 1---0---4
+ *
+ * would generate this triangles:
+ * 012, 023, 034
+ *
+ * rotated (for better striping):
+ * 120, 302, 034
+ *
+ * as odd ones have to winded, following strip is fine:
+ * 12034
+ *
+ * so we use 6 indices for 3 triangles
+ */
+
+template <bool pr>
+u16* AddFan(u16* index_ptr, u32 num_verts, u32 index)
+{
+  u32 i = 2;
+
+  if (pr)
+  {
+    for (; i + 3 <= num_verts; i += 3)
+    {
+      *index_ptr++ = index + i - 1;
+      *index_ptr++ = index + i + 0;
+      *index_ptr++ = index;
+      *index_ptr++ = index + i + 1;
+      *index_ptr++ = index + i + 2;
+      *index_ptr++ = s_primitive_restart;
+    }
+
+    for (; i + 2 <= num_verts; i += 2)
+    {
+      *index_ptr++ = index + i - 1;
+      *index_ptr++ = index + i + 0;
+      *index_ptr++ = index;
+      *index_ptr++ = index + i + 1;
+      *index_ptr++ = s_primitive_restart;
+    }
+  }
+
+  for (; i < num_verts; ++i)
+  {
+    index_ptr = WriteTriangle<pr>(index_ptr, index, index + i - 1, index + i);
+  }
+  return index_ptr;
+}
+
+/*
+ * QUAD simulator
+ *
+ * 0---1   4---5
+ * |\  |   |\  |
+ * | \ |   | \ |
+ * |  \|   |  \|
+ * 3---2   7---6
+ *
+ * 012,023, 456,467 ...
+ * or 120,302, 564,746
+ * or as strip: 1203, 5647
+ *
+ * Warning:
+ * A simple triangle has to be rendered for three vertices.
+ * ZWW do this for sun rays
+ */
+template <bool pr>
+u16* AddQuads(u16* index_ptr, u32 num_verts, u32 index)
+{
+  u32 i = 3;
+  for (; i < num_verts; i += 4)
+  {
+    if (pr)
+    {
+      *index_ptr++ = index + i - 2;
+      *index_ptr++ = index + i - 1;
+      *index_ptr++ = index + i - 3;
+      *index_ptr++ = index + i - 0;
+      *index_ptr++ = s_primitive_restart;
+    }
+    else
+    {
+      index_ptr = WriteTriangle<pr>(index_ptr, index + i - 3, index + i - 2, index + i - 1);
+      index_ptr = WriteTriangle<pr>(index_ptr, index + i - 3, index + i - 1, index + i - 0);
+    }
+  }
+
+  // three vertices remaining, so render a triangle
+  if (i == num_verts)
+  {
+    index_ptr = WriteTriangle<pr>(index_ptr, index + num_verts - 3, index + num_verts - 2,
+                                  index + num_verts - 1);
+  }
+  return index_ptr;
+}
+
+template <bool pr>
+u16* AddQuads_nonstandard(u16* index_ptr, u32 num_verts, u32 index)
+{
+  WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
+  return AddQuads<pr>(index_ptr, num_verts, index);
+}
+
+u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
+{
+  for (u32 i = 1; i < num_verts; i += 2)
+  {
+    *index_ptr++ = index + i - 1;
+    *index_ptr++ = index + i;
+  }
+  return index_ptr;
+}
+
+// Shouldn't be used as strips as LineLists are much more common
+// so converting them to lists
+u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
+{
+  for (u32 i = 1; i < num_verts; ++i)
+  {
+    *index_ptr++ = index + i - 1;
+    *index_ptr++ = index + i;
+  }
+  return index_ptr;
+}
+
+u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
+{
+  for (u32 i = 0; i != num_verts; ++i)
+  {
+    *index_ptr++ = index + i;
+  }
+  return index_ptr;
+}
 }  // Anonymous namespace
 
 // Init
@@ -45,9 +227,9 @@ void IndexGenerator::Init()
     s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
     s_primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  s_primitive_table[OpcodeDecoder::GX_DRAW_LINES] = &AddLineList;
-  s_primitive_table[OpcodeDecoder::GX_DRAW_LINE_STRIP] = &AddLineStrip;
-  s_primitive_table[OpcodeDecoder::GX_DRAW_POINTS] = &AddPoints;
+  s_primitive_table[OpcodeDecoder::GX_DRAW_LINES] = AddLineList;
+  s_primitive_table[OpcodeDecoder::GX_DRAW_LINE_STRIP] = AddLineStrip;
+  s_primitive_table[OpcodeDecoder::GX_DRAW_POINTS] = AddPoints;
 }
 
 void IndexGenerator::Start(u16* Indexptr)
@@ -68,193 +250,6 @@ void IndexGenerator::AddExternalIndices(const u16* indices, u32 num_indices, u32
   std::memcpy(index_buffer_current, indices, sizeof(u16) * num_indices);
   index_buffer_current += num_indices;
   base_index += num_vertices;
-}
-
-// Triangles
-template <bool pr>
-DOLPHIN_FORCE_INLINE u16* IndexGenerator::WriteTriangle(u16* Iptr, u32 index1, u32 index2,
-                                                        u32 index3)
-{
-  *Iptr++ = index1;
-  *Iptr++ = index2;
-  *Iptr++ = index3;
-  if (pr)
-    *Iptr++ = s_primitive_restart;
-  return Iptr;
-}
-
-template <bool pr>
-u16* IndexGenerator::AddList(u16* Iptr, u32 const numVerts, u32 index)
-{
-  for (u32 i = 2; i < numVerts; i += 3)
-  {
-    Iptr = WriteTriangle<pr>(Iptr, index + i - 2, index + i - 1, index + i);
-  }
-  return Iptr;
-}
-
-template <bool pr>
-u16* IndexGenerator::AddStrip(u16* Iptr, u32 const numVerts, u32 index)
-{
-  if (pr)
-  {
-    for (u32 i = 0; i < numVerts; ++i)
-    {
-      *Iptr++ = index + i;
-    }
-    *Iptr++ = s_primitive_restart;
-  }
-  else
-  {
-    bool wind = false;
-    for (u32 i = 2; i < numVerts; ++i)
-    {
-      Iptr = WriteTriangle<pr>(Iptr, index + i - 2, index + i - !wind, index + i - wind);
-
-      wind ^= true;
-    }
-  }
-  return Iptr;
-}
-
-/**
- * FAN simulator:
- *
- *   2---3
- *  / \ / \
- * 1---0---4
- *
- * would generate this triangles:
- * 012, 023, 034
- *
- * rotated (for better striping):
- * 120, 302, 034
- *
- * as odd ones have to winded, following strip is fine:
- * 12034
- *
- * so we use 6 indices for 3 triangles
- */
-
-template <bool pr>
-u16* IndexGenerator::AddFan(u16* Iptr, u32 numVerts, u32 index)
-{
-  u32 i = 2;
-
-  if (pr)
-  {
-    for (; i + 3 <= numVerts; i += 3)
-    {
-      *Iptr++ = index + i - 1;
-      *Iptr++ = index + i + 0;
-      *Iptr++ = index;
-      *Iptr++ = index + i + 1;
-      *Iptr++ = index + i + 2;
-      *Iptr++ = s_primitive_restart;
-    }
-
-    for (; i + 2 <= numVerts; i += 2)
-    {
-      *Iptr++ = index + i - 1;
-      *Iptr++ = index + i + 0;
-      *Iptr++ = index;
-      *Iptr++ = index + i + 1;
-      *Iptr++ = s_primitive_restart;
-    }
-  }
-
-  for (; i < numVerts; ++i)
-  {
-    Iptr = WriteTriangle<pr>(Iptr, index, index + i - 1, index + i);
-  }
-  return Iptr;
-}
-
-/*
- * QUAD simulator
- *
- * 0---1   4---5
- * |\  |   |\  |
- * | \ |   | \ |
- * |  \|   |  \|
- * 3---2   7---6
- *
- * 012,023, 456,467 ...
- * or 120,302, 564,746
- * or as strip: 1203, 5647
- *
- * Warning:
- * A simple triangle has to be rendered for three vertices.
- * ZWW do this for sun rays
- */
-template <bool pr>
-u16* IndexGenerator::AddQuads(u16* Iptr, u32 numVerts, u32 index)
-{
-  u32 i = 3;
-  for (; i < numVerts; i += 4)
-  {
-    if (pr)
-    {
-      *Iptr++ = index + i - 2;
-      *Iptr++ = index + i - 1;
-      *Iptr++ = index + i - 3;
-      *Iptr++ = index + i - 0;
-      *Iptr++ = s_primitive_restart;
-    }
-    else
-    {
-      Iptr = WriteTriangle<pr>(Iptr, index + i - 3, index + i - 2, index + i - 1);
-      Iptr = WriteTriangle<pr>(Iptr, index + i - 3, index + i - 1, index + i - 0);
-    }
-  }
-
-  // three vertices remaining, so render a triangle
-  if (i == numVerts)
-  {
-    Iptr =
-        WriteTriangle<pr>(Iptr, index + numVerts - 3, index + numVerts - 2, index + numVerts - 1);
-  }
-  return Iptr;
-}
-
-template <bool pr>
-u16* IndexGenerator::AddQuads_nonstandard(u16* Iptr, u32 numVerts, u32 index)
-{
-  WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
-  return AddQuads<pr>(Iptr, numVerts, index);
-}
-
-// Lines
-u16* IndexGenerator::AddLineList(u16* Iptr, u32 numVerts, u32 index)
-{
-  for (u32 i = 1; i < numVerts; i += 2)
-  {
-    *Iptr++ = index + i - 1;
-    *Iptr++ = index + i;
-  }
-  return Iptr;
-}
-
-// shouldn't be used as strips as LineLists are much more common
-// so converting them to lists
-u16* IndexGenerator::AddLineStrip(u16* Iptr, u32 numVerts, u32 index)
-{
-  for (u32 i = 1; i < numVerts; ++i)
-  {
-    *Iptr++ = index + i - 1;
-    *Iptr++ = index + i;
-  }
-  return Iptr;
-}
-
-// Points
-u16* IndexGenerator::AddPoints(u16* Iptr, u32 numVerts, u32 index)
-{
-  for (u32 i = 0; i != numVerts; ++i)
-  {
-    *Iptr++ = index + i;
-  }
-  return Iptr;
 }
 
 u32 IndexGenerator::GetRemainingIndices()
