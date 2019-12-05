@@ -12,12 +12,14 @@
 
 namespace FramebufferShaderGen
 {
-static APIType GetAPIType()
+namespace
+{
+APIType GetAPIType()
 {
   return g_ActiveConfig.backend_info.api_type;
 }
 
-static void EmitUniformBufferDeclaration(std::stringstream& ss)
+void EmitUniformBufferDeclaration(std::stringstream& ss)
 {
   if (GetAPIType() == APIType::D3D)
     ss << "cbuffer PSBlock : register(b0)\n";
@@ -25,8 +27,8 @@ static void EmitUniformBufferDeclaration(std::stringstream& ss)
     ss << "UBO_BINDING(std140, 1) uniform PSBlock\n";
 }
 
-static void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 end = 1,
-                                    bool multisampled = false)
+void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 end = 1,
+                             bool multisampled = false)
 {
   switch (GetAPIType())
   {
@@ -57,7 +59,7 @@ static void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 en
   }
 }
 
-static void EmitSampleTexture(std::stringstream& ss, u32 n, const char* coords)
+void EmitSampleTexture(std::stringstream& ss, u32 n, const char* coords)
 {
   switch (GetAPIType())
   {
@@ -77,7 +79,7 @@ static void EmitSampleTexture(std::stringstream& ss, u32 n, const char* coords)
 
 // Emits a texel fetch/load instruction. Assumes that "coords" is a 4-element vector, with z
 // containing the layer, and w containing the mipmap level.
-static void EmitTextureLoad(std::stringstream& ss, u32 n, const char* coords)
+void EmitTextureLoad(std::stringstream& ss, u32 n, const char* coords)
 {
   switch (GetAPIType())
   {
@@ -95,10 +97,9 @@ static void EmitTextureLoad(std::stringstream& ss, u32 n, const char* coords)
   }
 }
 
-static void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
-                                      u32 num_color_inputs, bool position_input,
-                                      u32 num_tex_outputs, u32 num_color_outputs,
-                                      const char* extra_inputs = "")
+void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
+                               bool position_input, u32 num_tex_outputs, u32 num_color_outputs,
+                               const char* extra_inputs = "")
 {
   switch (GetAPIType())
   {
@@ -162,9 +163,9 @@ static void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
   }
 }
 
-static void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
-                                     u32 num_color_inputs, const char* output_type = "float4",
-                                     const char* extra_vars = "", bool emit_frag_coord = false)
+void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
+                              const char* output_type = "float4", const char* extra_vars = "",
+                              bool emit_frag_coord = false)
 {
   switch (GetAPIType())
   {
@@ -213,6 +214,7 @@ static void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs,
     break;
   }
 }
+}  // Anonymous namespace
 
 std::string GenerateScreenQuadVertexShader()
 {
