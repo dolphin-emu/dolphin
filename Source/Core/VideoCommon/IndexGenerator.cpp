@@ -26,7 +26,7 @@ u16* WriteTriangle(u16* index_ptr, u32 index1, u32 index2, u32 index3)
   *index_ptr++ = index1;
   *index_ptr++ = index2;
   *index_ptr++ = index3;
-  if (pr)
+  if constexpr (pr)
     *index_ptr++ = s_primitive_restart;
   return index_ptr;
 }
@@ -44,7 +44,7 @@ u16* AddList(u16* index_ptr, u32 num_verts, u32 index)
 template <bool pr>
 u16* AddStrip(u16* index_ptr, u32 num_verts, u32 index)
 {
-  if (pr)
+  if constexpr (pr)
   {
     for (u32 i = 0; i < num_verts; ++i)
     {
@@ -89,7 +89,7 @@ u16* AddFan(u16* index_ptr, u32 num_verts, u32 index)
 {
   u32 i = 2;
 
-  if (pr)
+  if constexpr (pr)
   {
     for (; i + 3 <= num_verts; i += 3)
     {
@@ -141,7 +141,7 @@ u16* AddQuads(u16* index_ptr, u32 num_verts, u32 index)
   u32 i = 3;
   for (; i < num_verts; i += 4)
   {
-    if (pr)
+    if constexpr (pr)
     {
       *index_ptr++ = index + i - 2;
       *index_ptr++ = index + i - 1;
