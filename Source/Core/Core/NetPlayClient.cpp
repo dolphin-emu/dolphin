@@ -1926,15 +1926,15 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
     if (m_wiimote_map[_number] == m_local_player->pid)
     {
       nw.assign(data, data + size);
-      do
+
+      // TODO: add a seperate setting for wiimote buffer?
+      while (m_wiimote_buffer[_number].Size() <= m_target_buffer_size * 200 / 120)
       {
         // add to buffer
         m_wiimote_buffer[_number].Push(nw);
 
         SendWiimoteState(_number, nw);
-      } while (m_wiimote_buffer[_number].Size() <=
-               m_target_buffer_size * 200 /
-                   120);  // TODO: add a seperate setting for wiimote buffer?
+      }
     }
 
   }  // unlock players

@@ -13,6 +13,9 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
+#include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
 namespace
@@ -91,12 +94,9 @@ void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* const tilt_group, 
   const ControlState roll = target.x * MathUtil::PI;
   const ControlState pitch = target.y * MathUtil::PI;
 
-  // Higher values will be more responsive but will increase rate of M+ "desync".
-  // I'd rather not expose this value in the UI if not needed.
-  // Desync caused by tilt seems not as severe as accelerometer data can estimate pitch/yaw.
-  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 50);
+  const auto max_accel = std::pow(tilt_group->GetMaxRotationalVelocity(), 2) / MathUtil::TAU;
 
-  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), MAX_ACCEL, time_elapsed);
+  ApproachAngleWithAccel(state, Common::Vec3(pitch, -roll, 0), max_accel, time_elapsed);
 }
 
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed)
@@ -269,6 +269,90 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
       state->angle.data[i] += change_in_angle.data[i];
     }
   }
+}
+
+static Common::Vec3 NormalizeAngle(Common::Vec3 angle)
+{
+  // TODO: There must be a more elegant way to do this
+  angle.x = fmod(angle.x, float(MathUtil::TAU));
+  angle.y = fmod(angle.y, float(MathUtil::TAU));
+  angle.z = fmod(angle.z, float(MathUtil::TAU));
+  angle.x += angle.x < 0 ? float(MathUtil::TAU) : 0;
+  angle.y += angle.y < 0 ? float(MathUtil::TAU) : 0;
+  angle.z += angle.z < 0 ? float(MathUtil::TAU) : 0;
+  return angle;
+}
+
+static Common::Vec3 ComplementaryFilter(const Common::Vec3& angle,
+                                        const Common::Vec3& accelerometer,
+                                        const Common::Vec3& gyroscope, float time_elapsed)
+{
+  Common::Vec3 gyroangle = angle + gyroscope * time_elapsed;
+  gyroangle = NormalizeAngle(gyroangle);
+
+  // Calculate accelerometer tilt angles
+  Common::Vec3 accangle = gyroangle;
+  if ((accelerometer.x != 0 && accelerometer.y != 0) || accelerometer.z != 0)
+  {
+    float accpitch = -atan2(accelerometer.y, -accelerometer.z) + float(MathUtil::PI);
+    float accroll = atan2(accelerometer.x, -accelerometer.z) + float(MathUtil::PI);
+    accangle = {accpitch, accroll, gyroangle.z};
+  }
+
+  // Massage accelerometer and gyroscope angle values so that averaging them works when they are on
+  // opposite sides of TAU / zero (which both represent the same angle)
+  // TODO: There must be a more elegant way to do this
+  constexpr float DEG360 = float(MathUtil::TAU);
+  constexpr float DEG270 = DEG360 * 0.75f;
+  constexpr float DEG90 = DEG360 * 0.25f;
+  if (accangle.x < DEG90 && gyroangle.x > DEG270)
+    accangle.x += DEG360;
+  else if (gyroangle.x < DEG90 && accangle.x > DEG270)
+    gyroangle.x += DEG360;
+  if (accangle.y < DEG90 && gyroangle.y > DEG270)
+    accangle.y += DEG360;
+  else if (gyroangle.y < DEG90 && accangle.y > DEG270)
+    gyroangle.y += DEG360;
+
+  // Combine accelerometer and gyroscope angles
+  return NormalizeAngle((gyroangle * 0.98f) + (accangle * 0.02f));
+}
+
+void EmulateIMUCursor(std::optional<RotationalState>* state, ControllerEmu::IMUCursor* imu_ir_group,
+                      ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
+                      ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
+{
+  // Avoid having to double dereference
+  auto& st = *state;
+
+  auto accel = imu_accelerometer_group->GetState();
+  auto ang_vel = imu_gyroscope_group->GetState();
+
+  // The IMU Cursor requires both an accelerometer and a gyroscope to function correctly.
+  if (!(accel.has_value() && ang_vel.has_value()))
+  {
+    st = std::nullopt;
+    return;
+  }
+
+  if (!st.has_value())
+    st = RotationalState{};
+
+  st->angle = ComplementaryFilter(st->angle, accel.value(), ang_vel.value(), time_elapsed);
+
+  // Reset camera yaw angle
+  constexpr ControlState BUTTON_THRESHOLD = 0.5;
+  if (imu_ir_group->controls[0]->control_ref->State() > BUTTON_THRESHOLD)
+    st->angle.z = 0;
+
+  // Limit camera yaw angle
+  float totalyaw = float(imu_ir_group->GetTotalYaw());
+  float yawmax = totalyaw / 2;
+  float yawmin = float(MathUtil::TAU) - totalyaw / 2;
+  if (st->angle.z > yawmax && st->angle.z <= float(MathUtil::PI))
+    st->angle.z = yawmax;
+  if (st->angle.z < yawmin && st->angle.z > float(MathUtil::PI))
+    st->angle.z = yawmin;
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,

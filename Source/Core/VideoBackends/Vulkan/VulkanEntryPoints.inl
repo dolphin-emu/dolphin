@@ -61,6 +61,7 @@ VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDestroyDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDebugReportMessageEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceProperties2, false)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfaceCapabilities2KHR, false)
 
 #endif  // VULKAN_INSTANCE_ENTRY_POINT
 
@@ -191,5 +192,10 @@ VULKAN_DEVICE_ENTRY_POINT(vkDestroySwapchainKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkGetSwapchainImagesKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkAcquireNextImageKHR, false)
 VULKAN_DEVICE_ENTRY_POINT(vkQueuePresentKHR, false)
+
+#ifdef SUPPORTS_VULKAN_EXCLUSIVE_FULLSCREEN
+VULKAN_DEVICE_ENTRY_POINT(vkAcquireFullScreenExclusiveModeEXT, false)
+VULKAN_DEVICE_ENTRY_POINT(vkReleaseFullScreenExclusiveModeEXT, false)
+#endif
 
 #endif  // VULKAN_DEVICE_ENTRY_POINT

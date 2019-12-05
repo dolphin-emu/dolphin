@@ -74,13 +74,11 @@ std::string VolumeGC::GetGameID(const Partition& partition) const
 
 std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 {
-  const std::string game_id = GetGameID(partition);
-
-  // Don't return an ID for Datel discs that are using the game ID of NHL Hitz 2002
-  if (game_id == "GNHE5d" && !GetBootDOLOffset(*this, partition).has_value())
+  // Don't return an ID for Datel discs
+  if (!GetBootDOLOffset(*this, PARTITION_NONE).has_value())
     return "";
 
-  return game_id;
+  return GetGameID(partition);
 }
 
 Region VolumeGC::GetRegion() const

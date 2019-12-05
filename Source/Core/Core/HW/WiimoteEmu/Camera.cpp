@@ -79,8 +79,7 @@ void CameraLogic::Update(const Common::Matrix44& transform)
   constexpr int MAX_POINT_SIZE = 15;
 
   // Sensor bar:
-  // Values are optimized for default settings in "Super Mario Galaxy 2"
-  // This seems to be acceptable for a good number of games.
+  // Distance in meters between LED clusters.
   constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
 
   const std::array<Vec3, NUM_POINTS> leds{

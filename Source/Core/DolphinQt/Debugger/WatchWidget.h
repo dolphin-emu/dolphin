@@ -54,5 +54,5 @@ private:
 
   bool m_updating = false;
 
-  static constexpr size_t NUM_COLUMNS = 6;
+  static constexpr int NUM_COLUMNS = 6;
 };

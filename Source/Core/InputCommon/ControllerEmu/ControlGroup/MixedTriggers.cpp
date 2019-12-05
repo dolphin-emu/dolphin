@@ -48,7 +48,7 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
   {
     const ControlState button_value = ApplyDeadzone(controls[i]->control_ref->State(), deadzone);
     ControlState analog_value =
-        ApplyDeadzone(controls[trigger_count + i]->control_ref->State(), deadzone);
+        std::min(ApplyDeadzone(controls[trigger_count + i]->control_ref->State(), deadzone), 1.0);
 
     // Apply threshold:
     if (button_value > threshold)

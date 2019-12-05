@@ -32,6 +32,8 @@ private:
   std::pair<QCheckBox*, QLineEdit*> AddHashLine(QFormLayout* layout, QString text);
   void ConnectWidgets();
 
+  bool CanVerifyRedump() const;
+  void UpdateRedumpEnabled();
   void Verify();
   void SetProblemCellText(int row, int column, QString text);
 
@@ -39,11 +41,14 @@ private:
   QTableWidget* m_problems;
   QTextEdit* m_summary_text;
   QFormLayout* m_hash_layout;
+  QFormLayout* m_redump_layout;
   QCheckBox* m_crc32_checkbox;
   QCheckBox* m_md5_checkbox;
   QCheckBox* m_sha1_checkbox;
+  QCheckBox* m_redump_checkbox;
   QLineEdit* m_crc32_line_edit;
   QLineEdit* m_md5_line_edit;
   QLineEdit* m_sha1_line_edit;
+  QLineEdit* m_redump_line_edit;
   QPushButton* m_verify_button;
 };

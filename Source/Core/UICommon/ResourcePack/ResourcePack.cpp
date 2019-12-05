@@ -10,6 +10,7 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/MinizipUtil.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
@@ -19,35 +20,6 @@
 namespace ResourcePack
 {
 constexpr char TEXTURE_PATH[] = "Load/Textures/";
-
-// Since minzip doesn't provide a way to unzip a file of a length > 65535, we have to implement
-// this ourselves
-template <typename ContiguousContainer>
-static bool ReadCurrentFileUnlimited(unzFile file, ContiguousContainer& destination)
-{
-  const u32 MAX_BUFFER_SIZE = 65535;
-
-  if (unzOpenCurrentFile(file) != UNZ_OK)
-    return false;
-
-  Common::ScopeGuard guard{[&] { unzCloseCurrentFile(file); }};
-
-  auto bytes_to_go = static_cast<u32>(destination.size());
-  while (bytes_to_go > 0)
-  {
-    const int bytes_read = unzReadCurrentFile(file, &destination[destination.size() - bytes_to_go],
-                                              std::min(bytes_to_go, MAX_BUFFER_SIZE));
-
-    if (bytes_read < 0)
-    {
-      return false;
-    }
-
-    bytes_to_go -= static_cast<u32>(bytes_read);
-  }
-
-  return true;
-}
 
 ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 {
@@ -72,7 +44,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
   unzGetCurrentFileInfo(file, &manifest_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
   std::string manifest_contents(manifest_info.uncompressed_size, '\0');
-  if (!ReadCurrentFileUnlimited(file, manifest_contents))
+  if (!Common::ReadFileFromZip(file, &manifest_contents))
   {
     m_valid = false;
     m_error = "Failed to read manifest.json";
@@ -96,7 +68,7 @@ ResourcePack::ResourcePack(const std::string& path) : m_path(path)
 
     m_logo_data.resize(logo_info.uncompressed_size);
 
-    if (!ReadCurrentFileUnlimited(file, m_logo_data))
+    if (!Common::ReadFileFromZip(file, &m_logo_data))
     {
       m_valid = false;
       m_error = "Failed to read logo.png";
@@ -208,7 +180,7 @@ bool ResourcePack::Install(const std::string& path)
     unzGetCurrentFileInfo(file, &texture_info, nullptr, 0, nullptr, 0, nullptr, 0);
 
     std::vector<char> data(texture_info.uncompressed_size);
-    if (!ReadCurrentFileUnlimited(file, data))
+    if (!Common::ReadFileFromZip(file, &data))
     {
       m_error = "Failed to read texture " + texture;
       return false;

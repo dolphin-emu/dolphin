@@ -28,6 +28,9 @@ class ControlGroup;
 class Cursor;
 class Extension;
 class Force;
+class IMUAccelerometer;
+class IMUGyroscope;
+class IMUCursor;
 class ModifySettingsButton;
 class Output;
 class Tilt;
@@ -45,14 +48,16 @@ enum class WiimoteGroup
   Swing,
   Rumble,
   Attachments,
-
   Options,
   Hotkeys,
+  IMUAccelerometer,
+  IMUGyroscope,
+  IMUPoint,
 
   Beams,
   Visors,
   Camera,
-  Misc,
+  Misc
 };
 
 enum class NunchukGroup;
@@ -88,6 +93,11 @@ void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
 class Wiimote : public ControllerEmu::EmulatedController
 {
 public:
+  static constexpr u16 IR_LOW_X = 0x7F;
+  static constexpr u16 IR_LOW_Y = 0x5D;
+  static constexpr u16 IR_HIGH_X = 0x380;
+  static constexpr u16 IR_HIGH_Y = 0x2A2;
+
   static constexpr u8 ACCEL_ZERO_G = 0x80;
   static constexpr u8 ACCEL_ONE_G = 0x9A;
 
@@ -147,21 +157,28 @@ private:
   // This is the region exposed over bluetooth:
   static constexpr int EEPROM_FREE_SIZE = 0x1700;
 
+  static constexpr double BUTTON_THRESHOLD = 0.5;
+
   void UpdateButtonsStatus();
 
   // Returns simulated accelerometer data in m/s^2.
-  Common::Vec3 GetAcceleration();
+  Common::Vec3 GetAcceleration(
+      Common::Vec3 extra_acceleration = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));
 
   // Returns simulated gyroscope data in radians/s.
-  Common::Vec3 GetAngularVelocity();
+  Common::Vec3 GetAngularVelocity(Common::Vec3 extra_angular_velocity = {});
 
   // Returns the transformation of the world around the wiimote.
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
-  Common::Matrix44 GetTransformation() const;
+  Common::Matrix44 GetTransformation(Common::Vec3 extra_rotation = {}) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Matrix33 GetOrientation() const;
+
+  Common::Vec3 GetTotalAcceleration();
+  Common::Vec3 GetTotalAngularVelocity();
+  Common::Matrix44 GetTotalTransformation() const;
 
   void HIDOutputReport(const void* data, u32 size);
 
@@ -253,6 +270,9 @@ private:
   ControllerEmu::Attachments* m_attachments;
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
+  ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
+  ControllerEmu::IMUGyroscope* m_imu_gyroscope;
+  ControllerEmu::IMUCursor* m_imu_ir;
 
   ControllerEmu::ControlGroup* m_primehack_beams;
   ControllerEmu::ControlGroup* m_primehack_visors;
@@ -303,5 +323,6 @@ private:
   RotationalState m_tilt_state;
   MotionState m_cursor_state;
   PositionalState m_shake_state;
+  std::optional<RotationalState> m_imu_cursor_state;
 };
 }  // namespace WiimoteEmu

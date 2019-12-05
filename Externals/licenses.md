@@ -60,8 +60,6 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2+](http://www.surina.net/soundtouch/license.html)
 - [TAP-Windows](https://openvpn.net/):
    header only
-- [XAudio2](http://msdn.microsoft.com/en-us/library/windows/desktop/hh405049.aspx):
-   headers only
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [2-clause BSD](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
 - [zlib](http://www.zlib.net/):

@@ -47,7 +47,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
     wii_pane->OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 
-  m_tab_widget->addTab(new AdvancedPane(), tr("Advanced"));
+  m_tab_widget->addTab(GetWrappedWidget(new AdvancedPane, this, 125, 200), tr("Advanced"));
 
   // Dialog box buttons
   QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);

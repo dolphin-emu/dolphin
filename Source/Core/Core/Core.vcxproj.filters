@@ -1674,7 +1674,10 @@
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="PrimeHack\AimMods.h">
+    <ClInclude Include="HW\WiimoteEmu\Constants.h">
+      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
+    </ClInclude>
+	<ClInclude Include="PrimeHack\AimMods.h">
       <Filter>PrimeHack</Filter>
     </ClInclude>
     <ClInclude Include="PrimeHack\HackConfig.h">

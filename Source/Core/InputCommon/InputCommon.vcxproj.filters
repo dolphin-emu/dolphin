@@ -28,6 +28,9 @@
     <Filter Include="ControllerInterface\XInput">
       <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerInterface\DualShockUDPClient">
+      <UniqueIdentifier>{ff02580e-3a62-4de4-a135-3a6c2c339a90}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GCAdapter.cpp" />
@@ -113,11 +116,26 @@
     <ClCompile Include="ControlReference\ControlReference.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
+    <ClCompile Include="ControlReference\FunctionExpression.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
     <ClCompile Include="InputProfile.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\Attachments.cpp">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClCompile>
-    <ClCompile Include="DInputMouseAbsolute.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUCursor.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUAccelerometer.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUGyroscope.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp">
+      <Filter>ControllerInterface\DualShockUDPClient</Filter>
+    </ClCompile>
+	<ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GenericMouse.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -212,8 +230,6 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
-    <ClInclude Include="DInputMouseAbsolute.h" />
-    <ClInclude Include="GenericMouse.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

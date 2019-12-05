@@ -36,6 +36,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUAccelerometer.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUCursor.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\IMUGyroscope.cpp" />
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
     <ClCompile Include="ControllerEmu\StickGate.cpp" />
     <ClCompile Include="ControllerEmu\Control\Control.cpp" />
@@ -59,13 +62,15 @@
     <ClCompile Include="ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputKeyboardMouse.cpp" />
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp" />
+    <ClCompile Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp" />
     <ClCompile Include="ControlReference\ControlReference.cpp" />
     <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
+    <ClCompile Include="ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="DInputMouseAbsolute.cpp" />
-    <ClCompile Include="GCAdapter.cpp">
+	<ClCompile Include="GCAdapter.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
       which is hit in libusb.h.
@@ -77,6 +82,9 @@
     <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUAccelerometer.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUCursor.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUGyroscope.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
     <ClInclude Include="ControllerEmu\StickGate.h" />
     <ClInclude Include="ControllerEmu\Control\Control.h" />
@@ -101,7 +109,10 @@
     <ClInclude Include="ControllerInterface\DInput\DInputJoystick.h" />
     <ClInclude Include="ControllerInterface\DInput\DInputKeyboardMouse.h" />
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h" />
+    <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.h" />
+    <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPProto.h" />
     <ClInclude Include="ControlReference\ControlReference.h" />
+    <ClInclude Include="ControlReference\FunctionExpression.h" />
     <ClInclude Include="ControlReference\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="ControllerInterface\Win32\Win32.h" />

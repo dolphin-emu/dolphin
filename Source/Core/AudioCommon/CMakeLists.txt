@@ -71,19 +71,7 @@ if(WIN32)
 
     WASAPIStream.cpp
     WASAPIStream.h
-    XAudio2Stream.cpp
-    XAudio2Stream.h
   )
-
-  add_library(audiocommon_xaudio27
-    XAudio2_7Stream.cpp
-    XAudio2_7Stream.h
-  )
-  target_include_directories(audiocommon_xaudio27 PRIVATE
-    ${PROJECT_SOURCE_DIR}/Externals
-    ${PROJECT_SOURCE_DIR}/Externals/XAudio2_7
-  )
-  target_link_libraries(audiocommon PRIVATE audiocommon_xaudio27)
 endif()
 
 target_link_libraries(audiocommon PRIVATE cubeb SoundTouch FreeSurround)

@@ -47,10 +47,6 @@ bool DiscScrubber::SetupScrub(const Volume* disc, int block_size)
   // Round up when diving by CLUSTER_SIZE, otherwise MarkAsUsed might write out of bounds
   const size_t num_clusters = static_cast<size_t>((m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE);
 
-  // Warn if not DVD5 or DVD9 size
-  if (num_clusters != 0x23048 && num_clusters != 0x46090)
-    WARN_LOG(DISCIO, "Not a standard sized Wii disc! (%zx blocks)", num_clusters);
-
   // Table of free blocks
   m_free_table.resize(num_clusters, 1);
 

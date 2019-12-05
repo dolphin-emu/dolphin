@@ -51,6 +51,10 @@ add_executable(dolphin-emu
   Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
+  Config/ControllerInterface/DualShockUDPClientWidget.cpp
+  Config/ControllerInterface/DualShockUDPClientWidget.h
+  Config/ControllerInterface/ControllerInterfaceWindow.cpp
+  Config/ControllerInterface/ControllerInterfaceWindow.h
   Config/ControllersWindow.cpp
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
@@ -142,6 +146,8 @@ add_executable(dolphin-emu
   Config/Mapping/PrimeHackEmuGeneral.h
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/Mapping/WiimoteEmuMotionControl.h
+  Config/Mapping/WiimoteEmuMotionControlIMU.cpp
+  Config/Mapping/WiimoteEmuMotionControlIMU.h
   Config/NewPatchDialog.cpp
   Config/NewPatchDialog.h
   Config/PatchesWidget.cpp

@@ -61,7 +61,7 @@ static bool TryParse(const std::string& str, N* const output)
   iss.imbue(std::locale("C"));
 
   N tmp;
-  if (iss >> tmp)
+  if (iss >> tmp && iss.eof())
   {
     *output = tmp;
     return true;

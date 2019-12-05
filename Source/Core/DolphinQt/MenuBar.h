@@ -175,6 +175,8 @@ private:
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
 
+  QString GetSignatureSelector() const;
+
   static QPointer<MenuBar> s_menu_bar;
 
   // File

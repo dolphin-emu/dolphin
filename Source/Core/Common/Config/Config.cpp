@@ -133,9 +133,15 @@ void ClearCurrentRunLayer()
 }
 
 static const std::map<System, std::string> system_to_name = {
-    {System::Main, "Dolphin"},          {System::GCPad, "GCPad"},    {System::WiiPad, "Wiimote"},
-    {System::GCKeyboard, "GCKeyboard"}, {System::GFX, "Graphics"},   {System::Logger, "Logger"},
-    {System::Debugger, "Debugger"},     {System::SYSCONF, "SYSCONF"}};
+    {System::Main, "Dolphin"},
+    {System::GCPad, "GCPad"},
+    {System::WiiPad, "Wiimote"},
+    {System::GCKeyboard, "GCKeyboard"},
+    {System::GFX, "Graphics"},
+    {System::Logger, "Logger"},
+    {System::Debugger, "Debugger"},
+    {System::SYSCONF, "SYSCONF"},
+    {System::DualShockUDPClient, "DualShockUDPClient"}};
 
 const std::string& GetSystemName(System system)
 {

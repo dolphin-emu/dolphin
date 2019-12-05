@@ -44,7 +44,7 @@
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Shlwapi.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;$(ProjectDir)FIFO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)Config\ControllerInterface;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;$(ProjectDir)FIFO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -89,6 +89,7 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuExtension.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\NewPatchDialog.h" />
@@ -105,6 +106,8 @@
     <QtMoc Include="Config\Graphics\HacksWidget.h" />
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
     <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
+    <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
+    <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PatchesWidget.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
@@ -186,6 +189,8 @@
     <ClCompile Include="$(QtMocOutPrefix)ChunkedProgressDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ControllerInterfaceWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DiscordHandler.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DiscordJoinRequestDialog.cpp" />
@@ -283,12 +288,15 @@
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtension.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
+    <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
+    <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />
@@ -333,6 +341,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\NewPatchDialog.cpp" />

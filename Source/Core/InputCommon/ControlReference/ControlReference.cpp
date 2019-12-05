@@ -25,12 +25,12 @@ bool ControlReference::InputGateOn()
 // Updates a controlreference's binded devices/controls
 // need to call this to re-bind a control reference after changing its expression
 //
-void ControlReference::UpdateReference(const ciface::Core::DeviceContainer& devices,
-                                       const ciface::Core::DeviceQualifier& default_device)
+void ControlReference::UpdateReference(ciface::ExpressionParser::ControlEnvironment& env)
 {
-  ControlFinder finder(devices, default_device, IsInput());
   if (m_parsed_expression)
-    m_parsed_expression->UpdateReferences(finder);
+  {
+    m_parsed_expression->UpdateReferences(env);
+  }
 }
 
 int ControlReference::BoundCount() const
@@ -54,7 +54,9 @@ std::string ControlReference::GetExpression() const
 void ControlReference::SetExpression(std::string expr)
 {
   m_expression = std::move(expr);
-  std::tie(m_parse_status, m_parsed_expression) = ParseExpression(m_expression);
+  auto parse_result = ParseExpression(m_expression);
+  m_parse_status = parse_result.status;
+  m_parsed_expression = std::move(parse_result.expr);
 }
 
 ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)
