@@ -1410,8 +1410,7 @@ std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, 
           (height + (info->group_size_y - 1)) / info->group_size_y};
 }
 
-std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_format,
-                                   APIType api_type)
+std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_format)
 {
   const DecodingShaderInfo* info = GetDecodingShaderInfo(format);
   if (!info)

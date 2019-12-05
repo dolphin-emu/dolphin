@@ -1321,27 +1321,26 @@ const AbstractShader* ShaderCache::GetTextureDecodingShader(TextureFormat format
                                                             TLUTFormat palette_format)
 {
   const auto key = std::make_pair(static_cast<u32>(format), static_cast<u32>(palette_format));
-  auto iter = m_texture_decoding_shaders.find(key);
+  const auto iter = m_texture_decoding_shaders.find(key);
   if (iter != m_texture_decoding_shaders.end())
     return iter->second.get();
 
-  std::string shader_source =
-      TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
+  const std::string shader_source =
+      TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format);
   if (shader_source.empty())
   {
     m_texture_decoding_shaders.emplace(key, nullptr);
     return nullptr;
   }
 
-  std::unique_ptr<AbstractShader> shader =
-      g_renderer->CreateShaderFromSource(ShaderStage::Compute, shader_source);
+  auto shader = g_renderer->CreateShaderFromSource(ShaderStage::Compute, shader_source);
   if (!shader)
   {
     m_texture_decoding_shaders.emplace(key, nullptr);
     return nullptr;
   }
 
-  auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
+  const auto iiter = m_texture_decoding_shaders.emplace(key, std::move(shader));
   return iiter.first->second.get();
 }
 }  // namespace VideoCommon
