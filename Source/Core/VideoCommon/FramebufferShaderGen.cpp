@@ -5,6 +5,7 @@
 #include "VideoCommon/FramebufferShaderGen.h"
 
 #include <sstream>
+#include <string_view>
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -59,7 +60,7 @@ void EmitSamplerDeclarations(std::stringstream& ss, u32 start = 0, u32 end = 1,
   }
 }
 
-void EmitSampleTexture(std::stringstream& ss, u32 n, const char* coords)
+void EmitSampleTexture(std::stringstream& ss, u32 n, std::string_view coords)
 {
   switch (GetAPIType())
   {
@@ -79,7 +80,7 @@ void EmitSampleTexture(std::stringstream& ss, u32 n, const char* coords)
 
 // Emits a texel fetch/load instruction. Assumes that "coords" is a 4-element vector, with z
 // containing the layer, and w containing the mipmap level.
-void EmitTextureLoad(std::stringstream& ss, u32 n, const char* coords)
+void EmitTextureLoad(std::stringstream& ss, u32 n, std::string_view coords)
 {
   switch (GetAPIType())
   {
@@ -99,7 +100,7 @@ void EmitTextureLoad(std::stringstream& ss, u32 n, const char* coords)
 
 void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
                                bool position_input, u32 num_tex_outputs, u32 num_color_outputs,
-                               const char* extra_inputs = "")
+                               std::string_view extra_inputs = {})
 {
   switch (GetAPIType())
   {
@@ -164,8 +165,8 @@ void EmitVertexMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 nu
 }
 
 void EmitPixelMainDeclaration(std::stringstream& ss, u32 num_tex_inputs, u32 num_color_inputs,
-                              const char* output_type = "float4", const char* extra_vars = "",
-                              bool emit_frag_coord = false)
+                              std::string_view output_type = "float4",
+                              std::string_view extra_vars = {}, bool emit_frag_coord = false)
 {
   switch (GetAPIType())
   {
