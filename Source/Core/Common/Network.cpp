@@ -43,7 +43,7 @@ std::string MacAddressToString(const MACAddress& mac)
                      mac[4], mac[5]);
 }
 
-std::optional<MACAddress> StringToMacAddress(const std::string& mac_string)
+std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 {
   if (mac_string.empty())
     return {};
