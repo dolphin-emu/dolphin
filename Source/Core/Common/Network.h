@@ -7,6 +7,7 @@
 #include <array>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -27,5 +28,5 @@ using MACAddress = std::array<u8, MAC_ADDRESS_SIZE>;
 
 MACAddress GenerateMacAddress(MACConsumer type);
 std::string MacAddressToString(const MACAddress& mac);
-std::optional<MACAddress> StringToMacAddress(const std::string& mac_string);
+std::optional<MACAddress> StringToMacAddress(std::string_view mac_string);
 }  // namespace Common

@@ -6,8 +6,6 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstring>
-#include <ctime>
 
 #include <fmt/format.h>
 
@@ -43,10 +41,10 @@ std::string MacAddressToString(const MACAddress& mac)
                      mac[4], mac[5]);
 }
 
-std::optional<MACAddress> StringToMacAddress(const std::string& mac_string)
+std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 {
   if (mac_string.empty())
-    return {};
+    return std::nullopt;
 
   int x = 0;
   MACAddress mac{};
@@ -70,7 +68,7 @@ std::optional<MACAddress> StringToMacAddress(const std::string& mac_string)
   // nibble is a character in the MAC address, making 12 characters
   // in total.
   if (x / 2 != MAC_ADDRESS_SIZE)
-    return {};
+    return std::nullopt;
 
   return std::make_optional(mac);
 }
