@@ -332,6 +332,10 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
     ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))
               ->GetActiveExtensionNumber();
   }
+  else if (num == WIIMOTE_BALANCE_BOARD)
+  {
+    ext = WiimoteEmu::ExtensionNumber::BALANCE_BOARD;
+  }
   else
   {
     IniFile ini;
@@ -343,8 +347,6 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       ext = WiimoteEmu::ExtensionNumber::NUNCHUK;
     if (extension == "Classic")
       ext = WiimoteEmu::ExtensionNumber::CLASSIC;
-    if (extension == "BalanceBoard")
-      ext = WiimoteEmu::ExtensionNumber::BALANCE_BOARD;
   }
   UpdateExt(ext);
 }
