@@ -4,19 +4,18 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 
-// For InputGateOn()
-// This is a bad layering violation, but it's the cleanest
-// place I could find to put it.
-#include "Core/ConfigManager.h"
-#include "Core/Host.h"
-
 using namespace ciface::ExpressionParser;
 
-bool ControlReference::InputGateOn()
+static thread_local bool tls_input_gate = true;
+
+void ControlReference::SetInputGate(bool enable)
 {
-  return (SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus() ||
-          Host_UINeedsControllerState()) &&
-         !Host_UIBlocksControllerState();
+  tls_input_gate = enable;
+}
+
+bool ControlReference::GetInputGate()
+{
+  return tls_input_gate;
 }
 
 //
@@ -90,7 +89,7 @@ bool OutputReference::IsInput() const
 //
 ControlState InputReference::State(const ControlState ignore)
 {
-  if (m_parsed_expression && InputGateOn())
+  if (m_parsed_expression && GetInputGate())
     return m_parsed_expression->GetValue() * range;
   return 0.0;
 }

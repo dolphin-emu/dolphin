@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "AudioCommon/Mixer.h"
+#include "AudioCommon/Enums.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,11 +13,28 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+
+static u32 DPL2QualityToFrameBlockSize(AudioCommon::DPL2Quality quality)
+{
+  switch (quality)
+  {
+  case AudioCommon::DPL2Quality::Lowest:
+    return 512;
+  case AudioCommon::DPL2Quality::Low:
+    return 1024;
+  case AudioCommon::DPL2Quality::Highest:
+    return 4096;
+  default:
+    return 2048;
+  }
+}
 
 Mixer::Mixer(unsigned int BackendSampleRate)
     : m_sampleRate(BackendSampleRate), m_stretcher(BackendSampleRate),
-      m_surround_decoder(BackendSampleRate, SURROUND_BLOCK_SIZE)
+      m_surround_decoder(BackendSampleRate,
+                         DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY)))
 {
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 }

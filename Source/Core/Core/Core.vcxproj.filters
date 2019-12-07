@@ -713,6 +713,9 @@
     <ClCompile Include="IOS\DeviceStub.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\DolphinDevice.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\DI\DI.cpp">
       <Filter>IOS\DI</Filter>
     </ClCompile>
@@ -1458,6 +1461,9 @@
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
     <ClInclude Include="IOS\DeviceStub.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\DolphinDevice.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\DI\DI.h">

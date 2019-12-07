@@ -10,6 +10,8 @@
 #include <memory>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -17,8 +19,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -192,7 +192,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   else
   {
     strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
-                       StringFromFormat("Card %c", 'A' + card_index);
+                       fmt::format("Card {}", char('A' + card_index));
   }
 
   const File::FileInfo file_info(strDirectoryName);
@@ -234,8 +234,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
                                      Config::Get(Config::MAIN_MEMCARD_B_PATH);
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
       Movie::IsStartingFromClearSave())
-    filename =
-        File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", is_slot_a ? "A" : "B");
+    filename = File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", is_slot_a ? 'A' : 'B');
 
   const std::string region_dir =
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));

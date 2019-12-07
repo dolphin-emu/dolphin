@@ -62,16 +62,22 @@ enum class AddressSpace : u8
   // FYI: The EEPROM address space is offset 0x0070 on i2c slave 0x50.
   // However attempting to access this device directly results in an error.
   EEPROM = 0x00,
-  // 0x01 is never used but it does function on a real wiimote:
-  I2CBusAlt = 0x01,
-  I2CBus = 0x02,
+  // I2CBusAlt is never used by games but it does function on a real wiimote.
+  I2CBus = 0x01,
+  I2CBusAlt = 0x02,
 };
 
 enum class ErrorCode : u8
 {
+  // Normal result.
   Success = 0,
+  // Produced by read/write attempts during an active read.
+  Busy = 4,
+  // Produced by using something other than the above AddressSpace values.
   InvalidSpace = 6,
+  // Produced by an i2c read/write with a non-responding slave address.
   Nack = 7,
+  // Produced by accessing invalid regions of EEPROM or the EEPROM directly over i2c.
   InvalidAddress = 8,
 };
 

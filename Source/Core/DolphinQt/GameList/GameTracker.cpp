@@ -34,7 +34,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
-  connect(&Settings::Instance(), &Settings::AutoRefreshToggled, this, [] {
+  connect(&Settings::Instance(), &Settings::AutoRefreshToggled, [] {
     const auto paths = Settings::Instance().GetPaths();
 
     for (const auto& path : paths)
@@ -44,7 +44,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     }
   });
 
-  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this, [this] {
+  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, [this] {
     m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}});
   });
 
@@ -56,6 +56,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       break;
     case CommandType::Start:
       StartInternal();
+      break;
     case CommandType::AddDirectory:
       AddDirectoryInternal(command.path);
       break;
@@ -77,6 +78,20 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       break;
     case CommandType::PurgeCache:
       m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
+      break;
+    case CommandType::BeginRefresh:
+      if (m_busy_count++ == 0)
+      {
+        for (auto& file : m_tracked_files.keys())
+          emit GameRemoved(file.toStdString());
+        m_tracked_files.clear();
+      }
+      break;
+    case CommandType::EndRefresh:
+      if (--m_busy_count == 0)
+      {
+        QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
+      }
       break;
     }
   });
@@ -176,16 +191,15 @@ void GameTracker::RemoveDirectory(const QString& dir)
 
 void GameTracker::RefreshAll()
 {
-  for (auto& file : m_tracked_files.keys())
-    emit GameRemoved(file.toStdString());
-
-  m_tracked_files.clear();
+  m_load_thread.EmplaceItem(Command{CommandType::BeginRefresh});
 
   for (const QString& dir : Settings::Instance().GetPaths())
   {
     m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
     m_load_thread.EmplaceItem(Command{CommandType::AddDirectory, dir});
   }
+
+  m_load_thread.EmplaceItem(Command{CommandType::EndRefresh});
 }
 
 void GameTracker::UpdateDirectory(const QString& dir)

@@ -12,11 +12,12 @@
 #include "InputCommon/ControllerInterface/Device.h"
 
 class ControlReference;
+class MappingWidget;
 class QAbstractButton;
 class QComboBox;
 class QDialogButtonBox;
 class QLineEdit;
-class QListWidget;
+class QTableWidget;
 class QVBoxLayout;
 class QWidget;
 class QPlainTextEdit;
@@ -52,13 +53,16 @@ public:
     Output
   };
 
-  explicit IOWindow(QWidget* parent, ControllerEmu::EmulatedController* m_controller,
+  explicit IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* m_controller,
                     ControlReference* ref, Type type);
+
+  std::shared_ptr<ciface::Core::Device> GetSelectedDevice();
 
 private:
   void CreateMainLayout();
   void ConnectWidgets();
   void ConfigChanged();
+  void Update();
 
   void OnDialogButtonPressed(QAbstractButton* button);
   void OnDeviceChanged(const QString& device);
@@ -77,7 +81,7 @@ private:
   QComboBox* m_devices_combo;
 
   // Options
-  QListWidget* m_option_list;
+  QTableWidget* m_option_list;
 
   // Range
   QSlider* m_range_slider;
@@ -108,4 +112,5 @@ private:
 
   ciface::Core::DeviceQualifier m_devq;
   Type m_type;
+  std::shared_ptr<ciface::Core::Device> m_selected_device;
 };

@@ -19,7 +19,7 @@ PulseAudio::PulseAudio() = default;
 
 bool PulseAudio::Init()
 {
-  m_stereo = !SConfig::GetInstance().bDPL2Decoder;
+  m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
   m_channels = m_stereo ? 2 : 6;  // will tell PA we use a Stereo or 5.0 channel setup
 
   NOTICE_LOG(AUDIO, "PulseAudio backend using %d channels", m_channels);

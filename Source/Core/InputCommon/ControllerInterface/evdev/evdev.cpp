@@ -25,6 +25,121 @@
 
 namespace ciface::evdev
 {
+class Input : public Core::Device::Input
+{
+public:
+  Input(u16 code, libevdev* dev) : m_code(code), m_dev(dev) {}
+
+protected:
+  const u16 m_code;
+  libevdev* const m_dev;
+};
+
+class Button final : public Input
+{
+public:
+  Button(u8 index, u16 code, libevdev* dev) : Input(code, dev), m_index(index) {}
+
+  std::string GetName() const override
+  {
+    // Buttons below 0x100 are mostly keyboard keys, and the names make sense
+    if (m_code < 0x100)
+    {
+      const char* name = libevdev_event_code_get_name(EV_KEY, m_code);
+      if (name)
+        return std::string(StripSpaces(name));
+    }
+    // But controllers use codes above 0x100, and the standard label often doesn't match.
+    // We are better off with Button 0 and so on.
+    return "Button " + std::to_string(m_index);
+  }
+
+  ControlState GetState() const override
+  {
+    int value = 0;
+    libevdev_fetch_event_value(m_dev, EV_KEY, m_code, &value);
+    return value;
+  }
+
+private:
+  const u8 m_index;
+};
+
+class AnalogInput : public Input
+{
+public:
+  using Input::Input;
+
+  ControlState GetState() const override
+  {
+    int value = 0;
+    libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
+
+    return (value - m_base) / m_range;
+  }
+
+protected:
+  ControlState m_range;
+  int m_base;
+};
+
+class Axis final : public AnalogInput
+{
+public:
+  Axis(u8 index, u16 code, bool upper, libevdev* dev) : AnalogInput(code, dev), m_index(index)
+  {
+    const int min = libevdev_get_abs_minimum(m_dev, m_code);
+    const int max = libevdev_get_abs_maximum(m_dev, m_code);
+
+    m_base = (max + min) / 2;
+    m_range = (upper ? max : min) - m_base;
+  }
+
+  std::string GetName() const override
+  {
+    return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
+  }
+
+private:
+  const u8 m_index;
+};
+
+class MotionDataInput final : public AnalogInput
+{
+public:
+  MotionDataInput(u16 code, ControlState resolution_scale, libevdev* dev) : AnalogInput(code, dev)
+  {
+    auto* const info = libevdev_get_abs_info(m_dev, m_code);
+
+    // The average of the minimum and maximum value. (neutral value)
+    m_base = (info->maximum + info->minimum) / 2;
+
+    m_range = info->resolution / resolution_scale;
+  }
+
+  std::string GetName() const override
+  {
+    // Unfortunately there doesn't seem to be a "standard" orientation
+    // so we can't use "Accel Up"-like names.
+    constexpr std::array<const char*, 6> motion_data_names = {{
+        "Accel X",
+        "Accel Y",
+        "Accel Z",
+        "Gyro X",
+        "Gyro Y",
+        "Gyro Z",
+    }};
+
+    // Our name array relies on sane axis codes from 0 to 5.
+    static_assert(ABS_X == 0, "evdev axis value sanity check");
+    static_assert(ABS_RX == 3, "evdev axis value sanity check");
+
+    return std::string(motion_data_names[m_code]) + (m_range < 0 ? '-' : '+');
+  }
+
+  bool IsDetectable() override { return false; }
+};
+
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
 static int s_wakeup_eventfd;
@@ -213,9 +328,43 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
       AddInput(new Button(num_buttons++, key, m_dev));
   }
 
+  int first_axis_code = 0;
+
+  int num_motion_axis = 0;
+  if (libevdev_has_property(m_dev, INPUT_PROP_ACCELEROMETER))
+  {
+    // If INPUT_PROP_ACCELEROMETER is set then X,Y,Z,RX,RY,RZ contain motion data.
+
+    auto add_motion_inputs = [&num_motion_axis, this](int first_code, double scale) {
+      for (int i = 0; i != 3; ++i)
+      {
+        const int code = first_code + i;
+        if (libevdev_has_event_code(m_dev, EV_ABS, code))
+        {
+          AddInput(new MotionDataInput(code, scale * -1, m_dev));
+          AddInput(new MotionDataInput(code, scale, m_dev));
+
+          ++num_motion_axis;
+        }
+      }
+    };
+
+    // evdev resolution is specified in "g"s and deg/s.
+    // Convert these to m/s/s and rad/s.
+    constexpr ControlState accel_scale = MathUtil::GRAVITY_ACCELERATION;
+    constexpr ControlState gyro_scale = MathUtil::TAU / 360;
+
+    add_motion_inputs(ABS_X, accel_scale);
+    add_motion_inputs(ABS_RX, gyro_scale);
+
+    // evdev says regular axes should not be mixed with motion data,
+    // but we'll keep looking for regular axes after RZ just in case.
+    first_axis_code = ABS_RZ + 1;
+  }
+
   // Absolute axis (thumbsticks)
   int num_axis = 0;
-  for (int axis = 0; axis < 0x100; axis++)
+  for (int axis = first_axis_code; axis != ABS_CNT; ++axis)
   {
     if (libevdev_has_event_code(m_dev, EV_ABS, axis))
     {
@@ -262,7 +411,7 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
   // TODO: Add leds as output devices
 
   // Was there some reasoning behind these numbers?
-  m_interesting = num_axis >= 2 || num_buttons >= 8;
+  m_interesting = num_motion_axis != 0 || num_axis >= 2 || num_buttons >= 8;
 }
 
 evdevDevice::~evdevDevice()
@@ -304,50 +453,6 @@ bool evdevDevice::IsValid() const
   }
   libevdev_free(device);
   return true;
-}
-
-std::string evdevDevice::Button::GetName() const
-{
-  // Buttons below 0x100 are mostly keyboard keys, and the names make sense
-  if (m_code < 0x100)
-  {
-    const char* name = libevdev_event_code_get_name(EV_KEY, m_code);
-    if (name)
-      return std::string(StripSpaces(name));
-  }
-  // But controllers use codes above 0x100, and the standard label often doesn't match.
-  // We are better off with Button 0 and so on.
-  return "Button " + std::to_string(m_index);
-}
-
-ControlState evdevDevice::Button::GetState() const
-{
-  int value = 0;
-  libevdev_fetch_event_value(m_dev, EV_KEY, m_code, &value);
-  return value;
-}
-
-evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, libevdev* dev)
-    : m_code(code), m_index(index), m_dev(dev)
-{
-  const int min = libevdev_get_abs_minimum(m_dev, m_code);
-  const int max = libevdev_get_abs_maximum(m_dev, m_code);
-
-  m_base = (max + min) / 2;
-  m_range = (upper ? max : min) - m_base;
-}
-
-std::string evdevDevice::Axis::GetName() const
-{
-  return "Axis " + std::to_string(m_index) + (m_range < 0 ? '-' : '+');
-}
-
-ControlState evdevDevice::Axis::GetState() const
-{
-  int value = 0;
-  libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
-
-  return ControlState(value - m_base) / m_range;
 }
 
 evdevDevice::Effect::Effect(int fd) : m_fd(fd)

@@ -8,6 +8,7 @@
 #include <dxgiformat.h>
 #include <string>
 #include <vector>
+#include <wrl/client.h>
 
 #include "Common/CommonTypes.h"
 
@@ -25,7 +26,7 @@ void UnloadLibraries();
 std::vector<std::string> GetAdapterNames();
 
 // Helper function which creates a DXGI factory.
-IDXGIFactory* CreateDXGIFactory(bool debug_device);
+Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device);
 
 // Globally-accessible D3DCompiler function.
 extern pD3DCompile d3d_compile;
@@ -40,6 +41,5 @@ AbstractTextureFormat GetAbstractFormatForDXGIFormat(DXGI_FORMAT format);
 // This function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
-void SetDebugObjectName(IUnknown* resource, const char* format, ...);
-std::string GetDebugObjectName(IUnknown* resource);
+void SetDebugObjectName(IUnknown* resource, std::string_view name);
 }  // namespace D3DCommon

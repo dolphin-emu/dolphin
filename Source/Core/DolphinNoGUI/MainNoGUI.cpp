@@ -82,11 +82,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-bool Host_UINeedsControllerState()
-{
-  return false;
-}
-
 bool Host_RendererHasFocus()
 {
   return s_platform->IsWindowFocused();
@@ -121,6 +116,11 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
     return Platform::CreateX11Platform();
 #endif
 
+#ifdef __linux__
+  if (platform_name == "fbdev" || platform_name.empty())
+    return Platform::CreateFBDevPlatform();
+#endif
+
   if (platform_name == "headless" || platform_name.empty())
     return Platform::CreateHeadlessPlatform();
 
@@ -135,6 +135,10 @@ int main(int argc, char* argv[])
       .help("Window platform to use [%choices]")
       .choices({
         "headless"
+#ifdef __linux__
+            ,
+            "fbdev"
+#endif
 #if HAVE_X11
             ,
             "x11"

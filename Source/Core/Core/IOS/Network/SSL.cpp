@@ -82,7 +82,7 @@ int NetSSL::GetSSLFreeID() const
 
 IPCCommandResult NetSSL::IOCtl(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), LogTypes::IOS_SSL, LogTypes::LINFO);
+  request.Log(GetDeviceName(), Common::Log::IOS_SSL, Common::Log::LINFO);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -565,7 +565,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
     break;
   }
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_SSL);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_SSL);
   }
 
   // SSL return codes are written to BufferIn

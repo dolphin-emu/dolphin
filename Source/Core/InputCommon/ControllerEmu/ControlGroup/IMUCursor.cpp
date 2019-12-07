@@ -4,6 +4,7 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 
+#include <memory>
 #include <string>
 
 #include "Common/Common.h"
@@ -12,13 +13,12 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
 IMUCursor::IMUCursor(std::string name, std::string ui_name)
-    : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUCursor)
+    : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUCursor,
+                   ControlGroup::CanBeDisabled::Yes)
 {
   controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 

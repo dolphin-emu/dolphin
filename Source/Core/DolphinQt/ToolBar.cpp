@@ -32,10 +32,10 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
   UpdateIcons();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged,
           [this](Core::State state) { OnEmulationStateChanged(state); });
 
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog,
           [this] { OnEmulationStateChanged(Core::GetState()); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
@@ -43,8 +43,11 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
   connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::SetToolBarVisible);
 
-  connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
+  connect(&Settings::Instance(), &Settings::WidgetLockChanged,
           [this](bool locked) { setMovable(!locked); });
+
+  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted,
+          [this] { m_refresh_action->setEnabled(true); });
 
   OnEmulationStateChanged(Core::GetState());
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
@@ -109,7 +112,10 @@ void ToolBar::MakeActions()
   m_set_pc_action = addAction(tr("Set PC"), this, &ToolBar::SetPCPressed);
 
   m_open_action = addAction(tr("Open"), this, &ToolBar::OpenPressed);
-  m_refresh_action = addAction(tr("Refresh"), this, &ToolBar::RefreshPressed);
+  m_refresh_action = addAction(tr("Refresh"), [this] {
+    m_refresh_action->setEnabled(false);
+    emit RefreshPressed();
+  });
 
   addSeparator();
 

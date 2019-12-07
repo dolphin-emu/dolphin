@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.utils;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -46,13 +47,13 @@ public final class SettingsFile
   public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
   public static final String KEY_VIDEO_BACKEND = "GFXBackend";
   public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+  public static final String KEY_AUDIO_VOLUME = "Volume";
   public static final String KEY_AUTO_DISC_CHANGE = "AutoDiscChange";
   public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
   public static final String KEY_OVERRIDE_REGION_SETTINGS = "OverrideRegionSettings";
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
   public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
-  public static final String KEY_LOCK_LANDSCAPE = "LockLandscape";
 
   public static final String KEY_ANALYTICS_ENABLED = "Enabled";
   public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";

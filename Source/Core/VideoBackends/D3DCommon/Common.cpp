@@ -72,20 +72,20 @@ void UnloadLibraries()
   s_libraries_loaded = false;
 }
 
-IDXGIFactory* CreateDXGIFactory(bool debug_device)
+Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
 {
-  IDXGIFactory* factory;
+  Microsoft::WRL::ComPtr<IDXGIFactory> factory;
 
   // Use Win8.1 version if available.
   if (create_dxgi_factory2 &&
       SUCCEEDED(create_dxgi_factory2(debug_device ? DXGI_CREATE_FACTORY_DEBUG : 0,
-                                     IID_PPV_ARGS(&factory))))
+                                     IID_PPV_ARGS(factory.GetAddressOf()))))
   {
     return factory;
   }
 
   // Fallback to original version, without debug support.
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
     PanicAlert("CreateDXGIFactory() failed with HRESULT %08X", hr);
@@ -98,14 +98,14 @@ IDXGIFactory* CreateDXGIFactory(bool debug_device)
 std::vector<std::string> GetAdapterNames()
 {
   Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(&factory));
-  if (!SUCCEEDED(hr))
+  HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.GetAddressOf()));
+  if (FAILED(hr))
     return {};
 
   std::vector<std::string> adapters;
-  IDXGIAdapter* adapter;
-  while (factory->EnumAdapters(static_cast<UINT>(adapters.size()), &adapter) !=
-         DXGI_ERROR_NOT_FOUND)
+  Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
+  while (factory->EnumAdapters(static_cast<UINT>(adapters.size()),
+                               adapter.ReleaseAndGetAddressOf()) != DXGI_ERROR_NOT_FOUND)
   {
     std::string name;
     DXGI_ADAPTER_DESC desc;
@@ -268,53 +268,22 @@ AbstractTextureFormat GetAbstractFormatForDXGIFormat(DXGI_FORMAT format)
   }
 }
 
-void SetDebugObjectName(IUnknown* resource, const char* format, ...)
+void SetDebugObjectName(IUnknown* resource, std::string_view name)
 {
   if (!g_ActiveConfig.bEnableValidationLayer)
     return;
 
-  std::va_list ap;
-  va_start(ap, format);
-  std::string name = StringFromFormatV(format, ap);
-  va_end(ap);
-
   Microsoft::WRL::ComPtr<ID3D11DeviceChild> child11;
   Microsoft::WRL::ComPtr<ID3D12DeviceChild> child12;
-  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child11))))
+  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child11.GetAddressOf()))))
   {
     child11->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
-                            name.c_str());
+                            name.data());
   }
-  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child12))))
+  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(child12.GetAddressOf()))))
   {
     child12->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()),
-                            name.c_str());
+                            name.data());
   }
-}
-
-std::string GetDebugObjectName(IUnknown* resource)
-{
-  if (!g_ActiveConfig.bEnableValidationLayer)
-    return {};
-
-  std::string name;
-  UINT size = 0;
-
-  Microsoft::WRL::ComPtr<ID3D11DeviceChild> child11;
-  Microsoft::WRL::ComPtr<ID3D12DeviceChild> child12;
-  if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child11))))
-  {
-    child11->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);
-    name.resize(size);
-    child11->GetPrivateData(WKPDID_D3DDebugObjectName, &size, name.data());
-  }
-  else if (SUCCEEDED(resource->QueryInterface(IID_PPV_ARGS(&child12))))
-  {
-    child12->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);
-    name.resize(size);
-    child12->GetPrivateData(WKPDID_D3DDebugObjectName, &size, name.data());
-  }
-
-  return name;
 }
 }  // namespace D3DCommon

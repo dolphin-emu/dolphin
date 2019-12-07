@@ -79,7 +79,8 @@ void VideoBackend::InitBackendInfo()
 // Helper method to check whether the Host GPU logging category is enabled.
 static bool IsHostGPULoggingEnabled()
 {
-  return LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR);
+  return Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
+                                                           Common::Log::LERROR);
 }
 
 // Helper method to determine whether to enable the debug report extension.

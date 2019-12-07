@@ -35,7 +35,7 @@ GLContextEGL::~GLContextEGL()
 
 bool GLContextEGL::IsHeadless() const
 {
-  return m_host_window == nullptr;
+  return m_wsi.type == WindowSystemType::Headless;
 }
 
 void GLContextEGL::Swap()
@@ -53,7 +53,7 @@ void* GLContextEGL::GetFuncAddress(const std::string& name)
   return (void*)eglGetProcAddress(name.c_str());
 }
 
-void GLContextEGL::DetectMode(bool has_handle)
+void GLContextEGL::DetectMode()
 {
   EGLint num_configs;
   bool supportsGL = false, supportsGLES3 = false;
@@ -72,7 +72,7 @@ void GLContextEGL::DetectMode(bool has_handle)
                      EGL_RENDERABLE_TYPE,
                      renderable_type,
                      EGL_SURFACE_TYPE,
-                     has_handle ? EGL_WINDOW_BIT : 0,
+                     IsHeadless() ? 0 : EGL_WINDOW_BIT,
                      EGL_NONE};
 
     // Get how many configs there are
@@ -130,27 +130,23 @@ void GLContextEGL::DetectMode(bool has_handle)
 
 EGLDisplay GLContextEGL::OpenEGLDisplay()
 {
-  return eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  return eglGetDisplay(static_cast<EGLNativeDisplayType>(m_wsi.render_surface));
 }
 
 EGLNativeWindowType GLContextEGL::GetEGLNativeWindow(EGLConfig config)
 {
-  return reinterpret_cast<EGLNativeWindowType>(EGL_DEFAULT_DISPLAY);
+  return reinterpret_cast<EGLNativeWindowType>(m_wsi.display_connection);
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
+bool GLContextEGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
-  const bool has_handle = !!window_handle;
-
   EGLint egl_major, egl_minor;
   bool supports_core_profile = false;
 
-  m_host_display = display_handle;
-  m_host_window = window_handle;
+  m_wsi = wsi;
   m_egl_display = OpenEGLDisplay();
-
   if (!m_egl_display)
   {
     INFO_LOG(VIDEO, "Error: eglGetDisplay() failed");
@@ -167,7 +163,7 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
   EGLint num_configs;
 
   if (m_opengl_mode == Mode::Detect)
-    DetectMode(has_handle);
+    DetectMode();
 
   // attributes for a visual in RGBA format with at least
   // 8 bits per color
@@ -180,7 +176,7 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
                    EGL_BLUE_SIZE,
                    8,
                    EGL_SURFACE_TYPE,
-                   has_handle ? EGL_WINDOW_BIT : 0,
+                   IsHeadless() ? 0 : EGL_WINDOW_BIT,
                    EGL_NONE};
 
   std::vector<EGLint> ctx_attribs;
@@ -278,7 +274,7 @@ std::unique_ptr<GLContext> GLContextEGL::CreateSharedContext()
   std::unique_ptr<GLContextEGL> new_context = std::make_unique<GLContextEGL>();
   new_context->m_opengl_mode = m_opengl_mode;
   new_context->m_egl_context = new_egl_context;
-  new_context->m_host_display = m_host_display;
+  new_context->m_wsi.display_connection = m_wsi.display_connection;
   new_context->m_egl_display = m_egl_display;
   new_context->m_config = m_config;
   new_context->m_supports_surfaceless = m_supports_surfaceless;
@@ -294,7 +290,7 @@ std::unique_ptr<GLContext> GLContextEGL::CreateSharedContext()
 
 bool GLContextEGL::CreateWindowSurface()
 {
-  if (m_host_window)
+  if (!IsHeadless())
   {
     EGLNativeWindowType native_window = GetEGLNativeWindow(m_config);
     m_egl_surface = eglCreateWindowSurface(m_egl_display, m_config, native_window, nullptr);
@@ -303,6 +299,17 @@ bool GLContextEGL::CreateWindowSurface()
       INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed");
       return false;
     }
+
+    // Get dimensions from the surface.
+    EGLint surface_width = 1, surface_height = 1;
+    if (!eglQuerySurface(m_egl_display, m_egl_surface, EGL_WIDTH, &surface_width) ||
+        !eglQuerySurface(m_egl_display, m_egl_surface, EGL_HEIGHT, &surface_height))
+    {
+      WARN_LOG(VIDEO,
+               "Failed to get surface dimensions via eglQuerySurface. Size may be incorrect.");
+    }
+    m_backbuffer_width = static_cast<int>(surface_width);
+    m_backbuffer_height = static_cast<int>(surface_height);
   }
   else if (!m_supports_surfaceless)
   {
@@ -342,7 +349,7 @@ bool GLContextEGL::MakeCurrent()
 
 void GLContextEGL::UpdateSurface(void* window_handle)
 {
-  m_host_window = window_handle;
+  m_wsi.render_surface = window_handle;
   ClearCurrent();
   DestroyWindowSurface();
   CreateWindowSurface();

@@ -958,7 +958,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
            (MaskImm14(distance) << 5) | reg;
   }
   break;
-  case 5:  // B (uncoditional)
+  case 5:  // B (unconditional)
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
                __func__, branch.type, distance);
     inst = (0x5 << 26) | MaskImm26(distance);

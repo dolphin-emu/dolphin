@@ -17,6 +17,9 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+#include <pugixml.hpp>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -43,8 +46,6 @@ namespace UICommon
 {
 namespace
 {
-constexpr char COVER_URL[] = "https://art.gametdb.com/wii/cover/%s/%s.png";
-
 const std::string EMPTY_STRING;
 }  // Anonymous namespace
 
@@ -239,8 +240,8 @@ void GameFile::DownloadDefaultCover()
   }
 
   Common::HttpRequest request;
-  const auto response =
-      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_gametdb_id.c_str()));
+  constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
+  const auto response = request.Get(fmt::format(cover_url, region_code, m_gametdb_id));
 
   if (!response)
     return;
@@ -317,6 +318,9 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_disc_number);
   p.Do(m_apploader_date);
 
+  p.Do(m_custom_name);
+  p.Do(m_custom_description);
+  p.Do(m_custom_maker);
   m_volume_banner.DoState(p);
   m_custom_banner.DoState(p);
   m_default_cover.DoState(p);
@@ -331,6 +335,58 @@ bool GameFile::IsElfOrDol() const
   std::string name_end = m_file_path.substr(m_file_path.size() - 4);
   std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
   return name_end == ".elf" || name_end == ".dol";
+}
+
+bool GameFile::ReadXMLMetadata(const std::string& path)
+{
+  std::string data;
+  if (!File::ReadFileToString(path, data))
+    return false;
+
+  pugi::xml_document doc;
+  // We use load_buffer instead of load_file to avoid path encoding problems on Windows
+  if (!doc.load_buffer(data.data(), data.size()))
+    return false;
+
+  const pugi::xml_node app_node = doc.child("app");
+  m_pending.custom_name = app_node.child("name").text().as_string();
+  m_pending.custom_maker = app_node.child("coder").text().as_string();
+  m_pending.custom_description = app_node.child("short_description").text().as_string();
+
+  // Elements that we aren't using:
+  // version (can be written in any format)
+  // release_date (YYYYmmddHHMMSS format)
+  // long_description (can be several screens long!)
+
+  return true;
+}
+
+bool GameFile::XMLMetadataChanged()
+{
+  std::string path, name;
+  SplitPath(m_file_path, &path, &name, nullptr);
+
+  // This XML file naming format is intended as an alternative to the Homebrew Channel naming
+  // for those who don't want to have a Homebrew Channel style folder structure.
+  if (!ReadXMLMetadata(path + name + ".xml"))
+  {
+    // Homebrew Channel naming. Typical for DOLs and ELFs, but we also support it for volumes.
+    if (!ReadXMLMetadata(path + "meta.xml"))
+    {
+      // If no XML metadata is found, remove any old XML metadata from memory.
+      m_pending.custom_banner = {};
+    }
+  }
+
+  return m_pending.custom_name != m_custom_name && m_pending.custom_maker != m_custom_maker &&
+         m_pending.custom_description != m_custom_description;
+}
+
+void GameFile::XMLMetadataCommit()
+{
+  m_custom_name = std::move(m_pending.custom_name);
+  m_custom_description = std::move(m_pending.custom_description);
+  m_custom_maker = std::move(m_pending.custom_maker);
 }
 
 bool GameFile::WiiBannerChanged()
@@ -389,7 +445,7 @@ bool GameFile::CustomBannerChanged()
   std::string path, name;
   SplitPath(m_file_path, &path, &name, nullptr);
 
-  // This icon naming format is intended as an alternative to Homebrew Channel icons
+  // This icon naming format is intended as an alternative to the Homebrew Channel naming
   // for those who don't want to have a Homebrew Channel style folder structure.
   if (!ReadPNGBanner(path + name + ".png"))
   {
@@ -411,13 +467,19 @@ void GameFile::CustomBannerCommit()
 
 const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) const
 {
-  const std::string& custom_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
-  return custom_name.empty() ? GetName() : custom_name;
+  if (!m_custom_name.empty())
+    return m_custom_name;
+
+  const std::string& database_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
+  return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
-const std::string& GameFile::GetName(bool long_name) const
+const std::string& GameFile::GetName(Variant variant) const
 {
-  const std::string& name = long_name ? GetLongName() : GetShortName();
+  if (variant == Variant::LongAndPossiblyCustom && !m_custom_name.empty())
+    return m_custom_name;
+
+  const std::string& name = variant == Variant::ShortAndNotCustom ? GetShortName() : GetLongName();
   if (!name.empty())
     return name;
 
@@ -425,9 +487,13 @@ const std::string& GameFile::GetName(bool long_name) const
   return m_file_name;
 }
 
-const std::string& GameFile::GetMaker(bool long_maker) const
+const std::string& GameFile::GetMaker(Variant variant) const
 {
-  const std::string& maker = long_maker ? GetLongMaker() : GetShortMaker();
+  if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
+    return m_custom_maker;
+
+  const std::string& maker =
+      variant == Variant::ShortAndNotCustom ? GetShortMaker() : GetLongMaker();
   if (!maker.empty())
     return maker;
 
@@ -435,6 +501,14 @@ const std::string& GameFile::GetMaker(bool long_maker) const
     return DiscIO::GetCompanyFromID(m_maker_id);
 
   return EMPTY_STRING;
+}
+
+const std::string& GameFile::GetDescription(Variant variant) const
+{
+  if (variant == Variant::LongAndPossiblyCustom && !m_custom_description.empty())
+    return m_custom_description;
+
+  return LookupUsingConfigLanguage(m_descriptions);
 }
 
 std::vector<DiscIO::Language> GameFile::GetLanguages() const
@@ -466,8 +540,8 @@ std::string GameFile::GetUniqueIdentifier() const
   std::string lower_name = name;
   std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
   if (disc_number > 1 &&
-      lower_name.find(StringFromFormat("disc %i", disc_number)) == std::string::npos &&
-      lower_name.find(StringFromFormat("disc%i", disc_number)) == std::string::npos)
+      lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
+      lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
   {
     std::string disc_text = "Disc ";
     info.push_back(disc_text + std::to_string(disc_number));

@@ -17,6 +17,7 @@ namespace MathUtil
 {
 constexpr double TAU = 6.2831853071795865;
 constexpr double PI = TAU / 2;
+constexpr double GRAVITY_ACCELERATION = 9.80665;
 
 template <typename T>
 constexpr auto Sign(const T& val) -> decltype((T{} < val) - (val < T{}))

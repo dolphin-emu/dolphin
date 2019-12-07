@@ -1,13 +1,15 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.FragmentActivity;
+import androidx.core.content.ContextCompat;
+
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;

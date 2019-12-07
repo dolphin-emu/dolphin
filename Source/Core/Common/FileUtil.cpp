@@ -639,19 +639,21 @@ std::string CreateTempDir()
 #endif
 }
 
-std::string GetTempFilenameForAtomicWrite(const std::string& path)
+std::string GetTempFilenameForAtomicWrite(std::string path)
 {
-  std::string abs = path;
 #ifdef _WIN32
-  TCHAR absbuf[MAX_PATH];
-  if (_tfullpath(absbuf, UTF8ToTStr(path).c_str(), MAX_PATH) != nullptr)
-    abs = TStrToUTF8(absbuf);
+  std::unique_ptr<TCHAR[], decltype(&std::free)> absbuf{
+      _tfullpath(nullptr, UTF8ToTStr(path).c_str(), 0), std::free};
+  if (absbuf != nullptr)
+  {
+    path = TStrToUTF8(absbuf.get());
+  }
 #else
   char absbuf[PATH_MAX];
   if (realpath(path.c_str(), absbuf) != nullptr)
-    abs = absbuf;
+    path = absbuf;
 #endif
-  return abs + ".xxx";
+  return std::move(path) + ".xxx";
 }
 
 #if defined(__APPLE__)
@@ -672,22 +674,26 @@ std::string GetBundleDirectory()
 
 std::string GetExePath()
 {
-  static std::string dolphin_path;
-  if (dolphin_path.empty())
-  {
+  static const std::string dolphin_path = [] {
+    std::string result;
 #ifdef _WIN32
-    TCHAR dolphin_exe_path[2048];
-    TCHAR dolphin_exe_expanded_path[MAX_PATH];
-    GetModuleFileName(nullptr, dolphin_exe_path, ARRAYSIZE(dolphin_exe_path));
-    if (_tfullpath(dolphin_exe_expanded_path, dolphin_exe_path,
-                   ARRAYSIZE(dolphin_exe_expanded_path)) != nullptr)
-      dolphin_path = TStrToUTF8(dolphin_exe_expanded_path);
-    else
-      dolphin_path = TStrToUTF8(dolphin_exe_path);
+    auto dolphin_exe_path = GetModuleName(nullptr);
+    if (dolphin_exe_path)
+    {
+      std::unique_ptr<TCHAR[], decltype(&std::free)> dolphin_exe_expanded_path{
+          _tfullpath(nullptr, dolphin_exe_path->c_str(), 0), std::free};
+      if (dolphin_exe_expanded_path)
+      {
+        result = TStrToUTF8(dolphin_exe_expanded_path.get());
+      }
+      else
+      {
+        result = TStrToUTF8(*dolphin_exe_path);
+      }
+    }
 #elif defined(__APPLE__)
-    dolphin_path = GetBundleDirectory();
-    dolphin_path =
-        dolphin_path.substr(0, dolphin_path.find_last_of("Dolphin.app/Contents/MacOS") + 1);
+    result = GetBundleDirectory();
+    result = result.substr(0, result.find_last_of("Dolphin.app/Contents/MacOS") + 1);
 #else
     char dolphin_exe_path[PATH_MAX];
     ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
@@ -696,9 +702,10 @@ std::string GetExePath()
       len = 0;
     }
     dolphin_exe_path[len] = '\0';
-    dolphin_path = dolphin_exe_path;
+    result = dolphin_exe_path;
 #endif
-  }
+    return result;
+  }();
   return dolphin_path;
 }
 

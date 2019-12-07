@@ -176,6 +176,19 @@ enum ButtonType
   TURNTABLE_CROSSFADE = 622,  // To Be Used on Java Side
   TURNTABLE_CROSSFADE_LEFT = 623,
   TURNTABLE_CROSSFADE_RIGHT = 624,
+  // Wiimote IMU
+  WIIMOTE_ACCEL_LEFT = 625,
+  WIIMOTE_ACCEL_RIGHT = 626,
+  WIIMOTE_ACCEL_FORWARD = 627,
+  WIIMOTE_ACCEL_BACKWARD = 628,
+  WIIMOTE_ACCEL_UP = 629,
+  WIIMOTE_ACCEL_DOWN = 630,
+  WIIMOTE_GYRO_PITCH_UP = 631,
+  WIIMOTE_GYRO_PITCH_DOWN = 632,
+  WIIMOTE_GYRO_ROLL_LEFT = 633,
+  WIIMOTE_GYRO_ROLL_RIGHT = 634,
+  WIIMOTE_GYRO_YAW_LEFT = 635,
+  WIIMOTE_GYRO_YAW_RIGHT = 636,
   // Rumble
   RUMBLE = 700,
 };
@@ -214,13 +227,14 @@ public:
 
 struct sBind
 {
-  const int _padID;
-  const ButtonType _buttontype;
-  const BindType _bindtype;
-  const int _bind;
-  const float _neg;
-  sBind(int padID, ButtonType buttontype, BindType bindtype, int bind, float neg)
-      : _padID(padID), _buttontype(buttontype), _bindtype(bindtype), _bind(bind), _neg(neg)
+  const int m_pad_id;
+  const ButtonType m_button_type;
+  const BindType m_bind_type;
+  const int m_bind;
+  const float m_neg;
+  sBind(int pad_id, ButtonType button_type, BindType bind_type, int bind, float neg)
+      : m_pad_id(pad_id), m_button_type(button_type), m_bind_type(bind_type), m_bind(bind),
+        m_neg(neg)
   {
   }
 };
@@ -228,31 +242,34 @@ struct sBind
 class InputDevice
 {
 private:
-  const std::string _dev;
-  std::map<ButtonType, bool> _buttons;
-  std::map<ButtonType, float> _axises;
+  const std::string m_dev;
+  std::map<ButtonType, bool> m_buttons;
+  std::map<ButtonType, float> m_axises;
 
-  // Key is padID and ButtonType
-  std::map<std::pair<int, ButtonType>, sBind*> _inputbinds;
+  // Key is pad_id and ButtonType
+  std::map<std::pair<int, ButtonType>, sBind*> m_input_binds;
 
 public:
-  InputDevice(std::string dev) : _dev(dev) {}
+  InputDevice(std::string dev) : m_dev(dev) {}
   ~InputDevice()
   {
-    for (const auto& bind : _inputbinds)
+    for (const auto& bind : m_input_binds)
       delete bind.second;
-    _inputbinds.clear();
+    m_input_binds.clear();
   }
-  void AddBind(sBind* bind) { _inputbinds[std::make_pair(bind->_padID, bind->_buttontype)] = bind; }
+  void AddBind(sBind* bind)
+  {
+    m_input_binds[std::make_pair(bind->m_pad_id, bind->m_button_type)] = bind;
+  }
   bool PressEvent(int button, int action);
   void AxisEvent(int axis, float value);
-  bool ButtonValue(int padID, ButtonType button);
-  float AxisValue(int padID, ButtonType axis);
+  bool ButtonValue(int pad_id, ButtonType button);
+  float AxisValue(int pad_id, ButtonType axis);
 };
 
 void Init(const std::string&);
-bool GetButtonPressed(int padID, ButtonType button);
-float GetAxisValue(int padID, ButtonType axis);
+bool GetButtonPressed(int pad_id, ButtonType button);
+float GetAxisValue(int pad_id, ButtonType axis);
 bool GamepadEvent(const std::string& dev, int button, int action);
 void GamepadAxisEvent(const std::string& dev, int axis, float value);
 void Shutdown();

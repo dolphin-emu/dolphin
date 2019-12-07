@@ -12,12 +12,12 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E54CF649-140E-4255-81A5-30A673C1FB36}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -197,6 +197,7 @@
     <ClCompile Include="HW\WiiSave.cpp" />
     <ClCompile Include="IOS\Device.cpp" />
     <ClCompile Include="IOS\DeviceStub.cpp" />
+    <ClCompile Include="IOS\DolphinDevice.cpp" />
     <ClCompile Include="IOS\IOS.cpp" />
     <ClCompile Include="IOS\IOSC.cpp" />
     <ClCompile Include="IOS\MIOS.cpp" />
@@ -479,6 +480,7 @@
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IOS\Device.h" />
     <ClInclude Include="IOS\DeviceStub.h" />
+    <ClInclude Include="IOS\DolphinDevice.h" />
     <ClInclude Include="IOS\IOS.h" />
     <ClInclude Include="IOS\IOSC.h" />
     <ClInclude Include="IOS\MIOS.h" />

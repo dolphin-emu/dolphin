@@ -1,4 +1,4 @@
-TITLES = https://www.gametdb.com (type: Wii language: KO_unique version: 20190127013907)
+TITLES = https://www.gametdb.com (type: Wii language: KO_unique version: 20191106234300)
 R2PKZ4 = 스윙골프 팡야 2nd 샷!
 R4CK69 = 심시티 나만의 도시
 R4QK01 = 마리오 파워 사커
@@ -83,4 +83,5 @@ SSQP01 = 마리오 파티 9
 SUKK01 = 별의 커비
 SUPK01 = wii 파티
 SVMK01 = 슈퍼 마리오 컬렉션
+HCRK = 젤다의 전설 스카이워드 소드데이터 복구 채널
 GIJKC0 = 스페이스 레이더스

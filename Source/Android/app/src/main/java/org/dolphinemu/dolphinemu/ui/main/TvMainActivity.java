@@ -3,15 +3,18 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.v17.leanback.app.BrowseFragment;
-import android.support.v17.leanback.app.BrowseSupportFragment;
-import android.support.v17.leanback.widget.ArrayObjectAdapter;
-import android.support.v17.leanback.widget.HeaderItem;
-import android.support.v17.leanback.widget.ListRow;
-import android.support.v17.leanback.widget.ListRowPresenter;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
+
+import androidx.annotation.NonNull;
+import androidx.leanback.app.BrowseFragment;
+import androidx.leanback.app.BrowseSupportFragment;
+import androidx.leanback.widget.ArrayObjectAdapter;
+import androidx.leanback.widget.HeaderItem;
+import androidx.leanback.widget.ListRow;
+import androidx.leanback.widget.ListRowPresenter;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.content.ContextCompat;
+
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
@@ -98,7 +101,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
             .commit();
 
     // Set display parameters for the BrowseFragment
-    mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+    mBrowseFragment.setHeadersState(BrowseSupportFragment.HEADERS_ENABLED);
     mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
     buildRowsAdapter();
 
@@ -189,7 +192,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
-  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+          @NonNull int[] grantResults)
   {
     switch (requestCode)
     {

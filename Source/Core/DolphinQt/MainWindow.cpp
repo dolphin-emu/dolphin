@@ -30,6 +30,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
+#include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
@@ -785,6 +786,11 @@ bool MainWindow::RequestStop()
 
   if (SConfig::GetInstance().bConfirmStop)
   {
+    if (std::exchange(m_stop_confirm_showing, true))
+      return true;
+
+    Common::ScopeGuard confirm_lock([this] { m_stop_confirm_showing = false; });
+
     const Core::State state = Core::GetState();
 
     // Only pause the game, if NetPlay is not running
@@ -798,7 +804,8 @@ bool MainWindow::RequestStop()
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
-                           tr("Do you want to stop the current emulation?"));
+                           tr("Do you want to stop the current emulation?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
     if (confirm != QMessageBox::Yes)
     {

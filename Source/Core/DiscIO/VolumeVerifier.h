@@ -88,7 +88,7 @@ private:
 
   static DownloadStatus DownloadDatfile(const std::string& system, DownloadStatus old_status);
   static std::vector<u8> ReadDatfile(const std::string& system);
-  std::vector<PotentialMatch> ScanDatfile(const std::vector<u8>& data);
+  std::vector<PotentialMatch> ScanDatfile(const std::vector<u8>& data, const std::string& system);
 
   std::string m_game_id;
   u16 m_revision;
@@ -158,6 +158,7 @@ private:
   u64 GetBiggestReferencedOffset() const;
   u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
+  void CheckSuperPaperMario();
   void SetUpHashing();
   void WaitForAsyncOperations() const;
   bool ReadChunkAndWaitForAsyncOperations(u64 bytes_to_read);

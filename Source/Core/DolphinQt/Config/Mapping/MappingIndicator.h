@@ -33,9 +33,6 @@ public:
 
   void SetCalibrationWidget(CalibrationWidget* widget);
 
-protected:
-  WiimoteEmu::MotionState m_motion_state{};
-
   QPen GetBBoxPen() const;
   QBrush GetBBoxBrush() const;
   QColor GetRawInputColor() const;
@@ -49,7 +46,10 @@ protected:
   QColor GetAltTextColor() const;
   QColor GetGateColor() const;
 
+protected:
   double GetScale() const;
+
+  WiimoteEmu::MotionState m_motion_state{};
 
 private:
   void DrawCursor(ControllerEmu::Cursor& cursor);
@@ -80,6 +80,28 @@ private:
   int m_grid_line_position = 0;
 
   ControllerEmu::Shake& m_shake_group;
+};
+
+class AccelerometerMappingIndicator : public MappingIndicator
+{
+public:
+  explicit AccelerometerMappingIndicator(ControllerEmu::IMUAccelerometer* group);
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  ControllerEmu::IMUAccelerometer& m_accel_group;
+};
+
+class GyroMappingIndicator : public MappingIndicator
+{
+public:
+  explicit GyroMappingIndicator(ControllerEmu::IMUGyroscope* group);
+  void paintEvent(QPaintEvent*) override;
+
+private:
+  ControllerEmu::IMUGyroscope& m_gyro_group;
+  Common::Matrix33 m_state;
+  u32 m_stable_steps = 0;
 };
 
 class CalibrationWidget : public QToolButton

@@ -115,7 +115,7 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
     break;
   }
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_DI);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_DI);
   }
   return GetDefaultReply(return_value);
 }

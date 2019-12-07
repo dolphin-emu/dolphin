@@ -9,6 +9,8 @@
 #include <sstream>
 #include <string>
 
+#include <fmt/format.h>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -84,9 +86,8 @@ bool FrameDump::Start(int w, int h)
 
   s_width = w;
   s_height = h;
-
-  s_last_frame_is_valid = false;
   s_last_pts = 0;
+  s_last_frame_is_valid = s_file_index != 0;
 
   InitAVCodec();
   bool success = CreateVideoFile();
@@ -233,9 +234,7 @@ bool FrameDump::CreateVideoFile()
     return false;
   }
 
-  OSD::AddMessage(
-      StringFromFormat("Dumping Frames to \"%s\" (%dx%d)", dump_path.c_str(), s_width, s_height));
-
+  OSD::AddMessage(fmt::format("Dumping Frames to \"{}\" ({}x{})", dump_path, s_width, s_height));
   return true;
 }
 
@@ -393,6 +392,7 @@ void FrameDump::Stop()
   av_write_trailer(s_format_context);
   CloseVideoFile();
   s_file_index = 0;
+  s_start_dumping = false;
   NOTICE_LOG(VIDEO, "Stopping frame dump");
   OSD::AddMessage("Stopped dumping frames");
 }

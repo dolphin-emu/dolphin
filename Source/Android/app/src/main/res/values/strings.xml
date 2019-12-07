@@ -153,6 +153,7 @@
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="gametdb_thanks">Thanks to GameTDB.com for providing GameCube and Wii covers!</string>
+    <string name="audio_volume">Audio Volume</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -280,10 +281,14 @@
     <!-- Preferences Screen -->
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>
-    <string name="preferences_game_settings">Game Settings</string>
+    <string name="preferences_game_properties">Game Properties</string>
     <string name="preferences_extensions">Extension Bindings</string>
     <string name="game_ini_junk_title">Junk Data Found</string>
     <string name="game_ini_junk_question">The settings file for this game contains junk data created by an old version of Dolphin. Would you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
+    <string name="game_details_country">Country</string>
+    <string name="game_details_company">Company</string>
+    <string name="game_details_game_id">Game ID</string>
+    <string name="game_details_revision">Revision</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_screenshot">Take Screenshot</string>
@@ -313,6 +318,8 @@
     <string name="emulation_ir_group">Touch IR Pointer</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
+    <string name="emulation_screen_orientation">Screen Orientation</string>
+    <string name="emulation_motion_controls">Motion Controls</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

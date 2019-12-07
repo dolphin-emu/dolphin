@@ -5,6 +5,12 @@
         android:name="android.hardware.touchscreen"
         android:required="false"/>
     <uses-feature
+        android:name="android.hardware.sensor.accelerometer"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.sensor.gyroscope"
+        android:required="false"/>
+    <uses-feature
         android:name="android.hardware.gamepad"
         android:required="false"/>
     <uses-feature
@@ -100,7 +106,7 @@
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.filesprovider"
             android:exported="false"
             android:grantUriPermissions="true">

@@ -336,16 +336,35 @@
     </string-array>
 
     <string-array name="gameSettingsMenusGC">
+        <item>Details</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
         <item>GameCube Controller Settings</item>
         <item>Clear Game Settings</item>
     </string-array>
     <string-array name="gameSettingsMenusWii">
+        <item>Details</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
         <item>GameCube Controller Settings</item>
         <item>Wii Controller Settings</item>
         <item>Clear Game Settings</item>
+    </string-array>
+
+    <string-array name="orientationEntries">
+        <item>Landscape</item>
+        <item>Portrait</item>
+        <item>Auto</item>
+    </string-array>
+    <integer-array name="orientationValues">
+        <item>0</item>
+        <item>1</item>
+        <item>-1</item>
+    </integer-array>
+
+    <string-array name="motionControlsEntries">
+        <item>Use Device Sensors (With Pointer Emulation)</item>
+        <item>Use Device Sensors (Without Pointer Emulation)</item>
+        <item>Don\'t Use Device Sensors</item>
     </string-array>
 </resources>

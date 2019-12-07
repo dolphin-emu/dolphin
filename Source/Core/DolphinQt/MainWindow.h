@@ -198,6 +198,7 @@ private:
   GameList* m_game_list;
   RenderWidget* m_render_widget = nullptr;
   bool m_rendering_to_main;
+  bool m_stop_confirm_showing = false;
   bool m_stop_requested = false;
   bool m_exit_requested = false;
   bool m_fullscreen_requested = false;

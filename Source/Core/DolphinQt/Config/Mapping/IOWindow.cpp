@@ -11,21 +11,26 @@
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QHeaderView>
+#include <QItemDelegate>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListWidget>
-#include <QMessageBox>
+#include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
+#include <QTableWidget>
 #include <QVBoxLayout>
 
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
+#include "DolphinQt/Config/Mapping/MappingIndicator.h"
+#include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -184,11 +189,25 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
   }
 }
 
-IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controller,
+class InputStateDelegate : public QItemDelegate
+{
+public:
+  explicit InputStateDelegate(IOWindow* parent);
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option,
+             const QModelIndex& index) const override;
+
+private:
+  IOWindow* m_parent;
+};
+
+IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,
                    ControlReference* ref, IOWindow::Type type)
     : QDialog(parent), m_reference(ref), m_controller(controller), m_type(type)
 {
   CreateMainLayout();
+
+  connect(parent, &MappingWidget::Update, this, &IOWindow::Update);
 
   setWindowTitle(type == IOWindow::Type::Input ? tr("Configure Input") : tr("Configure Output"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -198,15 +217,20 @@ IOWindow::IOWindow(QWidget* parent, ControllerEmu::EmulatedController* controlle
   ConnectWidgets();
 }
 
+std::shared_ptr<ciface::Core::Device> IOWindow::GetSelectedDevice()
+{
+  return m_selected_device;
+}
+
 void IOWindow::CreateMainLayout()
 {
   m_main_layout = new QVBoxLayout();
 
   m_devices_combo = new QComboBox();
-  m_option_list = new QListWidget();
+  m_option_list = new QTableWidget();
   m_select_button = new QPushButton(tr("Select"));
-  m_detect_button = new QPushButton(tr("Detect"));
-  m_test_button = new QPushButton(tr("Test"));
+  m_detect_button = new QPushButton(tr("Detect"), this);
+  m_test_button = new QPushButton(tr("Test"), this);
   m_button_box = new QDialogButtonBox();
   m_clear_button = new QPushButton(tr("Clear"));
   m_apply_button = new QPushButton(tr("Apply"));
@@ -242,7 +266,7 @@ void IOWindow::CreateMainLayout()
     m_operators_combo->addItem(tr(", Comma"));
   }
 
-  m_functions_combo = new QComboBox();
+  m_functions_combo = new QComboBox(this);
   m_functions_combo->addItem(tr("Functions"));
   m_functions_combo->insertSeparator(1);
   m_functions_combo->addItem(QStringLiteral("if"));
@@ -269,18 +293,54 @@ void IOWindow::CreateMainLayout()
   m_range_spinbox->setMaximum(500);
   m_main_layout->addLayout(range_hbox);
 
+  // Options (Buttons, Outputs) and action buttons
+
+  if (m_type == Type::Input)
+  {
+    m_option_list->setColumnCount(2);
+    m_option_list->setColumnWidth(1, 64);
+    m_option_list->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+
+    m_option_list->setItemDelegate(new InputStateDelegate(this));
+  }
+  else
+  {
+    m_option_list->setColumnCount(1);
+  }
+
+  m_option_list->horizontalHeader()->hide();
+  m_option_list->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+  m_option_list->verticalHeader()->hide();
+  m_option_list->verticalHeader()->setDefaultSectionSize(
+      m_option_list->verticalHeader()->minimumSectionSize());
+  m_option_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  m_option_list->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_option_list->setSelectionMode(QAbstractItemView::SingleSelection);
+
   auto* hbox = new QHBoxLayout();
   auto* button_vbox = new QVBoxLayout();
   hbox->addWidget(m_option_list, 8);
   hbox->addLayout(button_vbox, 1);
 
   button_vbox->addWidget(m_select_button);
-  button_vbox->addWidget(m_type == Type::Input ? m_detect_button : m_test_button);
-  button_vbox->addWidget(m_operators_combo);
+
   if (m_type == Type::Input)
   {
-    button_vbox->addWidget(m_functions_combo);
+    m_test_button->hide();
+    button_vbox->addWidget(m_detect_button);
   }
+  else
+  {
+    m_detect_button->hide();
+    button_vbox->addWidget(m_test_button);
+  }
+
+  button_vbox->addWidget(m_operators_combo);
+
+  if (m_type == Type::Input)
+    button_vbox->addWidget(m_functions_combo);
+  else
+    m_functions_combo->hide();
 
   m_main_layout->addLayout(hbox, 2);
   m_main_layout->addWidget(m_expression_text, 1);
@@ -308,6 +368,11 @@ void IOWindow::ConfigChanged()
 
   UpdateDeviceList();
   UpdateOptionList();
+}
+
+void IOWindow::Update()
+{
+  m_option_list->viewport()->update();
 }
 
 void IOWindow::ConnectWidgets()
@@ -378,12 +443,7 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
 
   if (ciface::ExpressionParser::ParseStatus::SyntaxError == m_reference->GetParseStatus())
   {
-    QMessageBox error(this);
-    error.setIcon(QMessageBox::Critical);
-    error.setWindowTitle(tr("Error"));
-    error.setText(tr("The expression contains a syntax error."));
-    error.setWindowModality(Qt::WindowModal);
-    error.exec();
+    ModalMessageBox::warning(this, tr("Error"), tr("The expression contains a syntax error."));
   }
 
   if (button != m_apply_button)
@@ -419,25 +479,32 @@ void IOWindow::OnRangeChanged(int value)
 
 void IOWindow::UpdateOptionList()
 {
-  m_option_list->clear();
+  m_selected_device = g_controller_interface.FindDevice(m_devq);
+  m_option_list->setRowCount(0);
 
-  const auto device = g_controller_interface.FindDevice(m_devq);
-
-  if (device == nullptr)
+  if (m_selected_device == nullptr)
     return;
 
   if (m_reference->IsInput())
   {
-    for (const auto* input : device->Inputs())
+    int row = 0;
+    for (const auto* input : m_selected_device->Inputs())
     {
-      m_option_list->addItem(QString::fromStdString(input->GetName()));
+      m_option_list->insertRow(row);
+      m_option_list->setItem(row, 0,
+                             new QTableWidgetItem(QString::fromStdString(input->GetName())));
+      ++row;
     }
   }
   else
   {
-    for (const auto* output : device->Outputs())
+    int row = 0;
+    for (const auto* output : m_selected_device->Outputs())
     {
-      m_option_list->addItem(QString::fromStdString(output->GetName()));
+      m_option_list->insertRow(row);
+      m_option_list->setItem(row, 0,
+                             new QTableWidgetItem(QString::fromStdString(output->GetName())));
+      ++row;
     }
   }
 }
@@ -451,4 +518,46 @@ void IOWindow::UpdateDeviceList()
 
   m_devices_combo->setCurrentText(
       QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
+}
+
+InputStateDelegate::InputStateDelegate(IOWindow* parent) : QItemDelegate(parent), m_parent(parent)
+{
+}
+
+void InputStateDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                               const QModelIndex& index) const
+{
+  QItemDelegate::paint(painter, option, index);
+
+  // Don't do anything special for the first column.
+  if (index.column() == 0)
+    return;
+
+  // Clamp off negative values but allow greater than one in the text display.
+  const auto state =
+      std::max(m_parent->GetSelectedDevice()->Inputs()[index.row()]->GetState(), 0.0);
+  const auto state_str = QString::number(state, 'g', 4);
+
+  QRect rect = option.rect;
+  rect.setWidth(rect.width() * std::clamp(state, 0.0, 1.0));
+
+  // Create a temporary indicator object to retreive color constants.
+  MappingIndicator indicator(nullptr);
+
+  painter->save();
+
+  // Normal text.
+  painter->setPen(indicator.GetTextColor());
+  painter->drawText(option.rect, Qt::AlignCenter, state_str);
+
+  // Input state meter.
+  painter->fillRect(rect, indicator.GetAdjustedInputColor());
+
+  // Text on top of meter.
+  painter->setPen(indicator.GetAltTextColor());
+  painter->setClipping(true);
+  painter->setClipRect(rect);
+  painter->drawText(option.rect, Qt::AlignCenter, state_str);
+
+  painter->restore();
 }

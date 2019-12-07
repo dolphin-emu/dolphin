@@ -315,6 +315,7 @@ private:
 
   bool m_is_motion_plus_attached;
 
+  bool m_eeprom_dirty = false;
   ReadRequest m_read_request;
   UsableEEPROMData m_eeprom;
 

@@ -37,7 +37,7 @@ bool CubebStream::Init()
   if (!m_ctx)
     return false;
 
-  m_stereo = !SConfig::GetInstance().bDPL2Decoder;
+  m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
 
   cubeb_stream_params params;
   params.rate = m_mixer->GetSampleRate();

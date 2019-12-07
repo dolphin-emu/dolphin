@@ -13,6 +13,11 @@ namespace PowerPC
 enum class CPUCore;
 }
 
+namespace AudioCommon
+{
+enum class DPL2Quality;
+}
+
 namespace Config
 {
 // Main.Core
@@ -32,6 +37,7 @@ extern const ConfigInfo<bool> MAIN_ENABLE_CHEATS;
 extern const ConfigInfo<int> MAIN_GC_LANGUAGE;
 extern const ConfigInfo<bool> MAIN_OVERRIDE_REGION_SETTINGS;
 extern const ConfigInfo<bool> MAIN_DPL2_DECODER;
+extern const ConfigInfo<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY;
 extern const ConfigInfo<int> MAIN_AUDIO_LATENCY;
 extern const ConfigInfo<bool> MAIN_AUDIO_STRETCH;
 extern const ConfigInfo<int> MAIN_AUDIO_STRETCH_LATENCY;
@@ -104,7 +110,8 @@ extern const ConfigInfo<bool> MAIN_DISABLE_SCREENSAVER;
 // Main.General
 
 extern const ConfigInfo<std::string> MAIN_DUMP_PATH;
+extern const ConfigInfo<std::string> MAIN_LOAD_PATH;
+extern const ConfigInfo<std::string> MAIN_RESOURCEPACK_PATH;
 extern const ConfigInfo<std::string> MAIN_FS_PATH;
 extern const ConfigInfo<std::string> MAIN_SD_PATH;
-
 }  // namespace Config

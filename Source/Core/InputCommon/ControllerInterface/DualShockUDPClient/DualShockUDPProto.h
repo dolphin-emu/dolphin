@@ -2,6 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
+#include <array>
+#include <cstring>
 #include <optional>
 
 #include <zlib.h>
@@ -15,12 +19,12 @@ namespace ciface::DualShockUDPClient::Proto
 //
 // WARNING: Little endian host assumed
 
-static constexpr u16 CEMUHOOK_PROTOCOL_VERSION = 1001;
+constexpr u16 CEMUHOOK_PROTOCOL_VERSION = 1001;
 
-static constexpr int PORT_COUNT = 4;
+constexpr int PORT_COUNT = 4;
 
-static constexpr char CLIENT[] = "DSUC";
-static constexpr char SERVER[] = "DSUS";
+constexpr std::array<u8, 4> CLIENT{'D', 'S', 'U', 'C'};
+constexpr std::array<u8, 4> SERVER{'D', 'S', 'U', 'S'};
 
 #pragma pack(push, 1)
 
@@ -67,7 +71,7 @@ enum RegisterFlags : u8
 
 struct MessageHeader
 {
-  u8 source[4];
+  std::array<u8, 4> source;
   u16 protocol_version;
   u16 message_length;  // actually message size minus header size
   u32 crc32;
@@ -99,7 +103,7 @@ struct VersionResponse
   MessageHeader header;
   u32 message_type;
   u16 max_protocol_version;
-  u8 padding[2];
+  std::array<u8, 2> padding;
 };
 
 struct ListPorts
@@ -109,7 +113,7 @@ struct ListPorts
   MessageHeader header;
   u32 message_type;
   u32 pad_request_count;
-  u8 pad_id[4];
+  std::array<u8, 4> pad_id;
 };
 
 struct PortInfo
@@ -122,7 +126,7 @@ struct PortInfo
   DsState pad_state;
   DsModel model;
   DsConnection connection_type;
-  u8 pad_mac_address[6];
+  std::array<u8, 6> pad_mac_address;
   DsBattery battery_status;
   u8 padding;
 };
@@ -135,7 +139,7 @@ struct PadDataRequest
   u32 message_type;
   RegisterFlags register_flags;
   u8 pad_id_to_register;
-  u8 mac_address_to_register[6];
+  std::array<u8, 6> mac_address_to_register;
 };
 
 struct PadDataResponse
@@ -148,7 +152,7 @@ struct PadDataResponse
   DsState pad_state;
   DsModel model;
   DsConnection connection_type;
-  u8 pad_mac_address[6];
+  std::array<u8, 6> pad_mac_address;
   DsBattery battery_status;
   u8 active;
   u32 hid_packet_counter;
@@ -222,11 +226,11 @@ static inline u32 CRC32(const void* buffer, unsigned length)
 template <typename MsgType>
 struct Message
 {
-  Message() : m_message{} {}
+  Message() = default;
 
-  explicit Message(u32 source_uid) : m_message{}
+  explicit Message(u32 source_uid)
   {
-    memcpy((char*)m_message.header.source, MsgType::FROM, sizeof(m_message.header.source));
+    m_message.header.source = MsgType::FROM;
     m_message.header.protocol_version = CEMUHOOK_PROTOCOL_VERSION;
     m_message.header.message_length = sizeof(*this) - sizeof(m_message.header);
     m_message.header.source_uid = source_uid;
@@ -251,7 +255,7 @@ struct Message
     }
     if (m_message.header.protocol_version > CEMUHOOK_PROTOCOL_VERSION)
       return std::nullopt;
-    if (memcmp(m_message.header.source, ToMsgType::FROM, sizeof(m_message.header.source)))
+    if (m_message.header.source != ToMsgType::FROM)
       return std::nullopt;
     if (m_message.message_type != ToMsgType::TYPE)
       return std::nullopt;
@@ -263,7 +267,7 @@ struct Message
     return tomsg;
   }
 
-  MsgType m_message;
+  MsgType m_message{};
 };
 
 #pragma pack(pop)

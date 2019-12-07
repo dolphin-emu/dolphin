@@ -193,7 +193,7 @@ void ResourcePackManager::Install()
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
-  bool success = item.Install(File::GetUserPath(D_USER_IDX));
+  bool success = item.Install(File::GetUserPath(D_LOAD_IDX));
 
   if (!success)
   {
@@ -214,7 +214,7 @@ void ResourcePackManager::Uninstall()
 
   auto& item = ResourcePack::GetPacks()[GetResourcePackIndex(items[0])];
 
-  bool success = item.Uninstall(File::GetUserPath(D_USER_IDX));
+  bool success = item.Uninstall(File::GetUserPath(D_LOAD_IDX));
 
   if (!success)
   {

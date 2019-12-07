@@ -73,7 +73,7 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
 
-  const std::string game_maker = m_game.GetMaker();
+  const std::string game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
 
   QLineEdit* maker =
       CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (" +

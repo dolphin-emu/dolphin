@@ -71,9 +71,7 @@ static u32 s_half_line_count;        // number of halflines that have occurred f
 static u32 s_half_line_of_next_si_poll;  // halfline when next SI poll results should be available
 static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1;  // this is how long an SI poll takes
 
-static FieldType s_current_field;
-
-// below indexes are 1-based
+// below indexes are 0-based
 static u32 s_even_field_first_hl;  // index first halfline of the even field
 static u32 s_odd_field_first_hl;   // index first halfline of the odd field
 static u32 s_even_field_last_hl;   // index last halfline of the even field
@@ -107,7 +105,6 @@ void DoState(PointerWrap& p)
   p.Do(s_ticks_last_line_start);
   p.Do(s_half_line_count);
   p.Do(s_half_line_of_next_si_poll);
-  p.Do(s_current_field);
   p.Do(s_even_field_first_hl);
   p.Do(s_odd_field_first_hl);
   p.Do(s_even_field_last_hl);
@@ -193,7 +190,6 @@ void Preset(bool _bNTSC)
   s_ticks_last_line_start = 0;
   s_half_line_count = 0;
   s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first sampling starts at vsync
-  s_current_field = FieldType::Odd;
 
   UpdateParameters();
 }
@@ -607,14 +603,99 @@ float GetAspectRatio()
 //
 // NB: for double-strike modes, the second field
 //     does not get offset by half a scanline
+//
+// Some example video line layouts, based on values from titles:
+// LXXX = Video line XXX, 0-based; hlYYYY = Video halfline YYYY, 0-based
+// PAL
+// EQU = 5
+// ACV = 287
+// OddPRB = 35
+// OddPSB = 1
+// EvenPRB = 36
+// EvenPSB = 0
+// L000 [ EQU | EQU ] [hl0000:hl0001]
+// L001 [ EQU | EQU ] [hl0002:hl0003]
+// ...
+// L005 [ EQU | EQU ] [hl0010:hl0011]
+// L006 [ EQU | EQU ] [hl0012:hl0013]
+// L007 [ EQU | oPR ] [hl0014:hl0015]
+// L008 [ oPR | oPR ] [hl0016:hl0017]
+// L009 [ oPR | oPR ] [hl0018:hl0019]
+// ...
+// L023 [ oPR | oPR ] [hl0046:hl0047]
+// L024 [ oPR | oPR ] [hl0048:hl0049]
+// L025 [ ACV | ACV ] [hl0050:hl0051]
+// L026 [ ACV | ACV ] [hl0052:hl0053]
+// ...
+// L310 [ ACV | ACV ] [hl0620:hl0621]
+// L311 [ ACV | ACV ] [hl0622:hl0623]
+// L312 [ oPS | EQU ] [hl0624:hl0625]
+// L313 [ EQU | EQU ] [hl0626:hl0627]
+// L314 [ EQU | EQU ] [hl0628:hl0629]
+// ...
+// L318 [ EQU | EQU ] [hl0636:hl0637]
+// L319 [ EQU | EQU ] [hl0638:hl0639]
+// L320 [ ePR | ePR ] [hl0640:hl0641]
+// L321 [ ePR | ePR ] [hl0642:hl0643]
+// ...
+// L336 [ ePR | ePR ] [hl0672:hl0673]
+// L337 [ ePR | ePR ] [hl0674:hl0675]
+// L338 [ ACV | ACV ] [hl0676:hl0677]
+// L339 [ ACV | ACV ] [hl0678:hl0679]
+// ...
+// L623 [ ACV | ACV ] [hl1246:hl1247]
+// L624 [ ACV | ACV ] [hl1248:hl1249]
+// (no ePS)
+//
+// NTSC
+// EQU=6
+// ACV=240
+// OddPRB=24
+// OddPSB=3
+// EvenPRB=25
+// EvenPSB=2
+// L000 [ EQU | EQU ] [hl0000:hl0001]
+// L001 [ EQU | EQU ] [hl0002:hl0003]
+// ...
+// L007 [ EQU | EQU ] [hl0014:hl0015]
+// L008 [ EQU | EQU ] [hl0016:hl0017]
+// L009 [ oPR | oPR ] [hl0018:hl0019]
+// L010 [ oPR | oPR ] [hl0020:hl0021]
+// ...
+// L019 [ oPR | oPR ] [hl0038:hl0039]
+// L020 [ oPR | oPR ] [hl0040:hl0041]
+// L021 [ ACV | ACV ] [hl0042:hl0043]
+// L022 [ ACV | ACV ] [hl0044:hl0045]
+// ...
+// L259 [ ACV | ACV ] [hl0518:hl0519]
+// L260 [ ACV | ACV ] [hl0520:hl0521]
+// L261 [ oPS | oPS ] [hl0522:hl0523]
+// L262 [ oPS | EQU ] [hl0524:hl0525]
+// L263 [ EQU | EQU ] [hl0526:hl0527]
+// ...
+// L270 [ EQU | EQU ] [hl0540:hl0541]
+// L271 [ EQU | ePR ] [hl0542:hl0543]
+// L272 [ ePR | ePR ] [hl0544:hl0545]
+// L273 [ ePR | ePR ] [hl0546:hl0547]
+// ...
+// L282 [ ePR | ePR ] [hl0564:hl0565]
+// L283 [ ePR | ePR ] [hl0566:hl0567]
+// L284 [ ACV | ACV ] [hl0568:hl0569]
+// L285 [ ACV | ACV ] [hl0570:hl0571]
+// ...
+// L522 [ ACV | ACV ] [hl1044:hl1045]
+// L523 [ ACV | ACV ] [hl1046:hl1047]
+// L524 [ ePS | ePS ] [hl1048:hl1049]
 
 void UpdateParameters()
 {
-  s_even_field_first_hl = 3 * m_VerticalTimingRegister.EQU + m_VBlankTimingEven.PRB + 1;
-  s_odd_field_first_hl =
-      GetHalfLinesPerEvenField() + 3 * m_VerticalTimingRegister.EQU + m_VBlankTimingOdd.PRB + 1;
-  s_even_field_last_hl = s_even_field_first_hl + m_VerticalTimingRegister.ACV * 2;
-  s_odd_field_last_hl = s_odd_field_first_hl + m_VerticalTimingRegister.ACV * 2;
+  u32 equ_hl = 3 * m_VerticalTimingRegister.EQU;
+  u32 acv_hl = 2 * m_VerticalTimingRegister.ACV;
+  s_odd_field_first_hl = equ_hl + m_VBlankTimingOdd.PRB;
+  s_odd_field_last_hl = s_odd_field_first_hl + acv_hl - 1;
+
+  s_even_field_first_hl = equ_hl + m_VBlankTimingEven.PRB + GetHalfLinesPerOddField();
+  s_even_field_last_hl = s_even_field_first_hl + acv_hl - 1;
 
   s_target_refresh_rate = lround(2.0 * SystemTimers::GetTicksPerSecond() /
                                  (GetTicksPerEvenField() + GetTicksPerOddField()));
@@ -666,7 +747,9 @@ static void LogField(FieldType field, u32 xfb_address)
 static void BeginField(FieldType field, u64 ticks)
 {
   // Could we fit a second line of data in the stride?
+  // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
   bool potentially_interlaced_xfb =
+      m_PictureConfiguration.WPL != 0 &&
       ((m_PictureConfiguration.STD / m_PictureConfiguration.WPL) == 2);
   // Are there an odd number of half-lines per field (definition of interlaced video)
   bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
@@ -733,10 +816,17 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
+  // If this half-line is at a field boundary, potentially deal with frame-stepping
+  // and/or update movie state before dealing with anything else
+
+  if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
+    Core::FrameUpdate();
+
   // If an SI poll is scheduled to happen on this half-line, do it!
 
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
+    Core::UpdateInputGate();
     SerialInterface::UpdateDevices();
     s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }

@@ -35,6 +35,8 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::MAIN_MEMCARD_A_PATH.location,
       Config::MAIN_MEMCARD_B_PATH.location,
       Config::MAIN_AUTO_DISC_CHANGE.location,
+      Config::MAIN_DPL2_DECODER.location,
+      Config::MAIN_DPL2_QUALITY.location,
 
       // Main.Display
       Config::MAIN_FULLSCREEN_DISPLAY_RES.location,
@@ -145,7 +147,6 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       // UI.General
 
       Config::MAIN_USE_DISCORD_PRESENCE.location,
-
   };
 
   return std::find(s_setting_saveable.begin(), s_setting_saveable.end(), config_location) !=

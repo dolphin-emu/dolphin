@@ -153,12 +153,6 @@ void Host_RequestRenderWindowSize(int w, int h)
   emit Host::GetInstance()->RequestRenderSize(w, h);
 }
 
-bool Host_UINeedsControllerState()
-{
-  return Settings::Instance().IsControllerStateNeeded() ||
-         (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard);
-}
-
 bool Host_UIBlocksControllerState()
 {
   return ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard;

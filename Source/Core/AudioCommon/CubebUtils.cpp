@@ -18,7 +18,7 @@ static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
 {
-  if (!LogManager::GetInstance())
+  if (!Common::Log::LogManager::GetInstance())
     return;
 
   va_list args;
@@ -28,8 +28,8 @@ static void LogCallback(const char* format, ...)
   int lineno = va_arg(args, int);
   std::string adapted_format(StripSpaces(format + strlen("%s:%d:")));
 
-  LogManager::GetInstance()->LogWithFullPath(LogTypes::LNOTICE, LogTypes::AUDIO, filename, lineno,
-                                             adapted_format.c_str(), args);
+  Common::Log::LogManager::GetInstance()->LogWithFullPath(
+      Common::Log::LNOTICE, Common::Log::AUDIO, filename, lineno, adapted_format.c_str(), args);
   va_end(args);
 }
 

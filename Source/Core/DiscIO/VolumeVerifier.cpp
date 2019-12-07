@@ -8,6 +8,7 @@
 #include <cinttypes>
 #include <future>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -99,7 +100,7 @@ void RedumpVerifier::Start(const Volume& volume)
       ERROR_LOG(DISCIO, "Failed to fetch data from Redump.org, using old cached data instead");
       [[fallthrough]];
     case DownloadStatus::Success:
-      return ScanDatfile(ReadDatfile(system));
+      return ScanDatfile(ReadDatfile(system), system);
 
     case DownloadStatus::SystemNotAvailable:
       m_result = {Status::Error, Common::GetStringT("Wii data is not public yet")};
@@ -213,7 +214,8 @@ static std::vector<u8> ParseHash(const char* str)
   return hash;
 }
 
-std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const std::vector<u8>& data)
+std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const std::vector<u8>& data,
+                                                                        const std::string& system)
 {
   pugi::xml_document doc;
   if (!doc.load_buffer(data.data(), data.size()))
@@ -223,10 +225,14 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
   }
 
   std::vector<PotentialMatch> potential_matches;
+  bool serials_exist = false;
+  bool versions_exist = false;
   const pugi::xml_node datafile = doc.child("datafile");
   for (const pugi::xml_node game : datafile.children("game"))
   {
     std::string version_string = game.child("version").text().as_string();
+    if (!version_string.empty())
+      versions_exist = true;
 
     // Strip out prefix (e.g. "v1.02" -> "02", "Rev 2" -> "2")
     const size_t last_non_numeric = version_string.find_last_not_of("0123456789");
@@ -241,6 +247,8 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
       continue;
 
     const std::string serials = game.child("serial").text().as_string();
+    if (!serials.empty())
+      serials_exist = true;
     if (serials.empty() || StringBeginsWith(serials, "DS"))
     {
       // GC Datel discs have no serials in Redump, Wii Datel discs have serials like "DS000101"
@@ -297,6 +305,17 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
     potential_match.hashes.crc32 = ParseHash(rom.attribute("crc").value());
     potential_match.hashes.md5 = ParseHash(rom.attribute("md5").value());
     potential_match.hashes.sha1 = ParseHash(rom.attribute("sha1").value());
+  }
+
+  if (!serials_exist || !versions_exist)
+  {
+    // If we reach this, the user has most likely downloaded a datfile manually,
+    // so show a panic alert rather than just using ERROR_LOG
+
+    // i18n: "Serial" refers to serial numbers, e.g. RVL-RSBE-USA
+    PanicAlertT("Serial and/or version data is missing from %s", GetPathForSystem(system).c_str());
+    m_result = {Status::Error, Common::GetStringT("Failed to parse Redump.org data")};
+    return {};
   }
 
   return potential_matches;
@@ -954,6 +973,39 @@ void VolumeVerifier::CheckMisc()
                              "The CRC32 of this file might match the CRC32 of a good dump even "
                              "though the files are not identical."));
     }
+
+    if (StringBeginsWith(game_id_unencrypted, "R8P"))
+      CheckSuperPaperMario();
+  }
+}
+
+void VolumeVerifier::CheckSuperPaperMario()
+{
+  // When Super Paper Mario (any region/revision) reads setup/aa1_01.dat when starting a new game,
+  // it also reads a few extra bytes so that the read length is divisible by 0x20. If these extra
+  // bytes are zeroes like in good dumps, the game works correctly, but otherwise it can freeze
+  // (depending on the exact values of the extra bytes). https://bugs.dolphin-emu.org/issues/11900
+
+  const DiscIO::Partition partition = m_volume.GetGamePartition();
+  const FileSystem* fs = m_volume.GetFileSystem(partition);
+  if (!fs)
+    return;
+
+  std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
+  if (!file_info)
+    return;
+
+  const u64 offset = file_info->GetOffset() + file_info->GetSize();
+  const u64 length = Common::AlignUp(offset, 0x20) - offset;
+  std::vector<u8> data(length);
+  if (!m_volume.Read(offset, length, data.data(), partition))
+    return;
+
+  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  {
+    AddProblem(Severity::High,
+               Common::GetStringT("Some padding data that should be zero is not zero. "
+                                  "This can make the game freeze at certain points."));
   }
 }
 
@@ -1104,7 +1156,7 @@ void VolumeVerifier::Process()
   if (m_block_index < m_blocks.size() &&
       m_blocks[m_block_index].offset < m_progress + bytes_to_read)
   {
-    m_md5_future = std::async(
+    m_block_future = std::async(
         std::launch::async,
         [this, read_succeeded, bytes_to_read](size_t block_index, u64 progress) {
           while (block_index < m_blocks.size() &&

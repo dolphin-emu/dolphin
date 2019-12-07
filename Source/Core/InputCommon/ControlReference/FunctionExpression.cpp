@@ -2,16 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControlReference/FunctionExpression.h"
+
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 
-#include "InputCommon/ControlReference/FunctionExpression.h"
-
-namespace ciface
+namespace ciface::ExpressionParser
 {
-namespace ExpressionParser
-{
-constexpr int LOOP_MAX_REPS = 10000;
 constexpr ControlState CONDITION_THRESHOLD = 0.5;
 
 using Clock = std::chrono::steady_clock;
@@ -25,7 +23,7 @@ private:
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
     // Optional 2nd argument for clearing state:
-    if (1 == args.size() || 2 == args.size())
+    if (args.size() == 1 || args.size() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"toggle_state_input, [clear_state_input]"};
@@ -64,7 +62,7 @@ private:
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (1 == args.size())
+    if (args.size() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -81,7 +79,7 @@ private:
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (1 == args.size())
+    if (args.size() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -97,7 +95,7 @@ private:
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (1 == args.size())
+    if (args.size() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"seconds"};
@@ -140,7 +138,7 @@ private:
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (3 == args.size())
+    if (args.size() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"condition, true_expression, false_expression"};
@@ -160,7 +158,7 @@ private:
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (1 == args.size())
+    if (args.size() == 1)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"expression"};
@@ -179,7 +177,7 @@ class DeadzoneExpression : public FunctionExpression
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (2 == args.size())
+    if (args.size() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, amount"};
@@ -200,7 +198,7 @@ class SmoothExpression : public FunctionExpression
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (2 == args.size() || 3 == args.size())
+    if (args.size() == 2 || args.size() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds_up, seconds_down = seconds_up"};
@@ -215,7 +213,7 @@ class SmoothExpression : public FunctionExpression
     const ControlState desired_value = GetArg(0).GetValue();
 
     const ControlState smooth_up = GetArg(1).GetValue();
-    const ControlState smooth_down = (3 == GetArgCount() ? GetArg(2).GetValue() : smooth_up);
+    const ControlState smooth_down = GetArgCount() == 3 ? GetArg(2).GetValue() : smooth_up;
 
     const ControlState smooth = (desired_value < m_value) ? smooth_down : smooth_up;
     const ControlState max_move = std::chrono::duration_cast<FSec>(elapsed).count() / smooth;
@@ -244,7 +242,7 @@ class HoldExpression : public FunctionExpression
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (2 == args.size())
+    if (args.size() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds"};
@@ -283,7 +281,7 @@ class TapExpression : public FunctionExpression
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (2 == args.size() || 3 == args.size())
+    if (args.size() == 2 || args.size() == 3)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds, taps = 2"};
@@ -300,7 +298,7 @@ class TapExpression : public FunctionExpression
 
     const bool is_time_up = elapsed > seconds;
 
-    const u32 desired_taps = (3 == GetArgCount()) ? u32(GetArg(2).GetValue() + 0.5) : 2;
+    const u32 desired_taps = GetArgCount() == 3 ? u32(GetArg(2).GetValue() + 0.5) : 2;
 
     if (input < CONDITION_THRESHOLD)
     {
@@ -402,7 +400,7 @@ class PulseExpression : public FunctionExpression
   ArgumentValidation
   ValidateArguments(const std::vector<std::unique_ptr<Expression>>& args) override
   {
-    if (2 == args.size())
+    if (args.size() == 2)
       return ArgumentsAreValid{};
     else
       return ExpectedArguments{"input, seconds"};
@@ -449,34 +447,34 @@ private:
   mutable Clock::time_point m_release_time = Clock::now();
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name)
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name)
 {
-  if ("not" == name)
+  if (name == "not")
     return std::make_unique<NotExpression>();
-  else if ("if" == name)
+  if (name == "if")
     return std::make_unique<IfExpression>();
-  else if ("sin" == name)
+  if (name == "sin")
     return std::make_unique<SinExpression>();
-  else if ("timer" == name)
+  if (name == "timer")
     return std::make_unique<TimerExpression>();
-  else if ("toggle" == name)
+  if (name == "toggle")
     return std::make_unique<ToggleExpression>();
-  else if ("minus" == name)
+  if (name == "minus")
     return std::make_unique<UnaryMinusExpression>();
-  else if ("deadzone" == name)
+  if (name == "deadzone")
     return std::make_unique<DeadzoneExpression>();
-  else if ("smooth" == name)
+  if (name == "smooth")
     return std::make_unique<SmoothExpression>();
-  else if ("hold" == name)
+  if (name == "hold")
     return std::make_unique<HoldExpression>();
-  else if ("tap" == name)
+  if (name == "tap")
     return std::make_unique<TapExpression>();
-  else if ("relative" == name)
+  if (name == "relative")
     return std::make_unique<RelativeExpression>();
-  else if ("pulse" == name)
+  if (name == "pulse")
     return std::make_unique<PulseExpression>();
-  else
-    return nullptr;
+
+  return nullptr;
 }
 
 int FunctionExpression::CountNumControls() const
@@ -522,5 +520,4 @@ void FunctionExpression::SetValue(ControlState)
 {
 }
 
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser

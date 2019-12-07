@@ -8,10 +8,11 @@
 #include <cassert>
 #include <memory>
 
-#include "Common/BitUtils.h"
-#include "Common/ChunkFile.h"
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -84,50 +85,86 @@ void Wiimote::Reset()
   m_speaker_mute = false;
 
   // EEPROM
+  std::string eeprom_file = (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" + GetName() + ".bin");
+  if (m_eeprom_dirty)
+  {
+    // Write out existing EEPROM
+    INFO_LOG(WIIMOTE, "Wrote EEPROM for %s", GetName().c_str());
+    std::ofstream file;
+    File::OpenFStream(file, eeprom_file, std::ios::binary | std::ios::out);
+    file.write(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
+    file.close();
+
+    m_eeprom_dirty = false;
+  }
   m_eeprom = {};
 
-  // IR calibration:
-  std::array<u8, 11> ir_calibration = {
-      // Point 1
-      IR_LOW_X & 0xFF,
-      IR_LOW_Y & 0xFF,
-      // Mix
-      ((IR_LOW_Y & 0x300) >> 2) | ((IR_LOW_X & 0x300) >> 4) | ((IR_LOW_Y & 0x300) >> 6) |
-          ((IR_HIGH_X & 0x300) >> 8),
-      // Point 2
-      IR_HIGH_X & 0xFF,
-      IR_LOW_Y & 0xFF,
-      // Point 3
-      IR_HIGH_X & 0xFF,
-      IR_HIGH_Y & 0xFF,
-      // Mix
-      ((IR_HIGH_Y & 0x300) >> 2) | ((IR_HIGH_X & 0x300) >> 4) | ((IR_HIGH_Y & 0x300) >> 6) |
-          ((IR_LOW_X & 0x300) >> 8),
-      // Point 4
-      IR_LOW_X & 0xFF,
-      IR_HIGH_Y & 0xFF,
-      // Checksum
-      0x00,
-  };
-  UpdateCalibrationDataChecksum(ir_calibration, 1);
-  m_eeprom.ir_calibration_1 = ir_calibration;
-  m_eeprom.ir_calibration_2 = ir_calibration;
+  if (File::Exists(eeprom_file))
+  {
+    // Read existing EEPROM
+    std::ifstream file;
+    File::OpenFStream(file, eeprom_file, std::ios::binary | std::ios::in);
+    file.read(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
+    file.close();
+  }
+  else
+  {
+    // Load some default data.
 
-  // Accel calibration:
-  // Last byte is a checksum.
-  std::array<u8, 10> accel_calibration = {
-      ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
-  };
-  UpdateCalibrationDataChecksum(accel_calibration, 1);
-  m_eeprom.accel_calibration_1 = accel_calibration;
-  m_eeprom.accel_calibration_2 = accel_calibration;
+    // IR calibration:
+    std::array<u8, 11> ir_calibration = {
+        // Point 1
+        IR_LOW_X & 0xFF,
+        IR_LOW_Y & 0xFF,
+        // Mix
+        ((IR_LOW_Y & 0x300) >> 2) | ((IR_LOW_X & 0x300) >> 4) | ((IR_LOW_Y & 0x300) >> 6) |
+            ((IR_HIGH_X & 0x300) >> 8),
+        // Point 2
+        IR_HIGH_X & 0xFF,
+        IR_LOW_Y & 0xFF,
+        // Point 3
+        IR_HIGH_X & 0xFF,
+        IR_HIGH_Y & 0xFF,
+        // Mix
+        ((IR_HIGH_Y & 0x300) >> 2) | ((IR_HIGH_X & 0x300) >> 4) | ((IR_HIGH_Y & 0x300) >> 6) |
+            ((IR_LOW_X & 0x300) >> 8),
+        // Point 4
+        IR_LOW_X & 0xFF,
+        IR_HIGH_Y & 0xFF,
+        // Checksum
+        0x00,
+    };
+    UpdateCalibrationDataChecksum(ir_calibration, 1);
+    m_eeprom.ir_calibration_1 = ir_calibration;
+    m_eeprom.ir_calibration_2 = ir_calibration;
 
-  // TODO: Is this needed?
-  // Data of unknown purpose:
-  constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00,
-                                                   0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99,
-                                                   0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
-  m_eeprom.unk_2 = EEPROM_DATA_16D0;
+    // Accel calibration:
+    // Last byte is a checksum.
+    std::array<u8, 10> accel_calibration = {
+        ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0,
+    };
+    UpdateCalibrationDataChecksum(accel_calibration, 1);
+    m_eeprom.accel_calibration_1 = accel_calibration;
+    m_eeprom.accel_calibration_2 = accel_calibration;
+
+    // TODO: Is this needed?
+    // Data of unknown purpose:
+    constexpr std::array<u8, 24> EEPROM_DATA_16D0 = {
+        0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00, 0x33, 0xCC, 0x44, 0xBB,
+        0x00, 0x00, 0x66, 0x99, 0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13};
+    m_eeprom.unk_2 = EEPROM_DATA_16D0;
+
+    std::string mii_file = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin";
+    if (File::Exists(mii_file))
+    {
+      // Import from the existing mii.bin file, if present
+      std::ifstream file;
+      File::OpenFStream(file, mii_file, std::ios::binary | std::ios::in);
+      file.read(reinterpret_cast<char*>(m_eeprom.mii_data_1.data()), m_eeprom.mii_data_1.size());
+      m_eeprom.mii_data_2 = m_eeprom.mii_data_1;
+      file.close();
+    }
+  }
 
   m_read_request = {};
 
@@ -296,7 +333,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
 std::string Wiimote::GetName() const
 {
-  return StringFromFormat("Wiimote%d", 1 + m_index);
+  if (m_index == WIIMOTE_BALANCE_BOARD)
+    return "BalanceBoard";
+  return fmt::format("Wiimote{}", 1 + m_index);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
@@ -592,7 +631,7 @@ void Wiimote::SendDataReport()
 void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
 {
   // Check for custom communication
-  if (99 == channel_id)
+  if (channel_id == ::Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL)
   {
     // Wii Remote disconnected.
     Reset();

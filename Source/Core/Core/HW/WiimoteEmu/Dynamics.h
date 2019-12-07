@@ -6,6 +6,7 @@
 
 #include <array>
 
+#include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
@@ -18,7 +19,7 @@
 
 namespace WiimoteEmu
 {
-constexpr double GRAVITY_ACCELERATION = 9.80665;
+using MathUtil::GRAVITY_ACCELERATION;
 
 struct PositionalState
 {

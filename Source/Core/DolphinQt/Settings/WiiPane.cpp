@@ -48,6 +48,7 @@ WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
   LoadConfig();
   ConnectLayout();
   ValidateSelectionState();
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void WiiPane::CreateLayout()
@@ -92,6 +93,10 @@ void WiiPane::ConnectLayout()
   connect(m_wiimote_ir_sensitivity, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_speaker_volume, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
+
+  // Emulation State
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 }
 
 void WiiPane::CreateMisc()

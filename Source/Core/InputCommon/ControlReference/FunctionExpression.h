@@ -6,15 +6,14 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControlReference/FunctionExpression.h"
 
-namespace ciface
-{
-namespace ExpressionParser
+namespace ciface::ExpressionParser
 {
 class FunctionExpression : public Expression
 {
@@ -49,7 +48,6 @@ private:
   std::vector<std::unique_ptr<Expression>> m_args;
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name);
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name);
 
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser

@@ -5,8 +5,6 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <cstdio>
-
-#include "Common/StringUtil.h"
 #endif
 
 #include <OptionParser.h>
@@ -104,16 +102,16 @@ int main(int argc, char* argv[])
 
 #ifdef _WIN32
   // Get the default system font because Qt's way of obtaining it is outdated
-  NONCLIENTMETRICS metrics = {};
-  LOGFONT& logfont = metrics.lfMenuFont;
-  metrics.cbSize = sizeof(NONCLIENTMETRICS);
+  NONCLIENTMETRICSW metrics = {};
+  LOGFONTW& logfont = metrics.lfMenuFont;
+  metrics.cbSize = sizeof(metrics);
 
-  if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
+  if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
   {
     // Sadly Qt 5 doesn't support turning a native font handle into a QFont so this is the next best
     // thing
     QFont font = QApplication::font();
-    font.setFamily(QString::fromStdString(UTF16ToUTF8(logfont.lfFaceName)));
+    font.setFamily(QString::fromStdWString(logfont.lfFaceName));
 
     font.setItalic(logfont.lfItalic);
     font.setStrikeOut(logfont.lfStrikeOut);
@@ -138,7 +136,7 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
-  Settings::Instance().SetBatchModeEnabled(options.is_set("batch") && options.is_set("exec"));
+  Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
 
   // Hook up alerts from core
   Common::RegisterMsgAlertHandler(QtMsgAlertHandler);
@@ -152,12 +150,14 @@ int main(int argc, char* argv[])
                    &app, &Core::HostDispatchJobs);
 
   std::unique_ptr<BootParameters> boot;
+  bool game_specified = false;
   if (options.is_set("exec"))
   {
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
     boot = BootParameters::GenerateFromFile(paths);
+    game_specified = true;
   }
   else if (options.is_set("nand_title"))
   {
@@ -171,14 +171,30 @@ int main(int argc, char* argv[])
     {
       ModalMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
     }
+    game_specified = true;
   }
   else if (!args.empty())
   {
     boot = BootParameters::GenerateFromFile(args.front());
+    game_specified = true;
   }
 
   int retval;
 
+  if (Settings::Instance().IsBatchModeEnabled() && !game_specified)
+  {
+    ModalMessageBox::critical(
+        nullptr, QObject::tr("Error"),
+        QObject::tr("Batch mode cannot be used without specifying a game to launch."));
+    retval = 1;
+  }
+  else if (Settings::Instance().IsBatchModeEnabled() && !boot)
+  {
+    // A game to launch was specified, but it was invalid.
+    // An error has already been shown by code above, so exit without showing another error.
+    retval = 1;
+  }
+  else
   {
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
