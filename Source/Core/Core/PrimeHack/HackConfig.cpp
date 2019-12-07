@@ -4,7 +4,11 @@
 #include <string>
 
 #include "Common/IniFile.h"
-#include "Core/PrimeHack/AimMods.h"
+#include "Core/PrimeHack/PrimeUtils.h"
+#include "Core/PrimeHack/Games/MP1.h"
+#include "Core/PrimeHack/Games/MP2.h"
+#include "Core/PrimeHack/Games/MP3.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "Core/HW/Wiimote.h"
@@ -52,12 +56,7 @@ void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_d
 
 void RefreshControlDevices()
 {
-  for (int i = 0; i < control_list.size(); i++)
-  {
-    control_list[i]->UpdateReference(
-        g_controller_interface,
-        ciface::Core::DeviceQualifier(device_source.c_str(), 0, device_name.c_str()));
-  }
+  g_controller_interface.RefreshDevices();
 }
 
 bool CheckBeamCtl(int beam_num)

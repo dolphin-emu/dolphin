@@ -169,6 +169,9 @@
     <Filter Include="PrimeHack">
       <UniqueIdentifier>{a1b42782-823b-46d3-ab7c-6f26989ad6d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PrimeHack\Games">
+      <UniqueIdentifier>{2d4eae2e-a4a9-4cec-90ea-fab727450317}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -942,7 +945,16 @@
     <ClCompile Include="PrimeHack\HackManager.cpp">
       <Filter>PrimeHack</Filter>
     </ClCompile>
-    <ClCompile Include="PrimeHack\AimMods.cpp">
+    <ClCompile Include="PrimeHack\Games\MP1.cpp">
+      <Filter>PrimeHack\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimeHack\Games\MP2.cpp">
+      <Filter>PrimeHack\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimeHack\Games\MP3.cpp">
+      <Filter>PrimeHack\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimeHack\PrimeUtils.cpp">
       <Filter>PrimeHack</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1674,12 +1686,6 @@
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\Constants.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
-	<ClInclude Include="PrimeHack\AimMods.h">
-      <Filter>PrimeHack</Filter>
-    </ClInclude>
     <ClInclude Include="PrimeHack\HackConfig.h">
       <Filter>PrimeHack</Filter>
     </ClInclude>
@@ -1687,6 +1693,18 @@
       <Filter>PrimeHack</Filter>
     </ClInclude>
     <ClInclude Include="PrimeHack\PrimeMod.h">
+      <Filter>PrimeHack</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Games\MP1.h">
+      <Filter>PrimeHack\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Games\MP2.h">
+      <Filter>PrimeHack\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Games\MP3.h">
+      <Filter>PrimeHack\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\PrimeUtils.h">
       <Filter>PrimeHack</Filter>
     </ClInclude>
   </ItemGroup>

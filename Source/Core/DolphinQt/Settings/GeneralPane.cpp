@@ -235,14 +235,7 @@ void GeneralPane::LoadConfig()
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
-
-  const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
-  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
-  {
-    if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
-      m_cpu_cores[i]->setChecked(true);
-    }
-  }
+}
 
   static QString UpdateTrackFromIndex(int index)
   {
