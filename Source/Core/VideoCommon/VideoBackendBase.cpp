@@ -270,7 +270,6 @@ void VideoBackendBase::InitializeShared()
   PixelEngine::Init();
   BPInit();
   VertexLoaderManager::Init();
-  IndexGenerator::Init();
   VertexShaderManager::Init();
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
