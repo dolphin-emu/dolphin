@@ -278,9 +278,7 @@ static void BPWritten(const BPCmd& bp)
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
-
-      BoundingBox::active = false;
-      PixelShaderManager::SetBoundingBoxActive(false);
+      BoundingBox::Disable();
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -448,9 +446,8 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_CLEARBBOX1:
   case BPMEM_CLEARBBOX2:
   {
-    u8 offset = bp.address & 2;
-    BoundingBox::active = true;
-    PixelShaderManager::SetBoundingBoxActive(true);
+    const u8 offset = bp.address & 2;
+    BoundingBox::Enable();
 
     if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
     {
