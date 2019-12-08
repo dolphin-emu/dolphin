@@ -38,6 +38,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/SamplerCommon.h"
@@ -1260,9 +1261,11 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
   // If we are recording a FifoLog, keep track of what memory we read. FifoRecorder does
   // its own memory modification tracking independent of the texture hashing below.
-  if (g_bRecordFifoData && !from_tmem)
+  if (OpcodeDecoder::g_record_fifo_data && !from_tmem)
+  {
     FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size,
                                           MemoryUpdate::TEXTURE_MAP);
+  }
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
@@ -2294,7 +2297,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     ++iter.first;
   }
 
-  if (g_bRecordFifoData)
+  if (OpcodeDecoder::g_record_fifo_data)
   {
     // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
     u32 address = dstAddr;

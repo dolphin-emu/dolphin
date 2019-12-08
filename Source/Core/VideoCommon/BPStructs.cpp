@@ -25,6 +25,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -341,7 +342,7 @@ static void BPWritten(const BPCmd& bp)
 
     Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
 
-    if (g_bRecordFifoData)
+    if (OpcodeDecoder::g_record_fifo_data)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
     TextureCacheBase::InvalidateAllBindPoints();
@@ -563,7 +564,7 @@ static void BPWritten(const BPCmd& bp)
         }
       }
 
-      if (g_bRecordFifoData)
+      if (OpcodeDecoder::g_record_fifo_data)
         FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
 
       TextureCacheBase::InvalidateAllBindPoints();

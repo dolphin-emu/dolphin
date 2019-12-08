@@ -65,6 +65,7 @@
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
@@ -880,19 +881,18 @@ std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) 
 
 void Renderer::CheckFifoRecording()
 {
-  bool wasRecording = g_bRecordFifoData;
-  g_bRecordFifoData = FifoRecorder::GetInstance().IsRecording();
+  const bool was_recording = OpcodeDecoder::g_record_fifo_data;
+  OpcodeDecoder::g_record_fifo_data = FifoRecorder::GetInstance().IsRecording();
 
-  if (g_bRecordFifoData)
+  if (!OpcodeDecoder::g_record_fifo_data)
+    return;
+
+  if (!was_recording)
   {
-    if (!wasRecording)
-    {
-      RecordVideoMemory();
-    }
-
-    FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase,
-                                         CommandProcessor::fifo.CPEnd);
+    RecordVideoMemory();
   }
+
+  FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase, CommandProcessor::fifo.CPEnd);
 }
 
 void Renderer::RecordVideoMemory()
