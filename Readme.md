@@ -2,7 +2,7 @@
 
 PrimeHack is a modified version of [Dolphin-Emu](https://github.com/dolphin-emu/dolphin) solely for playing Metroid Prime Trilogy for Wii with keyboard and mouse on a PC.
 
-The system requirements are similar to those listed below but neither Android nor ARM CPUs are currently supported.
+The system requirements are similar to those listed below but Android is currently not supported.
 
 ## Downloads
 ### Windows
@@ -12,7 +12,7 @@ Get the latest PrimeHackRelease.zip file from https://github.com/shiiion/dolphin
 [Downloads](https://software.opensuse.org/download.html?project=home%3AKAMiKAZOW%3AEmulators&package=primehack) are provided for various Linux distributions at [home:KAMiKAZOW:Emulators on openSUSE.org](https://build.opensuse.org/package/show/home:KAMiKAZOW:Emulators/primehack). Submit Requests to support additional distributions are accepted over there.
 
 ### macOS
-Currently no compiled macOS version is provided but compiling PrimeHack yourself should work (see instructions below). MoltenVK/Metal compatibility is currently not available.
+Currently no compiled macOS version is provided but compiling PrimeHack yourself should work (see instructions below). 
 
 # Original Dolphin Readme file contents:
 
