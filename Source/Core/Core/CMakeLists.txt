@@ -462,9 +462,18 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Paired.cpp
   PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
   PowerPC/Interpreter/Interpreter_Tables.cpp
-	PrimeHack/AimMods.cpp
+	PrimeHack/PrimeUtils.cpp
+  PrimeHack/PrimeUtils.h
+	PrimeHack/MP1.cpp
+	PrimeHack/MP1.h
+	PrimeHack/MP2.cpp
+	PrimeHack/MP2.h
+	PrimeHack/MP3.cpp
+	PrimeHack/MP3.h
   PrimeHack/HackConfig.cpp
+	PrimeHack/HackConfig.h
   PrimeHack/HackManager.cpp
+	PrimeHack/HackManager.h
 )
 
 if(_M_X86)
