@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
@@ -124,7 +125,7 @@ u64 DiscScrubber::ToClusterOffset(u64 offset) const
   if (m_disc->IsEncryptedAndHashed())
     return offset / 0x7c00 * CLUSTER_SIZE;
   else
-    return offset % CLUSTER_SIZE;
+    return Common::AlignDown(offset, CLUSTER_SIZE);
 }
 
 // Helper functions for reading the BE volume
