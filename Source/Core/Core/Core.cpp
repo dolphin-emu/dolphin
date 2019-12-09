@@ -295,9 +295,6 @@ void Stop()  // - Hammertime!
 
   ResetRumble();
 
-#ifdef USE_MEMORYWATCHER
-  s_memory_watcher.reset();
-#endif
 }
 
 void DeclareAsCPUThread()
@@ -373,6 +370,10 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
+
+#ifdef USE_MEMORYWATCHER
+  s_memory_watcher.reset();
+#endif
 
   s_is_started = false;
 
