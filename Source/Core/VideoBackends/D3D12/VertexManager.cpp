@@ -31,6 +31,9 @@ VertexManager::~VertexManager() = default;
 
 bool VertexManager::Initialize()
 {
+  if (!VertexManagerBase::Initialize())
+    return false;
+
   if (!m_vertex_stream_buffer.AllocateBuffer(VERTEX_STREAM_BUFFER_SIZE) ||
       !m_index_stream_buffer.AllocateBuffer(INDEX_STREAM_BUFFER_SIZE) ||
       !m_uniform_stream_buffer.AllocateBuffer(UNIFORM_STREAM_BUFFER_SIZE) ||
