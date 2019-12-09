@@ -289,12 +289,6 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
-
-  if (_CoreParameter.bWii)
-    Wiimote::ResetAllWiimotes();
-
-  ResetRumble();
-
 }
 
 void DeclareAsCPUThread()
@@ -534,7 +528,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       return;
 
     if (init_wiimotes)
+    {
+      Wiimote::ResetAllWiimotes();
       Wiimote::Shutdown();
+    }
+
+    ResetRumble();
 
     Keyboard::Shutdown();
     Pad::Shutdown();
