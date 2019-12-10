@@ -6,6 +6,8 @@
 #import "SoftwareTableViewController.h"
 #import "SoftwareTableViewCell.h"
 
+#import <MetalKit/MetalKit.h>
+
 @interface SoftwareTableViewController ()
 
 @end
@@ -15,7 +17,7 @@
 - (void)viewDidLoad
 {
   [super viewDidLoad];
-
+  
   // Get the software folder path
   NSString* userDirectory =
       [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)
@@ -35,6 +37,28 @@
   // Get all files within folder
   self.softwareFiles =
       [[NSFileManager defaultManager] subpathsOfDirectoryAtPath:self.softwareDirectory error:NULL];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+#ifndef SUPPRESS_UNSUPPORTED_DEVICE
+  // Check for GPU Family 3
+  id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
+  if (![metalDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v2])
+  {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Unsupported Device"
+                                   message:@"DolphiniOS can only run on devices with an A9 processor or newer.\n\nThis is because your device's GPU does not support a feature required by Dolphin for good performance. Your device would run Dolphin at an unplayable speed without the feature."
+                                   preferredStyle:UIAlertControllerStyleAlert];
+     
+    UIAlertAction* okayAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+       handler:^(UIAlertAction * action) {
+      exit(0);
+    }];
+     
+    [alert addAction:okayAction];
+    [self presentViewController:alert animated:YES completion:nil];
+  }
+#endif
 }
 
 #pragma mark - Table view data source
