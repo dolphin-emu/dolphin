@@ -9,14 +9,12 @@ import UIKit
 class EmulationViewController: UIViewController
 {
   var softwareFile: String = ""
-  var videoBackend: String = ""
   
-  @objc init(file: String, backend: String)
+  @objc init(file: String)
   {
     super.init(nibName: nil, bundle: nil)
     
     self.softwareFile = file
-    self.videoBackend = backend
     
     self.modalPresentationStyle = .fullScreen
   }
@@ -28,13 +26,15 @@ class EmulationViewController: UIViewController
   
   override func loadView()
   {
-    if (self.videoBackend == "OGL")
-    {
-      self.view = EAGLView(frame: UIScreen.main.bounds)
-    }
-    else if (self.videoBackend == "Vulkan")
+    let videoBackend = MainiOS.getGfxBackend()
+    if (videoBackend == "Vulkan")
     {
       self.view = MTKView(frame: UIScreen.main.bounds)
+    }
+    else
+    {
+      // Everything else (OpenGL ES, Software, Null) should use the EAGLView
+      self.view = EAGLView(frame: UIScreen.main.bounds)
     }
     
     let padView = Bundle(for: type(of: self)).loadNibNamed("TCGameCubePad", owner: self, options: nil)![0] as! UIView
