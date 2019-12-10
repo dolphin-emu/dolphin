@@ -80,6 +80,24 @@
   });
 }
 
+- (void)showAlertWithTitle:(NSString*)title text:(NSString*)text isFatal:(bool)isFatal
+{
+  UIAlertController* alert = [UIAlertController alertControllerWithTitle:title
+                                 message:text
+                                 preferredStyle:UIAlertControllerStyleAlert];
+   
+  UIAlertAction* okayAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+     handler:^(UIAlertAction * action) {
+    if (isFatal)
+    {
+      exit(0);
+    }
+  }];
+   
+  [alert addAction:okayAction];
+  [self presentViewController:alert animated:YES completion:nil];
+}
+
 - (void)viewDidAppear:(BOOL)animated
 {
 #ifndef SUPPRESS_UNSUPPORTED_DEVICE
@@ -87,19 +105,25 @@
   id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
   if (![metalDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v2])
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Unsupported Device"
-                                   message:@"DolphiniOS can only run on devices with an A9 processor or newer.\n\nThis is because your device's GPU does not support a feature required by Dolphin for good performance. Your device would run Dolphin at an unplayable speed without this feature."
-                                   preferredStyle:UIAlertControllerStyleAlert];
-     
-    UIAlertAction* okayAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-       handler:^(UIAlertAction * action) {
-      exit(0);
-    }];
-     
-    [alert addAction:okayAction];
-    [self presentViewController:alert animated:YES completion:nil];
+    [self showAlertWithTitle:@"Unsupported Device"
+          text:@"DolphiniOS can only run on devices with an A9 processor or newer.\n\nThis is because your device's GPU does not support a feature required by Dolphin for good performance. Your device would run Dolphin at an unplayable speed without this feature."
+          isFatal:true];
   }
 #endif
+  
+  // Get the number of launches
+  NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
+  NSInteger launch_times = [user_defaults integerForKey:@"launch_times"];
+  
+  if (launch_times == 0)
+  {
+    // Show the maintainer alert on first launch
+    [self showAlertWithTitle:@"Note"
+          text:@"DolphiniOS is NOT an official version of Dolphin. It is a separate version based on the original Dolphin's code.\n\nDO NOT ask for help on the official Dolphin forums or report bugs on the official Dolphin bug tracker.\n\nIf you need help, go to the Settings tab and tap \"Support\"."
+          isFatal:false];
+  }
+  
+  [user_defaults setInteger:launch_times + 1 forKey:@"launch_times"];
 }
 
 #pragma mark - Table view data source
