@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
-		B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */; };
+		B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B91BF370236B3FE500199BA7 /* SoftwareTableViewController.mm */; };
 		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
 		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
@@ -87,7 +87,7 @@
 		B91BF36C236B3FCE00199BA7 /* SoftwareTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareTableViewCell.h; sourceTree = "<group>"; };
 		B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewCell.m; sourceTree = "<group>"; };
 		B91BF36F236B3FE500199BA7 /* SoftwareTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareTableViewController.h; sourceTree = "<group>"; };
-		B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewController.m; sourceTree = "<group>"; };
+		B91BF370236B3FE500199BA7 /* SoftwareTableViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareTableViewController.mm; sourceTree = "<group>"; };
 		B91BF372236B400200199BA7 /* SettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsTableViewController.h; sourceTree = "<group>"; };
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
@@ -223,7 +223,7 @@
 				B91BF36C236B3FCE00199BA7 /* SoftwareTableViewCell.h */,
 				B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */,
 				B91BF36F236B3FE500199BA7 /* SoftwareTableViewController.h */,
-				B91BF370236B3FE500199BA7 /* SoftwareTableViewController.m */,
+				B91BF370236B3FE500199BA7 /* SoftwareTableViewController.mm */,
 			);
 			path = SoftwareList;
 			sourceTree = "<group>";
@@ -492,7 +492,7 @@
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
-				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.m in Sources */,
+				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
@@ -666,7 +666,10 @@
 					"DEBUG=1",
 					"SUPPRESS_UNSUPPORTED_DEVICE=1",
 				);
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -691,7 +694,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

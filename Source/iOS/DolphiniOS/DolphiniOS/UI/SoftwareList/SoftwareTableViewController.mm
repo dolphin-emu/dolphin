@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#import "DolphiniOS-Swift.h"
 #import "SoftwareTableViewController.h"
+
+#import "DolphiniOS-Swift.h"
 #import "SoftwareTableViewCell.h"
+
+#import "UICommon/GameFile.h"
 
 #import <MetalKit/MetalKit.h>
 
@@ -18,25 +21,63 @@
 {
   [super viewDidLoad];
   
-  // Get the software folder path
-  NSString* userDirectory =
-      [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)
-          objectAtIndex:0];
-  self.softwareDirectory = [userDirectory stringByAppendingPathComponent:@"Software"];
+  // Load the GameFileCache
+  self.m_cache = new UICommon::GameFileCache();
+  self.m_cache->Load();
+  
+  [self rescanGameFilesWithRefreshing:false];
+  
+  // Create a UIRefreshControl
+  UIRefreshControl* refreshControl = [[UIRefreshControl alloc] init];
+  [refreshControl addTarget:self action:@selector(refreshGameFileCache) forControlEvents:UIControlEventValueChanged];
+  
+  self.tableView.refreshControl = refreshControl;
+}
 
-  // Create if necessary
-  NSFileManager* fileManager = [NSFileManager defaultManager];
-  if (![fileManager fileExistsAtPath:self.softwareDirectory])
-  {
-    [fileManager createDirectoryAtPath:self.softwareDirectory
-           withIntermediateDirectories:false
-                            attributes:NULL
-                                 error:NULL];
-  }
+- (void)refreshGameFileCache
+{
+  [self rescanGameFilesWithRefreshing:true];
+}
 
-  // Get all files within folder
-  self.softwareFiles =
-      [[NSFileManager defaultManager] subpathsOfDirectoryAtPath:self.softwareDirectory error:NULL];
+- (void)rescanGameFilesWithRefreshing:(bool)refreshing
+{
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    // Get the software folder path
+    NSString* userDirectory =
+        [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)
+            objectAtIndex:0];
+    NSString* softwareDirectory = [userDirectory stringByAppendingPathComponent:@"Software"];
+
+    // Create it if necessary
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    if (![fileManager fileExistsAtPath:softwareDirectory])
+    {
+      [fileManager createDirectoryAtPath:softwareDirectory withIntermediateDirectories:false
+                   attributes:nil error:nil];
+    }
+    
+    std::vector<std::string> folder_paths;
+    folder_paths.push_back(std::string([softwareDirectory UTF8String]));
+    
+    // Update the cache
+    bool cache_updated = self.m_cache->Update(UICommon::FindAllGamePaths(folder_paths, false));
+    cache_updated |= self.m_cache->UpdateAdditionalMetadata();
+    if (cache_updated)
+    {
+      self.m_cache->Save();
+    }
+    
+    self.m_cache_loaded = true;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.tableView reloadData];
+      
+      if (refreshing)
+      {
+        [self.tableView.refreshControl endRefreshing];
+      }
+    });
+  });
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -47,7 +88,7 @@
   if (![metalDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v2])
   {
     UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Unsupported Device"
-                                   message:@"DolphiniOS can only run on devices with an A9 processor or newer.\n\nThis is because your device's GPU does not support a feature required by Dolphin for good performance. Your device would run Dolphin at an unplayable speed without the feature."
+                                   message:@"DolphiniOS can only run on devices with an A9 processor or newer.\n\nThis is because your device's GPU does not support a feature required by Dolphin for good performance. Your device would run Dolphin at an unplayable speed without this feature."
                                    preferredStyle:UIAlertControllerStyleAlert];
      
     UIAlertAction* okayAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
@@ -70,7 +111,12 @@
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section
 {
-  return self.softwareFiles.count;
+  if (!self.m_cache_loaded)
+  {
+    return 0;
+  }
+  
+  return self.m_cache->GetSize();
 }
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
@@ -78,18 +124,44 @@
   SoftwareTableViewCell* cell =
       (SoftwareTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"softwareCell"
                                                               forIndexPath:indexPath];
-
-  // Set the file name
-  cell.fileNameLabel.text = [[self.softwareFiles objectAtIndex:indexPath.item] lastPathComponent];
+  
+  NSString* cell_contents = @"";
+  
+  // Get the GameFile
+  std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get(indexPath.item);
+  DiscIO::Platform platform = file->GetPlatform();
+  
+  // Add the platform prefix
+  if (platform == DiscIO::Platform::GameCubeDisc)
+  {
+    cell_contents = [cell_contents stringByAppendingString:@"[GC] "];
+  }
+  else if (platform == DiscIO::Platform::WiiDisc || platform == DiscIO::Platform::WiiWAD)
+  {
+    cell_contents = [cell_contents stringByAppendingString:@"[Wii] "];
+  }
+  else
+  {
+    cell_contents = [cell_contents stringByAppendingString:@"[Unk] "];
+  }
+  
+  // Append the game name
+  NSString* game_name = [NSString stringWithUTF8String:file->GetLongName().c_str()];
+  cell_contents = [cell_contents stringByAppendingString:game_name];
+  
+  // Set the cell label text
+  cell.fileNameLabel.text = cell_contents;
 
   return cell;
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  NSString* filePath = [self.softwareDirectory
-      stringByAppendingPathComponent:[self.softwareFiles objectAtIndex:indexPath.item]];
-  EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:filePath];
+  // Get the file path
+  std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get(indexPath.item);
+  NSString* path = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
+  
+  EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:path];
   [self presentViewController:viewController animated:YES completion:nil];
 }
 
