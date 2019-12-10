@@ -4,6 +4,8 @@
 
 #import "AppDelegate.h"
 
+#import "MainiOS.h"
+
 @interface AppDelegate ()
 
 @end
@@ -14,6 +16,9 @@
     didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
 {
   // Override point for customization after application launch.
+  
+  [MainiOS applicationStart];
+  
   return YES;
 }
 

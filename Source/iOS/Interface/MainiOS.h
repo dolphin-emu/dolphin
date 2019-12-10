@@ -9,6 +9,7 @@
 
 @interface MainiOS : NSObject
 
++ (void) applicationStart;
 + (void)startEmulationWithFile:(NSString*)file view:(UIView*)view;
 + (void)windowResized;
 + (void)gamepadEventForButton:(int)button action:(int)action;
