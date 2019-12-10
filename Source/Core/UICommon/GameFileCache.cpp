@@ -53,6 +53,12 @@ void GameFileCache::ForEach(std::function<void(const std::shared_ptr<const GameF
     f(item);
 }
 
+std::shared_ptr<const GameFile>
+GameFileCache::Get(const std::vector<std::shared_ptr<GameFile>>::size_type idx)
+{
+  return m_cached_files.at(idx);
+}
+
 size_t GameFileCache::GetSize() const
 {
   return m_cached_files.size();

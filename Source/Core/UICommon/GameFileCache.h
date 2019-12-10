@@ -35,6 +35,8 @@ public:
 
   void ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const;
 
+  std::shared_ptr<const GameFile> Get(const std::vector<std::shared_ptr<GameFile>>::size_type);
+
   size_t GetSize() const;
   void Clear(DeleteOnDisk delete_on_disk);
 
