@@ -4,9 +4,13 @@
 
 #include <string>
 
+#include <MetalKit/MetalKit.h>
+
 #include "Core/Boot/Boot.h"
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/WindowSystemInfo.h"
 
 #include "Core/BootManager.h"
@@ -154,11 +158,40 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 {
   Common::RegisterMsgAlertHandler(&MsgAlert);
 
-  NSString* userDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-  UICommon::SetUserDirectory(std::string([userDirectory UTF8String]));
+  NSString* user_directory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+  UICommon::SetUserDirectory(std::string([user_directory UTF8String]));
 
   UICommon::CreateDirectories();
   UICommon::Init();
+
+  // Get the Dolphin.ini path
+  std::string dolphin_config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+
+  // Check if the Dolphin.ini file exists already
+  NSFileManager* file_manager = [NSFileManager defaultManager];
+  if (![file_manager fileExistsAtPath:[NSString stringWithUTF8String:dolphin_config_path.c_str()]])
+  {
+    // Create a new Dolphin.ini
+    IniFile dolphin_config;
+    dolphin_config.Load(dolphin_config_path);
+
+    std::string gfx_backend;
+
+    // Check if GPU Family 3 is supported
+    id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
+    if ([metalDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v2])
+    {
+      gfx_backend = "Vulkan";
+    }
+    else
+    {
+      gfx_backend = "OGL";
+    }
+
+    dolphin_config.GetOrCreateSection("Core")->Set("GFXBackend", gfx_backend);
+
+    dolphin_config.Save(dolphin_config_path);
+  }
 }
 
 + (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
