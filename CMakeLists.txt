@@ -417,11 +417,18 @@ if(IOS)
     message(STATUS "Building iOS app, disabling NoGUI frontend.")
     set(ENABLE_NOGUI 0)
   endif()
-
-  set(ENABLE_WX_EXCLUSIVITY 1)
+  
   set(USE_UPNP 0)
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
+
+  if(IOS_JAILBROKEN)
+    message(STATUS "Building for jailbroken iOS devices")
+    add_definitions(-DIPHONEOS_JAILBROKEN)
+  else()
+    message(STATUS "Building for non-jailbroken iOS devices")
+    set(ENABLE_WX_EXCLUSIVITY 1)
+  endif()
 
   # We are cross compiling, search only the toolchain for libraries and includes
   SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
