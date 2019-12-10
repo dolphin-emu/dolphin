@@ -4,12 +4,14 @@
 
 #import <UIKit/UIKit.h>
 
+#import "UICommon/GameFileCache.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface SoftwareTableViewController : UITableViewController
 
-@property(nonatomic) NSString* softwareDirectory;
-@property(nonatomic) NSArray* softwareFiles;
+@property(nonatomic) UICommon::GameFileCache* m_cache;
+@property(nonatomic) bool m_cache_loaded;
 
 @end
 
