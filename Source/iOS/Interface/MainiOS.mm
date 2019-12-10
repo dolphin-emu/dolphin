@@ -82,10 +82,78 @@ void Host_TitleChanged()
 {
 }
 
+static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType /*style*/)
+{
+  @autoreleasepool
+  {
+    NSCondition* condition = [[NSCondition alloc] init];
+    
+    __block bool yes_pressed = false;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      // Create a new UIWindow to host the UIAlertController
+      // We don't have access to the EmulationViewController here, so this is the best we can do.
+      // (This is what Apple supposedly does in their applications.)
+      __block UIWindow* window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+      window.rootViewController = [UIViewController new];
+      window.windowLevel = UIWindowLevelAlert + 1;
+
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:caption]
+                                    message:[NSString stringWithUTF8String:text]
+                                    preferredStyle:UIAlertControllerStyleAlert];
+
+      if (yes_no)
+      {
+        [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault
+          handler:^(UIAlertAction * action) {
+            yes_pressed = true;
+
+            [condition signal];
+
+            window.hidden = YES;
+            window = nil;
+        }]];
+
+        [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
+          handler:^(UIAlertAction* action) {
+            yes_pressed = false;
+
+            [condition signal];
+
+            window.hidden = YES;
+            window = nil;
+        }]];
+      }
+      else
+      {
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+          handler:^(UIAlertAction* action) {
+            [condition signal];
+
+            window.hidden = YES;
+            window = nil;
+        }]];
+      }
+
+      [window makeKeyAndVisible];
+      [window.rootViewController presentViewController:alert animated:YES completion:nil];
+    });
+
+    // Wait for a button press
+    [condition lock];
+    [condition wait];
+    [condition unlock];
+
+    return yes_pressed;
+  }
+}
+
 @implementation MainiOS
 
 + (void) applicationStart
 {
+  Common::RegisterMsgAlertHandler(&MsgAlert);
+
   NSString* userDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
   UICommon::SetUserDirectory(std::string([userDirectory UTF8String]));
 
