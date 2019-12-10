@@ -16,7 +16,7 @@
   
   // Set the version from Info.plist
   NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
-  [self.m_version_label setText:[info objectForKey:@"CFBundleVersion"]];
+  [self.m_version_label setText:[info objectForKey:@"CFBundleShortVersionString"]];
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
