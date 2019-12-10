@@ -9,12 +9,14 @@ import UIKit
 class EmulationViewController: UIViewController
 {
   var softwareFile: String = ""
+  var isWii: Bool = false
   
-  @objc init(file: String)
+  @objc init(file: String, wii: Bool)
   {
     super.init(nibName: nil, bundle: nil)
     
     self.softwareFile = file
+    self.isWii = wii
     
     self.modalPresentationStyle = .fullScreen
   }
@@ -37,7 +39,9 @@ class EmulationViewController: UIViewController
       self.view = EAGLView(frame: UIScreen.main.bounds)
     }
     
-    let padView = Bundle(for: type(of: self)).loadNibNamed("TCGameCubePad", owner: self, options: nil)![0] as! UIView
+    let controllerNibName: String = (self.isWii) ? "TCWiiPad" : "TCGameCubePad"
+    
+    let padView = Bundle(for: type(of: self)).loadNibNamed(controllerNibName, owner: self, options: nil)![0] as! UIView
     padView.frame = UIScreen.main.bounds
     self.view.addSubview(padView)
   }

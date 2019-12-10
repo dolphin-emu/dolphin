@@ -161,7 +161,10 @@
   std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get(indexPath.item);
   NSString* path = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
   
-  EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:path];
+  // Check if this could be a Wii file
+  bool is_wii = file->GetPlatform() != DiscIO::Platform::GameCubeDisc;
+  
+  EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:path wii:is_wii];
   [self presentViewController:viewController animated:YES completion:nil];
 }
 
