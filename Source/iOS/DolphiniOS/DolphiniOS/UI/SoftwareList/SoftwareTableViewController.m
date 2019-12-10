@@ -89,8 +89,7 @@
 {
   NSString* filePath = [self.softwareDirectory
       stringByAppendingPathComponent:[self.softwareFiles objectAtIndex:indexPath.item]];
-  EmulationViewController* viewController =
-      [[EmulationViewController alloc] initWithFile:filePath backend:@"Vulkan"];
+  EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:filePath];
   [self presentViewController:viewController animated:YES completion:nil];
 }
 
