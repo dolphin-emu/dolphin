@@ -162,7 +162,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   UICommon::SetUserDirectory(std::string([user_directory UTF8String]));
 
   UICommon::CreateDirectories();
-  UICommon::Init();
 
   // Get the Dolphin.ini path
   std::string dolphin_config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
@@ -192,6 +191,8 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 
     dolphin_config.Save(dolphin_config_path);
   }
+
+  UICommon::Init();
 }
 
 + (NSString*)getGfxBackend
