@@ -194,6 +194,17 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   }
 }
 
++ (NSString*)getGfxBackend
+{
+  IniFile dolphin_config;
+  dolphin_config.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  
+  std::string gfx_backend;
+  dolphin_config.GetOrCreateSection("Core")->Get("GFXBackend", &gfx_backend, "OGL");
+
+  return [NSString stringWithUTF8String:gfx_backend.c_str()];
+}
+
 + (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
 {
   WindowSystemInfo wsi;
