@@ -433,6 +433,11 @@ if(APPLE)
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(dolphin-emu)
+  # Fix rpath
+  add_custom_command(TARGET dolphin-emu 
+    POST_BUILD COMMAND 
+    ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
+    $<TARGET_FILE:dolphin-emu>)
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()
