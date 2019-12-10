@@ -84,19 +84,22 @@ void Host_TitleChanged()
 
 @implementation MainiOS
 
-+ (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
++ (void) applicationStart
 {
   NSString* userDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
   UICommon::SetUserDirectory(std::string([userDirectory UTF8String]));
 
+  UICommon::CreateDirectories();
   UICommon::Init();
+}
 
++ (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
+{
   WindowSystemInfo wsi;
   wsi.type = WindowSystemType::IPhoneOS;
   wsi.display_connection = nullptr;
   wsi.render_surface = (__bridge void*)view;
-  wsi.render_surface_scale = [UIScreen mainScreen].scale;
-  
+  wsi.render_surface_scale = [UIScreen mainScreen].scale;  
 
   std::unique_ptr<BootParameters> boot;
   boot = BootParameters::GenerateFromFile([file UTF8String]);
