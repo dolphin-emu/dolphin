@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #import "AppDelegate.h"
+#import "DolphiniOS-Swift.h"
 
 #import "MainiOS.h"
 
@@ -18,6 +19,13 @@
   // Override point for customization after application launch.
   
   [MainiOS applicationStart];
+  
+  return YES;
+}
+
+- (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options
+{
+  [MainiOS importFiles:[NSSet setWithObject:url]];
   
   return YES;
 }
