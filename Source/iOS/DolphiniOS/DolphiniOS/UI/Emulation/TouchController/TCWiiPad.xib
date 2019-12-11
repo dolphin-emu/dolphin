@@ -99,7 +99,7 @@
                         </userDefinedRuntimeAttribute>
                     </userDefinedRuntimeAttributes>
                 </view>
-                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Glv-cy-oAy" userLabel="IRTest" customClass="TCDirectionalPad" customModule="DolphiniOS" customModuleProvider="target">
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Glv-cy-oAy" userLabel="DPad" customClass="TCDirectionalPad" customModule="DolphiniOS" customModuleProvider="target">
                     <rect key="frame" x="0.0" y="401" width="128" height="128"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                     <constraints>
@@ -107,9 +107,6 @@
                         <constraint firstAttribute="height" constant="128" id="xSG-Ny-Scd"/>
                     </constraints>
                     <userDefinedRuntimeAttributes>
-                        <userDefinedRuntimeAttribute type="number" keyPath="joystickType">
-                            <integer key="value" value="111"/>
-                        </userDefinedRuntimeAttribute>
                         <userDefinedRuntimeAttribute type="number" keyPath="directionalPadType">
                             <integer key="value" value="107"/>
                         </userDefinedRuntimeAttribute>
