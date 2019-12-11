@@ -7,6 +7,8 @@
 #import "DolphiniOS-Swift.h"
 #import "SoftwareTableViewCell.h"
 
+#import "MainiOS.h"
+
 #import "UICommon/GameFile.h"
 
 #import <MetalKit/MetalKit.h>
@@ -43,9 +45,7 @@
 {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     // Get the software folder path
-    NSString* userDirectory =
-        [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)
-            objectAtIndex:0];
+    NSString* userDirectory = [MainiOS getUserFolder];
     NSString* softwareDirectory = [userDirectory stringByAppendingPathComponent:@"Software"];
 
     // Create it if necessary

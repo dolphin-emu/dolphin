@@ -174,8 +174,8 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 + (void) applicationStart
 {
   Common::RegisterMsgAlertHandler(&MsgAlert);
-
-  NSString* user_directory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+  
+  NSString* user_directory = [MainiOS getUserFolder];
   UICommon::SetUserDirectory(std::string([user_directory UTF8String]));
 
   UICommon::CreateDirectories();
@@ -243,6 +243,16 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   }
 
   UICommon::Init();
+}
+
++ (NSString*)getUserFolder
+{
+  NSString* user_directory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+#ifdef IPHONEOS_JAILBROKEN
+  user_directory = [user_directory stringByAppendingPathComponent:@"DolphiniOS"];
+#endif
+
+  return user_directory;
 }
 
 + (NSString*)getGfxBackend
