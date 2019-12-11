@@ -12,6 +12,7 @@
 + (void)applicationStart;
 + (NSString*)getUserFolder;
 + (NSString*)getGfxBackend;
++ (void)importFiles:(NSSet<NSURL*>*)files;
 + (void)startEmulationWithFile:(NSString*)file view:(UIView*)view;
 + (void)windowResized;
 + (void)gamepadEventForButton:(int)button action:(int)action;

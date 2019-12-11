@@ -266,6 +266,37 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   return [NSString stringWithUTF8String:gfx_backend.c_str()];
 }
 
++ (void)importFiles:(NSSet<NSURL*>*)files
+{
+  NSFileManager* file_manager = [NSFileManager defaultManager];
+  for (NSURL* url in files)
+  {
+    if (![url startAccessingSecurityScopedResource])
+    {
+      continue;
+    }
+    
+    NSString* file = [url path];
+    NSString* software_directory = [[MainiOS getUserFolder] stringByAppendingPathComponent:@"Software"];
+    NSString* destination_path = [software_directory stringByAppendingPathComponent:[file lastPathComponent]];
+    
+    // Check if the file is new
+    if (![file_manager fileExistsAtPath:destination_path])
+    {
+      // Move the file
+      NSError* error = nil;
+      [file_manager moveItemAtPath:file toPath:destination_path error:&error];
+      
+      if (error != nil)
+      {
+        return;
+      }
+      
+      [url stopAccessingSecurityScopedResource];
+    }
+  }
+}
+
 + (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
 {
   WindowSystemInfo wsi;

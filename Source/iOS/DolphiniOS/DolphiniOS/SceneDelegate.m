@@ -4,6 +4,8 @@
 
 #import "SceneDelegate.h"
 
+#import "MainiOS.h"
+
 @interface SceneDelegate ()
 
 @end
@@ -53,6 +55,17 @@
   // Called as the scene transitions from the foreground to the background.
   // Use this method to save data, release shared resources, and store enough scene-specific state
   // information to restore the scene back to its current state.
+}
+
+- (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext*>*)URLContexts
+{
+  NSMutableSet* set = [NSMutableSet set];
+  for (UIOpenURLContext* context in URLContexts)
+  {
+    [set addObject:[context URL]];
+  }
+  
+  [MainiOS importFiles:set];
 }
 
 @end
