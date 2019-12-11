@@ -8,7 +8,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface SoftwareTableViewController : UITableViewController
+@interface SoftwareTableViewController : UITableViewController <UIDocumentPickerDelegate>
 
 @property(nonatomic) UICommon::GameFileCache* m_cache;
 @property(nonatomic) bool m_cache_loaded;
