@@ -155,6 +155,21 @@
   [user_defaults setInteger:launch_times + 1 forKey:@"launch_times"];
 }
 
+- (IBAction)addButtonPressed:(id)sender
+{
+  NSArray* types = @[
+    @"org.dolphin-emu.ios.generic-software",
+    @"org.dolphin-emu.ios.gamecube-software",
+    @"org.dolphin-emu.ios.wii-software"
+  ];
+  
+  UIDocumentPickerViewController* pickerController = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:types inMode:UIDocumentPickerModeOpen];
+  pickerController.delegate = self;
+  pickerController.modalPresentationStyle = UIModalPresentationPageSheet;
+  
+  [self presentViewController:pickerController animated:true completion:nil];
+}
+
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
@@ -219,6 +234,16 @@
   
   EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:path wii:is_wii];
   [self presentViewController:viewController animated:YES completion:nil];
+}
+
+#pragma mark - Document picker delegate methods
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls
+{
+  NSSet<NSURL*>* set = [NSSet setWithArray:urls];
+  [MainiOS importFiles:set];
+  
+  [self rescanGameFilesWithRefreshing:false];
 }
 
 /*
