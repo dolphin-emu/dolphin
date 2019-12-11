@@ -10,6 +10,7 @@
 @interface MainiOS : NSObject
 
 + (void)applicationStart;
++ (NSString*)getUserFolder;
 + (NSString*)getGfxBackend;
 + (void)startEmulationWithFile:(NSString*)file view:(UIView*)view;
 + (void)windowResized;
