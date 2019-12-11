@@ -160,6 +160,8 @@
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
 		B99B05A623A067D00076C7D8 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
+		B99B05AA23A09DDF0076C7D8 /* control.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = control.in; sourceTree = "<group>"; };
+		B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements_JB.plist; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationVIewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -274,6 +276,7 @@
 		B945A3722362908500B21680 /* DolphiniOS */ = {
 			isa = PBXGroup;
 			children = (
+				B99B05A923A09CDC0076C7D8 /* Build Resources */,
 				B99B059F23A067090076C7D8 /* Bundle Resources */,
 				B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */,
 				B91BF364236B3DFF00199BA7 /* UI */,
@@ -287,7 +290,6 @@
 				B945A3812362909500B21680 /* LaunchScreen.storyboard */,
 				B945A3842362909500B21680 /* Info.plist */,
 				B945A3852362909500B21680 /* main.m */,
-				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 			);
 			path = DolphiniOS;
 			sourceTree = "<group>";
@@ -364,6 +366,16 @@
 				B99B05A223A067560076C7D8 /* WiimoteProfile.ini */,
 			);
 			name = "Bundle Resources";
+			sourceTree = "<group>";
+		};
+		B99B05A923A09CDC0076C7D8 /* Build Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
+				B99B05AA23A09DDF0076C7D8 /* control.in */,
+				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
+			);
+			name = "Build Resources";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -675,7 +687,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -684,10 +696,7 @@
 					"DEBUG=1",
 					"SUPPRESS_UNSUPPORTED_DEVICE=1",
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../Core/**",
-					"$(SRCROOT)/../Interface/**",
-				);
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -700,6 +709,10 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+				);
 			};
 			name = Debug;
 		};
@@ -708,15 +721,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
-				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../Core/**",
-					"$(SRCROOT)/../Interface/**",
-				);
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -728,6 +738,10 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+				);
 			};
 			name = Release;
 		};

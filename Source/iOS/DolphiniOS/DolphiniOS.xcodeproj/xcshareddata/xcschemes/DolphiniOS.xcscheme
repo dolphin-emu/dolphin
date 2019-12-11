@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1120"
-   version = "1.3">
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -76,5 +76,23 @@
    <ArchiveAction
       buildConfiguration = "Release"
       revealArchiveInOrganizer = "YES">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "#!/bin/bash&#10;&#10;set -e&#10;&#10;ROOT_SRC_DIR=$PROJECT_DIR/DolphiniOS&#10;EXPORT_UUID=`uuidgen`&#10;EXPORT_PATH=&quot;/tmp/DolphiniOS-$EXPORT_UUID&quot;&#10;&#10;# As recommended by saurik, don&apos;t &#10;export COPYFILE_DISABLE&#10;export COPY_EXTENDED_ATTRIBUTES_DISABLE&#10;&#10;# Make directories&#10;mkdir $EXPORT_PATH&#10;mkdir $EXPORT_PATH/deb_root&#10;mkdir $EXPORT_PATH/deb_root/Applications&#10;mkdir $EXPORT_PATH/deb_root/DEBIAN&#10;&#10;exec &gt; $EXPORT_PATH/archive.log 2&gt;&amp;1&#10;&#10;# Copy resources&#10;cp -r &quot;$ARCHIVE_PATH/Products/Applications/DolphiniOS.app&quot; $EXPORT_PATH/deb_root/Applications/&#10;sed &quot;s/VERSION_NUMBER/$MARKETING_VERSION/g&quot; $ROOT_SRC_DIR/control.in &gt; $EXPORT_PATH/deb_root/DEBIAN/control&#10;&#10;# Resign the application&#10;codesign -f -s &quot;OatmealDome Software&quot; --entitlements $ROOT_SRC_DIR/Entitlements_JB.plist $EXPORT_PATH/deb_root/Applications/DolphiniOS.app&#10;codesign -f -s &quot;OatmealDome Software&quot; --entitlements $ROOT_SRC_DIR/Entitlements_JB.plist $EXPORT_PATH/deb_root/Applications/DolphiniOS.app/Frameworks/*&#10;&#10;# Remove the mobileprovision file&#10;rm $EXPORT_PATH/deb_root/Applications/DolphiniOS.app/embedded.mobileprovision&#10;&#10;# Create the deb file&#10;dpkg-deb -b $EXPORT_PATH/deb_root&#10;mv $EXPORT_PATH/deb_root.deb $EXPORT_PATH/DolphiniOS.deb&#10;&#10;open $EXPORT_PATH&#10;&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "B945A36F2362908400B21680"
+                     BuildableName = "DolphiniOS.app"
+                     BlueprintName = "DolphiniOS"
+                     ReferencedContainer = "container:DolphiniOS.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
    </ArchiveAction>
 </Scheme>
