@@ -27,6 +27,13 @@
 
 #include "VideoCommon/RenderBase.h"
 
+// The Core only supports using a single Host thread.
+// If multiple threads want to call host functions then they need to queue
+// sequentially for access.
+std::mutex s_host_identity_lock;
+Common::Event s_update_main_frame_event;
+bool s_have_wm_user_stop = false;
+
 void Host_NotifyMapLoaded()
 {
 }
@@ -41,6 +48,16 @@ bool Host_UIBlocksControllerState()
 
 void Host_Message(HostMessageID id)
 {
+  if (id == HostMessageID::WMUserJobDispatch)
+  {
+    s_update_main_frame_event.Set();
+  }
+  else if (id == HostMessageID::WMUserStop)
+  {
+    s_have_wm_user_stop = true;
+    if (Core::IsRunning())
+      Core::QueueHostJob(&Core::Stop);
+  }
 }
 
 void Host_UpdateTitle(const std::string& title)
@@ -247,21 +264,36 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   wsi.render_surface = (__bridge void*)view;
   wsi.render_surface_scale = [UIScreen mainScreen].scale;  
 
-  std::unique_ptr<BootParameters> boot;
-  boot = BootParameters::GenerateFromFile([file UTF8String]);
+  std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile([file UTF8String]);
+
+  std::unique_lock<std::mutex> guard(s_host_identity_lock);
 
   // No use running the loop when booting fails
-  BootManager::BootCore(std::move(boot), wsi);
+  s_have_wm_user_stop = false;
 
-  while (true)
+  if (BootManager::BootCore(std::move(boot), wsi))
   {
     ButtonManager::Init(SConfig::GetInstance().GetGameID());
-    Core::HostDispatchJobs();
-    usleep(useconds_t(100 * 1000));
+    static constexpr int TIMEOUT = 10000;
+    static constexpr int WAIT_STEP = 25;
+    int time_waited = 0;
+    // A Core::CORE_ERROR state would be helpful here.
+    while (!Core::IsRunning() && time_waited < TIMEOUT && !s_have_wm_user_stop)
+    {
+      [NSThread sleepForTimeInterval:WAIT_STEP];
+      time_waited += WAIT_STEP;
+    }
+    while (Core::IsRunning())
+    {
+      guard.unlock();
+      s_update_main_frame_event.Wait();
+      guard.lock();
+      Core::HostDispatchJobs();
+    }
   }
 
   Core::Shutdown();
-  UICommon::Shutdown();
+  ButtonManager::Shutdown();
 }
 
 + (void)windowResized
