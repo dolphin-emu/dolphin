@@ -60,13 +60,15 @@
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
 		B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09372382D89600DBBB01 /* TCJoystick.swift */; };
 		B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */; };
-		B95A09412384F32900DBBB01 /* DolphinImageTemplate.json.in in Resources */ = {isa = PBXBuildFile; fileRef = B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */; };
 		B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A0944238533DC00DBBB01 /* TCButtonType.swift */; };
 		B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09462385DE9500DBBB01 /* CoreAudio.framework */; };
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
-		B95A094F23875BC700DBBB01 /* Sys in Resources */ = {isa = PBXBuildFile; fileRef = B95A094E23875BC700DBBB01 /* Sys */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
+		B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A023A067560076C7D8 /* WiimoteNew.ini */; };
+		B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A123A067560076C7D8 /* GCPadNew.ini */; };
+		B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A223A067560076C7D8 /* WiimoteProfile.ini */; };
+		B99B05A723A067D10076C7D8 /* Sys in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A623A067D00076C7D8 /* Sys */; };
 		B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -153,8 +155,11 @@
 		B95A09472385DE9600DBBB01 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
-		B95A094E23875BC700DBBB01 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
+		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
+		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
+		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
+		B99B05A623A067D00076C7D8 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationVIewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -269,6 +274,7 @@
 		B945A3722362908500B21680 /* DolphiniOS */ = {
 			isa = PBXGroup;
 			children = (
+				B99B059F23A067090076C7D8 /* Bundle Resources */,
 				B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */,
 				B91BF364236B3DFF00199BA7 /* UI */,
 				B945A3732362908500B21680 /* AppDelegate.h */,
@@ -282,7 +288,6 @@
 				B945A3842362909500B21680 /* Info.plist */,
 				B945A3852362909500B21680 /* main.m */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
-				B95A094E23875BC700DBBB01 /* Sys */,
 			);
 			path = DolphiniOS;
 			sourceTree = "<group>";
@@ -350,6 +355,17 @@
 			path = TouchController;
 			sourceTree = "<group>";
 		};
+		B99B059F23A067090076C7D8 /* Bundle Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B99B05A623A067D00076C7D8 /* Sys */,
+				B99B05A123A067560076C7D8 /* GCPadNew.ini */,
+				B99B05A023A067560076C7D8 /* WiimoteNew.ini */,
+				B99B05A223A067560076C7D8 /* WiimoteProfile.ini */,
+			);
+			name = "Bundle Resources";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -412,13 +428,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
+				B99B05A723A067D10076C7D8 /* Sys in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
-				B95A094F23875BC700DBBB01 /* Sys in Resources */,
+				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
+				B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */,
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
-				B95A09412384F32900DBBB01 /* DolphinImageTemplate.json.in in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
