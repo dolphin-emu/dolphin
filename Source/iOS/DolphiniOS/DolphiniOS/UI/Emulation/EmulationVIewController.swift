@@ -81,10 +81,14 @@ class EmulationViewController: UIViewController
   @IBAction func tapInController(_ sender: UITapGestureRecognizer)
   {
     // Ignore double taps on things that can be tapped
-    let hit_view = sender.view?.window?.hitTest(sender.location(in: nil), with: nil)
-    if (hit_view is TCButton || hit_view is TCJoystick || hit_view is TCDirectionalPad)
+    if (sender.view != nil)
     {
-      return
+      let view = (sender.view as! TCView).real_view
+      let hit_view = view?.hitTest(sender.location(in: view), with: nil)
+      if (hit_view != view)
+      {
+        return
+      }
     }
     
     let is_hidden = self.navigationController!.isNavigationBarHidden
