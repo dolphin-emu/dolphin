@@ -22,9 +22,4 @@ class TCView: UIView
     real_view = view;
   }
   
-  @objc override func addGestureRecognizer(_ gestureRecognizer: UIGestureRecognizer)
-  {
-    real_view!.addGestureRecognizer(gestureRecognizer);
-  }
-  
 }
