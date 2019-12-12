@@ -9,6 +9,7 @@ import UIKit
 class EmulationViewController: UIViewController
 {
   @objc public var softwareFile: String = ""
+  @objc public var softwareName: String = ""
   @objc public var isWii: Bool = false
   
   @IBOutlet weak var m_metal_view: MTKView!
@@ -22,6 +23,8 @@ class EmulationViewController: UIViewController
   
   override func viewDidLoad()
   {
+    self.navigationItem.title = self.softwareName;
+    
     let has_seen_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_alert")
     if (!has_seen_alert)
     {
