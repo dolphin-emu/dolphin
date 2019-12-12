@@ -16,10 +16,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <mtkView contentMode="scaleToFill" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="ODM-xp-bCF" userLabel="MTKView">
-                                <rect key="frame" x="0.0" y="0.0" width="414" height="862"/>
+                            <mtkView hidden="YES" contentMode="scaleToFill" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="ODM-xp-bCF" userLabel="MTKView">
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </mtkView>
+                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="daX-vt-kk3" userLabel="EAGLView" customClass="EAGLView">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="862"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                            </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-TK-7Br" userLabel="GameCubePad" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
@@ -38,17 +42,21 @@
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="R1C-TK-7Br" firstAttribute="trailing" secondItem="Dzs-Je-a4O" secondAttribute="trailing" id="0xC-pF-goy"/>
+                            <constraint firstItem="daX-vt-kk3" firstAttribute="trailing" secondItem="Dzs-Je-a4O" secondAttribute="trailing" id="2ZY-HW-vdV"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="trailing" secondItem="Dzs-Je-a4O" secondAttribute="trailing" id="4ow-IC-1bZ"/>
                             <constraint firstItem="R1C-TK-7Br" firstAttribute="top" secondItem="Dzs-Je-a4O" secondAttribute="top" id="8jS-O6-mkP"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="kFP-2O-2AC" secondAttribute="bottom" id="IWm-2c-gKB"/>
+                            <constraint firstItem="daX-vt-kk3" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="bottom" id="L1v-Zt-8lf"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="top" secondItem="kFP-2O-2AC" secondAttribute="top" id="NYU-W4-kan"/>
-                            <constraint firstItem="ODM-xp-bCF" firstAttribute="top" secondItem="MkU-9V-PoJ" secondAttribute="top" id="V6f-dU-BSw"/>
+                            <constraint firstItem="ODM-xp-bCF" firstAttribute="top" secondItem="Dzs-Je-a4O" secondAttribute="top" id="V6f-dU-BSw"/>
+                            <constraint firstItem="daX-vt-kk3" firstAttribute="top" secondItem="MkU-9V-PoJ" secondAttribute="top" priority="1" id="Vmf-Bw-Og5"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="Vqn-LI-cDx"/>
                             <constraint firstItem="R1C-TK-7Br" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="b66-Y6-wOW"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="trailing" secondItem="kFP-2O-2AC" secondAttribute="trailing" id="cQa-Rc-8Wf"/>
                             <constraint firstItem="R1C-TK-7Br" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="bottom" id="ddA-4h-f70"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="leading" secondItem="kFP-2O-2AC" secondAttribute="leading" id="hyT-uu-y6h"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="bottom" id="l7v-5a-mFJ"/>
+                            <constraint firstItem="daX-vt-kk3" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="scI-dh-7aD"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Dzs-Je-a4O"/>
                     </view>
@@ -60,6 +68,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="m_eagl_view" destination="daX-vt-kk3" id="p1U-me-Qo3"/>
                         <outlet property="m_gc_pad_view" destination="R1C-TK-7Br" id="gxN-gM-bsy"/>
                         <outlet property="m_metal_view" destination="ODM-xp-bCF" id="4P9-iY-lDd"/>
                         <outlet property="m_wii_pad_view" destination="kFP-2O-2AC" id="LRl-eX-YHx"/>

@@ -13,6 +13,7 @@ class EmulationViewController: UIViewController
   @objc public var isWii: Bool = false
   
   @IBOutlet weak var m_metal_view: MTKView!
+  @IBOutlet weak var m_eagl_view: EAGLView!
   @IBOutlet weak var m_gc_pad_view: TCGameCubePad!
   @IBOutlet weak var m_wii_pad_view: TCWiiPad!
   
@@ -24,6 +25,29 @@ class EmulationViewController: UIViewController
   override func viewDidLoad()
   {
     self.navigationItem.title = self.softwareName;
+    
+    var renderer_view: UIView
+    if (MainiOS.getGfxBackend() == "Vulkan")
+    {
+      renderer_view = m_metal_view
+    }
+    else
+    {
+      renderer_view = m_eagl_view
+    }
+    
+    renderer_view.isHidden = false
+    
+    if (self.isWii)
+    {
+      m_wii_pad_view.isUserInteractionEnabled = true
+      m_wii_pad_view.isHidden = false
+    }
+    else
+    {
+      m_gc_pad_view.isUserInteractionEnabled = true
+      m_gc_pad_view.isHidden = false
+    }
     
     let has_seen_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_alert")
     if (!has_seen_alert)
@@ -42,19 +66,6 @@ class EmulationViewController: UIViewController
     {
       self.navigationController!.setNavigationBarHidden(true, animated: true)
     }
-    
-    if (self.isWii)
-    {
-      m_wii_pad_view.isUserInteractionEnabled = true
-      m_wii_pad_view.isHidden = false
-    }
-    else
-    {
-      m_gc_pad_view.isUserInteractionEnabled = true
-      m_gc_pad_view.isHidden = false
-    }
-    
-    // TODO: EAGL
     
     let queue = DispatchQueue(label: "org.dolphin-emu.ios.emulation-queue")
     queue.async
