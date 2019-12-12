@@ -337,6 +337,13 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   ButtonManager::Shutdown();
 }
 
++ (void)stopEmulation
+{
+  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  Core::Stop();
+  s_update_main_frame_event.Set();
+}
+
 + (void)windowResized
 {
   if (g_renderer)
