@@ -50,10 +50,21 @@
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <segue destination="DBS-kS-F5b" kind="presentation" identifier="toEmulation" id="qC1-Ia-2w8"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Cmy-9c-r1G" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1946" y="-218"/>
+            <point key="canvasLocation" x="1948" y="-218"/>
+        </scene>
+        <!--Root-->
+        <scene sceneID="yIj-hM-bTL">
+            <objects>
+                <viewControllerPlaceholder storyboardName="Emulation" referencedIdentifier="Root" id="DBS-kS-F5b" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="nl9-Tw-KZS" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2650" y="-218"/>
         </scene>
         <!--Games-->
         <scene sceneID="IZf-BQ-YuK">

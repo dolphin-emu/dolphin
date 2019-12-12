@@ -95,7 +95,7 @@
   }];
    
   [alert addAction:okayAction];
-  [self presentViewController:alert animated:YES completion:nil];
+  [self.navigationController presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -227,13 +227,12 @@
 {
   // Get the file path
   std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get(indexPath.item);
-  NSString* path = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
+  self.toLoadFile = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
   
   // Check if this could be a Wii file
-  bool is_wii = file->GetPlatform() != DiscIO::Platform::GameCubeDisc;
+  self.toLoadIsWii = file->GetPlatform() != DiscIO::Platform::GameCubeDisc;
   
-  EmulationViewController* viewController = [[EmulationViewController alloc] initWithFile:path wii:is_wii];
-  [self presentViewController:viewController animated:YES completion:nil];
+  [self performSegueWithIdentifier:@"toEmulation" sender:nil];
 }
 
 #pragma mark - Document picker delegate methods
@@ -245,6 +244,21 @@
   
   [self rescanGameFilesWithRefreshing:false];
 }
+
+#pragma mark - Segues
+
+- (void)prepareForSegue:(UIStoryboardSegue*)segue sender:(id)sender
+{
+  if ([segue.identifier isEqualToString:@"toEmulation"])
+  {
+    UINavigationController* navigationController = (UINavigationController*)segue.destinationViewController;
+    EmulationViewController* viewController = (EmulationViewController*)([navigationController.viewControllers firstObject]);
+    viewController.softwareFile = self.toLoadFile;
+    viewController.isWii = self.toLoadIsWii;
+  }
+}
+
+- (IBAction)unwindToSoftwareTable:(UIStoryboardSegue*)segue {}
 
 /*
 // Override to support conditional editing of the table view.
