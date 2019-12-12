@@ -255,7 +255,7 @@
     // Get the GameFile and set values
     std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get([self.tableView indexPathForSelectedRow].item);
     viewController.softwareFile = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
-    viewController.softwareName = [NSString stringWithUTF8String:file->GetShortName().c_str()];
+    viewController.softwareName = [NSString stringWithUTF8String:file->GetLongName().c_str()];
     viewController.isWii = DiscIO::IsWii(file->GetPlatform());
   }
 }
