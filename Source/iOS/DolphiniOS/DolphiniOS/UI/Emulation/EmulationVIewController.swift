@@ -87,7 +87,19 @@ class EmulationViewController: UIViewController
       return
     }
     
-    self.navigationController!.setNavigationBarHidden(!self.navigationController!.isNavigationBarHidden, animated: true)
+    let is_hidden = self.navigationController!.isNavigationBarHidden
+    if (!is_hidden)
+    {
+      self.additionalSafeAreaInsets.top = 0
+    }
+    else
+    {
+      // This inset undoes any changes the navigation bar made to the safe area
+      self.additionalSafeAreaInsets.top = -(self.navigationController!.navigationBar.bounds.height)
+    }
+    
+    self.navigationController!.setNavigationBarHidden(!is_hidden, animated: true)
+    
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
