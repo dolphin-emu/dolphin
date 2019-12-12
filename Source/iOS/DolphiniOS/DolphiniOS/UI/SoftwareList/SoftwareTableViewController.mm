@@ -140,14 +140,19 @@
       UIAlertAction* no_thanks_action = [UIAlertAction actionWithTitle:@"Not Now" style:UIAlertActionStyleDefault
          handler:nil];
       
-      UIAlertAction* do_not_show_action = [UIAlertAction actionWithTitle:@"Don't Show Again" style:UIAlertActionStyleDefault
-         handler:^(UIAlertAction * action) {
-        [user_defaults setBool:true forKey:@"suppress_donation_message"];
-      }];
-       
       [alert addAction:donate_action];
       [alert addAction:no_thanks_action];
-      [alert addAction:do_not_show_action];
+      
+      if (launch_times != 10)
+      {
+        UIAlertAction* do_not_show_action = [UIAlertAction actionWithTitle:@"Don't Show Again" style:UIAlertActionStyleDefault
+           handler:^(UIAlertAction * action) {
+          [user_defaults setBool:true forKey:@"suppress_donation_message"];
+        }];
+        
+        [alert addAction:do_not_show_action];
+      }
+      
       [self presentViewController:alert animated:YES completion:nil];
     }
   }
