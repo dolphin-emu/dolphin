@@ -5,6 +5,6 @@
 import Foundation
 import UIKit
 
-class TCGameCubePad: TCView
+class TCWiiPad: TCView
 {
 }
