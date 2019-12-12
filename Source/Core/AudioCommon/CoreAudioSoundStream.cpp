@@ -79,18 +79,27 @@ bool CoreAudioSound::Init()
     return false;
   }
 
-  err = AudioOutputUnitStart(audio_unit);
-  if (err != noErr)
-  {
-    ERROR_LOG(AUDIO, "error starting audiounit");
-    return false;
-  }
-
   return true;
 }
 
 bool CoreAudioSound::SetRunning(bool running)
 {
+  OSStatus err;
+  if (running)
+  {
+    err = AudioOutputUnitStart(audio_unit);
+    if (err != noErr)
+    {
+      ERROR_LOG(AUDIO, "error starting audiounit");
+      return false;
+    }
+  }
+  else
+  {
+    err = AudioOutputUnitStop(audio_unit);
+    if (err != noErr)
+      ERROR_LOG(AUDIO, "error stopping audiounit");
+  }
   return true;
 }
 
