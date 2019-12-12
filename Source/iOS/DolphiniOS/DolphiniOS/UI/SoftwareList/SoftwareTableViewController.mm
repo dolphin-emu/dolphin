@@ -225,13 +225,6 @@
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  // Get the file path
-  std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get(indexPath.item);
-  self.toLoadFile = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
-  
-  // Check if this could be a Wii file
-  self.toLoadIsWii = file->GetPlatform() != DiscIO::Platform::GameCubeDisc;
-  
   [self performSegueWithIdentifier:@"toEmulation" sender:nil];
 }
 
@@ -253,8 +246,12 @@
   {
     UINavigationController* navigationController = (UINavigationController*)segue.destinationViewController;
     EmulationViewController* viewController = (EmulationViewController*)([navigationController.viewControllers firstObject]);
-    viewController.softwareFile = self.toLoadFile;
-    viewController.isWii = self.toLoadIsWii;
+    
+    // Get the GameFile and set values
+    std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get([self.tableView indexPathForSelectedRow].item);
+    viewController.softwareFile = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
+    viewController.softwareName = [NSString stringWithUTF8String:file->GetShortName().c_str()];
+    viewController.isWii = DiscIO::IsWii(file->GetPlatform());
   }
 }
 
