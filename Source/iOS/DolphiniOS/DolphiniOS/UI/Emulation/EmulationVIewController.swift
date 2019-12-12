@@ -104,7 +104,13 @@ class EmulationViewController: UIViewController
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
   {
-    MainiOS.windowResized()
+    super.viewWillTransition(to: size, with: coordinator)
+    
+    // Perform an "animation" alongside the transition and tell Dolphin that
+    // the window has resized after it is finished
+    coordinator.animate(alongsideTransition: nil, completion: { _ in
+      MainiOS.windowResized()
+    })
   }
   
   @IBAction func exitButtonPressed(_ sender: Any)
