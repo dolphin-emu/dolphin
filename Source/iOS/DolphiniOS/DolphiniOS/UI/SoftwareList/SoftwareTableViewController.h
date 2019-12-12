@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic) UICommon::GameFileCache* m_cache;
 @property(nonatomic) bool m_cache_loaded;
+@property(nonatomic) NSString* toLoadFile;
+@property(nonatomic) bool toLoadIsWii;
 
 @end
 

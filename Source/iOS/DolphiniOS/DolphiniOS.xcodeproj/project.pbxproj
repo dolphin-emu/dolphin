@@ -69,6 +69,9 @@
 		B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A123A067560076C7D8 /* GCPadNew.ini */; };
 		B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A223A067560076C7D8 /* WiimoteProfile.ini */; };
 		B99B05A723A067D10076C7D8 /* Sys in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A623A067D00076C7D8 /* Sys */; };
+		B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B99B05B423A182B20076C7D8 /* Emulation.storyboard */; };
+		B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05B823A20F3D0076C7D8 /* TCView.swift */; };
+		B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */; };
 		B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -162,6 +165,9 @@
 		B99B05A623A067D00076C7D8 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
 		B99B05AA23A09DDF0076C7D8 /* control.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = control.in; sourceTree = "<group>"; };
 		B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements_JB.plist; sourceTree = "<group>"; };
+		B99B05B423A182B20076C7D8 /* Emulation.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Emulation.storyboard; sourceTree = "<group>"; };
+		B99B05B823A20F3D0076C7D8 /* TCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCView.swift; sourceTree = "<group>"; };
+		B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCWiiPad.swift; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationVIewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -252,6 +258,7 @@
 				B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */,
 				B945A3902362D90200B21680 /* EAGLView.h */,
 				B945A3912362D90200B21680 /* EAGLView.m */,
+				B99B05B423A182B20076C7D8 /* Emulation.storyboard */,
 			);
 			path = Emulation;
 			sourceTree = "<group>";
@@ -352,7 +359,9 @@
 				B95A09372382D89600DBBB01 /* TCJoystick.swift */,
 				B95A0944238533DC00DBBB01 /* TCButtonType.swift */,
 				B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */,
+				B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */,
 				B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */,
+				B99B05B823A20F3D0076C7D8 /* TCView.swift */,
 			);
 			path = TouchController;
 			sourceTree = "<group>";
@@ -440,6 +449,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
@@ -520,6 +530,7 @@
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
+				B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */,
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */,
@@ -529,6 +540,7 @@
 				B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
+				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
