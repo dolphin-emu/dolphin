@@ -73,7 +73,8 @@
 		B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05B823A20F3D0076C7D8 /* TCView.swift */; };
 		B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */; };
 		B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */; };
-		B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */; };
+		B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99B05BE23A323600076C7D8 /* MetalKit.framework */; };
+		B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -170,7 +171,8 @@
 		B99B05B823A20F3D0076C7D8 /* TCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCView.swift; sourceTree = "<group>"; };
 		B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCWiiPad.swift; sourceTree = "<group>"; };
 		B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = SpecialThanks.txt; sourceTree = "<group>"; };
-		B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationVIewController.swift; sourceTree = "<group>"; };
+		B99B05BE23A323600076C7D8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,6 +184,7 @@
 				B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */,
 				B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */,
 				B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */,
+				B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */,
 				B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */,
 				B945A3972362D99000B21680 /* libz.tbd in Frameworks */,
 				B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */,
@@ -257,7 +260,7 @@
 			isa = PBXGroup;
 			children = (
 				B95A09252382667000DBBB01 /* TouchController */,
-				B9EB847D2389C1A7006256C0 /* EmulationVIewController.swift */,
+				B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */,
 				B945A3902362D90200B21680 /* EAGLView.h */,
 				B945A3912362D90200B21680 /* EAGLView.m */,
 				B99B05B423A182B20076C7D8 /* Emulation.storyboard */,
@@ -306,6 +309,7 @@
 		B945A3932362D98300B21680 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B99B05BE23A323600076C7D8 /* MetalKit.framework */,
 				B95A09472385DE9600DBBB01 /* AudioToolbox.framework */,
 				B95A09482385DE9600DBBB01 /* AudioUnit.framework */,
 				B95A09462385DE9500DBBB01 /* CoreAudio.framework */,
@@ -541,7 +545,7 @@
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
-				B9EB847E2389C1A8006256C0 /* EmulationVIewController.swift in Sources */,
+				B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
