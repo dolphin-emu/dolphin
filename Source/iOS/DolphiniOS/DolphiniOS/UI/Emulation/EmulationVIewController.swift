@@ -70,7 +70,7 @@ class EmulationViewController: UIViewController
     let queue = DispatchQueue(label: "org.dolphin-emu.ios.emulation-queue")
     queue.async
     {
-      MainiOS.startEmulation(withFile: self.softwareFile, view: self.m_metal_view)
+      MainiOS.startEmulation(withFile: self.softwareFile, view: renderer_view)
       
       DispatchQueue.main.async {
         self.performSegue(withIdentifier: "toSoftwareTable", sender: nil)
