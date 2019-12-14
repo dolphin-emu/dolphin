@@ -4,33 +4,32 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
 
 namespace PowerPC
 {
-const u32 ICACHE_SETS = 128;
-const u32 ICACHE_WAYS = 8;
+constexpr u32 ICACHE_SETS = 128;
+constexpr u32 ICACHE_WAYS = 8;
 // size of an instruction cache block in words
-const u32 ICACHE_BLOCK_SIZE = 8;
+constexpr u32 ICACHE_BLOCK_SIZE = 8;
 
-const u32 ICACHE_EXRAM_BIT = 0x10000000;
-const u32 ICACHE_VMEM_BIT = 0x20000000;
+constexpr u32 ICACHE_EXRAM_BIT = 0x10000000;
+constexpr u32 ICACHE_VMEM_BIT = 0x20000000;
 
 struct InstructionCache
 {
-  u32 data[ICACHE_SETS][ICACHE_WAYS][ICACHE_BLOCK_SIZE];
-  u32 tags[ICACHE_SETS][ICACHE_WAYS];
-  u32 plru[ICACHE_SETS];
-  u32 valid[ICACHE_SETS];
+  std::array<std::array<std::array<u32, ICACHE_BLOCK_SIZE>, ICACHE_WAYS>, ICACHE_SETS> data;
+  std::array<std::array<u32, ICACHE_WAYS>, ICACHE_SETS> tags;
+  std::array<u32, ICACHE_SETS> plru;
+  std::array<u32, ICACHE_SETS> valid;
 
-  u32 way_from_valid[255];
-  u32 way_from_plru[128];
-
-  u8 lookup_table[1 << 20];
-  u8 lookup_table_ex[1 << 21];
-  u8 lookup_table_vmem[1 << 20];
+  std::array<u8, 1 << 20> lookup_table;
+  std::array<u8, 1 << 21> lookup_table_ex;
+  std::array<u8, 1 << 20> lookup_table_vmem;
 
   InstructionCache();
   u32 ReadInstruction(u32 addr);
