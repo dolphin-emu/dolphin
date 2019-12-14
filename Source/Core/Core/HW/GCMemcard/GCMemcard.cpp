@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 #include "Common/BitUtils.h"
@@ -19,13 +20,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-
-static void ByteSwap(u8* valueA, u8* valueB)
-{
-  u8 tmp = *valueA;
-  *valueA = *valueB;
-  *valueB = tmp;
-}
 
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
@@ -821,9 +815,8 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   if (!m_valid)
     return GCMemcardGetSaveDataRetVal::NOMEMCARD;
 
-  u16 block = DEntry_FirstBlock(index);
-  u16 BlockCount = DEntry_BlockCount(index);
-  // u16 memcardSize = BE16(hdr.m_size_mb) * MBIT_TO_BLOCKS;
+  const u16 block = DEntry_FirstBlock(index);
+  const u16 BlockCount = DEntry_BlockCount(index);
 
   if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
   {
@@ -1148,38 +1141,38 @@ void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length)
     // 0x34 and 0x35, 0x36 and 0x37, 0x38 and 0x39, 0x3A and 0x3B,
     // 0x3C and 0x3D,0x3E and 0x3F.
     // It seems that sav files also swap the banner/icon flags...
-    ByteSwap(&tempDEntry.m_unused_1, &tempDEntry.m_banner_and_icon_flags);
+    std::swap(tempDEntry.m_unused_1, tempDEntry.m_banner_and_icon_flags);
 
     std::array<u8, 4> tmp;
-    memcpy(tmp.data(), &tempDEntry.m_image_offset, 4);
-    ByteSwap(&tmp[0], &tmp[1]);
-    ByteSwap(&tmp[2], &tmp[3]);
-    memcpy(&tempDEntry.m_image_offset, tmp.data(), 4);
+    std::memcpy(tmp.data(), &tempDEntry.m_image_offset, 4);
+    std::swap(tmp[0], tmp[1]);
+    std::swap(tmp[2], tmp[3]);
+    std::memcpy(&tempDEntry.m_image_offset, tmp.data(), 4);
 
-    memcpy(tmp.data(), &tempDEntry.m_icon_format, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_icon_format, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_icon_format, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_icon_format, tmp.data(), 2);
 
-    memcpy(tmp.data(), &tempDEntry.m_animation_speed, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_animation_speed, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_animation_speed, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_animation_speed, tmp.data(), 2);
 
-    ByteSwap(&tempDEntry.m_file_permissions, &tempDEntry.m_copy_counter);
+    std::swap(tempDEntry.m_file_permissions, tempDEntry.m_copy_counter);
 
-    memcpy(tmp.data(), &tempDEntry.m_first_block, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_first_block, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_first_block, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_first_block, tmp.data(), 2);
 
-    memcpy(tmp.data(), &tempDEntry.m_block_count, 2);
-    ByteSwap(&tmp[0], &tmp[1]);
-    memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
+    std::memcpy(tmp.data(), &tempDEntry.m_block_count, 2);
+    std::swap(tmp[0], tmp[1]);
+    std::memcpy(&tempDEntry.m_block_count, tmp.data(), 2);
 
-    ByteSwap(&tempDEntry.m_unused_2[0], &tempDEntry.m_unused_2[1]);
+    std::swap(tempDEntry.m_unused_2[0], tempDEntry.m_unused_2[1]);
 
-    memcpy(tmp.data(), &tempDEntry.m_comments_address, 4);
-    ByteSwap(&tmp[0], &tmp[1]);
-    ByteSwap(&tmp[2], &tmp[3]);
-    memcpy(&tempDEntry.m_comments_address, tmp.data(), 4);
+    std::memcpy(tmp.data(), &tempDEntry.m_comments_address, 4);
+    std::swap(tmp[0], tmp[1]);
+    std::swap(tmp[2], tmp[3]);
+    std::memcpy(&tempDEntry.m_comments_address, tmp.data(), 4);
     break;
   default:
     break;
@@ -1433,10 +1426,10 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   const auto [serial1, serial2] = cardheader.CalculateSerial();
 
   // set new serial numbers
-  *(u16*)&FileBuffer[1].m_block[0x0066] = BE16(BE32(serial1) >> 16);
-  *(u16*)&FileBuffer[3].m_block[0x1580] = BE16(BE32(serial2) >> 16);
-  *(u16*)&FileBuffer[1].m_block[0x0060] = BE16(BE32(serial1) & 0xFFFF);
-  *(u16*)&FileBuffer[1].m_block[0x0200] = BE16(BE32(serial2) & 0xFFFF);
+  *(u16*)&FileBuffer[1].m_block[0x0066] = Common::swap16(u16(Common::swap32(serial1) >> 16));
+  *(u16*)&FileBuffer[3].m_block[0x1580] = Common::swap16(u16(Common::swap32(serial2) >> 16));
+  *(u16*)&FileBuffer[1].m_block[0x0060] = Common::swap16(u16(Common::swap32(serial1) & 0xFFFF));
+  *(u16*)&FileBuffer[1].m_block[0x0200] = Common::swap16(u16(Common::swap32(serial2) & 0xFFFF));
 
   // calc 16-bit checksum
   for (i = 0x02; i < 0x8000; i++)
@@ -1454,7 +1447,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   }
 
   // set new checksum
-  *(u16*)&FileBuffer[0].m_block[0x00] = BE16(~chksum);
+  *(u16*)&FileBuffer[0].m_block[0x00] = Common::swap16(u16(~chksum));
 
   return 1;
 }
@@ -1526,7 +1519,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   }
 
   // set new checksum
-  *(u32*)&FileBuffer[1].m_block[0x0048] = BE32(chksum ^ 0xFFFFFFFF);
+  *(u32*)&FileBuffer[1].m_block[0x0048] = Common::swap32(chksum ^ 0xFFFFFFFF);
 
   return 1;
 }
@@ -1645,7 +1638,7 @@ Directory::Directory()
 {
   memset(this, 0xFF, BLOCK_SIZE);
   m_update_counter = 0;
-  m_checksum = BE16(0xF003);
+  m_checksum = Common::swap16(0xF003);
   m_checksum_inv = 0;
 }
 
