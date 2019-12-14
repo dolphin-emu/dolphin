@@ -8,6 +8,10 @@
 	</array>
 	<key>com.apple.private.security.system-application</key>
 	<true/>
+	<key>com.apple.security.exception.files.absolute-path.read-write</key>
+	<array>
+		<string>/private/var/mobile/Documents/DolphiniOS/</string>
+	</array>
 	<key>get-task-allow</key>
 	<true/>
 	<key>dynamic-codesigning</key>
