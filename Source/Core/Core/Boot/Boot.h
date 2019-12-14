@@ -26,10 +26,10 @@ class IOFile;
 
 struct RegionSetting
 {
-  const std::string area;
-  const std::string video;
-  const std::string game;
-  const std::string code;
+  std::string area;
+  std::string video;
+  std::string game;
+  std::string code;
 };
 
 class BootExecutableReader;
