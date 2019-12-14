@@ -247,9 +247,10 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 
 + (NSString*)getUserFolder
 {
+#ifndef IPHONEOS_JAILBROKEN
   NSString* user_directory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-#ifdef IPHONEOS_JAILBROKEN
-  user_directory = [user_directory stringByAppendingPathComponent:@"DolphiniOS"];
+#else
+  NSString* user_directory = @"/private/var/mobile/Documents/DolphiniOS";
 #endif
 
   return user_directory;
