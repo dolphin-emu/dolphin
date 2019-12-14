@@ -1,4 +1,4 @@
-Package: me.oatmealdome.DolphiniOS
+Package: me.oatmealdome.dolphinios
 Name: DolphiniOS
 Version: VERSION_NUMBER
 Architecture: iphoneos-arm
