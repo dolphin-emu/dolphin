@@ -49,3 +49,4 @@ CMakeLists.txt.user
 /.vscode/
 /x64
 /Binary/x64/Updater.exe
+/Build
