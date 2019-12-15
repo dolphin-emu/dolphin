@@ -26,7 +26,7 @@
     NSString* url;
     if (indexPath.row == 0)
     {
-      url = @"https://oatmealdome.me";
+      url = @"https://oatmealdome.me/dolphinios/";
     }
     else if (indexPath.row == 1)
     {
