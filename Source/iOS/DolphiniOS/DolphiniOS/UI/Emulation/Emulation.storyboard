@@ -27,16 +27,10 @@
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-TK-7Br" userLabel="GameCubePad" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="XFB-hf-rlD" appends="YES" id="XGB-me-T43"/>
-                                </connections>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kFP-2O-2AC" userLabel="WiiPad" customClass="TCWiiPad" customModule="DolphiniOS" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="gFS-cj-xQ6" appends="YES" id="R6s-SF-qQ2"/>
-                                </connections>
                             </view>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -77,16 +71,6 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="F1Y-yU-GqA" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <exit id="BG8-Lj-EOf" userLabel="Exit" sceneMemberID="exit"/>
-                <tapGestureRecognizer numberOfTapsRequired="2" id="XFB-hf-rlD" userLabel="GC Tap Recognizer">
-                    <connections>
-                        <action selector="tapInController:" destination="72Z-je-Eys" id="Tsx-TS-Gq9"/>
-                    </connections>
-                </tapGestureRecognizer>
-                <tapGestureRecognizer numberOfTapsRequired="2" id="gFS-cj-xQ6" userLabel="Wii Tap Recognizer">
-                    <connections>
-                        <action selector="tapInController:" destination="72Z-je-Eys" id="NCN-Gx-OIv"/>
-                    </connections>
-                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1039.1304347826087" y="56.919642857142854"/>
         </scene>

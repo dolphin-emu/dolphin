@@ -6,7 +6,7 @@ import Foundation
 import MetalKit
 import UIKit
 
-class EmulationViewController: UIViewController
+class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
 {
   @objc public var softwareFile: String = ""
   @objc public var softwareName: String = ""
@@ -49,15 +49,18 @@ class EmulationViewController: UIViewController
       m_gc_pad_view.isHidden = false
     }
     
-    let has_seen_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_alert")
+    setupTapGestureRecognizer(m_wii_pad_view)
+    setupTapGestureRecognizer(m_gc_pad_view)
+    
+    let has_seen_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_two_fingers_alert")
     if (!has_seen_alert)
     {
-      let alert = UIAlertController(title: "Note", message: "Double tap the screen to reveal the top bar.", preferredStyle: .alert)
+      let alert = UIAlertController(title: "Note", message: "Double tap the screen with two fingers fast to reveal the top bar.", preferredStyle: .alert)
       
       alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
         self.navigationController!.setNavigationBarHidden(true, animated: true)
         
-        UserDefaults.standard.set(true, forKey: "seen_double_tap_alert")
+        UserDefaults.standard.set(true, forKey: "seen_double_tap_two_fingers_alert")
       }))
       
       self.present(alert, animated: true, completion: nil)
@@ -93,14 +96,36 @@ class EmulationViewController: UIViewController
     }
   }
   
-  @IBAction func tapInController(_ sender: UITapGestureRecognizer)
+  override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+  {
+    super.viewWillTransition(to: size, with: coordinator)
+    
+    // Perform an "animation" alongside the transition and tell Dolphin that
+    // the window has resized after it is finished
+    coordinator.animate(alongsideTransition: nil, completion: { _ in
+      MainiOS.windowResized()
+      self.m_wii_pad_view.recalculatePointerValues()
+    })
+  }
+  
+  func setupTapGestureRecognizer(_ view: TCView)
+  {
+    // Add a gesture recognizer for two finger double tapping
+    let tap_recognizer = UITapGestureRecognizer(target: self, action: #selector(doubleTapped))
+    tap_recognizer.numberOfTapsRequired = 2
+    tap_recognizer.numberOfTouchesRequired = 2
+    tap_recognizer.delegate = self
+    
+    view.real_view!.addGestureRecognizer(tap_recognizer)
+  }
+  
+  @IBAction func doubleTapped(_ sender: UITapGestureRecognizer)
   {
     // Ignore double taps on things that can be tapped
     if (sender.view != nil)
     {
-      let view = (sender.view as! TCView).real_view
-      let hit_view = view?.hitTest(sender.location(in: view), with: nil)
-      if (hit_view != view)
+      let hit_view = sender.view!.hitTest(sender.location(in: sender.view), with: nil)
+      if (hit_view != sender.view)
       {
         return
       }
@@ -121,16 +146,13 @@ class EmulationViewController: UIViewController
     
   }
   
-  override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
-  {
-    super.viewWillTransition(to: size, with: coordinator)
+  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    if (gestureRecognizer is UITapGestureRecognizer && otherGestureRecognizer is UILongPressGestureRecognizer)
+    {
+      return true
+    }
     
-    // Perform an "animation" alongside the transition and tell Dolphin that
-    // the window has resized after it is finished
-    coordinator.animate(alongsideTransition: nil, completion: { _ in
-      MainiOS.windowResized()
-      self.m_wii_pad_view.recalculatePointerValues()
-    })
+    return false
   }
   
   @IBAction func exitButtonPressed(_ sender: Any)
