@@ -222,7 +222,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   {
     // Create a new Dolphin.ini
     IniFile dolphin_config;
-    dolphin_config.Load(dolphin_config_path);
 
     std::string gfx_backend;
 
