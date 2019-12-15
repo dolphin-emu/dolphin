@@ -65,6 +65,7 @@
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
+		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A023A067560076C7D8 /* WiimoteNew.ini */; };
 		B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A123A067560076C7D8 /* GCPadNew.ini */; };
 		B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A223A067560076C7D8 /* WiimoteProfile.ini */; };
@@ -164,6 +165,7 @@
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = prerm.sh; sourceTree = "<group>"; };
+		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
@@ -382,6 +384,7 @@
 				B99B05A123A067560076C7D8 /* GCPadNew.ini */,
 				B99B05A023A067560076C7D8 /* WiimoteNew.ini */,
 				B99B05A223A067560076C7D8 /* WiimoteProfile.ini */,
+				B9766AF423A5EACD00FF7F17 /* license.txt */,
 				B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */,
 			);
 			name = "Bundle Resources";
@@ -463,6 +466,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9766AF523A5EACD00FF7F17 /* license.txt in Resources */,
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
 				B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */,
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
