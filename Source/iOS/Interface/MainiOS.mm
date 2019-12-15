@@ -344,6 +344,20 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   s_update_main_frame_event.Set();
 }
 
++ (CGFloat)getGameAspectRatio
+{
+  if (!g_renderer)
+    return 0;
+  
+  return g_renderer->CalculateDrawAspectRatio();
+}
+
++ (CGRect)getRenderTargetRectangle
+{
+  const MathUtil::Rectangle<int>& rect = g_renderer->GetTargetRectangle();
+  return CGRectMake(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
+}
+
 + (void)windowResized
 {
   if (g_renderer)

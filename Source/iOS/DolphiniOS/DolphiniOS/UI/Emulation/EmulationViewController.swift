@@ -67,6 +67,21 @@ class EmulationViewController: UIViewController
       self.navigationController!.setNavigationBarHidden(true, animated: true)
     }
     
+    let wiimote_queue = DispatchQueue(label: "org.dolphin-emu.ios.wiimote-initial-queue")
+    wiimote_queue.async
+    {
+      // Wait for aspect ratio to be set
+      while (MainiOS.getGameAspectRatio() == 0)
+      {
+      }
+      
+      // Create the Wiimote pointer values
+      DispatchQueue.main.sync
+      {
+        self.m_wii_pad_view.recalculatePointerValues()
+      }
+    }
+    
     let queue = DispatchQueue(label: "org.dolphin-emu.ios.emulation-queue")
     queue.async
     {
@@ -114,6 +129,7 @@ class EmulationViewController: UIViewController
     // the window has resized after it is finished
     coordinator.animate(alongsideTransition: nil, completion: { _ in
       MainiOS.windowResized()
+      self.m_wii_pad_view.recalculatePointerValues()
     })
   }
   

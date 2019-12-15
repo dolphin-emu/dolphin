@@ -15,6 +15,8 @@
 + (void)importFiles:(NSSet<NSURL*>*)files;
 + (void)startEmulationWithFile:(NSString*)file view:(UIView*)view;
 + (void)stopEmulation;
++ (CGFloat)getGameAspectRatio;
++ (CGRect)getRenderTargetRectangle;
 + (void)windowResized;
 + (void)gamepadEventForButton:(int)button action:(int)action;
 + (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value;
