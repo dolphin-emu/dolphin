@@ -117,10 +117,24 @@
   }
 #endif
   
-  // Get the number of launches
   NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
-  NSInteger launch_times = [user_defaults integerForKey:@"launch_times"];
   
+  // Check for jailbreakd (Chimera)
+  if (![user_defaults boolForKey:@"seen_chimera_notice"])
+  {
+    NSFileManager* file_manager = [NSFileManager defaultManager];
+    if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
+    {
+      [self showAlertWithTitle:@"Unsupported Jailbreak"
+            text:@"DolphiniOS is using an unstable method to enable the JIT recompiler because the stable method is not supported by the Chimera jailbreak.\n\nIf you quit DolphiniOS or if iOS quits DolphiniOS (for example, to free up RAM), you will need to reboot your device before starting DolphiniOS again.\n\nFor the best experience, switch to checkra1n (A9 to A11 processors only) or unc0ver."
+            isFatal:false];
+    }
+    
+    [user_defaults setBool:true forKey:@"seen_chimera_notice"];
+  }
+  
+  // Get the number of launches
+  NSInteger launch_times = [user_defaults integerForKey:@"launch_times"];
   if (launch_times == 0)
   {
     // Show the maintainer alert on first launch
@@ -149,7 +163,7 @@
       [alert addAction:donate_action];
       [alert addAction:no_thanks_action];
       
-      if (launch_times != 10)
+      if (launch_times > 10)
       {
         UIAlertAction* do_not_show_action = [UIAlertAction actionWithTitle:@"Don't Show Again" style:UIAlertActionStyleDefault
            handler:^(UIAlertAction * action) {

@@ -11,6 +11,7 @@
 	<key>com.apple.security.exception.files.absolute-path.read-write</key>
 	<array>
 		<string>/private/var/mobile/Documents/DolphiniOS/</string>
+		<string>/Library/LaunchDaemons/</string>
 	</array>
 	<key>get-task-allow</key>
 	<true/>
