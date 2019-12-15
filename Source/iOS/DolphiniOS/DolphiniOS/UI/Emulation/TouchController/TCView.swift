@@ -21,5 +21,4 @@ class TCView: UIView
     
     real_view = view;
   }
-  
 }

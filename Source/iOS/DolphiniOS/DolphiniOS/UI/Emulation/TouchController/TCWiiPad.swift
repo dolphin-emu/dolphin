@@ -15,17 +15,12 @@ class TCWiiPad: TCView
   {
     super.init(coder: coder)
     
-    // Add a subview to catch Wiimote IR touches
-    let ir_view = UIView()
-    ir_view.frame = self.bounds
-    self.real_view!.addSubview(ir_view)
-    self.real_view!.sendSubviewToBack(ir_view)
-    
     // Register our "long press" gesture recognizer
     let pressHandler = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
     pressHandler.minimumPressDuration = 0
-    pressHandler.cancelsTouchesInView = true
-    ir_view.addGestureRecognizer(pressHandler)
+    pressHandler.numberOfTouchesRequired = 1
+    pressHandler.cancelsTouchesInView = false
+    self.real_view!.addGestureRecognizer(pressHandler)
   }
   
   // Based on InputOverlayPointer.java
