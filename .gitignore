@@ -48,3 +48,4 @@ CMakeLists.txt.user
 # Ignore Visual Studio Code's working dir
 /.vscode/
 /x64
+/Binary/x64/Updater.exe
