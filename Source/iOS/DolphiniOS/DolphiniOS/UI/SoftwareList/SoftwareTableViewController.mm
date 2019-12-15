@@ -149,7 +149,7 @@
     if (!suppress_donation_message)
     {
       UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Donate"
-                                     message:@"DolphiniOS is an unofficial version of Dolphin, maintained separately from the official Dolphin code.\n\nWhile DolphiniOS will forever remain free, it takes time and money to support its development and server costs. Your support is greatly appreciated."
+                                     message:@"DolphiniOS is an unofficial version of Dolphin, maintained separately from the official Dolphin code.\n\nWhile DolphiniOS will forever remain free, it takes time and money to support its development and server costs. Your support is greatly appreciated. As a benefit for donating, you can get access to beta builds with new features."
                                      preferredStyle:UIAlertControllerStyleAlert];
        
       UIAlertAction* donate_action = [UIAlertAction actionWithTitle:@"Donate" style:UIAlertActionStyleDefault
