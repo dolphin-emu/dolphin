@@ -35,7 +35,7 @@ Common::Event s_update_main_frame_event;
 bool s_have_wm_user_stop = false;
 
 // Our UIViewController
-UIViewController* s_view_controller;
+UIViewController* s_view_controller = nullptr;
 
 void Host_NotifyMapLoaded()
 {
@@ -110,6 +110,15 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 {
   @autoreleasepool
   {
+    // Log to console as a backup
+    NSLog(@"MsgAlert - %s: %s (yes_no: %d)", caption, text, yes_no ? 1 : 0);
+
+    // Don't continue if the view controller isn't available
+    if (!s_view_controller)
+    {
+      return false;
+    }
+
     NSCondition* condition = [[NSCondition alloc] init];
     
     __block bool yes_pressed = false;
