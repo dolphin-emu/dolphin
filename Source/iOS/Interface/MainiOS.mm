@@ -34,6 +34,9 @@ std::mutex s_host_identity_lock;
 Common::Event s_update_main_frame_event;
 bool s_have_wm_user_stop = false;
 
+// Our UIViewController
+UIViewController* s_view_controller;
+
 void Host_NotifyMapLoaded()
 {
 }
@@ -112,13 +115,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
     __block bool yes_pressed = false;
 
     dispatch_async(dispatch_get_main_queue(), ^{
-      // Create a new UIWindow to host the UIAlertController
-      // We don't have access to the EmulationViewController here, so this is the best we can do.
-      // (This is what Apple supposedly does in their applications.)
-      __block UIWindow* window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-      window.rootViewController = [UIViewController new];
-      window.windowLevel = UIWindowLevelAlert + 1;
-
       UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:caption]
                                     message:[NSString stringWithUTF8String:text]
                                     preferredStyle:UIAlertControllerStyleAlert];
@@ -130,9 +126,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
             yes_pressed = true;
 
             [condition signal];
-
-            window.hidden = YES;
-            window = nil;
         }]];
 
         [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
@@ -140,9 +133,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
             yes_pressed = false;
 
             [condition signal];
-
-            window.hidden = YES;
-            window = nil;
         }]];
       }
       else
@@ -150,14 +140,10 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
         [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
           handler:^(UIAlertAction* action) {
             [condition signal];
-
-            window.hidden = YES;
-            window = nil;
         }]];
       }
 
-      [window makeKeyAndVisible];
-      [window.rootViewController presentViewController:alert animated:YES completion:nil];
+      [s_view_controller presentViewController:alert animated:YES completion:nil];
     });
 
     // Wait for a button press
@@ -297,8 +283,10 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   }
 }
 
-+ (void) startEmulationWithFile:(NSString*) file view:(UIView*) view
++ (void)startEmulationWithFile:(NSString*)file viewController:(UIViewController*)viewController view:(UIView*)view
 {
+  s_view_controller = viewController;
+
   WindowSystemInfo wsi;
   wsi.type = WindowSystemType::IPhoneOS;
   wsi.display_connection = nullptr;
@@ -335,6 +323,8 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 
   Core::Shutdown();
   ButtonManager::Shutdown();
+
+  s_view_controller = nullptr;
 }
 
 + (void)stopEmulation
