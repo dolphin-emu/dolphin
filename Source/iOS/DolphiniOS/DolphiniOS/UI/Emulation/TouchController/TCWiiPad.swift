@@ -5,7 +5,7 @@
 import Foundation
 import UIKit
 
-class TCWiiPad: TCView
+class TCWiiPad: TCView, UIGestureRecognizerDelegate
 {
   var max_size: CGSize = CGSize.zero
   var aspect_adjusted: CGFloat = 0
@@ -20,6 +20,7 @@ class TCWiiPad: TCView
     pressHandler.minimumPressDuration = 0
     pressHandler.numberOfTouchesRequired = 1
     pressHandler.cancelsTouchesInView = false
+    pressHandler.delegate = self
     self.real_view!.addGestureRecognizer(pressHandler)
   }
   
@@ -52,6 +53,16 @@ class TCWiiPad: TCView
       
       self.max_size = CGSize(width: (scaled_size.width / 2), height: (scaled_size.height - buffer) / 2)
     }
+  }
+  
+  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool
+  {
+    if (touch.view == self.real_view)
+    {
+      return true
+    }
+    
+    return false
   }
   
   @objc func handleLongPress(gesture: UILongPressGestureRecognizer)
