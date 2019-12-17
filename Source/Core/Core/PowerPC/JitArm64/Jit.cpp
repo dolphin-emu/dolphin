@@ -76,12 +76,12 @@ void JitArm64::Init()
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
   // We can't handle any fault from other threads.
-  if (!Core::IsCPUThread())
+  /*if (!Core::IsCPUThread())
   {
     ERROR_LOG(DYNA_REC, "Exception handler - Not on CPU thread");
     DoBacktrace(access_address, ctx);
     return false;
-  }
+  }*/
 
   bool success = false;
 
