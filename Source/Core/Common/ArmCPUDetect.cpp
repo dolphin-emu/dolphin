@@ -87,7 +87,7 @@ void CPUInfo::Detect()
   bFP = true;
   bASIMD = true;
   bAES = true;
-  bCRC32 = true;
+  bCRC32 = false;
   bSHA1 = true;
   bSHA2 = true;
 #else
