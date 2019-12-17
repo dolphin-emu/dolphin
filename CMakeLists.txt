@@ -419,6 +419,7 @@ if(IOS)
     set(ENABLE_NOGUI 0)
   endif()
   
+  set(ENABLE_WX_EXCLUSIVITY 1)
   set(USE_UPNP 0)
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
@@ -428,7 +429,6 @@ if(IOS)
     add_definitions(-DIPHONEOS_JAILBROKEN)
   else()
     message(STATUS "Building for non-jailbroken iOS devices")
-    set(ENABLE_WX_EXCLUSIVITY 1)
   endif()
 
   # We are cross compiling, search only the toolchain for libraries and includes
