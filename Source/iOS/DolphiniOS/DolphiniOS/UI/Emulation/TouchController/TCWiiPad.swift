@@ -27,11 +27,9 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
   // Based on InputOverlayPointer.java
   func recalculatePointerValues()
   {
-    let screen_scale = UIScreen.main.scale
-    let scaled_size = CGSize(width: self.bounds.size.width * screen_scale, height: self.bounds.size.height * screen_scale)
-    
     // Adjusting for black bars
-    let device_aspect: CGFloat = scaled_size.width / scaled_size.height
+    let image_rect = MainiOS.getRenderTargetRectangle()
+    let device_aspect: CGFloat = image_rect.width / image_rect.height
     let game_aspect: CGFloat = MainiOS.getGameAspectRatio()
     self.aspect_adjusted = game_aspect / device_aspect;
     
@@ -39,19 +37,19 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
     {
       self.x_adjusted = true
       
-      let game_x = round(scaled_size.height * game_aspect)
-      let buffer = scaled_size.width - game_x
+      let game_x = round(image_rect.height * game_aspect)
+      let buffer = image_rect.width - game_x
       
-      self.max_size = CGSize(width: (scaled_size.width - buffer) / 2, height: scaled_size.height / 2)
+      self.max_size = CGSize(width: (image_rect.width - buffer) / 2, height: image_rect.height / 2)
     }
     else // bars on top and bottom
     {
       self.x_adjusted = false
       
-      let game_y = round(scaled_size.width / game_aspect)
-      let buffer = scaled_size.height - game_y
+      let game_y = round(image_rect.width / game_aspect)
+      let buffer = image_rect.height - game_y
       
-      self.max_size = CGSize(width: (scaled_size.width / 2), height: (scaled_size.height - buffer) / 2)
+      self.max_size = CGSize(width: (image_rect.width / 2), height: (image_rect.height - buffer) / 2)
     }
   }
   
@@ -83,8 +81,7 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
       point.x = point.x - image_rect.origin.x
       point.y = point.y - image_rect.origin.y
       
-      // TODO: why doesn't this work properly in portrait?
-      /*if (self.x_adjusted)
+      if (self.x_adjusted)
       {
         axises[0] = (point.y - self.max_size.height) / self.max_size.height
         axises[1] = ((point.x * self.aspect_adjusted) - self.max_size.width) / self.max_size.width
@@ -93,10 +90,7 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
       {
         axises[0] = ((point.y * self.aspect_adjusted) - self.max_size.height) / self.max_size.height
         axises[1] = (point.x - self.max_size.width) / self.max_size.width
-      }*/
-      
-      axises[0] = (point.y - self.max_size.height) / self.max_size.height
-      axises[1] = (point.x - self.max_size.width) / self.max_size.width
+      }
       
       let send_axises: [CGFloat] = [ axises[0], axises[0], axises[1], axises[1]]
       

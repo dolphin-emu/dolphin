@@ -12,6 +12,8 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
   @objc public var softwareName: String = ""
   @objc public var isWii: Bool = false
   
+  let controller_setup_queue = DispatchQueue(label: "org.dolphin-emu.ios.tscon-setup-queue")
+  
   @IBOutlet weak var m_metal_view: MTKView!
   @IBOutlet weak var m_eagl_view: EAGLView!
   @IBOutlet weak var m_gc_pad_view: TCGameCubePad!
@@ -70,20 +72,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
       self.navigationController!.setNavigationBarHidden(true, animated: true)
     }
     
-    let wiimote_queue = DispatchQueue(label: "org.dolphin-emu.ios.wiimote-initial-queue")
-    wiimote_queue.async
-    {
-      // Wait for aspect ratio to be set
-      while (MainiOS.getGameAspectRatio() == 0)
-      {
-      }
-      
-      // Create the Wiimote pointer values
-      DispatchQueue.main.sync
-      {
-        self.m_wii_pad_view.recalculatePointerValues()
-      }
-    }
+    self.setupWiimotePointer()
     
     let queue = DispatchQueue(label: "org.dolphin-emu.ios.emulation-queue")
     queue.async
@@ -103,9 +92,27 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     // Perform an "animation" alongside the transition and tell Dolphin that
     // the window has resized after it is finished
     coordinator.animate(alongsideTransition: nil, completion: { _ in
+      self.setupWiimotePointer()
       MainiOS.windowResized()
-      self.m_wii_pad_view.recalculatePointerValues()
     })
+  }
+  
+  func setupWiimotePointer()
+  {
+    let target_rectangle = MainiOS.getRenderTargetRectangle()
+    controller_setup_queue.async
+    {
+      // Wait for the target rectangle to be set
+      while (target_rectangle == MainiOS.getRenderTargetRectangle())
+      {
+      }
+      
+      // Set the Wiimote pointer values
+      DispatchQueue.main.sync
+      {
+        self.m_wii_pad_view.recalculatePointerValues()
+      }
+    }
   }
   
   func setupTapGestureRecognizer(_ view: TCView)
