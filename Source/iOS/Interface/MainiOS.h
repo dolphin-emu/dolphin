@@ -20,5 +20,6 @@
 + (void)windowResized;
 + (void)gamepadEventForButton:(int)button action:(int)action;
 + (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value;
++ (void)toggleImuIr:(bool)enabled;
 
 @end
