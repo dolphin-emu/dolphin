@@ -99,12 +99,18 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
   
   func setupWiimotePointer()
   {
-    let target_rectangle = MainiOS.getRenderTargetRectangle()
     controller_setup_queue.async
     {
+      let target_rectangle = MainiOS.getRenderTargetRectangle()
+      
       // Wait for the target rectangle to be set
-      while (target_rectangle == MainiOS.getRenderTargetRectangle())
+      while (true)
       {
+        let new_rect = MainiOS.getRenderTargetRectangle()
+        if (new_rect.size != target_rectangle.size)
+      {
+          break;
+        }
       }
       
       // Set the Wiimote pointer values
