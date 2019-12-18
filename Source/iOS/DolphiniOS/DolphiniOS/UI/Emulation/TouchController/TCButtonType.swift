@@ -140,8 +140,10 @@ enum TCButtonType: Int
       return 0.33
     case .BUTTON_X, .BUTTON_Y:
       return 0.5
-    case .WIIMOTE_BUTTON_PLUS, .WIIMOTE_BUTTON_MINUS, .WIIMOTE_BUTTON_HOME:
+    case .WIIMOTE_BUTTON_PLUS, .WIIMOTE_BUTTON_MINUS:
       return 0.2
+    case .WIIMOTE_BUTTON_HOME:
+      return 0.25
     case .NUNCHUK_BUTTON_C:
       return 0.4
     default:
