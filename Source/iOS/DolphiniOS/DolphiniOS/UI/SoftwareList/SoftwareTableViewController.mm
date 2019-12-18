@@ -120,17 +120,17 @@
   NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
   
   // Check for jailbreakd (Chimera)
-  if (![user_defaults boolForKey:@"seen_chimera_notice"])
+  if (![user_defaults boolForKey:@"seen_chimera_notice_exp"])
   {
     NSFileManager* file_manager = [NSFileManager defaultManager];
     if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
     {
-      [self showAlertWithTitle:@"Unsupported Jailbreak"
-            text:@"DolphiniOS is using an unstable method to enable the JIT recompiler because the stable method is not supported by the Chimera jailbreak.\n\nIf you quit DolphiniOS or if iOS quits DolphiniOS (for example, to free up RAM), you will need to reboot your device before starting DolphiniOS again.\n\nFor the best experience, switch to checkra1n (A9 to A11 processors only) or unc0ver."
+      [self showAlertWithTitle:@"Experimental Support"
+            text:@"Experimental support for Chimera has been added to DolphiniOS. It may be broken. Please report if it is.\n\nFor the best experience, switch to checkra1n (A9 to A11 processors only) or unc0ver."
             isFatal:false];
     }
     
-    [user_defaults setBool:true forKey:@"seen_chimera_notice"];
+    [user_defaults setBool:true forKey:@"seen_chimera_notice_exp"];
   }
   
   // Get the number of launches
