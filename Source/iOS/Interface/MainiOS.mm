@@ -353,6 +353,9 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 
 + (CGRect)getRenderTargetRectangle
 {
+  if (!g_renderer)
+    return CGRectZero;
+  
   const MathUtil::Rectangle<int>& rect = g_renderer->GetTargetRectangle();
   return CGRectMake(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
 }
