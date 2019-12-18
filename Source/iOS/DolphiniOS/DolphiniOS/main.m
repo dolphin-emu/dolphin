@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import <dlfcn.h>
 #import <UIKit/UIKit.h>
 
 #import "AppDelegate.h"
@@ -12,6 +13,8 @@ extern int csops(pid_t pid, unsigned int  ops, void * useraddr, size_t usersize)
 
 #define PT_TRACEME 0
 extern int ptrace(int a, int b, int c, int d);
+
+#define FLAG_PLATFORMIZE (1 << 1) /* jailbreakd - set as platform binary */
 
 bool IsProcessDebugged()
 {
@@ -31,24 +34,11 @@ bool IsProcessDebugged()
 //
 // Yes, this is a giant hack. However, it works across jailbreaks so
 // that's enough for me.
-void SetProcessDebugged()
+void SetProcessDebuggedWithDaemon()
 {
   // Serialize the process name
   int process_id = getpid();
   NSData* data = [NSData dataWithBytes:&process_id length:sizeof(process_id)];
-  
-  // Check for jailbreakd (Chimera)
-  // Chimera doesn't seem to like our daemon. Sileo refuses to copy its plist to
-  // /Library/LaunchDaemons for some reason, and csdbgd can't start the message port
-  // since it doesn't have permissions or something. I'm honestly fed up with all
-  // these weird differences at this point, so we'll just fall back to PTRACE_TRACEME.
-  // It's not optimal, but it'll work (once, before a reboot is needed).
-  NSFileManager* file_manager = [NSFileManager defaultManager];
-  if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
-  {
-    ptrace(PT_TRACEME, 0, 0, 0);
-    return;
-  }
   
   // Acquire the port
   CFMessagePortRef port = CFMessagePortCreateRemote(kCFAllocatorDefault, CFSTR("me.oatmealdome.csdbgd-port"));
@@ -70,6 +60,47 @@ void SetProcessDebugged()
   while (!IsProcessDebugged())
   {
     usleep(500000);
+  }
+}
+
+// We can just ask jailbreakd to set CS_DEBUGGED for us.
+void SetProcessDebuggedWithJailbreakd()
+{
+  // Open a handle to libjailbreak
+  void* dylib_handle = dlopen("/usr/lib/libjailbreak.dylib", RTLD_LAZY);
+  if (!dylib_handle)
+  {
+    NSLog(@"Failed to load libjailbreak.dylib: %s", dlerror());
+    abort();
+  }
+  
+  // Load the function
+  typedef void (*entitle_now_ptr)(pid_t pid, uint32_t flags);
+  entitle_now_ptr ptr = (entitle_now_ptr)dlsym(dylib_handle, "jb_oneshot_entitle_now");
+  
+  // Check for errors
+  char* dlsym_error = dlerror();
+  if (dlsym_error)
+  {
+    NSLog(@"Failed to load from libjailbreak.dylib: %s", dlsym_error);
+    abort();
+  }
+  
+  // Go!
+  ptr(getpid(), FLAG_PLATFORMIZE);
+}
+
+void SetProcessDebugged()
+{
+  // Check for jailbreakd (Chimera)
+  NSFileManager* file_manager = [NSFileManager defaultManager];
+  if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
+  {
+    SetProcessDebuggedWithJailbreakd();
+  }
+  else
+  {
+    SetProcessDebuggedWithDaemon();
   }
 }
 
