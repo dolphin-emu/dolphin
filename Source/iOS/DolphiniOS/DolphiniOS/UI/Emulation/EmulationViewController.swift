@@ -54,15 +54,29 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     setupTapGestureRecognizer(m_wii_pad_view)
     setupTapGestureRecognizer(m_gc_pad_view)
     
-    let has_seen_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_two_fingers_alert")
-    if (!has_seen_alert)
+    let has_seen_initial_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_two_fingers_alert")
+    let has_seen_options_alert = UserDefaults.standard.bool(forKey: "seen_new_options_menu_alert")
+    if (!has_seen_initial_alert)
     {
-      let alert = UIAlertController(title: "Note", message: "Double tap the screen with two fingers fast to reveal the top bar.", preferredStyle: .alert)
+      let alert = UIAlertController(title: "Note", message: "Double tap the screen with two fingers fast to reveal the top bar.\n\nYou can adjust some emulation settings by pressing the button on the left of the top bar.", preferredStyle: .alert)
       
       alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
         self.navigationController!.setNavigationBarHidden(true, animated: true)
         
         UserDefaults.standard.set(true, forKey: "seen_double_tap_two_fingers_alert")
+        UserDefaults.standard.set(true, forKey: "seen_new_options_menu_alert")
+      }))
+      
+      self.present(alert, animated: true, completion: nil)
+    }
+    else if (!has_seen_options_alert)
+    {
+      let alert = UIAlertController(title: "Note", message: "There is now an options menu on the left side of the top bar. You can toggle motion controls there.\n\nFor games that use the Wii Motion Plus accessory, you should select the motion control mode \"On (With Pointer Emulation)\".", preferredStyle: .alert)
+      
+      alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
+        self.navigationController!.setNavigationBarHidden(true, animated: true)
+        
+        UserDefaults.standard.set(true, forKey: "seen_new_options_menu_alert")
       }))
       
       self.present(alert, animated: true, completion: nil)
@@ -193,5 +207,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     
     self.present(alert, animated: true, completion: nil)
   }
+  
+  @IBAction func unwindToEmulationView(segue: UIStoryboardSegue) {}
   
 }

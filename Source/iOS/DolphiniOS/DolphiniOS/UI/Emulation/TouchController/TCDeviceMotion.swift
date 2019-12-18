@@ -5,20 +5,41 @@
 import CoreMotion
 import Foundation
 
-class TCDeviceMotion
+@objc public class TCDeviceMotion: NSObject
 {
-  static let shared = TCDeviceMotion()
+  @objc public static let shared = TCDeviceMotion()
   
-  let motion_manager = CMMotionManager()
+  private let motion_manager = CMMotionManager()
   
-  var orientation: UIInterfaceOrientation = .portrait
+  private var is_motion_enabled = false
+  private var orientation: UIInterfaceOrientation = .portrait
+  private var motion_mode = 0
   
-  private init()
+  override required init()
   {
+    // integer(forKey:) returns 0 by default, so we use 0 as the "this isn't set"
+    // value, and just add 1 to what Android uses
+    //
+    // motion_mode:
+    // 1 - On with IMU IR
+    // 2 - On without IMU IR
+    // 3 - Off
+    motion_mode = UserDefaults.standard.integer(forKey: "motion_controls_enabled")
+    if (motion_mode == 0)
+    {
+      // On without IMU IR is the default
+      UserDefaults.standard.set(2, forKey: "motion_controls_enabled")
+      motion_mode = 2
+    }
   }
   
   func registerMotionHandlers()
   {
+    if (is_motion_enabled)
+    {
+      return
+    }
+    
     // Set our orientation properly
     self.statusBarOrientationChanged()
     
@@ -113,12 +134,41 @@ class TCDeviceMotion
       MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_YAW_LEFT.rawValue), value: CGFloat(z))
       MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_YAW_RIGHT.rawValue), value: CGFloat(z))
     }
+    
+    self.is_motion_enabled = true
   }
   
   func stopMotionUpdates()
   {
+    if (!is_motion_enabled)
+    {
+      return
+    }
+    
     self.motion_manager.stopAccelerometerUpdates()
     self.motion_manager.stopGyroUpdates()
+    
+    self.is_motion_enabled = false
+  }
+  
+  @objc func getMotionMode() -> Int
+  {
+    return self.motion_mode - 1
+  }
+  
+  @objc func setMotionMode(_ mode: Int)
+  {
+    self.motion_mode = mode + 1
+    UserDefaults.standard.set(motion_mode, forKey: "motion_controls_enabled")
+    
+    if (motion_mode != 3)
+    {
+      self.registerMotionHandlers()
+    }
+    else
+    {
+      self.stopMotionUpdates()
+    }
   }
   
   // UIApplicationDidChangeStatusBarOrientationNotification is deprecated...
