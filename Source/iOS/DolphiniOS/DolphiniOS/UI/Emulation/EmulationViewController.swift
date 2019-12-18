@@ -72,12 +72,21 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
       self.navigationController!.setNavigationBarHidden(true, animated: true)
     }
     
-    self.setupWiimotePointer()
+    if (self.isWii)
+    {
+      self.setupWiimotePointer()
+      TCDeviceMotion.shared.registerMotionHandlers()
+    }
     
     let queue = DispatchQueue(label: "org.dolphin-emu.ios.emulation-queue")
     queue.async
     {
       MainiOS.startEmulation(withFile: self.softwareFile, viewController: self, view: renderer_view)
+      
+      if (self.isWii)
+      {
+        TCDeviceMotion.shared.stopMotionUpdates()
+      }
       
       DispatchQueue.main.async {
         self.performSegue(withIdentifier: "toSoftwareTable", sender: nil)
@@ -92,7 +101,12 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     // Perform an "animation" alongside the transition and tell Dolphin that
     // the window has resized after it is finished
     coordinator.animate(alongsideTransition: nil, completion: { _ in
-      self.setupWiimotePointer()
+      if (self.isWii)
+      {
+        self.setupWiimotePointer()
+        TCDeviceMotion.shared.statusBarOrientationChanged()
+      }
+      
       MainiOS.windowResized()
     })
   }
@@ -108,7 +122,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
       {
         let new_rect = MainiOS.getRenderTargetRectangle()
         if (new_rect.size != target_rectangle.size)
-      {
+        {
           break;
         }
       }

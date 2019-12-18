@@ -78,6 +78,19 @@ enum TCButtonType: Int
   case NUNCHUK_SHAKE_X = 220
   case NUNCHUK_SHAKE_Y = 221
   case NUNCHUK_SHAKE_Z = 222
+  // Wiimote IMU
+  case WIIMOTE_ACCEL_LEFT = 625
+  case WIIMOTE_ACCEL_RIGHT = 626
+  case WIIMOTE_ACCEL_FORWARD = 627
+  case WIIMOTE_ACCEL_BACKWARD = 628
+  case WIIMOTE_ACCEL_UP = 629
+  case WIIMOTE_ACCEL_DOWN = 630
+  case WIIMOTE_GYRO_PITCH_UP = 631
+  case WIIMOTE_GYRO_PITCH_DOWN = 632
+  case WIIMOTE_GYRO_ROLL_LEFT = 633
+  case WIIMOTE_GYRO_ROLL_RIGHT = 634
+  case WIIMOTE_GYRO_YAW_LEFT = 635
+  case WIIMOTE_GYRO_YAW_RIGHT = 636
   // TODO: Classic Controller, Guitar, Drums, Turntable, Rumble
   
   func getImageName() -> String
