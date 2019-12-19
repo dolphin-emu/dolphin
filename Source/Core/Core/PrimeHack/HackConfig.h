@@ -10,10 +10,6 @@ namespace prime
 {
   void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_device_source);
 
-  // PRECONDITION:  For all following functions, InitializeHack has been called
-  std::vector<std::unique_ptr<ControlReference>>& GetMutableControls();
-  void RefreshControlDevices();
-
   bool CheckBeamCtl(int beam_num);
   bool CheckVisorCtl(int visor_num);
   bool CheckBeamScrollCtl(bool direction);

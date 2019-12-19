@@ -65,9 +65,7 @@ namespace prime {
 
     if (active_game != Game::INVALID_GAME && active_region != Region::INVALID_REGION) {
       std::vector<std::unique_ptr<PrimeMod>>& active_mods = mod_list[static_cast<int>(active_game)][static_cast<int>(active_region)];
-      if (active_game != last_game || active_region != last_region) {
-        prime::RefreshControlDevices();
-      }
+
       for (std::size_t i = 0; i < active_mods.size(); i++) {
         if (active_mods[i]->should_apply_changes()) {
           auto const& changes = active_mods[i]->get_instruction_changes();

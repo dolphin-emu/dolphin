@@ -19,7 +19,6 @@
 
 namespace prime
 {
-static std::vector<std::unique_ptr<ControlReference>> control_list;
 static float sensitivity;
 static float cursor_sensitivity;
 static float camera_fov;
@@ -52,11 +51,6 @@ void InitializeHack(std::string const& mkb_device_name, std::string const& mkb_d
 
   device_name = mkb_device_name;
   device_source = mkb_device_source;
-}
-
-void RefreshControlDevices()
-{
-  g_controller_interface.RefreshDevices();
 }
 
 bool CheckBeamCtl(int beam_num)
@@ -107,11 +101,6 @@ void UpdateHackSettings()
   SetFov((float)fov);
   SetInvertedX(invertx);
   SetInvertedY(inverty);
-}
-
-std::vector<std::unique_ptr<ControlReference>>& GetMutableControls()
-{
-  return control_list;
 }
 
 float GetSensitivity()
