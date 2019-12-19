@@ -2,4 +2,4 @@
 
 set -e
 
-launchctl unload -w /Library/LaunchDaemons/me.oatmealdome.csdbgd.plist
+launchctl unload -w /Library/LaunchDaemons/me.oatmealdome.csdbgd.plist || true
