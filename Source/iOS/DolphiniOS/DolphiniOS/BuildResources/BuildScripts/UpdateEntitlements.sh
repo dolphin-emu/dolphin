@@ -7,7 +7,5 @@ XCENT_FILE=$DERIVED_SOURCES_DIR/../DolphiniOS.app.xcent
 # dynamic-codesigning is needed
 if [ $BUILD_FOR_JAILBROKEN_DEVICE == "YES" ]
 then
-  plutil -replace "dynamic-codesigning" -bool YES $XCENT_FILE
-else
-  plutil -remove "dynamic-codesigning" $XCENT_FILE || true
+  /usr/libexec/PlistBuddy -x -c "Merge $PROJECT_DIR/DolphiniOS/BuildResources/Entitlements_JB.plist" "$XCENT_FILE"
 fi
