@@ -16,7 +16,11 @@
   
   // Set the version from Info.plist
   NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
-  [self.m_version_label setText:[info objectForKey:@"CFBundleShortVersionString"]];
+  NSString* version_str = [info objectForKey:@"CFBundleShortVersionString"];
+#ifdef PATREON
+  version_str = [version_str stringByAppendingString:@" (Patreon)"];
+#endif
+  [self.m_version_label setText:version_str];
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
