@@ -192,6 +192,10 @@
 		B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerToggleViewController.swift; sourceTree = "<group>"; };
 		B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCSidewaysWiiPad.swift; sourceTree = "<group>"; };
 		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "control-patreon.in"; path = "BuildResources/DebFiles/control-patreon.in"; sourceTree = "<group>"; };
+		B9DCAC9A23AB43FA002B95C8 /* BuildDolphin.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDolphin.sh; path = BuildResources/BuildScripts/BuildDolphin.sh; sourceTree = "<group>"; };
+		B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildCsdbgd.sh; path = BuildResources/BuildScripts/BuildCsdbgd.sh; sourceTree = "<group>"; };
+		B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CopyDolphinImages.sh; path = BuildResources/BuildScripts/CopyDolphinImages.sh; sourceTree = "<group>"; };
+		B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = UpdateEntitlements.sh; path = BuildResources/BuildScripts/UpdateEntitlements.sh; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -412,9 +416,10 @@
 		B99B05A923A09CDC0076C7D8 /* Build Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B9DCAC9923AB43B3002B95C8 /* Build Scripts */,
 				B9DCAC9823AB42CA002B95C8 /* Deb FIles */,
-				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
+				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -440,6 +445,17 @@
 				B9766AF323A4A33B00FF7F17 /* prerm.sh */,
 			);
 			name = "Deb FIles";
+			sourceTree = "<group>";
+		};
+		B9DCAC9923AB43B3002B95C8 /* Build Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				B9DCAC9A23AB43FA002B95C8 /* BuildDolphin.sh */,
+				B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */,
+				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
+				B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */,
+			);
+			name = "Build Scripts";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -542,7 +558,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\nCMAKE_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$ARCHS\nGENERIC_BUILD_DIR=$ROOT_DOLPHIN_DIR/build\nADDITIONAL_CMAKE_SETTINGS=\n\nIOS_PLATFORM=OS64\nif [ $ARCHS == \"x86_64\" ]; then\n    IOS_PLATFORM=SIMULATOR64\nfi\n\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]; then\n  CMAKE_BUILD_DIR=\"$CMAKE_BUILD_DIR-jb\"\n  ADDITIONAL_CMAKE_SETTINGS=\"-DIOS_JAILBROKEN=1\"\nfi\n\nif [ ! -d \"$CMAKE_BUILD_DIR\" ]; then\n    mkdir $CMAKE_BUILD_DIR\n    cd $CMAKE_BUILD_DIR\n    \n    cmake $ROOT_DOLPHIN_DIR -DCMAKE_TOOLCHAIN_FILE=$ROOT_DOLPHIN_DIR/Source/iOS/ios.toolchain.cmake -DPLATFORM=$IOS_PLATFORM -DDEPLOYMENT_TARGET=\"12.0\" $ADDITIONAL_CMAKE_SETTINGS\nfi\n\ncd $CMAKE_BUILD_DIR\n\ncmake --build . --config Debug\n\nif [ ! -d \"$GENERIC_BUILD_DIR\" ]; then\n    mkdir $GENERIC_BUILD_DIR\n    mkdir $GENERIC_BUILD_DIR/libs\n    mkdir $GENERIC_BUILD_DIR/libs/Dolphin\n    mkdir $GENERIC_BUILD_DIR/libs/Externals\nfi\n\nrm -f $GENERIC_BUILD_DIR/libs/Dolphin/*.a\nrm -f $GENERIC_BUILD_DIR/libs/Externals/*.a\n\nfind Source/ -name '*.a' -exec cp -prv '{}' \"$GENERIC_BUILD_DIR/libs/Dolphin/\" ';'\n\nfind Externals/ -name '*.a' -exec cp -prv '{}' \"$GENERIC_BUILD_DIR/libs/Externals/\" ';'\n\ncp $ROOT_DOLPHIN_DIR/Externals/MoltenVK/libvulkan_iOS.dylib $GENERIC_BUILD_DIR/libs/Externals/libMoltenVK.dylib\n";
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/BuildDolphin.sh\n";
 		};
 		B95A093F2384F18600DBBB01 /* Copy Dolphin Images */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -560,7 +576,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_SRC_DIR=$PROJECT_DIR/DolphiniOS\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\nANDROID_RES_DIR=$ROOT_DOLPHIN_DIR/Source/Android/app/src/main/res\nONEX_DIR=$ANDROID_RES_DIR/drawable-hdpi\nTWOX_DIR=$ANDROID_RES_DIR/drawable-xhdpi\nTHREEX_DIR=$ANDROID_RES_DIR/drawable-xxhdpi\n\n# Clear all images\nrm -rf $ROOT_SRC_DIR/DolphinImages.xcassets/*.imageset\n\nif [ -d \"$ROOT_SRC_DIR/DolphinImages.xcassets/gcpad_a.imageset\" ]; then\n  exit 0\nfi\n\n\nfor path in $ONEX_DIR/*\ndo\n  FILENAME=$(basename \"$path\" .png)\n  \n  mkdir $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset\n  \n  cp $ONEX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@1x.png\n  cp $TWOX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@2x.png\n  cp $THREEX_DIR/$FILENAME.png $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/$FILENAME\\@3x.png\n  \n  cp $ROOT_SRC_DIR/DolphinImageTemplate.json.in $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/Contents.json\n  \n  sed \"s/FILENAME/$FILENAME/g\" $ROOT_SRC_DIR/DolphinImageTemplate.json.in > $ROOT_SRC_DIR/DolphinImages.xcassets/$FILENAME.imageset/Contents.json\ndone\n";
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/CopyDolphinImages.sh\n";
 		};
 		B9766AF023A4964B00FF7F17 /* Build csdbgd */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -578,7 +594,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\n\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]; then\n  cd $ROOT_DOLPHIN_DIR/Source/iOS/csdbgd\n  make\nfi\n";
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/BuildCsdbgd.sh\n";
 		};
 		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -596,7 +612,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "#!/bin/bash\n\nset -e\n\nXCENT_FILE=$DERIVED_SOURCES_DIR/../DolphiniOS.app.xcent\n\n# dynamic-codesigning is needed\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]\nthen\n  plutil -replace \"dynamic-codesigning\" -bool YES $XCENT_FILE\nelse\n  plutil -remove \"dynamic-codesigning\" $XCENT_FILE || true\nfi\n";
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/UpdateEntitlements.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
