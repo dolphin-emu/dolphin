@@ -35,7 +35,7 @@ import Foundation
   
   func registerMotionHandlers()
   {
-    if (is_motion_enabled)
+    if (is_motion_enabled || motion_mode == 3)
     {
       return
     }
