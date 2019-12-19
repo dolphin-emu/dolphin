@@ -81,6 +81,7 @@
 		B9DCAC8C23AACCB3002B95C8 /* InGameConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */; };
 		B9DCAC8E23AAD3C3002B95C8 /* ControllerToggleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
+		B9DCAC9623AB38F4002B95C8 /* control-patreon.in in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC9523AB38F4002B95C8 /* control-patreon.in */; };
 		B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -190,6 +191,7 @@
 		B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameConfigViewController.swift; sourceTree = "<group>"; };
 		B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerToggleViewController.swift; sourceTree = "<group>"; };
 		B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCSidewaysWiiPad.swift; sourceTree = "<group>"; };
+		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "control-patreon.in"; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -412,6 +414,7 @@
 			children = (
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AA23A09DDF0076C7D8 /* control.in */,
+				B9DCAC9523AB38F4002B95C8 /* control-patreon.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 				B9766AF123A4A26900FF7F17 /* postinst.sh */,
 				B9766AF223A4A31C00FF7F17 /* preinst.sh */,
@@ -500,6 +503,7 @@
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
+				B9DCAC9623AB38F4002B95C8 /* control-patreon.in in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
@@ -566,7 +570,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\n\nif [ $ARCHS == \"x86_64\" ]; then\n  exit 0\nfi\n\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]; then\n  cd $ROOT_DOLPHIN_DIR/Source/iOS/csdbgd\n  make\nfi\n";
+			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\n\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]; then\n  cd $ROOT_DOLPHIN_DIR/Source/iOS/csdbgd\n  make\nfi\n";
 		};
 		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -638,7 +642,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		B945A3872362909500B21680 /* Debug */ = {
+		B945A3872362909500B21680 /* Debug (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -702,9 +706,9 @@
 				SDKROOT = iphoneos;
 				VALID_ARCHS = arm64;
 			};
-			name = Debug;
+			name = "Debug (Jailbroken)";
 		};
-		B945A3882362909500B21680 /* Release */ = {
+		B945A3882362909500B21680 /* Release (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -763,13 +767,15 @@
 				VALIDATE_PRODUCT = YES;
 				VALID_ARCHS = arm64;
 			};
-			name = Release;
+			name = "Release (Jailbroken)";
 		};
-		B945A38A2362909500B21680 /* Debug */ = {
+		B945A38A2362909500B21680 /* Debug (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
+				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
+				BUILD_FOR_PATREON = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
@@ -797,13 +803,15 @@
 					"$(SRCROOT)/../Interface/**",
 				);
 			};
-			name = Debug;
+			name = "Debug (Jailbroken)";
 		};
-		B945A38B2362909500B21680 /* Release */ = {
+		B945A38B2362909500B21680 /* Release (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
+				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
+				BUILD_FOR_PATREON = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
@@ -826,7 +834,201 @@
 					"$(SRCROOT)/../Interface/**",
 				);
 			};
-			name = Release;
+			name = "Release (Jailbroken)";
+		};
+		B9DCAC9123AB3665002B95C8 /* Debug (Non-Jailbroken) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../build/libs/Dolphin",
+					"$(SRCROOT)/../../../build/libs/Externals/**",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				SDKROOT = iphoneos;
+				VALID_ARCHS = arm64;
+			};
+			name = "Debug (Non-Jailbroken)";
+		};
+		B9DCAC9223AB3665002B95C8 /* Debug (Non-Jailbroken) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_FOR_JAILBROKEN_DEVICE = NO;
+				BUILD_FOR_PATREON = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "compiler-default";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 46669ZA7J4;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"SUPPRESS_UNSUPPORTED_DEVICE=1",
+				);
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+				);
+			};
+			name = "Debug (Non-Jailbroken)";
+		};
+		B9DCAC9323AB384F002B95C8 /* Release (Patreon) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../build/libs/Dolphin",
+					"$(SRCROOT)/../../../build/libs/Externals/**",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = arm64;
+			};
+			name = "Release (Patreon)";
+		};
+		B9DCAC9423AB384F002B95C8 /* Release (Patreon) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_FOR_JAILBROKEN_DEVICE = YES;
+				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
+				BUILD_FOR_PATREON = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "compiler-default";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 46669ZA7J4;
+				GCC_PREPROCESSOR_DEFINITIONS = "PATREON=1";
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+				);
+			};
+			name = "Release (Patreon)";
 		};
 /* End XCBuildConfiguration section */
 
@@ -834,20 +1036,24 @@
 		B945A36B2362908400B21680 /* Build configuration list for PBXProject "DolphiniOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B945A3872362909500B21680 /* Debug */,
-				B945A3882362909500B21680 /* Release */,
+				B945A3872362909500B21680 /* Debug (Jailbroken) */,
+				B9DCAC9123AB3665002B95C8 /* Debug (Non-Jailbroken) */,
+				B945A3882362909500B21680 /* Release (Jailbroken) */,
+				B9DCAC9323AB384F002B95C8 /* Release (Patreon) */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release (Jailbroken)";
 		};
 		B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B945A38A2362909500B21680 /* Debug */,
-				B945A38B2362909500B21680 /* Release */,
+				B945A38A2362909500B21680 /* Debug (Jailbroken) */,
+				B9DCAC9223AB3665002B95C8 /* Debug (Non-Jailbroken) */,
+				B945A38B2362909500B21680 /* Release (Jailbroken) */,
+				B9DCAC9423AB384F002B95C8 /* Release (Patreon) */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = "Release (Jailbroken)";
 		};
 /* End XCConfigurationList section */
 	};
