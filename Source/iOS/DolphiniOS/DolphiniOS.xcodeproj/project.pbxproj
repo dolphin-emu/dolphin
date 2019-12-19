@@ -796,6 +796,7 @@
 		B945A38A2362909500B21680 /* Debug (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_NAME = "DiOS (Debug)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
 				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
@@ -817,7 +818,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -833,6 +834,7 @@
 		B945A38B2362909500B21680 /* Release (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_NAME = DolphiniOS;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
 				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
@@ -931,6 +933,7 @@
 		B9DCAC9223AB3665002B95C8 /* Debug (Non-Jailbroken) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_NAME = "DiOS (Debug)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = NO;
 				BUILD_FOR_PATREON = NO;
@@ -951,7 +954,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1028,6 +1031,7 @@
 		B9DCAC9423AB384F002B95C8 /* Release (Patreon) */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_NAME = "DiOS (Patreon)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = YES;
 				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
@@ -1046,7 +1050,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS-patreon-beta";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
