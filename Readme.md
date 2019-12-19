@@ -12,7 +12,7 @@ Get the latest PrimeHackRelease.zip file from https://github.com/shiiion/dolphin
 [Downloads](https://software.opensuse.org/download.html?project=home%3AKAMiKAZOW%3AEmulators&package=primehack) are provided for various Linux distributions at [home:KAMiKAZOW:Emulators on openSUSE.org](https://build.opensuse.org/package/show/home:KAMiKAZOW:Emulators/primehack). Submit Requests to support additional distributions are accepted over there.
 
 ### macOS
-Currently no compiled macOS version is provided but compiling PrimeHack yourself should work (see instructions below). 
+Currently PrimeHack does not support MacOS
 
 # Original Dolphin Readme file contents:
 

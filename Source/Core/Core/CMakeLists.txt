@@ -464,12 +464,12 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
 	PrimeHack/PrimeUtils.cpp
   PrimeHack/PrimeUtils.h
-	PrimeHack/MP1.cpp
-	PrimeHack/MP1.h
-	PrimeHack/MP2.cpp
-	PrimeHack/MP2.h
-	PrimeHack/MP3.cpp
-	PrimeHack/MP3.h
+	PrimeHack/Games/MP1.cpp
+	PrimeHack/Games/MP1.h
+	PrimeHack/Games/MP2.cpp
+	PrimeHack/Games/MP2.h
+	PrimeHack/Games/MP3.cpp
+	PrimeHack/Games/MP3.h
   PrimeHack/HackConfig.cpp
 	PrimeHack/HackConfig.h
   PrimeHack/HackManager.cpp
