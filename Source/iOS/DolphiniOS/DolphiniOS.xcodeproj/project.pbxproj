@@ -540,7 +540,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\n\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]; then\n  cd $ROOT_DOLPHIN_DIR/Source/iOS/csdbgd\n  make\nfi\n";
+			shellScript = "#!/bin/bash\n\nset -e\n\nROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..\n\nif [ $ARCHS == \"x86_64\" ]; then\n  exit 0\nfi\n\nif [ $BUILD_FOR_JAILBROKEN_DEVICE == \"YES\" ]; then\n  cd $ROOT_DOLPHIN_DIR/Source/iOS/csdbgd\n  make\nfi\n";
 		};
 		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
 			isa = PBXShellScriptBuildPhase;
