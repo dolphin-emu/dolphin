@@ -12,12 +12,18 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
   @objc public var softwareName: String = ""
   @objc public var isWii: Bool = false
   
+  public var m_visible_controller = 0
+  
   let controller_setup_queue = DispatchQueue(label: "org.dolphin-emu.ios.tscon-setup-queue")
   
   @IBOutlet weak var m_metal_view: MTKView!
   @IBOutlet weak var m_eagl_view: EAGLView!
   @IBOutlet weak var m_gc_pad_view: TCGameCubePad!
   @IBOutlet weak var m_wii_pad_view: TCWiiPad!
+  @IBOutlet weak var m_wii_pad_sideways_view: TCSidewaysWiiPad!
+  
+  @IBOutlet var m_gc_controllers: [UIView]!
+  @IBOutlet var m_wii_controllers: [UIView]!
   
   required init?(coder: NSCoder)
   {
@@ -40,18 +46,10 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     
     renderer_view.isHidden = false
     
-    if (self.isWii)
-    {
-      m_wii_pad_view.isUserInteractionEnabled = true
-      m_wii_pad_view.isHidden = false
-    }
-    else
-    {
-      m_gc_pad_view.isUserInteractionEnabled = true
-      m_gc_pad_view.isHidden = false
-    }
+    self.changeController(idx: 0)
     
     setupTapGestureRecognizer(m_wii_pad_view)
+    setupTapGestureRecognizer(m_wii_pad_sideways_view)
     setupTapGestureRecognizer(m_gc_pad_view)
     
     let has_seen_initial_alert = UserDefaults.standard.bool(forKey: "seen_double_tap_two_fingers_alert")
@@ -144,7 +142,14 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
       // Set the Wiimote pointer values
       DispatchQueue.main.sync
       {
-        self.m_wii_pad_view.recalculatePointerValues()
+        for view in self.m_wii_controllers
+        {
+          let wii_pad = view as? TCWiiPad
+          if (wii_pad != nil)
+          {
+            wii_pad!.recalculatePointerValues()
+          }
+        }
       }
     }
   }
@@ -194,6 +199,44 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     }
     
     return false
+  }
+  
+  func changeController(idx: Int)
+  {
+    if (self.isWii)
+    {
+      for i in 0...self.m_wii_controllers.count - 1
+      {
+        if (i == idx)
+        {
+          self.m_wii_controllers[i].isUserInteractionEnabled = true
+          self.m_wii_controllers[i].isHidden = false
+        }
+        else
+        {
+          self.m_wii_controllers[i].isUserInteractionEnabled = false
+          self.m_wii_controllers[i].isHidden = true
+        }
+      }
+    }
+    else
+    {
+      for i in 0...self.m_gc_controllers.count - 1
+      {
+        if (i == idx)
+        {
+          self.m_gc_controllers[i].isUserInteractionEnabled = true
+          self.m_gc_controllers[i].isHidden = false
+        }
+        else
+        {
+          self.m_gc_controllers[i].isUserInteractionEnabled = false
+          self.m_gc_controllers[i].isHidden = true
+        }
+      }
+    }
+    
+    self.m_visible_controller = idx
   }
   
   @IBAction func exitButtonPressed(_ sender: Any)
