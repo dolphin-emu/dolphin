@@ -1593,8 +1593,8 @@ bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::stri
 
   while (true)
   {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint new_len = 0;    // number of bytes to write
+    u32 cur_len = 0;       // number of bytes to read
+    lzo_uint new_len = 0;  // number of bytes to write
 
     packet >> cur_len;
     if (!cur_len)
@@ -1636,8 +1636,8 @@ std::optional<std::vector<u8>> NetPlayClient::DecompressPacketIntoBuffer(sf::Pac
   lzo_uint i = 0;
   while (true)
   {
-    lzo_uint32 cur_len = 0;  // number of bytes to read
-    lzo_uint new_len = 0;    // number of bytes to write
+    u32 cur_len = 0;       // number of bytes to read
+    lzo_uint new_len = 0;  // number of bytes to write
 
     packet >> cur_len;
     if (!cur_len)
