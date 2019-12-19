@@ -240,6 +240,12 @@
   
   // Append the game name
   NSString* game_name = [NSString stringWithUTF8String:file->GetLongName().c_str()];
+  
+  if ([game_name length] == 0)
+  {
+    game_name = [NSString stringWithUTF8String:file->GetFileName().c_str()];
+  }
+  
   cell_contents = [cell_contents stringByAppendingString:game_name];
   
   // Set the cell label text
