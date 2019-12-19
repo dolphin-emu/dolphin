@@ -233,7 +233,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
       {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LE"}},
       {DiscIO::Region::NTSC_K, {"KOR", "NTSC", "KR", "LKH"}}};
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
-  const RegionSetting& region_setting = entryPos->second;
+  RegionSetting region_setting = entryPos->second;
 
   Common::SettingsHandler gen;
   std::string serno;
@@ -250,6 +250,11 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     {
       gen.SetBytes(std::move(data));
       serno = gen.GetValue("SERNO");
+      if (SConfig::GetInstance().bOverrideRegionSettings)
+      {
+        region_setting = RegionSetting{gen.GetValue("AREA"), gen.GetValue("VIDEO"),
+                                       gen.GetValue("GAME"), gen.GetValue("CODE")};
+      }
       gen.Reset();
     }
   }
