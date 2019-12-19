@@ -162,27 +162,27 @@
 		B95A09332382782600DBBB01 /* TCGameCubePad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCGameCubePad.swift; sourceTree = "<group>"; };
 		B95A09372382D89600DBBB01 /* TCJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCJoystick.swift; sourceTree = "<group>"; };
 		B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = DolphinImages.xcassets; sourceTree = "<group>"; };
-		B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = DolphinImageTemplate.json.in; sourceTree = "<group>"; };
+		B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */ = {isa = PBXFileReference; lastKnownFileType = text; name = DolphinImageTemplate.json.in; path = BuildResources/DolphinImageTemplate.json.in; sourceTree = "<group>"; };
 		B95A0944238533DC00DBBB01 /* TCButtonType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButtonType.swift; sourceTree = "<group>"; };
 		B95A09462385DE9500DBBB01 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		B95A09472385DE9600DBBB01 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
-		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinst.sh; sourceTree = "<group>"; };
-		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = preinst.sh; sourceTree = "<group>"; };
-		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = prerm.sh; sourceTree = "<group>"; };
+		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
+		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
+		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
 		B99B05A623A067D00076C7D8 /* Sys */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Sys; path = ../../../../Data/Sys; sourceTree = "<group>"; };
-		B99B05AA23A09DDF0076C7D8 /* control.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = control.in; sourceTree = "<group>"; };
-		B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements_JB.plist; sourceTree = "<group>"; };
+		B99B05AA23A09DDF0076C7D8 /* control.in */ = {isa = PBXFileReference; lastKnownFileType = text; name = control.in; path = BuildResources/DebFiles/control.in; sourceTree = "<group>"; };
+		B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Entitlements_JB.plist; path = BuildResources/Entitlements_JB.plist; sourceTree = "<group>"; };
 		B99B05B423A182B20076C7D8 /* Emulation.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Emulation.storyboard; sourceTree = "<group>"; };
 		B99B05B823A20F3D0076C7D8 /* TCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCView.swift; sourceTree = "<group>"; };
 		B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCWiiPad.swift; sourceTree = "<group>"; };
-		B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = SpecialThanks.txt; sourceTree = "<group>"; };
+		B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = SpecialThanks.txt; path = BundleResources/SpecialThanks.txt; sourceTree = "<group>"; };
 		B99B05BE23A323600076C7D8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDeviceMotion.swift; sourceTree = "<group>"; };
 		B9C85E1023AA21DC008A4DD1 /* MotionControlsSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MotionControlsSettingsViewController.h; sourceTree = "<group>"; };
@@ -191,7 +191,7 @@
 		B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameConfigViewController.swift; sourceTree = "<group>"; };
 		B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerToggleViewController.swift; sourceTree = "<group>"; };
 		B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCSidewaysWiiPad.swift; sourceTree = "<group>"; };
-		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "control-patreon.in"; sourceTree = "<group>"; };
+		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "control-patreon.in"; path = "BuildResources/DebFiles/control-patreon.in"; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -412,13 +412,9 @@
 		B99B05A923A09CDC0076C7D8 /* Build Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
-				B99B05AA23A09DDF0076C7D8 /* control.in */,
-				B9DCAC9523AB38F4002B95C8 /* control-patreon.in */,
+				B9DCAC9823AB42CA002B95C8 /* Deb FIles */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
-				B9766AF123A4A26900FF7F17 /* postinst.sh */,
-				B9766AF223A4A31C00FF7F17 /* preinst.sh */,
-				B9766AF323A4A33B00FF7F17 /* prerm.sh */,
+				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -432,6 +428,18 @@
 				B9C85E1123AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm */,
 			);
 			path = InGameSettings;
+			sourceTree = "<group>";
+		};
+		B9DCAC9823AB42CA002B95C8 /* Deb FIles */ = {
+			isa = PBXGroup;
+			children = (
+				B99B05AA23A09DDF0076C7D8 /* control.in */,
+				B9DCAC9523AB38F4002B95C8 /* control-patreon.in */,
+				B9766AF123A4A26900FF7F17 /* postinst.sh */,
+				B9766AF223A4A31C00FF7F17 /* preinst.sh */,
+				B9766AF323A4A33B00FF7F17 /* prerm.sh */,
+			);
+			name = "Deb FIles";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
