@@ -158,6 +158,8 @@ add_library(core
   HW/DSPHLE/UCodes/AXVoice.h
   HW/DSPHLE/UCodes/AXWii.cpp
   HW/DSPHLE/UCodes/AXWii.h
+  HW/DSPHLE/UCodes/AXWiiOld.cpp
+  HW/DSPHLE/UCodes/AXWiiOld.h
   HW/DSPHLE/UCodes/CARD.cpp
   HW/DSPHLE/UCodes/CARD.h
   HW/DSPHLE/UCodes/GBA.cpp

@@ -118,6 +118,7 @@
     <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\AXWii.cpp" />
+    <ClCompile Include="HW\DSPHLE\UCodes\AXWiiOld.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\CARD.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\GBA.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp" />
@@ -391,6 +392,7 @@
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\AXStructs.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\AXWii.h" />
+    <ClInclude Include="HW\DSPHLE\UCodes\AXWiiOld.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\AXVoice.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\CARD.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\GBA.h" />

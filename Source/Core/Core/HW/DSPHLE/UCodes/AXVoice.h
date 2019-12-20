@@ -29,7 +29,11 @@ namespace DSP::HLE
 #define PB_TYPE AXPB
 #define MAX_SAMPLES_PER_FRAME 32
 #else
+#ifdef AX_WII_OLD
+#define PB_TYPE AXPBWiiOld
+#else
 #define PB_TYPE AXPBWii
+#endif
 #define MAX_SAMPLES_PER_FRAME 96
 #endif
 

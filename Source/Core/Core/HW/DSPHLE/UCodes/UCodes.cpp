@@ -22,6 +22,7 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/AXWiiOld.h"
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/INIT.h"
@@ -273,12 +274,15 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0x2ea36ce6:  // Some Wii demos
   case 0x5ef56da3:  // AX demo
   case 0x347112ba:  // Raving Rabbids
-  case 0xfa450138:  // Wii Sports - PAL
   case 0xadbc06bd:  // Elebits
   case 0x4cc52064:  // Bleach: Versus Crusade
   case 0xd9c4bf34:  // WiiMenu
     INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWii chosen", crc);
     return std::make_unique<AXWiiUCode>(dsphle, crc);
+
+  case 0xfa450138:  // Wii Sports - PAL, Mario Party 8, WarioWare: Smooth Moves
+    INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWiiOld chosen", crc);
+    return std::make_unique<AXWiiOldUCode>(dsphle, crc);
 
   default:
     if (wii)

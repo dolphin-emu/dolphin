@@ -27,8 +27,6 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
     volume = 0x8000;
 
   INFO_LOG(DSPHLE, "Instantiating AXWiiUCode");
-
-  m_old_axwii = (crc == 0xfa450138);
 }
 
 AXWiiUCode::~AXWiiUCode()
@@ -42,8 +40,6 @@ void AXWiiUCode::HandleCommandList()
   u16 addr2_hi, addr2_lo;
   u16 volume;
 
-  u32 pb_addr = 0;
-
   // WARN_LOG(DSPHLE, "Command list:");
   // for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
   //     WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
@@ -55,196 +51,96 @@ void AXWiiUCode::HandleCommandList()
   {
     u16 cmd = m_cmdlist[curr_idx++];
 
-    if (m_old_axwii)
+    switch (cmd)
     {
-      switch (cmd)
-      {
-        // Some of these commands are unknown, or unused in this AX HLE.
-        // We still need to skip their arguments using "curr_idx += N".
+      // Some of these commands are unknown, or unused in this AX HLE.
+      // We still need to skip their arguments using "curr_idx += N".
 
-      case CMD_SETUP_OLD:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        SetupProcessing(HILO_TO_32(addr));
-        break;
+    case CMD_SETUP:
+      addr_hi = m_cmdlist[curr_idx++];
+      addr_lo = m_cmdlist[curr_idx++];
+      SetupProcessing(HILO_TO_32(addr));
+      break;
 
-      case CMD_ADD_TO_LR_OLD:
-      case CMD_SUB_TO_LR_OLD:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR_OLD);
-        break;
+    case CMD_ADD_TO_LR:
+    case CMD_SUB_TO_LR:
+      addr_hi = m_cmdlist[curr_idx++];
+      addr_lo = m_cmdlist[curr_idx++];
+      AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR);
+      break;
 
-      case CMD_ADD_SUB_TO_LR_OLD:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        AddSubToLR(HILO_TO_32(addr));
-        break;
+    case CMD_ADD_SUB_TO_LR:
+      addr_hi = m_cmdlist[curr_idx++];
+      addr_lo = m_cmdlist[curr_idx++];
+      AddSubToLR(HILO_TO_32(addr));
+      break;
 
-      case CMD_PB_ADDR_OLD:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        pb_addr = HILO_TO_32(addr);
-        break;
+    case CMD_PROCESS:
+      addr_hi = m_cmdlist[curr_idx++];
+      addr_lo = m_cmdlist[curr_idx++];
+      ProcessPBList(HILO_TO_32(addr));
+      break;
 
-      case CMD_PROCESS_OLD:
-        ProcessPBList(pb_addr);
-        break;
+    case CMD_MIX_AUXA:
+    case CMD_MIX_AUXB:
+    case CMD_MIX_AUXC:
+      volume = m_cmdlist[curr_idx++];
+      addr_hi = m_cmdlist[curr_idx++];
+      addr_lo = m_cmdlist[curr_idx++];
+      addr2_hi = m_cmdlist[curr_idx++];
+      addr2_lo = m_cmdlist[curr_idx++];
+      MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
+      break;
 
-      case CMD_MIX_AUXA_OLD:
-      case CMD_MIX_AUXB_OLD:
-      case CMD_MIX_AUXC_OLD:
-        volume = m_cmdlist[curr_idx++];
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        addr2_hi = m_cmdlist[curr_idx++];
-        addr2_lo = m_cmdlist[curr_idx++];
-        MixAUXSamples(cmd - CMD_MIX_AUXA_OLD, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
-        break;
-
-      case CMD_UPL_AUXA_MIX_LRSC_OLD:
-      case CMD_UPL_AUXB_MIX_LRSC_OLD:
-      {
-        volume = m_cmdlist[curr_idx++];
-        u32 addresses[6] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-            (u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
-            (u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
-        };
-        curr_idx += 12;
-        UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC_OLD, addresses, volume);
-        break;
-      }
-
-      // TODO(delroth): figure this one out, it's used by almost every
-      // game I've tested so far.
-      case CMD_UNK_0B_OLD:
-        curr_idx += 4;
-        break;
-
-      case CMD_OUTPUT_OLD:
-      case CMD_OUTPUT_DPL2_OLD:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        addr2_hi = m_cmdlist[curr_idx++];
-        addr2_lo = m_cmdlist[curr_idx++];
-        OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), 0x8000, cmd == CMD_OUTPUT_DPL2_OLD);
-        break;
-
-      case CMD_WM_OUTPUT_OLD:
-      {
-        u32 addresses[4] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-        };
-        curr_idx += 8;
-        OutputWMSamples(addresses);
-        break;
-      }
-
-      case CMD_END_OLD:
-        end = true;
-        break;
-      }
+    case CMD_UPL_AUXA_MIX_LRSC:
+    case CMD_UPL_AUXB_MIX_LRSC:
+    {
+      volume = m_cmdlist[curr_idx++];
+      u32 addresses[6] = {
+          (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+          (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+          (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+          (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+          (u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
+          (u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
+      };
+      curr_idx += 12;
+      UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC, addresses, volume);
+      break;
     }
-    else
+
+    // TODO(delroth): figure this one out, it's used by almost every
+    // game I've tested so far.
+    case CMD_UNK_0A:
+      curr_idx += 4;
+      break;
+
+    case CMD_OUTPUT:
+    case CMD_OUTPUT_DPL2:
+      volume = m_cmdlist[curr_idx++];
+      addr_hi = m_cmdlist[curr_idx++];
+      addr_lo = m_cmdlist[curr_idx++];
+      addr2_hi = m_cmdlist[curr_idx++];
+      addr2_lo = m_cmdlist[curr_idx++];
+      OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), volume, cmd == CMD_OUTPUT_DPL2);
+      break;
+
+    case CMD_WM_OUTPUT:
     {
-      switch (cmd)
-      {
-        // Some of these commands are unknown, or unused in this AX HLE.
-        // We still need to skip their arguments using "curr_idx += N".
+      u32 addresses[4] = {
+          (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+          (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+          (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+          (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+      };
+      curr_idx += 8;
+      OutputWMSamples(addresses);
+      break;
+    }
 
-      case CMD_SETUP:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        SetupProcessing(HILO_TO_32(addr));
-        break;
-
-      case CMD_ADD_TO_LR:
-      case CMD_SUB_TO_LR:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR);
-        break;
-
-      case CMD_ADD_SUB_TO_LR:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        AddSubToLR(HILO_TO_32(addr));
-        break;
-
-      case CMD_PROCESS:
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        ProcessPBList(HILO_TO_32(addr));
-        break;
-
-      case CMD_MIX_AUXA:
-      case CMD_MIX_AUXB:
-      case CMD_MIX_AUXC:
-        volume = m_cmdlist[curr_idx++];
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        addr2_hi = m_cmdlist[curr_idx++];
-        addr2_lo = m_cmdlist[curr_idx++];
-        MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
-        break;
-
-      case CMD_UPL_AUXA_MIX_LRSC:
-      case CMD_UPL_AUXB_MIX_LRSC:
-      {
-        volume = m_cmdlist[curr_idx++];
-        u32 addresses[6] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-            (u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
-            (u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
-        };
-        curr_idx += 12;
-        UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC, addresses, volume);
-        break;
-      }
-
-      // TODO(delroth): figure this one out, it's used by almost every
-      // game I've tested so far.
-      case CMD_UNK_0A:
-        curr_idx += 4;
-        break;
-
-      case CMD_OUTPUT:
-      case CMD_OUTPUT_DPL2:
-        volume = m_cmdlist[curr_idx++];
-        addr_hi = m_cmdlist[curr_idx++];
-        addr_lo = m_cmdlist[curr_idx++];
-        addr2_hi = m_cmdlist[curr_idx++];
-        addr2_lo = m_cmdlist[curr_idx++];
-        OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), volume, cmd == CMD_OUTPUT_DPL2);
-        break;
-
-      case CMD_WM_OUTPUT:
-      {
-        u32 addresses[4] = {
-            (u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-            (u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-            (u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-            (u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-        };
-        curr_idx += 8;
-        OutputWMSamples(addresses);
-        break;
-      }
-
-      case CMD_END:
-        end = true;
-        break;
-      }
+    case CMD_END:
+      end = true;
+      break;
     }
   }
 }
@@ -382,71 +278,8 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nval
   }
 }
 
-bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
-                                      u32* updates_addr)
-{
-  auto pb_mem = Common::BitCastToArray<u16>(pb);
-
-  if (!m_old_axwii)
-    return false;
-
-  // Copy the num_updates field.
-  memcpy(num_updates, &pb_mem[41], 6);
-
-  // Get the address of the updates data
-  u16 addr_hi = pb_mem[44];
-  u16 addr_lo = pb_mem[45];
-  u32 addr = HILO_TO_32(addr);
-  u16* ptr = (u16*)HLEMemory_Get_Pointer(addr);
-
-  *updates_addr = addr;
-
-  // Copy the updates data and change the offset to match a PB without
-  // updates data.
-  u32 updates_count = num_updates[0] + num_updates[1] + num_updates[2];
-  for (u32 i = 0; i < updates_count; ++i)
-  {
-    u16 update_off = Common::swap16(ptr[2 * i]);
-    u16 update_val = Common::swap16(ptr[2 * i + 1]);
-
-    if (update_off > 45)
-      update_off -= 5;
-
-    updates[2 * i] = update_off;
-    updates[2 * i + 1] = update_val;
-  }
-
-  // Remove the updates data from the PB
-  memmove(&pb_mem[41], &pb_mem[46], sizeof(pb) - 2 * 46);
-
-  Common::BitCastFromArray<u16>(pb_mem, pb);
-
-  return true;
-}
-
-void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
-{
-  auto pb_mem = Common::BitCastToArray<u16>(pb);
-
-  // Make some space
-  memmove(&pb_mem[46], &pb_mem[41], sizeof(pb) - 2 * 46);
-
-  // Reinsert previous values
-  pb_mem[41] = num_updates[0];
-  pb_mem[42] = num_updates[1];
-  pb_mem[43] = num_updates[2];
-  pb_mem[44] = updates_addr >> 16;
-  pb_mem[45] = updates_addr & 0xFFFF;
-
-  Common::BitCastFromArray<u16>(pb_mem, pb);
-}
-
 void AXWiiUCode::ProcessPBList(u32 pb_addr)
 {
-  // Samples per millisecond. In theory DSP sampling rate can be changed from
-  // 32KHz to 48KHz, but AX always process at 32KHz.
-  constexpr u32 spms = 32;
-
   AXPBWii pb;
 
   while (pb_addr)
@@ -461,28 +294,8 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 
     ReadPB(pb_addr, pb, m_crc);
 
-    u16 num_updates[3];
-    u16 updates[1024];
-    u32 updates_addr;
-    if (ExtractUpdatesFields(pb, num_updates, updates, &updates_addr))
-    {
-      for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
-      {
-        ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
-        ProcessVoice(pb, buffers, spms, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                     m_coeffs_available ? m_coeffs : nullptr);
-
-        // Forward the buffers
-        for (auto& ptr : buffers.ptrs)
-          ptr += spms;
-      }
-      ReinjectUpdatesFields(pb, num_updates, updates_addr);
-    }
-    else
-    {
-      ProcessVoice(pb, buffers, 96, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                   m_coeffs_available ? m_coeffs : nullptr);
-    }
+    ProcessVoice(pb, buffers, 96, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+                 m_coeffs_available ? m_coeffs : nullptr);
 
     WritePB(pb_addr, pb, m_crc);
     pb_addr = HILO_TO_32(pb.next_pb);
