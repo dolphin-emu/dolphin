@@ -17,6 +17,7 @@
 + (void)stopEmulation;
 + (CGFloat)getGameAspectRatio;
 + (CGRect)getRenderTargetRectangle;
++ (void)setDrawRectangleCustomOriginAsX:(int)x y:(int)y;
 + (void)windowResized;
 + (void)gamepadEventForButton:(int)button action:(int)action;
 + (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value;
