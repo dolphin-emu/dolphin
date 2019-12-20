@@ -726,6 +726,12 @@ std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
   return std::make_tuple(scaled_width, scaled_height);
 }
 
+void Renderer::SetDrawRectangleCustomOrigin(int left, int top)
+{
+  m_target_rectangle_origin_left = left;
+  m_target_rectangle_origin_top = top;
+}
+
 void Renderer::UpdateDrawRectangle()
 {
   const float draw_aspect_ratio = CalculateDrawAspectRatio();
@@ -796,8 +802,24 @@ void Renderer::UpdateDrawRectangle()
   draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
   draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
 
-  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
-  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
+  if (m_target_rectangle_origin_left != 0)
+  {
+    m_target_rectangle.left = m_target_rectangle_origin_left;
+  }
+  else
+  {
+    m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
+  }
+
+  if (m_target_rectangle_origin_top != 0)
+  {
+    m_target_rectangle.top = m_target_rectangle_origin_top;
+  }
+  else
+  {
+    m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
+  }
+
   m_target_rectangle.right = m_target_rectangle.left + static_cast<int>(draw_width);
   m_target_rectangle.bottom = m_target_rectangle.top + static_cast<int>(draw_height);
 }

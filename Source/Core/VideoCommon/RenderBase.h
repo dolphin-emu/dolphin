@@ -180,6 +180,7 @@ public:
                                    int fb_height);
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
+  void SetDrawRectangleCustomOrigin(int left, int top);
   void UpdateDrawRectangle();
 
   std::tuple<float, float> ApplyStandardAspectCrop(float width, float height) const;
@@ -318,6 +319,8 @@ protected:
   int m_backbuffer_height = 0;
   float m_backbuffer_scale = 1.0f;
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
+  int m_target_rectangle_origin_left = 0;
+  int m_target_rectangle_origin_top = 0;
   MathUtil::Rectangle<int> m_target_rectangle = {};
   int m_frame_count = 0;
 

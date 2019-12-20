@@ -367,6 +367,15 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   return CGRectMake(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
 }
 
++ (void)setDrawRectangleCustomOriginAsX:(int)x y:(int)y
+{
+  if (!g_renderer)
+    return;
+  
+  g_renderer->SetDrawRectangleCustomOrigin(x, y);
+  g_renderer->UpdateDrawRectangle();
+}
+
 + (void)windowResized
 {
   if (g_renderer)

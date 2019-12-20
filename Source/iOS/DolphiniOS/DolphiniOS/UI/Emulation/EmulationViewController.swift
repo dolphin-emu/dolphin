@@ -14,7 +14,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
   
   public var m_visible_controller = 0
   
-  let controller_setup_queue = DispatchQueue(label: "org.dolphin-emu.ios.tscon-setup-queue")
+  let setup_queue = DispatchQueue(label: "org.dolphin-emu.ios.setup-queue")
   
   @IBOutlet weak var m_metal_view: MTKView!
   @IBOutlet weak var m_eagl_view: EAGLView!
@@ -86,7 +86,6 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     
     if (self.isWii)
     {
-      self.setupWiimotePointer()
       TCDeviceMotion.shared.registerMotionHandlers()
     }
     
@@ -106,6 +105,11 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     }
   }
   
+  override func viewWillLayoutSubviews()
+  {
+    self.adjustRenderRectDependencies()
+  }
+  
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
   {
     super.viewWillTransition(to: size, with: coordinator)
@@ -115,17 +119,17 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     coordinator.animate(alongsideTransition: nil, completion: { _ in
       if (self.isWii)
       {
-        self.setupWiimotePointer()
         TCDeviceMotion.shared.statusBarOrientationChanged()
       }
       
+      self.adjustRenderRectDependencies()
       MainiOS.windowResized()
     })
   }
   
-  func setupWiimotePointer()
+  func adjustRenderRectDependencies()
   {
-    controller_setup_queue.async
+    setup_queue.async
     {
       let target_rectangle = MainiOS.getRenderTargetRectangle()
       
@@ -139,9 +143,31 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
         }
       }
       
-      // Set the Wiimote pointer values
       DispatchQueue.main.sync
       {
+        // Only adjust the render rectangle if our width size class is compact and our
+        // orientation is portrait
+        if (self.traitCollection.horizontalSizeClass == .compact && UIApplication.shared.statusBarOrientation.isPortrait)
+        {
+          // Get view information
+          let screen_scale = UIScreen.main.scale
+          let view_origin = self.view.bounds.origin
+          
+          // Get the X coordinate
+          let x = view_origin.x * screen_scale
+          
+          // Get the Y coordinate as the navigation bar height plus an offset
+          let y_offset: CGFloat = 20.0
+          let y = (self.navigationController!.navigationBar.bounds.height + y_offset) * screen_scale
+          
+          MainiOS.setDrawRectangleCustomOriginAsX(Int32(x), y: Int32(y))
+        }
+        else
+        {
+          // Don't adjust the rectangle
+          MainiOS.setDrawRectangleCustomOriginAsX(0, y: 0)
+        }
+        
         for view in self.m_wii_controllers
         {
           let wii_pad = view as? TCWiiPad
