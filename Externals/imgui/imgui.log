@@ -1,4 +1,1 @@
-﻿  imgui.cpp
-  imgui_draw.cpp
-  imgui_widgets.cpp
-  imgui.vcxproj -> D:\Git\Retro Nintendo Online\dolphin\Source\..\Build\x64\Release\imgui\bin\imgui.lib
+﻿  imgui.vcxproj -> E:\Git\Retro Nintendo Online\dolphin-rno\Source\..\Build\x64\Release\imgui\bin\imgui.lib

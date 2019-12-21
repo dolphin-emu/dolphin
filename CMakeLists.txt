@@ -12,7 +12,7 @@ project(dolphin-emu)
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
 # unique name here.
-set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+set(DISTRIBUTOR "Retro Nintendo Online" CACHE STRING "Retro Nintendo Online")
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   option(ENABLE_X11 "Enables X11 Support" ON)

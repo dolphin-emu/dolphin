@@ -18,15 +18,26 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-const std::string scm_rev_str = ""
-#if !SCM_IS_MASTER
-                                ""
-#endif
+//const std::string scm_rev_str = ""
+//#if !SCM_IS_MASTER
+//                                ""
+//#endif
+//
+//#ifdef __INTEL_COMPILER
+//    BUILD_TYPE_STR SCM_DESC_STR "-ICC";
+//#else
+//    BUILD_TYPE_STR SCM_DESC_STR;
+//#endif
 
-#ifdef __INTEL_COMPILER
-    BUILD_TYPE_STR SCM_DESC_STR "-ICC";
+#define RNO_REV_STR "r1"
+const std::string scm_rev_str = "Dolphin RNO - (" RNO_REV_STR ")";
+
+#ifdef _WIN32
+const std::string netplay_dolphin_ver = "Dol RNO -" RNO_REV_STR " - Win32";
+#elif __APPLE__
+const std::string netplay_dolphin_ver = "Dol RNO -" RNO_REV_STR " - macOS";
 #else
-    BUILD_TYPE_STR SCM_DESC_STR;
+const std::string netplay_dolphin_ver = "Dol RNO -" RNO_REV_STR " - GNU Linux";
 #endif
 
 const std::string scm_rev_git_str = SCM_REV_STR;
@@ -34,11 +45,11 @@ const std::string scm_desc_str = SCM_DESC_STR;
 const std::string scm_branch_str = SCM_BRANCH_STR;
 const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
 
-#ifdef _WIN32
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Windows";
-#elif __APPLE__
-const std::string netplay_dolphin_ver = SCM_DESC_STR " macOS";
-#else
-const std::string netplay_dolphin_ver = SCM_DESC_STR " GNU-Linux";
-#endif
+//#ifdef _WIN32
+//const std::string netplay_dolphin_ver = SCM_DESC_STR " Windows";
+//#elif __APPLE__
+//const std::string netplay_dolphin_ver = SCM_DESC_STR " macOS";
+//#else
+//const std::string netplay_dolphin_ver = SCM_DESC_STR " GNU-Linux";
+//#endif
 }  // namespace Common
