@@ -385,13 +385,13 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nval
 bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
                                       u32* updates_addr)
 {
-  u16* pb_mem = (u16*)&pb;
+  auto pb_mem = Common::BitCastToArray<u16>(pb);
 
   if (!m_old_axwii)
     return false;
 
   // Copy the num_updates field.
-  memcpy(num_updates, pb_mem + 41, 6);
+  memcpy(num_updates, &pb_mem[41], 6);
 
   // Get the address of the updates data
   u16 addr_hi = pb_mem[44];
@@ -417,17 +417,19 @@ bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* update
   }
 
   // Remove the updates data from the PB
-  memmove(pb_mem + 41, pb_mem + 46, sizeof(pb) - 2 * 46);
+  memmove(&pb_mem[41], &pb_mem[46], sizeof(pb) - 2 * 46);
+
+  Common::BitCastFromArray<u16>(pb_mem, pb);
 
   return true;
 }
 
 void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
 {
-  u16* pb_mem = (u16*)&pb;
+  auto pb_mem = Common::BitCastToArray<u16>(pb);
 
   // Make some space
-  memmove(pb_mem + 46, pb_mem + 41, sizeof(pb) - 2 * 46);
+  memmove(&pb_mem[46], &pb_mem[41], sizeof(pb) - 2 * 46);
 
   // Reinsert previous values
   pb_mem[41] = num_updates[0];
@@ -435,10 +437,16 @@ void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 update
   pb_mem[43] = num_updates[2];
   pb_mem[44] = updates_addr >> 16;
   pb_mem[45] = updates_addr & 0xFFFF;
+
+  Common::BitCastFromArray<u16>(pb_mem, pb);
 }
 
 void AXWiiUCode::ProcessPBList(u32 pb_addr)
 {
+  // Samples per millisecond. In theory DSP sampling rate can be changed from
+  // 32KHz to 48KHz, but AX always process at 32KHz.
+  constexpr u32 spms = 32;
+
   AXPBWii pb;
 
   while (pb_addr)
@@ -460,13 +468,13 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     {
       for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
       {
-        ApplyUpdatesForMs(curr_ms, (u16*)&pb, num_updates, updates);
-        ProcessVoice(pb, buffers, 32, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+        ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
+        ProcessVoice(pb, buffers, spms, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
                      m_coeffs_available ? m_coeffs : nullptr);
 
         // Forward the buffers
         for (auto& ptr : buffers.ptrs)
-          ptr += 32;
+          ptr += spms;
       }
       ReinjectUpdatesFields(pb, num_updates, updates_addr);
     }
