@@ -21,9 +21,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 13:43+0100\n"
-"PO-Revision-Date: 2019-11-28 12:43+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2019-12-21 12:12+0100\n"
+"PO-Revision-Date: 2019-12-16 20:00+0000\n"
+"Last-Translator: MS-PC\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -257,7 +257,7 @@ msgstr ""
 "Se han encontrado %s IPL en la carpeta %s. Puede que el disco no pueda "
 "reconocerse."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:219
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:221
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -266,7 +266,7 @@ msgstr ""
 "%s no es una carpeta, hubo un error al mover a *.original.\n"
 "Verifica tus permisos de escritura o mueve el archivo de forma manual"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:210
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:212
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s no era una carpeta, se ha movido a *.original"
@@ -1765,7 +1765,7 @@ msgstr "Botones clásicos"
 msgid "Classic Controller"
 msgstr "Mando clásico"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
@@ -2426,7 +2426,7 @@ msgstr "Configuración predeterminada (solo lectura)"
 msgid "Default Device"
 msgstr "Dispositivo predeterminado"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Default Font"
 msgstr "Tipografía predeterminada"
 
@@ -2476,7 +2476,7 @@ msgid "Delete Selected Files..."
 msgstr "Borrar archivos seleccionados..."
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:112
+#: Source/Core/VideoCommon/FrameDump.cpp:114
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "¿Borrar el archivo «%s»?"
@@ -3427,23 +3427,23 @@ msgstr "Salir"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:557
 msgid "Expected arguments: "
-msgstr ""
+msgstr "Argumentos esperados:"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:681
 msgid "Expected closing paren."
-msgstr ""
+msgstr "Se espera el paréntesis de cierre."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:544
 msgid "Expected comma."
-msgstr ""
+msgstr "Coma esperada."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:476
 msgid "Expected end of expression."
-msgstr ""
+msgstr "Fin esperado de la expresión."
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:611
 msgid "Expected start of expression."
-msgstr ""
+msgstr "Inicio esperado de la expresión."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:124
 msgid "Experimental"
@@ -4107,7 +4107,7 @@ msgstr ""
 msgid "Frame Range"
 msgstr "Información de la grabación"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1607
+#: Source/Core/VideoCommon/RenderBase.cpp:1608
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Ya existe un volcado de imagen(es) llamado «%s». ¿Quieres sustituirlo?"
@@ -4213,7 +4213,7 @@ msgstr "Llamadas de función"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:270
 msgid "Functions"
-msgstr ""
+msgstr "Funciones"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
 msgid "GBA"
@@ -5107,19 +5107,19 @@ msgstr "Latencia:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:431
 msgid "Latency: ~10ms"
-msgstr ""
+msgstr "Latencia: ~10ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:433
 msgid "Latency: ~20ms"
-msgstr ""
+msgstr "Latencia: ~20ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:437
 msgid "Latency: ~40ms"
-msgstr ""
+msgstr "Latencia: ~40ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:435
 msgid "Latency: ~80ms"
-msgstr ""
+msgstr "Latencia: ~80ms"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:34
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:37
@@ -5230,7 +5230,7 @@ msgstr "Cargar último estado"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:214
 msgid "Load Path:"
-msgstr ""
+msgstr "Ruta de carga:"
 
 #: Source/Core/Core/HotkeyManager.cpp:186
 #: Source/Core/Core/HotkeyManager.cpp:298
@@ -5409,6 +5409,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Registra el tiempo de renderizado de cada fotograma en User/Logs/render_time."
+"txt.\n"
+"\n"
+"Use esta función cuando mida el rendimiento de Dolphin.\n"
+"\n"
+"Si no está seguro, deje esto sin marcar."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:946
 msgid "Lost connection to NetPlay server..."
@@ -5626,7 +5632,7 @@ msgstr ""
 msgid "Monoscopic Shadows"
 msgstr "Sombras monoscópicas"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Monospaced Font"
 msgstr "Tipografía monoespaciada"
 
@@ -7263,7 +7269,7 @@ msgstr "Elige dónde guardar la imagen descomprimida"
 msgid "Select where you want to save the decompressed images"
 msgstr "Seleccione dónde desea guardar las imágenes descomprimidas"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
 msgstr "Tipografía seleccionada"
 
@@ -7464,7 +7470,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Ajustes"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:286
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:291
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: No puedo crear archivo setting.txt"
 
@@ -9772,7 +9778,7 @@ msgstr "Archivos de partida Wii (*.bin);;Todos los archivos (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 msgid "Word Wrap"
 msgstr "Ajuste de línea"
 
@@ -9854,7 +9860,7 @@ msgstr "Amarillo"
 msgid "Yes"
 msgstr "Sí"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:350
+#: Source/Core/VideoBackends/Vulkan/main.cpp:351
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 13:43+0100\n"
-"PO-Revision-Date: 2019-11-28 12:43+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2019-12-21 12:12+0100\n"
+"PO-Revision-Date: 2019-12-07 11:17+0000\n"
+"Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
 "Language: it\n"
@@ -244,7 +244,7 @@ msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
 "%s IPL trovato nella directory %s. Il disco potrebbe non venire riconosciuto"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:219
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:221
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -254,7 +254,7 @@ msgstr ""
 " Si prega di verificare i permessi di scrittura o di spostare il file al di "
 "fuori di Dolphin"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:210
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:212
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s non è una directory, spostato in *.original"
@@ -1762,7 +1762,7 @@ msgstr "Pulsanti Classic Controller"
 msgid "Classic Controller"
 msgstr "Controller Classico"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
@@ -2427,7 +2427,7 @@ msgstr "Configurazione di Default (Sola Lettura)"
 msgid "Default Device"
 msgstr "Dispositivo Predefinito"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Default Font"
 msgstr "Font Predefinito"
 
@@ -2477,7 +2477,7 @@ msgid "Delete Selected Files..."
 msgstr "Elimina i File Selezionati..."
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:112
+#: Source/Core/VideoCommon/FrameDump.cpp:114
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "Eliminare il file esistente '%s'?"
@@ -3479,11 +3479,11 @@ msgstr "Esporta File di Salvataggio"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:361
 msgid "Export Wii Save"
-msgstr ""
+msgstr "Esporta Salvataggio Wii"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:285
 msgid "Export Wii Saves"
-msgstr ""
+msgstr "Esporta Salvataggi Wii"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1038
 #, c-format
@@ -4116,7 +4116,7 @@ msgstr "Dumping dei Frame"
 msgid "Frame Range"
 msgstr "Intervallo Fotogramma"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1607
+#: Source/Core/VideoCommon/RenderBase.cpp:1608
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "L'immagine del(dei) frame '%s' esiste già. Vuoi Sovrascrivere?"
@@ -5660,7 +5660,7 @@ msgstr ""
 msgid "Monoscopic Shadows"
 msgstr "Ombre Monoscopiche"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Monospaced Font"
 msgstr "Carattere a spaziatura fissa"
 
@@ -7303,7 +7303,7 @@ msgstr "Seleziona dove vuoi salvare l'immagine decompressa"
 msgid "Select where you want to save the decompressed images"
 msgstr "Seleziona dove vuoi salvare le immagini decompresse"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
 msgstr "Font Selezionato"
 
@@ -7522,7 +7522,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:286
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:291
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Impossibile creare il file setting.txt"
 
@@ -7858,6 +7858,8 @@ msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
 msgstr ""
+"Alcuni dati di riempimento che dovrebbero essere zero non sono zero. Il "
+"gioco potrebbe bloccarsi in certi punti."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:225
 msgid ""
@@ -9870,7 +9872,7 @@ msgstr "File di salvataggio Wii (*.bin);;Tutti i File (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr "File WIITools Signature MEGA"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 msgid "Word Wrap"
 msgstr "Adatta Testo"
 
@@ -9952,7 +9954,7 @@ msgstr "Giallo"
 msgid "Yes"
 msgstr "Sì"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:350
+#: Source/Core/VideoBackends/Vulkan/main.cpp:351
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

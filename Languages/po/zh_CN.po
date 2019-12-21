@@ -20,9 +20,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 13:43+0100\n"
-"PO-Revision-Date: 2019-11-28 12:43+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2019-12-21 12:12+0100\n"
+"PO-Revision-Date: 2019-11-30 15:23+0000\n"
+"Last-Translator: 天绝星 <c.cejhb@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
 "Language: zh_CN\n"
@@ -250,7 +250,7 @@ msgstr "%s （杰作）"
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL 位于 %s 目录中，光盘可能无法识别。"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:219
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:221
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -259,7 +259,7 @@ msgstr ""
 "%s 不是一个目录，未能移动至 *.original.\n"
 "请重新确认你的写入请求或者将其移动至 Dolphin 之外。"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:210
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:212
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s 不是一个目录，已移动至 *.original."
@@ -1730,7 +1730,7 @@ msgstr "传统按键"
 msgid "Classic Controller"
 msgstr "传统控制器"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
@@ -2372,7 +2372,7 @@ msgstr "默认配置 (只读)"
 msgid "Default Device"
 msgstr "默认设备"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Default Font"
 msgstr "默认字体"
 
@@ -2420,7 +2420,7 @@ msgid "Delete Selected Files..."
 msgstr "删除所选文件..."
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:112
+#: Source/Core/VideoCommon/FrameDump.cpp:114
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "删除已经存在的文件 '%s' 吗?"
@@ -3388,11 +3388,11 @@ msgstr "导出存档文件"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:361
 msgid "Export Wii Save"
-msgstr ""
+msgstr "导出 Wii 存档"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:285
 msgid "Export Wii Saves"
-msgstr ""
+msgstr "导出 Wii 存档"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1038
 #, c-format
@@ -4001,7 +4001,7 @@ msgstr "正在转储帧"
 msgid "Frame Range"
 msgstr "帧范围"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1607
+#: Source/Core/VideoCommon/RenderBase.cpp:1608
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "帧转储图像 '%s' 已经存在，是否覆盖?"
@@ -5517,7 +5517,7 @@ msgstr ""
 msgid "Monoscopic Shadows"
 msgstr "单视场阴影"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Monospaced Font"
 msgstr "等宽字体"
 
@@ -7135,7 +7135,7 @@ msgstr "选择要保存解压缩镜像的位置"
 msgid "Select where you want to save the decompressed images"
 msgstr "选择要保存解压缩镜像的位置"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
 msgstr "所选字体"
 
@@ -7342,7 +7342,7 @@ msgstr "设置延迟 (以毫秒计)。较高的值或将减少音频噼啪声。
 msgid "Settings"
 msgstr "设置"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:286
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:291
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: 无法创建 setting.txt 文件"
 
@@ -7673,7 +7673,7 @@ msgstr "软件渲染器"
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
-msgstr ""
+msgstr "一些应为零的填充数据没有为零。这会使游戏在某些节点处卡死。"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:225
 msgid ""
@@ -9593,7 +9593,7 @@ msgstr "Wii 存档文件 (*.bin);; 所有文件 (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools 签名 MEGA 文件"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 msgid "Word Wrap"
 msgstr "自动换行"
 
@@ -9675,7 +9675,7 @@ msgstr "黄"
 msgid "Yes"
 msgstr "是"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:350
+#: Source/Core/VideoBackends/Vulkan/main.cpp:351
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

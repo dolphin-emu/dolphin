@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 13:43+0100\n"
-"PO-Revision-Date: 2019-11-28 12:43+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2019-12-21 12:12+0100\n"
+"PO-Revision-Date: 2019-11-28 20:53+0000\n"
+"Last-Translator: Siegfried\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -244,7 +244,7 @@ msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
 "%s IPL이 발견되었습니다. 디렉토리: %s. 디스크가 인식되지 않은 것 같습니다"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:219
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:221
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -253,7 +253,7 @@ msgstr ""
 "%s 는 디렉토리가 아닙니다, *.original 로 옮길 수 없습니다.\n"
 "쓰기 권한을 검사하거나 파일을 돌핀 밖으로 옮기세요."
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:210
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:212
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s 는 디렉토리가 아닙니다, *.original 로 이동되었습니다."
@@ -1378,7 +1378,7 @@ msgstr "베이스"
 
 #: Source/Core/DolphinQt/Main.cpp:188
 msgid "Batch mode cannot be used without specifying a game to launch."
-msgstr ""
+msgstr "배치 모드는 시작할 게임 명시 없이는 사용될 수 없습니다."
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:256
 msgid "Battery"
@@ -1741,7 +1741,7 @@ msgstr "클래식 버튼"
 msgid "Classic Controller"
 msgstr "클래식 컨트롤러"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
@@ -2357,7 +2357,7 @@ msgstr "10 진수"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:99
 msgid "Decoding Quality:"
-msgstr ""
+msgstr "디코딩 품질:"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:310
 msgid "Decompress ISO..."
@@ -2401,7 +2401,7 @@ msgstr "기본 환경 (읽기 전용)"
 msgid "Default Device"
 msgstr "기본 장치"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Default Font"
 msgstr "기본 폰트"
 
@@ -2450,7 +2450,7 @@ msgid "Delete Selected Files..."
 msgstr "선택된 파일들 삭제..."
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:112
+#: Source/Core/VideoCommon/FrameDump.cpp:114
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "존재하는 파일 '%s' 를 삭제합니까?"
@@ -3441,11 +3441,11 @@ msgstr "저장 파일 내보내기"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:361
 msgid "Export Wii Save"
-msgstr ""
+msgstr "Wii 저장 내보내기"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:285
 msgid "Export Wii Saves"
-msgstr ""
+msgstr "Wii 저장들 내보내기"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1038
 #, c-format
@@ -4064,7 +4064,7 @@ msgstr "프레임 덤핑"
 msgid "Frame Range"
 msgstr "프레임 범위"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1607
+#: Source/Core/VideoCommon/RenderBase.cpp:1608
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "프레임 덤프 이미지(들) '%s' 가 이미 존재합니다. 덮어쓰시겠습니까?"
@@ -4458,7 +4458,7 @@ msgstr "높은"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:420
 msgid "Highest"
-msgstr ""
+msgstr "최고"
 
 #. i18n: Refers to how hard emulated drum pads are struck.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:67
@@ -5068,19 +5068,19 @@ msgstr "지연:"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:431
 msgid "Latency: ~10ms"
-msgstr ""
+msgstr "지연: ~10ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:433
 msgid "Latency: ~20ms"
-msgstr ""
+msgstr "지연: ~20ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:437
 msgid "Latency: ~40ms"
-msgstr ""
+msgstr "지연: ~40ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:435
 msgid "Latency: ~80ms"
-msgstr ""
+msgstr "지연: ~80ms"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:34
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:37
@@ -5136,6 +5136,8 @@ msgid ""
 "Left/Right-click to configure output.\n"
 "Middle-click to clear."
 msgstr ""
+"좌/우-클릭 출력 설정하기.\n"
+"중-클릭 지우기."
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:398
 msgid "Less or equal to"
@@ -5191,7 +5193,7 @@ msgstr "마지막 상태 로드"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:214
 msgid "Load Path:"
-msgstr ""
+msgstr "경로 로드:"
 
 #: Source/Core/Core/HotkeyManager.cpp:186
 #: Source/Core/Core/HotkeyManager.cpp:298
@@ -5387,7 +5389,7 @@ msgstr "낮은"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:416
 msgid "Lowest"
-msgstr ""
+msgstr "최하"
 
 #: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:44
 msgid "MD5 Checksum"
@@ -5590,7 +5592,7 @@ msgstr ""
 msgid "Monoscopic Shadows"
 msgstr "모노스코픽 그림자"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Monospaced Font"
 msgstr "단일띄어쓰기 폰트"
 
@@ -6445,7 +6447,7 @@ msgstr "서비스의 품질 (QoS) 이 성공적으로 활성화되었습니다."
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:107
 msgid "Quality of the DPLII decoder. Audio latency increases with quality."
-msgstr ""
+msgstr "DPLII 디코더의 품질. 오디오 지연이 품질로 증가합니다."
 
 #: Source/Core/Common/MsgHandler.cpp:90
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:419
@@ -6718,7 +6720,7 @@ msgstr "리소스 팩 매니저"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:225
 msgid "Resource Pack Path:"
-msgstr ""
+msgstr "리소스 팩 경로:"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:273
 msgid "Restart Required"
@@ -7100,11 +7102,11 @@ msgstr "마지막 상태 선택"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:78
 msgid "Select Load Path"
-msgstr ""
+msgstr "로드 경로 선택"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:89
 msgid "Select Resource Pack Path"
-msgstr ""
+msgstr "리소스 팩 경로 선택"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:389
 msgid "Select Slot %1 - %2"
@@ -7220,7 +7222,7 @@ msgstr "압축풀린 이미지를 저장하고 싶은 곳을 선택하세요"
 msgid "Select where you want to save the decompressed images"
 msgstr "압축풀린 이미지들을 저장하고 싶은 곳을 선택하세요"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
 msgstr "선택된 폰트"
 
@@ -7356,7 +7358,7 @@ msgstr "센서 바 위치:"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:316
 #, c-format
 msgid "Serial and/or version data is missing from %s"
-msgstr ""
+msgstr "%s 에 씨리얼 과/혹은 버전 데이터가 없습니다."
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:51
 msgid "Server IP Address"
@@ -7433,7 +7435,7 @@ msgstr ""
 msgid "Settings"
 msgstr "설정"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:286
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:291
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 
@@ -7767,6 +7769,8 @@ msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
 msgstr ""
+"제로여야할 일부 채우기 데이터가 제로가 아닙니다. 이것은 특정 지점들에서 게임"
+"을 얼게 만들 수 있습니다."
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:225
 msgid ""
@@ -9746,7 +9750,7 @@ msgstr "Wii 저장 파일 (*.bin);;모든 파일 (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools 서명 MEGA 파일"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 msgid "Word Wrap"
 msgstr "자동 줄바꿈"
 
@@ -9828,7 +9832,7 @@ msgstr "노랑"
 msgid "Yes"
 msgstr "예"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:350
+#: Source/Core/VideoBackends/Vulkan/main.cpp:351
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "
@@ -9950,11 +9954,11 @@ msgstr "유드로 게임태블릿"
 
 #: Source/Core/Core/NetPlayServer.cpp:1113
 msgid "{} failed to synchronize codes."
-msgstr ""
+msgstr "{} 코드 동기화에 실패했습니다."
 
 #: Source/Core/Core/NetPlayServer.cpp:1069
 msgid "{} failed to synchronize."
-msgstr ""
+msgstr "{} 동기화에 실패했습니다."
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:263
 msgid "| Or"

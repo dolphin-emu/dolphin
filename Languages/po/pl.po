@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 13:43+0100\n"
+"POT-Creation-Date: 2019-12-21 12:12+0100\n"
 "PO-Revision-Date: 2019-11-28 12:43+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Polish (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -234,7 +234,7 @@ msgstr "%s (Arcydzieło)"
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL znaleziony w %s folderze. Dysk może nie być rozpoznany"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:219
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:221
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -244,7 +244,7 @@ msgstr ""
 "Sprawdź swoje uprawnienia zapisu lub przenieś plik z miejsca, w którym "
 "znajduje się Dolphin"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:210
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:212
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s nie był folderem, przeniesiono do *.original"
@@ -1677,7 +1677,7 @@ msgstr ""
 msgid "Classic Controller"
 msgstr "Kontroler Klasyczny"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
@@ -2299,7 +2299,7 @@ msgstr ""
 msgid "Default Device"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Default Font"
 msgstr "Domyślna czcionka"
 
@@ -2341,7 +2341,7 @@ msgid "Delete Selected Files..."
 msgstr ""
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:112
+#: Source/Core/VideoCommon/FrameDump.cpp:114
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "Usunąć istniejący plik '%s'?"
@@ -3843,7 +3843,7 @@ msgstr "Zrzucanie klatek"
 msgid "Frame Range"
 msgstr "Zasięg klatki"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1607
+#: Source/Core/VideoCommon/RenderBase.cpp:1608
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Obraz(y) zrzutów klatek '%s' już istnieje. Zastąpić?"
@@ -5305,7 +5305,7 @@ msgstr ""
 msgid "Monoscopic Shadows"
 msgstr "Monoskopowe cienie"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Monospaced Font"
 msgstr ""
 
@@ -6899,7 +6899,7 @@ msgstr "Wybierz miejsce gdzie chcesz zapisać zdekompresowany obraz"
 msgid "Select where you want to save the decompressed images"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
 msgstr "Wybierz czcionkę"
 
@@ -7078,7 +7078,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Ustawienia"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:286
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:291
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMem: Nie można utworzyć pliku setting.txt"
 
@@ -9191,7 +9191,7 @@ msgstr "Pliki zapisu Wii (*.bin);Wszystkie pliki (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 msgid "Word Wrap"
 msgstr "Zawijanie wierszy"
 
@@ -9273,7 +9273,7 @@ msgstr "Żółty"
 msgid "Yes"
 msgstr "Tak"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:350
+#: Source/Core/VideoBackends/Vulkan/main.cpp:351
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "

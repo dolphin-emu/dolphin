@@ -10,9 +10,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 13:43+0100\n"
-"PO-Revision-Date: 2019-11-28 12:43+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2019-12-21 12:12+0100\n"
+"PO-Revision-Date: 2019-11-28 13:26+0000\n"
+"Last-Translator: mansoor <asseryma@hotmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
 "Language: ar\n"
@@ -243,7 +243,7 @@ msgstr "%s (Masterpiece)"
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL found in %s directory. The disc might not be recognized"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:219
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:221
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -252,7 +252,7 @@ msgstr ""
 "%s  ليس دليلا ، فشل في الانتقال إلى *. الأصل.\n"
 "التحقق من أذونات الكتابة أو نقل الملف خارج الدلفين"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:210
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:212
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s لم يكن دليلا ، انتقلت إلى *. الأصل"
@@ -1745,7 +1745,7 @@ msgstr "أزرار كلاسيكية"
 msgid "Classic Controller"
 msgstr "Classic Controller"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:110
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:104
@@ -2407,7 +2407,7 @@ msgstr "(Read Only) التكوين الافتراضي"
 msgid "Default Device"
 msgstr "الجهاز الافتراضي"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Default Font"
 msgstr "الخط الافتراضي"
 
@@ -2457,7 +2457,7 @@ msgid "Delete Selected Files..."
 msgstr "حذف الملفات المحددة"
 
 #: Source/Core/AudioCommon/WaveFile.cpp:34
-#: Source/Core/VideoCommon/FrameDump.cpp:112
+#: Source/Core/VideoCommon/FrameDump.cpp:114
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "حذف الملف الموجود '%s'?"
@@ -3449,11 +3449,11 @@ msgstr "تصدير حفظ الملف"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:361
 msgid "Export Wii Save"
-msgstr ""
+msgstr "تصدير حفظ وي"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:285
 msgid "Export Wii Saves"
-msgstr ""
+msgstr "تصدير حفظ وي"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1038
 #, c-format
@@ -4072,7 +4072,7 @@ msgstr "تفريغ الإطار"
 msgid "Frame Range"
 msgstr "مجموعة الإطار "
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1607
+#: Source/Core/VideoCommon/RenderBase.cpp:1608
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Frame dump image(s) '%s' already exists. Overwrite?"
@@ -4714,7 +4714,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:219
 msgid "In-Game?"
-msgstr "في اللعبة"
+msgstr "في اللعبة؟"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:251
 msgid ""
@@ -4888,7 +4888,7 @@ msgstr "رمز غير صالح"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:302
 msgid "Invalid callstack"
-msgstr "Invalid callstack"
+msgstr "مكدس استدعاء غير صالح"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:588
 msgid "Invalid checksums."
@@ -5606,9 +5606,9 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:131
 msgid "Monoscopic Shadows"
-msgstr "Monoscopic Shadows"
+msgstr "أحادي الظلال"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Monospaced Font"
 msgstr "خط أحادي المسافة"
 
@@ -6141,7 +6141,7 @@ msgstr "تقسيم %1"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:114
 msgid "Passive"
-msgstr "Passive"
+msgstr "مبني للمجهول"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
 msgid "Passthrough a Bluetooth adapter"
@@ -6157,7 +6157,7 @@ msgstr "(leave empty for none) كلمه المرور للانضمام إلى ل�
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:218
 msgid "Password?"
-msgstr "كلمة المرور"
+msgstr "كلمة المرور؟"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:23
 msgid "Patch Editor"
@@ -6297,7 +6297,7 @@ msgstr "بعد معالجة التأثير"
 
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:45
 msgid "Post-Processing Shader Configuration"
-msgstr "Post-Processing Shader Configuration"
+msgstr "التكوين بعد تظليل"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
 msgid "Prefetch Custom Textures"
@@ -6391,7 +6391,7 @@ msgstr "التشكيل الجانبي السابق لريموت وي 4"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:92
 msgid "Private"
-msgstr "خاصه"
+msgstr "خاصة"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:91
 msgid "Private and Public"
@@ -7127,7 +7127,7 @@ msgstr "حدد مسار حزمة الموارد"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:389
 msgid "Select Slot %1 - %2"
-msgstr "حدد الفتحة %1 - %2"
+msgstr "%1 - %2 حدد الفتحة"
 
 #: Source/Core/Core/HotkeyManager.cpp:300
 msgid "Select State"
@@ -7179,7 +7179,7 @@ msgstr "حفظ حالة 9"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:56
 msgid "Select Wii NAND Root"
-msgstr "Select Wii NAND Root"
+msgstr "NAND حدد جذر وي "
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:204
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:37
@@ -7199,7 +7199,7 @@ msgstr "اختر لعبة"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:101
 msgid "Select a SD Card Image"
-msgstr "Select a SD Card Image"
+msgstr "SD Card حدد صورة"
 
 #: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:17
 msgid "Select a game"
@@ -7216,7 +7216,7 @@ msgstr "حدد ملف التسجيل"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1532
 msgid "Select the keys file (OTP/SEEPROM dump)"
-msgstr "حدد ملف المفاتيح (OTP/SEEPROM dump)"
+msgstr "(OTP/SEEPROM dump) حدد ملف المفاتيح"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1505
 #: Source/Core/DolphinQt/MenuBar.cpp:1006
@@ -7239,7 +7239,7 @@ msgstr "حدد المكان الذي تريد حفظ الصورة التي تم 
 msgid "Select where you want to save the decompressed images"
 msgstr "حدد المكان الذي تريد حفظ الصور التي تم فك ضغطها"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
 msgstr "الخط المحدد"
 
@@ -7454,7 +7454,7 @@ msgstr ""
 msgid "Settings"
 msgstr "إعدادات"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:286
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:291
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Can't create setting.txt file"
 
@@ -7789,6 +7789,8 @@ msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
 msgstr ""
+"بعض بيانات الحشو التي يجب أن تكون صفرا ليست صفرا. هذا يمكن أن يجعل اللعبة "
+"تتجمد في نقاط معينة"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:225
 msgid ""
@@ -8772,7 +8774,7 @@ msgstr "لم يتم توقيع هذا العنوان بشكل صحيح"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:930
 msgid "This title is set to use an invalid IOS."
-msgstr "This title is set to use an invalid IOS."
+msgstr "تم تعيين هذا العنوان لاستخدام نظام تشغيل غير صالح."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DiscIO/VolumeVerifier.cpp:944
@@ -8925,7 +8927,7 @@ msgstr "SD Card تبديل"
 
 #: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Toggle Texture Dumping"
-msgstr "Toggle Texture Dumping"
+msgstr "تبديل تفريغ النسيج"
 
 #: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Toggle USB Keyboard"
@@ -9770,7 +9772,7 @@ msgstr "ملفات حفظ وي (*.bin);;كل الملفات (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools Signature MEGA File"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 msgid "Word Wrap"
 msgstr "التفاف"
 
@@ -9852,7 +9854,7 @@ msgstr "أصفر"
 msgid "Yes"
 msgstr "نعم"
 
-#: Source/Core/VideoBackends/Vulkan/main.cpp:350
+#: Source/Core/VideoBackends/Vulkan/main.cpp:351
 msgid ""
 "You are attempting to use the Vulkan (Metal) backend on an unsupported "
 "operating system. For all functionality to be enabled, you must use macOS "
