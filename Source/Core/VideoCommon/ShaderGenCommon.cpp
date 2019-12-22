@@ -8,6 +8,8 @@
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 ShaderHostConfig ShaderHostConfig::GetCurrent()
 {
@@ -83,4 +85,101 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
 
   filename += ".cache";
   return filename;
+}
+
+static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,
+                               std::string_view type, std::string_view name, int var_index,
+                               std::string_view semantic = {}, int semantic_index = -1)
+{
+  object.WriteFmt("\t{} {} {}", qualifier, type, name);
+
+  if (var_index != -1)
+    object.WriteFmt("{}", var_index);
+
+  if (api_type == APIType::D3D && !semantic.empty())
+  {
+    if (semantic_index != -1)
+      object.WriteFmt(" : {}{}", semantic, semantic_index);
+    else
+      object.WriteFmt(" : {}", semantic);
+  }
+
+  object.WriteFmt(";\n");
+}
+
+void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
+                             const ShaderHostConfig& host_config, std::string_view qualifier)
+{
+  DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "SV_Position");
+  DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
+  DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
+
+  for (unsigned int i = 0; i < texgens; ++i)
+    DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
+
+  if (!host_config.fast_depth_calc)
+    DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
+
+  if (host_config.per_pixel_lighting)
+  {
+    DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD",
+                       texgens + 1);
+    DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
+                       texgens + 2);
+  }
+
+  if (host_config.backend_geometry_shaders)
+  {
+    DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
+    DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
+  }
+}
+
+void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_view b, u32 texgens,
+                           const ShaderHostConfig& host_config)
+{
+  object.WriteFmt("\t{}.pos = {}.pos;\n", a, b);
+  object.WriteFmt("\t{}.colors_0 = {}.colors_0;\n", a, b);
+  object.WriteFmt("\t{}.colors_1 = {}.colors_1;\n", a, b);
+
+  for (unsigned int i = 0; i < texgens; ++i)
+    object.WriteFmt("\t{}.tex{} = {}.tex{};\n", a, i, b, i);
+
+  if (!host_config.fast_depth_calc)
+    object.WriteFmt("\t{}.clipPos = {}.clipPos;\n", a, b);
+
+  if (host_config.per_pixel_lighting)
+  {
+    object.WriteFmt("\t{}.Normal = {}.Normal;\n", a, b);
+    object.WriteFmt("\t{}.WorldPos = {}.WorldPos;\n", a, b);
+  }
+
+  if (host_config.backend_geometry_shaders)
+  {
+    object.WriteFmt("\t{}.clipDist0 = {}.clipDist0;\n", a, b);
+    object.WriteFmt("\t{}.clipDist1 = {}.clipDist1;\n", a, b);
+  }
+}
+
+const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block, bool in)
+{
+  if (!msaa)
+    return "";
+
+  // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
+  // "centroid in" and not "centroid", even within an interface block.
+  if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  {
+    if (!ssaa)
+      return in ? "centroid in" : "centroid out";
+    else
+      return in ? "sample in" : "sample out";
+  }
+  else
+  {
+    if (!ssaa)
+      return "centroid";
+    else
+      return "sample";
+  }
 }

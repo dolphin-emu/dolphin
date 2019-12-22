@@ -10,10 +10,7 @@
 #include <cstdio>
 #include <memory>
 #include <string>
-#include <tuple>
-#include <vector>
 
-#include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLContext.h"
@@ -24,7 +21,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/Core.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
@@ -32,22 +28,16 @@
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 namespace OGL
 {

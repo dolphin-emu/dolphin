@@ -3,9 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/FramebufferManager.h"
+
 #include <memory>
-#include "VideoCommon/FramebufferShaderGen.h"
-#include "VideoCommon/VertexManagerBase.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
@@ -17,7 +16,10 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 // Maximum number of pixels poked in one batch * 6

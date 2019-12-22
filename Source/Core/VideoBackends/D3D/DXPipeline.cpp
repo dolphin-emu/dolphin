@@ -2,9 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <algorithm>
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
@@ -15,6 +12,7 @@
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {

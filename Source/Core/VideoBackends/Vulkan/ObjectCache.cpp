@@ -21,7 +21,7 @@
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
-#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan
 {

@@ -3,11 +3,12 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/UberShaderVertex.h"
+
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/VertexShaderGen.h"
-#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace UberShader
