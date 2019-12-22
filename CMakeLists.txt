@@ -5,7 +5,10 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10.0" CACHE STRING "")
+
+# MacOS prior to 10.12 did not fully support C++17, which is used to
+# handle configuration options
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12.0" CACHE STRING "")
 
 project(dolphin-emu)
 
