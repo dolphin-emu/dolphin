@@ -166,7 +166,7 @@ static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, 
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
 
   while (s_hotplug_thread_running.IsSet())
   {
@@ -211,7 +211,7 @@ static void HotplugThreadFunc()
       }
     }
   }
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -241,7 +241,7 @@ static void StopHotplugThread()
 
 static void Restart()
 {
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
 
   StopHotplugThread();
 
@@ -281,7 +281,7 @@ void Init()
 
 void PopulateDevices()
 {
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
 
   g_controller_interface.RemoveDevice(
       [](const auto* dev) { return dev->GetSource() == "DSUClient"; });
