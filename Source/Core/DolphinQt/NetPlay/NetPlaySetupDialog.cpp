@@ -328,6 +328,14 @@ void NetPlaySetupDialog::accept()
       return;
     }
 
+    if (m_host_server_browser->isChecked() &&
+        m_host_server_region->currentData().toString().isEmpty())
+    {
+      ModalMessageBox::critical(this, tr("Error"),
+                                tr("You must provide a region for your session!"));
+      return;
+    }
+
     emit Host(items[0]->text());
   }
 }
