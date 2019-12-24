@@ -17,6 +17,7 @@
   // Set the version from Info.plist
   NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
   NSString* version_str = [info objectForKey:@"CFBundleShortVersionString"];
+  version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
 #ifdef PATREON
   version_str = [version_str stringByAppendingString:@" (Patreon)"];
 #endif
