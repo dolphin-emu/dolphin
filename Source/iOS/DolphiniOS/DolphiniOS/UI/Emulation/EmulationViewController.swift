@@ -105,7 +105,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     }
   }
   
-  override func viewWillLayoutSubviews()
+  override func viewDidLayoutSubviews()
   {
     self.adjustRenderRectDependencies()
   }
@@ -132,11 +132,12 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     setup_queue.async
     {
       let target_rectangle = MainiOS.getRenderTargetRectangle()
+      var new_rect: CGRect
       
       // Wait for the target rectangle to be set
       while (true)
       {
-        let new_rect = MainiOS.getRenderTargetRectangle()
+        new_rect = MainiOS.getRenderTargetRectangle()
         if (new_rect.size != target_rectangle.size)
         {
           break;
@@ -147,7 +148,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
       {
         // Only adjust the render rectangle if our width size class is compact and our
         // orientation is portrait
-        if (self.traitCollection.horizontalSizeClass == .compact && UIApplication.shared.statusBarOrientation.isPortrait)
+        if (self.traitCollection.horizontalSizeClass == .compact && self.traitCollection.verticalSizeClass == .regular &&  UIApplication.shared.statusBarOrientation.isPortrait)
         {
           // Get view information
           let screen_scale = UIScreen.main.scale
