@@ -107,7 +107,13 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
   
   override func viewDidLayoutSubviews()
   {
+    if (self.isWii)
+    {
+      TCDeviceMotion.shared.statusBarOrientationChanged()
+    }
+    
     self.adjustRenderRectDependencies()
+    MainiOS.windowResized()
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
@@ -116,15 +122,10 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     
     // Perform an "animation" alongside the transition and tell Dolphin that
     // the window has resized after it is finished
-    coordinator.animate(alongsideTransition: nil, completion: { _ in
-      if (self.isWii)
-      {
-        TCDeviceMotion.shared.statusBarOrientationChanged()
-      }
-      
+    /*coordinator.animate(alongsideTransition: nil, completion: { _ in
       self.adjustRenderRectDependencies()
       MainiOS.windowResized()
-    })
+    })*/
   }
   
   func adjustRenderRectDependencies()

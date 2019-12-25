@@ -68,17 +68,17 @@ import Foundation
       switch (self.orientation)
       {
       case .portrait, .unknown:
-        x = -acceleration.x
-        y = -acceleration.y
-      case .landscapeRight:
-        x = acceleration.y
-        y = -acceleration.x
-      case .portraitUpsideDown:
-        x = acceleration.x
-        y = acceleration.y
-      case .landscapeLeft:
         x = -acceleration.y
         y = acceleration.x
+      case .landscapeRight:
+        x = -acceleration.x
+        y = -acceleration.y
+      case .portraitUpsideDown:
+        x = acceleration.y
+        y = -acceleration.x
+      case .landscapeLeft:
+        x = acceleration.x
+        y = acceleration.y
       @unknown default:
         return
       }
@@ -112,6 +112,8 @@ import Foundation
       switch (self.orientation)
       {
       case .portrait, .unknown:
+        //x = -rotation_rate.y
+        //y = rotation_rate.x
         x = -rotation_rate.x
         y = -rotation_rate.y
       case .landscapeRight:
