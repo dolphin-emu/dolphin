@@ -81,7 +81,6 @@
 		B9DCAC8C23AACCB3002B95C8 /* InGameConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */; };
 		B9DCAC8E23AAD3C3002B95C8 /* ControllerToggleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
-		B9DCAC9623AB38F4002B95C8 /* control-patreon.in in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC9523AB38F4002B95C8 /* control-patreon.in */; };
 		B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -196,6 +195,7 @@
 		B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildCsdbgd.sh; path = BuildResources/BuildScripts/BuildCsdbgd.sh; sourceTree = "<group>"; };
 		B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CopyDolphinImages.sh; path = BuildResources/BuildScripts/CopyDolphinImages.sh; sourceTree = "<group>"; };
 		B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = UpdateEntitlements.sh; path = BuildResources/BuildScripts/UpdateEntitlements.sh; sourceTree = "<group>"; };
+		B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CleanBundle.sh; path = BuildResources/BuildScripts/CleanBundle.sh; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -454,6 +454,7 @@
 				B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */,
 				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
 				B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */,
+				B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */,
 			);
 			name = "Build Scripts";
 			sourceTree = "<group>";
@@ -473,6 +474,7 @@
 				B945A36D2362908400B21680 /* Frameworks */,
 				B945A36E2362908400B21680 /* Resources */,
 				B91BF385236BFA9A00199BA7 /* CopyFiles */,
+				B9E1ACB423B34F540072EDF0 /* Clean Bundle */,
 			);
 			buildRules = (
 			);
@@ -527,7 +529,6 @@
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
-				B9DCAC9623AB38F4002B95C8 /* control-patreon.in in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
@@ -595,6 +596,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/BuildCsdbgd.sh\n";
+		};
+		B9E1ACB423B34F540072EDF0 /* Clean Bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Clean Bundle";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/CleanBundle.sh\n";
 		};
 		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
 			isa = PBXShellScriptBuildPhase;
