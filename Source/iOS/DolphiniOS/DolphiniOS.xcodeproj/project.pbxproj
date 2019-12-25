@@ -197,6 +197,7 @@
 		B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = UpdateEntitlements.sh; path = BuildResources/BuildScripts/UpdateEntitlements.sh; sourceTree = "<group>"; };
 		B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CleanBundle.sh; path = BuildResources/BuildScripts/CleanBundle.sh; sourceTree = "<group>"; };
 		B9E1ACB623B355050072EDF0 /* postrm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postrm.sh; path = BuildResources/DebFiles/postrm.sh; sourceTree = "<group>"; };
+		B9E1ACB723B355860072EDF0 /* BuildDebs.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDebs.sh; path = BuildResources/BuildScripts/BuildDebs.sh; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -457,6 +458,7 @@
 				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
 				B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */,
 				B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */,
+				B9E1ACB723B355860072EDF0 /* BuildDebs.sh */,
 			);
 			name = "Build Scripts";
 			sourceTree = "<group>";
