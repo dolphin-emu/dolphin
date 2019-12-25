@@ -144,6 +144,7 @@
   }
   else if (launch_times % 10 == 0)
   {
+#ifndef PATREON
     bool suppress_donation_message = [user_defaults boolForKey:@"suppress_donation_message"];
     
     if (!suppress_donation_message)
@@ -175,6 +176,7 @@
       
       [self presentViewController:alert animated:YES completion:nil];
     }
+#endif
   }
   
   [user_defaults setInteger:launch_times + 1 forKey:@"launch_times"];
