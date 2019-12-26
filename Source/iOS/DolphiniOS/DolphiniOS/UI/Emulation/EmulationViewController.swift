@@ -92,6 +92,8 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     let queue = DispatchQueue(label: "org.dolphin-emu.ios.emulation-queue")
     queue.async
     {
+      MainiOS.toggleSidewaysWiimote(false, reload_wiimote: false)
+      
       MainiOS.startEmulation(withFile: self.softwareFile, viewController: self, view: renderer_view)
       
       if (self.isWii)

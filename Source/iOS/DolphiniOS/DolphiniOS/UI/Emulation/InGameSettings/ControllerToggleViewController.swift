@@ -27,6 +27,11 @@ class ControllerToggleViewController: UITableViewController
     self.m_emulation_controller!.changeController(idx: indexPath.row)
     self.tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
     
+    if (self.m_emulation_controller!.isWii)
+    {
+      MainiOS.toggleSidewaysWiimote(indexPath.row == 1, reload_wiimote: true)
+    }
+    
     self.tableView.deselectRow(at: indexPath, animated: true)
   }
   
