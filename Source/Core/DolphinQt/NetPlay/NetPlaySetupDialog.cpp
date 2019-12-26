@@ -227,6 +227,14 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_chunked_upload_limit_box,
           static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
           &NetPlaySetupDialog::SaveSettings);
+
+  connect(m_host_server_browser, &QCheckBox::toggled, this, &NetPlaySetupDialog::SaveSettings);
+  connect(m_host_server_name, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
+  connect(m_host_server_password, &QLineEdit::textChanged, this, &NetPlaySetupDialog::SaveSettings);
+  connect(m_host_server_region,
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+          &NetPlaySetupDialog::SaveSettings);
+
 #ifdef USE_UPNP
   connect(m_host_upnp, &QCheckBox::stateChanged, this, &NetPlaySetupDialog::SaveSettings);
 #endif
@@ -325,6 +333,14 @@ void NetPlaySetupDialog::accept()
     if (m_host_server_browser->isChecked() && m_host_server_name->text().isEmpty())
     {
       ModalMessageBox::critical(this, tr("Error"), tr("You must provide a name for your session!"));
+      return;
+    }
+
+    if (m_host_server_browser->isChecked() &&
+        m_host_server_region->currentData().toString().isEmpty())
+    {
+      ModalMessageBox::critical(this, tr("Error"),
+                                tr("You must provide a region for your session!"));
       return;
     }
 

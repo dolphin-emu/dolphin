@@ -169,8 +169,11 @@ static void ClearPeerPlayerId(ENetPeer* peer)
 
 void NetPlayServer::SetupIndex()
 {
-  if (!Config::Get(Config::NETPLAY_USE_INDEX))
+  if (!Config::Get(Config::NETPLAY_USE_INDEX) || Config::Get(Config::NETPLAY_INDEX_NAME).empty() ||
+      Config::Get(Config::NETPLAY_INDEX_REGION).empty())
+  {
     return;
+  }
 
   NetPlaySession session;
 
