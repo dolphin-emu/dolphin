@@ -13,7 +13,6 @@ class TCDirectionalPad: UIView
   var dpadTwoPressed: UIImage? = nil
   
   @IBInspectable var directionalPadType: Int = 6 // default: GC D-Pad
-  @IBInspectable var isSideways: Bool = false // default: no
   
   override init(frame: CGRect)
   {
@@ -153,12 +152,6 @@ class TCDirectionalPad: UIView
       
       let radians = rotation * (CGFloat.pi / 180)
       imageView.transform = CGAffineTransform.identity.rotated(by: radians)
-    }
-    
-    // For a sideways Wii remote: UDLR -> LRDU
-    if (self.isSideways)
-    {
-      buttonPresses = [ buttonPresses[2], buttonPresses[3], buttonPresses[1], buttonPresses[0] ]
     }
     
     // Send button values
