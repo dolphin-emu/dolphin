@@ -17,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/State.h"
 
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
@@ -399,6 +400,20 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   wiimote_ini.Load(wiimote_ini_path);
   wiimote_ini.GetOrCreateSection("Wiimote1")->Set("IMUIR/Enabled", enabled);
   wiimote_ini.Save(wiimote_ini_path);
+}
+
++ (void)toggleSidewaysWiimote:(bool)enabled reload_wiimote:(bool)reload_wiimote
+{
+  std::string wiimote_ini_path = File::GetUserPath(F_WIIPADCONFIG_IDX);
+  IniFile wiimote_ini;
+  wiimote_ini.Load(wiimote_ini_path);
+  wiimote_ini.GetOrCreateSection("Wiimote1")->Set("Options/Sideways Wiimote", enabled);
+  wiimote_ini.Save(wiimote_ini_path);
+
+  if (reload_wiimote)
+  {
+    Wiimote::LoadConfig();
+  }
 }
 
 @end

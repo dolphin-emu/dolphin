@@ -22,5 +22,6 @@
 + (void)gamepadEventForButton:(int)button action:(int)action;
 + (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value;
 + (void)toggleImuIr:(bool)enabled;
++ (void)toggleSidewaysWiimote:(bool)enabled reload_wiimote:(bool)reload_wiimote;
 
 @end
