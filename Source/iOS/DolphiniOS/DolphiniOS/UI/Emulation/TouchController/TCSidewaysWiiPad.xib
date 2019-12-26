@@ -79,7 +79,6 @@
                         <userDefinedRuntimeAttribute type="number" keyPath="directionalPadType">
                             <integer key="value" value="107"/>
                         </userDefinedRuntimeAttribute>
-                        <userDefinedRuntimeAttribute type="boolean" keyPath="isSideways" value="YES"/>
                     </userDefinedRuntimeAttributes>
                 </view>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="y2u-kF-jgk" userLabel="HOME" customClass="TCButton" customModule="DolphiniOS" customModuleProvider="target">
