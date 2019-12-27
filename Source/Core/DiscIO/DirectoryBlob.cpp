@@ -387,12 +387,13 @@ bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
   return m_is_wii;
 }
 
-bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_offset)
+bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer,
+                                           u64 partition_data_offset)
 {
   if (!m_is_wii)
     return false;
 
-  auto it = m_partitions.find(partition_offset);
+  auto it = m_partitions.find(partition_data_offset);
   if (it == m_partitions.end())
     return false;
 
@@ -514,7 +515,8 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
     SetPartitionHeader(partitions[i].partition, partition_address);
 
     const u64 partition_data_size = partitions[i].partition.GetDataSize();
-    m_partitions.emplace(partition_address, std::move(partitions[i].partition));
+    m_partitions.emplace(partition_address + PARTITION_DATA_OFFSET,
+                         std::move(partitions[i].partition));
     const u64 unaligned_next_partition_address = VolumeWii::EncryptedPartitionOffsetToRawOffset(
         partition_data_size, Partition(partition_address), PARTITION_DATA_OFFSET);
     partition_address = Common::AlignUp(unaligned_next_partition_address, 0x10000ull);
