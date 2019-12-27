@@ -303,7 +303,7 @@ private:
 
 struct SmallBlockAccessors : Accessors
 {
-  SmallBlockAccessors(u8** alloc_base, u32 size) : alloc_base(alloc_base), size(size) {}
+  SmallBlockAccessors(u8** alloc_base_, u32 size_) : alloc_base{alloc_base_}, size{size_} {}
 
   bool IsValidAddress(u32 address) const override
   {
