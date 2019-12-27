@@ -8,6 +8,7 @@
 #include <cstring>
 #include <memory>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
@@ -163,46 +164,106 @@ bool WIAFileReader::Read(u64 offset, u64 size, u8* out_ptr)
     if (size == 0)
       return true;
 
-    u64 data_offset = Common::swap64(raw_data.data_offset);
-    u64 data_size = Common::swap64(raw_data.data_size);
-
-    if (data_offset + data_size <= offset)
-      continue;
-
-    if (offset < data_offset)
-      return false;
-
-    const u64 skipped_data = data_offset % VolumeWii::BLOCK_TOTAL_SIZE;
-    data_offset -= skipped_data;
-    data_size += skipped_data;
-
-    const u32 number_of_groups = Common::swap32(raw_data.number_of_groups);
-    const u64 group_index = (offset - data_offset) / chunk_size;
-    for (u64 i = group_index; i < number_of_groups && size > 0; ++i)
+    if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_TOTAL_SIZE,
+                        Common::swap64(raw_data.data_offset), Common::swap64(raw_data.data_size),
+                        Common::swap32(raw_data.group_index),
+                        Common::swap32(raw_data.number_of_groups), false))
     {
-      const u64 total_group_index = Common::swap32(raw_data.group_index) + i;
-      if (total_group_index >= m_group_entries.size())
-        return false;
-
-      const GroupEntry group = m_group_entries[total_group_index];
-      const u64 group_offset_on_disc = data_offset + i * chunk_size;
-      const u64 offset_in_group = offset - group_offset_on_disc;
-
-      // TODO: Compression
-
-      const u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
-      const u64 offset_in_file = group_offset_in_file + offset_in_group;
-      const u64 bytes_to_read = std::min(chunk_size - offset_in_group, size);
-      if (!m_file.Seek(offset_in_file, SEEK_SET) || !m_file.ReadBytes(out_ptr, bytes_to_read))
-        return false;
-
-      offset += bytes_to_read;
-      size -= bytes_to_read;
-      out_ptr += bytes_to_read;
+      return false;
     }
   }
 
   return size == 0;
+}
+
+bool WIAFileReader::SupportsReadWiiDecrypted() const
+{
+  return !m_partition_entries.empty();
+}
+
+bool WIAFileReader::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset)
+{
+  const u64 chunk_size = Common::swap32(m_header_2.chunk_size) * VolumeWii::BLOCK_DATA_SIZE /
+                         VolumeWii::BLOCK_TOTAL_SIZE;
+  for (const PartitionEntry& partition : m_partition_entries)
+  {
+    const u32 partition_first_sector = Common::swap32(partition.data_entries[0].first_sector);
+    if (partition_data_offset != partition_first_sector * VolumeWii::BLOCK_TOTAL_SIZE)
+      continue;
+
+    for (const PartitionDataEntry& data : partition.data_entries)
+    {
+      if (size == 0)
+        return true;
+
+      const u64 data_offset =
+          (Common::swap32(data.first_sector) - partition_first_sector) * VolumeWii::BLOCK_DATA_SIZE;
+      const u64 data_size = Common::swap32(data.number_of_sectors) * VolumeWii::BLOCK_DATA_SIZE;
+
+      if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
+                          data_offset, data_size, Common::swap32(data.group_index),
+                          Common::swap32(data.number_of_groups), true))
+      {
+        return false;
+      }
+    }
+
+    return size == 0;
+  }
+
+  return false;
+}
+
+bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size,
+                                   u32 sector_size, u64 data_offset, u64 data_size, u32 group_index,
+                                   u32 number_of_groups, bool exception_list)
+{
+  if (data_offset + data_size <= *offset)
+    return true;
+
+  if (*offset < data_offset)
+    return false;
+
+  const u64 skipped_data = data_offset % sector_size;
+  data_offset -= skipped_data;
+  data_size += skipped_data;
+
+  const u64 start_group_index = (*offset - data_offset) / chunk_size;
+  for (u64 i = start_group_index; i < number_of_groups && (*size) > 0; ++i)
+  {
+    const u64 total_group_index = group_index + i;
+    if (total_group_index >= m_group_entries.size())
+      return false;
+
+    const GroupEntry group = m_group_entries[total_group_index];
+    const u64 group_offset = data_offset + i * chunk_size;
+    const u64 offset_in_group = *offset - group_offset;
+
+    // TODO: Compression
+
+    u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
+
+    if (exception_list)
+    {
+      u16 exceptions;
+      if (!m_file.Seek(group_offset_in_file, SEEK_SET) || !m_file.ReadArray(&exceptions, 1))
+        return false;
+
+      group_offset_in_file += Common::AlignUp(
+          sizeof(exceptions) + Common::swap16(exceptions) * sizeof(HashExceptionEntry), 4);
+    }
+
+    const u64 offset_in_file = group_offset_in_file + offset_in_group;
+    const u64 bytes_to_read = std::min(chunk_size - offset_in_group, *size);
+    if (!m_file.Seek(offset_in_file, SEEK_SET) || !m_file.ReadBytes(*out_ptr, bytes_to_read))
+      return false;
+
+    *offset += bytes_to_read;
+    *size -= bytes_to_read;
+    *out_ptr += bytes_to_read;
+  }
+
+  return true;
 }
 
 std::string WIAFileReader::VersionToString(u32 version)

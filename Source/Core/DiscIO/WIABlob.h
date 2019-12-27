@@ -33,10 +33,16 @@ public:
   bool HasFastRandomAccessInBlock() const override { return false; }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
+  bool SupportsReadWiiDecrypted() const override;
+  bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
 private:
   explicit WIAFileReader(File::IOFile file, const std::string& path);
   bool Initialize(const std::string& path);
+
+  bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
+                      u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
+                      bool exception_list);
 
   static std::string VersionToString(u32 version);
 
