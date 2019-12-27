@@ -6,6 +6,8 @@
 
 #include <functional>
 #include <memory>
+#include <string>
+#include <utility>
 
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -14,6 +16,12 @@ class PointerWrap;
 
 namespace ExpansionInterface
 {
+enum class AllowMovieFolder
+{
+  Yes,
+  No,
+};
+
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
@@ -33,6 +41,9 @@ public:
   // not already registered first.
   static void Init();
   static void Shutdown();
+
+  static std::pair<std::string /* path */, bool /* migrate */>
+  GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
 
 private:
   void SetupGciFolder(u16 sizeMb);
