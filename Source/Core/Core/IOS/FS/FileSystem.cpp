@@ -22,6 +22,13 @@ bool IsValidNonRootPath(std::string_view path)
          path.back() != '/';
 }
 
+SplitPathResult SplitPathAndBasename(std::string_view path)
+{
+  const auto last_separator = path.rfind('/');
+  return {std::string(path.substr(0, std::max<size_t>(1, last_separator))),
+          std::string(path.substr(last_separator + 1))};
+}
+
 std::unique_ptr<FileSystem> MakeFileSystem(Location location)
 {
   const std::string nand_root =

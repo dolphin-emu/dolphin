@@ -3,12 +3,19 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <optional>
+#include <string_view>
+#include <type_traits>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/IOS.h"
@@ -39,12 +46,185 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parent_entry)
   return sizeOfFiles;
 }
 
+namespace
+{
+struct SerializedFstEntry
+{
+  std::string_view GetName() const { return {name.data(), strnlen(name.data(), name.size())}; }
+  void SetName(std::string_view new_name)
+  {
+    std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.length()));
+  }
+
+  /// File name
+  std::array<char, 12> name{};
+  /// File owner user ID
+  Common::BigEndianValue<Uid> uid{};
+  /// File owner group ID
+  Common::BigEndianValue<Gid> gid{};
+  /// Is this a file or a directory?
+  bool is_file = false;
+  /// File access modes
+  Modes modes{};
+  /// File attribute
+  FileAttribute attribute{};
+  /// Unknown property
+  Common::BigEndianValue<u32> x3{};
+  /// Number of children
+  Common::BigEndianValue<u32> num_children{};
+};
+static_assert(std::is_standard_layout<SerializedFstEntry>());
+static_assert(sizeof(SerializedFstEntry) == 0x20);
+
+template <typename T>
+auto GetMetadataFields(T& obj)
+{
+  return std::tie(obj.uid, obj.gid, obj.is_file, obj.modes, obj.attribute);
+}
+
+auto GetNamePredicate(const std::string& name)
+{
+  return [&name](const auto& entry) { return entry.name == name; };
+}
+}  // namespace
+
+bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
+                                               Mode requested_mode) const
+{
+  if (caller_uid == 0)
+    return true;
+  Mode file_mode = data.modes.other;
+  if (data.uid == caller_uid)
+    file_mode = data.modes.owner;
+  else if (data.gid == caller_gid)
+    file_mode = data.modes.group;
+  return (u8(requested_mode) & u8(file_mode)) == u8(requested_mode);
+}
+
 HostFileSystem::HostFileSystem(const std::string& root_path) : m_root_path{root_path}
 {
   Init();
+  ResetFst();
+  LoadFst();
 }
 
 HostFileSystem::~HostFileSystem() = default;
+
+std::string HostFileSystem::GetFstFilePath() const
+{
+  return fmt::format("{}/fst.bin", m_root_path);
+}
+
+void HostFileSystem::ResetFst()
+{
+  m_root_entry = {};
+  m_root_entry.name = "/";
+  // Mode 0x16 (Directory | Owner_None | Group_Read | Other_Read) in the FS sysmodule
+  m_root_entry.data.modes = {Mode::None, Mode::Read, Mode::Read};
+}
+
+void HostFileSystem::LoadFst()
+{
+  File::IOFile file{GetFstFilePath(), "rb"};
+  // Existing filesystems will not have a FST. This is not a problem,
+  // as the rest of HostFileSystem will use sane defaults.
+  if (!file)
+    return;
+
+  const auto parse_entry = [&file](const auto& parse, size_t depth) -> std::optional<FstEntry> {
+    if (depth > MaxPathDepth)
+      return std::nullopt;
+
+    SerializedFstEntry entry;
+    if (!file.ReadArray(&entry, 1))
+      return std::nullopt;
+
+    FstEntry result;
+    result.name = entry.GetName();
+    GetMetadataFields(result.data) = GetMetadataFields(entry);
+    for (size_t i = 0; i < entry.num_children; ++i)
+    {
+      const auto maybe_child = parse(parse, depth + 1);
+      if (!maybe_child.has_value())
+        return std::nullopt;
+      result.children.push_back(*maybe_child);
+    }
+    return result;
+  };
+
+  const auto root_entry = parse_entry(parse_entry, 0);
+  if (!root_entry.has_value())
+  {
+    ERROR_LOG(IOS_FS, "Failed to parse FST: at least one of the entries was invalid");
+    return;
+  }
+  m_root_entry = *root_entry;
+}
+
+void HostFileSystem::SaveFst()
+{
+  std::vector<SerializedFstEntry> to_write;
+  auto collect_entries = [&to_write](const auto& collect, const FstEntry& entry) -> void {
+    SerializedFstEntry& serialized = to_write.emplace_back();
+    serialized.SetName(entry.name);
+    GetMetadataFields(serialized) = GetMetadataFields(entry.data);
+    serialized.num_children = u32(entry.children.size());
+    for (const FstEntry& child : entry.children)
+      collect(collect, child);
+  };
+  collect_entries(collect_entries, m_root_entry);
+
+  const std::string dest_path = GetFstFilePath();
+  const std::string temp_path = File::GetTempFilenameForAtomicWrite(dest_path);
+  File::IOFile file{temp_path, "wb"};
+  if (!file.WriteArray(to_write.data(), to_write.size()) || !File::Rename(temp_path, dest_path))
+    ERROR_LOG(IOS_FS, "Failed to write new FST");
+}
+
+HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& path)
+{
+  if (path == "/")
+    return &m_root_entry;
+
+  if (!IsValidNonRootPath(path))
+    return nullptr;
+
+  const File::FileInfo host_file_info{BuildFilename(path)};
+  if (!host_file_info.Exists())
+    return nullptr;
+
+  FstEntry* entry = &m_root_entry;
+  std::string complete_path = "";
+  for (const std::string& component : SplitString(std::string(path.substr(1)), '/'))
+  {
+    complete_path += '/' + component;
+    const auto next =
+        std::find_if(entry->children.begin(), entry->children.end(), GetNamePredicate(component));
+    if (next != entry->children.end())
+    {
+      entry = &*next;
+    }
+    else
+    {
+      // Fall back to dummy data to avoid breaking existing filesystems.
+      // This code path is also reached when creating a new file or directory;
+      // proper metadata is filled in later.
+      INFO_LOG(IOS_FS, "Creating a default entry for %s", complete_path.c_str());
+      entry = &entry->children.emplace_back();
+      entry->name = component;
+      entry->data.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
+    }
+  }
+
+  entry->data.is_file = host_file_info.IsFile();
+  if (entry->data.is_file && !entry->children.empty())
+  {
+    WARN_LOG(IOS_FS, "%s is a file but also has children; clearing children", path.c_str());
+    entry->children.clear();
+  }
+
+  return entry;
+}
 
 void HostFileSystem::DoState(PointerWrap& p)
 {
@@ -250,7 +430,6 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const s
   if (!IsValidPath(path))
     return ResultCode::Invalid;
 
-  // the Wii uses this function to define the type (dir or file)
   const std::string dir_name(BuildFilename(path));
 
   const File::FileInfo file_info(dir_name);

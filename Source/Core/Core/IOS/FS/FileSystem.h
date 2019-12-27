@@ -112,12 +112,24 @@ struct FileStatus
   u32 size;
 };
 
+/// The maximum number of components a path can have.
+constexpr size_t MaxPathDepth = 8;
 /// The maximum number of characters a path can have.
 constexpr size_t MaxPathLength = 64;
 
 /// Returns whether a Wii path is valid.
 bool IsValidPath(std::string_view path);
 bool IsValidNonRootPath(std::string_view path);
+
+struct SplitPathResult
+{
+  std::string parent;
+  std::string file_name;
+};
+/// Split a path into a parent path and the file name. Takes a *valid non-root* path.
+///
+/// Example: /shared2/sys/SYSCONF => {/shared2/sys, SYSCONF}
+SplitPathResult SplitPathAndBasename(std::string_view path);
 
 class FileSystem;
 class FileHandle final
