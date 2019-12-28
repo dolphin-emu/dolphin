@@ -87,6 +87,9 @@ private:
   std::string BuildFilename(const std::string& wii_path) const;
   std::shared_ptr<File::IOFile> OpenHostFile(const std::string& host_path);
 
+  ResultCode CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
+                                   FileAttribute attribute, Modes modes, bool is_file);
+
   std::string GetFstFilePath() const;
   void ResetFst();
   void LoadFst();

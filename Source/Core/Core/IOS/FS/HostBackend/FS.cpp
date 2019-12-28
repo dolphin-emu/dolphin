@@ -348,36 +348,57 @@ ResultCode HostFileSystem::Format(Uid uid)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAttribute, Modes)
+ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
+                                                 FileAttribute attr, Modes modes, bool is_file)
 {
-  std::string file_name(BuildFilename(path));
-  // check if the file already exist
-  if (File::Exists(file_name))
+  if (!IsValidNonRootPath(path) || !std::all_of(path.begin(), path.end(), IsPrintableCharacter))
+    return ResultCode::Invalid;
+
+  if (!is_file && std::count(path.begin(), path.end(), '/') > int(MaxPathDepth))
+    return ResultCode::TooManyPathComponents;
+
+  const auto split_path = SplitPathAndBasename(path);
+  const std::string host_path = BuildFilename(path);
+
+  FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  if (!parent)
+    return ResultCode::NotFound;
+
+  if (!parent->CheckPermission(uid, gid, Mode::Write))
+    return ResultCode::AccessDenied;
+
+  if (File::Exists(host_path))
     return ResultCode::AlreadyExists;
 
-  // create the file
-  File::CreateFullPath(file_name);  // just to be sure
-  if (!File::CreateEmptyFile(file_name))
+  const bool ok = is_file ? File::CreateEmptyFile(host_path) : File::CreateDir(host_path);
+  if (!ok)
   {
-    ERROR_LOG(IOS_FS, "couldn't create new file");
-    return ResultCode::Invalid;
+    ERROR_LOG(IOS_FS, "Failed to create file or directory: %s", host_path.c_str());
+    return ResultCode::UnknownError;
   }
 
+  FstEntry* child = GetFstEntryForPath(path);
+  *child = {};
+  child->name = split_path.file_name;
+  child->data.is_file = is_file;
+  child->data.modes = modes;
+  child->data.uid = uid;
+  child->data.gid = gid;
+  child->data.attribute = attr;
+  SaveFst();
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path, FileAttribute, Modes)
+ResultCode HostFileSystem::CreateFile(Uid uid, Gid gid, const std::string& path, FileAttribute attr,
+                                      Modes modes)
 {
-  if (!IsValidPath(path))
-    return ResultCode::Invalid;
+  return CreateFileOrDirectory(uid, gid, path, attr, modes, true);
+}
 
-  std::string name(BuildFilename(path));
-
-  name += "/";
-  File::CreateFullPath(name);
-  DEBUG_ASSERT_MSG(IOS_FS, File::IsDirectory(name), "CREATE_DIR %s failed", name.c_str());
-
-  return ResultCode::Success;
+ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& path,
+                                           FileAttribute attr, Modes modes)
+{
+  return CreateFileOrDirectory(uid, gid, path, attr, modes, false);
 }
 
 ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
