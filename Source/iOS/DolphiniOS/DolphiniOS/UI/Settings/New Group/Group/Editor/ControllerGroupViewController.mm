@@ -47,11 +47,6 @@
   [super viewWillDisappear:animated];
   
   [ControllerSettingsUtils SaveSettings:self.m_is_wii];
-  
-  if (self->m_input_wait_block != nil)
-  {
-    dispatch_block_cancel(self->m_input_wait_block);
-  }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
@@ -117,14 +112,30 @@
   return nil;
 }
 
-- (NSIndexPath*)tableView:(UITableView*)tableView willSelectRowAtIndexPath:(NSIndexPath*)indexPath
+- (UISwipeActionsConfiguration*)tableView:(UITableView*)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  if ([self.tableView indexPathForSelectedRow] != nil || indexPath.section == 1)
+  if (indexPath.section == 0)
+  {
+    UIContextualAction* clear_action = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:@"Clear" handler:^(UIContextualAction* action, __kindof UIView* source_view, void (^completion_handler)(bool)) {
+      ControllerGroupButtonCell* cell = [self.tableView cellForRowAtIndexPath:indexPath];
+      
+      cell.m_reference->SetExpression("");
+      cell.m_controller->UpdateSingleControlReference(g_controller_interface, cell.m_reference);
+      
+      [cell ResetToDefault];
+      
+      completion_handler(false);
+    }];
+
+    UISwipeActionsConfiguration* actions = [UISwipeActionsConfiguration configurationWithActions:@[ clear_action ]];
+    actions.performsFirstActionWithFullSwipe = false;
+    
+    return actions;
+  }
+  else
   {
     return nil;
   }
-  
-  return indexPath;
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
@@ -135,14 +146,11 @@
     
     [cell.m_user_setting_label setText:@"[...]"];
     
-    self->m_input_wait_block = dispatch_block_create((dispatch_block_flags_t)0, ^{
+    [self.tableView setUserInteractionEnabled:false];
+    self.navigationController.navigationBar.userInteractionEnabled = false;
+    
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), ^{
       dispatch_sync(dispatch_get_main_queue(), ^{
-        [cell.m_user_setting_label setText:@"[...]"];
-        
-        [self.tableView setUserInteractionEnabled:false];
-        
-        [self.m_cancel_item setEnabled:true];
-        [self.m_clear_item setEnabled:true];
       });
       
       const auto [device, input] = g_controller_interface.DetectInput(3000, {self.m_controller->GetDefaultDevice().ToString()});
@@ -150,7 +158,7 @@
       if (!input)
       {
         dispatch_sync(dispatch_get_main_queue(), ^{
-          [self StopEditingCell:cell WithCancelBlock:false];
+          [self StopEditingCell:cell];
         });
         
         return;
@@ -161,13 +169,9 @@
       cell.m_controller->UpdateSingleControlReference(g_controller_interface, cell.m_reference);
       
       dispatch_sync(dispatch_get_main_queue(), ^{
-        [self StopEditingCell:cell WithCancelBlock:false];
+        [self StopEditingCell:cell];
       });
-      
-      self->m_input_wait_block = nil;
     });
-    
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), self->m_input_wait_block);
     
     return;
   }
@@ -175,55 +179,14 @@
   [self.tableView deselectRowAtIndexPath:indexPath animated:true];
 }
 
-- (ControllerGroupButtonCell*)GetSelectedButtonCell
-{
-  NSIndexPath* index_path = [self.tableView indexPathForSelectedRow];
-  
-  if (index_path.section != 0)
-  {
-    return nil;
-  }
-  
-  return (ControllerGroupButtonCell*)[self.tableView cellForRowAtIndexPath:index_path];
-}
-
-- (IBAction)CancelPressed:(id)sender
-{
-  [self StopEditingCell:[self GetSelectedButtonCell] WithCancelBlock:true];
-}
-
-- (IBAction)ClearPressed:(id)sender
-{
-  ControllerGroupButtonCell* cell = [self GetSelectedButtonCell];
-  
-  cell.m_reference->SetExpression("");
-  cell.m_controller->UpdateSingleControlReference(g_controller_interface, cell.m_reference);
-  
-  [self StopEditingCell:cell WithCancelBlock:true];
-}
-
-- (IBAction)ResetPressed:(id)sender
-{
-  // TODO
-  [self StopEditingCell:[self GetSelectedButtonCell] WithCancelBlock:true];
-}
-
-- (void)StopEditingCell:(ControllerGroupButtonCell*)cell WithCancelBlock:(bool)cancel_block
+- (void)StopEditingCell:(ControllerGroupButtonCell*)cell
 {
   [cell ResetToDefault];
   
   [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForCell:cell] animated:true];
   
-  if (self->m_input_wait_block != nil && cancel_block)
-  {
-    dispatch_block_cancel(self->m_input_wait_block);
-    self->m_input_wait_block = nil;
-  }
-  
   [self.tableView setUserInteractionEnabled:true];
-  
-  [self.m_cancel_item setEnabled:false];
-  [self.m_clear_item setEnabled:false];
+  self.navigationController.navigationBar.userInteractionEnabled = true;
 }
 
 @end

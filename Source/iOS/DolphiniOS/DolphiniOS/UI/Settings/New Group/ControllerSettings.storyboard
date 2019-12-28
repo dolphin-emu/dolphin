@@ -635,31 +635,8 @@
                             <outlet property="delegate" destination="e9W-dj-exp" id="NL8-L1-3zX"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Group Name" id="i2F-vi-m2c">
-                        <rightBarButtonItems>
-                            <barButtonItem enabled="NO" systemItem="stop" id="d81-22-pge">
-                                <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <connections>
-                                    <action selector="CancelPressed:" destination="e9W-dj-exp" id="35I-I6-Xkf"/>
-                                </connections>
-                            </barButtonItem>
-                            <barButtonItem enabled="NO" systemItem="trash" id="6I0-Jt-FpS">
-                                <connections>
-                                    <action selector="ClearPressed:" destination="e9W-dj-exp" id="1KR-Pw-2Te"/>
-                                </connections>
-                            </barButtonItem>
-                            <barButtonItem enabled="NO" systemItem="refresh" id="cWE-kW-KTd">
-                                <connections>
-                                    <action selector="ResetPressed:" destination="e9W-dj-exp" id="zKU-ts-iNi"/>
-                                </connections>
-                            </barButtonItem>
-                        </rightBarButtonItems>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Group Name" id="i2F-vi-m2c"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
-                    <connections>
-                        <outlet property="m_cancel_item" destination="d81-22-pge" id="kTW-PG-cVv"/>
-                        <outlet property="m_clear_item" destination="6I0-Jt-FpS" id="89i-kl-Bd2"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="zSj-cr-mO6" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
