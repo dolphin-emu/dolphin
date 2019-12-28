@@ -334,9 +334,17 @@ void HostFileSystem::DoState(PointerWrap& p)
 
 ResultCode HostFileSystem::Format(Uid uid)
 {
+  if (uid != 0)
+    return ResultCode::AccessDenied;
+  if (m_root_path.empty())
+    return ResultCode::AccessDenied;
   const std::string root = BuildFilename("/");
   if (!File::DeleteDirRecursively(root) || !File::CreateDir(root))
     return ResultCode::UnknownError;
+  ResetFst();
+  SaveFst();
+  // Reset and close all handles.
+  m_handles = {};
   return ResultCode::Success;
 }
 
