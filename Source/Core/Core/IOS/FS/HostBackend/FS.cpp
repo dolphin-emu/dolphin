@@ -15,11 +15,6 @@
 
 namespace IOS::HLE::FS
 {
-static bool IsValidWiiPath(const std::string& path)
-{
-  return path.compare(0, 1, "/") == 0;
-}
-
 std::string HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
   if (wii_path.compare(0, 1, "/") == 0)
@@ -185,7 +180,7 @@ ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAtt
 
 ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path, FileAttribute, Modes)
 {
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
 
   std::string name(BuildFilename(path));
@@ -199,7 +194,7 @@ ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path, Fi
 
 ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
 {
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
 
   const std::string file_name = BuildFilename(path);
@@ -216,11 +211,11 @@ ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
 ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
                                   const std::string& new_path)
 {
-  if (!IsValidWiiPath(old_path))
+  if (!IsValidPath(old_path))
     return ResultCode::Invalid;
   const std::string old_name = BuildFilename(old_path);
 
-  if (!IsValidWiiPath(new_path))
+  if (!IsValidPath(new_path))
     return ResultCode::Invalid;
   const std::string new_name = BuildFilename(new_path);
 
@@ -252,7 +247,7 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
 
 Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const std::string& path)
 {
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
 
   // the Wii uses this function to define the type (dir or file)
@@ -301,7 +296,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
   metadata.gid = 0x3031;  // this is also known as makercd, 01 (0x3031) for nintendo and 08
                           // (0x3038) for MH3 etc
 
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
 
   std::string file_name = BuildFilename(path);
@@ -330,7 +325,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
 ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
                                        FileAttribute, Modes)
 {
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
   return ResultCode::Success;
 }
@@ -354,7 +349,7 @@ Result<NandStats> HostFileSystem::GetNandStats()
 
 Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_path)
 {
-  if (!IsValidWiiPath(wii_path))
+  if (!IsValidPath(wii_path))
     return ResultCode::Invalid;
 
   DirectoryStats stats{};

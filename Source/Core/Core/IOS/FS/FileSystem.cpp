@@ -11,6 +11,17 @@
 
 namespace IOS::HLE::FS
 {
+bool IsValidPath(std::string_view path)
+{
+  return path == "/" || IsValidNonRootPath(path);
+}
+
+bool IsValidNonRootPath(std::string_view path)
+{
+  return path.length() > 1 && path.length() <= MaxPathLength && path[0] == '/' &&
+         path.back() != '/';
+}
+
 std::unique_ptr<FileSystem> MakeFileSystem(Location location)
 {
   const std::string nand_root =

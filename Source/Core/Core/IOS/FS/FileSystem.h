@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #ifdef _WIN32
@@ -110,6 +111,13 @@ struct FileStatus
   u32 offset;
   u32 size;
 };
+
+/// The maximum number of characters a path can have.
+constexpr size_t MaxPathLength = 64;
+
+/// Returns whether a Wii path is valid.
+bool IsValidPath(std::string_view path);
+bool IsValidNonRootPath(std::string_view path);
 
 class FileSystem;
 class FileHandle final
