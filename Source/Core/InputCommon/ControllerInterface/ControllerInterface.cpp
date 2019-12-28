@@ -25,7 +25,7 @@
 #ifdef CIFACE_USE_ANDROID
 #include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
-#ifdef CIFACE_USE_IOS
+#ifdef CIFACE_USE_IPHONEOS
 #include "InputCommon/ControllerInterface/iOS/iOS.h"
 #endif
 #ifdef CIFACE_USE_EVDEV
@@ -68,6 +68,9 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 #endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
+#endif
+#ifdef CIFACE_USE_IPHONEOS
+  ciface::iOS::Init();
 #endif
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Init();
@@ -127,7 +130,7 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_ANDROID
   ciface::Android::PopulateDevices();
 #endif
-#ifdef CIFACE_USE_IOS
+#ifdef CIFACE_USE_IPHONEOS
   ciface::iOS::PopulateDevices();
 #endif
 #ifdef CIFACE_USE_EVDEV
@@ -187,6 +190,9 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
+#endif
+#ifdef CIFACE_USE_IPHONEOS
+  ciface::iOS::DeInit();
 #endif
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Shutdown();
